@@ -21,7 +21,6 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`boolean-event-arg-string-in-transpiler`](items/boolean-event-arg-string-in-transpiler.md) | the framework's ajson path normalizes a JSON boolean `t_arg` to `X`/space on a real system; in open-abap the same argument lands verbatim as `'true'`/`'false'`, so the comparison fails, the flag never flips and the wire reads as dead while the port is correct | medium | 2026-08-25 | open-abap/open-abap-core |
 | [`open-abap-asxml-text-escape`](items/open-abap-asxml-text-escape.md) | 'kernel_call_transformation (lcl_data_to_xml=>run) concatenates a string value into its element as it is, while the parser resolves &lt; &gt; &amp; on the way back; a string that contains `<` comes back cut at that point. A system escapes on the way out' | medium | 2026-09-02 | open-abap/open-abap-core |
 
 ---

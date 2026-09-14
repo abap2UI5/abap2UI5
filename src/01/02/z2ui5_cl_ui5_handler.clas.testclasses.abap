@@ -659,12 +659,12 @@ CLASS ltcl_01_request IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
-                 `"EVENT":"MY_EVENT","T_EVENT_ARG":["plain",5,true,{"KEY":"val"},[1,2]]}}}`.
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":["plain",5,true,{"KEY":"val"},[1,2],false,"true"]}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 5
+    cl_abap_unit_assert=>assert_equals( exp = 7
                                         act = lines( ls_request-s_front-t_event_arg ) ).
     cl_abap_unit_assert=>assert_equals( exp = `plain`
                                         act = ls_request-s_front-t_event_arg[ 1 ] ).
@@ -676,6 +676,19 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-t_event_arg[ 4 ] ).
     cl_abap_unit_assert=>assert_equals( exp = `[1,2]`
                                         act = ls_request-s_front-t_event_arg[ 5 ] ).
+    " the OTHER half of the boolean convention, and the reason this branch
+    " exists at all: a handler comparing `= abap_true` has to see a space for
+    " false, not the four characters `false`. The suite runs on the
+    " TRANSPILED backend, so this is also what pins the open-abap side - the
+    " divergence backlog/items/boolean-event-arg-string-in-transpiler.md was
+    " filed for is closed HERE, at the boundary, rather than in the runtime
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = ls_request-s_front-t_event_arg[ 6 ] ).
+    " ...and a JSON STRING that happens to read `true` keeps the word. The
+    " normalization is about the node TYPE; a port transporting the token
+    " deliberately (the workaround app 421 carries) must not be rewritten
+    cl_abap_unit_assert=>assert_equals( exp = `true`
+                                        act = ls_request-s_front-t_event_arg[ 7 ] ).
   ENDMETHOD.
 
   METHOD test_parse_body_arg_limit.

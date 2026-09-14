@@ -5,7 +5,8 @@ summary: deleting the current row from under the loop skips the next one — a w
 priority: low
 state: deferred
 first_seen: 2026-08-17
-checked_upstream: 2026-08-30
+checked_upstream: 2026-09-14
+patch: backlog/patches/abaplint-three-rules.patch
 upstream: abaplint/abaplint
 evidence:
   - found 2026-08-17 by an e2e interaction — `abap2UI5/samples-controls` app 352's `listClose` round-trip answered HTTP 500 with `TABLE_INVALID_INDEX`
@@ -35,6 +36,15 @@ Parked rather than dropped: the body below is still the paste-ready proposal
 if somebody decides that filing is worth an abaplint maintainer's time, and
 the deferral is the decision not to do it now that the ecosystem itself is
 served.
+
+**Overtaken 2026-09-14 by a maintainer decision to write it anyway.** The rule
+is in the patch below with the other two. The generalization argument it was
+parked on is now measured rather than asserted: of its two findings across the
+four code bases, ONE is abap2UI5's vendored `z2ui5_cl_ajson_filter_lib` - code
+the abap2UI5-linter never reads, which is exactly what this item said only
+abaplint could cover. The state stays `deferred` because the decision to file
+it upstream is still open; what has changed is that filing it now costs
+reading a diff rather than writing one.
 
 ## What happens
 
@@ -124,6 +134,26 @@ had read the note app 298 carries in its own source, which is precisely the
 case for a rule: a convention that lives in the source of the code that learned
 it is invisible to the next file, and a linter is the only place it stays
 readable from outside.
+
+## The change
+
+All three rules are written, tested and measured. The change is attached as
+[`backlog/patches/abaplint-three-rules.patch`](../patches/abaplint-three-rules.patch)
+(`git am` against `abaplint/abaplint`) - one commit carrying all three, because
+they were written and measured in one pass:
+
+| rule | findings on abap2UI5 / samples / samples-controls / samples-stack |
+|---|---|
+| `subrc_after_assign` | **66** (28 / 14 / 22 / 2) |
+| `delete_index_in_loop` | **2** - the vendored ajson filter lib, and one port |
+| `preferred_parameter_ignored` | **0** - those code bases run an ATC gate for it already, so this rule has fixture evidence only |
+
+`npm test` in `packages/core`: **11020 passing**, eslint clean,
+`scripts/schema.json` regenerated.
+
+It is not open as a pull request because this session has no write access to
+`abaplint/abaplint` (the Claude GitHub App is not installed on the `abaplint`
+organization).
 
 <!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 
