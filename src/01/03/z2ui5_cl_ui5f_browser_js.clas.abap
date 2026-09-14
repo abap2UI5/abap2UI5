@@ -43,12 +43,6 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      Lib.copyToClipboard(args[1]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evClipboardAppState() {` && |\n| &&
-             `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
-             `` && |\n| &&
-             `      Lib.copyToClipboard(Router.hrefFor(``/z2ui5-xapp-state=${id}``));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function evDownloadB64File(oController, args) {` && |\n| &&
              `      if (!Lib.isSafeDownloadURL(args[1])) {` && |\n| &&
              `        Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
@@ -277,7 +271,6 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
-             `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      DOWNLOAD_B64_FILE: evDownloadB64File,` && |\n| &&
              `      STORE_DATA: evStoreData,` && |\n| &&
              `      HASH_BACK: evHashBack,` && |\n| &&

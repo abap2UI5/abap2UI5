@@ -32,7 +32,6 @@ const NAMES = [
   { name: "nest_view_model_update", note: "§1 - no-op" },
   { name: "nest2_view_model_update", note: "§1 - no-op" },
   { name: "cs_event-nav_container_to", note: "§1 - remapped onto control_by_id" },
-  { name: "cs_event-wizard_set_next_step", note: "§1 - two control_by_id calls do the same" },
   { name: "custom_mapper", note: "§1 - hands app code a type from the AJSON mirror" },
   { name: "custom_filter", note: "§1 - same" },
   { name: "check_sticky", note: "§1 - mirror of z2ui5_cl_ui5_app_cont" },

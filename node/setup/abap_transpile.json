@@ -25,7 +25,6 @@
     "populateTables": {
       "reposrc": false
     },
-    "keywords": ["return", "in", "class", "for", "delete", "var", "with"],
     "skip": [
       {"object": "Z2UI5_CL_UTIL_EXT", "class": "ltcl_source_ops", "method": "source_get_method_basic", "note": "reads method source from REPOSRC, not populated in NodeJS runtime"},
       {"object": "Z2UI5_CL_UTIL", "class": "ltcl_time_ops", "method": "add_seconds", "note": "NodeJS cl_abap_tstmp carries fractional seconds, second-exact diff asserts are off by one"},

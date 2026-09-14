@@ -73,22 +73,20 @@ const UNDOCUMENTED = new Map([
   ["nest2_view_destroy", "as nest_view_display"],
   ["view_destroy", "as nest_view_display - the slot form of popup_destroy( )"],
   ["popover_destroy", "as nest_view_display"],
-  ["set_push_state", "browser-history detail of the routing block in section 7"],
-  // These four SHOULD be in the guide, and the text for them is written. It is
+  // These SHOULD be in the guide, and the text for them is written. It is
   // not here yet because this file is mirrored into abap2UI5/app-template's
   // AGENTS.md, which generates its copy with `npm run agents` - so editing it
   // fails `npm run check:shared` until that regeneration lands, which is what
   // it did on main between #2685 and this change. The guide edit and the
   // app-template regeneration are one change, made when both repositories can
-  // be touched. Drop these four entries then; the check below asks for them
+  // be touched. Drop these entries then; the check below asks for them
   // again the moment somebody does.
   ["_bind_path", "PENDING the app-template mirror sync - named form of _bind( path = abap_true )"],
   ["get", "PENDING the app-template mirror sync - the request context, incl. t_model_skipped"],
-  ["set_app_state_active", "PENDING the app-template mirror sync - the bookmarkable app-state hash"],
   ["set_session_stateful", "PENDING the app-template mirror sync - the sticky-session switch"],
-  ["app_state_set_active", "PENDING the app-template mirror sync - the renamed set_app_state_active"],
+  ["app_state_set_active", "PENDING the app-template mirror sync - the bookmarkable app-state hash"],
   ["app_state_get_href", "PENDING the app-template mirror sync - the app-state link, composed backend-side"],
-  ["hash_set", "PENDING the app-template mirror sync - HashChanger#setHash, the renamed set_push_state"],
+  ["hash_set", "PENDING the app-template mirror sync - HashChanger#setHash, the app hash with a history entry"],
   ["hash_replace", "PENDING the app-template mirror sync - HashChanger#replaceHash, the no-entry twin"],
   ["get_app", "reaches another app instance on the stack - get_app_prev( ) is the documented case"],
   ["check_app_prev_stack", "a stack predicate for get_app_prev( ), documented through it"],

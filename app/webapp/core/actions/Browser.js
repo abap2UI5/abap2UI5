@@ -29,17 +29,6 @@ sap.ui.define(
       Lib.copyToClipboard(args[1]);
     }
 
-    function evClipboardAppState() {
-      // Guard against a missing response so the copied link never carries
-      // the literal "undefined" as its state id.
-      const id = AppState.state.oResponse?.ID || "";
-      // Router.hrefFor drops the current app hash (e.g. an active app-state)
-      // so the link carries only the fresh state id, but KEEPS the FLP shell
-      // hash - without it the recipient lands on the launchpad home page
-      // instead of this app.
-      Lib.copyToClipboard(Router.hrefFor(`/z2ui5-xapp-state=${id}`));
-    }
-
     function evDownloadB64File(oController, args) {
       if (!Lib.isSafeDownloadURL(args[1])) {
         Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
@@ -337,7 +326,6 @@ sap.ui.define(
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
       CLIPBOARD_COPY: evClipboardCopy,
-      CLIPBOARD_APP_STATE: evClipboardAppState,
       DOWNLOAD_B64_FILE: evDownloadB64File,
       STORE_DATA: evStoreData,
       HASH_BACK: evHashBack,

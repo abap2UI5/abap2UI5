@@ -43,7 +43,7 @@ CLASS zcl_tst_nav_hub_keep IMPLEMENTATION.
     DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    client->follow_up_action( val   = client->cs_event-set_nav_routing
+    client->follow_up_action( val   = client->cs_event-hash_routing
                               t_arg = VALUE #( ( client->cs_nav_mode-keep ) ) ).
 
     view = z2ui5_cl_ui5_view_builder=>factory( ).

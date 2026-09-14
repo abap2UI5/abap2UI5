@@ -28,9 +28,9 @@
 // the <CLASS> segment names the app (human-readable), the <DRAFT> segment is
 // the server draft holding its state, so Back/Forward/reload/bookmark restore
 // the EXACT state. In FRESH mode the draft segment is omitted and the app
-// restarts clean. Routing is opt-in per app (cs_event-hash_routing; the
-// wire value SET_NAV_ROUTING is also what the superseded spelling
-// cs_event-set_nav_routing sends, so both names reach this module).
+// restarts clean. Routing is opt-in per app (cs_event-hash_routing, which
+// travels under the wire value SET_NAV_ROUTING - the name the hash_* family
+// was renamed from, kept so no app's queued action had to move).
 sap.ui.define(
   ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
   (HashChanger, AppState, Lib) => {

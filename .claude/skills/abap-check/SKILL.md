@@ -117,6 +117,7 @@ row records what is left.
 | `meth( )->*` under `syntax.version` v750 | dereferencing a call result is not accepted at 7.50; the system refuses the class — reached a user via a test class of `z2ui5_cl_ui5_srv_model` (#2722, section 2) |
 | `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
 | a `VALUE` header default plus a per-row assignment of the same component | *"The component … was specified more than once"* — the system refuses the class; reached a user via `abap2UI5/samples-controls` app 241 (section 2) |
+| a closing string literal followed straight by a name character — ``` `x`y ``` (measured on 2.120.38) | *"There must be a space or equivalent character … after …"* — the statement does not parse, so the class does not activate; reached a user via `abap2UI5/samples-controls` apps 136 and 588 (section 2) |
 
 ---
 
@@ -339,6 +340,28 @@ the newest release. abaplint's default target accepts all of it.
   `source-line-too-long` precedent: for a consumer whose only gate is
   `npx @abap2ui5/linter`, a class that does not activate is the most severe thing
   this tool can find.
+
+### A literal that ends where the next token begins
+
+- **A closing string literal needs a separator after it.**
+  ``arg = `${$parameters>/expanded}`s_ctrl = VALUE #( … )`` is refused by the
+  system's syntax check with *"There must be a space or equivalent character
+  (":", ",", ".") after `${$parameters>/expanded}`"*, and — because the
+  statement never parses — a second error on the same method, *"The statement
+  "ENDMETHOD" is missing."* Found by a user running Code Inspector variant
+  SYNTAX_CHECK over a pulled `abap2UI5/samples-controls` main (2026-09-13),
+  same route as the `VALUE` header case above: two `_event( )` wires,
+  `z2ui5_cl_smpc_app_136`'s `toggle` and `z2ui5_cl_smpc_app_588`'s
+  `beforeNavigate`, had lost the blank between the `arg` literal and `s_ctrl`.
+  **abaplint 2.120.38 accepts it** — control probe fired, config in the
+  measurement recipe above: its lexer ends a literal at the closing delimiter
+  and starts the next token right there, where the kernel wants a separator.
+  The same hole covers `'x'`, `` `x` `` and `|x|` alike. Nothing here is
+  abap2UI5-specific, so it is an upstream candidate rather than a rule to
+  reimplement — but a one-line scan decides it, so **gate: `pattern-lint`** in
+  `abap2UI5/samples-controls` — `literal-no-separator` (2026-09-13). There is
+  nothing to exempt: the one suffix form ABAP has after a literal, the text
+  symbol `'text'(001)`, opens a parenthesis, not a name character.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
@@ -692,8 +715,6 @@ wrote this, so the bundler itself was not read. What IS measured is that
 transpiled tests. Nothing here is a linter rule and nothing here should be: the
 downport is a build of this repository, not a property of somebody's app.
 
-**Backlog:** open-abap · transpiler-reserved-js-identifiers
-
 Every framework file is downported to 7.02 (`npm run auto_downport`) and
 transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
@@ -740,12 +761,16 @@ break one of those four.
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a
   containment test → `CS`; `IS NOT INITIAL` on an internal table →
   `lines( … ) > 0`; a local class type in `CREATE DATA … TYPE` → `LIKE`.
-- **An ABAP name that is a reserved JS word breaks the transpiler.** The
+- **An ABAP name that is a reserved JS word used to break the transpiler.** The
   importing parameter `with` of `c_replace_all` was emitted as `let with = …`,
-  illegal in strict mode, and the unit job went red. The fix was to add the
-  word to `keywords` in `node/setup/abap_transpile.json` rather than rename a
-  public parameter (`e3d8889c`, #2351) — check that list before renaming
-  anything, and extend it rather than bending the ABAP API.
+  illegal in strict mode, and the unit job went red. The fix at the time was a
+  `keywords` entry in `node/setup/abap_transpile.json` rather than a rename of
+  a public parameter (`e3d8889c`, #2351), and that list grew to seven words,
+  each one discovered by a red build. The transpiler escapes every reserved
+  word itself since abaplint/transpiler#1840, so the list is gone — do not
+  start a new one. A reserved name that still comes out raw is an upstream
+  bug and belongs in the transpiler's `DEFAULT_KEYWORDS`, not in a per-project
+  option here.
 - **`xsdbool`, never `boolc`** — the downport converts `xsdbool` to `boolc`
   automatically, so writing `boolc` yourself breaks in the other direction.
 - **Not every released class is released in ABAP Cloud.**

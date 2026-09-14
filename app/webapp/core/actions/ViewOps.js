@@ -194,10 +194,10 @@ sap.ui.define(
     // UI5 Message (getControlIds()) or any event carry the view prefix.
     //
     // An id that resolves to nothing is REPORTED, like every sibling handler
-    // in this module reports its own miss (BIND_ELEMENT, WIZARD_SET_NEXT_STEP,
-    // Z2UI5). The three used to return silently, which is the one failure an
-    // app cannot see from the outside: a focus that does not move and a view
-    // that does not scroll look exactly like a control that ignored the call.
+    // in this module reports its own miss (BIND_ELEMENT, Z2UI5). The three
+    // used to return silently, which is the one failure an app cannot see
+    // from the outside: a focus that does not move and a view that does not
+    // scroll look exactly like a control that ignored the call.
     function resolveTarget(action, id) {
       const oElement = ViewSlots.resolveById(id);
       if (!oElement) Lib.logError(`${action}: no control '${id}'`);
@@ -368,27 +368,6 @@ sap.ui.define(
       }
     }
 
-    function evWizardSetNextStep(oController, args) {
-      try {
-        // resolveById, not byId("MAIN", ...) - the rule this file states for
-        // the three handlers above holds here too: a Wizard inside a popup,
-        // popover or nested view is not in the MAIN slot, and the lookup
-        // silently found nothing there
-        const wiz = ViewSlots.resolveById(args[1]);
-        const step = ViewSlots.resolveById(args[2]);
-        const nextStep = ViewSlots.resolveById(args[3]);
-        if (!wiz || !step) {
-          Lib.logError(
-            `WIZARD_SET_NEXT_STEP: '${args[1]}' / '${args[2]}' not found`,
-          );
-        }
-        if (wiz && step) wiz.discardProgress(step);
-        if (step && nextStep) step.setNextStep(nextStep);
-      } catch (e) {
-        Lib.logError(`WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'`, e);
-      }
-    }
-
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
@@ -401,7 +380,6 @@ sap.ui.define(
       SCROLL_TO: evScrollTo,
       SCROLL_INTO_VIEW: evScrollIntoView,
       Z2UI5: evZ2ui5Custom,
-      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
     };
 
     return { handlers };

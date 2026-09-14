@@ -276,23 +276,6 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evWizardSetNextStep(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const wiz = ViewSlots.resolveById(args[1]);` && |\n| &&
-             `        const step = ViewSlots.resolveById(args[2]);` && |\n| &&
-             `        const nextStep = ViewSlots.resolveById(args[3]);` && |\n| &&
-             `        if (!wiz || !step) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``WIZARD_SET_NEXT_STEP: '${args[1]}' / '${args[2]}' not found``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
-             `        if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'``, e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
@@ -303,7 +286,6 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      SCROLL_TO: evScrollTo,` && |\n| &&
              `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&
-             `      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&

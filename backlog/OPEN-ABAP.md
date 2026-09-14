@@ -22,7 +22,6 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`open-abap-asxml-text-escape`](items/open-abap-asxml-text-escape.md) | 'kernel_call_transformation (lcl_data_to_xml=>run) concatenates a string value into its element as it is, while the parser resolves &lt; &gt; &amp; on the way back; a string that contains `<` comes back cut at that point. A system escapes on the way out' | medium | 2026-09-02 | open-abap/open-abap-core |
-| [`transpiler-reserved-js-identifiers`](items/transpiler-reserved-js-identifiers.md) | an ABAP identifier called `with`, `class`, `delete`, … is emitted as-is and dies in strict mode — every consumer has to discover the word and add it to a config list first<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-08-17: fires on <b>1</b> site(s) in abap2UI5, 7 correct look-alike(s)</sub> | medium | 2026-08-17 | abaplint/transpiler |
 
 ---
 
