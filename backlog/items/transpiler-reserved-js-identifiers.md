@@ -5,12 +5,17 @@ summary: an ABAP identifier called `with`, `class`, `delete`, … is emitted as-
 priority: medium
 state: open
 first_seen: 2026-08-17
-checked_upstream: 2026-09-09
+checked_upstream: 2026-09-14
+patch: backlog/patches/transpiler-reserved-js-identifiers.patch
 upstream: abaplint/transpiler
 evidence:
   - abap2UI5 `e3d8889c` (#2351) — the importing parameter `with` of `c_replace_all` compiled to `let with = …` and took the unit job red
   - the fix had to be a config entry rather than a rename, because the parameter is public API
   - abap2UI5's `node/setup/abap_transpile.json` now carries seven such words (`return`, `in`, `class`, `for`, `delete`, `var`, `with`), each one discovered by a red build
+  - 'read upstream 2026-09-14: the `keywords` OPTION is declared (`ITranspilerOptions`, packages/transpiler/src/types.ts:83, "list of keywords to rename, if not supplied default will be used") and NEVER READ - nothing in the transpiler or the CLI consumes it. The transpiler''s own test/keywords.ts passes `keywords: []` and its seven tests pass, which is only possible because the option is ignored. So abap2UI5''s seven-word list has never done anything; six of the seven happened to be in DEFAULT_KEYWORDS already, and `with`, the one that was not, has been a live defect the whole time'
+  - 'the real defect is the SET: packages/transpiler/src/keywords.ts is a list copied from w3schools with `with` and `protected` commented out (no note saying why) and `case` never present. A patch adding the three, with tests, is attached - measured on the transpiler''s own suite: 2225 passing (2221 before), 127 failing unchanged (all of them the postgres tests, which need the docker stack)'
+  - '`super` is the one reserved word that must NOT be added, and the suite says so at once: the emitter uses it (ABAP `super->method( )` becomes JS `super.method( )`), so adding it turns every redefined method into `$super is not defined` - four code_structure tests. Recorded in the patch where the next reader will look'
+  - 'NOT PUSHED: this session has no write access to abaplint/transpiler (the Claude GitHub App is not installed on the abaplint org), so the change is parked here as a patch rather than opened as a pull request'
 ---
 
 # An ABAP name that is a reserved JS word should be renamed by the transpiler
@@ -52,18 +57,68 @@ usually not available: `with` here is a **public parameter of a released
 interface**, so bending the ABAP API to suit the code generator would be a
 breaking change for every caller in every system.
 
+## What is actually there (read 2026-09-14)
+
+Two findings, and the second is the one that matters.
+
+**The `keywords` option is dead.** It is declared in `ITranspilerOptions`
+(`packages/transpiler/src/types.ts`) as *"list of keywords to rename, if not
+supplied default will be used"* and **nothing reads it** — not the transpiler,
+not the CLI. The proof is in the transpiler's own `test/keywords.ts`, which
+passes `keywords: []` and whose seven tests all pass: with replace semantics an
+empty list would rename nothing and every one of them would fail. So
+abap2UI5's seven-word list has never done anything at all. Six of the seven
+were in the default set already; `with`, the one that was not, was a live
+defect the whole time and the config entry that "fixed" it fixed nothing.
+
+**The renaming itself already exists and is unconditional.**
+`Traversal.prefixVariable` prefixes `$` onto any identifier in
+`DEFAULT_KEYWORDS`, for locals, parameters and members alike — which is what
+this item asked for. What is wrong is the SET: `packages/transpiler/src/keywords.ts`
+is a list copied from w3schools' *"JavaScript Reserved Words"* page (which
+mixes in Java's), with `with` and `protected` commented out — no note saying
+why — and `case` never present.
+
 ## Proposed change
 
-Rename reserved words during emission, unconditionally: mangle any identifier
-whose emitted name would collide with a JS reserved word (a fixed suffix is
-enough — `with_`, `class_`), for locals, parameters and members alike. The
-`keywords` option then has nothing left to do and can keep working as an
-override for anything a project wants renamed for its own reasons.
+Complete the set, purely additively: `case`, `with`, `protected`. Nothing is
+removed — the words in the list that are *not* reserved (`byte`, `final`,
+`goto`, `synchronized`, …) stay, because renaming them is harmless while
+removing one changes the emitted name for every consumer that has such an
+identifier.
 
-The reserved set is `ReservedWord` and `FutureReservedWord` from the ECMAScript
-grammar plus the strict-mode additions (`implements`, `interface`, `let`,
-`package`, `private`, `protected`, `public`, `static`, `yield`) — all of which
-are ordinary, likely ABAP identifiers.
+`super` is the one reserved word that must **not** be added: the emitter uses
+it, ABAP's `super->method( )` becomes JS `super.method( )`, and adding the word
+turns every redefined method into `$super is not defined` — four
+`code_structure` tests fail the moment it goes in. The patch records that where
+the next reader will look.
+
+`protected` gets no test on purpose: it is reserved only in **strict** mode,
+and the transpiler's harness runs emitted code as an `AsyncFunction` body,
+which is sloppy — the test would pass with and without the fix, which is worse
+than no test. It belongs in the set anyway, because the CLI writes ES
+**modules** and a module is always strict.
+
+The dead `keywords` option is a separate decision for the maintainer (wire it
+as an addition to the defaults, or delete it), and the patch deliberately does
+not take it.
+
+## The patch
+
+[`backlog/patches/transpiler-reserved-js-identifiers.patch`](../patches/transpiler-reserved-js-identifiers.patch)
+— `git am` against `abaplint/transpiler`. Measured on that repository's own
+suite:
+
+```
+npm run compile && mocha    2225 passing (2221 before), 127 failing unchanged
+                            — all of them the postgres tests, which need the
+                            docker stack
+npx eslint                  clean
+```
+
+It is not open as a pull request because this session has no write access to
+`abaplint/transpiler` (the Claude GitHub App is not installed on the `abaplint`
+organization).
 
 ## Example
 

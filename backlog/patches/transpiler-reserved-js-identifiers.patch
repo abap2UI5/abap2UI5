@@ -1,0 +1,228 @@
+From 6ecbf1056233a8577054b2f0919911dfef67adcd Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Mon, 14 Sep 2026 06:02:52 +0000
+Subject: [PATCH] keywords: `with`, `case` and `protected` are reserved too
+
+DEFAULT_KEYWORDS is what keeps an ABAP identifier from being emitted as a
+JavaScript reserved word, and it was a list copied from w3schools' "JavaScript
+Reserved Words" page with three of the real ones missing - `with` and
+`protected` explicitly commented out, with no note saying why, and `case`
+never there at all.
+
+A word missing from this set is a latent SyntaxError in every consuming
+repository at once, found one red build at a time, and it surfaces as a
+SyntaxError in GENERATED code rather than as anything naming the ABAP
+identifier that caused it. `with` cost abap2UI5 exactly that: its released
+`c_replace_all( IMPORTING with ... )` compiled to `let with = ...`. Renaming
+the ABAP was not available - the parameter is public API - so the repository
+carries a `keywords` config list instead, one entry per word somebody was
+bitten by.
+
+Purely additive: `case`, `with`, `protected`, nothing removed. The words in
+the list that are NOT reserved (`byte`, `final`, `goto`, `synchronized`, ...)
+stay, because renaming them is harmless while removing one changes the
+emitted name for every consumer that has such an identifier.
+
+`super` is the one reserved word that must NOT be here, and the suite says so
+at once: the emitter uses it, ABAP's `super->method( )` becomes JS
+`super.method( )`, and adding the word turns every redefined method into
+`$super is not defined`. That is now written where the next reader will look.
+
+`protected` gets no test on purpose: it is reserved only in STRICT mode, and
+the harness runs emitted code as an AsyncFunction body, which is sloppy - so
+the test would pass with and without the fix, which is worse than no test. It
+belongs in the set anyway, because the CLI writes ES MODULES and a module is
+always strict.
+
+  npm run compile && mocha    2225 passing (2221 before), 127 failing
+                              unchanged - all of them the postgres tests,
+                              which need the docker stack
+  npx eslint                  clean
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01WNnsZnJAf6zEg8phCFVoB5
+---
+ packages/transpiler/src/keywords.ts | 75 ++++++++++++++++++-------
+ test/keywords.ts                    | 87 ++++++++++++++++++++++++++++-
+ 2 files changed, 141 insertions(+), 21 deletions(-)
+
+diff --git a/packages/transpiler/src/keywords.ts b/packages/transpiler/src/keywords.ts
+index 1346842..c4e4669 100644
+--- a/packages/transpiler/src/keywords.ts
++++ b/packages/transpiler/src/keywords.ts
+@@ -1,21 +1,56 @@
+-// https://www.w3schools.com/js/js_reserved.asp
++/* Identifiers that may not be emitted as they are.
++ *
++ * Two groups, and the difference matters when deciding whether a word belongs
++ * here:
++ *
++ * 1. RESERVED BY THE LANGUAGE. ECMAScript's ReservedWord production plus the
++ *    words reserved in strict mode (`implements`, `interface`, `let`,
++ *    `package`, `private`, `protected`, `public`, `static`, `yield`) and the
++ *    two that may not be bound in strict mode (`arguments`, `eval`). Emitted
++ *    unrenamed, any of them is a SyntaxError in the generated module - and a
++ *    SyntaxError in generated code points at the generator, not at the ABAP
++ *    name that caused it. All of these are ordinary, likely ABAP identifiers.
++ *
++ *    The strict-mode half is not optional just because it is conditional:
++ *    the CLI writes ES MODULES (.mjs), and a module is always strict. The
++ *    unit harness in test/ runs the emitted code as an AsyncFunction body,
++ *    which is sloppy - so a strict-only word passes there and fails in the
++ *    build a consumer actually ships.
++ *
++ * 2. NOT reserved, kept anyway: `abstract`, `byte`, `double`, `final`,
++ *    `goto`, `long`, `native`, `short`, `synchronized`, `throws`,
++ *    `transient`, `volatile`. They come from the list this file was first
++ *    copied from (w3schools' "JavaScript Reserved Words", which mixes in
++ *    Java's) and renaming them is harmless: a prefixed name is always legal.
++ *    They stay because removing one CHANGES THE EMITTED NAME for every
++ *    consumer that has such an identifier, which is a bigger change than
++ *    leaving a word that costs nothing.
++ *
++ * The set is the language's, not a project's: a word that is reserved is
++ * reserved for everybody, and a word missing here is a latent SyntaxError in
++ * every consuming repository at once, discovered one red build at a time.
++ * `with` was missing (commented out, with no note saying why) and cost
++ * abap2UI5 exactly that - its released `c_replace_all( IMPORTING with … )`
++ * compiled to `let with = …`.
++ */
+ export const DEFAULT_KEYWORDS = new Set<string>([
+-  "abstract",	"arguments", "await",
+-  "break",	"byte", "catch",
+-//  "char",
+-  "class", "const", "continue",
+-  "debugger",	"default", "do",
+-  "double",	"else", "enum", "eval",
+-  "export",	"extends", "false", "final",
+-  "finally", "for", "function",
+-  "goto",	"if", "implements", "import",
+-  "in",	"instanceof", "interface",
+-  "let",	"long", "native", "new",
+-  "null",	"package", "private", // "protected",
+-  "public",	"return", "short", "static",
+-  "switch", "synchronized", "this",
+-  "throw",	"throws", "transient", "true",
+-  "try",	"typeof", "var", "void",
+-  "delete",
+-  "volatile",	"while", "yield"]);
+-// "with"
++  // --- ECMAScript ReservedWord -------------------------------------------
++  "await", "break", "case", "catch", "class", "const", "continue",
++  "debugger", "default", "delete", "do", "else", "enum", "export",
++  "extends", "false", "finally", "for", "function", "if", "import",
++  "in", "instanceof", "new", "null", "return", "switch",
++  "this", "throw", "true", "try", "typeof", "var", "void", "while",
++  "with", "yield",
++  // NOT `super`, though it is reserved: the emitter USES it. ABAP's
++  // `super->method( )` becomes JS `super.method( )`, so renaming the word
++  // turns every redefined method into `$super is not defined` - four tests
++  // in code_structure say so the moment it is added.
++  // --- reserved in strict mode -------------------------------------------
++  "implements", "interface", "let", "package", "private", "protected",
++  "public", "static",
++  // …and the two that may not be BOUND in strict mode
++  "arguments", "eval",
++  // --- not reserved, renamed anyway (see the header) ---------------------
++  "abstract", "byte", "double", "final", "goto", "long", "native",
++  "short", "synchronized", "throws", "transient", "volatile",
++]);
+diff --git a/test/keywords.ts b/test/keywords.ts
+index 1ee69a4..eade6dd 100644
+--- a/test/keywords.ts
++++ b/test/keywords.ts
+@@ -136,4 +136,89 @@ START-OF-SELECTION.
+     expect(abap.console.get()).to.equal("0");
+   });
+ 
+-});
+\ No newline at end of file
++  /* The four words the set was MISSING. Each is reserved by the language and
++   * each is an ordinary ABAP identifier, so each was a SyntaxError in the
++   * generated module waiting for the first consumer to write it. `with` is
++   * the one that was found the expensive way: abap2UI5's released
++   * `c_replace_all( IMPORTING with … )` compiled to `let with = …` and took
++   * a whole repository's build red - and renaming the ABAP was not available,
++   * because the parameter is public API. */
++
++  it("with - reserved, and cannot be renamed in the ABAP", async () => {
++    const code = `
++DATA with TYPE x.
++with = 'AA'.
++WRITE with.`;
++
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("AA");
++  });
++
++  it("with, as a method parameter", async () => {
++    const code = `
++CLASS lcl DEFINITION.
++  PUBLIC SECTION.
++    CLASS-METHODS replace_all IMPORTING with TYPE i.
++ENDCLASS.
++
++CLASS lcl IMPLEMENTATION.
++  METHOD replace_all.
++    WRITE / with.
++  ENDMETHOD.
++ENDCLASS.
++
++START-OF-SELECTION.
++  lcl=>replace_all( 2 ).`;
++
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("2");
++  });
++
++  /* `protected` is in the set too, and deliberately has no test here: it is
++   * reserved only in STRICT mode, and this harness runs the emitted code as
++   * an AsyncFunction body, which is sloppy - so `let protected = …` is legal
++   * and the test would pass with or without the fix, which is worse than no
++   * test. It still belongs in the set: the CLI writes ES MODULES (.mjs), and
++   * a module is always strict. It is also the only one of its group that was
++   * missing - `implements`, `interface`, `let`, `package`, `private`,
++   * `public`, `static` and `yield` were all already there. */
++
++  it("case", async () => {
++    const code = `
++DATA case TYPE x.
++case = 'AA'.
++WRITE case.`;
++
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("AA");
++  });
++
++  /* A structure COMPONENT is an object key in the emitted code, where a
++   * reserved word is perfectly legal - and the renaming must not reach it,
++   * or every consumer that reads such a component by name breaks. This is
++   * the counter-case: it has to keep working, and it is why the set being
++   * over-broad costs nothing while being incomplete costs a build. */
++  it("a reserved word as a structure component is left alone", async () => {
++    const code = `
++DATA: BEGIN OF ls_struc,
++        with  TYPE i,
++        class TYPE i,
++      END OF ls_struc.
++ls_struc-with = 2.
++ls_struc-class = 3.
++WRITE ls_struc-with.
++WRITE ls_struc-class.`;
++
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("23");
++  });
++
++});
+-- 
+2.43.0
+
