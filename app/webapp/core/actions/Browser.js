@@ -5,9 +5,10 @@ sap.ui.define(
     "sap/ui/util/Storage",
     "z2ui5/core/Router",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
-  (MessageBox, mobileLibrary, Storage, Router, Lib, AppState) => {
+  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -60,10 +61,49 @@ sap.ui.define(
       document.body.removeChild(a);
     }
 
+    // The STORE_DATA payload is the whole { TYPE, PREFIX, KEY, VALUE }
+    // structure. A wire rendered into the VIEW hands it over already
+    // resolved: `press="...eF(['STORE_DATA', ${/S_STORAGE}])"` is an
+    // expression binding, and UI5 evaluates it when the view is built. A
+    // follow-up action queued from a HANDLER cannot be resolved that way -
+    // T_CUSTOM is pure data and nothing in the response path resolves a
+    // binding in it - so the very same `${/S_STORAGE}` arrived here as the
+    // literal STRING, every field destructured to undefined, and the write
+    // was a silent no-op: it took the `VALUE == null` branch and removed
+    // the key `undefined`. Found on the samples-controls Shopping Cart demo
+    // (demo_004), whose cart never survived a restart because its write
+    // lives in a handler, not on a press. So a STRING payload is read as
+    // what it can only be here: the MODEL PATH of the structure.
+    function storagePayload(oController, raw) {
+      if (raw == null || typeof raw !== "string") return raw;
+      // `${/S_STORAGE}`, `{/S_STORAGE}` (what _bind( ) renders) and a bare
+      // `/S_STORAGE` all name the same path
+      const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");
+      if (!path.startsWith("/")) {
+        Lib.logError(
+          `STORE_DATA: '${raw}' is neither a payload nor a model path`,
+        );
+        return undefined;
+      }
+      const oView = oController?.getView?.();
+      // the TRACKED framework model first, exactly as SET_SIZE_LIMIT
+      // resolves it: in switch mode the default slot holds the OData model
+      // and the app's bound structure lives in the JSON model under http>
+      const oModel = oView
+        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())
+        : undefined;
+      const value = oModel?.getProperty(path);
+      if (value == null) {
+        Lib.logError(`STORE_DATA: nothing bound at the model path '${path}'`);
+      }
+      return value;
+    }
+
     function evStoreData(oController, args) {
       // Guard against a missing payload so the try below logs a
       // STORE_DATA-specific error instead of a generic dispatch failure.
-      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};
+      const { TYPE, PREFIX, VALUE, KEY } =
+        storagePayload(oController, args[1]) ?? {};
       try {
         // the ONE type resolution both sides share (Lib.resolveStorageType):
         // the read control (cc/Storage.js) takes the type the same way
