@@ -361,15 +361,24 @@ rather than by guessing; each entry names the callers that exist today.
       is no released way to read it. `z2ui5_cl_ajson` is the mirrored library
       in `src/00/01` — synced from another project, and the same type this
       plan wants to stop handing app code through `custom_mapper` (§1).
-      - Callers: `samples` `z2ui5_cl_smp_app_197`, `z2ui5_cl_smp_app_327`
-        (both now carry a directive naming this gap).
       - Neither alternative is portable: `/ui2/cl_json` is not released for
         ABAP Cloud, `xco_cp_json` does not exist on 7.02.
-      - **Closed by `z2ui5_cl_ui5_json` in `src/02`** — a read-only veneer
-        over the vendored ajson (`factory` from a JSON string,
-        `get_string`/`get_integer`/`get_boolean`/`exists` by path, `members`
-        for object/array iteration). The two sample callers migrate off the
-        directive on their next pass; building-apps.md documents the surface.
+      - `z2ui5_cl_ui5_json` in `src/02` was the answer for two weeks — a
+        read-only veneer over the vendored ajson — and was **removed on
+        2026-09-14**, before it had shipped in any release (it is in no tag
+        up to `1.144.0`, so no installation ever had it and nothing had to be
+        migrated). The api-snapshot's six entries went with it; that is the
+        one removal from `src/02` rule 5 does not cover, because the contract
+        it protects is what downstream installs compile against and this
+        never reached one.
+      - **Closed without an API instead.** Both callers — `samples`
+        `z2ui5_cl_smp_app_197` and `z2ui5_cl_smp_app_327` — read their one
+        field with a few lines of `find` / `substring_before` and carry no
+        directive and no `non-released-api` finding. The payloads are written
+        by the framework and are flat, so a targeted walk IS the right size of
+        answer; a parser was a bigger tool than the problem. Outbound JSON is
+        composed as a string in ABAP and bound with `json = abap_true`.
+        building-apps.md documents both directions.
 - [x] **A DDIC object to point a dynamic type at.** `src/02` releases no table
       or structure, so a sample demonstrating
       `CREATE DATA … TYPE STANDARD TABLE OF (name)` has to name the framework's
@@ -379,8 +388,11 @@ rather than by guessing; each entry names the callers that exist today.
         it costs nothing to keep compatible.
       - **Closed by `z2ui5_t_02` in `src/02`** — a released structure with two
         string fields (`name`, `value`); the shape is pinned by
-        `ltcl_test_released_ddic` in `z2ui5_cl_ui5_json`'s test include. App
-        061 migrates off `z2ui5_t_01` on its next pass.
+        `ltcl_test_released_ddic`, which moved into
+        `z2ui5_cl_ui5_http_handler`'s test include when the JSON class was
+        removed (a TABL carries no test include of its own, so the pin lives
+        with the nearest released object). App 061 migrates off `z2ui5_t_01`
+        on its next pass.
 
 ## 6. Documentation debt to clear alongside
 

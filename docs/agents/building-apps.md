@@ -519,18 +519,25 @@ The same tree, with the subtree held in a variable:
   (`Path not found @/1/wrapping`). Chain
   `parse( … )->to_abap_corresponding_only( )->to_abap( … )` and declare only
   the fields you actually use.
-- **Reading a JSON argument by path goes through `z2ui5_cl_ui5_json`** — the
-  released reader (nothing else portable exists: `/ui2/cl_json` is not
-  released for ABAP Cloud, `xco_cp_json` is missing on 7.02, and the vendored
-  ajson is framework-internal, which the linter's `non-released-api` rule
-  reports). `z2ui5_cl_ui5_json=>factory( lv_json )` parses once (invalid JSON
-  raises `z2ui5_cx_ui5_util_error`); then ``get_string( `/order/id` )``,
-  `get_integer( )`, `get_boolean( )` read by path, `exists( )` tells an
-  absent value from an empty one, and `members( )` lists an object's keys or
-  an array's 1-based indices in document order — loop over them and build
-  each child path (`|/items/{ lv_idx }/name|`) to iterate. Read-only by
-  design; only the typed whole-structure mapping of the previous bullet
-  still needs the ajson chain.
+- **JSON is built and read BY HAND, and there is no released parser.**
+  `z2ui5_cl_ui5_json` was one for two weeks and was removed on 2026-09-14,
+  before it had shipped in any release — nothing downstream lost it, and
+  nothing has to be migrated. Do not reach for a substitute: `/ui2/cl_json`
+  is not released for ABAP Cloud, `xco_cp_json` is missing on 7.02, and the
+  vendored ajson is framework-internal, which the linter's
+  `non-released-api` rule reports — correctly.
+  - **Outbound** (a control property that must receive an OBJECT, e.g. a
+    `sap.ui.integration` Card manifest): compose the JSON as a string in
+    ABAP and bind it with `_bind( val = … json = abap_true )`, which splices
+    it in as a model node instead of a quoted string.
+  - **Inbound** (an event argument that arrives as JSON): write the few
+    lines that read the one field you need. These payloads are written by
+    the framework and are flat, so a targeted `find`/`substring_before` walk
+    is the whole job — `z2ui5_cl_smp_app_197` (`json_get_values`, one
+    property across an array of objects) and `z2ui5_cl_smp_app_327`
+    (`json_get_value`, one field of a flat object) in `abap2UI5/samples` are
+    the pattern to copy. An app parsing genuinely arbitrary, nested JSON is
+    doing something this framework does not hand it a tool for.
 - **A dynamic type names `z2ui5_t_02`** — the released DDIC structure (two
   string fields, `name`/`value`) for
   `CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` and friends; the
