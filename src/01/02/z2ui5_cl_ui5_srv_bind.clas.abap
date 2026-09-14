@@ -28,6 +28,10 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " carry yet. See the method body for what used to be dropped.
     METHODS adopt_new_options.
 
+    " Raise when json = abap_true is asked for on an attribute that cannot
+    " hold JSON text. See the method body.
+    METHODS check_raise_json.
+
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
     " one model service for the life of this bind service - the client
@@ -194,6 +198,37 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_raise_json.
+
+    " json = abap_true says "this value IS JSON text": the serializer parses
+    " it and splices the result in as a node (main_json_stringify). That only
+    " means anything for an ELEMENTARY attribute. Hand it a structure and the
+    " parse is fed whatever a structure converts to - which on a flat one is
+    " a character conversion that SUCCEEDS and then fails the parse with a
+    " message about the text, not about the bind; hand it a table and the
+    " conversion itself is what fails, one layer below the mistake either
+    " way. Refuse it here instead, where the app made the call, and name the
+    " attribute.
+    "
+    " A CELL bind is out of scope on purpose (the doc on _bind( ) says so):
+    " there check_json is stored on the cell, not on the table, and has no
+    " effect at all - main_cell( ) never reaches this method.
+    IF ms_config-check_json = abap_false.
+      RETURN.
+    ENDIF.
+
+    IF mr_attri->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem.
+      RETURN.
+    ENDIF.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |Binding Error - _bind( json = abap_true ) needs an attribute | &&
+              |that HOLDS JSON text; '{ mr_attri->name }' is not elementary. | &&
+              |Compose the JSON into a string attribute and bind that one.|.
+
+  ENDMETHOD.
+
   METHOD check_raise_new.
 
     " check the incoming config - mr_attri->custom_* is only filled
@@ -278,6 +313,11 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       ENDIF.
       mr_attri = lr_ref_attri.
     ENDIF.
+
+    " before either branch: check_json can be turned on by a FIRST bind
+    " (update_model_attri) and by a later one (adopt_new_options), so the
+    " check belongs where both of them pass
+    check_raise_json( ).
 
     IF mr_attri->bind = abap_true.
       check_raise_existing( ).

@@ -642,6 +642,14 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS dead_filter_refused     FOR TESTING RAISING cx_static_check.
     " options are per attribute - a second attribute starts clean
     METHODS options_per_attribute   FOR TESTING RAISING cx_static_check.
+    " json = abap_true needs an attribute that can HOLD json text - a
+    " structure or a table is refused at bind time, not one layer down in
+    " the serializer
+    METHODS json_on_struc_refused   FOR TESTING RAISING cx_static_check.
+    METHODS json_on_table_refused   FOR TESTING RAISING cx_static_check.
+    " ... and the refusal reaches a LATER bind too, which is the other way
+    " check_json turns on
+    METHODS json_later_bind_refused FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -792,4 +800,50 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD json_on_struc_refused.
+
+    TRY.
+        bind( ir_val    = REF #( mo_app->ms_deep )
+              is_config = VALUE #( check_json = abap_true ) ).
+        cl_abap_unit_assert=>fail( `json = abap_true on a STRUCTURE must be refused at bind time` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_struc).
+        cl_abap_unit_assert=>assert_char_cp(
+            exp = `*MS_DEEP*`
+            act = lx_struc->get_text( )
+            msg = `the refusal has to name the attribute the app bound` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD json_on_table_refused.
+
+    TRY.
+        bind( ir_val    = REF #( mo_app->mt_tab )
+              is_config = VALUE #( check_json = abap_true ) ).
+        cl_abap_unit_assert=>fail( `json = abap_true on a TABLE must be refused at bind time` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD json_later_bind_refused.
+
+    " the first bind is plain and legal; the second one turns json on, which
+    " is the adopt_new_options path rather than update_model_attri
+    bind( REF #( mo_app->ms_deep ) ).
+
+    TRY.
+        bind( ir_val    = REF #( mo_app->ms_deep )
+              is_config = VALUE #( check_json = abap_true ) ).
+        cl_abap_unit_assert=>fail( `a LATER bind must not be able to turn json on for a structure` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = mo_bind->mr_attri->check_json
+        msg = `the refused bind must not have left check_json on` ).
+
+  ENDMETHOD.
 ENDCLASS.
