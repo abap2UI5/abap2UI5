@@ -10,6 +10,7 @@ function load() {
   return loadModule("Component.js", {
     deps: {
       "sap/ui/core/UIComponent": { extend: (_name, def) => def },
+      "z2ui5/core/ViewSlots": { destroy: () => {} },
     },
   });
 }
@@ -49,7 +50,7 @@ test("pagehide into the back/forward cache keeps the app alive", () => {
 // handlers on the Device singleton, and an OData client the framework
 // created for MAIN is no aggregation either, so the view's destroy never
 // reaches it (every open client leaked across the re-launch).
-function loadForExit(appState, { modules = {} } = {}) {
+function loadForExit(appState, { modules = {}, destroyedSlots = [] } = {}) {
   const noop = () => {};
   // exit() cancels the timers through Lib.cancelPendingTimers; the stub does
   // what the shipped helper does (clear every slot) with the sandbox's
@@ -74,6 +75,9 @@ function loadForExit(appState, { modules = {} } = {}) {
       "z2ui5/model/formatter": {},
       "z2ui5/core/Router": { exit: noop },
       "z2ui5/core/ScrollFocus": { reset: noop },
+      "z2ui5/core/ViewSlots": {
+        destroy: (key) => destroyedSlots.push(key),
+      },
     },
     // exit() probes for the loaded custom controls that keep module state
     // (cc/Dirty) instead of depending on them - an app that never used one
@@ -109,7 +113,11 @@ function fakeAppState(overrides = {}) {
 }
 
 function runExit(appState, options) {
-  const { module: def, sandbox } = loadForExit(appState, options);
+  const destroyedSlots = [];
+  const { module: def, sandbox } = loadForExit(appState, {
+    ...options,
+    destroyedSlots,
+  });
   sandbox.removeEventListener = () => {};
   sandbox.document = { removeEventListener: () => {} };
   const cleared = [];
@@ -121,7 +129,7 @@ function runExit(appState, options) {
   inst._boundScroll = () => {};
   inst._launchpad = null;
   inst.exit();
-  return { inst, cleared };
+  return { inst, cleared, destroyedSlots };
 }
 
 test("exit() destroys the OData clients the framework created, a throwing one included", () => {
@@ -164,10 +172,20 @@ test("exit() cancels the pending timers and destroys the device model", () => {
   expect(appState.state.oDeviceModel).toBe(null);
 });
 
+// The two STANDALONE slots: a popup and a popover are opened outside the
+// component's control tree, so nothing in the teardown reached them and the
+// dialog of the app that just ended stayed on screen over the one that
+// replaced it on an FLP re-launch - with every control inside it still alive,
+// none of them having run its exit( ).
+test("exit() tears the popup and popover slots down", () => {
+  const { destroyedSlots } = runExit(fakeAppState());
+  expect(destroyedSlots).toEqual(["POPUP", "POPOVER"]);
+});
+
 test("exit() resets the cc/Dirty unsaved-changes guard when it is loaded", () => {
-  // Module state of a custom control: a Dirty instance inside a popup is
-  // never destroyed (no teardown path destroys that slot), so its entry -
-  // and with it window.onbeforeunload - would survive the component.
+  // Module state of a custom control: the backstop for a Dirty instance the
+  // slot teardown above does not cover - its entry, and with it
+  // window.onbeforeunload, would survive the component.
   const resets = [];
   runExit(fakeAppState(), {
     modules: { "z2ui5/cc/Dirty": { reset: () => resets.push(true) } },

@@ -11,6 +11,7 @@ sap.ui.define(
     "z2ui5/model/formatter",
     "z2ui5/core/Router",
     "z2ui5/core/ScrollFocus",
+    "z2ui5/core/ViewSlots",
   ],
   (
     UIComponent,
@@ -24,6 +25,7 @@ sap.ui.define(
     Formatter,
     Router,
     ScrollFocus,
+    ViewSlots,
   ) => {
     "use strict";
 
@@ -262,6 +264,23 @@ sap.ui.define(
         Server.endSession();
         // and drop the module-scoped request state with it - see Server.reset
         Server.reset();
+
+        // The two STANDALONE view slots. MAIN and its nested views sit in the
+        // component's own control tree and fall with it; a popup and a
+        // popover are opened outside it (UI5 puts them in the static area),
+        // so nothing here reached them: an FLP re-launch keeps the page
+        // alive, and the dialog of the app that just ended stayed on screen
+        // over the one that replaced it. Everything inside them stayed alive
+        // with it - no inner control ran its exit( ), so a Websocket kept its
+        // connection, a Timer kept ticking, and cc/Dirty kept
+        // window.onbeforeunload installed for unsaved changes of an app that
+        // no longer exists (its reset( ) below is the symptom patch that
+        // predates this line, and stays as the backstop for a Dirty control
+        // in a slot this does not cover). ViewSlots.destroy( ) closes the
+        // fragment first and unregisters the view from the messaging facade,
+        // the same way an app switch and a MAIN rebuild take them down.
+        ViewSlots.destroy("POPUP");
+        ViewSlots.destroy("POPOVER");
 
         // Global state that would outlive the component (FLP keeps the page
         // alive). Only what AppState.reset( ) at the end of this method

@@ -515,8 +515,9 @@ sap.ui.define(
         // was desynced). The listener and the app-state hash are mutually
         // exclusive by construction - both claim the whole app hash.
         if (state.hashEvent) return;
-        // The live URL must match the format the copy link
-        // (actions/Browser.js evClipboardAppState) writes and the backend restore
+        // The live URL must match the format the share link
+        // (z2ui5_cl_ui5_client=>app_state_get_href, which composes it on the
+        // BACKEND and mirrors hrefFor above) writes and the backend restore
         // path expects: the app-state id is read as a URL parameter of the
         // app hash, i.e. after exactly one "/". navTo strips the leading
         // slash and standalone hasher prepends exactly one again; inside the

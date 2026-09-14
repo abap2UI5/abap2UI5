@@ -271,7 +271,12 @@ sap.ui.define(
     }
 
     // Replace the main app view with the XML coming from the backend.
-    async function displayView(xml, viewModel, reqSeq, mOptions = {}) {
+    // Deliberately WITHOUT a request stamp: displayMain has already checked
+    // it before it enters the build chain, and the build that starts is
+    // installed even when a newer request supersedes it meanwhile - see the
+    // reasoning at the await below. The parameter used to sit here unread,
+    // which reads like a guard that is honoured somewhere in this function.
+    async function displayView(xml, viewModel, mOptions = {}) {
       const oViewModel = createViewModel("MAIN", viewModel);
 
       const switchPath = mOptions.switchDefaultModelPath;
@@ -402,7 +407,6 @@ sap.ui.define(
           return displayView(
             xml,
             AppState.state.oResponse?.OVIEWMODEL,
-            seq,
             mOptions,
           );
         });

@@ -469,17 +469,23 @@ sap.ui.define(
       // next roundtrip. Clearing the whole set - what this did before - lost
       // those edits twice over: the delta no longer named them, and the
       // response's model push (actions/Slots updateModel) only re-applies what
-      // is pending, so the backend's stale value overwrote the field. A model
-      // without a snapshot (a roundtrip that shipped no delta) clears as before.
+      // is pending, so the backend's stale value overwrote the field.
+      //
+      // NO snapshot means the request shipped NO delta at all: eB writes one
+      // whenever (and only when) it builds oBody.MODEL, so an absent map is
+      // "this roundtrip carried nothing of this model", not "it carried
+      // everything". Clearing the set there lost the very same edits one
+      // roundtrip earlier - the model-free roundtrip is the COMMON one (a
+      // button press on a screen nothing has been typed into yet, a timer
+      // tick, a shortcut, a hash restore), and a Switch flipped or a
+      // CheckBox ticked while it was in flight was dropped from the delta
+      // and then reverted by the response's own model push.
       _clearSentPaths(oModel) {
         const pending = oModel?._z2ui5ChangedPaths;
         if (!pending) return;
         const sentValues = oModel._z2ui5SentValues;
         oModel._z2ui5SentValues = null;
-        if (!sentValues) {
-          pending.clear();
-          return;
-        }
+        if (!sentValues) return;
         for (const path of Array.from(pending)) {
           if (
             sentValues.has(path) &&

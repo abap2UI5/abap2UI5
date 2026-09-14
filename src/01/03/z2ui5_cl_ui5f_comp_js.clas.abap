@@ -38,6 +38,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/model/formatter",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -51,6 +52,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    Formatter,` && |\n| &&
              `    Router,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -188,6 +190,9 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
              `        Server.reset();` && |\n| &&
+             `` && |\n| &&
+             `        ViewSlots.destroy("POPUP");` && |\n| &&
+             `        ViewSlots.destroy("POPOVER");` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers();` && |\n| &&
              `        if (AppState.state.oDeviceModel) {` && |\n| &&
