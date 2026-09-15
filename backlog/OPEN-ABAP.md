@@ -21,7 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`open-abap-asxml-text-escape`](items/open-abap-asxml-text-escape.md) | 'kernel_call_transformation (lcl_data_to_xml=>run) concatenates a string value into its element as it is, while the parser resolves &lt; &gt; &amp; on the way back; a string that contains `<` comes back cut at that point. A system escapes on the way out' | medium | 2026-09-02 | open-abap/open-abap-core |
+| [`open-abap-asxml-line-feed`](items/open-abap-asxml-line-feed.md) | 'cl_ixml removes every literal LF from the document before tokenizing it, and nothing writes one as a character reference, so a string with a line break comes back as one line through `CALL TRANSFORMATION id` and back' | medium | 2026-09-02 | open-abap/open-abap-core |
 
 ---
 
