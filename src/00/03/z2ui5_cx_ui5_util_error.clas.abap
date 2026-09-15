@@ -80,6 +80,7 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
     DATA lo_root TYPE REF TO cx_root.
     DATA lv_text TYPE string.
+    DATA temp1 TYPE REF TO cx_root.
 
     TRY.
         lo_root ?= val.
@@ -100,7 +101,13 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     " actual root cause of a MOVE_CAST or a failed dynamic call, and with it
     " the source position of the method that really failed - is dropped and
     " only the outermost message ever reaches the client.
-    super->constructor( previous = COND #( WHEN previous IS BOUND THEN previous ELSE lo_root ) ).
+
+    IF previous IS BOUND.
+      temp1 = previous.
+    ELSE.
+      temp1 = lo_root.
+    ENDIF.
+    super->constructor( previous = temp1 ).
     CLEAR textid.
 
     ms_error-x_root = lo_root.
@@ -130,13 +137,16 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_text_own_by_x.
+        DATA temp2 TYPE REF TO z2ui5_cx_ui5_util_error.
 
     IF val IS NOT BOUND.
       RETURN.
     ENDIF.
 
     TRY.
-        result = CAST z2ui5_cx_ui5_util_error( val )->get_text_own( ).
+
+        temp2 ?= val.
+        result = temp2->get_text_own( ).
       CATCH cx_sy_move_cast_error.
         result = val->get_text( ).
     ENDTRY.
@@ -147,20 +157,30 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
     DATA lv_count TYPE i.
     DATA lv_text  TYPE string.
+    DATA lv_last LIKE result.
+    DATA lo_x LIKE previous.
+        DATA temp3 TYPE string.
+    DATA temp4 TYPE string.
 
     result = get_text_own( ).
-    DATA(lv_last) = result.
 
-    DATA(lo_x) = previous.
+    lv_last = result.
+
+
+    lo_x = previous.
     WHILE lo_x IS BOUND AND lv_count < cv_chain_max.
       lv_count = lv_count + 1.
       lv_text = get_text_own_by_x( lo_x ).
       " a wrapper that only re-raises repeats the text of its cause - print
       " it once instead of the same line N times
       IF lv_text IS NOT INITIAL AND lv_text <> lv_last.
-        result = COND #( WHEN result IS INITIAL
-                         THEN lv_text
-                         ELSE result && z2ui5_cl_ui5_util_context=>cv_char_util_newline && lv_text ).
+
+        IF result IS INITIAL.
+          temp3 = lv_text.
+        ELSE.
+          temp3 = result && z2ui5_cl_ui5_util_context=>cv_char_util_newline && lv_text.
+        ENDIF.
+        result = temp3.
         lv_last = lv_text.
       ENDIF.
       lo_x = lo_x->previous.
@@ -168,20 +188,31 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
     " never answer with an empty text - a raise without val/previous would
     " otherwise produce a blank 500 body downstream
-    result = COND #( WHEN result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
+
+    IF result IS INITIAL.
+      temp4 = `UNKNOWN_ERROR`.
+    ELSE.
+      temp4 = result.
+    ENDIF.
+    result = temp4.
 
   ENDMETHOD.
 
   METHOD get_text_full.
 
     DATA lv_count TYPE i.
+    DATA lv_nl LIKE z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_message TYPE string.
+    DATA temp5 TYPE string.
+    DATA lo_x LIKE val.
 
     IF val IS NOT BOUND.
       result = `UNKNOWN_ERROR`.
       RETURN.
     ENDIF.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+
+    lv_nl = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     " The messages first, one per line: this section is what the frontend
     " lifts out for the error popup (app/webapp/core/ErrorView.js reads it by
@@ -189,13 +220,21 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     " stays behind Details) - keep the header spelling in sync with it.
     " get_text( ) on a z2ui5 error already renders the whole concise chain,
     " every other exception class has only its own text.
-    DATA(lv_message) = val->get_text( ).
-    lv_message = COND #( WHEN lv_message IS INITIAL THEN `UNKNOWN_ERROR` ELSE lv_message ).
+
+    lv_message = val->get_text( ).
+
+    IF lv_message IS INITIAL.
+      temp5 = `UNKNOWN_ERROR`.
+    ELSE.
+      temp5 = lv_message.
+    ENDIF.
+    lv_message = temp5.
 
     result = `--- error ---` && lv_nl && lv_message &&
              lv_nl && lv_nl && `--- exception chain ---`.
 
-    DATA(lo_x) = val.
+
+    lo_x = val.
     WHILE lo_x IS BOUND AND lv_count < cv_chain_max.
       lv_count = lv_count + 1.
       result = result && lv_nl && get_text_full_entry( val   = lo_x
@@ -213,11 +252,20 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
   METHOD get_text_full_entry.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_nl LIKE z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_text TYPE string.
+    DATA lv_position TYPE string.
+        DATA temp6 TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA lx_own LIKE temp6.
+    DATA lt_attri TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    DATA temp7 LIKE LINE OF lt_attri.
+    DATA lr_attri LIKE REF TO temp7.
+    lv_nl = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     result = |[{ index }] { z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( val ) }|.
 
-    DATA(lv_text) = get_text_own_by_x( val ).
+
+    lv_text = get_text_own_by_x( val ).
     IF lv_text IS NOT INITIAL.
       result = result && lv_nl && |    text     : { lv_text }|.
     ENDIF.
@@ -225,7 +273,8 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     " the position is the answer to "which method failed?" - for a
     " CX_SY_MOVE_CAST_ERROR the text names the two types, only the position
     " names the class include and line that tried the cast
-    DATA(lv_position) = z2ui5_cl_ui5_util_context=>error_get_source_position( val ).
+
+    lv_position = z2ui5_cl_ui5_util_context=>error_get_source_position( val ).
     IF lv_position IS NOT INITIAL.
       result = result && lv_nl && |    position : { lv_position }|.
     ENDIF.
@@ -235,7 +284,10 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        DATA(lx_own) = CAST z2ui5_cx_ui5_util_error( val ).
+
+        temp6 ?= val.
+
+        lx_own = temp6.
         " computed on first render, not in the constructor - see there.
         " cx_root, not just the cast error: a failing uuid lookup must not
         " abort the rendering of the very error report it decorates
@@ -246,8 +298,11 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
-    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>error_get_attributes( val ).
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+
+    lt_attri = z2ui5_cl_ui5_util_context=>error_get_attributes( val ).
+
+
+    LOOP AT lt_attri REFERENCE INTO lr_attri.
       result = result && lv_nl && |    { lr_attri->n } = { lr_attri->v }|.
     ENDLOOP.
 
@@ -255,7 +310,8 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
 
   METHOD get_text_full_context.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_nl LIKE z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    lv_nl = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     " the runtime context of the failing request - what an issue report
     " otherwise has to ask back for. Deliberately WITHOUT sy-host, sy-mandt

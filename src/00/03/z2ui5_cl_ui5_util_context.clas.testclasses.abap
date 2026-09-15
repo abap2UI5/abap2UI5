@@ -147,16 +147,23 @@ CLASS ltcl_test IMPLEMENTATION.
     " an OBJECT reference handed to nav_app_leave( r_data = ... ): not a data
     " reference to dereference, copied as the value it is - the previous
     " app gets a reference to a copy of the reference variable
-    DATA(lo_obj) = NEW z2ui5_cl_ui5_util_context( ).
+    DATA lo_obj TYPE REF TO z2ui5_cl_ui5_util_context.
+    DATA lv_text TYPE string VALUE `x`.
+    DATA lr_text LIKE REF TO lv_text.
+    DATA lr_copy TYPE REF TO data.
+    FIELD-SYMBOLS <copy> TYPE any.
+    CREATE OBJECT lo_obj TYPE z2ui5_cl_ui5_util_context.
     cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_ref_data( lo_obj ) ).
 
-    DATA lv_text TYPE string VALUE `x`.
-    DATA(lr_text) = REF #( lv_text ).
+
+
+    GET REFERENCE OF lv_text INTO lr_text.
     cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_ref_data( lr_text ) ).
 
-    DATA(lr_copy) = z2ui5_cl_ui5_util_context=>conv_copy_ref_data( lo_obj ).
+
+    lr_copy = z2ui5_cl_ui5_util_context=>conv_copy_ref_data( lo_obj ).
     cl_abap_unit_assert=>assert_bound( lr_copy ).
-    FIELD-SYMBOLS <copy> TYPE any.
+
     ASSIGN lr_copy->* TO <copy>.
     cl_abap_unit_assert=>assert_equals( exp = lo_obj
                                         act = <copy> ).
@@ -165,7 +172,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_c_trim_mixed.
 
-    DATA(lv_tab) = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    DATA lv_tab LIKE z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    lv_tab = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
     cl_abap_unit_assert=>assert_equals(
         exp = `x`
         act = z2ui5_cl_ui5_util_context=>c_trim( |{ lv_tab } { lv_tab } x { lv_tab } { lv_tab }| ) ).
@@ -179,25 +187,76 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a percent-encoded & or = inside a value is that value's own - only
     " the sap-startup-params wrapper is decoded, nothing else is split
-    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=x%26y&b=1%3D2` ).
+    DATA lt_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    FIELD-SYMBOLS <temp1> LIKE LINE OF lt_params.
+    DATA temp2 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp3> LIKE LINE OF lt_params.
+    DATA temp4 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp5> LIKE LINE OF lt_params.
+    DATA temp6 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp7> LIKE LINE OF lt_params.
+    DATA temp8 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp9> LIKE LINE OF lt_params.
+    DATA temp10 LIKE sy-tabix.
+    lt_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=x%26y&b=1%3D2` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_params ) ).
+
+
+    temp2 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `a` ASSIGNING <temp1>.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `x%26y`
-                                        act = lt_params[ n = `a` ]-v ).
+                                        act = <temp1>-v ).
+
+
+    temp4 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `b` ASSIGNING <temp3>.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `1%3D2`
-                                        act = lt_params[ n = `b` ]-v ).
+                                        act = <temp3>-v ).
 
     " ...and a parameter AFTER the wrapper is still a parameter of its own
     lt_params = z2ui5_cl_ui5_util_context=>url_param_get_tab(
                     `?sap-startup-params=app_start%3Dfoo%26x%3D1&sap-ui-theme=dark` ).
 
+
+
+    temp6 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `app_start` ASSIGNING <temp5>.
+    sy-tabix = temp6.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `foo`
-                                        act = lt_params[ n = `app_start` ]-v ).
+                                        act = <temp5>-v ).
+
+
+    temp8 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `x` ASSIGNING <temp7>.
+    sy-tabix = temp8.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `1`
-                                        act = lt_params[ n = `x` ]-v ).
+                                        act = <temp7>-v ).
+
+
+    temp10 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `sap-ui-theme` ASSIGNING <temp9>.
+    sy-tabix = temp10.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `dark`
-                                        act = lt_params[ n = `sap-ui-theme` ]-v ).
+                                        act = <temp9>-v ).
 
   ENDMETHOD.
 
@@ -205,12 +264,33 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a literal ? in a value is legal and left unencoded by browsers - it
     " must not cut away the parameters before it
-    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?app_start=zcl_x&title=why?` ).
+    DATA lt_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    FIELD-SYMBOLS <temp11> LIKE LINE OF lt_params.
+    DATA temp12 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp13> LIKE LINE OF lt_params.
+    DATA temp14 LIKE sy-tabix.
+    lt_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?app_start=zcl_x&title=why?` ).
 
+
+
+    temp12 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `app_start` ASSIGNING <temp11>.
+    sy-tabix = temp12.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `zcl_x`
-                                        act = lt_params[ n = `app_start` ]-v ).
+                                        act = <temp11>-v ).
+
+
+    temp14 = sy-tabix.
+    READ TABLE lt_params WITH KEY n = `title` ASSIGNING <temp13>.
+    sy-tabix = temp14.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `why?`
-                                        act = lt_params[ n = `title` ]-v ).
+                                        act = <temp13>-v ).
 
   ENDMETHOD.
 
@@ -347,8 +427,17 @@ CLASS ltcl_string IMPLEMENTATION.
 
     DATA lt_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
 
-    lt_params = VALUE #( ( n = `a` v = `1` )
-                         ( n = `b` v = `2` ) ).
+    DATA temp15 TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    DATA temp16 LIKE LINE OF temp15.
+    CLEAR temp15.
+
+    temp16-n = `a`.
+    temp16-v = `1`.
+    INSERT temp16 INTO TABLE temp15.
+    temp16-n = `b`.
+    temp16-v = `2`.
+    INSERT temp16 INTO TABLE temp15.
+    lt_params = temp15.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `a=1&b=2`
@@ -371,7 +460,8 @@ CLASS ltcl_string IMPLEMENTATION.
 
     " parsing a query string and rebuilding it has to be stable - the phantom
     " nameless row that once leaked out as `=&` broke exactly this
-    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=1&b=2` ).
+    DATA lt_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    lt_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?a=1&b=2` ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `a=1&b=2`
@@ -391,7 +481,7 @@ CLASS ltcl_rtti DEFINITION FINAL
         name TYPE string,
         city TYPE string,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     " a structure with an include, for the component expansion: the
     " include's own components are expanded in place of the include entry
@@ -433,16 +523,47 @@ CLASS ltcl_rtti IMPLEMENTATION.
     " is the include's own
     DATA ls_with_incl TYPE ty_s_with_incl.
 
-    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ls_with_incl ).
+    DATA lt_comp TYPE abap_component_tab.
+    FIELD-SYMBOLS <temp17> LIKE LINE OF lt_comp.
+    DATA temp18 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp19> LIKE LINE OF lt_comp.
+    DATA temp20 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp21> LIKE LINE OF lt_comp.
+    DATA temp22 LIKE sy-tabix.
+    lt_comp = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ls_with_incl ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_comp ) ).
+
+
+    temp18 = sy-tabix.
+    READ TABLE lt_comp INDEX 1 ASSIGNING <temp17>.
+    sy-tabix = temp18.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `NAME`
-                                        act = lt_comp[ 1 ]-name ).
+                                        act = <temp17>-name ).
+
+
+    temp20 = sy-tabix.
+    READ TABLE lt_comp INDEX 2 ASSIGNING <temp19>.
+    sy-tabix = temp20.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `CITY`
-                                        act = lt_comp[ 2 ]-name ).
+                                        act = <temp19>-name ).
+
+
+    temp22 = sy-tabix.
+    READ TABLE lt_comp INDEX 3 ASSIGNING <temp21>.
+    sy-tabix = temp22.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `ZIP`
-                                        act = lt_comp[ 3 ]-name ).
+                                        act = <temp21>-name ).
     " no include entry survives the expansion (a plain READ: the downport
     " does not rewrite a line_exists( ) inside a method call argument)
     READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
@@ -483,11 +604,28 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA lv_data  TYPE string.
 
     " a runtime-built line type, like a table an app creates dynamically
-    DATA(lt_comp) = VALUE cl_abap_structdescr=>component_table(
-        ( name = `COL1` type = CAST #( cl_abap_datadescr=>describe_by_data( lv_col ) ) ) ).
-    DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
-                                               p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+    DATA temp23 TYPE cl_abap_structdescr=>component_table.
+    DATA temp24 LIKE LINE OF temp23.
+    DATA temp1 TYPE REF TO cl_abap_datadescr.
+    DATA lt_comp LIKE temp23.
+    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
     DATA lr_tab TYPE REF TO data.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    DATA lr_back TYPE REF TO data.
+    CLEAR temp23.
+
+    temp24-name = `COL1`.
+
+    temp1 ?= cl_abap_datadescr=>describe_by_data( lv_col ).
+    temp24-type = temp1.
+    INSERT temp24 INTO TABLE temp23.
+
+    lt_comp = temp23.
+
+    lo_tab = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
+                                               p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
     CREATE DATA lr_tab TYPE HANDLE lo_tab.
     ASSIGN lr_tab->* TO <tab>.
     APPEND INITIAL LINE TO <tab> ASSIGNING <row>.
@@ -500,15 +638,20 @@ CLASS ltcl_rtti IMPLEMENTATION.
                                                                    ev_data = lv_data ).
     cl_abap_unit_assert=>assert_not_initial( lv_type ).
     cl_abap_unit_assert=>assert_not_initial( lv_data ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_type CS `payload-value` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_data CS `payload-value` ) ).
 
-    DATA(lr_back) = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = lv_type
+    temp2 = boolc( lv_type CS `payload-value` ).
+    cl_abap_unit_assert=>assert_false( temp2 ).
+
+    temp3 = boolc( lv_data CS `payload-value` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
+
+
+    lr_back = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = lv_type
                                                                      iv_data = lv_data ).
     ASSIGN lr_back->* TO <back>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <back> ) ).
-    ASSIGN <back>[ 1 ] TO <row>.
+    READ TABLE <back> INDEX 1 ASSIGNING <row>.
     cl_abap_unit_assert=>assert_subrc( ).
     ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
     cl_abap_unit_assert=>assert_subrc( ).
@@ -609,20 +752,42 @@ CLASS ltcl_rtti IMPLEMENTATION.
   METHOD test_struc_to_pairs.
 
     DATA ls_row TYPE ty_s_row.
+    DATA lt_pair TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    FIELD-SYMBOLS <temp25> LIKE LINE OF lt_pair.
+    DATA temp26 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp27> LIKE LINE OF lt_pair.
+    DATA temp28 LIKE sy-tabix.
 
     ls_row-name = `Ada`.
     ls_row-city = `London`.
 
-    DATA(lt_pair) = z2ui5_cl_ui5_util_context=>itab_get_by_struc( ls_row ).
+
+    lt_pair = z2ui5_cl_ui5_util_context=>itab_get_by_struc( ls_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_pair ) ).
 
     " component names come back from RTTI in upper case
+
+
+    temp26 = sy-tabix.
+    READ TABLE lt_pair WITH KEY n = `NAME` ASSIGNING <temp25>.
+    sy-tabix = temp26.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `Ada`
-                                        act = lt_pair[ n = `NAME` ]-v ).
+                                        act = <temp25>-v ).
+
+
+    temp28 = sy-tabix.
+    READ TABLE lt_pair WITH KEY n = `CITY` ASSIGNING <temp27>.
+    sy-tabix = temp28.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `London`
-                                        act = lt_pair[ n = `CITY` ]-v ).
+                                        act = <temp27>-v ).
 
   ENDMETHOD.
 
@@ -638,18 +803,30 @@ CLASS ltcl_rtti IMPLEMENTATION.
       END OF ty_s_flags.
 
     DATA ls_flags TYPE ty_s_flags.
+    DATA lt_found TYPE string_table.
+    FIELD-SYMBOLS <temp29> LIKE LINE OF lt_found.
+    DATA temp30 LIKE sy-tabix.
 
     ls_flags-flag_a = abap_true.
     ls_flags-flag_b = abap_false.
     ls_flags-other  = abap_true.
 
-    DATA(lt_found) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val = ls_flags
+
+    lt_found = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val = ls_flags
                                                                prefix = `FLAG_` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_found ) ).
+
+
+    temp30 = sy-tabix.
+    READ TABLE lt_found INDEX 1 ASSIGNING <temp29>.
+    sy-tabix = temp30.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `A`
-                                        act = lt_found[ 1 ] ).
+                                        act = <temp29> ).
 
   ENDMETHOD.
 
@@ -665,7 +842,7 @@ CLASS ltcl_itab DEFINITION FINAL
         name TYPE string,
         city TYPE string,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     METHODS get_rows RETURNING VALUE(result) TYPE ty_t_row.
 
@@ -683,9 +860,20 @@ CLASS ltcl_itab IMPLEMENTATION.
 
   METHOD get_rows.
 
-    result = VALUE #( ( name = `Ada`   city = `London` )
-                      ( name = `Alan`  city = `Wilmslow` )
-                      ( name = `Grace` city = `New York` ) ).
+    DATA temp31 TYPE ltcl_itab=>ty_t_row.
+    DATA temp32 LIKE LINE OF temp31.
+    CLEAR temp31.
+
+    temp32-name = `Ada`.
+    temp32-city = `London`.
+    INSERT temp32 INTO TABLE temp31.
+    temp32-name = `Alan`.
+    temp32-city = `Wilmslow`.
+    INSERT temp32 INTO TABLE temp31.
+    temp32-name = `Grace`.
+    temp32-city = `New York`.
+    INSERT temp32 INTO TABLE temp31.
+    result = temp31.
 
   ENDMETHOD.
 
@@ -693,21 +881,35 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     " with no field list every component is searched, so a hit in `city`
     " keeps the row even though `name` does not match
-    DATA(lt_row) = get_rows( ).
+    DATA lt_row TYPE ltcl_itab=>ty_t_row.
+    FIELD-SYMBOLS <temp33> LIKE LINE OF lt_row.
+    DATA temp34 LIKE sy-tabix.
+    lt_row = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
                                                 CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_row ) ).
+
+
+    temp34 = sy-tabix.
+    READ TABLE lt_row INDEX 1 ASSIGNING <temp33>.
+    sy-tabix = temp34.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `Ada`
-                                        act = lt_row[ 1 ]-name ).
+                                        act = <temp33>-name ).
 
   ENDMETHOD.
 
   METHOD test_filter_ignore_case.
 
-    DATA(lt_row) = get_rows( ).
+    DATA lt_row TYPE ltcl_itab=>ty_t_row.
+    FIELD-SYMBOLS <temp35> LIKE LINE OF lt_row.
+    DATA temp36 LIKE sy-tabix.
+    lt_row = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = `ada`
                                                           ignore_case = abap_true
@@ -715,8 +917,16 @@ CLASS ltcl_itab IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_row ) ).
+
+
+    temp36 = sy-tabix.
+    READ TABLE lt_row INDEX 1 ASSIGNING <temp35>.
+    sy-tabix = temp36.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `Ada`
-                                        act = lt_row[ 1 ]-name ).
+                                        act = <temp35>-name ).
 
   ENDMETHOD.
 
@@ -725,7 +935,8 @@ CLASS ltcl_itab IMPLEMENTATION.
     " restricted to `name`, the city value must not produce a hit
     DATA lt_fields TYPE string_table.
 
-    DATA(lt_row) = get_rows( ).
+    DATA lt_row TYPE ltcl_itab=>ty_t_row.
+    lt_row = get_rows( ).
 
     APPEND `NAME` TO lt_fields.
 
@@ -739,7 +950,8 @@ CLASS ltcl_itab IMPLEMENTATION.
 
   METHOD test_filter_no_match.
 
-    DATA(lt_row) = get_rows( ).
+    DATA lt_row TYPE ltcl_itab=>ty_t_row.
+    lt_row = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `Nobody`
                                                 CHANGING  tab    = lt_row ).
@@ -754,15 +966,30 @@ CLASS ltcl_itab IMPLEMENTATION.
     " matches against the whole line instead of deleting every row
     DATA lt_str TYPE string_table.
 
-    lt_str = VALUE #( ( `London` ) ( `Wilmslow` ) ( `New York` ) ).
+    DATA temp37 TYPE string_table.
+    FIELD-SYMBOLS <temp39> LIKE LINE OF lt_str.
+    DATA temp40 LIKE sy-tabix.
+    CLEAR temp37.
+    INSERT `London` INTO TABLE temp37.
+    INSERT `Wilmslow` INTO TABLE temp37.
+    INSERT `New York` INTO TABLE temp37.
+    lt_str = temp37.
 
     z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `London`
                                                 CHANGING  tab    = lt_str ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_str ) ).
+
+
+    temp40 = sy-tabix.
+    READ TABLE lt_str INDEX 1 ASSIGNING <temp39>.
+    sy-tabix = temp40.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `London`
-                                        act = lt_str[ 1 ] ).
+                                        act = <temp39> ).
 
   ENDMETHOD.
 
@@ -774,20 +1001,41 @@ CLASS ltcl_itab IMPLEMENTATION.
         name    TYPE string,
         country TYPE string,
       END OF ty_s_target.
-    TYPES ty_t_target TYPE STANDARD TABLE OF ty_s_target WITH EMPTY KEY.
+    TYPES ty_t_target TYPE STANDARD TABLE OF ty_s_target WITH DEFAULT KEY.
 
     DATA lt_target TYPE ty_t_target.
 
-    DATA(lt_row) = get_rows( ).
+    DATA lt_row TYPE ltcl_itab=>ty_t_row.
+    FIELD-SYMBOLS <temp41> LIKE LINE OF lt_target.
+    DATA temp42 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp43> LIKE LINE OF lt_target.
+    DATA temp44 LIKE sy-tabix.
+    lt_row = get_rows( ).
 
     z2ui5_cl_ui5_util_context=>itab_corresponding( EXPORTING val = lt_row
                                                 CHANGING  tab    = lt_target ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_target ) ).
+
+
+    temp42 = sy-tabix.
+    READ TABLE lt_target INDEX 1 ASSIGNING <temp41>.
+    sy-tabix = temp42.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `Ada`
-                                        act = lt_target[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_initial( lt_target[ 1 ]-country ).
+                                        act = <temp41>-name ).
+
+
+    temp44 = sy-tabix.
+    READ TABLE lt_target INDEX 1 ASSIGNING <temp43>.
+    sy-tabix = temp44.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    cl_abap_unit_assert=>assert_initial( <temp43>-country ).
 
   ENDMETHOD.
 
@@ -852,7 +1100,8 @@ CLASS ltcl_msg IMPLEMENTATION.
     " no messages means no popup at all, signalled by `skip`
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
@@ -863,9 +1112,18 @@ CLASS ltcl_msg IMPLEMENTATION.
     " a single message renders as plain text without a details list
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
-    lt_msg = VALUE #( ( text = `boom` type = `E` ) ).
+    DATA temp45 TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+    DATA temp46 LIKE LINE OF temp45.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp45.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
+    temp46-text = `boom`.
+    temp46-type = `E`.
+    INSERT temp46 INTO TABLE temp45.
+    lt_msg = temp45.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `boom`
@@ -884,10 +1142,21 @@ CLASS ltcl_msg IMPLEMENTATION.
     " takes its severity from the first message
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
-    lt_msg = VALUE #( ( text = `first`  type = `W` )
-                      ( text = `second` type = `E` ) ).
+    DATA temp47 TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+    DATA temp48 LIKE LINE OF temp47.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp47.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
+    temp48-text = `first`.
+    temp48-type = `W`.
+    INSERT temp48 INTO TABLE temp47.
+    temp48-text = `second`.
+    temp48-type = `E`.
+    INSERT temp48 INTO TABLE temp47.
+    lt_msg = temp47.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Warning`
@@ -905,10 +1174,21 @@ CLASS ltcl_msg IMPLEMENTATION.
     " as an unknown element - every sibling renderer escapes, this did not
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
-    lt_msg = VALUE #( ( text = `Enter a value for <MATNR>` type = `E` )
-                      ( text = `a & b`                    type = `E` ) ).
+    DATA temp49 TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+    DATA temp50 LIKE LINE OF temp49.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp49.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
+    temp50-text = `Enter a value for <MATNR>`.
+    temp50-type = `E`.
+    INSERT temp50 INTO TABLE temp49.
+    temp50-text = `a & b`.
+    temp50-type = `E`.
+    INSERT temp50 INTO TABLE temp49.
+    lt_msg = temp49.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>Enter a value for &lt;MATNR&gt;</li><li>a &amp; b</li></ul>`
@@ -920,6 +1200,8 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     " an exception is its text, an error by default
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    DATA temp4 TYPE xsdboolean.
     TRY.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
@@ -927,12 +1209,15 @@ CLASS ltcl_msg IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO lx ##NO_HANDLER.
     ENDTRY.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lx ).
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lx ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Error`
                                         act = ls_box-title ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_box-text CS `Posting failed` ) ).
+
+    temp4 = boolc( ls_box-text CS `Posting failed` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
 
@@ -940,9 +1225,12 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     " neither exception nor log: the public attributes that carry a message
     " part are mapped - the fourth shape of msg_get_by_oref
-    DATA(lo_carrier) = NEW ltcl_msg_carrier( ).
+    DATA lo_carrier TYPE REF TO ltcl_msg_carrier.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CREATE OBJECT lo_carrier TYPE ltcl_msg_carrier.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_carrier ).
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_carrier ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Order 4711 saved`
@@ -959,7 +1247,8 @@ CLASS ltcl_msg IMPLEMENTATION.
     " into a describe on the null reference and end in a 500
     DATA lo_unbound TYPE REF TO object.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_unbound ).
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_unbound ).
 
     cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
@@ -976,11 +1265,21 @@ CLASS ltcl_msg IMPLEMENTATION.
         carrid TYPE string,
         seats  TYPE i,
       END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES temp1 TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
+DATA lt_row TYPE temp1.
 
-    lt_row = VALUE #( ( carrid = `LH` seats = 12 ) ).
+    DATA temp51 LIKE lt_row.
+    DATA temp52 LIKE LINE OF temp51.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp51.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_row ).
+    temp52-carrid = `LH`.
+    temp52-seats = 12.
+    INSERT temp52 INTO TABLE temp51.
+    lt_row = temp51.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_row ).
 
     cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
@@ -992,29 +1291,109 @@ CLASS ltcl_msg IMPLEMENTATION.
     " {LOW}/{HIGH} are substituted from the range row
     DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
 
-    lt_range = VALUE #( ( sign = `I` option = `EQ` low = `X` )
-                        ( sign = `I` option = `BT` low = `1` high = `9` )
-                        ( sign = `I` option = `CP` low = `A` )
-                        ( sign = `E` option = `EQ` low = `Y` ) ).
+    DATA temp53 TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+    DATA temp54 LIKE LINE OF temp53.
+    DATA lt_token TYPE z2ui5_cl_ui5_util_context=>ty_t_token.
+    FIELD-SYMBOLS <temp55> LIKE LINE OF lt_token.
+    DATA temp56 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp57> LIKE LINE OF lt_token.
+    DATA temp58 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp59> LIKE LINE OF lt_token.
+    DATA temp60 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp61> LIKE LINE OF lt_token.
+    DATA temp62 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp63> LIKE LINE OF lt_token.
+    DATA temp64 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp65> LIKE LINE OF lt_token.
+    DATA temp66 LIKE sy-tabix.
+    CLEAR temp53.
 
-    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+    temp54-sign = `I`.
+    temp54-option = `EQ`.
+    temp54-low = `X`.
+    INSERT temp54 INTO TABLE temp53.
+    temp54-sign = `I`.
+    temp54-option = `BT`.
+    temp54-low = `1`.
+    temp54-high = `9`.
+    INSERT temp54 INTO TABLE temp53.
+    temp54-sign = `I`.
+    temp54-option = `CP`.
+    temp54-low = `A`.
+    INSERT temp54 INTO TABLE temp53.
+    temp54-sign = `E`.
+    temp54-option = `EQ`.
+    temp54-low = `Y`.
+    INSERT temp54 INTO TABLE temp53.
+    lt_range = temp53.
+
+
+    lt_token = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
 
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = lines( lt_token ) ).
+
+
+    temp56 = sy-tabix.
+    READ TABLE lt_token INDEX 1 ASSIGNING <temp55>.
+    sy-tabix = temp56.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `=X`
-                                        act = lt_token[ 1 ]-key ).
+                                        act = <temp55>-key ).
+
+
+    temp58 = sy-tabix.
+    READ TABLE lt_token INDEX 2 ASSIGNING <temp57>.
+    sy-tabix = temp58.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `1...9`
-                                        act = lt_token[ 2 ]-key ).
+                                        act = <temp57>-key ).
+
+
+    temp60 = sy-tabix.
+    READ TABLE lt_token INDEX 3 ASSIGNING <temp59>.
+    sy-tabix = temp60.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `*A*`
-                                        act = lt_token[ 3 ]-key ).
+                                        act = <temp59>-key ).
     " an excluding row renders negated, not like its including twin
+
+
+    temp62 = sy-tabix.
+    READ TABLE lt_token INDEX 4 ASSIGNING <temp61>.
+    sy-tabix = temp62.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `!(=Y)`
-                                        act = lt_token[ 4 ]-key ).
+                                        act = <temp61>-key ).
 
     " tokens come back visible and editable so the UI5 MultiInput can render
     " and remove them
-    cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-visible ).
-    cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-editable ).
+
+
+    temp64 = sy-tabix.
+    READ TABLE lt_token INDEX 1 ASSIGNING <temp63>.
+    sy-tabix = temp64.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    cl_abap_unit_assert=>assert_true( <temp63>-visible ).
+
+
+    temp66 = sy-tabix.
+    READ TABLE lt_token INDEX 1 ASSIGNING <temp65>.
+    sy-tabix = temp66.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    cl_abap_unit_assert=>assert_true( <temp65>-editable ).
 
   ENDMETHOD.
 
@@ -1095,7 +1474,8 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " an unmapped cause still says something useful AND keeps the number, so
     " a code the framework does not know yet can still be looked up
-    DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 99 ).
+    DATA lv_text TYPE string.
+    lv_text = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 99 ).
 
     cl_abap_unit_assert=>assert_char_cp( exp = `*99*`
                                          act = lv_text ).
@@ -1110,16 +1490,21 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     " every mapped cause renders a non-empty text that is not the fallback -
     " one assert over the whole SWITCH, so a branch dropped by an edit shows
     DATA lv_cause TYPE i.
+      DATA lv_text TYPE string.
+      DATA temp5 TYPE xsdboolean.
     DO 12 TIMES.
       lv_cause = sy-index - 1.
-      DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( lv_cause ).
+
+      lv_text = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( lv_cause ).
 
       cl_abap_unit_assert=>assert_not_initial(
           act = lv_text
           msg = |cause { lv_cause } renders no text| ).
 
+
+      temp5 = boolc( lv_text CS `cause code` ).
       cl_abap_unit_assert=>assert_false(
-          act = xsdbool( lv_text CS `cause code` )
+          act = temp5
           msg = |cause { lv_cause } fell through to the ELSE branch| ).
     ENDDO.
 
@@ -1129,8 +1514,13 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " the key renders as NAME=VALUE pairs, comma separated - this is what a
     " message ends up quoting to say WHICH entity failed
-    DATA(ls_tky) = VALUE ty_s_tky( product_uuid = `ABC-1`
-                                   product_id   = `4711` ).
+    DATA temp67 TYPE ty_s_tky.
+    DATA ls_tky LIKE temp67.
+    CLEAR temp67.
+    temp67-product_uuid = `ABC-1`.
+    temp67-product_id = `4711`.
+
+    ls_tky = temp67.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `PRODUCT_UUID=ABC-1, PRODUCT_ID=4711`
@@ -1142,7 +1532,12 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " an initial component contributes nothing - not an empty pair and not a
     " dangling separator
-    DATA(ls_tky) = VALUE ty_s_tky( product_id = `4711` ).
+    DATA temp68 TYPE ty_s_tky.
+    DATA ls_tky LIKE temp68.
+    CLEAR temp68.
+    temp68-product_id = `4711`.
+
+    ls_tky = temp68.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `PRODUCT_ID=4711`
@@ -1154,9 +1549,15 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " a nested structure is flattened by the recursion, and its pairs join the
     " outer ones in component order
-    DATA(ls_nested) = VALUE ty_s_nested( inner = VALUE #( a = `1`
-                                                          b = `2` )
-                                         c     = `3` ).
+    DATA temp69 TYPE ty_s_nested.
+    DATA ls_nested LIKE temp69.
+    CLEAR temp69.
+    CLEAR temp69-inner.
+    temp69-inner-a = `1`.
+    temp69-inner-b = `2`.
+    temp69-c = `3`.
+
+    ls_nested = temp69.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `A=1, B=2, C=3`
@@ -1168,7 +1569,8 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " anything that is not a structure returns empty rather than dumping - the
     " method is called on whatever a %TKY-shaped component turns out to hold
-    DATA(lv_scalar) = `not a structure`.
+    DATA lv_scalar TYPE string.
+    lv_scalar = `not a structure`.
 
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>msg_get_rap_flatten( lv_scalar ) ).
@@ -1179,8 +1581,13 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     " a structure with no %MSG / %FAIL / %OTHER component and no message table
     " is not RAP-shaped: box_resolve has to fall through to the plain path
-    DATA(ls_plain) = VALUE ty_s_plain( name = `Ada`
-                                       city = `London` ).
+    DATA temp70 TYPE ty_s_plain.
+    DATA ls_plain LIKE temp70.
+    CLEAR temp70.
+    temp70-name = `Ada`.
+    temp70-city = `London`.
+
+    ls_plain = temp70.
 
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
@@ -1203,7 +1610,7 @@ CLASS ltcl_data_box DEFINITION FINAL
         carrid TYPE string,
         seats  TYPE i,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_node,
@@ -1228,7 +1635,8 @@ CLASS ltcl_data_box IMPLEMENTATION.
   METHOD test_text_plain.
 
     " a character value is its own text and needs no details
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( `Hello World` ).
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( `Hello World` ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Hello World`
@@ -1242,7 +1650,8 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " markup in the box TEXT would be shown as the tags it is written with,
     " so it moves to the details ( a FormattedText in UI5 ) and the headline
     " becomes the plain text behind it
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format(
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format(
                        `<p>Order <strong>4711</strong> booked</p>` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Order 4711 booked`
@@ -1256,10 +1665,12 @@ CLASS ltcl_data_box IMPLEMENTATION.
 
     " a number is shown as the number, not as a right-aligned char field
     DATA lv_int TYPE i.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
 
     lv_int = 42.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_int ).
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_int ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `42`
@@ -1273,9 +1684,18 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " with its component names
     DATA lt_row TYPE ty_t_row.
 
-    lt_row = VALUE #( ( carrid = `LH` seats = 12 ) ).
+    DATA temp71 TYPE ltcl_data_box=>ty_t_row.
+    DATA temp72 LIKE LINE OF temp71.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp71.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+    temp72-carrid = `LH`.
+    temp72-seats = 12.
+    INSERT temp72 INTO TABLE temp71.
+    lt_row = temp71.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `Table with 1 entry`
@@ -1292,11 +1712,22 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " a node with children below it - the recursion renders the nested table
     " as a nested list instead of stopping at the first level
     DATA ls_node TYPE ty_s_node.
+    DATA temp2 TYPE ltcl_data_box=>ty_t_row.
+    DATA temp3 LIKE LINE OF temp2.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
 
-    ls_node = VALUE #( name  = `root`
-                       nodes = VALUE #( ( carrid = `LH` seats = 1 ) ) ).
+    CLEAR ls_node.
+    ls_node-name = `root`.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( ls_node ).
+    CLEAR temp2.
+
+    temp3-carrid = `LH`.
+    temp3-seats = 1.
+    INSERT temp3 INTO TABLE temp2.
+    ls_node-nodes = temp2.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( ls_node ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Structure with 2 fields`
                                         act = ls_box-text ).
@@ -1317,7 +1748,8 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " message table has always produced
     DATA lt_row TYPE ty_t_row.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
 
     cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
@@ -1329,9 +1761,17 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " able to close the list the renderer is building
     DATA lt_row TYPE ty_t_row.
 
-    lt_row = VALUE #( ( carrid = `</ul><script>` ) ).
+    DATA temp73 TYPE ltcl_data_box=>ty_t_row.
+    DATA temp74 LIKE LINE OF temp73.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    CLEAR temp73.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+    temp74-carrid = `</ul><script>`.
+    INSERT temp74 INTO TABLE temp73.
+    lt_row = temp73.
+
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `<ol><li><ul><li><strong>CARRID</strong>: &lt;/ul&gt;&lt;script&gt;</li>` &&
@@ -1345,16 +1785,25 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " a dump is a diagnostic, not a report: the box stops after 100 rows and
     " says how many it left out
     DATA lt_row TYPE ty_t_row.
+      DATA temp75 TYPE ltcl_data_box=>ty_s_row.
+    DATA ls_box TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
+    DATA temp6 TYPE xsdboolean.
 
     DO 105 TIMES.
-      INSERT VALUE #( seats = sy-index ) INTO TABLE lt_row.
+
+      CLEAR temp75.
+      temp75-seats = sy-index.
+      INSERT temp75 INTO TABLE lt_row.
     ENDDO.
 
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
+
+    ls_box = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lt_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Table with 105 entries`
                                         act = ls_box-text ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_box-details CS `... 5 more entries` ) ).
+
+    temp6 = boolc( ls_box-details CS `... 5 more entries` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
 
   ENDMETHOD.
 

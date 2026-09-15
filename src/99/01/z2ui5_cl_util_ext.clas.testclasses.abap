@@ -75,70 +75,109 @@ ENDCLASS.
 CLASS ltcl_calendar_ops IMPLEMENTATION.
 
   METHOD weekday_monday.
+    DATA temp1 TYPE d.
+    temp1 = `20240101`.
     cl_abap_unit_assert=>assert_equals( exp = 1
-        act = z2ui5_cl_util_ext=>cal_get_weekday( CONV d( `20240101` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_get_weekday( temp1 ) ).
   ENDMETHOD.
 
   METHOD weekday_sunday.
+    DATA temp2 TYPE d.
+    temp2 = `20240107`.
     cl_abap_unit_assert=>assert_equals( exp = 7
-        act = z2ui5_cl_util_ext=>cal_get_weekday( CONV d( `20240107` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_get_weekday( temp2 ) ).
   ENDMETHOD.
 
   METHOD weekday_wednesday.
+    DATA temp3 TYPE d.
+    temp3 = `20240103`.
     cl_abap_unit_assert=>assert_equals( exp = 3
-        act = z2ui5_cl_util_ext=>cal_get_weekday( CONV d( `20240103` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_get_weekday( temp3 ) ).
   ENDMETHOD.
 
   METHOD weekday_saturday.
+    DATA temp4 TYPE d.
+    temp4 = `20240106`.
     cl_abap_unit_assert=>assert_equals( exp = 6
-        act = z2ui5_cl_util_ext=>cal_get_weekday( CONV d( `20240106` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_get_weekday( temp4 ) ).
   ENDMETHOD.
 
   METHOD is_weekend_saturday.
+    DATA temp5 TYPE d.
+    temp5 = `20240106`.
     cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_util_ext=>cal_is_weekend( CONV d( `20240106` ) ) ).
+        z2ui5_cl_util_ext=>cal_is_weekend( temp5 ) ).
   ENDMETHOD.
 
   METHOD is_weekend_sunday.
+    DATA temp6 TYPE d.
+    temp6 = `20240107`.
     cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_util_ext=>cal_is_weekend( CONV d( `20240107` ) ) ).
+        z2ui5_cl_util_ext=>cal_is_weekend( temp6 ) ).
   ENDMETHOD.
 
   METHOD is_weekend_friday.
+    DATA temp7 TYPE d.
+    temp7 = `20240105`.
     cl_abap_unit_assert=>assert_false(
-        z2ui5_cl_util_ext=>cal_is_weekend( CONV d( `20240105` ) ) ).
+        z2ui5_cl_util_ext=>cal_is_weekend( temp7 ) ).
   ENDMETHOD.
 
   METHOD add_workdays_skip_weekend.
+    DATA temp8 TYPE d.
+    DATA temp1 TYPE d.
+    temp8 = `20240318`.
+
+    temp1 = `20240315`.
     cl_abap_unit_assert=>assert_equals(
-        exp = CONV d( `20240318` )
-        act = z2ui5_cl_util_ext=>cal_add_workdays( date = CONV d( `20240315` ) days = 1 ) ).
+        exp = temp8
+        act = z2ui5_cl_util_ext=>cal_add_workdays( date = temp1 days = 1 ) ).
   ENDMETHOD.
 
   METHOD add_workdays_mid_week.
+    DATA temp9 TYPE d.
+    DATA temp2 TYPE d.
+    temp9 = `20240104`.
+
+    temp2 = `20240102`.
     cl_abap_unit_assert=>assert_equals(
-        exp = CONV d( `20240104` )
-        act = z2ui5_cl_util_ext=>cal_add_workdays( date = CONV d( `20240102` ) days = 2 ) ).
+        exp = temp9
+        act = z2ui5_cl_util_ext=>cal_add_workdays( date = temp2 days = 2 ) ).
   ENDMETHOD.
 
   METHOD add_workdays_zero.
+    DATA temp10 TYPE d.
+    DATA temp3 TYPE d.
+    temp10 = `20240315`.
+
+    temp3 = `20240315`.
     cl_abap_unit_assert=>assert_equals(
-        exp = CONV d( `20240315` )
-        act = z2ui5_cl_util_ext=>cal_add_workdays( date = CONV d( `20240315` ) days = 0 ) ).
+        exp = temp10
+        act = z2ui5_cl_util_ext=>cal_add_workdays( date = temp3 days = 0 ) ).
   ENDMETHOD.
 
   METHOD count_workdays_full_week.
+    DATA temp11 TYPE d.
+    DATA temp4 TYPE d.
+    temp11 = `20240101`.
+
+    temp4 = `20240108`.
     cl_abap_unit_assert=>assert_equals(
         exp = 5
-        act = z2ui5_cl_util_ext=>cal_count_workdays( date_from = CONV d( `20240101` )
-                                                      date_to   = CONV d( `20240108` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_count_workdays( date_from = temp11
+                                                      date_to   = temp4 ) ).
   ENDMETHOD.
 
   METHOD count_workdays_same_day.
+    DATA temp12 TYPE d.
+    DATA temp5 TYPE d.
+    temp12 = `20240101`.
+
+    temp5 = `20240101`.
     cl_abap_unit_assert=>assert_equals(
         exp = 0
-        act = z2ui5_cl_util_ext=>cal_count_workdays( date_from = CONV d( `20240101` )
-                                                      date_to   = CONV d( `20240101` ) ) ).
+        act = z2ui5_cl_util_ext=>cal_count_workdays( date_from = temp12
+                                                      date_to   = temp5 ) ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -162,50 +201,105 @@ CLASS ltcl_zip_ops IMPLEMENTATION.
 
   METHOD pack_basic.
     DATA lo_probe TYPE REF TO object.
+    DATA temp13 TYPE z2ui5_cl_util_ext=>ty_t_zip_file.
+    DATA temp14 LIKE LINE OF temp13.
+    DATA temp6 TYPE xstring.
+    DATA lt_files LIKE temp13.
+    DATA lv_archive TYPE xstring.
     TRY.
         CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
       CATCH cx_root.
         RETURN.
     ENDTRY.
 
-    DATA(lt_files) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file(
-        ( name = `test.txt` content = CONV xstring( `48656C6C6F` ) ) ).
-    DATA(lv_archive) = z2ui5_cl_util_ext=>zip_pack( lt_files ).
+
+    CLEAR temp13.
+
+    temp14-name = `test.txt`.
+
+    temp6 = `48656C6C6F`.
+    temp14-content = temp6.
+    INSERT temp14 INTO TABLE temp13.
+
+    lt_files = temp13.
+
+    lv_archive = z2ui5_cl_util_ext=>zip_pack( lt_files ).
     cl_abap_unit_assert=>assert_not_initial( lv_archive ).
   ENDMETHOD.
 
   METHOD pack_empty.
     DATA lo_probe TYPE REF TO object.
+    DATA temp15 TYPE z2ui5_cl_util_ext=>ty_t_zip_file.
+    DATA lt_files LIKE temp15.
+    DATA lv_archive TYPE xstring.
     TRY.
         CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
       CATCH cx_root.
         RETURN.
     ENDTRY.
 
-    DATA(lt_files) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file( ).
-    DATA(lv_archive) = z2ui5_cl_util_ext=>zip_pack( lt_files ).
+
+    CLEAR temp15.
+
+    lt_files = temp15.
+
+    lv_archive = z2ui5_cl_util_ext=>zip_pack( lt_files ).
     cl_abap_unit_assert=>assert_not_initial( lv_archive ).
   ENDMETHOD.
 
   METHOD roundtrip.
     DATA lo_probe TYPE REF TO object.
+    DATA temp16 TYPE z2ui5_cl_util_ext=>ty_t_zip_file.
+    DATA temp17 LIKE LINE OF temp16.
+    DATA temp7 TYPE xstring.
+    DATA temp8 TYPE xstring.
+    DATA lt_in LIKE temp16.
+    DATA lv_archive TYPE xstring.
+    DATA lt_out TYPE z2ui5_cl_util_ext=>ty_t_zip_file.
+    DATA ls_in LIKE LINE OF lt_in.
+      DATA temp18 TYPE z2ui5_cl_util_ext=>ty_s_zip_file.
+      DATA temp19 TYPE z2ui5_cl_util_ext=>ty_s_zip_file.
+      DATA ls_out LIKE temp18.
     TRY.
         CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
       CATCH cx_root.
         RETURN.
     ENDTRY.
 
-    DATA(lt_in) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file(
-        ( name = `a.txt` content = CONV xstring( `414141` ) )
-        ( name = `b.txt` content = CONV xstring( `424242` ) ) ).
 
-    DATA(lv_archive) = z2ui5_cl_util_ext=>zip_pack( lt_in ).
-    DATA(lt_out) = z2ui5_cl_util_ext=>zip_unpack( lv_archive ).
+    CLEAR temp16.
+
+    temp17-name = `a.txt`.
+
+    temp7 = `414141`.
+    temp17-content = temp7.
+    INSERT temp17 INTO TABLE temp16.
+    temp17-name = `b.txt`.
+
+    temp8 = `424242`.
+    temp17-content = temp8.
+    INSERT temp17 INTO TABLE temp16.
+
+    lt_in = temp16.
+
+
+    lv_archive = z2ui5_cl_util_ext=>zip_pack( lt_in ).
+
+    lt_out = z2ui5_cl_util_ext=>zip_unpack( lv_archive ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_out ) ).
 
-    LOOP AT lt_in INTO DATA(ls_in).
-      DATA(ls_out) = VALUE #( lt_out[ name = ls_in-name ] OPTIONAL ).
+
+    LOOP AT lt_in INTO ls_in.
+
+      CLEAR temp18.
+
+      READ TABLE lt_out INTO temp19 WITH KEY name = ls_in-name.
+      IF sy-subrc = 0.
+        temp18 = temp19.
+      ENDIF.
+
+      ls_out = temp18.
       cl_abap_unit_assert=>assert_equals( exp = ls_in-content act = ls_out-content ).
     ENDLOOP.
   ENDMETHOD.
@@ -237,6 +331,7 @@ CLASS ltcl_rtti_ext IMPLEMENTATION.
 
   METHOD check_dfies_available.
     DATA lo_descr TYPE REF TO cl_abap_typedescr.
+    DATA temp1 TYPE xsdboolean.
     cl_abap_typedescr=>describe_by_name(
       EXPORTING
         p_name         = `DFIES`
@@ -245,24 +340,34 @@ CLASS ltcl_rtti_ext IMPLEMENTATION.
       EXCEPTIONS
         type_not_found = 1
         OTHERS         = 2 ).
-    result = xsdbool( sy-subrc = 0 ).
+
+    temp1 = boolc( sy-subrc = 0 ).
+    result = temp1.
   ENDMETHOD.
 
   METHOD dfies_by_table_basic.
+    DATA lt_result TYPE z2ui5_cl_util_ext=>ty_t_dfies.
     IF check_dfies_available( ) = abap_false.
       RETURN.
     ENDIF.
-    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
+
+    lt_result = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
     cl_abap_unit_assert=>assert_not_initial( lt_result ).
   ENDMETHOD.
 
   METHOD dfies_by_table_has_fields.
+    DATA lt_result TYPE z2ui5_cl_util_ext=>ty_t_dfies.
+    DATA lv_found LIKE abap_false.
+    DATA ls_dfies LIKE LINE OF lt_result.
     IF check_dfies_available( ) = abap_false.
       RETURN.
     ENDIF.
-    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
-    DATA(lv_found) = abap_false.
-    LOOP AT lt_result INTO DATA(ls_dfies).
+
+    lt_result = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
+
+    lv_found = abap_false.
+
+    LOOP AT lt_result INTO ls_dfies.
       IF ls_dfies-fieldname = `ID`.
         lv_found = abap_true.
         EXIT.
@@ -272,10 +377,12 @@ CLASS ltcl_rtti_ext IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD table_descr_basic.
+    DATA lv_result TYPE string.
     IF check_dfies_available( ) = abap_false.
       RETURN.
     ENDIF.
-    DATA(lv_result) = z2ui5_cl_util_ext=>rtti_get_table_desrc( `Z2UI5_T_01` ).
+
+    lv_result = z2ui5_cl_util_ext=>rtti_get_table_desrc( `Z2UI5_T_01` ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
   ENDMETHOD.
 
@@ -297,7 +404,8 @@ ENDCLASS.
 CLASS ltcl_transport_ops IMPLEMENTATION.
 
   METHOD get_user_requests.
-    DATA(lt_result) = z2ui5_cl_util_ext=>tr_get_user_requests( ) ##NEEDED.
+    DATA lt_result TYPE z2ui5_cl_util_ext=>ty_t_tr_request.
+    lt_result = z2ui5_cl_util_ext=>tr_get_user_requests( ) ##NEEDED.
   ENDMETHOD.
 
 ENDCLASS.
@@ -320,9 +428,19 @@ CLASS ltcl_xlsx_ops IMPLEMENTATION.
 
   METHOD xlsx_by_itab_basic.
     TYPES: BEGIN OF ty_row, col1 TYPE string, col2 TYPE string, END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( col1 = `A` col2 = `B` ) ).
-    DATA(lv_result) = z2ui5_cl_util_ext=>conv_get_xlsx_by_itab( lt_tab ) ##NEEDED.
+    TYPES temp1 TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+DATA lt_tab TYPE temp1.
+    DATA temp20 LIKE lt_tab.
+    DATA temp21 LIKE LINE OF temp20.
+    DATA lv_result TYPE xstring.
+    CLEAR temp20.
+
+    temp21-col1 = `A`.
+    temp21-col2 = `B`.
+    INSERT temp21 INTO TABLE temp20.
+    lt_tab = temp20.
+
+    lv_result = z2ui5_cl_util_ext=>conv_get_xlsx_by_itab( lt_tab ) ##NEEDED.
   ENDMETHOD.
 
   METHOD itab_by_xlsx_empty.
@@ -350,7 +468,8 @@ ENDCLASS.
 CLASS ltcl_source_ops IMPLEMENTATION.
 
   METHOD source_get_method_basic.
-    DATA(lt_source) = z2ui5_cl_util_ext=>source_get_method(
+    DATA lt_source TYPE string_table.
+    lt_source = z2ui5_cl_util_ext=>source_get_method(
         iv_classname  = `Z2UI5_CL_UTIL`
         iv_methodname = `C_TRIM` ).
     cl_abap_unit_assert=>assert_not_initial( lt_source ).
