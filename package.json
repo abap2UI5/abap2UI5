@@ -95,18 +95,18 @@
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abap2ui5/linter": "^0.6.1",
-    "@abaplint/cli": "^2.120.51",
-    "@abaplint/database-sqlite": "^2.13.40",
-    "@abaplint/runtime": "^2.13.83",
-    "@abaplint/transpiler-cli": "^2.13.83",
+    "@abaplint/cli": "^2.120.52",
+    "@abaplint/database-sqlite": "^2.13.83",
+    "@abaplint/runtime": "^2.13.87",
+    "@abaplint/transpiler-cli": "^2.13.87",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.61.1",
-    "@ui5/cli": "^4.0.62",
-    "acorn": "^8.14.0",
+    "@playwright/test": "^1.63.0",
+    "@ui5/cli": "^4.0.67",
+    "acorn": "^8.18.0",
     "c8": "^12.0.0",
-    "eslint": "^10.9.1",
+    "eslint": "^10.10.0",
     "express": "^5.2.1",
-    "globals": "^17.11.0",
+    "globals": "^17.12.0",
     "terser": "^5.51.2"
   }
 }
