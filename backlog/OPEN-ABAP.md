@@ -25,15 +25,5 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`open-abap-xml-escaping`](items/open-abap-xml-escaping.md) | element values are written raw, so a model value containing `<` produces a draft the transpiled `CL_IXML` cannot parse back<br><sub>https://github.com/open-abap/open-abap-core/pull/1193</sub> | high | 2026-07-31 | open-abap/open-abap-core |
-
----
-
 _Generated from `backlog/items/*.md` and the `**Backlog:**` lines in
 `.claude/skills/` — `npm run backlog`._
