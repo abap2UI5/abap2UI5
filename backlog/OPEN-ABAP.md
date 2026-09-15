@@ -22,6 +22,7 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`open-abap-asxml-line-feed`](items/open-abap-asxml-line-feed.md) | 'cl_ixml removes every literal LF from the document before tokenizing it, and nothing writes one as a character reference, so a string with a line break comes back as one line through `CALL TRANSFORMATION id` and back' | medium | 2026-09-02 | open-abap/open-abap-core |
+| [`transpiler-create-data-ref-to`](items/transpiler-create-data-ref-to.md) | 'only the dynamic `TYPE REF TO (name)` spelling is handled; the static `TYPE REF TO data` and `TYPE REF TO <class>` fall through createData''s typeName switch and die in a plain `throw new Error`, which no `CATCH cx_root` can absorb' | medium | 2026-09-15 | abaplint/transpiler |
 
 ---
 
