@@ -38,7 +38,7 @@ const PINS = [
   {
     name: "open-abap-core",
     url: "https://github.com/open-abap/open-abap-core",
-    sha: "080049115f5dacca05452b83f9634097429544c2",
+    sha: "c4bb873304653032294800427fdfcc96beac9040",
   },
   {
     name: "express-icf-shim",
