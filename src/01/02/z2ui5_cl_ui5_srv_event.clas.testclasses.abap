@@ -35,6 +35,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS json_object_arg FOR TESTING.
     METHODS json_placeholder_stays_string FOR TESTING.
     METHODS json_escaping FOR TESTING.
+    METHODS json_bind_element FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -536,6 +537,69 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
         act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nav_container_to
                                                t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+    " one event constant per slot, and the SLOT is the only thing that
+    " differs - a remap that lands on the wrong one navigates a container
+    " in a view the app never named, and nothing about the response says so
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","myContainer","NEST","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
+                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","myContainer","NEST2","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nest2_nav_container_to
+                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","myContainer","POPUP","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-popup_nav_container_to
+                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","myContainer","POPOVER","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-popover_nav_container_to
+                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_bind_element.
+
+    " BIND_ELEMENT re-orders its arguments, which nothing covered: the app
+    " passes (row index, binding), the frontend reads [_, slot, index, path]
+    " and appends `/index` to the path. So the VIEW is put in front and the
+    " braces client->_bind( ) answers with have to be gone by then -
+    " `{/MT_TAB}/3` is no binding path (core/actions/ViewOps.js strips them
+    " again, defensively; this is where it has to happen)
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["BIND_ELEMENT","POPUP","3","/MT_TAB"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
+                                               view  = z2ui5_if_client=>cs_view-popup
+                                               t_arg = VALUE #( ( `3` ) ( `{/MT_TAB}` ) ) ) ).
+
+    " the default view, and a binding that carries no braces at all
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["BIND_ELEMENT","MAIN","0","/MT_TAB"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
+                                               t_arg = VALUE #( ( `0` ) ( `/MT_TAB` ) ) ) ).
+
+    " no binding argument at all: the third element is simply not there,
+    " and the frontend's `String(args[3] ?? "")` answers the empty path
+    " with a log line instead of element-binding the slot to a bare `/3`
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["BIND_ELEMENT","MAIN","3"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
+                                               t_arg = VALUE #( ( `3` ) ) ) ).
+
+    " an EMPTY index between the slot and the path keeps its position - the
+    " positional trim only drops what TRAILS. Dropping it would shift the
+    " path into the index slot and element-bind the view to `MAIN/`
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["BIND_ELEMENT","MAIN","","/MT_TAB"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
+                                               t_arg = VALUE #( ( `` ) ( `{/MT_TAB}` ) ) ) ).
 
   ENDMETHOD.
 
