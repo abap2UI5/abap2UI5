@@ -101,6 +101,20 @@ const files = walk(ROOT, "src")
  * ABAP Doc can reach. */
 const BEFORE_END_OF = /^\s*end\s+of\b/i;
 
+/* ...and a SECOND shape the rule does not report, reported from a system's
+ * SYNTAX_CHECK on 2026-09-16: a plain `"` comment BETWEEN the block and the
+ * declaration. z2ui5_if_client's check_on_navigated carried four such lines -
+ * a note to whoever edits the framework, deliberately not ABAP Doc so the
+ * documentation site would not print it - and they detached the sixteen-line
+ * block above them from the METHODS below. The note belongs ABOVE the block,
+ * where it breaks nothing.
+ *
+ * abaplint's wrong_abapdoc_position reports the block before a chain keyword,
+ * inside a statement, and before ENDCLASS / ENDINTERFACE / a SECTION. A
+ * comment is none of those: it is not a statement at all, so the rule walks
+ * past it to the declaration and finds the block correctly placed. */
+const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
+
 function abapdocFindings(file, source) {
   const out = [];
   const src = source.split("\n");
@@ -117,6 +131,15 @@ function abapdocFindings(file, source) {
         at: `${file}:${i + 1}`,
         rule: "abapdoc",
         message: `"! before \`${next}\` documents nothing - the last component of the structure is above it, not below`,
+      });
+      return;
+    }
+
+    if (n < src.length && PLAIN_COMMENT.test(src[n])) {
+      out.push({
+        at: `${file}:${i + 1}`,
+        rule: "abapdoc",
+        message: `a plain comment sits between this "! block and the declaration below it, which detaches the block - move the comment ABOVE the block`,
       });
     }
   });
@@ -156,6 +179,26 @@ const ABAPDOC_SELF_TEST = [
     name: "before a section end - abaplint's now, not this gate's",
     source: 'CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n    METHODS run.\n    "! orphaned\n  PROTECTED SECTION.\n  PRIVATE SECTION.\nENDCLASS.',
     expect: 0,
+  },
+  {
+    name: "a plain comment between the block and its declaration - the 2026-09-16 case",
+    source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n  " a note to whoever edits this\n  METHODS run.\nENDINTERFACE.',
+    expect: 1,
+  },
+  {
+    name: "the same note ABOVE the block - the repaired shape",
+    source: 'INTERFACE zif_x PUBLIC.\n  " a note to whoever edits this\n  "! what it answers\n  METHODS run.\nENDINTERFACE.',
+    expect: 0,
+  },
+  {
+    name: "a blank line between them is not a comment and detaches nothing",
+    source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n\n  METHODS run.\nENDINTERFACE.',
+    expect: 0,
+  },
+  {
+    name: "a `*` comment detaches it just as well",
+    source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n* a note\n  METHODS run.\nENDINTERFACE.',
+    expect: 1,
   },
 ];
 
@@ -441,6 +484,80 @@ selfTest(
 // is "not supported" and "not closed" in a system, and the block renders
 // wrong. Escape it as &lt;name&gt;. Only complete tag-like tokens are read,
 // so a comparison (`a < b`) is not a finding.
+/* A TEXT SYMBOL (`'text'(001)`) handed straight to a PARAMETER. It is a
+ * CHARACTER literal, so a formal parameter typed `string` answers
+ * `'...'(001) is not type-compatible with formal parameter V` - a
+ * SYNTAX_ERROR of the whole class, reported from a system's SYNTAX_CHECK on
+ * 2026-09-16 against samples/z2ui5_cl_smp_app_519, the sample whose subject
+ * is translatable texts. abaplint, the transpiler and the unit suite were all
+ * green on it: none of them models the compatibility rule for a text-symbol
+ * literal.
+ *
+ * A PARAMETER binding only. `lv_x = 'y'(001).` is an assignment and a plain
+ * conversion, correct on every release; a symbol inside a string template is
+ * correct too, an embedded expression being a general expression position.
+ * What separates them on the text is whether the binding sits inside an open
+ * paren - so the parens BEFORE it are counted, over the code half of the
+ * statement, and a `(001)` inside a literal cannot skew that count because
+ * only the text before the match is read.
+ *
+ * The fix is a variable, which is also what an app using a text twice writes. */
+const TEXT_SYMBOL_ARG = /\b\w+\s*=\s*'[^']*'\(\d{3}\)/;
+
+function textSymbolFindings(file, source) {
+  const out = [];
+  for (const stmt of statements(source)) {
+    const flat = stmt.text.replace(/\n/g, " ");
+    const at = flat.search(TEXT_SYMBOL_ARG);
+    if (at === -1) continue;
+    const before = stripNoise(flat.slice(0, at));
+    const depth = (before.match(/\(/g) ?? []).length - (before.match(/\)/g) ?? []).length;
+    if (depth <= 0) continue;
+    out.push({
+      at: `${file}:${stmt.start}`,
+      rule: "text_symbol_arg",
+      message: 'a text symbol is a CHARACTER literal - passing one to a parameter typed `string` is "not type-compatible with formal parameter" on a system; read it into a variable and pass that',
+    });
+  }
+  return out;
+}
+
+const TEXT_SYMBOL_SELF_TEST = [
+  {
+    name: "the app_519 chain itself - the finding the rule exists for",
+    source: "page->ele( `VBox`\n    )->tag( `Label`\n        )->a( n = `text` v = 'Your name'(001)\n        )->a( n = `labelFor` v = `nameInput` ).",
+    expect: 1,
+  },
+  {
+    name: "an assignment to a variable - the repaired shape",
+    source: "lv_name = 'Your name'(001).",
+    expect: 0,
+  },
+  {
+    name: "inside a string template - a general expression position",
+    source: "client->message_box_display( |{ 'Hello'(004) } { name }| ).",
+    expect: 0,
+  },
+  {
+    name: "the variable passed instead",
+    source: "page->tag( `Label` )->a( n = `text` v = lv_name ).",
+    expect: 0,
+  },
+  {
+    name: "any other call, not just the view builder",
+    source: "DATA(lv) = zcl_x=>m( val = 'Greet'(003) ).",
+    expect: 1,
+  },
+];
+
+selfTest(
+  TEXT_SYMBOL_SELF_TEST,
+  source => textSymbolFindings("selftest.clas.abap", source),
+  "The text-symbol rule changed. A green run over src/ says nothing while this\n"
+    + "case fails - this repository has no text symbol at all, the sample that had\n"
+    + "them is a sibling checkout.",
+);
+
 const ABAPDOC_TAGS = new Set(["p", "em", "strong", "ul", "ol", "li", "h1", "h2", "h3", "br"]);
 function abapdocHtmlFindings(file, source) {
   source.split(/\r?\n/).forEach((line, i) => {
@@ -462,6 +579,7 @@ for (const file of files) {
   if (/\.(clas|intf)\.abap$/.test(file)) findings.push(...abapdocFindings(file, source));
   abapdocHtmlFindings(file, source);
   findings.push(...derefCallFindings(file, source));
+  findings.push(...textSymbolFindings(file, source));
   const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
@@ -583,4 +701,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length} self-test case(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length + TEXT_SYMBOL_SELF_TEST.length} self-test case(s) checked - OK`);

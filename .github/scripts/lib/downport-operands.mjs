@@ -45,7 +45,43 @@ export const CALL = new RegExp(`\\b(${BUILTINS.join("|")})\\s*\\(`, "i");
  * and embedded `{ }` included. */
 export { stripNoise } from "./abap-statements.mjs";
 
-/* The two positions, each as the slice of the line that IS the position.
+/* The PREDICATE-EXPRESSION operand - `<call>( ... ) IS [NOT] INITIAL` and the
+ * other predicates. Reported from a system's SYNTAX_CHECK on 2026-09-16:
+ * `condense( val ) IS INITIAL` answered `Unexpected operator "IS"`, a
+ * SYNTAX_ERROR of the whole class pool, while abaplint, the 702 lint, the
+ * transpiler and the unit suite were all green on it - the same four-green
+ * picture #2664 produced, in a third position.
+ *
+ * Only the call IMMEDIATELY left of the `IS` is the operand, so the slice is
+ * that call and nothing else: `to_upper( a ) = b AND c IS INITIAL` holds no
+ * finding here, because the built-in is in a comparison and the operand of
+ * the predicate is `c`. That precision is what keeps the rule true to the
+ * evidence rather than to a pattern that happens to catch it.
+ *
+ * A functional METHOD call in the same position is NOT a finding, for the
+ * reason the gate's header gives: it is the reading the compiler falls back
+ * to. Fourteen of them ship across the sample repositories and none has ever
+ * been reported. */
+const PREDICATE = /\)\s*IS\s+(?:NOT\s+)?(?:INITIAL|BOUND|SUPPLIED|ASSIGNED|INSTANCE\s+OF)\b/i;
+
+/** The call whose closing paren this is, as `name(` - or null when the `)`
+ * closes something that is not a call (a parenthesised condition). */
+function callEndingAt(code, closeAt) {
+  let depth = 0;
+  let open = -1;
+  for (let i = closeAt; i >= 0; i--) {
+    if (code[i] === ")") depth += 1;
+    else if (code[i] === "(") {
+      depth -= 1;
+      if (depth === 0) { open = i; break; }
+    }
+  }
+  if (open <= 0) return null;
+  const name = /([A-Za-z_][\w]*)\s*$/.exec(code.slice(0, open));
+  return name ? `${name[1]}(` : null;
+}
+
+/* The three positions, each as the slice of the line that IS the position.
  * Line-scoped on purpose: a key or a WHERE operand split across lines still
  * gets its `= builtin( ` on one of them, and a whole-statement parse would buy
  * nothing but a way to disagree with the reader about where the finding is.
@@ -83,6 +119,13 @@ export function positions(code) {
   //    narrow exclusion loses nothing and buys back both shapes.
   const where = /^\s*(?:LOOP\s+AT|DELETE(?!\s+FROM\b)|MODIFY)\b[^"]*?\bWHERE\b(.*)$/i.exec(code);
   if (where) found.push({ where: "internal-table WHERE operand", text: where[1] });
+
+  // 3. the operand of a predicate expression - the call that ENDS where the
+  //    `IS` begins, and only that one. A line can carry several.
+  for (const hit of code.matchAll(new RegExp(PREDICATE.source, "gi"))) {
+    const call = callEndingAt(code, hit.index);
+    if (call) found.push({ where: "predicate-expression operand", text: call });
+  }
 
   return found;
 }

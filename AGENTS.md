@@ -428,7 +428,11 @@ front, a green abaplint does not prove their absence:
   declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
   that means *inside* the chain, directly before the element — a `"!` block
   before the chain keyword is "in the wrong position" (bit us on
-  `z2ui5_if_client=>cs_nav_mode`).
+  `z2ui5_if_client=>cs_nav_mode`). **Directly** means with nothing in between,
+  a plain `"` comment included: a note to whoever edits the framework, placed
+  between the block and the `METHODS` it documents, detaches it (bit us on
+  `z2ui5_if_client~check_on_navigated`, 2026-09-16 — put such a note ABOVE the
+  block).
 - **Never `"!` inside a parameter list** (same gate). A single parameter of a
   `METHODS` statement is not a declaration of its own, so a `"!` block in
   front of it (anywhere between `IMPORTING` and the final `.`) is "in the
@@ -460,6 +464,21 @@ front, a green abaplint does not prove their absence:
   keep working without it (bit us in
   `z2ui5_cl_ui5_util_context=>msg_get_internal`, found on a user's system hours
   after #2719 added it). Gated by `npm run check:atc`.
+- **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
+  type-compatible with a formal parameter typed `string` — the view builder's
+  `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
+  a SYNTAX_ERROR of the whole class (bit us on `samples`' app 519, the sample
+  whose subject is translatable texts, 2026-09-16). Read it into a variable
+  and pass that; a plain assignment is a conversion and always allowed, and a
+  symbol inside a string template needs nothing, an embedded expression being
+  a general expression position. Gated by `npm run check:atc`.
+- **A 7.02 built-in function in the operand of a predicate expression** —
+  `condense( val ) IS INITIAL` answers `Unexpected operator "IS"`, because the
+  name is only read as a function where a string expression is allowed and the
+  compiler falls back to reading it as a method call (bit us in
+  `z2ui5_cl_ui5_handler=>request_parse_body`, 2026-09-16). Same fix and same
+  gate as the other operand positions: a variable, `npm run check:downport`.
+  A functional METHOD call there is correct and is not reported.
 - **No `DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`): SLIN reports the fixed type the inline declaration picks.
   Declare the variable and assign. Not gated, the statement does not carry the
