@@ -3312,6 +3312,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " structure this class did not declare, and a table or a nested
     " structure into a string is a MOVE type conflict, not an exception -
     " see msg_map, which learnt it the expensive way
+    " printable first, then the assignment: the component comes out of a
+    " structure this class did not declare, and a table or a nested
+    " structure into a string is a MOVE type conflict, not an exception -
+    " see msg_map, which learnt it the expensive way.
+    " One chained AND and not the nested IFs z2ui5_cl_ui5_handler=>
+    " request_context_info argues for: abaplint's if_in_if refuses the
+    " nesting here (nothing sits between the two tests), and the second
+    " operand is safe on a failed ASSIGN either way - ABAP evaluates a
+    " logical expression left to right and stops once the result is decided
     ASSIGN COMPONENT comp OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
     IF sy-subrc = 0 AND rtti_check_printable( <comp> ) = abap_true.
       result = <comp>.
