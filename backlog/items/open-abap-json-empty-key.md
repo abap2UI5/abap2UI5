@@ -14,6 +14,7 @@ evidence:
   - 'abap2UI5 repro through the real HTTP entry point: POST `{"value":{"S_FRONT":{"ID":"<draft>"},"MODEL":{"":"x"}}}` to z2ui5_cl_ui5_http_handler=>_main answers with an uncaught ASSERTION_FAILED - not a 500, not a body, nothing. Same for `{"a":{"":1}}` nested one level down'
   - 'the assert is z2ui5_cl_ajson.clas.locals_imp.abap:491, `ASSERT sy-subrc = 0 AND lo_attr->qname-name = ''name''.`, six lines above ajson''s own `IF <item>-name IS INITIAL. raise( ''Node without name (maybe not JSON)'' ).` - so a system answers the same body with a catchable CX_AJSON_ERROR and a clean 500'
   - 'verified: with the attached patch applied to the pinned checkout and the sources re-transpiled, the four empty-key shapes answer 500 and the abap2UI5 unit suite stays green (1271 tests)'
+  - 'found a second time from the other end: a fuzz of the row-delta path over sixteen malformed `__delta` shapes (ltcl_04_model_in->delta_malformed_survives) answers all sixteen with the table untouched - except the empty-key one, which never reaches the model because the parser asserts first. That test carries the exclusion and points here'
 ---
 
 # An empty JSON key, and the dump that replaces the error
