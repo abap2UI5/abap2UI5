@@ -384,6 +384,58 @@ selfTest(
     + "change, so src/ carries no example of the shape.",
 );
 
+/* The SELECT rule is decided inside the statement loop below rather than in a
+ * function of its own, like the other statement rules - so its self-test runs
+ * the same way the gate does: split a snippet into statements and apply the
+ * test. src/ carries one annotated SELECT and no bare one, so a green run
+ * over src/ would not tell a working rule from a deleted one. */
+function nowhereFindings(file, source) {
+  const out = [];
+  for (const stmt of statements(source)) {
+    const flat = stmt.text.replace(/\n/g, " ");
+    if (!/^\s*SELECT\b/i.test(flat)) continue;
+    if (/\bWHERE\b/i.test(flat) || /CI_NOWHERE/i.test(flat)) continue;
+    out.push({ at: `${file}:${stmt.start}`, rule: "nowhere", message: "" });
+  }
+  return out;
+}
+
+const NOWHERE_SELF_TEST = [
+  {
+    name: "a full read that says so - the count_entries_total shape",
+    source: '    SELECT COUNT( * ) FROM z2ui5_t_01                     "#EC CI_NOWHERE\n      INTO @result.',
+    expect: 0,
+  },
+  {
+    name: "the same read without the pseudo-comment",
+    source: "    SELECT COUNT( * ) FROM z2ui5_t_01\n      INTO @result.",
+    expect: 1,
+  },
+  {
+    name: "a WHERE anywhere in the statement, on any of its lines",
+    source: "    SELECT SINGLE * FROM z2ui5_t_01\n      WHERE id = @id\n      INTO @result.",
+    expect: 0,
+  },
+  {
+    name: "the multi-line field list the sample repositories write",
+    source: "    SELECT id,\n           id_prev\n      FROM z2ui5_t_01\n      ORDER BY PRIMARY KEY\n      INTO TABLE @lt_rows\n      UP TO 5 ROWS.",
+    expect: 1,
+  },
+  {
+    name: "a SELECT named in a comment is not a statement",
+    source: '    " a SELECT FROM z2ui5_t_01 without a WHERE reads everything\n    result = 1.',
+    expect: 0,
+  },
+];
+
+selfTest(
+  NOWHERE_SELF_TEST,
+  source => nowhereFindings("selftest.clas.abap", source),
+  "The SELECT-without-WHERE rule changed. A green run over src/ says nothing\n"
+    + "while this case fails - the one full read here carries the pseudo-comment,\n"
+    + "so src/ has no bare SELECT for the rule to fire on.",
+);
+
 // ABAP Doc is parsed as HTML. The tags it knows are the few below; anything
 // else between < and > - a field symbol, a placeholder like #/app/<CLASS> -
 // is "not supported" and "not closed" in a system, and the block renders
@@ -475,6 +527,24 @@ for (const file of files) {
       });
     }
 
+    // A SELECT with no WHERE reads the whole table. AGENTS.md has named the
+    // trap in prose since z2ui5_cl_ui5_srv_draft=>count_entries was bitten by
+    // it, and prose is what let thirty-six of them ship across the two sample
+    // repositories (annotated 2026-09-16) - the shape a script can decide
+    // outright, which is what this gate is for. An intentional full read says
+    // so with the pseudo-comment, the way count_entries_total does.
+    //
+    // A SELECT whose target is a SUBQUERY or a join carries its own WHERE
+    // inside; the test is on the statement as a whole, so either spelling
+    // satisfies it, and a missing one is a finding wherever it sits.
+    if (/^\s*SELECT\b/i.test(flat) && !/\bWHERE\b/i.test(flat) && !/CI_NOWHERE/i.test(flat)) {
+      findings.push({
+        at,
+        rule: "nowhere",
+        message: 'SELECT without a WHERE clause reads the whole table - the extended check wants "#EC CI_NOWHERE on the statement',
+      });
+    }
+
     if (/^\s*(FIND|REPLACE)\b/i.test(flat) && /\bREGEX\b/i.test(flat) && !/REGEX_POSIX/i.test(flat)) {
       findings.push({
         at,
@@ -513,4 +583,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length} self-test case(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length} self-test case(s) checked - OK`);
