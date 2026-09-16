@@ -17,6 +17,7 @@ CLASS ltcl_test_frontend DEFINITION FINAL
     METHODS test_box_unknown_type     FOR TESTING RAISING cx_static_check.
     METHODS test_box_actions          FOR TESTING RAISING cx_static_check.
     METHODS test_box_msg_table_empty  FOR TESTING RAISING cx_static_check.
+    METHODS test_box_unmappable_comp  FOR TESTING RAISING cx_static_check.
     METHODS test_main_drops_teardowns FOR TESTING RAISING cx_static_check.
     METHODS test_main_keeps_displays  FOR TESTING RAISING cx_static_check.
     METHODS test_teardowns_no_main    FOR TESTING RAISING cx_static_check.
@@ -188,6 +189,36 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_box_unmappable_comp.
+
+    " msg_get_internal maps every component of whatever an app hands over BY
+    " NAME, so a business structure with a component that happens to be
+    " called TEXT (or ID, TYPE, V1, ...) and is a TABLE reaches the message
+    " mapper. The assignment into the string field of ty_s_msg is no
+    " class-based exception for that - it is a MOVE type conflict, the same
+    " runtime error delta_apply_field decides before it writes - so the box
+    " that was supposed to REPORT a problem became the 500. Such a component
+    " is no message part: it is skipped, nothing in the structure reads as a
+    " message, and the DATA renderer shows the structure instead
+    TYPES: BEGIN OF ty_s_odd,
+             type TYPE string,
+             text TYPE string_table,
+           END OF ty_s_odd.
+    DATA ls_odd TYPE ty_s_odd.
+
+    ls_odd-type = `E`.
+    APPEND `line one` TO ls_odd-text.
+
+    mo_cut->msg_box( ls_odd ).
+
+    " one box, and it carries the rendered structure rather than nothing
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
+    cl_abap_unit_assert=>assert_char_cp( act = queued( )
+                                         exp = `*MESSAGE_BOX*` ).
 
   ENDMETHOD.
 

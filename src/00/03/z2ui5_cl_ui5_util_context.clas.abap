@@ -3110,6 +3110,27 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD msg_map.
 
     result = msg.
+
+    " The value is a component of an ARBITRARY structure: msg_get_internal
+    " walks whatever an app hands to message_box_display( ) and maps every
+    " component BY NAME. A business structure with a component that happens
+    " to be called TEXT, ID, TYPE or V1 and is a TABLE, a nested structure
+    " or a reference is not a message part - and the assignments below are
+    " no class-based exception for it, they are a MOVE type conflict
+    " (OBJECTS_MOVE_NOT_SUPPORTED on a system, "table, no header line" in
+    " the transpiled runtime). So the box that was supposed to REPORT a
+    " problem was the crash: nothing between here and the app's own main( )
+    " catches it, and the roundtrip ended as a 500.
+    " Decided BEFORE anything is assigned, which is the same rule
+    " z2ui5_cl_ui5_srv_model=>delta_apply_field follows for the same reason
+    " - a runtime error cannot be caught after the fact. A skipped component
+    " simply is not a message part: the entry ends up without a text,
+    " ui5_msg_box_format drops it, and the caller falls back to the DATA
+    " renderer, which shows the whole structure including that component
+    IF rtti_check_printable( val ) = abap_false.
+      RETURN.
+    ENDIF.
+
     CASE name.
       WHEN `ID` OR `MSGID`.
         result-id = val.
@@ -3128,7 +3149,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       WHEN `MESSAGE_V4` OR `MSGV4` OR `V4`.
         result-v4 = val.
       WHEN `TIME_STMP`.
-        result-timestampl = val.
+        " the one target that is not a string: a printable but non-numeric
+        " value (`2026-09-16 10:00` in a char field of that name) converts
+        " into the packed timestamp with CX_SY_CONVERSION_NO_NUMBER, which
+        " is catchable where the MOVE conflict above is not - caught, and
+        " the entry keeps no timestamp rather than costing the whole box
+        TRY.
+            result-timestampl = val.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
     ENDCASE.
 
   ENDMETHOD.
@@ -3188,8 +3217,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       CHECK sy-subrc = 0.
       CHECK rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
 
+      " guarded like data_render_tab, msg_get_internal and
+      " data_get_headline - and here the symbol is LOOP-CARRIED, so an
+      " ASSIGN that fails leaves it on the PREVIOUS component's table and
+      " the rows below would be read out of that one
       FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
+      UNASSIGN <ftab>.
       ASSIGN <tab> TO <ftab>.
+      CHECK <ftab> IS ASSIGNED.
 
       " the row kind is a property of the table TYPE - decided once per
       " table, not asked of every row (same idea as msg_get_internal_tab)
@@ -3273,8 +3308,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD get_comp_str.
 
+    " printable first, then the assignment: the component comes out of a
+    " structure this class did not declare, and a table or a nested
+    " structure into a string is a MOVE type conflict, not an exception -
+    " see msg_map, which learnt it the expensive way
     ASSIGN COMPONENT comp OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
-    IF sy-subrc = 0.
+    IF sy-subrc = 0 AND rtti_check_printable( <comp> ) = abap_true.
       result = <comp>.
     ENDIF.
 
@@ -3356,7 +3395,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         IF lv_sub IS NOT INITIAL.
           APPEND lv_sub TO lt_part.
         ENDIF.
-      ELSEIF <comp> IS NOT INITIAL.
+      ELSEIF <comp> IS NOT INITIAL AND rtti_check_printable( <comp> ) = abap_true.
+        " the printable test does what the TRY around this could not: a
+        " TABLE component into the string below is a MOVE type conflict and
+        " therefore a runtime error, which no CATCH takes (see msg_map). The
+        " TRY stays for the conversions that ARE class-based - a character
+        " value the packed/numeric target refuses
         TRY.
             DATA lv_str TYPE string.
             lv_str = <comp>.
