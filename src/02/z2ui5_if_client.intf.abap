@@ -1294,6 +1294,14 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE abap_bool.
 
+  " Whoever changes the factory keeps this true, or every sample in the three
+  " catalogues stops rendering on its first start with nothing raised
+  " anywhere. (A plain comment, not ABAP Doc: it is a note to whoever edits
+  " the framework, and the documentation site prints the ABAP Doc. It sits
+  " ABOVE the doc block rather than between it and the METHODS below, where
+  " it used to be: a line of ANY kind there detaches the block from the
+  " declaration it documents, and a system answers with "ABAP Doc comment is
+  " in the wrong position". Gated by npm run check:atc since then.)
   "! TRUE whenever this roundtrip has to put the app on screen: the first
   "! start of a new instance, a called app returning through the app stack,
   "! one of the built-in value-help popups closing, and a bookmarked draft
@@ -1310,10 +1318,6 @@ INTERFACE z2ui5_if_client
   "!
   "! the complete display condition on its own - no OR with check_on_init( )
   "! is needed, and the samples and documentation are written that way.
-  " Whoever changes the factory keeps this true, or every sample in the three
-  " catalogues stops rendering on its first start with nothing raised
-  " anywhere. (A plain comment, not ABAP Doc: it is a note to whoever edits
-  " the framework, and the documentation site prints the ABAP Doc.)
   METHODS check_on_navigated
     RETURNING
       VALUE(result) TYPE abap_bool.

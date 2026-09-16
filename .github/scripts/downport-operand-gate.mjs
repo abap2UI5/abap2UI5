@@ -34,8 +34,9 @@
 // be activated. The only thing that could have caught it before a user's
 // system did is a rule about the SOURCE shape, which is what this is.
 //
-// What it reports: a built-in function call inside a WITH [TABLE] KEY operand
-// or an internal-table WHERE operand - the two positions an author writes
+// What it reports: a built-in function call inside a WITH [TABLE] KEY operand,
+// an internal-table WHERE operand, or the operand of a predicate expression
+// (`condense( val ) IS INITIAL`, the 2026-09-16 case) - the positions an author writes
 // 7.02-ready themselves, so the downport passes them through as they stand.
 // Hoist the call into a variable on the line above - a plain assignment IS an
 // expression position at 7.02, so the variable is the entire fix.
@@ -117,6 +118,22 @@ const SELF_TEST = [
   ["DATA(lv) = |x[ name = to_upper( a ) ]|.", null],
   // an embedded expression inside a template IS code and is still scanned
   [`READ TABLE lt_x WITH KEY name = |{ to_upper( iv_name ) }| INTO ls_x.`, "WITH KEY operand"],
+  /* The THIRD position, reported from a system's SYNTAX_CHECK on 2026-09-16:
+   * `Unexpected operator "IS"`, a SYNTAX_ERROR of the whole class pool, on a
+   * line four green checks here had passed. */
+  ["IF val IS INITIAL OR condense( val ) IS INITIAL.", "predicate-expression operand"],
+  ["IF substring( val = v off = 0 len = 1 ) IS NOT INITIAL.", "predicate-expression operand"],
+  // the repaired shape - a plain assignment IS an expression position
+  ["DATA(lv_body) = condense( val ).", null],
+  /* A functional METHOD call in the same position is the reading the compiler
+   * falls back to, and is correct. Fourteen of these ship across the sample
+   * repositories; reporting them would make the rule noise. */
+  ["IF client->get_event_arg( ) IS NOT INITIAL.", null],
+  /* Only the call IMMEDIATELY left of the IS is the operand: here the built-in
+   * is in a comparison and the predicate's operand is `c`. */
+  ["IF to_upper( a ) = b AND c IS INITIAL.", null],
+  // a `)` that closes a parenthesised condition closes no call
+  ["IF ( lv_a = lv_b ) IS INITIAL.", null],
 ];
 
 for (const [line, expected] of SELF_TEST) {

@@ -293,8 +293,21 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " nothing behind. A body that is NOT empty and not JSON stays a 500:
     " that is a client sending something wrong, and it is worth seeing.
     " o_model is filled the way the no-S_FRONT path below fills it: every
-    " reader of ty_s_request may dereference it without asking
-    IF val IS INITIAL OR condense( val ) IS INITIAL.
+    " reader of ty_s_request may dereference it without asking.
+    "
+    " condense( ) in a VARIABLE and not in the operand of IS INITIAL: a 7.02
+    " built-in function is only read as a function where a string expression
+    " is allowed, and the operand of a predicate expression is not such a
+    " position on the releases this repository targets. The compiler falls
+    " back to its other reading of `name( ... )`, a functional METHOD call, and
+    " answers `Unexpected operator "IS"` - a SYNTAX_ERROR of the whole class
+    " pool, reported from a system's SYNTAX_CHECK run. A plain assignment IS
+    " an expression position, so the variable is the entire fix (the same one
+    " check:downport asks for in the positions it already knows), and it costs
+    " nothing: the old spelling evaluated condense( ) for every non-empty body
+    " too, the OR only short-circuited the empty one
+    DATA(lv_body) = condense( val ).
+    IF lv_body IS INITIAL.
       result-o_model = z2ui5_cl_ajson=>create_empty( ).
       RETURN.
     ENDIF.
