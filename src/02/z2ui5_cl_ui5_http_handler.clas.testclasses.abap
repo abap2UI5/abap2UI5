@@ -13,6 +13,8 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_post_routing FOR TESTING RAISING cx_static_check.
     METHODS test_main_unsupported  FOR TESTING RAISING cx_static_check.
     METHODS test_post_no_s_front   FOR TESTING RAISING cx_static_check.
+    METHODS test_post_no_body      FOR TESTING RAISING cx_static_check.
+    METHODS test_post_blank_body   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_inactive     FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_same_origin  FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
@@ -165,6 +167,43 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{}}`.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+
+  ENDMETHOD.
+
+  METHOD test_post_no_body.
+
+    " ...and a POST with NO body at all is the same request: it names no
+    " S_FRONT either, so it takes the same system-startup path. It used to
+    " reach the JSON parse, which refuses an empty string, so the
+    " availability probe a monitor or a load balancer sends was answered
+    " with the framework's own 500 - while `{}`, `null` and even `42` all
+    " rendered the start page. node/srv/express.mjs produces exactly this
+    " shape (an empty buffer for a missing body)
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+
+    ls_req-method = `POST`.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+
+  ENDMETHOD.
+
+  METHOD test_post_blank_body.
+
+    " a body of blanks is the same thing one proxy further on
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+
+    ls_req-method = `POST`.
+    ls_req-body = `   `.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
