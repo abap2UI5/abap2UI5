@@ -117,7 +117,7 @@ row records what is left.
 | `meth( )->*` under `syntax.version` v750 | dereferencing a call result is not accepted at 7.50; the system refuses the class — reached a user via a test class of `z2ui5_cl_ui5_srv_model` (#2722, section 2) |
 | `INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` under `syntax.version` v750 | 7.55 syntax; every older system refuses the class — reached a user via `abap2UI5/samples` app 348 (section 2) |
 | a `VALUE` header default plus a per-row assignment of the same component | *"The component … was specified more than once"* — the system refuses the class; reached a user via `abap2UI5/samples-controls` app 241 (section 2) |
-| a closing string literal followed straight by a name character — ``` `x`y ``` (measured on 2.120.38) | *"There must be a space or equivalent character … after …"* — the statement does not parse, so the class does not activate; reached a user via `abap2UI5/samples-controls` apps 136 and 588 (section 2) |
+| a closing string literal followed straight by a name character — ``` `x`y ``` (`parser_error` since 2.120.52, and on here) | *"There must be a space or equivalent character … after …"* — the statement does not parse, so the class does not activate; reached a user via `abap2UI5/samples-controls` apps 136 and 588 (section 2) |
 
 ---
 
@@ -356,12 +356,21 @@ the newest release. abaplint's default target accepts all of it.
   **abaplint 2.120.38 accepts it** — control probe fired, config in the
   measurement recipe above: its lexer ends a literal at the closing delimiter
   and starts the next token right there, where the kernel wants a separator.
-  The same hole covers `'x'`, `` `x` `` and `|x|` alike. Nothing here is
-  abap2UI5-specific, so it is an upstream candidate rather than a rule to
-  reimplement — but a one-line scan decides it, so **gate: `pattern-lint`** in
-  `abap2UI5/samples-controls` — `literal-no-separator` (2026-09-13). There is
-  nothing to exempt: the one suffix form ABAP has after a literal, the text
-  symbol `'text'(001)`, opens a parenthesis, not a name character.
+  The same hole covered `'x'`, `` `x` `` and `|x|` alike. Nothing here was
+  abap2UI5-specific, so it went upstream rather than being reimplemented:
+  abaplint/abaplint#4289 (2026-09-14), closed in the lexer by #4292. **Gate:
+  `parser_error` since 2.120.52** — measured on that version, all three
+  delimiter forms are reported where 2.120.38 found zero issues in the same
+  isolated project, and app 136's pre-fix line fires again the moment it is put
+  back. Every abaplint config in these repositories runs `parser_error: true`,
+  so the stopgap `pattern-lint` rule `literal-no-separator` (2026-09-13 to
+  2026-09-16) came back out. It never had anything to exempt: the one suffix
+  form ABAP has after a literal, the text symbol `'text'(001)`, opens a
+  parenthesis, not a name character — and upstream is equally silent on a
+  doubled delimiter, a comment, an escaped `\|` inside a template, a literal
+  followed by a symbol, and a template spanning lines. One correction to the
+  issue's own exclusion list: ``` `x`&&`y` ``` IS reported, rightly — ABAP wants
+  blanks around `&&` just as it does around `=`.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
