@@ -2373,12 +2373,17 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
   });
 
   // a minimal document that records the keydown listener the action installs
+  // (and lets it be taken off again - reset( ) is what does that)
   function docStub() {
     const listeners = [];
     return {
       document: {
         addEventListener: (type, fn) => {
           if (type === "keydown") listeners.push(fn);
+        },
+        removeEventListener: (type, fn) => {
+          const i = type === "keydown" ? listeners.indexOf(fn) : -1;
+          if (i >= 0) listeners.splice(i, 1);
         },
       },
       press: (key, mods = {}) => {
@@ -2650,6 +2655,57 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     expect(fired).toEqual([["SAVE_AS"]]);
     // one listener for any number of registrations
     expect(doc.count()).toBe(1);
+  });
+
+  // The listener is MODULE state, so it outlived the component that installed
+  // it: on an FLP re-launch the page stays alive, and the dead listener kept
+  // running a registry lookup per keystroke of whatever came next for the
+  // rest of the session. Component.exit( ) calls reset( ) - see
+  // componentUnload.spec.js for that half.
+  test("reset() takes the listener off document, and a later registration installs a fresh one", () => {
+    const doc = docStub();
+    const fired = [];
+    const oController = { eB: (args) => fired.push(args) };
+    const { module: Shortcuts } = loadModule("core/actions/Shortcuts.js", {
+      sandbox: { document: doc.document },
+      deps: {
+        "z2ui5/core/Lib": {
+          logError: () => {},
+          isControllerAlive: () => true,
+        },
+        "z2ui5/core/ViewSlots": { getView: () => null, resolveById: () => null },
+        "z2ui5/core/AppState": { state: { shortcuts: {} } },
+      },
+    });
+    const register = (event) =>
+      Shortcuts.handlers.KEYBOARD_SHORTCUT(oController, [
+        "KEYBOARD_SHORTCUT",
+        "Ctrl+S",
+        event,
+      ]);
+
+    register("SAVE");
+    expect(doc.count()).toBe(1);
+    expect(doc.press("s", { ctrlKey: true })).toBe(true);
+
+    // the component is torn down
+    Shortcuts.reset();
+    expect(doc.count()).toBe(0);
+    expect(doc.press("s", { ctrlKey: true })).toBe(false);
+    expect(fired).toEqual([["SAVE"]]);
+
+    // ...and the next app registering a shortcut gets a listener of its own,
+    // which the `if (shortcutListener) return` guard only allows because
+    // reset( ) put the flag back
+    register("SAVE");
+    expect(doc.count()).toBe(1);
+    expect(doc.press("s", { ctrlKey: true })).toBe(true);
+    expect(fired).toEqual([["SAVE"], ["SAVE"]]);
+
+    // idempotent - a second teardown has nothing left to take off
+    Shortcuts.reset();
+    Shortcuts.reset();
+    expect(doc.count()).toBe(0);
   });
 
   test("a bare modifier press is no shortcut", () => {

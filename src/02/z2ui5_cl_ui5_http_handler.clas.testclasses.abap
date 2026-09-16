@@ -13,6 +13,8 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_post_routing FOR TESTING RAISING cx_static_check.
     METHODS test_main_unsupported  FOR TESTING RAISING cx_static_check.
     METHODS test_post_no_s_front   FOR TESTING RAISING cx_static_check.
+    METHODS test_post_no_body      FOR TESTING RAISING cx_static_check.
+    METHODS test_post_blank_body   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_inactive     FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_same_origin  FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
@@ -165,6 +167,43 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{}}`.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+
+  ENDMETHOD.
+
+  METHOD test_post_no_body.
+
+    " ...and a POST with NO body at all is the same request: it names no
+    " S_FRONT either, so it takes the same system-startup path. It used to
+    " reach the JSON parse, which refuses an empty string, so the
+    " availability probe a monitor or a load balancer sends was answered
+    " with the framework's own 500 - while `{}`, `null` and even `42` all
+    " rendered the start page. node/srv/express.mjs produces exactly this
+    " shape (an empty buffer for a missing body)
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+
+    ls_req-method = `POST`.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+
+  ENDMETHOD.
+
+  METHOD test_post_blank_body.
+
+    " a body of blanks is the same thing one proxy further on
+    DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+
+    ls_req-method = `POST`.
+    ls_req-body = `   `.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_main( ls_req ).
 
@@ -365,6 +404,12 @@ CLASS ltcl_http_mock DEFINITION INHERITING FROM z2ui5_cl_ui5_util_http
     DATA mv_cdata      TYPE string.
     DATA mv_status     TYPE i.
     DATA mv_reason     TYPE string.
+    " the contextid handover: the cookie the stack would have set, whether
+    " the handler took it off again, and what it asked for statefulness
+    DATA mv_res_cookie     TYPE string.
+    DATA mv_cookie_deleted TYPE abap_bool.
+    DATA mv_stateful       TYPE i.
+    DATA mv_stateful_set   TYPE abap_bool.
 
     METHODS get_req_info           REDEFINITION.
     METHODS get_header_field       REDEFINITION.
@@ -412,15 +457,21 @@ CLASS ltcl_http_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_session_stateful.
-    " stateless double - nothing to record for these tests
+    mv_stateful     = val.
+    mv_stateful_set = abap_true.
   ENDMETHOD.
 
   METHOD get_response_cookie.
-    " no cookie store in the double - nothing to answer
+    IF to_lower( val ) = `sap-contextid`.
+      result = mv_res_cookie.
+    ENDIF.
   ENDMETHOD.
 
   METHOD delete_response_cookie.
-    " no cookie store in the double
+    IF to_lower( val ) = `sap-contextid`.
+      CLEAR mv_res_cookie.
+      mv_cookie_deleted = abap_true.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
@@ -538,6 +589,11 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_control_error     FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_head      FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_trusted        FOR TESTING RAISING cx_static_check.
+    " the contextid handover, cookie -> header and back
+    METHODS test_ctxid_cookie_to_header  FOR TESTING RAISING cx_static_check.
+    METHODS test_ctxid_cookie_kept       FOR TESTING RAISING cx_static_check.
+    METHODS test_ctxid_echoed            FOR TESTING RAISING cx_static_check.
+    METHODS test_ctxid_absent_no_header  FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_opt_out        FOR TESTING RAISING cx_static_check.
     METHODS test_etag_equal_length       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
@@ -851,6 +907,98 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `no-cache, no-store, must-revalidate`
                                         act = header_value( `cache-control` ) ).
     cl_abap_unit_assert=>assert_initial( header_value( `etag` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ctxid_cookie_to_header.
+
+    " The stateful handover. ICF answers a stateful switch with a
+    " `sap-contextid` COOKIE, and the framework's own frontend cannot read
+    " one: a cookie set on the BSP path is not sent back by a fetch from
+    " another path, and reading it from JS is not possible under HttpOnly.
+    " So when the client says it accepts the id as a header
+    " (`sap-contextid-accept: header`, which core/Server.js always sends),
+    " the cookie is taken OFF the response and re-sent as a header. Both
+    " halves matter: leaving the cookie on would hand the browser a second,
+    " competing carrier of the same session id
+    handler_create( ).
+    mo_handler->ms_res = VALUE #( body          = `{}`
+                                  status_code   = 200
+                                  status_reason = `OK`
+                                  s_stateful    = VALUE #( active   = 1
+                                                           switched = abap_true ) ).
+    mo_mock->mv_res_cookie = `SID:ANON:srv_A4H_00_abcdef`.
+    INSERT VALUE #( n = `sap-contextid-accept`
+                    v = `header` ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `SID:ANON:srv_A4H_00_abcdef`
+                                        act = header_value( `sap-contextid` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_mock->mv_cookie_deleted ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_mock->mv_stateful ).
+
+  ENDMETHOD.
+
+  METHOD test_ctxid_cookie_kept.
+
+    " a client that did NOT ask for the header form keeps the cookie: an
+    " ordinary browser navigation to the BSP path carries it back by itself,
+    " and deleting it there would end the session on the next request
+    handler_create( ).
+    mo_handler->ms_res = VALUE #( body          = `{}`
+                                  status_code   = 200
+                                  status_reason = `OK`
+                                  s_stateful    = VALUE #( active   = 1
+                                                           switched = abap_true ) ).
+    mo_mock->mv_res_cookie = `SID:ANON:srv_A4H_00_abcdef`.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_initial( header_value( `sap-contextid` ) ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cookie_deleted ).
+    cl_abap_unit_assert=>assert_equals( exp = `SID:ANON:srv_A4H_00_abcdef`
+                                        act = mo_mock->mv_res_cookie ).
+
+  ENDMETHOD.
+
+  METHOD test_ctxid_echoed.
+
+    " no switch on THIS response: the session id the request carried is
+    " echoed so the frontend can keep sending it. Nothing else does that -
+    " the cookie branch above only runs on the roundtrip that switched
+    handler_create( ).
+    mo_handler->ms_res = VALUE #( body          = `{}`
+                                  status_code   = 200
+                                  status_reason = `OK` ).
+    INSERT VALUE #( n = `sap-contextid`
+                    v = `SID:ANON:srv_A4H_00_abcdef` ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `SID:ANON:srv_A4H_00_abcdef`
+                                        act = header_value( `sap-contextid` ) ).
+    " statefulness is not touched on a response that did not switch
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_stateful_set ).
+
+  ENDMETHOD.
+
+  METHOD test_ctxid_absent_no_header.
+
+    " a stateless request carries no id, and none is invented: an empty
+    " `sap-contextid` header would be sent back by core/Server.js on the
+    " next request (isValidContextId refuses `` and `undefined` for exactly
+    " that reason) and asked ICF to resume a session that does not exist
+    handler_create( ).
+    mo_handler->ms_res = VALUE #( body          = `{}`
+                                  status_code   = 200
+                                  status_reason = `OK` ).
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_initial( header_value( `sap-contextid` ) ).
 
   ENDMETHOD.
 

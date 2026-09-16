@@ -40,8 +40,66 @@ const SUBRC = /\bsy-subrc\b/i;
 const SETS_SUBRC =
   /^\s*(read\s+table|select|loop\s+at|find|replace|call\s+function|call\s+method|delete|insert|modify|append|split|open\s+dataset|authority-check|import|export|describe|search|at\s+selection|get\s+parameter|set\s+parameter)\b/i;
 
+/* …and so does ANY call carrying an `EXCEPTIONS` addition, whatever its
+ * spelling: a functional-method call written as `cl_x=>m( EXPORTING …
+ * EXCEPTIONS OTHERS = 1 )` matches none of the statement keywords above but
+ * sets sy-subrc just the same. Without this, such a call let a preceding
+ * ASSIGN keep its claim and the `IF sy-subrc <> 0` that reads the CALL's
+ * result was reported as the ASSIGN's. */
+const SETS_SUBRC_EXCEPTIONS = /\bexceptions\b/i;
+
 const TARGET = /\bTO\s+(?:FIELD-SYMBOL\()?(<[a-z_0-9]+>)/i;
 let lastKind = 'simple';
+
+/* ABAP statements, not source lines. A statement runs to its terminating `.`
+ * and may span any number of lines, which matters in BOTH directions here:
+ *
+ *   ASSIGN                     a line-based scan sees a PLAIN `ASSIGN` and
+ *     COMPONENT `X`            reports the `sy-subrc` below as a finding -
+ *     OF STRUCTURE <s>         but this is the ASSIGN COMPONENT shape, where
+ *     TO <c>.                  sy-subrc IS the documented check
+ *
+ * A miscount is tolerable; turning a NEGATIVE into a positive is not, because
+ * acting on it replaces the one correct sy-subrc test in this rule's scope
+ * with `IS ASSIGNED` and silently takes the wrong branch for "component not
+ * found". Reported as the first line of the statement, so a site still points
+ * at where it is written.
+ *
+ * A trailing `"` comment is cut first (outside string literals, so a `"` in a
+ * `'…'` or `|…|` stays text), otherwise a commented line never looks like the
+ * end of a statement and swallows the next one. */
+function stripTrailingComment(line) {
+  let quote = null;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (quote) {
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '|') quote = ch;
+    else if (ch === '"') return line.slice(0, i);
+  }
+  return line;
+}
+
+function statements(src) {
+  const out = [];
+  let buf = '';
+  let start = 0;
+  src.forEach((line, i) => {
+    if (isComment(line) || !line.trim()) return;
+    const text = stripTrailingComment(line).trim();
+    if (text === '') return;
+    if (buf === '') start = i;
+    buf = buf === '' ? text : `${buf} ${text}`;
+    if (text.endsWith('.') || text.endsWith(':')) {
+      out.push({ text: buf, line: start });
+      buf = '';
+    }
+  });
+  if (buf !== '') out.push({ text: buf, line: start });
+  return out;
+}
 
 export function run(roots) {
   const sites = [];
@@ -49,13 +107,10 @@ export function run(roots) {
   const counts = { simple: 0, 'in-loop': 0, reassigned: 0 };
   for (const root of roots) {
     for (const file of abapFiles(root)) {
-      const src = lines(file);
       let claim = null;
       let depth = 0;
       let assignedHere = new Set();
-      let lastTarget = null;
-      src.forEach((line, i) => {
-        if (isComment(line) || !line.trim()) return;
+      for (const { text: line, line: i } of statements(lines(file))) {
         if (/^\s*METHOD\s/i.test(line)) { assignedHere = new Set(); depth = 0; }
         if (/^\s*(loop\s+at|do\b|while\b)/i.test(line)) depth += 1;
         else if (/^\s*(endloop|enddo|endwhile)\b/i.test(line)) depth = Math.max(0, depth - 1);
@@ -63,17 +118,17 @@ export function run(roots) {
         if (ASSIGN.test(line)) {
           claim = ASSIGN_COMPONENT.test(line) ? 'component' : 'plain';
           const t = TARGET.exec(line);
-          lastTarget = t ? t[1].toLowerCase() : null;
+          const lastTarget = t ? t[1].toLowerCase() : null;
           if (claim === 'plain' && lastTarget) {
             const kind = depth > 0 ? 'in-loop' : (assignedHere.has(lastTarget) ? 'reassigned' : 'simple');
             assignedHere.add(lastTarget);
             lastKind = kind;
           }
-          return;
+          continue;
         }
         if (SUBRC.test(line)) {
           if (claim) {
-            const where = { repo: file.repo, file: file.rel, line: i + 1, text: line.trim() };
+            const where = { repo: file.repo, file: file.rel, line: i + 1, text: line };
             if (claim === 'plain') {
               where.text = `[${lastKind}] ${where.text}`;
               counts[lastKind] += 1;
@@ -81,10 +136,10 @@ export function run(roots) {
             } else negatives.push(where);
           }
           claim = null;
-          return;
+          continue;
         }
-        if (SETS_SUBRC.test(line)) claim = null;
-      });
+        if (SETS_SUBRC.test(line) || SETS_SUBRC_EXCEPTIONS.test(line)) claim = null;
+      }
     }
   }
   return {
@@ -101,8 +156,9 @@ export function run(roots) {
       + 'statement missing from it lets an ASSIGN keep its claim too long, so '
       + 'the count is an upper bound — abaplint knows the real set (it models it '
       + 'for `check_subrc`) and would report fewer.',
-      'Field-symbol assignment inside a macro or a chained statement is not '
-      + 'followed.',
+      'The scan reads ABAP statements, not source lines, so a multi-line '
+      + '`ASSIGN COMPONENT …` is recognised as the negative it is. '
+      + 'Field-symbol assignment inside a macro is still not followed.',
     ],
   };
 }

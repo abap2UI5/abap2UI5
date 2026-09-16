@@ -112,6 +112,22 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <ele> TYPE any.
 
+    " main( ) sends a bind here on `config-tab IS BOUND and not initial`
+    " alone - a reference to a STRUCTURE, a scalar or a SORTED/HASHED table
+    " passes that just as well as the standard table this is for. The ASSIGN
+    " below would then not answer with sy-subrc: a typed field symbol and an
+    " incompatible target is ASSIGN_TYPE_CONFLICT, a short dump no TRY can
+    " take, and where it does not dump <tab> stays UNASSIGNED and the row
+    " read on the next line is GETWA_NOT_ASSIGNED instead. Either way an app's
+    " config mistake ended the roundtrip with no response at all, for the
+    " same class of mistake the two refusals below answer with a binding
+    " error. Checked over the REFERENCE, before anything is assigned
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ms_config-tab ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `BINDING_ERROR_TAB_CELL_LEVEL - config-tab is no standard table`.
+    ENDIF.
+
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
     " an out-of-range tab_index leaves <row> unassigned; raise the intended

@@ -440,8 +440,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       " IDENTICAL to REF TO object - a real stack raises an uncatchable
       " casting error there, the MOVE below widens legally instead
       FIELD-SYMBOLS <response> TYPE any.
+      " IS ASSIGNED, not sy-subrc (#1937 - see
+      " z2ui5_cl_ui5_util_context=>unassign_data): a successful dynamic
+      " ASSIGN does not reset sy-subrc on every release, and a stale 4 here
+      " silently costs every response its compression. The symbol is
+      " declared in this method and assigned once, so no UNASSIGN is needed
       ASSIGN server->(`RESPONSE`) TO <response>.
-      IF sy-subrc = 0.
+      IF <response> IS ASSIGNED.
         result->mo_response_onprem = <response>.
       ENDIF.
     ELSEIF req IS BOUND AND res IS BOUND.

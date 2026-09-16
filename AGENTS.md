@@ -386,11 +386,12 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The seven traps a script can
+which flags things `npm run check` cannot see. The eight traps a script can
 decide are gated by `npm run check:atc` — a **sequential read** over a standard
 table (wants `"#EC CI_SORTSEQ` on the statement), an empty
 `CATCH` block (wants `##NO_HANDLER`), POSIX regex (below), a misplaced
-ABAP Doc block (below) and an ignored `PREFERRED PARAMETER` (below).
+ABAP Doc block (below), an ignored `PREFERRED PARAMETER` (below) and a
+`SELECT` with no `WHERE` clause (below).
 "Sequential read" is all three spellings, not just the
 `LOOP AT ... WHERE` the gate started with: `READ TABLE ... WITH KEY` (not
 `WITH TABLE KEY`, which is a primary-key read) and a table expression keyed on
@@ -400,7 +401,11 @@ the pragma. The rest need a reader. Known traps — avoid them up
 front, a green abaplint does not prove their absence:
 
 - **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
-  `z2ui5_cl_ui5_srv_draft=>count_entries`).
+  `z2ui5_cl_ui5_srv_draft=>count_entries`). Gated by `npm run check:atc` since
+  the prose alone let thirty-six of them ship across `samples` and
+  `samples-stack`, where the same gate now runs (2026-09-16).
+  `count_entries_total` is the shape to copy: a full read on purpose, saying
+  so on the statement.
 - **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
   `CAST`** is flagged as insecure object creation. Declare the typed reference
   and create into it directly:

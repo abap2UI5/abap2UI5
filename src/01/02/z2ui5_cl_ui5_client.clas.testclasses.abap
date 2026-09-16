@@ -45,6 +45,24 @@ CLASS ltcl_bad_filter IMPLEMENTATION.
 ENDCLASS.
 
 
+" a caller's own filter, serializable so _bind( ) accepts it (see
+" ltcl_bad_filter above for the refusal). It drops exactly one node name,
+" which is what makes an AND with the framework's own filter visible
+CLASS ltcl_good_filter DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES if_serializable_object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_good_filter IMPLEMENTATION.
+  METHOD z2ui5_if_ajson_filter~keep_node.
+    rv_keep = xsdbool( is_node-name <> `DROPME` ).
+  ENDMETHOD.
+ENDCLASS.
+
+
 CLASS ltcl_test_client DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
@@ -122,6 +140,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
+    " what _bind( ) WIRES, as opposed to what the filter classes do
+    METHODS test_omit_paths_wired     FOR TESTING RAISING cx_static_check.
+    METHODS test_omit_paths_and_filter FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
@@ -1298,6 +1319,81 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD test_omit_paths_wired.
+
+    " the three filter classes are covered directly; what nothing covered is
+    " the WIRING in _bind( ) - which of them a given parameter combination
+    " installs on the attribute. Asserted through the stored filter's
+    " behaviour rather than its class, so the test says what the binding
+    " does and not how it is built
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    li_client->_bind( val                = mo_test_app->mv_name
+                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
+
+    " the reference first, then the component: the v702 downport does not
+    " lower `REF #( tab[ ] )->comp` as one expression
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
+    DATA(li_stored) = lr_attri->custom_filter.
+    cl_abap_unit_assert=>assert_bound( li_stored ).
+
+    " the SCOPED omit: a listed name that is initial goes...
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+    " ...and an UNLISTED one that is initial stays, which is the whole
+    " difference to the blanket omit_initial
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_stored->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_omit_paths_and_filter.
+
+    " a caller's filter next to an omit: BOTH have to pass. Replacing one
+    " with the other would drop a rule the app asked for without a word,
+    " and the combined object rides into the draft on mt_attri - the reason
+    " the framework combines with its own serializable AND rather than
+    " ajson's create_and_filter
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    DATA(li_custom) = CAST z2ui5_if_ajson_filter( NEW ltcl_good_filter( ) ).
+
+    li_client->_bind( val                = mo_test_app->mv_name
+                      custom_filter      = li_custom
+                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
+
+    " the reference first, then the component: the v702 downport does not
+    " lower `REF #( tab[ ] )->comp` as one expression
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
+    DATA(li_stored) = lr_attri->custom_filter.
+    cl_abap_unit_assert=>assert_bound( li_stored ).
+
+    " the CALLER's rule still applies - a filled node it names is dropped
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_stored->keep_node( VALUE #( name = `DROPME` type = `str` value = `filled` ) ) ).
+    " ...and so does the framework's, on the name the caller says nothing about
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+    " a node neither of them names survives
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_stored->keep_node( VALUE #( name = `OTHER` type = `str` value = `filled` ) ) ).
+
+    " and the combination is still serializable, or the next db_save would
+    " fail on a system with the binding metadata in hand
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_stored ) ).
+
+  ENDMETHOD.
 
   METHOD test_omit_initial_db_save.
 

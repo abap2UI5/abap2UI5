@@ -389,6 +389,8 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS foreign_value_refused   FOR TESTING RAISING cx_static_check.
     " a table of strings has no component to bind a cell of
     METHODS elementary_row_refused  FOR TESTING RAISING cx_static_check.
+    " a `tab` that is no table at all
+    METHODS non_table_refused       FOR TESTING RAISING cx_static_check.
     " one render, one service: cells of two tables in turn, and a cell of
     " the runtime-built table after main( ) created that table again
     METHODS cells_of_two_tables     FOR TESTING RAISING cx_static_check.
@@ -508,6 +510,21 @@ CLASS ltcl_02_cell IMPLEMENTATION.
                                         act = bind( ir_val    = REF #( <name> )
                                                     is_config = VALUE #( tab       = mo_app->mr_tab
                                                                          tab_index = 2 ) ) ).
+
+  ENDMETHOD.
+
+  METHOD non_table_refused.
+
+    " main( ) only checks that config-tab is BOUND and not initial, which a
+    " reference to a structure - or to a sorted/hashed table - passes. The
+    " ASSIGN to <tab> TYPE STANDARD TABLE then fails, and the row read on the
+    " next line used to reach an UNASSIGNED field symbol: GETWA_NOT_ASSIGNED,
+    " a short dump no TRY can take, for a config mistake the three lines
+    " after it are written to answer with a binding error
+    expect_bind_error( ir_val    = REF #( mo_app->ms_deep-input )
+                       is_config = VALUE #( tab       = REF #( mo_app->ms_deep )
+                                            tab_index = 1 )
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
 
   ENDMETHOD.
 

@@ -125,6 +125,12 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      document.addEventListener("keydown", shortcutListener);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function reset() {` && |\n| &&
+             `      if (!shortcutListener || typeof document === "undefined") return;` && |\n| &&
+             `      document.removeEventListener("keydown", shortcutListener);` && |\n| &&
+             `      shortcutListener = null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evKeyboardShortcut(oController, args) {` && |\n| &&
              `      const combo = normalizeShortcut(args[1]);` && |\n| &&
              `      if (!combo) {` && |\n| &&
@@ -184,7 +190,7 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      KEYBOARD_SET_MODE: evKeyboardSetMode,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return { handlers };` && |\n| &&
+             `    return { handlers, reset };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

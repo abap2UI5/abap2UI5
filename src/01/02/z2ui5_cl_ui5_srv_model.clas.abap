@@ -346,16 +346,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " the upper-case mapper every model serialization attaches: it holds
-    " no state of its own (an empty field mapping), so one instance serves
-    " every call instead of two objects per serialization. Created on the
-    " first call, not in a class constructor - see z2ui5_cl_ui5_frontend's
-    " box_resolve for why a static constructor is avoided here
-    CLASS-DATA gi_mapper_upper TYPE REF TO z2ui5_if_ajson_mapping.
-    CLASS-METHODS mapper_upper
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
-
     "! iv_type_kind is the component's type kind, resolved by the caller
     "! once per column (ty_t_col_kind) - it used to be asked per cell
     METHODS delta_apply_scalar
@@ -502,7 +492,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
         DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = mapper_upper( ) ) ).
+                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
         " the scratch instance for a filtered attribute without a mapper
         " of its own - created when the first such attribute asks for it
         DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
@@ -571,7 +561,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             ELSE.
               IF li_ajson_default IS NOT BOUND.
                 li_ajson_default = z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = mapper_upper( ) ).
+                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
               ENDIF.
               ajson = li_ajson_default.
             ENDIF.
@@ -1641,8 +1631,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
+    " IS ASSIGNED, not sy-subrc, like every other ASSIGN of this class: a
+    " successful one does not reset sy-subrc on every release (#1937), and
+    " a stale 0 here would hand an UNASSIGNED symbol to delta_apply_nodes -
+    " a GETWA_NOT_ASSIGNED dump instead of the trace below. The symbol is
+    " declared in this method and assigned once, so no UNASSIGN is needed
     ASSIGN lr_ref_d->* TO <delta_tab>.
-    IF sy-subrc <> 0.
+    IF <delta_tab> IS NOT ASSIGNED.
       " unreachable after the RTTI decision above on a system; the transpiler
       " answers a type conflict with the subrc. Either way the rows are
       " traced like the sorted-table case - a bare RETURN dropped the whole
@@ -1759,15 +1754,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD check_table_standard.
 
     result = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ).
-
-  ENDMETHOD.
-
-  METHOD mapper_upper.
-
-    IF gi_mapper_upper IS NOT BOUND.
-      gi_mapper_upper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
-    ENDIF.
-    result = gi_mapper_upper.
 
   ENDMETHOD.
 

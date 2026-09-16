@@ -1842,8 +1842,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       ENDCASE.
 
       lv_name = lr_attri->name.
+      " UNASSIGN + IS ASSIGNED, not sy-subrc - see unassign_data for the
+      " release behaviour (#1937). INSIDE A LOOP the stale-subrc reading is
+      " not just "skipped one attribute": a failed ASSIGN leaves the symbol
+      " on the PREVIOUS iteration's attribute, so a stale 0 renders that
+      " value under this attribute's name - a wrong value in the error dump,
+      " which is the one place a reader has nothing else to go by
+      UNASSIGN <comp>.
       ASSIGN val->(lv_name) TO <comp>.
-      IF sy-subrc <> 0.
+      IF <comp> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
       IF rtti_check_printable( <comp> ) = abap_false OR <comp> IS INITIAL.
@@ -2172,8 +2179,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
            AND is_constant = abap_false
            AND is_class    = abap_false.
       lv_name = lr_attri->name.
+      " UNASSIGN + IS ASSIGNED, not sy-subrc - the loop-carried case, see
+      " error_get_attributes for why the difference matters here
+      UNASSIGN <comp>.
       ASSIGN lo_obj->(lv_name) TO <comp>.
-      IF sy-subrc <> 0.
+      IF <comp> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
       INSERT data_render_item( name  = lv_name
@@ -2230,7 +2240,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     CASE rtti_get_type_kind( val ).
 
       WHEN cl_abap_datadescr=>typekind_table.
+        " guarded like data_render_tab, and for the same caller chain: a
+        " table the ASSIGN cannot take leaves the symbol unassigned, and
+        " lines( ) on it is a GETWA_NOT_ASSIGNED dump - the headline of a
+        " message box is no reason to end a request. No headline then; the
+        " box falls back the way it does for an undescribable structure
         ASSIGN val TO <tab>.
+        IF <tab> IS NOT ASSIGNED.
+          RETURN.
+        ENDIF.
         DATA(lv_lines) = lines( <tab> ).
         IF lv_lines = 1.
           result = `Table with 1 entry`.
@@ -2552,14 +2570,22 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " an XCO object without the attribute knows no implementations: the
     " answer is the empty list the on-prem twin gives for an interface
     " nobody implements - not a kernel exception raised by hand
+    " UNASSIGN + IS ASSIGNED, not sy-subrc - see unassign_data (#1937). The
+    " SECOND hop is the one that bites: the symbol still holds the first
+    " attribute when its ASSIGN fails, so a stale 0 would hand the WRONG
+    " object to the GET_NAMES call below - and the caller reads the empty or
+    " failed answer as "no user exit configured anywhere", the #2564 damage
+    " picture, with nothing to point at
+    UNASSIGN <any>.
     ASSIGN obj->(`IF_XCO_AO_INTERFACE~IMPLEMENTATIONS`) TO <any>.
-    IF sy-subrc <> 0.
+    IF <any> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     obj = <any>.
 
+    UNASSIGN <any>.
     ASSIGN obj->(`IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL`) TO <any>.
-    IF sy-subrc <> 0.
+    IF <any> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     obj = <any>.
@@ -2669,8 +2695,19 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             COMPONENT `DESCRIPT`
             OF STRUCTURE <class>
             TO <description>.
-          ASSERT sy-subrc = 0.
-          ls_class-description = <description>.
+          " ...and the same for a structure that does not carry the
+          " component: skipped, blank description, not an ASSERT. An
+          " ASSERTION_FAILED is a short dump no TRY can take (the reasoning
+          " is written out at z2ui5_cl_ui5_view_builder=>a), so it would
+          " bypass the single top-level catch in
+          " z2ui5_cl_ui5_http_handler=>_main and answer the request with
+          " nothing at all - to report that one description is missing.
+          " sy-subrc is the right check HERE: ASSIGN COMPONENT sets it to
+          " tell "component not found" from "assigned", which is the one
+          " ASSIGN shape the #1937 rule does not cover (see unassign_data)
+          IF sy-subrc = 0.
+            ls_class-description = <description>.
+          ENDIF.
         ENDIF.
 
       ENDIF.
@@ -2730,8 +2767,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     CREATE DATA ddic_ref TYPE HANDLE struct_descr.
 
+    " IS ASSIGNED, not sy-subrc, and a RETURN rather than an ASSERT: the
+    " symbol is the unassign_data shape (#1937), and an ASSERTION_FAILED
+    " here is a short dump the caller's own TRY cannot take - so the XCO
+    " fallback it exists for would never run. The two branches below answer
+    " a failure the same way
     ASSIGN ddic_ref->* TO <ddic>.
-    ASSERT sy-subrc = 0.
+    IF <ddic> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
 
     cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name     = name
                                          RECEIVING p_descr_ref = lo_typedescr
@@ -2889,7 +2933,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
       WHEN cl_abap_datadescr=>typekind_table.
         FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+        " guarded like data_render_tab and data_get_headline - handing an
+        " UNASSIGNED symbol to the method below is a GETWA_NOT_ASSIGNED
+        " dump. No messages then, which is what "nothing in here is a
+        " message" means to the caller: it falls back to the data renderer
         ASSIGN val TO <tab>.
+        IF <tab> IS NOT ASSIGNED.
+          RETURN.
+        ENDIF.
         result = msg_get_internal_tab( <tab> ).
 
       WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
@@ -3040,8 +3091,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lt_attri_o) = rtti_get_t_attri_by_oref( io_obj ).
     LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o) "#EC CI_SORTSEQ
          WHERE visibility = cv_objectdescr_public.
+      " UNASSIGN + IS ASSIGNED, not sy-subrc - the loop-carried case (see
+      " error_get_attributes). Here a stale 0 maps the PREVIOUS attribute's
+      " value onto this one's name, i.e. a message id, number or placeholder
+      " taken from the wrong attribute
+      UNASSIGN <comp>.
       ASSIGN io_obj->(ls_attri_o->name) TO <comp>.
-      IF sy-subrc <> 0.
+      IF <comp> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
       result = msg_map( name = ls_attri_o->name
@@ -3054,6 +3110,27 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD msg_map.
 
     result = msg.
+
+    " The value is a component of an ARBITRARY structure: msg_get_internal
+    " walks whatever an app hands to message_box_display( ) and maps every
+    " component BY NAME. A business structure with a component that happens
+    " to be called TEXT, ID, TYPE or V1 and is a TABLE, a nested structure
+    " or a reference is not a message part - and the assignments below are
+    " no class-based exception for it, they are a MOVE type conflict
+    " (OBJECTS_MOVE_NOT_SUPPORTED on a system, "table, no header line" in
+    " the transpiled runtime). So the box that was supposed to REPORT a
+    " problem was the crash: nothing between here and the app's own main( )
+    " catches it, and the roundtrip ended as a 500.
+    " Decided BEFORE anything is assigned, which is the same rule
+    " z2ui5_cl_ui5_srv_model=>delta_apply_field follows for the same reason
+    " - a runtime error cannot be caught after the fact. A skipped component
+    " simply is not a message part: the entry ends up without a text,
+    " ui5_msg_box_format drops it, and the caller falls back to the DATA
+    " renderer, which shows the whole structure including that component
+    IF rtti_check_printable( val ) = abap_false.
+      RETURN.
+    ENDIF.
+
     CASE name.
       WHEN `ID` OR `MSGID`.
         result-id = val.
@@ -3072,7 +3149,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       WHEN `MESSAGE_V4` OR `MSGV4` OR `V4`.
         result-v4 = val.
       WHEN `TIME_STMP`.
-        result-timestampl = val.
+        " the one target that is not a string: a printable but non-numeric
+        " value (`2026-09-16 10:00` in a char field of that name) converts
+        " into the packed timestamp with CX_SY_CONVERSION_NO_NUMBER, which
+        " is catchable where the MOVE conflict above is not - caught, and
+        " the entry keeps no timestamp rather than costing the whole box
+        TRY.
+            result-timestampl = val.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
     ENDCASE.
 
   ENDMETHOD.
@@ -3132,8 +3217,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       CHECK sy-subrc = 0.
       CHECK rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
 
+      " guarded like data_render_tab, msg_get_internal and
+      " data_get_headline - and here the symbol is LOOP-CARRIED, so an
+      " ASSIGN that fails leaves it on the PREVIOUS component's table and
+      " the rows below would be read out of that one
       FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
+      UNASSIGN <ftab>.
       ASSIGN <tab> TO <ftab>.
+      CHECK <ftab> IS ASSIGNED.
 
       " the row kind is a property of the table TYPE - decided once per
       " table, not asked of every row (same idea as msg_get_internal_tab)
@@ -3217,8 +3308,17 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD get_comp_str.
 
+    " printable first, then the assignment: the component comes out of a
+    " structure this class did not declare, and a table or a nested
+    " structure into a string is a MOVE type conflict, not an exception -
+    " see msg_map, which learnt it the expensive way.
+    " One chained AND and not the nested IFs z2ui5_cl_ui5_handler=>
+    " request_context_info argues for: abaplint's if_in_if refuses the
+    " nesting here (nothing sits between the two tests), and the second
+    " operand is safe on a failed ASSIGN either way - ABAP evaluates a
+    " logical expression left to right and stops once the result is decided
     ASSIGN COMPONENT comp OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
-    IF sy-subrc = 0.
+    IF sy-subrc = 0 AND rtti_check_printable( <comp> ) = abap_true.
       result = <comp>.
     ENDIF.
 
@@ -3300,7 +3400,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         IF lv_sub IS NOT INITIAL.
           APPEND lv_sub TO lt_part.
         ENDIF.
-      ELSEIF <comp> IS NOT INITIAL.
+      ELSEIF <comp> IS NOT INITIAL AND rtti_check_printable( <comp> ) = abap_true.
+        " the printable test does what the TRY around this could not: a
+        " TABLE component into the string below is a MOVE type conflict and
+        " therefore a runtime error, which no CATCH takes (see msg_map). The
+        " TRY stays for the conversions that ARE class-based - a character
+        " value the packed/numeric target refuses
         TRY.
             DATA lv_str TYPE string.
             lv_str = <comp>.

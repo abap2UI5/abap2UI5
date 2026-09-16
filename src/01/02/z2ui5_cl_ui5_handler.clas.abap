@@ -112,7 +112,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
 
     " upper bound for nav_app_call/nav_app_leave hops within a single
     " request - an app that navigates unconditionally in main( ) would
-    " otherwise loop the work process forever
+    " otherwise loop the work process forever. Writable instance DATA, not a
+    " CONSTANTS like the event-argument limit below, because the loop-guard
+    " test lowers it (ltcl_03_dispatch): the alternative is 1000 real hops,
+    " each of them a draft save. Nothing in production writes it
     DATA mv_dispatch_limit TYPE i VALUE 1000.
 
     " whether THIS request's body has been parsed into ms_request - see
@@ -277,6 +280,25 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_parse_body.
+
+    " A POST with NO body at all is the same request as a POST carrying
+    " `{}` - one that names no S_FRONT - and has to be answered the same
+    " way: with the empty result, so main_begin takes its system-startup
+    " branch. It used to reach the parse below, which refuses an empty
+    " string, and the availability probe every monitor and load balancer
+    " sends was answered with the framework's own 500 while `{}`, `null`
+    " and even `42` all rendered the start page. The server stack produces
+    " exactly this shape - node/srv/express.mjs substitutes an empty buffer
+    " for a missing body, and a gateway that strips the envelope can leave
+    " nothing behind. A body that is NOT empty and not JSON stays a 500:
+    " that is a client sending something wrong, and it is worth seeing.
+    " o_model is filled the way the no-S_FRONT path below fills it: every
+    " reader of ty_s_request may dereference it without asking
+    IF val IS INITIAL OR condense( val ) IS INITIAL.
+      result-o_model = z2ui5_cl_ajson=>create_empty( ).
+      RETURN.
+    ENDIF.
+
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
     " standalone requests arrive wrapped as { "value": <payload> } (see
@@ -686,8 +708,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   METHOD response_abap_to_json.
     TRY.
 
+        " the shared upper-case mapping, not one built here: it is stateless,
+        " and this method runs once per response - see
+        " z2ui5_cl_ui5_util_json_fl, which holds the one instance and the
+        " no-empty-values filter below with it
         DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                      ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+                                                      ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
 
         " the action queues are serialized explicitly below - the generic
         " conversion would render each queue row as a { O_JSON, JS } object

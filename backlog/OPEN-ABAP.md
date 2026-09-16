@@ -15,7 +15,13 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-_Empty. Nothing is waiting to be filed against this one._
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`open-abap-json-empty-key`](items/open-abap-json-empty-key.md) | 'cl_sxml_string_reader decides on `IF <ls_parsed>-key IS NOT INITIAL`, so `{"":1}` reaches the reader as an element with NO attributes - indistinguishable from an array element - and ajson''s `ASSERT sy-subrc = 0` fires two lines before the error it would have raised' | medium | 2026-09-16 | open-abap/open-abap-core |
 
 ---
 

@@ -822,11 +822,110 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_plain_object     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
+    " what msg_get_internal does with a STRUCTURE the caller handed in
+    METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_msg IMPLEMENTATION.
+
+  METHOD test_msg_initial_struct.
+
+    " an all-initial structure carries no message, and says so by answering
+    " NOTHING rather than one blank entry - the caller (message_box_display)
+    " then falls back to the DATA renderer, which is the documented answer
+    " for "nothing in here is a message"
+    TYPES:
+      BEGIN OF ty_s_msg_like,
+        id   TYPE string,
+        text TYPE string,
+      END OF ty_s_msg_like.
+
+    DATA(ls_empty) = VALUE ty_s_msg_like( ).
+
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>msg_get_t( ls_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_item_component.
+
+    " a component called ITEM is the BAPI shape: the messages are IN it, and
+    " the structure around it is an envelope. So the walk hands ITEM on and
+    " RETURNS - the envelope's own components are not mapped, which is what
+    " keeps a TYPE or ID sitting next to ITEM out of the nested messages
+    TYPES:
+      BEGIN OF ty_s_item,
+        type    TYPE c LENGTH 1,
+        message TYPE string,
+      END OF ty_s_item.
+    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_envelope,
+        type TYPE c LENGTH 1,
+        item TYPE ty_t_item,
+      END OF ty_s_envelope.
+
+    DATA ls_env TYPE ty_s_envelope.
+    " the envelope's own type says Success and must NOT reach the messages
+    ls_env-type = `S`.
+    APPEND VALUE #( type    = `E`
+                    message = `first` ) TO ls_env-item.
+    APPEND VALUE #( type    = `W`
+                    message = `second` ) TO ls_env-item.
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( ls_env ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_msg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `first`
+                                        act = lt_msg[ 1 ]-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `E`
+                                        act = lt_msg[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `second`
+                                        act = lt_msg[ 2 ]-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `W`
+                                        act = lt_msg[ 2 ]-type ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_id_without_text.
+
+    " the T100 shape: a structure that names a message by ID and NUMBER and
+    " carries no TEXT. The walk assembles the text from the message class
+    " rather than handing the caller a blank box - and the ID is upper-cased
+    " first, because a lower-case one finds nothing
+    TYPES:
+      BEGIN OF ty_s_t100,
+        id         TYPE string,
+        number     TYPE n LENGTH 3,
+        type       TYPE c LENGTH 1,
+        message_v1 TYPE string,
+      END OF ty_s_t100.
+
+    DATA(ls_t100) = VALUE ty_s_t100( id         = `z2ui5_test`
+                                     number     = '001'
+                                     type       = `E`
+                                     message_v1 = `4711` ).
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( ls_t100 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    " the parts the walk mapped by name, whatever the message class says
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_TEST`
+                                        act = lt_msg[ 1 ]-id ).
+    cl_abap_unit_assert=>assert_equals( exp = `E`
+                                        act = lt_msg[ 1 ]-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `4711`
+                                        act = lt_msg[ 1 ]-v1 ).
+    " and a text was assembled rather than left blank
+    cl_abap_unit_assert=>assert_not_initial( lt_msg[ 1 ]-text ).
+
+  ENDMETHOD.
 
   METHOD test_msg_type_mapping.
 
