@@ -1641,8 +1641,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
+    " IS ASSIGNED, not sy-subrc, like every other ASSIGN of this class: a
+    " successful one does not reset sy-subrc on every release (#1937), and
+    " a stale 0 here would hand an UNASSIGNED symbol to delta_apply_nodes -
+    " a GETWA_NOT_ASSIGNED dump instead of the trace below. The symbol is
+    " declared in this method and assigned once, so no UNASSIGN is needed
     ASSIGN lr_ref_d->* TO <delta_tab>.
-    IF sy-subrc <> 0.
+    IF <delta_tab> IS NOT ASSIGNED.
       " unreachable after the RTTI decision above on a system; the transpiler
       " answers a type conflict with the subrc. Either way the rows are
       " traced like the sorted-table case - a bare RETURN dropped the whole

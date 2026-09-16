@@ -83,15 +83,25 @@ measured over abap2UI5, samples, samples-controls and samples-stack:
 
 | | | fix |
 |---|--:|---|
-| **simple** | 42 | freshly declared in this method, assigned once — `IS [NOT] ASSIGNED` is a drop-in |
-| **in-loop** | 17 | inside `LOOP`/`DO`/`WHILE` — needs `UNASSIGN <fs>.` before the `ASSIGN` |
-| **reassigned** | 2 | the same symbol was already assigned earlier in the method — same trap, same fix |
+| **simple** | 44 | freshly declared in this method, assigned once — `IS [NOT] ASSIGNED` is a drop-in |
+| **in-loop** | 11 | inside `LOOP`/`DO`/`WHILE` — needs `UNASSIGN <fs>.` before the `ASSIGN` |
+| **reassigned** | 1 | the same symbol was already assigned earlier in the method — same trap, same fix |
 
-So roughly **one site in three cannot take the naive fix**, and a rule that
+So roughly **one site in five cannot take the naive fix**, and a rule that
 offered it as a quick-fix everywhere would introduce bugs in those. Either the
 rule reports all three and describes both fixes, or it fires only on the simple
 shape and stays silent on the other two — the second is smaller and safer, and
 the classification above is decidable from the same single file.
+
+The share shifted because abap2UI5 cleared its own live sites (2026-09-16):
+the thirteen in `src/00/03`, `src/01/02` and `src/02` are gone, and with them
+five of the loop-carried ones — which were the worst of the set, because there
+a stale `sy-subrc` does not skip an attribute, it renders the PREVIOUS
+iteration's value under the current attribute's name. What is left is the
+`src/00/01` AJSON mirror and the frozen `src/99` package, neither of which this
+repository may change, plus the app corpora. That does not weaken the case for
+the rule — it is the case for it: the sites were found by a detector written
+for this item, not by anything a contributor runs.
 
 The corpus's own #1937 fix is a *simple* case and is correct:
 `attri_get_val_ref` declares `<attri>` at method start and assigns it in two
@@ -138,9 +148,9 @@ organization).
 ## Measured
 
 `abaplint-subrc-after-assign.probe.mjs` — a sy-subrc test whose nearest sy-subrc-setting statement is a plain ASSIGN, with ASSIGN COMPONENT as the negative.
-Run **2026-09-13** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
+Run **2026-09-16** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
 
-**Would fire on 67 site(s)** in 4 repositories:
+**Would fire on 56 site(s)** in 4 repositories:
 
 | Repository | Where | |
 |---|---|---|
@@ -149,19 +159,8 @@ Run **2026-09-13** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 | abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1043 | [simple] ASSERT sy-subrc = 0. |
 | abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1048 | [simple] ASSERT sy-subrc = 0. |
 | abap2UI5 | `src/00/01/z2ui5_cl_ajson.clas.locals_imp.abap`:1180 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1846 | [in-loop] IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2176 | [in-loop] IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2556 | [simple] IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2562 | [reassigned] IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2672 | [in-loop] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2734 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3044 | [in-loop] IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:195 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:234 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:495 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_http.clas.abap`:508 | [simple] ASSERT sy-subrc = 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:1635 | [simple] IF sy-subrc <> 0. |
-| abap2UI5 | `src/02/z2ui5_cl_ui5_http_handler.clas.abap`:435 | [simple] IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2708 | [in-loop] IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2783 | [simple] IF sy-subrc <> 0. |
 | abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:1563 | [in-loop] IF sy-subrc <> 0. |
 | abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:2502 | [in-loop] IF sy-subrc <> 0. |
 | abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:4105 | [simple] IF sy-subrc <> 0. |
@@ -186,7 +185,7 @@ Run **2026-09-13** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 | samples | `src/01/z2ui5_cl_smp_app_104.clas.abap`:68 | [simple] IF sy-subrc <> 0. |
 | samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:85 | [simple] IF sy-subrc <> 0. |
 | samples | `src/01/z2ui5_cl_smp_app_461.clas.abap`:89 | [simple] IF sy-subrc <> 0. |
-| samples | `src/01/z2ui5_cl_smp_app_502.clas.abap`:308 | [simple] IF sy-subrc = 0. |
+| samples | `src/01/z2ui5_cl_smp_app_502.clas.abap`:309 | [simple] IF sy-subrc = 0. |
 | samples | `src/01/z2ui5_cl_smp_app_502.clas.abap`:705 | [in-loop] IF sy-subrc <> 0. |
 | samples-controls | `src/01/01/z2ui5_cl_smpc_app_558.clas.abap`:411 | [simple] IF sy-subrc = 0. |
 | samples-controls | `src/01/01/z2ui5_cl_smpc_app_558.clas.abap`:429 | [simple] IF sy-subrc <> 0. |
@@ -221,21 +220,21 @@ Run **2026-09-13** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 | abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1211 | IF sy-subrc <> 0. |
 | abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1226 | IF sy-subrc <> 0. |
 | abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:1691 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2124 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2911 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3132 | CHECK sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3171 | IF sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3188 | IF sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3191 | IF sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3221 | IF sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3235 | CHECK sy-subrc = 0. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3274 | IF sy-subrc <> 0 OR <tky> IS INITIAL. |
-| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3294 | CHECK sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2131 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:2962 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3188 | CHECK sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3227 | IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3244 | IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3247 | IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3277 | IF sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3291 | CHECK sy-subrc = 0. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3330 | IF sy-subrc <> 0 OR <tky> IS INITIAL. |
+| abap2UI5 | `src/00/03/z2ui5_cl_ui5_util_context.clas.abap`:3350 | CHECK sy-subrc = 0. |
 | abap2UI5 | `src/01/02/z2ui5_cl_ui5_handler.clas.testclasses.abap`:197 | IF sy-subrc = 0. |
 | abap2UI5 | `src/01/02/z2ui5_cl_ui5_handler.clas.testclasses.abap`:210 | IF sy-subrc = 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap`:146 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:1693 | IF sy-subrc <> 0. |
-| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:1697 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap`:150 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:1708 | IF sy-subrc <> 0. |
+| abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap`:1712 | IF sy-subrc <> 0. |
 | abap2UI5 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.testclasses.abap`:390 | IF sy-subrc = 0. |
 | abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:1739 | IF sy-subrc <> 0. |
 | abap2UI5 | `src/99/01/z2ui5_cl_util.clas.abap`:1748 | IF sy-subrc <> 0. |
@@ -375,7 +374,7 @@ Run **2026-09-13** against `abap2UI5`, `samples`, `samples-controls`, `samples-s
 
 **Where the detector is an approximation of the rule:**
 
-- Which fix applies: 51 simple · 14 in a loop · 2 re-assigned. Only the first is a drop-in; the other two need `UNASSIGN` before the `ASSIGN`, because a failed assign leaves the previous binding in place and `IS ASSIGNED` then reads TRUE for a failure. Verified against `@abaplint/runtime`'s assign, which sets sy-subrc = 4 and returns without clearing the target.
+- Which fix applies: 44 simple · 11 in a loop · 1 re-assigned. Only the first is a drop-in; the other two need `UNASSIGN` before the `ASSIGN`, because a failed assign leaves the previous binding in place and `IS ASSIGNED` then reads TRUE for a failure. Verified against `@abaplint/runtime`'s assign, which sets sy-subrc = 4 and returns without clearing the target.
 - The set of sy-subrc-writing statements is hand-written and short. A statement missing from it lets an ASSIGN keep its claim too long, so the count is an upper bound — abaplint knows the real set (it models it for `check_subrc`) and would report fewer.
 - Field-symbol assignment inside a macro or a chained statement is not followed.
 

@@ -191,8 +191,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     TRY.
 
+        " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT -
+        " see get_response_onprem for both halves. Here the RAISE also buys
+        " the CLOSE below: the CATCH that closes the ICM connection on the
+        " failure path cannot see an ASSERTION_FAILED, so an HTTP client
+        " whose REQUEST could not be reached leaked its connection for the
+        " lifetime of the work process
+        UNASSIGN <any>.
         ASSIGN lo_client->(`REQUEST`) TO <any>.
-        ASSERT sy-subrc = 0.
+        IF <any> IS NOT ASSIGNED.
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING val = `HTTP_CLIENT_REQUEST_NOT_FOUND - the http client has no REQUEST attribute`.
+        ENDIF.
         lo_request = <any>.
 
         DATA(lv_method) = CONV string( method ).
@@ -230,8 +240,16 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
             EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
         ENDIF.
 
+        " UNASSIGN first: <any> still holds the REQUEST from above, so
+        " IS ASSIGNED would read TRUE for a failed ASSIGN and the GET_CDATA
+        " below would be called on the request object - the reassigned case
+        " of the #1937 rule (see get_response_onprem)
+        UNASSIGN <any>.
         ASSIGN lo_client->(`RESPONSE`) TO <any>.
-        ASSERT sy-subrc = 0.
+        IF <any> IS NOT ASSIGNED.
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING val = `HTTP_CLIENT_RESPONSE_NOT_FOUND - the http client has no RESPONSE attribute`.
+        ENDIF.
         lo_response = <any>.
 
         CALL METHOD lo_response->(`GET_CDATA`)
@@ -491,8 +509,13 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     IF mo_request_onprem IS NOT BOUND.
       FIELD-SYMBOLS <any> TYPE any.
+      " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT - see
+      " the note at get_response_onprem below, which both share
       ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
-      ASSERT sy-subrc = 0.
+      IF <any> IS NOT ASSIGNED.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = `HTTP_SERVER_REQUEST_NOT_FOUND - the server object has no REQUEST attribute`.
+      ENDIF.
       mo_request_onprem = <any>.
     ENDIF.
 
@@ -504,8 +527,29 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     IF mo_response_onprem IS NOT BOUND.
       FIELD-SYMBOLS <any> TYPE any.
+      " Both halves of this guard changed together, and both matter on the
+      " path every single request takes (get_cdata / get_method /
+      " get_header_field all come through here):
+      "
+      " IS ASSIGNED, not sy-subrc - a successful dynamic ASSIGN does not
+      " reset sy-subrc on every release (#1937,
+      " z2ui5_cl_ui5_util_context=>unassign_data), so a stale 4 left by an
+      " earlier statement read as "the server has no RESPONSE" on the one
+      " statement of the handler that cannot fail.
+      "
+      " ...and a RAISE rather than an ASSERT, because of what the failure
+      " then costs: ASSERTION_FAILED is a short dump no TRY can take (the
+      " reasoning is written out at z2ui5_cl_ui5_view_builder=>a), so it
+      " bypassed the outer TRY of z2ui5_cl_ui5_http_handler=>main and the
+      " request was answered with no body, no status code and none of the
+      " security headers - the exact state that TRY was added to prevent.
+      " The framework exception travels into it and comes back as a 500
+      " naming the cause
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
-      ASSERT sy-subrc = 0.
+      IF <any> IS NOT ASSIGNED.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING val = `HTTP_SERVER_RESPONSE_NOT_FOUND - the server object has no RESPONSE attribute`.
+      ENDIF.
       mo_response_onprem = <any>.
     ENDIF.
 
