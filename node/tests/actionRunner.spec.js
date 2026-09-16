@@ -15,10 +15,11 @@ const { loadModule } = require("./loadModule");
 // Load FrontendAction with every domain handler map stubbed empty (override
 // individual maps via `deps`). LegacyCustomJs - a unit under test here -
 // loads for real via autoLoad.
-function loadFrontendAction(deps = {}) {
+function loadFrontendAction(deps = {}, sandbox = {}) {
   const noHandlers = { handlers: {} };
   const { module } = loadModule("core/FrontendAction.js", {
     autoLoad: true,
+    sandbox,
     deps: {
       "z2ui5/core/actions/ControlCall": noHandlers,
       "z2ui5/core/actions/Browser": noHandlers,
@@ -211,5 +212,79 @@ test.describe("runCustom legacy eF( ) argument parsing", () => {
     expect(oController.calls).toEqual([
       ["CONTROL_BY_ID", "tab", "", "scrollToIndex", 5, true, { A: 1 }],
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------
+// The CSP boundary. AGENTS.md rule 19: a follow-up action is DATA, never
+// code - which is what lets an app run under a Content-Security-Policy
+// that does not allow 'unsafe-eval'. Only the legacy raw-expression form
+// (Format C) is allowed to construct code, and only because an app opted
+// into it by handing the backend a JavaScript string; every framework-
+// generated action travels as Format A (a JSON array) or Format B (an
+// eF( ) call parsed by hand), and neither may ever reach Function/eval.
+// Pinned here because the regression is invisible at runtime: a snippet
+// that starts going through Function still WORKS on a permissive CSP and
+// only breaks on the strict one the framework promises to support.
+// ---------------------------------------------------------------------
+test.describe("runCustom stays clear of eval", () => {
+  // Shadows the sandbox's code-constructing globals with counting stubs.
+  // `Function` is a global lookup inside the module, so the module's own
+  // `Function("return " + item)` resolves to this one.
+  function loadCountingEval(deps = {}) {
+    const reached = [];
+    const FrontendAction = loadFrontendAction(deps, {
+      Function: function (...args) {
+        reached.push(["Function", String(args[args.length - 1])]);
+        return () => {};
+      },
+      eval: (src) => {
+        reached.push(["eval", String(src)]);
+      },
+    });
+    return { FrontendAction, reached };
+  }
+
+  test("a structured JSON action never constructs code", () => {
+    const { FrontendAction, reached } = loadCountingEval();
+    const oController = controllerStub();
+
+    FrontendAction.runCustom(["SET_FOCUS", "myInput"], oController);
+    FrontendAction.runCustom('["SET_FOCUS","myInput"]', oController);
+    // an argument that spells JavaScript is still just a string argument
+    FrontendAction.runCustom(
+      '["CLIPBOARD_COPY","alert(1);//"]',
+      oController,
+    );
+
+    expect(reached).toEqual([]);
+    expect(oController.calls.length).toBe(3);
+  });
+
+  test("a legacy eF( ) call never constructs code", () => {
+    const { FrontendAction, reached } = loadCountingEval();
+    const oController = controllerStub();
+
+    FrontendAction.runCustom("eF('SET_FOCUS','myInput')", oController);
+    FrontendAction.runCustom(".eF('CLIPBOARD_COPY','alert(1)');", oController);
+    FrontendAction.runCustom(
+      'eF(\'CONTROL_BY_ID\',\'tab\',\'\',\'scrollToIndex\',5,true,{"A":1})',
+      oController,
+    );
+
+    expect(reached).toEqual([]);
+    expect(oController.calls.length).toBe(3);
+  });
+
+  test("only the raw-expression form reaches Function", () => {
+    const { FrontendAction, reached } = loadCountingEval();
+    const oController = controllerStub();
+
+    FrontendAction.runCustom("alert(1)", oController);
+
+    // the one documented escape hatch - an app-authored snippet that is
+    // neither a JSON array nor an eF( ) call
+    expect(reached).toEqual([["Function", "return alert(1)"]]);
+    expect(oController.calls).toEqual([]);
   });
 });
