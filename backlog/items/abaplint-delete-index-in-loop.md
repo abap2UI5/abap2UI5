@@ -160,7 +160,7 @@ organization).
 ## Measured
 
 `abaplint-delete-index-in-loop.probe.mjs` — DELETE <t> INDEX sy-tabix inside an open LOOP AT <t>, and the correct READ-TABLE-then-DELETE form as the negative.
-Run **2026-08-17** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
+Run **2026-09-16** against `abap2UI5`, `samples`, `samples-controls`, `samples-stack`.
 
 **Would fire on 1 site(s)** in 1 repository:
 

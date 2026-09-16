@@ -1,7 +1,7 @@
 {
   "abaplint-delete-index-in-loop": {
     "describe": "DELETE <t> INDEX sy-tabix inside an open LOOP AT <t>, and the correct READ-TABLE-then-DELETE form as the negative",
-    "ran": "2026-08-17",
+    "ran": "2026-09-16",
     "checkouts": [
       "abap2UI5",
       "samples",
@@ -23,13 +23,10 @@
       "samples-controls",
       "samples-stack"
     ],
-    "sites": 56,
-    "negatives": 156,
+    "sites": 16,
+    "negatives": 158,
     "repos": [
-      "abap2UI5",
-      "samples",
-      "samples-controls",
-      "samples-stack"
+      "abap2UI5"
     ]
   }
 }
