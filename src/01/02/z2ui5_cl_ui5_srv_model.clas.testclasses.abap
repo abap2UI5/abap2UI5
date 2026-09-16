@@ -2153,15 +2153,12 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " status code and no security headers. So every shape below has to come
     " back with the bound table untouched.
     "
-    " One shape is deliberately NOT in the list: an object member with an
-    " EMPTY key (`{"":{...}}`). It never reaches the model - the JSON
-    " parser's own ASSERT fires first, and only on the transpiled runtime,
-    " because open-abap's cl_sxml_string_reader cannot tell an empty-keyed
-    " member from an array element and emits no `name` attribute for it.
-    " On a system the attribute is there with an empty value and AJSON
-    " answers with its own catchable error. Filed as
-    " backlog/items/open-abap-json-empty-key.md - pinning it here would
-    " pin the runtime gap, not this class's behaviour.
+    " The empty-keyed member `{"":{...}}` was left out of the list while
+    " open-abap's cl_sxml_string_reader could not tell it from an element
+    " of an array: it emitted no `name` attribute, and the JSON parser's
+    " own ASSERT fired before the model ever saw the body. That is fixed
+    " upstream (open-abap/open-abap-core#1248) and the pin carries it, so
+    " the shape is in the list below like any other.
     bind( REF #( mo_app->mt_std ) ).
 
     DATA(lt_hostile) = VALUE string_table(
@@ -2177,6 +2174,10 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
       " an index no row has, and two no ABAP index conversion takes
       ( `{"MT_STD":{"__delta":{"999999999999":{"COL1":"Z"}}}}` )
       ( `{"MT_STD":{"__delta":{"1e3":{"COL1":"Z"}}}}` )
+      " an object member with an EMPTY key, at the three depths it can sit
+      ( `{"MT_STD":{"":"boom"}}` )
+      ( `{"MT_STD":{"__delta":{"":{"COL1":"Z"}}}}` )
+      ( `{"MT_STD":{"__delta":{"0":{"":"Z"}}}}` )
       " a cell the row does not have, including the marker's own name
       ( `{"MT_STD":{"__delta":{"0":{"NOPE":"Z"}}}}` )
       ( `{"MT_STD":{"__delta":{"0":{"__DELTA":"Z"}}}}` )
@@ -2194,6 +2195,11 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
           mo_model->main_json_to_attri( delta( lv_json ) ).
         CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
           " an exception IS a legitimate answer - the handler renders it
+        CATCH z2ui5_cx_ajson_error ##NO_HANDLER.
+          " so is the parser's own: an empty-keyed member never reaches the
+          " model, and the single top-level CATCH cx_root renders this one
+          " the same way. What must NOT happen is a runtime error, and that
+          " is what the assertions below hold
       ENDTRY.
       cl_abap_unit_assert=>assert_equals( exp = 2
                                           act = lines( mo_app->mt_std )
