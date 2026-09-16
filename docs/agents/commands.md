@@ -65,22 +65,25 @@ and in `samples-controls/scripts/e2e-build.mjs`. `test_bind_tab_cell` (in
 transpiled suite - now against stock abaplint, so a failure there is an
 upstream regression rather than a missing patch.
 
-**Four more, the same way.** `npm run auto_transpile` runs
-`node/setup/patch-open-abap-core.mjs` first. It patches the
-pinned open-abap-core checkout four times: `cl_abap_typedescr=>describe_by_name`
-learns the absolute spelling of a type name (`\TYPE=STRING`,
+**Four more went the same way, and with them the last patch script.**
+`node/setup/patch-open-abap-core.mjs` patched the pinned open-abap-core
+checkout four times: `cl_abap_typedescr=>describe_by_name` learned the
+absolute spelling of a type name (`\TYPE=STRING`,
 `\TYPE-POOL=ABAP\TYPE=ABAP_BOOL`, the spelling S-RTTI resolves a serialized
-component by); the asXML writer of `CALL TRANSFORMATION id` escapes
+component by); the asXML writer of `CALL TRANSFORMATION id` escaped
 character values (a string CONTAINING markup - the S-RTTI payload of every
 draft with a generic data reference - came back truncated); a line feed
-travels as `&#10;` (the parser strips every literal one, so a text area lost
-its line breaks across the draft); and the parser resolves `&amp;` last (it
-resolved it first and so double-unescaped an escaped payload inside an
+travelled as `&#10;` (the parser stripped every literal one, so a text area
+lost its line breaks across the draft); and the parser resolved `&amp;` last
+(it resolved it first and so double-unescaped an escaped payload inside an
 escaped value - `<b>` in a cell of a generic table came back as markup).
-Without them no draft that carries a TYPE HANDLE table restores in the
-transpiled backend (`ltcl_test_app_root4->test_tab_ref_gen` was skipped for
-exactly that). All are filed in `backlog/` (`open-abap-*`); each is idempotent
-by marker and FAILS the transpile when the line it anchors on moves upstream.
+Without them no draft carrying a TYPE HANDLE table restored in the transpiled
+backend (`ltcl_test_app_root4->test_tab_ref_gen` was skipped for exactly
+that). All four are upstream now - the last two as open-abap/open-abap-core
+#1225 and #1227, which stopped the parser stripping line feeds and taught it
+to resolve character references - so the pin moved to `f64963e`, the script
+and the `lib/anchored-patch.mjs` routine it was the only caller of are gone,
+and `npm run auto_transpile` no longer patches anything before it transpiles.
 
 A fifth and sixth patch lived next to them until 2026-09-10, in
 `node/setup/patch-abaplint-runtime-assign.mjs`: the installed

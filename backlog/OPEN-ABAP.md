@@ -21,7 +21,6 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`open-abap-asxml-line-feed`](items/open-abap-asxml-line-feed.md) | 'cl_ixml removes every literal LF from the document before tokenizing it, and nothing writes one as a character reference, so a string with a line break comes back as one line through `CALL TRANSFORMATION id` and back' | medium | 2026-09-02 | open-abap/open-abap-core |
 | [`open-abap-json-empty-key`](items/open-abap-json-empty-key.md) | 'cl_sxml_string_reader decides on `IF <ls_parsed>-key IS NOT INITIAL`, so `{"":1}` reaches the reader as an element with NO attributes - indistinguishable from an array element - and ajson''s `ASSERT sy-subrc = 0` fires two lines before the error it would have raised' | medium | 2026-09-16 | open-abap/open-abap-core |
 
 ---
