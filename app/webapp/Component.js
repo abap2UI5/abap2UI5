@@ -12,6 +12,7 @@ sap.ui.define(
     "z2ui5/core/Router",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/actions/Shortcuts",
   ],
   (
     UIComponent,
@@ -26,6 +27,7 @@ sap.ui.define(
     Router,
     ScrollFocus,
     ViewSlots,
+    Shortcuts,
   ) => {
     "use strict";
 
@@ -260,6 +262,13 @@ sap.ui.define(
         // all of which are module-scoped and would otherwise outlive the
         // component on an FLP re-launch.
         DevTools.exit();
+
+        // The same for the APP's keyboard shortcuts, which are a different
+        // module: the registry is app-scoped and the state rebuild below
+        // empties it, but the `document` keydown listener behind it is module
+        // state and stayed installed for the life of the page - see
+        // core/actions/Shortcuts.reset.
+        Shortcuts.reset();
 
         Server.endSession();
         // and drop the module-scoped request state with it - see Server.reset

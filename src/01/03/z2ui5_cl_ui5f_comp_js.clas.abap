@@ -39,6 +39,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -53,6 +54,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    Router,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
+             `    Shortcuts,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -186,6 +188,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        Router.exit();` && |\n| &&
              `` && |\n| &&
              `        DevTools.exit();` && |\n| &&
+             `` && |\n| &&
+             `        Shortcuts.reset();` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&

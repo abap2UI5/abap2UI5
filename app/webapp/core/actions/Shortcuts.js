@@ -138,6 +138,25 @@ sap.ui.define(
       document.addEventListener("keydown", shortcutListener);
     }
 
+    // Take the listener off `document` ACROSS a component teardown, the way
+    // every other module that installs one does (Component.exit, Router.exit,
+    // devtools/Picker, devtools/Console): `shortcutListener` is MODULE state,
+    // so it outlived the component that installed it - this was the one
+    // addEventListener in app/webapp without a removeEventListener anywhere.
+    // On an FLP re-launch the page stays alive, so the dead listener kept
+    // running shortcutFromEvent plus a registry lookup on every keystroke of
+    // whatever came next, for the rest of the session, and could never be
+    // collected. The REGISTRY needed no such treatment and has none: it is
+    // app-scoped, cleared on an app switch (View1._processAfterRendering) and
+    // rebuilt by AppState.reset( ) - this is the half that sat below both.
+    // Installing again is the next evKeyboardShortcut( )'s job, as on a fresh
+    // page: the flag going back to null is what lets it.
+    function reset() {
+      if (!shortcutListener || typeof document === "undefined") return;
+      document.removeEventListener("keydown", shortcutListener);
+      shortcutListener = null;
+    }
+
     // args: [_, combo, eventName, scope] - an empty event name unregisters the
     // combo IN THAT SCOPE; scope is a view slot key (cs_view-popover/popup/...)
     // or a control id (see the scope section above) and defaults to the
@@ -213,6 +232,6 @@ sap.ui.define(
       KEYBOARD_SET_MODE: evKeyboardSetMode,
     };
 
-    return { handlers };
+    return { handlers, reset };
   },
 );

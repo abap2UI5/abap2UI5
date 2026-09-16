@@ -50,7 +50,10 @@ test("pagehide into the back/forward cache keeps the app alive", () => {
 // handlers on the Device singleton, and an OData client the framework
 // created for MAIN is no aggregation either, so the view's destroy never
 // reaches it (every open client leaked across the re-launch).
-function loadForExit(appState, { modules = {}, destroyedSlots = [] } = {}) {
+function loadForExit(
+  appState,
+  { modules = {}, destroyedSlots = [], shortcutResets = [] } = {},
+) {
   const noop = () => {};
   // exit() cancels the timers through Lib.cancelPendingTimers; the stub does
   // what the shipped helper does (clear every slot) with the sandbox's
@@ -77,6 +80,10 @@ function loadForExit(appState, { modules = {}, destroyedSlots = [] } = {}) {
       "z2ui5/core/ScrollFocus": { reset: noop },
       "z2ui5/core/ViewSlots": {
         destroy: (key) => destroyedSlots.push(key),
+      },
+      "z2ui5/core/actions/Shortcuts": {
+        handlers: {},
+        reset: () => shortcutResets.push(true),
       },
     },
     // exit() probes for the loaded custom controls that keep module state
@@ -114,9 +121,11 @@ function fakeAppState(overrides = {}) {
 
 function runExit(appState, options) {
   const destroyedSlots = [];
+  const shortcutResets = [];
   const { module: def, sandbox } = loadForExit(appState, {
     ...options,
     destroyedSlots,
+    shortcutResets,
   });
   sandbox.removeEventListener = () => {};
   sandbox.document = { removeEventListener: () => {} };
@@ -129,7 +138,7 @@ function runExit(appState, options) {
   inst._boundScroll = () => {};
   inst._launchpad = null;
   inst.exit();
-  return { inst, cleared, destroyedSlots };
+  return { inst, cleared, destroyedSlots, shortcutResets };
 }
 
 test("exit() destroys the OData clients the framework created, a throwing one included", () => {
@@ -180,6 +189,17 @@ test("exit() cancels the pending timers and destroys the device model", () => {
 test("exit() tears the popup and popover slots down", () => {
   const { destroyedSlots } = runExit(fakeAppState());
   expect(destroyedSlots).toEqual(["POPUP", "POPOVER"]);
+});
+
+// The app's keyboard shortcuts: the REGISTRY is app-scoped and the state
+// rebuild empties it, but the `document` keydown listener behind it is module
+// state in core/actions/Shortcuts and used to stay installed for the life of
+// the page - the one addEventListener in app/webapp with no removeEventListener
+// anywhere, so on an FLP re-launch it went on running a registry lookup per
+// keystroke of whatever came after, and could never be collected.
+test("exit() takes the app's keyboard shortcut listener off document", () => {
+  const { shortcutResets } = runExit(fakeAppState());
+  expect(shortcutResets).toEqual([true]);
 });
 
 test("exit() resets the cc/Dirty unsaved-changes guard when it is loaded", () => {
