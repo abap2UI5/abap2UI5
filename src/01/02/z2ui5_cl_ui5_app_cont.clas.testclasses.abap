@@ -306,6 +306,8 @@ CLASS ltcl_01_xml DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS dead_object_dropped         FOR TESTING RAISING cx_static_check.
     " the document is one string of markup, nothing else
     METHODS document_is_asxml           FOR TESTING RAISING cx_static_check.
+    " a line break in a bound value survives the roundtrip
+    METHODS line_feed_survives          FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -323,6 +325,27 @@ CLASS ltcl_01_xml IMPLEMENTATION.
     " ...and a second time, the same
     mo_cont->all_xml_stringify( ).
     check_restored( mo_user ).
+
+  ENDMETHOD.
+
+  METHOD line_feed_survives.
+
+    " the parser used to strip every literal line feed from the document, so
+    " a text area lost its breaks across the draft and a local patch wrote
+    " them as `&#10;` instead. open-abap-core carries the fix now
+    " (open-abap/open-abap-core#1225 and #1227) and the patch is gone - this
+    " is what says so, and what catches it coming back
+    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA(lv_exp) = |line one{ lv_nl }line two{ lv_nl }{ lv_nl }after a blank one|.
+
+    mo_user->mv_string = lv_exp.
+    bind_all( ).
+
+    DATA(lo_parsed) = z2ui5_cl_ui5_app_cont=>all_xml_parse( mo_cont->all_xml_stringify( ) ).
+    lo_parsed->create_model( )->main_attri_db_load( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = app_of( lo_parsed )->mv_string ).
 
   ENDMETHOD.
 
