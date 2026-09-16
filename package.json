@@ -61,6 +61,7 @@
     "fmt:chains": "abap2ui5lint --fix",
     "check:abapgit": "node .github/scripts/abapgit-format-gate.mjs",
     "check:atc": "node .github/scripts/extended-check-gate.mjs",
+    "check:subrc": "node .github/scripts/subrc-after-assign-gate.mjs",
     "check:cause": "node .github/scripts/exception-cause-gate.mjs",
     "gates": "node .github/scripts/run-gates.mjs",
     "verify": "node .github/scripts/run-verify.mjs",
