@@ -213,6 +213,35 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 - In-memory buffer cache avoids repeated DB reads within one request
 - **Owner binding:** each draft stores its creator's `sy-uname` (column `UNAME`); `read`/`check_exists` only return a draft to that same user, so a leaked or guessed draft id (bookmark URLs carry it) cannot restore another user's serialized state. A mismatch fails closed with the same `NO_DRAFT_ENTRY...` exception as "not found", so a shared bookmark degrades to a fresh app start. Legacy rows written before the column existed carry a blank owner and stay readable during the upgrade transition (they expire within a few hours), so no active session breaks on upgrade.
 
+**The store is swappable (`z2ui5_if_ui5_draft_store`).** The seven methods above
+are an interface, `z2ui5_cl_ui5_srv_draft` is its shipped implementation, and
+every caller goes through `z2ui5_cl_ui5_srv_draft=>get_instance( )`. On a system
+nothing changes: without `set_instance( )` the factory answers a fresh
+`NEW z2ui5_cl_ui5_srv_draft( )` per call, which is literally what each call site
+did before, so `Z2UI5_T_01` and all nine of its SQL statements are still what
+runs.
+
+The seam exists for the runtimes that are not an SAP system. `node/srv/express.mjs`
+already serves this framework through the transpiler over open-abap, and
+`node/setup/setup.mjs` only gets away with it by recreating the draft table in
+SQLite. A host with persistence of its own — a CAP service with a CDS entity, a
+Node process with a document store — previously had to fork the class to use it;
+now it implements the interface and calls `set_instance( )` at startup. Tests can
+do the same.
+
+What an implementation must keep is written on the interface, because it was
+never written down anywhere before: a draft belongs to the user that created it,
+and `read_draft( )`, `read_info( )` and `check_exists( )` answer "not found" for
+anybody else **identically**, so a caller cannot tell a foreign draft from a
+missing one. `count_entries( )` is owner-scoped for the same reason;
+`count_entries_total( )` deliberately is not, because it reports the size of the
+store itself.
+
+Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
+none are needed: an interface reference takes the plain method names. A caller
+holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
+second reason everything goes through the factory.
+
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
