@@ -300,7 +300,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    NEW z2ui5_cl_ui5_srv_draft( )->create( draft     = ms_draft
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft     = ms_draft
                                            model_xml = all_xml_stringify( ) ).
 
   ENDMETHOD.
@@ -322,7 +322,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_parse.
 
-    DATA(ls_db) = NEW z2ui5_cl_ui5_srv_draft( )->read_draft( iv_id ).
+    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
