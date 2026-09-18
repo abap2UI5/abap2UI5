@@ -242,6 +242,45 @@ none are needed: an interface reference takes the plain method names. A caller
 holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
 second reason everything goes through the factory.
 
+### App state serialization (`z2ui5_if_ui5_app_serializer`)
+
+The state that goes into the draft is the whole `z2ui5_cl_ui5_app_cont` — the
+app instance, `mt_attri`, the draft ids — turned into a string by
+`all_xml_stringify( )` and rebuilt by `all_xml_parse( )`. Both now delegate to
+`z2ui5_cl_ui5_app_cont=>get_serializer( )`.
+
+The shipped implementation, `z2ui5_cl_ui5_app_serializer`, is the mechanism
+that has always run here and is unchanged statement for statement:
+`main_attri_db_save_srtti( )` detaches the data references, `CALL TRANSFORMATION
+id` writes the asXML, `main_attri_reattach( )` gives the live instance its
+references back, and the one retry rebuilds the rows from the instance as it is
+now before giving up with `APP_SERIALIZATION_ERROR`. Without `set_serializer( )`
+`get_serializer( )` answers a fresh one per call, so a system behaves
+identically.
+
+Why the seam is here rather than anywhere else: this is the **one** part of the
+framework that is ABAP's type system rather than ABAP code. `CALL TRANSFORMATION
+id` walks type descriptors, and S-RTTI serializes a descriptor so
+`CREATE DATA … TYPE HANDLE` can rebuild it on the other side. Neither has a
+counterpart in a JavaScript runtime — a JS object carries no static type to
+describe — so a host running this framework through the transpiler (which
+`node/srv/express.mjs` already does) cannot reproduce it and has to persist its
+own shape instead. Everything else in the engine transfers; this did not, and
+it was wired straight into the container.
+
+Both ends of the interface are `REF TO object`, not `REF TO
+z2ui5_cl_ui5_app_cont`: an interface here may not reference a class
+(`intf_referencing_clas`, an error) and naming it would close a cycle, since
+the container is what calls the interface. `z2ui5_cl_ui5_app_serializer`
+narrows once, in `narrow( )`. Note the typed local in its `parse( )` — the
+transformation rebuilds the object from the class named in the asXML and needs
+a concretely typed target, so a `REF TO object` there would give it nothing to
+build into.
+
+What an implementation has to keep is a round trip, not a format:
+`parse( stringify( container ) )` must answer a container the framework can go
+on with. The string in between is the implementation's business.
+
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
