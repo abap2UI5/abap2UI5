@@ -222,12 +222,36 @@ INTERFACE z2ui5_if_ui5_types
       s_stateful     TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next.
 
+  "! The WIRE protocol version, carried in every response as
+  "! S_FRONT.PROTOCOL and compared by the frontend against the value it was
+  "! built for.
+  "!
+  "! It is not the product version (z2ui5_if_app=&gt;version) and does not move
+  "! with a release: it moves only when a response can no longer be read by a
+  "! frontend written for the previous number - the S_ACTION envelope
+  "! replacing S_FRONT.PARAMS was such a change, and the flattening of the
+  "! two-way bindings out of MODEL.XX was another.
+  "!
+  "! Why it exists: backend and frontend ship together here, but they do not
+  "! ship together everywhere. A port of this framework, a pinned webapp, a
+  "! third-party shell - each can pair a backend and a frontend of different
+  "! ages, and until this field existed the result was a page that rendered
+  "! NOTHING, with no error anywhere: the frontend looked for a key the
+  "! backend no longer wrote and read its absence as "no action to run".
+  "! A number on the wire turns that into a message somebody can read.
+  "!
+  "! Raise it in the same change that breaks the wire, and raise the
+  "! frontend's expectation with it (app/webapp/core/Server.js).
+  CONSTANTS c_protocol TYPE i VALUE 2.
+
   TYPES:
     BEGIN OF ty_s_response,
       BEGIN OF s_front,
         s_action TYPE ty_s_action,
         id       TYPE string,
         app      TYPE string,
+        " see c_protocol - stamped by z2ui5_cl_ui5_handler on every response
+        protocol TYPE i,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.

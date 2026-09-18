@@ -281,6 +281,47 @@ What an implementation has to keep is a round trip, not a format:
 `parse( stringify( container ) )` must answer a container the framework can go
 on with. The string in between is the implementation's business.
 
+### The wire carries its own version (`c_protocol`)
+
+Every response stamps `S_FRONT.PROTOCOL` from
+`z2ui5_if_ui5_types=>c_protocol`, and `app/webapp/core/Server.js` compares it
+against its own `PROTOCOL` before reading anything else. A mismatch is reported
+to the user; a response *without* the field is let through, because a backend
+older than the field cannot be told apart from one that is merely older.
+
+It is not the product version and does not move with a release. It moves when a
+response can no longer be read by a frontend written for the previous number —
+the `S_ACTION` envelope replacing `S_FRONT.PARAMS` was such a change. **Raise
+both halves in the change that breaks the wire.**
+
+Why it exists: the two halves ship together *here*, and not everywhere. A port
+of this framework, a pinned webapp, a third-party shell — each can pair a
+backend and a frontend of different ages, and the failure mode was the worst
+available: the frontend looked for a key the backend no longer wrote, read its
+absence as "nothing to do", and rendered an empty page with no error anywhere.
+A number on the wire turns that into a sentence somebody can read.
+
+### A missing codepage class must not take down the view
+
+`conv_get_string_by_xstring( )` / `conv_get_xstring_by_string( )` try
+`CL_ABAP_CONV_CODEPAGE` and fall back to `CL_ABAP_CONV_IN_CE` / `_OUT_CE`,
+both through dynamic `CALL METHOD` because neither is available on every
+release. Since 2026-09 **the fallback has its own `TRY`**: it used to be the
+body of the first `CATCH`, so when it failed too a raw
+`CX_SY_DYN_CALL_ILLEGAL_CLASS` left a utility method under a name no caller
+handles. Now both failures chain into `UNSUPPORTED_CODEPAGE_API`, a
+`z2ui5_cx_ui5_util_error` like everything else here.
+
+That matters because of who calls it. `z2ui5_cl_ui5_view_builder`'s
+`xml_escape( )` builds its control-character set through this method, lazily,
+on the first escape of the process — so on a release with neither class, or in
+any runtime where a dynamic `CALL METHOD` resolves nothing, **every view render
+died**. The builder now catches `z2ui5_cx_ui5_util_error` and degrades: the set
+stays empty, the `CA` scan matches no control character, and `&`, `<`, `>`,
+`"`, newline, CR and tab are escaped exactly as before. Dropping those 29 exotic
+bytes repairs legacy long texts; it is not a correctness requirement of the
+view, so losing it must not cost the render.
+
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud

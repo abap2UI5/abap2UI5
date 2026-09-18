@@ -736,6 +736,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         DATA ls_front LIKE val-s_front.
         ls_front-id  = val-s_front-id.
         ls_front-app = val-s_front-app.
+        " Every response declares the wire it speaks - see
+        " z2ui5_if_ui5_types=>c_protocol. Stamped here rather than by each
+        " caller so no response can leave without it.
+        ls_front-protocol = z2ui5_if_ui5_types=>c_protocol.
 
         li_ajson_result->set( iv_path = `/`
                            iv_val     = ls_front ).

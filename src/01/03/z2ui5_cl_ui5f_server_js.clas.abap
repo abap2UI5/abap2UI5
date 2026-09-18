@@ -51,6 +51,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
+             `      PROTOCOL: 2,` && |\n| &&
+             `` && |\n| &&
              `      _requestSeq: 0,` && |\n| &&
              `` && |\n| &&
              `      _inflight: new Set(),` && |\n| &&
@@ -256,6 +258,20 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          if (isStale()) return;` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          if (` && |\n| &&
+             `            responseData.S_FRONT.PROTOCOL !== undefined &&` && |\n| &&
+             `            responseData.S_FRONT.PROTOCOL !== this.PROTOCOL` && |\n| &&
+             `          ) {` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              "Protocol mismatch: this frontend speaks " +` && |\n| &&
+             `                this.PROTOCOL +` && |\n| &&
+             `                ", the backend answered " +` && |\n| &&
+             `                responseData.S_FRONT.PROTOCOL +` && |\n| &&
+             `                ". Update whichever of the two is older - they ship together.",` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&

@@ -285,8 +285,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft     = ms_draft
-                                           model_xml = all_xml_stringify( ) ).
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = ms_draft
+                                           model_xml       = all_xml_stringify( ) ).
 
   ENDMETHOD.
 
