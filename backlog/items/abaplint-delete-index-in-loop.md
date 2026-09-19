@@ -1,9 +1,9 @@
 ---
 target: abaplint
 title: 'Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table'
-summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories. The abap2UI5-linter now carries the rule (error) on its main track, so this stays parked as the upstream generalization
-priority: low
-state: deferred
+summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories. A rule about ABAP as a language, so it belongs upstream — the abap2UI5-linter's copy covers app classes only, and one of the two remaining sites is vendored code no app-class linter reads
+priority: medium
+state: open
 first_seen: 2026-08-17
 checked_upstream: 2026-09-14
 patch: backlog/patches/abaplint-three-rules.patch
@@ -17,6 +17,16 @@ evidence:
 ---
 
 # Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table
+
+## Reopened 2026-09-19
+
+The split is decided now: `abap2ui5lint` keeps the abap2UI5-specific checks,
+and rules about ABAP as a language go to abaplint. This one is the clearest
+case of the second kind — its measured remaining site is vendored code that no
+app-class linter ever reads — so it is back in the stock as **open**, with the
+patch below still the paste-ready implementation. The two sections that
+follow are the history of the deferral, kept because they carry the
+measurements.
 
 ## Why deferred (2026-09-01)
 
