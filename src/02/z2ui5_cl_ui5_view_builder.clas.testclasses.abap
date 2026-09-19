@@ -28,7 +28,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD render_nested_view.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( n  = `View`
                ns = `mvc`
@@ -53,7 +54,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " ele( ) descends into a node that has no children yet, so a( ) sets the
     " attribute on that node itself
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->a( n   = `title`
@@ -74,7 +76,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " tag( ) does not move, but the tag is now this node's last child, so the
     " a( ) still reaches it - this is what makes tag( ) usable for a leaf
     " that carries attributes
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->tag( `Title`
@@ -94,7 +97,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " container just closed - so a( ) attaches to that container, not to the
     " parent. The flip side of the rule: an element that already has children
     " can no longer be given an attribute
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->ele( `Panel`
@@ -114,7 +118,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " tag( ) does not move, so siblings follow directly and no end( ) is
     " needed - each a( ) block travels with the tag it follows
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Page`
         )->tag( `Text`
@@ -136,14 +141,17 @@ CLASS ltcl_builder IMPLEMENTATION.
   METHOD trailing_end_is_optional.
 
     " stringify( ) renders from the root, so the chain may simply stop
-    DATA(closed) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA closed TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA open TYPE REF TO z2ui5_cl_ui5_view_builder.
+    closed = z2ui5_cl_ui5_view_builder=>factory( ).
     closed->ele( `Page`
         )->ele( `Panel`
             )->ele( `Title`
             )->end(
         )->end( ).
 
-    DATA(open) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    open = z2ui5_cl_ui5_view_builder=>factory( ).
     open->ele( `Page`
         )->ele( `Panel`
             )->ele( `Title` ).
@@ -157,7 +165,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_attribute_value.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -174,7 +183,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " a literal LF/TAB in an attribute value must survive XML attribute-value
     " normalization as a character reference (e.g. a two-line noDataText)
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -193,8 +203,14 @@ CLASS ltcl_builder IMPLEMENTATION.
     " long text: illegal in XML 1.0 even as a character reference, the whole
     " view failed at the parser - they are dropped, the legal whitespace
     " next to them still becomes its character reference
-    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `0C1E` ) ).
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA temp1 TYPE xstring.
+    DATA lv_ctrl TYPE string.
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    temp1 = `0C1E`.
+
+    lv_ctrl = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( temp1 ).
+
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`
         )->a( n   = `text`
@@ -257,7 +273,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " b is the only way to render a boolean - abap_false must come out as
     " `false`, not vanish, which is why it is read with IS SUPPLIED
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->a( n   = `visible`
@@ -276,7 +293,8 @@ CLASS ltcl_builder IMPLEMENTATION.
     " t renders TEXT: a brace that would otherwise start a binding and a
     " backslash UI5 would unescape are escaped the escape_literal( ) way,
     " and the XML escaping of the render still follows on top
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->a( n = `headerText`
@@ -294,7 +312,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " the tolerance b always had, carried over: an empty v next to t is
     " ignored, t decides the value
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->a( n = `headerText`
@@ -311,7 +330,8 @@ CLASS ltcl_builder IMPLEMENTATION.
 
     " an empty t is a value like an empty v - the refusal is for NO
     " parameter at all, not for an empty one
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->ele( `Panel`
         )->a( n = `headerText`
@@ -328,22 +348,41 @@ CLASS ltcl_builder IMPLEMENTATION.
     " every misuse of the chain is a catchable exception naming the element
     " and the attribute - not an ASSERT, whose ASSERTION_FAILED bypasses the
     " framework's top-level catch and dumps instead of rendering the error
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+        DATA lx_root TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp1 TYPE xsdboolean.
+        DATA lx_none TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp2 TYPE xsdboolean.
+        DATA lx_both TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp3 TYPE xsdboolean.
+        DATA lx_v_t TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp4 TYPE xsdboolean.
+        DATA lx_b_t TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp5 TYPE xsdboolean.
+        DATA lx_dup TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp6 TYPE xsdboolean.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     TRY.
         view->a( n = `text`
                  v = `x` ).
         cl_abap_unit_assert=>fail( `a( ) on the empty root must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_root).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_root->get_text( ) CS `text` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_root.
+
+        temp1 = boolc( lx_root->get_text( ) CS `text` ).
+        cl_abap_unit_assert=>assert_true( temp1 ).
     ENDTRY.
 
     view->ele( `Panel` ).
     TRY.
         view->a( `visible` ).
         cl_abap_unit_assert=>fail( `a( ) without v and b must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_none).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_none->get_text( ) CS `visible` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_none.
+
+        temp2 = boolc( lx_none->get_text( ) CS `visible` ).
+        cl_abap_unit_assert=>assert_true( temp2 ).
     ENDTRY.
 
     TRY.
@@ -351,8 +390,11 @@ CLASS ltcl_builder IMPLEMENTATION.
                  v = `true`
                  b = abap_true ).
         cl_abap_unit_assert=>fail( `a( ) with v and b must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_both).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_both->get_text( ) CS `visible` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_both.
+
+        temp3 = boolc( lx_both->get_text( ) CS `visible` ).
+        cl_abap_unit_assert=>assert_true( temp3 ).
     ENDTRY.
 
     " t is the third of the exclusive three - with v as much as with b. An
@@ -363,8 +405,11 @@ CLASS ltcl_builder IMPLEMENTATION.
                  v = `y`
                  t = `x` ).
         cl_abap_unit_assert=>fail( `a( ) with v and t must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_v_t).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_v_t->get_text( ) CS `title` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_v_t.
+
+        temp4 = boolc( lx_v_t->get_text( ) CS `title` ).
+        cl_abap_unit_assert=>assert_true( temp4 ).
     ENDTRY.
 
     TRY.
@@ -372,8 +417,11 @@ CLASS ltcl_builder IMPLEMENTATION.
                  b = abap_true
                  t = `x` ).
         cl_abap_unit_assert=>fail( `a( ) with b and t must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_b_t).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_b_t->get_text( ) CS `title` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_b_t.
+
+        temp5 = boolc( lx_b_t->get_text( ) CS `title` ).
+        cl_abap_unit_assert=>assert_true( temp5 ).
     ENDTRY.
 
     view->a( n = `text`
@@ -382,21 +430,30 @@ CLASS ltcl_builder IMPLEMENTATION.
         view->a( n = `text`
                  v = `twice` ).
         cl_abap_unit_assert=>fail( `a duplicate attribute must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_dup).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_dup->get_text( ) CS `Panel` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_dup.
+
+        temp6 = boolc( lx_dup->get_text( ) CS `Panel` ).
+        cl_abap_unit_assert=>assert_true( temp6 ).
     ENDTRY.
 
   ENDMETHOD.
 
   METHOD end_past_root_raises.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+        DATA lx_end TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp7 TYPE xsdboolean.
+    view = z2ui5_cl_ui5_view_builder=>factory( ).
 
     TRY.
         view->ele( `Panel` )->end( )->end( ).
         cl_abap_unit_assert=>fail( `end( ) past the root must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_end).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_end->get_text( ) CS `end( )` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_end.
+
+        temp7 = boolc( lx_end->get_text( ) CS `end( )` ).
+        cl_abap_unit_assert=>assert_true( temp7 ).
     ENDTRY.
 
   ENDMETHOD.

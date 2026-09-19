@@ -17,7 +17,7 @@ CLASS z2ui5_cl_pop_messages DEFINITION PUBLIC.
         message_v4 TYPE string,
         group      TYPE string,
       END OF ty_s_msg.
-    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
+    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH DEFAULT KEY.
 
     DATA mt_msg TYPE ty_t_msg.
 
@@ -41,14 +41,23 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
   METHOD factory.
+    DATA temp18 TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+    DATA temp2 LIKE LINE OF temp18.
+    DATA lr_row LIKE REF TO temp2.
+      DATA temp19 TYPE ty_s_msg.
 
-    r_result = NEW #( ).
-    LOOP AT z2ui5_cl_ui5_util_context=>msg_get_t( i_messages ) REFERENCE INTO DATA(lr_row).
-      INSERT VALUE ty_s_msg(
-        type     = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( lr_row->type )
-        title    = lr_row->text
-        subtitle = |{ lr_row->id } { lr_row->no }|
-        ) INTO TABLE r_result->mt_msg.
+    CREATE OBJECT r_result.
+
+    temp18 = z2ui5_cl_ui5_util_context=>msg_get_t( i_messages ).
+
+
+    LOOP AT temp18 REFERENCE INTO lr_row.
+
+      CLEAR temp19.
+      temp19-type = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( lr_row->type ).
+      temp19-title = lr_row->text.
+      temp19-subtitle = |{ lr_row->id } { lr_row->no }|.
+      INSERT temp19 INTO TABLE r_result->mt_msg.
     ENDLOOP.
 
     r_result->title = i_title.
@@ -57,7 +66,8 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
     popup = popup->dialog( title             = title
                            contentheight     = `50%`
                            contentwidth      = `50%`
@@ -81,12 +91,12 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_CONTINUE` ).
+    IF client->check_on_event( `BUTTON_CONTINUE` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.

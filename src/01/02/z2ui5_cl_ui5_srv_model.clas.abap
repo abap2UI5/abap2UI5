@@ -430,7 +430,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+    DATA temp279 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp279.
+      DATA lv_node TYPE string.
+          DATA lx_refused TYPE REF TO cx_root.
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
 
       " _bind( json = abap_true ) is outbound only: the attribute holds
@@ -449,7 +453,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " the whole node tree per call (a CP compare on every node), so it
       " runs for exactly those. The same reasoning as the /value unwrap in
       " z2ui5_cl_ui5_handler=>request_parse_body
-      DATA(lv_node) = iv_prefix && lr_attri->name_client.
+
+      lv_node = iv_prefix && lr_attri->name_client.
       IF model->exists( lv_node ) = abap_false.
         CONTINUE.
       ENDIF.
@@ -461,7 +466,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                   iv_name      = lr_attri->name ).
             CONTINUE.
           ENDIF.
-          DATA(lx_refused) = whole_value_apply( io_model = model
+
+          lx_refused = whole_value_apply( io_model = model
                                                 iv_path  = lv_node
                                                 ir_attri = lr_attri ).
           IF lx_refused IS BOUND.
@@ -481,6 +487,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_json_stringify.
+        DATA temp280 TYPE REF TO z2ui5_if_ajson.
+        DATA li_ajson_result LIKE temp280.
+        DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
+TYPES BEGIN OF ty_s_mapper_cache.
+TYPES mapper TYPE REF TO z2ui5_if_ajson_mapping.
+TYPES ajson TYPE REF TO z2ui5_if_ajson.
+TYPES END OF ty_s_mapper_cache.
+        TYPES temp1 TYPE STANDARD TABLE OF ty_s_mapper_cache WITH DEFAULT KEY.
+DATA lt_mapper_cache TYPE temp1.
+        DATA temp281 LIKE LINE OF mt_attri->*.
+        DATA lr_attri LIKE REF TO temp281.
+              DATA lr_ref TYPE REF TO data.
+          FIELD-SYMBOLS <val> TYPE data.
+              DATA lr_mapper_cache TYPE REF TO ty_s_mapper_cache.
+                DATA ajson LIKE lr_mapper_cache->ajson.
+                DATA temp282 TYPE ty_s_mapper_cache.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
         " the result instance itself carries the upper-case mapping, so the
@@ -491,30 +514,34 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " same either way; the path leaf (name_client) is upper case by
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
-        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
+
+        temp280 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+
+        li_ajson_result = temp280.
         " the scratch instance for a filtered attribute without a mapper
         " of its own - created when the first such attribute asks for it
-        DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
 
-        TYPES: BEGIN OF ty_s_mapper_cache,
-                 mapper TYPE REF TO z2ui5_if_ajson_mapping,
-                 ajson  TYPE REF TO z2ui5_if_ajson,
-               END OF ty_s_mapper_cache.
-        DATA lt_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
 
-        LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+
+
+
+
+
+
+        LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
              WHERE bind = abap_true
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                    AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
 
           TRY.
-              DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+
+              lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
           ENDTRY.
 
-          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
+          ASSIGN lr_ref->* TO <val>.
 
           " _bind( json = abap_true ): the ABAP string already CONTAINS JSON, so
           " it is parsed and spliced in as a node. Serialized as a value it
@@ -548,15 +575,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " customer app that passes one must keep working
           IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
             IF lr_attri->custom_mapper IS BOUND.
-              READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+
+              READ TABLE lt_mapper_cache REFERENCE INTO lr_mapper_cache
                    WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
               IF sy-subrc = 0.
-                DATA(ajson) = lr_mapper_cache->ajson.
+
+                ajson = lr_mapper_cache->ajson.
               ELSE.
                 ajson = z2ui5_cl_ajson=>create_empty(
                             ii_custom_mapping = lr_attri->custom_mapper ).
-                INSERT VALUE #( mapper = lr_attri->custom_mapper
-                                ajson  = ajson ) INTO TABLE lt_mapper_cache.
+
+                CLEAR temp282.
+                temp282-mapper = lr_attri->custom_mapper.
+                temp282-ajson = ajson.
+                INSERT temp282 INTO TABLE lt_mapper_cache.
               ENDIF.
             ELSE.
               IF li_ajson_default IS NOT BOUND.
@@ -589,7 +621,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           result = `{}`.
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = x.
@@ -597,10 +630,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_attri_db_load.
+    DATA temp283 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp283.
 
     main_attri_db_load_resolve( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
       CASE lr_attri->type_kind.
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
@@ -620,7 +657,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " (attri_get_val_ref). This loop used to visit every row without an
     " owner - a dynamic ASSIGN and an RTTI call each - only to rebuild the
     " descriptor the prefilter no longer reads.
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    DATA temp284 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp284.
+          DATA lr_ref TYPE REF TO data.
+      FIELD-SYMBOLS <live> TYPE data.
+          DATA x TYPE REF TO cx_root.
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
                AND srtti_data IS NOT INITIAL.
 
@@ -628,7 +670,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " the class it was taken from, so an attribute that was renamed or
       " deleted since simply has no address any more.
       TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+
+          lr_ref = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           " ...with one exception: a row that sits behind a reference the
           " save cleared - a dref whose target is itself a dref (`MR_REF->*`
@@ -669,7 +712,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " draft has every reference detached, so it always takes the payload;
       " and the way back through get_app( id ) used to parse the same
       " payload a second time into the object the first parse had built
-      ASSIGN lr_ref->* TO FIELD-SYMBOL(<live>).
+
+      ASSIGN lr_ref->* TO <live>.
       IF <live> IS NOT INITIAL.
         CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
         CONTINUE.
@@ -700,7 +744,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       TRY.
           <live> = attri_srtti_parse( lr_attri->* ).
           CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
-        CATCH cx_root INTO DATA(x).
+
+        CATCH cx_root INTO x.
           IF check_attri_bound( lr_attri->name ) = abap_false.
             CONTINUE.
           ENDIF.
@@ -741,7 +786,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <parent> TYPE any.
     DATA lr_new TYPE REF TO data.
 
-    DATA(lr_parent) = attri_get_val_ref( iv_name ).
+    DATA lr_parent TYPE REF TO data.
+    lr_parent = attri_get_val_ref( iv_name ).
     ASSIGN lr_parent->* TO <parent>.
     IF <parent> IS NOT INITIAL.
       RETURN.
@@ -758,15 +804,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " every bound row, and the chain of parents above it: the method used
     " to look one level down only, while its promise (and the restore that
     " decides on it) is about every dissolved child
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    DATA temp285 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp285.
+      DATA lv_name LIKE lr_attri->name.
+        DATA lr_up TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
-      DATA(lv_name) = lr_attri->name.
+
+      lv_name = lr_attri->name.
       WHILE lv_name IS NOT INITIAL.
         IF lv_name = iv_name.
           result = abap_true.
           RETURN.
         ENDIF.
-        READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
+
+        READ TABLE mt_attri->* REFERENCE INTO lr_up
              WITH TABLE KEY name = lv_name.
         IF sy-subrc <> 0.
           EXIT.
@@ -778,6 +830,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_attri_db_load_table.
+    DATA lr_ref_source TYPE REF TO data.
+    DATA lr_attri_parent TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    DATA lv_parent_path TYPE string.
+    FIELD-SYMBOLS <parent_ref> TYPE any.
 
     " only the `<name>->*` row is the alias of a table. The row BELOW a
     " struct alias - `<alias>->comp`, carrying `<owner>-comp` as name_ref
@@ -796,14 +852,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " taken from, and a host that holds its sub-app in a REF TO object can
     " have swapped it for an instance of another class (sample 338) - the
     " rows of the old class name attributes the new one does not have
-    DATA lr_ref_source TYPE REF TO data.
+
     TRY.
         lr_ref_source = attri_get_val_ref( ir_attri->name_ref ).
       CATCH cx_root.
         RETURN.
     ENDTRY.
 
-    READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
+
+    READ TABLE mt_attri->* REFERENCE INTO lr_attri_parent
          WITH TABLE KEY name = ir_attri->name_parent.
     IF sy-subrc <> 0.
       RETURN.
@@ -817,8 +874,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     " IS ASSIGNED, not sy-subrc, after a dynamic ASSIGN (#1937); the symbols
     " are declared in this method, so a failed ASSIGN leaves them unassigned
-    DATA(lv_parent_path) = |MO_APP->{ lr_attri_parent->name }|.
-    ASSIGN (lv_parent_path) TO FIELD-SYMBOL(<parent_ref>).
+
+    lv_parent_path = |MO_APP->{ lr_attri_parent->name }|.
+
+    ASSIGN (lv_parent_path) TO <parent_ref>.
     IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
@@ -832,25 +891,44 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD main_attri_db_load_dref.
 
     " IS ASSIGNED, not sy-subrc - see main_attri_db_load_table
-    DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
-    ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).
+    DATA lv_source_path TYPE string.
+    FIELD-SYMBOLS <source_ref> TYPE any.
+    DATA lv_target_path TYPE string.
+    FIELD-SYMBOLS <parent_ref> TYPE any.
+    lv_source_path = |MO_APP->{ ir_attri->name_ref }|.
+
+    ASSIGN (lv_source_path) TO <source_ref>.
     IF <source_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
 
-    DATA(lv_target_path) = |MO_APP->{ ir_attri->name }|.
-    ASSIGN (lv_target_path) TO FIELD-SYMBOL(<parent_ref>).
+
+    lv_target_path = |MO_APP->{ ir_attri->name }|.
+
+    ASSIGN (lv_target_path) TO <parent_ref>.
     IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
     " dynamic ASSIGN above), so # has no type to infer the reference from -
     " a system refuses that with "Unexpected operator REF", abaplint does not
-    <parent_ref> = REF data( <source_ref> ).
+    GET REFERENCE OF <source_ref> INTO <parent_ref>.
 
   ENDMETHOD.
 
   METHOD main_attri_db_save_srtti.
+    DATA lt_dref TYPE ty_t_ref_idx.
+    FIELD-SYMBOLS <dref> TYPE any.
+    FIELD-SYMBOLS <val_deref> TYPE any.
+    DATA temp286 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp286.
+      DATA lv_path_dref TYPE string.
+      DATA temp287 TYPE REF TO data.
+DATA temp65 TYPE z2ui5_cl_ui5_srv_model=>ty_s_ref_idx.
+      DATA lo_descr TYPE REF TO cl_abap_typedescr.
+    DATA temp288 LIKE LINE OF lt_dref.
+    DATA lr_dref LIKE REF TO temp288.
+        DATA temp289 TYPE z2ui5_cl_ui5_srv_model=>ty_s_ref_idx.
 
     " what an earlier save on this instance detached is gone: put back by
     " main_attri_reattach, or replaced by the parse of main_attri_db_load.
@@ -867,14 +945,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " reference whose target is itself a reference (`MR_REF->*` holds the
     " payload) is reached through its parent, which has to stay bound
     " until every payload is taken
-    DATA lt_dref TYPE ty_t_ref_idx.
-    FIELD-SYMBOLS <dref>      TYPE any.
-    FIELD-SYMBOLS <val_deref> TYPE any.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+
+
+
+
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
 
-      DATA(lv_path_dref) = |MO_APP->{ lr_attri->name }|.
+
+      lv_path_dref = |MO_APP->{ lr_attri->name }|.
       " UNASSIGN + IS ASSIGNED, not sy-subrc - see main_attri_reattach
       UNASSIGN <dref>.
       ASSIGN (lv_path_dref) TO <dref>.
@@ -889,8 +970,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF <dref> = mt_attri.
         CONTINUE.
       ENDIF.
-      INSERT VALUE #( name = lr_attri->name
-                      ref  = REF #( <dref> ) ) INTO TABLE lt_dref.
+
+GET REFERENCE OF <dref> INTO temp287.
+
+CLEAR temp65.
+temp65-name = lr_attri->name.
+temp65-ref = temp287.
+INSERT temp65 INTO TABLE lt_dref.
 
       " a payload only for a reference that OWNS its target - an alias
       " (name_ref) is pointed at its owner again on the load - and that
@@ -903,7 +989,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF <val_deref> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data( <val_deref> ).
+
+      lo_descr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data( <val_deref> ).
 
       CASE lo_descr->type_kind.
 
@@ -955,11 +1042,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " and clearing the target itself is unnecessary. The reference is kept
     " aside for main_attri_reattach - the live instance gets the same
     " object back instead of a parsed copy
-    LOOP AT lt_dref REFERENCE INTO DATA(lr_dref).
+
+
+    LOOP AT lt_dref REFERENCE INTO lr_dref.
       ASSIGN lr_dref->ref->* TO <dref>.
       IF <dref> IS BOUND.
-        INSERT VALUE #( name = lr_dref->name
-                        ref  = <dref> ) INTO TABLE mt_detached.
+
+        CLEAR temp289.
+        temp289-name = lr_dref->name.
+        temp289-ref = <dref>.
+        INSERT temp289 INTO TABLE mt_detached.
       ENDIF.
       CLEAR <dref>.
     ENDLOOP.
@@ -970,8 +1062,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     FIELD-SYMBOLS <dref> TYPE any.
 
-    LOOP AT mt_detached REFERENCE INTO DATA(lr_detached).
-      DATA(lv_path) = |MO_APP->{ lr_detached->name }|.
+    DATA temp290 LIKE LINE OF mt_detached.
+    DATA lr_detached LIKE REF TO temp290.
+      DATA lv_path TYPE string.
+    DATA temp291 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp291.
+    LOOP AT mt_detached REFERENCE INTO lr_detached.
+
+      lv_path = |MO_APP->{ lr_detached->name }|.
       " IS ASSIGNED after an UNASSIGN, not sy-subrc: a successful dynamic
       " ASSIGN does not reset sy-subrc on every release (#1937), and inside
       " this loop the symbol still points at the previous row's reference
@@ -987,7 +1085,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     " the payloads served their purpose in the draft; on the live rows they
     " would only be stale by the next save, which writes them again
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
       CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
     ENDLOOP.
@@ -996,12 +1096,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD ref_idx_put.
 
-    READ TABLE mt_ref_idx REFERENCE INTO DATA(lr_idx) WITH TABLE KEY name = iv_name.
+    DATA lr_idx TYPE REF TO z2ui5_cl_ui5_srv_model=>ty_s_ref_idx.
+      DATA temp292 TYPE z2ui5_cl_ui5_srv_model=>ty_s_ref_idx.
+    READ TABLE mt_ref_idx REFERENCE INTO lr_idx WITH TABLE KEY name = iv_name.
     IF sy-subrc = 0.
       lr_idx->ref = ir_ref.
     ELSE.
-      INSERT VALUE #( name = iv_name
-                      ref  = ir_ref ) INTO TABLE mt_ref_idx.
+
+      CLEAR temp292.
+      temp292-name = iv_name.
+      temp292-ref = ir_ref.
+      INSERT temp292 INTO TABLE mt_ref_idx.
     ENDIF.
 
   ENDMETHOD.
@@ -1049,11 +1154,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " keeps (mt_ref_idx) is a PREFILTER for the binding search whose every
     " hit is confirmed here before it counts - see attri_search.
     FIELD-SYMBOLS <attri> TYPE any.
+      DATA lv_name TYPE string.
 
     IF iv_path IS INITIAL.
       ASSIGN mo_app TO <attri>.
     ELSE.
-      DATA(lv_name) = |MO_APP->{ iv_path }|.
+
+      lv_name = |MO_APP->{ iv_path }|.
       ASSIGN (lv_name) TO <attri>.
     ENDIF.
 
@@ -1063,7 +1170,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
-    result = REF #( <attri> ).
+    GET REFERENCE OF <attri> INTO result.
 
   ENDMETHOD.
 
@@ -1076,7 +1183,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_search.
 
-    DATA(lo_datadescr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( val ).
+    DATA lo_datadescr TYPE REF TO cl_abap_typedescr.
+    DATA temp293 LIKE LINE OF mt_ref_idx.
+    DATA lr_idx LIKE REF TO temp293.
+      DATA lr_hit TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+          DATA lr_fresh TYPE REF TO data.
+    lo_datadescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( val ).
 
     IF lo_datadescr->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
         OR lo_datadescr->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
@@ -1089,8 +1201,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " exactly this data object. The hit is confirmed by a fresh ASSIGN - an
     " app that re-pointed the reference since is caught here, and the scan
     " below then decides as if there had been no index
-    LOOP AT mt_ref_idx REFERENCE INTO DATA(lr_idx) WHERE ref = val. "#EC CI_SORTSEQ
-      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_hit)
+
+
+    LOOP AT mt_ref_idx REFERENCE INTO lr_idx WHERE ref = val. "#EC CI_SORTSEQ
+
+      READ TABLE mt_attri->* REFERENCE INTO lr_hit
            WITH TABLE KEY name = lr_idx->name.
       IF sy-subrc <> 0 OR lr_hit->name_ref IS NOT INITIAL
           OR lr_hit->type_kind <> lo_datadescr->type_kind
@@ -1098,7 +1213,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       TRY.
-          DATA(lr_fresh) = attri_get_val_ref( lr_hit->name ).
+
+          lr_fresh = attri_get_val_ref( lr_hit->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
@@ -1132,15 +1248,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_search_scan.
 
-    DATA(lv_name_val) = io_descr->absolute_name.
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    DATA lv_name_val LIKE io_descr->absolute_name.
+    DATA temp294 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp294.
+      DATA temp1 TYPE xsdboolean.
+          DATA lr_ref TYPE REF TO data.
+    lv_name_val = io_descr->absolute_name.
+
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
                AND type_kind = io_descr->type_kind
                AND kind = io_descr->kind.
 
       " which rows this pass visits - see attri_search
       READ TABLE mt_ref_idx WITH TABLE KEY name = lr_attri->name TRANSPORTING NO FIELDS.
-      IF xsdbool( sy-subrc = 0 ) <> iv_indexed.
+
+      temp1 = boolc( sy-subrc = 0 ).
+      IF temp1 <> iv_indexed.
         CONTINUE.
       ENDIF.
 
@@ -1163,7 +1288,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
 
       TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+
+          lr_ref = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
@@ -1180,32 +1306,45 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD attri_create_new.
 
-    DATA(lr_ref) = attri_get_val_ref( name ).
+    DATA lr_ref TYPE REF TO data.
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+    DATA temp295 TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    lr_ref = attri_get_val_ref( name ).
     ref_idx_put( iv_name = name
                  ir_ref  = lr_ref ).
-    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
-    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name        = name
-                                                   o_typedescr = lo_descr
-                                                   type_name   = lo_descr->absolute_name
-                                                   type_kind   = lo_descr->type_kind
-                                                   kind        = lo_descr->kind ).
+
+    lo_descr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
+
+    CLEAR temp295.
+    temp295-name = name.
+    temp295-o_typedescr = lo_descr.
+    temp295-type_name = lo_descr->absolute_name.
+    temp295-type_kind = lo_descr->type_kind.
+    temp295-kind = lo_descr->kind.
+    result = temp295.
 
   ENDMETHOD.
 
   METHOD diss_dref.
 
-    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+    DATA lr_ref_tmp TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+        DATA temp296 TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    lr_ref_tmp = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_ui5_util_context=>check_unassign_initial( lr_ref_tmp ).
+    IF z2ui5_cl_ui5_util_context=>check_unassign_initial( lr_ref_tmp ) IS NOT INITIAL.
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_ui5_util_context=>unassign_data( lr_ref_tmp ).
+
+    lr_ref = z2ui5_cl_ui5_util_context=>unassign_data( lr_ref_tmp ).
     IF lr_ref IS INITIAL.
       RETURN.
     ENDIF.
 
-    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
+
+    lo_descr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
 
     CASE lo_descr->kind.
 
@@ -1214,12 +1353,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
       WHEN OTHERS.
 
-        INSERT VALUE #( name        = |{ ir_attri->name }->*|
-                        name_parent = ir_attri->name
-                        o_typedescr = lo_descr
-                        type_name   = lo_descr->absolute_name
-                        type_kind   = lo_descr->type_kind
-                        kind        = lo_descr->kind ) INTO TABLE result.
+
+        CLEAR temp296.
+        temp296-name = |{ ir_attri->name }->*|.
+        temp296-name_parent = ir_attri->name.
+        temp296-o_typedescr = lo_descr.
+        temp296-type_name = lo_descr->absolute_name.
+        temp296-type_kind = lo_descr->type_kind.
+        temp296-kind = lo_descr->kind.
+        INSERT temp296 INTO TABLE result.
 
     ENDCASE.
 
@@ -1227,13 +1369,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD diss_oref.
 
-    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
+    DATA lr_val TYPE REF TO data.
+    DATA lr_ref TYPE REF TO object.
+    DATA lt_attri TYPE abap_attrdescr_tab.
+    DATA temp297 TYPE string.
+    DATA lv_prefix LIKE temp297.
+    DATA temp298 LIKE LINE OF lt_attri.
+    DATA lr_attri LIKE REF TO temp298.
+          DATA ls_new TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    lr_val = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_ui5_util_context=>check_unassign_initial( lr_val ).
+    IF z2ui5_cl_ui5_util_context=>check_unassign_initial( lr_val ) IS NOT INITIAL.
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_ui5_util_context=>unassign_object( lr_val ).
+
+    lr_ref = z2ui5_cl_ui5_util_context=>unassign_object( lr_val ).
 
     " Nothing bindable lives behind the framework's own client object, and
     " walking it walks the whole roundtrip graph: client -> action -> handler
@@ -1247,17 +1398,28 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_oref( lr_ref ).
 
-    DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).
+    lt_attri = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_oref( lr_ref ).
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+
+    IF ir_attri->name IS NOT INITIAL.
+      temp297 = |{ ir_attri->name }->|.
+    ELSE.
+      CLEAR temp297.
+    ENDIF.
+
+    lv_prefix = temp297.
+
+
+
+    LOOP AT lt_attri REFERENCE INTO lr_attri "#EC CI_SORTSEQ
          WHERE visibility   = z2ui5_cl_ui5_util_context=>cv_objectdescr_public
                AND is_interface = abap_false
                AND is_class     = abap_false
                AND is_constant  = abap_false.
       TRY.
-          DATA(ls_new) = attri_create_new( lv_prefix && lr_attri->name ).
+
+          ls_new = attri_create_new( lv_prefix && lr_attri->name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
 
@@ -1269,11 +1431,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD diss_struc.
 
-    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
+    DATA lr_val TYPE REF TO data.
+      DATA lv_name TYPE string.
+      DATA lr_ref TYPE REF TO data.
+    DATA lt_attri TYPE abap_component_tab.
+    DATA temp299 LIKE LINE OF lt_attri.
+    DATA lr_comp LIKE REF TO temp299.
+      DATA ls_new TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    lr_val = attri_get_val_ref( ir_attri->name ).
 
     IF ir_attri->o_typedescr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_ref.
-      DATA(lv_name) = |{ ir_attri->name }->|.
-      DATA(lr_ref) = z2ui5_cl_ui5_util_context=>unassign_data( lr_val ).
+
+      lv_name = |{ ir_attri->name }->|.
+
+      lr_ref = z2ui5_cl_ui5_util_context=>unassign_data( lr_val ).
     ELSE.
       lv_name = |{ ir_attri->name }-|.
       lr_ref = lr_val.
@@ -1283,9 +1454,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_comp).
-      DATA(ls_new) = attri_create_new( lv_name && lr_comp->name ).
+
+    lt_attri = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
+
+
+    LOOP AT lt_attri REFERENCE INTO lr_comp.
+
+      ls_new = attri_create_new( lv_name && lr_comp->name ).
       ls_new-name_parent = ir_attri->name.
       INSERT ls_new INTO TABLE result.
     ENDLOOP.
@@ -1293,6 +1468,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD dissolve.
+      DATA temp300 LIKE sy-subrc.
 
     " DO ... TIMES with the pending check inside the body, not
     " WHILE line_exists( ... ): the v702 downport of the transpiled browser
@@ -1310,8 +1486,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " EXIT, not RETURN - attri_update_entry_refs must still run for the
       " already dissolved rows, otherwise name_ref stays empty and the
       " serialize/deserialize ref de-duplication silently breaks
+
+      READ TABLE mt_attri->* WITH KEY check_dissolved = abap_false TRANSPORTING NO FIELDS.
+      temp300 = sy-subrc.
       IF mt_attri->* IS NOT INITIAL
-          AND NOT line_exists( mt_attri->*[ check_dissolved = abap_false ] ). "#EC CI_SORTSEQ
+          AND NOT temp300 = 0. "#EC CI_SORTSEQ
         EXIT.
       ENDIF.
 
@@ -1349,23 +1528,35 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     DATA lt_resolved TYPE ty_t_resolved.
     FIELD-SYMBOLS <ref> TYPE any.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    DATA temp301 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp301.
+          DATA lr_ref TYPE REF TO data.
+      DATA temp302 TYPE ty_s_resolved.
+      DATA ls_resolved LIKE temp302.
+    DATA temp303 LIKE LINE OF lt_resolved.
+    DATA lr_res LIKE REF TO temp303.
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_true
                AND (    type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
                      OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
                      OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
                      OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2 ).
       TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+
+          lr_ref = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
       ref_idx_put( iv_name = lr_attri->name
                    ir_ref  = lr_ref ).
-      DATA(ls_resolved) = VALUE ty_s_resolved( name      = lr_attri->name
-                                               type_kind = lr_attri->type_kind
-                                               attri     = lr_attri
-                                               ref       = lr_ref ).
+
+      CLEAR temp302.
+      temp302-name = lr_attri->name.
+      temp302-type_kind = lr_attri->type_kind.
+      temp302-attri = lr_attri.
+      temp302-ref = lr_ref.
+
+      ls_resolved = temp302.
       IF lr_attri->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
         ASSIGN lr_ref->* TO <ref>.
         ls_resolved-deref = <ref>.
@@ -1375,7 +1566,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     " the aliases already known come first: one that no longer holds is
     " dropped here and paired again below
-    LOOP AT lt_resolved REFERENCE INTO DATA(lr_res).
+
+
+    LOOP AT lt_resolved REFERENCE INTO lr_res.
       IF lr_res->attri->name_ref IS NOT INITIAL.
         entry_refs_recheck( ir_res      = lr_res
                             it_resolved = lt_resolved ).
@@ -1399,12 +1592,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD entry_refs_pair_table.
+    DATA temp304 LIKE LINE OF it_resolved.
+    DATA lr_other LIKE REF TO temp304.
 
     IF check_alias_capable( ir_res->name ) = abap_false.
       RETURN.
     ENDIF.
 
-    LOOP AT it_resolved REFERENCE INTO DATA(lr_other) "#EC CI_SORTSEQ
+
+
+    LOOP AT it_resolved REFERENCE INTO lr_other "#EC CI_SORTSEQ
          WHERE type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
                AND ref = ir_res->ref
                AND name <> ir_res->name.
@@ -1432,15 +1629,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     DATA lv_holds TYPE abap_bool.
 
-    READ TABLE it_resolved REFERENCE INTO DATA(lr_owner)
+    DATA lr_owner TYPE REF TO z2ui5_cl_ui5_srv_model=>ty_s_resolved.
+        DATA temp2 TYPE xsdboolean.
+        DATA temp3 TYPE xsdboolean.
+    READ TABLE it_resolved REFERENCE INTO lr_owner
          WITH TABLE KEY name = ir_res->attri->name_ref.
     IF sy-subrc = 0.
       " a table row points at the owner's object; a data reference (the
       " struct alias) dereferences to it
       IF ir_res->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-        lv_holds = xsdbool( ir_res->deref IS BOUND AND ir_res->deref = lr_owner->ref ).
+
+        temp2 = boolc( ir_res->deref IS BOUND AND ir_res->deref = lr_owner->ref ).
+        lv_holds = temp2.
       ELSE.
-        lv_holds = xsdbool( ir_res->ref = lr_owner->ref ).
+
+        temp3 = boolc( ir_res->ref = lr_owner->ref ).
+        lv_holds = temp3.
       ENDIF.
     ENDIF.
     IF lv_holds = abap_true.
@@ -1458,22 +1662,32 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD check_alias_capable.
 
-    DATA(lv_len) = strlen( iv_name ).
+    DATA lv_len TYPE i.
+    DATA lv_off TYPE i.
+    DATA temp4 TYPE xsdboolean.
+    lv_len = strlen( iv_name ).
     IF lv_len < 3.
       RETURN.
     ENDIF.
-    DATA(lv_off) = lv_len - 3.
-    result = xsdbool( iv_name+lv_off(3) = `->*` ).
+
+    lv_off = lv_len - 3.
+
+    temp4 = boolc( iv_name+lv_off(3) = `->*` ).
+    result = temp4.
 
   ENDMETHOD.
 
   METHOD entry_refs_pair_dref.
+    DATA temp305 LIKE LINE OF it_resolved.
+    DATA lr_other LIKE REF TO temp305.
 
     IF ir_res->deref IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    LOOP AT it_resolved REFERENCE INTO DATA(lr_other) "#EC CI_SORTSEQ
+
+
+    LOOP AT it_resolved REFERENCE INTO lr_other "#EC CI_SORTSEQ
          WHERE (    type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
                  OR type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2 )
                AND ref = ir_res->deref
@@ -1511,7 +1725,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD refs_below_set.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) USING KEY parent
+    DATA temp306 LIKE LINE OF mt_attri->*.
+    DATA lr_child LIKE REF TO temp306.
+    LOOP AT mt_attri->* REFERENCE INTO lr_child USING KEY parent
          WHERE name_parent = iv_parent.
       IF iv_to IS INITIAL.
         CLEAR lr_child->name_ref.
@@ -1527,22 +1743,46 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD dissolve_run.
+      DATA temp307 TYPE z2ui5_if_ui5_types=>ty_s_attri.
+      DATA ls_attri LIKE temp307.
+      DATA temp308 LIKE REF TO ls_attri.
+DATA lt_init TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA temp309 TYPE z2ui5_if_ui5_types=>ty_t_attri.
+    DATA lt_attri_new LIKE temp309.
+    DATA temp310 LIKE LINE OF mt_attri->*.
+    DATA lr_attri LIKE REF TO temp310.
+        DATA ls_entry TYPE z2ui5_if_ui5_types=>ty_s_attri.
+          DATA lt_attri_struc TYPE z2ui5_if_ui5_types=>ty_t_attri.
+              DATA lt_attri_oref TYPE z2ui5_if_ui5_types=>ty_t_attri.
+              DATA lt_attri_dref TYPE z2ui5_if_ui5_types=>ty_t_attri.
 
     IF mt_attri->* IS INITIAL.
-      DATA(ls_attri) = VALUE z2ui5_if_ui5_types=>ty_s_attri( ).
-      DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+
+      CLEAR temp307.
+
+      ls_attri = temp307.
+
+      GET REFERENCE OF ls_attri INTO temp308.
+
+lt_init = diss_oref( temp308 ).
       INSERT LINES OF lt_init INTO TABLE mt_attri->*.
     ENDIF.
 
-    DATA(lt_attri_new) = VALUE z2ui5_if_ui5_types=>ty_t_attri( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    CLEAR temp309.
+
+    lt_attri_new = temp309.
+
+
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        DATA(ls_entry) = attri_create_new( lr_attri->name ).
+
+        ls_entry = attri_create_new( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
       ENDIF.
 
@@ -1558,7 +1798,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       CASE lr_attri->o_typedescr->kind.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_kind_struct.
-          DATA(lt_attri_struc) = diss_struc( lr_attri ).
+
+          lt_attri_struc = diss_struc( lr_attri ).
           INSERT LINES OF lt_attri_struc INTO TABLE lt_attri_new.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_kind_ref.
@@ -1566,10 +1807,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           CASE lr_attri->o_typedescr->type_kind.
 
             WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-              DATA(lt_attri_oref) = diss_oref( lr_attri ).
+
+              lt_attri_oref = diss_oref( lr_attri ).
               INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
             WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-              DATA(lt_attri_dref) = diss_dref( lr_attri ).
+
+              lt_attri_dref = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
               " an unexpected ref type_kind is left as a non-dissolvable leaf -
@@ -1592,7 +1835,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " instead of the whole table copied and then the unbound majority
     " deleted from the copy again
     DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bound)   "#EC CI_SORTSEQ
+    DATA temp311 LIKE LINE OF mt_attri->*.
+    DATA lr_bound LIKE REF TO temp311.
+    DATA temp312 LIKE LINE OF lt_attri.
+    DATA lr_old LIKE REF TO temp312.
+      DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    LOOP AT mt_attri->* REFERENCE INTO lr_bound   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
       INSERT lr_bound->* INTO TABLE lt_attri.
     ENDLOOP.
@@ -1600,8 +1848,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_old).
-      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = lr_old->name.
+
+
+    LOOP AT lt_attri REFERENCE INTO lr_old.
+
+      READ TABLE mt_attri->* REFERENCE INTO lr_attri WITH TABLE KEY name = lr_old->name.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
@@ -1617,9 +1868,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD delta_apply_to_table.
+        DATA lr_ref_d TYPE REF TO data.
+    DATA lv_delta TYPE string.
+    FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
 
     TRY.
-        DATA(lr_ref_d) = attri_get_val_ref( iv_name ).
+
+        lr_ref_d = attri_get_val_ref( iv_name ).
       CATCH cx_root.
         RETURN.
     ENDTRY.
@@ -1642,7 +1897,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " of the tree it is called on (a CP compare per node), and the rows are
     " reachable by path just as well - members( ) and the typed get_* calls
     " are keyed reads on the sorted node table
-    DATA(lv_delta) = |{ iv_path }/__delta|.
+
+    lv_delta = |{ iv_path }/__delta|.
 
     IF check_table_standard( lr_ref_d ) = abap_false.
       delta_skip_nodes( io_delta = io_val_front
@@ -1651,7 +1907,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
+
     " IS ASSIGNED, not sy-subrc, like every other ASSIGN of this class: a
     " successful one does not reset sy-subrc on every release (#1937), and
     " a stale 0 here would hand an UNASSIGNED symbol to delta_apply_nodes -
@@ -1682,6 +1938,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <before>   TYPE any.
     DATA lr_work_row TYPE REF TO data.
     DATA lt_col_kind TYPE ty_t_col_kind.
+    DATA lt_idx TYPE string_table.
+    DATA lv_idx_str LIKE LINE OF lt_idx.
+      DATA lv_tabix TYPE i.
+      FIELD-SYMBOLS <delta_row> TYPE any.
+      DATA lv_row_path TYPE string.
+      DATA lt_fld TYPE string_table.
+      DATA lv_fld LIKE LINE OF lt_fld.
+        FIELD-SYMBOLS <comp> TYPE any.
+        DATA temp313 TYPE REF TO data.
+DATA temp66 TYPE REF TO data.
+DATA temp16 TYPE z2ui5_if_client=>ty_s_model_skip.
 
     " ONE work row per table for the old values delta_apply_field keeps
     " aside - a select-all toggle over a thousand rows used to allocate a
@@ -1689,13 +1956,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     CREATE DATA lr_work_row LIKE LINE OF ct_tab.
     ASSIGN lr_work_row->* TO <work_row>.
 
-    DATA(lt_idx) = io_delta->members( iv_base ).
-    LOOP AT lt_idx INTO DATA(lv_idx_str).
-      DATA(lv_tabix) = delta_row_index( lv_idx_str ).
+
+    lt_idx = io_delta->members( iv_base ).
+
+    LOOP AT lt_idx INTO lv_idx_str.
+
+      lv_tabix = delta_row_index( lv_idx_str ).
       IF lv_tabix = 0.
         CONTINUE.
       ENDIF.
-      FIELD-SYMBOLS <delta_row> TYPE any.
+
       READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
       IF sy-subrc <> 0.
         CONTINUE.
@@ -1705,10 +1975,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " select-all toggle). members( ) and the typed get_* calls below are
       " keyed reads on the sorted node table, so the row is addressed by
       " its full path instead
-      DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      DATA(lt_fld) = io_delta->members( lv_row_path ).
-      LOOP AT lt_fld INTO DATA(lv_fld).
-        FIELD-SYMBOLS <comp> TYPE any.
+
+      lv_row_path = |{ iv_base }/{ lv_idx_str }|.
+
+      lt_fld = io_delta->members( lv_row_path ).
+
+      LOOP AT lt_fld INTO lv_fld.
+
         " a component is addressed by NAME: a digit-only key addresses it
         " by position on a system (and `0` the whole row), which is nothing
         " the frontend ever sends - skipped like an unknown name
@@ -1723,14 +1996,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        delta_apply_field( EXPORTING io_delta    = io_delta
+
+GET REFERENCE OF <before> INTO temp313.
+
+GET REFERENCE OF <comp> INTO temp66.
+
+CLEAR temp16.
+temp16-name = iv_table.
+temp16-row = lv_tabix.
+temp16-field = lv_fld.
+temp16-row_parent = iv_row_parent.
+delta_apply_field( EXPORTING io_delta    = io_delta
                                      iv_path     = |{ lv_row_path }/{ lv_fld }|
-                                     is_cell     = VALUE #( name       = iv_table
-                                                            row        = lv_tabix
-                                                            field      = lv_fld
-                                                            row_parent = iv_row_parent )
-                                     ir_comp     = REF #( <comp> )
-                                     ir_before   = REF #( <before> )
+                                     is_cell     = temp16
+                                     ir_comp     = temp66
+                                     ir_before   = temp313
                            CHANGING  ct_col_kind = lt_col_kind ).
       ENDLOOP.
     ENDLOOP.
@@ -1739,30 +2019,48 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD delta_skip_nodes.
 
-    DATA(lt_idx) = io_delta->members( iv_base ).
-    LOOP AT lt_idx INTO DATA(lv_idx_str).
-      DATA(lv_tabix) = delta_row_index( lv_idx_str ).
+    DATA lt_idx TYPE string_table.
+    DATA lv_idx_str LIKE LINE OF lt_idx.
+      DATA lv_tabix TYPE i.
+      DATA lv_row_path TYPE string.
+      DATA lt_fld TYPE string_table.
+      DATA lv_fld LIKE LINE OF lt_fld.
+        DATA temp314 TYPE z2ui5_if_client=>ty_s_model_skip.
+    lt_idx = io_delta->members( iv_base ).
+
+    LOOP AT lt_idx INTO lv_idx_str.
+
+      lv_tabix = delta_row_index( lv_idx_str ).
       IF lv_tabix = 0.
         CONTINUE.
       ENDIF.
-      DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      DATA(lt_fld) = io_delta->members( lv_row_path ).
-      LOOP AT lt_fld INTO DATA(lv_fld).
+
+      lv_row_path = |{ iv_base }/{ lv_idx_str }|.
+
+      lt_fld = io_delta->members( lv_row_path ).
+
+      LOOP AT lt_fld INTO lv_fld.
+
+        CLEAR temp314.
+        temp314-name = iv_table.
+        temp314-row = lv_tabix.
+        temp314-field = lv_fld.
+        temp314-row_parent = iv_row_parent.
         delta_trace_skipped( io_delta = io_delta
                              iv_path  = |{ lv_row_path }/{ lv_fld }|
-                             is_cell  = VALUE #( name       = iv_table
-                                                 row        = lv_tabix
-                                                 field      = lv_fld
-                                                 row_parent = iv_row_parent ) ).
+                             is_cell  = temp314 ).
       ENDLOOP.
     ENDLOOP.
 
   ENDMETHOD.
 
   METHOD delta_row_index.
+        DATA temp315 TYPE i.
 
     TRY.
-        result = CONV i( iv_key ) + 1.
+
+        temp315 = iv_key.
+        result = temp315 + 1.
       CATCH cx_root.
         result = 0.
     ENDTRY.
@@ -1781,12 +2079,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD delta_apply_scalar.
 
     FIELD-SYMBOLS <comp> TYPE any.
+    DATA lv_value TYPE string.
     ASSIGN ir_comp->* TO <comp>.
 
     " numbers intentionally go through get_string: the raw JSON text
     " converts losslessly into any numeric target type, while get_number
     " would round through a binary float first
-    DATA(lv_value) = io_delta->get_string( iv_path ).
+
+    lv_value = io_delta->get_string( iv_path ).
 
     " Outbound, ajson writes a d as `2024-01-15`, a t as `12:30:00` and a
     " timestamp as `2024-01-15T12:30:00Z` (its own format_date/_time/
@@ -1832,6 +2132,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp>   TYPE any.
     FIELD-SYMBOLS <before> TYPE any.
     DATA lr_col_kind TYPE REF TO ty_s_col_kind.
+    DATA lv_node_type TYPE z2ui5_if_ajson_types=>ty_node_type.
+            DATA lv_sub_delta TYPE string.
+              FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
     ASSIGN ir_comp->* TO <comp>.
 
     " the column's kind first, asked once per COLUMN (a property of the
@@ -1848,7 +2151,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                               ir_comp     = ir_comp
                     IMPORTING er_col_kind = lr_col_kind
                     CHANGING  ct_col_kind = ct_col_kind ).
-    DATA(lv_node_type) = io_delta->get_node_type( iv_path ).
+
+    lv_node_type = io_delta->get_node_type( iv_path ).
     IF delta_check_refused( iv_type_kind = lr_col_kind->type_kind
                             iv_node_type = lv_node_type ) = abap_true.
       delta_trace_skipped( io_delta = io_delta
@@ -1881,9 +2185,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           WHEN z2ui5_if_ajson_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
-            DATA(lv_sub_delta) = |{ iv_path }/__delta|.
+
+            lv_sub_delta = |{ iv_path }/__delta|.
             IF io_delta->exists( lv_sub_delta ) = abap_true.
-              FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
+
               " the table kind first, the ASSIGN second - see
               " delta_apply_to_table; decided per column in delta_col_kind.
               " A REF TO data column never gets here: its kind is the
@@ -1944,6 +2249,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD delta_col_kind.
 
     FIELD-SYMBOLS <comp> TYPE any.
+    DATA temp316 TYPE ty_s_col_kind.
+    DATA ls_col_kind LIKE temp316.
 
     READ TABLE ct_col_kind REFERENCE INTO er_col_kind
          WITH TABLE KEY field = is_cell-field.
@@ -1952,9 +2259,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     ASSIGN ir_comp->* TO <comp>.
-    DATA(ls_col_kind) = VALUE ty_s_col_kind(
-        field     = is_cell-field
-        type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ) ).
+
+    CLEAR temp316.
+    temp316-field = is_cell-field.
+    temp316-type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
+
+    ls_col_kind = temp316.
     " the table kind only where there is a table: check_table_standard on
     " a REF TO data sees the reference itself and answers no - which is
     " what keeps a delta from being followed through such a column
@@ -1966,6 +2276,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD delta_check_refused.
+    DATA temp5 TYPE xsdboolean.
 
     " a reference column never takes a value from the wire; a table or a
     " structure takes an object or an array - a nested delta, a whole
@@ -1981,8 +2292,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
        AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
       RETURN.
     ENDIF.
-    result = xsdbool( iv_node_type <> z2ui5_if_ajson_types=>node_type-object
-                      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-array ).
+
+    temp5 = boolc( iv_node_type <> z2ui5_if_ajson_types=>node_type-object AND iv_node_type <> z2ui5_if_ajson_types=>node_type-array ).
+    result = temp5.
 
   ENDMETHOD.
 
@@ -1993,7 +2305,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " is not a valid price`). Guarded: this also RUNS INSIDE A CATCH, and a
     " node get_string cannot read (a structured value) must degrade to an
     " empty value, never replace the trace with a dump
-    DATA(ls_skip) = is_cell.
+    DATA ls_skip LIKE is_cell.
+    ls_skip = is_cell.
     TRY.
         ls_skip-value = io_delta->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
@@ -2005,6 +2318,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD scalar_apply.
 
     FIELD-SYMBOLS <val> TYPE any.
+    DATA lv_type_kind TYPE string.
     ASSIGN ir_ref->* TO <val>.
 
     " a table, a structure or a reference takes no scalar - decided BEFORE
@@ -2012,7 +2326,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " would dump (the guard delta_apply_field carries). to_abap( ) refused
     " the shape with an exception, and the refusal stays one: the caller
     " restores the old value and traces the attribute
-    DATA(lv_type_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
+
+    lv_type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
     IF delta_check_refused( iv_type_kind = lv_type_kind
                             iv_node_type = iv_node_type ) = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -2044,7 +2359,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " read (scalar_apply). The slice used to run for every carried
     " attribute, so a request carrying a mass delta next to one edited
     " input paid a walk over the whole delta for that input
-    DATA(lv_node_type) = io_model->get_node_type( iv_path ).
+    DATA lv_node_type TYPE z2ui5_if_ajson_types=>ty_node_type.
+        DATA lr_ref TYPE REF TO data.
+    FIELD-SYMBOLS <val> TYPE data.
+    DATA lr_before TYPE REF TO data.
+    FIELD-SYMBOLS <before> TYPE any.
+    lv_node_type = io_model->get_node_type( iv_path ).
     IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
         OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
       lo_val_front = io_model->slice( iv_path ).
@@ -2056,20 +2376,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " an attribute that cannot be reached is passed over quietly: a draft
     " outlives the class it was taken from
     TRY.
-        DATA(lr_ref) = attri_get_val_ref( ir_attri->name ).
+
+        lr_ref = attri_get_val_ref( ir_attri->name ).
       CATCH cx_root.
         RETURN.
     ENDTRY.
-    ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
+    ASSIGN lr_ref->* TO <val>.
 
     " to_abap clears the target before it fills it, and on a system a
     " conversion that fails clears it before it raises - so a refused value
     " would leave the attribute initial, while the trace promises the OLD
     " value stays. Kept aside; only attributes the request carries get
     " this far
-    DATA lr_before TYPE REF TO data.
+
     CREATE DATA lr_before LIKE <val>.
-    FIELD-SYMBOLS <before> TYPE any.
+
     ASSIGN lr_before->* TO <before>.
     <before> = <val>.
 
@@ -2108,7 +2430,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " delta_apply_field). The refused value is quoted when the node carries
     " one - a scalar does; an object, an array and the table node of a
     " delta path do not, so the entry names the attribute alone there
-    DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = iv_name ).
+    DATA temp317 TYPE z2ui5_if_client=>ty_s_model_skip.
+    DATA ls_skip LIKE temp317.
+    CLEAR temp317.
+    temp317-name = iv_name.
+
+    ls_skip = temp317.
     TRY.
         ls_skip-value = io_model->get_string( iv_path ).
       CATCH cx_root ##NO_HANDLER.
