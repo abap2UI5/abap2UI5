@@ -48,3 +48,8 @@ tools/out/
 /e2e-downport.jsonc
 /e2e-transpile.json
 /node/open-abap-core/
+# And the dev sandbox that repository's deploy_app writes when there is no
+# samples-controls checkout to hold it: the deployed app classes the
+# incremental transpile copies into node/downport. Owned by the mcp-server,
+# removed by its remove_app.
+/node/zz_dev/
