@@ -79,6 +79,7 @@
     "rename": "abaplint .github/abaplint/rename.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
+    "pack:backend": "node node/setup/pack-backend.mjs",
     "test": "npm run unit && npm run check:js",
     "check:guide": "node .github/scripts/check-guide-api.mjs"
   },

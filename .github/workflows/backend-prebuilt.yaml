@@ -1,0 +1,113 @@
+name: backend-prebuilt
+# Attaches the transpiled Node backend to every release, as
+# `backend-<version>.tar.gz`.
+#
+# Why this exists: abap2UI5/mcp-server boots every app against a transpiled
+# Node backend (its lib/runtime.mjs, `buildBackend`), and its first "full"
+# build takes tens of minutes because it downports and transpiles the whole
+# framework itself. That is the same work this repository already does on
+# every pull request and on every release - `npm run downport` writes
+# node/downport/, `npm run auto_transpile` writes node/output/, both over the
+# pinned lib clones in node/deps/ - and nothing kept the result. This job runs
+# the same three steps on the tagged commit, proves the tree runs
+# (`npm run unit`), packs it (`npm run pack:backend`, node/setup/pack-backend.mjs)
+# and attaches it to the release, so a consumer downloads the backend instead
+# of building it.
+#
+# CONTRACT with abap2UI5/mcp-server: the asset name `backend-<version>.tar.gz`
+# and the `backend-manifest.json` at the tarball's root (version, commit,
+# builtAt, node, transpiler, contents) are what that repository resolves and
+# reads. Renaming the asset, moving the manifest or changing its keys is a
+# change over there first; the packer's header lists the shape.
+#
+# Two triggers, one job:
+#   - `release: published` - release.yaml has just created the release; this
+#     runs after it and the asset appears a while later (the transpile is the
+#     slow part). release.yaml does not wait for it, on purpose: a release
+#     that is a tag push stays a tag push, and the asset is an addition to it.
+#   - `workflow_dispatch` with a `tag` - re-attach for a past release, or for
+#     one whose run failed. `--clobber` replaces an asset that is already there.
+#
+# Only the `X.Y.Z` release gets the asset, not `X.Y.Z-702`: that release is
+# the downported SOURCES for a 7.02 system, while the backend is built by
+# downporting the same commit anyway - one asset per version, on the release
+# the consumer resolves. RELEASING.md is the human half.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build the backend from and attach it to (X.Y.Z)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# One run per tag at a time: a dispatch racing the release event for the same
+# tag would upload the same asset twice, and the second --clobber would land
+# on whichever finished last.
+concurrency:
+  group: backend-prebuilt-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  attach:
+    if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
+    permissions:
+      # gh release upload writes to the release; nothing else here writes
+      contents: write
+    runs-on: ubuntu-latest
+    # The downport (three abaplint --fix passes) and the transpile are the
+    # slow half of `npm run verify`; test.yaml gives the transpile alone 15
+    # minutes, and the unit suite and the pack come on top here.
+    timeout-minutes: 90
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+    - name: Checkout the release tag
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag }}
+        persist-credentials: false
+
+    # setup-node 22 with the npm cache, npm ci, and the three pinned lib
+    # clones - the same composite action every job takes its toolchain from
+    # (AGENTS.md, "CI/CD Workflows"). `deps` because the downport clones them
+    # and the tarball ships them.
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+        deps: "true"
+
+    # The asset is named after package.json's version and attached to the
+    # tag, so the two have to agree - release.yaml's gate guarantees it for a
+    # release tag, and this is the same guarantee for a dispatched one.
+    - name: The tag and package.json name the same version
+      run: |
+        VERSION="$(node -p "require('./package.json').version")"
+        if [ "$VERSION" != "$TAG" ]; then
+          echo "::error::package.json at tag $TAG says version $VERSION - the asset would be named backend-$VERSION.tar.gz on a release that is not that version. Dispatch this workflow with a release tag (X.Y.Z)."
+          exit 1
+        fi
+        echo "packing backend-$VERSION.tar.gz for release $TAG"
+
+    - run: npm run downport
+    - run: npm run auto_transpile
+
+    # The transpiled tree has to RUN before it is shipped: the unit suite is
+    # the cheapest proof that what was packed boots.
+    - name: The transpiled backend runs its unit suite
+      run: npm run unit
+
+    - run: npm run pack:backend
+
+    - name: Attach the backend to the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        VERSION="$(node -p "require('./package.json').version")"
+        gh release upload "$TAG" "backend-$VERSION.tar.gz" --clobber --repo "$GITHUB_REPOSITORY"
+        echo "attached backend-$VERSION.tar.gz to release $TAG"
