@@ -1787,7 +1787,7 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
   METHOD test_sticky_keep_saves_draft.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA(lo_draft) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     " a sticky app under KEEP routing: its draft id goes into the URL, so
     " the draft has to exist for Back/Forward and a bookmark to restore it

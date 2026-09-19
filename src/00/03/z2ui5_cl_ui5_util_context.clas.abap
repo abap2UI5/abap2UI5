@@ -2465,6 +2465,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA conv          TYPE REF TO object.
     DATA conv_codepage TYPE c LENGTH 21.
     DATA conv_in_class TYPE c LENGTH 18.
+    DATA lx_first      TYPE REF TO cx_root.
 
     TRY.
 
@@ -2478,8 +2479,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             source = val
           RECEIVING
             result = result.
+        RETURN.
 
-      CATCH cx_root.
+      CATCH cx_root INTO lx_first ##NO_HANDLER.
+        " deliberate: capturing the cause IS the handling - it is chained into
+        " UNSUPPORTED_CODEPAGE_API below if the classic API fails too. Falling
+        " through is the point; the modern class is absent on older releases,
+        " which is the whole reason both paths exist
+    ENDTRY.
+
+    " The classic API. Guarded by its own TRY since 2026-09: it used to be the
+    " BODY of the CATCH above, so when it failed too the dynamic-call
+    " exception left this method raw. On a release that has neither class -
+    " and in any runtime that is not an SAP system, where a dynamic
+    " CALL METHOD resolves nothing - that reached the caller as
+    " CX_SY_DYN_CALL_ILLEGAL_CLASS, which nothing here catches by name.
+    " The view builder is one of those callers and builds its
+    " control-character set through this method, so a missing codepage class
+    " took down every view render with an exception that named a kernel
+    " class rather than the framework.
+    TRY.
 
         conv_in_class = `CL_ABAP_CONV_IN_CE`.
         CALL METHOD (conv_in_class)=>create
@@ -2493,6 +2512,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             input = val
           IMPORTING
             data  = result.
+
+      CATCH cx_root.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = |UNSUPPORTED_CODEPAGE_API - neither CL_ABAP_CONV_CODEPAGE | &&
+                       |nor CL_ABAP_CONV_IN_CE could convert here|
+            previous = lx_first.
     ENDTRY.
 
   ENDMETHOD.
@@ -2502,6 +2528,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA conv           TYPE REF TO object.
     DATA conv_codepage  TYPE c LENGTH 21.
     DATA conv_out_class TYPE c LENGTH 19.
+    DATA lx_first       TYPE REF TO cx_root.
 
     TRY.
 
@@ -2515,8 +2542,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             source = val
           RECEIVING
             result = result.
+        RETURN.
 
-      CATCH cx_root.
+      CATCH cx_root INTO lx_first ##NO_HANDLER.
+        " deliberate, same as conv_get_string_by_xstring: the capture is the
+        " handling, the fall-through is the point
+    ENDTRY.
+
+    " Guarded for the same reason as its counterpart above: an unguarded
+    " fallback let a raw dynamic-call exception out of a utility method.
+    TRY.
 
         conv_out_class = `CL_ABAP_CONV_OUT_CE`.
         CALL METHOD (conv_out_class)=>create
@@ -2530,6 +2565,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             data   = val
           IMPORTING
             buffer = result.
+
+      CATCH cx_root.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = |UNSUPPORTED_CODEPAGE_API - neither CL_ABAP_CONV_CODEPAGE | &&
+                       |nor CL_ABAP_CONV_OUT_CE could convert here|
+            previous = lx_first.
     ENDTRY.
 
   ENDMETHOD.

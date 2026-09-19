@@ -240,7 +240,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " owner), so the guard was a second SELECT on the same key per hop
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
       TRY.
-          DATA(ls_draft) = NEW z2ui5_cl_ui5_srv_draft( )->read_info( mo_app->ms_draft-id_prev_app_stack ).
+          DATA(ls_draft) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_info( mo_app->ms_draft-id_prev_app_stack ).
           result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.

@@ -325,8 +325,20 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       " the XML-illegal control characters as one string, so the CA scan
       " stays a single statement; built from their UTF-8 bytes through the
       " context class (the one door to the codepage API)
-      gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
-          CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+      TRY.
+          gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
+              CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+        CATCH z2ui5_cx_ui5_util_error.
+          " No codepage API here (UNSUPPORTED_CODEPAGE_API). Degrade instead of
+          " failing: the set stays empty, the CA scan below then matches no
+          " control character and the drop loop never runs, while `&`, `<`, `>`,
+          " `"`, newline, CR and tab are escaped exactly as before. Dropping
+          " those 29 exotic bytes is a repair for legacy long texts, not a
+          " correctness requirement of the view - so losing it must not cost
+          " the render. Before this, a missing class raised out of the utility
+          " and took down every view on the first escape of the process.
+          CLEAR gv_escape_controls.
+      ENDTRY.
       gv_escape_specials = `&<>"`
           && z2ui5_cl_ui5_util_context=>cv_char_util_newline
           && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)

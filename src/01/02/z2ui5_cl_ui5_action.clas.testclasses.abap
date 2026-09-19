@@ -620,7 +620,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " counter-check: with the ancestor draft present the same leave pops one
     " level - the target's stack position becomes the ancestor's ancestor
-    NEW z2ui5_cl_ui5_srv_draft( )->create(
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create(
         draft     = VALUE #( id                = `LEAVE_ANCESTOR_DRAFT`
                              id_prev_app_stack = `LEAVE_GRANDPARENT` )
         model_xml = `<dummy/>` ).

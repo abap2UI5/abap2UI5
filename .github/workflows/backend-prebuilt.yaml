@@ -111,3 +111,69 @@ jobs:
         VERSION="$(node -p "require('./package.json').version")"
         gh release upload "$TAG" "backend-$VERSION.tar.gz" --clobber --repo "$GITHUB_REPOSITORY"
         echo "attached backend-$VERSION.tar.gz to release $TAG"
+
+    # --- the same build, as an npm package -------------------------------
+    #
+    # A SECOND delivery of the same transpile, for a different consumer and
+    # by a different mechanism. The tarball above is resolved by name from a
+    # GitHub release, which suits a tool that downloads it (mcp-server). A
+    # host that is an ordinary Node project - a CAP plugin, a serverless
+    # function - declares its dependencies in package.json, and `npm i` is
+    # the mechanism it already has; asking it to fetch and unpack a release
+    # asset is a build step it would have to write and keep alive.
+    #
+    # It rides HERE rather than in release.yaml because the expensive part -
+    # the downport and the transpile - has already run above, and running it
+    # a second time in a job of its own would cost the same ~30 minutes to
+    # produce the same bytes.
+    #
+    # What differs from the tarball: the package carries app/webapp (the UI5
+    # shell) and node/setup/setup.mjs, and not node/deps or node/downport. A
+    # host that RUNS the framework needs the frontend from the same commit as
+    # the backend - that is the guarantee the package exists to give, and the
+    # one z2ui5_if_ui5_types=>c_protocol cannot give a host that pairs the
+    # halves itself.
+    #
+    # Assembled in a STAGING directory outside the checkout, and the manifest
+    # is node/setup/runtime.package.json rather than node/package.json: a
+    # package.json inside node/ makes that directory an npm package root, so
+    # `npm run express` from there stops finding this repository's scripts and
+    # every browser project fails to boot. The header of that file says so too.
+    - name: Pack @abap2ui5/runtime
+      id: pack_npm
+      run: |
+        VERSION="$(node -p "require('./package.json').version")"
+        STAGE="$(mktemp -d)"
+        mkdir -p "$STAGE/setup"
+        cp node/setup/runtime.package.json "$STAGE/package.json"
+        cp -r node/output "$STAGE/output"
+        cp node/setup/setup.mjs "$STAGE/setup/setup.mjs"
+        cp -r app/webapp "$STAGE/webapp"
+        (cd "$STAGE" && npm version --no-git-tag-version "$VERSION" && npm pack)
+        mkdir -p runtime-package && cp "$STAGE"/*.tgz runtime-package/
+        ls -la runtime-package/
+        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "stage=$STAGE" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: abap2ui5-runtime-${{ steps.pack_npm.outputs.version }}
+        path: runtime-package/*.tgz
+        if-no-files-found: error
+
+    # Published only when the organisation has stored an NPM_TOKEN (an
+    # automation token for the @abap2ui5 scope). Without one the step says so
+    # and the run stays green: the tarball above is uploaded either way, so a
+    # missing token costs the publish and nothing else - and never the
+    # release, which was created before this workflow started.
+    - name: Publish @abap2ui5/runtime
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        STAGE: ${{ steps.pack_npm.outputs.stage }}
+      run: |
+        if [ -z "$NODE_AUTH_TOKEN" ]; then
+          echo "::warning::NPM_TOKEN is not set - @abap2ui5/runtime ${{ steps.pack_npm.outputs.version }} was packed (see the workflow artefact) but not published."
+          exit 0
+        fi
+        echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+        (cd "$STAGE" && npm publish ./*.tgz --access public)

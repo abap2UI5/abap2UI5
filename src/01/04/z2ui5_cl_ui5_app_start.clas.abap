@@ -723,7 +723,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     render_text( form  = form
                  label = `abap2UI5 Version`
                  text  = z2ui5_if_app=>version ).
-    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA(lo_draft) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     render_text( form  = form
                  label = `Draft Entries (own/total)`
                  text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).

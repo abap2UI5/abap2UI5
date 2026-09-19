@@ -100,6 +100,22 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
+    "! The serializer the framework uses. Without set_serializer( ) this
+    "! answers a fresh z2ui5_cl_ui5_serializer on every call - the asXML
+    "! round trip that has always run here - so a system that installs
+    "! nothing behaves identically.
+    CLASS-METHODS get_serializer
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_serializer.
+
+    "! Install a host's own serializer. Meant for a runtime that is not an
+    "! SAP system, where CALL TRANSFORMATION id over a type descriptor has no
+    "! counterpart, and for tests. An unbound reference restores the default.
+    "! @parameter serializer | the implementation to use from now on
+    CLASS-METHODS set_serializer
+      IMPORTING
+        serializer TYPE REF TO z2ui5_if_ui5_serializer.
+
     TYPES:
       BEGIN OF ty_s_buffer,
         id  TYPE string,
@@ -128,6 +144,11 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+    " Unbound unless a host installed one. Deliberately NOT pre-filled: the
+    " shipped serializer holds no state, and answering a fresh one keeps the
+    " previous inline semantics exactly.
+    CLASS-DATA gi_serializer TYPE REF TO z2ui5_if_ui5_serializer.
+
     METHODS create_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
@@ -146,65 +167,29 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = xml
-                                          IMPORTING any = result ).
+    result ?= get_serializer( )->parse( xml ).
+
+  ENDMETHOD.
+
+  METHOD get_serializer.
+
+    IF gi_serializer IS BOUND.
+      result = gi_serializer.
+      RETURN.
+    ENDIF.
+    result = NEW z2ui5_cl_ui5_serializer( ).
+
+  ENDMETHOD.
+
+  METHOD set_serializer.
+
+    gi_serializer = serializer.
 
   ENDMETHOD.
 
   METHOD all_xml_stringify.
 
-    DATA(lo_model) = create_model( ).
-
-    DATA lx_first TYPE REF TO cx_root.
-
-    TRY.
-        lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        " the live instance gets its references BACK, not a parsed copy: the
-        " same objects the save detached, one assignment each instead of one
-        " S-RTTI parse per reference (which is what a fresh container from
-        " the draft has to pay, and what this instance never has to)
-        lo_model->main_attri_reattach( ).
-        RETURN.
-      CATCH cx_root INTO lx_first.
-        " main_attri_db_save_srtti detached the data references - put them
-        " back before the retry below, otherwise the second save would
-        " start from the half-cleared app state
-        lo_model->main_attri_reattach( ).
-    ENDTRY.
-
-    " the one retry that can turn out differently: rows rebuilt from the
-    " instance as it is NOW (a reference created after the last dissolve
-    " has no row, so its anonymous target went into the asXML and failed
-    " there), then saved and serialized again. A bare second stringify of
-    " the same rows used to sit here - what the first attempt refused, the
-    " same attempt refuses again
-    TRY.
-        lo_model->main_attri_refresh( ).
-        lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
-        lo_model->main_attri_reattach( ).
-        RETURN.
-      CATCH cx_root.
-        " the retry's save detached the references again - put them back
-        " like the first CATCH does. The exception below ends THIS request,
-        " and in a sticky session the same instance serves the next one,
-        " whose main( ) then ran on an app whose data references were
-        " initial
-        lo_model->main_attri_reattach( ).
-    ENDTRY.
-
-    " chain the FIRST serialization failure - it names the attribute/type
-    " that is not serializable and carries the source position of the
-    " transformation that gave up; the retries fail for the same root cause
-    " or a follow-up one.
-    " lx_first is always bound here: the only path to this statement runs
-    " through the first CATCH, since every success above RETURNs
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-      EXPORTING
-        val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
-                   |Please check if all generic data references are public attributes of your class|
-        previous = lx_first.
+    result = get_serializer( )->stringify( me ).
 
   ENDMETHOD.
 
@@ -300,8 +285,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    NEW z2ui5_cl_ui5_srv_draft( )->create( draft     = ms_draft
-                                           model_xml = all_xml_stringify( ) ).
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = ms_draft
+                                           model_xml       = all_xml_stringify( ) ).
 
   ENDMETHOD.
 
@@ -322,7 +307,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_parse.
 
-    DATA(ls_db) = NEW z2ui5_cl_ui5_srv_draft( )->read_draft( iv_id ).
+    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.

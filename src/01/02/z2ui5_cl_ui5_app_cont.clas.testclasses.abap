@@ -830,8 +830,8 @@ CLASS ltcl_03_errors IMPLEMENTATION.
     ENDLOOP.
     cl_abap_unit_assert=>assert_not_initial( result ).
     DATA(lv_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mo_cont ).
-    NEW z2ui5_cl_ui5_srv_draft( )->create( draft     = mo_cont->ms_draft
-                                           model_xml = lv_xml ).
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = mo_cont->ms_draft
+                                           model_xml       = lv_xml ).
 
   ENDMETHOD.
 
