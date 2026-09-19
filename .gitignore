@@ -2,6 +2,11 @@
 node/deps/
 node_modules
 /node/output/
+# What `tar -xzf backend-<version>.tar.gz -C <checkout>` leaves behind: the
+# three trees above plus the manifest at the root - and the tarball itself,
+# which `npm run pack:backend` writes here (node/setup/pack-backend.mjs)
+/backend-manifest.json
+/backend-*.tar.gz
 /node/coverage/
 /coverage/
 .github/out

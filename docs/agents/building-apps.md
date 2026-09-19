@@ -752,3 +752,20 @@ The same tree, with the subtree held in a variable:
   in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5
   can express at all is answered in samples-controls' `CAPABILITIES.md`, each
   claim naming the port that proves it.
+- **Unit-test the app class without a system**: a local test double
+  `ltd_client` with `INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` in
+  the class's `.clas.testclasses.abap` answers `check_on_init` /
+  `check_on_event` / `get_event` from attributes and records what
+  `view_display( )` and `message_toast_display( )` receive; a test then
+  calls `main( )` and asserts.
+  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships
+  one for its starter class — abaplint checks it statically, ABAP Unit runs
+  it on the system, and the MCP server's `run_unit_tests` runs it in the
+  transpiled backend.
+- **`npm run doctor`** in a project made from app-template: the environment
+  check — Node, the two gates, Chromium for the render gate, the framework
+  pin, the sidecars — that names the remedy for each failure.
+- **`npm create abap2ui5-app@latest my-app -- --class zcl_my_app`**: the
+  project scaffold without a GitHub template button or an editor.
+- **`interact_app`** in the MCP server: click, type and fire events in the
+  headless app and look at the result — the event branch, not just the boot.
