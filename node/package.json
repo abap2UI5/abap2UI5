@@ -1,0 +1,26 @@
+{
+  "name": "@abap2ui5/runtime",
+  "version": "0.0.0-set-at-release",
+  "description": "abap2UI5 transpiled to JavaScript by @abaplint/transpiler over open-abap: the framework (output/), the setup hook it imports (setup/) and the UI5 shell (webapp/) from one release commit. Published by release.yaml; the version is the framework's.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abap2UI5/abap2UI5.git",
+    "directory": "node"
+  },
+  "files": [
+    "output",
+    "setup/setup.mjs",
+    "webapp"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./output/*": "./output/*",
+    "./setup/*": "./setup/*",
+    "./webapp/*": "./webapp/*"
+  },
+  "dependencies": {
+    "@abaplint/database-sqlite": "^2.13.83",
+    "@abaplint/runtime": "^2.13.87"
+  }
+}

@@ -301,6 +301,30 @@ available: the frontend looked for a key the backend no longer wrote, read its
 absence as "nothing to do", and rendered an empty page with no error anywhere.
 A number on the wire turns that into a sentence somebody can read.
 
+### The transpiled framework is a package (`@abap2ui5/runtime`)
+
+`release.yaml` has a second job, `runtime`, that packs `node/output` (the
+transpiled framework), `node/setup/setup.mjs` (the hook `output/init.mjs`
+imports by the relative path fixed in `node/setup/abap_transpile.json`) and
+`app/webapp` into `@abap2ui5/runtime` — `node/package.json` is its manifest.
+The version is the framework's version, set at pack time; the committed
+`0.0.0-set-at-release` is deliberate. The tarball is uploaded as a workflow
+artefact on every run; `npm publish` happens only from a tag and only when the
+organisation has an `NPM_TOKEN` secret — without one the step warns and the
+run stays green, so a missing token can never un-release anything.
+
+It exists for hosts that run the framework on Node other than
+`node/srv/express.mjs` — a CAP plugin, a serverless function. A host that pins
+`@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
+`z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
+version above cannot guarantee for a host that assembles them itself.
+
+What the package promises is only what `output/init.mjs` and the webapp
+promise: it is transpiler output, and the shape of that output — the static
+`ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` — is
+`@abaplint/transpiler`'s, not ours. A host that reaches into it couples to the
+transpiler, and should say so in a test of its own.
+
 ### A missing codepage class must not take down the view
 
 `conv_get_string_by_xstring( )` / `conv_get_xstring_by_string( )` try

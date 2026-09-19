@@ -2,6 +2,8 @@
 node/deps/
 node_modules
 /node/output/
+# app/webapp copied in by release.yaml for the @abap2ui5/runtime package
+/node/webapp/
 /node/coverage/
 /coverage/
 .github/out
