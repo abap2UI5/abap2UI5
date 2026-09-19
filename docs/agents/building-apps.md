@@ -577,7 +577,12 @@ The same tree, with the subtree held in a variable:
   `check_queue_last = abap_true` keeps the LAST event fired on the wire and
   dispatches it once the response has landed — one roundtrip in flight at a
   time, order preserved, the backend ends on the control's current value;
-  no debounce, so a pause still costs one roundtrip. There is no flag for
+  no debounce, so a pause still costs one roundtrip. Pair it with
+  `check_no_busy = abap_true`, which keeps the full-screen busy overlay
+  down for that wire — without it every keystroke landing on a roundtrip in
+  flight raises the overlay at once, over the very field being typed into
+  (the roundtrip, the busy STATE and the guard are unchanged, only the
+  overlay is not shown). There is no flag for
   sending every firing at once: only the newest response may commit, so the
   earlier roundtrips would be work thrown away. A background wire that must
   not wait — a timer tick, a poll — needs no flag either: `START_TIMER`
