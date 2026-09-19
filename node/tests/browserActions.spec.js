@@ -211,7 +211,7 @@ test.describe("STORE_DATA", () => {
   test("a string that is no model path is logged, not written", () => {
     const { handlers, stores, errors } = load();
     handlers.STORE_DATA(controllerWithModel({}), ["STORE_DATA", "S_STORAGE"]);
-    expect(stores[0].ops).toEqual([["remove", undefined]]);
+    expect(stores).toEqual([]);
     expect(
       errors().some((m) =>
         m.includes("is neither a payload nor a model path"),
@@ -222,7 +222,7 @@ test.describe("STORE_DATA", () => {
   test("a path with nothing bound under it is logged, not written", () => {
     const { handlers, stores, errors } = load();
     handlers.STORE_DATA(controllerWithModel({}), ["STORE_DATA", "${/NOPE}"]);
-    expect(stores[0].ops).toEqual([["remove", undefined]]);
+    expect(stores).toEqual([]);
     expect(
       errors().some((m) => m.includes("nothing bound at the model path")),
     ).toBe(true);

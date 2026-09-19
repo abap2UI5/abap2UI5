@@ -66,13 +66,14 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) {` && |\n| &&
-             `          handler(oController, args);` && |\n| &&
+             `          return handler(oController, args);` && |\n| &&
              `        } else {` && |\n| &&
              `          Lib.logError(``FrontendAction: unknown action '${args[0]}'``);` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
+             `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function executeSystem(oController, args, ctx) {` && |\n| &&
@@ -104,16 +105,14 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    function runCustom(item, oController) {` && |\n| &&
              `      try {` && |\n| &&
              `        if (Array.isArray(item)) {` && |\n| &&
-             `          oController.eF(...item);` && |\n| &&
-             `          return;` && |\n| &&
+             `          return oController.eF(...item);` && |\n| &&
              `        }` && |\n| &&
              `        const snippet = item.trim();` && |\n| &&
              `        if (snippet.startsWith("[")) {` && |\n| &&
              `          try {` && |\n| &&
              `            const args = JSON.parse(snippet);` && |\n| &&
              `            if (Array.isArray(args)) {` && |\n| &&
-             `              oController.eF(...args);` && |\n| &&
-             `              return;` && |\n| &&
+             `              return oController.eF(...args);` && |\n| &&
              `            }` && |\n| &&
              `          } catch {}` && |\n| &&
              `        }` && |\n| &&
@@ -121,6 +120,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("customJs: execution failed", e);` && |\n| &&
              `      }` && |\n| &&
+             `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute, executeSystem, runSystem, runCustom };` && |\n| &&

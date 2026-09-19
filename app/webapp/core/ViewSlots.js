@@ -99,10 +99,9 @@ sap.ui.define(
     }
 
     // The record lives on AppState (so an app restart resets it with
-    // everything else); create it on first use so a state object that
-    // predates the field still works.
+    // everything else) and has its default in AppState.createState( ) -
+    // rule 8 of AGENTS.md, no lazy bootstrapping here.
     function slotXmlStore() {
-      if (!AppState.state.slotXml) AppState.state.slotXml = {};
       return AppState.state.slotXml;
     }
 
@@ -113,7 +112,6 @@ sap.ui.define(
     }
 
     function slotAppStore() {
-      if (!AppState.state.slotApp) AppState.state.slotApp = {};
       return AppState.state.slotApp;
     }
 

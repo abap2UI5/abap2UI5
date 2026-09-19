@@ -401,6 +401,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_config_leaves FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
+    METHODS test_start_app_2nd_roundtrip FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_sanitized FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_stale_action FOR TESTING RAISING cx_static_check.
@@ -811,6 +812,37 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-o_model->get_string( ls_request-model_path && `/MV_STRING` ) ).
 
   ENDMETHOD.
+
+  METHOD test_start_app_2nd_roundtrip.
+
+    " The shipped start app holds its client PUBLIC. Until 2026-09-19 the
+    " dissolve walk followed it into the framework graph (300 rows under
+    " CLIENT->, one of them the container's own row table), the save
+    " detached that table and wrote an empty MT_ATTRI into the draft, and
+    " the second roundtrip of the start page - any button on it - had no rows
+    " to load. No test drove two roundtrips of the start app, so nothing saw
+    " it. This one does: a first start, then an event on the draft it wrote.
+    DATA(lo_first) = NEW z2ui5_cl_ui5_handler(
+        val = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_START"}}}` ).
+    lo_first->main( ).
+    DATA(lv_id) = lo_first->mo_action->mo_app->ms_draft-id.
+    cl_abap_unit_assert=>assert_not_initial( lv_id ).
+
+    LOOP AT lo_first->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri).
+      IF lr_attri->name CP `CLIENT->*`.
+        cl_abap_unit_assert=>fail( |the dissolve walk followed the client: { lr_attri->name }| ).
+      ENDIF.
+    ENDLOOP.
+
+    DATA(lo_second) = event_on( iv_id    = lv_id
+                                iv_event = `BUTTON_CHECK` ).
+    cl_abap_unit_assert=>assert_bound( lo_second->mo_action->mo_app->mt_attri ).
+    cl_abap_unit_assert=>assert_not_initial( lines( lo_second->mo_action->mo_app->mt_attri->* ) ).
+    DATA(lo_startup) = CAST z2ui5_cl_ui5_app_start( lo_second->mo_action->mo_app->mo_app ).
+    cl_abap_unit_assert=>assert_bound( lo_startup ).
+
+  ENDMETHOD.
+
 
   METHOD test_request_app_start.
 

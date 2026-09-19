@@ -107,7 +107,9 @@ Quick orientation while it loads:
 - The app checks its own authorizations at the top of `main`.
 - Validate with the abap2UI5-linter
   (`npx --yes @abap2ui5/linter <file>`); iterate without a SAP
-  system via the mcp-server (`deploy_app` → `build_backend` → `run_app`).
+  system via the mcp-server (`deploy_app` → `build_backend` → `run_app`,
+  then `interact_app` to drive the event branch and `run_unit_tests` for
+  the class's own test double — chapter 9 of the guide lists the tooling).
 - Before you finish, run the `abap-check` skill over what you wrote — it is the
   companion to this one and catches what a green lint does not: abapGit
   round-trip diffs, activation errors (`class_constructor` visibility,

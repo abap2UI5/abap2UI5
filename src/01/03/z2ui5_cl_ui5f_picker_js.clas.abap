@@ -152,13 +152,17 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");` && |\n| &&
+             `` && |\n| &&
              `    function xmlAttributesOf(control, slotKey) {` && |\n| &&
              `      const localId = String(control.getId?.() || "")` && |\n| &&
              `        .split("--")` && |\n| &&
              `        .pop();` && |\n| &&
              `      const xml = slotXml(slotKey);` && |\n| &&
              `      if (!localId || !xml) return "";` && |\n| &&
-             `      const idAttr = new RegExp(``\\sid\\s*=\\s*(?:"${localId}"|'${localId}')``);` && |\n| &&
+             `` && |\n| &&
+             `      const id = regExpEscape(localId);` && |\n| &&
+             `      const idAttr = new RegExp(``\\sid\\s*=\\s*(?:"${id}"|'${id}')``);` && |\n| &&
              `      const at = xml.search(idAttr);` && |\n| &&
              `      if (at < 0) return "";` && |\n| &&
              `      const open = xml.lastIndexOf("<", at);` && |\n| &&
@@ -175,7 +179,7 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `          let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));` && |\n| &&
              `          if (!match && attributes) {` && |\n| &&
              `            const attr = new RegExp(` && |\n| &&
-             `              ``\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')``,` && |\n| &&
+             `              ``\\s${regExpEscape(name)}\\s*=\\s*(?:"([^"]*)"|'([^']*)')``,` && |\n| &&
              `            ).exec(attributes);` && |\n| &&
              `            match = attr ? FRAMEWORK_CALL.exec(attr[1] ?? attr[2] ?? "") : null;` && |\n| &&
              `          }` && |\n| &&

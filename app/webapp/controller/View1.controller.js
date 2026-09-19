@@ -204,7 +204,7 @@ sap.ui.define(
           // _runPendingCustomJs asks isControllerAlive for the torn-down app.
           // Order unchanged: after the busy indicator is down, so
           // render-dependent actions like SET_FOCUS find their control.
-          if (!replaced) this._runPendingCustomJs(oResponse);
+          if (!replaced) await this._runPendingCustomJs(oResponse);
           if (!superseded) {
             // The event a check_queue_last wire kept while this roundtrip ran
             // goes out first: it belongs to the screen this response built.
@@ -265,13 +265,22 @@ sap.ui.define(
         queued.controller.eB(...queued.args);
       },
 
-      _runPendingCustomJs(oResponse) {
+      // Sequential, and an action that hands back a promise (SET_ODATA_MODEL
+      // loading its client on first use) is awaited before the next one
+      // runs, so the order the backend queued them in is the order their
+      // effects land in - every other action is synchronous and costs no
+      // tick here.
+      async _runPendingCustomJs(oResponse) {
         const customJs = oResponse?._pendingCustomJs;
         if (oResponse) oResponse._pendingCustomJs = null;
         if (!customJs) return;
         if (!Lib.isControllerAlive(this)) return;
         for (const item of customJs) {
-          FrontendAction.runCustom(item, this);
+          const result = FrontendAction.runCustom(item, this);
+          if (result && typeof result.then === "function") {
+            await result;
+            if (!Lib.isControllerAlive(this)) return;
+          }
         }
       },
 
@@ -301,7 +310,7 @@ sap.ui.define(
       // modules under core/actions/ (merged in core/FrontendAction.js).
       // ------------------------------------------------------------------
       eF(...args) {
-        FrontendAction.execute(this, args);
+        return FrontendAction.execute(this, args);
       },
 
       // ------------------------------------------------------------------

@@ -100,10 +100,20 @@ sap.ui.define(
     }
 
     function evStoreData(oController, args) {
-      // Guard against a missing payload so the try below logs a
-      // STORE_DATA-specific error instead of a generic dispatch failure.
-      const { TYPE, PREFIX, VALUE, KEY } =
-        storagePayload(oController, args[1]) ?? {};
+      const payload = storagePayload(oController, args[1]);
+      // No payload means nothing to write - and nothing to REMOVE either:
+      // storagePayload has already logged why a string could not be
+      // resolved, and falling through here used to destructure {} and
+      // call remove(undefined) under the app's prefix after that error.
+      if (payload == null) {
+        if (args[1] == null) {
+          Lib.logError(
+            "STORE_DATA: no payload - pass the storage structure or its model path",
+          );
+        }
+        return;
+      }
+      const { TYPE, PREFIX, VALUE, KEY } = payload;
       try {
         // the ONE type resolution both sides share (Lib.resolveStorageType):
         // the read control (cc/Storage.js) takes the type the same way

@@ -36,6 +36,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `` && |\n| &&
              `  const MAX_ITEMS = 20;` && |\n| &&
              `` && |\n| &&
+             `  const MAX_NODES = 1000;` && |\n| &&
+             `` && |\n| &&
              `  const RELOAD_KEY = "z2ui5.devtools.console";` && |\n| &&
              `  const RELOAD_MAX_ENTRIES = 40;` && |\n| &&
              `` && |\n| &&
@@ -154,8 +156,10 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    try {` && |\n| &&
              `      const ancestors = [];` && |\n| &&
              `      const walked = new WeakMap();` && |\n| &&
+             `      let nodes = 0;` && |\n| &&
              `      return JSON.stringify(value, function replace(key, val) {` && |\n| &&
              `        if (typeof val === "object" && val !== null) {` && |\n| &&
+             `          if (++nodes > MAX_NODES) return "[...]";` && |\n| &&
              `          const holder = walked.get(this) || this;` && |\n| &&
              `          while (` && |\n| &&
              `            ancestors.length > 0 &&` && |\n| &&
@@ -343,7 +347,13 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    getEntries,` && |\n| &&
              `    getDropped,` && |\n| &&
              `` && |\n| &&
-             `    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS, MAX_ITEMS },` && |\n| &&
+             `    _internals: {` && |\n| &&
+             `      renderArg,` && |\n| &&
+             `      MAX_ENTRIES,` && |\n| &&
+             `      MAX_TEXT_CHARS,` && |\n| &&
+             `      MAX_ITEMS,` && |\n| &&
+             `      MAX_NODES,` && |\n| &&
+             `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

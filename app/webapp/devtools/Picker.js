@@ -155,13 +155,17 @@ sap.ui.define(
     // slot's XML, found by the control's LOCAL id (the view prefixes the
     // XML id with its own: "mainView--btn1"). Empty for a control the XML
     // gives no id, and for one outside a slot.
+    const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
     function xmlAttributesOf(control, slotKey) {
       const localId = String(control.getId?.() || "")
         .split("--")
         .pop();
       const xml = slotXml(slotKey);
       if (!localId || !xml) return "";
-      const idAttr = new RegExp(`\\sid\\s*=\\s*(?:"${localId}"|'${localId}')`);
+      // a UI5 id may carry `.` (btn.1) - escaped, so it does not match btn-1
+      const id = regExpEscape(localId);
+      const idAttr = new RegExp(`\\sid\\s*=\\s*(?:"${id}"|'${id}')`);
       const at = xml.search(idAttr);
       if (at < 0) return "";
       const open = xml.lastIndexOf("<", at);
@@ -185,7 +189,7 @@ sap.ui.define(
           let match = FRAMEWORK_CALL.exec(String(handler?.fFunction || ""));
           if (!match && attributes) {
             const attr = new RegExp(
-              `\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`,
+              `\\s${regExpEscape(name)}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`,
             ).exec(attributes);
             match = attr ? FRAMEWORK_CALL.exec(attr[1] ?? attr[2] ?? "") : null;
           }

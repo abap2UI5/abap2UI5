@@ -1227,11 +1227,14 @@ INTERFACE z2ui5_if_client
   "! that reads it back. t_arg = the structure holding TYPE (`local`/`session`),
   "! PREFIX, KEY and VALUE - handed over as the BINDING of that structure, so
   "! the frontend takes the current value:
-  "! ``client->follow_up_action( val = client->cs_event-store_data t_arg = VALUE #( ( client->_bind( ms_storage ) ) ) )``.
+  "! ``client->follow_up_action( val = client->cs_event-store_data t_arg = VALUE #( ( |${ client->_bind( ms_storage ) }| ) ) )``.
   "! It works from a view wire and from a handler alike: on a wire UI5 resolves
   "! the binding when the view is built, and a follow-up action queued in a
   "! handler carries the model PATH, which the frontend resolves when it runs.
-  "! An empty VALUE removes the key.
+  "! The ``$`` is what makes the wire form work: a bare ``{/MS_STORAGE}``
+  "! travels raw into the handler expression, where UI5 reads it as an
+  "! object literal and the wire never fires - only ``${ }`` is a binding
+  "! there. A handler resolves both spellings. An empty VALUE removes the key.
   "!
   "! **cs_event-binding_call** - apply a declarative filter or sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller

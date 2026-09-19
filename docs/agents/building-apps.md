@@ -577,7 +577,12 @@ The same tree, with the subtree held in a variable:
   `check_queue_last = abap_true` keeps the LAST event fired on the wire and
   dispatches it once the response has landed — one roundtrip in flight at a
   time, order preserved, the backend ends on the control's current value;
-  no debounce, so a pause still costs one roundtrip. There is no flag for
+  no debounce, so a pause still costs one roundtrip. Pair it with
+  `check_no_busy = abap_true`, which keeps the full-screen busy overlay
+  down for that wire — without it every keystroke landing on a roundtrip in
+  flight raises the overlay at once, over the very field being typed into
+  (the roundtrip, the busy STATE and the guard are unchanged, only the
+  overlay is not shown). There is no flag for
   sending every firing at once: only the newest response may commit, so the
   earlier roundtrips would be work thrown away. A background wire that must
   not wait — a timer tick, a poll — needs no flag either: `START_TIMER`
@@ -752,3 +757,24 @@ The same tree, with the subtree held in a variable:
   in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5
   can express at all is answered in samples-controls' `CAPABILITIES.md`, each
   claim naming the port that proves it.
+- **Unit-test the app class without a system**: a local test double
+  `ltd_client` with `INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` in
+  the class's `.clas.testclasses.abap` answers `check_on_init` /
+  `check_on_event` / `get_event` from attributes and records what
+  `view_display( )` and `message_toast_display( )` receive; a test then
+  calls `main( )` and asserts.
+  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships
+  one for its starter class — abaplint checks it statically, ABAP Unit runs
+  it on the system, and the MCP server's `run_unit_tests` runs it in the
+  transpiled backend; `npm run test:unit` in the project and the
+  `abap2UI5/mcp-server` GitHub Action do the same at the terminal and in CI,
+  no system involved. Implement every method the app calls in the double:
+  the transpiled runtime generates no empty stubs for a `PARTIALLY
+  IMPLEMENTED` interface, a system does.
+- **`npm run doctor`** in a project made from app-template: the environment
+  check — Node, the two gates, Chromium for the render gate, the framework
+  pin, the sidecars — that names the remedy for each failure.
+- **`npm create abap2ui5-app@latest my-app -- --class zcl_my_app`**: the
+  project scaffold without a GitHub template button or an editor.
+- **`interact_app`** in the MCP server: click, type and fire events in the
+  headless app and look at the result — the event branch, not just the boot.

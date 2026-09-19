@@ -132,6 +132,15 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      "oControllerPopup",` && |\n| &&
              `      "oControllerPopover",` && |\n| &&
              `    ];` && |\n| &&
+             `` && |\n| &&
+             `    function requireODataModel() {` && |\n| &&
+             `      const loaded = sap.ui.require("sap/ui/model/odata/v2/ODataModel");` && |\n| &&
+             `      if (loaded) return Promise.resolve(loaded);` && |\n| &&
+             `      return new Promise((resolve, reject) => {` && |\n| &&
+             `        sap.ui.require(["sap/ui/model/odata/v2/ODataModel"], resolve, reject);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function isControllerAlive(oController) {` && |\n| &&
              `      if (!oController) return false;` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
@@ -415,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    function parseUrl(url) {` && |\n| &&
              `      if (!url) return null;` && |\n| &&
-             `      try {` && |\n| &&
+             `      try {` && |\n|.
+    result = result &&
              `        return new URL(url, window.location.origin);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
@@ -424,8 +434,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function hasSafeProtocol(parsed) {` && |\n| &&
-             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n|.
-    result = result &&
+             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
              `      logError(` && |\n| &&
              `        ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
              `      );` && |\n| &&
@@ -652,6 +661,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isControllerAlive,` && |\n| &&
+             `      requireODataModel,` && |\n| &&
              `      afterRoundtrip,` && |\n| &&
              `      isAlive,` && |\n| &&
              `      claimOnce,` && |\n| &&

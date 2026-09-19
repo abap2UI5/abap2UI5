@@ -140,6 +140,8 @@ not everywhere; see below. Everything else in the table is this repository's
 script and nothing else — and a consumer repository that has not turned
 `xml_bom` on can still ship a BOM-less sidecar with a green CI.
 
+**Backlog:** abaplint · abaplint-abap-final-newline
+
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
 everyone.
@@ -288,6 +290,18 @@ rather than reimplemented there. Generic types on older releases are **abaplint 
 `downport`, `fully_type_itabs`, `cloud_types`** where a repository enables
 them; the app-template core does, the sample repositories do not yet.
 
+Measured again 2026-09-19 on abaplint **2.120.52** (`check_syntax` on, an
+isolated class per shape): both class-pool traps are upstream findings now —
+a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` is *"CLASS_CONSTRUCTOR
+must be declared in the public section"*, and a test class calling a
+PROTECTED method of the global class without `LOCAL FRIENDS` is *"Method … is
+protected and cannot be accessed"*. So the upstream shortlist entry above is
+closed, and the two repository scripts are belt and braces for whoever pins
+an older abaplint. What is still nobody's upstream is in the `**Backlog:**`
+lines below — each names an item under `backlog/items/`, written to be filed
+against abaplint, since a rule about ABAP as a language belongs there and not
+in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
+
 ### The class pool
 
 | Trap | Rule |
@@ -296,6 +310,8 @@ them; the app-template core does, the sample repositories do not yet.
 | **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it |
 | **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*` |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
+
+**Backlog:** abaplint · abaplint-type-handle-method-call, abaplint-deref-of-method-call
 
 ### Generic types on older releases — the recurring one
 
@@ -322,6 +338,8 @@ the newest release. abaplint's default target accepts all of it.
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
+**Backlog:** abaplint · abaplint-generic-deref-old-releases
+
 ### VALUE constructor — a header default plus a per-row value is a syntax error
 
 - **A component assigned before the first line spec cannot be assigned again
@@ -339,7 +357,10 @@ the newest release. abaplint's default target accepts all of it.
   `value-header-default-reassigned` (2026-08-30), which follows the
   `source-line-too-long` precedent: for a consumer whose only gate is
   `npx @abap2ui5/linter`, a class that does not activate is the most severe thing
-  this tool can find.
+  this tool can find. Measured again 2026-09-19 on abaplint **2.120.52**:
+  `check_syntax` reports the row's second assignment as *"Duplicate field
+  assignment"*, so on that pin the construct no longer reaches `main` through
+  abaplint either, and the linter rule is a duplicate for such repositories.
 
 ### A literal that ends where the next token begins
 
@@ -393,6 +414,8 @@ the newest release. abaplint's default target accepts all of it.
   because a systemless pipeline sees an activation error only when somebody
   imports the transport.
 
+**Backlog:** abaplint · abaplint-into-corresponding-inline-decl
+
 ### RAP and CDS (`abap2UI5/samples-stack`)
 
 The RAP objects activate, or do not, for reasons abaplint has no model of at
@@ -433,7 +456,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-preferred-parameter-ignored
+**Backlog:** abaplint · abaplint-preferred-parameter-ignored, abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-ref-into-generic-target
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -456,6 +479,19 @@ pitfalls".
   to meet.
 - **An empty `CATCH` block** wants `##NO_HANDLER` — that is how you say the
   empty handler is deliberate. `CATCH cx_root INTO DATA(x) ##NO_HANDLER.`
+  No abaplint rule reads the block (measured on 2.120.52: `empty_structure`
+  lists no CATCH); 14 handlers without the pragma sit in the vendored ajson
+  test classes here (2026-09-19), which is what the backlog item beside this
+  section measures.
+- **A table declared without a key clause has the default key** — `DATA t
+  TYPE TABLE OF x.` is the same table as `… WITH DEFAULT KEY`: every
+  character-like component, in declaration order, and `SORT` without `BY`,
+  `COLLECT` and `DELETE ADJACENT DUPLICATES` use it unasked. abaplint's
+  `obsolete_statement` (`defaultKey`) reports only the spelled-out form
+  (measured on 2.120.52), so the commoner implicit spelling passed every gate
+  until `abap2UI5/samples-controls` app 034 shipped one and the corpus grew a
+  regex for it. Write `WITH EMPTY KEY`, or the key you mean. 31 sites in this
+  repository (2026-09-19), all in the vendored ajson code.
 - **`FIND`/`REPLACE … REGEX` is POSIX**, which is deprecated. `FIND PCRE` only
   exists on >= 7.55 and this repo targets v750/7.02. Prefer plain string logic;
   when a regex is genuinely needed, carry `##REGEX_POSIX` (the vendored AJSON
@@ -780,8 +816,24 @@ break one of those four.
   start a new one. A reserved name that still comes out raw is an upstream
   bug and belongs in the transpiler's `DEFAULT_KEYWORDS`, not in a per-project
   option here.
+- **A `PARTIALLY IMPLEMENTED` interface in a test double gets no empty stubs
+  from the transpiler.** On a system, every interface method the double does
+  not implement is generated empty and answers initial; the JS runtime
+  generates nothing, so the first call to one of them is a
+  `TypeError: ... is not a function` inside the method under test. Found the
+  day the MCP server's `run_unit_tests` first ran app-template's starter test
+  in the transpiled backend (2026-09-19): its `ltd_client` implemented the six
+  lifecycle and output methods, and `view_display( )` called
+  `check_app_prev_stack( )`, `_event_nav_app_leave( )`, `_bind( )` and
+  `_event( )` on the way — green on a system, red in the runtime. **Implement
+  every method the code under test calls**, however trivially (`_bind` may
+  answer a fixed token, `_event` its name), and keep `PARTIALLY IMPLEMENTED`
+  only for the ones it never reaches. abaplint cannot decide it - which calls
+  a test reaches is a question of control flow - and the runtime names the
+  missing method, so a failing `run_unit_tests` is the gate.
 - **`xsdbool`, never `boolc`** — the downport converts `xsdbool` to `boolc`
   automatically, so writing `boolc` yourself breaks in the other direction.
+  **abaplint — `prefer_xsdbool`** decides it (measured on 2.120.52).
 - **Not every released class is released in ABAP Cloud.**
   `CAST cl_abap_elemdescr( … )->get_ddic_field( )` is not, and
   `z2ui5_cl_pop_table` had to derive the label from `absolute_name` plus a

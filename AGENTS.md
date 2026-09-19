@@ -303,21 +303,30 @@ A number on the wire turns that into a sentence somebody can read.
 
 ### The transpiled framework is a package (`@abap2ui5/runtime`)
 
-`release.yaml` has a second job, `runtime`, that packs `node/output` (the
-transpiled framework), `node/setup/setup.mjs` (the hook `output/init.mjs`
-imports by the relative path fixed in `node/setup/abap_transpile.json`) and
-`app/webapp` into `@abap2ui5/runtime` — `node/package.json` is its manifest.
-The version is the framework's version, set at pack time; the committed
-`0.0.0-set-at-release` is deliberate. The tarball is uploaded as a workflow
-artefact on every run; `npm publish` happens only from a tag and only when the
-organisation has an `NPM_TOKEN` secret — without one the step warns and the
-run stays green, so a missing token can never un-release anything.
+`backend-prebuilt.yaml` packs the transpiled tree **twice**, from one build.
+The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
+first; two steps at the end of the same job are the second, packing
+`node/output`, `node/setup/setup.mjs` (the hook `output/init.mjs` imports by
+the relative path fixed in `node/setup/abap_transpile.json`) and `app/webapp`
+into the npm package **`@abap2ui5/runtime`** — `node/package.json` is its
+manifest. The version is the framework's, set at pack time; the committed
+`0.0.0-set-at-release` is deliberate. The `.tgz` is uploaded as a workflow
+artefact on every run; `npm publish` happens only when the organisation has an
+`NPM_TOKEN` secret — without one the step warns and the run stays green.
 
-It exists for hosts that run the framework on Node other than
-`node/srv/express.mjs` — a CAP plugin, a serverless function. A host that pins
-`@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
+Why two deliveries and not one: the tarball is resolved by NAME from a GitHub
+release and carries `node/deps` and `node/downport`, which is what a tool that
+downloads and builds against it needs (`abap2UI5/mcp-server`). A host that
+merely RUNS the framework — a CAP plugin, a serverless function — is an
+ordinary Node project: it declares dependencies in `package.json` and already
+has `npm i`, and it needs the FRONTEND, which the tarball does not carry. A
+host that pins `@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
 `z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
 version above cannot guarantee for a host that assembles them itself.
+
+It rides in that workflow rather than in `release.yaml` because the downport
+and the transpile have already run there; a job of its own would spend another
+half hour producing the same bytes.
 
 What the package promises is only what `output/init.mjs` and the webapp
 promise: it is transpiler output, and the shape of that output — the static
@@ -440,6 +449,11 @@ What is worth carrying without looking it up:
   `frontend_deploy` and `trigger_local` all rebuild or deploy from it.
 - **Every job takes its toolchain from `.github/actions/setup`** — Node version,
   pinned action sha, the `npm ci` / `app` / `deps` installs.
+- **A release also carries the prebuilt backend**: `backend-prebuilt.yaml`
+  attaches `backend-<version>.tar.gz` (the downported and transpiled tree,
+  `npm run pack:backend`) once `release.yaml` has published. The asset name
+  and its `backend-manifest.json` are read by `abap2UI5/mcp-server` — renaming
+  either is a change over there; the workflow's header has the reasoning.
 
 Both downstream repositories are **generated, never edited**: the deploy writes
 over their content, so a change made there survives only until the next push to
@@ -744,7 +758,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - When in doubt, add rather than change
    - **No public signature may name a Layer 1 type.** A `z2ui5_if_ui5_types=>…` in a `src/02` signature makes an internal a de-facto public contract and blocks renaming it. The public class declares its own type instead — see `z2ui5_cl_ui5_http_handler=>ty_s_http_res`, which is structurally identical to the core's and meets it once, in `_http_post( )`, via `MOVE-CORRESPONDING`
    - **Machine-enforced** by `check_gates.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
-   - The recorded exceptions, all owner-approved; 1-4 come from the move to the `ui5` namespace, 5 from retiring the shared type interface, 6 from renaming the exit interface and 7 from moving the pure UI5 options of the two message methods onto the control. Not a precedent for editing the snapshot on any other finding — 1 and 2 are `CHANGED`, 3 is the far heavier `REMOVED`:
+   - The recorded exceptions, all owner-approved; 1-4 come from the move to the `ui5` namespace, 5 from retiring the shared type interface, 6 from renaming the exit interface, 7 from moving the pure UI5 options of the two message methods onto the control and 8 from retiring the obsolete spellings. Not a precedent for editing the snapshot on any other finding — 1 and 2 are `CHANGED`, 3 is the far heavier `REMOVED`:
      1. `_http_post`/`_http_get`/`_main` moved from `z2ui5_if_core_types=>ty_s_http_res` to the handler's own `ty_s_http_res` when the core layer became `z2ui5_if_ui5_types`. The underscore methods had no caller outside the class's own test class
      2. `_http_post`/`_main`/`get_request` and `z2ui5_cl_exit=>init_context` moved from `z2ui5_cl_a2ui5_http=>ty_s_http_req` to `z2ui5_if_types=>ty_s_http_req` when `src/00/03` became `z2ui5_cl_ui5_*`. Structure unchanged field for field, and `get_request`/`init_context` never assigned the whole record anyway (`CORRESPONDING #( )` and field-wise writes)
      3. `z2ui5_cl_app_startup` → `z2ui5_cl_ui5_app_start` and `z2ui5_cl_app_hello_world` → `z2ui5_cl_ui5_app_hi_world` retired 17 public symbols under their old names. Unlike 1 and 2 this is a **name** change, not a type reference: a bookmarked `?app_start=z2ui5_cl_app_hello_world`, a launchpad tile pointing at either class, or downstream code naming them stops working with no fallback. Shipped deliberately without compatibility shims — if that turns out to be too sharp, the repo's own precedent is the `class` / `class_old` pair in `z2ui5_cl_ui5_app_start=>render_samples( )`
@@ -752,6 +766,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
      5. `z2ui5_if_types` retired to `src/99` so every type sits on the object that uses it: 10 `REMOVED` (its own symbols leaving the scanned folder) and 4 `CHANGED` (`get( )`, `_event( )` and the two `z2ui5_if_exit` methods, which now name the type next to them instead of one in another interface). Nothing was deleted or reshaped — the interface ships unchanged from the frozen package, so `z2ui5_if_types=>ty_s_get` still compiles downstream, and each moved type is identical field for field, so a caller's own declarations stay compatible with the new signatures. Snapshot 80 keys to **75**
      6. `z2ui5_if_exit` renamed to `z2ui5_if_ui5_exit` **without** an incompatibility: 5 `REMOVED` (the old interface's own symbols, leaving the scanned folder for `src/99`) against 5 additions under the new name. Every existing exit keeps working - the old interface ships unchanged and `z2ui5_cl_ui5_user_exit` still looks it up and calls it - and its three types are declared AS the ones on the new interface (`types ty_s_http_config type z2ui5_if_ui5_exit=>ty_s_http_config`) rather than repeated, so they cannot drift while the framework hands the same structure to both
      7. `message_toast_display( )` and `message_box_display( )` lost every parameter that was a **plain UI5 option** and nothing else: 11 on the toast (`width`, `my`, `at`, `of`, `offset`, `collision`, `autoclose`, `animationtimingfunction`, `animationduration`, `closeonbrowsernavigation`, `class`) and 5 on the box (`textdirection`, `icon`, `closeonnavigation`, `dependenton`, `contentwidth`). 2 `CHANGED`, and unlike 1-6 this one **breaks a caller at compile time** rather than relocating a name — which is the whole reason it is recorded here. The rule it draws: the client method carries what an ABAP app decides (the data in any shape, the kind of box, the buttons as a table, the backend event its closing raises), a pure pass-through option is set on the CONTROL, as the option object of a `CONTROL_GLOBAL` `MESSAGE_TOAST`/`MESSAGE_BOX` call — the same object the method itself builds, so nothing an app could express before is out of reach, and `Z2UI5_CL_SMP_APP_381` / `Z2UI5_CL_SMP_APP_512` are the two samples that show the pair. What stayed is what an ABAP app decides: `text TYPE any`, `type`, `title`, `styleclass`, `actions`, `emphasizedaction`, `initialfocus`, `details`, `onclose` on the box; `text`, `duration`, `onclose` on the toast.
+     8. The removals of 2026-09-13/14, each a `REMOVED` or `CHANGED` of its own and each recorded with its migration in `docs/removal-plan.md` §0 and in `changelog.txt`: `ty_s_event_control-check_allow_multi_req` (replaced by `check_queue_last`), the inert `view` parameter of `_bind( )` / `_bind_edit( )`, the obsolete URL-API spellings `set_push_state( )`, `set_app_state_active( )`, `cs_event-set_nav_routing`, `cs_event-set_push_state`, `cs_event-set_app_state_active`, `cs_event-clipboard_app_state` and `cs_event-wizard_set_next_step`. Zero callers in the ecosystem at removal; the new entry goes here AND into the removal plan, so this list stays the complete record it claims to be
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID), their properties and events (bound by existing app views), the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers — **deprecated**, kept as a backward-compatible alias; new code and new helpers go through `z2ui5/model/formatter` / the `z2ui5.Formatter` global, which re-exports them). Additive changes only. View XML using the custom controls must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 8. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields) and provides the defaults for all internal fields. Framework modules must not reference the `z2ui5` global directly (ui5lint `no-project-globals`): internal fields are accessed via the `AppState.state` module export, public-contract fields via `AppState.getGlobal()/setGlobal()`. AppState itself is the only module that touches the global — it exposes the internal fields there via accessors so external consumers (apps via the js_loader popup, backend-generated HTML) keep working. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.

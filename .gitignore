@@ -2,7 +2,13 @@
 node/deps/
 node_modules
 /node/output/
-# app/webapp copied in by release.yaml for the @abap2ui5/runtime package
+# What `tar -xzf backend-<version>.tar.gz -C <checkout>` leaves behind: the
+# three trees above plus the manifest at the root - and the tarball itself,
+# which `npm run pack:backend` writes here (node/setup/pack-backend.mjs)
+/backend-manifest.json
+/backend-*.tar.gz
+
+# app/webapp copied in by backend-prebuilt.yaml for the @abap2ui5/runtime package
 /node/webapp/
 /node/coverage/
 /coverage/
@@ -45,3 +51,8 @@ tools/out/
 /e2e-downport.jsonc
 /e2e-transpile.json
 /node/open-abap-core/
+# And the dev sandbox that repository's deploy_app writes when there is no
+# samples-controls checkout to hold it: the deployed app classes the
+# incremental transpile copies into node/downport. Owned by the mcp-server,
+# removed by its remove_app.
+/node/zz_dev/
