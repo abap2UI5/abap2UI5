@@ -308,8 +308,14 @@ The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
 first; two steps at the end of the same job are the second, packing
 `node/output`, `node/setup/setup.mjs` (the hook `output/init.mjs` imports by
 the relative path fixed in `node/setup/abap_transpile.json`) and `app/webapp`
-into the npm package **`@abap2ui5/runtime`** — `node/package.json` is its
-manifest. The version is the framework's, set at pack time; the committed
+into the npm package **`@abap2ui5/runtime`** —
+`node/setup/runtime.package.json` is its manifest, copied into a staging
+directory outside the checkout at pack time. **It is deliberately not
+`node/package.json`:** a `package.json` inside `node/` makes that directory an
+npm package root, so `npm run <script>` from there stops walking up to this
+repository's scripts — `cd node && npm run express` answers *"Missing script"*,
+which is what `node/playwright.config.js` starts its web server with, and all
+four browser projects fail to boot. The file's own header records it. The version is the framework's, set at pack time; the committed
 `0.0.0-set-at-release` is deliberate. The `.tgz` is uploaded as a workflow
 artefact on every run; `npm publish` happens only when the organisation has an
 `NPM_TOKEN` secret — without one the step warns and the run stays green.

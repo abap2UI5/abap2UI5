@@ -1,4 +1,14 @@
 {
+  "_comment": [
+    "The manifest of @abap2ui5/runtime. It lives HERE and NOT at node/package.json:",
+    "a package.json inside node/ makes that directory an npm package root, and",
+    "`npm run <script>` from there stops walking up to this repository's own",
+    "scripts. `cd node && npm run express` then answers `Missing script: express`,",
+    "which is exactly what node/playwright.config.js starts its web server with -",
+    "so all four browser projects failed to boot (#2772, found by CI).",
+    "backend-prebuilt.yaml copies this file to package.json in a STAGING directory",
+    "outside the checkout, assembles the three trees beside it, and packs there."
+  ],
   "name": "@abap2ui5/runtime",
   "version": "0.0.0-set-at-release",
   "description": "abap2UI5 transpiled to JavaScript by @abaplint/transpiler over open-abap: the framework (output/), the setup hook it imports (setup/) and the UI5 shell (webapp/) from one release commit. Published by release.yaml; the version is the framework's.",

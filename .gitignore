@@ -8,8 +8,8 @@ node_modules
 /backend-manifest.json
 /backend-*.tar.gz
 
-# app/webapp copied in by backend-prebuilt.yaml for the @abap2ui5/runtime package
-/node/webapp/
+# the @abap2ui5/runtime tarball, staged by backend-prebuilt.yaml before upload
+/runtime-package/
 /node/coverage/
 /coverage/
 .github/out

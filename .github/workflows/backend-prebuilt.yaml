@@ -132,20 +132,33 @@ jobs:
     # host that RUNS the framework needs the frontend from the same commit as
     # the backend - that is the guarantee the package exists to give, and the
     # one z2ui5_if_ui5_types=>c_protocol cannot give a host that pairs the
-    # halves itself. node/package.json is the manifest.
+    # halves itself.
+    #
+    # Assembled in a STAGING directory outside the checkout, and the manifest
+    # is node/setup/runtime.package.json rather than node/package.json: a
+    # package.json inside node/ makes that directory an npm package root, so
+    # `npm run express` from there stops finding this repository's scripts and
+    # every browser project fails to boot. The header of that file says so too.
     - name: Pack @abap2ui5/runtime
       id: pack_npm
       run: |
         VERSION="$(node -p "require('./package.json').version")"
-        rm -rf node/webapp && cp -r app/webapp node/webapp
-        (cd node && npm version --no-git-tag-version "$VERSION" && npm pack)
-        ls -la node/*.tgz
+        STAGE="$(mktemp -d)"
+        mkdir -p "$STAGE/setup"
+        cp node/setup/runtime.package.json "$STAGE/package.json"
+        cp -r node/output "$STAGE/output"
+        cp node/setup/setup.mjs "$STAGE/setup/setup.mjs"
+        cp -r app/webapp "$STAGE/webapp"
+        (cd "$STAGE" && npm version --no-git-tag-version "$VERSION" && npm pack)
+        mkdir -p runtime-package && cp "$STAGE"/*.tgz runtime-package/
+        ls -la runtime-package/
         echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "stage=$STAGE" >> "$GITHUB_OUTPUT"
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: abap2ui5-runtime-${{ steps.pack_npm.outputs.version }}
-        path: node/*.tgz
+        path: runtime-package/*.tgz
         if-no-files-found: error
 
     # Published only when the organisation has stored an NPM_TOKEN (an
@@ -156,10 +169,11 @@ jobs:
     - name: Publish @abap2ui5/runtime
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        STAGE: ${{ steps.pack_npm.outputs.stage }}
       run: |
         if [ -z "$NODE_AUTH_TOKEN" ]; then
           echo "::warning::NPM_TOKEN is not set - @abap2ui5/runtime ${{ steps.pack_npm.outputs.version }} was packed (see the workflow artefact) but not published."
           exit 0
         fi
         echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-        (cd node && npm publish ./*.tgz --access public)
+        (cd "$STAGE" && npm publish ./*.tgz --access public)
