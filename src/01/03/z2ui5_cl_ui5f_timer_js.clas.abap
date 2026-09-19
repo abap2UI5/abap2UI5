@@ -89,7 +89,10 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
              `        Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `        oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
              `` && |\n| &&
-             `        if (!oControl._pendingTimer) clearTimeout(oControl._timerId);` && |\n| &&
+             `        if (!oControl._pendingTimer) {` && |\n| &&
+             `          clearTimeout(oControl._timerId);` && |\n| &&
+             `          oControl._timerId = null;` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&

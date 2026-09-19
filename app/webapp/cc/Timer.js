@@ -76,7 +76,10 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         // a render with checkActive false is the app switching the timer
         // off - release a tick that is still armed (the callback would
         // bail out anyway, this frees the timer as well)
-        if (!oControl._pendingTimer) clearTimeout(oControl._timerId);
+        if (!oControl._pendingTimer) {
+          clearTimeout(oControl._timerId);
+          oControl._timerId = null;
+        }
       },
     },
   });

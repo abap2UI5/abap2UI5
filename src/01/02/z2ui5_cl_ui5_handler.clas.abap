@@ -295,19 +295,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " o_model is filled the way the no-S_FRONT path below fills it: every
     " reader of ty_s_request may dereference it without asking.
     "
-    " condense( ) in a VARIABLE and not in the operand of IS INITIAL: a 7.02
-    " built-in function is only read as a function where a string expression
-    " is allowed, and the operand of a predicate expression is not such a
-    " position on the releases this repository targets. The compiler falls
-    " back to its other reading of `name( ... )`, a functional METHOD call, and
-    " answers `Unexpected operator "IS"` - a SYNTAX_ERROR of the whole class
-    " pool, reported from a system's SYNTAX_CHECK run. A plain assignment IS
-    " an expression position, so the variable is the entire fix (the same one
-    " check:downport asks for in the positions it already knows), and it costs
-    " nothing: the old spelling evaluated condense( ) for every non-empty body
-    " too, the OR only short-circuited the empty one
-    DATA(lv_body) = condense( val ).
-    IF lv_body IS INITIAL.
+    " `CO space` and not condense( ): the question is only whether the body
+    " holds anything but blanks, and CO answers it at the first character
+    " that is not one, while condense( ) COPIED the whole body - a mass-edit
+    " delta of megabytes - into a second string on every request just to
+    " test that copy for emptiness. It is also what keeps a 7.02 built-in out
+    " of the operand of IS INITIAL, which is not an expression position there
+    " (the compiler reads `condense( val ) IS` as a method call and answers
+    " `Unexpected operator "IS"`, a SYNTAX_ERROR of the whole class pool,
+    " reported from a system's SYNTAX_CHECK run - see check:downport)
+    IF val IS INITIAL OR val CO space.
       result-o_model = z2ui5_cl_ajson=>create_empty( ).
       RETURN.
     ENDIF.
