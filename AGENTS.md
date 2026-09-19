@@ -242,14 +242,14 @@ none are needed: an interface reference takes the plain method names. A caller
 holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
 second reason everything goes through the factory.
 
-### App state serialization (`z2ui5_if_ui5_app_serializer`)
+### App state serialization (`z2ui5_if_ui5_serializer`)
 
 The state that goes into the draft is the whole `z2ui5_cl_ui5_app_cont` — the
 app instance, `mt_attri`, the draft ids — turned into a string by
 `all_xml_stringify( )` and rebuilt by `all_xml_parse( )`. Both now delegate to
 `z2ui5_cl_ui5_app_cont=>get_serializer( )`.
 
-The shipped implementation, `z2ui5_cl_ui5_app_serializer`, is the mechanism
+The shipped implementation, `z2ui5_cl_ui5_serializer`, is the mechanism
 that has always run here and is unchanged statement for statement:
 `main_attri_db_save_srtti( )` detaches the data references, `CALL TRANSFORMATION
 id` writes the asXML, `main_attri_reattach( )` gives the live instance its
@@ -271,7 +271,7 @@ it was wired straight into the container.
 Both ends of the interface are `REF TO object`, not `REF TO
 z2ui5_cl_ui5_app_cont`: an interface here may not reference a class
 (`intf_referencing_clas`, an error) and naming it would close a cycle, since
-the container is what calls the interface. `z2ui5_cl_ui5_app_serializer`
+the container is what calls the interface. `z2ui5_cl_ui5_serializer`
 narrows once, in `narrow( )`. Note the typed local in its `parse( )` — the
 transformation rebuilds the object from the class named in the asXML and needs
 a concretely typed target, so a `REF TO object` there would give it nothing to

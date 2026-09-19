@@ -791,6 +791,28 @@ break one of those four.
   **Gate:** `npm run check:downport` over `src/` keeps the two positions an
   author writes 7.02-ready themselves, which the downport passes through as
   they stand: a `WITH [TABLE] KEY` operand and an internal-table `WHERE`.
+- **An object name over 25 characters breaks the namespace rename.** There is a
+  fourth target, and it is easy to forget because nothing in `src/` mentions it:
+  `build-rename.yaml` produces the `rename_<name>` branches for a consumer who
+  needs a different namespace, by running `abaplint --rename` with
+  `^z2ui5(.*)$` → `<namespace>$1`. The placeholder the PR gate renames to,
+  `znamespace`, is the **worst case the workflow allows** — 10 characters, five
+  more than `z2ui5` — so an object name of 27 characters becomes 32 and ABAP's
+  30-character limit refuses it. abaplint stops the whole rename with a bare
+  `Error: Name not allowed` and no file name, so the message does not say which
+  object it choked on; the line above it in the output does.
+  **Every object name in `src/` must be 25 characters or less.** The rule is
+  written down in `.github/abaplint/rename.jsonc`'s own header — and it is worth
+  reading that file before adding an object, because the only place the budget
+  appears is a comment inside the config that enforces it. Found on
+  `z2ui5_if_ui5_app_serializer` / `z2ui5_cl_ui5_app_serializer` (2026-09-19,
+  #2772): 27 characters each, the only two objects in the tree over the budget,
+  renamed to `z2ui5_if_ui5_serializer` / `z2ui5_cl_ui5_serializer` (23). Note
+  what did *not* see it — `check:naming` reads the namespace segment and not the
+  length, `check:abapgit` checks that `<CLSNAME>` matches the file name and not
+  how long either is, and abaplint over `src/` is green because the name is
+  legal until it is renamed. **Gate: `npm run rename`**, which `abaplint.yaml`
+  runs last for exactly this reason.
 - **Do not let an inline `DATA(…)` take its type from an offset/length
   expression.** `DATA(lv_field) = ls_attri->name+9.` made abaplint's
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and

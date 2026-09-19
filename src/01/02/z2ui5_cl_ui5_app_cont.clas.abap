@@ -101,12 +101,12 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     "! The serializer the framework uses. Without set_serializer( ) this
-    "! answers a fresh z2ui5_cl_ui5_app_serializer on every call - the asXML
+    "! answers a fresh z2ui5_cl_ui5_serializer on every call - the asXML
     "! round trip that has always run here - so a system that installs
     "! nothing behaves identically.
     CLASS-METHODS get_serializer
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_app_serializer.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_serializer.
 
     "! Install a host's own serializer. Meant for a runtime that is not an
     "! SAP system, where CALL TRANSFORMATION id over a type descriptor has no
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     "! @parameter serializer | the implementation to use from now on
     CLASS-METHODS set_serializer
       IMPORTING
-        serializer TYPE REF TO z2ui5_if_ui5_app_serializer.
+        serializer TYPE REF TO z2ui5_if_ui5_serializer.
 
     TYPES:
       BEGIN OF ty_s_buffer,
@@ -147,7 +147,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " Unbound unless a host installed one. Deliberately NOT pre-filled: the
     " shipped serializer holds no state, and answering a fresh one keeps the
     " previous inline semantics exactly.
-    CLASS-DATA gi_serializer TYPE REF TO z2ui5_if_ui5_app_serializer.
+    CLASS-DATA gi_serializer TYPE REF TO z2ui5_if_ui5_serializer.
 
     METHODS create_model
       RETURNING
@@ -177,7 +177,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       result = gi_serializer.
       RETURN.
     ENDIF.
-    result = NEW z2ui5_cl_ui5_app_serializer( ).
+    result = NEW z2ui5_cl_ui5_serializer( ).
 
   ENDMETHOD.
 

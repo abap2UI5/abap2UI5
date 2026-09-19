@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized">abap2UI5 - app state serializer</p>
 "!
 "! How an app's state becomes a string between two roundtrips, and how it comes
-"! back. The shipped implementation is z2ui5_cl_ui5_app_serializer, which uses
+"! back. The shipped implementation is z2ui5_cl_ui5_serializer, which uses
 "! CALL TRANSFORMATION id over the container plus S-RTTI for the data
 "! references - that is what every system gets and nothing about it changes.
 "!
@@ -18,7 +18,7 @@
 "! on with - same app instance state, same mt_attri, same ms_draft. The string
 "! in between is the implementation's business and nothing reads it but the
 "! same implementation.
-INTERFACE z2ui5_if_ui5_app_serializer
+INTERFACE z2ui5_if_ui5_serializer
   PUBLIC.
 
   " Both ends are REF TO object rather than REF TO z2ui5_cl_ui5_app_cont, and

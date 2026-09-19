@@ -1,8 +1,8 @@
-CLASS z2ui5_cl_ui5_app_serializer DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_ui5_serializer DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES z2ui5_if_ui5_app_serializer.
+    INTERFACES z2ui5_if_ui5_serializer.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -27,7 +27,7 @@ CLASS z2ui5_cl_ui5_app_serializer DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app_serializer IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   METHOD model_for.
 
@@ -42,7 +42,7 @@ CLASS z2ui5_cl_ui5_app_serializer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_ui5_app_serializer~parse.
+  METHOD z2ui5_if_ui5_serializer~parse.
 
     " The transformation needs a CONCRETELY typed target - it rebuilds the
     " object from the class named in the asXML, and a REF TO object gives it
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_ui5_app_serializer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_ui5_app_serializer~stringify.
+  METHOD z2ui5_if_ui5_serializer~stringify.
 
     DATA(lo_cont) = narrow( container ).
     DATA(lo_model) = model_for( lo_cont ).
