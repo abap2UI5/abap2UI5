@@ -53,6 +53,12 @@ sap.ui.define([], () => {
   // installs unconditionally.
   const MAX_ITEMS = 20;
 
+  // Nodes one entry may walk before the rest is one marker. The array cap
+  // above bounds a long TABLE, but a map-shaped object - one key per row, a
+  // lookup with thousands of keys - was still stringified in full before
+  // the 2000-character cut, on every console.log of it.
+  const MAX_NODES = 1000;
+
   // sessionStorage key of the entries carried across a page reload, and
   // how many travel. Only ERROR level: an app that died and was reloaded
   // throws away exactly the evidence you need, and the errors are the
@@ -237,8 +243,10 @@ sap.ui.define([], () => {
       // self-referencing long array - intact.
       const ancestors = [];
       const walked = new WeakMap();
+      let nodes = 0;
       return JSON.stringify(value, function replace(key, val) {
         if (typeof val === "object" && val !== null) {
+          if (++nodes > MAX_NODES) return "[...]";
           const holder = walked.get(this) || this;
           while (
             ancestors.length > 0 &&
@@ -461,6 +469,12 @@ sap.ui.define([], () => {
     getEntries,
     getDropped,
     // exposed for the unit specs
-    _internals: { renderArg, MAX_ENTRIES, MAX_TEXT_CHARS, MAX_ITEMS },
+    _internals: {
+      renderArg,
+      MAX_ENTRIES,
+      MAX_TEXT_CHARS,
+      MAX_ITEMS,
+      MAX_NODES,
+    },
   };
 });

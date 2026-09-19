@@ -3,22 +3,12 @@ sap.ui.define(
     "sap/ui/core/mvc/XMLView",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
-    "sap/ui/model/odata/v2/ODataModel",
     "z2ui5/core/Server",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
-  (
-    XMLView,
-    Fragment,
-    JSONModel,
-    ODataModel,
-    Server,
-    Lib,
-    ViewSlots,
-    AppState,
-  ) => {
+  (XMLView, Fragment, JSONModel, Server, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -285,6 +275,8 @@ sap.ui.define(
       // keep the JSON model as the named "http" model.
       let oModel;
       if (switchPath) {
+        // loaded on first use - see Lib.requireODataModel
+        const ODataModel = await Lib.requireODataModel();
         oModel = new ODataModel({
           serviceUrl: switchPath,
           annotationURI: mOptions.switchDefaultModelAnnoUri || "",

@@ -30,22 +30,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    "sap/ui/core/mvc/XMLView",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (` && |\n| &&
-             `    XMLView,` && |\n| &&
-             `    Fragment,` && |\n| &&
-             `    JSONModel,` && |\n| &&
-             `    ODataModel,` && |\n| &&
-             `    Server,` && |\n| &&
-             `    Lib,` && |\n| &&
-             `    ViewSlots,` && |\n| &&
-             `    AppState,` && |\n| &&
-             `  ) => {` && |\n| &&
+             `  (XMLView, Fragment, JSONModel, Server, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
@@ -210,6 +200,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      let oModel;` && |\n| &&
              `      if (switchPath) {` && |\n| &&
+             `        const ODataModel = await Lib.requireODataModel();` && |\n| &&
              `        oModel = new ODataModel({` && |\n| &&
              `          serviceUrl: switchPath,` && |\n| &&
              `          annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&

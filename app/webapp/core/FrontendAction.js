@@ -48,7 +48,10 @@ sap.ui.define(
       ViewOps.handlers,
     );
 
-    // Entry point called by View1.controller's eF().
+    // Entry point called by View1.controller's eF(). Hands the handler's
+    // result back: a handler that loads something on first use returns a
+    // promise, and the custom-action runner awaits it so the actions queued
+    // behind it in the same response see its work done.
     function execute(oController, args) {
       // runCallbacks isolates each hook in its own try/catch, so a throwing
       // before-event hook cannot escape here.
@@ -57,7 +60,7 @@ sap.ui.define(
       try {
         const handler = handlers[args[0]];
         if (handler) {
-          handler(oController, args);
+          return handler(oController, args);
         } else {
           // a typo in follow_up_action( ) or a wire an older frontend does
           // not know used to say nothing anywhere, while the SYSTEM phase
@@ -69,6 +72,7 @@ sap.ui.define(
         // malformed payload must never let an error escape into the caller.
         Lib.logError(`FrontendAction: handler '${args[0]}' failed`, e);
       }
+      return undefined;
     }
 
     // Entry point for the SYSTEM phase. Two differences to execute( ), both
@@ -129,8 +133,7 @@ sap.ui.define(
     function runCustom(item, oController) {
       try {
         if (Array.isArray(item)) {
-          oController.eF(...item);
-          return;
+          return oController.eF(...item);
         }
         const snippet = item.trim();
         if (snippet.startsWith("[")) {
@@ -140,8 +143,7 @@ sap.ui.define(
           try {
             const args = JSON.parse(snippet);
             if (Array.isArray(args)) {
-              oController.eF(...args);
-              return;
+              return oController.eF(...args);
             }
           } catch {
             // not JSON - keep going with the legacy formats
@@ -151,6 +153,7 @@ sap.ui.define(
       } catch (e) {
         Lib.logError("customJs: execution failed", e);
       }
+      return undefined;
     }
 
     return { execute, executeSystem, runSystem, runCustom };

@@ -94,7 +94,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function slotXmlStore() {` && |\n| &&
-             `      if (!AppState.state.slotXml) AppState.state.slotXml = {};` && |\n| &&
              `      return AppState.state.slotXml;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -103,7 +102,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function slotAppStore() {` && |\n| &&
-             `      if (!AppState.state.slotApp) AppState.state.slotApp = {};` && |\n| &&
              `      return AppState.state.slotApp;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

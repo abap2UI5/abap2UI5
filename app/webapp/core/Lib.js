@@ -199,6 +199,24 @@ sap.ui.define(
       "oControllerPopup",
       "oControllerPopover",
     ];
+    // The OData v2 client, loaded the first time an app asks for one. It is
+    // the one UI5 dependency this frontend names that almost no app uses,
+    // and by far the most expensive: sap/ui/model/odata/v2/ODataModel pulls
+    // in the whole sap/ui/model/odata cluster plus sap/ui/thirdparty/datajs,
+    // which is NOT in the core preload - one more request and some forty
+    // module factories on every cold start, paid by every app for the few
+    // that switch their default model or issue SET_ODATA_MODEL. So the two
+    // places that need it (actions/Slots displayView, actions/ViewOps
+    // SET_ODATA_MODEL) ask here instead of naming it in sap.ui.define, and
+    // a client already loaded is handed back without a tick.
+    function requireODataModel() {
+      const loaded = sap.ui.require("sap/ui/model/odata/v2/ODataModel");
+      if (loaded) return Promise.resolve(loaded);
+      return new Promise((resolve, reject) => {
+        sap.ui.require(["sap/ui/model/odata/v2/ODataModel"], resolve, reject);
+      });
+    }
+
     function isControllerAlive(oController) {
       if (!oController) return false;
       const state = AppState.state;
@@ -1010,6 +1028,7 @@ sap.ui.define(
       logError,
       isDestroyed,
       isControllerAlive,
+      requireODataModel,
       afterRoundtrip,
       isAlive,
       claimOnce,

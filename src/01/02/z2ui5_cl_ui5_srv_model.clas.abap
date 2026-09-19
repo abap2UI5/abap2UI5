@@ -881,6 +881,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF <dref> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
+      " never this row table itself: a public object attribute of the app
+      " can lead the dissolve walk back to the container (diss_oref skips
+      " the client for that reason), and detaching THIS reference writes an
+      " empty MT_ATTRI into the draft - a second guard, so no other route
+      " into the framework graph can do it either
+      IF <dref> = mt_attri.
+        CONTINUE.
+      ENDIF.
       INSERT VALUE #( name = lr_attri->name
                       ref  = REF #( <dref> ) ) INTO TABLE lt_dref.
 
@@ -1226,6 +1234,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     DATA(lr_ref) = z2ui5_cl_ui5_util_context=>unassign_object( lr_val ).
+
+    " Nothing bindable lives behind the framework's own client object, and
+    " walking it walks the whole roundtrip graph: client -> action -> handler
+    " -> app container -> this row table, and round again. The shipped start
+    " app holds its client PUBLIC (the template it was written against did),
+    " which put 300 rows under CLIENT-> into every draft of the start page -
+    " and one of them resolved to this very row table, which the save then
+    " detached (main_attri_db_save_srtti) and wrote as an empty MT_ATTRI, so
+    " the next roundtrip of the start page found no rows to load
+    IF z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lr_ref ) = `Z2UI5_CL_UI5_CLIENT`.
+      RETURN.
+    ENDIF.
+
     DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_oref( lr_ref ).
 
     DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).

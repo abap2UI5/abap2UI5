@@ -119,7 +119,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            AppState.state.isBusy = false;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          if (!replaced) this._runPendingCustomJs(oResponse);` && |\n| &&
+             `          if (!replaced) await this._runPendingCustomJs(oResponse);` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            this._dispatchQueuedEvent();` && |\n| &&
              `` && |\n| &&
@@ -149,13 +149,17 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        queued.controller.eB(...queued.args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _runPendingCustomJs(oResponse) {` && |\n| &&
+             `      async _runPendingCustomJs(oResponse) {` && |\n| &&
              `        const customJs = oResponse?._pendingCustomJs;` && |\n| &&
              `        if (oResponse) oResponse._pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
              `        if (!Lib.isControllerAlive(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
-             `          FrontendAction.runCustom(item, this);` && |\n| &&
+             `          const result = FrontendAction.runCustom(item, this);` && |\n| &&
+             `          if (result && typeof result.then === "function") {` && |\n| &&
+             `            await result;` && |\n| &&
+             `            if (!Lib.isControllerAlive(this)) return;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -176,7 +180,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      eF(...args) {` && |\n| &&
-             `        FrontendAction.execute(this, args);` && |\n| &&
+             `        return FrontendAction.execute(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      eBP(oEvent, bVeto, ...args) {` && |\n| &&
