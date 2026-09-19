@@ -761,7 +761,11 @@ The same tree, with the subtree held in a variable:
   [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships
   one for its starter class — abaplint checks it statically, ABAP Unit runs
   it on the system, and the MCP server's `run_unit_tests` runs it in the
-  transpiled backend.
+  transpiled backend; `npm run test:unit` in the project and the
+  `abap2UI5/mcp-server` GitHub Action do the same at the terminal and in CI,
+  no system involved. Implement every method the app calls in the double:
+  the transpiled runtime generates no empty stubs for a `PARTIALLY
+  IMPLEMENTED` interface, a system does.
 - **`npm run doctor`** in a project made from app-template: the environment
   check — Node, the two gates, Chromium for the render gate, the framework
   pin, the sidecars — that names the remedy for each failure.
