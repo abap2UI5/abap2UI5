@@ -108,6 +108,17 @@ tab: same gates, same notes, no tag and no release.
 
 ## After a release
 
+- **The prebuilt backend arrives later.** Publishing the release triggers
+  `backend-prebuilt.yaml`, which checks out the tag, downports, transpiles,
+  runs the unit suite and attaches `backend-<version>.tar.gz` to the `X.Y.Z`
+  release — tens of minutes after the release exists, so a release without
+  that asset for a while is normal, and `release.yaml` does not wait for it.
+  If the run failed, or a past release needs the asset, dispatch the workflow
+  by hand with the tag: it rebuilds and re-attaches (`--clobber`). The asset
+  name and its `backend-manifest.json` are what `abap2UI5/mcp-server`
+  downloads instead of building the backend itself — renaming either is a
+  change over there first. The `-702` release gets no asset: it is the
+  downported sources, and the backend is built from the same commit anyway.
 - **The ecosystem can pin again.** Anything resolving the framework from `main`
   out of necessity rather than choice should name the new tag once it carries
   what that repository needs. `app-template`'s `abaplint.jsonc` is the standing

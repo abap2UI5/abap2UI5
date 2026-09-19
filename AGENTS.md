@@ -307,6 +307,11 @@ What is worth carrying without looking it up:
   `frontend_deploy` and `trigger_local` all rebuild or deploy from it.
 - **Every job takes its toolchain from `.github/actions/setup`** — Node version,
   pinned action sha, the `npm ci` / `app` / `deps` installs.
+- **A release also carries the prebuilt backend**: `backend-prebuilt.yaml`
+  attaches `backend-<version>.tar.gz` (the downported and transpiled tree,
+  `npm run pack:backend`) once `release.yaml` has published. The asset name
+  and its `backend-manifest.json` are read by `abap2UI5/mcp-server` — renaming
+  either is a change over there; the workflow's header has the reasoning.
 
 Both downstream repositories are **generated, never edited**: the deploy writes
 over their content, so a change made there survives only until the next push to
