@@ -28,5 +28,101 @@
     "repos": [
       "abap2UI5"
     ]
+  },
+  "abaplint-abap-final-newline": {
+    "describe": "a file not ending with exactly one newline, with the correctly terminated files counted per repository",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
+  },
+  "abaplint-abapdoc-html-tag": {
+    "describe": "an unsupported tag-like token in ABAP Doc, with the ABAP Doc markup tags as the negatives",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 948,
+    "repos": []
+  },
+  "abaplint-default-key-implicit": {
+    "describe": "an implicit default-key table declaration, with the explicit WITH DEFAULT KEY as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 31,
+    "negatives": 12,
+    "repos": [
+      "abap2UI5"
+    ]
+  },
+  "abaplint-deref-of-method-call": {
+    "describe": "`)->*` — a call or constructor expression dereferenced inline, with `var->*` as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 339,
+    "repos": []
+  },
+  "abaplint-empty-catch-block": {
+    "describe": "an empty CATCH block without ##NO_HANDLER, with the pragma-carrying one as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 14,
+    "negatives": 104,
+    "repos": [
+      "abap2UI5"
+    ]
+  },
+  "abaplint-get-reference-obsolete": {
+    "describe": "GET REFERENCE OF, with the REF constructor as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 25,
+    "negatives": 118,
+    "repos": [
+      "abap2UI5"
+    ]
+  },
+  "abaplint-into-corresponding-inline-decl": {
+    "describe": "CORRESPONDING FIELDS OF … @DATA( ) in a SELECT, with INTO TABLE @DATA( ) and a declared target as the negatives",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 8,
+    "repos": []
+  },
+  "abaplint-ref-into-generic-target": {
+    "describe": "REF #( ) assigned to a generically typed target, with the typed target as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 39,
+    "repos": []
+  },
+  "abaplint-type-handle-method-call": {
+    "describe": "a CREATE DATA/OBJECT … TYPE HANDLE operand that is a call, with the plain variable operand as the negative",
+    "ran": "2026-09-19",
+    "checkouts": [
+      "abap2UI5"
+    ],
+    "sites": 0,
+    "negatives": 46,
+    "repos": []
   }
 }
