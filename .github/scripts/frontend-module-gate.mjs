@@ -83,7 +83,6 @@ const ALLOWED = new Set([
   'sap/ui/model/FilterOperator',
   'sap/ui/model/Sorter',
   'sap/ui/model/json/JSONModel',
-  'sap/ui/model/odata/v2/ODataModel',
   'sap/ui/unified/FileUploader',
   'sap/ui/util/Storage',
 ]);
@@ -135,6 +134,9 @@ const REQUIRE_ARRAY = /sap\.ui\.require\s*\(\s*\[([^\]]*)\]/g;
  * checked is that the id is one somebody verified against UI5, spelling
  * included. */
 const ALLOWED_REQUIRE = new Set([
+  // loaded on first use by Lib.requireODataModel - the OData v2 client is
+  // the one dependency almost no app needs, and it drags datajs along
+  'sap/ui/model/odata/v2/ODataModel',
   'sap/base/Log',
   'sap/base/i18n/Formatting',      // @since 1.120
   'sap/base/i18n/Localization',

@@ -3,8 +3,8 @@
 // or interprets its structure. Two others read the raw hash and neither
 // splits it: core/Server.js ships it as S_FRONT.HASH on every request, and
 // core/actions/Launchpad.js takes the part before the "#" as a base URL. A
-// module that needs more than that - a link to rebuild, a route to parse -
-// asks this one (hrefFor, parse), it does not read location.hash itself.
+// module that needs more than that - a route to parse, a hash to split -
+// asks this one (parse, splitHash), it does not read location.hash itself.
 //
 // Why a module of its own: a UI5 app hash means two different things
 // depending on where the app runs, and every place that reads or writes the
@@ -105,26 +105,6 @@ sap.ui.define(
       // the write's own echo would escape the adopt-compare and round-trip
       if (app === "/") return "";
       return app && !app.startsWith("/") ? `/${app}` : app;
-    }
-
-    // Build an absolute URL for an app hash, keeping the FLP shell hash in
-    // place so the link reopens the same launchpad target. Used by the
-    // copy-link features - a bare `location.href.split("#")[0] + "#" + hash`
-    // would drop the shell hash and land the recipient on the FLP home page.
-    function hrefFor(sAppHash) {
-      const base = window.location.href.split("#")[0];
-      const raw = getRawHash();
-      let shell = splitHash(raw).shell;
-      // location.hash is the RAW hash: a bare non-"/" form is a launchpad
-      // intent opened from the tile - ALL shell - even though splitHash
-      // (built for the inner-hash shape the HashChanger hands out) reads it
-      // as app. Dropping it would land the recipient on the FLP home page.
-      // Mirrors the backend's hash_get_shell_part( check_bare_is_shell ).
-      if (!shell && raw && !raw.startsWith("/")) shell = raw;
-      if (!shell) return `${base}#${sAppHash}`;
-      // Canonical launchpad spelling: the "/" of "&/" already opens the app
-      // hash, so the app hash itself is appended without its leading slash.
-      return `${base}#${shell}${SHELL_SEPARATOR}${String(sAppHash).replace(/^\/+/, "")}`;
     }
 
     // The raw hash (shell part included) - for the callers that rebuild a
@@ -517,7 +497,7 @@ sap.ui.define(
         if (state.hashEvent) return;
         // The live URL must match the format the share link
         // (z2ui5_cl_ui5_client=>app_state_get_href, which composes it on the
-        // BACKEND and mirrors hrefFor above) writes and the backend restore
+        // BACKEND from the same shell/app split) writes and the backend restore
         // path expects: the app-state id is read as a URL parameter of the
         // app hash, i.e. after exactly one "/". navTo strips the leading
         // slash and standalone hasher prepends exactly one again; inside the
@@ -568,7 +548,6 @@ sap.ui.define(
       init,
       exit,
       splitHash,
-      hrefFor,
       patternFor,
       parse,
       navTo,

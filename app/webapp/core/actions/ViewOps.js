@@ -1,11 +1,6 @@
 sap.ui.define(
-  [
-    "sap/ui/model/odata/v2/ODataModel",
-    "z2ui5/core/Lib",
-    "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
-  ],
-  (ODataModel, Lib, ViewSlots, AppState) => {
+  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/AppState"],
+  (Lib, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -63,9 +58,14 @@ sap.ui.define(
       }
     }
 
-    function evSetODataModel(oController, args) {
+    // Async because the client is loaded on first use (Lib.requireODataModel):
+    // the promise is handed back through eF and awaited by the custom-action
+    // runner, so an action queued behind this one in the same response still
+    // finds the model in place.
+    async function evSetODataModel(oController, args) {
       let oModel;
       try {
+        const ODataModel = await Lib.requireODataModel();
         oModel = new ODataModel({
           serviceUrl: args[1],
           annotationURI: args[3] || "",

@@ -147,6 +147,19 @@ test.describe("console capture", () => {
     expect(h.Console._internals.renderArg([1, 2, 3], 0)).toBe("[1,2,3]");
   });
 
+  test("bounds the nodes of a map-shaped object instead of serializing every key", () => {
+    const h = loadConsole();
+    const max = h.Console._internals.MAX_NODES;
+    const big = {};
+    for (let i = 0; i < max * 3; i++) big[`k${i}`] = { i };
+    const text = h.Console._internals.renderArg(big);
+    expect(text).toContain('"k0":{"i":0}');
+    expect(text).toContain("[...]");
+    expect(text).not.toContain(`"k${max * 3 - 1}"`);
+    // a small object is untouched
+    expect(h.Console._internals.renderArg({ a: { b: 1 } })).toBe('{"a":{"b":1}}');
+  });
+
   test("a throwing getter cannot break the call it observes", () => {
     const h = loadConsole();
     h.Console.install();

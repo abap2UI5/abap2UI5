@@ -11,7 +11,9 @@ const { loadModule } = require("./loadModule");
 function load() {
   const fragmentCalls = [];
   const errors = [];
-  const z2ui5 = {};
+  // slotXml / slotApp carry their defaults in AppState.createState( ) and
+  // ViewSlots no longer creates them on first use
+  const z2ui5 = { slotXml: {}, slotApp: {} };
   // Global UI5 registry stub behind Lib.getElementById - the fallback path
   // resolveById() takes when no open slot owns the id.
   const globalElements = {};

@@ -820,15 +820,27 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
       oApp: { removeAllPages: () => {}, insertPage: () => {} },
     };
     const openSlots = { MAIN: makeView("mainView") };
+    // the client is loaded on first use through Lib.requireODataModel,
+    // which probes sap.ui.require( id ) - seeded here, so the stub is
+    // handed back synchronously, as a loaded module would be
+    const sandbox = {
+      sap: {
+        ui: {
+          require: (id) =>
+            id === "sap/ui/model/odata/v2/ODataModel" ? ODataModel : undefined,
+        },
+      },
+    };
     const shared = {
-      "sap/ui/model/odata/v2/ODataModel": ODataModel,
       "z2ui5/core/Lib": {
         // no view in these specs uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
         effectiveSizeLimit: () => undefined,
         isRootModelSlot: (k) => k === "MAIN",
         isAlive: () => true,
+        isControllerAlive: () => true,
         logError: () => {},
+        requireODataModel: () => Promise.resolve(ODataModel),
       },
       "z2ui5/core/ViewSlots": {
         slots: [{ key: "MAIN", ownsModel: true }],
@@ -860,17 +872,20 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     });
     const { module: ViewOps } = loadModule("core/actions/ViewOps.js", {
       deps: shared,
+      sandbox,
     });
     return { Slots, ViewOps, state, clients, destroyed, openSlots };
   }
 
+  // SET_ODATA_MODEL is async since the client loads on first use - awaited,
+  // as the custom-action runner awaits it
   const setOData = (ViewOps, url, name) =>
     ViewOps.handlers.SET_ODATA_MODEL(null, ["SET_ODATA_MODEL", url, name]);
 
   test("a NAMED SET_ODATA_MODEL client is destroyed on the next MAIN rebuild", async () => {
     const { Slots, ViewOps, clients, destroyed } = loadODataOwnership();
 
-    setOData(ViewOps, "/sap/opu/odata/sap/ORDERS/", "orders");
+    await setOData(ViewOps, "/sap/opu/odata/sap/ORDERS/", "orders");
     expect(clients).toHaveLength(1);
 
     await Slots.action("display", "MAIN", "<View/>", {}, undefined);
@@ -895,18 +910,18 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     expect(destroyed).toEqual([clients[0]]);
   });
 
-  test("a re-issue destroys the client it replaces, an app's own model never", () => {
+  test("a re-issue destroys the client it replaces, an app's own model never", async () => {
     const { ViewOps, state, clients, destroyed, openSlots } =
       loadODataOwnership();
     // a model the app itself put on the view is in no inventory
     const appOwned = { destroy: () => destroyed.push(appOwned) };
     openSlots.MAIN.setModel(appOwned, "app");
 
-    setOData(ViewOps, "/svc/one/", "orders");
-    setOData(ViewOps, "/svc/two/", "orders");
+    await setOData(ViewOps, "/svc/one/", "orders");
+    await setOData(ViewOps, "/svc/two/", "orders");
     expect(destroyed).toEqual([clients[0]]);
 
-    setOData(ViewOps, "/svc/three/", "app");
+    await setOData(ViewOps, "/svc/three/", "app");
     expect(destroyed).toEqual([clients[0]]);
     expect(state.odataClients.size).toBe(2);
   });

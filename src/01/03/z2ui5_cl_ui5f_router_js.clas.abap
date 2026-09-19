@@ -67,17 +67,6 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function hrefFor(sAppHash) {` && |\n| &&
-             `      const base = window.location.href.split("#")[0];` && |\n| &&
-             `      const raw = getRawHash();` && |\n| &&
-             `      let shell = splitHash(raw).shell;` && |\n| &&
-             `` && |\n| &&
-             `      if (!shell && raw && !raw.startsWith("/")) shell = raw;` && |\n| &&
-             `      if (!shell) return ``${base}#${sAppHash}``;` && |\n| &&
-             `` && |\n| &&
-             `      return ``${base}#${shell}${SHELL_SEPARATOR}${String(sAppHash).replace(/^\/+/, "")}``;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function getRawHash() {` && |\n| &&
              `      return String(window.location.hash || "").replace(/^#/, "");` && |\n| &&
              `    }` && |\n| &&
@@ -306,7 +295,6 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      init,` && |\n| &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
-             `      hrefFor,` && |\n| &&
              `      patternFor,` && |\n| &&
              `      parse,` && |\n| &&
              `      navTo,` && |\n| &&
