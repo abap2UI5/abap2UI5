@@ -155,7 +155,14 @@ test.describe("console capture", () => {
     const text = h.Console._internals.renderArg(big);
     expect(text).toContain('"k0":{"i":0}');
     expect(text).toContain("[...]");
-    expect(text).not.toContain(`"k${max * 3 - 1}"`);
+    // The last key is still EMITTED - a replacer answers a key's VALUE and
+    // cannot remove the key, so for a map-shaped object every key survives
+    // whatever the node budget does. What the budget changes is the value:
+    // the marker instead of the object. (An ARRAY is bounded by the MAX_ITEMS
+    // slice above, which really does drop items - hence the different shape
+    // of the assertion in the test before this one.)
+    expect(text).toContain(`"k${max * 3 - 1}":"[...]"`);
+    expect(text).not.toContain(`"k${max * 3 - 1}":{`);
     // a small object is untouched
     expect(h.Console._internals.renderArg({ a: { b: 1 } })).toBe('{"a":{"b":1}}');
   });
