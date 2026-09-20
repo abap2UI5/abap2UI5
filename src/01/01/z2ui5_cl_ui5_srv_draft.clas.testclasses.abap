@@ -21,9 +21,9 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
                       model_xml = `my xml` ).
 
@@ -37,9 +37,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_create_and_read.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     lo_draft->create( draft     = VALUE #( id                = `TEST_CR`
                                            id_prev           = `PREV1`
                                            id_prev_app       = `APP1`
@@ -58,9 +58,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_read_info.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_info TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     lo_draft->create( draft     = VALUE #( id = `TEST_INFO` id_prev_app_stack = `MY_STACK` )
                       model_xml = `info test` ).
 
@@ -78,10 +78,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " there is NO read buffer: a second read after an overwrite must see the
     " new row, not a stale copy of the first - the property callers rely on
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     DATA(ls_draft) = VALUE z2ui5_cl_ui5_srv_draft=>ty_s_draft( id = `TEST_BUF` ).
 
     lo_draft->create( draft     = ls_draft
@@ -99,9 +99,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_overwrite.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
                       model_xml = `original` ).
     lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
@@ -127,8 +127,8 @@ CLASS ltcl_test IMPLEMENTATION.
     MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    lo_draft = NEW #( ).
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     TRY.
         lo_draft->read_draft( `TEST_OWNER` ).
@@ -152,8 +152,8 @@ CLASS ltcl_test IMPLEMENTATION.
     MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
-    lo_draft = NEW #( ).
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     ls_draft-id = `TEST_OWNER_WRITE`.
@@ -178,7 +178,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " count_entries_total( ) counts the table, count_entries( ) counts the
     " current user's share of it - a row owned by somebody else must move
     " exactly one of the two. The start page shows them as own/total
-    DATA lo_draft TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
     DATA lv_own TYPE i.
     DATA lv_total TYPE i.
@@ -187,7 +187,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DELETE FROM z2ui5_t_01 WHERE id = @( `TEST_COUNT_FOREIGN` ) ##SUBRC_OK.
     COMMIT WORK.
 
-    lo_draft = NEW #( ).
+    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     lv_own   = lo_draft->count_entries( ).
     lv_total = lo_draft->count_entries_total( ).
 

@@ -2,52 +2,43 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
 
-    TYPES ty_s_db TYPE z2ui5_t_01.
+    " The shipped draft store: Z2UI5_T_01, exactly as before. The interface
+    " is what lets a host that has no such table supply its own - see there.
+    INTERFACES z2ui5_if_ui5_draft_store.
 
-    TYPES:
-      "! The four draft ids an app carries between roundtrips - what create( )
-      "! is given and what read_info( ) hands back.
-      BEGIN OF ty_s_draft,
-        id                TYPE string,
-        id_prev           TYPE string,
-        id_prev_app       TYPE string,
-        id_prev_app_stack TYPE string,
-      END OF ty_s_draft.
+    " No ALIASES - abaplint's no_aliases is an error in this repository, and
+    " none are needed: every caller goes through get_instance( ), which hands
+    " back an INTERFACE reference, and on one of those the method names are
+    " plain. Only a caller holding a concrete z2ui5_cl_ui5_srv_draft would
+    " have to qualify, and after this change none does.
 
-    METHODS count_entries
+    " The two types live on the interface now, with the methods that use them.
+    " z2ui5_cl_ui5_srv_draft=>ty_s_draft stays a valid name because of these -
+    " z2ui5_cl_ui5_app_cont declares ms_draft with it, and so do test classes.
+    TYPES ty_s_db TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
+    TYPES ty_s_draft TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+
+    "! The store the framework uses. Without set_instance( ) this answers a
+    "! fresh instance of this class on every call - which is what the call
+    "! sites did before the seam existed, so a system that installs nothing
+    "! behaves identically, statement for statement.
+    CLASS-METHODS get_instance
       RETURNING
-        VALUE(result) TYPE i.
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_draft_store.
 
-    METHODS count_entries_total
-      RETURNING
-        VALUE(result) TYPE i.
-
-    METHODS create
+    "! Install a host's own store. Meant for a runtime that is not an SAP
+    "! system - a CAP or Node host binding its own persistence at startup -
+    "! and for tests. Passing an unbound reference restores the default.
+    "! @parameter store | the implementation to use from now on
+    CLASS-METHODS set_instance
       IMPORTING
-        draft     TYPE ty_s_draft
-        model_xml TYPE clike.
-
-    METHODS read_draft
-      IMPORTING
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE ty_s_db.
-
-    METHODS read_info
-      IMPORTING
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE ty_s_draft.
-
-    METHODS check_exists
-      IMPORTING
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    METHODS cleanup.
+        store TYPE REF TO z2ui5_if_ui5_draft_store.
 
   PROTECTED SECTION.
+    " Unbound unless a host installed one. Deliberately NOT pre-filled with a
+    " default instance: the shipped store holds no state, and answering a
+    " fresh one keeps the old per-call NEW semantics exactly.
+    CLASS-DATA gi_me TYPE REF TO z2ui5_if_ui5_draft_store.
   PRIVATE SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
 
@@ -62,7 +53,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
-  METHOD cleanup.
+  METHOD z2ui5_if_ui5_draft_store~cleanup.
 
     " Z2UI5_T_01 deliberately has NO secondary index (maintainer decision,
     " 2026-08): the DELETE below and the COUNTs in count_entries* scan the
@@ -84,7 +75,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD create.
+  METHOD z2ui5_if_ui5_draft_store~create.
 
     IF draft-id IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -179,13 +170,13 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD read_draft.
+  METHOD z2ui5_if_ui5_draft_store~read_draft.
 
     result = read( id ).
 
   ENDMETHOD.
 
-  METHOD read_info.
+  METHOD z2ui5_if_ui5_draft_store~read_info.
 
     DATA(ls_db) = read( id             = id
                         check_load_app = abap_false ).
@@ -194,7 +185,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD check_exists.
+  METHOD z2ui5_if_ui5_draft_store~check_exists.
 
     SELECT SINGLE id, uname FROM z2ui5_t_01
       WHERE id = @id
@@ -208,7 +199,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD count_entries.
+  METHOD z2ui5_if_ui5_draft_store~count_entries.
 
     " owner-scoped like read/check_exists ( blank owner = legacy rows from
     " before the UNAME column existed, tolerated during upgrade )
@@ -218,7 +209,23 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD count_entries_total.
+  METHOD get_instance.
+
+    IF gi_me IS BOUND.
+      result = gi_me.
+      RETURN.
+    ENDIF.
+    result = NEW z2ui5_cl_ui5_srv_draft( ).
+
+  ENDMETHOD.
+
+  METHOD set_instance.
+
+    gi_me = store.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_draft_store~count_entries_total.
 
     " the size of the draft table itself, every owner included - what the start
     " page shows next to the own count, and what says whether cleanup( ) is

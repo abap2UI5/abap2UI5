@@ -75,6 +75,8 @@ sap.ui.define(
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "APP": "<app class name>",     // rendered app, for the router
+    //       "PROTOCOL": 2,                 // the wire the backend speaks;
+    //                                      // a mismatch is reported, not ignored
     //       "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
     //           // first, in order, before the view is rendered. A
@@ -97,6 +99,12 @@ sap.ui.define(
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
     return {
+      // The wire version this build speaks, compared against the PROTOCOL the
+      // backend stamps on every response (z2ui5_if_ui5_types=>c_protocol).
+      // Raise BOTH in the change that breaks the wire - they ship together,
+      // and the number exists for the pairings where they do not.
+      PROTOCOL: 2,
+
       // Monotonic id stamped on every dispatched request (see readHttp). It
       // lets a response tell whether a newer request has since gone out, so
       // only the newest result is committed and stale ones are dropped - a
@@ -411,6 +419,29 @@ sap.ui.define(
           if (isStale()) return;
           if (!responseData || !responseData.S_FRONT) {
             this.responseError("Invalid response: missing S_FRONT");
+            return;
+          }
+          // The wire this build speaks. The backend stamps its own into every
+          // response (z2ui5_if_ui5_types=>c_protocol); a mismatch means the two
+          // halves were not shipped together and the rest of this handler would
+          // read keys the other side does not write - which renders an empty
+          // page and reports nothing. Say so instead.
+          //
+          // A response WITHOUT the field is a backend older than the field
+          // itself and is let through: it cannot be told apart from one that is
+          // merely older, and refusing it would break every pairing that works
+          // today. Only a number that is present and different is a mismatch.
+          if (
+            responseData.S_FRONT.PROTOCOL !== undefined &&
+            responseData.S_FRONT.PROTOCOL !== this.PROTOCOL
+          ) {
+            this.responseError(
+              "Protocol mismatch: this frontend speaks " +
+                this.PROTOCOL +
+                ", the backend answered " +
+                responseData.S_FRONT.PROTOCOL +
+                ". Update whichever of the two is older - they ship together.",
+            );
             return;
           }
 

@@ -118,8 +118,18 @@ const HISTORICAL_FILES = new Map([
 // shipped, so it names the objects as they were named when they broke - the
 // file whose missing final newline is the evidence, and both halves of the
 // #2564 rename, the old class name and the interface name the sweep invented.
+// The two *_APP_SERIALIZER names are the same kind of entry and the sharpest
+// one: the defect IS the name. At 27 characters they were the only objects in
+// the tree over the 25-character rename budget, which is what the entry
+// teaches - so it has to print them at the length that broke, and they were
+// renamed to z2ui5_if_ui5_serializer / z2ui5_cl_ui5_serializer (23) in the
+// same change (#2772). The entry names both the old and the new spelling, so
+// a reader who looks the old one up is not left guessing.
 const HISTORICAL_IN = new Map([
-  [".claude/skills/abap-check/SKILL.md", new Set(["Z2UI5_IF_ACTION", "Z2UI5_CL_EXIT", "Z2UI5_IF_USER_EXIT"])],
+  [".claude/skills/abap-check/SKILL.md", new Set([
+    "Z2UI5_IF_ACTION", "Z2UI5_CL_EXIT", "Z2UI5_IF_USER_EXIT",
+    "Z2UI5_IF_UI5_APP_SERIALIZER", "Z2UI5_CL_UI5_APP_SERIALIZER",
+  ])],
 ]);
 
 // A trailing underscore or a `*` after it means a PREFIX is being discussed

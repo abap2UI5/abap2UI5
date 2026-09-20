@@ -213,6 +213,154 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 - In-memory buffer cache avoids repeated DB reads within one request
 - **Owner binding:** each draft stores its creator's `sy-uname` (column `UNAME`); `read`/`check_exists` only return a draft to that same user, so a leaked or guessed draft id (bookmark URLs carry it) cannot restore another user's serialized state. A mismatch fails closed with the same `NO_DRAFT_ENTRY...` exception as "not found", so a shared bookmark degrades to a fresh app start. Legacy rows written before the column existed carry a blank owner and stay readable during the upgrade transition (they expire within a few hours), so no active session breaks on upgrade.
 
+**The store is swappable (`z2ui5_if_ui5_draft_store`).** The seven methods above
+are an interface, `z2ui5_cl_ui5_srv_draft` is its shipped implementation, and
+every caller goes through `z2ui5_cl_ui5_srv_draft=>get_instance( )`. On a system
+nothing changes: without `set_instance( )` that call answers a fresh
+`NEW z2ui5_cl_ui5_srv_draft( )` per call, which is literally what each call site
+did before, so `Z2UI5_T_01` and all nine of its SQL statements are still what
+runs.
+
+The seam exists for the runtimes that are not an SAP system. `node/srv/express.mjs`
+already serves this framework through the transpiler over open-abap, and
+`node/setup/setup.mjs` only gets away with it by recreating the draft table in
+SQLite. A host with persistence of its own — a CAP service with a CDS entity, a
+Node process with a document store — previously had to fork the class to use it;
+now it implements the interface and calls `set_instance( )` at startup. Tests can
+do the same.
+
+What an implementation must keep is written on the interface, because it was
+never written down anywhere before: a draft belongs to the user that created it,
+and `read_draft( )`, `read_info( )` and `check_exists( )` answer "not found" for
+anybody else **identically**, so a caller cannot tell a foreign draft from a
+missing one. `count_entries( )` is owner-scoped for the same reason;
+`count_entries_total( )` deliberately is not, because it reports the size of the
+store itself.
+
+Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
+none are needed: an interface reference takes the plain method names. A caller
+holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
+second reason everything goes through `get_instance( )`.
+
+### App state serialization (`z2ui5_if_ui5_serializer`)
+
+The state that goes into the draft is the whole `z2ui5_cl_ui5_app_cont` — the
+app instance, `mt_attri`, the draft ids — turned into a string by
+`all_xml_stringify( )` and rebuilt by `all_xml_parse( )`. Both now delegate to
+`z2ui5_cl_ui5_app_cont=>get_serializer( )`.
+
+The shipped implementation, `z2ui5_cl_ui5_serializer`, is the mechanism
+that has always run here and is unchanged statement for statement:
+`main_attri_db_save_srtti( )` detaches the data references, `CALL TRANSFORMATION
+id` writes the asXML, `main_attri_reattach( )` gives the live instance its
+references back, and the one retry rebuilds the rows from the instance as it is
+now before giving up with `APP_SERIALIZATION_ERROR`. Without `set_serializer( )`
+`get_serializer( )` answers a fresh one per call, so a system behaves
+identically.
+
+Why the seam is here rather than anywhere else: this is the **one** part of the
+framework that is ABAP's type system rather than ABAP code. `CALL TRANSFORMATION
+id` walks type descriptors, and S-RTTI serializes a descriptor so
+`CREATE DATA … TYPE HANDLE` can rebuild it on the other side. Neither has a
+counterpart in a JavaScript runtime — a JS object carries no static type to
+describe — so a host running this framework through the transpiler (which
+`node/srv/express.mjs` already does) cannot reproduce it and has to persist its
+own shape instead. Everything else in the engine transfers; this did not, and
+it was wired straight into the container.
+
+Both ends of the interface are `REF TO object`, not `REF TO
+z2ui5_cl_ui5_app_cont`: an interface here may not reference a class
+(`intf_referencing_clas`, an error) and naming it would close a cycle, since
+the container is what calls the interface. `z2ui5_cl_ui5_serializer`
+narrows once, in `narrow( )`. Note the typed local in its `parse( )` — the
+transformation rebuilds the object from the class named in the asXML and needs
+a concretely typed target, so a `REF TO object` there would give it nothing to
+build into.
+
+What an implementation has to keep is a round trip, not a format:
+`parse( stringify( container ) )` must answer a container the framework can go
+on with. The string in between is the implementation's business.
+
+### The wire carries its own version (`c_protocol`)
+
+Every response stamps `S_FRONT.PROTOCOL` from
+`z2ui5_if_ui5_types=>c_protocol`, and `app/webapp/core/Server.js` compares it
+against its own `PROTOCOL` before reading anything else. A mismatch is reported
+to the user; a response *without* the field is let through, because a backend
+older than the field cannot be told apart from one that is merely older.
+
+It is not the product version and does not move with a release. It moves when a
+response can no longer be read by a frontend written for the previous number —
+the `S_ACTION` envelope replacing `S_FRONT.PARAMS` was such a change. **Raise
+both halves in the change that breaks the wire.**
+
+Why it exists: the two halves ship together *here*, and not everywhere. A port
+of this framework, a pinned webapp, a third-party shell — each can pair a
+backend and a frontend of different ages, and the failure mode was the worst
+available: the frontend looked for a key the backend no longer wrote, read its
+absence as "nothing to do", and rendered an empty page with no error anywhere.
+A number on the wire turns that into a sentence somebody can read.
+
+### The transpiled framework is a package (`@abap2ui5/runtime`)
+
+`backend-prebuilt.yaml` packs the transpiled tree **twice**, from one build.
+The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
+first; two steps at the end of the same job are the second, packing
+`node/output`, `node/setup/setup.mjs` (the hook `output/init.mjs` imports by
+the relative path fixed in `node/setup/abap_transpile.json`) and `app/webapp`
+into the npm package **`@abap2ui5/runtime`** —
+`node/setup/runtime.package.json` is its manifest, copied into a staging
+directory outside the checkout at pack time. **It is deliberately not
+`node/package.json`:** a `package.json` inside `node/` makes that directory an
+npm package root, so `npm run <script>` from there stops walking up to this
+repository's scripts — `cd node && npm run express` answers *"Missing script"*,
+which is what `node/playwright.config.js` starts its web server with, and all
+four browser projects fail to boot. The file's own header records it. The version is the framework's, set at pack time; the committed
+`0.0.0-set-at-release` is deliberate. The `.tgz` is uploaded as a workflow
+artefact on every run; `npm publish` happens only when the organisation has an
+`NPM_TOKEN` secret — without one the step warns and the run stays green.
+
+Why two deliveries and not one: the tarball is resolved by NAME from a GitHub
+release and carries `node/deps` and `node/downport`, which is what a tool that
+downloads and builds against it needs (`abap2UI5/mcp-server`). A host that
+merely RUNS the framework — a CAP plugin, a serverless function — is an
+ordinary Node project: it declares dependencies in `package.json` and already
+has `npm i`, and it needs the FRONTEND, which the tarball does not carry. A
+host that pins `@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
+`z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
+version above cannot guarantee for a host that assembles them itself.
+
+It rides in that workflow rather than in `release.yaml` because the downport
+and the transpile have already run there; a job of its own would spend another
+half hour producing the same bytes.
+
+What the package promises is only what `output/init.mjs` and the webapp
+promise: it is transpiler output, and the shape of that output — the static
+`ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` — is
+`@abaplint/transpiler`'s, not ours. A host that reaches into it couples to the
+transpiler, and should say so in a test of its own.
+
+### A missing codepage class must not take down the view
+
+`conv_get_string_by_xstring( )` / `conv_get_xstring_by_string( )` try
+`CL_ABAP_CONV_CODEPAGE` and fall back to `CL_ABAP_CONV_IN_CE` / `_OUT_CE`,
+both through dynamic `CALL METHOD` because neither is available on every
+release. Since 2026-09 **the fallback has its own `TRY`**: it used to be the
+body of the first `CATCH`, so when it failed too a raw
+`CX_SY_DYN_CALL_ILLEGAL_CLASS` left a utility method under a name no caller
+handles. Now both failures chain into `UNSUPPORTED_CODEPAGE_API`, a
+`z2ui5_cx_ui5_util_error` like everything else here.
+
+That matters because of who calls it. `z2ui5_cl_ui5_view_builder`'s
+`xml_escape( )` builds its control-character set through this method, lazily,
+on the first escape of the process — so on a release with neither class, or in
+any runtime where a dynamic `CALL METHOD` resolves nothing, **every view render
+died**. The builder now catches `z2ui5_cx_ui5_util_error` and degrades: the set
+stays empty, the `CA` scan matches no control character, and `&`, `<`, `>`,
+`"`, newline, CR and tab are escaped exactly as before. Dropping those 29 exotic
+bytes repairs legacy long texts; it is not a correctness requirement of the
+view, so losing it must not cost the render.
+
 ### Key Design Patterns
 
 - **Factory:** `z2ui5_cl_ui5_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
@@ -374,6 +522,16 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 - Classes: `Z2UI5_CL_*` or `Z2UI5_CX_*`
 - Interfaces: `Z2UI5_IF_*`
 - Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only
+- **Method names, convention only — no abaplint rule decides these.** `factory( )`
+  builds and returns a new object **of its own class** (`z2ui5_cl_ui5_http_handler`,
+  `z2ui5_cl_ui5_view_builder`, `z2ui5_cl_ui5_action=>factory_*`, …) and is a
+  constructor replacement. An **interface** returned from a `get_*( )` with a
+  `set_*( )` twin is the opposite thing — the one swappable implementation behind
+  an extension point, not a new object per caller: `get_instance( )` where the
+  class *is* that implementation (`z2ui5_cl_ui5_user_exit`,
+  `z2ui5_cl_ui5_srv_draft`), `get_<role>( )` where it merely holds one
+  (`z2ui5_cl_ui5_app_cont=>get_serializer( )`). Do not rename these to `factory` —
+  they hand out the configured instance, which is what `factory` promises not to do.
 
 ### Style Rules
 
