@@ -216,7 +216,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 **The store is swappable (`z2ui5_if_ui5_draft_store`).** The seven methods above
 are an interface, `z2ui5_cl_ui5_srv_draft` is its shipped implementation, and
 every caller goes through `z2ui5_cl_ui5_srv_draft=>get_instance( )`. On a system
-nothing changes: without `set_instance( )` the factory answers a fresh
+nothing changes: without `set_instance( )` that call answers a fresh
 `NEW z2ui5_cl_ui5_srv_draft( )` per call, which is literally what each call site
 did before, so `Z2UI5_T_01` and all nine of its SQL statements are still what
 runs.
@@ -240,7 +240,7 @@ store itself.
 Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
 none are needed: an interface reference takes the plain method names. A caller
 holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
-second reason everything goes through the factory.
+second reason everything goes through `get_instance( )`.
 
 ### App state serialization (`z2ui5_if_ui5_serializer`)
 
@@ -522,6 +522,16 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 - Classes: `Z2UI5_CL_*` or `Z2UI5_CX_*`
 - Interfaces: `Z2UI5_IF_*`
 - Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only
+- **Method names, convention only — no abaplint rule decides these.** `factory( )`
+  builds and returns a new object **of its own class** (`z2ui5_cl_ui5_http_handler`,
+  `z2ui5_cl_ui5_view_builder`, `z2ui5_cl_ui5_action=>factory_*`, …) and is a
+  constructor replacement. An **interface** returned from a `get_*( )` with a
+  `set_*( )` twin is the opposite thing — the one swappable implementation behind
+  an extension point, not a new object per caller: `get_instance( )` where the
+  class *is* that implementation (`z2ui5_cl_ui5_user_exit`,
+  `z2ui5_cl_ui5_srv_draft`), `get_<role>( )` where it merely holds one
+  (`z2ui5_cl_ui5_app_cont=>get_serializer( )`). Do not rename these to `factory` —
+  they hand out the configured instance, which is what `factory` promises not to do.
 
 ### Style Rules
 
