@@ -177,6 +177,15 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `            walked.set(head, val);` && |\n| &&
              `            return head;` && |\n| &&
              `          }` && |\n| &&
+             `` && |\n| &&
+             `          const keys = Object.keys(val);` && |\n| &&
+             `          if (keys.length > MAX_ITEMS) {` && |\n| &&
+             `            const head = {};` && |\n| &&
+             `            for (const k of keys.slice(0, MAX_ITEMS)) head[k] = val[k];` && |\n| &&
+             `            head[``... ${keys.length - MAX_ITEMS} more``] = "[...]";` && |\n| &&
+             `            walked.set(head, val);` && |\n| &&
+             `            return head;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        if (isErrorLike(val)) return val.stack || String(val);` && |\n| &&
              `        return val;` && |\n| &&
