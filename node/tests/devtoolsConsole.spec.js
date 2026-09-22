@@ -147,24 +147,41 @@ test.describe("console capture", () => {
     expect(h.Console._internals.renderArg([1, 2, 3], 0)).toBe("[1,2,3]");
   });
 
-  test("bounds the nodes of a map-shaped object instead of serializing every key", () => {
+  test("bounds the OUTPUT of a wide object, not just the walk", () => {
     const h = loadConsole();
-    const max = h.Console._internals.MAX_NODES;
+    const { MAX_ITEMS, MAX_TEXT_CHARS, renderArg } = h.Console._internals;
+    const n = 3000;
     const big = {};
-    for (let i = 0; i < max * 3; i++) big[`k${i}`] = { i };
-    const text = h.Console._internals.renderArg(big);
+    for (let i = 0; i < n; i++) big[`k${i}`] = { i };
+    const text = renderArg(big);
+
+    // The head is kept verbatim, and the rest is ONE marker naming how many
+    // were dropped - the treatment a long array already got. Dropped, not
+    // emitted with a marker value: a replacer cannot remove a key, but
+    // returning a COPY of the object can, which is exactly how the array
+    // branch has always worked.
     expect(text).toContain('"k0":{"i":0}');
-    expect(text).toContain("[...]");
-    // The last key is still EMITTED - a replacer answers a key's VALUE and
-    // cannot remove the key, so for a map-shaped object every key survives
-    // whatever the node budget does. What the budget changes is the value:
-    // the marker instead of the object. (An ARRAY is bounded by the MAX_ITEMS
-    // slice above, which really does drop items - hence the different shape
-    // of the assertion in the test before this one.)
-    expect(text).toContain(`"k${max * 3 - 1}":"[...]"`);
-    expect(text).not.toContain(`"k${max * 3 - 1}":{`);
+    expect(text).toContain(`... ${n - MAX_ITEMS} more`);
+    expect(text).not.toContain(`"k${n - 1}"`);
+
+    // The point of all of it: what a console.log of a wide lookup costs.
+    // Before the width cap this was 63,654 characters - built in full on
+    // every call and then thrown away by the MAX_TEXT_CHARS cut.
+    expect(text.length).toBeLessThan(MAX_TEXT_CHARS);
+
     // a small object is untouched
-    expect(h.Console._internals.renderArg({ a: { b: 1 } })).toBe('{"a":{"b":1}}');
+    expect(renderArg({ a: { b: 1 } })).toBe('{"a":{"b":1}}');
+  });
+
+  test("the node budget still bounds a DEEP graph the width cap cannot see", () => {
+    const h = loadConsole();
+    const { MAX_NODES, renderArg } = h.Console._internals;
+    // Narrow at every level - no object or array is ever wider than
+    // MAX_ITEMS - so only the node budget can stop this one.
+    let node = { leaf: true };
+    for (let i = 0; i < MAX_NODES * 2; i++) node = { i, next: node };
+    const text = renderArg(node);
+    expect(text).toContain("[...]");
   });
 
   test("a throwing getter cannot break the call it observes", () => {
