@@ -12,10 +12,12 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+      DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
 
-      DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+
+      view = z2ui5_cl_ui5_view_builder=>factory(
           )->ele( n = `View` ns = `mvc`
               )->a( n = `xmlns`         v = `sap.m`
               )->a( n = `xmlns:mvc`     v = `sap.ui.core.mvc`
@@ -45,7 +47,7 @@ CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
 
       client->view_display( view->stringify( ) ).
 
-    ELSEIF client->check_on_event( `BUTTON_POST` ).
+    ELSEIF client->check_on_event( `BUTTON_POST` ) IS NOT INITIAL.
       client->message_box_display( |Your name is { name }| ).
     ENDIF.
 

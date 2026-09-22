@@ -37,14 +37,14 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->js           = i_js.
     r_result->user_command = i_result.
 
   ENDMETHOD.
 
   METHOD factory_check_open_ui5.
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->check_open_ui5 = abap_true.
   ENDMETHOD.
 
@@ -56,14 +56,17 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`       v = `sap.m`
             )->a( n = `xmlns:core`  v = `sap.ui.core`
             )->a( n = `xmlns:html`  v = `http://www.w3.org/1999/xhtml`
             )->a( n = `xmlns:z2ui5` v = `z2ui5.cc` ).
 
-    DATA(popup) = view->ele( `Dialog`
+
+    popup = view->ele( `Dialog`
         )->a( n = `title` v = `Setup UI...`
         )->ele( `content` ).
 
@@ -89,17 +92,20 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+        DATA temp1 TYPE xsdboolean.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
     CASE client->get( )-event.
       WHEN `INFO_FINISHED`.
-        mv_is_open_ui5 = xsdbool( ui5_gav CS `OPEN` ).
+
+        temp1 = boolc( ui5_gav CS `OPEN` ).
+        mv_is_open_ui5 = temp1.
         client->popup_destroy( ).
         client->nav_app_leave( ).
 
