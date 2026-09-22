@@ -53,10 +53,10 @@ sap.ui.define([], () => {
   // installs unconditionally.
   const MAX_ITEMS = 20;
 
-  // Nodes one entry may walk before the rest is one marker. The array cap
-  // above bounds a long TABLE, but a map-shaped object - one key per row, a
-  // lookup with thousands of keys - was still stringified in full before
-  // the 2000-character cut, on every console.log of it.
+  // Nodes one entry may walk before the rest is one marker. This bounds the
+  // WALK; the width caps above bound the OUTPUT, an array and an object
+  // alike - a map-shaped object (one key per row, a lookup with thousands of
+  // keys) is ONE node however wide it is, so this cap never saw it.
   const MAX_NODES = 1000;
 
   // sessionStorage key of the entries carried across a page reload, and
@@ -262,6 +262,24 @@ sap.ui.define([], () => {
           if (Array.isArray(val) && val.length > MAX_ITEMS) {
             const head = val.slice(0, MAX_ITEMS);
             head.push(`[... ${val.length - MAX_ITEMS} more]`);
+            walked.set(head, val);
+            return head;
+          }
+          // The same treatment for an OBJECT with many keys, because
+          // MAX_NODES bounds the WALK and not the OUTPUT: a flat lookup is
+          // one node whatever its width, so nothing stopped it, and a
+          // replacer cannot drop a key - it answers a key's value. Measured
+          // before this branch existed: a 3,000-key flat object rendered
+          // 45,781 characters and a 3,000-entry map-shaped one 63,654, both
+          // built in full on every console.log and then thrown away by the
+          // 2,000-character cut, while the same data in an ARRAY rendered
+          // 129 and 459. Same copy-and-remap mechanics as the array above,
+          // so the ancestor chain survives it.
+          const keys = Object.keys(val);
+          if (keys.length > MAX_ITEMS) {
+            const head = {};
+            for (const k of keys.slice(0, MAX_ITEMS)) head[k] = val[k];
+            head[`... ${keys.length - MAX_ITEMS} more`] = "[...]";
             walked.set(head, val);
             return head;
           }
