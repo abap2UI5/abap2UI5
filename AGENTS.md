@@ -521,7 +521,40 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 - Classes: `Z2UI5_CL_*` or `Z2UI5_CX_*`
 - Interfaces: `Z2UI5_IF_*`
-- Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only
+- Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only — and `TABL` is
+  allowed, not encouraged (see below)
+
+#### No new dictionary objects
+
+**The framework is ABAP source. A dictionary object is a last resort, and
+"released so an app can name it" is not a reason at all.**
+
+A DDIC object costs what a class does not: it activates separately, it cannot
+carry a test include, it has no visibility to hide behind, a field rename is a
+runtime break for every caller that spelled the name dynamically, and on an
+ABAP Cloud system it drags in a release contract that outlives the reason it
+was added. A type an app needs is a `TYPES` in an interface; a constant is a
+`CONSTANTS`; a lookup table is an internal table built in ABAP.
+
+Three `TABL` objects remain, each because nothing else can do its job:
+
+| Object | Why it cannot be ABAP |
+|---|---|
+| `z2ui5_t_01` (`src/01/01`) | the draft table — the framework's state **is** rows on the database between roundtrips |
+| `z2ui5_t_91` (`src/99/01`) | the key/value store behind `z2ui5_cl_util_db`, frozen with the rest of `src/99` |
+
+`z2ui5_t_02` used to be the third: a released `name`/`value` structure added
+purely so a sample could write
+`CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` without naming a
+framework internal. **It was removed on 2026-09-22** — in a year nothing named
+it, its only consumer was the unit test pinning its shape, and the app it was
+written for went on naming a table of its own. A dynamic type names a type the
+*system* has; supplying one from the framework was solving the wrong half of
+the problem (`docs/agents/building-apps.md`, `docs/removal-plan.md` §5).
+
+So: **do not add a `TABL`, a `DTEL`, a `DOMA`, a `DDLS` or a `BDEF`.** If one
+looks unavoidable, the change needs a maintainer decision recorded here first,
+naming what ABAP could not express.
 - **Method names, convention only — no abaplint rule decides these.** `factory( )`
   builds and returns a new object **of its own class** (`z2ui5_cl_ui5_http_handler`,
   `z2ui5_cl_ui5_view_builder`, `z2ui5_cl_ui5_action=>factory_*`, …) and is a
