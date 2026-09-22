@@ -194,6 +194,44 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      slotById(sSlot, sId) {` && |\n| &&
+             `        const control = sSlot` && |\n| &&
+             `          ? ViewSlots.byId(sSlot, sId)` && |\n| &&
+             `          : ViewSlots.resolveById(sId);` && |\n| &&
+             `        if (!control) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``slotById: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return null;` && |\n| &&
+             `        }` && |\n| &&
+             `        return control;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      slotValue(sSlot, sId, sMethod) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const control = sSlot` && |\n| &&
+             `            ? ViewSlots.byId(sSlot, sId)` && |\n| &&
+             `            : ViewSlots.resolveById(sId);` && |\n| &&
+             `          if (!control) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
+             `            );` && |\n| &&
+             `            return "";` && |\n| &&
+             `          }` && |\n| &&
+             `          if (typeof control[sMethod] !== "function") {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``slotValue: '${sMethod}' is not a method of control '${sId}'``,` && |\n| &&
+             `            );` && |\n| &&
+             `            return "";` && |\n| &&
+             `          }` && |\n| &&
+             `          const value = control[sMethod]();` && |\n| &&
+             `          return value === undefined || value === null ? "" : value;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``slotValue: '${sMethod}' on '${sId}' failed``, e);` && |\n| &&
+             `          return "";` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        const [, , , useMainModel, queueLast, noBusy] = args[0];` && |\n| &&
              `` && |\n| &&

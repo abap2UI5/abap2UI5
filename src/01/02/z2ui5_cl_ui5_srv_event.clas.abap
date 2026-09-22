@@ -144,65 +144,56 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     DATA(lv_val) = CONV string( val ).
     DATA(lt_arg) = t_arg.
 
-    " NavContainer navigation reuses the generic cs_event-control_by_id call
-    " so the frontend needs only the one generic dispatcher. Both the backend
-    " follow-up action and the XML-bound client event (_event_client) are
-    " formatted here, so this is the single place the *_nav_container_to events
-    " are remapped to `<container>, <slot>, to, <target>`. The public
-    " cs_event-*_nav_container_to constant values stay unchanged.
-    DATA(lv_slot) = SWITCH string( lv_val
-                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN z2ui5_if_client=>cs_view-main
-                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN z2ui5_if_client=>cs_view-nested
-                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN z2ui5_if_client=>cs_view-nested2
-                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN z2ui5_if_client=>cs_view-popup
-                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN z2ui5_if_client=>cs_view-popover
-                                   ELSE `` ).
-    IF lv_slot IS NOT INITIAL.
-      " read from t_arg (the unchanged importing parameter), never from lt_arg
-      " which is the assignment target here - referencing the target inside its
-      " own VALUE constructor reads it while it is being rebuilt in place
-      lt_arg = VALUE #( ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
-                        ( lv_slot )
-                        ( `to` )
-                        ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
-      lv_val = z2ui5_if_client=>cs_event-control_by_id.
-    ELSEIF lv_val = z2ui5_if_client=>cs_event-popup_close
-        OR lv_val = z2ui5_if_client=>cs_event-popover_close.
-      " Closing a popup IS tearing its slot down - the same call the framework
-      " itself queues for a popup_destroy( ) or an app switch. The two public
-      " constants stay ( an app closes its dialog with _event_client(
-      " cs_event-popup_close ), round-trip free, and that is the whole point
-      " of them ), but they are formatted as the one VIEW_SLOTS call here, so
-      " the frontend has a single teardown path rather than a second handler
-      " that happens to do the same thing.
-      lt_arg = VALUE #( ( z2ui5_if_ui5_types=>cs_slot_action-target )
-                        ( z2ui5_if_ui5_types=>cs_slot_action-destroy )
-                        ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
-                                  THEN z2ui5_if_client=>cs_view-popup
-                                  ELSE z2ui5_if_client=>cs_view-popover ) ) ).
-      lv_val = z2ui5_if_client=>cs_event-control_global.
-    ELSEIF lv_val = z2ui5_if_client=>cs_event-control_by_id.
-      " the view is passed as its own parameter now, not as a positional
-      " t_arg slot; inject it at position 2 so the frontend still reads
-      " args = id, view, method, ... . cs_view-main maps to the empty slot,
-      " keeping the unchanged default where the id resolves across all open
-      " views (resolveById); a concrete view scopes the lookup to that slot.
-      DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
-                                        ELSE CONV string( view ) ).
-      INSERT lv_view_slot INTO lt_arg INDEX 2.
-    ELSEIF lv_val = z2ui5_if_client=>cs_event-bind_element.
-      " element-bind a whole view slot to a table row: args = slot, index,
-      " path. The path comes from client->_bind( table ); _bind returns the
-      " binding with braces ({/MT_TAB}), which would be an invalid raw JS
-      " argument, so strip the braces here to a plain path ('/MT_TAB') that
-      " get_t_arg then quotes. The slot is the follow_up_action view parameter.
-      DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
-      REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
-      REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
-      lt_arg = VALUE #( ( CONV string( view ) )
-                        ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
-                        ( lv_bind_path ) ).
-    ENDIF.
+    " The five cs_event-*_nav_container_to constants were remapped to a
+    " control_by_id `to` call right here, and were removed on 2026-09-22: an
+    " app writes that call itself, which additionally reaches every other
+    " NavContainer method rather than the one `to` the sugar could express.
+    CASE lv_val.
+
+      WHEN z2ui5_if_client=>cs_event-popup_close
+        OR z2ui5_if_client=>cs_event-popover_close.
+        " Closing a popup IS tearing its slot down - the same call the
+        " framework itself queues for a popup_destroy( ) or an app switch. The
+        " two public constants stay ( an app closes its dialog with
+        " _event_client( cs_event-popup_close ), round-trip free, and that is
+        " the whole point of them ), but they are formatted as the one
+        " VIEW_SLOTS call here, so the frontend has a single teardown path
+        " rather than a second handler that happens to do the same thing.
+        lt_arg = VALUE #( ( z2ui5_if_ui5_types=>cs_slot_action-target )
+                          ( z2ui5_if_ui5_types=>cs_slot_action-destroy )
+                          ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
+                                    THEN z2ui5_if_client=>cs_view-popup
+                                    ELSE z2ui5_if_client=>cs_view-popover ) ) ).
+        lv_val = z2ui5_if_client=>cs_event-control_global.
+
+      WHEN z2ui5_if_client=>cs_event-control_by_id.
+        " the view is passed as its own parameter, not as a positional t_arg
+        " slot; inject it at position 2 so the frontend still reads
+        " args = id, view, method, ... . cs_view-main maps to the empty slot,
+        " keeping the default where the id resolves across all open views
+        " (resolveById); a concrete view scopes the lookup to that slot.
+        DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
+                                          ELSE CONV string( view ) ).
+        INSERT lv_view_slot INTO lt_arg INDEX 2.
+
+      WHEN z2ui5_if_client=>cs_event-bind_element.
+        " element-bind a whole view slot to a table row: args = slot, index,
+        " path. The path comes from client->_bind( table ); _bind returns the
+        " binding with braces ({/MT_TAB}), which would be an invalid raw JS
+        " argument, so strip the braces here to a plain path ('/MT_TAB') that
+        " get_t_arg then quotes. The slot is the follow_up_action view
+        " parameter.
+        DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
+        REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
+        REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
+        lt_arg = VALUE #( ( CONV string( view ) )
+                          ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
+                          ( lv_bind_path ) ).
+
+      WHEN OTHERS.
+        " every other event travels as the app wrote it
+
+    ENDCASE.
 
     result-val   = lv_val.
     result-t_arg = lt_arg.

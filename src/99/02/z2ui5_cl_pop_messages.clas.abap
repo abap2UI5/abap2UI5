@@ -57,21 +57,30 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    popup = popup->dialog( title             = title
-                           contentheight     = `50%`
-                           contentwidth      = `50%`
-                           verticalscrolling = abap_false
-                           afterclose        = client->_event( `BUTTON_CONTINUE` ) ).
+    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core` ).
 
-    popup->message_view( items = client->_bind( mt_msg )
-        )->message_item( type     = `{TYPE}`
-                         title    = `{TITLE}`
-                         subtitle = `{SUBTITLE}` ).
+    DATA(dialog) = popup->ele( `Dialog`
+        )->a( n = `title`             v = title
+        )->a( n = `contentHeight`     v = `50%`
+        )->a( n = `contentWidth`      v = `50%`
+        )->a( n = `verticalScrolling` b = abap_false
+        )->a( n = `afterClose`        v = client->_event( `BUTTON_CONTINUE` ) ).
 
-    popup->buttons( )->button( text  = `Continue`
-                               press = client->_event( `BUTTON_CONTINUE` )
-                               type  = `Emphasized` ).
+    dialog->ele( `MessageView`
+        )->a( n = `items` v = client->_bind( mt_msg )
+        )->tag( `MessageItem`
+            )->a( n = `type`     v = `{TYPE}`
+            )->a( n = `title`    v = `{TITLE}`
+            )->a( n = `subtitle` v = `{SUBTITLE}` ).
+
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Continue`
+            )->a( n = `press` v = client->_event( `BUTTON_CONTINUE` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

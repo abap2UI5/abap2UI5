@@ -16,7 +16,7 @@ const { loadLib } = require("./loadLibModule");
 //  - the updateModel fan-out over the open model-owning slots
 //  - _processAfterRendering (stale-response guards, implicit teardown)
 
-function loadController() {
+function loadController(extraDeps) {
   const Lib = loadLib().Lib;
   const { module: ctrl } = loadModule("controller/View1.controller.js", {
     deps: {
@@ -24,9 +24,35 @@ function loadController() {
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/AppState": { state: {} },
+      ...(extraDeps || {}),
     },
   });
   return ctrl;
+}
+
+// A controller whose ViewSlots is a stub, plus the console errors Lib wrote.
+// slotById/slotValue are about resolving across SLOTS, so the slot table is
+// the thing under test and has to be substitutable. Named ...Stub because the
+// response-side block further down already owns `withSlots` for the OPEN-slot
+// fixture, which is a different thing entirely.
+function withSlotStub(byId, resolveById) {
+  const errors = [];
+  const Lib = loadLib().Lib;
+  const realLogError = Lib.logError;
+  Lib.logError = (...args) => errors.push(args[0]);
+  const { module: controller } = loadModule("controller/View1.controller.js", {
+    deps: {
+      "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
+      "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
+      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/AppState": { state: {} },
+      "z2ui5/core/ViewSlots": {
+        byId: byId || (() => undefined),
+        resolveById: resolveById || (() => null),
+      },
+    },
+  });
+  return { controller, errors, restore: () => (Lib.logError = realLogError) };
 }
 
 // the controller with eB replaced by a recorder: eBP's contract is "cancel the
@@ -1192,5 +1218,103 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     // silent roundtrip runs needs the feedback the click always got
     ctrl.eB(PLAIN);
     expect(busy).toEqual(["show(0)"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// slotById / slotValue: reaching a control in ANOTHER view slot from an event
+// argument. An id is local to the view or fragment it was written in, and a
+// `${...}` is a binding path, which addresses data and not controls - so
+// before these two there was no way to read what a control in a dialog holds
+// into the event that closes it. cs_event-image_editor_popup_close existed
+// for exactly one instance of that problem and is removed with them.
+// ---------------------------------------------------------------------------
+
+test.describe("slotById (a control in a named slot)", () => {
+  test("resolves in the named slot", () => {
+    const editor = { id: "imageEditor" };
+    const { controller, restore } = withSlotStub((slot, id) =>
+      slot === "POPUP" && id === "imageEditor" ? editor : undefined,
+    );
+    expect(controller.slotById("POPUP", "imageEditor")).toBe(editor);
+    restore();
+  });
+
+  test("an empty slot searches every open one, like cs_view-main", () => {
+    const anywhere = { id: "x" };
+    const { controller, restore } = withSlotStub(
+      () => undefined,
+      (id) => (id === "x" ? anywhere : null),
+    );
+    expect(controller.slotById("", "x")).toBe(anywhere);
+    expect(controller.slotById(undefined, "x")).toBe(anywhere);
+    restore();
+  });
+
+  test("a miss is null and is logged, not thrown", () => {
+    const { controller, errors, restore } = withSlotStub();
+    expect(controller.slotById("POPUP", "ghost")).toBe(null);
+    expect(errors).toEqual(["slotById: no control 'ghost' in slot 'POPUP'"]);
+    restore();
+  });
+});
+
+test.describe("slotValue (the null-safe read)", () => {
+  test("calls the getter and hands the value over", () => {
+    const editor = { getImagePngDataURL: () => "data:image/png;base64,AAA" };
+    const { controller, restore } = withSlotStub((slot, id) =>
+      slot === "POPUP" && id === "imageEditor" ? editor : undefined,
+    );
+    expect(
+      controller.slotValue("POPUP", "imageEditor", "getImagePngDataURL"),
+    ).toBe("data:image/png;base64,AAA");
+    restore();
+  });
+
+  // the whole reason this exists beside slotById: an argument expression is
+  // evaluated while UI5 dispatches the handler, so a throw there loses the
+  // EVENT - the button does nothing and the app cannot tell
+  test("a closed slot is the empty string, logged, never a throw", () => {
+    const { controller, errors, restore } = withSlotStub();
+    expect(controller.slotValue("POPUP", "ghost", "getText")).toBe("");
+    expect(errors).toEqual(["slotValue: no control 'ghost' in slot 'POPUP'"]);
+    restore();
+  });
+
+  test("a method the control does not have is the empty string", () => {
+    const { controller, errors, restore } = withSlotStub(() => ({}));
+    expect(controller.slotValue("POPUP", "x", "getNothing")).toBe("");
+    expect(errors).toEqual([
+      "slotValue: 'getNothing' is not a method of control 'x'",
+    ]);
+    restore();
+  });
+
+  test("a getter that throws is caught, not propagated", () => {
+    const { controller, errors, restore } = withSlotStub(() => ({
+      boom() {
+        throw new Error("nope");
+      },
+    }));
+    expect(controller.slotValue("POPUP", "x", "boom")).toBe("");
+    expect(errors).toEqual(["slotValue: 'boom' on 'x' failed"]);
+    restore();
+  });
+
+  test("undefined and null come back as the empty string, not as themselves", () => {
+    const { controller, restore } = withSlotStub(() => ({
+      getUndef: () => undefined,
+      getNull: () => null,
+      getEmpty: () => "",
+      getFalse: () => false,
+      getZero: () => 0,
+    }));
+    expect(controller.slotValue("MAIN", "x", "getUndef")).toBe("");
+    expect(controller.slotValue("MAIN", "x", "getNull")).toBe("");
+    expect(controller.slotValue("MAIN", "x", "getEmpty")).toBe("");
+    // a falsy VALUE is still a value and must travel as itself
+    expect(controller.slotValue("MAIN", "x", "getFalse")).toBe(false);
+    expect(controller.slotValue("MAIN", "x", "getZero")).toBe(0);
+    restore();
   });
 });

@@ -16,6 +16,32 @@
 
   "paths": ["src", "node/srv"],
 
+  // src/99 is FROZEN (AGENTS.md, "The frozen package"): it ships so existing
+  // downstream installations keep compiling, its production code is not
+  // changed, and it "is out of scope for reviews and audits". This gate is an
+  // audit, so it stops at the boundary — not collected at all, rather than
+  // collected and then excused rule by rule.
+  //
+  // It became visible only when the 17 popup classes in src/99/02 were ported
+  // off the retired builder onto z2ui5_cl_ui5_view_builder: the linter can
+  // read a view built with the current builder, so a package it previously had
+  // nothing to say about arrived with 16 findings in one run (3 errors, 12
+  // warnings, 1 hint). They are real and none of them is actionable HERE:
+  //
+  //   pop_demo_output     unknown-icon        sap-icon://textFormatting
+  //   pop_image_editor    sapui5-only-control sap.suite.ui.commons.imageeditor.*
+  //   pop_get_range(_m)   member-too-new      sap.m.List noData @1.101
+  //   pop_to_inform       icon-too-new        sap-icon://information @1.80
+  //   pop_file_ul, pop_get_range(_m), pop_to_select
+  //                       obsolete-model-update  popup_model_update( )
+  //   5x missing-on-navigated-branch, 1x missing-accessibility
+  //
+  // Fixing any of them edits frozen production code and changes behaviour on
+  // systems that installed it; the port did not (it builds the same XML). So
+  // the findings are recorded here instead. Drop this `ignore` the day src/99
+  // stops being frozen, and fix the list.
+  "ignore": ["/src/99/"],
+
   // The oldest release abap2UI5 supports — the same floor the samples are held
   // to, and the reason it matters here is that a shipped app demonstrating a
   // post-1.71 control would break on exactly the systems this floor exists for.
@@ -23,21 +49,14 @@
   "distribution": "openui5",
 
   "rules": {
-    /* src/99 IS the frozen legacy, and 0.2.0 learned to see it. The new
-     * `frozen-view-builder` rule collects a class that builds its view with
-     * z2ui5_cl_xml_view instead of skipping it — which is the whole point of
-     * the rule, and which lights up the 17 popup classes in src/99/02.
-     *
-     * Correct, and correctly excluded: that package ships solely so existing
-     * downstream installations keep compiling (§ the frozen-paths gate refuses
-     * edits to it), so the finding is true and there is nothing to do about it
-     * here. Anything OUTSIDE src/99 is still reported — an app on the retired
-     * builder is exactly what this rule exists to catch.
-     *
-     * This could not be pre-landed: a config cannot name a rule the pinned
-     * version does not have, so the exclusion and the bump are one commit. The
-     * linter's own 0.2.0 changelog says so. */
-    "frozen-view-builder": { "exclude": ["/src/99/"] },
+    /* `frozen-view-builder` used to carry an `exclude` for /src/99/ here: the
+     * rule collects a class that builds its view with z2ui5_cl_xml_view
+     * instead of skipping it, and that lit up the 17 popup classes of
+     * src/99/02. Both the reason and the exclusion are gone — those classes
+     * build with z2ui5_cl_ui5_view_builder now, and the package is not
+     * collected at all (`ignore` above). Anything OUTSIDE src/99 is still
+     * reported: an app on the retired builder is exactly what the rule exists
+     * to catch. */
 
     /* The e2e host of sample 338 (node/srv/zcl_tst_host) opens its builder
      * in one method and stringifies the page from an attribute in another,

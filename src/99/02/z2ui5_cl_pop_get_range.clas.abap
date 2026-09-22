@@ -63,50 +63,67 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`        v = `sap.m`
+            )->a( n = `xmlns:core`   v = `sap.ui.core`
+            )->a( n = `xmlns:layout` v = `sap.ui.layout` ).
 
-    lo_popup = lo_popup->dialog( afterclose    = client->_event( `BUTTON_CANCEL` )
-                                 contentheight = `50%`
-                                 contentwidth  = `50%`
-                                 title         = `Define Filter Conditions` ).
+    DATA(lo_popup) = view->ele( `Dialog`
+        )->a( n = `afterClose`    v = client->_event( `BUTTON_CANCEL` )
+        )->a( n = `contentHeight` v = `50%`
+        )->a( n = `contentWidth`  v = `50%`
+        )->a( n = `title`         v = `Define Filter Conditions` ).
 
-    DATA(vbox) = lo_popup->vbox( height         = `100%`
-                                 justifycontent = `SpaceBetween` ).
+    DATA(item) = lo_popup->ele( `VBox`
+        )->a( n = `height`         v = `100%`
+        )->a( n = `justifyContent` v = `SpaceBetween`
+        )->ele( `List`
+            )->a( n = `noData` v = `No conditions defined`
+            )->a( n = `items`  v = client->_bind( mt_filter )
+            )->ele( `CustomListItem` ).
 
-    DATA(item) = vbox->list( nodata = `No conditions defined`
-                             items  = client->_bind_edit( mt_filter )
-                )->custom_list_item( ).
+    DATA(grid) = item->ele( n = `Grid` ns = `layout` ).
 
-    DATA(grid) = item->grid( ).
+    grid->ele( `ComboBox`
+        )->a( n = `selectedKey` v = `{OPTION}`
+        )->a( n = `items`       v = client->_bind( mt_mapping )
+        )->tag( n = `Item` ns = `core`
+            )->a( n = `key`  v = `{N}`
+            )->a( n = `text` v = `{N}` ).
 
-    grid->combobox( selectedkey = `{OPTION}`
-                    items       = client->_bind( mt_mapping )
-             )->item( key  = `{N}`
-                      text = `{N}`
-             )->get_parent(
-             )->input( value  = `{LOW}`
-                       submit = client->_event( `BUTTON_CONFIRM` )
-             )->input( value   = `{HIGH}`
-                       visible = `{= ${OPTION} === 'BT' }`
-                       submit  = client->_event( `BUTTON_CONFIRM` )
-             )->button( icon  = `sap-icon://decline`
-                        type  = `Transparent`
-                        press = client->_event( val   = `POPUP_DELETE`
-                                                t_arg = VALUE #( ( `${KEY}` ) ) ) ).
+    grid->tag( `Input`
+        )->a( n = `value`  v = `{LOW}`
+        )->a( n = `submit` v = client->_event( `BUTTON_CONFIRM` ) ).
 
-    lo_popup->buttons(
-        )->button( text  = `Delete All`
-                   icon  = `sap-icon://delete`
-                   type  = `Transparent`
-                   press = client->_event( `POPUP_DELETE_ALL` )
-        )->button( text  = `Add Item`
-                   icon  = `sap-icon://add`
-                   press = client->_event( `POPUP_ADD` )
-       )->button( text  = `Cancel`
-                  press = client->_event( `BUTTON_CANCEL` )
-       )->button( text  = `OK`
-                  press = client->_event( `BUTTON_CONFIRM` )
-                  type  = `Emphasized` ).
+    grid->tag( `Input`
+        )->a( n = `value`   v = `{HIGH}`
+        )->a( n = `visible` v = `{= ${OPTION} === 'BT' }`
+        )->a( n = `submit`  v = client->_event( `BUTTON_CONFIRM` ) ).
+
+    grid->tag( `Button`
+        )->a( n = `icon`  v = `sap-icon://decline`
+        )->a( n = `type`  v = `Transparent`
+        )->a( n = `press` v = client->_event( val   = `POPUP_DELETE`
+                                              t_arg = VALUE #( ( `${KEY}` ) ) ) ).
+
+    lo_popup->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Delete All`
+            )->a( n = `icon`  v = `sap-icon://delete`
+            )->a( n = `type`  v = `Transparent`
+            )->a( n = `press` v = client->_event( `POPUP_DELETE_ALL` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Add Item`
+            )->a( n = `icon`  v = `sap-icon://add`
+            )->a( n = `press` v = client->_event( `POPUP_ADD` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Cancel`
+            )->a( n = `press` v = client->_event( `BUTTON_CANCEL` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `OK`
+            )->a( n = `press` v = client->_event( `BUTTON_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( lo_popup->stringify( ) ).
 

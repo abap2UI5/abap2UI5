@@ -90,19 +90,20 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     lo_event = NEW #( ).
 
-    " a *_nav_container_to client event is remapped to the generic
-    " CONTROL_BY_ID call (container, slot, `to`, target) - this covers both the
-    " follow_up_action and the XML-bound _event_client path, since both format
-    " through get_event_client
+    " NavContainer navigation is an ordinary control_by_id `to` call since the
+    " five cs_event-*_nav_container_to constants were removed (2026-09-22).
+    " This is the migration, on the XML-bound _event_client path: the app
+    " writes the method itself, and the slot is the `view` parameter
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'myContainer', 'MAIN', 'to', 'myPage')`
-        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nav_container_to
-                                          t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        exp = `.eF('CONTROL_BY_ID', 'myContainer', '', 'to', 'myPage')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                          t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
-        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
-                                          t_arg = VALUE #( ( `nestCon` ) ( `nestPage` ) ) ) ).
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                          view  = z2ui5_if_client=>cs_view-nested
+                                          t_arg = VALUE #( ( `nestCon` ) ( `to` ) ( `nestPage` ) ) ) ).
 
   ENDMETHOD.
 
@@ -529,37 +530,43 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_nav_container.
 
-    " the *_nav_container_to remap to the generic CONTROL_BY_ID call is shared
-    " with the JS path via map_client_event
+    " The same migration on the JSON path, one assertion per slot: the slot is
+    " the only thing that differs, and a call that lands on the wrong one
+    " navigates a container in a view the app never named, with nothing in the
+    " response saying so. cs_view-main is the EMPTY slot, not the literal
+    " `MAIN` the removed sugar injected - an empty slot resolves across every
+    " open view (ViewSlots.resolveById) and therefore still finds a container
+    " in the main view; it is only wider, never narrower.
     DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nav_container_to
-                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
-    " one event constant per slot, and the SLOT is the only thing that
-    " differs - a remap that lands on the wrong one navigates a container
-    " in a view the app never named, and nothing about the response says so
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
-                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               view  = z2ui5_if_client=>cs_view-nested
+                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST2","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-nest2_nav_container_to
-                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               view  = z2ui5_if_client=>cs_view-nested2
+                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPUP","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-popup_nav_container_to
-                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               view  = z2ui5_if_client=>cs_view-popup
+                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPOVER","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-popover_nav_container_to
-                                               t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
+                                               view  = z2ui5_if_client=>cs_view-popover
+                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
   ENDMETHOD.
 

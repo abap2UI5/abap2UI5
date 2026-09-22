@@ -128,18 +128,6 @@ sap.ui.define(
       view.bindElement(`${path}/${args[2]}`);
     }
 
-    function evImageEditorPopupClose(oController) {
-      let image;
-      try {
-        const editor = ViewSlots.byId("POPUP", "imageEditor");
-        if (editor) image = editor.getImagePngDataURL();
-      } catch (e) {
-        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);
-      }
-      ViewSlots.destroy("POPUP");
-      oController.eB(["SAVE"], image);
-    }
-
     function evStartTimer(oController, args) {
       // Intentionally a single timer slot: args[0] is always the event
       // name "START_TIMER", so a new START_TIMER replaces the previous
@@ -374,7 +362,6 @@ sap.ui.define(
       SET_SIZE_LIMIT: evSetSizeLimit,
       SET_ODATA_MODEL: evSetODataModel,
       BIND_ELEMENT: evBindElement,
-      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,
       START_TIMER: evStartTimer,
       SET_FOCUS: evSetFocus,
       SCROLL_TO: evScrollTo,

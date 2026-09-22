@@ -163,31 +163,8 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      installShortcutListener();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evKeyboardSetMode(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
-             `        if (!oElement) {` && |\n| &&
-             `          Lib.logError(``KEYBOARD_SET_MODE: '${args[1]}' not found``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (!dom) return;` && |\n| &&
-             `        const input = dom.matches("input, textarea")` && |\n| &&
-             `          ? dom` && |\n| &&
-             `          : dom.querySelector("input, textarea");` && |\n| &&
-             `        if (!input) return;` && |\n| &&
-             `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
-             `          e,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
-             `      KEYBOARD_SET_MODE: evKeyboardSetMode,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return { handlers, reset };` && |\n| &&

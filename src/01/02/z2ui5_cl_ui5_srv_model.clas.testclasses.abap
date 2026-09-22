@@ -3710,3 +3710,305 @@ CLASS ltcl_06_two_refs IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" Sample 500a: the host app that renders ANOTHER app INTO ITS OWN VIEW. It
+" builds a page, keeps the builder node in an attribute, creates the sub-app
+" by NAME (CREATE OBJECT mo_app TYPE (class)) into a REF TO object, writes the
+" page into the sub-app's MO_PARENT_PAGE by dynamic ASSIGN and calls the
+" sub-app's main( ) with ITS OWN client. So the sub-app binds through the
+" host's model, the host's draft is what gets saved, and two things the host
+" holds are framework objects rather than data.
+"
+" It was the last of the "main app calling subapps" scaffolds in samples
+" (src/00/98, cleared 2026-09-22) and the only one left in src/01; what it
+" asserted by hand in a browser is asserted here.
+"
+" The shape nothing else in this file has: a LIVE z2ui5_cl_ui5_view_builder in
+" a PUBLIC attribute of an app. diss_oref skips exactly one class by name -
+" z2ui5_cl_ui5_client, after the start page put 300 rows of the roundtrip
+" graph into its own draft - and the builder is not that class. What keeps it
+" harmless is that the builder's own state is PROTECTED, so the public-only
+" walk finds nothing behind it. That is a property of the builder, not of the
+" walk, which is why it is pinned here: a public attribute added to the
+" builder would put the whole view tree into every host app's model, and no
+" test of the builder would notice.
+" ---------------------------------------------------------------------------
+
+CLASS ltcl_app_sub_view DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        carrid TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    " the page the host hands over - a live framework object in a PUBLIC
+    " attribute of an app, which is the shape under test
+    DATA mo_parent_page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA mt_table       TYPE ty_t_row.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_sub_view IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_app_view_host DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    DATA mv_selectedkey TYPE string.
+    " the node of the host's own view tree, kept between the two halves of
+    " the roundtrip - the attribute 500a calls MO_MAIN_PAGE
+    DATA mo_main_page   TYPE REF TO z2ui5_cl_ui5_view_builder.
+    " the sub-app, created by name: REF TO object, not REF TO its class
+    DATA mo_app         TYPE REF TO object.
+
+    METHODS render.
+    METHODS create_sub_app.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_view_host IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD render.
+
+    mo_main_page = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n  = `View`
+                ns = `mvc`
+            )->a( n = `xmlns`
+                  v = `sap.m`
+            )->a( n = `xmlns:mvc`
+                  v = `sap.ui.core.mvc`
+
+            )->ele( `Page`
+                )->a( n = `title`
+                      v = `Main App calling Subapps` ).
+
+  ENDMETHOD.
+
+  METHOD create_sub_app.
+
+    " what render_sub_app( ) does on every tab switch, and it does it AFTER
+    " the host has already bound its own attribute
+    DATA(lo_sub) = NEW ltcl_app_sub_view( ).
+    lo_sub->mt_table       = VALUE #( ( carrid = `LH` ) ( carrid = `UA` ) ).
+    lo_sub->mo_parent_page = mo_main_page.
+    mo_app                 = lo_sub.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_07_view_host DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    DATA mo_host  TYPE REF TO ltcl_app_view_host.
+    DATA mr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    METHODS setup.
+
+    "! the sub-app behind a REF TO object - a second app class - binds its own
+    "! table through the HOST's model, under the host's attribute
+    METHODS subapp_binds_under_host   FOR TESTING RAISING cx_static_check.
+    "! the sub-app is created during the render, after the host bound its own
+    "! attribute: a refresh has to find it (500a's render_sub_app order)
+    METHODS subapp_created_late_found FOR TESTING RAISING cx_static_check.
+    "! the live view builder the host holds PUBLIC contributes no bindable row
+    METHODS builder_carries_no_rows   FOR TESTING RAISING cx_static_check.
+    "! ...and does not reach the model either, however deep its tree is
+    METHODS builder_tree_not_walked   FOR TESTING RAISING cx_static_check.
+    "! the draft: the builder is gone, the sub-app and its data are back
+    METHODS host_survives_roundtrip   FOR TESTING RAISING cx_static_check.
+
+    "! the rows the walk produced, by name
+    METHODS row_exists
+      IMPORTING iv_name       TYPE string
+      RETURNING VALUE(result) TYPE abap_bool.
+    "! how many rows start with the given prefix
+    METHODS rows_under
+      IMPORTING iv_prefix     TYPE string
+      RETURNING VALUE(result) TYPE i.
+ENDCLASS.
+
+
+CLASS ltcl_07_view_host IMPLEMENTATION.
+
+  METHOD setup.
+
+    mo_host = NEW #( ).
+    mo_host->mv_selectedkey = `1`.
+    mo_host->render( ).
+    CREATE DATA mr_attri.
+    mo_model = NEW #( attri = mr_attri
+                      app   = mo_host ).
+
+  ENDMETHOD.
+
+  METHOD row_exists.
+
+    result = xsdbool( line_exists( mr_attri->*[ name = iv_name ] ) ).
+
+  ENDMETHOD.
+
+  METHOD rows_under.
+
+    LOOP AT mr_attri->* TRANSPORTING NO FIELDS "#EC CI_SORTSEQ
+         WHERE name CP |{ iv_prefix }*|.
+      result = result + 1.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD subapp_binds_under_host.
+
+    mo_host->create_sub_app( ).
+    mo_model->main_attri_refresh( ).
+
+    " the row is the HOST's - the sub-app is reached through MO_APP, so that
+    " is the name the draft saves and the model writes back into
+    DATA(lo_sub) = CAST ltcl_app_sub_view( mo_host->mo_app ).
+    DATA(lr_row) = mo_model->main_attri_search( REF #( lo_sub->mt_table ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_APP->MT_TABLE`
+                                        act = lr_row->name ).
+
+    lr_row->bind        = abap_true.
+    lr_row->name_client = `/MT_TABLE`.
+    DATA(lv_json) = mo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS `"LH"` )
+                                      msg = `the sub-app's rows never reached the host's model` ).
+
+    " ...and the way back lands in the sub-app instance, not in a copy
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    lo_front->set( iv_path = `/MT_TABLE/1/CARRID`
+                   iv_val  = `AA` ).
+    mo_model->main_json_to_attri( lo_front ).
+    cl_abap_unit_assert=>assert_equals( exp = `AA`
+                                        act = lo_sub->mt_table[ 1 ]-carrid ).
+
+  ENDMETHOD.
+
+  METHOD subapp_created_late_found.
+
+    " roundtrip 1: the host renders and binds its own attribute; no sub-app
+    " exists yet, so nothing of it can be in the rows
+    DATA(lr_key) = mo_model->main_attri_search( REF #( mo_host->mv_selectedkey ) ).
+    lr_key->bind        = abap_true.
+    lr_key->name_client = `/MV_SELECTEDKEY`.
+    cl_abap_unit_assert=>assert_false( row_exists( `MO_APP->MT_TABLE` ) ).
+
+    " the tab switch creates it, inside the same request
+    mo_host->create_sub_app( ).
+    mo_model->main_attri_refresh( ).
+
+    cl_abap_unit_assert=>assert_true( row_exists( `MO_APP->MT_TABLE` ) ).
+    " the host's own binding is untouched by the refresh
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mr_attri->*[ name = `MV_SELECTEDKEY` ]-bind ).
+
+  ENDMETHOD.
+
+  METHOD builder_carries_no_rows.
+
+    mo_model->main_attri_refresh( ).
+
+    " the reference itself is a row - it is a public attribute of the app
+    cl_abap_unit_assert=>assert_true( act = row_exists( `MO_MAIN_PAGE` )
+                                      msg = `the attribute itself is not in the rows` ).
+    " and it is the ONLY one: everything the builder holds is protected, so
+    " the public-only walk of diss_oref finds nothing to descend into
+    cl_abap_unit_assert=>assert_equals(
+        exp = 0
+        act = rows_under( `MO_MAIN_PAGE->` )
+        msg = `the view builder exposed state to the dissolve walk - every host app's draft now carries its view tree` ).
+
+  ENDMETHOD.
+
+  METHOD builder_tree_not_walked.
+
+    " a DEEP tree, so a walk that descended would be unmistakable in the count
+    DATA(lo_node) = mo_host->mo_main_page.
+    DO 20 TIMES.
+      lo_node = lo_node->ele( `VBox`
+          )->a( n = `class`
+                v = `sapUiSmallMargin` ).
+    ENDDO.
+    mo_host->create_sub_app( ).
+    mo_model->main_attri_refresh( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = rows_under( `MO_MAIN_PAGE->` ) ).
+    " the sub-app's OWN page reference is the same object and stays as quiet
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = rows_under( `MO_APP->MO_PARENT_PAGE->` ) ).
+    " what is behind the sub-app is still found - the builder is skipped, the
+    " sub-app is not
+    cl_abap_unit_assert=>assert_true( row_exists( `MO_APP->MT_TABLE` ) ).
+
+  ENDMETHOD.
+
+  METHOD host_survives_roundtrip.
+
+    mo_host->create_sub_app( ).
+    DATA(lo_live) = CAST ltcl_app_sub_view( mo_host->mo_app ).
+    DATA(lr_row) = mo_model->main_attri_search( REF #( lo_live->mt_table ) ).
+    lr_row->bind        = abap_true.
+    lr_row->name_client = `/MT_TABLE`.
+    DATA(lv_before) = mo_model->main_json_stringify( ).
+
+    " the draft as the container writes and reads it
+    mo_model->main_attri_db_save_srtti( ).
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( mo_host ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mr_attri->* ).
+    CLEAR mo_host.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = mo_host ).
+    CREATE DATA mr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = mr_attri->* ).
+    mo_model = NEW #( attri = mr_attri
+                      app   = mo_host ).
+    mo_model->main_attri_db_load( ).
+
+    " the builder is not serializable and does not come back - and its
+    " absence took nothing with it
+    cl_abap_unit_assert=>assert_not_bound( act = mo_host->mo_main_page
+                                           msg = `a view builder came back from a draft` ).
+    " the sub-app did come back, as its own class, with its data
+    cl_abap_unit_assert=>assert_bound( act = mo_host->mo_app
+                                       msg = `the sub-app was lost across the draft` ).
+    DATA(lo_back) = CAST ltcl_app_sub_view( mo_host->mo_app ).
+    cl_abap_unit_assert=>assert_not_bound( act = lo_back->mo_parent_page
+                                           msg = `the sub-app's page reference came back` ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_back->mt_table ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = mo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.

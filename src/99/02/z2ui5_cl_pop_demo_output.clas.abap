@@ -86,25 +86,37 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD render_popup.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
-                      title         = title
-                      icon          = icon
-                      stretch       = stretch
-                      contentheight = `100%`
-                      contentwidth  = `100%`
-                      afterclose    = client->_event( `BUTTON_CONFIRM` )
-              )->content(
-                  )->vbox( `sapUiMediumMargin`
-                      )->_cc_plain_xml( get_style( )
-                      )->html( html
-              )->get_parent( )->get_parent( )->get_parent(
-              )->buttons(
-                  )->button( text  = `Fullscreen`
-                             icon  = `sap-icon://full-screen`
-                             press = client->_event( `TOGGLE_FULLSCREEN` )
-                  )->button( text  = button_text_confirm
-                             press = client->_event( `BUTTON_CONFIRM` )
-                             type  = `Emphasized` ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core`
+            )->a( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` ).
+
+    DATA(popup) = view->ele( `Dialog`
+        )->a( n = `title`         v = title
+        )->a( n = `icon`          v = icon
+        )->a( n = `stretch`       b = stretch
+        )->a( n = `contentHeight` v = `100%`
+        )->a( n = `contentWidth`  v = `100%`
+        )->a( n = `afterClose`    v = client->_event( `BUTTON_CONFIRM` ) ).
+
+    popup->ele( `content`
+        )->ele( `VBox`
+            )->a( n = `class` v = `sapUiMediumMargin`
+            )->tag( n = `ZZPLAIN` ns = `html`
+                )->a( n = `VALUE` v = get_style( )
+            )->tag( n = `HTML` ns = `core`
+                )->a( n = `content` v = html ).
+
+    popup->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Fullscreen`
+            )->a( n = `icon`  v = `sap-icon://full-screen`
+            )->a( n = `press` v = client->_event( `TOGGLE_FULLSCREEN` )
+        )->tag( `Button`
+            )->a( n = `text`  v = button_text_confirm
+            )->a( n = `press` v = client->_event( `BUTTON_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -112,22 +124,32 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD render_page.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
-        )->page(
-            title          = title
-            navbuttonpress = client->_event_nav_app_leave( )
-            shownavbutton  = abap_true
-            )->header_content(
-                )->button(
-                    text  = `Popup`
-                    icon  = `sap-icon://exit-full-screen`
-                    press = client->_event( `TOGGLE_FULLSCREEN` )
-        )->get_parent( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `View` ns = `mvc`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:mvc`  v = `sap.ui.core.mvc`
+            )->a( n = `xmlns:core` v = `sap.ui.core`
+            )->a( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` ).
 
-    page->content(
-        )->vbox( `sapUiMediumMargin`
-            )->_cc_plain_xml( get_style( )
-            )->html( html ).
+    DATA(page) = view->ele( `Shell`
+        )->ele( `Page`
+            )->a( n = `title`          v = title
+            )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
+            )->a( n = `showNavButton`  b = abap_true ).
+
+    page->ele( `headerContent`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Popup`
+            )->a( n = `icon`  v = `sap-icon://exit-full-screen`
+            )->a( n = `press` v = client->_event( `TOGGLE_FULLSCREEN` ) ).
+
+    page->ele( `content`
+        )->ele( `VBox`
+            )->a( n = `class` v = `sapUiMediumMargin`
+            )->tag( n = `ZZPLAIN` ns = `html`
+                )->a( n = `VALUE` v = get_style( )
+            )->tag( n = `HTML` ns = `core`
+                )->a( n = `content` v = html ).
 
     client->view_display( page->stringify( ) ).
 

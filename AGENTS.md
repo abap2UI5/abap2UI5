@@ -145,6 +145,20 @@ src/
 
   **For AI assistants this means: never change the production code under `src/99/` or add consumers on it.** It is out of scope for reviews and audits. The `check_gates` workflow enforces the freeze; the `*.testclasses.abap` files and the abapGit `.clas.xml` sidecars are exempt from it, because the tests keep running in CI and must follow the core internals they assert on. Moving an object **out** of the package is also allowed — abapGit installs the repository, not the folder, so an object that relocates and keeps shipping breaks no downstream install. The gate refuses a deletion only when the object name exists nowhere else under `src/` afterwards **and** the object shipped in the latest release tag — an object added since that release has never reached an installation, so dropping it breaks nothing. Anything edited in place is refused either way.
 
+  **One exemption is open, and it is the only one: the popup apps**
+  (`src/99/02/z2ui5_cl_pop_*.clas.abap`) are being ported off
+  `z2ui5_cl_xml_view` onto `z2ui5_cl_ui5_view_builder` (maintainer decision
+  2026-09-22), so that the retired builder ends with zero consumers anywhere
+  and can go. The freeze is there so an installation that upgrades keeps
+  **compiling**, and this port changes no class name, no method and no
+  signature — only how each class assembles the XML string it already
+  produced, which the popup tests pin with `CS` assertions on the displayed
+  XML. The exemption is a named pathspec in
+  `.github/scripts/frozen-paths-gate.mjs` and goes away with the last ported
+  class. It covers nothing else: not `src/99/01`, not `z2ui5_cl_xml_view`
+  itself, and it is **not** a precedent — any other change under `src/99`
+  still needs its own maintainer decision recorded here.
+
 ### Utilities — the context class is the only door
 
 **This section is the single source of truth for how the framework reaches system and platform functionality. Everything about utilities is settled here; nowhere else in this file repeats it.**
@@ -521,7 +535,40 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 - Classes: `Z2UI5_CL_*` or `Z2UI5_CX_*`
 - Interfaces: `Z2UI5_IF_*`
-- Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only
+- Allowed object types: `CLAS`, `DEVC`, `INTF`, `TABL` only — and `TABL` is
+  allowed, not encouraged (see below)
+
+#### No new dictionary objects
+
+**The framework is ABAP source. A dictionary object is a last resort, and
+"released so an app can name it" is not a reason at all.**
+
+A DDIC object costs what a class does not: it activates separately, it cannot
+carry a test include, it has no visibility to hide behind, a field rename is a
+runtime break for every caller that spelled the name dynamically, and on an
+ABAP Cloud system it drags in a release contract that outlives the reason it
+was added. A type an app needs is a `TYPES` in an interface; a constant is a
+`CONSTANTS`; a lookup table is an internal table built in ABAP.
+
+Three `TABL` objects remain, each because nothing else can do its job:
+
+| Object | Why it cannot be ABAP |
+|---|---|
+| `z2ui5_t_01` (`src/01/01`) | the draft table — the framework's state **is** rows on the database between roundtrips |
+| `z2ui5_t_91` (`src/99/01`) | the key/value store behind `z2ui5_cl_util_db`, frozen with the rest of `src/99` |
+
+`z2ui5_t_02` used to be the third: a released `name`/`value` structure added
+purely so a sample could write
+`CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` without naming a
+framework internal. **It was removed on 2026-09-22** — in a year nothing named
+it, its only consumer was the unit test pinning its shape, and the app it was
+written for went on naming a table of its own. A dynamic type names a type the
+*system* has; supplying one from the framework was solving the wrong half of
+the problem (`docs/agents/building-apps.md`, `docs/removal-plan.md` §5).
+
+So: **do not add a `TABL`, a `DTEL`, a `DOMA`, a `DDLS` or a `BDEF`.** If one
+looks unavoidable, the change needs a maintainer decision recorded here first,
+naming what ABAP could not express.
 - **Method names, convention only — no abaplint rule decides these.** `factory( )`
   builds and returns a new object **of its own class** (`z2ui5_cl_ui5_http_handler`,
   `z2ui5_cl_ui5_view_builder`, `z2ui5_cl_ui5_action=>factory_*`, …) and is a

@@ -701,17 +701,21 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " a *_nav_container_to event is rerouted to the generic CONTROL_BY_ID call
-    " (method `to`, slot as the view) instead of emitting a dedicated event
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-nav_container_to
-                                 t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ).
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-popup_nav_container_to
-                                 t_arg = VALUE #( ( `popContainer` ) ( `popPage` ) ) ).
+    " NavContainer navigation from the BACKEND, since the five
+    " cs_event-*_nav_container_to constants were removed (2026-09-22): the app
+    " names the method itself and the slot is the view parameter
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
+                                 t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
+                                 view  = z2ui5_if_client=>cs_view-popup
+                                 t_arg = VALUE #( ( `popContainer` ) ( `to` ) ( `popPage` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
+    " the empty slot, not the literal `MAIN` the sugar injected: it resolves
+    " across every open view and therefore still finds a main-view container
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
+        exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`

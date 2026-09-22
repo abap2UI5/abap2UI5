@@ -200,36 +200,10 @@ sap.ui.define(
       installShortcutListener();
     }
 
-    function evKeyboardSetMode(oController, args) {
-      try {
-        // resolveById, not byId("MAIN", ...): an input in a dialog or a
-        // nested view is not in the MAIN slot, and this used to no-op on it
-        // without even a log line
-        const oElement = ViewSlots.resolveById(args[1]);
-        if (!oElement) {
-          Lib.logError(`KEYBOARD_SET_MODE: '${args[1]}' not found`);
-          return;
-        }
-        const dom = oElement.getDomRef();
-        if (!dom) return;
-        const input = dom.matches("input, textarea")
-          ? dom
-          : dom.querySelector("input, textarea");
-        if (!input) return;
-        input.setAttribute("inputmode", args[2] || "text");
-      } catch (e) {
-        Lib.logError(
-          `KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`,
-          e,
-        );
-      }
-    }
-
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
       KEYBOARD_SHORTCUT: evKeyboardShortcut,
-      KEYBOARD_SET_MODE: evKeyboardSetMode,
     };
 
     return { handlers, reset };

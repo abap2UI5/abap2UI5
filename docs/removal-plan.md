@@ -51,6 +51,59 @@ support case.
       (236 calls, 90 files); one deliberate holdout, see below
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
+- [x] `cs_event-image_editor_popup_close` removed, with
+      `evImageEditorPopupClose` in `app/webapp/core/actions/ViewOps.js` and the
+      regenerated `src/01/03/`. This item used to read *"goes when `src/99/02`
+      goes"*, and that was the wrong reading: it did not wait on the frozen
+      package, it waited on a **missing generic capability**. The handler
+      bundled a read (`getImagePngDataURL( )` off the editor in the POPUP
+      slot), a teardown and a backend event carrying that value, and only the
+      teardown had an equivalent — `CONTROL_BY_ID` calls a method and discards
+      its return value, and no `t_arg` expression could reach a control in
+      another slot. `$controller.slotValue( )` supplies the read, so the
+      button is an ordinary `_event( )` and the popup's own `SAVE` branch
+      destroys the slot on the roundtrip, as its `CANCEL` branch always did.
+      Ecosystem count at removal: **0**. API snapshot regenerated, recorded as
+      BREAKING in `changelog.txt`.
+- [x] The five `cs_event-*_nav_container_to` constants removed —
+      `nav_container_to` and its `nest` / `nest2` / `popup` / `popover`
+      variants. They never reached the frontend as events:
+      `z2ui5_cl_ui5_srv_event=>map_client_event` rewrote each one into the
+      generic `CONTROL_BY_ID` call with method `to` and the slot the
+      constant's name picked, so the removal deletes a `SWITCH` in the
+      backend and nothing else. An app writes the call itself and thereby
+      reaches every other NavContainer method as well:
+      `follow_up_action( val = cs_event-control_by_id t_arg = VALUE #( ( `navCont` ) ( `to` ) ( `page2` ) ) )`,
+      with `view = cs_view-popup` / `nested` / `nested2` / `popover` for a
+      container in another slot. **One behaviour difference to state when
+      migrating the MAIN variant:** `cs_view-main` travels as the EMPTY slot
+      where the constant injected the literal `MAIN`; an empty slot resolves
+      across every open view (`ViewSlots.resolveById`), so it still finds a
+      main-view container and is wider, never narrower. Ecosystem count at
+      removal: **0** — no class of `samples` names any of the five, and
+      neither `samples-stack` nor `samples-controls` carries one in its
+      published `catalogue.json`; `samples` `z2ui5_cl_smp_app_088` already
+      drives its NavContainer through `control_by_id` and is the migration
+      example. The `srv_event` and `client` tests that pinned the remap pin
+      the replacement now, one assertion per slot. API snapshot regenerated,
+      recorded as BREAKING in `changelog.txt`
+- [x] `cs_event-keyboard_set_mode` removed, with `evKeyboardSetMode` in
+      `app/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
+      It wrote the HTML `inputmode` attribute onto the input's DOM node — the
+      wrong layer: UI5 discards that DOM on every re-render, so any later
+      render of the field silently dropped the mode, and an app had no way to
+      tell. `z2ui5.cc.InputExt` carries `inputmode` as a **bound property**
+      instead, written on every rendering, so the mode cannot be lost and no
+      action has to be ordered against a render. Ecosystem count at removal:
+      **0** — `samples` `z2ui5_cl_smp_app_352`, the one caller, was deleted
+      when its statement moved onto the control; `z2ui5_cl_smp_app_516` (the
+      inputmode values) and `z2ui5_cl_smp_app_530` (a scan field) are the
+      migration examples. API snapshot regenerated, recorded as BREAKING in
+      `changelog.txt`. **`abap2UI5/docs` still documents the action** on
+      `cookbook/browser_interaction/soft_keyboard` and lists the deleted 352
+      in that page's `samples:` frontmatter — that page is the one piece of
+      this removal still outstanding, in a repository this checkout does not
+      carry
 - [x] `cs_event-wizard_set_next_step` removed, with `evWizardSetNextStep` in
       `app/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
       It bundled `discardProgress( oStep )` + `oStep.setNextStep( oNext )`
@@ -168,14 +221,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - No callers left: zero across `samples`, `samples-controls` and
         `samples-stack` (re-checked 2026-08-21). The blocker this item used to
         carry is cleared.
-- [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
-      `popover_` variants — in the "obsolet" block of `cs_event`.
-      - Removing them also deletes the remap block in
-        `z2ui5_cl_ui5_srv_event=>map_client_event` (~20 lines) that rewrites
-        them onto `control_by_id` + method `to`.
-      - Zero usages in samples and samples-controls (checked, incl. raw literals).
-- [ ] **`cs_event-image_editor_popup_close`** — the same "obsolet" block.
-      Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
       the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app
@@ -233,8 +278,21 @@ breaking change for any downstream app that still references it.
         predecessor. That side is also gated now: `check:examples` there
         refuses a `z2ui5_cl_xml_view=>` example unless the page carries the
         migration banner, so the count cannot climb back.
-      - This is a project, not a task. Until it is done, nothing else in
-        `src/99` can go either, because the package ships as a unit.
+      - **Blocker C: cleared 2026-09-22.** The last consumers anywhere were
+        the 17 popup apps in `src/99/02`, frozen code reaching for frozen
+        code. They are ported onto `z2ui5_cl_ui5_view_builder` (maintainer
+        decision; the narrow `check:frozen` exemption that allowed it is in
+        `.github/scripts/frozen-paths-gate.mjs` and goes away with it). A
+        grep for `z2ui5_cl_xml_view` across `src/` now finds the class, its
+        own test include, and **one prose comment** in
+        `z2ui5_cl_ui5_util_context` — no code. **All three blockers are
+        clear: this class can be deleted whenever the maintainer wants the
+        breaking change.**
+      - It is still a project rather than a task in one respect: `src/99`
+        ships as a unit, so deleting `z2ui5_cl_xml_view` alone leaves the
+        rest of the package behind. What has changed is that nothing
+        *technical* holds it any more — only the decision to break
+        downstream apps that still name it.
       - `factory_plain( )` (`:22`) is obsolete **inside** an already-obsolete
         class and needs no separate entry: it returns a builder with no root
         element at all, so the caller has to open one before anything renders
@@ -404,13 +462,23 @@ rather than by guessing; each entry names the callers that exist today.
       - Caller: `samples` `z2ui5_cl_smp_app_061`.
       - Cheap to close: one released structure with two fields would do, and
         it costs nothing to keep compatible.
-      - **Closed by `z2ui5_t_02` in `src/02`** — a released structure with two
-        string fields (`name`, `value`); the shape is pinned by
-        `ltcl_test_released_ddic`, which moved into
-        `z2ui5_cl_ui5_http_handler`'s test include when the JSON class was
-        removed (a TABL carries no test include of its own, so the pin lives
-        with the nearest released object). App 061 migrates off `z2ui5_t_01`
-        on its next pass.
+      - Closed by `z2ui5_t_02` in `src/02` — a released structure with two
+        string fields (`name`, `value`), pinned by `ltcl_test_released_ddic`
+        in `z2ui5_cl_ui5_http_handler`'s test include.
+      - **Reopened and then withdrawn on 2026-09-22: the structure is gone.**
+        Nothing ever named it. Not one sample in the three sample
+        repositories, and app 061 — the caller this item was written for —
+        went on naming `Z2UI5_T_01`, because what it demonstrates is a type
+        computed at runtime and any name the system already has will do. The
+        pin tested a structure whose only consumer was the pin.
+        The item was a real gap read the wrong way round: a framework does
+        not close it by shipping a dictionary object for apps to borrow. It
+        is closed by saying whose name belongs there, which
+        `docs/agents/building-apps.md` now does, and by the standing rule in
+        `AGENTS.md` (*No new dictionary objects*) that keeps the next one from
+        being added. The three tables that remain all carry their own reason:
+        `z2ui5_t_01` persists drafts, `z2ui5_t_91` backs the frozen
+        `z2ui5_cl_util_db`, and neither is an anchor for anybody's type.
 
 ## 6. Documentation debt to clear alongside
 

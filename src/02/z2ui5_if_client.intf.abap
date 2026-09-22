@@ -59,7 +59,6 @@ INTERFACE z2ui5_if_client
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
       start_timer               TYPE string VALUE `START_TIMER`,
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
-      keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
@@ -109,12 +108,6 @@ INTERFACE z2ui5_if_client
       " label that opens with "obsolete", so a run added here needs one
 
       "obsolete
-      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
-      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
-      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
-      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
-      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
-      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
       z2ui5                     TYPE string VALUE `Z2UI5`,
 
     END OF cs_event.
@@ -792,6 +785,27 @@ INTERFACE z2ui5_if_client
   "!                  `$\{$source>/...\}` or `$\{$parameters>/...\}` client
   "!                  expression evaluated when the event fires, or
   "!                  `$event>...` for a field of the UI5 event itself.
+  "!                  Two controller helpers reach what no binding path can,
+  "!                  because a `$\{...\}` addresses DATA and these address
+  "!                  the live control tree:
+  "!                  `$controller.textPath( $\{$parameters>/item\} )` - the
+  "!                  ancestor-text breadcrumb of the control that fired; and
+  "!                  `$controller.slotValue( 'POPUP', 'myId', 'getValue' )` -
+  "!                  what a control in ANOTHER view slot currently holds. An
+  "!                  id is local to the view or fragment it was written in,
+  "!                  so a control in a dialog is not reachable otherwise; the
+  "!                  slot keys are those of cs_view, and an empty one searches
+  "!                  every open slot. The getter takes no arguments on
+  "!                  purpose - to CALL a control use cs_event-control_by_id,
+  "!                  which has a whitelist in front of it. Every miss (slot
+  "!                  closed, id unknown, no such method, a getter that raises)
+  "!                  is logged and sent as the empty string: an argument
+  "!                  expression is evaluated while UI5 dispatches the handler,
+  "!                  so one that throws loses the whole EVENT.
+  "!                  `$controller.slotById( 'POPUP', 'myId' )` hands the
+  "!                  control itself over for a null-tolerant reader such as
+  "!                  textPath( ) - it answers null on a miss, which a method
+  "!                  call on it would then throw over.
   "! @parameter s_ctrl | the per-wire options (ty_s_event_control): keep the
   "!                  last firing until the running roundtrip has landed,
   "!                  cancel the control's default, quote every argument as

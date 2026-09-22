@@ -564,10 +564,16 @@ The same tree, with the subtree held in a variable:
       match the marker.
     An app parsing genuinely arbitrary, nested JSON is doing something this
     framework does not hand it a tool for.
-- **A dynamic type names `z2ui5_t_02`** — the released DDIC structure (two
-  string fields, `name`/`value`) for
-  `CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` and friends; the
-  framework's own tables (`z2ui5_t_01`) are internals and may change.
+- **A dynamic type names a type the SYSTEM has, not one abap2UI5 ships.**
+  `CREATE DATA … TYPE STANDARD TABLE OF (name)` needs a name that exists at
+  runtime, and the name belongs to the app's own domain — a DDIC structure of
+  the customer's, a CDS view, whatever the app is browsing. The framework
+  released `z2ui5_t_02` (a `name`/`value` pair) as an anchor for exactly this
+  and **removed it again on 2026-09-22**: in a year not one sample, and no app
+  anybody reported, ever named it. abap2UI5 adds no dictionary object an app
+  is supposed to point at (§ *No new dictionary objects* in `AGENTS.md`), and
+  the framework's own tables (`z2ui5_t_01`) are internals that may change —
+  naming one from an app is borrowing a table, not using an API.
 - **The per-wire flags (`s_ctrl`, type `ty_s_event_control`).** By default
   an event fired while a roundtrip is in flight is DROPPED — right for a
   click, wrong for a per-keystroke wire (`liveChange`, `liveSearch`,

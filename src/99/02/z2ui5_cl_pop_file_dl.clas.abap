@@ -69,39 +69,59 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
-                                                               afterclose = client->_event( `BUTTON_CANCEL` )
-              )->content( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`       v = `sap.m`
+            )->a( n = `xmlns:core`  v = `sap.ui.core`
+            )->a( n = `xmlns:html`  v = `http://www.w3.org/1999/xhtml`
+            )->a( n = `xmlns:z2ui5` v = `z2ui5.cc` ).
+
+    DATA(dialog) = view->ele( `Dialog`
+        )->a( n = `title`      v = title
+        )->a( n = `afterClose` v = client->_event( `BUTTON_CANCEL` ) ).
+
+    DATA(popup) = dialog->ele( `content` ).
 
     IF mv_check_download = abap_true.
       DATA(lv_csv_x) = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( mv_value ).
       DATA(lv_base64) = z2ui5_cl_ui5_util_context=>conv_encode_x_base64( lv_csv_x ).
-      popup->_generic( ns     = `html`
-                       name   = `iframe`
-                       t_prop = VALUE #( ( n = `src` v = mv_type && lv_base64 )
-                                         ( n = `hidden` v = `hidden` ) ) ).
 
-      popup->_z2ui5( )->timer( client->_event( `CALLBACK_DOWNLOAD` ) ).
+      " the hidden iframe IS the download: the browser fetches the data URI
+      " and the Timer below reports back once it has
+      popup->tag( n = `iframe` ns = `html`
+          )->a( n = `src`    v = mv_type && lv_base64
+          )->a( n = `hidden` v = `hidden` ).
 
+      popup->tag( n = `Timer` ns = `z2ui5`
+          )->a( n = `finished` v = client->_event( `CALLBACK_DOWNLOAD` ) ).
     ENDIF.
 
-    popup->vbox( `sapUiMediumMargin`
-      )->label( `Name`
-      )->input( value   = mv_name
-                enabled = abap_false
-      )->label( `Type`
-      )->input( value   = mv_type
-                enabled = abap_false
-      )->label( `Size`
-      )->input( value   = mv_size
-                enabled = abap_false
-      )->get_parent( )->get_parent(
-      )->buttons(
-      )->button( text  = button_text_cancel
-                 press = client->_event( `BUTTON_CANCEL` )
-      )->button( text  = button_text_confirm
-                 press = client->_event( `BUTTON_CONFIRM` )
-                 type  = `Emphasized` ).
+    popup->ele( `VBox`
+        )->a( n = `class` v = `sapUiMediumMargin`
+        )->tag( `Label`
+            )->a( n = `text` v = `Name`
+        )->tag( `Input`
+            )->a( n = `value`   v = mv_name
+            )->a( n = `enabled` b = abap_false
+        )->tag( `Label`
+            )->a( n = `text` v = `Type`
+        )->tag( `Input`
+            )->a( n = `value`   v = mv_type
+            )->a( n = `enabled` b = abap_false
+        )->tag( `Label`
+            )->a( n = `text` v = `Size`
+        )->tag( `Input`
+            )->a( n = `value`   v = mv_size
+            )->a( n = `enabled` b = abap_false ).
+
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = button_text_cancel
+            )->a( n = `press` v = client->_event( `BUTTON_CANCEL` )
+        )->tag( `Button`
+            )->a( n = `text`  v = button_text_confirm
+            )->a( n = `press` v = client->_event( `BUTTON_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
