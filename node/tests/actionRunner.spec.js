@@ -3,18 +3,13 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests FrontendAction.runCustom - the follow-up-action path. A backend
-// snippet is a JSON array ["EVENT", ...args] (the structured form every
-// framework follow-up action travels in - serialized and escaped entirely in
-// ABAP by z2ui5_cl_ui5_srv_event=>get_event_client_ajson), a legacy eF( )
-// call whose argument list is parsed WITHOUT eval so it runs under a strict
-// CSP (core/actions/LegacyCustomJs.js), or a raw expression. The legacy
-// argument parser has to be the exact counterpart of the backend's escaping
-// (z2ui5_cl_ui5_srv_event=>escape_js_string), which escapes backslash, the
-// single quote AND the line breaks it rewrites to \n / \r.
+// entry is a JSON array ["EVENT", ...args] (the structured form every
+// follow-up action travels in - serialized and escaped entirely in ABAP by
+// z2ui5_cl_ui5_srv_event=>get_event_client_ajson). Anything else - a raw
+// JavaScript string included - is not run.
 
 // Load FrontendAction with every domain handler map stubbed empty (override
-// individual maps via `deps`). LegacyCustomJs - a unit under test here -
-// loads for real via autoLoad.
+// individual maps via `deps`).
 function loadFrontendAction(deps = {}, sandbox = {}) {
   const noHandlers = { handlers: {} };
   const { module } = loadModule("core/FrontendAction.js", {
@@ -142,95 +137,25 @@ test.describe("runCustom structured JSON actions", () => {
     const FrontendAction = loadFrontendAction();
     const oController = controllerStub();
 
-    // not a JSON array - JSON.parse fails, so the snippet takes the raw-JS
-    // path (Format C) instead of being dispatched as a structured action
+    // not a JSON array - JSON.parse fails, so nothing is dispatched
     FrontendAction.runCustom("[1, 2].concat([3]).length", oController);
 
     expect(oController.calls).toEqual([]);
   });
 });
 
-test.describe("runCustom legacy eF( ) argument parsing", () => {
-  test("passes a plain quoted argument through", () => {
-    const FrontendAction = loadFrontendAction();
-    const oController = controllerStub();
-
-    FrontendAction.runCustom("eF('SET_FOCUS','myInput')", oController);
-
-    expect(oController.calls).toEqual([["SET_FOCUS", "myInput"]]);
-  });
-
-  test("decodes the escaped line breaks the backend emits", () => {
-    const FrontendAction = loadFrontendAction();
-    const oController = controllerStub();
-
-    // escape_js_string turns a CR+LF / LF into the two characters \ n - a raw
-    // newline would be a syntax error inside a JS string literal, so a
-    // multi-line argument only ever travels escaped. It must arrive as a real
-    // line break, not as a literal backslash-n.
-    FrontendAction.runCustom(
-      "eF('CLIPBOARD_COPY','line1\\nline2\\rline3')",
-      oController,
-    );
-
-    expect(oController.calls).toEqual([
-      ["CLIPBOARD_COPY", "line1\nline2\rline3"],
-    ]);
-  });
-
-  test("keeps an escaped backslash a backslash", () => {
-    const FrontendAction = loadFrontendAction();
-    const oController = controllerStub();
-
-    // On the wire: \\ n - an escaped backslash followed by a plain "n". The
-    // backslash must survive and the "n" must NOT be swallowed into a newline.
-    FrontendAction.runCustom("eF('CLIPBOARD_COPY','C:\\\\new')", oController);
-
-    expect(oController.calls).toEqual([["CLIPBOARD_COPY", "C:\\new"]]);
-  });
-
-  test("keeps an escaped quote inside the argument", () => {
-    const FrontendAction = loadFrontendAction();
-    const oController = controllerStub();
-
-    FrontendAction.runCustom("eF('CLIPBOARD_COPY','it\\'s here')", oController);
-
-    expect(oController.calls).toEqual([["CLIPBOARD_COPY", "it's here"]]);
-  });
-
-  test("keeps object, number and boolean arguments intact", () => {
-    const FrontendAction = loadFrontendAction();
-    const oController = controllerStub();
-
-    FrontendAction.runCustom(
-      'eF(\'CONTROL_BY_ID\',\'tab\',\'\',\'scrollToIndex\',5,true,{"A":1})',
-      oController,
-    );
-
-    // the empty view slot stays an empty string, so every following argument
-    // keeps its position (the backend pads it for exactly that reason)
-    expect(oController.calls).toEqual([
-      ["CONTROL_BY_ID", "tab", "", "scrollToIndex", 5, true, { A: 1 }],
-    ]);
-  });
-});
-
 // ---------------------------------------------------------------------
 // The CSP boundary. AGENTS.md rule 19: a follow-up action is DATA, never
 // code - which is what lets an app run under a Content-Security-Policy
-// that does not allow 'unsafe-eval'. Only the legacy raw-expression form
-// (Format C) is allowed to construct code, and only because an app opted
-// into it by handing the backend a JavaScript string; every framework-
-// generated action travels as Format A (a JSON array) or Format B (an
-// eF( ) call parsed by hand), and neither may ever reach Function/eval.
+// that does not allow 'unsafe-eval'. No entry may ever reach
+// Function/eval, not even a JavaScript string an app handed the backend.
 // Pinned here because the regression is invisible at runtime: a snippet
 // that starts going through Function still WORKS on a permissive CSP and
 // only breaks on the strict one the framework promises to support.
 // ---------------------------------------------------------------------
 test.describe("runCustom stays clear of eval", () => {
-  // Shadows the sandbox's code-constructing globals with counting stubs.
-  // `Function` is a global lookup inside the module, so the module's own
-  // `Function("return " + item)` resolves to this one.
+  // Shadows the sandbox's code-constructing globals with counting stubs, so
+  // a module that ever called them again would resolve to these.
   function loadCountingEval(deps = {}) {
     const reached = [];
     const FrontendAction = loadFrontendAction(deps, {
@@ -252,39 +177,20 @@ test.describe("runCustom stays clear of eval", () => {
     FrontendAction.runCustom(["SET_FOCUS", "myInput"], oController);
     FrontendAction.runCustom('["SET_FOCUS","myInput"]', oController);
     // an argument that spells JavaScript is still just a string argument
-    FrontendAction.runCustom(
-      '["CLIPBOARD_COPY","alert(1);//"]',
-      oController,
-    );
+    FrontendAction.runCustom('["CLIPBOARD_COPY","alert(1);//"]', oController);
 
     expect(reached).toEqual([]);
     expect(oController.calls.length).toBe(3);
   });
 
-  test("a legacy eF( ) call never constructs code", () => {
-    const { FrontendAction, reached } = loadCountingEval();
-    const oController = controllerStub();
-
-    FrontendAction.runCustom("eF('SET_FOCUS','myInput')", oController);
-    FrontendAction.runCustom(".eF('CLIPBOARD_COPY','alert(1)');", oController);
-    FrontendAction.runCustom(
-      'eF(\'CONTROL_BY_ID\',\'tab\',\'\',\'scrollToIndex\',5,true,{"A":1})',
-      oController,
-    );
-
-    expect(reached).toEqual([]);
-    expect(oController.calls.length).toBe(3);
-  });
-
-  test("only the raw-expression form reaches Function", () => {
+  test("a raw JavaScript string is not run at all", () => {
     const { FrontendAction, reached } = loadCountingEval();
     const oController = controllerStub();
 
     FrontendAction.runCustom("alert(1)", oController);
+    FrontendAction.runCustom("eF('SET_FOCUS','myInput')", oController);
 
-    // the one documented escape hatch - an app-authored snippet that is
-    // neither a JSON array nor an eF( ) call
-    expect(reached).toEqual([["Function", "return alert(1)"]]);
+    expect(reached).toEqual([]);
     expect(oController.calls).toEqual([]);
   });
 });

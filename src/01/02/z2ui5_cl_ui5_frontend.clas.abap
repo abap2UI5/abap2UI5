@@ -27,13 +27,6 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         view  TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
         t_arg TYPE string_table OPTIONAL.
 
-    "! Queue a raw JS snippet an app passed to follow_up_action - the legacy
-    "! formats. It travels as a STRING entry of the action list, which is
-    "! exactly the marker the frontend's legacy path keys on.
-    METHODS queue_app_js
-      IMPORTING
-        val TYPE clike.
-
     "! Tear a view slot down. Everything queued for that slot so far is
     "! dropped: whatever it was, this call decides the slot's state.
     METHODS slot_destroy
@@ -267,14 +260,6 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                                  val   = val
                                  view  = view
                                  t_arg = t_arg ) )
-           INTO TABLE mo_action->ms_next-s_action-t_custom.
-
-  ENDMETHOD.
-
-
-  METHOD queue_app_js.
-
-    INSERT VALUE #( js = val )
            INTO TABLE mo_action->ms_next-s_action-t_custom.
 
   ENDMETHOD.

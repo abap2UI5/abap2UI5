@@ -88,7 +88,6 @@ sap.ui.define(
     //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
     //           ],
     //           // APP: what the app queued, run last, once the DOM exists.
-    //           // A legacy app-authored raw-JS snippet stays a string entry.
     //           "T_CUSTOM": [["SET_FOCUS","id1"]]
     //       }
     //     },
@@ -533,9 +532,8 @@ sap.ui.define(
           AppState.state.oResponse = response;
 
           // The backend can send follow-up actions to run after the response.
-          // Each entry is a real JSON array ["EVENT", ...args] (framework
-          // actions, pure data), a legacy "eF(...)" call string, or a raw JS
-          // expression - see FrontendAction.runCustom. They are stashed
+          // Each entry is a real JSON array ["EVENT", ...args] - pure data,
+          // see FrontendAction.runCustom. They are stashed
           // here and executed at the end of _processAfterRendering, i.e. once
           // the (possibly freshly built) view is actually rendered. Running
           // them earlier would break render-dependent actions such as

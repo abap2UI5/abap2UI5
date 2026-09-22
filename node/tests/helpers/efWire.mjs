@@ -1,5 +1,5 @@
 // Prints the eF( ) snippet the REAL backend builds for each argument list it
-// is given, so a Playwright spec can feed them to the real frontend parser.
+// is given, so a Playwright spec can read them back as JavaScript.
 //
 // A separate process on purpose: @abaplint/runtime is ESM with internal
 // chunk imports, and Playwright's CommonJS transform cannot link them

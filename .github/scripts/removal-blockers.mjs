@@ -44,7 +44,7 @@ const NAMES = [
   {
     name: "follow_up_action( <raw JS> )",
     pattern: /->follow_up_action\(\s+(?:val\s*=\s*)?(?:[`|']|\w+->_event\()/,
-    note: "§1 - raw JavaScript as val",
+    note: "§0 - removed: such a call now does nothing",
   },
 ];
 

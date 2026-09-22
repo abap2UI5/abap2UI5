@@ -92,9 +92,9 @@ it is a view wire, if no a direct follow-up" was examined and **rejected**:
   there) — but an EXPORTING parameter cannot be called functionally, which
   kills the inline view-chain form `)->a( n = `press` v = action->toast( … ) )`
   that carries most of the traffic (295 of ~520 calls are view wires).
-- Half of the idea exists already by accident: `follow_up_action( )` accepts
-  raw JS and the `_event_client` handler string IS executable JS — but
-  routing framework events through the JS-string path would regress the
+- Half of the idea exists already by accident: the `_event_client` handler
+  string IS executable JS — but routing framework events through a JS-string
+  path would regress the
   deliberate pure-data serialization (`get_event_client_json`: follow-ups
   travel as JSON arrays, escaping entirely in ABAP).
 - Even if detectable, behavior switching on result consumption is

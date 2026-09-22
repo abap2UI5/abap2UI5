@@ -127,17 +127,12 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    IF val IS NOT INITIAL
-        AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      " a framework event travels as pure data - a JSON array built and
-      " escaped entirely in ABAP; only a raw JS expression passed by the app
-      " keeps the code form (the legacy formats, a STRING entry of the list)
-      mo_frontend->queue_app_event( val   = val
-                                    view  = view
-                                    t_arg = t_arg ).
-    ELSE.
-      mo_frontend->queue_app_js( val ).
-    ENDIF.
+    " a frontend event travels as pure data - a JSON array built and escaped
+    " entirely in ABAP. There is no code form: a raw JavaScript val is not
+    " run, it arrives as an event name the frontend does not know
+    mo_frontend->queue_app_event( val   = val
+                                  view  = view
+                                  t_arg = t_arg ).
 
   ENDMETHOD.
 

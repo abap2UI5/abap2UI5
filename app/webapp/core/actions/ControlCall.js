@@ -702,7 +702,8 @@ sap.ui.define(
         case "object":
           // the backend embeds an argument that starts with { or [ as real
           // JSON (get_event_client_ajson), so on that path the value arrives
-          // already parsed; only the legacy eF( ) string form needs parsing.
+          // already parsed; only the eF( ) string form of a view wire needs
+          // parsing.
           if (raw && typeof raw === "object") return raw;
           try {
             return JSON.parse(raw);

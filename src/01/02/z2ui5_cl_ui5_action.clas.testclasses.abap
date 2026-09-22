@@ -229,8 +229,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
-    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
-    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_SYSTEM_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -510,8 +510,8 @@ CLASS ltcl_test IMPLEMENTATION.
     " frontend actions queued by the leaving app - messages travel as
     " follow-up actions too and must not leak into the app that is
     " navigated back to...
-    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
-    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_SYSTEM_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_leave( ).

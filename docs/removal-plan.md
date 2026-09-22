@@ -45,6 +45,26 @@ support case.
       array stays reserved and always false so nothing behind it shifts;
       `View1.eB` ignores a truthy value there. API snapshot regenerated,
       recorded as BREAKING in `changelog.txt`
+- [x] Raw JavaScript in `follow_up_action( )` removed (2026-09-22). A `val`
+      that was not a `cs_event-*` name was queued verbatim and run in the
+      browser through `Function( )` (or parsed as an `eF( … )` call string) —
+      it needed a CSP with `'unsafe-eval'` and was the last string-typed
+      entry in an otherwise pure-data action list. Now every `val` travels as
+      the event name of a JSON action, so a raw snippet reaches the frontend
+      as an unknown action and is not run; no exception, no check, the
+      signature is unchanged. Replacements: `control_global` for the UI5
+      globals (MessageToast, MessageBox, BusyIndicator), `control_by_id` for a
+      control method, `hash_back` for `history.back( )`, `cs_event-z2ui5` for
+      a function the app registered on the `z2ui5` global. Ecosystem count at
+      removal: **0** across `samples`, `samples-controls` and `samples-stack`
+      (every `->follow_up_action(` whose `val` is not a `cs_event-*`
+      constant, a legacy `_event( )` snippet included — `removal-blockers.mjs`
+      counts the shape). Gone with it: `queue_app_js`, the `js` field of
+      `ty_s_queued_action`, the `.eB(['` snippet parsing in
+      `z2ui5_cl_ui5_action` that derived a nav hop's next event from such a
+      snippet, `core/actions/LegacyCustomJs.js` and its generated
+      mirror in `src/01/03/`. `efWireRoundtrip.spec.js` reads the wired
+      `eF( )` form back as JavaScript now instead of through that parser
 - [x] `ty_s_get-viewname` removed — never filled by the framework. API snapshot
       regenerated, recorded as BREAKING in `changelog.txt`
 - [x] `_bind_edit( )` migrated out of the framework apps and the samples
@@ -163,8 +183,8 @@ support case.
       `hash_attach_changed` registered, a consumed history step round-trips
       as the registered event, which raw JS could never wire — a REAL back,
       not a composed target, is what makes the router ports 1:1. The raw-JS
-      replacement named above is itself obsolete now (§1, raw JavaScript in
-      `follow_up_action( )`)
+      replacement named above is gone too (see raw JavaScript in
+      `follow_up_action( )` above)
 - [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
       object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
       / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP
@@ -237,40 +257,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
         code only through these four parameters — check for downstream users
         before cutting, there is no declarative equivalent for a *custom*
         transformation (only `omit_initial` / `omit_initial_paths` / `json`).
-
-- [ ] **Raw JavaScript in `follow_up_action( )`** — a `val` that is not a
-      `cs_event-*` name (anything outside `[A-Za-z0-9_]`) is queued verbatim
-      and run in the browser through `Function( )` (or parsed as an
-      `eF( … )` call string). Marked obsolete at the declaration since
-      2026-09-22. It needs a CSP with `'unsafe-eval'`, a failing snippet is
-      only logged, and it is the last string-typed entry in an action list
-      that is otherwise pure data. Replacements: `control_global` for the UI5
-      globals (MessageToast, MessageBox, BusyIndicator), `control_by_id` for a
-      control method, `hash_back` for `history.back( )`, `cs_event-z2ui5` for
-      a function the app registered on the `z2ui5` global.
-      - No callers left: zero across `samples`, `samples-controls` and
-        `samples-stack` (checked 2026-09-22, every `->follow_up_action(`
-        whose `val` is not a `cs_event-*` constant — also none passing a
-        legacy `_event( )` snippet). The only in-repo callers are the tests
-        of the path itself.
-      - The signature does not change, so nothing fails at compile time: a
-        leftover call just stops doing anything. Decide at the cut whether
-        the `ELSE` branch in `z2ui5_cl_ui5_client~follow_up_action` raises
-        or drops.
-      - What goes with it — backend: `queue_app_js` in
-        `z2ui5_cl_ui5_frontend`, the `js` field of
-        `z2ui5_if_ui5_types=>ty_s_queued_action`, the `ELSE` branch of
-        `z2ui5_cl_ui5_handler=>actions_serialize`, the `.eB(['` snippet
-        parsing in `z2ui5_cl_ui5_action` (§4). Frontend: the string branch of
-        `FrontendAction.runCustom`, `core/actions/LegacyCustomJs.js` and its
-        generated `z2ui5_cl_ui5f_legacy_js` (plus the preload entry — run
-        `npm run app2abap`), the raw-JS marker in `devtools/Inspect.js`, the
-        `no-new-func` note in `app/eslint.config.mjs`. Tests:
-        `test_follow_up_action` (client), the string entry in the handler's
-        action-list test, `actionRunner.spec.js`,
-        `devtoolsInspect.spec.js` — and `efWireRoundtrip.spec.js`, which uses
-        the `eF( )` parser as the decoding end of its round trip and needs a
-        new one first (see the note in §3).
 
 - [x] `check_sticky` / `check_initialized` of `z2ui5_if_app` removed — the
       state had already moved to `z2ui5_cl_ui5_app_cont`'s `mv_check_sticky` /
@@ -416,17 +402,6 @@ controls a public contract, so these break hand-written view XML. Regenerate
       hash itself stays — `app_state_set_active( )` writes it, and
       `app_state_get_href( )` composes the link that restores it.
 
-> **Goes with raw JS (§1):** the `eF('…')` string parser in
-> `core/actions/LegacyCustomJs.js`. At runtime it is reached from ONE place —
-> a string entry of `T_CUSTOM`, i.e. an app's raw-JS `follow_up_action( )`;
-> framework follow-up actions are JSON since #2501. A WIRED action does still
-> emit the code form into view XML (`get_event_client( )`, reached through
-> `follow_up_action( )`'s `IF result IS SUPPLIED` branch or its obsolete
-> second name `_event_client( )`), but UI5's event-handler parser reads that,
-> not this one. What does lean on it is `efWireRoundtrip.spec.js`, which
-> takes it as the decoding end of the `escape_js_string` round trip — that
-> test needs another decoder before the module can go.
->
 > **Cannot go yet:** the `z2ui5.*` global facade in `core/AppState.js`. It is a
 > documented public contract for apps reaching internals via `js_loader`.
 
@@ -436,9 +411,9 @@ controls a public contract, so these break hand-written view XML. Regenerate
 
 Not part of any public contract; removable whenever.
 
-- [ ] **`follow_up_action( _event( ) )` snippet parsing** — in
-      `z2ui5_cl_ui5_action=>prepare_app_stack`. A `SPLIT` on `.eB(['` that
-      reverse-engineers the next event out of a legacy JS string.
+- [x] **`follow_up_action( _event( ) )` snippet parsing** — in
+      `z2ui5_cl_ui5_action=>prepare_app_stack`, removed with raw JavaScript
+      in `follow_up_action( )` (§0).
 - [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
       `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically
       known slots; `cs_view_slot_list` and `cs_model_slot_list` are gone, and

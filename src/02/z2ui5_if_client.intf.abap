@@ -1049,14 +1049,12 @@ INTERFACE z2ui5_if_client
   "! arguments; t_arg is POSITIONAL, and an empty argument between filled ones
   "! keeps its slot as ``.
   "!
-  "! obsolete - a raw JavaScript expression as val (anything that is not a
-  "! cs_event-* name, e.g. `sap.m.MessageToast.show('x')`) is still run as it
-  "! is, but it is on its way out (docs/removal-plan.md): it needs a CSP with
-  "! 'unsafe-eval' and fails silently in the browser. Every use has a
-  "! cs_event-* equivalent - control_global for the UI5 globals
-  "! (MessageToast, MessageBox, BusyIndicator), control_by_id for a control
-  "! method, hash_back for history.back( ), and cs_event-z2ui5 for a function
-  "! the app registered on the z2ui5 global itself.
+  "! A raw JavaScript expression as val (e.g. `sap.m.MessageToast.show('x')`)
+  "! is not run - that form was removed. Its cs_event-* equivalents:
+  "! control_global for the UI5 globals (MessageToast, MessageBox,
+  "! BusyIndicator), control_by_id for a control method, hash_back for
+  "! history.back( ), and cs_event-z2ui5 for a function the app registered
+  "! on the z2ui5 global itself.
   "!
   "! Every cs_event-* action also works roundtrip-free when WIRED IN THE
   "! VIEW: write the same call where its result is consumed -
@@ -1224,8 +1222,7 @@ INTERFACE z2ui5_if_client
   "! params = path, descending, group (abap_bool as `X`/``):
   "! ``client->follow_up_action( val = client->cs_event-binding_call t_arg = VALUE #( ( `tab` ) ( `items` ) ( `filter` ) ( `NAME` ) ( `Contains` ) ( `ab` ) ) )``.
   "!
-  "! @parameter val | the frontend event - a cs_event-* constant. A raw
-  "!                  JavaScript expression is obsolete (see above).
+  "! @parameter val | the frontend event - a cs_event-* constant.
   "! @parameter view | the view slot the action's control id is resolved in:
   "!                  cs_view-main, the default, searches every open view;
   "!                  cs_view-popup, -popover, -nested, -nested2 scope the

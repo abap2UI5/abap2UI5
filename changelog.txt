@@ -10,6 +10,11 @@ Legend
 
 
 
+unreleased
+----------
+- BREAKING: follow_up_action( ) no longer runs raw JavaScript - a val that is not a cs_event-* name is not executed; use control_global, control_by_id, hash_back or cs_event-z2ui5 instead
+
+
 2026-09-22 v1.144.1
 -------------------
 + Various improvements for AIs

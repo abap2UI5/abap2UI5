@@ -494,7 +494,7 @@ test.describe("Actions", () => {
     expect(out.length).toBeLessThan(2000);
   });
 
-  test("marks a legacy raw-JS entry as such", () => {
+  test("marks an entry that is no action payload as not run", () => {
     const Inspect = loadInspect({
       state: {
         responseData: {
@@ -502,7 +502,7 @@ test.describe("Actions", () => {
         },
       },
     });
-    expect(Inspect.formatActions()).toContain("[legacy JS]");
+    expect(Inspect.formatActions()).toContain("[not run]");
   });
 
   test("says so when a response carried no action at all", () => {

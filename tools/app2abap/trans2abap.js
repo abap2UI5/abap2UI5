@@ -213,7 +213,6 @@ const CLASS_NAME_STEMS = {
     'core/ViewSlots.js': 'viewslot_js',
     'core/actions/ControlCall.js': 'ctrlcall_js',
     'core/actions/Launchpad.js': 'launchpd_js',
-    'core/actions/LegacyCustomJs.js': 'legacy_js',
     'core/actions/Shortcuts.js': 'shortcut_js',
     'manifest.json': 'manifest',
     'model/formatter.js': 'format_js',

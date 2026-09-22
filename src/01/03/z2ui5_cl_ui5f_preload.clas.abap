@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '4947adfeb4910826'.
+    CONSTANTS build_hash TYPE string VALUE '35af0e3c0a65fe43'.
 
     CLASS-METHODS get
       IMPORTING
@@ -77,7 +77,6 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Browser.js": function()\{{ z2ui5_cl_ui5f_browser_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ControlCall.js": function()\{{ z2ui5_cl_ui5f_ctrlcall_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Launchpad.js": function()\{{ z2ui5_cl_ui5f_launchpd_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/core/actions/LegacyCustomJs.js": function()\{{ z2ui5_cl_ui5f_legacy_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Shortcuts.js": function()\{{ z2ui5_cl_ui5f_shortcut_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Slots.js": function()\{{ z2ui5_cl_ui5f_slots_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&

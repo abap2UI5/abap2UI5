@@ -348,24 +348,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     result->ms_next-s_stateful = ms_next-s_stateful.
     result->mv_check_sticky_start = mv_check_sticky_start.
 
-    IF ms_next-next_event IS NOT INITIAL.
-      result->ms_actual-event = ms_next-next_event.
-    ELSE.
-      " backward compatibility: derive the next event from a legacy
-      " follow_up_action( _event( ) ) snippet ( deprecated mechanism ). Only
-      " a raw-JS entry can carry one, and it is not necessarily the FIRST
-      " queued action - a toast or box queued before it sits in the same
-      " table - so take the first entry that looks like the snippet.
-      LOOP AT ms_next-s_action-t_custom REFERENCE INTO DATA(lr_action).
-        IF lr_action->js NS `.eB(['`.
-          CONTINUE.
-        ENDIF.
-        SPLIT lr_action->js AT `.eB(['` INTO DATA(lv_dummy)
-              result->ms_actual-event.
-        SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
-        EXIT.
-      ENDLOOP.
-    ENDIF.
+    result->ms_actual-event  = ms_next-next_event.
     result->ms_actual-r_data = ms_next-r_data.
 
     " The leaving app's DESTROYS carry over: a view_destroy( ) before a
