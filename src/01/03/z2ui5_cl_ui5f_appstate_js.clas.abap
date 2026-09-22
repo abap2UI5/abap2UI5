@@ -30,6 +30,12 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `` && |\n| &&
              `  function createState() {` && |\n| &&
              `    return {` && |\n| &&
+             `      checkLocal: false,` && |\n| &&
+             `      url: null,` && |\n| &&
+             `      oConfig: {},` && |\n| &&
+             `      ccResourceRoot: null,` && |\n| &&
+             `      cccResourceRoot: null,` && |\n| &&
+             `` && |\n| &&
              `      oApp: null,` && |\n| &&
              `      oOwnerComponent: null,` && |\n| &&
              `      oDeviceModel: null,` && |\n| &&
@@ -57,7 +63,6 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      oSentModel: null,` && |\n| &&
              `      lastRequestBytes: null,` && |\n| &&
              `      lastMainDisplayOptions: null,` && |\n| &&
-             `      search: null,` && |\n| &&
              `` && |\n| &&
              `      navRouting: false,` && |\n| &&
              `      navMode: null,` && |\n| &&
@@ -93,45 +98,8 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    state = createState();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function initGlobal() {` && |\n| &&
-             `    if (typeof z2ui5 === "undefined" || z2ui5.checkLocal === false) {` && |\n| &&
-             `      window.z2ui5 = {};` && |\n| &&
-             `    }` && |\n| &&
-             `    reset();` && |\n| &&
-             `    for (const name of Object.keys(state)) {` && |\n| &&
-             `      const desc = Object.getOwnPropertyDescriptor(z2ui5, name);` && |\n| &&
-             `` && |\n| &&
-             `      if (desc && "value" in desc && desc.value !== undefined) {` && |\n| &&
-             `        state[name] = desc.value;` && |\n| &&
-             `      }` && |\n| &&
-             `      Object.defineProperty(z2ui5, name, {` && |\n| &&
-             `        configurable: true,` && |\n| &&
-             `        enumerable: true,` && |\n| &&
-             `        get() {` && |\n| &&
-             `          return state[name];` && |\n| &&
-             `        },` && |\n| &&
-             `        set(val) {` && |\n| &&
-             `          state[name] = val;` && |\n| &&
-             `        },` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `    z2ui5.oConfig = {};` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getGlobal(name) {` && |\n| &&
-             `    return window.z2ui5?.[name];` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function setGlobal(name, value) {` && |\n| &&
-             `    if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
-             `    window.z2ui5[name] = value;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
              `  return {` && |\n| &&
-             `    initGlobal,` && |\n| &&
              `    reset,` && |\n| &&
-             `    getGlobal,` && |\n| &&
-             `    setGlobal,` && |\n| &&
              `` && |\n| &&
              `    get state() {` && |\n| &&
              `      return state;` && |\n| &&

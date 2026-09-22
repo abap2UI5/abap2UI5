@@ -4,10 +4,8 @@ const { loadModule } = require("./loadModule");
 
 // Tests the curated formatter module app/webapp/model/formatter.js (loaded
 // via a stubbed sap.ui.define). The module backs
-// core:require="{Formatter: 'z2ui5/model/formatter'}" and the
-// z2ui5.Formatter global referenced by XML binding strings, and OWNS the
-// date-helper implementations that z2ui5/Util re-exports as its legacy
-// alias - everything here is a public contract.
+// core:require="{Formatter: 'z2ui5/model/formatter'}" - everything here is
+// a public contract.
 
 function load() {
   const IconPool = {
@@ -19,10 +17,7 @@ function load() {
   const { module: Formatter } = loadModule("model/formatter.js", {
     deps: { "sap/ui/core/IconPool": IconPool },
   });
-  const { module: Util } = loadModule("Util.js", {
-    deps: { "z2ui5/model/formatter": Formatter },
-  });
-  return { Formatter, Util };
+  return { Formatter };
 }
 
 test.describe("Formatter module", () => {
@@ -92,22 +87,5 @@ test.describe("Formatter module", () => {
     expect(
       Formatter.DateAbapDateTimeToDateObject("20260702", "134501").getHours(),
     ).toBe(13);
-  });
-
-  test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {
-    const { Formatter, Util } = load();
-    expect(Util.DateCreateObject).toBe(Formatter.DateCreateObject);
-    expect(Util.DateAbapDateToDateObject).toBe(
-      Formatter.DateAbapDateToDateObject,
-    );
-    expect(Util.DateAbapDateTimeToDateObject).toBe(
-      Formatter.DateAbapDateTimeToDateObject,
-    );
-    // the alias exposes exactly the original contract, nothing more
-    expect(Object.keys(Util).sort()).toEqual([
-      "DateAbapDateTimeToDateObject",
-      "DateAbapDateToDateObject",
-      "DateCreateObject",
-    ]);
   });
 });

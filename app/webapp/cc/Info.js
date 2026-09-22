@@ -94,7 +94,7 @@ sap.ui.define(
           const { system, resize, os, browser } = deviceData;
           // Filled by Component._initVersionInfo (async, may not have
           // resolved yet on the very first render).
-          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;
+          const ui5Info = AppState.state.oConfig.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
           // Single system-type label, same derivation as core/Session.js.

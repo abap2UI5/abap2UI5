@@ -51,8 +51,7 @@ function loadServer() {
       },
       "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
       "z2ui5/core/AppState": {
-        state: {},
-        getGlobal: () => undefined,
+        state: { oConfig: {} },
       },
     },
     sandbox: {

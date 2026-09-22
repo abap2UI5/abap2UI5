@@ -7,8 +7,6 @@ sap.ui.define(
     "z2ui5/devtools/DevTools",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
-    "z2ui5/Util",
-    "z2ui5/model/formatter",
     "z2ui5/core/Router",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
@@ -22,8 +20,6 @@ sap.ui.define(
     DevTools,
     Lib,
     AppState,
-    DateUtil,
-    Formatter,
     Router,
     ScrollFocus,
     ViewSlots,
@@ -38,12 +34,26 @@ sap.ui.define(
       },
 
       init() {
-        // The global "z2ui5" object holds the shared state for the whole
-        // app; core/AppState owns it. initGlobal() creates the global if
-        // needed, resets the internal state to clean defaults and provides
-        // a fresh oConfig - so the base init() and all helpers can rely on
-        // a fully initialized global from here on.
-        AppState.initGlobal();
+        // core/AppState owns the shared state of the whole app. Start from
+        // clean defaults (also on an FLP re-launch), so the base init() and
+        // all helpers can rely on a fully initialized state from here on.
+        AppState.reset();
+        const state = AppState.state;
+
+        // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
+        // its settings as component data; they configure the frontend and
+        // are not app data, so they are split off here and never travel to
+        // the backend with the rest of the component data. In BSP and
+        // Launchpad mode none of them is present.
+        const {
+          checkLocal,
+          ccResourceRoot,
+          cccResourceRoot,
+          ...componentData
+        } = this.getComponentData() || {};
+        state.checkLocal = checkLocal === true;
+        state.ccResourceRoot = ccResourceRoot || null;
+        state.cccResourceRoot = cccResourceRoot || null;
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
         // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc
@@ -55,7 +65,7 @@ sap.ui.define(
         // manifest.json ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc":
         // "../z2ui5_ccc/"), a sibling of THIS BSP. In the standalone HTTP
         // service there is no BSP for them to be a sibling of, so the backend
-        // hands the absolute paths over on the global instead
+        // hands the absolute paths over as component data instead
         // (z2ui5_cl_ui5_http_handler=>_http_get).
         //
         // They have to be applied HERE and not in the page: the manifest
@@ -69,32 +79,20 @@ sap.ui.define(
         // one loader.config( ) for both roots - each call re-runs the
         // loader's whole configuration merge
         const paths = {};
-        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");
-        if (ccResourceRoot) paths.z2ui5_cci = ccResourceRoot;
-        const cccResourceRoot = AppState.getGlobal("cccResourceRoot");
-        if (cccResourceRoot) paths.z2ui5_ccc = cccResourceRoot;
+        if (state.ccResourceRoot) paths.z2ui5_cci = state.ccResourceRoot;
+        if (state.cccResourceRoot) paths.z2ui5_ccc = state.cccResourceRoot;
         if (Object.keys(paths).length) sap.ui.loader.config({ paths });
 
         UIComponent.prototype.init.call(this);
 
-        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();
+        // absent (as before the split) when nothing but the page settings
+        // was passed, so a standalone request carries no empty object
+        state.oConfig.ComponentData = Object.keys(componentData).length
+          ? componentData
+          : undefined;
 
-        // The date helpers are a public contract: apps use them via the
-        // z2ui5.Util global (XML view formatter strings) or via
-        // core:require of the z2ui5/Util module. Publish the global here -
-        // since the custom controls were split out of App.controller.js,
-        // nothing else loads the module eagerly anymore.
-        AppState.setGlobal("Util", DateUtil);
-
-        // The curated formatter module in the standard app layout
-        // (model/formatter.js): views wire it via core:require of
-        // z2ui5/model/formatter; the global keeps binding strings working
-        // on releases without core:require (< 1.74). It owns the date
-        // helpers - Util above is the thin legacy alias re-exporting them.
-        AppState.setGlobal("Formatter", Formatter);
-
-        AppState.state.oDeviceModel = Models.createDeviceModel();
-        this.setModel(AppState.state.oDeviceModel, "device");
+        state.oDeviceModel = Models.createDeviceModel();
+        this.setModel(state.oDeviceModel, "device");
 
         // Warm-load the messaging module so Lib.getMessaging's synchronous
         // sap.ui.require resolves it before the first view is displayed.
@@ -226,7 +224,7 @@ sap.ui.define(
         try {
           const info = await VersionInfo.load();
           if (Lib.isAlive(this)) {
-            AppState.getGlobal("oConfig").S_UI5 = {
+            AppState.state.oConfig.S_UI5 = {
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
               GAV: info.gav,
@@ -354,7 +352,7 @@ sap.ui.define(
         // polls, the hash dispatcher) answers "dead" between this teardown
         // and the next launch - instead of the old state holding the five
         // views, their controllers and the last response's model until
-        // initGlobal( ) ran for the next app, if it ever did.
+        // reset( ) ran for the next app, if it ever did.
         ScrollFocus.reset();
         AppState.reset();
 

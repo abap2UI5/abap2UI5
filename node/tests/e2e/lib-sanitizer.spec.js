@@ -17,11 +17,14 @@ let page;
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
   await page.goto("http://localhost:3000/");
-  // window.z2ui5 is created by onInitComponent AFTER sap.ui.require.preload
-  // registered the embedded z2ui5/* modules - waiting on sap.ui.require
-  // alone races the preload and the require below would then try (and fail)
-  // to fetch the module from the server.
-  await page.waitForFunction(() => !!window["z2ui5"]);
+  // The component starts only AFTER sap.ui.require.preload registered the
+  // embedded z2ui5/* modules, and it loads core/AppState - so once that
+  // module is defined, the require below is served from the preload.
+  // Waiting on sap.ui.require alone races the preload and the require
+  // would then try (and fail) to fetch the module from the server.
+  await page.waitForFunction(
+    () => !!window.sap?.ui?.require?.("z2ui5/core/AppState"),
+  );
 });
 
 test.afterAll(async () => {

@@ -1,7 +1,6 @@
 // Shared helper module of the z2ui5 frontend. core/AppState.js owns the
-// shared frontend state and documents the complete field inventory
-// (public contract vs. internal fields, plus their defaults); the helpers
-// here reach it via AppState.state instead of the z2ui5 global.
+// shared frontend state and documents the complete field inventory with
+// its defaults; the helpers here reach it via AppState.state.
 //
 // Shared rendering pattern of the custom controls (Timer.js, Focus.js,
 // Scrolling.js, ...): the renderer only *marks* work by setting a

@@ -47,7 +47,6 @@ function loadInspect({
   bodyClasses = [],
   locale,
   resourceUrls = {},
-  extraGlobals = {},
   consoleEntries = [],
   consoleDropped = 0,
 } = {}) {
@@ -70,13 +69,9 @@ function loadInspect({
       currentApp: null,
       currentDraftId: null,
       oLaunchpad: null,
+      oConfig,
+      url: "/sap/z2ui5",
       ...state,
-    },
-    getGlobal: (name) => {
-      if (name === "oConfig") return oConfig;
-      if (name === "url") return "/sap/z2ui5";
-      if (name in extraGlobals) return extraGlobals[name];
-      return undefined;
     },
   };
   // The sap global the sandbox exposes to Inspect - and, identically, to
@@ -285,7 +280,7 @@ test.describe("UI5 bootstrap", () => {
 
     const with_ = loadInspect({
       bootstrap: fakeBootstrap(),
-      extraGlobals: {
+      state: {
         ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci/",
         cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc/",
       },

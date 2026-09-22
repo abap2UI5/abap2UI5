@@ -192,7 +192,7 @@ sap.ui.define(
 
     function formatEnvironment() {
       const state = AppState.state;
-      const oConfig = AppState.getGlobal("oConfig") || {};
+      const oConfig = state.oConfig;
       const sUi5 = oConfig.S_UI5;
       const responseFront = state.responseData?.S_FRONT;
       const out = ["abap2UI5 Developer Tools - Environment"];
@@ -207,10 +207,8 @@ sap.ui.define(
 
       out.push(section("Session"));
       out.push(line("sap-contextid", state.contextId));
-      out.push(line("Backend endpoint", AppState.getGlobal("url")));
-      out.push(
-        line("Served by backend", yesNo(AppState.getGlobal("checkLocal"))),
-      );
+      out.push(line("Backend endpoint", state.url));
+      out.push(line("Served by backend", yesNo(state.checkLocal)));
       out.push(line("Launchpad", yesNo(state.oLaunchpad)));
       out.push(line("Origin", window.location.origin));
       out.push(line("Pathname", window.location.pathname));
@@ -309,8 +307,8 @@ sap.ui.define(
       // The two sibling BSPs for community controls and the customer's own
       // frontend extension. Reported only when the app set them up, since
       // a system that has neither installed should not look misconfigured.
-      const cci = AppState.getGlobal("ccResourceRoot");
-      const ccc = AppState.getGlobal("cccResourceRoot");
+      const cci = AppState.state.ccResourceRoot;
+      const ccc = AppState.state.cccResourceRoot;
       if (cci) out.push(line("z2ui5_cci root", cci));
       if (ccc) out.push(line("z2ui5_ccc root", ccc));
       return out;
@@ -998,10 +996,7 @@ sap.ui.define(
       out.push(line("Version", sap.ui.version));
       /* ui5lint-enable no-globals */
       out.push(
-        line(
-          "Distribution",
-          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),
-        ),
+        line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),
       );
       out.push(line("Theme", Lib.getTheme()));
 

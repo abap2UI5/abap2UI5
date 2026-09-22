@@ -101,7 +101,7 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
              `` && |\n| &&
-             `          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;` && |\n| &&
+             `          const ui5Info = AppState.state.oConfig.S_UI5;` && |\n| &&
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
              `          const systemType = Lib.deriveSystemType(system);` && |\n| &&

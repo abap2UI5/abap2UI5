@@ -5,8 +5,8 @@ sap.ui.define(
 
     // ------------------------------------------------------------------
     // Actions against the running VIEWS and their models: focus, scrolling,
-    // element binding, model size limits, the OData model switch, backend
-    // timers and the app-registered z2ui5 custom functions.
+    // element binding, model size limits, the OData model switch and backend
+    // timers.
     // ------------------------------------------------------------------
 
     // Animation duration (ms) mapped to a "smooth" scroll request; 0 means an
@@ -182,7 +182,7 @@ sap.ui.define(
     // UI5 Message (getControlIds()) or any event carry the view prefix.
     //
     // An id that resolves to nothing is REPORTED, like every sibling handler
-    // in this module reports its own miss (BIND_ELEMENT, Z2UI5). The three
+    // in this module reports its own miss (BIND_ELEMENT). The three
     // used to return silently, which is the one failure an app cannot see
     // from the outside: a focus that does not move and a view that does not
     // scroll look exactly like a control that ignored the call.
@@ -338,24 +338,6 @@ sap.ui.define(
       }
     }
 
-    function evZ2ui5Custom(oController, args) {
-      try {
-        // Custom functions are registered by apps on the public z2ui5
-        // global (js_loader popup), so resolve them via the facade.
-        const fn = AppState.getGlobal(args[1]);
-        if (typeof fn === "function") {
-          fn(args.slice(2));
-        } else {
-          // Missing or not callable (e.g. the app never registered it via
-          // the js_loader popup) - log it instead of failing silently or
-          // with a generic TypeError.
-          Lib.logError(`Z2UI5: 'z2ui5.${args[1]}' is not a function`);
-        }
-      } catch (e) {
-        Lib.logError(`Z2UI5: '${args[1]}' failed`, e);
-      }
-    }
-
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
@@ -366,7 +348,6 @@ sap.ui.define(
       SET_FOCUS: evSetFocus,
       SCROLL_TO: evScrollTo,
       SCROLL_INTO_VIEW: evScrollIntoView,
-      Z2UI5: evZ2ui5Custom,
     };
 
     return { handlers };

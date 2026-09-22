@@ -25,7 +25,7 @@ sap.ui.define(
     // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
     // surface as a regular error response; this backstop only ensures that a
     // completely hung connection cannot leave the busy indicator spinning
-    // forever. Override via z2ui5.requestTimeoutMs.
+    // forever.
     const REQUEST_TIMEOUT_MS = 600000;
 
     // Roundtrip lifecycle (spans this file and View1.controller.js):
@@ -42,9 +42,9 @@ sap.ui.define(
     //      popups, nested views, model push), history, then the app follow-up
     //      actions once rendering is done
     // The request body travels through the steps as a parameter; it is
-    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools
-    // can inspect it. Only the response side still crosses an async boundary
-    // (the rendering) via the oResponse global; the app follow-up snippets
+    // mirrored to AppState.state.oBody so onBeforeRoundtrip hooks and the
+    // developer tools can inspect it. Only the response side still crosses an
+    // async boundary (the rendering) via AppState.state.oResponse; the app follow-up snippets
     // travel on the response record itself (_pendingCustomJs).
     //
     // Wire format - request (POST body; ARGUMENTS is folded into
@@ -126,7 +126,7 @@ sap.ui.define(
         if (!Lib.isValidContextId(AppState.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
-        fetch(AppState.getGlobal("url"), {
+        fetch(AppState.state.url, {
           method: "HEAD",
           keepalive: true,
           headers: {
@@ -148,7 +148,7 @@ sap.ui.define(
       //     reaches for the MAIN controller, finds null, and the app that just
       //     started shows the fatal "App Terminated" overlay.
       //   _viewBuild - a queued rebuild continuation calls removeAllPages( )
-      //     on an oApp that AppState.initGlobal( ) has since cleared.
+      //     on an oApp that AppState.reset( ) has since cleared.
       // _abortInflight( ) existed for the other case (a newer request
       // superseding older ones) and was never reachable from teardown.
       reset() {
@@ -202,7 +202,7 @@ sap.ui.define(
         // Pick the first event argument (event name) safely.
         const eventName = oBody.ARGUMENTS?.[0]?.[0];
 
-        const oConfig = AppState.getGlobal("oConfig");
+        const oConfig = state.oConfig;
         // the session-constant block travels once per page load and the
         // live device fields only when they changed (core/Session.js);
         // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)
@@ -228,7 +228,7 @@ sap.ui.define(
         // lives with the rest of the once-per-page-load state in
         // core/Session.js. An event roundtrip gets null, and Object.assign
         // with null adds nothing.
-        Object.assign(sFront, Session.location(oBody.ID, state.search));
+        Object.assign(sFront, Session.location(oBody.ID));
 
         // The first argument was the event name (already stored as EVENT),
         // the remaining entries are the actual event arguments.
@@ -296,12 +296,10 @@ sap.ui.define(
       },
 
       async readHttp(oBody, sessionCarried) {
-        const timeoutMs =
-          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
         // finally releases the fallback timer once the roundtrip settled.
         const { signal: timeoutSignal, cancel } =
-          this.createTimeoutSignal(timeoutMs);
+          this.createTimeoutSignal(REQUEST_TIMEOUT_MS);
         // A network blip or timeout may mean the request never reached the
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
@@ -354,7 +352,7 @@ sap.ui.define(
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time
             AppState.state.lastRequestBytes = body.length;
-            response = await fetch(AppState.getGlobal("url"), {
+            response = await fetch(AppState.state.url, {
               method: "POST",
               headers,
               body,
@@ -366,7 +364,7 @@ sap.ui.define(
             if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               this.responseError(
-                `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
+                `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
                 undefined,
                 oRetry,
               );

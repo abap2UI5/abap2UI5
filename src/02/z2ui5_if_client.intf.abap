@@ -73,9 +73,6 @@ INTERFACE z2ui5_if_client
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
 
-      "obsolete
-      z2ui5                     TYPE string VALUE `Z2UI5`,
-
     END OF cs_event.
 
   CONSTANTS:

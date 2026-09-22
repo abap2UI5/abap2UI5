@@ -23,8 +23,7 @@ function load({ confirmSent = () => {} } = {}) {
   const errors = [];
   const fetchCalls = [];
   const appState = {
-    getGlobal: (k) => (k === "url" ? "/url" : undefined),
-    state: { oSentModel: null },
+    state: { oSentModel: null, url: "/url" },
   };
 
   const { module: Server } = loadModule("core/Server.js", {

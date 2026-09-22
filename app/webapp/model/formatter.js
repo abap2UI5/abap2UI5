@@ -7,9 +7,9 @@
 //             core:require="{Formatter: 'z2ui5/model/formatter'}">
 //     ... dateValue="{ path: 'DATE', formatter: 'Formatter.DateCreateObject' }"
 //
-// The module is also published as the z2ui5.Formatter global, so
-// formatter: 'z2ui5.Formatter.DateCreateObject' keeps working on releases
-// without core:require support.
+// core:require is the only way in. The module used to be published as the
+// z2ui5.Formatter global as well (and its date helpers as z2ui5.Util); both
+// globals went with the rest of the z2ui5 global on 2026-09-22.
 //
 // ---------------------------------------------------------------------
 // ADMISSION CRITERIA - all three must hold, and they are not negotiable
@@ -52,10 +52,8 @@
 // runtime code generation (an eval-based register-a-JS-string API was
 // rejected for exactly that reason).
 //
-// This module also OWNS the public date helpers historically shipped as
-// z2ui5.Util: the implementations live here, Util.js re-exports them as
-// the stable legacy alias. Their names and behavior are a public contract
-// - do not rename or change them.
+// The names and behavior of the date helpers are a public contract - do
+// not rename or change them.
 sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   "use strict";
 
@@ -95,7 +93,7 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   }
 
   return {
-    // --- date helpers (the z2ui5.Util legacy contract) ---
+    // --- date helpers ---
     //
     // Criterion 2: 'js-type'. UI5 properties typed "object"
     // (DatePicker.dateValue, PlanningCalendar.startDate, a

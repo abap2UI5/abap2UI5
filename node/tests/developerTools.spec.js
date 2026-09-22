@@ -57,8 +57,7 @@ function loadDeveloperTools({
   storage = {},
 } = {}) {
   const AppState = {
-    state: { responseData, oBody, errors, lastError },
-    getGlobal: () => undefined,
+    state: { responseData, oBody, errors, lastError, oConfig: {} },
   };
   // The slot registry is the developer tools' only source for what a slot
   // holds: the live instance and the XML it was filled with.

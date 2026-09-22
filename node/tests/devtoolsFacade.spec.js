@@ -11,7 +11,6 @@ const { loadModule } = require("./loadModule");
 
 function loadDevTools({ search = "" } = {}) {
   const listeners = [];
-  const globals = {};
   const callbacks = {};
   const recorderCalls = [];
   const instances = [];
@@ -39,13 +38,6 @@ function loadDevTools({ search = "" } = {}) {
 
   const { module } = loadModule("devtools/DevTools.js", {
     deps: {
-      "z2ui5/core/AppState": {
-        state: {},
-        setGlobal: (name, value) => {
-          globals[name] = value;
-        },
-        getGlobal: (name) => globals[name],
-      },
       "z2ui5/core/Lib": {
         registerCallback(name, fn) {
           if (!callbacks[name]) callbacks[name] = [];
@@ -92,7 +84,6 @@ function loadDevTools({ search = "" } = {}) {
   return {
     DevTools: module,
     listeners,
-    globals,
     callbacks,
     recorderCalls,
     instances,
@@ -148,14 +139,6 @@ test.describe("Ctrl+F12", () => {
     h.press({ ctrlKey: true, key: "F11" });
     h.press({ ctrlKey: false, key: "F12" });
     expect(h.instances.length).toBe(0);
-  });
-
-  test("publishes the instance on the z2ui5 global under its old name", () => {
-    const h = loadDevTools();
-    h.DevTools.install();
-    h.press(CTRL_F12);
-    // apps could reach it there before it moved off AppState - keep working
-    expect(h.globals.developerTools).toBe(h.instances[0]);
   });
 });
 
@@ -236,7 +219,6 @@ test.describe("exit", () => {
     expect(h.listeners.length).toBe(0);
     expect(h.callbacks.onErrorDetails.length).toBe(0);
     expect(dialog.destroyed).toBe(true);
-    expect(h.globals.developerTools).toBe(null);
     // picker:stop is part of the teardown: a pick still running at exit
     // would leave its document capture listeners behind
     expect(h.recorderCalls).toEqual([

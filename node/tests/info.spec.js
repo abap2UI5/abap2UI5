@@ -36,9 +36,7 @@ function load({ deviceData = DEVICE_DATA, oConfig } = {}) {
             ? { getModel: (name) => (name === "device" ? model : undefined) }
             : undefined,
       },
-      "z2ui5/core/AppState": {
-        getGlobal: (name) => (name === "oConfig" ? oConfig : undefined),
-      },
+      "z2ui5/core/AppState": { state: { oConfig: oConfig || {} } },
     },
   });
 

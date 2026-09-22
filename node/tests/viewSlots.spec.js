@@ -4,16 +4,14 @@ const { loadModule } = require("./loadModule");
 
 // Tests the real app/webapp/core/ViewSlots.js against a stubbed AppState
 // state object, a recording Fragment stub and a recording Lib.logError
-// stub. The state stub is returned as `z2ui5` because in the app the
-// same fields are also visible on the z2ui5 global via the AppState
-// accessors.
+// stub.
 
 function load() {
   const fragmentCalls = [];
   const errors = [];
   // slotXml / slotApp carry their defaults in AppState.createState( ) and
   // ViewSlots no longer creates them on first use
-  const z2ui5 = { slotXml: {}, slotApp: {} };
+  const state = { slotXml: {}, slotApp: {} };
   // Global UI5 registry stub behind Lib.getElementById - the fallback path
   // resolveById() takes when no open slot owns the id.
   const globalElements = {};
@@ -34,7 +32,7 @@ function load() {
           unregisterObject: (view) => unregisterCalls.push(view),
         }),
       },
-      "z2ui5/core/AppState": { state: z2ui5 },
+      "z2ui5/core/AppState": { state },
     },
   });
   const unregisterCalls = [];
@@ -42,7 +40,7 @@ function load() {
   const messageModel = { id: "messageModel" };
   return {
     ViewSlots: module,
-    z2ui5,
+    state,
     fragmentCalls,
     errors,
     globalElements,
@@ -65,21 +63,21 @@ test.describe("slot table", () => {
 });
 
 test.describe("view and controller access", () => {
-  test("setView/getView write and read the slot's z2ui5 field", () => {
-    const { ViewSlots, z2ui5 } = load();
+  test("setView/getView write and read the slot's state field", () => {
+    const { ViewSlots, state } = load();
     const view = { setModel() {} };
     ViewSlots.setView("NEST", view);
-    expect(z2ui5.oViewNest).toBe(view);
+    expect(state.oViewNest).toBe(view);
     expect(ViewSlots.getView("NEST")).toBe(view);
     expect(ViewSlots.getView("POPUP")).toBeUndefined();
     expect(ViewSlots.getView("UNKNOWN")).toBeUndefined();
   });
 
   test("setView attaches the shared device + message models and registers", () => {
-    const { ViewSlots, z2ui5, registerCalls, messageModel } = load();
+    const { ViewSlots, state, registerCalls, messageModel } = load();
     const models = [];
     const deviceModel = { id: "deviceModel" };
-    z2ui5.oDeviceModel = deviceModel;
+    state.oDeviceModel = deviceModel;
     const view = { setModel: (m, name) => models.push([name, m]) };
     ViewSlots.setView("MAIN", view);
     expect(models).toEqual([
@@ -101,10 +99,10 @@ test.describe("view and controller access", () => {
     // need not all come from that one - an app called only to open a dialog
     // leaves MAIN on the caller's view. This record is what says so
     // (actions/Slots.updateModelIfRequired).
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oResponse = { APP: "ZCL_LIST" };
+    const { ViewSlots, state } = load();
+    state.oResponse = { APP: "ZCL_LIST" };
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
-    z2ui5.oResponse = { APP: "ZCL_LIST_POPUP" };
+    state.oResponse = { APP: "ZCL_LIST_POPUP" };
     ViewSlots.setView("POPUP", { setModel() {} }, "<Dialog/>");
 
     expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_LIST");
@@ -117,13 +115,13 @@ test.describe("view and controller access", () => {
     // caller comes back (nav_app_leave) it displays MAIN again. The record
     // follows each display, so the model push (actions/Slots) follows the
     // app on screen and not the one that filled the slot first
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oResponse = { APP: "ZCL_LIST" };
+    const { ViewSlots, state } = load();
+    state.oResponse = { APP: "ZCL_LIST" };
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
-    z2ui5.oResponse = { APP: "ZCL_DETAIL" };
+    state.oResponse = { APP: "ZCL_DETAIL" };
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
     expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_DETAIL");
-    z2ui5.oResponse = { APP: "ZCL_LIST" };
+    state.oResponse = { APP: "ZCL_LIST" };
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
     expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_LIST");
   });
@@ -131,16 +129,16 @@ test.describe("view and controller access", () => {
   test("a slot filled before any response named an app has no owner", () => {
     // the pre-response fill (a view built at bootstrap) keeps the
     // unconditional push - the guard only acts on a recorded owner
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oResponse = undefined;
+    const { ViewSlots, state } = load();
+    state.oResponse = undefined;
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
     expect(ViewSlots.getViewApp("MAIN")).toBeUndefined();
   });
 
   test("keyOfController finds the slot a controller serves", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const controller = {};
-    z2ui5.oControllerPopover = controller;
+    state.oControllerPopover = controller;
     expect(ViewSlots.keyOfController(controller)).toBe("POPOVER");
     expect(ViewSlots.keyOfController({})).toBeUndefined();
   });
@@ -148,14 +146,14 @@ test.describe("view and controller access", () => {
 
 test.describe("byId", () => {
   test("resolves via view.byId for the view slots", () => {
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oView = { byId: (id) => `main-${id}` };
+    const { ViewSlots, state } = load();
+    state.oView = { byId: (id) => `main-${id}` };
     expect(ViewSlots.byId("MAIN", "btn")).toBe("main-btn");
   });
 
   test("resolves via Fragment.byId for an open popup/popover", () => {
-    const { ViewSlots, z2ui5, fragmentCalls } = load();
-    z2ui5.oViewPopup = {};
+    const { ViewSlots, state, fragmentCalls } = load();
+    state.oViewPopup = {};
     expect(ViewSlots.byId("POPUP", "btn")).toBe("popupId--btn");
     expect(fragmentCalls).toEqual([["popupId", "btn"]]);
   });
@@ -171,11 +169,11 @@ test.describe("byId", () => {
 
 test.describe("byIdOfOwner", () => {
   test("resolves the id in the owner's own slot, not a same-id in MAIN", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     // Same local id "tree" exists in MAIN and in the open popup.
-    z2ui5.oView = { byId: (id) => (id === "tree" ? "main-tree" : undefined) };
+    state.oView = { byId: (id) => (id === "tree" ? "main-tree" : undefined) };
     const popupControl = {};
-    z2ui5.oViewPopup = popupControl;
+    state.oViewPopup = popupControl;
     // The owner (a companion) lives in the popup; walking up hits oViewPopup.
     const owner = { getParent: () => popupControl };
     // Fragment.byId is stubbed as `${fragmentId}--${id}` for popup slots.
@@ -183,8 +181,8 @@ test.describe("byIdOfOwner", () => {
   });
 
   test("falls back to MAIN when the owner is in no slot", () => {
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oView = { byId: (id) => `main-${id}` };
+    const { ViewSlots, state } = load();
+    state.oView = { byId: (id) => `main-${id}` };
     const owner = { getParent: () => undefined };
     expect(ViewSlots.byIdOfOwner(owner, "btn")).toBe("main-btn");
   });
@@ -192,16 +190,16 @@ test.describe("byIdOfOwner", () => {
 
 test.describe("resolveById", () => {
   test("finds a control in an open slot before hitting the registry", () => {
-    const { ViewSlots, z2ui5, globalElements } = load();
-    z2ui5.oView = { byId: (id) => (id === "btn" ? "main-btn" : undefined) };
+    const { ViewSlots, state, globalElements } = load();
+    state.oView = { byId: (id) => (id === "btn" ? "main-btn" : undefined) };
     globalElements.btn = "global-btn";
     // The slot match wins over the global registry entry of the same id.
     expect(ViewSlots.resolveById("btn")).toBe("main-btn");
   });
 
   test("falls back to the global registry when no slot owns the id", () => {
-    const { ViewSlots, z2ui5, globalElements } = load();
-    z2ui5.oView = { byId: () => undefined };
+    const { ViewSlots, state, globalElements } = load();
+    state.oView = { byId: () => undefined };
     globalElements["mainView--btn"] = "global-btn";
     expect(ViewSlots.resolveById("mainView--btn")).toBe("global-btn");
   });
@@ -215,12 +213,12 @@ test.describe("resolveById", () => {
 
 test.describe("containingSlotKey", () => {
   test("walks up the control tree; the innermost slot wins", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const mainView = { getParent: () => undefined };
     const nestView = { getParent: () => mainView };
     const control = { getParent: () => nestView };
-    z2ui5.oView = mainView;
-    z2ui5.oViewNest = nestView;
+    state.oView = mainView;
+    state.oViewNest = nestView;
     expect(ViewSlots.containingSlotKey(control)).toBe("NEST");
     expect(ViewSlots.containingSlotKey(nestView)).toBe("NEST");
     expect(ViewSlots.containingSlotKey(mainView)).toBe("MAIN");
@@ -235,33 +233,33 @@ test.describe("containingSlotKey", () => {
 
 test.describe("destroy", () => {
   test("closes, destroys and clears a fragment slot", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const calls = [];
-    z2ui5.oViewPopup = {
+    state.oViewPopup = {
       close: () => calls.push("close"),
       destroy: () => calls.push("destroy"),
     };
     ViewSlots.destroy("POPUP");
     expect(calls).toEqual(["close", "destroy"]);
-    expect(z2ui5.oViewPopup).toBeNull();
+    expect(state.oViewPopup).toBeNull();
   });
 
   test("does not close plain view slots", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const calls = [];
-    z2ui5.oView = {
+    state.oView = {
       close: () => calls.push("close"),
       destroy: () => calls.push("destroy"),
     };
     ViewSlots.destroy("MAIN");
     expect(calls).toEqual(["destroy"]);
-    expect(z2ui5.oView).toBeNull();
+    expect(state.oView).toBeNull();
   });
 
   test("still destroys and clears the slot when close() throws", () => {
-    const { ViewSlots, z2ui5, errors } = load();
+    const { ViewSlots, state, errors } = load();
     const calls = [];
-    z2ui5.oViewPopover = {
+    state.oViewPopover = {
       close: () => {
         throw new Error("boom");
       },
@@ -269,15 +267,15 @@ test.describe("destroy", () => {
     };
     ViewSlots.destroy("POPOVER");
     expect(calls).toEqual(["destroy"]);
-    expect(z2ui5.oViewPopover).toBeNull();
+    expect(state.oViewPopover).toBeNull();
     expect(errors).toHaveLength(1);
   });
 
   test("is a no-op for closed or unknown slots", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     ViewSlots.destroy("POPUP");
     ViewSlots.destroy("UNKNOWN");
-    expect(z2ui5.oViewPopup).toBeUndefined();
+    expect(state.oViewPopup).toBeUndefined();
   });
 
   test("drops the recorded XML, whoever triggered the teardown", () => {
@@ -292,8 +290,8 @@ test.describe("destroy", () => {
   });
 
   test("drops the recorded app alongside the XML", () => {
-    const { ViewSlots, z2ui5 } = load();
-    z2ui5.oResponse = { APP: "ZCL_LIST_POPUP" };
+    const { ViewSlots, state } = load();
+    state.oResponse = { APP: "ZCL_LIST_POPUP" };
     ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
     ViewSlots.destroy("POPUP");
     expect(ViewSlots.getViewApp("POPUP")).toBeUndefined();
@@ -302,9 +300,9 @@ test.describe("destroy", () => {
   test("drops the recorded XML of a slot whose view is already gone", () => {
     // A fragment load that failed after recording, or a state reset that
     // nulled the live instances: the record must not outlive the slot.
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     ViewSlots.setView("POPOVER", { setModel() {} }, "<Popover/>");
-    z2ui5.oViewPopover = null;
+    state.oViewPopover = null;
     ViewSlots.destroy("POPOVER");
     expect(ViewSlots.getViewXml("POPOVER")).toBeUndefined();
   });
@@ -319,9 +317,9 @@ test.describe("destroy", () => {
   });
 
   test("unregisters the view from the messaging facade before destroy", () => {
-    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const { ViewSlots, state, unregisterCalls } = load();
     const view = { destroy: () => {} };
-    z2ui5.oView = view;
+    state.oView = view;
     ViewSlots.destroy("MAIN");
     expect(unregisterCalls).toEqual([view]);
   });
@@ -331,45 +329,45 @@ test.describe("destroy", () => {
     // their controls with MAIN either way, but the slot references and the
     // messaging registrations must not stay behind (an app switch replaces
     // MAIN without an explicit nest destroy from the backend).
-    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const { ViewSlots, state, unregisterCalls } = load();
     const calls = [];
     const mainView = { destroy: () => calls.push("MAIN") };
     const nestView = { destroy: () => calls.push("NEST") };
     const nest2View = { destroy: () => calls.push("NEST2") };
-    z2ui5.oView = mainView;
-    z2ui5.oViewNest = nestView;
-    z2ui5.oViewNest2 = nest2View;
+    state.oView = mainView;
+    state.oViewNest = nestView;
+    state.oViewNest2 = nest2View;
     ViewSlots.destroy("MAIN");
     // nests leave first - their unregister needs the live view
     expect(calls).toEqual(["NEST", "NEST2", "MAIN"]);
-    expect(z2ui5.oViewNest).toBeNull();
-    expect(z2ui5.oViewNest2).toBeNull();
-    expect(z2ui5.oView).toBeNull();
+    expect(state.oViewNest).toBeNull();
+    expect(state.oViewNest2).toBeNull();
+    expect(state.oView).toBeNull();
     expect(unregisterCalls).toEqual([nestView, nest2View, mainView]);
   });
 
   test("clears a stale nest reference even when MAIN is already gone", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const calls = [];
-    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
+    state.oViewNest = { destroy: () => calls.push("NEST") };
     ViewSlots.destroy("MAIN");
     expect(calls).toEqual(["NEST"]);
-    expect(z2ui5.oViewNest).toBeNull();
+    expect(state.oViewNest).toBeNull();
   });
 
   test("destroying a nest directly leaves MAIN and the other nest alone", () => {
-    const { ViewSlots, z2ui5 } = load();
+    const { ViewSlots, state } = load();
     const calls = [];
     const mainView = { destroy: () => calls.push("MAIN") };
     const nest2View = { destroy: () => calls.push("NEST2") };
-    z2ui5.oView = mainView;
-    z2ui5.oViewNest = { destroy: () => calls.push("NEST") };
-    z2ui5.oViewNest2 = nest2View;
+    state.oView = mainView;
+    state.oViewNest = { destroy: () => calls.push("NEST") };
+    state.oViewNest2 = nest2View;
     ViewSlots.destroy("NEST");
     expect(calls).toEqual(["NEST"]);
-    expect(z2ui5.oViewNest).toBeNull();
-    expect(z2ui5.oView).toBe(mainView);
-    expect(z2ui5.oViewNest2).toBe(nest2View);
+    expect(state.oViewNest).toBeNull();
+    expect(state.oView).toBe(mainView);
+    expect(state.oViewNest2).toBe(nest2View);
   });
 });
 

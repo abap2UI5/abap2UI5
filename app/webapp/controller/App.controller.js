@@ -17,15 +17,11 @@ sap.ui.define(
         state.oOwnerComponent = this.getOwnerComponent();
 
         // Read the backend URI from the manifest; optional chaining keeps a
-        // missing entry from blowing up. checkLocal and url are public
-        // contract fields on the z2ui5 global (the backend GET page sets
-        // checkLocal), so they go through the AppState facade.
+        // missing entry from blowing up. Served by the backend GET page
+        // (checkLocal, see Component.init) the page itself is the endpoint.
         const manifest = state.oOwnerComponent.getManifest();
         const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
-        AppState.setGlobal(
-          "url",
-          AppState.getGlobal("checkLocal") ? window.location.href : uri,
-        );
+        state.url = state.checkLocal ? window.location.href : uri;
 
         // Wire up the controller instances and the app container. One
         // controller per view slot, driven by the slot table in

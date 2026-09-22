@@ -1,50 +1,29 @@
-/* ui5lint-disable no-project-globals -- this module owns the public
-   z2ui5 global facade; it is the single place that may touch it */
-// Owner of the shared frontend state. Historically all state lived as
-// plain properties on the global `z2ui5` object, written and lazily
-// created from many modules. This module is the single owner now:
+// Owner of the shared frontend state. All of it lives in the private
+// `state` object below; framework modules access it via the `state` export
+// and nothing else. There is NO global: the `z2ui5` object on `window` that
+// used to mirror every field (and carried a public contract for apps, the
+// js_loader popup and the backend GET page) was removed on 2026-09-22 - see
+// docs/removal-plan.md, section 0. Configuration that the backend GET page
+// used to put on that global now arrives as component data
+// (Component.init, z2ui5_cl_ui5_http_handler=>_http_get).
 //
-//  - the PUBLIC fields stay plain properties on the global (they are a
-//    contract with apps and the backend-generated HTML); framework
-//    modules read/write them via getGlobal()/setGlobal() below,
-//  - every INTERNAL field lives in the private `state` object below;
-//    framework modules access it via the `state` export, and the global
-//    additionally exposes it through accessors so external consumers
-//    (apps poking at internals via the js_loader popup) keep working
-//    unchanged,
-//  - initGlobal() creates/resets everything in one place - no other
-//    module needs lazy `if (!z2ui5.x) z2ui5.x = ...` bootstrapping for
-//    the fields listed here.
+// createState() below creates every field with its default in one place -
+// no module needs lazy `if (!state.x) state.x = ...` bootstrapping for the
+// fields listed here; add a new field with its default there instead.
 //
-// No other framework module may reference the z2ui5 global directly:
-// internal fields go through `AppState.state`, public-contract fields
-// through `AppState.getGlobal()/setGlobal()`.
+// Field inventory - writer in parentheses:
 //
-// PUBLIC contract on the global (plain properties, not managed here):
-//   checkLocal        true when served by the backend GET page (backend HTML)
+// Configuration
+//   checkLocal        true when served by the backend GET page, which
+//                     passes it as component data (Component.init)
 //   url               backend endpoint for roundtrips (App.controller)
 //   oConfig           { S_UI5: version info, ComponentData } (Component)
-//   Util              PUBLIC date helpers for view formatters - apps rely on
-//                     this global and on the z2ui5/Util module (Component)
-//   Formatter         PUBLIC curated formatter module for view binding
-//                     strings (z2ui5/model/formatter, wired via
-//                     core:require; the global covers releases without
-//                     core:require); owns the date helpers Util
-//                     re-exports - grows via framework PRs only (Component)
-//   ccResourceRoot    absolute path of the custom-control BSP, set by the
-//                     backend GET page when there is no sibling BSP to
-//                     resolve "../z2ui5_cci/" against (backend HTML)
+//   ccResourceRoot    absolute path of the custom-control BSP, passed as
+//                     component data by the backend GET page when there is
+//                     no sibling BSP to resolve "../z2ui5_cci/" against
+//                     (Component.init)
 //   cccResourceRoot   same for the customer frontend-extension BSP
-//                     ("../z2ui5_ccc/") (backend HTML)
-//   requestTimeoutMs  optional override for the roundtrip timeout (apps)
-//   developerTools    the developer-tools facade, published under the name
-//                     apps and bookmarklets already reach it by
-//                     (devtools/DevTools.js)
-//   <custom>          apps can register functions via the js_loader popup
-//                     and call them through the Z2UI5 frontend event
-//
-// INTERNAL field inventory (defaults in createState below) - writer in
-// parentheses:
+//                     ("../z2ui5_ccc/") (Component.init)
 //
 // Views / controllers / UI5 objects
 //   oApp              sap.m.App hosting the main view (App.controller)
@@ -108,8 +87,6 @@
 //                     once that request wins (Server), so a stale response
 //                     never clears newer edits and edits made in a DIFFERENT
 //                     model (e.g. a popover) are never shipped against this one
-//   search            overrides location.search in S_FRONT; never written
-//                     by the framework itself, set externally (custom JS)
 //
 // Control / helper state
 //   errors            capped error log, see Lib.logError
@@ -148,6 +125,13 @@ sap.ui.define([], () => {
   // empty containers so consumers can use them without existence checks.
   function createState() {
     return {
+      // Configuration
+      checkLocal: false,
+      url: null,
+      oConfig: {},
+      ccResourceRoot: null,
+      cccResourceRoot: null,
+
       // Views / controllers / UI5 objects
       oApp: null,
       oOwnerComponent: null,
@@ -177,7 +161,6 @@ sap.ui.define([], () => {
       oSentModel: null,
       lastRequestBytes: null,
       lastMainDisplayOptions: null,
-      search: null,
 
       // Hash-based app routing (UI5 Router style, opt-in per app via
       // follow_up_action( cs_event-hash_routing )).
@@ -253,72 +236,15 @@ sap.ui.define([], () => {
 
   let state = createState();
 
-  // Reset all internal fields to their defaults. The accessors installed
-  // by initGlobal() read through to the current `state`, so a reset is
-  // immediately visible on the global.
+  // Reset every field to its default - on a component start (fresh
+  // defaults, also for an FLP re-launch) and on its teardown.
   function reset() {
     state = createState();
   }
 
-  // Prepare the z2ui5 global for a component start:
-  //  - make sure the global exists (standalone there is no backend HTML
-  //    declaring it),
-  //  - start from a clean object when checkLocal === false,
-  //  - reset the internal state and expose it via accessors,
-  //  - provide a fresh oConfig for the bootstrap info.
-  // Idempotent: a re-init (e.g. FLP re-launch) redefines the accessors
-  // and starts from clean defaults again.
-  function initGlobal() {
-    if (typeof z2ui5 === "undefined" || z2ui5.checkLocal === false) {
-      // Assign via window - a bare `z2ui5 = {}` would throw a
-      // ReferenceError on an undeclared global in strict mode.
-      window.z2ui5 = {};
-    }
-    reset();
-    for (const name of Object.keys(state)) {
-      const desc = Object.getOwnPropertyDescriptor(z2ui5, name);
-      // Preserve a value someone put on the global before we took over
-      // (plain data property only - accessors from a previous init
-      // already delegate to `state`).
-      if (desc && "value" in desc && desc.value !== undefined) {
-        state[name] = desc.value;
-      }
-      Object.defineProperty(z2ui5, name, {
-        configurable: true,
-        enumerable: true,
-        get() {
-          return state[name];
-        },
-        set(val) {
-          state[name] = val;
-        },
-      });
-    }
-    z2ui5.oConfig = {};
-  }
-
-  // Read/write a field on the public z2ui5 global facade - the PUBLIC
-  // contract fields listed in the header (checkLocal, url, oConfig, Util,
-  // Formatter, ccResourceRoot, cccResourceRoot, requestTimeoutMs,
-  // developerTools) and app-registered custom members (js_loader).
-  // Internal fields are accessed via the `state` export instead. Reads and
-  // writes go through the global on purpose: these fields are shared with
-  // apps and the backend-generated HTML.
-  function getGlobal(name) {
-    return window.z2ui5?.[name];
-  }
-
-  function setGlobal(name, value) {
-    if (typeof z2ui5 === "undefined") window.z2ui5 = {};
-    window.z2ui5[name] = value;
-  }
-
   return {
-    initGlobal,
     reset,
-    getGlobal,
-    setGlobal,
-    // Live internal state - always the current object, also after reset().
+    // Live state - always the current object, also after reset().
     get state() {
       return state;
     },
