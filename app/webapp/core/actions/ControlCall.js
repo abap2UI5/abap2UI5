@@ -258,6 +258,7 @@ sap.ui.define(
       setExpanded: ["bool"],
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
+      setCurrentStep: ["controlId"], // Wizard: force the wizard onto a step
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
       openBy: ["anchor"], // DatePicker/TimePicker/Menu/MessagePopover... anchored open
       toggleBy: ["anchor"], // sap.m.Menu/MessagePopover: open anchored if closed, close if open
