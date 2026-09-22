@@ -329,7 +329,19 @@ Not about names or layout — these only show up when the app runs.
   a SOURCE STRING — synchronous loading (`sap.ui.requireSync`, a sync
   `Fragment.load` of a module no bundle carries) or a resource missing from
   the preload bundles. Under a CSP without `'unsafe-eval'` that is a CSP
-  `EvalError`, on every release, not only on 1.71.
+  `EvalError`, on every release. The framework default has no
+  `'unsafe-eval'`: measured with the same page on 1.71.81, 1.75.7, 1.78.18,
+  1.80.1, 1.81.7, 1.82.2 (all EvalError: a `Fragment.load` whose XML needs
+  `sap.ui.layout`/`sap.ui.table`, not loaded yet) and 1.84.0, 1.84.58,
+  1.96.48, 1.108.54, 1.120.50 (all clean). The same XML as an
+  `XMLView.create` view is clean on 1.71 and 1.82 too - only fragments
+  (popup, popover) are affected. An installation below 1.84 turns it back on
+  in its exit.
+- **Keep `"async": true` on the manifest's `rootView`.** 1.71 does not know
+  `IAsyncContentCreation` (since 1.89), so a rootView without the flag is
+  built synchronously: the App controller's dependencies (`sap/m/MessageBox`)
+  are fetched one by one before the sap.m preload arrives and eval'd — under
+  the default CSP the shell does not boot at all on 1.71.
 - **A fragment dialog with a fixed `id` is loaded once and reused.** Destroying
   it on close and re-loading on the next open races the close animation on
   1.71: the fragment-scoped id is still registered and you get *"adding element

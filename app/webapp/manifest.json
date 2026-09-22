@@ -63,6 +63,7 @@
     "rootView": {
       "viewName": "z2ui5.view.App",
       "type": "XML",
+      "async": true,
       "id": "App"
     },
     "resourceRoots": {

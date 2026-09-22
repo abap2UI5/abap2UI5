@@ -79,10 +79,15 @@ look first.
   of the body. Be aware that the attribute dump renders whatever a
   customer's or SAP's exception classes carry - an installation whose
   exceptions hold sensitive payloads belongs in the hardened camp.
-- **The default CSP carries `unsafe-inline`/`unsafe-eval`** because UI5 1.71
-  requires them; an exit can replace the whole policy, including switching
-  to a real `Content-Security-Policy` response header via
-  `t_security_header`. `data:`/`blob:` sources are confined to the non-script
+- **The default CSP carries `unsafe-inline` but no `unsafe-eval`.** abap2UI5
+  evaluates no code it receives, and UI5 from 1.84 on runs without
+  `unsafe-eval`. Below that (1.71 to 1.82) a popup or popover whose XML
+  needs a library not loaded yet is fetched synchronously and eval'd — an
+  installation on such a release switches `unsafe-eval` on in its exit
+  (the one-line `REPLACE` documented on
+  `z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy`). An exit
+  can also replace the whole policy, including switching to a real
+  `Content-Security-Policy` response header via `t_security_header`. `data:`/`blob:` sources are confined to the non-script
   directives (an explicit `script-src` shadows the `default-src` fallback).
 - **The default bootstrap loads UI5 from a public CDN**
   (`sdk.openui5.org`) so a fresh installation runs with zero configuration.

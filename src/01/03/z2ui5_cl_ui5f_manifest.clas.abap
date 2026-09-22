@@ -90,6 +90,7 @@ CLASS z2ui5_cl_ui5f_manifest IMPLEMENTATION.
              `    "rootView": {` &&
              `      "viewName": "z2ui5.view.App",` &&
              `      "type": "XML",` &&
+             `      "async": true,` &&
              `      "id": "App"` &&
              `    },` &&
              `    "resourceRoots": {` &&

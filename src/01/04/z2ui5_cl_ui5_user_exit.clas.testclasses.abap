@@ -48,6 +48,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -94,6 +95,25 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_no_unsafe_eval.
+
+    " the default CSP carries no 'unsafe-eval' - UI5 from 1.84 on needs none -
+    " and the one-line REPLACE the exit interface documents for UI5 1.71 to
+    " 1.82 puts it into script-src, the one directive that needs it
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `unsafe-eval` ) ).
+
+    REPLACE `script-src 'self'` IN ls_config-content_security_policy
+            WITH `script-src 'self' 'unsafe-eval'`.
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'unsafe-inline'` ) ).
 
   ENDMETHOD.
 
