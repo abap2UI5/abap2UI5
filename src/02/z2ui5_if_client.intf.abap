@@ -2,9 +2,6 @@ INTERFACE z2ui5_if_client
   PUBLIC.
 
   CONSTANTS:
-    "! The values get( )-s_device carries, as constants to compare against:
-    "! what system, browser, os and orientation say about the client, e.g.
-    "! `IF client->get( )-s_device-system = client->cs_device-system-phone.`
     BEGIN OF cs_device,
       BEGIN OF system,
         phone   TYPE string VALUE `phone`,
@@ -32,27 +29,19 @@ INTERFACE z2ui5_if_client
     END OF cs_device.
 
   CONSTANTS:
-    "! Every frontend event a wire or follow_up_action( ) can name: what the
-    "! browser does when the response arrives (set_title, scroll_to,
-    "! download_b64_file, clipboard_copy, ...) or when the wired control fires
-    "! (the control_by_id / control_global / binding_call family), the
-    "! smart-control handshakes, the hash family, and - at the end - obsolete
-    "! spellings kept so old apps compile. follow_up_action( ) documents the
-    "! families that take structured arguments; the rest take the argument
-    "! their name suggests, one sample each in the cookbook.
     BEGIN OF cs_event,
 
       popup_close               TYPE string VALUE `POPUP_CLOSE`,
       popover_close             TYPE string VALUE `POPOVER_CLOSE`,
 
-      set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
-      set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
-
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
 
+      set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
+      set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       set_title                 TYPE string VALUE `SET_TITLE`,
+      set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       set_favicon               TYPE string VALUE `SET_FAVICON`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       scroll_to                 TYPE string VALUE `SCROLL_TO`,
@@ -62,7 +51,6 @@ INTERFACE z2ui5_if_client
       keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
-      set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       store_data                TYPE string VALUE `STORE_DATA`,
@@ -77,23 +65,6 @@ INTERFACE z2ui5_if_client
       binding_call              TYPE string VALUE `BINDING_CALL`,
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
 
-      " the hash_* family - everything that reads, writes or observes the URL
-      " fragment, named after its UI5 original (sap/ui/core/routing/HashChanger):
-      " hash_set = setHash (a PUSHED history entry), hash_replace = replaceHash
-      " (no new entry), hash_back = one consumed step back with an optional
-      " fallback hash (the UI5 onNavBack pattern), hash_attach_changed =
-      " attachHashChanged (registers a backend event for foreign hash changes),
-      " hash_routing = the hash-based app routing modes (cs_nav_mode).
-      " app_state_set_active keeps the id of the CURRENT app state in the URL.
-      " hash_set and app_state_set_active keep the WIRE values of the names
-      " they were renamed from (SET_PUSH_STATE, SET_APP_STATE_ACTIVE): the
-      " rename was a rename, so no queued action and no frontend branch had
-      " to move with it. Do not "fix" a value to match its constant - that
-      " breaks every draft holding a queued action.
-      " The one-word comment right before the run is its LABEL on the
-      " documentation site (docs, scripts/lib/client-interface.mjs reads the
-      " first line of a comment run): keep it one line, keep it last.
-
       "experimental
       hash_set                  TYPE string VALUE `SET_PUSH_STATE`,
       hash_replace              TYPE string VALUE `HASH_REPLACE`,
@@ -102,21 +73,12 @@ INTERFACE z2ui5_if_client
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
 
-      " everything from here to END OF is kept for compatibility only and is
-      " NOT on the documentation site (its deprecations page names each one
-      " with its successor): the site's generator drops every member under a
-      " label that opens with "obsolete", so a run added here needs one
-
       "obsolete
       z2ui5                     TYPE string VALUE `Z2UI5`,
 
     END OF cs_event.
 
   CONSTANTS:
-    "! The five slots the frontend renders into: the main view, the two nested
-    "! views, the popup and the popover. The `view` parameter of
-    "! follow_up_action( ) and _event_client( ) names the slot a control id is
-    "! resolved in, and a keyboard shortcut can be scoped to one.
     BEGIN OF cs_view,
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
@@ -126,14 +88,10 @@ INTERFACE z2ui5_if_client
     END OF cs_view.
 
   TYPES:
-    "! A name-value pair, both strings - the shape of a launchpad startup
-    "! parameter in get( )-t_comp_params (n = the parameter name the tile
-    "! passed, v = its first value).
     BEGIN OF ty_s_name_value,
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-  "! The table of name-value pairs get( )-t_comp_params carries.
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
