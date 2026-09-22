@@ -51,6 +51,20 @@ support case.
       (236 calls, 90 files); one deliberate holdout, see below
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
+- [x] `cs_event-image_editor_popup_close` removed, with
+      `evImageEditorPopupClose` in `app/webapp/core/actions/ViewOps.js` and the
+      regenerated `src/01/03/`. This item used to read *"goes when `src/99/02`
+      goes"*, and that was the wrong reading: it did not wait on the frozen
+      package, it waited on a **missing generic capability**. The handler
+      bundled a read (`getImagePngDataURL( )` off the editor in the POPUP
+      slot), a teardown and a backend event carrying that value, and only the
+      teardown had an equivalent — `CONTROL_BY_ID` calls a method and discards
+      its return value, and no `t_arg` expression could reach a control in
+      another slot. `$controller.slotValue( )` supplies the read, so the
+      button is an ordinary `_event( )` and the popup's own `SAVE` branch
+      destroys the slot on the roundtrip, as its `CANCEL` branch always did.
+      Ecosystem count at removal: **0**. API snapshot regenerated, recorded as
+      BREAKING in `changelog.txt`.
 - [x] The five `cs_event-*_nav_container_to` constants removed —
       `nav_container_to` and its `nest` / `nest2` / `popup` / `popover`
       variants. They never reached the frontend as events:
@@ -207,8 +221,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - No callers left: zero across `samples`, `samples-controls` and
         `samples-stack` (re-checked 2026-08-21). The blocker this item used to
         carry is cleared.
-- [ ] **`cs_event-image_editor_popup_close`** — the same "obsolet" block.
-      Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
       the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app

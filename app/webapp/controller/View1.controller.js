@@ -351,6 +351,74 @@ sap.ui.define(
         return Lib.getTextPath(oControl, sSeparator);
       },
 
+      // Control resolved by id in a NAMED VIEW SLOT, for an event argument:
+      // `$controller.slotById('POPUP','imageEditor')`. An id is local to the
+      // view or fragment it was written in, so a control in a dialog is not
+      // reachable from the MAIN view's own byId( ) - and `${...}` is a binding
+      // path, which cannot address a control at all. Slot keys are the ones
+      // ViewSlots owns: MAIN, NEST, NEST2, POPUP, POPOVER. An empty slot
+      // searches every open one and then the global registry, the same
+      // resolution CONTROL_BY_ID uses for cs_view-main.
+      //
+      // Returns null when the slot is closed or holds no such id, and says so
+      // in the console. A null REACHES the expression, so
+      // `slotById(...).getText()` on a miss throws inside UI5's handler
+      // evaluation and the event is lost - use slotValue( ) below for the
+      // read, which is the case this exists for and cannot throw.
+      slotById(sSlot, sId) {
+        const control = sSlot
+          ? ViewSlots.byId(sSlot, sId)
+          : ViewSlots.resolveById(sId);
+        if (!control) {
+          Lib.logError(
+            `slotById: no control '${sId}' in slot '${sSlot || "(any)"}'`,
+          );
+          return null;
+        }
+        return control;
+      },
+
+      // The null-safe READ behind slotById: resolve, call a no-argument
+      // getter, hand the value to the event -
+      // `$controller.slotValue('POPUP','imageEditor','getImagePngDataURL')`.
+      //
+      // This is the shape an event argument needs, and the reason it exists
+      // beside slotById: an argument expression is evaluated by UI5 while it
+      // dispatches the handler, so anything that throws there takes the whole
+      // event with it - the button does nothing and the app cannot tell. Every
+      // miss (closed slot, unknown id, no such method, a getter that throws)
+      // is logged and answered with the empty string, exactly as
+      // Lib.getTextPath answers a control it cannot walk: the roundtrip still
+      // happens and the backend sees an empty argument.
+      //
+      // A no-argument getter on purpose. Passing arguments would make this a
+      // second, untyped CONTROL_BY_ID with no whitelist in front of it; what
+      // an app needs here is to READ what the control currently holds.
+      slotValue(sSlot, sId, sMethod) {
+        try {
+          const control = sSlot
+            ? ViewSlots.byId(sSlot, sId)
+            : ViewSlots.resolveById(sId);
+          if (!control) {
+            Lib.logError(
+              `slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'`,
+            );
+            return "";
+          }
+          if (typeof control[sMethod] !== "function") {
+            Lib.logError(
+              `slotValue: '${sMethod}' is not a method of control '${sId}'`,
+            );
+            return "";
+          }
+          const value = control[sMethod]();
+          return value === undefined || value === null ? "" : value;
+        } catch (e) {
+          Lib.logError(`slotValue: '${sMethod}' on '${sId}' failed`, e);
+          return "";
+        }
+      },
+
       // ------------------------------------------------------------------
       // eB = "event backend": triggers a backend roundtrip with arguments.
       // The name is part of the protocol - backend-generated view XML binds

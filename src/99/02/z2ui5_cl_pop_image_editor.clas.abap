@@ -132,7 +132,14 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
         )->tag( `Button`
             )->a( n = `text`  v = mv_save_text
             )->a( n = `type`  v = `Emphasized`
-            )->a( n = `press` v = client->_event_client( client->cs_event-image_editor_popup_close ) ).
+            " the PNG is read off the live editor into the event argument, and
+            " the SAVE branch destroys the popup on the roundtrip - which is
+            " what CANCEL has always done. cs_event-image_editor_popup_close
+            " bundled the read, the teardown and the event into one handler
+            " and was removed on 2026-09-22
+            )->a( n = `press` v = client->_event(
+                                      val = `SAVE`
+                                      arg = `$controller.slotValue('POPUP','imageEditor','getImagePngDataURL')` ) ).
 
     client->popup_display( popup->stringify( ) ).
 

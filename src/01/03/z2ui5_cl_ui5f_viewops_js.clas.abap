@@ -113,18 +113,6 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evImageEditorPopupClose(oController) {` && |\n| &&
-             `      let image;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
-             `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      ViewSlots.destroy("POPUP");` && |\n| &&
-             `      oController.eB(["SAVE"], image);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
@@ -276,7 +264,6 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
              `      BIND_ELEMENT: evBindElement,` && |\n| &&
-             `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      START_TIMER: evStartTimer,` && |\n| &&
              `      SET_FOCUS: evSetFocus,` && |\n| &&
              `      SCROLL_TO: evScrollTo,` && |\n| &&
