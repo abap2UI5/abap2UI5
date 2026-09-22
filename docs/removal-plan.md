@@ -203,9 +203,10 @@ support case.
         the global resolves to nothing now
       - the `developerTools` mirror on the global
 
-      All of it `- BREAKING:` under `unreleased` in `changelog.txt`. There is
-      no replacement for app-supplied JavaScript on purpose: a need the
-      frontend cannot serve is a whitelist entry (AGENTS.md rule 19)
+      All of it `- BREAKING:` under `unreleased` in `changelog.txt`. The
+      migration for `cs_event-z2ui5` is the raw expression the docs'
+      deprecations page already names, `follow_up_action( `myFunction()` )`
+      on a function the app defines on `window`
 
 ---
 

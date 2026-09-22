@@ -13,7 +13,7 @@ Legend
 unreleased
 ----------
 - BREAKING: the global `z2ui5` object is gone. No `window.z2ui5` any more - the frontend keeps its state inside core/AppState. Custom JS reading `z2ui5.oView`, `z2ui5.oConfig`, `z2ui5.developerTools` etc. no longer finds anything; `z2ui5.requestTimeoutMs` and `z2ui5.search` are no longer read
-- BREAKING: `z2ui5_if_client=>cs_event-z2ui5` (frontend event `Z2UI5`, which called an app-registered function on the global) removed
+- BREAKING: `z2ui5_if_client=>cs_event-z2ui5` (frontend event `Z2UI5`, which called an app-registered function on the global) removed; pass the call as a raw expression instead, `follow_up_action( `myFunction()` )`
 - BREAKING: the obsolete popup `z2ui5_cl_pop_js_loader` removed from src/99/02
 - BREAKING: the `z2ui5.Util` and `z2ui5.Formatter` globals and the deprecated `z2ui5/Util` module removed; bind the date helpers via core:require of `z2ui5/model/formatter` (UI5 1.74 and later)
 ! The backend GET page hands its settings (checkLocal, ccResourceRoot, cccResourceRoot) to the component as component data instead of a global
