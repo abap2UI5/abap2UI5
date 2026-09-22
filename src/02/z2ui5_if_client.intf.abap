@@ -1043,15 +1043,23 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   "! Schedule a frontend action to run after the backend response has been
-  "! processed. Two ways to call it: pass a frontend event as val (a
-  "! cs_event-* constant, e.g. cs_event-set_title) with its arguments in
-  "! t_arg and the framework builds the event call; or pass a raw JavaScript
-  "! expression as val, without t_arg, to run it as it is. The families below
-  "! take structured arguments; t_arg is POSITIONAL, and an empty argument
-  "! between filled ones keeps its slot as ``.
+  "! processed: pass a frontend event as val (a cs_event-* constant, e.g.
+  "! cs_event-set_title) with its arguments in t_arg, and the framework builds
+  "! the event call as pure data. The families below take structured
+  "! arguments; t_arg is POSITIONAL, and an empty argument between filled ones
+  "! keeps its slot as ``.
   "!
-  "! Every one of them also works roundtrip-free when WIRED IN THE VIEW: write
-  "! the same call where its result is consumed -
+  "! obsolete - a raw JavaScript expression as val (anything that is not a
+  "! cs_event-* name, e.g. `sap.m.MessageToast.show('x')`) is still run as it
+  "! is, but it is on its way out (docs/removal-plan.md): it needs a CSP with
+  "! 'unsafe-eval' and fails silently in the browser. Every use has a
+  "! cs_event-* equivalent - control_global for the UI5 globals
+  "! (MessageToast, MessageBox, BusyIndicator), control_by_id for a control
+  "! method, hash_back for history.back( ), and cs_event-z2ui5 for a function
+  "! the app registered on the z2ui5 global itself.
+  "!
+  "! Every cs_event-* action also works roundtrip-free when WIRED IN THE
+  "! VIEW: write the same call where its result is consumed -
   "! `)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )` -
   "! and the action runs in the browser without a server call.
   "!
@@ -1216,8 +1224,8 @@ INTERFACE z2ui5_if_client
   "! params = path, descending, group (abap_bool as `X`/``):
   "! ``client->follow_up_action( val = client->cs_event-binding_call t_arg = VALUE #( ( `tab` ) ( `items` ) ( `filter` ) ( `NAME` ) ( `Contains` ) ( `ab` ) ) )``.
   "!
-  "! @parameter val | the frontend event - a cs_event-* constant - or a raw
-  "!                  JavaScript expression when t_arg is not supplied.
+  "! @parameter val | the frontend event - a cs_event-* constant. A raw
+  "!                  JavaScript expression is obsolete (see above).
   "! @parameter view | the view slot the action's control id is resolved in:
   "!                  cs_view-main, the default, searches every open view;
   "!                  cs_view-popup, -popover, -nested, -nested2 scope the

@@ -36,6 +36,16 @@ const NAMES = [
   { name: "custom_filter", note: "§1 - same" },
   { name: "check_sticky", note: "§1 - mirror of z2ui5_cl_ui5_app_cont" },
   { name: "check_initialized", note: "§1 - same" },
+  /* Not a name but a call shape: follow_up_action( ) whose val is a string
+   * literal / template or a legacy _event( ) snippet rather than a cs_event-*
+   * constant. ABAP needs a blank after the parenthesis, which keeps the
+   * `follow_up_action(` quoted inside sample prose out of the count. A raw
+   * snippet held in a variable is not seen - read the hits, not the zero. */
+  {
+    name: "follow_up_action( <raw JS> )",
+    pattern: /->follow_up_action\(\s+(?:val\s*=\s*)?(?:[`|']|\w+->_event\()/,
+    note: "§1 - raw JavaScript as val",
+  },
 ];
 
 const DEFAULTS = ["../samples", "../samples-controls", "../samples-stack", "../app-template"];
@@ -68,9 +78,10 @@ const width = Math.max(...NAMES.map((n) => n.name.length));
 console.log(`${"name".padEnd(width)}  ${repos.map((r) => label(r).padStart(17)).join("")}   total`);
 
 let blockers = 0;
-for (const { name, note, successor } of NAMES) {
+for (const { name, note, successor, pattern } of NAMES) {
   const needle = name.toLowerCase();
-  const counts = repos.map((r) => sources.get(r).filter((s) => s.includes(needle)).length);
+  const hit = pattern ? (s) => pattern.test(s) : (s) => s.includes(needle);
+  const counts = repos.map((r) => sources.get(r).filter(hit).length);
   const total = counts.reduce((a, b) => a + b, 0);
   if (!successor && total) blockers++;
   console.log(
