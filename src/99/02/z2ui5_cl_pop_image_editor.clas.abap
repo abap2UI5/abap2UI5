@@ -98,31 +98,41 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
-                                  )->dialog( title               = mv_title
-                                             icon                = `sap-icon://edit`
-                                             contentheight       = `80%`
-                                             contentwidth        = `80%`
-                                             verticalscrolling   = abap_false
-                                             horizontalscrolling = abap_false ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core`
+            )->a( n = `xmlns:ie`   v = `sap.suite.ui.commons.imageeditor` ).
 
-    popup->image_editor_container( enabledbuttons = mv_enabledbuttons
-                                   mode           = mv_mode
-        )->image_editor( id                    = `imageEditor`
-                         src                   = mv_image
-                         customshapesrc        = mv_customshapesrc
-                         keepcropaspectratio   = mv_keepcropaspectratio
-                         keepresizeaspectratio = mv_keepresizeaspectratio
-                         scalecroparea         = mv_scalecroparea
-                         customshapesrctype    = mv_customshapesrctype ).
+    DATA(popup) = view->ele( `Dialog`
+        )->a( n = `title`               v = mv_title
+        )->a( n = `icon`                v = `sap-icon://edit`
+        )->a( n = `contentHeight`       v = `80%`
+        )->a( n = `contentWidth`        v = `80%`
+        )->a( n = `verticalScrolling`   b = abap_false
+        )->a( n = `horizontalScrolling` b = abap_false ).
 
-    popup->buttons(
-        )->button( text  = mv_cancel_text
-                   type  = `Reject`
-                   press = client->_event( `CANCEL` )
-        )->button( text  = mv_save_text
-                   type  = `Emphasized`
-                   press = client->_event_client( client->cs_event-image_editor_popup_close ) ).
+    popup->ele( n = `ImageEditorContainer` ns = `ie`
+        )->a( n = `enabledButtons` v = mv_enabledbuttons
+        )->a( n = `mode`           v = mv_mode
+        )->tag( n = `ImageEditor` ns = `ie`
+            )->a( n = `id`                    v = `imageEditor`
+            )->a( n = `src`                   v = mv_image
+            )->a( n = `customShapeSrc`        v = mv_customshapesrc
+            )->a( n = `keepCropAspectRatio`   v = mv_keepcropaspectratio
+            )->a( n = `keepResizeAspectRatio` v = mv_keepresizeaspectratio
+            )->a( n = `scaleCropArea`         v = mv_scalecroparea
+            )->a( n = `customShapeSrcType`    v = mv_customshapesrctype ).
+
+    popup->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = mv_cancel_text
+            )->a( n = `type`  v = `Reject`
+            )->a( n = `press` v = client->_event( `CANCEL` )
+        )->tag( `Button`
+            )->a( n = `text`  v = mv_save_text
+            )->a( n = `type`  v = `Emphasized`
+            )->a( n = `press` v = client->_event_client( client->cs_event-image_editor_popup_close ) ).
 
     client->popup_display( popup->stringify( ) ).
 

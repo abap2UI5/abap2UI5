@@ -40,6 +40,19 @@ const git = (...args) =>
 const EXEMPT = [
   ":(exclude)src/99/*.testclasses.abap",
   ":(exclude)src/99/*.clas.xml",
+  // The popup apps are being ported off z2ui5_cl_xml_view (maintainer
+  // decision 2026-09-22). The freeze exists so an installation that upgrades
+  // from the last release keeps COMPILING, and a view-builder port touches
+  // no class name, no method and no signature - it changes how each class
+  // assembles the XML string it already produced. The gate cannot tell a
+  // body rewrite from an interface change, so the exemption is named here
+  // rather than inferred, and it is deliberately narrow: only the popup
+  // apps' source, not their interfaces, not src/99/01, and not
+  // z2ui5_cl_xml_view itself, which is what the port empties out.
+  //
+  // DROP THIS ENTRY when the port is done and src/99/02 is frozen again -
+  // it is an exemption for one migration, not a hole in the freeze.
+  ":(exclude)src/99/02/z2ui5_cl_pop_*.clas.abap",
 ];
 
 const head = process.env.HEAD_SHA || "HEAD";

@@ -39,17 +39,27 @@ CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
-                                                               icon       = icon
-                                                               afterclose = client->_event( `BUTTON_CONFIRM` )
-              )->content(
-                  )->vbox( `sapUiMediumMargin`
-                      )->text( question_text
-              )->get_parent( )->get_parent(
-              )->buttons(
-                  )->button( text  = button_text_confirm
-                             press = client->_event( `BUTTON_CONFIRM` )
-                             type  = `Emphasized` ).
+    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core` ).
+
+    DATA(dialog) = popup->ele( `Dialog`
+        )->a( n = `title`      v = title
+        )->a( n = `icon`       v = icon
+        )->a( n = `afterClose` v = client->_event( `BUTTON_CONFIRM` ) ).
+
+    dialog->ele( `content`
+        )->ele( `VBox`
+            )->a( n = `class` v = `sapUiMediumMargin`
+            )->tag( `Text`
+                )->a( n = `text` v = question_text ).
+
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = button_text_confirm
+            )->a( n = `press` v = client->_event( `BUTTON_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

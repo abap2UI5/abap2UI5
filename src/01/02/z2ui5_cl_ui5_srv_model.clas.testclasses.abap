@@ -3795,12 +3795,16 @@ CLASS ltcl_app_view_host IMPLEMENTATION.
   METHOD render.
 
     mo_main_page = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `xmlns`     v = `sap.m`
-            )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
+        )->ele( n  = `View`
+                ns = `mvc`
+            )->a( n = `xmlns`
+                  v = `sap.m`
+            )->a( n = `xmlns:mvc`
+                  v = `sap.ui.core.mvc`
 
             )->ele( `Page`
-                )->a( n = `title` v = `Main App calling Subapps` ).
+                )->a( n = `title`
+                      v = `Main App calling Subapps` ).
 
   ENDMETHOD.
 
@@ -3950,7 +3954,8 @@ CLASS ltcl_07_view_host IMPLEMENTATION.
     DATA(lo_node) = mo_host->mo_main_page.
     DO 20 TIMES.
       lo_node = lo_node->ele( `VBox`
-          )->a( n = `class` v = `sapUiSmallMargin` ).
+          )->a( n = `class`
+                v = `sapUiSmallMargin` ).
     ENDDO.
     mo_host->create_sub_app( ).
     mo_model->main_attri_refresh( ).

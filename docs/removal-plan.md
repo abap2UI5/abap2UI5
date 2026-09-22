@@ -51,6 +51,28 @@ support case.
       (236 calls, 90 files); one deliberate holdout, see below
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
+- [x] The five `cs_event-*_nav_container_to` constants removed —
+      `nav_container_to` and its `nest` / `nest2` / `popup` / `popover`
+      variants. They never reached the frontend as events:
+      `z2ui5_cl_ui5_srv_event=>map_client_event` rewrote each one into the
+      generic `CONTROL_BY_ID` call with method `to` and the slot the
+      constant's name picked, so the removal deletes a `SWITCH` in the
+      backend and nothing else. An app writes the call itself and thereby
+      reaches every other NavContainer method as well:
+      `follow_up_action( val = cs_event-control_by_id t_arg = VALUE #( ( `navCont` ) ( `to` ) ( `page2` ) ) )`,
+      with `view = cs_view-popup` / `nested` / `nested2` / `popover` for a
+      container in another slot. **One behaviour difference to state when
+      migrating the MAIN variant:** `cs_view-main` travels as the EMPTY slot
+      where the constant injected the literal `MAIN`; an empty slot resolves
+      across every open view (`ViewSlots.resolveById`), so it still finds a
+      main-view container and is wider, never narrower. Ecosystem count at
+      removal: **0** — no class of `samples` names any of the five, and
+      neither `samples-stack` nor `samples-controls` carries one in its
+      published `catalogue.json`; `samples` `z2ui5_cl_smp_app_088` already
+      drives its NavContainer through `control_by_id` and is the migration
+      example. The `srv_event` and `client` tests that pinned the remap pin
+      the replacement now, one assertion per slot. API snapshot regenerated,
+      recorded as BREAKING in `changelog.txt`
 - [x] `cs_event-keyboard_set_mode` removed, with `evKeyboardSetMode` in
       `app/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
       It wrote the HTML `inputmode` attribute onto the input's DOM node — the
@@ -185,12 +207,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       - No callers left: zero across `samples`, `samples-controls` and
         `samples-stack` (re-checked 2026-08-21). The blocker this item used to
         carry is cleared.
-- [ ] **`cs_event-nav_container_to`** and the `nest_` / `nest2_` / `popup_` /
-      `popover_` variants — in the "obsolet" block of `cs_event`.
-      - Removing them also deletes the remap block in
-        `z2ui5_cl_ui5_srv_event=>map_client_event` (~20 lines) that rewrites
-        them onto `control_by_id` + method `to`.
-      - Zero usages in samples and samples-controls (checked, incl. raw literals).
 - [ ] **`cs_event-image_editor_popup_close`** — the same "obsolet" block.
       Belongs to `z2ui5_cl_pop_image_editor`; goes when `src/99/02` goes.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
@@ -250,8 +266,21 @@ breaking change for any downstream app that still references it.
         predecessor. That side is also gated now: `check:examples` there
         refuses a `z2ui5_cl_xml_view=>` example unless the page carries the
         migration banner, so the count cannot climb back.
-      - This is a project, not a task. Until it is done, nothing else in
-        `src/99` can go either, because the package ships as a unit.
+      - **Blocker C: cleared 2026-09-22.** The last consumers anywhere were
+        the 17 popup apps in `src/99/02`, frozen code reaching for frozen
+        code. They are ported onto `z2ui5_cl_ui5_view_builder` (maintainer
+        decision; the narrow `check:frozen` exemption that allowed it is in
+        `.github/scripts/frozen-paths-gate.mjs` and goes away with it). A
+        grep for `z2ui5_cl_xml_view` across `src/` now finds the class, its
+        own test include, and **one prose comment** in
+        `z2ui5_cl_ui5_util_context` — no code. **All three blockers are
+        clear: this class can be deleted whenever the maintainer wants the
+        breaking change.**
+      - It is still a project rather than a task in one respect: `src/99`
+        ships as a unit, so deleting `z2ui5_cl_xml_view` alone leaves the
+        rest of the package behind. What has changed is that nothing
+        *technical* holds it any more — only the decision to break
+        downstream apps that still name it.
       - `factory_plain( )` (`:22`) is obsolete **inside** an already-obsolete
         class and needs no separate entry: it returns a builder with no root
         element at all, so the caller has to open one before anything renders

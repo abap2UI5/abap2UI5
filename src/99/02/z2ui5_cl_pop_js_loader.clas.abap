@@ -56,17 +56,32 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...` )->content( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`       v = `sap.m`
+            )->a( n = `xmlns:core`  v = `sap.ui.core`
+            )->a( n = `xmlns:html`  v = `http://www.w3.org/1999/xhtml`
+            )->a( n = `xmlns:z2ui5` v = `z2ui5.cc` ).
+
+    DATA(popup) = view->ele( `Dialog`
+        )->a( n = `title` v = `Setup UI...`
+        )->ele( `content` ).
 
     IF js IS NOT INITIAL.
-      popup->_z2ui5( )->timer( client->_event( `TIMER_FINISHED` )
-        )->_generic( ns   = `html`
-                     name = `script` )->_cc_plain_xml( js ).
+      popup->tag( n = `Timer` ns = `z2ui5`
+          )->a( n = `finished` v = client->_event( `TIMER_FINISHED` ) ).
+
+      " ZZPLAIN is the marker the frontend replaces by the raw inner XML of
+      " its VALUE - the only way to put a script body into a view
+      popup->ele( n = `script` ns = `html`
+          )->tag( n = `ZZPLAIN` ns = `html`
+              )->a( n = `VALUE` v = js ).
     ENDIF.
 
     IF check_open_ui5 = abap_true.
-      popup->_z2ui5( )->info_frontend( finished = client->_event( `INFO_FINISHED` )
-                                       ui5_gav  = client->_bind_edit( ui5_gav ) ).
+      popup->tag( n = `Info` ns = `z2ui5`
+          )->a( n = `finished` v = client->_event( `INFO_FINISHED` )
+          )->a( n = `ui5_gav`  v = client->_bind( ui5_gav ) ).
     ENDIF.
 
     client->popup_display( popup->stringify( ) ).

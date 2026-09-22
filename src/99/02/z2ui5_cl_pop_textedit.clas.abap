@@ -52,21 +52,31 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_TEXTAREA_CANCEL` )
-                                                               stretch    = mv_stretch_active
-                                                               title      = mv_title
-                                                               icon       = `sap-icon://edit`
-          )->content(
-              )->text_area( growing  = abap_true
-                            editable = mv_check_editable
-                            value    = client->_bind_edit( ms_result-text )
-          )->get_parent(
-          )->buttons(
-              )->button( text  = `Cancel`
-                         press = client->_event( `BUTTON_TEXTAREA_CANCEL` )
-              )->button( text  = `Confirm`
-                         press = client->_event( `BUTTON_TEXTAREA_CONFIRM` )
-                         type  = `Emphasized` ).
+    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core` ).
+
+    DATA(dialog) = popup->ele( `Dialog`
+        )->a( n = `afterClose` v = client->_event( `BUTTON_TEXTAREA_CANCEL` )
+        )->a( n = `stretch`    b = mv_stretch_active
+        )->a( n = `title`      v = mv_title
+        )->a( n = `icon`       v = `sap-icon://edit` ).
+
+    dialog->ele( `content`
+        )->tag( `TextArea`
+            )->a( n = `growing`  b = abap_true
+            )->a( n = `editable` b = mv_check_editable
+            )->a( n = `value`    v = client->_bind( ms_result-text ) ).
+
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `Cancel`
+            )->a( n = `press` v = client->_event( `BUTTON_TEXTAREA_CANCEL` )
+        )->tag( `Button`
+            )->a( n = `text`  v = `Confirm`
+            )->a( n = `press` v = client->_event( `BUTTON_TEXTAREA_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

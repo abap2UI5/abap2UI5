@@ -48,27 +48,39 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `CANCEL` )
-                                                               stretch    = abap_true
-                                                               title      = title
-          )->content( ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n = `FragmentDefinition` ns = `core`
+            )->a( n = `xmlns`      v = `sap.m`
+            )->a( n = `xmlns:core` v = `sap.ui.core` ).
 
-    DATA(tab) = popup->table( items = client->_bind( <tab_out> )
-                              growing = growing
-                              growingthreshold = growingthreshold ).
+    DATA(dialog) = view->ele( `Dialog`
+        )->a( n = `afterClose` v = client->_event( `CANCEL` )
+        )->a( n = `stretch`    b = abap_true
+        )->a( n = `title`      v = title ).
+
+    DATA(popup) = dialog->ele( `content` ).
+
+    DATA(tab) = popup->ele( `Table`
+        )->a( n = `items`            v = client->_bind( <tab_out> )
+        )->a( n = `growing`          b = growing
+        )->a( n = `growingThreshold` v = growingthreshold ).
 
     DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( <tab_out> ).
 
-    DATA(list) = tab->column_list_item( valign = `Top` ).
-    DATA(cells) = list->cells( ).
+    DATA(cells) = tab->ele( `ColumnListItem`
+        )->a( n = `vAlign` v = `Top`
+        )->ele( `cells` ).
 
     LOOP AT lt_comp INTO DATA(ls_comp).
-      cells->text( |\{{ ls_comp-name }\}| ).
+      cells->tag( `Text`
+          )->a( n = `text` v = |\{{ ls_comp-name }\}| ).
     ENDLOOP.
 
-    DATA(columns) = tab->columns( ).
+    DATA(columns) = tab->ele( `columns` ).
 
     LOOP AT lt_comp INTO ls_comp.
+      DATA(lv_label) = ls_comp-name.
+
       IF ls_comp-type IS BOUND AND
           ls_comp-type->is_ddic_type( ) = abap_true.
 
@@ -76,19 +88,22 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
         DATA(lv_ddic_field_label) = z2ui5_cl_ui5_util_context=>rtti_get_data_element_text_l( lv_name ).
 
         IF lv_ddic_field_label IS NOT INITIAL.
-          columns->column( `8rem` )->header( `` )->text( lv_ddic_field_label ).
-          CONTINUE.
+          lv_label = lv_ddic_field_label.
         ENDIF.
       ENDIF.
 
-      columns->column( `8rem` )->header( `` )->text( ls_comp-name ).
+      columns->ele( `Column`
+          )->a( n = `width` v = `8rem`
+          )->ele( `header`
+              )->tag( `Text`
+                  )->a( n = `text` v = lv_label ).
     ENDLOOP.
 
-    popup->get_parent(
-        )->buttons(
-            )->button( text  = `OK`
-                       press = client->_event( `BUTTON_CONFIRM` )
-                       type  = `Emphasized` ).
+    dialog->ele( `buttons`
+        )->tag( `Button`
+            )->a( n = `text`  v = `OK`
+            )->a( n = `press` v = client->_event( `BUTTON_CONFIRM` )
+            )->a( n = `type`  v = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

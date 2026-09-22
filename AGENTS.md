@@ -145,6 +145,20 @@ src/
 
   **For AI assistants this means: never change the production code under `src/99/` or add consumers on it.** It is out of scope for reviews and audits. The `check_gates` workflow enforces the freeze; the `*.testclasses.abap` files and the abapGit `.clas.xml` sidecars are exempt from it, because the tests keep running in CI and must follow the core internals they assert on. Moving an object **out** of the package is also allowed — abapGit installs the repository, not the folder, so an object that relocates and keeps shipping breaks no downstream install. The gate refuses a deletion only when the object name exists nowhere else under `src/` afterwards **and** the object shipped in the latest release tag — an object added since that release has never reached an installation, so dropping it breaks nothing. Anything edited in place is refused either way.
 
+  **One exemption is open, and it is the only one: the popup apps**
+  (`src/99/02/z2ui5_cl_pop_*.clas.abap`) are being ported off
+  `z2ui5_cl_xml_view` onto `z2ui5_cl_ui5_view_builder` (maintainer decision
+  2026-09-22), so that the retired builder ends with zero consumers anywhere
+  and can go. The freeze is there so an installation that upgrades keeps
+  **compiling**, and this port changes no class name, no method and no
+  signature — only how each class assembles the XML string it already
+  produced, which the popup tests pin with `CS` assertions on the displayed
+  XML. The exemption is a named pathspec in
+  `.github/scripts/frozen-paths-gate.mjs` and goes away with the last ported
+  class. It covers nothing else: not `src/99/01`, not `z2ui5_cl_xml_view`
+  itself, and it is **not** a precedent — any other change under `src/99`
+  still needs its own maintainer decision recorded here.
+
 ### Utilities — the context class is the only door
 
 **This section is the single source of truth for how the framework reaches system and platform functionality. Everything about utilities is settled here; nowhere else in this file repeats it.**
