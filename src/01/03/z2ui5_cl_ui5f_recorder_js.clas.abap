@@ -65,7 +65,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    let onPageHide = null;` && |\n| &&
              `` && |\n| &&
              `    function backendUrl() {` && |\n| &&
-             `      const url = AppState.getGlobal("url");` && |\n| &&
+             `      const url = AppState.state.url;` && |\n| &&
              `      if (!url) return "";` && |\n| &&
              `      try {` && |\n| &&
              `        return new URL(url, window.location.href).href;` && |\n| &&

@@ -52,14 +52,13 @@
 // handler, not an edit here.
 sap.ui.define(
   [
-    "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/DeveloperTools",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
   ],
-  (AppState, Lib, Console, DeveloperTools, Picker, Recorder) => {
+  (Lib, Console, DeveloperTools, Picker, Recorder) => {
     "use strict";
 
     // Query parameter that opens the developer tools on page load, so a
@@ -70,24 +69,14 @@ sap.ui.define(
 
     // The control instance, owned HERE rather than on AppState: the
     // framework's state inventory has no business carrying a diagnostic
-    // object. It is still mirrored onto the z2ui5 global under its old
-    // name, because apps have been able to reach it there (the js_loader
-    // popup pokes at internals) and that should keep working.
+    // object.
     let instance = null;
     let boundKeydown = null;
     let errorDetailsHook = null;
 
-    function publish(value) {
-      // The public global facade is the supported way for a devtools
-      // module to expose something to apps (core/AppState.js documents
-      // getGlobal/setGlobal as exactly that).
-      AppState.setGlobal("developerTools", value);
-    }
-
     function get() {
       if (!instance) {
         instance = new DeveloperTools();
-        publish(instance);
       }
       return instance;
     }
@@ -191,7 +180,6 @@ sap.ui.define(
         instance.destroy();
         instance = null;
       }
-      publish(null);
       Console.uninstall();
       Recorder.uninstall();
       // A pick still running at teardown left its three capture listeners

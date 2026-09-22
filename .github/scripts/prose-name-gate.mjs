@@ -112,6 +112,11 @@ const HISTORICAL = new Map([
 // passages about an absence, so the name is right in each - and nowhere else.
 const HISTORICAL_FILES = new Map([
   ["Z2UI5_CL_UI5_JSON", new Set(["changelog.txt", "docs/removal-plan.md", "docs/agents/building-apps.md"])],
+  // The js_loader popup was deleted from src/99/02 together with the z2ui5
+  // global it existed to write into (maintainer decision 2026-09-22): the
+  // changelog entry announces the removal, the removal plan records it, and
+  // AGENTS.md names it as the one deletion that decision covers.
+  ["Z2UI5_CL_POP_JS_LOADER", new Set(["changelog.txt", "docs/removal-plan.md", "AGENTS.md"])],
 ]);
 
 // Same idea, per file: the abap-check catalogue is a list of defects that

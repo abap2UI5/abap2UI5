@@ -234,7 +234,9 @@ test("does not append a dangling '#' to the URL after app start", async ({
   // before that phase - wait for the flag plus a settle tick so the
   // (synchronous) hash rewrite, if any, has happened before asserting.
   await page.waitForFunction(
-    () => window.z2ui5?.oResponse?._processed === true,
+    () =>
+      window.sap?.ui?.require?.("z2ui5/core/AppState")?.state.oResponse
+        ?._processed === true,
   );
   await page.waitForTimeout(100);
 

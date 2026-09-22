@@ -101,14 +101,14 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `` && |\n| &&
              `  let locationSent = false;` && |\n| &&
              `` && |\n| &&
-             `  function location(draftId, search) {` && |\n| &&
+             `  function location(draftId) {` && |\n| &&
              `    if (draftId && locationSent) return null;` && |\n| &&
              `` && |\n| &&
              `    pending = { ...pending, location: true };` && |\n| &&
              `    return {` && |\n| &&
              `      ORIGIN: window.location.origin,` && |\n| &&
              `      PATHNAME: window.location.pathname,` && |\n| &&
-             `      SEARCH: search || window.location.search,` && |\n| &&
+             `      SEARCH: window.location.search,` && |\n| &&
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&

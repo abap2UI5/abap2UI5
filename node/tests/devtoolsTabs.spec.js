@@ -40,8 +40,7 @@ function loadTabs({
     autoLoad: true,
     deps: {
       "z2ui5/core/AppState": {
-        state: { responseData, oBody, lastError },
-        getGlobal: () => undefined,
+        state: { responseData, oBody, lastError, oConfig: {} },
       },
       "z2ui5/core/ViewSlots": {
         getView: (key) => views[key],

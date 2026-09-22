@@ -694,7 +694,7 @@ The same tree, with the subtree held in a variable:
 
 - **Thin frontend**: business logic (thresholds, classification, unit
   conversion, validation) is computed in ABAP and bound as a finished value —
-  never in a frontend formatter or custom JS. The shipped `z2ui5.Formatter`
+  never in a frontend formatter or custom JS. The shipped `z2ui5/model/formatter`
   helpers are a **marshalling layer, not a formatting toolbox**: a function
   only lives there when ABAP physically cannot produce the finished value —
   a real JS `Date` for an object-typed property (`DateCreateObject`,

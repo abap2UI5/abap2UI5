@@ -551,18 +551,20 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " served from it. Here the component base is this ICF node and the same
     " relative path resolves next to /sap/bc/, where nothing is.
     "
-    " Hand the absolute BSP paths to the frontend instead. They cannot be
-    " applied here: the manifest registers its own value during component
-    " creation, which happens after everything this page can run, so it would
-    " win. Component.js applies the fields in init( ), after manifest
-    " processing. AppState~initGlobal keeps fields that are already on the
-    " global when checkLocal is true, so they survive the component start. In
-    " BSP and Launchpad mode the fields are absent and the manifest entries
-    " stand. Registering a path costs nothing when the BSP is not installed -
-    " nothing is requested from it until a view names the namespace.
-    DATA(lv_globals) = |window.z2ui5 = \{ checkLocal : true, | &&
-                       |ccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
-                       |cccResourceRoot : "/sap/bc/ui5_ui5/sap/z2ui5_ccc" \};|.
+    " Hand the absolute BSP paths to the frontend instead, as component data
+    " of the container below together with checkLocal (this page is the
+    " backend endpoint). They cannot be applied here: the manifest registers
+    " its own value during component creation, which happens after everything
+    " this page can run, so it would win. Component.js applies the fields in
+    " init( ), after manifest processing, and keeps them out of the component
+    " data it sends to the backend. In BSP and Launchpad mode the fields are
+    " absent and the manifest entries stand. Registering a path costs nothing
+    " when the BSP is not installed - nothing is requested from it until a
+    " view names the namespace. There is no window.z2ui5 global any more; it
+    " used to carry these fields (removed 2026-09-22).
+    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
+                        |"ccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
+                        |"cccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_ccc"\}\}|.
 
     " The tab title is a constant. It used to come from `cs_config-title`, and
     " that field is still on the structure - it is simply no longer read. The
@@ -589,7 +591,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   lv_preload &&
                   |    \});\n| &&
                   |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
-                  |     { lv_globals } ComponentSupport.run();\n| &&
+                  |     ComponentSupport.run();\n| &&
                   |    \});\n| &&
                   |  \}\n| &&
                   |</script>\n| &&
@@ -608,7 +610,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&
                   |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
-                  |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>\n| &&
+                  |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='{ lv_settings }' data-handle-validation="true"></div>\n| &&
                   | </body></html>|.
 
     result-status_code   = 200.

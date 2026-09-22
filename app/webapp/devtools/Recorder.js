@@ -125,10 +125,10 @@ sap.ui.define(
 
     // Absolute form of the backend endpoint, so it can be compared against
     // the absolute names Resource Timing reports. Recomputed per call: the
-    // url global is set by the backend page and may not exist yet at install
+    // url is set by the shell controller and may not exist yet at install
     // time. Returns "" when unknown or unparsable.
     function backendUrl() {
-      const url = AppState.getGlobal("url");
+      const url = AppState.state.url;
       if (!url) return "";
       try {
         return new URL(url, window.location.href).href;

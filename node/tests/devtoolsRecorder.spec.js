@@ -16,12 +16,14 @@ function loadRecorder({ storage = {} } = {}) {
   // Callback arrays the recorder registers into, mirroring Lib's contract.
   const callbacks = {};
   const logged = [];
-  const state = { responseData: null, oBody: null, errors: [] };
-
-  const AppState = {
-    state,
-    getGlobal: (name) => (name === "url" ? BACKEND_PATH : undefined),
+  const state = {
+    responseData: null,
+    oBody: null,
+    errors: [],
+    url: BACKEND_PATH,
   };
+
+  const AppState = { state };
   const Lib = {
     registerCallback(name, fn) {
       if (!callbacks[name]) callbacks[name] = [];

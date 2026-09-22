@@ -42,10 +42,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        const manifest = state.oOwnerComponent.getManifest();` && |\n| &&
              `        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;` && |\n| &&
-             `        AppState.setGlobal(` && |\n| &&
-             `          "url",` && |\n| &&
-             `          AppState.getGlobal("checkLocal") ? window.location.href : uri,` && |\n| &&
-             `        );` && |\n| &&
+             `        state.url = state.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          state[slot.controllerProp] = new Controller();` && |\n| &&

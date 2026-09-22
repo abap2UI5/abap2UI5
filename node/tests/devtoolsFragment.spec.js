@@ -107,8 +107,8 @@ function loadDialogModel() {
           oBody: null,
           errors: [],
           lastError: { title: "x", text: "y", onRetry: () => {} },
+          oConfig: {},
         },
-        getGlobal: () => undefined,
       },
       "z2ui5/core/ErrorView": { handleLogout() {}, reopenErrorDialog() {} },
       "z2ui5/devtools/Console": {

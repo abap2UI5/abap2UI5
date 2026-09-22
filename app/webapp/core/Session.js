@@ -132,7 +132,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   // every later event roundtrip omits it.
   let locationSent = false;
 
-  function location(draftId, search) {
+  function location(draftId) {
     if (draftId && locationSent) return null;
     // rides in the same per-request token as the session block, which
     // config( ) has already built (or cleared) by the time we get here
@@ -140,7 +140,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     return {
       ORIGIN: window.location.origin,
       PATHNAME: window.location.pathname,
-      SEARCH: search || window.location.search,
+      SEARCH: window.location.search,
     };
   }
 

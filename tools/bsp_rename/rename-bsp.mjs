@@ -39,8 +39,6 @@
 // WHAT IS DELIBERATELY KEPT (these are protocol contracts with the abap2UI5
 // *backend*; renaming them breaks the app unless you also rebrand the backend):
 //   * z2ui5_cl_http_handler ................... the backend framework class the handler calls
-//   * the global runtime object `z2ui5` ....... window.z2ui5, z2ui5.oConfig, z2ui5[...]
-//   * the event protocol constant `Z2UI5` ..... handlers map key in core/FrontendAction.js
 //   * the UI5 framework namespace `z2ui5` ..... z2ui5/core/*, z2ui5/cc/*, custom controls
 //                                               z2ui5.cc.* and the resourceroots key.
 //     (legacy-free proves this: it renamed the BSP to z2ui5_v2 but KEPT the
@@ -150,9 +148,8 @@ Renames the deployment identity (BSP object, SICF nodes, SMIM URL, handler
 class, file names, manifest data source). For /NS/ names the SICF nodes move
 to /sap/bc/<ns>/<name> etc. and the missing namespace-level ICF nodes are
 generated; "/" becomes "#" in file names like abapGit serializes it. The UI5
-framework namespace "z2ui5", the global "z2ui5" runtime object, the "Z2UI5"
-event constant and the backend class z2ui5_cl_http_handler are KEPT, because
-they are protocol contracts with the abap2UI5 backend. Use --with-namespace
+framework namespace "z2ui5" and the backend class z2ui5_cl_http_handler are
+KEPT, because they are protocol contracts with the abap2UI5 backend. Use --with-namespace
 only when you are rebranding the backend as well.`;
 
 // ---------------------------------------------------------------------------
@@ -308,8 +305,8 @@ function transformManifest(content, N, withNamespace) {
 
 // JS / view XML / fragment XML / index.html / css: only touched with
 // --with-namespace. We rewrite the UI5 namespace strictly inside quoted
-// module/namespace literals so the bare runtime global `z2ui5`, the `Z2UI5`
-// event constant and keys like `z2ui5-xapp-state` are never affected.
+// module/namespace literals so bare identifiers and keys like
+// `z2ui5-xapp-state` are never affected.
 function transformNamespace(content, NEW_LO) {
   return content
     .replace(new RegExp(`(["'])${escapeRe(OLD_LO)}/`, "g"), `$1${NEW_LO}/`) // "z2ui5/core/Lib"
