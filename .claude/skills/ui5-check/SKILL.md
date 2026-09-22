@@ -320,12 +320,16 @@ had the deviation mechanism not been taught the new type first.
 
 Not about names or layout — these only show up when the app runs.
 
-- **No expression binding (`{= … }`) in framework-controlled XML.** It is
-  compiled with `eval`/`new Function`, so it dies under any CSP stricter than
-  the default. Drive the state from a plain model property instead (see the
-  DeveloperTools `closeEnabled` boolean). Conversely, the default CSP **keeps**
-  `'unsafe-eval'` because the 1.71 ui5loader evals module source — removing it
-  breaks the 1.71 bootstrap with a CSP `EvalError`.
+- **Expression binding (`{= … }`) needs no `'unsafe-eval'`.** UI5 parses it
+  with its own `sap/ui/base/ExpressionParser` — no `eval`/`new Function` in
+  1.71 through 1.120 (npm sources, and a browser run under a CSP without
+  `'unsafe-eval'`: the binding resolved, no violation). An earlier version of
+  this entry forbade it in framework XML for that reason; the reason was
+  wrong. What does hit `eval` is the ui5loader executing a module it holds as
+  a SOURCE STRING — synchronous loading (`sap.ui.requireSync`, a sync
+  `Fragment.load` of a module no bundle carries) or a resource missing from
+  the preload bundles. Under a CSP without `'unsafe-eval'` that is a CSP
+  `EvalError`, on every release, not only on 1.71.
 - **A fragment dialog with a fixed `id` is loaded once and reused.** Destroying
   it on close and re-loading on the next open races the close animation on
   1.71: the fragment-scoped id is still registered and you get *"adding element
@@ -436,20 +440,11 @@ Not about names or layout — these only show up when the app runs.
   interval or a count — `recurrencePattern`, and any control property whose
   own setter is written by hand rather than generated.
 
-**Linter:** the expression-binding rule is decidable from the view text alone
-(`{=` in any attribute value) — but **deliberately not added**, and the scope
-line is worth stating once so it is not proposed again. `{= … }` is
-*correct* in an app view: an abap2UI5 app runs under the CSP the framework
-ships, which keeps `'unsafe-eval'` because the 1.71 ui5loader needs it, and the
-corpus uses expression bindings throughout. The prohibition is narrower than
-the rule would be — it is about **framework-controlled** XML, which has to
-survive a customer's stricter CSP. A linter that reported every app's
-expression binding would be wrong for its own users. So the constraint stays
-where it can be scoped correctly: prose here, plus `AGENTS.md` rules 16/17 for
-this repository's own views. (The linter does check `{= … }` for *balance* —
-`invalid-expression-binding` — which is a different question.) The two
-fragment/MessageBox entries are about JS lifecycle, not about a view: **they
-stay prose** too.
+**Linter:** no expression-binding rule — `{= … }` needs no `eval` (see the
+entry above), so there is nothing to report. (The linter does check `{= … }`
+for *balance* — `invalid-expression-binding` — which is a different
+question.) The two fragment/MessageBox entries are about JS lifecycle, not
+about a view: **they stay prose**.
 
 The **empty-string-into-an-enum** entry is the one worth a rule, and once the
 trigger is stated correctly the rule gets *easier*, not harder. It does not

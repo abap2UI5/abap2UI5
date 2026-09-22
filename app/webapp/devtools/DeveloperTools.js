@@ -170,8 +170,7 @@ sap.ui.define(
         }));
         data.showViewBar = data.views.length > 1;
 
-        // Group flags drive the action bar. Plain booleans, never an
-        // expression binding in the fragment (AGENTS.md rule 13).
+        // Group flags drive the action bar.
         data.isOverview = tab.group === "OVERVIEW";
         data.isRoundtrips = tab.group === "ROUNDTRIPS";
         data.isViewData = tab.group === "VIEWDATA";
@@ -602,8 +601,7 @@ sap.ui.define(
             // The dialog title always names the app the tools are looking
             // at - every view below shows that app's data, and after a
             // navigation the previous app's name is the first thing that
-            // would mislead. Assembled here rather than as an expression
-            // binding in the fragment (AGENTS.md rule 13).
+            // would mislead.
             title: appName
               ? `abap2UI5 - Developer Tools - ${appName}`
               : "abap2UI5 - Developer Tools",

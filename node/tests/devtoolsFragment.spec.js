@@ -21,7 +21,7 @@ const FRAGMENT = fs.readFileSync(
 
 // The markup alone. Every structural assertion below runs against this
 // rather than the raw file: the comments deliberately quote the very tags
-// the rules forbid (`<footer>`, `{= ... }`), because that is where the
+// the rules forbid (`<footer>`), because that is where the
 // reasoning for not using them belongs.
 const MARKUP = FRAGMENT.replace(/<!--[\s\S]*?-->/g, "");
 
@@ -236,13 +236,6 @@ test.describe("bindings", () => {
 });
 
 test.describe("1.71 compatibility", () => {
-  // AGENTS.md rule 13: expression binding is compiled with eval/new
-  // Function, so it dies under any CSP stricter than the one shipped.
-  // Framework-controlled XML must drive such state from a plain property.
-  test("no expression binding", () => {
-    expect(MARKUP).not.toContain("{=");
-  });
-
   // AGENTS.md rule 15: sap.m.Dialog gained a public `footer` aggregation
   // only around 1.110; on 1.71 the tag resolves as a control class and
   // 404s with "failed to load sap/m/footer.js", killing the view.

@@ -30,10 +30,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `    xmlns:core="sap.ui.core"` &&
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
-             `    <!-- The title is a plain model property, never an expression binding:` &&
-             `         ``{= ... }`` is compiled with eval/new Function and dies under any` &&
-             `         CSP stricter than the one the framework ships (AGENTS.md rule 13).` &&
-             `         show() assembles the string. -->` &&
+             `    <!-- The title is a plain model property; show() assembles the string. -->` &&
              `    <Dialog` &&
              `        title="{/title}"` &&
              `        stretch="true"` &&
