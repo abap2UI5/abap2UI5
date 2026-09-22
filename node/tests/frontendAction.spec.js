@@ -1530,6 +1530,30 @@ test.describe("CONTROL_BY_ID", () => {
     ]);
   });
 
+  /* Without a CONTROL_METHODS entry setCurrentStep took the unlisted-method
+     path, which hands the RAW literal over. sap.m.Wizard then does
+     `Element.getElementById(vStepId)` against a _pageStack of PREFIXED ids,
+     finds nothing, and logs "The given step could not be set as current step."
+     while doing nothing - a silent no-op, no wrong target and no exception.
+     Reported from samples-controls app 101, whose port reproduces the
+     original's setCurrentStep( ProductInfoStep ) on a failed validation. Same
+     shape as the backToPage/pageId gap closed in #2670. */
+  test("setCurrentStep resolves its controlId arg (wizard)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const step2 = { id: "STEP2" };
+    controls.STEP2 = step2;
+    controls.wiz = { setCurrentStep: (s) => calls.push(["current", s]) };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "wiz",
+      "",
+      "setCurrentStep",
+      "STEP2",
+    ]);
+    // the CONTROL, not the string the backend sent
+    expect(calls).toEqual([["current", step2]]);
+  });
+
   test("setExpanded casts the ABAP bool ('X'/'')", () => {
     const { FrontendAction, calls, controls } = load();
     controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };

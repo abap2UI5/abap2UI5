@@ -154,6 +154,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      setExpanded: ["bool"],` && |\n| &&
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
+             `      setCurrentStep: ["controlId"],` && |\n| &&
              `      goToStep: ["controlId", "bool"],` && |\n| &&
              `      openBy: ["anchor"],` && |\n| &&
              `      toggleBy: ["anchor"],` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    function setsStringProperty(control, method) {` && |\n| &&
              `      if (!control || typeof method !== "string" || !/^set[A-Z]/.test(method))` && |\n| &&
              `        return false;` && |\n| &&
-             `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n| &&
-             `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n|.
+             `      const prop = control.getMetadata?.()?.getAllProperties?.()[` && |\n|.
     result = result &&
+             `        method.charAt(3).toLowerCase() + method.slice(4)` && |\n| &&
              `      ];` && |\n| &&
              `      if (!prop) return false;` && |\n| &&
              `      const primitive = prop.getType?.()?.getPrimitiveType?.()?.getName?.();` && |\n| &&
@@ -824,9 +825,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n|.
+             `  },` && |\n|.
     result = result &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 
