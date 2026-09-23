@@ -38,6 +38,7 @@ function parseVisibility(source) {
   let section = null;
   let inDefinition = false;
   let structDepth = 0;
+  let openChain = false;
   for (const raw of source.split("\n")) {
     const line = raw.trim().toUpperCase();
     if (!inDefinition) {
@@ -78,16 +79,33 @@ function parseVisibility(source) {
      * element of a chain (`TYPES: ty_a TYPE i,`) a declaration here rather than
      * a line the chained branch below has to guess at. */
     const declared = line.match(/^(CLASS-METHODS|METHODS|CLASS-DATA|DATA|CONSTANTS|CLASS-EVENTS|EVENTS|TYPES|ALIASES)\b(?:\s*:)?\s+([A-Z_0-9]+)/);
+    // the code half of the line: a period inside a trailing comment must not
+    // end a chain
+    const codeLine = line.replace(/".*$/, "").trim();
+    // a chain opened on a line of its own (`METHODS:` and nothing else) -
+    // every name is on the continuation lines
+    if (/^(CLASS-METHODS|METHODS|CLASS-DATA|DATA|CONSTANTS|CLASS-EVENTS|EVENTS|TYPES|ALIASES)\s*:\s*$/.test(codeLine)) {
+      openChain = true;
+      continue;
+    }
     if (declared) {
       if (!members.has(declared[2].toLowerCase())) members.set(declared[2].toLowerCase(), section);
+      // a chain (`METHODS: a, b.`) stays open until the line that ends it -
+      // its continuation lines may be bare names, which the branch below reads
+      openChain = /^[A-Z-]+\s*:/.test(codeLine) && !codeLine.endsWith(".");
       continue;
     }
     // continuation line of a chained declaration: `name TYPE ...` /
-    // `name FOR TESTING` / the ALIASES form `name FOR intf~name`
-    const chained = line.match(/^([A-Z_0-9]+)\s+(TYPE|LIKE|FOR|REDEFINITION|ABSTRACT|FINAL)\b/);
+    // `name FOR TESTING` / the ALIASES form `name FOR intf~name` - or, in a
+    // METHODS: chain, the bare `name,` / `name.` that a parameterless method
+    // is declared with. The bare shape used to record nothing, so a private
+    // `METHODS: helper, other.` was invisible to this gate.
+    const chained = line.match(/^([A-Z_0-9]+)\s+(TYPE|LIKE|FOR|REDEFINITION|ABSTRACT|FINAL)\b/)
+      || (openChain ? line.match(/^([A-Z_0-9]+)\s*(?:,|\.|$)/) : null);
     if (chained && section && !members.has(chained[1].toLowerCase())) {
       members.set(chained[1].toLowerCase(), section);
     }
+    if (openChain && codeLine.endsWith(".")) openChain = false;
   }
   return members;
 }
@@ -122,12 +140,17 @@ function parseRefVariables(source, globalClass) {
 }
 
 function currentLocalClass(lines, upto) {
-  // the local class whose IMPLEMENTATION block contains line `upto`
+  // the local class whose IMPLEMENTATION or DEFINITION block contains line
+  // `upto`. The DEFINITION half matters as much as the body: a private type
+  // named in a test class's attribute declaration (`DATA mv_row TYPE
+  // zcl_x=>ty_row.`) is the same activation error, and it used to be skipped
+  // because only IMPLEMENTATION blocks were tracked. A `DEFINITION DEFERRED`
+  // and a `DEFINITION LOCAL FRIENDS` statement open no block.
   let current = null;
   for (let i = 0; i <= upto; i++) {
     const line = lines[i].trim().toUpperCase();
-    const start = line.match(/^CLASS\s+([A-Z_0-9]+)\s+IMPLEMENTATION\b/);
-    if (start) current = start[1].toLowerCase();
+    const start = line.match(/^CLASS\s+([A-Z_0-9]+)\s+(?:IMPLEMENTATION|DEFINITION)\b/);
+    if (start && !/\bDEFERRED\b|\bLOCAL\s+FRIENDS\b/.test(line)) current = start[1].toLowerCase();
     else if (line.startsWith("ENDCLASS")) current = null;
   }
   return current;
@@ -221,6 +244,18 @@ const SELF_TEST = [
     definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    ALIASES run FOR zif_x~run.\nENDCLASS.",
     source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t. zcl_x=>run( ). ENDMETHOD.\nENDCLASS.",
     expect: ["ltcl:run"],
+  },
+  {
+    name: "a private type named in the test class's DEFINITION part, not only in a body",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    TYPES ty_row TYPE string.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\n  PRIVATE SECTION.\n    DATA mv_row TYPE zcl_x=>ty_row.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\nENDCLASS.",
+    expect: ["ltcl:ty_row"],
+  },
+  {
+    name: "a chained METHODS: with bare names - every name in the chain is a member",
+    definition: "CLASS zcl_x DEFINITION.\n  PUBLIC SECTION.\n  PRIVATE SECTION.\n    METHODS:\n      helper,\n      other.\nENDCLASS.",
+    source: "CLASS ltcl DEFINITION FOR TESTING.\nENDCLASS.\nCLASS ltcl IMPLEMENTATION.\n  METHOD t.\n    DATA(lo) = NEW zcl_x( ).\n    lo->helper( ).\n    lo->other( ).\n  ENDMETHOD.\nENDCLASS.",
+    expect: ["ltcl:helper", "ltcl:other"],
   },
   {
     name: "a PUBLIC type is nobody's business here",

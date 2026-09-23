@@ -56,10 +56,18 @@ function testMethodNames(source) {
 }
 
 function bodiesOf(source) {
-  const bodies = new Map(); // lower-case name -> body text
+  // lower-case name -> EVERY body of that name. Two local test classes in one
+  // file may both implement `row_exists FOR TESTING` (z2ui5_cl_ui5_srv_model
+  // does), and a map keyed by name alone kept only the last one, so a first
+  // body without an assertion was never looked at.
+  const bodies = new Map();
   // a trailing comment after the period is still the same statement
   const re = /^[ \t]*METHOD[ \t]+([\w~]+)[ \t]*\.[ \t]*(?:".*)?$([\s\S]*?)^[ \t]*ENDMETHOD[ \t]*\.[ \t]*$/gim;
-  for (const m of source.matchAll(re)) bodies.set(m[1].toLowerCase(), m[2]);
+  for (const m of source.matchAll(re)) {
+    const name = m[1].toLowerCase();
+    if (!bodies.has(name)) bodies.set(name, []);
+    bodies.get(name).push(m[2]);
+  }
   return bodies;
 }
 
@@ -72,15 +80,17 @@ for (const file of globSync(join(ROOT, "src/**/*.testclasses.abap")).map((f) => 
   const tests = testMethodNames(source);
   const bodies = bodiesOf(source);
   for (const name of tests) {
-    const body = bodies.get(name);
-    if (body === undefined) continue; // declared but not implemented - abaplint's job
-    checked++;
-    // strip comments first: an assertion named in a comment is not one
-    const code = body
-      .split("\n")
-      .map((line) => (line.trimStart().startsWith("*") ? "" : line.replace(/(^|\s)".*$/, "$1")))
-      .join("\n");
-    if (!ASSERTS.test(code)) findings.push(`${file} :: ${name}`);
+    const all = bodies.get(name);
+    if (all === undefined) continue; // declared but not implemented - abaplint's job
+    for (const body of all) {
+      checked++;
+      // strip comments first: an assertion named in a comment is not one
+      const code = body
+        .split("\n")
+        .map((line) => (line.trimStart().startsWith("*") ? "" : line.replace(/(^|\s)".*$/, "$1")))
+        .join("\n");
+      if (!ASSERTS.test(code)) findings.push(`${file} :: ${name}`);
+    }
   }
 }
 

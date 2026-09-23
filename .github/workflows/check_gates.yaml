@@ -92,6 +92,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/extended-check-gate.mjs # npm run check:atc
 
+      # sy-subrc after a plain dynamic ASSIGN (#1937). Part of `npm run gates`
+      # and of verify since 2026-09-16, and documented as gated here - but no
+      # step ever ran it, so a regression of the forty repaired sites merged
+      # green
+      - name: no sy-subrc test after a plain dynamic ASSIGN
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/subrc-after-assign-gate.mjs # npm run check:subrc
+
       # a test class reading PRIVATE/PROTECTED members without LOCAL FRIENDS
       # compiles here (the transpiler ignores visibility) and fails to
       # activate in a real system. Plain Node over the working tree - it ran
