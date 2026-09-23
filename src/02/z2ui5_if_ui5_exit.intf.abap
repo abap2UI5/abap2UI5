@@ -33,9 +33,10 @@ INTERFACE z2ui5_if_ui5_exit
       src                     TYPE string,
       theme                   TYPE string,
       " the CSP meta tag of the page, pre-filled with the default before the
-      " exit runs. The default carries no 'unsafe-eval': UI5 from 1.84 on
-      " needs none. On UI5 1.71 to 1.82 a popup whose XML needs a library not
-      " loaded yet does - such an installation switches it on here -
+      " exit runs. The default carries no 'unsafe-eval'. Only on UI5 1.71 to
+      " 1.82 can a popup still need it - one whose XML names a module in a
+      " binding type or a core:require that is not loaded yet. Such an
+      " installation switches it on here -
       "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
       "           WITH `script-src 'self' 'unsafe-eval'`.
       " - or the exit replaces the whole tag

@@ -335,8 +335,14 @@ Not about names or layout — these only show up when the app runs.
   `sap.ui.layout`/`sap.ui.table`, not loaded yet) and 1.84.0, 1.84.58,
   1.96.48, 1.108.54, 1.120.50 (all clean). The same XML as an
   `XMLView.create` view is clean on 1.71 and 1.82 too - only fragments
-  (popup, popover) are affected. An installation below 1.84 turns it back on
-  in its exit.
+  (popup, popover) are affected, and `actions/Slots` closes that gap:
+  `Lib.preloadFragmentModules( )` requires the fragment's control classes
+  asynchronously before `Fragment.load` (the popup test above is clean on
+  1.71 with it). Filtering by `getLoadedLibraries( )` is NOT enough: sap.m
+  pulls `sap.ui.layout` in without its preload bundle, so the library reads
+  as loaded and `VerticalLayout.js` is still fetched and eval'd. What the
+  preload cannot see - a module named only in a binding type or a
+  `core:require` - still needs `'unsafe-eval'` below 1.84.
 - **Keep `"async": true` on the manifest's `rootView`.** 1.71 does not know
   `IAsyncContentCreation` (since 1.89), so a rootView without the flag is
   built synchronously: the App controller's dependencies (`sap/m/MessageBox`)

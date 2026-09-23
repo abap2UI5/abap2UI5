@@ -163,6 +163,69 @@ sap.ui.define(
       return major > 1 || (major === 1 && minor >= 118);
     }
 
+    // True on UI5 1.71 to 1.82, where Fragment.load processes the fragment's
+    // XML synchronously: a control from a library not loaded yet is fetched
+    // by synchronous XHR and executed with eval, which a CSP without
+    // 'unsafe-eval' - the framework default - refuses. From 1.84 on the
+    // processing is async and the ui5loader loads the library itself. An
+    // unreadable version means "modern" (see hasMessagingModule).
+    function fragmentLoadsSync() {
+      /* ui5lint-disable no-globals --
+       sap.ui.version is the only way to read the running UI5 version. */
+      const rawVersion = String(sap.ui.version || "");
+      /* ui5lint-enable no-globals */
+      const [major, minor] = rawVersion.split(".").map(Number);
+      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+      return major === 1 && minor < 84;
+    }
+
+    // The control modules a fragment's XML instantiates: every element whose
+    // local name starts upper-case, resolved against the xmlns declarations
+    // (<t:Table> with xmlns:t="sap.ui.table" is sap/ui/table/Table) - the
+    // same mapping UI5's XMLTemplateProcessor applies. FragmentDefinition is
+    // a marker, not a class. Lower-case elements are aggregations.
+    const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;
+    const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;
+    function fragmentControlModules(xml) {
+      const text = String(xml ?? "");
+      const namespaces = new Map();
+      for (const [, prefix, namespace] of text.matchAll(XMLNS)) {
+        namespaces.set(prefix ?? "", namespace);
+      }
+      const result = new Set();
+      for (const [, prefix, name] of text.matchAll(ELEMENT)) {
+        const namespace = namespaces.get(prefix ?? "");
+        if (!namespace || name === "FragmentDefinition") continue;
+        result.add(`${namespace.replace(/\./g, "/")}/${name}`);
+      }
+      return [...result];
+    }
+
+    // Load, asynchronously, every control module a fragment instantiates
+    // before Fragment.load runs - so that on 1.71 to 1.82 its synchronous
+    // XML processing finds them loaded instead of fetching and eval'ing them
+    // one by one (see fragmentLoadsSync). A library counting as loaded is no
+    // guarantee: sap.m pulls sap.ui.layout in WITHOUT its preload bundle.
+    // An async require is a script tag, never eval, and brings the module's
+    // own dependencies along. A no-op on every later release. Never throws:
+    // a module that fails to load only means the fragment loads the way it
+    // always did, and reports its own error.
+    function preloadFragmentModules(xml) {
+      if (!fragmentLoadsSync()) return Promise.resolve();
+      const modules = fragmentControlModules(xml);
+      if (!modules.length) return Promise.resolve();
+      return new Promise((resolve) => {
+        sap.ui.require(
+          modules,
+          () => resolve(),
+          (e) => {
+            logError("Lib: preloading the fragment's controls failed", e);
+            resolve();
+          },
+        );
+      });
+    }
+
     // Cap the error log so a long-running session cannot grow it unbounded.
     const MAX_ERRORS = 100;
 
@@ -1025,6 +1088,9 @@ sap.ui.define(
     }
 
     return {
+      fragmentLoadsSync,
+      fragmentControlModules,
+      preloadFragmentModules,
       logError,
       isDestroyed,
       isControllerAlive,

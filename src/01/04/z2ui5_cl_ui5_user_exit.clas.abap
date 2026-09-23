@@ -184,11 +184,12 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " NO 'unsafe-eval': nothing abap2UI5 ships evaluates code, and UI5 from
       " 1.84 on runs without it as long as it loads asynchronously from its
       " preload bundles (expression binding included - UI5 parses it without
-      " eval). Below 1.84 - 1.71 to 1.82 - a popup or popover whose XML needs a
-      " library not loaded yet makes Fragment.load fetch it synchronously, and
-      " the ui5loader evals that source: a CSP EvalError (views are not
-      " affected). An installation on such a release switches it back on in
-      " its exit (see
+      " eval). On 1.71 to 1.82 Fragment.load processes a popup synchronously and
+      " evals every module it has to fetch; the frontend requires the popup's
+      " controls asynchronously first (Lib.preloadFragmentModules), so that
+      " stays clean too. What it cannot see - a module a popup only names in a
+      " binding type or a core:require - is still eval'd there; such an
+      " installation switches 'unsafe-eval' back on in its exit (see
       " z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy).
       "
       " script-src and style-src are EXPLICIT on purpose, not left to the

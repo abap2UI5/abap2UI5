@@ -126,6 +126,9 @@ sap.ui.define(
     async function loadSlotFragment(slotKey, fragmentId, xml, seq) {
       const oModel = createViewModel(slotKey);
       applyStoredSizeLimit(slotKey, oModel);
+      // UI5 1.71 to 1.82 process a fragment synchronously - the controls it
+      // needs must be loaded before, or they are eval'd (Lib, there)
+      await Lib.preloadFragmentModules(xml);
       const oFragment = await Fragment.load({
         definition: xml,
         controller: ViewSlots.getController(slotKey),

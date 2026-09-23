@@ -12,7 +12,7 @@ Legend
 
 unreleased
 ----------
-! Security: the default CSP no longer allows 'unsafe-eval' - UI5 from 1.84 on needs none; on UI5 1.71 to 1.82 a popup whose XML needs a library not loaded yet does, switch it on in the user exit (see z2ui5_if_ui5_exit, content_security_policy)
+! Security: the default CSP no longer allows 'unsafe-eval'; on UI5 1.71 to 1.82 popups preload their controls asynchronously to stay clean - only a module a popup names in a binding type or core:require still needs it there, switch it on in the user exit (see z2ui5_if_ui5_exit, content_security_policy)
 - BREAKING: follow_up_action( ) no longer runs raw JavaScript - a val that is not a cs_event-* name is not executed; use control_global, control_by_id, hash_back or cs_event-z2ui5 instead
 
 
