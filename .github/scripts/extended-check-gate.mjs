@@ -633,6 +633,7 @@ function rangeRowFindings(file, source) {
           });
           continue;
         }
+        // eslint-disable-next-line no-control-regex -- \u0000 is the literal placeholder the masking above writes
         const literal = /^\u0000(\d+)\u0000$/.exec(given[1]);
         if (!literal) continue;
         const value = literals[Number(literal[1])];

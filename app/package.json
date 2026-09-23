@@ -15,11 +15,11 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sap/ux-ui5-tooling": "^1.32.0",
-    "@ui5/cli": "^4.0.67",
+    "@ui5/cli": "^4.0.69",
     "@ui5/linter": "^1.23.6",
-    "eslint": "^10.10.0",
+    "eslint": "^10.11.0",
     "globals": "^17.12.0",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.9",
     "typescript": "^7.0.2"
   },
   "scripts": {
