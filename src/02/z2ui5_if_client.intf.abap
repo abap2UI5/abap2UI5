@@ -73,9 +73,6 @@ INTERFACE z2ui5_if_client
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
 
-      "obsolete
-      z2ui5                     TYPE string VALUE `Z2UI5`,
-
     END OF cs_event.
 
   CONSTANTS:
@@ -1052,9 +1049,9 @@ INTERFACE z2ui5_if_client
   "! A raw JavaScript expression as val (e.g. `sap.m.MessageToast.show('x')`)
   "! is not run - that form was removed. Its cs_event-* equivalents:
   "! control_global for the UI5 globals (MessageToast, MessageBox,
-  "! BusyIndicator), control_by_id for a control method, hash_back for
-  "! history.back( ), and cs_event-z2ui5 for a function the app registered
-  "! on the z2ui5 global itself.
+  "! BusyIndicator), control_by_id for a control method and hash_back for
+  "! history.back( ). Frontend code of the app's own ships as a custom
+  "! control in the customer frontend BSP (z2ui5_ccc).
   "!
   "! Every cs_event-* action also works roundtrip-free when WIRED IN THE
   "! VIEW: write the same call where its result is consumed -

@@ -74,8 +74,6 @@ function loadForExit(
       "z2ui5/devtools/DevTools": { exit: noop },
       "z2ui5/core/Lib": { logError: noop, cancelPendingTimers },
       "z2ui5/core/AppState": appState,
-      "z2ui5/Util": {},
-      "z2ui5/model/formatter": {},
       "z2ui5/core/Router": { exit: noop },
       "z2ui5/core/ScrollFocus": { reset: noop },
       "z2ui5/core/ViewSlots": {

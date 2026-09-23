@@ -62,7 +62,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
              `` && |\n| &&
-             `        fetch(AppState.getGlobal("url"), {` && |\n| &&
+             `        fetch(AppState.state.url, {` && |\n| &&
              `          method: "HEAD",` && |\n| &&
              `          keepalive: true,` && |\n| &&
              `          headers: {` && |\n| &&
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
              `` && |\n| &&
-             `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
+             `        const oConfig = state.oConfig;` && |\n| &&
              `` && |\n| &&
              `        const config = {` && |\n| &&
              `          ...Session.config(oConfig, oBody.ID),` && |\n| &&
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          sFront.CONFIG = config;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        Object.assign(sFront, Session.location(oBody.ID, state.search));` && |\n| &&
+             `        Object.assign(sFront, Session.location(oBody.ID));` && |\n| &&
              `` && |\n| &&
              `        if (oBody.ARGUMENTS) oBody.ARGUMENTS.shift();` && |\n| &&
              `        sFront.T_EVENT_ARG = oBody.ARGUMENTS;` && |\n| &&
@@ -168,11 +168,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async readHttp(oBody, sessionCarried) {` && |\n| &&
-             `        const timeoutMs =` && |\n| &&
-             `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
-             `` && |\n| &&
              `        const { signal: timeoutSignal, cancel } =` && |\n| &&
-             `          this.createTimeoutSignal(timeoutMs);` && |\n| &&
+             `          this.createTimeoutSignal(REQUEST_TIMEOUT_MS);` && |\n| &&
              `` && |\n| &&
              `        const oRetry = {` && |\n| &&
              `          onRetry: () => {` && |\n| &&
@@ -202,7 +199,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            const body = JSON.stringify({ value: oBody });` && |\n| &&
              `` && |\n| &&
              `            AppState.state.lastRequestBytes = body.length;` && |\n| &&
-             `            response = await fetch(AppState.getGlobal("url"), {` && |\n| &&
+             `            response = await fetch(AppState.state.url, {` && |\n| &&
              `              method: "POST",` && |\n| &&
              `              headers,` && |\n| &&
              `              body,` && |\n| &&
@@ -212,7 +209,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              this.responseError(` && |\n| &&
-             `                ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
+             `                ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
              `                undefined,` && |\n| &&
              `                oRetry,` && |\n| &&
              `              );` && |\n| &&

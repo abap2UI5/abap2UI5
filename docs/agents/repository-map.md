@@ -36,8 +36,7 @@ What lives in `app/webapp/` — the content of what used to be one ~5000-charact
 table cell above, unchanged, in a container a reader can actually navigate.
 
 UI5 frontend source — `Component.js`, `index.html`, `manifest.json`,
-`controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date
-helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom
+`controller/`, `view/`, `model/`, `css/`, `cc/` with one file per custom
 control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`,
 resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and
 `core/` with the internals: `Server.js` (the JSON POST client that wraps the
@@ -96,9 +95,8 @@ generic `onErrorDetails` callback array (`AppState`) and hides the button
 when nothing registered, so deleting `devtools/` degrades the framework
 gracefully instead of breaking it; `model/models.js` holds the device model
 setup and `model/formatter.js` is the curated app-level formatter module
-(the `z2ui5.Formatter` global / `core:require` of `z2ui5/model/formatter`)
-that owns the date helpers and value formatters — `Util.js` is now a
-**deprecated** legacy alias re-exporting them.
+(`core:require` of `z2ui5/model/formatter`) that owns the date helpers and
+value formatters.
 
 ## Where the rest is
 

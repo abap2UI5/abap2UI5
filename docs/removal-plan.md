@@ -54,8 +54,9 @@ support case.
       as an unknown action and is not run; no exception, no check, the
       signature is unchanged. Replacements: `control_global` for the UI5
       globals (MessageToast, MessageBox, BusyIndicator), `control_by_id` for a
-      control method, `hash_back` for `history.back( )`, `cs_event-z2ui5` for
-      a function the app registered on the `z2ui5` global. Ecosystem count at
+      control method, `hash_back` for `history.back( )`, and a custom control
+      in the customer frontend BSP (`z2ui5_ccc`) for code of the app's own.
+      Ecosystem count at
       removal: **0** across `samples`, `samples-controls` and `samples-stack`
       (every `->follow_up_action(` whose `val` is not a `cs_event-*`
       constant, a legacy `_event( )` snippet included — `removal-blockers.mjs`
@@ -216,6 +217,32 @@ support case.
       `z2ui5_if_types` is `src/99` itself: `z2ui5_cl_xml_view` (and its test
       class) and `z2ui5_cl_pop_get_range`, frozen code reaching for a frozen
       interface, which is where both of them belong
+- [x] **The `z2ui5` frontend global** removed (maintainer decision
+      2026-09-22), with everything that existed only to reach it:
+      - `window.z2ui5` itself — `core/AppState.js` keeps every field in its
+        private `state` and no longer mirrors it onto the global through
+        accessors. The backend GET page used to write `checkLocal`,
+        `ccResourceRoot` and `cccResourceRoot` there; it now passes them as
+        component data, which `Component.init` splits off before the rest
+        travels to the backend. `requestTimeoutMs` and `search`, which only
+        an app could set on the global, are no longer read
+      - `cs_event-z2ui5` and its frontend handler (`Z2UI5` in
+        `core/actions/ViewOps.js`), which called a function an app had put
+        on the global. AGENTS.md rule 5, recorded exception 9
+      - `z2ui5_cl_pop_js_loader` (`src/99/02`), the popup that loaded that
+        function. A released object deleted outright, not relocated — the
+        decision is recorded in AGENTS.md under "Layered Design"
+      - `app/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
+        globals. The date helpers stay in `z2ui5/model/formatter`, reached
+        via `core:require` (UI5 1.74 and later); a formatter string naming
+        the global resolves to nothing now
+      - the `developerTools` mirror on the global
+
+      All of it `- BREAKING:` under `unreleased` in `changelog.txt`. There
+      is no frontend path left for app-registered code: raw JavaScript in
+      `follow_up_action( )` is gone as well (see its entry above), so such
+      code ships as a custom control in the customer frontend BSP
+      (`z2ui5_ccc`)
 
 ---
 
@@ -284,10 +311,6 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 > wrapper exists yet — an app handed to `nav_app_call( )`, a draft looked up
 > before it is parsed. They are public only because an ABAP interface has no
 > protected section. The reasoning sits at the declaration.
-
-> **Not obsolete, do not remove:** `cs_event-z2ui5` is the supported entry point
-> for app-registered JavaScript (`js_loader`) and currently sits in the
-> "legacy event names" block. Move it up to the active actions instead.
 
 ---
 
@@ -399,9 +422,8 @@ controls a public contract, so these break hand-written view XML. Regenerate
       | `cc/History.js` (34) | `hash_set( )` |
       | `cc/Title.js` (22) | `cs_event-set_title` |
 
-- [ ] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** — alias
-      re-exporting `z2ui5/model/formatter`. Named in AGENTS.md rule 7 as a
-      public contract, so it needs the same announcement as the controls.
+- [x] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
+      removed with the `z2ui5` global, see §0.
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
       `destroyNestView2` / `destroyView`** — in `View1.controller.js`.
       Thin wrappers around `ViewSlots.destroy()`, kept because apps may call
@@ -414,8 +436,6 @@ controls a public contract, so these break hand-written view XML. Regenerate
       hash itself stays — `app_state_set_active( )` writes it, and
       `app_state_get_href( )` composes the link that restores it.
 
-> **Cannot go yet:** the `z2ui5.*` global facade in `core/AppState.js`. It is a
-> documented public contract for apps reaching internals via `js_loader`.
 
 ---
 
@@ -509,7 +529,6 @@ rather than by guessing; each entry names the callers that exist today.
 
 ## 6. Documentation debt to clear alongside
 
-- [ ] Move `cs_event-z2ui5` out of the "legacy event names" block (see §1)
 - [ ] Turn the two `"obsolete"` plain comments on the `view` parameter into
       `"! @parameter view | …` ABAP Doc — a `"` comment is invisible in ADT
 - [ ] 26 frozen classes in `src/99` carry **no** obsolescence marker at all;

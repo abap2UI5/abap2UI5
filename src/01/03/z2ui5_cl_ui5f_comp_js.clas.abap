@@ -34,8 +34,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
-             `    "z2ui5/Util",` && |\n| &&
-             `    "z2ui5/model/formatter",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -49,8 +47,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    DevTools,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
-             `    DateUtil,` && |\n| &&
-             `    Formatter,` && |\n| &&
              `    Router,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
@@ -65,25 +61,32 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        AppState.initGlobal();` && |\n| &&
+             `        AppState.reset();` && |\n| &&
+             `        const state = AppState.state;` && |\n| &&
+             `` && |\n| &&
+             `        const {` && |\n| &&
+             `          checkLocal,` && |\n| &&
+             `          ccResourceRoot,` && |\n| &&
+             `          cccResourceRoot,` && |\n| &&
+             `          ...componentData` && |\n| &&
+             `        } = this.getComponentData() || {};` && |\n| &&
+             `        state.checkLocal = checkLocal === true;` && |\n| &&
+             `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
+             `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&
              `        const paths = {};` && |\n| &&
-             `        const ccResourceRoot = AppState.getGlobal("ccResourceRoot");` && |\n| &&
-             `        if (ccResourceRoot) paths.z2ui5_cci = ccResourceRoot;` && |\n| &&
-             `        const cccResourceRoot = AppState.getGlobal("cccResourceRoot");` && |\n| &&
-             `        if (cccResourceRoot) paths.z2ui5_ccc = cccResourceRoot;` && |\n| &&
+             `        if (state.ccResourceRoot) paths.z2ui5_cci = state.ccResourceRoot;` && |\n| &&
+             `        if (state.cccResourceRoot) paths.z2ui5_ccc = state.cccResourceRoot;` && |\n| &&
              `        if (Object.keys(paths).length) sap.ui.loader.config({ paths });` && |\n| &&
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
-             `        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();` && |\n| &&
+             `        state.oConfig.ComponentData = Object.keys(componentData).length` && |\n| &&
+             `          ? componentData` && |\n| &&
+             `          : undefined;` && |\n| &&
              `` && |\n| &&
-             `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
-             `` && |\n| &&
-             `        AppState.setGlobal("Formatter", Formatter);` && |\n| &&
-             `` && |\n| &&
-             `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
-             `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
+             `        state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
+             `        this.setModel(state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        if (Lib.hasMessagingModule()) {` && |\n| &&
              `          sap.ui.require(` && |\n| &&
@@ -162,7 +165,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          if (Lib.isAlive(this)) {` && |\n| &&
-             `            AppState.getGlobal("oConfig").S_UI5 = {` && |\n| &&
+             `            AppState.state.oConfig.S_UI5 = {` && |\n| &&
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&

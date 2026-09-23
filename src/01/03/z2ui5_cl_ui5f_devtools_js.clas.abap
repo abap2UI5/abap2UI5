@@ -27,14 +27,13 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
 
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/DeveloperTools",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, Lib, Console, DeveloperTools, Picker, Recorder) => {` && |\n| &&
+             `  (Lib, Console, DeveloperTools, Picker, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
@@ -43,14 +42,9 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `    let boundKeydown = null;` && |\n| &&
              `    let errorDetailsHook = null;` && |\n| &&
              `` && |\n| &&
-             `    function publish(value) {` && |\n| &&
-             `      AppState.setGlobal("developerTools", value);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function get() {` && |\n| &&
              `      if (!instance) {` && |\n| &&
              `        instance = new DeveloperTools();` && |\n| &&
-             `        publish(instance);` && |\n| &&
              `      }` && |\n| &&
              `      return instance;` && |\n| &&
              `    }` && |\n| &&
@@ -125,7 +119,6 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `        instance.destroy();` && |\n| &&
              `        instance = null;` && |\n| &&
              `      }` && |\n| &&
-             `      publish(null);` && |\n| &&
              `      Console.uninstall();` && |\n| &&
              `      Recorder.uninstall();` && |\n| &&
              `` && |\n| &&

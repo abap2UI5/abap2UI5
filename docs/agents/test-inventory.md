@@ -81,7 +81,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `model/models.js` device-model wiring | `deviceModel.spec.js` | — |
 | `core/Lib.js` event-argument normalization | `eventArgs.spec.js` | — |
 | `cc/Storage.js` | `storage.spec.js` | — |
-| the public `Util.js` date helpers | `util.spec.js` | — |
+| the public date helpers of `model/formatter.js` | `formatterDates.spec.js` | — |
 
 ## The rules that go with them
 

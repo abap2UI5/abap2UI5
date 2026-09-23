@@ -18,14 +18,14 @@ sap.ui.define([], () => {
 
   // Pretty-print any value (object, array, primitive) as indented JSON.
   // `null` is used as a fallback so undefined values still produce output.
-  // A replacer drops circular references (the z2ui5 global can hold them,
+  // A replacer drops circular references (the app state can hold them,
   // e.g. via ComponentData) so the output stays useful JSON instead of
   // throwing and degrading to a bare "[object Object]".
   function toJson(val) {
     const safe = val === undefined ? null : val;
     // Track the ANCESTOR chain, not every object ever visited: a plain
     // WeakSet of all seen objects would mislabel a value referenced twice in
-    // sibling branches (common in the live z2ui5 global) as "[Circular]".
+    // sibling branches (common in the live app state) as "[Circular]".
     // `this` inside the replacer is the object the key belongs to, so we can
     // unwind the stack back to it before testing containment.
     const ancestors = [];

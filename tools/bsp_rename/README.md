@@ -117,8 +117,6 @@ different repository). Renaming them breaks the app unless the backend is
 rebranded too:
 
 - `z2ui5_cl_http_handler` — the backend framework class the handler calls
-- the global runtime object `z2ui5` (`window.z2ui5`, `z2ui5.oConfig`, …)
-- the event protocol constant `Z2UI5` (handlers map in `core/FrontendAction.js`)
 - the `z2ui5-xapp-state` cross-app-state key
 - the **UI5 framework namespace `z2ui5`** — module paths `z2ui5/core/*`,
   `z2ui5/cc/*` and the custom controls `z2ui5.cc.*`. The backend-generated
@@ -134,5 +132,4 @@ Also rewrites the UI5 namespace (resourceroots, module paths, `.extend(...)`,
 `controllerName`, custom controls `z2ui5.cc.*`, manifest `id`/`viewPath`/
 `viewName`). Only use it when rebranding the whole stack **including the
 backend** — otherwise custom controls and backend-generated views stop working.
-Even in this mode the runtime global `z2ui5`, the `Z2UI5` event constant and
-`z2ui5_cl_http_handler` are still preserved.
+Even in this mode `z2ui5_cl_http_handler` is still preserved.

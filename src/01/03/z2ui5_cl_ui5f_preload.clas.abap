@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '16d0e6f9150f92b8'.
+    CONSTANTS build_hash TYPE string VALUE '4520ec6b3628a018'.
 
     CLASS-METHODS get
       IMPORTING
@@ -39,7 +39,6 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
   METHOD get.
 
     result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/Util.js": function()\{{ z2ui5_cl_ui5f_util_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraPicture.js": function()\{{ z2ui5_cl_ui5f_campic_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&

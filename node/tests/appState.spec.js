@@ -2,11 +2,10 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real app/webapp/core/AppState.js: global bootstrapping,
-// the transitional accessors on the z2ui5 global and reset behavior.
-// `window` is the sandbox global itself (see loadModule.js), exactly
-// like in a browser - so window.z2ui5 and the bare z2ui5 global are
-// the same thing.
+// Tests the real app/webapp/core/AppState.js: the defaults, the live `state`
+// export and reset behavior - and that the module puts nothing on the
+// global object. `window` is the sandbox global itself (see loadModule.js),
+// exactly like in a browser.
 
 function load(sandbox = {}) {
   const { module, sandbox: ctx } = loadModule("core/AppState.js", {
@@ -15,128 +14,55 @@ function load(sandbox = {}) {
   return { AppState: module, ctx };
 }
 
-test.describe("initGlobal", () => {
-  test("creates the global with a fresh oConfig when none exists", () => {
+test.describe("defaults", () => {
+  test("installs the defaults for every field", () => {
+    const { AppState } = load();
+    const state = AppState.state;
+    expect(state.checkLocal).toBe(false);
+    expect(state.url).toBeNull();
+    expect(state.oConfig).toEqual({});
+    expect(state.ccResourceRoot).toBeNull();
+    expect(state.cccResourceRoot).toBeNull();
+    expect(state.isBusy).toBe(false);
+    expect(state.oView).toBeNull();
+    expect(state.errors).toEqual([]);
+    expect(state.timers).toEqual({});
+    expect(state.viewSizeLimits).toEqual({});
+    expect(state.onBeforeRoundtrip).toEqual([]);
+    expect(state.oSentModel).toBeNull();
+  });
+
+  test("exposes nothing but reset and state", () => {
+    const { AppState } = load();
+    expect(Object.keys(AppState).sort()).toEqual(["reset", "state"]);
+  });
+
+  test("puts no z2ui5 object on the global", () => {
     const { AppState, ctx } = load();
-    AppState.initGlobal();
-    expect(ctx.z2ui5).toBeDefined();
-    expect(ctx.z2ui5.oConfig).toEqual({});
-  });
-
-  test("installs the defaults for the internal fields", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    expect(ctx.z2ui5.isBusy).toBe(false);
-    expect(ctx.z2ui5.oView).toBeNull();
-    expect(ctx.z2ui5.errors).toEqual([]);
-    expect(ctx.z2ui5.timers).toEqual({});
-    expect(ctx.z2ui5.viewSizeLimits).toEqual({});
-    expect(ctx.z2ui5.onBeforeRoundtrip).toEqual([]);
-    expect(ctx.z2ui5.oSentModel).toBeNull();
-  });
-
-  test("keeps an existing global object", () => {
-    const existing = { checkLocal: true };
-    const { AppState, ctx } = load({ z2ui5: existing });
-    AppState.initGlobal();
-    expect(ctx.z2ui5).toBe(existing);
-  });
-
-  test("starts from a clean object when checkLocal === false", () => {
-    const existing = { checkLocal: false, custom: "x" };
-    const { AppState, ctx } = load({ z2ui5: existing });
-    AppState.initGlobal();
-    expect(ctx.z2ui5).not.toBe(existing);
-    expect(ctx.z2ui5.custom).toBeUndefined();
-  });
-
-  test("preserves a pre-existing plain value of an internal field", () => {
-    const { AppState, ctx } = load({ z2ui5: { search: "?keep=1" } });
-    AppState.initGlobal();
-    expect(ctx.z2ui5.search).toBe("?keep=1");
-  });
-
-  test("does not touch public fields", () => {
-    const util = { marker: true };
-    const { AppState, ctx } = load({
-      z2ui5: { Util: util, requestTimeoutMs: 5000 },
-    });
-    AppState.initGlobal();
-    expect(ctx.z2ui5.Util).toBe(util);
-    expect(ctx.z2ui5.requestTimeoutMs).toBe(5000);
-  });
-
-  test("a re-init resets internal fields but keeps public ones", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    ctx.z2ui5.contextId = "abc";
-    ctx.z2ui5.Util = "public";
-    AppState.initGlobal();
-    expect(ctx.z2ui5.contextId).toBeNull();
-    expect(ctx.z2ui5.Util).toBe("public");
+    AppState.reset();
+    AppState.state.url = "/sap/z2ui5";
+    expect(ctx.z2ui5).toBeUndefined();
   });
 });
 
-test.describe("module API", () => {
-  test("state exposes the same internal fields as the global accessors", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    ctx.z2ui5.contextId = "abc";
-    expect(AppState.state.contextId).toBe("abc");
-    AppState.state.isBusy = true;
-    expect(ctx.z2ui5.isBusy).toBe(true);
-  });
-
+test.describe("reset", () => {
   test("state always returns the current object, also after reset", () => {
     const { AppState } = load();
-    AppState.initGlobal();
     AppState.state.isBusy = true;
     AppState.reset();
     expect(AppState.state.isBusy).toBe(false);
   });
 
-  test("getGlobal/setGlobal read and write the public facade", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    AppState.setGlobal("Util", "helpers");
-    expect(ctx.z2ui5.Util).toBe("helpers");
-    ctx.z2ui5.requestTimeoutMs = 5000;
-    expect(AppState.getGlobal("requestTimeoutMs")).toBe(5000);
-  });
-
-  test("getGlobal is undefined-safe before initGlobal ran", () => {
+  test("reset restores the defaults with fresh containers", () => {
     const { AppState } = load();
-    expect(AppState.getGlobal("url")).toBeUndefined();
-  });
-
-  test("setGlobal creates the global when it does not exist yet", () => {
-    const { AppState, ctx } = load();
-    AppState.setGlobal("url", "/sap/z2ui5");
-    expect(ctx.z2ui5.url).toBe("/sap/z2ui5");
-  });
-});
-
-test.describe("accessors and reset", () => {
-  test("accessor writes go through to the internal state", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    ctx.z2ui5.isBusy = true;
-    ctx.z2ui5.errors.push("entry");
-    expect(ctx.z2ui5.isBusy).toBe(true);
-    expect(ctx.z2ui5.errors).toEqual(["entry"]);
-  });
-
-  test("reset restores the defaults and is visible on the global", () => {
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    ctx.z2ui5.isBusy = true;
-    ctx.z2ui5.errors.push("entry");
-    const timersBefore = ctx.z2ui5.timers;
+    AppState.state.errors.push("entry");
+    AppState.state.oConfig.S_UI5 = { VERSION: "1.71.0" };
+    const timersBefore = AppState.state.timers;
     AppState.reset();
-    expect(ctx.z2ui5.isBusy).toBe(false);
-    expect(ctx.z2ui5.errors).toEqual([]);
+    expect(AppState.state.errors).toEqual([]);
+    expect(AppState.state.oConfig).toEqual({});
     // Collections are fresh containers, not cleared old ones.
-    expect(ctx.z2ui5.timers).not.toBe(timersBefore);
+    expect(AppState.state.timers).not.toBe(timersBefore);
   });
 
   test("reset forgets which app filled each slot", () => {
@@ -144,12 +70,9 @@ test.describe("accessors and reset", () => {
     // with no recorded owner the model push is unconditional again
     // (actions/Slots.updateModelIfRequired), which is the pre-response
     // behaviour and not a stale owner from the previous screen
-    const { AppState, ctx } = load();
-    AppState.initGlobal();
-    expect(ctx.z2ui5.slotApp).toEqual({});
+    const { AppState } = load();
     AppState.state.slotApp.MAIN = "ZCL_LIST";
     AppState.reset();
     expect(AppState.state.slotApp).toEqual({});
-    expect(ctx.z2ui5.slotApp).toEqual({});
   });
 });

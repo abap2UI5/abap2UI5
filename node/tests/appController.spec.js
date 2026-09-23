@@ -7,8 +7,8 @@ const { loadModule } = require("./loadModule");
 // URL in local mode), one View1 controller instance per view slot (driven
 // by the ViewSlots table, not a hardcoded list), the app container lookup,
 // and the initial roundtrip kick-off.
-function load({ manifest, globals = {}, href = "http://localhost:3000/" } = {}) {
-  const state = {};
+function load({ manifest, checkLocal = false, href = "http://localhost:3000/" } = {}) {
+  const state = { checkLocal };
   const roundtrips = [];
   class View1Controller {}
   const slots = [
@@ -22,11 +22,7 @@ function load({ manifest, globals = {}, href = "http://localhost:3000/" } = {}) 
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
       "z2ui5/controller/View1.controller": View1Controller,
       "z2ui5/core/Server": { roundtrip: () => roundtrips.push(1) },
-      "z2ui5/core/AppState": {
-        state,
-        getGlobal: (name) => globals[name],
-        setGlobal: (name, value) => (globals[name] = value),
-      },
+      "z2ui5/core/AppState": { state },
       "z2ui5/core/ViewSlots": { slots },
     },
     sandbox: { window: { location: { href } } },
@@ -47,7 +43,6 @@ function load({ manifest, globals = {}, href = "http://localhost:3000/" } = {}) 
   return {
     inst,
     state,
-    globals,
     roundtrips,
     component,
     byIdCalls,
@@ -61,31 +56,31 @@ const MANIFEST = {
 };
 
 test("standalone: the backend URL comes from the manifest data source", () => {
-  const { inst, globals } = load({ manifest: MANIFEST });
+  const { inst, state } = load({ manifest: MANIFEST });
 
   inst.onInit();
 
-  expect(globals.url).toBe("/sap/bc/z2ui5");
+  expect(state.url).toBe("/sap/bc/z2ui5");
 });
 
-test("local mode (checkLocal global) uses the page URL instead", () => {
-  const { inst, globals } = load({
+test("local mode (checkLocal) uses the page URL instead", () => {
+  const { inst, state } = load({
     manifest: MANIFEST,
-    globals: { checkLocal: true },
+    checkLocal: true,
     href: "http://localhost:3000/?app_start=x",
   });
 
   inst.onInit();
 
-  expect(globals.url).toBe("http://localhost:3000/?app_start=x");
+  expect(state.url).toBe("http://localhost:3000/?app_start=x");
 });
 
 test("a manifest without the data source does not blow up", () => {
-  const { inst, globals } = load({ manifest: {} });
+  const { inst, state } = load({ manifest: {} });
 
   inst.onInit();
 
-  expect(globals.url).toBeUndefined();
+  expect(state.url).toBeUndefined();
 });
 
 test("one View1 controller is created per view slot from the slot table", () => {

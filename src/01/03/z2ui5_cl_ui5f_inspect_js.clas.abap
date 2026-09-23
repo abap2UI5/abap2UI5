@@ -166,7 +166,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `    function formatEnvironment() {` && |\n| &&
              `      const state = AppState.state;` && |\n| &&
-             `      const oConfig = AppState.getGlobal("oConfig") || {};` && |\n| &&
+             `      const oConfig = state.oConfig;` && |\n| &&
              `      const sUi5 = oConfig.S_UI5;` && |\n| &&
              `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Environment"];` && |\n| &&
@@ -181,10 +181,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `      out.push(section("Session"));` && |\n| &&
              `      out.push(line("sap-contextid", state.contextId));` && |\n| &&
-             `      out.push(line("Backend endpoint", AppState.getGlobal("url")));` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line("Served by backend", yesNo(AppState.getGlobal("checkLocal"))),` && |\n| &&
-             `      );` && |\n| &&
+             `      out.push(line("Backend endpoint", state.url));` && |\n| &&
+             `      out.push(line("Served by backend", yesNo(state.checkLocal)));` && |\n| &&
              `      out.push(line("Launchpad", yesNo(state.oLaunchpad)));` && |\n| &&
              `      out.push(line("Origin", window.location.origin));` && |\n| &&
              `      out.push(line("Pathname", window.location.pathname));` && |\n| &&
@@ -270,8 +268,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Resource base", resourceUrl("")));` && |\n| &&
              `      out.push(line("z2ui5 root", resourceUrl("z2ui5")));` && |\n| &&
              `` && |\n| &&
-             `      const cci = AppState.getGlobal("ccResourceRoot");` && |\n| &&
-             `      const ccc = AppState.getGlobal("cccResourceRoot");` && |\n| &&
+             `      const cci = AppState.state.ccResourceRoot;` && |\n| &&
+             `      const ccc = AppState.state.cccResourceRoot;` && |\n| &&
              `      if (cci) out.push(line("z2ui5_cci root", cci));` && |\n| &&
              `      if (ccc) out.push(line("z2ui5_ccc root", ccc));` && |\n| &&
              `      return out;` && |\n| &&
@@ -424,10 +422,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        for (const arg of args) out.push(``       ${renderArg(arg)}``);` && |\n| &&
              `      });` && |\n| &&
              `      return out;` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatActions() {` && |\n| &&
+             `    function formatActions() {` && |\n|.
+    result = result &&
              `      const sAction = AppState.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Actions of the last response"];` && |\n| &&
              `      out.push("");` && |\n| &&
@@ -820,18 +818,15 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Version", sap.ui.version));` && |\n| &&
              `` && |\n| &&
              `      out.push(` && |\n| &&
-             `        line(` && |\n| &&
-             `          "Distribution",` && |\n| &&
-             `          getDistribution((AppState.getGlobal("oConfig") || {}).S_UI5),` && |\n| &&
-             `        ),` && |\n| &&
+             `        line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),` && |\n| &&
              `      );` && |\n| &&
-             `      out.push(line("Theme", Lib.getTheme()));` && |\n|.
-    result = result &&
+             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
              `      out.push(...formatSlots());` && |\n| &&
              `` && |\n| &&
-             `      out.push(section("Getting around"));` && |\n| &&
+             `      out.push(section("Getting around"));` && |\n|.
+    result = result &&
              `      out.push("  Ctrl+F12          open / close these tools");` && |\n| &&
              `      out.push("  Search field      one term across every tab at once");` && |\n| &&
              `      out.push("  (i) in the footer what every tab answers");` && |\n| &&
