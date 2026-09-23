@@ -53,6 +53,13 @@
 //                after z2ui5_cl_ui5_util_context=>msg_get_internal gained a
 //                second, defaulted parameter that morning (#2719) and took
 //                the addition along with it.
+//   range_row    'Specification "OPTION" is missing in the selection
+//                structure' / '"eq" is not a permitted value for component
+//                "OPTION" in a selection structure' - a VALUE row of a range
+//                table (sign/option/low/high) without an option, or with a
+//                literal the system does not know. Syntax warnings on a
+//                user's system on 2026-09-23, from a test class of
+//                z2ui5_cl_ui5_util_context that feeds deliberately odd rows.
 //
 // Why a gate and not prose: abaplint models none of these. They are checks of a
 // different tool, and prose in AGENTS.md did not stop the three "fix atc
@@ -558,6 +565,129 @@ selfTest(
     + "them is a sibling checkout.",
 );
 
+/* A ROW OF A RANGE TABLE - a structure with the components sign, option, low
+ * and high - is a "selection structure" to the syntax check, whatever it is
+ * declared as, and a VALUE row of one is checked against the fixed domain of
+ * those components: a row without an option answers 'Specification "OPTION"
+ * is missing in the selection structure', and a literal outside the domain -
+ * a lower-case `eq` included - '"eq" is not a permitted value for component
+ * "OPTION" in a selection structure'. Warnings, not errors, but warnings a
+ * user's system lists on every pull (2026-09-23, three of them from
+ * ltcl_test's test_token_odd_option in z2ui5_cl_ui5_util_context, which feeds
+ * exactly such rows on purpose). abaplint knows no selection structures.
+ *
+ * Decided on the text: a row is the innermost `( ... )` of a statement with a
+ * VALUE in it that assigns `low` and at least one of `sign` / `option`. A
+ * component given as a header default before the rows (`VALUE #( sign = `I`
+ * option = `EQ` ( low = ... ) )`) counts as given. Only LITERALS are judged -
+ * a variable or constant is the documented way to feed an odd value to a
+ * test, and it is what the repaired test does. */
+const RANGE_SIGNS = new Set(["I", "E"]);
+const RANGE_OPTIONS = new Set(["EQ", "NE", "BT", "NB", "CP", "NP", "GT", "GE", "LT", "LE"]);
+
+/* The code of one line with its trailing comment cut and its literals KEPT -
+ * stripNoise drops literal content, and the content is what this rule reads. */
+function codeKeepingLiterals(line) {
+  let mode = "code";
+  for (let i = 0; i < line.length; i += 1) {
+    const c = line[i];
+    if (mode === "code") {
+      if (c === "`") mode = "tick";
+      else if (c === "'") mode = "quote";
+      else if (c === "|") mode = "tmpl";
+      else if (c === '"') return line.slice(0, i);
+    } else if (mode === "tick" && c === "`") mode = "code";
+    else if (mode === "quote" && c === "'") mode = "code";
+    else if (mode === "tmpl") {
+      if (c === "\\") i += 1;
+      else if (c === "|") mode = "code";
+    }
+  }
+  return line;
+}
+
+function rangeRowFindings(file, source) {
+  const out = [];
+  for (const stmt of statements(source)) {
+    const text = stmt.text.split("\n").map(codeKeepingLiterals).join(" ");
+    if (!/\bVALUE\b/i.test(text)) continue;
+    // literals out of the way of the paren walk, their content kept aside
+    const literals = [];
+    const masked = text.replace(/`(?:[^`]|``)*`|'(?:[^']|'')*'/g, (lit) => {
+      literals.push(lit.slice(1, -1));
+      return `\u0000${literals.length - 1}\u0000`;
+    });
+    const rows = [...masked.matchAll(/\(([^()]*)\)/g)].map(m => m[1]);
+    const header = masked.replace(/\([^()]*\)/g, " ");
+    for (const row of rows) {
+      if (!/\blow\s*=/i.test(row)) continue;
+      if (!/\b(?:sign|option)\s*=/i.test(row)) continue;
+      for (const [component, domain] of [["sign", RANGE_SIGNS], ["option", RANGE_OPTIONS]]) {
+        const given = new RegExp(`\\b${component}\\s*=\\s*(\\S+)`, "i").exec(row);
+        if (!given) {
+          if (new RegExp(`\\b${component}\\s*=`, "i").test(header)) continue;
+          out.push({
+            at: `${file}:${stmt.start}`,
+            rule: "range_row",
+            message: `a range row without ${component.toUpperCase()} - "Specification ${component.toUpperCase()} is missing in the selection structure" on a system; give it, or build the row field by field`,
+          });
+          continue;
+        }
+        const literal = /^\u0000(\d+)\u0000$/.exec(given[1]);
+        if (!literal) continue;
+        const value = literals[Number(literal[1])];
+        if (domain.has(value)) continue;
+        out.push({
+          at: `${file}:${stmt.start}`,
+          rule: "range_row",
+          message: `"${value}" is not a permitted value for component ${component.toUpperCase()} in a selection structure - use ${[...domain].join("/")}, or feed an odd value through a variable`,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+const RANGE_ROW_SELF_TEST = [
+  {
+    name: "the three rows of the incident - missing, lower-case and unknown option",
+    source: "lt_range = VALUE #( ( sign = `I` low = `X` )\n                    ( sign = `I` option = `eq` low = `Y` )\n                    ( sign = `I` option = `ZZ` low = `Z` ) ).",
+    expect: 3,
+  },
+  {
+    name: "well-formed rows, single quotes as well",
+    source: "lt_range = VALUE #( ( sign = `I` option = `EQ` low = `X` )\n                    ( sign = 'E' option = 'BT' low = `1` high = `9` ) ).",
+    expect: 0,
+  },
+  {
+    name: "sign and option as header defaults for every row",
+    source: "lt_range = VALUE #( sign = `I` option = `EQ` ( low = `A` ) ( low = `B` ) ).",
+    expect: 0,
+  },
+  {
+    name: "a variable for the odd value - the repaired shape",
+    source: "lt_range = VALUE #( ( sign = `I` option = lv_option low = `Y` ) ).",
+    expect: 0,
+  },
+  {
+    name: "an invalid sign",
+    source: "ls_range = VALUE #( sign = `X` option = `EQ` low = `A` ).",
+    expect: 1,
+  },
+  {
+    name: "no range row at all - a structure without sign or option",
+    source: "ls_row = VALUE #( name = `eq` low = `A` ).",
+    expect: 0,
+  },
+];
+
+selfTest(
+  RANGE_ROW_SELF_TEST,
+  source => rangeRowFindings("selftest.clas.abap", source),
+  "The range-row rule changed. A green run over src/ says nothing while this\n"
+    + "case fails - src/ carries no malformed range row to fire on.",
+);
+
 const ABAPDOC_TAGS = new Set(["p", "em", "strong", "ul", "ol", "li", "h1", "h2", "h3", "br"]);
 function abapdocHtmlFindings(file, source) {
   source.split(/\r?\n/).forEach((line, i) => {
@@ -580,6 +710,7 @@ for (const file of files) {
   abapdocHtmlFindings(file, source);
   findings.push(...derefCallFindings(file, source));
   findings.push(...textSymbolFindings(file, source));
+  findings.push(...rangeRowFindings(file, source));
   const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
@@ -712,4 +843,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length + TEXT_SYMBOL_SELF_TEST.length} self-test case(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length + TEXT_SYMBOL_SELF_TEST.length + RANGE_ROW_SELF_TEST.length} self-test case(s) checked - OK`);

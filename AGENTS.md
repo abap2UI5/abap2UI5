@@ -606,12 +606,13 @@ naming what ABAP could not express.
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The eight traps a script can
+which flags things `npm run check` cannot see. The traps a script can
 decide are gated by `npm run check:atc` — a **sequential read** over a standard
 table (wants `"#EC CI_SORTSEQ` on the statement), an empty
 `CATCH` block (wants `##NO_HANDLER`), POSIX regex (below), a misplaced
-ABAP Doc block (below), an ignored `PREFERRED PARAMETER` (below) and a
-`SELECT` with no `WHERE` clause (below).
+ABAP Doc block (below), an ignored `PREFERRED PARAMETER` (below), a
+`SELECT` with no `WHERE` clause (below) and a range-table row without
+`sign`/`option` or with a literal outside their domain (below).
 "Sequential read" is all three spellings, not just the
 `LOOP AT ... WHERE` the gate started with: `READ TABLE ... WITH KEY` (not
 `WITH TABLE KEY`, which is a primary-key read) and a table expression keyed on
@@ -698,6 +699,12 @@ front, a green abaplint does not prove their absence:
   compiler falls back to reading it as a method call (bit us in
   `z2ui5_cl_ui5_handler=>request_parse_body`, 2026-09-16). Same fix and same
   gate as the other operand positions: a variable, `npm run check:downport`.
+- **A range-table row wants a valid `SIGN` and `OPTION`.** A structure with
+  `sign`/`option`/`low`/`high` is a selection structure to the syntax check:
+  a `VALUE` row without an option, or with `'eq'`/`'ZZ'` in it, is a warning on
+  every pull (bit us in the test class of `z2ui5_cl_ui5_util_context`,
+  2026-09-23). A test that needs an odd row builds it field by field through a
+  variable. Gated by `npm run check:atc`.
   A functional METHOD call there is correct and is not reported.
 - **No `DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`): SLIN reports the fixed type the inline declaration picks.

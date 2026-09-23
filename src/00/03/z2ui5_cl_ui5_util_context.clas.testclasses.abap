@@ -1233,10 +1233,25 @@ CLASS ltcl_msg IMPLEMENTATION.
     " option and one the mapping does not know used to raise a raw
     " CX_SY_ITAB_LINE_NOT_FOUND for the whole table; they render as equality
     DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+    DATA ls_range LIKE LINE OF lt_range.
+    DATA lv_option TYPE string.
 
-    lt_range = VALUE #( ( sign = `I` low = `X` )
-                        ( sign = `I` option = `eq` low = `Y` )
-                        ( sign = `I` option = `ZZ` low = `Z` ) ).
+    " filled field by field and through a variable: a VALUE #( ) row with a
+    " missing, lower-case or unknown option is exactly what the SAP syntax
+    " check warns about for a range structure
+    ls_range-sign = `I`.
+    ls_range-low  = `X`.
+    INSERT ls_range INTO TABLE lt_range.
+
+    lv_option = `eq`.
+    ls_range-option = lv_option.
+    ls_range-low    = `Y`.
+    INSERT ls_range INTO TABLE lt_range.
+
+    lv_option = `ZZ`.
+    ls_range-option = lv_option.
+    ls_range-low    = `Z`.
+    INSERT ls_range INTO TABLE lt_range.
 
     DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
 
