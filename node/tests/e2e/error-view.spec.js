@@ -35,8 +35,15 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
         document.getElementById("z2ui5ServerErrorContainer")?.remove();
         window["__retried"] = false;
         window["sap"].ui.require(
-          ["z2ui5/core/ErrorView"],
-          (/** @type {any} */ ErrorView) => {
+          ["z2ui5/core/ErrorView", "sap/ui/core/Component"],
+          (/** @type {any} */ ErrorView, /** @type {any} */ Component) => {
+            // ErrorView.show works on a component's context - the page
+            // component's here ("container-z2ui5" is the id ComponentSupport
+            // gives the component of the GET page)
+            const component = Component.getComponentById
+              ? Component.getComponentById("container-z2ui5")
+              : Component.get("container-z2ui5");
+            const ctx = component.ctx;
             const options = retry
               ? { onRetry: () => (window["__retried"] = true) }
               : undefined;
@@ -69,7 +76,7 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
               return realRequire.call(this, deps, cb, errback);
             };
             try {
-              ErrorView.show("something broke", undefined, options);
+              ErrorView.show(ctx, "something broke", undefined, options);
             } finally {
               window["sap"].ui.require = realRequire;
             }

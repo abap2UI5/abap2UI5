@@ -9,6 +9,10 @@ const { test, expect } = require("./fixtures");
 // boots one component (the backend GET page); this spec creates a second
 // one next to it through UI5's own ComponentContainer, the way a launchpad
 // in keep-alive mode or a host app would, and asks both.
+//
+// Everything evaluated in the page is a function, never a string: the GET
+// page's CSP has no 'unsafe-eval', and Playwright runs a string expression
+// through eval.
 
 // The id the page's own component is created under: ComponentSupport
 // prefixes the settings id "z2ui5" with the container's "container" (see
@@ -16,22 +20,18 @@ const { test, expect } = require("./fixtures");
 const FIRST = "container-z2ui5";
 const SECOND = "z2ui5-second";
 
-// The component by id, on every supported release: getComponentById
-// since 1.120, the deprecated get( ) before it.
-const COMPONENT_BY_ID = `(function (id) {
-  var Component = window.sap.ui.require("sap/ui/core/Component");
-  if (!Component) return null;
-  return Component.getComponentById
-    ? Component.getComponentById(id)
-    : Component.get(id);
-})`;
-
 // true once the component's main view is built - its context's MAIN slot
-// holds the view
+// holds the view. The component by id on every supported release:
+// getComponentById since 1.120, the deprecated get( ) before it.
 async function waitForMainView(page, id) {
-  await page.waitForFunction(
-    `(function () { var c = ${COMPONENT_BY_ID}(${JSON.stringify(id)}); return Boolean(c && c.ctx && c.ctx.state.oView); })()`,
-  );
+  await page.waitForFunction((wanted) => {
+    const Component = window.sap?.ui?.require?.("sap/ui/core/Component");
+    if (!Component) return false;
+    const component = Component.getComponentById
+      ? Component.getComponentById(wanted)
+      : Component.get(wanted);
+    return Boolean(component?.ctx?.state.oView);
+  }, id);
 }
 
 async function bootSecondComponent(page) {
@@ -41,21 +41,25 @@ async function bootSecondComponent(page) {
     host.style.height = "50%";
     document.body.appendChild(host);
     return new Promise((resolve, reject) => {
-      window.sap.ui.require(["sap/ui/core/ComponentContainer"], (Container) => {
-        try {
-          const container = new Container({
-            name: "z2ui5",
-            id: `${id}-container`,
-            settings: { id },
-            async: true,
-            manifest: true,
-            componentCreated: () => resolve(true),
-          });
-          container.placeAt(host);
-        } catch (e) {
-          reject(e);
-        }
-      }, reject);
+      window.sap.ui.require(
+        ["sap/ui/core/ComponentContainer"],
+        (Container) => {
+          try {
+            const container = new Container({
+              name: "z2ui5",
+              id: `${id}-container`,
+              settings: { id },
+              async: true,
+              manifest: true,
+              componentCreated: () => resolve(true),
+            });
+            container.placeAt(host);
+          } catch (e) {
+            reject(e);
+          }
+        },
+        reject,
+      );
     });
   }, SECOND);
 }
@@ -65,9 +69,12 @@ async function bootSecondComponent(page) {
 // component's own `ctx` field (Component.init) - the framework keeps no
 // registry a test could ask instead.
 function describeComponent(page, id) {
-  return page.evaluate(`(function () {
-    var component = ${COMPONENT_BY_ID}(${JSON.stringify(id)});
-    var ctx = component && component.ctx;
+  return page.evaluate((wanted) => {
+    const Component = window.sap.ui.require("sap/ui/core/Component");
+    const component = Component.getComponentById
+      ? Component.getComponentById(wanted)
+      : Component.get(wanted);
+    const ctx = component && component.ctx;
     return {
       found: Boolean(component),
       hasContext: Boolean(ctx),
@@ -77,7 +84,7 @@ function describeComponent(page, id) {
         ctx && ctx.state.oController && ctx.state.oController.ctx === ctx,
       ),
     };
-  })()`);
+  }, id);
 }
 
 test("two components on one page keep separate contexts and both render", async ({
@@ -127,16 +134,19 @@ test("destroying the second component leaves the first one running", async ({
   // A host tears an embedded component down through its container (the
   // container destroys the component and drops its DOM); destroying the
   // component alone would leave the container's rendering in place.
-  const secondCtxAliveAfter = await page.evaluate(`(function () {
-    var component = ${COMPONENT_BY_ID}(${JSON.stringify(SECOND)});
-    var ctx = component.ctx;
-    var Element = window.sap.ui.require("sap/ui/core/Element");
-    var container = Element.getElementById
-      ? Element.getElementById(${JSON.stringify(SECOND)} + "-container")
-      : window.sap.ui.getCore().byId(${JSON.stringify(SECOND)} + "-container");
+  const secondCtxAliveAfter = await page.evaluate((id) => {
+    const Component = window.sap.ui.require("sap/ui/core/Component");
+    const component = Component.getComponentById
+      ? Component.getComponentById(id)
+      : Component.get(id);
+    const ctx = component.ctx;
+    const Element = window.sap.ui.require("sap/ui/core/Element");
+    const container = Element.getElementById
+      ? Element.getElementById(`${id}-container`)
+      : window.sap.ui.getCore().byId(`${id}-container`);
     container.destroy();
     return ctx.alive;
-  })()`);
+  }, SECOND);
   expect(secondCtxAliveAfter).toBe(false);
 
   const first = await describeComponent(page, FIRST);

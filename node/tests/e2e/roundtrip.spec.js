@@ -211,7 +211,10 @@ test("ships only the edited path as the event roundtrip's MODEL delta, within bu
   // along with hash/config). 256 is generous headroom for wire-format
   // changes and still an order of magnitude under any full-model push of a
   // real app.
-  const modelBytes = Buffer.byteLength(JSON.stringify(body.value.MODEL), "utf8");
+  const modelBytes = Buffer.byteLength(
+    JSON.stringify(body.value.MODEL),
+    "utf8",
+  );
   expect(modelBytes).toBeLessThan(256);
 });
 
@@ -233,11 +236,17 @@ test("does not append a dangling '#' to the URL after app start", async ({
   // _processAfterRendering, which flags the response as processed right
   // before that phase - wait for the flag plus a settle tick so the
   // (synchronous) hash rewrite, if any, has happened before asserting.
-  await page.waitForFunction(
-    () =>
-      window.sap?.ui?.require?.("z2ui5/core/AppState")?.state.oResponse
-        ?._processed === true,
-  );
+  // The response sits on the page component's context (Component.init
+  // creates it; "container-z2ui5" is the id ComponentSupport gives the
+  // component of the GET page).
+  await page.waitForFunction((id) => {
+    const Component = window.sap?.ui?.require?.("sap/ui/core/Component");
+    if (!Component) return false;
+    const component = Component.getComponentById
+      ? Component.getComponentById(id)
+      : Component.get(id);
+    return component?.ctx?.state.oResponse?._processed === true;
+  }, "container-z2ui5");
   await page.waitForTimeout(100);
 
   expect(page.url()).not.toContain("#");
