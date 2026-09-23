@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in app/webapp/devtools/SlotXml.js
 // - the one reader of a slot's view XML that the tab registry, the
@@ -21,49 +22,52 @@ function fakeXmlView(viewContent) {
   };
 }
 
+// The slots belong to a component context (core/Context.js), so the reader
+// takes it first; the registry stub answers for the one spec context.
 function loadSlotXml({ views = {}, slotXml = {} } = {}) {
+  const ctx = specContext();
   const { module } = loadModule("devtools/SlotXml.js", {
     deps: {
       "z2ui5/core/ViewSlots": {
-        getView: (key) => views[key],
-        getViewXml: (key) => slotXml[key],
+        getView: (_ctx, key) => views[key],
+        getViewXml: (_ctx, key) => slotXml[key],
       },
     },
   });
-  return module;
+  return { SlotXml: module, ctx };
 }
 
 test.describe("slotXml", () => {
   test("prefers the live view's own XML", () => {
-    const SlotXml = loadSlotXml({
+    const { SlotXml, ctx } = loadSlotXml({
       views: { MAIN: fakeXmlView("<View id='live'/>") },
       slotXml: { MAIN: "<View id='recorded'/>" },
     });
-    expect(SlotXml.slotXml("MAIN")).toBe("<View id='live'/>");
+    expect(SlotXml.slotXml(ctx, "MAIN")).toBe("<View id='live'/>");
   });
 
   test("falls back to the source the slot was filled with", () => {
     // a fragment or a `definition`-built view keeps no viewContent
-    const SlotXml = loadSlotXml({
+    const { SlotXml, ctx } = loadSlotXml({
       views: { POPUP: fakeXmlView(undefined) },
       slotXml: { POPUP: "<Dialog/>" },
     });
-    expect(SlotXml.slotXml("POPUP")).toBe("<Dialog/>");
+    expect(SlotXml.slotXml(ctx, "POPUP")).toBe("<Dialog/>");
   });
 
   test("is empty for an empty slot, an unknown slot and no slot at all", () => {
-    const SlotXml = loadSlotXml();
-    expect(SlotXml.slotXml("MAIN")).toBe("");
-    expect(SlotXml.slotXml("NOPE")).toBe("");
+    const { SlotXml, ctx } = loadSlotXml();
+    expect(SlotXml.slotXml(ctx, "MAIN")).toBe("");
+    expect(SlotXml.slotXml(ctx, "NOPE")).toBe("");
     // a picked control outside every slot asks with no key
-    expect(SlotXml.slotXml(undefined)).toBe("");
-    expect(SlotXml.slotXml("")).toBe("");
+    expect(SlotXml.slotXml(ctx, undefined)).toBe("");
+    expect(SlotXml.slotXml(ctx, "")).toBe("");
   });
 
   test("reads the pseudo property, never getProperty", () => {
-    const SlotXml = loadSlotXml({ views: { MAIN: fakeXmlView("<View/>") } });
+    const { SlotXml, ctx } = loadSlotXml({ views: { MAIN: fakeXmlView("<View/>") } });
     expect(SlotXml.viewContent(fakeXmlView("<View/>"))).toBe("<View/>");
     expect(SlotXml.viewContent(undefined)).toBeUndefined();
-    expect(() => SlotXml.slotXml("MAIN")).not.toThrow();
+    expect(() => SlotXml.slotXml(ctx, "MAIN")).not.toThrow();
   });
 });

@@ -26,8 +26,8 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Control, Lib, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
+             `  (Control, Lib, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
@@ -96,7 +96,13 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
              `` && |\n| &&
-             `          const ui5Info = AppState.state.oConfig.S_UI5;` && |\n| &&
+             `          const ctx = Context.of(this);` && |\n| &&
+             `          if (!ctx) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              "Info.onAfterRendering: no component context, UI5 info left empty",` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
+             `          const ui5Info = ctx?.state.oConfig?.S_UI5;` && |\n| &&
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
              `          const systemType = Lib.deriveSystemType(system);` && |\n| &&

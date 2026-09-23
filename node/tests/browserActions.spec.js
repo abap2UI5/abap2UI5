@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, withSpecController } = require("./loadLibModule");
 
 // Tests the URL-shaped handlers of core/actions/Browser.js - the actions
 // that can navigate away or hand data out of the app, through the REAL
@@ -14,7 +14,7 @@ const { loadLib } = require("./loadLibModule");
 //                      guard (external http/https allowed, schemes not)
 function load() {
   // The real Lib: its sandbox origin anchors the same-origin checks.
-  const { Lib, state: libState } = loadLib();
+  const { Lib, state: libState, ctx } = loadLib();
 
   const boxErrors = [];
   const urlHelperCalls = [];
@@ -74,7 +74,7 @@ function load() {
         { Type: { local: "local", session: "session" } },
       ),
       "z2ui5/core/Router": {
-        navBack: (fallback) => navBacks.push(fallback),
+        navBack: (_ctx, fallback) => navBacks.push(fallback),
       },
       "z2ui5/core/Lib": Lib,
       // STORE_DATA resolves a model-path payload the way SET_SIZE_LIMIT
@@ -82,7 +82,6 @@ function load() {
       "z2ui5/core/ViewSlots": {
         trackedModel: (owner) => owner?.__tracked,
       },
-      "z2ui5/core/AppState": { state: {} },
     },
     sandbox: {
       document: documentStub,
@@ -101,7 +100,9 @@ function load() {
   });
 
   return {
-    handlers: Browser.handlers,
+    // the handlers read the context off the calling controller; the
+    // specs' bare fixtures get the spec's one
+    handlers: withSpecController(Browser.handlers, ctx).handlers,
     stores,
     historyBacks,
     navBacks,

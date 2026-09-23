@@ -27,13 +27,12 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
 
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/devtools/Format",` && |\n| &&
              `    "z2ui5/devtools/Persist",` && |\n| &&
              `    "z2ui5/devtools/Diff",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, Lib, Format, Persist, Diff) => {` && |\n| &&
+             `  (Lib, Format, Persist, Diff) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const { formatBytes, renderValue } = Format;` && |\n| &&
@@ -54,23 +53,25 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `` && |\n| &&
              `    const MAX_DIFF_VALUE_CHARS = 120;` && |\n| &&
              `` && |\n| &&
-             `    let records = [];` && |\n| &&
+             `    function recorderOf(ctx) {` && |\n| &&
+             `      return ctx?.devtools?.recorder || null;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
-             `    let nextSeq = 1;` && |\n| &&
+             `    function createRecorder() {` && |\n| &&
+             `      return {` && |\n| &&
+             `        records: [],` && |\n| &&
+             `        nextSeq: 1,` && |\n| &&
+             `        unpaired: [],` && |\n| &&
+             `        lastEntryStart: -1,` && |\n| &&
+             `        payloadBytes: 0,` && |\n| &&
+             `        observer: null,` && |\n| &&
+             `        afterRenderingHook: null,` && |\n| &&
+             `        onPageHide: null,` && |\n| &&
+             `      };` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
-             `    let unpaired = [];` && |\n| &&
-             `` && |\n| &&
-             `    let lastEntryStart = -1;` && |\n| &&
-             `` && |\n| &&
-             `    let payloadBytes = 0;` && |\n| &&
-             `` && |\n| &&
-             `    let observer = null;` && |\n| &&
-             `    let installed = false;` && |\n| &&
-             `    let afterRenderingHook = null;` && |\n| &&
-             `    let onPageHide = null;` && |\n| &&
-             `` && |\n| &&
-             `    function backendUrl() {` && |\n| &&
-             `      const url = AppState.state.url;` && |\n| &&
+             `    function backendUrl(ctx) {` && |\n| &&
+             `      const url = ctx?.state?.url;` && |\n| &&
              `      if (!url) return "";` && |\n| &&
              `      try {` && |\n| &&
              `        return new URL(url, window.location.href).href;` && |\n| &&
@@ -94,10 +95,10 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        : 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function acceptEntry(entry) {` && |\n| &&
-             `      if (!entry || entry.startTime <= lastEntryStart) return;` && |\n| &&
-             `      lastEntryStart = entry.startTime;` && |\n| &&
-             `      unpaired.push({` && |\n| &&
+             `    function acceptEntry(rec, entry) {` && |\n| &&
+             `      if (!entry || entry.startTime <= rec.lastEntryStart) return;` && |\n| &&
+             `      rec.lastEntryStart = entry.startTime;` && |\n| &&
+             `      rec.unpaired.push({` && |\n| &&
              `        start: entry.startTime,` && |\n| &&
              `        end: entry.responseEnd || entry.startTime,` && |\n| &&
              `` && |\n| &&
@@ -105,11 +106,11 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function sweepEntries() {` && |\n| &&
+             `    function sweepEntries(ctx, rec) {` && |\n| &&
              `      if (typeof performance === "undefined" || !performance.getEntriesByName) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const url = backendUrl();` && |\n| &&
+             `      const url = backendUrl(ctx);` && |\n| &&
              `      if (!url) return;` && |\n| &&
              `      let entries;` && |\n| &&
              `      try {` && |\n| &&
@@ -120,13 +121,14 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `` && |\n| &&
              `      const fresh = [];` && |\n| &&
              `      for (let i = entries.length - 1; i >= 0; i -= 1) {` && |\n| &&
-             `        if (entries[i].startTime <= lastEntryStart) break;` && |\n| &&
+             `        if (entries[i].startTime <= rec.lastEntryStart) break;` && |\n| &&
              `        fresh.push(entries[i]);` && |\n| &&
              `      }` && |\n| &&
-             `      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(fresh[i]);` && |\n| &&
+             `      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(rec, fresh[i]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function takeNetworkFor(tRendered) {` && |\n| &&
+             `    function takeNetworkFor(rec, tRendered) {` && |\n| &&
+             `      const unpaired = rec.unpaired;` && |\n| &&
              `      let index = -1;` && |\n| &&
              `      for (let i = unpaired.length - 1; i >= 0; i--) {` && |\n| &&
              `        if (unpaired[i].end <= tRendered) {` && |\n| &&
@@ -137,22 +139,22 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      if (index === -1) return null;` && |\n| &&
              `      const stale = unpaired.slice(0, index);` && |\n| &&
              `      const match = unpaired[index];` && |\n| &&
-             `      unpaired = unpaired.slice(index + 1);` && |\n| &&
-             `      for (const entry of stale) pushUnrendered(entry);` && |\n| &&
+             `      rec.unpaired = unpaired.slice(index + 1);` && |\n| &&
+             `      for (const entry of stale) pushUnrendered(rec, entry);` && |\n| &&
              `      return match;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function flushStaleUnpaired() {` && |\n| &&
-             `      if (!unpaired.length) return;` && |\n| &&
+             `    function flushStaleUnpaired(rec) {` && |\n| &&
+             `      if (!rec.unpaired.length) return;` && |\n| &&
              `      const cutoff = now() - UNPAIRED_FLUSH_MS;` && |\n| &&
-             `      const stale = unpaired.filter((entry) => entry.end < cutoff);` && |\n| &&
+             `      const stale = rec.unpaired.filter((entry) => entry.end < cutoff);` && |\n| &&
              `      if (!stale.length) return;` && |\n| &&
-             `      unpaired = unpaired.filter((entry) => entry.end >= cutoff);` && |\n| &&
-             `      for (const entry of stale) pushUnrendered(entry);` && |\n| &&
+             `      rec.unpaired = rec.unpaired.filter((entry) => entry.end >= cutoff);` && |\n| &&
+             `      for (const entry of stale) pushUnrendered(rec, entry);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function pushUnrendered(entry) {` && |\n| &&
-             `      pushRecord({` && |\n| &&
+             `    function pushUnrendered(rec, entry) {` && |\n| &&
+             `      pushRecord(rec, {` && |\n| &&
              `        ts: wallClockIso(entry.start),` && |\n| &&
              `        event: "",` && |\n| &&
              `        idSent: "",` && |\n| &&
@@ -171,7 +173,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        response: null,` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
-             `      records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));` && |\n| &&
+             `      rec.records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function extractMessages(response) {` && |\n| &&
@@ -196,48 +198,49 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return (record.reqBytes || 0) + (record.respBytes || 0);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function enforcePayloadBudget() {` && |\n| &&
-             `      for (const record of records) {` && |\n| &&
-             `        if (payloadBytes <= PAYLOAD_BUDGET_BYTES) return;` && |\n| &&
+             `    function enforcePayloadBudget(rec) {` && |\n| &&
+             `      for (const record of rec.records) {` && |\n| &&
+             `        if (rec.payloadBytes <= PAYLOAD_BUDGET_BYTES) return;` && |\n| &&
              `        if (!record.request && !record.response) continue;` && |\n| &&
-             `        payloadBytes -= recordBytes(record);` && |\n| &&
+             `        rec.payloadBytes -= recordBytes(record);` && |\n| &&
              `        record.request = null;` && |\n| &&
              `        record.response = null;` && |\n| &&
              `        record.payloadEvicted = true;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function pushRecord(record) {` && |\n| &&
-             `      record.seq = nextSeq++;` && |\n| &&
-             `      records.push(record);` && |\n| &&
-             `      payloadBytes += recordBytes(record);` && |\n| &&
-             `      while (records.length > MAX_RECORDS) {` && |\n| &&
-             `        const dropped = records.shift();` && |\n| &&
-             `        payloadBytes -= recordBytes(dropped);` && |\n| &&
+             `    function pushRecord(rec, record) {` && |\n| &&
+             `      record.seq = rec.nextSeq++;` && |\n| &&
+             `      rec.records.push(record);` && |\n| &&
+             `      rec.payloadBytes += recordBytes(record);` && |\n| &&
+             `      while (rec.records.length > MAX_RECORDS) {` && |\n| &&
+             `        const dropped = rec.records.shift();` && |\n| &&
+             `        rec.payloadBytes -= recordBytes(dropped);` && |\n| &&
              `      }` && |\n| &&
-             `      enforcePayloadBudget();` && |\n| &&
+             `      enforcePayloadBudget(rec);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isRecordingPayloads() {` && |\n| &&
              `      return Persist.readFlag(PAYLOAD_FLAG_KEY);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function setRecordingPayloads(enabled) {` && |\n| &&
+             `    function setRecordingPayloads(ctx, enabled) {` && |\n| &&
              `      Persist.writeFlag(PAYLOAD_FLAG_KEY, enabled);` && |\n| &&
-             `      if (!enabled) dropAllPayloads();` && |\n| &&
+             `      if (!enabled) dropAllPayloads(recorderOf(ctx));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function dropAllPayloads() {` && |\n| &&
-             `      for (const record of records) {` && |\n| &&
+             `    function dropAllPayloads(rec) {` && |\n| &&
+             `      if (!rec) return;` && |\n| &&
+             `      for (const record of rec.records) {` && |\n| &&
              `        record.request = null;` && |\n| &&
              `        record.response = null;` && |\n| &&
              `      }` && |\n| &&
-             `      payloadBytes = 0;` && |\n| &&
+             `      rec.payloadBytes = 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function measureRequest(oBody) {` && |\n| &&
+             `    function measureRequest(ctx, oBody) {` && |\n| &&
              `      if (!oBody) return null;` && |\n| &&
-             `      const known = AppState.state.lastRequestBytes;` && |\n| &&
+             `      const known = ctx.state.lastRequestBytes;` && |\n| &&
              `      if (typeof known === "number") return known;` && |\n| &&
              `      try {` && |\n| &&
              `        return JSON.stringify({ value: oBody }).length;` && |\n| &&
@@ -246,18 +249,20 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function onAfterRendering() {` && |\n| &&
+             `    function onAfterRendering(ctx) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
+             `        const rec = recorderOf(ctx);` && |\n| &&
+             `        if (!rec) return;` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
              `        const tRendered = now();` && |\n| &&
-             `        sweepEntries();` && |\n| &&
-             `        const net = takeNetworkFor(tRendered);` && |\n| &&
+             `        sweepEntries(ctx, rec);` && |\n| &&
+             `        const net = takeNetworkFor(rec, tRendered);` && |\n| &&
              `        const response = state.responseData;` && |\n| &&
              `        const sFront = response?.S_FRONT;` && |\n| &&
              `        const keepPayloads = isRecordingPayloads();` && |\n| &&
-             `        const reqBytes = measureRequest(state.oBody);` && |\n| &&
+             `        const reqBytes = measureRequest(ctx, state.oBody);` && |\n| &&
              `` && |\n| &&
-             `        pushRecord({` && |\n| &&
+             `        pushRecord(rec, {` && |\n| &&
              `          ts: new Date().toISOString(),` && |\n| &&
              `          event: state.oBody?.S_FRONT?.EVENT || "",` && |\n| &&
              `          idSent: state.oBody?.S_FRONT?.ID || "",` && |\n| &&
@@ -277,7 +282,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `          request: keepPayloads ? state.oBody : null,` && |\n| &&
              `          response: keepPayloads ? response : null,` && |\n| &&
              `        });` && |\n| &&
-             `        flushStaleUnpaired();` && |\n| &&
+             `        flushStaleUnpaired(rec);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Recorder: onAfterRendering failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -290,73 +295,72 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return copy;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function persist() {` && |\n| &&
-             `      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({` && |\n| &&
+             `    function persist(rec) {` && |\n| &&
+             `      const slim = rec.records.slice(-RELOAD_MAX_RECORDS).map((record) => ({` && |\n| &&
              `        ...withoutPayloads(record),` && |\n| &&
              `        previousLoad: true,` && |\n| &&
              `      }));` && |\n| &&
              `      Persist.saveList(RELOAD_KEY, slim);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function restore() {` && |\n| &&
+             `    function restore(rec) {` && |\n| &&
              `      const stored = Persist.takeList(RELOAD_KEY);` && |\n| &&
              `      if (!stored.length) return;` && |\n| &&
-             `      records = stored.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
+             `      rec.records = stored.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
              `` && |\n| &&
-             `      nextSeq = (records[records.length - 1]?.seq || 0) + 1;` && |\n| &&
+             `      rec.nextSeq = (rec.records[rec.records.length - 1]?.seq || 0) + 1;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function install() {` && |\n| &&
-             `      if (installed) return;` && |\n| &&
-             `      installed = true;` && |\n| &&
-             `      restore();` && |\n| &&
-             `      afterRenderingHook = onAfterRendering;` && |\n| &&
-             `      Lib.registerCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
+             `    function install(ctx) {` && |\n| &&
+             `      if (!ctx?.devtools || recorderOf(ctx)) return;` && |\n| &&
+             `      const rec = createRecorder();` && |\n| &&
+             `      ctx.devtools.recorder = rec;` && |\n| &&
+             `      restore(rec);` && |\n| &&
+             `      rec.afterRenderingHook = () => onAfterRendering(ctx);` && |\n| &&
+             `      Lib.registerCallback(ctx, "onAfterRendering", rec.afterRenderingHook);` && |\n| &&
              `` && |\n| &&
-             `      onPageHide = persist;` && |\n| &&
-             `      window.addEventListener("pagehide", onPageHide);` && |\n| &&
+             `      rec.onPageHide = () => persist(rec);` && |\n| &&
+             `      window.addEventListener("pagehide", rec.onPageHide);` && |\n| &&
              `` && |\n| &&
              `      if (typeof PerformanceObserver === "undefined") return;` && |\n| &&
              `      try {` && |\n| &&
-             `        observer = new PerformanceObserver((list) => {` && |\n| &&
-             `          const url = backendUrl();` && |\n| &&
+             `        rec.observer = new PerformanceObserver((list) => {` && |\n| &&
+             `          const url = backendUrl(ctx);` && |\n| &&
              `          if (!url) return;` && |\n| &&
              `          for (const entry of list.getEntries()) {` && |\n| &&
-             `            if (entry.name === url) acceptEntry(entry);` && |\n| &&
+             `            if (entry.name === url) acceptEntry(rec, entry);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        observer.observe({ type: "resource", buffered: true });` && |\n| &&
+             `        rec.observer.observe({ type: "resource", buffered: true });` && |\n| &&
              `      } catch {` && |\n| &&
-             `        observer = null;` && |\n| &&
+             `        rec.observer = null;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function uninstall() {` && |\n| &&
-             `      if (!installed) return;` && |\n| &&
-             `      installed = false;` && |\n| &&
-             `      Lib.unregisterCallback("onAfterRendering", afterRenderingHook);` && |\n| &&
-             `      afterRenderingHook = null;` && |\n| &&
-             `      if (onPageHide) {` && |\n| &&
-             `        window.removeEventListener("pagehide", onPageHide);` && |\n| &&
-             `        onPageHide = null;` && |\n| &&
+             `    function uninstall(ctx) {` && |\n| &&
+             `      const rec = recorderOf(ctx);` && |\n| &&
+             `      if (!rec) return;` && |\n| &&
+             `      ctx.devtools.recorder = null;` && |\n| &&
+             `      Lib.unregisterCallback(ctx, "onAfterRendering", rec.afterRenderingHook);` && |\n| &&
+             `      rec.afterRenderingHook = null;` && |\n| &&
+             `      if (rec.onPageHide) {` && |\n| &&
+             `        window.removeEventListener("pagehide", rec.onPageHide);` && |\n| &&
+             `        rec.onPageHide = null;` && |\n| &&
              `      }` && |\n| &&
-             `      if (observer) {` && |\n| &&
+             `      if (rec.observer) {` && |\n| &&
              `        try {` && |\n| &&
-             `          observer.disconnect();` && |\n| &&
+             `          rec.observer.disconnect();` && |\n| &&
              `        } catch {}` && |\n| &&
-             `        observer = null;` && |\n| &&
+             `        rec.observer = null;` && |\n| &&
              `      }` && |\n| &&
-             `      records = [];` && |\n| &&
-             `      unpaired = [];` && |\n| &&
-             `      payloadBytes = 0;` && |\n| &&
-             `      nextSeq = 1;` && |\n| &&
-             `      lastEntryStart = -1;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getRecords() {` && |\n| &&
-             `      flushStaleUnpaired();` && |\n| &&
-             `      return records;` && |\n| &&
+             `    function getRecords(ctx) {` && |\n| &&
+             `      const rec = recorderOf(ctx);` && |\n| &&
+             `      if (!rec) return [];` && |\n| &&
+             `      flushStaleUnpaired(rec);` && |\n| &&
+             `      return rec.records;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function pad(value, width, right) {` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `          `` at ${slowest.backendMs} ms``,` && |\n| &&
              `      );` && |\n| &&
              `      const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
-             `      if (sized.length) {` && |\n| &&
+             `      if (sized.length) {` && |\n|.
+    result = result &&
              `        const biggest = sized.reduce((a, b) =>` && |\n| &&
              `          b.respBytes > a.respBytes ? b : a,` && |\n| &&
              `        );` && |\n| &&
-             `        const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n|.
-    result = result &&
+             `        const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n| &&
              `        out.push(` && |\n| &&
              `          ``  Response: ${formatBytes(total)} total,`` +` && |\n| &&
              `            `` largest #${biggest.seq} ${biggest.event || "(start)"}`` +` && |\n| &&
@@ -439,8 +443,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatHistory() {` && |\n| &&
-             `      const list = getRecords();` && |\n| &&
+             `    function formatHistory(ctx) {` && |\n| &&
+             `      const list = getRecords(ctx);` && |\n| &&
              `      const lines = [];` && |\n| &&
              `      lines.push(` && |\n| &&
              `        ``Roundtrip history - ${list.length} of max ${MAX_RECORDS} records``,` && |\n| &&
@@ -448,7 +452,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      const recording = isRecordingPayloads();` && |\n| &&
              `      lines.push(` && |\n| &&
              `        ``Payload recording: ${recording ? "ON" : "OFF"}`` +` && |\n| &&
-             `          `` (retained ${formatBytes(payloadBytes)} of `` +` && |\n| &&
+             `          `` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes || 0)} of `` +` && |\n| &&
              `          ``${formatBytes(PAYLOAD_BUDGET_BYTES)} budget)``,` && |\n| &&
              `      );` && |\n| &&
              `      if (!recording) {` && |\n| &&
@@ -542,7 +546,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function lastTwoViews(slotKey) {` && |\n| &&
+             `    function lastTwoViews(ctx, slotKey) {` && |\n| &&
+             `      const records = getRecords(ctx);` && |\n| &&
              `      const withView = [];` && |\n| &&
              `      for (let i = records.length - 1; i >= 0 && withView.length < 2; i--) {` && |\n| &&
              `        const xml = displayedXml(records[i].response, slotKey);` && |\n| &&
@@ -551,7 +556,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return withView.length < 2 ? null : withView;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatViewDiff() {` && |\n| &&
+             `    function formatViewDiff(ctx) {` && |\n| &&
              `      if (!isRecordingPayloads()) {` && |\n| &&
              `        return (` && |\n| &&
              `          "View diff needs payload recording.\n\n" +` && |\n| &&
@@ -561,7 +566,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const pair = lastTwoViews("MAIN");` && |\n| &&
+             `      const pair = lastTwoViews(ctx, "MAIN");` && |\n| &&
              `      if (!pair) {` && |\n| &&
              `        return (` && |\n| &&
              `          "Not enough recorded view rebuilds yet - the diff needs two.\n\n" +` && |\n| &&
@@ -605,13 +610,13 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return xml.replace(/></g, ">\n<");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function lastTwoResponses() {` && |\n| &&
-             `      const withPayload = records.filter((record) => record.response);` && |\n| &&
+             `    function lastTwoResponses(ctx) {` && |\n| &&
+             `      const withPayload = getRecords(ctx).filter((record) => record.response);` && |\n| &&
              `      if (withPayload.length < 2) return null;` && |\n| &&
              `      return withPayload.slice(-2);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatModelDiff() {` && |\n| &&
+             `    function formatModelDiff(ctx) {` && |\n| &&
              `      if (!isRecordingPayloads()) {` && |\n| &&
              `        return (` && |\n| &&
              `          "Model diff needs payload recording.\n\n" +` && |\n| &&
@@ -620,7 +625,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `          "the two most recently recorded responses."` && |\n| &&
              `        );` && |\n| &&
              `      }` && |\n| &&
-             `      const pair = lastTwoResponses();` && |\n| &&
+             `      const pair = lastTwoResponses(ctx);` && |\n| &&
              `      if (!pair) {` && |\n| &&
              `        return (` && |\n| &&
              `          "Not enough recorded responses yet - the diff needs two.\n\n" +` && |\n| &&
@@ -672,11 +677,12 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return header.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function exportJson() {` && |\n| &&
+             `    function exportJson(ctx) {` && |\n| &&
+             `      const records = getRecords(ctx);` && |\n| &&
              `      const payload = {` && |\n| &&
              `        exportedAt: new Date().toISOString(),` && |\n| &&
              `        payloadsRecorded: isRecordingPayloads(),` && |\n| &&
-             `        records: getRecords(),` && |\n| &&
+             `        records,` && |\n| &&
              `      };` && |\n| &&
              `      try {` && |\n| &&
              `        return JSON.stringify(payload, null, 2);` && |\n| &&

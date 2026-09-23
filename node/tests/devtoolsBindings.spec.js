@@ -35,8 +35,9 @@ function fakeView({ xml, data, changedPaths } = {}) {
 
 function loadBindings({ views = {}, slotXml = {} } = {}) {
   // the REAL core/Lib: buildDeltaFromPaths is the shipped function the
-  // delta preview has to agree with
-  const { Lib } = loadLib();
+  // delta preview has to agree with - and its spec context is the one the
+  // renderer takes first (core/Context.js); the slot stub answers for it
+  const { Lib, ctx } = loadLib();
   const { module } = loadModule("devtools/Bindings.js", {
     // devtools/Format.js and devtools/SlotXml.js are loaded for real;
     // every other dependency is stubbed below
@@ -45,8 +46,8 @@ function loadBindings({ views = {}, slotXml = {} } = {}) {
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": {
         slots: SLOTS,
-        getView: (key) => views[key],
-        getViewXml: (key) => slotXml[key],
+        getView: (_ctx, key) => views[key],
+        getViewXml: (_ctx, key) => slotXml[key],
         // mirrors the real resolver (core/ViewSlots.js): only a model
         // carrying the _z2ui5Tracked marker is the framework's
         trackedModel: (owner) => {
@@ -57,12 +58,12 @@ function loadBindings({ views = {}, slotXml = {} } = {}) {
       },
     },
   });
-  return module;
+  return { Bindings: module, ctx };
 }
 
 test.describe("Bindings diagnostics", () => {
   test("lists the paths bound in the view that the model does not have", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({
           xml:
@@ -73,7 +74,7 @@ test.describe("Bindings diagnostics", () => {
         }),
       },
     });
-    const out = Bindings.formatBindings("MAIN");
+    const out = Bindings.formatBindings(ctx, "MAIN");
     expect(out).toContain("BOUND IN THE VIEW BUT NOT IN THE MODEL");
     expect(out).toContain("/CUSTOMR");
     // the ones that DO exist are not reported as missing
@@ -82,7 +83,7 @@ test.describe("Bindings diagnostics", () => {
   });
 
   test("collects the path forms the view builder produces", () => {
-    const Bindings = loadBindings();
+    const { Bindings } = loadBindings();
     const { scrapeBindingAttributes } = Bindings._internals;
     const xml =
       `<Input value="{/A}"/>` +
@@ -110,7 +111,7 @@ test.describe("Bindings diagnostics", () => {
   // meant to answer "why is my field empty", which trained the reader to
   // ignore it.
   test("does not read a URL-shaped attribute value as a binding", () => {
-    const Bindings = loadBindings();
+    const { Bindings } = loadBindings();
     const { scrapeBindingAttributes } = Bindings._internals;
     const xml =
       `<Image src="/sap/public/bc/ui5_ui5/logo.png"/>` +
@@ -120,7 +121,7 @@ test.describe("Bindings diagnostics", () => {
   });
 
   test("mentions the model attributes the view does not bind", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({
           xml: `<Input value="{/USED}"/>`,
@@ -128,27 +129,27 @@ test.describe("Bindings diagnostics", () => {
         }),
       },
     });
-    const out = Bindings.formatBindings("MAIN");
+    const out = Bindings.formatBindings(ctx, "MAIN");
     expect(out).toContain("2 model attribute(s) not bound");
     expect(out).toContain("UNUSED_A");
   });
 
   test("describes every attribute by type and shape", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({
           data: { NAME: "Miller AG", T_ITEMS: [1, 2], S_HEAD: { A: 1 } },
         }),
       },
     });
-    const out = Bindings.formatBindings("MAIN");
+    const out = Bindings.formatBindings(ctx, "MAIN");
     expect(out).toContain("string  Miller AG");
     expect(out).toContain("table, 2 row(s)");
     expect(out).toContain("structure, 1 field(s)");
   });
 
   test("ranks the attributes by serialized size with their share", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({
           data: {
@@ -158,7 +159,7 @@ test.describe("Bindings diagnostics", () => {
         }),
       },
     });
-    const out = Bindings.formatBindings("MAIN");
+    const out = Bindings.formatBindings(ctx, "MAIN");
     expect(out).toContain("Model size:");
     expect(out).toContain("/BIG");
     expect(out).toContain("row(s)");
@@ -167,7 +168,7 @@ test.describe("Bindings diagnostics", () => {
   });
 
   test("previews the delta the next roundtrip will send", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({
           data: { NAME: "changed", OTHER: "untouched" },
@@ -175,7 +176,7 @@ test.describe("Bindings diagnostics", () => {
         }),
       },
     });
-    const out = Bindings.formatBindings("MAIN");
+    const out = Bindings.formatBindings(ctx, "MAIN");
     const marker = "Delta the next roundtrip will send";
     expect(out).toContain(marker);
     // the edited attribute carries the marker in the inventory above
@@ -188,22 +189,22 @@ test.describe("Bindings diagnostics", () => {
   });
 
   test("no delta preview when nothing was edited", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: { MAIN: fakeView({ data: { A: 1 } }) },
     });
-    expect(Bindings.formatBindings("MAIN")).not.toContain(
+    expect(Bindings.formatBindings(ctx, "MAIN")).not.toContain(
       "Delta the next roundtrip",
     );
   });
 
   test("reports the slot it was asked for, and only that one", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: {
         MAIN: fakeView({ data: { MAIN_ATTR: 1 } }),
         POPUP: fakeView({ data: { POPUP_ATTR: 2 } }),
       },
     });
-    const out = Bindings.formatBindings("POPUP");
+    const out = Bindings.formatBindings(ctx, "POPUP");
     expect(out).toContain("Slot POPUP");
     expect(out).toContain("/POPUP_ATTR");
     expect(out).not.toContain("/MAIN_ATTR");
@@ -212,13 +213,13 @@ test.describe("Bindings diagnostics", () => {
   // NEST and NEST2 inherit MAIN's model by UI5 propagation; a slot without
   // a view has nothing to report either.
   test("says so for a slot that carries no model of its own", () => {
-    const Bindings = loadBindings({
+    const { Bindings, ctx } = loadBindings({
       views: { MAIN: fakeView({ data: { A: 1 } }) },
     });
-    expect(Bindings.formatBindings("NEST")).toContain(
+    expect(Bindings.formatBindings(ctx, "NEST")).toContain(
       "no slot carries a model yet",
     );
-    expect(Bindings.formatBindings("POPUP")).toContain(
+    expect(Bindings.formatBindings(ctx, "POPUP")).toContain(
       "no slot carries a model yet",
     );
   });

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 const { fakeDocument } = require("./fakeDocument");
 
 // Checks app/webapp/devtools/DeveloperTools.fragment.xml against the
@@ -68,8 +69,15 @@ function boundPaths() {
 
 // The dialog control, loaded with enough stubs to reach show() and walk
 // every group - the model it seeds is what the fragment binds against.
+// The dialog shows the state of its component context (core/Context.js),
+// carried as `ctx` on the instance the way DevTools.get( ) hands it over.
 function loadDialogModel() {
   const models = [];
+  const ctx = specContext({
+    responseData: { S_FRONT: { APP: "ZCL_DEMO" } },
+    oBody: null,
+    lastError: { title: "x", text: "y", onRetry: () => {} },
+  });
   const views = {
     MAIN: {
       mProperties: { viewContent: "<mvc:View/>" },
@@ -98,22 +106,14 @@ function loadDialogModel() {
         refresh() {}
       },
       "z2ui5/core/Lib": {
+        errors: [],
         isDestroyed: () => false,
         logError() {},
         copyToClipboard() {},
       },
       "z2ui5/core/ViewSlots": {
-        getView: (key) => views[key],
+        getView: (_ctx, key) => views[key],
         getViewXml: () => undefined,
-      },
-      "z2ui5/core/AppState": {
-        state: {
-          responseData: { S_FRONT: { APP: "ZCL_DEMO" } },
-          oBody: null,
-          errors: [],
-          lastError: { title: "x", text: "y", onRetry: () => {} },
-          oConfig: {},
-        },
       },
       "z2ui5/core/ErrorView": { handleLogout() {}, reopenErrorDialog() {} },
       "z2ui5/devtools/Console": {
@@ -177,6 +177,7 @@ function loadDialogModel() {
       },
     },
   });
+  DeveloperTools.ctx = ctx;
   return { DeveloperTools, models };
 }
 

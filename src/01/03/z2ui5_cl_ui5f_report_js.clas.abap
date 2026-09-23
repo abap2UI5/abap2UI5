@@ -35,7 +35,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `    const ABAP_SOURCE_ORDER = 55;` && |\n| &&
              `    const ABAP_SOURCE_TITLE = "ABAP SOURCE";` && |\n| &&
              `` && |\n| &&
-             `    function buildExport(abapSource) {` && |\n| &&
+             `    function buildExport(ctx, abapSource) {` && |\n| &&
              `      const sections = [];` && |\n| &&
              `      const push = (title, content) => {` && |\n| &&
              `        if (!content) return;` && |\n| &&
@@ -49,11 +49,11 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `        sections.push(``===== ${title} =====\n${body}``);` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
-             `      const entries = Tabs.exportTabs().map((tab) => ({` && |\n| &&
+             `      const entries = Tabs.exportTabs(ctx).map((tab) => ({` && |\n| &&
              `        order: tab.exportOrder,` && |\n| &&
              `        title: Tabs.exportTitle(tab),` && |\n| &&
              `` && |\n| &&
-             `        body: Tabs.render(tab.key),` && |\n| &&
+             `        body: Tabs.render(ctx, tab.key),` && |\n| &&
              `      }));` && |\n| &&
              `      if (abapSource) {` && |\n| &&
              `        entries.push({` && |\n| &&
@@ -68,7 +68,11 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function buildMarkdown(abapSource, plain = buildExport(abapSource)) {` && |\n| &&
+             `    function buildMarkdown(` && |\n| &&
+             `      ctx,` && |\n| &&
+             `      abapSource,` && |\n| &&
+             `      plain = buildExport(ctx, abapSource),` && |\n| &&
+             `    ) {` && |\n| &&
              `      const blocks = plain.split(/^===== (.+) =====$/m);` && |\n| &&
              `` && |\n| &&
              `      const out = ["## abap2UI5 - Developer Tools export", ""];` && |\n| &&
@@ -124,8 +128,8 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      }, 1500);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function openDialog(appName, abapSource) {` && |\n| &&
-             `      const text = buildExport(abapSource);` && |\n| &&
+             `    function openDialog(ctx, appName, abapSource) {` && |\n| &&
+             `      const text = buildExport(ctx, abapSource);` && |\n| &&
              `      sap.ui.require(` && |\n| &&
              `        ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
              `        (Dialog, TextArea, Button) => {` && |\n| &&
@@ -148,7 +152,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `                type: "Emphasized",` && |\n| &&
              `` && |\n| &&
              `                press: (oEvent) => {` && |\n| &&
-             `                  copyMarkdown(abapSource, text);` && |\n| &&
+             `                  copyMarkdown(ctx, abapSource, text);` && |\n| &&
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
              `                },` && |\n| &&
              `              }),` && |\n| &&
@@ -169,7 +173,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `                press: () =>` && |\n| &&
              `                  downloadText(` && |\n| &&
              `                    exportFileName(appName, "json"),` && |\n| &&
-             `                    Recorder.exportJson(),` && |\n| &&
+             `                    Recorder.exportJson(ctx),` && |\n| &&
              `                    "application/json",` && |\n| &&
              `                  ),` && |\n| &&
              `              }),` && |\n| &&
@@ -185,9 +189,9 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function copyMarkdown(abapSource, plain) {` && |\n| &&
+             `    function copyMarkdown(ctx, abapSource, plain) {` && |\n| &&
              `      try {` && |\n| &&
-             `        Lib.copyToClipboard(buildMarkdown(abapSource, plain));` && |\n| &&
+             `        Lib.copyToClipboard(buildMarkdown(ctx, abapSource, plain));` && |\n| &&
              `        return "Bug report copied as Markdown - paste it into a GitHub issue.";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: markdown export failed", e);` && |\n| &&

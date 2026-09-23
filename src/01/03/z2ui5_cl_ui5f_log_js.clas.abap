@@ -26,8 +26,8 @@ CLASS z2ui5_cl_ui5f_log_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/AppState", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
-             `  (AppState, Console, Recorder) => {` && |\n| &&
+             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
+             `  (Lib, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const LEVEL_LABEL = {` && |\n| &&
@@ -71,9 +71,9 @@ CLASS z2ui5_cl_ui5f_log_js IMPLEMENTATION.
              `        : "toast";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function collectLog() {` && |\n| &&
+             `    function collectLog(ctx) {` && |\n| &&
              `      const out = [];` && |\n| &&
-             `      for (const entry of AppState.state.errors || []) {` && |\n| &&
+             `      for (const entry of Lib.errors || []) {` && |\n| &&
              `        out.push({` && |\n| &&
              `          ts: entry.ts,` && |\n| &&
              `          level: "error",` && |\n| &&
@@ -90,7 +90,7 @@ CLASS z2ui5_cl_ui5f_log_js IMPLEMENTATION.
              `          previousLoad: entry.previousLoad,` && |\n| &&
              `        });` && |\n| &&
              `      }` && |\n| &&
-             `      for (const record of Recorder.getRecords()) {` && |\n| &&
+             `      for (const record of Recorder.getRecords(ctx)) {` && |\n| &&
              `        for (const message of record.messages || []) {` && |\n| &&
              `          out.push({` && |\n| &&
              `            ts: record.ts,` && |\n| &&
@@ -116,8 +116,8 @@ CLASS z2ui5_cl_ui5f_log_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatLog() {` && |\n| &&
-             `      const entries = collectLog();` && |\n| &&
+             `    function formatLog(ctx) {` && |\n| &&
+             `      const entries = collectLog(ctx);` && |\n| &&
              `      const lines = ["abap2UI5 Developer Tools - Log"];` && |\n| &&
              `      lines.push("");` && |\n| &&
              `      lines.push(` && |\n| &&

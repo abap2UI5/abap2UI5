@@ -44,8 +44,8 @@ CLASS z2ui5_cl_ui5f_bindings_js IMPLEMENTATION.
              `      return describeValue(value, { typed: true });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatSlotBindings(slotKey) {` && |\n| &&
-             `      const view = ViewSlots.getView(slotKey);` && |\n| &&
+             `    function formatSlotBindings(ctx, slotKey) {` && |\n| &&
+             `      const view = ViewSlots.getView(ctx, slotKey);` && |\n| &&
              `      if (!view) return [];` && |\n| &&
              `` && |\n| &&
              `      const model = ViewSlots.trackedModel(view);` && |\n| &&
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_ui5f_bindings_js IMPLEMENTATION.
              `        for (const path of Array.from(dirty).sort()) out.push(``    ${path}``);` && |\n| &&
              `      }` && |\n| &&
              `      out.push(...formatPendingDelta(dirty, data));` && |\n| &&
-             `      out.push(...formatBindingCheck(slotKey, data));` && |\n| &&
+             `      out.push(...formatBindingCheck(ctx, slotKey, data));` && |\n| &&
              `      out.push(...formatSizeRanking(data));` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
@@ -86,8 +86,8 @@ CLASS z2ui5_cl_ui5f_bindings_js IMPLEMENTATION.
              `      return Array.from(found).sort();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatBindingCheck(slotKey, data) {` && |\n| &&
-             `      const bound = scrapeBindingAttributes(SlotXml.slotXml(slotKey));` && |\n| &&
+             `    function formatBindingCheck(ctx, slotKey, data) {` && |\n| &&
+             `      const bound = scrapeBindingAttributes(SlotXml.slotXml(ctx, slotKey));` && |\n| &&
              `      if (!bound.length) return [];` && |\n| &&
              `      const missing = bound.filter((name) => !(name in data));` && |\n| &&
              `      const out = [];` && |\n| &&
@@ -161,7 +161,7 @@ CLASS z2ui5_cl_ui5f_bindings_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatBindings(slotKey) {` && |\n| &&
+             `    function formatBindings(ctx, slotKey) {` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Model bindings"];` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push(` && |\n| &&
@@ -175,7 +175,7 @@ CLASS z2ui5_cl_ui5f_bindings_js IMPLEMENTATION.
              `      const slot = ViewSlots.slots.find(` && |\n| &&
              `        (entry) => entry.key === slotKey && entry.ownsModel,` && |\n| &&
              `      );` && |\n| &&
-             `      const lines = slot ? formatSlotBindings(slot.key) : [];` && |\n| &&
+             `      const lines = slot ? formatSlotBindings(ctx, slot.key) : [];` && |\n| &&
              `      if (lines.length) {` && |\n| &&
              `        out.push(...lines);` && |\n| &&
              `      } else {` && |\n| &&

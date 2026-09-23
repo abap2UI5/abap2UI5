@@ -14,7 +14,7 @@
 | `app/webapp/` | UI5 frontend source — the full module inventory is its own section below: "The frontend module inventory" |
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern), plus the `zcl_tst_*` test apps used by the browser tests: the `zcl_tst_nav_*` navigation apps, `zcl_tst_focus` (the SET_FOCUS-after-re-render app behind `focus-after-enable.spec.js`), `zcl_tst_popup_app` / `zcl_tst_popup_bind` (behind `popup-binding.spec.js`), `zcl_tst_host` / `zcl_tst_sub_a` / `zcl_tst_sub_b` (behind `subapp-roundtrip.spec.js`) and `zcl_tst_layout` — all copied into `node/downport/` during `auto_transpile` |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests), `fetch-deps.mjs` (materializes the three sha-pinned git dependencies under `node/deps/`), `downport-fix.mjs` (the portable in-place rewrites `npm run downport` applies — `syfixes`, `strip_trailing_ws`, `abaplintpathfix`), `require-transpiled.mjs` (guard that tells `npm run unit`/`npm test` the transpiled tree is missing instead of letting node answer MODULE_NOT_FOUND), `pack-backend.mjs` (packs `node/downport`, `node/output` and `node/deps` plus a `backend-manifest.json` into the `backend-<version>.tar.gz` release asset `backend-prebuilt.yaml` attaches — a contract `abap2UI5/mcp-server` reads) |
-| `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation, `focus-after-enable.spec.js` SET_FOCUS retry after a re-render, `popup-binding.spec.js` bindings inside a popup, `subapp-roundtrip.spec.js` a host app with sub-apps; run via `node/playwright.config.js` against the dev server), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping in `docs/agents/test-inventory.md`) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
+| `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests, `nav-back-forward.spec.js` browser history navigation, `focus-after-enable.spec.js` SET_FOCUS retry after a re-render, `popup-binding.spec.js` bindings inside a popup, `subapp-roundtrip.spec.js` a host app with sub-apps, `two-components.spec.js` two z2ui5.Component instances side by side on one page, each on its own context; run via `node/playwright.config.js` against the dev server - offline, with `UI5_PINNED_RESOURCES` pointing at a local OpenUI5 `resources/` tree, see `e2e/fixtures.js`), plus JS unit specs (`*.spec.js` — see the spec-to-module mapping in `docs/agents/test-inventory.md`) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `docs/agents/` | The reference material `AGENTS.md` points at rather than carries: `building-apps.md` — the in-repo app-building guide (gated by `npm run check:guide`, and mirrored into `app-template`'s `AGENTS.md`, which `npm run check:shared` holds to it); `repository-map.md` — this file; `ci-workflows.md` — what every workflow does; `test-inventory.md` — which frontend module has which JS unit spec |
 | `docs/` | `removal-plan.md` — the standing checklist of everything obsolete: what replaces it, what breaks, and what has to happen first. Read it before removing any compatibility symbol, and tick the box in the same PR |
@@ -43,8 +43,10 @@ resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and
 body as `{ "value": <payload> }` — roundtrip, request sequencing, aborts),
 `Session.js` (the session-constant request block, sent once per page load,
 and the page-location send cadence), `ScrollFocus.js` (focus/caret + per-slot
-scroll capture for `S_FOCUS`/`S_SCROLL`), `AppState.js` (owner of the shared
-frontend state + the documented inventory of all `z2ui5.*` globals),
+scroll capture for `S_FOCUS`/`S_SCROLL`), `Context.js` (one context per
+component — the state instance, the per-module records, and how a module
+finds it), `AppState.js` (the shape of that state + the documented field
+inventory),
 `ViewSlots.js` (access layer for the five view slots — lookups, byId
 resolution and teardown), `Lib.js` (shared helper module), `Env.js` (the
 UI5-release compatibility layer - every 1.71 fallback lives there),
@@ -92,7 +94,7 @@ added but never renamed.
 module, or holds a developer-tools object — keep it that way:**
 `Component.js` calls `DevTools.install()` / `DevTools.exit()` and that is the
 whole footprint; `core/ErrorView.js` reaches the Details action through the
-generic `onErrorDetails` callback array (`AppState`) and hides the button
+generic `onErrorDetails` callback array (`ctx.state`) and hides the button
 when nothing registered, so deleting `devtools/` degrades the framework
 gracefully instead of breaking it; `model/models.js` holds the device model
 setup and `model/formatter.js` is the curated app-level formatter module

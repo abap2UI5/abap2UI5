@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, bindContext } = require("./loadLibModule");
 
 // Tests the real app/webapp/core/ErrorView.js (loaded via a stubbed
 // sap.ui.define). Focus: the friendly UI5 error dialog shown first, its
@@ -14,8 +15,11 @@ function load({ ui5 = true } = {}) {
   // tools), so the default here does too - the Details button and the
   // button order the tests below assert on are the normal case. The
   // "no Details button" test clears it explicitly.
-  const state = { onErrorDetails: [() => {}], lastError: null };
-  const AppState = { state };
+  // the overlay works on the component's context (core/Context.js): the
+  // state carries the details providers and the last error, ctx.errorView
+  // the dialog record; the module functions are bound to this one context
+  const ctx = specContext({ onErrorDetails: [() => {}], lastError: null });
+  const state = ctx.state;
   const reloads = [];
   const created = { dialogs: [] };
   // Records the text passed to the async clipboard fallback so the Copy
@@ -42,7 +46,7 @@ function load({ ui5 = true } = {}) {
     body: { appendChild() {} },
   };
   const { module, sandbox } = loadModule("core/ErrorView.js", {
-    deps: { "z2ui5/core/AppState": AppState },
+    deps: {},
     sandbox: {
       document,
       window: { location: { reload: () => reloads.push(true) } },
@@ -134,7 +138,13 @@ function load({ ui5 = true } = {}) {
     }
     return loaded ? modules[name] : undefined;
   };
-  return { ErrorView: module, state, reloads, created, clipboardWrites };
+  const ErrorView = bindContext(module, ctx, [
+    "show",
+    "reset",
+    "reopenErrorDialog",
+    "handleLogout",
+  ]);
+  return { ErrorView, ctx, state, reloads, created, clipboardWrites };
 }
 
 test.describe("ErrorView friendly dialog", () => {

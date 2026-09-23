@@ -8,9 +8,12 @@ const { loadLib } = require("./loadLibModule");
 // nothing standalone. Under test: the standalone no-op, the toText
 // normalization handed to the shell service, async + sync failure logging
 // ("log, never throw"), and the suppressed invalidation of the property
-// writes (the control renders nothing).
-function load({ oLaunchpad = null } = {}) {
-  const { Lib } = loadLib();
+// writes (the control renders nothing). The launchpad record is read off
+// the control's component context (Context.of) - the one context the
+// spec's Lib runs in; `context: false` loads the control as one in no
+// component, where Context.of answers null.
+function load({ oLaunchpad = null, context = true } = {}) {
+  const { Lib, Context } = loadLib({ state: { oLaunchpad } });
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
@@ -18,7 +21,7 @@ function load({ oLaunchpad = null } = {}) {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": { state: { oLaunchpad } },
+      "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },
     },
   });
 
@@ -46,6 +49,33 @@ test("standalone (no launchpad) both setters are silent no-ops", () => {
   expect(inst.propertyWrites).toEqual([
     ["title", "My App", true],
     ["ApplicationFullWidth", true, true],
+  ]);
+});
+
+// In no component the control cannot tell whether there is a shell to talk
+// to: both setters stay no-ops (the standalone behaviour), record the
+// property like any other and log the gap instead of throwing.
+test("in no component both setters log and stay no-ops", () => {
+  const titles = [];
+  const { makeInstance, errors } = load({
+    oLaunchpad: { ShellUIService: { setTitle: (t) => titles.push(t) } },
+    context: false,
+  });
+  const inst = makeInstance();
+
+  expect(() => {
+    inst.setTitle("My App");
+    inst.setApplicationFullWidth(true);
+  }).not.toThrow();
+
+  expect(titles).toEqual([]);
+  expect(inst.propertyWrites).toEqual([
+    ["title", "My App", true],
+    ["ApplicationFullWidth", true, true],
+  ]);
+  expect(errors).toEqual([
+    "LPTitle.setTitle: no component context, ignored",
+    "LPTitle.setApplicationFullWidth: no component context, ignored",
   ]);
 });
 

@@ -6,14 +6,16 @@ sap.ui.define(
     "sap/ui/core/mvc/Controller",
     "z2ui5/controller/View1.controller",
     "z2ui5/core/Server",
-    "z2ui5/core/AppState",
+    "z2ui5/core/Context",
     "z2ui5/core/ViewSlots",
   ],
-  (BaseController, Controller, Server, AppState, ViewSlots) => {
+  (BaseController, Controller, Server, Context, ViewSlots) => {
     "use strict";
     return BaseController.extend("z2ui5.controller.App", {
       onInit() {
-        const state = AppState.state;
+        // the owner component's context - Component.init created it
+        const ctx = Context.of(this.getOwnerComponent());
+        const state = ctx.state;
         state.oOwnerComponent = this.getOwnerComponent();
 
         // Read the backend URI from the manifest; optional chaining keeps a
@@ -26,12 +28,15 @@ sap.ui.define(
         // Wire up the controller instances and the app container. One
         // controller per view slot, driven by the slot table in
         // core/ViewSlots - the single place that knows which slots exist, so
-        // adding one there does not need a matching line here. All other
-        // shared state (callback arrays, error log, roundtrip flags, ...)
-        // starts from the defaults that core/AppState set during
-        // Component.init.
+        // adding one there does not need a matching line here. Each carries
+        // the context: it is how every event handler and action reaches the
+        // state (View1.controller). All other state (callback arrays,
+        // roundtrip flags, ...) starts from the defaults Context.create gave
+        // it during Component.init.
         for (const slot of ViewSlots.slots) {
-          state[slot.controllerProp] = new Controller();
+          const oController = new Controller();
+          oController.ctx = ctx;
+          state[slot.controllerProp] = oController;
         }
         state.oApp = this.getView().byId("app");
 
@@ -41,7 +46,7 @@ sap.ui.define(
         // rejects the classic routing options), so the shell controller
         // starts the app directly. When the URL carries an app-state hash,
         // the backend restores that state from S_FRONT.
-        Server.roundtrip();
+        Server.roundtrip(ctx);
       },
     });
   },

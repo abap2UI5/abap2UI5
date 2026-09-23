@@ -5,8 +5,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Context",
   ],
-  (Control, Message, Lib, Env, ViewSlots) => {
+  (Control, Message, Lib, Env, ViewSlots, Context) => {
     "use strict";
 
     // A message key that is stable across a round-trip: two rows describing
@@ -80,9 +81,23 @@ sap.ui.define(
         const messaging = Env.getMessaging();
         if (!Lib.claimOnce(this, messaging)) return;
         this._messaging = messaging;
-        const view = ViewSlots.getView(
-          ViewSlots.containingSlotKey(this) ?? "MAIN",
-        );
+        // the processor is the model of the slot view this control sits in,
+        // resolved in its own component. In no component (Context.of
+        // answers null) there is no slot view: the messages still reach the
+        // message manager, but without a processor a target sets no
+        // field's valueState - logged, the control carries on
+        const ctx = Context.of(this);
+        if (!ctx) {
+          Lib.logError(
+            "MessageManager.setup: no component context, messages carry no processor",
+          );
+        }
+        const view = ctx
+          ? ViewSlots.getView(
+              ctx,
+              ViewSlots.containingSlotKey(ctx, this) ?? "MAIN",
+            )
+          : undefined;
         this._processor = view?.getModel?.() ?? null;
         this._ready = true;
         // reconcile whatever arrived before the control was ready

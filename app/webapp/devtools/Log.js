@@ -12,10 +12,13 @@
 // Split out of devtools/Inspect.js, which re-exports formatLog for the tab
 // registry and reads collectLog/countLevels for the Overview's summary
 // line. Outside the framework like the rest of devtools/: it only reads
-// what other modules captured and renders it as text.
+// what other modules captured and renders it as text. Two of the three
+// sources are page-wide by nature - the framework's error ring
+// (Lib.errors) and the console capture - and the third, the recorded
+// roundtrips, belongs to the component context handed in (ctx first).
 sap.ui.define(
-  ["z2ui5/core/AppState", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],
-  (AppState, Console, Recorder) => {
+  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],
+  (Lib, Console, Recorder) => {
     "use strict";
 
     const LEVEL_LABEL = {
@@ -72,9 +75,9 @@ sap.ui.define(
     // Everything, in one array, oldest first. Sorted by the ISO timestamp
     // every source already carries - lexicographic order is chronological
     // for ISO strings, so no date parsing is needed.
-    function collectLog() {
+    function collectLog(ctx) {
       const out = [];
-      for (const entry of AppState.state.errors || []) {
+      for (const entry of Lib.errors || []) {
         out.push({
           ts: entry.ts,
           level: "error",
@@ -91,7 +94,7 @@ sap.ui.define(
           previousLoad: entry.previousLoad,
         });
       }
-      for (const record of Recorder.getRecords()) {
+      for (const record of Recorder.getRecords(ctx)) {
         for (const message of record.messages || []) {
           out.push({
             ts: record.ts,
@@ -117,8 +120,8 @@ sap.ui.define(
       return out;
     }
 
-    function formatLog() {
-      const entries = collectLog();
+    function formatLog(ctx) {
+      const entries = collectLog(ctx);
       const lines = ["abap2UI5 Developer Tools - Log"];
       lines.push("");
       lines.push(

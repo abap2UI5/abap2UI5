@@ -11,6 +11,7 @@ function load() {
     deps: {
       "sap/ui/core/UIComponent": { extend: (_name, def) => def },
       "z2ui5/core/ViewSlots": { destroy: () => {} },
+      "z2ui5/core/Context": {},
     },
   });
 }
@@ -44,14 +45,16 @@ test("pagehide into the back/forward cache keeps the app alive", () => {
 });
 
 // exit() releases what would otherwise outlive the component on an FLP
-// re-launch, and ONLY what AppState.reset() cannot do itself: reset rebuilds
-// the whole state object, so the plain fields are back at their defaults by
-// then - but a pending timeout keeps firing, a device model keeps its
-// handlers on the Device singleton, and an OData client the framework
-// created for MAIN is no aggregation either, so the view's destroy never
-// reaches it (every open client leaked across the re-launch).
+// re-launch, and ONLY what Context.destroy() cannot do itself: destroy
+// rebuilds the whole state object, so the plain fields are back at their
+// defaults by then - but a pending timeout keeps firing, a device model
+// keeps its handlers on the Device singleton, and an OData client the
+// framework created for MAIN is no aggregation either, so the view's
+// destroy never reaches it (every open client leaked across the re-launch).
+// `fakeContext` below is the context the component works on, with a Context
+// stub whose destroy( ) rebuilds the state the way the real one does.
 function loadForExit(
-  appState,
+  fakeContext,
   {
     modules = {},
     destroyedSlots = [],
@@ -64,10 +67,10 @@ function loadForExit(
   // what the shipped helper does (clear every slot) with the sandbox's
   // clearTimeout, so runExit can see which handles were cleared
   let sandboxRef = null;
-  const cancelPendingTimers = () => {
-    for (const key of Object.keys(appState.state.timers)) {
-      sandboxRef?.clearTimeout?.(appState.state.timers[key]);
-      delete appState.state.timers[key];
+  const cancelPendingTimers = (ctx) => {
+    for (const key of Object.keys(ctx.state.timers)) {
+      sandboxRef?.clearTimeout?.(ctx.state.timers[key]);
+      delete ctx.state.timers[key];
     }
   };
   const loaded = loadModule("Component.js", {
@@ -84,11 +87,11 @@ function loadForExit(
         // the shipped isAlive, reduced to the flag a component carries
         isAlive: (obj) => Boolean(obj) && !obj.bIsDestroyed,
       },
-      "z2ui5/core/AppState": appState,
+      "z2ui5/core/Context": fakeContext.Context,
       "z2ui5/core/Router": { exit: noop },
       "z2ui5/core/ScrollFocus": { reset: noop },
       "z2ui5/core/ViewSlots": {
-        destroy: (key) => destroyedSlots.push(key),
+        destroy: (_ctx, key) => destroyedSlots.push(key),
       },
       "z2ui5/core/actions/Shortcuts": {
         handlers: {},
@@ -105,7 +108,7 @@ function loadForExit(
 }
 
 // The state fields exit() touches, at the defaults AppState.createState()
-// gives them - the stub's reset() rebuilds them the way the real one does.
+// gives them - the stub's destroy() rebuilds them the way the real one does.
 function freshState() {
   return {
     timers: {},
@@ -116,16 +119,27 @@ function freshState() {
   };
 }
 
+// The context the component under test works on, plus the Context stub the
+// module loads: destroy( ) counts and rebuilds the state like the real one.
 function fakeAppState(overrides = {}) {
-  const appState = {
-    state: { ...freshState(), ...overrides },
+  const ctx = { state: { ...freshState(), ...overrides }, alive: true };
+  const fake = {
+    ctx,
+    get state() {
+      return ctx.state;
+    },
     resets: 0,
-    reset() {
-      appState.resets += 1;
-      appState.state = freshState();
+    Context: {
+      create: () => ctx,
+      destroy(c) {
+        fake.resets += 1;
+        c.alive = false;
+        c.state = freshState();
+      },
+      of: () => ctx,
     },
   };
-  return appState;
+  return fake;
 }
 
 // `prepare(inst, def)` runs on the instance before its exit() - for the
@@ -144,6 +158,7 @@ function runExit(appState, options, prepare = () => {}) {
   sandbox.clearTimeout = (handle) => cleared.push(handle);
 
   const inst = Object.create(def);
+  inst.ctx = appState.ctx;
   inst._unloadEvent = "pagehide";
   inst._boundUnload = () => {};
   inst._boundScroll = () => {};
@@ -153,35 +168,17 @@ function runExit(appState, options, prepare = () => {}) {
   return { inst, def, cleared, destroyedSlots, shortcutResets };
 }
 
-// One instance per page: the frontend state is a module singleton, and the
-// AppState.reset() in init() used to wipe the first instance's state for a
-// second one SILENTLY - the first app failed later, far from the cause.
-test("a second live instance on the page is refused, a destroyed one is not", () => {
-  const { module: def } = loadForExit(fakeAppState());
-
-  const first = Object.create(def);
-  first._claimSingleInstance();
-
-  const second = Object.create(def);
-  expect(() => second._claimSingleInstance()).toThrow(/second instance/);
-  // the refusal happened before anything was touched
-  expect(() => first._claimSingleInstance()).not.toThrow();
-
-  // an FLP re-launch destroys the old component before it creates the new
-  // one - a dead predecessor holds no claim
-  first.bIsDestroyed = true;
-  expect(() => second._claimSingleInstance()).not.toThrow();
-});
-
-test("exit() releases the page claim for the next launch", () => {
-  const { def } = runExit(fakeAppState(), {}, (inst) =>
-    inst._claimSingleInstance(),
-  );
-
-  // the instance that exited is still "alive" by its flag - the claim has
-  // to go with exit(), not with the destroy flag
-  const next = Object.create(def);
-  expect(() => next._claimSingleInstance()).not.toThrow();
+// Two components on one page: each works on its own context, and the
+// teardown of one leaves the other's state alone (the module singleton
+// this used to be reset the first instance for the second).
+test("exit() tears down its own context only", () => {
+  const first = fakeAppState({ timers: { TICK: 1 } });
+  const second = fakeAppState({ timers: { POLL: 2 } });
+  runExit(first);
+  expect(first.resets).toBe(1);
+  expect(first.state.timers).toEqual({});
+  expect(second.resets).toBe(0);
+  expect(second.state.timers).toEqual({ POLL: 2 });
 });
 
 test("exit() destroys the OData clients the framework created, a throwing one included", () => {
@@ -198,8 +195,8 @@ test("exit() destroys the OData clients the framework created, a throwing one in
 
   // both were asked to go, the failing one did not stop the other
   expect(destroyed).toEqual(["bad", "good"]);
-  // and the inventory is empty afterwards - through the state rebuild, not
-  // through a hand-clear next to it
+  // and the inventory is empty afterwards - through the state rebuild
+  // (Context.destroy), not through a hand-clear next to it
   expect(appState.resets).toBe(1);
   expect(appState.state.odataClients.size).toBe(0);
 });
@@ -213,7 +210,7 @@ test("exit() cancels the pending timers and destroys the device model", () => {
   });
   const { cleared } = runExit(appState);
 
-  // what AppState.reset() cannot do: a handle it drops keeps firing, and a
+  // what Context.destroy() cannot do: a handle it drops keeps firing, and a
   // device model it drops keeps its handlers on the Device singleton
   expect(cleared.sort()).toEqual([11, 22]);
   expect(destroyed).toEqual(["device"]);
@@ -259,10 +256,12 @@ test("exit() resets the cc/Dirty unsaved-changes guard when it is loaded", () =>
   // slot teardown above does not cover - its entry, and with it
   // window.onbeforeunload, would survive the component.
   const resets = [];
-  runExit(fakeAppState(), {
-    modules: { "z2ui5/cc/Dirty": { reset: () => resets.push(true) } },
+  const appState = fakeAppState();
+  runExit(appState, {
+    modules: { "z2ui5/cc/Dirty": { reset: (ctx) => resets.push(ctx) } },
   });
-  expect(resets).toEqual([true]);
+  // ... and only THIS context's instances: the reset takes it
+  expect(resets).toEqual([appState.ctx]);
 });
 
 test("exit() works when no custom control with module state was loaded", () => {

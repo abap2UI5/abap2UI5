@@ -10,7 +10,8 @@
 //
 // Split out of devtools/Inspect.js, which re-exports formatBindings for
 // the tab registry. Outside the framework like the rest of devtools/: it
-// only reads the slot's model and XML and renders them as text.
+// only reads the slot's model and XML of the component context it is
+// handed (core/Context.js, ctx first) and renders them as text.
 sap.ui.define(
   [
     "z2ui5/core/Lib",
@@ -37,8 +38,8 @@ sap.ui.define(
       return describeValue(value, { typed: true });
     }
 
-    function formatSlotBindings(slotKey) {
-      const view = ViewSlots.getView(slotKey);
+    function formatSlotBindings(ctx, slotKey) {
+      const view = ViewSlots.getView(ctx, slotKey);
       if (!view) return [];
       // the TRACKED framework model - in switch mode the default model is
       // the app's OData client and a bare getModel( ) read came back empty
@@ -74,7 +75,7 @@ sap.ui.define(
         for (const path of Array.from(dirty).sort()) out.push(`    ${path}`);
       }
       out.push(...formatPendingDelta(dirty, data));
-      out.push(...formatBindingCheck(slotKey, data));
+      out.push(...formatBindingCheck(ctx, slotKey, data));
       out.push(...formatSizeRanking(data));
       return out;
     }
@@ -101,8 +102,8 @@ sap.ui.define(
     // the view binds, against the attributes the model actually carries. A
     // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all
     // land here, and nothing else in the tools makes them visible.
-    function formatBindingCheck(slotKey, data) {
-      const bound = scrapeBindingAttributes(SlotXml.slotXml(slotKey));
+    function formatBindingCheck(ctx, slotKey, data) {
+      const bound = scrapeBindingAttributes(SlotXml.slotXml(ctx, slotKey));
       if (!bound.length) return [];
       const missing = bound.filter((name) => !(name in data));
       const out = [];
@@ -189,7 +190,7 @@ sap.ui.define(
     // shows; the tab registry renders every model-owning slot as its own
     // tab. A slot that owns no model (NEST and NEST2 inherit MAIN's) or
     // holds no view yet reports that nothing carries a model.
-    function formatBindings(slotKey) {
+    function formatBindings(ctx, slotKey) {
       const out = ["abap2UI5 Developer Tools - Model bindings"];
       out.push("");
       out.push(
@@ -203,7 +204,7 @@ sap.ui.define(
       const slot = ViewSlots.slots.find(
         (entry) => entry.key === slotKey && entry.ownsModel,
       );
-      const lines = slot ? formatSlotBindings(slot.key) : [];
+      const lines = slot ? formatSlotBindings(ctx, slot.key) : [];
       if (lines.length) {
         out.push(...lines);
       } else {

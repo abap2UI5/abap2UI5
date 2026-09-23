@@ -1,17 +1,20 @@
 // Access layer for the five view slots of the multi-view architecture
 // (main view, two nested views, popup, popover). The live view and
-// controller instances are internal state owned by core/AppState; this
-// module is the one place that knows which slot is which - lookups,
-// in-slot control resolution (byId) and teardown go through here instead
-// of touching AppState.state.oView / oViewPopup / ... directly.
+// controller instances are state of the owning component's context
+// (core/Context.js, `ctx.state`); this module is the one place that
+// knows which slot is which - lookups, in-slot control resolution (byId)
+// and teardown go through here instead of touching ctx.state.oView /
+// oViewPopup / ... directly. Every function that reads the state takes
+// the context first; the ones a control calls on itself (byIdOfOwner,
+// trackedModel, markChanged) resolve it from the control.
 sap.ui.define(
   [
     "sap/ui/core/Fragment",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
-    "z2ui5/core/AppState",
+    "z2ui5/core/Context",
   ],
-  (Fragment, Lib, Env, AppState) => {
+  (Fragment, Lib, Env, Context) => {
     "use strict";
 
     // `key`    short slot name used in frontend event args and as the
@@ -70,17 +73,16 @@ sap.ui.define(
     // the popup/popover fragments collided with any host control of the same
     // name the moment the component shared a page with anything else, and
     // two component instances with each other. Falls back to the bare id
-    // before App.controller has registered the owner (the Node specs, a
-    // bare bootstrap).
-    function ownId(localId) {
-      const owner = AppState.state.oOwnerComponent;
+    // without a component (the Node specs, a bare bootstrap).
+    function ownId(ctx, localId) {
+      const owner = ctx?.component;
       return owner?.createId ? owner.createId(localId) : localId;
     }
 
     // The live fragment id of a fragment slot (popup/popover), undefined
     // for the view slots.
-    function fragmentIdOf(slot) {
-      return slot.fragmentId ? ownId(slot.fragmentId) : undefined;
+    function fragmentIdOf(ctx, slot) {
+      return slot.fragmentId ? ownId(ctx, slot.fragmentId) : undefined;
     }
 
     // Constant-time lookups for the frequently used resolutions (byId,
@@ -93,9 +95,9 @@ sap.ui.define(
     }
 
     // Live view (or fragment) instance of a slot, undefined when not open.
-    function getView(key) {
+    function getView(ctx, key) {
       const slot = byKey(key);
-      return slot ? AppState.state[slot.prop] : undefined;
+      return slot ? ctx?.state[slot.prop] : undefined;
     }
 
     // Fill a slot. `xml` is the view XML the slot was built from; it is
@@ -104,41 +106,44 @@ sap.ui.define(
     // viewContent stays empty), and the developer tools have no other way
     // back to it. Recorded HERE and dropped in destroy(), so the record
     // follows the slot itself - not the response that happened to fill it.
-    function setView(key, view, xml) {
+    function setView(ctx, key, view, xml) {
       const slot = byKey(key);
       if (!slot) return;
-      AppState.state[slot.prop] = view;
-      slotXmlStore()[key] = xml;
+      ctx.state[slot.prop] = view;
+      // the fallback of Context.of for a control whose parent chain ends
+      // in this view without an owner component of its own
+      Context.registerView(ctx, view);
+      slotXmlStore(ctx)[key] = xml;
       // ...and WHICH APP filled it, recorded the same way and for the same
       // reason: a response carries the model of exactly one app, and the
       // slots do not all belong to the same one. An app that is called only
       // to open a dialog (client->nav_app_call to a popup app - the shape
       // every z2ui5_cl_pop_* has) displays no main view, so MAIN keeps the
       // CALLER's view while POPUP holds the callee's.
-      slotAppStore()[key] = AppState.state.oResponse?.APP;
-      attachSharedModels(view);
+      slotAppStore(ctx)[key] = ctx.state.oResponse?.APP;
+      attachSharedModels(ctx, view);
     }
 
     // The XML a slot currently holds, undefined once it was torn down.
-    function getViewXml(key) {
-      return slotXmlStore()[key];
+    function getViewXml(ctx, key) {
+      return slotXmlStore(ctx)[key];
     }
 
-    // The record lives on AppState (so an app restart resets it with
+    // The record lives on the state (so an app restart resets it with
     // everything else) and has its default in AppState.createState( ) -
     // rule 8 of AGENTS.md, no lazy bootstrapping here.
-    function slotXmlStore() {
-      return AppState.state.slotXml;
+    function slotXmlStore(ctx) {
+      return ctx.state.slotXml;
     }
 
     // The app that filled a slot, undefined once it was torn down (and for
     // a slot filled before any response named an app).
-    function getViewApp(key) {
-      return slotAppStore()[key];
+    function getViewApp(ctx, key) {
+      return slotAppStore(ctx)[key];
     }
 
-    function slotAppStore() {
-      return AppState.state.slotApp;
+    function slotAppStore(ctx) {
+      return ctx.state.slotApp;
     }
 
     // Attach the models every slot shares: the one device model (created
@@ -149,10 +154,10 @@ sap.ui.define(
     // destroy() - so attach and the unregister in destroy() stay symmetric:
     // a display path that destroys a view on an error guard never reached
     // setView, so nothing was registered and nothing leaks.
-    function attachSharedModels(view) {
+    function attachSharedModels(ctx, view) {
       if (!view) return;
-      if (AppState.state.oDeviceModel) {
-        view.setModel(AppState.state.oDeviceModel, "device");
+      if (ctx.state.oDeviceModel) {
+        view.setModel(ctx.state.oDeviceModel, "device");
       }
       const messaging = Env.getMessaging?.();
       if (messaging) {
@@ -162,30 +167,30 @@ sap.ui.define(
     }
 
     // Controller instance serving a slot (created once in App.controller).
-    function getController(key) {
+    function getController(ctx, key) {
       const slot = byKey(key);
-      return slot ? AppState.state[slot.controllerProp] : undefined;
+      return slot ? ctx?.state[slot.controllerProp] : undefined;
     }
 
     // Returns the key of the slot whose controller is `controller` -
-    // i.e. which slot an event handler was invoked for.
+    // i.e. which slot an event handler was invoked for. The controller
+    // carries its context (App.controller), so none is passed.
     function keyOfController(controller) {
-      if (!controller) return undefined;
-      const slot = slots.find(
-        (s) => AppState.state[s.controllerProp] === controller,
-      );
+      const state = controller?.ctx?.state;
+      if (!state) return undefined;
+      const slot = slots.find((s) => state[s.controllerProp] === controller);
       return slot ? slot.key : undefined;
     }
 
     // Resolve a control id inside a slot: views resolve via view.byId, the
     // fragment slots via their fragment id. Returns undefined when the slot
     // is not open or the id is unknown there.
-    function byId(key, id) {
+    function byId(ctx, key, id) {
       const slot = byKey(key);
       if (!slot) return undefined;
-      const view = AppState.state[slot.prop];
+      const view = ctx?.state[slot.prop];
       if (!view) return undefined;
-      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(slot), id);
+      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(ctx, slot), id);
       return view.byId(id);
     }
 
@@ -194,10 +199,10 @@ sap.ui.define(
     // apps use are the local ids they wrote in the XML, which resolve inside
     // their view/fragment - then fall back to the global UI5 registry for a
     // fully-qualified id. Returns null when nothing matches.
-    function resolveById(id) {
+    function resolveById(ctx, id) {
       if (!id) return null;
       for (const slot of slots) {
-        const found = byId(slot.key, id);
+        const found = byId(ctx, slot.key, id);
         if (found) return found;
       }
       return Env.getElementById(id);
@@ -228,14 +233,17 @@ sap.ui.define(
       trackedModel(owner)?._z2ui5ChangedPaths?.add(path);
     }
 
-    // Returns the key of the slot a UI5 element belongs to, by walking up
-    // the control tree until a live slot view is hit (innermost slot wins,
-    // e.g. nested views). Undefined when the element is in no slot.
-    function containingSlotKey(element) {
+    // Returns the key of the slot of `ctx` a UI5 element belongs to, by
+    // walking up the control tree until a live slot view is hit (innermost
+    // slot wins, e.g. nested views). Undefined when the element is in none
+    // of this context's slots.
+    function containingSlotKey(ctx, element) {
+      const state = ctx?.state;
+      if (!state) return undefined;
       let current = element;
       while (current) {
         for (const slot of slots) {
-          if (AppState.state[slot.prop] === current) return slot.key;
+          if (state[slot.prop] === current) return slot.key;
         }
         current = current.getParent?.();
       }
@@ -249,16 +257,19 @@ sap.ui.define(
     // own slot, so a same local id in another open slot (e.g. a dialog) is
     // never picked by accident, and it works when the companion sits in a
     // popup/popover/nested view - not only in MAIN. Falls back to MAIN when
-    // the owner is not attached to a slot yet.
+    // the owner is not attached to a slot yet; undefined for a control
+    // that belongs to no context at all.
     function byIdOfOwner(owner, id) {
-      return byId(containingSlotKey(owner) ?? "MAIN", id);
+      const ctx = Context.of(owner);
+      if (!ctx) return undefined;
+      return byId(ctx, containingSlotKey(ctx, owner) ?? "MAIN", id);
     }
 
     // Shared teardown: close (popup/popover only), destroy and clear the
     // slot. Safe to call for slots that are not open.
-    function destroy(key) {
+    function destroy(ctx, key) {
       const slot = byKey(key);
-      if (!slot) return;
+      if (!slot || !ctx?.state) return;
       // The nested views live INSIDE the MAIN control tree, so MAIN's
       // view.destroy() below would cascade to their controls anyway - but
       // the slot references and the messaging registration would stay
@@ -268,15 +279,15 @@ sap.ui.define(
       // teardown first, BEFORE the open-check: it keeps unregisterObject
       // symmetric to attachSharedModels and clears a stale nest reference
       // even when MAIN itself is already gone.
-      for (const dep of slot.dependentSlots ?? []) destroy(dep);
+      for (const dep of slot.dependentSlots ?? []) destroy(ctx, dep);
       // Drop the recorded XML BEFORE the empty-slot exit below: a slot whose
       // live instance is already gone (an app restart reset AppState, a
       // fragment load that failed after recording) must not keep a stale
       // source behind - the developer tools read "is this slot filled" off
       // this record.
-      delete slotXmlStore()[key];
-      delete slotAppStore()[key];
-      const view = AppState.state[slot.prop];
+      delete slotXmlStore(ctx)[key];
+      delete slotAppStore(ctx)[key];
+      const view = ctx.state[slot.prop];
       if (!view) return;
       if (slot.fragmentId) {
         try {
@@ -300,7 +311,7 @@ sap.ui.define(
       } catch (e) {
         Lib.logError(`ViewSlots.destroy: view.destroy() failed for ${key}`, e);
       }
-      AppState.state[slot.prop] = null;
+      ctx.state[slot.prop] = null;
     }
 
     return {

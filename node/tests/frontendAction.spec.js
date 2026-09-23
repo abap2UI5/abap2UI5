@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, withSpecController } = require("./loadLibModule");
 
 // Tests the frontend action handlers (CONTROL_GLOBAL / CONTROL_BY_ID,
 // BINDING_CALL, variants, KEYBOARD_SHORTCUT, SET_FOCUS, timers, ...) through
@@ -33,17 +34,24 @@ function load({ sandbox, requires = {} } = {}) {
   const Popup = { setWithinArea: rec("popup.setWithinArea") };
   const controls = {};
   const views = {};
+  // the slot registry takes the context first (core/ViewSlots.js); the
+  // stub ignores it - the spec runs in ONE context, see specCtx below
   const ViewSlots = {
-    destroy: (key) => calls.push(["slots.destroy", key]),
-    resolveById: (id) => controls[id] || null,
-    byId: (_key, id) => controls[id] || null,
-    getView: (key) => views[key] || null,
+    destroy: (_ctx, key) => calls.push(["slots.destroy", key]),
+    resolveById: (_ctx, id) => controls[id] || null,
+    byId: (_ctx, _key, id) => controls[id] || null,
+    getView: (_ctx, key) => views[key] || null,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
   // away (the specs treat the anchor as already rendered).
-  const Router = { sync: (...a) => calls.push(["router.sync", ...a]) };
-  const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
+  const Router = { sync: (_ctx, ...a) => calls.push(["router.sync", ...a]) };
+  // The one context of this spec. Every handler reads the state off the
+  // calling controller's `ctx`; withSpecController below hands the
+  // controllers the specs pass (null, a fixture) this context. AppState
+  // keeps its old shape for the specs that read the state through it.
+  const specCtx = specContext({ onBeforeEventFrontend: [], shortcuts: {} });
+  const AppState = { state: specCtx.state };
   const Lib = {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
@@ -103,7 +111,7 @@ function load({ sandbox, requires = {} } = {}) {
   // stub records the routed calls and lets a test swap the behavior
   const slotCalls = [];
   const Slots = {
-    action: (...a) => slotCalls.push(a),
+    action: (_ctx, ...a) => slotCalls.push(a),
   };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
@@ -154,12 +162,24 @@ function load({ sandbox, requires = {} } = {}) {
       "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/AppState": AppState,
       "z2ui5/core/actions/Slots": Slots,
     },
   });
+  const { carrying } = withSpecController({}, specCtx);
+  const FrontendAction = {
+    ...module,
+    execute: (oController, args) => module.execute(carrying(oController), args),
+    executeSystem: (oController, args, actionCtx) =>
+      module.executeSystem(carrying(oController), args, actionCtx),
+    runSystem: (item, oController, actionCtx) =>
+      module.runSystem(item, carrying(oController), actionCtx),
+    runCustom: (item, oController) =>
+      module.runCustom(item, carrying(oController)),
+  };
   return {
-    FrontendAction: module,
+    FrontendAction,
+    specCtx,
+    carrying,
     calls,
     errors,
     controls,
@@ -583,7 +603,7 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
 test.describe("executeSystem (the SYSTEM phase entry point)", () => {
   test("returns the handler result so an async display can be awaited", async () => {
     const { FrontendAction, Slots } = load();
-    Slots.action = (_m, _slot, xml) => Promise.resolve(`built:${xml}`);
+    Slots.action = (_ctx, _m, _slot, xml) => Promise.resolve(`built:${xml}`);
     const result = FrontendAction.executeSystem(null, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
@@ -2681,15 +2701,17 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     expect(doc.count()).toBe(1);
   });
 
-  // The listener is MODULE state, so it outlived the component that installed
-  // it: on an FLP re-launch the page stays alive, and the dead listener kept
-  // running a registry lookup per keystroke of whatever came next for the
-  // rest of the session. Component.exit( ) calls reset( ) - see
+  // The listener used to be MODULE state and outlived the component that
+  // installed it: on an FLP re-launch the page stays alive, and the dead
+  // listener kept running a registry lookup per keystroke of whatever came
+  // next for the rest of the session. It lives on the context now
+  // (ctx.shortcuts.listener), and Component.exit( ) calls reset(ctx) - see
   // componentUnload.spec.js for that half.
   test("reset() takes the listener off document, and a later registration installs a fresh one", () => {
     const doc = docStub();
     const fired = [];
-    const oController = { eB: (args) => fired.push(args) };
+    const shortcutCtx = specContext({ shortcuts: {} });
+    const oController = { eB: (args) => fired.push(args), ctx: shortcutCtx };
     const { module: Shortcuts } = loadModule("core/actions/Shortcuts.js", {
       sandbox: { document: doc.document },
       deps: {
@@ -2698,7 +2720,6 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
           isControllerAlive: () => true,
         },
         "z2ui5/core/ViewSlots": { getView: () => null, resolveById: () => null },
-        "z2ui5/core/AppState": { state: { shortcuts: {} } },
       },
     });
     const register = (event) =>
@@ -2713,22 +2734,22 @@ test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
     expect(doc.press("s", { ctrlKey: true })).toBe(true);
 
     // the component is torn down
-    Shortcuts.reset();
+    Shortcuts.reset(shortcutCtx);
     expect(doc.count()).toBe(0);
     expect(doc.press("s", { ctrlKey: true })).toBe(false);
     expect(fired).toEqual([["SAVE"]]);
 
     // ...and the next app registering a shortcut gets a listener of its own,
-    // which the `if (shortcutListener) return` guard only allows because
-    // reset( ) put the flag back
+    // which the `if (ctx.shortcuts.listener) return` guard only allows
+    // because reset( ) put the field back
     register("SAVE");
     expect(doc.count()).toBe(1);
     expect(doc.press("s", { ctrlKey: true })).toBe(true);
     expect(fired).toEqual([["SAVE"], ["SAVE"]]);
 
     // idempotent - a second teardown has nothing left to take off
-    Shortcuts.reset();
-    Shortcuts.reset();
+    Shortcuts.reset(shortcutCtx);
+    Shortcuts.reset(shortcutCtx);
     expect(doc.count()).toBe(0);
   });
 

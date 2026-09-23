@@ -1,6 +1,8 @@
-// Shared helper module of the z2ui5 frontend. core/AppState.js owns the
-// shared frontend state and documents the complete field inventory with
-// its defaults; the helpers here reach it via AppState.state.
+// Shared helper module of the z2ui5 frontend. The frontend state is per
+// component (core/Context.js): a helper that needs it takes the context
+// as its first argument, or resolves it from the control it serves
+// (Context.of) - nothing here reaches a singleton. core/AppState.js
+// documents the state's field inventory with its defaults.
 //
 // Nothing UI5-release dependent belongs here either: core/Env.js is the one
 // module that bridges UI5 1.71 and the current release (element registry,
@@ -20,27 +22,32 @@
 // without splitting it (core/Server.js ships it as S_FRONT.HASH,
 // core/actions/Launchpad.js takes the part before the "#" as a base URL);
 // everything else asks the Router.
-sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
+sap.ui.define(["z2ui5/core/Context"], (Context) => {
   "use strict";
 
   // Cap the error log so a long-running session cannot grow it unbounded.
   const MAX_ERRORS = 100;
 
-  // Append an entry to the shared error log and drop the oldest entry once
-  // the cap is reached. In the app the array always exists (AppState
-  // default); the guard keeps the helper usable standalone, e.g. in the
-  // Node specs that load this module with a bare AppState stub.
+  // The error log - PAGE-WIDE on purpose, the one diagnostic that is not
+  // per component: logError is called from pure helpers, the release
+  // bridge (core/Env.js) and formatters that hold no context, and a ring
+  // of a hundred entries shared by two instances on a page costs nothing
+  // a reader cannot tell apart by the message. The developer tools' Log
+  // tab reads it (devtools/Log.js). The array is exported live, so a
+  // reader sees the entries as they land.
+  const errors = [];
+
+  // Append an entry to the error log and drop the oldest entry once the
+  // cap is reached.
   function logError(message, error) {
-    const state = AppState.state;
-    if (!state.errors) state.errors = [];
     const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
-    state.errors.push(entry);
-    if (state.errors.length > MAX_ERRORS) state.errors.shift();
+    errors.push(entry);
+    if (errors.length > MAX_ERRORS) errors.shift();
   }
 
-  // True while `oController` is one of the slot controllers the CURRENT
-  // app state owns. This is the liveness test for a View1 controller,
+  // True while `oController` is one of the slot controllers its context's
+  // CURRENT state owns. This is the liveness test for a View1 controller,
   // and isDestroyed( ) below is NOT: sap.ui.core.mvc.Controller is no
   // ManagedObject - it has neither isDestroyed() nor bIsDestroyed on any
   // release (checked on 1.71 and 1.144) - and the five controllers are
@@ -48,10 +55,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // isDestroyed( controller ) answered "alive" for a torn-down app and
   // every guard on it was dead code: variant poll chains kept resolving
   // the NEXT app's controls after an FLP teardown. What does end a
-  // controller's life is Component.exit -> AppState.reset( ): the state
-  // is rebuilt with the slot fields null and the next launch registers a
-  // fresh set. Membership in the current state is the test, so it holds
-  // across every release and needs no flag on the controller.
+  // controller's life is Component.exit -> Context.destroy( ): the
+  // context reads dead and its state is rebuilt with the slot fields
+  // null. Membership in the live state is the test, so it holds across
+  // every release and needs no flag on the controller.
   const CONTROLLER_FIELDS = [
     "oController",
     "oControllerNest",
@@ -78,8 +85,9 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   function isControllerAlive(oController) {
-    if (!oController) return false;
-    const state = AppState.state;
+    const ctx = oController?.ctx;
+    if (!ctx?.alive) return false;
+    const state = ctx.state;
     return CONTROLLER_FIELDS.some((field) => state[field] === oController);
   }
 
@@ -115,19 +123,21 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return Boolean(obj) && !isDestroyed(obj);
   }
 
-  // Helpers for managing the shared callback arrays (onBeforeRoundtrip,
+  // Helpers for managing a context's callback arrays (onBeforeRoundtrip,
   // onAfterRendering, ...). Several custom controls register hooks here in
-  // init() and remove them in exit(). The arrays always exist in the app
-  // (AppState defaults); the guard keeps the helper standalone-safe.
-  function registerCallback(name, fn) {
-    const state = AppState.state;
+  // init() and remove them in exit() - through hookCallback, which
+  // resolves their context. The arrays always exist (AppState defaults);
+  // the guard keeps the helper standalone-safe.
+  function registerCallback(ctx, name, fn) {
+    const state = ctx?.state;
+    if (!state) return;
     if (!state[name]) state[name] = [];
     state[name].push(fn);
   }
 
-  function unregisterCallback(name, fn) {
-    const state = AppState.state;
-    if (!state[name]) return;
+  function unregisterCallback(ctx, name, fn) {
+    const state = ctx?.state;
+    if (!state?.[name]) return;
     state[name] = state[name].filter((f) => f !== fn);
   }
 
@@ -221,8 +231,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // and Server.restoreFromRoute, the Back/Forward restore, had nothing at
   // all, so a poll armed by the app one screen back kept ticking into the
   // restored one.
-  function cancelPendingTimers() {
-    const timers = AppState.state.timers;
+  function cancelPendingTimers(ctx) {
+    const timers = ctx?.state?.timers;
     if (!timers) return;
     for (const key in timers) {
       cancelTimer(timers[key]);
@@ -284,18 +294,22 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // but the first on the busy guard. The one-shot hook takes itself off
   // the onAfterRendering list again; `owner` destroyed meanwhile ends it.
   // Returns a function that cancels the wait (for the owner's exit).
+  // `owner` is the control, and its context is what says "busy": a
+  // control that belongs to no context (not in any slot) is never waiting
+  // on a roundtrip.
   function afterRoundtrip(owner, fn) {
-    if (!AppState.state.isBusy) {
+    const ctx = Context.of(owner);
+    if (!ctx?.state.isBusy) {
       fn();
       return () => {};
     }
     const once = () => {
-      unregisterCallback("onAfterRendering", once);
+      unregisterCallback(ctx, "onAfterRendering", once);
       if (isDestroyed(owner)) return;
       fn();
     };
-    registerCallback("onAfterRendering", once);
-    return () => unregisterCallback("onAfterRendering", once);
+    registerCallback(ctx, "onAfterRendering", once);
+    return () => unregisterCallback(ctx, "onAfterRendering", once);
   }
 
   // Run every callback in `callbacks` (the shared callback arrays above),
@@ -762,13 +776,41 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   const EMPTY_RENDERER = { apiVersion: 2, render() {} };
 
   // The init/exit pair every companion control repeats: register the bound
-  // hook method as a shared-state callback and hand back the unregister.
+  // hook method as a callback of the owner's context and hand back the
+  // unregister.
   //   init() { this._unhook = Lib.hookCallback(this, "onAfterRendering", "setControl"); }
   //   exit() { this._unhook(); }
+  // Called from init( ), where a control created under the owner scope
+  // already resolves its context (Context.of) - and one that does not yet
+  // (created by hand, parent chain not attached) registers on its first
+  // onBeforeRendering instead, when the chain exists. The unhook covers
+  // both: it drops the pending delegate, or the registration.
   function hookCallback(owner, callbackName, method) {
     const bound = owner[method].bind(owner);
-    registerCallback(callbackName, bound);
-    return () => unregisterCallback(callbackName, bound);
+    let ctx = Context.of(owner);
+    if (ctx) {
+      registerCallback(ctx, callbackName, bound);
+      return () => unregisterCallback(ctx, callbackName, bound);
+    }
+    let delegate = {
+      onBeforeRendering: () => {
+        ctx = Context.of(owner);
+        if (!ctx) return;
+        owner.removeEventDelegate(delegate);
+        delegate = null;
+        registerCallback(ctx, callbackName, bound);
+      },
+    };
+    if (typeof owner.addEventDelegate === "function") {
+      owner.addEventDelegate(delegate);
+    }
+    return () => {
+      if (delegate) {
+        owner.removeEventDelegate?.(delegate);
+        delegate = null;
+      }
+      if (ctx) unregisterCallback(ctx, callbackName, bound);
+    };
   }
 
   // Event arguments are whatever the UI5 expression grammar produced for
@@ -877,6 +919,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   return {
+    errors,
     logError,
     isDestroyed,
     isControllerAlive,

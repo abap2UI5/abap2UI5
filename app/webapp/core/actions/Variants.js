@@ -100,8 +100,10 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         finish();
         return;
       }
-      const oSVM = ViewSlots.resolveById(svmId);
-      const control = controlId ? ViewSlots.resolveById(controlId) : null;
+      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);
+      const control = controlId
+        ? ViewSlots.resolveById(oController?.ctx, controlId)
+        : null;
       if (!oSVM || (controlId && !control)) {
         // the view may still be building - wait for both controls to exist
         if (tries++ < SMART_VARIANT_INIT_TRIES) {
@@ -139,7 +141,10 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
           finish();
           return;
         }
-        target = ViewSlots.resolveById(registered[0].getControl());
+        target = ViewSlots.resolveById(
+          oController?.ctx,
+          registered[0].getControl(),
+        );
         if (!target) {
           finish();
           return;
@@ -284,8 +289,8 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         finish();
         return;
       }
-      const oSVM = ViewSlots.resolveById(svmId);
-      const oFilterBar = ViewSlots.resolveById(filterBarId);
+      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);
+      const oFilterBar = ViewSlots.resolveById(oController?.ctx, filterBarId);
       if (!oSVM || !oFilterBar) {
         // the view may still be building - wait for both controls to exist
         if (tries++ < SMART_VARIANT_INIT_TRIES) {

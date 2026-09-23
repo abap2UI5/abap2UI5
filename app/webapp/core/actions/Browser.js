@@ -6,9 +6,8 @@ sap.ui.define(
     "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
   ],
-  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots, AppState) => {
+  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -147,7 +146,7 @@ sap.ui.define(
     // (the UI5 onNavBack pattern); Router.navBack owns the whole decision,
     // since only the router is allowed to touch the hash.
     function evHashBack(oController, args) {
-      Router.navBack(args ? args[1] : undefined);
+      Router.navBack(oController?.ctx, args ? args[1] : undefined);
     }
 
     function evLocationReload(oController, args) {
@@ -171,7 +170,7 @@ sap.ui.define(
       const explicitUrl = args[1];
       const logoutUrl = explicitUrl || "/sap/public/bc/icf/logoff";
       try {
-        const container = AppState.state.oLaunchpad?.Container;
+        const container = oController?.ctx?.state.oLaunchpad?.Container;
         // No explicit logout URL was passed: inside the launchpad, prefer
         // its own logout over the BSP/ICF redirect below.
         if (container?.logout && !explicitUrl) {

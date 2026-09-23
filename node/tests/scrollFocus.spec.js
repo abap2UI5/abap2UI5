@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests ScrollFocus.closestUi5Element: resolving the UI5 element that owns a DOM
 // node must work on UI5 >= 1.106 via Element.closestTo and on older
@@ -23,11 +24,17 @@ function fakeDomNode({
   };
 }
 
-function loadScrollFocus({ Element = {}, deps = {}, sandbox = {} } = {}) {
-  return loadModule("core/ScrollFocus.js", {
+// The capture and the request info work on the component's context: the
+// records are ctx.state.lastScrolled and the resolution cache ctx.scroll.
+// `state` seeds that context; the loaded module is returned with its
+// context so the specs pass it where the functions take it.
+function loadScrollFocus({ Element = {}, deps = {}, sandbox = {}, state } = {}) {
+  const ctx = specContext(state);
+  const loaded = loadModule("core/ScrollFocus.js", {
     deps: { "sap/ui/core/Element": Element, ...deps },
     sandbox,
   });
+  return { ...loaded, ctx, state: ctx.state };
 }
 
 // The two fragment slots: their inner controls are registered under the
@@ -93,13 +100,11 @@ test("fallback returns null when no control root is found", () => {
 
 test("onScrollCapture records the scrolled slot via the fallback", () => {
   const control = { id: "page" };
-  const state = { lastScrolled: {} };
-  const { module: ScrollFocus } = loadScrollFocus({
+  const { module: ScrollFocus, ctx, state } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
-        containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
+        containingSlotKey: (_ctx, el) => (el === control ? "MAIN" : undefined),
       },
-      "z2ui5/core/AppState": { state },
       "z2ui5/core/Env": {
         getElementById: (id) => (id === "page" ? control : null),
       },
@@ -108,7 +113,7 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });
   const scrolled = fakeDomNode({ id: "page-cont", parent: root });
-  ScrollFocus.onScrollCapture({ target: scrolled });
+  ScrollFocus.onScrollCapture(ctx, { target: scrolled });
 
   expect(state.lastScrolled.MAIN).toEqual({
     control,
@@ -122,13 +127,12 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
 
 function loadScrollFocusWithScrollCache({ connected }) {
   const control = { id: "page" };
-  const { module: ScrollFocus } = loadScrollFocus({
+  const { module: ScrollFocus, ctx } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
-        containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
+        containingSlotKey: (_ctx, el) => (el === control ? "MAIN" : undefined),
         slots: [],
       },
-      "z2ui5/core/AppState": { state: { lastScrolled: {} } },
       "z2ui5/core/Env": {
         getElementById: (id) => (id === "page" ? control : null),
       },
@@ -141,27 +145,27 @@ function loadScrollFocusWithScrollCache({ connected }) {
     parent: root,
     isConnected: connected,
   });
-  ScrollFocus.onScrollCapture({ target: scrolled });
-  return { ScrollFocus, scrolled };
+  ScrollFocus.onScrollCapture(ctx, { target: scrolled });
+  return { ScrollFocus, ctx, scrolled };
 }
 
 test("getScrollInfo releases the scroll cache once its DOM node is detached", () => {
-  const { ScrollFocus, scrolled } = loadScrollFocusWithScrollCache({ connected: false });
-  expect(ScrollFocus._scrollCache.target).toBe(scrolled);
+  const { ScrollFocus, ctx, scrolled } = loadScrollFocusWithScrollCache({ connected: false });
+  expect(ctx.scroll.target).toBe(scrolled);
 
-  ScrollFocus.getScrollInfo();
+  ScrollFocus.getScrollInfo(ctx);
 
-  expect(ScrollFocus._scrollCache.target).toBe(undefined);
-  expect(ScrollFocus._scrollCache.ui5El).toBe(undefined);
-  expect(ScrollFocus._scrollCache.slotKey).toBe(undefined);
+  expect(ctx.scroll.target).toBe(undefined);
+  expect(ctx.scroll.ui5El).toBe(undefined);
+  expect(ctx.scroll.slotKey).toBe(undefined);
 });
 
 test("getScrollInfo keeps the scroll cache while its DOM node is connected", () => {
-  const { ScrollFocus, scrolled } = loadScrollFocusWithScrollCache({ connected: true });
+  const { ScrollFocus, ctx, scrolled } = loadScrollFocusWithScrollCache({ connected: true });
 
-  ScrollFocus.getScrollInfo();
+  ScrollFocus.getScrollInfo(ctx);
 
-  expect(ScrollFocus._scrollCache.target).toBe(scrolled);
+  expect(ctx.scroll.target).toBe(scrolled);
 });
 
 // S_FOCUS / S_SCROLL must carry the id the app declared, in every slot.
@@ -177,15 +181,15 @@ test("getFocusInfo reports a control inside a popup fragment by its bare id", ()
     getId: () => "popupId--input",
     getFocusDomRef: () => input,
   };
-  const { module: ScrollFocus } = loadScrollFocus({
+  const { module: ScrollFocus, ctx } = loadScrollFocus({
     Element: { closestTo: () => control },
     deps: {
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
-        ownId: (id) => id,
-        fragmentIdOf: (slot) => slot.fragmentId,
+        ownId: (_ctx, id) => id,
+        fragmentIdOf: (_ctx, slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
-        getView: slotViews,
+        getView: (_ctx, key) => slotViews(key),
       },
       "z2ui5/core/Lib": {
         isTextInput: () => false,
@@ -196,40 +200,38 @@ test("getFocusInfo reports a control inside a popup fragment by its bare id", ()
     sandbox: { document: { activeElement: input } },
   });
 
-  expect(ScrollFocus.getFocusInfo().ID).toBe("input");
+  expect(ScrollFocus.getFocusInfo(ctx).ID).toBe("input");
 });
 
 test("getScrollInfo strips the view id in MAIN and the fragment id in POPUP", () => {
   const list = { getId: () => "mainView--list" };
   const table = { getId: () => "popupId--table" };
-  const { module: ScrollFocus } = loadScrollFocus({
+  const { module: ScrollFocus, ctx } = loadScrollFocus({
+    state: {
+      lastScrolled: {
+        MAIN: {
+          control: list,
+          dom: { isConnected: true, scrollLeft: 0, scrollTop: 80 },
+        },
+        POPUP: {
+          control: table,
+          dom: { isConnected: true, scrollLeft: 12, scrollTop: 240 },
+        },
+      },
+    },
     deps: {
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
-        ownId: (id) => id,
-        fragmentIdOf: (slot) => slot.fragmentId,
+        ownId: (_ctx, id) => id,
+        fragmentIdOf: (_ctx, slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
-        getView: slotViews,
-      },
-      "z2ui5/core/AppState": {
-        state: {
-          lastScrolled: {
-            MAIN: {
-              control: list,
-              dom: { isConnected: true, scrollLeft: 0, scrollTop: 80 },
-            },
-            POPUP: {
-              control: table,
-              dom: { isConnected: true, scrollLeft: 12, scrollTop: 240 },
-            },
-          },
-        },
+        getView: (_ctx, key) => slotViews(key),
       },
       "z2ui5/core/Lib": { isAlive: () => true },
     },
   });
 
-  expect(ScrollFocus.getScrollInfo()).toEqual({
+  expect(ScrollFocus.getScrollInfo(ctx)).toEqual({
     MAIN: { ID: "list", X: 0, Y: 80 },
     POPUP: { ID: "table", X: 12, Y: 240 },
   });

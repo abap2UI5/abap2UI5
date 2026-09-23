@@ -49,13 +49,14 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  let dropped = 0;` && |\n| &&
              `` && |\n| &&
              `  const originals = {};` && |\n| &&
-             `  let installed = false;` && |\n| &&
+             `` && |\n| &&
+             `  let users = 0;` && |\n| &&
              `  let ui5Listener = null;` && |\n| &&
              `  let onWindowError = null;` && |\n| &&
              `  let onRejection = null;` && |\n| &&
              `  let onPageHide = null;` && |\n| &&
              `` && |\n| &&
-             `  let onErrorEntry = null;` && |\n| &&
+             `  const onErrorEntry = new Set();` && |\n| &&
              `` && |\n| &&
              `  let capturing = false;` && |\n| &&
              `` && |\n| &&
@@ -77,15 +78,21 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      text: body,` && |\n| &&
              `    };` && |\n| &&
              `    entries.push(entry);` && |\n| &&
-             `    if (level === "error" && onErrorEntry && isAlertOnError()) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        onErrorEntry(entry);` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `    if (level === "error" && onErrorEntry.size && isAlertOnError()) {` && |\n| &&
+             `      for (const fn of onErrorEntry) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          fn(entry);` && |\n| &&
+             `        } catch {}` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function setOnError(fn) {` && |\n| &&
-             `    onErrorEntry = fn;` && |\n| &&
+             `  function addOnError(fn) {` && |\n| &&
+             `    if (typeof fn === "function") onErrorEntry.add(fn);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function removeOnError(fn) {` && |\n| &&
+             `    onErrorEntry.delete(fn);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isAlertOnError() {` && |\n| &&
@@ -262,8 +269,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function install() {` && |\n| &&
-             `    if (installed) return;` && |\n| &&
-             `    installed = true;` && |\n| &&
+             `    users += 1;` && |\n| &&
+             `    if (users > 1) return;` && |\n| &&
              `    restore();` && |\n| &&
              `` && |\n| &&
              `    onWindowError = (event) => {` && |\n| &&
@@ -296,8 +303,9 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function uninstall() {` && |\n| &&
-             `    if (!installed) return;` && |\n| &&
-             `    installed = false;` && |\n| &&
+             `    if (!users) return;` && |\n| &&
+             `    users -= 1;` && |\n| &&
+             `    if (users) return;` && |\n| &&
              `    uninstallConsole();` && |\n| &&
              `    uninstallUi5Log();` && |\n| &&
              `    if (onWindowError) window.removeEventListener("error", onWindowError);` && |\n| &&
@@ -308,7 +316,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `    onWindowError = null;` && |\n| &&
              `    onRejection = null;` && |\n| &&
              `    onPageHide = null;` && |\n| &&
-             `    onErrorEntry = null;` && |\n| &&
+             `    onErrorEntry.clear();` && |\n| &&
              `    pendingUi5Echo = null;` && |\n| &&
              `    entries = [];` && |\n| &&
              `    dropped = 0;` && |\n| &&
@@ -325,7 +333,8 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  return {` && |\n| &&
              `    install,` && |\n| &&
              `    uninstall,` && |\n| &&
-             `    setOnError,` && |\n| &&
+             `    addOnError,` && |\n| &&
+             `    removeOnError,` && |\n| &&
              `    isAlertOnError,` && |\n| &&
              `    setAlertOnError,` && |\n| &&
              `    getEntries,` && |\n| &&

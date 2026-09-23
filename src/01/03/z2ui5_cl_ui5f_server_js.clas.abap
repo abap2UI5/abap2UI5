@@ -34,7 +34,6 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -44,7 +43,6 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
-             `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -53,47 +51,41 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    return {` && |\n| &&
              `      PROTOCOL: 2,` && |\n| &&
              `` && |\n| &&
-             `      _requestSeq: 0,` && |\n| &&
+             `      endSession(ctx) {` && |\n| &&
+             `        if (!Lib.isValidContextId(ctx.state.contextId)) return;` && |\n| &&
              `` && |\n| &&
-             `      _inflight: new Set(),` && |\n| &&
-             `` && |\n| &&
-             `      _viewBuild: null,` && |\n| &&
-             `` && |\n| &&
-             `      endSession() {` && |\n| &&
-             `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
-             `` && |\n| &&
-             `        fetch(AppState.state.url, {` && |\n| &&
+             `        fetch(ctx.state.url, {` && |\n| &&
              `          method: "HEAD",` && |\n| &&
              `          keepalive: true,` && |\n| &&
              `          headers: {` && |\n| &&
              `            "sap-terminate": "session",` && |\n| &&
-             `            "sap-contextid": AppState.state.contextId,` && |\n| &&
+             `            "sap-contextid": ctx.state.contextId,` && |\n| &&
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          },` && |\n| &&
              `        }).catch(() => {});` && |\n| &&
-             `        AppState.state.contextId = null;` && |\n| &&
+             `        ctx.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      reset() {` && |\n| &&
-             `        this._requestSeq += 1;` && |\n| &&
-             `        this._abortInflight();` && |\n| &&
-             `        this._viewBuild = null;` && |\n| &&
+             `      reset(ctx) {` && |\n| &&
+             `        ctx.server.requestSeq += 1;` && |\n| &&
+             `        this._abortInflight(ctx);` && |\n| &&
+             `        ctx.server.viewBuild = null;` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.oQueuedEvent = null;` && |\n| &&
+             `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `` && |\n| &&
-             `        ErrorView.reset();` && |\n| &&
+             `        ErrorView.reset(ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      restoreFromRoute() {` && |\n| &&
-             `        AppState.state.isBusy = true;` && |\n| &&
+             `      restoreFromRoute(ctx) {` && |\n| &&
+             `        ctx.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show(0);` && |\n| &&
              `` && |\n| &&
-             `        Lib.cancelPendingTimers();` && |\n| &&
-             `        this.roundtrip({});` && |\n| &&
+             `        Lib.cancelPendingTimers(ctx);` && |\n| &&
+             `        this.roundtrip(ctx, {});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      roundtrip(oBody = {}) {` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
+             `      roundtrip(ctx, oBody = {}) {` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
              `` && |\n| &&
              `        state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
@@ -102,9 +94,9 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        const oConfig = state.oConfig;` && |\n| &&
              `` && |\n| &&
              `        const config = {` && |\n| &&
-             `          ...Session.config(oConfig, oBody.ID),` && |\n| &&
-             `          S_FOCUS: ScrollFocus.getFocusInfo(),` && |\n| &&
-             `          S_SCROLL: ScrollFocus.getScrollInfo(),` && |\n| &&
+             `          ...Session.config(ctx, oConfig, oBody.ID),` && |\n| &&
+             `          S_FOCUS: ScrollFocus.getFocusInfo(ctx),` && |\n| &&
+             `          S_SCROLL: ScrollFocus.getScrollInfo(ctx),` && |\n| &&
              `        };` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
@@ -118,7 +110,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          sFront.CONFIG = config;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        Object.assign(sFront, Session.location(oBody.ID));` && |\n| &&
+             `        Object.assign(sFront, Session.location(ctx, oBody.ID));` && |\n| &&
              `` && |\n| &&
              `        if (oBody.ARGUMENTS) oBody.ARGUMENTS.shift();` && |\n| &&
              `        sFront.T_EVENT_ARG = oBody.ARGUMENTS;` && |\n| &&
@@ -131,7 +123,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        if (!sFront.HASH) delete sFront.HASH;` && |\n| &&
              `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
              `` && |\n| &&
-             `        this.readHttp(oBody, Session.takePending());` && |\n| &&
+             `        this.readHttp(ctx, oBody, Session.takePending(ctx));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      createTimeoutSignal(ms) {` && |\n| &&
@@ -146,9 +138,9 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _abortInflight() {` && |\n| &&
-             `        for (const controller of this._inflight) controller.abort();` && |\n| &&
-             `        this._inflight.clear();` && |\n| &&
+             `      _abortInflight(ctx) {` && |\n| &&
+             `        for (const controller of ctx.server.inflight) controller.abort();` && |\n| &&
+             `        ctx.server.inflight.clear();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _combineSignals(a, b) {` && |\n| &&
@@ -167,24 +159,24 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        return controller.signal;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async readHttp(oBody, sessionCarried) {` && |\n| &&
+             `      async readHttp(ctx, oBody, sessionCarried) {` && |\n| &&
              `        const { signal: timeoutSignal, cancel } =` && |\n| &&
              `          this.createTimeoutSignal(REQUEST_TIMEOUT_MS);` && |\n| &&
              `` && |\n| &&
              `        const oRetry = {` && |\n| &&
              `          onRetry: () => {` && |\n| &&
-             `            AppState.state.isBusy = true;` && |\n| &&
+             `            ctx.state.isBusy = true;` && |\n| &&
              `            BusyIndicator.show(0);` && |\n| &&
-             `            this.readHttp(oBody, sessionCarried);` && |\n| &&
+             `            this.readHttp(ctx, oBody, sessionCarried);` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
-             `        const seq = ++this._requestSeq;` && |\n| &&
-             `        const isStale = () => seq !== this._requestSeq;` && |\n| &&
+             `        const seq = ++ctx.server.requestSeq;` && |\n| &&
+             `        const isStale = () => seq !== ctx.server.requestSeq;` && |\n| &&
              `` && |\n| &&
-             `        this._abortInflight();` && |\n| &&
+             `        this._abortInflight(ctx);` && |\n| &&
              `        const superseder = new AbortController();` && |\n| &&
-             `        this._inflight.add(superseder);` && |\n| &&
+             `        ctx.server.inflight.add(superseder);` && |\n| &&
              `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
@@ -193,13 +185,13 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `              "Content-Type": "application/json",` && |\n| &&
              `              "sap-contextid-accept": "header",` && |\n| &&
              `            };` && |\n| &&
-             `            if (Lib.isValidContextId(AppState.state.contextId)) {` && |\n| &&
-             `              headers["sap-contextid"] = AppState.state.contextId;` && |\n| &&
+             `            if (Lib.isValidContextId(ctx.state.contextId)) {` && |\n| &&
+             `              headers["sap-contextid"] = ctx.state.contextId;` && |\n| &&
              `            }` && |\n| &&
              `            const body = JSON.stringify({ value: oBody });` && |\n| &&
              `` && |\n| &&
-             `            AppState.state.lastRequestBytes = body.length;` && |\n| &&
-             `            response = await fetch(AppState.state.url, {` && |\n| &&
+             `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
+             `            response = await fetch(ctx.state.url, {` && |\n| &&
              `              method: "POST",` && |\n| &&
              `              headers,` && |\n| &&
              `              body,` && |\n| &&
@@ -209,12 +201,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              this.responseError(` && |\n| &&
+             `                ctx,` && |\n| &&
              `                ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
              `                undefined,` && |\n| &&
              `                oRetry,` && |\n| &&
              `              );` && |\n| &&
              `            } else {` && |\n| &&
              `              this.responseError(` && |\n| &&
+             `                ctx,` && |\n| &&
              `                ``Network error: ${e.message}``,` && |\n| &&
              `                undefined,` && |\n| &&
              `                oRetry,` && |\n| &&
@@ -227,7 +221,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
              `          if (Lib.isValidContextId(contextId)) {` && |\n| &&
-             `            AppState.state.contextId = contextId;` && |\n| &&
+             `            ctx.state.contextId = contextId;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!response.ok) {` && |\n| &&
@@ -239,7 +233,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
              `` && |\n| &&
-             `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
+             `            this.responseError(ctx, text || ``HTTP ${response.status}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -248,13 +242,13 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            responseData = await response.json();` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
-             `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
+             `            this.responseError(ctx, ``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
-             `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
+             `            this.responseError(ctx, "Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -263,6 +257,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            responseData.S_FRONT.PROTOCOL !== this.PROTOCOL` && |\n| &&
              `          ) {` && |\n| &&
              `            this.responseError(` && |\n| &&
+             `              ctx,` && |\n| &&
              `              "Protocol mismatch: this frontend speaks " +` && |\n| &&
              `                this.PROTOCOL +` && |\n| &&
              `                ", the backend answered " +` && |\n| &&
@@ -272,13 +267,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          AppState.state.responseData = responseData;` && |\n| &&
+             `          ctx.state.responseData = responseData;` && |\n| &&
              `` && |\n| &&
-             `          Session.confirmSent(sessionCarried);` && |\n| &&
+             `          Session.confirmSent(ctx, sessionCarried);` && |\n| &&
              `` && |\n| &&
-             `          this._clearSentPaths(AppState.state.oSentModel);` && |\n| &&
-             `          AppState.state.oSentModel = null;` && |\n| &&
+             `          this._clearSentPaths(ctx.state.oSentModel);` && |\n| &&
+             `          ctx.state.oSentModel = null;` && |\n| &&
              `          this.responseSuccess(` && |\n| &&
+             `            ctx,` && |\n| &&
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
              `              S_ACTION: responseData.S_FRONT.S_ACTION,` && |\n| &&
@@ -292,9 +288,9 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            seq,` && |\n| &&
              `          );` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          if (!isStale()) this.responseError(e);` && |\n| &&
+             `          if (!isStale()) this.responseError(ctx, e);` && |\n| &&
              `        } finally {` && |\n| &&
-             `          this._inflight.delete(superseder);` && |\n| &&
+             `          ctx.server.inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -315,10 +311,10 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async responseSuccess(response, reqSeq) {` && |\n| &&
-             `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
+             `      async responseSuccess(ctx, response, reqSeq) {` && |\n| &&
+             `        const oController = ViewSlots.getController(ctx, "MAIN");` && |\n| &&
              `        try {` && |\n| &&
-             `          AppState.state.oResponse = response;` && |\n| &&
+             `          ctx.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          const followUp = response.S_ACTION;` && |\n| &&
              `` && |\n| &&
@@ -327,29 +323,29 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          await oController._processAfterRendering(reqSeq);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
-             `          AppState.state.isBusy = false;` && |\n| &&
+             `          ctx.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
-             `          this.showRenderError(e);` && |\n| &&
+             `          this.showRenderError(ctx, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      showRenderError(e, title) {` && |\n| &&
+             `      showRenderError(ctx, e, title) {` && |\n| &&
              `        const msg = e?.message || "";` && |\n| &&
              `        if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
-             `          this._checkSDKcompatibility(e);` && |\n| &&
+             `          this._checkSDKcompatibility(ctx, e);` && |\n| &&
              `        } else {` && |\n| &&
-             `          this.responseError(e, title);` && |\n| &&
+             `          this.responseError(ctx, e, title);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async _checkSDKcompatibility(err) {` && |\n| &&
+             `      async _checkSDKcompatibility(ctx, err) {` && |\n| &&
              `        let gav;` && |\n| &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
-             `          this.responseError(err);` && |\n| &&
+             `          this.responseError(ctx, err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
@@ -357,19 +353,20 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          const missingModule =` && |\n| &&
              `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&
              `          this.responseError(` && |\n| &&
+             `            ctx,` && |\n| &&
              `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        this.responseError(err);` && |\n| &&
+             `        this.responseError(ctx, err);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      responseError(response, title, oOptions) {` && |\n| &&
+             `      responseError(ctx, response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
-             `        AppState.state.isBusy = false;` && |\n| &&
+             `        ctx.state.isBusy = false;` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.oQueuedEvent = null;` && |\n| &&
-             `        ErrorView.show(response, title, oOptions);` && |\n| &&
+             `        ctx.state.oQueuedEvent = null;` && |\n| &&
+             `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

@@ -32,8 +32,9 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Message, Lib, Env, ViewSlots) => {` && |\n| &&
+             `  (Control, Message, Lib, Env, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const KEY_SEP = String.fromCharCode(1);` && |\n| &&
@@ -78,9 +79,19 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        const messaging = Env.getMessaging();` && |\n| &&
              `        if (!Lib.claimOnce(this, messaging)) return;` && |\n| &&
              `        this._messaging = messaging;` && |\n| &&
-             `        const view = ViewSlots.getView(` && |\n| &&
-             `          ViewSlots.containingSlotKey(this) ?? "MAIN",` && |\n| &&
-             `        );` && |\n| &&
+             `` && |\n| &&
+             `        const ctx = Context.of(this);` && |\n| &&
+             `        if (!ctx) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "MessageManager.setup: no component context, messages carry no processor",` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        const view = ctx` && |\n| &&
+             `          ? ViewSlots.getView(` && |\n| &&
+             `              ctx,` && |\n| &&
+             `              ViewSlots.containingSlotKey(ctx, this) ?? "MAIN",` && |\n| &&
+             `            )` && |\n| &&
+             `          : undefined;` && |\n| &&
              `        this._processor = view?.getModel?.() ?? null;` && |\n| &&
              `        this._ready = true;` && |\n| &&
              `` && |\n| &&

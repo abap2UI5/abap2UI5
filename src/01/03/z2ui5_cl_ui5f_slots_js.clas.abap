@@ -30,22 +30,18 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    "sap/ui/core/mvc/XMLView",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (XMLView, Fragment, JSONModel, Server, Lib, Env, ViewSlots, AppState) => {` && |\n| &&
+             `  (XMLView, Fragment, JSONModel, Lib, Env, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
+             `    function applyStoredSizeLimit(ctx, viewKey, oModel) {` && |\n| &&
              `      if (!oModel) return;` && |\n| &&
              `` && |\n| &&
-             `      const limit = Lib.effectiveSizeLimit(` && |\n| &&
-             `        AppState.state.viewSizeLimits,` && |\n| &&
-             `        viewKey,` && |\n| &&
-             `      );` && |\n| &&
+             `      const limit = Lib.effectiveSizeLimit(ctx.state.viewSizeLimits, viewKey);` && |\n| &&
              `      if (limit !== undefined) oModel.setSizeLimit(limit);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -79,32 +75,36 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function createViewModel(` && |\n| &&
+             `      ctx,` && |\n| &&
              `      slotKey = "MAIN",` && |\n| &&
-             `      data = AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `      data = ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
              `    ) {` && |\n| &&
              `      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
              `` && |\n| &&
-             `      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {` && |\n| &&
-             `        oModel._z2ui5BuiltFrom = AppState.state.oResponse;` && |\n| &&
+             `      if (data && data === ctx.state.oResponse?.OVIEWMODEL) {` && |\n| &&
+             `        oModel._z2ui5BuiltFrom = ctx.state.oResponse;` && |\n| &&
              `      }` && |\n| &&
              `      return oModel;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isSuperseded(seq) {` && |\n| &&
-             `      return seq !== undefined && seq !== Server._requestSeq;` && |\n| &&
+             `    function isSuperseded(ctx, seq) {` && |\n| &&
+             `      return seq !== undefined && seq !== ctx.server.requestSeq;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function loadSlotFragment(slotKey, fragmentId, xml, seq) {` && |\n| &&
-             `      const oModel = createViewModel(slotKey);` && |\n| &&
-             `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
+             `    async function loadSlotFragment(ctx, slotKey, fragmentId, xml, seq) {` && |\n| &&
+             `      const oModel = createViewModel(ctx, slotKey);` && |\n| &&
+             `      applyStoredSizeLimit(ctx, slotKey, oModel);` && |\n| &&
              `` && |\n| &&
              `      await Env.preloadFragmentModules(xml);` && |\n| &&
-             `      const oFragment = await Fragment.load({` && |\n| &&
-             `        definition: xml,` && |\n| &&
-             `        controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `        id: ViewSlots.ownId(fragmentId),` && |\n| &&
-             `      });` && |\n| &&
-             `      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {` && |\n| &&
+             `` && |\n| &&
+             `      const oFragment = await Context.runAsOwner(ctx, () =>` && |\n| &&
+             `        Fragment.load({` && |\n| &&
+             `          definition: xml,` && |\n| &&
+             `          controller: ViewSlots.getController(ctx, slotKey),` && |\n| &&
+             `          id: ViewSlots.ownId(ctx, fragmentId),` && |\n| &&
+             `        }),` && |\n| &&
+             `      );` && |\n| &&
+             `      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {` && |\n| &&
              `        oFragment.destroy();` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&
@@ -112,16 +112,23 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      return oFragment;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayFragment(xml, seq) {` && |\n| &&
-             `      const oFragment = await loadSlotFragment("POPUP", "popupId", xml, seq);` && |\n| &&
+             `    async function displayFragment(ctx, xml, seq) {` && |\n| &&
+             `      const oFragment = await loadSlotFragment(` && |\n| &&
+             `        ctx,` && |\n| &&
+             `        "POPUP",` && |\n| &&
+             `        "popupId",` && |\n| &&
+             `        xml,` && |\n| &&
+             `        seq,` && |\n| &&
+             `      );` && |\n| &&
              `      if (!oFragment) return;` && |\n| &&
              `` && |\n| &&
-             `      ViewSlots.setView("POPUP", oFragment, xml);` && |\n| &&
+             `      ViewSlots.setView(ctx, "POPUP", oFragment, xml);` && |\n| &&
              `      oFragment.open();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayPopover(xml, openById, seq) {` && |\n| &&
+             `    async function displayPopover(ctx, xml, openById, seq) {` && |\n| &&
              `      const oFragment = await loadSlotFragment(` && |\n| &&
+             `        ctx,` && |\n| &&
              `        "POPOVER",` && |\n| &&
              `        "popoverId",` && |\n| &&
              `        xml,` && |\n| &&
@@ -129,14 +136,14 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      );` && |\n| &&
              `      if (!oFragment) return;` && |\n| &&
              `` && |\n| &&
-             `      const oControl = ViewSlots.resolveById(openById);` && |\n| &&
+             `      const oControl = ViewSlots.resolveById(ctx, openById);` && |\n| &&
              `` && |\n| &&
              `      if (!oControl) {` && |\n| &&
              `        Lib.logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `        oFragment.destroy();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.setView("POPOVER", oFragment, xml);` && |\n| &&
+             `      ViewSlots.setView(ctx, "POPOVER", oFragment, xml);` && |\n| &&
              `` && |\n| &&
              `      Lib.whenRendered(oControl, oFragment, () => oFragment.openBy(oControl));` && |\n| &&
              `    }` && |\n| &&
@@ -146,17 +153,19 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      return { xml: { models: { template: oTemplateModel } } };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayNestedView(xml, slotKey, mOptions, seq) {` && |\n| &&
-             `      const oMainView = ViewSlots.getView("MAIN");` && |\n| &&
+             `    async function displayNestedView(ctx, xml, slotKey, mOptions, seq) {` && |\n| &&
+             `      const oMainView = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
              `      const oTemplateModel =` && |\n| &&
              `        oMainView?.getModel("http") ?? oMainView?.getModel();` && |\n| &&
-             `      const oView = await XMLView.create({` && |\n| &&
-             `        definition: xml,` && |\n| &&
-             `        controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `        preprocessors: templatePreprocessors(xml, oTemplateModel),` && |\n| &&
-             `      });` && |\n| &&
+             `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
+             `        XMLView.create({` && |\n| &&
+             `          definition: xml,` && |\n| &&
+             `          controller: ViewSlots.getController(ctx, slotKey),` && |\n| &&
+             `          preprocessors: templatePreprocessors(xml, oTemplateModel),` && |\n| &&
+             `        }),` && |\n| &&
+             `      );` && |\n| &&
              `` && |\n| &&
-             `      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {` && |\n| &&
+             `      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {` && |\n| &&
              `        oView.destroy();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -167,7 +176,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        methodInsert: METHOD_INSERT,` && |\n| &&
              `      } = mOptions;` && |\n| &&
              `` && |\n| &&
-             `      const oParent = ViewSlots.byId("MAIN", ID);` && |\n| &&
+             `      const oParent = ViewSlots.byId(ctx, "MAIN", ID);` && |\n| &&
              `      if (!oParent) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
@@ -193,11 +202,11 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        oView.destroy();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.setView(slotKey, oView, xml);` && |\n| &&
+             `      ViewSlots.setView(ctx, slotKey, oView, xml);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayView(xml, viewModel, mOptions = {}) {` && |\n| &&
-             `      const oViewModel = createViewModel("MAIN", viewModel);` && |\n| &&
+             `    async function displayView(ctx, xml, viewModel, mOptions = {}) {` && |\n| &&
+             `      const oViewModel = createViewModel(ctx, "MAIN", viewModel);` && |\n| &&
              `` && |\n| &&
              `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
              `` && |\n| &&
@@ -209,89 +218,92 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          annotationURI: mOptions.switchDefaultModelAnnoUri || "",` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.odataClients.add(oModel);` && |\n| &&
+             `        ctx.state.odataClients.add(oModel);` && |\n| &&
              `      } else {` && |\n| &&
              `        oModel = oViewModel;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      applyStoredSizeLimit("MAIN", oViewModel);` && |\n| &&
-             `      if (switchPath) applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
+             `      applyStoredSizeLimit(ctx, "MAIN", oViewModel);` && |\n| &&
+             `      if (switchPath) applyStoredSizeLimit(ctx, "MAIN", oModel);` && |\n| &&
              `` && |\n| &&
-             `      const oView = await XMLView.create({` && |\n| &&
-             `        definition: xml,` && |\n| &&
-             `        models: oModel,` && |\n| &&
-             `        controller: ViewSlots.getController("MAIN"),` && |\n| &&
+             `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
+             `        XMLView.create({` && |\n| &&
+             `          definition: xml,` && |\n| &&
+             `          models: oModel,` && |\n| &&
+             `          controller: ViewSlots.getController(ctx, "MAIN"),` && |\n| &&
              `` && |\n| &&
-             `        id: ViewSlots.ownId("mainView"),` && |\n| &&
-             `        preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
-             `      });` && |\n| &&
+             `          id: ViewSlots.ownId(ctx, "mainView"),` && |\n| &&
+             `          preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
+             `        }),` && |\n| &&
+             `      );` && |\n| &&
              `` && |\n| &&
              `      const discardBuild = () => {` && |\n| &&
              `        oView.destroy();` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.odataClients.delete(oModel);` && |\n| &&
+             `        ctx.state.odataClients.delete(oModel);` && |\n| &&
              `        oModel.destroy();` && |\n| &&
              `        if (switchPath) oViewModel.destroy();` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
-             `      if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `      if (!Lib.isAlive(ctx.state.oApp)) {` && |\n| &&
              `        discardBuild();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      ViewSlots.setView("MAIN", oView, xml);` && |\n| &&
+             `      ViewSlots.setView(ctx, "MAIN", oView, xml);` && |\n| &&
              `      if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
-             `      AppState.state.oApp.removeAllPages();` && |\n| &&
-             `      AppState.state.oApp.insertPage(oView);` && |\n| &&
+             `      ctx.state.oApp.removeAllPages();` && |\n| &&
+             `      ctx.state.oApp.insertPage(oView);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function displayMain(xml, mOptions, seq) {` && |\n| &&
-             `      Server._viewBuild = Promise.resolve(Server._viewBuild)` && |\n| &&
+             `    function displayMain(ctx, xml, mOptions, seq) {` && |\n| &&
+             `      ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild)` && |\n| &&
              `        .catch(() => {})` && |\n| &&
              `        .then(() => {` && |\n| &&
-             `          if (isSuperseded(seq)) {` && |\n| &&
+             `          if (isSuperseded(ctx, seq)) {` && |\n| &&
              `            return undefined;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          ViewSlots.destroy("MAIN");` && |\n| &&
+             `          ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
-             `          for (const oClient of AppState.state.odataClients) {` && |\n| &&
+             `          for (const oClient of ctx.state.odataClients) {` && |\n| &&
              `            try {` && |\n| &&
              `              oClient.destroy();` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             `          AppState.state.odataClients.clear();` && |\n| &&
+             `          ctx.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
-             `          ViewSlots.destroy("POPUP");` && |\n| &&
-             `          ViewSlots.destroy("POPOVER");` && |\n| &&
+             `          ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
+             `          ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
              `          return displayView(` && |\n| &&
+             `            ctx,` && |\n| &&
              `            xml,` && |\n| &&
-             `            AppState.state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `            ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
              `            mOptions,` && |\n| &&
              `          );` && |\n| &&
              `        });` && |\n| &&
-             `      return Server._viewBuild;` && |\n| &&
+             `      return ctx.server.viewBuild;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function updateModelIfRequired(slotKey) {` && |\n| &&
-             `      const oView = ViewSlots.getView(slotKey);` && |\n| &&
+             `    function updateModelIfRequired(ctx, slotKey) {` && |\n| &&
+             `      const oView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
              `      if (!oView) return;` && |\n| &&
              `` && |\n| &&
-             `      const sSlotApp = ViewSlots.getViewApp(slotKey);` && |\n| &&
-             `      const sResponseApp = AppState.state.oResponse?.APP;` && |\n| &&
+             `      const sSlotApp = ViewSlots.getViewApp(ctx, slotKey);` && |\n| &&
+             `      const sResponseApp = ctx.state.oResponse?.APP;` && |\n| &&
              `      if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;` && |\n| &&
              `` && |\n| &&
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
              `      if (tracked) {` && |\n| &&
              `        if (` && |\n| &&
              `          tracked._z2ui5BuiltFrom &&` && |\n| &&
-             `          tracked._z2ui5BuiltFrom === AppState.state.oResponse` && |\n| &&
+             `          tracked._z2ui5BuiltFrom === ctx.state.oResponse` && |\n| &&
              `        ) {` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
+             `        applyStoredSizeLimit(ctx, slotKey, tracked);` && |\n| &&
              `` && |\n| &&
              `        const pending = tracked._z2ui5ChangedPaths;` && |\n| &&
              `        const keep = [];` && |\n| &&
@@ -302,9 +314,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `            if (value !== undefined) keep.push([path, value]);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `        tracked.setData(` && |\n| &&
-             `          dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),` && |\n| &&
-             `        );` && |\n| &&
+             `        tracked.setData(dataForSlot(slotKey, ctx.state.oResponse?.OVIEWMODEL));` && |\n| &&
              `` && |\n| &&
              `        keep.forEach(([path, value], i) => {` && |\n| &&
              `          tracked.setProperty(path, value, undefined, i < keep.length - 1);` && |\n| &&
@@ -312,36 +322,36 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const oModel = createViewModel(slotKey);` && |\n| &&
-             `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
+             `      const oModel = createViewModel(ctx, slotKey);` && |\n| &&
+             `      applyStoredSizeLimit(ctx, slotKey, oModel);` && |\n| &&
              `      oView.setModel(oModel);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function action(method, slotKey, xml, mOptions, seq) {` && |\n| &&
+             `    function action(ctx, method, slotKey, xml, mOptions, seq) {` && |\n| &&
              `      const options = mOptions || {};` && |\n| &&
              `      if (method === "destroy") {` && |\n| &&
-             `        ViewSlots.destroy(slotKey);` && |\n| &&
+             `        ViewSlots.destroy(ctx, slotKey);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
              `      if (method === "updateModel") {` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          if (slot.ownsModel) updateModelIfRequired(slot.key);` && |\n| &&
+             `          if (slot.ownsModel) updateModelIfRequired(ctx, slot.key);` && |\n| &&
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (isSuperseded(seq)) return undefined;` && |\n| &&
+             `      if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
              `` && |\n| &&
              `      if (slotKey === "MAIN") {` && |\n| &&
-             `        AppState.state.lastMainDisplayOptions = options;` && |\n| &&
-             `        return displayMain(xml, options, seq);` && |\n| &&
+             `        ctx.state.lastMainDisplayOptions = options;` && |\n| &&
+             `        return displayMain(ctx, xml, options, seq);` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.destroy(slotKey);` && |\n| &&
-             `      if (slotKey === "POPUP") return displayFragment(xml, seq);` && |\n| &&
+             `      ViewSlots.destroy(ctx, slotKey);` && |\n| &&
+             `      if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);` && |\n| &&
              `      if (slotKey === "POPOVER") {` && |\n| &&
-             `        return displayPopover(xml, options.openById, seq);` && |\n| &&
+             `        return displayPopover(ctx, xml, options.openById, seq);` && |\n| &&
              `      }` && |\n| &&
-             `      return displayNestedView(xml, slotKey, options, seq);` && |\n| &&
+             `      return displayNestedView(ctx, xml, slotKey, options, seq);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&

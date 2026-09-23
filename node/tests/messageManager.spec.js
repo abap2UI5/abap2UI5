@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, contextStub } = require("./loadLibModule");
 
 // Tests the real app/webapp/cc/MessageManager.js. The companion control keeps
 // the UI5 message manager in sync with its bound `items` table (the
@@ -19,8 +20,15 @@ function controlStub() {
   };
 }
 
-function load() {
+// `context: false` loads the control as one in no component (Context.of
+// answers null): the slot view, and with it the processor, is out of reach.
+function load({ context = true } = {}) {
   const callbacks = { onAfterRendering: [] };
+  const errors = [];
+  const ctx = specContext();
+  const Context = context
+    ? contextStub(ctx)
+    : { ...contextStub(ctx), of: () => null };
   const messaging = {
     added: [],
     removed: [],
@@ -31,6 +39,7 @@ function load() {
   const view = { getModel: () => PROCESSOR };
 
   const Lib = {
+    logError: (m) => errors.push(m),
     registerCallback: (name, fn) => {
       (callbacks[name] = callbacks[name] || []).push(fn);
     },
@@ -51,9 +60,15 @@ function load() {
       return true;
     },
   };
+  // ctx-first, as ViewSlots takes them: the slot lookups record the
+  // context they were asked for
+  const slotLookups = [];
   const ViewSlots = {
-    getView: () => view,
-    containingSlotKey: () => "MAIN",
+    getView: (c, key) => {
+      slotLookups.push([c, key]);
+      return view;
+    },
+    containingSlotKey: (c) => (c === ctx ? "MAIN" : undefined),
   };
   function Message(o) {
     Object.assign(this, o);
@@ -67,10 +82,11 @@ function load() {
       // the stub carries the Env probes this module uses as well
       "z2ui5/core/Env": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
+      "z2ui5/core/Context": Context,
     },
   });
 
-  return { Ext, callbacks, messaging, PROCESSOR };
+  return { Ext, callbacks, messaging, PROCESSOR, ctx, slotLookups, errors };
 }
 
 // Instantiate with a tiny property store + a change counter.
@@ -97,6 +113,35 @@ test.describe("MessageManager companion control", () => {
     expect(env.callbacks.onAfterRendering).toHaveLength(1);
     ext.exit();
     expect(env.callbacks.onAfterRendering).toHaveLength(0);
+  });
+
+  test("the processor is the model of the slot view in the control's own context", () => {
+    const env = load();
+    const ext = makeExt(env);
+    ext.init();
+    ext.setup();
+    expect(env.slotLookups).toEqual([[env.ctx, "MAIN"]]);
+    expect(ext._processor).toBe(env.PROCESSOR);
+    expect(env.errors).toEqual([]);
+  });
+
+  // In no component there is no slot view to take the processor from: the
+  // messages still reach the message manager (without a processor a target
+  // sets no field's valueState), and the gap is logged, not thrown.
+  test("in no component the messages carry no processor, logged", () => {
+    const env = load({ context: false });
+    const ext = makeExt(env);
+    ext.init();
+    expect(() => ext.setup()).not.toThrow();
+    expect(env.slotLookups).toEqual([]);
+    expect(ext._processor).toBeNull();
+    expect(env.errors).toEqual([
+      "MessageManager.setup: no component context, messages carry no processor",
+    ]);
+
+    ext.setItems([{ MESSAGE: "m", TYPE: "Error", TARGET: "/X" }]);
+    expect(env.messaging.added).toHaveLength(1);
+    expect(env.messaging.added[0].processor).toBeNull();
   });
 
   test("adds a new app message as a Message with target + processor", () => {

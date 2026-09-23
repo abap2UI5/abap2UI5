@@ -1,42 +1,27 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
 // app/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
 // The recorder observes the framework from the outside - through the
-// onAfterRendering callback array and the browser's Resource Timing API -
-// so the harness below stubs exactly those two surfaces and nothing else.
+// onAfterRendering callback array of its component context and the
+// browser's Resource Timing API - so the harness below builds one spec
+// context with the real core/Lib on it (the callback arrays are the
+// shipped ones) and stubs the Resource Timing surface, nothing else.
 
 const PAGE_URL = "https://sap.example.com/ui5/index.html";
 const BACKEND_PATH = "/sap/z2ui5";
 const BACKEND_URL = "https://sap.example.com/sap/z2ui5";
 
 function loadRecorder({ storage = {} } = {}) {
-  // Callback arrays the recorder registers into, mirroring Lib's contract.
-  const callbacks = {};
-  const logged = [];
-  const state = {
-    responseData: null,
-    oBody: null,
-    errors: [],
-    url: BACKEND_PATH,
-  };
-
-  const AppState = { state };
-  const Lib = {
-    registerCallback(name, fn) {
-      if (!callbacks[name]) callbacks[name] = [];
-      callbacks[name].push(fn);
-    },
-    unregisterCallback(name, fn) {
-      if (!callbacks[name]) return;
-      callbacks[name] = callbacks[name].filter((f) => f !== fn);
-    },
-    logError(message) {
-      logged.push(message);
-    },
-  };
+  // The one spec context: its state carries the callback arrays the
+  // recorder registers into (the real Lib.registerCallback) and the
+  // request/response the render hook reads.
+  const { Lib, ctx, state } = loadLib({
+    state: { responseData: null, oBody: null, url: BACKEND_PATH },
+  });
 
   // Resource Timing double: `entries` is what getEntriesByName returns and
   // `deliver()` is what the PerformanceObserver hands over, so the ordering
@@ -92,7 +77,6 @@ function loadRecorder({ storage = {} } = {}) {
     // stubbed below, so autoLoad reaches only those
     autoLoad: true,
     deps: {
-      "z2ui5/core/AppState": AppState,
       "z2ui5/core/Lib": Lib,
     },
     sandbox: {
@@ -119,24 +103,25 @@ function loadRecorder({ storage = {} } = {}) {
   }
 
   function fireAfterRendering() {
-    for (const fn of callbacks.onAfterRendering || []) fn();
+    for (const fn of state.onAfterRendering || []) fn();
   }
 
   return {
     Recorder: module,
+    ctx,
     state,
     clock,
     storage,
-    logged,
+    // Lib.logError's ring, page-wide - what the render hook logs into
+    logged: Lib.errors,
     addEntry,
     deliverToObserver,
     fireAfterRendering,
-    callbacks,
     pagehide: () => windowListeners.pagehide?.(),
   };
 }
 
-// A response as Server.readHttp parks it in AppState.state.responseData.
+// A response as Server.readHttp parks it in ctx.state.responseData.
 function fakeResponse({
   id = "draft-new",
   app = "ZCL_APP",
@@ -159,7 +144,7 @@ function fakeRequest({ event = "SAVE", id = "draft-prev", model } = {}) {
 test.describe("Tier 1 - metadata", () => {
   test("records one roundtrip with timing, sizes and action counts", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
 
     h.state.oBody = fakeRequest({ event: "SAVE" });
     h.state.responseData = fakeResponse({
@@ -170,7 +155,7 @@ test.describe("Tier 1 - metadata", () => {
     h.clock.value = 200;
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(record.seq).toBe(1);
     expect(record.event).toBe("SAVE");
     expect(record.idSent).toBe("draft-prev");
@@ -187,24 +172,24 @@ test.describe("Tier 1 - metadata", () => {
 
   test("measures the serialized request size", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     const body = fakeRequest({ model: { NAME: "abc" } });
     h.state.oBody = body;
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(record.reqBytes).toBe(JSON.stringify({ value: body }).length);
   });
 
   test("keeps no payloads unless recording is switched on", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ model: { A: 1 } });
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(h.Recorder.isRecordingPayloads()).toBe(false);
     expect(record.request).toBe(null);
     expect(record.response).toBe(null);
@@ -212,12 +197,12 @@ test.describe("Tier 1 - metadata", () => {
 
   test("records a roundtrip even without any Resource Timing entry", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest({ event: "REFRESH" });
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(record.event).toBe("REFRESH");
     expect(record.backendMs).toBe(null);
     expect(record.respBytes).toBe(null);
@@ -226,14 +211,14 @@ test.describe("Tier 1 - metadata", () => {
 
   test("caps the ring at MAX_RECORDS and keeps the running numbers", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     const max = h.Recorder._internals.MAX_RECORDS;
     for (let i = 0; i < max + 5; i++) {
       h.state.oBody = fakeRequest({ event: `E${i}` });
       h.state.responseData = fakeResponse();
       h.fireAfterRendering();
     }
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list.length).toBe(max);
     // the ring dropped the first five, so numbering starts at 6
     expect(list[0].seq).toBe(6);
@@ -244,14 +229,14 @@ test.describe("Tier 1 - metadata", () => {
 test.describe("network pairing", () => {
   test("a request that never rendered is kept as its own row", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     // an aborted / failed roundtrip: observed on the wire, no render
     h.addEntry({ start: 10, end: 20, bytes: 64 });
     h.deliverToObserver();
     // far enough past UNPAIRED_FLUSH_MS that no render can still be coming
     h.clock.value = 10000;
 
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list.length).toBe(1);
     expect(list[0].rendered).toBe(false);
     expect(list[0].backendMs).toBe(10);
@@ -259,7 +244,7 @@ test.describe("network pairing", () => {
     // stamped with the time the request went OUT (origin + its start mark),
     // not with the time of the flush seconds later
     expect(list[0].ts).toBe("2026-01-01T12:00:00.010Z");
-    expect(h.Recorder.formatHistory()).toContain("(no render)");
+    expect(h.Recorder.formatHistory(h.ctx)).toContain("(no render)");
   });
 
   // The flush appends, but the roundtrip it records happened BEFORE the
@@ -267,7 +252,7 @@ test.describe("network pairing", () => {
   // in the order things happened
   test("a flushed unrendered row sorts by its own time, not by the flush", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.addEntry({ start: 10, end: 20, bytes: 64 }); // fails, never renders
     h.deliverToObserver();
     h.addEntry({ start: 30, end: 40, bytes: 64 });
@@ -279,14 +264,14 @@ test.describe("network pairing", () => {
     h.clock.value = 65;
     h.fireAfterRendering();
 
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list.map((r) => r.rendered)).toEqual([false, true, true]);
     expect(list.map((r) => r.ts)).toEqual([...list.map((r) => r.ts)].sort());
   });
 
   test("pairs the render with the request that finished before it", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     // an older, superseded request plus the one that actually rendered
     h.addEntry({ start: 10, end: 20, bytes: 10 });
     h.addEntry({ start: 100, end: 150, bytes: 500 });
@@ -295,7 +280,7 @@ test.describe("network pairing", () => {
     h.clock.value = 170;
     h.fireAfterRendering();
 
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list.length).toBe(2);
     // the superseded one is flushed first, keeping the timeline in order
     expect(list[0].rendered).toBe(false);
@@ -306,7 +291,7 @@ test.describe("network pairing", () => {
 
   test("does not consume the same entry twice from both sources", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.addEntry({ start: 100, end: 150, bytes: 500 });
     // observer delivers first, then the render path sweeps synchronously
     h.deliverToObserver();
@@ -315,7 +300,7 @@ test.describe("network pairing", () => {
     h.clock.value = 160;
     h.fireAfterRendering();
 
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list.length).toBe(1);
     expect(list[0].rendered).toBe(true);
     expect(list[0].backendMs).toBe(50);
@@ -325,8 +310,8 @@ test.describe("network pairing", () => {
 test.describe("Tier 2 - payloads", () => {
   test("retains request and response once switched on", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     expect(h.Recorder.isRecordingPayloads()).toBe(true);
 
     const body = fakeRequest();
@@ -335,7 +320,7 @@ test.describe("Tier 2 - payloads", () => {
     h.state.responseData = response;
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     // plain references, no clone - see the module header
     expect(record.request).toBe(body);
     expect(record.response).toBe(response);
@@ -344,7 +329,7 @@ test.describe("Tier 2 - payloads", () => {
   test("the flag survives in sessionStorage", () => {
     const storage = {};
     const h = loadRecorder({ storage });
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     expect(storage[h.Recorder._internals.PAYLOAD_FLAG_KEY]).toBe("X");
 
     // a fresh module instance (page reload) sees the same flag
@@ -354,15 +339,15 @@ test.describe("Tier 2 - payloads", () => {
 
   test("switching off drops what was already retained", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ model: { A: 1 } });
     h.fireAfterRendering();
-    expect(h.Recorder.getRecords()[0].response).not.toBe(null);
+    expect(h.Recorder.getRecords(h.ctx)[0].response).not.toBe(null);
 
-    h.Recorder.setRecordingPayloads(false);
-    const [record] = h.Recorder.getRecords();
+    h.Recorder.setRecordingPayloads(h.ctx, false);
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(record.request).toBe(null);
     expect(record.response).toBe(null);
     // the metadata row survives the payload drop
@@ -371,8 +356,8 @@ test.describe("Tier 2 - payloads", () => {
 
   test("evicts the oldest payloads when the byte budget is exceeded", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     const budget = h.Recorder._internals.PAYLOAD_BUDGET_BYTES;
     // three roundtrips of ~60% of the budget each: the first must go
     const chunk = Math.round(budget * 0.6);
@@ -383,18 +368,18 @@ test.describe("Tier 2 - payloads", () => {
       h.clock.value = i * 100 + 20;
       h.fireAfterRendering();
     }
-    const list = h.Recorder.getRecords();
+    const list = h.Recorder.getRecords(h.ctx);
     expect(list[0].response).toBe(null);
     expect(list[0].payloadEvicted).toBe(true);
     // the newest is always kept
     expect(list[list.length - 1].response).not.toBe(null);
-    expect(h.Recorder.formatHistory()).toContain("evicted");
+    expect(h.Recorder.formatHistory(h.ctx)).toContain("evicted");
   });
 });
 
 test.describe("model diff", () => {
   function recordTwo(h, modelA, modelB) {
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest({ event: "FIRST" });
     h.state.responseData = fakeResponse({ model: modelA });
     h.fireAfterRendering();
@@ -405,13 +390,13 @@ test.describe("model diff", () => {
 
   test("reports changed, added and removed paths", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordTwo(
       h,
       { NAME: "old", GONE: 1, KEEP: "same" },
       { NAME: "new", ADDED: 2, KEEP: "same" },
     );
-    const diff = h.Recorder.formatModelDiff();
+    const diff = h.Recorder.formatModelDiff(h.ctx);
     expect(diff).toContain("~ /NAME");
     expect(diff).toContain("before: old");
     expect(diff).toContain("after:  new");
@@ -422,68 +407,102 @@ test.describe("model diff", () => {
 
   test("walks into table rows", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordTwo(
       h,
       { TAB: [{ COL: "a" }, { COL: "b" }] },
       { TAB: [{ COL: "a" }, { COL: "z" }] },
     );
-    const diff = h.Recorder.formatModelDiff();
+    const diff = h.Recorder.formatModelDiff(h.ctx);
     expect(diff).toContain("~ /TAB/1/COL");
     expect(diff).toContain("after:  z");
   });
 
   test("says so when both responses carry the same model", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordTwo(h, { A: 1 }, { A: 1 });
-    expect(h.Recorder.formatModelDiff()).toContain("identical MODEL");
+    expect(h.Recorder.formatModelDiff(h.ctx)).toContain("identical MODEL");
   });
 
   test("explains what to do when payload recording is off", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ model: { A: 1 } });
     h.fireAfterRendering();
-    expect(h.Recorder.formatModelDiff()).toContain("needs payload recording");
+    expect(h.Recorder.formatModelDiff(h.ctx)).toContain("needs payload recording");
   });
 
   test("explains what to do with only one recorded response", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ model: { A: 1 } });
     h.fireAfterRendering();
-    expect(h.Recorder.formatModelDiff()).toContain("needs two");
+    expect(h.Recorder.formatModelDiff(h.ctx)).toContain("needs two");
   });
 });
 
 test.describe("lifecycle", () => {
   test("install is idempotent and registers exactly one hook", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.install();
-    expect(h.callbacks.onAfterRendering.length).toBe(1);
+    h.Recorder.install(h.ctx);
+    h.Recorder.install(h.ctx);
+    expect(h.state.onAfterRendering.length).toBe(1);
   });
 
   test("uninstall unregisters the hook and clears the history", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
-    expect(h.Recorder.getRecords().length).toBe(1);
+    expect(h.Recorder.getRecords(h.ctx).length).toBe(1);
 
-    h.Recorder.uninstall();
-    expect(h.callbacks.onAfterRendering.length).toBe(0);
-    expect(h.Recorder.getRecords().length).toBe(0);
+    h.Recorder.uninstall(h.ctx);
+    expect(h.state.onAfterRendering.length).toBe(0);
+    expect(h.Recorder.getRecords(h.ctx).length).toBe(0);
+    expect(h.ctx.devtools.recorder).toBe(null);
+  });
+
+  // Two z2ui5 components on one page: each context records its own
+  // roundtrips through its own render hook, and uninstalling one leaves
+  // the other's history and hook alone.
+  test("two contexts record independently, and one uninstall leaves the other", () => {
+    const h = loadRecorder();
+    const other = loadLib({
+      state: { responseData: null, oBody: null, url: BACKEND_PATH },
+    });
+    h.Recorder.install(h.ctx);
+    h.Recorder.install(other.ctx);
+    expect(h.ctx.devtools.recorder).not.toBe(other.ctx.devtools.recorder);
+
+    h.state.oBody = fakeRequest({ event: "MINE" });
+    h.state.responseData = fakeResponse();
+    h.fireAfterRendering();
+    other.state.oBody = fakeRequest({ event: "THEIRS" });
+    other.state.responseData = fakeResponse();
+    for (const fn of other.state.onAfterRendering) fn();
+    for (const fn of other.state.onAfterRendering) fn();
+
+    expect(h.Recorder.getRecords(h.ctx).map((r) => r.event)).toEqual(["MINE"]);
+    expect(h.Recorder.getRecords(other.ctx).map((r) => r.event)).toEqual([
+      "THEIRS",
+      "THEIRS",
+    ]);
+
+    h.Recorder.uninstall(other.ctx);
+    expect(other.state.onAfterRendering.length).toBe(0);
+    expect(h.Recorder.getRecords(other.ctx)).toEqual([]);
+    expect(h.state.onAfterRendering.length).toBe(1);
+    expect(h.Recorder.getRecords(h.ctx).length).toBe(1);
   });
 
   test("a throwing state never propagates out of the hook", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     // a body that cannot be serialized must not take the roundtrip down
     const circular = { S_FRONT: { EVENT: "X", ID: "1" } };
     circular.self = circular;
@@ -491,7 +510,7 @@ test.describe("lifecycle", () => {
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
 
-    const [record] = h.Recorder.getRecords();
+    const [record] = h.Recorder.getRecords(h.ctx);
     expect(record.event).toBe("X");
     expect(record.reqBytes).toBe(null);
   });
@@ -500,26 +519,26 @@ test.describe("lifecycle", () => {
 test.describe("history rendering", () => {
   test("renders an empty history without a table", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    const text = h.Recorder.formatHistory();
+    h.Recorder.install(h.ctx);
+    const text = h.Recorder.formatHistory(h.ctx);
     expect(text).toContain("no roundtrip recorded yet");
     expect(text).toContain("Payload recording: OFF");
   });
 
   test("renders one row per roundtrip with the event name", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest({ event: "BUTTON_SAVE" });
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
-    const text = h.Recorder.formatHistory();
+    const text = h.Recorder.formatHistory(h.ctx);
     expect(text).toContain("BUTTON_SAVE");
     expect(text).toContain("TOTAL");
   });
 
   test("summarises the timings so one slow event stands out", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     const rt = (event, start, end, bytes) => {
       h.state.oBody = fakeRequest({ event });
       h.state.responseData = fakeResponse();
@@ -531,7 +550,7 @@ test.describe("history rendering", () => {
     rt("SLOW", 100, 1100, 900000);
     rt("FAST_B", 2000, 2020, 100);
 
-    const text = h.Recorder.formatHistory();
+    const text = h.Recorder.formatHistory(h.ctx);
     expect(text).toContain("Summary");
     // avg over 20/1000/20 ms
     expect(text).toContain("avg 347 ms over 3 roundtrip(s)");
@@ -541,7 +560,7 @@ test.describe("history rendering", () => {
 
   test("the summary counts the roundtrips that never rendered", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest({ event: "OK" });
     h.state.responseData = fakeResponse();
     h.addEntry({ start: 0, end: 10, bytes: 10 });
@@ -552,18 +571,18 @@ test.describe("history rendering", () => {
     h.deliverToObserver();
     h.clock.value = 20000;
 
-    expect(h.Recorder.formatHistory()).toContain(
+    expect(h.Recorder.formatHistory(h.ctx)).toContain(
       "1 roundtrip(s) never reached the render phase",
     );
   });
 
   test("labels the app start roundtrip, which carries no event", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = {};
     h.state.responseData = fakeResponse();
     h.fireAfterRendering();
-    expect(h.Recorder.formatHistory()).toContain("(start)");
+    expect(h.Recorder.formatHistory(h.ctx)).toContain("(start)");
   });
 });
 
@@ -571,7 +590,7 @@ test.describe("surviving a page reload", () => {
   test("writes the metadata away on pagehide and reads it back", () => {
     const storage = {};
     const first = loadRecorder({ storage });
-    first.Recorder.install();
+    first.Recorder.install(first.ctx);
     first.state.oBody = fakeRequest({ event: "BEFORE_RELOAD" });
     first.state.responseData = fakeResponse();
     first.fireAfterRendering();
@@ -579,12 +598,12 @@ test.describe("surviving a page reload", () => {
 
     // a fresh module instance, as after the reload
     const second = loadRecorder({ storage });
-    second.Recorder.install();
-    const list = second.Recorder.getRecords();
+    second.Recorder.install(second.ctx);
+    const list = second.Recorder.getRecords(second.ctx);
     expect(list.length).toBe(1);
     expect(list[0].event).toBe("BEFORE_RELOAD");
     expect(list[0].previousLoad).toBe(true);
-    const text = second.Recorder.formatHistory();
+    const text = second.Recorder.formatHistory(second.ctx);
     expect(text).toContain("PREVIOUS page");
     // the '*' footnote appears only on such a session, and it must not land
     // between the two halves of the sentence above it
@@ -597,16 +616,16 @@ test.describe("surviving a page reload", () => {
   test("payloads never travel - only the metadata does", () => {
     const storage = {};
     const first = loadRecorder({ storage });
-    first.Recorder.install();
-    first.Recorder.setRecordingPayloads(true);
+    first.Recorder.install(first.ctx);
+    first.Recorder.setRecordingPayloads(first.ctx, true);
     first.state.oBody = fakeRequest();
     first.state.responseData = fakeResponse({ model: { A: 1 } });
     first.fireAfterRendering();
     first.pagehide();
 
     const second = loadRecorder({ storage });
-    second.Recorder.install();
-    const [record] = second.Recorder.getRecords();
+    second.Recorder.install(second.ctx);
+    const [record] = second.Recorder.getRecords(second.ctx);
     expect(record.response).toBe(undefined);
     expect(record.rendered).toBe(true);
   });
@@ -614,7 +633,7 @@ test.describe("surviving a page reload", () => {
   test("numbering continues after the restored records", () => {
     const storage = {};
     const first = loadRecorder({ storage });
-    first.Recorder.install();
+    first.Recorder.install(first.ctx);
     for (let i = 0; i < 3; i++) {
       first.state.oBody = fakeRequest({ event: `E${i}` });
       first.state.responseData = fakeResponse();
@@ -623,34 +642,35 @@ test.describe("surviving a page reload", () => {
     first.pagehide();
 
     const second = loadRecorder({ storage });
-    second.Recorder.install();
+    second.Recorder.install(second.ctx);
     second.state.oBody = fakeRequest({ event: "AFTER" });
     second.state.responseData = fakeResponse();
     second.fireAfterRendering();
-    const list = second.Recorder.getRecords();
+    const list = second.Recorder.getRecords(second.ctx);
     expect(list[list.length - 1].seq).toBe(4);
   });
 
   test("the stored entry is consumed, not replayed on every load", () => {
     const storage = {};
     const first = loadRecorder({ storage });
-    first.Recorder.install();
+    first.Recorder.install(first.ctx);
     first.state.oBody = fakeRequest();
     first.state.responseData = fakeResponse();
     first.fireAfterRendering();
     first.pagehide();
 
-    loadRecorder({ storage }).Recorder.install();
+    const second = loadRecorder({ storage });
+    second.Recorder.install(second.ctx);
     const third = loadRecorder({ storage });
-    third.Recorder.install();
-    expect(third.Recorder.getRecords().length).toBe(0);
+    third.Recorder.install(third.ctx);
+    expect(third.Recorder.getRecords(third.ctx).length).toBe(0);
   });
 });
 
 test.describe("app navigation", () => {
   test("reconstructs the app hops observed in this session", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     const hop = (app, event) => {
       h.state.oBody = fakeRequest({ event });
       h.state.responseData = fakeResponse({ app });
@@ -661,7 +681,7 @@ test.describe("app navigation", () => {
     hop("ZCL_DETAIL", "OPEN_ITEM");
     hop("ZCL_START", "BACK");
 
-    const text = h.Recorder.formatHistory();
+    const text = h.Recorder.formatHistory(h.ctx);
     expect(text).toContain("App navigation observed this session");
     expect(text).toContain("start ZCL_START");
     expect(text).toContain("ZCL_START -> ZCL_DETAIL");
@@ -671,11 +691,11 @@ test.describe("app navigation", () => {
 
   test("a session that never left one app reports no navigation", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ app: "ZCL_ONLY" });
     h.fireAfterRendering();
-    expect(h.Recorder.formatHistory()).not.toContain("App navigation");
+    expect(h.Recorder.formatHistory(h.ctx)).not.toContain("App navigation");
   });
 });
 
@@ -683,7 +703,7 @@ test.describe("view diff", () => {
   const display = (xml) => ["VIEW_SLOTS", "display", "MAIN", xml];
 
   function recordViews(h, xmlA, xmlB) {
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest({ event: "FIRST" });
     h.state.responseData = fakeResponse({ system: [display(xmlA)] });
     h.fireAfterRendering();
@@ -694,13 +714,13 @@ test.describe("view diff", () => {
 
   test("reports an inserted control as an addition", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordViews(
       h,
       "<View><Button text='a'/><Input/></View>",
       "<View><Button text='a'/><Text text='new'/><Input/></View>",
     );
-    const diff = h.Recorder.formatViewDiff();
+    const diff = h.Recorder.formatViewDiff(h.ctx);
     expect(diff).toContain("+");
     expect(diff).toContain("Text text='new'");
     // the unchanged lines are not listed
@@ -709,28 +729,28 @@ test.describe("view diff", () => {
 
   test("reports a changed attribute as a removal plus an addition", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordViews(
       h,
       "<View><Button text='old'/></View>",
       "<View><Button text='new'/></View>",
     );
-    const diff = h.Recorder.formatViewDiff();
+    const diff = h.Recorder.formatViewDiff(h.ctx);
     expect(diff).toContain("Button text='old'");
     expect(diff).toContain("Button text='new'");
   });
 
   test("says so when the two rebuilds are identical", () => {
     const h = loadRecorder();
-    h.Recorder.install();
+    h.Recorder.install(h.ctx);
     recordViews(h, "<View><A/></View>", "<View><A/></View>");
-    expect(h.Recorder.formatViewDiff()).toContain("identical view XML");
+    expect(h.Recorder.formatViewDiff(h.ctx)).toContain("identical view XML");
   });
 
   test("a roundtrip that only pushed the model does not count", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ system: [display("<View/>")] });
     h.fireAfterRendering();
@@ -738,19 +758,19 @@ test.describe("view diff", () => {
     h.state.oBody = fakeRequest();
     h.state.responseData = fakeResponse({ system: [] });
     h.fireAfterRendering();
-    expect(h.Recorder.formatViewDiff()).toContain("needs two");
+    expect(h.Recorder.formatViewDiff(h.ctx)).toContain("needs two");
   });
 
   test("explains what to do when payload recording is off", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    expect(h.Recorder.formatViewDiff()).toContain("needs payload recording");
+    h.Recorder.install(h.ctx);
+    expect(h.Recorder.formatViewDiff(h.ctx)).toContain("needs payload recording");
   });
 
   test("ignores a display into another slot", () => {
     const h = loadRecorder();
-    h.Recorder.install();
-    h.Recorder.setRecordingPayloads(true);
+    h.Recorder.install(h.ctx);
+    h.Recorder.setRecordingPayloads(h.ctx, true);
     for (const xml of ["<Dialog a=1/>", "<Dialog a=2/>"]) {
       h.state.oBody = fakeRequest();
       h.state.responseData = fakeResponse({
@@ -758,6 +778,6 @@ test.describe("view diff", () => {
       });
       h.fireAfterRendering();
     }
-    expect(h.Recorder.formatViewDiff()).toContain("needs two");
+    expect(h.Recorder.formatViewDiff(h.ctx)).toContain("needs two");
   });
 });

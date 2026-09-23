@@ -28,7 +28,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
@@ -42,7 +41,6 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Device,` && |\n| &&
-             `    AppState,` && |\n| &&
              `    Lib,` && |\n| &&
              `    Env,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
@@ -135,19 +133,19 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return gav.includes("com.sap.ui5") ? "SAPUI5" : "OpenUI5";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function modelAttributeCount(slotKey) {` && |\n| &&
+             `    function modelAttributeCount(ctx, slotKey) {` && |\n| &&
              `      const data = ViewSlots.trackedModel(` && |\n| &&
-             `        ViewSlots.getView(slotKey),` && |\n| &&
+             `        ViewSlots.getView(ctx, slotKey),` && |\n| &&
              `      )?.getData?.();` && |\n| &&
              `      if (!data) return 0;` && |\n| &&
              `      return Object.keys(data).length;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatSlots() {` && |\n| &&
+             `    function formatSlots(ctx) {` && |\n| &&
              `      const lines = [];` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const view = ViewSlots.getView(slot.key);` && |\n| &&
-             `        const xml = ViewSlots.getViewXml(slot.key);` && |\n| &&
+             `        const view = ViewSlots.getView(ctx, slot.key);` && |\n| &&
+             `        const xml = ViewSlots.getViewXml(ctx, slot.key);` && |\n| &&
              `        if (!view && !xml) {` && |\n| &&
              `          lines.push(line(slot.key, "empty"));` && |\n| &&
              `          continue;` && |\n| &&
@@ -156,7 +154,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        parts.push(view ? "filled" : "xml only");` && |\n| &&
              `        if (xml) parts.push(``${xml.length} chars XML``);` && |\n| &&
              `        if (slot.ownsModel) {` && |\n| &&
-             `          parts.push(``${modelAttributeCount(slot.key)} model attributes``);` && |\n| &&
+             `          parts.push(``${modelAttributeCount(ctx, slot.key)} model attributes``);` && |\n| &&
              `        } else {` && |\n| &&
              `          parts.push("inherits MAIN model");` && |\n| &&
              `        }` && |\n| &&
@@ -165,8 +163,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return lines;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatEnvironment() {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function formatEnvironment(ctx) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const oConfig = state.oConfig;` && |\n| &&
              `      const sUi5 = oConfig.S_UI5;` && |\n| &&
              `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
@@ -209,7 +207,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));` && |\n| &&
              `      out.push(line("Content density", getContentDensity()));` && |\n| &&
              `` && |\n| &&
-             `      out.push(...formatBootstrap());` && |\n| &&
+             `      out.push(...formatBootstrap(ctx));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Device"));` && |\n| &&
              `      out.push(line("System", Lib.deriveSystemType(Device.system)));` && |\n| &&
@@ -242,15 +240,15 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Pointer", yesNo(Device.support.pointer)));` && |\n| &&
              `      out.push(line("Retina", yesNo(Device.support.retina)));` && |\n| &&
              `` && |\n| &&
-             `      out.push(...formatFrontendInfo());` && |\n| &&
+             `      out.push(...formatFrontendInfo(ctx));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
-             `      out.push(...formatSlots());` && |\n| &&
+             `      out.push(...formatSlots(ctx));` && |\n| &&
              `` && |\n| &&
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatBootstrap() {` && |\n| &&
+             `    function formatBootstrap(ctx) {` && |\n| &&
              `      const out = [section("UI5 bootstrap")];` && |\n| &&
              `      const el = bootstrapElement();` && |\n| &&
              `      if (!el) {` && |\n| &&
@@ -269,14 +267,14 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Resource base", resourceUrl("")));` && |\n| &&
              `      out.push(line("z2ui5 root", resourceUrl("z2ui5")));` && |\n| &&
              `` && |\n| &&
-             `      const cci = AppState.state.ccResourceRoot;` && |\n| &&
-             `      const ccc = AppState.state.cccResourceRoot;` && |\n| &&
+             `      const cci = ctx.state.ccResourceRoot;` && |\n| &&
+             `      const ccc = ctx.state.cccResourceRoot;` && |\n| &&
              `      if (cci) out.push(line("z2ui5_cci root", cci));` && |\n| &&
              `      if (ccc) out.push(line("z2ui5_ccc root", ccc));` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatFrontendInfo() {` && |\n| &&
+             `    function formatFrontendInfo(ctx) {` && |\n| &&
              `      const out = [section("Frontend info sent to the backend")];` && |\n| &&
              `      out.push("  (client->get( )-s_focus / -s_scroll, live for the next");` && |\n| &&
              `      out.push("  roundtrip - see -s_ui5 / -s_device above)");` && |\n| &&
@@ -285,8 +283,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      let focus;` && |\n| &&
              `      let scroll;` && |\n| &&
              `      try {` && |\n| &&
-             `        focus = ScrollFocus.getFocusInfo();` && |\n| &&
-             `        scroll = ScrollFocus.getScrollInfo();` && |\n| &&
+             `        focus = ScrollFocus.getFocusInfo(ctx);` && |\n| &&
+             `        scroll = ScrollFocus.getScrollInfo(ctx);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Inspect: reading focus/scroll failed", e);` && |\n| &&
              `        out.push("  (focus / scroll info unavailable)");` && |\n| &&
@@ -327,8 +325,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return Array.from(found).sort();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatShortcuts() {` && |\n| &&
-             `      const shortcuts = AppState.state.shortcuts || {};` && |\n| &&
+             `    function formatShortcuts(ctx) {` && |\n| &&
+             `      const shortcuts = ctx.state.shortcuts || {};` && |\n| &&
              `      const combos = Object.keys(shortcuts).sort();` && |\n| &&
              `      if (!combos.length) return ["  (none registered)"];` && |\n| &&
              `      const out = [];` && |\n| &&
@@ -345,12 +343,12 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatRegistry() {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function formatRegistry(ctx) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Registry"];` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Keyboard shortcuts (combo / scope / backend event)"));` && |\n| &&
-             `      out.push(...formatShortcuts());` && |\n| &&
+             `      out.push(...formatShortcuts(ctx));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Pending backend timers"));` && |\n| &&
              `      const timers = Object.keys(state.timers || {});` && |\n| &&
@@ -370,7 +368,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(section("Backend events bound in the current views"));` && |\n| &&
              `      let any = false;` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
-             `        const events = scrapeEvents(SlotXml.slotXml(slot.key));` && |\n| &&
+             `        const events = scrapeEvents(SlotXml.slotXml(ctx, slot.key));` && |\n| &&
              `        if (!events.length) continue;` && |\n| &&
              `        any = true;` && |\n| &&
              `        out.push(``  [${slot.key}]``);` && |\n| &&
@@ -409,8 +407,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatActions() {` && |\n| &&
-             `      const sAction = AppState.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
+             `    function formatActions(ctx) {` && |\n| &&
+             `      const sAction = ctx.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Actions of the last response"];` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push(` && |\n| &&
@@ -424,10 +422,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function findEventLine(source, eventName) {` && |\n|.
-    result = result &&
+             `    function findEventLine(source, eventName) {` && |\n| &&
              `      if (!source || !eventName) return 0;` && |\n| &&
-             `      const lines = source.split("\n");` && |\n| &&
+             `      const lines = source.split("\n");` && |\n|.
+    result = result &&
              `      const needle = eventName.toLowerCase();` && |\n| &&
              `      for (let i = 0; i < lines.length; i++) {` && |\n| &&
              `        const haystack = lines[i].toLowerCase();` && |\n| &&
@@ -442,14 +440,14 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatError() {` && |\n| &&
-             `      const err = AppState.state.lastError;` && |\n| &&
+             `    function formatError(ctx) {` && |\n| &&
+             `      const err = ctx.state.lastError;` && |\n| &&
              `      if (!err) return "(no fatal error captured this session)";` && |\n| &&
              `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function formatOverview() {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function formatOverview(ctx) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const responseFront = state.responseData?.S_FRONT;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools"];` && |\n| &&
              `` && |\n| &&
@@ -472,7 +470,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ),` && |\n| &&
              `      );` && |\n| &&
              `` && |\n| &&
-             `      const counts = Log.countLevels(Log.collectLog());` && |\n| &&
+             `      const counts = Log.countLevels(Log.collectLog(ctx));` && |\n| &&
              `      const loud = counts.error + counts.warn;` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
@@ -482,7 +480,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        ),` && |\n| &&
              `      );` && |\n| &&
              `` && |\n| &&
-             `      const records = Recorder.getRecords();` && |\n| &&
+             `      const records = Recorder.getRecords(ctx);` && |\n| &&
              `      const last = records[records.length - 1];` && |\n| &&
              `      out.push(` && |\n| &&
              `        line(` && |\n| &&
@@ -506,13 +504,11 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `` && |\n| &&
              `      out.push(line("Version", sap.ui.version));` && |\n| &&
              `` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),` && |\n| &&
-             `      );` && |\n| &&
+             `      out.push(line("Distribution", getDistribution(ctx.state.oConfig.S_UI5)));` && |\n| &&
              `      out.push(line("Theme", Env.getTheme()));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
-             `      out.push(...formatSlots());` && |\n| &&
+             `      out.push(...formatSlots(ctx));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("Getting around"));` && |\n| &&
              `      out.push("  Ctrl+F12          open / close these tools");` && |\n| &&

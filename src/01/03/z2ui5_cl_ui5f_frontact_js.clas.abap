@@ -35,7 +35,6 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
              `    "z2ui5/core/actions/ViewOps",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    ControlCall,` && |\n| &&
@@ -46,7 +45,6 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    Shortcuts,` && |\n| &&
              `    ViewOps,` && |\n| &&
              `    Lib,` && |\n| &&
-             `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -62,7 +60,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    );` && |\n| &&
              `` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
-             `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
+             `      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&
              `        const handler = handlers[args[0]];` && |\n| &&
@@ -78,7 +76,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function executeSystem(oController, args, ctx) {` && |\n| &&
-             `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
+             `      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);` && |\n| &&
              `      const handler = handlers[args[0]];` && |\n| &&
              `      if (!handler) {` && |\n| &&
              `        Lib.logError(``FrontendAction: unknown system action '${args[0]}'``);` && |\n| &&

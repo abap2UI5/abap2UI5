@@ -2,10 +2,12 @@
 // Registry, Actions and Error, plus the ABAP-source line lookup.
 //
 // Like devtools/Recorder.js this module is OUTSIDE the framework: it
-// only reads state other modules own (AppState, ViewSlots, the recorded
-// history) and renders it as text for a developer-tools tab. Nothing here
-// is wired into a framework code path, and nothing in the framework knows
-// this file exists.
+// only reads state other modules own (the component context's state,
+// ViewSlots, the recorded history) and renders it as text for a
+// developer-tools tab. Nothing here is wired into a framework code path,
+// and nothing in the framework knows this file exists. Every inspector
+// takes the component context first (core/Context.js): what it reports is
+// the state of ONE z2ui5.Component, the one whose tools are open.
 //
 // The Log tab (devtools/Log.js), the Bindings tab (devtools/Bindings.js)
 // and the help text (devtools/Help.js) are separate modules; their
@@ -18,7 +20,6 @@
 sap.ui.define(
   [
     "sap/ui/Device",
-    "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ScrollFocus",
@@ -32,7 +33,6 @@ sap.ui.define(
   ],
   (
     Device,
-    AppState,
     Lib,
     Env,
     ScrollFocus,
@@ -65,7 +65,8 @@ sap.ui.define(
       ["Libs", "libs"],
     ];
 
-    // All FIVE callback arrays AppState.createState declares - onErrorDetails
+    // All FIVE callback arrays AppState.createState declares (the state of
+    // a context) - onErrorDetails
     // was missing here once, and it is the one whose absence is a defect a
     // reader would want to see: with no provider registered the fatal-error
     // overlay shows no Details button at all.
@@ -162,21 +163,21 @@ sap.ui.define(
       return gav.includes("com.sap.ui5") ? "SAPUI5" : "OpenUI5";
     }
 
-    function modelAttributeCount(slotKey) {
+    function modelAttributeCount(ctx, slotKey) {
       // the TRACKED framework model - in switch mode the default model is
       // the app's OData client and this read came back empty
       const data = ViewSlots.trackedModel(
-        ViewSlots.getView(slotKey),
+        ViewSlots.getView(ctx, slotKey),
       )?.getData?.();
       if (!data) return 0;
       return Object.keys(data).length;
     }
 
-    function formatSlots() {
+    function formatSlots(ctx) {
       const lines = [];
       for (const slot of ViewSlots.slots) {
-        const view = ViewSlots.getView(slot.key);
-        const xml = ViewSlots.getViewXml(slot.key);
+        const view = ViewSlots.getView(ctx, slot.key);
+        const xml = ViewSlots.getViewXml(ctx, slot.key);
         if (!view && !xml) {
           lines.push(line(slot.key, "empty"));
           continue;
@@ -185,7 +186,7 @@ sap.ui.define(
         parts.push(view ? "filled" : "xml only");
         if (xml) parts.push(`${xml.length} chars XML`);
         if (slot.ownsModel) {
-          parts.push(`${modelAttributeCount(slot.key)} model attributes`);
+          parts.push(`${modelAttributeCount(ctx, slot.key)} model attributes`);
         } else {
           parts.push("inherits MAIN model");
         }
@@ -194,8 +195,8 @@ sap.ui.define(
       return lines;
     }
 
-    function formatEnvironment() {
-      const state = AppState.state;
+    function formatEnvironment(ctx) {
+      const state = ctx.state;
       const oConfig = state.oConfig;
       const sUi5 = oConfig.S_UI5;
       const responseFront = state.responseData?.S_FRONT;
@@ -242,7 +243,7 @@ sap.ui.define(
       out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));
       out.push(line("Content density", getContentDensity()));
 
-      out.push(...formatBootstrap());
+      out.push(...formatBootstrap(ctx));
 
       out.push(section("Device"));
       out.push(line("System", Lib.deriveSystemType(Device.system)));
@@ -275,10 +276,10 @@ sap.ui.define(
       out.push(line("Pointer", yesNo(Device.support.pointer)));
       out.push(line("Retina", yesNo(Device.support.retina)));
 
-      out.push(...formatFrontendInfo());
+      out.push(...formatFrontendInfo(ctx));
 
       out.push(section("View slots"));
-      out.push(...formatSlots());
+      out.push(...formatSlots(ctx));
 
       return out.join("\n");
     }
@@ -287,7 +288,7 @@ sap.ui.define(
     // value is read from the LIVE page, not from what the backend says it
     // configured - which is the point: a proxy, a launchpad or a stale
     // cached page can all make these differ from the configuration.
-    function formatBootstrap() {
+    function formatBootstrap(ctx) {
       const out = [section("UI5 bootstrap")];
       const el = bootstrapElement();
       if (!el) {
@@ -311,8 +312,8 @@ sap.ui.define(
       // The two sibling BSPs for community controls and the customer's own
       // frontend extension. Reported only when the app set them up, since
       // a system that has neither installed should not look misconfigured.
-      const cci = AppState.state.ccResourceRoot;
-      const ccc = AppState.state.cccResourceRoot;
+      const cci = ctx.state.ccResourceRoot;
+      const ccc = ctx.state.cccResourceRoot;
       if (cci) out.push(line("z2ui5_cci root", cci));
       if (ccc) out.push(line("z2ui5_ccc root", ccc));
       return out;
@@ -327,7 +328,7 @@ sap.ui.define(
     // Focus and scroll are the interesting half: they travel on every
     // roundtrip, they decide where the caret and the scroll position end up
     // after a re-render, and nothing has ever shown them.
-    function formatFrontendInfo() {
+    function formatFrontendInfo(ctx) {
       const out = [section("Frontend info sent to the backend")];
       out.push("  (client->get( )-s_focus / -s_scroll, live for the next");
       out.push("  roundtrip - see -s_ui5 / -s_device above)");
@@ -336,8 +337,8 @@ sap.ui.define(
       let focus;
       let scroll;
       try {
-        focus = ScrollFocus.getFocusInfo();
-        scroll = ScrollFocus.getScrollInfo();
+        focus = ScrollFocus.getFocusInfo(ctx);
+        scroll = ScrollFocus.getScrollInfo(ctx);
       } catch (e) {
         Lib.logError("DevTools Inspect: reading focus/scroll failed", e);
         out.push("  (focus / scroll info unavailable)");
@@ -392,8 +393,8 @@ sap.ui.define(
       return Array.from(found).sort();
     }
 
-    function formatShortcuts() {
-      const shortcuts = AppState.state.shortcuts || {};
+    function formatShortcuts(ctx) {
+      const shortcuts = ctx.state.shortcuts || {};
       const combos = Object.keys(shortcuts).sort();
       if (!combos.length) return ["  (none registered)"];
       const out = [];
@@ -410,12 +411,12 @@ sap.ui.define(
       return out;
     }
 
-    function formatRegistry() {
-      const state = AppState.state;
+    function formatRegistry(ctx) {
+      const state = ctx.state;
       const out = ["abap2UI5 Developer Tools - Registry"];
 
       out.push(section("Keyboard shortcuts (combo / scope / backend event)"));
-      out.push(...formatShortcuts());
+      out.push(...formatShortcuts(ctx));
 
       out.push(section("Pending backend timers"));
       const timers = Object.keys(state.timers || {});
@@ -435,7 +436,7 @@ sap.ui.define(
       out.push(section("Backend events bound in the current views"));
       let any = false;
       for (const slot of ViewSlots.slots) {
-        const events = scrapeEvents(SlotXml.slotXml(slot.key));
+        const events = scrapeEvents(SlotXml.slotXml(ctx, slot.key));
         if (!events.length) continue;
         any = true;
         out.push(`  [${slot.key}]`);
@@ -479,8 +480,8 @@ sap.ui.define(
       return out;
     }
 
-    function formatActions() {
-      const sAction = AppState.state.responseData?.S_FRONT?.S_ACTION;
+    function formatActions(ctx) {
+      const sAction = ctx.state.responseData?.S_FRONT?.S_ACTION;
       const out = ["abap2UI5 Developer Tools - Actions of the last response"];
       out.push("");
       out.push(
@@ -529,8 +530,8 @@ sap.ui.define(
     // Title + full text of the last fatal error, so the Error tab
     // reproduces the ErrorView overlay's content. Empty when the app has
     // not hit a fatal error this session.
-    function formatError() {
-      const err = AppState.state.lastError;
+    function formatError(ctx) {
+      const err = ctx.state.lastError;
       if (!err) return "(no fatal error captured this session)";
       return err.title ? `${err.title}\n\n${err.text}` : err.text;
     }
@@ -544,8 +545,8 @@ sap.ui.define(
     // which app, which roundtrip, is anything broken, and where to go
     // next. Every line is a summary of a tab that holds the detail, and
     // the pointer to that tab is part of the line.
-    function formatOverview() {
-      const state = AppState.state;
+    function formatOverview(ctx) {
+      const state = ctx.state;
       const responseFront = state.responseData?.S_FRONT;
       const out = ["abap2UI5 Developer Tools"];
 
@@ -570,7 +571,7 @@ sap.ui.define(
         ),
       );
 
-      const counts = Log.countLevels(Log.collectLog());
+      const counts = Log.countLevels(Log.collectLog(ctx));
       const loud = counts.error + counts.warn;
       out.push(
         line(
@@ -580,7 +581,7 @@ sap.ui.define(
         ),
       );
 
-      const records = Recorder.getRecords();
+      const records = Recorder.getRecords(ctx);
       const last = records[records.length - 1];
       out.push(
         line(
@@ -606,13 +607,11 @@ sap.ui.define(
        is no injected/module equivalent (core/Lib.js reads it the same way). */
       out.push(line("Version", sap.ui.version));
       /* ui5lint-enable no-globals */
-      out.push(
-        line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),
-      );
+      out.push(line("Distribution", getDistribution(ctx.state.oConfig.S_UI5)));
       out.push(line("Theme", Env.getTheme()));
 
       out.push(section("View slots"));
-      out.push(...formatSlots());
+      out.push(...formatSlots(ctx));
 
       out.push(section("Getting around"));
       out.push("  Ctrl+F12          open / close these tools");
@@ -648,6 +647,8 @@ sap.ui.define(
       findEventLine,
       // the inspectors that live in their own module, reachable here so
       // the tab registry and the dialog know one module for all of them
+      // (ctx first, like everything above: formatLog(ctx),
+      // formatBindings(ctx, slotKey))
       formatLog: Log.formatLog,
       formatBindings: Bindings.formatBindings,
       formatHelp: Help.formatHelp,

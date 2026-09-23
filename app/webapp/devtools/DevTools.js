@@ -9,16 +9,42 @@
 //
 // The whole coupling to the framework is therefore:
 //
-//   Component.init()  ->  DevTools.install()
-//   Component.exit()  ->  DevTools.exit()
+//   Component.init()  ->  DevTools.install(ctx)
+//   Component.exit()  ->  DevTools.exit(ctx)
 //
 // and nothing else. No framework module names a developer-tools module,
 // no framework state field holds a developer-tools object, and
 // core/ErrorView.js reaches the Details action through the generic
-// `onErrorDetails` callback array (AppState) that this module registers
+// `onErrorDetails` callback array (ctx.state) that this module registers
 // into - the overlay hides its Details button when nothing registered,
 // so removing this folder degrades the framework gracefully instead of
 // breaking it.
+//
+// PER COMPONENT CONTEXT (core/Context.js): a page with two z2ui5
+// components gets two independent sets of tools, and exit(ctx) tears
+// down only its own. What install(ctx) owns sits on `ctx.devtools`, the
+// plain record Context.create gives every context:
+//
+//   tools             the DeveloperTools control, null until the first
+//                     open (Ctrl+F12, auto open, Details, open-on-error)
+//   keydown           the Ctrl+F12 document keydown listener - also the
+//                     marker that install(ctx) ran
+//   errorDetailsHook  the callback registered on ctx.state.onErrorDetails
+//                     for the fatal-error overlay's Details action
+//   console           true while this context holds one use of the
+//                     page-wide console capture (Console.install), so
+//                     exit( ) gives back exactly what install( ) took
+//   onConsoleError    the subscriber registered with Console.addOnError
+//                     for the "open on error" option
+//   recorder          the roundtrip recorder's record (devtools/Recorder.js
+//                     documents its fields)
+//   pickReport        the report of the last picked control of this
+//                     context (devtools/Picker.js)
+//
+// The console capture (devtools/Console.js) is the one part that stays
+// PAGE-WIDE: there is one window.console to patch, so Console counts its
+// users - every install( ) here adds one, every exit( ) removes one, and
+// only the first patches and the last un-patches.
 //
 // LAZY here means the DIALOG CONTROL, not the modules. The dependencies
 // below are hard `sap.ui.define` deps on purpose, and moving them behind
@@ -67,26 +93,34 @@ sap.ui.define(
     // tab, "?z2ui5-devtools=HISTORY" (any tab key) opens that one.
     const AUTO_OPEN_PARAM = "z2ui5-devtools";
 
-    // The control instance, owned HERE rather than on AppState: the
-    // framework's state inventory has no business carrying a diagnostic
-    // object.
-    let instance = null;
-    let boundKeydown = null;
-    let errorDetailsHook = null;
+    // The record of a context's tools - see the module header. `null` for
+    // a context that has none (a spec context built without one, or no
+    // context at all), which every entry point below treats as "nothing
+    // installed".
+    function recordOf(ctx) {
+      return ctx?.devtools || null;
+    }
 
-    function get() {
-      if (!instance) {
-        instance = new DeveloperTools();
+    // The control instance of a context, created on first use and handed
+    // its context before anything else touches it - the dialog reads
+    // `this.ctx` for everything it shows.
+    function get(ctx) {
+      const record = recordOf(ctx);
+      if (!record) return null;
+      if (!record.tools) {
+        const tools = new DeveloperTools();
+        tools.ctx = ctx;
+        record.tools = tools;
       }
-      return instance;
+      return record.tools;
     }
 
-    function toggle() {
-      get().toggle();
+    function toggle(ctx) {
+      get(ctx)?.toggle();
     }
 
-    function show(tabKey) {
-      get().show(tabKey);
+    function show(ctx, tabKey) {
+      get(ctx)?.show(tabKey);
     }
 
     // ------------------------------------------------------------------
@@ -124,70 +158,88 @@ sap.ui.define(
     // it runs whatever is registered and hides the button when nothing
     // is. Reopening the overlay when the dialog closes keeps the user
     // from landing on the dismissed, broken app.
-    function onErrorDetails() {
-      const dialog = get();
+    function onErrorDetails(ctx) {
+      const dialog = get(ctx);
+      if (!dialog) return;
       dialog.reopenErrorOnClose = true;
       dialog.show("ERROR");
     }
 
-    function install() {
-      if (boundKeydown) return;
+    function install(ctx) {
+      const record = recordOf(ctx);
+      if (!record || record.keydown) return;
 
       // Start recording roundtrips right away - a history is only worth
       // anything if it was collected BEFORE the problem happened, so it
       // cannot wait for the first Ctrl+F12. Metadata only (kilobytes)
       // unless the developer opts into payloads.
-      Recorder.install();
+      Recorder.install(ctx);
 
       // Same reason as the recorder: a console message is only useful if
       // it was captured BEFORE the problem, so this cannot wait for the
-      // first Ctrl+F12 either. Bounded ring of short strings.
+      // first Ctrl+F12 either. Bounded ring of short strings, page-wide
+      // and use-counted (see the module header).
       Console.install();
+      record.console = true;
 
       // Console only announces an error when its "open on error" option
       // is on (it owns that setting), so this handler is unconditional -
       // except for the one guard that matters: never fight the user for
       // the dialog when it is already open.
-      Console.setOnError(() => {
-        if (instance?.oDialog?.isOpen?.()) return;
-        show("LOG");
-      });
-
-      errorDetailsHook = onErrorDetails;
-      Lib.registerCallback("onErrorDetails", errorDetailsHook);
-
-      boundKeydown = (event) => {
-        if (event.ctrlKey && event.key === "F12") toggle();
+      record.onConsoleError = () => {
+        if (record.tools?.oDialog?.isOpen?.()) return;
+        show(ctx, "LOG");
       };
-      document.addEventListener("keydown", boundKeydown);
+      Console.addOnError(record.onConsoleError);
 
-      if (isAutoOpenRequested()) show(autoOpenTab() || undefined);
+      record.errorDetailsHook = () => onErrorDetails(ctx);
+      Lib.registerCallback(ctx, "onErrorDetails", record.errorDetailsHook);
+
+      record.keydown = (event) => {
+        if (event.ctrlKey && event.key === "F12") toggle(ctx);
+      };
+      document.addEventListener("keydown", record.keydown);
+
+      if (isAutoOpenRequested()) show(ctx, autoOpenTab() || undefined);
     }
 
-    function exit() {
-      if (boundKeydown) {
-        document.removeEventListener("keydown", boundKeydown);
-        boundKeydown = null;
+    function exit(ctx) {
+      const record = recordOf(ctx);
+      if (!record) return;
+      if (record.keydown) {
+        document.removeEventListener("keydown", record.keydown);
+        record.keydown = null;
       }
-      if (errorDetailsHook) {
-        Lib.unregisterCallback("onErrorDetails", errorDetailsHook);
-        errorDetailsHook = null;
+      if (record.errorDetailsHook) {
+        Lib.unregisterCallback(ctx, "onErrorDetails", record.errorDetailsHook);
+        record.errorDetailsHook = null;
+      }
+      if (record.onConsoleError) {
+        Console.removeOnError(record.onConsoleError);
+        record.onConsoleError = null;
       }
       // The dialog is not an aggregation of anything the component owns,
-      // so it would survive an FLP re-launch together with this module's
-      // state - destroy it explicitly.
-      if (instance) {
-        instance.destroy();
-        instance = null;
+      // so it would survive an FLP re-launch together with this record -
+      // destroy it explicitly.
+      if (record.tools) {
+        record.tools.destroy();
+        record.tools = null;
       }
-      Console.uninstall();
-      Recorder.uninstall();
+      // Give back THIS context's use of the page-wide capture, and only
+      // that: an exit that never installed must not take a use off another
+      // context's install. The recorder's uninstall is per context and
+      // idempotent, so a partially failed install still gets cleaned up.
+      if (record.console) {
+        record.console = false;
+        Console.uninstall();
+      }
+      Recorder.uninstall(ctx);
       // A pick still running at teardown left its three capture listeners
       // (mousemove/click/keydown) on document, and the click one calls
       // preventDefault + stopPropagation - the NEXT app was then dead for
-      // exactly one click, with nothing naming the cause. Idempotent when
-      // no pick is active.
-      Picker.stop();
+      // exactly one click, with nothing naming the cause. Only THIS
+      // context's pick: a second component's pick is not ours to end.
+      Picker.stop(ctx);
     }
 
     return {

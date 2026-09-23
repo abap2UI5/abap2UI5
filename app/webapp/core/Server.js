@@ -7,7 +7,6 @@ sap.ui.define(
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
-    "z2ui5/core/AppState",
   ],
   (
     BusyIndicator,
@@ -17,7 +16,6 @@ sap.ui.define(
     ScrollFocus,
     ViewSlots,
     ErrorView,
-    AppState,
   ) => {
     "use strict";
 
@@ -42,10 +40,13 @@ sap.ui.define(
     //      popups, nested views, model push), history, then the app follow-up
     //      actions once rendering is done
     // The request body travels through the steps as a parameter; it is
-    // mirrored to AppState.state.oBody so onBeforeRoundtrip hooks and the
-    // developer tools can inspect it. Only the response side still crosses an
-    // async boundary (the rendering) via AppState.state.oResponse; the app follow-up snippets
-    // travel on the response record itself (_pendingCustomJs).
+    // mirrored to ctx.state.oBody so onBeforeRoundtrip hooks and the
+    // developer tools can inspect it. Only the response side still crosses
+    // an async boundary (the rendering) via ctx.state.oResponse; the app
+    // follow-up snippets travel on the response record itself
+    // (_pendingCustomJs). Every method takes the component's context first
+    // (core/Context.js): the state and the request bookkeeping below
+    // (`ctx.server`) are per component.
     //
     // Wire format - request (POST body; ARGUMENTS is folded into
     // S_FRONT before sending, empty fields are removed):
@@ -104,53 +105,54 @@ sap.ui.define(
       // and the number exists for the pairings where they do not.
       PROTOCOL: 2,
 
-      // Monotonic id stamped on every dispatched request (see readHttp). It
-      // lets a response tell whether a newer request has since gone out, so
-      // only the newest result is committed and stale ones are dropped - a
-      // Back/Forward restore and reset( )'s teardown bump both land here.
-      _requestSeq: 0,
+      // The per-component request bookkeeping is `ctx.server`:
+      //   requestSeq  monotonic id stamped on every dispatched request (see
+      //               readHttp). It lets a response tell whether a newer
+      //               request has since gone out, so only the newest result
+      //               is committed and stale ones are dropped - a
+      //               Back/Forward restore and reset( )'s teardown bump both
+      //               land here
+      //   inflight    abort controllers of the requests still in flight. A
+      //               newly dispatched request aborts them all - it
+      //               supersedes them, so there is no point letting the
+      //               backend finish work whose response would be dropped
+      //   viewBuild   chain that serializes full MAIN-view rebuilds (see
+      //               actions/Slots.displayMain): XMLView.create claims the
+      //               fixed main view id synchronously, so two overlapping
+      //               builds would throw "duplicate id"
 
-      // Abort controllers of the requests still in flight. A newly dispatched
-      // request aborts them all - it supersedes them, so there is no point
-      // letting the backend finish work whose response would be dropped anyway.
-      _inflight: new Set(),
-
-      // Chain that serializes full MAIN-view rebuilds (see
-      // actions/Slots.displayMain): XMLView.create claims the fixed
-      // "mainView" id synchronously, so two overlapping builds would throw
-      // "duplicate id".
-      _viewBuild: null,
-
-      endSession() {
-        if (!Lib.isValidContextId(AppState.state.contextId)) return;
+      endSession(ctx) {
+        if (!Lib.isValidContextId(ctx.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
-        fetch(AppState.state.url, {
+        fetch(ctx.state.url, {
           method: "HEAD",
           keepalive: true,
           headers: {
             "sap-terminate": "session",
-            "sap-contextid": AppState.state.contextId,
+            "sap-contextid": ctx.state.contextId,
             "sap-contextid-accept": "header",
           },
         }).catch(() => {});
-        AppState.state.contextId = null;
+        ctx.state.contextId = null;
       },
 
-      // Drop everything this module holds ACROSS a component teardown. Both
-      // fields below are module-scoped, so on an FLP re-launch they outlived
-      // the component that started them:
-      //   _inflight - the old fetch resolves into the NEW session. isStale( )
-      //     does not catch it, because _requestSeq is module state too and no
-      //     newer request has gone out yet, so the response is adopted: its
-      //     sap-contextid becomes the new session's, then responseSuccess
-      //     reaches for the MAIN controller, finds null, and the app that just
-      //     started shows the fatal "App Terminated" overlay.
-      //   _viewBuild - a queued rebuild continuation calls removeAllPages( )
-      //     on an oApp that AppState.reset( ) has since cleared.
-      // _abortInflight( ) existed for the other case (a newer request
-      // superseding older ones) and was never reachable from teardown.
-      reset() {
+      // Drop the request bookkeeping on a component teardown. Both fields
+      // used to be module-scoped, so on an FLP re-launch they outlived the
+      // component that started them:
+      //   inflight - the old fetch resolves into the NEW session. isStale( )
+      //     does not catch it, because the sequence was module state too and
+      //     no newer request has gone out yet, so the response is adopted:
+      //     its sap-contextid becomes the new session's, then
+      //     responseSuccess reaches for the MAIN controller, finds null, and
+      //     the app that just started shows the fatal "App Terminated"
+      //     overlay.
+      //   viewBuild - a queued rebuild continuation calls removeAllPages( )
+      //     on an oApp the teardown has since cleared.
+      // The context is per component now, so the next launch cannot inherit
+      // either - the teardown still bumps and aborts, for a continuation of
+      // THIS context that is still awaiting.
+      reset(ctx) {
         // stale FIRST, abort second: the aborted fetch rejects with an
         // AbortError that lands in readHttp's catch, and only a sequence the
         // request no longer holds makes isStale( ) swallow it there. Without
@@ -158,15 +160,15 @@ sap.ui.define(
         // timeout - BusyIndicator.hide( ) over the next app, isBusy false on
         // the state just rebuilt, and the fatal "No backend response within
         // N seconds" dialog with a Retry that re-sent the dead session's body
-        this._requestSeq += 1;
-        this._abortInflight();
-        this._viewBuild = null;
+        ctx.server.requestSeq += 1;
+        this._abortInflight(ctx);
+        ctx.server.viewBuild = null;
         // a keystroke a check_queue_last wire kept for the app being torn
         // down must never be dispatched into the next one
-        AppState.state.oQueuedEvent = null;
-        // the error overlay's module state is the same kind of survivor -
-        // the last error dump stays referenced across the teardown otherwise
-        ErrorView.reset();
+        ctx.state.oQueuedEvent = null;
+        // the error overlay's record is the same kind of survivor - the
+        // last error dump stays referenced across the teardown otherwise
+        ErrorView.reset(ctx);
       },
 
       // Restore the app state a matched hash route points at. Wired into
@@ -175,23 +177,23 @@ sap.ui.define(
       // An empty body (no ID) makes the backend take the first-start path and
       // read the target class + draft from the hash it receives
       // (request_app_start_route[_draft]).
-      restoreFromRoute() {
+      restoreFromRoute(ctx) {
         // Participate in the normal busy protocol: without it the app looks
         // idle during the restore, and an ordinary click would dispatch a
         // request that aborts the Back/Forward navigation without any
         // feedback. _processAfterRendering / responseError clear it again.
-        AppState.state.isBusy = true;
+        ctx.state.isBusy = true;
         BusyIndicator.show(0);
         // A restore is a new roundtrip like any other, so the timers armed by
         // the screen being left go with it (View1.eB does the same before its
         // dispatch) - a poll armed one Back ago otherwise kept ticking its
         // old event into the app the restore just brought up.
-        Lib.cancelPendingTimers();
-        this.roundtrip({});
+        Lib.cancelPendingTimers(ctx);
+        this.roundtrip(ctx, {});
       },
 
-      roundtrip(oBody = {}) {
-        const state = AppState.state;
+      roundtrip(ctx, oBody = {}) {
+        const state = ctx.state;
 
         // Keep the shared record in sync (developer tools "Previous Request",
         // app hooks); the parameter stays the working object. Calls without
@@ -206,9 +208,9 @@ sap.ui.define(
         // live device fields only when they changed (core/Session.js);
         // focus and scroll are per roundtrip by nature (core/ScrollFocus.js)
         const config = {
-          ...Session.config(oConfig, oBody.ID),
-          S_FOCUS: ScrollFocus.getFocusInfo(),
-          S_SCROLL: ScrollFocus.getScrollInfo(),
+          ...Session.config(ctx, oConfig, oBody.ID),
+          S_FOCUS: ScrollFocus.getFocusInfo(ctx),
+          S_SCROLL: ScrollFocus.getScrollInfo(ctx),
         };
         oBody.S_FRONT = {
           ID: oBody.ID,
@@ -227,7 +229,7 @@ sap.ui.define(
         // lives with the rest of the once-per-page-load state in
         // core/Session.js. An event roundtrip gets null, and Object.assign
         // with null adds nothing.
-        Object.assign(sFront, Session.location(oBody.ID));
+        Object.assign(sFront, Session.location(ctx, oBody.ID));
 
         // The first argument was the event name (already stored as EVENT),
         // the remaining entries are the actual event arguments.
@@ -246,7 +248,7 @@ sap.ui.define(
 
         // the session block's confirmation token rides with THIS request -
         // a retry re-sends the same body and confirms the same token
-        this.readHttp(oBody, Session.takePending());
+        this.readHttp(ctx, oBody, Session.takePending(ctx));
       },
 
       // Returns an abort signal that fires after `ms` plus a cancel function
@@ -269,9 +271,9 @@ sap.ui.define(
       // Abort every still-in-flight request. Called when a newer request is
       // dispatched: the older fetches reject with AbortError, which the
       // isStale guard in readHttp's catch swallows silently.
-      _abortInflight() {
-        for (const controller of this._inflight) controller.abort();
-        this._inflight.clear();
+      _abortInflight(ctx) {
+        for (const controller of ctx.server.inflight) controller.abort();
+        ctx.server.inflight.clear();
       },
 
       // Merge two abort signals into one for fetch: the fetch is aborted when
@@ -294,7 +296,7 @@ sap.ui.define(
         return controller.signal;
       },
 
-      async readHttp(oBody, sessionCarried) {
+      async readHttp(ctx, oBody, sessionCarried) {
         // The signal guards the fetch and the response body reads below; the
         // finally releases the fallback timer once the roundtrip settled.
         const { signal: timeoutSignal, cancel } =
@@ -306,9 +308,9 @@ sap.ui.define(
         // unguarded click during the retry would abort it silently.
         const oRetry = {
           onRetry: () => {
-            AppState.state.isBusy = true;
+            ctx.state.isBusy = true;
             BusyIndicator.show(0);
-            this.readHttp(oBody, sessionCarried);
+            this.readHttp(ctx, oBody, sessionCarried);
           },
         };
 
@@ -322,15 +324,15 @@ sap.ui.define(
         // one. The check is repeated before every state mutation because the
         // body reads below (text/json) each yield the event loop, giving a
         // newer request the chance to supersede this one mid-parse.
-        const seq = ++this._requestSeq;
-        const isStale = () => seq !== this._requestSeq;
+        const seq = ++ctx.server.requestSeq;
+        const isStale = () => seq !== ctx.server.requestSeq;
 
         // Cancel any request still in flight - this one supersedes them - then
         // register this request's own controller so a later one can cancel it.
         // The fetch aborts on either the timeout or a superseding request.
-        this._abortInflight();
+        this._abortInflight(ctx);
         const superseder = new AbortController();
-        this._inflight.add(superseder);
+        ctx.server.inflight.add(superseder);
         const signal = this._combineSignals(timeoutSignal, superseder.signal);
         try {
           // Step 1: send the request.
@@ -343,15 +345,15 @@ sap.ui.define(
               "Content-Type": "application/json",
               "sap-contextid-accept": "header",
             };
-            if (Lib.isValidContextId(AppState.state.contextId)) {
-              headers["sap-contextid"] = AppState.state.contextId;
+            if (Lib.isValidContextId(ctx.state.contextId)) {
+              headers["sap-contextid"] = ctx.state.contextId;
             }
             const body = JSON.stringify({ value: oBody });
             // one shared number, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time
-            AppState.state.lastRequestBytes = body.length;
-            response = await fetch(AppState.state.url, {
+            ctx.state.lastRequestBytes = body.length;
+            response = await fetch(ctx.state.url, {
               method: "POST",
               headers,
               body,
@@ -363,12 +365,14 @@ sap.ui.define(
             if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               this.responseError(
+                ctx,
                 `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
                 undefined,
                 oRetry,
               );
             } else {
               this.responseError(
+                ctx,
                 `Network error: ${e.message}`,
                 undefined,
                 oRetry,
@@ -383,7 +387,7 @@ sap.ui.define(
           // (returns null) must not wipe an established session.
           const contextId = response.headers.get("sap-contextid");
           if (Lib.isValidContextId(contextId)) {
-            AppState.state.contextId = contextId;
+            ctx.state.contextId = contextId;
           }
 
           // Step 2: if the HTTP status is not 2xx, treat the body as error
@@ -398,7 +402,7 @@ sap.ui.define(
             if (isStale()) return;
             // An empty error body would render an empty overlay - fall back
             // to the status code so the user sees at least what failed.
-            this.responseError(text || `HTTP ${response.status}`);
+            this.responseError(ctx, text || `HTTP ${response.status}`);
             return;
           }
 
@@ -408,14 +412,14 @@ sap.ui.define(
             responseData = await response.json();
           } catch (e) {
             if (isStale()) return;
-            this.responseError(`Invalid JSON response: ${e.message}`);
+            this.responseError(ctx, `Invalid JSON response: ${e.message}`);
             return;
           }
           // Last check before committing: a newer request may have arrived
           // while the body was being parsed.
           if (isStale()) return;
           if (!responseData || !responseData.S_FRONT) {
-            this.responseError("Invalid response: missing S_FRONT");
+            this.responseError(ctx, "Invalid response: missing S_FRONT");
             return;
           }
           // The wire this build speaks. The backend stamps its own into every
@@ -433,6 +437,7 @@ sap.ui.define(
             responseData.S_FRONT.PROTOCOL !== this.PROTOCOL
           ) {
             this.responseError(
+              ctx,
               "Protocol mismatch: this frontend speaks " +
                 this.PROTOCOL +
                 ", the backend answered " +
@@ -443,20 +448,21 @@ sap.ui.define(
           }
 
           // Step 4: hand the parsed response to the success handler.
-          AppState.state.responseData = responseData;
+          ctx.state.responseData = responseData;
           // This request won, so the session block / live device values it
           // carried have reached the backend - only now do the send latches
           // advance (core/Session.js). A dropped request re-sends instead.
-          Session.confirmSent(sessionCarried);
+          Session.confirmSent(ctx, sessionCarried);
           // This request won (it passed the stale guard above), so the edits
           // it carried have reached the backend - clear exactly the model it
           // shipped. A stale response returns before this point and clears
           // nothing, so a slower older response can never wipe newer edits;
           // and edits made in a different model stay pending for their own
           // roundtrip.
-          this._clearSentPaths(AppState.state.oSentModel);
-          AppState.state.oSentModel = null;
+          this._clearSentPaths(ctx.state.oSentModel);
+          ctx.state.oSentModel = null;
           this.responseSuccess(
+            ctx,
             {
               ID: responseData.S_FRONT.ID,
               S_ACTION: responseData.S_FRONT.S_ACTION,
@@ -480,9 +486,9 @@ sap.ui.define(
           // session bookkeeping, the success handler - would otherwise reject
           // this promise silently: busy indicator spinning forever, no overlay.
           // A superseded request stays silent; the newer one owns the outcome.
-          if (!isStale()) this.responseError(e);
+          if (!isStale()) this.responseError(ctx, e);
         } finally {
-          this._inflight.delete(superseder);
+          ctx.server.inflight.delete(superseder);
           cancel();
         }
       },
@@ -524,10 +530,10 @@ sap.ui.define(
         }
       },
 
-      async responseSuccess(response, reqSeq) {
-        const oController = ViewSlots.getController("MAIN");
+      async responseSuccess(ctx, response, reqSeq) {
+        const oController = ViewSlots.getController(ctx, "MAIN");
         try {
-          AppState.state.oResponse = response;
+          ctx.state.oResponse = response;
 
           // The backend can send follow-up actions to run after the response.
           // Each entry is a real JSON array ["EVENT", ...args] - pure data,
@@ -559,9 +565,9 @@ sap.ui.define(
           await oController._processAfterRendering(reqSeq);
         } catch (e) {
           BusyIndicator.hide();
-          AppState.state.isBusy = false;
+          ctx.state.isBusy = false;
           Lib.logError("responseSuccess: unexpected error", e);
-          this.showRenderError(e);
+          this.showRenderError(ctx, e);
         }
       },
 
@@ -572,19 +578,19 @@ sap.ui.define(
       // view actually fails to load a sap.com module, so without this hook
       // there the SDK hint was unreachable (View1 caught the error first and
       // showed only the generic overlay).
-      showRenderError(e, title) {
+      showRenderError(ctx, e, title) {
         const msg = e?.message || "";
         if (msg.includes("openui5") && msg.includes("script load error")) {
-          this._checkSDKcompatibility(e);
+          this._checkSDKcompatibility(ctx, e);
         } else {
-          this.responseError(e, title);
+          this.responseError(ctx, e, title);
         }
       },
 
       // A view failed to load a sap.com module: when the page runs on
       // openui5 (instead of SAPUI5), tell the user which module is missing
       // so they know to switch SDKs; otherwise show the original error.
-      async _checkSDKcompatibility(err) {
+      async _checkSDKcompatibility(ctx, err) {
         let gav;
         try {
           const info = await VersionInfo.load();
@@ -594,7 +600,7 @@ sap.ui.define(
           // fall back to the fatal-error overlay with the underlying error so
           // every error case still surfaces one error popup.
           Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);
-          this.responseError(err);
+          this.responseError(ctx, err);
           return;
         }
         if (!gav || !gav.includes("com.sap.ui5")) {
@@ -605,11 +611,12 @@ sap.ui.define(
           const missingModule =
             err?._modules || moduleMatch?.[1] || "the requested module";
           this.responseError(
+            ctx,
             `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
           );
           return;
         }
-        this.responseError(err);
+        this.responseError(ctx, err);
       },
 
       // Terminate the roundtrip in an unrecoverable state: clear the busy
@@ -618,16 +625,16 @@ sap.ui.define(
       // header text; `oOptions.onRetry` adds a Retry action to the overlay
       // (used for network/timeout failures where the request may never have
       // reached the server).
-      responseError(response, title, oOptions) {
+      responseError(ctx, response, title, oOptions) {
         BusyIndicator.hide();
-        AppState.state.isBusy = false;
+        ctx.state.isBusy = false;
         // The overlay below ends the app: every further request is the
         // overlay's own Retry / Restart. A keystroke a check_queue_last wire
         // kept for the roundtrip that just failed is dropped, not dispatched -
         // it would re-send the failing value under the overlay and answer
         // with a second one.
-        AppState.state.oQueuedEvent = null;
-        ErrorView.show(response, title, oOptions);
+        ctx.state.oQueuedEvent = null;
+        ErrorView.show(ctx, response, title, oOptions);
       },
     };
   },

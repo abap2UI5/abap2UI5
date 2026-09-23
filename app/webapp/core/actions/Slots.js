@@ -3,13 +3,12 @@ sap.ui.define(
     "sap/ui/core/mvc/XMLView",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
-    "z2ui5/core/Server",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
+    "z2ui5/core/Context",
   ],
-  (XMLView, Fragment, JSONModel, Server, Lib, Env, ViewSlots, AppState) => {
+  (XMLView, Fragment, JSONModel, Lib, Env, ViewSlots, Context) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -18,17 +17,18 @@ sap.ui.define(
     // own loader), push the model into the open ones - plus the
     // framework-owned JSON model with its change tracking, which the
     // displays create and the eB roundtrip reads back
-    // (View1._pickModelForRoundtrip via resolveTrackedModel).
+    // (View1._pickModelForRoundtrip via resolveTrackedModel). Every
+    // function takes the component's context first (core/Context.js): the
+    // slots, the response and the build chain are per component, and the
+    // views and fragments are created under the component as owner
+    // (Context.runAsOwner) so every control inside them resolves it.
     // ------------------------------------------------------------------
 
-    function applyStoredSizeLimit(viewKey, oModel) {
+    function applyStoredSizeLimit(ctx, viewKey, oModel) {
       if (!oModel) return;
       // For the root slots (MAIN/NEST/NEST2) this is the max limit across them,
       // since they share this one model; popup/popover get their own limit.
-      const limit = Lib.effectiveSizeLimit(
-        AppState.state.viewSizeLimits,
-        viewKey,
-      );
+      const limit = Lib.effectiveSizeLimit(ctx.state.viewSizeLimits, viewKey);
       if (limit !== undefined) oModel.setSizeLimit(limit);
     }
 
@@ -92,8 +92,9 @@ sap.ui.define(
     // that makes one (displayView's MAIN model included), so the copy
     // policy above applies to every slot or to none.
     function createViewModel(
+      ctx,
       slotKey = "MAIN",
-      data = AppState.state.oResponse?.OVIEWMODEL,
+      data = ctx.state.oResponse?.OVIEWMODEL,
     ) {
       const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));
       // A model built from THIS response remembers the response record, so
@@ -102,8 +103,8 @@ sap.ui.define(
       // display, and the push used to land in the model just built from it:
       // a full binding sweep on MAIN, and for a popup or popover a second
       // deep copy of the whole model on every open.
-      if (data && data === AppState.state.oResponse?.OVIEWMODEL) {
-        oModel._z2ui5BuiltFrom = AppState.state.oResponse;
+      if (data && data === ctx.state.oResponse?.OVIEWMODEL) {
+        oModel._z2ui5BuiltFrom = ctx.state.oResponse;
       }
       return oModel;
     }
@@ -111,8 +112,8 @@ sap.ui.define(
     // True when this response was superseded by a newer request while an
     // async view build was awaiting (undefined seq = no check, for callers
     // outside the system-action phase).
-    function isSuperseded(seq) {
-      return seq !== undefined && seq !== Server._requestSeq;
+    function isSuperseded(ctx, seq) {
+      return seq !== undefined && seq !== ctx.server.requestSeq;
     }
 
     // ------------------------------------------------------------------
@@ -124,18 +125,23 @@ sap.ui.define(
     // Returns null when the app was torn down while the fragment loaded or a
     // newer request superseded this response - we must not open a dialog the
     // backend no longer knows about.
-    async function loadSlotFragment(slotKey, fragmentId, xml, seq) {
-      const oModel = createViewModel(slotKey);
-      applyStoredSizeLimit(slotKey, oModel);
+    async function loadSlotFragment(ctx, slotKey, fragmentId, xml, seq) {
+      const oModel = createViewModel(ctx, slotKey);
+      applyStoredSizeLimit(ctx, slotKey, oModel);
       // UI5 1.71 to 1.82 process a fragment synchronously - the controls it
       // needs must be loaded before, or they are eval'd (Lib, there)
       await Env.preloadFragmentModules(xml);
-      const oFragment = await Fragment.load({
-        definition: xml,
-        controller: ViewSlots.getController(slotKey),
-        id: ViewSlots.ownId(fragmentId),
-      });
-      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {
+      // under the component as owner, so every control of the fragment
+      // resolves its context (Context.of) - UI5 carries the owner into
+      // the async processing itself
+      const oFragment = await Context.runAsOwner(ctx, () =>
+        Fragment.load({
+          definition: xml,
+          controller: ViewSlots.getController(ctx, slotKey),
+          id: ViewSlots.ownId(ctx, fragmentId),
+        }),
+      );
+      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {
         oFragment.destroy();
         return null;
       }
@@ -143,17 +149,23 @@ sap.ui.define(
       return oFragment;
     }
 
-    async function displayFragment(xml, seq) {
-      const oFragment = await loadSlotFragment("POPUP", "popupId", xml, seq);
+    async function displayFragment(ctx, xml, seq) {
+      const oFragment = await loadSlotFragment(
+        ctx,
+        "POPUP",
+        "popupId",
+        xml,
+        seq,
+      );
       if (!oFragment) return;
       // The shared device + message models are attached inside
       // ViewSlots.setView (the single funnel), so error paths that
       // destroy a view without reaching setView never register it.
-      ViewSlots.setView("POPUP", oFragment, xml);
+      ViewSlots.setView(ctx, "POPUP", oFragment, xml);
       oFragment.open();
     }
 
-    async function displayPopover(xml, openById, seq) {
+    async function displayPopover(ctx, xml, openById, seq) {
       // No catch-all here on purpose: a malformed-XML load or render
       // failure must propagate to _processAfterRendering and surface the
       // fatal "App Terminated" overlay, exactly like displayFragment and
@@ -162,6 +174,7 @@ sap.ui.define(
       // the openBy anchor not being present), matching the parent-not-found
       // guard in displayNestedView.
       const oFragment = await loadSlotFragment(
+        ctx,
         "POPOVER",
         "popoverId",
         xml,
@@ -171,14 +184,14 @@ sap.ui.define(
 
       // Find the control to attach the popover to: any open slot first,
       // then the global UI5 control registry as a last resort.
-      const oControl = ViewSlots.resolveById(openById);
+      const oControl = ViewSlots.resolveById(ctx, openById);
 
       if (!oControl) {
         Lib.logError(`displayPopover: openBy control '${openById}' not found`);
         oFragment.destroy();
         return;
       }
-      ViewSlots.setView("POPOVER", oFragment, xml);
+      ViewSlots.setView(ctx, "POPOVER", oFragment, xml);
       // The anchor may not be in the DOM yet: a response can build the MAIN
       // view and open a popover on one of its controls in the SAME
       // roundtrip - the build is awaited, but its rendering happens later.
@@ -198,7 +211,7 @@ sap.ui.define(
       return { xml: { models: { template: oTemplateModel } } };
     }
 
-    async function displayNestedView(xml, slotKey, mOptions, seq) {
+    async function displayNestedView(ctx, xml, slotKey, mOptions, seq) {
       // Nested views do NOT create their own model. They are inserted into
       // the MAIN control tree below and inherit its default JSON model via
       // UI5 model propagation, so every view binds against the same data with
@@ -208,16 +221,18 @@ sap.ui.define(
       // it is the MAIN view's JSON model (the named "http" model when
       // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot, otherwise
       // the default model), mirroring displayView's template model.
-      const oMainView = ViewSlots.getView("MAIN");
+      const oMainView = ViewSlots.getView(ctx, "MAIN");
       const oTemplateModel =
         oMainView?.getModel("http") ?? oMainView?.getModel();
-      const oView = await XMLView.create({
-        definition: xml,
-        controller: ViewSlots.getController(slotKey),
-        preprocessors: templatePreprocessors(xml, oTemplateModel),
-      });
+      const oView = await Context.runAsOwner(ctx, () =>
+        XMLView.create({
+          definition: xml,
+          controller: ViewSlots.getController(ctx, slotKey),
+          preprocessors: templatePreprocessors(xml, oTemplateModel),
+        }),
+      );
 
-      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {
+      if (!Lib.isAlive(ctx.state.oApp) || isSuperseded(ctx, seq)) {
         oView.destroy();
         return;
       }
@@ -232,7 +247,7 @@ sap.ui.define(
         methodInsert: METHOD_INSERT,
       } = mOptions;
 
-      const oParent = ViewSlots.byId("MAIN", ID);
+      const oParent = ViewSlots.byId(ctx, "MAIN", ID);
       if (!oParent) {
         Lib.logError(
           `displayNestedView: parent control '${ID}' not found, nested view discarded`,
@@ -261,7 +276,7 @@ sap.ui.define(
         oView.destroy();
         return;
       }
-      ViewSlots.setView(slotKey, oView, xml);
+      ViewSlots.setView(ctx, slotKey, oView, xml);
     }
 
     // Replace the main app view with the XML coming from the backend.
@@ -270,8 +285,8 @@ sap.ui.define(
     // installed even when a newer request supersedes it meanwhile - see the
     // reasoning at the await below. The parameter used to sit here unread,
     // which reads like a guard that is honoured somewhere in this function.
-    async function displayView(xml, viewModel, mOptions = {}) {
-      const oViewModel = createViewModel("MAIN", viewModel);
+    async function displayView(ctx, xml, viewModel, mOptions = {}) {
+      const oViewModel = createViewModel(ctx, "MAIN", viewModel);
 
       const switchPath = mOptions.switchDefaultModelPath;
 
@@ -291,7 +306,7 @@ sap.ui.define(
         // built by the framework from a service URL the app named, and
         // neither dies with the view - what an app puts on a view itself
         // is not in the inventory and is never touched
-        AppState.state.odataClients.add(oModel);
+        ctx.state.odataClients.add(oModel);
       } else {
         oModel = oViewModel;
       }
@@ -299,17 +314,19 @@ sap.ui.define(
       // JSON model is what the app's SET_SIZE_LIMIT was about (its bound
       // tables live there under http>), and the OData default model kept
       // getting it as before
-      applyStoredSizeLimit("MAIN", oViewModel);
-      if (switchPath) applyStoredSizeLimit("MAIN", oModel);
+      applyStoredSizeLimit(ctx, "MAIN", oViewModel);
+      if (switchPath) applyStoredSizeLimit(ctx, "MAIN", oModel);
 
-      const oView = await XMLView.create({
-        definition: xml,
-        models: oModel,
-        controller: ViewSlots.getController("MAIN"),
-        // component-prefixed, never page-global - see ViewSlots.ownId
-        id: ViewSlots.ownId("mainView"),
-        preprocessors: templatePreprocessors(xml, oViewModel),
-      });
+      const oView = await Context.runAsOwner(ctx, () =>
+        XMLView.create({
+          definition: xml,
+          models: oModel,
+          controller: ViewSlots.getController(ctx, "MAIN"),
+          // component-prefixed, never page-global - see ViewSlots.ownId
+          id: ViewSlots.ownId(ctx, "mainView"),
+          preprocessors: templatePreprocessors(xml, oViewModel),
+        }),
+      );
 
       // oModel covers oViewModel too when they are the same object (no
       // switchPath); with an OData default model both must go.
@@ -317,13 +334,13 @@ sap.ui.define(
         oView.destroy();
         // ...and out of the inventory again: this build never reached the
         // slot, so no later rebuild must find its client there
-        AppState.state.odataClients.delete(oModel);
+        ctx.state.odataClients.delete(oModel);
         oModel.destroy();
         if (switchPath) oViewModel.destroy();
       };
 
       // Guard against the app being destroyed during the await above.
-      if (!Lib.isAlive(AppState.state.oApp)) {
+      if (!Lib.isAlive(ctx.state.oApp)) {
         discardBuild();
         return;
       }
@@ -331,7 +348,7 @@ sap.ui.define(
       // A MAIN build superseded by a newer request while XMLView.create was
       // awaiting is still INSTALLED: displayMain destroyed the slot
       // synchronously before this await and serialises every MAIN build
-      // through Server._viewBuild, so
+      // through ctx.server.viewBuild, so
       // no newer view can have taken the slot in the meantime - the newer
       // request's own build is chained behind this one and replaces it. A
       // guard here that discarded the build "when a newer view took the
@@ -340,23 +357,23 @@ sap.ui.define(
       // response was data-only. The cost is one stale render that the
       // chained build replaces a moment later.
 
-      ViewSlots.setView("MAIN", oView, xml);
+      ViewSlots.setView(ctx, "MAIN", oView, xml);
       if (switchPath) oView.setModel(oViewModel, "http");
-      AppState.state.oApp.removeAllPages();
-      AppState.state.oApp.insertPage(oView);
+      ctx.state.oApp.removeAllPages();
+      ctx.state.oApp.insertPage(oView);
     }
 
     // The MAIN rebuild is the one display that cannot simply run: it is
-    // serialized through Server._viewBuild because XMLView.create claims
+    // serialized through ctx.server.viewBuild because XMLView.create claims
     // the fixed "mainView" id synchronously, so two overlapping builds
     // (a slow library load plus a parallel/multi-req response) would throw
     // "duplicate id". Each queued build re-checks that it has not been
     // superseded before it starts.
-    function displayMain(xml, mOptions, seq) {
-      Server._viewBuild = Promise.resolve(Server._viewBuild)
+    function displayMain(ctx, xml, mOptions, seq) {
+      ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild)
         .catch(() => {})
         .then(() => {
-          if (isSuperseded(seq)) {
+          if (isSuperseded(ctx, seq)) {
             return undefined;
           }
           // The implicit teardown of the previous MAIN view happens HERE,
@@ -376,20 +393,20 @@ sap.ui.define(
           // re-issue found nothing to destroy - the same leak, one model
           // name over. Only clients the framework created are in the
           // inventory; dependent slots are already down at this point.
-          ViewSlots.destroy("MAIN");
+          ViewSlots.destroy(ctx, "MAIN");
           // each destroy on its own, as Component.exit does it: a client
           // whose $metadata request is still pending can throw, and a
           // throw here rejects the serialised build chain - the fatal
           // "App Terminated" overlay over a MAIN slot already torn down,
           // with the remaining clients left alive
-          for (const oClient of AppState.state.odataClients) {
+          for (const oClient of ctx.state.odataClients) {
             try {
               oClient.destroy();
             } catch (e) {
               Lib.logError("displayMain: destroying an OData client failed", e);
             }
           }
-          AppState.state.odataClients.clear();
+          ctx.state.odataClients.clear();
           // A new MAIN view means a new screen, so the two STANDALONE slots
           // go with it. They live outside the MAIN control tree and would
           // otherwise float on top of a page they no longer belong to - a
@@ -399,20 +416,21 @@ sap.ui.define(
           // popup/popover the SAME response opens still opens: slot actions
           // are serialized MAIN first, and each one is awaited before the
           // next runs (View1._runSystemActions).
-          ViewSlots.destroy("POPUP");
-          ViewSlots.destroy("POPOVER");
+          ViewSlots.destroy(ctx, "POPUP");
+          ViewSlots.destroy(ctx, "POPOVER");
           return displayView(
+            ctx,
             xml,
-            AppState.state.oResponse?.OVIEWMODEL,
+            ctx.state.oResponse?.OVIEWMODEL,
             mOptions,
           );
         });
-      return Server._viewBuild;
+      return ctx.server.viewBuild;
     }
 
     // Push the response's model into one slot, if it is open at all.
-    function updateModelIfRequired(slotKey) {
-      const oView = ViewSlots.getView(slotKey);
+    function updateModelIfRequired(ctx, slotKey) {
+      const oView = ViewSlots.getView(ctx, slotKey);
       if (!oView) return;
 
       // ...and only when the model BELONGS to it. A response carries the
@@ -428,8 +446,8 @@ sap.ui.define(
       // "opening the popup lost the binding".
       // An unknown owner (a slot filled before any response named an app)
       // keeps the old unconditional behaviour rather than going quiet.
-      const sSlotApp = ViewSlots.getViewApp(slotKey);
-      const sResponseApp = AppState.state.oResponse?.APP;
+      const sSlotApp = ViewSlots.getViewApp(ctx, slotKey);
+      const sResponseApp = ctx.state.oResponse?.APP;
       if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;
 
       // Reuse the existing model whenever it is ours: setData() keeps the
@@ -446,11 +464,11 @@ sap.ui.define(
         // model a second time for a standalone slot
         if (
           tracked._z2ui5BuiltFrom &&
-          tracked._z2ui5BuiltFrom === AppState.state.oResponse
+          tracked._z2ui5BuiltFrom === ctx.state.oResponse
         ) {
           return;
         }
-        applyStoredSizeLimit(slotKey, tracked);
+        applyStoredSizeLimit(ctx, slotKey, tracked);
         // Edits this slot has not sent yet survive the push. Change tracking
         // is per model, and a roundtrip from another slot (a MAIN timer
         // tick, an unscoped shortcut, the hash listener) ships only that
@@ -473,9 +491,7 @@ sap.ui.define(
             if (value !== undefined) keep.push([path, value]);
           }
         }
-        tracked.setData(
-          dataForSlot(slotKey, AppState.state.oResponse?.OVIEWMODEL),
-        );
+        tracked.setData(dataForSlot(slotKey, ctx.state.oResponse?.OVIEWMODEL));
         // Batched: JSONModel#setProperty ends in checkUpdate, and without
         // the async flag every call sweeps ALL bindings synchronously - a
         // dialog with N unsent fields paid N sweeps on top of setData's.
@@ -489,8 +505,8 @@ sap.ui.define(
 
       // No framework-owned model on this slot at all: bind a fresh default
       // JSON model (keeps the previous behavior for that edge case).
-      const oModel = createViewModel(slotKey);
-      applyStoredSizeLimit(slotKey, oModel);
+      const oModel = createViewModel(ctx, slotKey);
+      applyStoredSizeLimit(ctx, slotKey, oModel);
       oView.setModel(oModel);
     }
 
@@ -501,7 +517,7 @@ sap.ui.define(
     // request the processed response belongs to, threaded through the action
     // context (FrontendAction.runSystem) - a display superseded by a newer
     // request discards its build instead of overwriting the newer view.
-    function action(method, slotKey, xml, mOptions, seq) {
+    function action(ctx, method, slotKey, xml, mOptions, seq) {
       // The options are optional on the wire - a display that needs none
       // (a popup, or the devtools' local re-render) carries no fourth
       // argument at all. Normalized once, for every slot: MAIN was the
@@ -511,14 +527,14 @@ sap.ui.define(
       // tolerated.
       const options = mOptions || {};
       if (method === "destroy") {
-        ViewSlots.destroy(slotKey);
+        ViewSlots.destroy(ctx, slotKey);
         return undefined;
       }
       if (method === "updateModel") {
         // no slot is named - push into every OPEN slot that carries a
         // model of its own
         for (const slot of ViewSlots.slots) {
-          if (slot.ownsModel) updateModelIfRequired(slot.key);
+          if (slot.ownsModel) updateModelIfRequired(ctx, slot.key);
         }
         return undefined;
       }
@@ -526,7 +542,7 @@ sap.ui.define(
       // would destroy what the newer response has already built (and the
       // fragment slots load under FIXED ids - a stale Fragment.load next to
       // the newer response's live fragment would die on a duplicate id).
-      if (isSuperseded(seq)) return undefined;
+      if (isSuperseded(ctx, seq)) return undefined;
       // A display REPLACES the slot, so tear down whatever it holds first -
       // implicitly, the backend sends no destroy action with a display
       // (destroying an empty slot is a no-op). MAIN tears down inside its
@@ -537,15 +553,15 @@ sap.ui.define(
         // slot (devtools LiveEdit) can reuse them: a switch-mode MAIN
         // re-displayed with empty options came back without its OData
         // default model and looked broken in the preview
-        AppState.state.lastMainDisplayOptions = options;
-        return displayMain(xml, options, seq);
+        ctx.state.lastMainDisplayOptions = options;
+        return displayMain(ctx, xml, options, seq);
       }
-      ViewSlots.destroy(slotKey);
-      if (slotKey === "POPUP") return displayFragment(xml, seq);
+      ViewSlots.destroy(ctx, slotKey);
+      if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);
       if (slotKey === "POPOVER") {
-        return displayPopover(xml, options.openById, seq);
+        return displayPopover(ctx, xml, options.openById, seq);
       }
-      return displayNestedView(xml, slotKey, options, seq);
+      return displayNestedView(ctx, xml, slotKey, options, seq);
     }
 
     // action is the module's entry point (the VIEW_SLOTS target);

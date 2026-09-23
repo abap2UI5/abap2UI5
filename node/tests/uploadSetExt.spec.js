@@ -44,9 +44,9 @@ function load({ uploadSet } = {}) {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": { byIdOfOwner: () => uploadSet ?? null },
-      // the same state object Lib's callbacks live on - isBusy is what the
-      // control reads after each change (see the multi-select spec)
-      "z2ui5/core/AppState": { state },
+      // the control itself reads no state: Lib's hooks and afterRoundtrip
+      // resolve its context (the spec's one) and answer from `state`, the
+      // isBusy the multi-select spec toggles
     },
   });
 

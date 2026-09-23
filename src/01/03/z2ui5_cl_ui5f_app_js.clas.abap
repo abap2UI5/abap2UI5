@@ -30,14 +30,15 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, AppState, ViewSlots) => {` && |\n| &&
+             `  (BaseController, Controller, Server, Context, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
+             `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
              `        state.oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `` && |\n| &&
              `        const manifest = state.oOwnerComponent.getManifest();` && |\n| &&
@@ -45,11 +46,13 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        state.url = state.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          state[slot.controllerProp] = new Controller();` && |\n| &&
+             `          const oController = new Controller();` && |\n| &&
+             `          oController.ctx = ctx;` && |\n| &&
+             `          state[slot.controllerProp] = oController;` && |\n| &&
              `        }` && |\n| &&
              `        state.oApp = this.getView().byId("app");` && |\n| &&
              `` && |\n| &&
-             `        Server.roundtrip();` && |\n| &&
+             `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

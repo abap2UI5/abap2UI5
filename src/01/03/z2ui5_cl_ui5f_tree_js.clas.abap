@@ -30,9 +30,9 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `    "sap/ui/core/Control",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  (Control, Lib, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Tree", {` && |\n| &&
@@ -52,14 +52,28 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `        return treeControl?.getBinding("items");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _treeStates(where) {` && |\n| &&
+             `        const states = Context.of(this)?.state.treeStates;` && |\n| &&
+             `        if (states) return states;` && |\n| &&
+             `        if (!this._noContextLogged) {` && |\n| &&
+             `          this._noContextLogged = true;` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``Tree.${where}: no component context, tree state not preserved``,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        return null;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      setBackend() {` && |\n| &&
              `        try {` && |\n| &&
              `          const id = this.getProperty("tree_id");` && |\n| &&
              `          if (!id) return;` && |\n| &&
+             `          const treeStates = this._treeStates("setBackend");` && |\n| &&
+             `          if (!treeStates) return;` && |\n| &&
              `          const binding = this._getTreeBinding();` && |\n| &&
              `` && |\n| &&
              `          if (binding) {` && |\n| &&
-             `            AppState.state.treeStates[id] = binding.getCurrentTreeState();` && |\n| &&
+             `            treeStates[id] = binding.getCurrentTreeState();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Tree.setBackend: failed", e);` && |\n| &&
@@ -81,7 +95,8 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `      onAfterRendering() {` && |\n| &&
              `        try {` && |\n| &&
              `          const id = this.getProperty("tree_id");` && |\n| &&
-             `          const snapshot = id && AppState.state.treeStates[id];` && |\n| &&
+             `          if (!id) return;` && |\n| &&
+             `          const snapshot = this._treeStates("onAfterRendering")?.[id];` && |\n| &&
              `          if (!snapshot) return;` && |\n| &&
              `          const binding = this._getTreeBinding();` && |\n| &&
              `          if (!binding) return;` && |\n| &&

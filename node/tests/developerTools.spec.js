@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 const { fakeDocument } = require("./fakeDocument");
 
 // Tests the real implementation shipped in
@@ -19,6 +20,10 @@ const { fakeDocument } = require("./fakeDocument");
 // The browser XML APIs used at module scope are stubbed minimally;
 // prettifyXml degrades to the identity function with these stubs, which is
 // exactly its documented fallback behavior.
+//
+// The dialog shows the state of ONE component context (core/Context.js),
+// carried as `ctx` on the instance the way DevTools.get( ) hands it over;
+// the harness builds that context from the seeds and puts it there.
 
 // Mimics the relevant shape of a real sap.ui.core.mvc.XMLView: the raw XML
 // string is kept as a pseudo property in mProperties, but is NOT declared
@@ -57,14 +62,13 @@ function loadDeveloperTools({
   extraSandbox = {},
   storage = {},
 } = {}) {
-  const AppState = {
-    state: { responseData, oBody, errors, lastError, oConfig: {} },
-  };
+  const ctx = specContext({ responseData, oBody, lastError });
   // The slot registry is the developer tools' only source for what a slot
-  // holds: the live instance and the XML it was filled with.
+  // holds: the live instance and the XML it was filled with - of the one
+  // context, so the stubs answer for any.
   const ViewSlots = {
-    getView: (key) => views[key],
-    getViewXml: (key) => slotXml[key],
+    getView: (_ctx, key) => views[key],
+    getViewXml: (_ctx, key) => slotXml[key],
     // mirrors core/ViewSlots.trackedModel: the framework model is the
     // DEFAULT one, or the named "http" one in switch mode. devtools/Tabs.js
     // resolves the model tabs through it
@@ -74,9 +78,11 @@ function loadDeveloperTools({
       return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
     },
   };
+  // both take the context whose error they act on - recorded, so a test
+  // can pin that the dialog hands its own over
   const ErrorView = {
-    handleLogout: () => logoutCalls?.push(true),
-    reopenErrorDialog: () => reopenCalls?.push(true),
+    handleLogout: (c) => logoutCalls?.push(c),
+    reopenErrorDialog: (c) => reopenCalls?.push(c),
   };
   // The roundtrip recorder owns the History / diff views; the registry
   // only renders the text it returns. Its own behaviour is covered by
@@ -133,15 +139,16 @@ function loadDeveloperTools({
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
       // Default Lib stub: the async paths (Apply, Pick, show) guard their
-      // continuations with Lib.isDestroyed. The show() tests override it
-      // via extraDeps, which is spread after this.
+      // continuations with Lib.isDestroyed, and the Problems badge counts
+      // the page-wide error ring (Lib.errors). The show() tests override
+      // it via extraDeps, which is spread after this.
       "z2ui5/core/Lib": {
+        errors: errors || [],
         isDestroyed: () => false,
         logError() {},
         copyToClipboard() {},
       },
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
       "z2ui5/devtools/Console": Console,
       "z2ui5/devtools/Recorder": Recorder,
@@ -189,7 +196,8 @@ function loadDeveloperTools({
       ...extraSandbox,
     },
   });
-  return { DeveloperTools: module, storage };
+  module.ctx = ctx;
+  return { DeveloperTools: module, storage, ctx };
 }
 
 // A dialog model double. renderTab reads and writes it exactly like the
@@ -480,14 +488,14 @@ test.describe("Error view", () => {
     expect(retried).toBe(1);
   });
 
-  test("onErrorLogout delegates to ErrorView.handleLogout", () => {
+  test("onErrorLogout delegates to ErrorView.handleLogout with its context", () => {
     const logoutCalls = [];
-    const { DeveloperTools } = loadDeveloperTools({
+    const { DeveloperTools, ctx } = loadDeveloperTools({
       lastError: { title: "x", text: "y", onRetry: null },
       logoutCalls,
     });
     DeveloperTools.onErrorLogout();
-    expect(logoutCalls).toEqual([true]);
+    expect(logoutCalls).toEqual([ctx]);
   });
 });
 
@@ -512,11 +520,12 @@ test.describe("Recorder views", () => {
   test("the payload toggle forwards to the recorder and re-renders", () => {
     const calls = [];
     let recording = false;
-    const { DeveloperTools } = loadDeveloperTools({
+    const { DeveloperTools, ctx } = loadDeveloperTools({
       recorder: {
         isRecordingPayloads: () => recording,
-        setRecordingPayloads(on) {
-          calls.push(on);
+        // the switch names the context whose history it drops
+        setRecordingPayloads(c, on) {
+          calls.push([c, on]);
           recording = on;
         },
         getRecords: () => [],
@@ -529,7 +538,9 @@ test.describe("Recorder views", () => {
     DeveloperTools.onToggleRecordPayloads({
       getSource: () => ({ getPressed: () => true, getModel: () => model }),
     });
-    expect(calls).toEqual([true]);
+    expect(calls.length).toBe(1);
+    expect(calls[0][0]).toBe(ctx);
+    expect(calls[0][1]).toBe(true);
     expect(data.recordPayloads).toBe(true);
     // the open view reports the flag, so it is re-rendered after the switch
     expect(data.value).toBe("ON");
@@ -580,7 +591,7 @@ test.describe("Live view editing", () => {
       views: { MAIN: fakeXmlView("<mvc:View/>", { A: 1 }) },
       liveEdit: {
         apply: () => Promise.resolve("ok"),
-        canApply: (tab) => tab === "VIEW",
+        canApply: (_ctx, tab) => tab === "VIEW",
         slotOfTab: () => "MAIN",
         isBusy: () => false,
       },
@@ -596,10 +607,11 @@ test.describe("Live view editing", () => {
 
   test("Apply forwards the edited XML and reports the result", async () => {
     const applied = [];
-    const { DeveloperTools } = loadDeveloperTools({
+    const { DeveloperTools, ctx } = loadDeveloperTools({
       liveEdit: {
-        apply: (tab, xml) => {
-          applied.push({ tab, xml });
+        // the slot is re-rendered in the dialog's own context
+        apply: (c, tab, xml) => {
+          applied.push({ own: c === ctx, tab, xml });
           return Promise.resolve("Applied to slot MAIN.");
         },
         canApply: () => true,
@@ -612,7 +624,9 @@ test.describe("Live view editing", () => {
       value: '<mvc:View edited="1"/>',
     });
     await DeveloperTools.onApplyXml({ getSource: () => ({ getModel: () => model }) });
-    expect(applied).toEqual([{ tab: "VIEW", xml: '<mvc:View edited="1"/>' }]);
+    expect(applied).toEqual([
+      { own: true, tab: "VIEW", xml: '<mvc:View edited="1"/>' },
+    ]);
     expect(data.statusText).toContain("Applied to slot MAIN");
     expect(data.hasStatusText).toBe(true);
     DeveloperTools.exit();
@@ -663,7 +677,7 @@ test.describe("Live view editing", () => {
       liveEdit: {
         // what LiveEdit.apply really does: the slot ends up holding the XML
         // that was applied to it
-        apply: (_tab, xml) => {
+        apply: (_ctx, _tab, xml) => {
           views.MAIN = fakeXmlView(xml);
           return Promise.resolve("Applied to slot MAIN.");
         },
@@ -1002,7 +1016,7 @@ test.describe("ABAP Source view", () => {
       fragment: { byId: () => ({ setContent() {} }) },
       liveEdit: {
         apply: () => Promise.resolve("ok"),
-        canApply: (tab) => tab === "VIEW",
+        canApply: (_ctx, tab) => tab === "VIEW",
         slotOfTab: () => "MAIN",
         isBusy: () => false,
       },
@@ -1058,7 +1072,7 @@ test.describe("Pick control", () => {
     const shown = [];
     const { DeveloperTools } = loadDeveloperTools({
       picker: {
-        start: (cb) => (started = cb),
+        start: (_ctx, cb) => (started = cb),
         stop() {},
         lastReport: () => "",
       },
@@ -1079,7 +1093,7 @@ test.describe("Pick control", () => {
     const shown = [];
     const { DeveloperTools } = loadDeveloperTools({
       picker: {
-        start: (cb) => (started = cb),
+        start: (_ctx, cb) => (started = cb),
         stop() {},
         lastReport: () => "",
       },
@@ -1154,14 +1168,14 @@ test.describe("Close / Escape returns to the error popup", () => {
     };
   };
 
-  test("closing after Details re-shows the error popup", () => {
+  test("closing after Details re-shows the error popup of its context", () => {
     const reopenCalls = [];
-    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    const { DeveloperTools, ctx } = loadDeveloperTools({ reopenCalls });
     const oDialog = openDialog();
     DeveloperTools.oDialog = oDialog;
     DeveloperTools.reopenErrorOnClose = true;
     DeveloperTools.close();
-    expect(reopenCalls).toEqual([true]);
+    expect(reopenCalls).toEqual([ctx]);
     // Reused, not destroyed: the instance stays for the next show().
     expect(DeveloperTools.oDialog).toBe(oDialog);
     expect(oDialog.isOpen()).toBe(false);
@@ -1194,7 +1208,7 @@ test.describe("Close / Escape returns to the error popup", () => {
     let rejected = false;
     DeveloperTools.onEscape({ reject: () => (rejected = true), resolve() {} });
     expect(rejected).toBe(true);
-    expect(reopenCalls).toEqual([true]);
+    expect(reopenCalls.length).toBe(1);
   });
 
   test("exit() closes and destroys the reused dialog", () => {
@@ -1218,7 +1232,7 @@ test.describe("show()", () => {
     storage = {},
     initialTab,
     responseData = { S_FRONT: {} },
-    errors,
+    errors = [],
     lastError,
     views,
   } = {}) => {
@@ -1235,6 +1249,7 @@ test.describe("show()", () => {
       },
       extraDeps: {
         "z2ui5/core/Lib": {
+          errors,
           isDestroyed: () => false,
           logError() {},
           copyToClipboard() {},

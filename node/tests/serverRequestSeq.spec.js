@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests Server.readHttp request sequencing (last-write-wins). Only the newest
 // dispatched request may commit its result; a slower older response is dropped
@@ -45,15 +46,15 @@ function load() {
   const successes = [];
   const errors = [];
   const controllers = [];
-  const appState = {
-    state: { oSentModel: null, url: "/url" },
-  };
+  // the request bookkeeping is per component: ctx.server carries the
+  // sequence and the fetches in flight, ctx.state the session fields
+  const ctx = specContext({ oSentModel: null, url: "/url" });
+  const appState = { state: ctx.state };
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "z2ui5/core/Lib": { isValidContextId: () => false },
       "z2ui5/core/Session": { confirmSent: () => {} },
-      "z2ui5/core/AppState": appState,
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
     sandbox: {
@@ -74,20 +75,20 @@ function load() {
   });
 
   // Spy on the commit handlers instead of running the real render.
-  Server.responseSuccess = (r) => successes.push(r);
-  Server.responseError = (m) => errors.push(m);
+  Server.responseSuccess = (_ctx, r) => successes.push(r);
+  Server.responseError = (_ctx, m) => errors.push(m);
 
-  return { Server, fetchCalls, successes, errors, controllers, appState };
+  return { Server, ctx, fetchCalls, successes, errors, controllers, appState };
 }
 
 // Let queued microtasks (the awaits inside readHttp) run.
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
 test("drops the older response when a newer request went out (older resolves first)", async () => {
-  const { Server, fetchCalls, successes } = load();
+  const { Server, ctx, fetchCalls, successes } = load();
 
-  const pA = Server.readHttp({}); // seq 1
-  const pB = Server.readHttp({}); // seq 2 -> newest
+  const pA = Server.readHttp(ctx, {}); // seq 1
+  const pB = Server.readHttp(ctx, {}); // seq 2 -> newest
 
   fetchCalls[0].resolve(okResponse("A")); // older resolves first
   await flush();
@@ -99,10 +100,10 @@ test("drops the older response when a newer request went out (older resolves fir
 });
 
 test("drops the older response when the newer one resolves first", async () => {
-  const { Server, fetchCalls, successes } = load();
+  const { Server, ctx, fetchCalls, successes } = load();
 
-  const pA = Server.readHttp({}); // seq 1
-  const pB = Server.readHttp({}); // seq 2 -> newest
+  const pA = Server.readHttp(ctx, {}); // seq 1
+  const pB = Server.readHttp(ctx, {}); // seq 2 -> newest
 
   fetchCalls[1].resolve(okResponse("B")); // newest resolves first
   await flush();
@@ -114,10 +115,10 @@ test("drops the older response when the newer one resolves first", async () => {
 });
 
 test("a superseded request's network error is swallowed (no overlay)", async () => {
-  const { Server, fetchCalls, successes, errors } = load();
+  const { Server, ctx, fetchCalls, successes, errors } = load();
 
-  const pA = Server.readHttp({}); // seq 1
-  const pB = Server.readHttp({}); // seq 2 -> newest
+  const pA = Server.readHttp(ctx, {}); // seq 1
+  const pB = Server.readHttp(ctx, {}); // seq 2 -> newest
 
   fetchCalls[0].reject(new Error("boom")); // stale request fails
   await flush();
@@ -130,12 +131,12 @@ test("a superseded request's network error is swallowed (no overlay)", async () 
 });
 
 test("dispatching a newer request aborts the older one still in flight", async () => {
-  const { Server, fetchCalls, controllers } = load();
+  const { Server, ctx, fetchCalls, controllers } = load();
 
-  const pA = Server.readHttp({}); // seq 1, controller[0]
+  const pA = Server.readHttp(ctx, {}); // seq 1, controller[0]
   expect(controllers[0].aborted).toBe(false);
 
-  const pB = Server.readHttp({}); // seq 2 -> aborts the older request
+  const pB = Server.readHttp(ctx, {}); // seq 2 -> aborts the older request
   expect(controllers[0].aborted).toBe(true); // A's fetch cancelled
   expect(controllers[1].aborted).toBe(false); // B stays live
 
@@ -148,10 +149,10 @@ test("dispatching a newer request aborts the older one still in flight", async (
 });
 
 test("reset() makes the in-flight request stale BEFORE aborting it, so the abort is no timeout", async () => {
-  const { Server, fetchCalls, errors, controllers } = load();
+  const { Server, ctx, fetchCalls, errors, controllers } = load();
 
-  const pA = Server.readHttp({}); // seq 1, controller[0]
-  Server.reset(); // the FLP teardown
+  const pA = Server.readHttp(ctx, {}); // seq 1, controller[0]
+  Server.reset(ctx); // the FLP teardown
   expect(controllers[0].aborted).toBe(true);
 
   // the aborted fetch rejects like a timeout would - a stale request's
@@ -165,7 +166,7 @@ test("reset() makes the in-flight request stale BEFORE aborting it, so the abort
 });
 
 test("a superseded response keeps the pending delta paths so the newest request carries them", async () => {
-  const { Server, fetchCalls, successes, appState } = load();
+  const { Server, ctx, fetchCalls, successes, appState } = load();
   // The model whose edits the in-flight request carried. Its own path set
   // must survive a stale response and only be cleared by the winning one.
   const oModel = {
@@ -177,8 +178,8 @@ test("a superseded response keeps the pending delta paths so the newest request 
   };
   appState.state.oSentModel = oModel;
 
-  const pA = Server.readHttp({}); // seq 1 - carried /PRODUCT
-  const pB = Server.readHttp({}); // seq 2 - newest (also carried it, rebuilt)
+  const pA = Server.readHttp(ctx, {}); // seq 1 - carried /PRODUCT
+  const pB = Server.readHttp(ctx, {}); // seq 2 - newest (also carried it, rebuilt)
 
   // The older response arrives but is stale: it must NOT clear the delta,
   // otherwise the edit would be lost once the newer request wins.
@@ -196,9 +197,9 @@ test("a superseded response keeps the pending delta paths so the newest request 
 });
 
 test("the single response commits in the default (non-parallel) case", async () => {
-  const { Server, fetchCalls, successes } = load();
+  const { Server, ctx, fetchCalls, successes } = load();
 
-  const p = Server.readHttp({}); // seq 1, nothing newer
+  const p = Server.readHttp(ctx, {}); // seq 1, nothing newer
   fetchCalls[0].resolve(okResponse("only"));
   await p;
 
@@ -213,7 +214,7 @@ test("the single response commits in the default (non-parallel) case", async () 
 // for the first time - stays pending and travels with the next roundtrip; the
 // event a check_queue_last wire kept meanwhile is exactly that roundtrip.
 test("the winning response keeps the paths edited while it was in flight", async () => {
-  const { Server, fetchCalls, appState } = load();
+  const { Server, ctx, fetchCalls, appState } = load();
   const values = { VALUE: "abc", QTY: 2, NAME: "x" };
   const oModel = {
     _z2ui5ChangedPaths: new Set(["/VALUE", "/QTY", "/NAME"]),
@@ -226,7 +227,7 @@ test("the winning response keeps the paths edited while it was in flight", async
   };
   appState.state.oSentModel = oModel;
 
-  const p = Server.readHttp({});
+  const p = Server.readHttp(ctx, {});
   fetchCalls[0].resolve(okResponse("A"));
   await p;
 
@@ -250,7 +251,7 @@ test("the winning response keeps the paths edited while it was in flight", async
 // delta, and out of the model, because the response's own push only re-applies
 // what is still pending.
 test("a roundtrip that shipped no delta clears nothing - it carried nothing", async () => {
-  const { Server, fetchCalls, appState } = load();
+  const { Server, ctx, fetchCalls, appState } = load();
   const oModel = {
     // edited while the request was in flight; no _z2ui5SentValues, because
     // the set was empty when eB dispatched
@@ -259,7 +260,7 @@ test("a roundtrip that shipped no delta clears nothing - it carried nothing", as
   };
   appState.state.oSentModel = oModel;
 
-  const p = Server.readHttp({});
+  const p = Server.readHttp(ctx, {});
   fetchCalls[0].resolve(okResponse("A"));
   await p;
 
@@ -268,10 +269,10 @@ test("a roundtrip that shipped no delta clears nothing - it carried nothing", as
 });
 
 test("reset() drops a queued event, so it never lands in the next app", () => {
-  const { Server, appState } = load();
+  const { Server, ctx, appState } = load();
   appState.state.oQueuedEvent = { controller: {}, args: [["LIVE_CHANGE"]] };
 
-  Server.reset(); // the FLP teardown
+  Server.reset(ctx); // the FLP teardown
 
   expect(appState.state.oQueuedEvent).toBeNull();
 });
@@ -279,16 +280,19 @@ test("reset() drops a queued event, so it never lands in the next app", () => {
 test("responseError drops a queued event - the overlay ends the app", () => {
   // the real responseError, not the spy load() installs
   const shown = [];
-  const appState = { state: { isBusy: true, oQueuedEvent: { args: [] } } };
+  const ctx = specContext({ isBusy: true, oQueuedEvent: { args: [] } });
+  const appState = { state: ctx.state };
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/AppState": appState,
-      "z2ui5/core/ErrorView": { show: (e) => shown.push(e), reset: () => {} },
+      "z2ui5/core/ErrorView": {
+        show: (_ctx, e) => shown.push(e),
+        reset: () => {},
+      },
     },
   });
 
-  Server.responseError("HTTP 500");
+  Server.responseError(ctx, "HTTP 500");
 
   expect(shown).toEqual(["HTTP 500"]);
   expect(appState.state.isBusy).toBe(false);

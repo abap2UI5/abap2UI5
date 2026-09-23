@@ -12,23 +12,32 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
   test("alive while the current state owns the controller, dead after a reset", () => {
     // a sap.ui.core.mvc.Controller carries no destroyed flag on any release
     // and the slot controllers are never destroyed - the one thing that ends
-    // their life is AppState.reset( ), which drops them from the state
+    // their life is Context.destroy( ), which rebuilds the state they were
+    // in. A controller carries its context (App.controller), and being one
+    // of that context's live slot controllers is the test.
     const main = { eB() {} };
     const popup = { eB() {} };
     const state = { oController: main, oControllerPopup: popup };
-    const { Lib } = loadLib({ state });
+    const { Lib, ctx } = loadLib({ state });
+    main.ctx = ctx;
+    popup.ctx = ctx;
     expect(Lib.isControllerAlive(main)).toBe(true);
     expect(Lib.isControllerAlive(popup)).toBe(true);
-    // a stray object that only LOOKS like a controller is not alive
+    // a stray object that only LOOKS like a controller is not alive - with
+    // or without a context
     expect(Lib.isControllerAlive({ eB() {} })).toBe(false);
+    expect(Lib.isControllerAlive({ eB() {}, ctx })).toBe(false);
     expect(Lib.isControllerAlive(null)).toBe(false);
     expect(Lib.isControllerAlive(undefined)).toBe(false);
     // FLP teardown / re-launch: a fresh set is registered, the old one is dead
-    state.oController = { eB() {} };
+    state.oController = { eB() {}, ctx };
     state.oControllerPopup = null;
     expect(Lib.isControllerAlive(main)).toBe(false);
     expect(Lib.isControllerAlive(popup)).toBe(false);
     expect(Lib.isControllerAlive(state.oController)).toBe(true);
+    // ... and a dead context ends every controller of it
+    ctx.alive = false;
+    expect(Lib.isControllerAlive(state.oController)).toBe(false);
   });
 
   test("isDestroyed cannot tell - a controller without any flag reads alive", () => {

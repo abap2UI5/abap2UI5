@@ -4,7 +4,7 @@
 // roundtrip history is collected. It observes the framework from the
 // outside - through the public callback arrays (Lib.registerCallback) and
 // the browser's Resource Timing API - and never asks the framework to
-// carry anything for it. Server.js, View1.controller.js, AppState.js and
+// carry anything for it. Server.js, View1.controller.js, Context.js and
 // Lib.js contain no recorder code and no recorder-shaped hooks; the whole
 // feature can be deleted by removing this file and its tab entries in
 // devtools/Tabs.js - devtools/DevTools.js is what
@@ -34,15 +34,24 @@
 // moment the old object is unbound and frozen. So every record except the
 // newest is stable, and the newest one is the current state the existing
 // tabs show anyway. Retention is the only cost; there is no copying.
+//
+// PER COMPONENT CONTEXT (core/Context.js): a roundtrip belongs to the
+// component that made it, so the history is one per context and every
+// function takes the context first. install(ctx) creates the record on
+// `ctx.devtools.recorder` (see recorderOf for its fields) and registers
+// the render hook on THAT context's callback array; uninstall(ctx) takes
+// exactly that down and leaves a second context's recorder untouched. Two
+// things stay page-wide on purpose: the Tier 2 opt-in flag (sessionStorage
+// - a setting, not data) and the reload carry-over (one sessionStorage
+// key, consumed by whichever context installs first after the reload).
 sap.ui.define(
   [
-    "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/devtools/Format",
     "z2ui5/devtools/Persist",
     "z2ui5/devtools/Diff",
   ],
-  (AppState, Lib, Format, Persist, Diff) => {
+  (Lib, Format, Persist, Diff) => {
     "use strict";
 
     const { formatBytes, renderValue } = Format;
@@ -86,7 +95,50 @@ sap.ui.define(
     // Longest value rendered inline in the model diff.
     const MAX_DIFF_VALUE_CHARS = 120;
 
-    // Oldest first. Each entry:
+    // The per-context record, `ctx.devtools.recorder` - null until
+    // install(ctx) created it, null again after uninstall(ctx):
+    //   records           the history, oldest first (see the entry shape
+    //                     below)
+    //   nextSeq           running number handed to the next record. Not
+    //                     records.length: the ring drops old entries, and
+    //                     the numbers must stay stable across evictions
+    //   unpaired          network observations not yet paired with a
+    //                     render, oldest first. Filled by the
+    //                     PerformanceObserver and the synchronous sweep,
+    //                     drained by onAfterRendering. Each:
+    //                     { start, end, bytes }
+    //   lastEntryStart    high-water mark of consumed Resource Timing
+    //                     entries. The observer and the sweep both feed
+    //                     `unpaired`, so the same entry must not be taken
+    //                     twice; entries arrive in chronological order from
+    //                     both sources, which makes a single startTime
+    //                     watermark enough
+    //   payloadBytes      sum of reqBytes + respBytes over the records
+    //                     that still hold payloads. The measured sizes
+    //                     double as the budget accounting - no separate
+    //                     estimation pass is needed
+    //   observer          the PerformanceObserver, null where unavailable
+    //   afterRenderingHook  the onAfterRendering callback registered on
+    //                     the context's state
+    //   onPageHide        the window pagehide listener (persist)
+    function recorderOf(ctx) {
+      return ctx?.devtools?.recorder || null;
+    }
+
+    function createRecorder() {
+      return {
+        records: [],
+        nextSeq: 1,
+        unpaired: [],
+        lastEntryStart: -1,
+        payloadBytes: 0,
+        observer: null,
+        afterRenderingHook: null,
+        onPageHide: null,
+      };
+    }
+
+    // Each entry of `records`:
     //   seq          running number, 1-based
     //   ts           wall-clock ISO timestamp of the render
     //   event        the EVENT name the request carried ("" for app start)
@@ -101,39 +153,13 @@ sap.ui.define(
     //   systemActions / customActions   action counts of the response
     //   rendered     false for a roundtrip that never reached the render phase
     //   request / response   Tier 2 payload references, null when not kept
-    let records = [];
-
-    // Running number handed to the next record. Not records.length: the ring
-    // drops old entries, and the numbers must stay stable across evictions.
-    let nextSeq = 1;
-
-    // Network observations not yet paired with a render, oldest first. Filled
-    // by the PerformanceObserver and the synchronous sweep, drained by
-    // onAfterRendering. Each: { start, end, bytes }.
-    let unpaired = [];
-
-    // High-water mark of consumed Resource Timing entries. The observer and
-    // the sweep both feed `unpaired`, so the same entry must not be taken
-    // twice; entries arrive in chronological order from both sources, which
-    // makes a single startTime watermark enough.
-    let lastEntryStart = -1;
-
-    // Sum of reqBytes + respBytes over the records that still hold payloads.
-    // The measured sizes double as the budget accounting - no separate
-    // estimation pass is needed.
-    let payloadBytes = 0;
-
-    let observer = null;
-    let installed = false;
-    let afterRenderingHook = null;
-    let onPageHide = null;
 
     // Absolute form of the backend endpoint, so it can be compared against
     // the absolute names Resource Timing reports. Recomputed per call: the
     // url is set by the shell controller and may not exist yet at install
     // time. Returns "" when unknown or unparsable.
-    function backendUrl() {
-      const url = AppState.state.url;
+    function backendUrl(ctx) {
+      const url = ctx?.state?.url;
       if (!url) return "";
       try {
         return new URL(url, window.location.href).href;
@@ -163,10 +189,10 @@ sap.ui.define(
     // Accept one Resource Timing entry as a roundtrip observation. Entries
     // older than the watermark were already taken (the observer and the sweep
     // overlap on purpose - see lastEntryStart).
-    function acceptEntry(entry) {
-      if (!entry || entry.startTime <= lastEntryStart) return;
-      lastEntryStart = entry.startTime;
-      unpaired.push({
+    function acceptEntry(rec, entry) {
+      if (!entry || entry.startTime <= rec.lastEntryStart) return;
+      rec.lastEntryStart = entry.startTime;
+      rec.unpaired.push({
         start: entry.startTime,
         end: entry.responseEnd || entry.startTime,
         // decodedBodySize is the uncompressed payload - the number that
@@ -185,11 +211,11 @@ sap.ui.define(
     // is full it silently drops NEW entries, which a long-running SPA reaches.
     // PerformanceObserver delivery is not bound by that buffer, so the two
     // together cover both the ordering and the overflow case.
-    function sweepEntries() {
+    function sweepEntries(ctx, rec) {
       if (typeof performance === "undefined" || !performance.getEntriesByName) {
         return;
       }
-      const url = backendUrl();
+      const url = backendUrl(ctx);
       if (!url) return;
       let entries;
       try {
@@ -203,17 +229,18 @@ sap.ui.define(
       // handful of new entries at the tail
       const fresh = [];
       for (let i = entries.length - 1; i >= 0; i -= 1) {
-        if (entries[i].startTime <= lastEntryStart) break;
+        if (entries[i].startTime <= rec.lastEntryStart) break;
         fresh.push(entries[i]);
       }
-      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(fresh[i]);
+      for (let i = fresh.length - 1; i >= 0; i -= 1) acceptEntry(rec, fresh[i]);
     }
 
     // Take the network observation belonging to a render that happened at
     // `tRendered`: the newest one that finished before it. Everything older
     // than that never rendered - those are flushed as their own records so a
     // failed or superseded roundtrip stays visible in the history.
-    function takeNetworkFor(tRendered) {
+    function takeNetworkFor(rec, tRendered) {
+      const unpaired = rec.unpaired;
       let index = -1;
       for (let i = unpaired.length - 1; i >= 0; i--) {
         if (unpaired[i].end <= tRendered) {
@@ -224,29 +251,29 @@ sap.ui.define(
       if (index === -1) return null;
       const stale = unpaired.slice(0, index);
       const match = unpaired[index];
-      unpaired = unpaired.slice(index + 1);
-      for (const entry of stale) pushUnrendered(entry);
+      rec.unpaired = unpaired.slice(index + 1);
+      for (const entry of stale) pushUnrendered(rec, entry);
       return match;
     }
 
     // Flush network observations that never got a render and are old enough
     // that none is coming. Called from the render path and when the history
     // is read, so a failing roundtrip shows up without needing a next one.
-    function flushStaleUnpaired() {
-      if (!unpaired.length) return;
+    function flushStaleUnpaired(rec) {
+      if (!rec.unpaired.length) return;
       const cutoff = now() - UNPAIRED_FLUSH_MS;
-      const stale = unpaired.filter((entry) => entry.end < cutoff);
+      const stale = rec.unpaired.filter((entry) => entry.end < cutoff);
       if (!stale.length) return;
-      unpaired = unpaired.filter((entry) => entry.end >= cutoff);
-      for (const entry of stale) pushUnrendered(entry);
+      rec.unpaired = rec.unpaired.filter((entry) => entry.end >= cutoff);
+      for (const entry of stale) pushUnrendered(rec, entry);
     }
 
     // A roundtrip observed on the wire that never reached the render phase:
     // an error response, an aborted request, or a parallel request whose
     // result was discarded as stale. Worth a record of its own - these are
     // exactly the roundtrips a developer is looking for.
-    function pushUnrendered(entry) {
-      pushRecord({
+    function pushUnrendered(rec, entry) {
+      pushRecord(rec, {
         // the time the REQUEST went out, not the time of this flush: the
         // flush runs on the next render or when the history is read, at
         // least UNPAIRED_FLUSH_MS later, so the failed roundtrip used to show
@@ -274,7 +301,7 @@ sap.ui.define(
       // ... and in its place in time: the flush appends, but the roundtrip
       // happened before the records written since. seq stays the arrival
       // order - it is the stable number the diff views refer to
-      records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
+      rec.records.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
     }
 
     // Pull the user-visible backend messages out of a response's app action
@@ -310,26 +337,26 @@ sap.ui.define(
     // Drop payloads from the oldest records until the retained set fits the
     // budget. The records themselves stay - the history keeps showing that
     // roundtrip 3 took 900 ms and sent 4 MB, only its content is gone.
-    function enforcePayloadBudget() {
-      for (const record of records) {
-        if (payloadBytes <= PAYLOAD_BUDGET_BYTES) return;
+    function enforcePayloadBudget(rec) {
+      for (const record of rec.records) {
+        if (rec.payloadBytes <= PAYLOAD_BUDGET_BYTES) return;
         if (!record.request && !record.response) continue;
-        payloadBytes -= recordBytes(record);
+        rec.payloadBytes -= recordBytes(record);
         record.request = null;
         record.response = null;
         record.payloadEvicted = true;
       }
     }
 
-    function pushRecord(record) {
-      record.seq = nextSeq++;
-      records.push(record);
-      payloadBytes += recordBytes(record);
-      while (records.length > MAX_RECORDS) {
-        const dropped = records.shift();
-        payloadBytes -= recordBytes(dropped);
+    function pushRecord(rec, record) {
+      record.seq = rec.nextSeq++;
+      rec.records.push(record);
+      rec.payloadBytes += recordBytes(record);
+      while (rec.records.length > MAX_RECORDS) {
+        const dropped = rec.records.shift();
+        rec.payloadBytes -= recordBytes(dropped);
       }
-      enforcePayloadBudget();
+      enforcePayloadBudget(rec);
     }
 
     // True when the developer switched Tier 2 on (the guarded read is
@@ -339,17 +366,20 @@ sap.ui.define(
       return Persist.readFlag(PAYLOAD_FLAG_KEY);
     }
 
-    function setRecordingPayloads(enabled) {
+    // The flag is page-wide (a setting); what is dropped on switching it
+    // off is the history of the context whose dialog switched it.
+    function setRecordingPayloads(ctx, enabled) {
       Persist.writeFlag(PAYLOAD_FLAG_KEY, enabled);
-      if (!enabled) dropAllPayloads();
+      if (!enabled) dropAllPayloads(recorderOf(ctx));
     }
 
-    function dropAllPayloads() {
-      for (const record of records) {
+    function dropAllPayloads(rec) {
+      if (!rec) return;
+      for (const record of rec.records) {
         record.request = null;
         record.response = null;
       }
-      payloadBytes = 0;
+      rec.payloadBytes = 0;
     }
 
     // Serialized size of the request body. Server.readHttp already computed
@@ -360,9 +390,9 @@ sap.ui.define(
     // attribute for non-cell paths, and re-serializing a multi-MB table once
     // per roundtrip in the render phase - with payload recording off - was
     // the recorder's one measurable standing cost.
-    function measureRequest(oBody) {
+    function measureRequest(ctx, oBody) {
       if (!oBody) return null;
-      const known = AppState.state.lastRequestBytes;
+      const known = ctx.state.lastRequestBytes;
       if (typeof known === "number") return known;
       try {
         return JSON.stringify({ value: oBody }).length;
@@ -376,18 +406,20 @@ sap.ui.define(
     // View1._processAfterRendering runs at the end of every roundtrip -
     // including the app start and Back/Forward route restores, which never
     // pass through eB and therefore have no other observable entry point).
-    function onAfterRendering() {
+    function onAfterRendering(ctx) {
       try {
-        const state = AppState.state;
+        const rec = recorderOf(ctx);
+        if (!rec) return;
+        const state = ctx.state;
         const tRendered = now();
-        sweepEntries();
-        const net = takeNetworkFor(tRendered);
+        sweepEntries(ctx, rec);
+        const net = takeNetworkFor(rec, tRendered);
         const response = state.responseData;
         const sFront = response?.S_FRONT;
         const keepPayloads = isRecordingPayloads();
-        const reqBytes = measureRequest(state.oBody);
+        const reqBytes = measureRequest(ctx, state.oBody);
 
-        pushRecord({
+        pushRecord(rec, {
           ts: new Date().toISOString(),
           event: state.oBody?.S_FRONT?.EVENT || "",
           idSent: state.oBody?.S_FRONT?.ID || "",
@@ -408,7 +440,7 @@ sap.ui.define(
           request: keepPayloads ? state.oBody : null,
           response: keepPayloads ? response : null,
         });
-        flushStaleUnpaired();
+        flushStaleUnpaired(rec);
       } catch (e) {
         // The recorder is a diagnostic aid; it may never take the app down.
         Lib.logError("DevTools Recorder: onAfterRendering failed", e);
@@ -427,8 +459,8 @@ sap.ui.define(
       return copy;
     }
 
-    function persist() {
-      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({
+    function persist(rec) {
+      const slim = rec.records.slice(-RELOAD_MAX_RECORDS).map((record) => ({
         ...withoutPayloads(record),
         previousLoad: true,
       }));
@@ -437,74 +469,75 @@ sap.ui.define(
 
     // Adopt what the previous page load left behind, oldest first, so the
     // history reads as one timeline across the reload.
-    function restore() {
+    function restore(rec) {
       const stored = Persist.takeList(RELOAD_KEY);
       if (!stored.length) return;
-      records = stored.slice(-RELOAD_MAX_RECORDS);
+      rec.records = stored.slice(-RELOAD_MAX_RECORDS);
       // Continue the numbering after the restored ones so the two halves
       // of the timeline cannot collide.
-      nextSeq = (records[records.length - 1]?.seq || 0) + 1;
+      rec.nextSeq = (rec.records[rec.records.length - 1]?.seq || 0) + 1;
     }
 
-    function install() {
-      if (installed) return;
-      installed = true;
-      restore();
-      afterRenderingHook = onAfterRendering;
-      Lib.registerCallback("onAfterRendering", afterRenderingHook);
+    function install(ctx) {
+      if (!ctx?.devtools || recorderOf(ctx)) return;
+      const rec = createRecorder();
+      ctx.devtools.recorder = rec;
+      restore(rec);
+      rec.afterRenderingHook = () => onAfterRendering(ctx);
+      Lib.registerCallback(ctx, "onAfterRendering", rec.afterRenderingHook);
 
       // "pagehide", not "beforeunload" - same reasoning as Component.js: it
       // is the event that fires reliably, iOS Safari included. A browser
       // killed outright loses the history, which is the accepted limit here.
-      onPageHide = persist;
-      window.addEventListener("pagehide", onPageHide);
+      rec.onPageHide = () => persist(rec);
+      window.addEventListener("pagehide", rec.onPageHide);
 
       if (typeof PerformanceObserver === "undefined") return;
       try {
-        observer = new PerformanceObserver((list) => {
-          const url = backendUrl();
+        rec.observer = new PerformanceObserver((list) => {
+          const url = backendUrl(ctx);
           if (!url) return;
           for (const entry of list.getEntries()) {
-            if (entry.name === url) acceptEntry(entry);
+            if (entry.name === url) acceptEntry(rec, entry);
           }
         });
         // buffered: entries recorded before this observer existed (the app
         // start roundtrip fires before Component.init finishes) are replayed.
-        observer.observe({ type: "resource", buffered: true });
+        rec.observer.observe({ type: "resource", buffered: true });
       } catch {
         // No resource observation available - the history still records
         // every roundtrip, only without timing and response sizes.
-        observer = null;
+        rec.observer = null;
       }
     }
 
-    function uninstall() {
-      if (!installed) return;
-      installed = false;
-      Lib.unregisterCallback("onAfterRendering", afterRenderingHook);
-      afterRenderingHook = null;
-      if (onPageHide) {
-        window.removeEventListener("pagehide", onPageHide);
-        onPageHide = null;
+    function uninstall(ctx) {
+      const rec = recorderOf(ctx);
+      if (!rec) return;
+      ctx.devtools.recorder = null;
+      Lib.unregisterCallback(ctx, "onAfterRendering", rec.afterRenderingHook);
+      rec.afterRenderingHook = null;
+      if (rec.onPageHide) {
+        window.removeEventListener("pagehide", rec.onPageHide);
+        rec.onPageHide = null;
       }
-      if (observer) {
+      if (rec.observer) {
         try {
-          observer.disconnect();
+          rec.observer.disconnect();
         } catch {
           // already gone
         }
-        observer = null;
+        rec.observer = null;
       }
-      records = [];
-      unpaired = [];
-      payloadBytes = 0;
-      nextSeq = 1;
-      lastEntryStart = -1;
     }
 
-    function getRecords() {
-      flushStaleUnpaired();
-      return records;
+    // The history of a context, oldest first - [] for a context whose
+    // recorder is not installed.
+    function getRecords(ctx) {
+      const rec = recorderOf(ctx);
+      if (!rec) return [];
+      flushStaleUnpaired(rec);
+      return rec.records;
     }
 
     // ------------------------------------------------------------------
@@ -604,8 +637,8 @@ sap.ui.define(
       return out;
     }
 
-    function formatHistory() {
-      const list = getRecords();
+    function formatHistory(ctx) {
+      const list = getRecords(ctx);
       const lines = [];
       lines.push(
         `Roundtrip history - ${list.length} of max ${MAX_RECORDS} records`,
@@ -613,7 +646,7 @@ sap.ui.define(
       const recording = isRecordingPayloads();
       lines.push(
         `Payload recording: ${recording ? "ON" : "OFF"}` +
-          ` (retained ${formatBytes(payloadBytes)} of ` +
+          ` (retained ${formatBytes(recorderOf(ctx)?.payloadBytes || 0)} of ` +
           `${formatBytes(PAYLOAD_BUDGET_BYTES)} budget)`,
       );
       if (!recording) {
@@ -724,9 +757,10 @@ sap.ui.define(
     }
 
     // The two most recent records whose response rebuilt `slotKey`.
-    function lastTwoViews(slotKey) {
+    function lastTwoViews(ctx, slotKey) {
       // from the newest record backwards, stopping at the second hit - the
       // whole history used to be mapped and filtered to keep two entries
+      const records = getRecords(ctx);
       const withView = [];
       for (let i = records.length - 1; i >= 0 && withView.length < 2; i--) {
         const xml = displayedXml(records[i].response, slotKey);
@@ -735,7 +769,7 @@ sap.ui.define(
       return withView.length < 2 ? null : withView;
     }
 
-    function formatViewDiff() {
+    function formatViewDiff(ctx) {
       if (!isRecordingPayloads()) {
         return (
           "View diff needs payload recording.\n\n" +
@@ -747,7 +781,7 @@ sap.ui.define(
       // Only MAIN: it is the slot a roundtrip normally rebuilds, and a
       // popup/popover diff would compare two different dialogs more often
       // than two versions of one.
-      const pair = lastTwoViews("MAIN");
+      const pair = lastTwoViews(ctx, "MAIN");
       if (!pair) {
         return (
           "Not enough recorded view rebuilds yet - the diff needs two.\n\n" +
@@ -800,13 +834,13 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     // The two most recent records that actually carry a response payload.
-    function lastTwoResponses() {
-      const withPayload = records.filter((record) => record.response);
+    function lastTwoResponses(ctx) {
+      const withPayload = getRecords(ctx).filter((record) => record.response);
       if (withPayload.length < 2) return null;
       return withPayload.slice(-2);
     }
 
-    function formatModelDiff() {
+    function formatModelDiff(ctx) {
       if (!isRecordingPayloads()) {
         return (
           "Model diff needs payload recording.\n\n" +
@@ -815,7 +849,7 @@ sap.ui.define(
           "the two most recently recorded responses."
         );
       }
-      const pair = lastTwoResponses();
+      const pair = lastTwoResponses(ctx);
       if (!pair) {
         return (
           "Not enough recorded responses yet - the diff needs two.\n\n" +
@@ -874,11 +908,12 @@ sap.ui.define(
     // is deliberately not offered: the recorded requests reference draft ids
     // that only exist in the session that produced them, and re-sending them
     // would drive real backend state.
-    function exportJson() {
+    function exportJson(ctx) {
+      const records = getRecords(ctx);
       const payload = {
         exportedAt: new Date().toISOString(),
         payloadsRecorded: isRecordingPayloads(),
-        records: getRecords(),
+        records,
       };
       try {
         return JSON.stringify(payload, null, 2);

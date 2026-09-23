@@ -1,6 +1,6 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],
-  (Control, Lib, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
+  (Control, Lib, Context) => {
     "use strict";
 
     // Invisible control that reports the UI5 version/theme and the device
@@ -91,8 +91,17 @@ sap.ui.define(
 
           const { system, resize, os, browser } = deviceData;
           // Filled by Component._initVersionInfo (async, may not have
-          // resolved yet on the very first render).
-          const ui5Info = AppState.state.oConfig.S_UI5;
+          // resolved yet on the very first render) on the config of this
+          // control's component. A control in no component (Context.of
+          // answers null) has no UI5 info to report: the device fields
+          // still go out, the UI5 ones stay empty, and the gap is logged.
+          const ctx = Context.of(this);
+          if (!ctx) {
+            Lib.logError(
+              "Info.onAfterRendering: no component context, UI5 info left empty",
+            );
+          }
+          const ui5Info = ctx?.state.oConfig?.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
           // Single system-type label, same derivation as core/Session.js.

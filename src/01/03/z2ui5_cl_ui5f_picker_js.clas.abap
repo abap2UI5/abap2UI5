@@ -44,6 +44,8 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    const OVERLAY_ID = "z2ui5DevToolsPickerOverlay";` && |\n| &&
              `` && |\n| &&
              `    let active = false;` && |\n| &&
+             `` && |\n| &&
+             `    let activeCtx = null;` && |\n| &&
              `    let onDone = null;` && |\n| &&
              `    let boundMove = null;` && |\n| &&
              `    let boundClick = null;` && |\n| &&
@@ -51,8 +53,6 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `` && |\n| &&
              `    let lastNode = null;` && |\n| &&
              `    let frameId = 0;` && |\n| &&
-             `` && |\n| &&
-             `    let lastPickReport = "";` && |\n| &&
              `` && |\n| &&
              `    function controlFromDom(node) {` && |\n| &&
              `      if (!node) return null;` && |\n| &&
@@ -142,11 +142,11 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `` && |\n| &&
              `    const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");` && |\n| &&
              `` && |\n| &&
-             `    function xmlAttributesOf(control, slotKey) {` && |\n| &&
+             `    function xmlAttributesOf(ctx, control, slotKey) {` && |\n| &&
              `      const localId = String(control.getId?.() || "")` && |\n| &&
              `        .split("--")` && |\n| &&
              `        .pop();` && |\n| &&
-             `      const xml = SlotXml.slotXml(slotKey);` && |\n| &&
+             `      const xml = SlotXml.slotXml(ctx, slotKey);` && |\n| &&
              `      if (!localId || !xml) return "";` && |\n| &&
              `` && |\n| &&
              `      const id = regExpEscape(localId);` && |\n| &&
@@ -158,9 +158,9 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      return open < 0 || close < 0 ? "" : xml.slice(open, close);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function collectEvents(control, slotKey) {` && |\n| &&
+             `    function collectEvents(ctx, control, slotKey) {` && |\n| &&
              `      const registry = control.mEventRegistry || {};` && |\n| &&
-             `      const attributes = xmlAttributesOf(control, slotKey);` && |\n| &&
+             `      const attributes = xmlAttributesOf(ctx, control, slotKey);` && |\n| &&
              `      const out = [];` && |\n| &&
              `      for (const [name, handlers] of Object.entries(registry)) {` && |\n| &&
              `        for (const handler of handlers || []) {` && |\n| &&
@@ -185,13 +185,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function describe(control) {` && |\n| &&
+             `    function describe(ctx, control) {` && |\n| &&
              `      if (!control) return "(no control found at that position)";` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Picked control"];` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push(``  Type        ${control.getMetadata?.().getName?.() || "?"}``);` && |\n| &&
              `      out.push(``  Id          ${control.getId?.() || "?"}``);` && |\n| &&
-             `      const slotKey = ViewSlots.containingSlotKey?.(control);` && |\n| &&
+             `      const slotKey = ViewSlots.containingSlotKey?.(ctx, control);` && |\n| &&
              `      out.push(``  View slot   ${slotKey || "(not inside a view slot)"}``);` && |\n| &&
              `` && |\n| &&
              `      const bindings = collectBindings(control);` && |\n| &&
@@ -207,7 +207,7 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `        out.push(``      value  ${renderValue(binding.value)}``);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const events = collectEvents(control, slotKey);` && |\n| &&
+             `      const events = collectEvents(ctx, control, slotKey);` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push("Events");` && |\n| &&
              `      out.push("------");` && |\n| &&
@@ -222,9 +222,11 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function stop() {` && |\n| &&
+             `    function stop(ctx) {` && |\n| &&
              `      if (!active) return;` && |\n| &&
+             `      if (ctx && activeCtx !== ctx) return;` && |\n| &&
              `      active = false;` && |\n| &&
+             `      activeCtx = null;` && |\n| &&
              `      document.removeEventListener("mousemove", boundMove, true);` && |\n| &&
              `      document.removeEventListener("click", boundClick, true);` && |\n| &&
              `      document.removeEventListener("keydown", boundKey, true);` && |\n| &&
@@ -241,9 +243,10 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      removeOverlay();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function start(callback) {` && |\n| &&
+             `    function start(ctx, callback) {` && |\n| &&
              `      if (active) return;` && |\n| &&
              `      active = true;` && |\n| &&
+             `      activeCtx = ctx;` && |\n| &&
              `      onDone = callback;` && |\n| &&
              `` && |\n| &&
              `      boundMove = (event) => {` && |\n| &&
@@ -261,13 +264,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `        const control = controlFromDom(event.target);` && |\n| &&
              `        let report;` && |\n| &&
              `        try {` && |\n| &&
-             `          report = describe(control);` && |\n| &&
+             `          report = describe(ctx, control);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("DevTools Picker: describe failed", e);` && |\n| &&
              `          report = "(could not inspect that control)";` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        lastPickReport = report;` && |\n| &&
+             `        if (ctx?.devtools) ctx.devtools.pickReport = report;` && |\n| &&
              `        const done = onDone;` && |\n| &&
              `        stop();` && |\n| &&
              `        if (done) done(report);` && |\n| &&
@@ -292,7 +295,7 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      describe,` && |\n| &&
              `      isActive: () => active,` && |\n| &&
              `` && |\n| &&
-             `      lastReport: () => lastPickReport,` && |\n| &&
+             `      lastReport: (ctx) => ctx?.devtools?.pickReport || "",` && |\n| &&
              `      _internals: { collectBindings, collectEvents, renderValue },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

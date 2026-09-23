@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, contextStub, bindContext } = require("./loadLibModule");
 
 // core/actions/Slots.js - the VIEW_SLOTS action target, i.e. everything a
 // backend response does to the five view slots. Under test here: the entry
@@ -62,20 +63,22 @@ function load({ resolveById = null, byId = null } = {}) {
     },
   };
 
-  const state = {
+  // the slots work on the component's context; the request stamp the
+  // display guards compare against is ctx.server.requestSeq
+  const ctx = specContext({
     oApp,
     oResponse: { APP: "ZCL_APP", OVIEWMODEL: { A: 1 } },
-    odataClients: new Set(),
-    viewSizeLimits: {},
-  };
+  });
+  ctx.server.requestSeq = 7;
+  const state = ctx.state;
 
-  const { module: Slots } = loadModule("core/actions/Slots.js", {
+  const { module } = loadModule("core/actions/Slots.js", {
     deps: {
       "sap/ui/core/mvc/XMLView": { create: () => Promise.resolve(view) },
       "sap/ui/core/Fragment": { load: () => Promise.resolve(fragment) },
       "sap/ui/model/json/JSONModel": JSONModel,
       "sap/ui/model/odata/v2/ODataModel": class {},
-      "z2ui5/core/Server": { _requestSeq: 7, _viewBuild: null },
+      "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
         logError: (m) => errors.push(m),
         // no view in this spec uses XML templating (Slots.templatePreprocessors)
@@ -88,14 +91,14 @@ function load({ resolveById = null, byId = null } = {}) {
       "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
-        ownId: (id) => id,
-        fragmentIdOf: (slot) => slot.fragmentId,
+        ownId: (_ctx, id) => id,
+        fragmentIdOf: (_ctx, slot) => slot.fragmentId,
         slots: [
           { key: "MAIN", ownsModel: true },
           { key: "POPUP", ownsModel: true },
         ],
-        destroy: (key) => destroyed.push(key),
-        setView: (key, oView, xml) => setViews.push({ key, oView, xml }),
+        destroy: (_ctx, key) => destroyed.push(key),
+        setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
         getController: () => null,
         getView: () => null,
         getViewApp: () => undefined,
@@ -104,11 +107,21 @@ function load({ resolveById = null, byId = null } = {}) {
         resolveById: () => resolveById,
         byId: () => byId,
       },
-      "z2ui5/core/AppState": { state },
     },
   });
+  const Slots = bindContext(module, ctx, ["action"]);
 
-  return { Slots, state, errors, destroyed, setViews, opened, fragment, view };
+  return {
+    Slots,
+    ctx,
+    state,
+    errors,
+    destroyed,
+    setViews,
+    opened,
+    fragment,
+    view,
+  };
 }
 
 test("destroy and updateModel need no options at all", () => {

@@ -32,11 +32,11 @@ CLASS z2ui5_cl_ui5f_slotxml_js IMPLEMENTATION.
              `    return view?.mProperties?.viewContent;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function slotXml(slotKey) {` && |\n| &&
+             `  function slotXml(ctx, slotKey) {` && |\n| &&
              `    if (!slotKey) return "";` && |\n| &&
              `    return (` && |\n| &&
-             `      viewContent(ViewSlots.getView?.(slotKey)) ||` && |\n| &&
-             `      ViewSlots.getViewXml?.(slotKey) ||` && |\n| &&
+             `      viewContent(ViewSlots.getView?.(ctx, slotKey)) ||` && |\n| &&
+             `      ViewSlots.getViewXml?.(ctx, slotKey) ||` && |\n| &&
              `      ""` && |\n| &&
              `    );` && |\n| &&
              `  }` && |\n| &&

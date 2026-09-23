@@ -1,9 +1,9 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: The frontend runs once per page and owns the page - stage 1 (one embedded instance via ComponentContainer) is feasible, stage 2 (several instances) and a wrapping custom control are deferred until there is real demand (maintainer decision 2026-09-23)
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; stage 1 (the embedded flag that turns the page-wide behaviours off) and a wrapping custom control stay open until there is real demand
 priority: low
-state: deferred
+state: open
 first_seen: 2026-09-23
 upstream: abap2UI5/abap2UI5
 evidence:
@@ -13,14 +13,13 @@ evidence:
 
 # Embed abap2UI5 in other UI5 apps as a reuse component
 
-**Status: deferred (maintainer decision 2026-09-23).** abap2UI5 is built for
-the whole page: a stateful roundtrip per event, and the backend drives
-routing, popups, title and favicon. Embedding it as one area of a host app
-(a freestyle view, a Fiori elements V4 custom section or V2 reuse
-component) is possible, but only stage 1 below is worth its cost, and only
-once someone actually needs it. Stage 2 and a custom control are **not** to
-be built without a concrete scenario, and should not be re-proposed as
-general cleanup.
+**Status: stage 2 done (2026-09-23, maintainer decision to build it after
+all), stage 1 and the custom control open.** abap2UI5 is built for the
+whole page: a stateful roundtrip per event, and the backend drives routing,
+popups, title and favicon. Embedding it as one area of a host app (a
+freestyle view, a Fiori elements V4 custom section or V2 reuse component)
+needs stage 1 below, which is only worth its cost once someone actually
+needs it; a custom control is a thin wrapper on top of it.
 
 ## Already in place
 
@@ -38,9 +37,15 @@ general cleanup.
   id (`ViewSlots.ownId`), and the fatal-error overlay is
   `z2ui5ServerErrorContainer`. Nothing the framework creates carries a bare
   page-global id any more.
-- **Done 2026-09-23:** a second instance on the same page is refused with
-  an error (`Component._claimSingleInstance`) instead of silently resetting
-  the first one's state. The guard is what stage 2 removes.
+- **Done 2026-09-23 (stage 2):** the frontend state is per component.
+  `core/Context.js` creates one context per `z2ui5.Component` - the state
+  of `core/AppState.js` plus the module records of Server, Session, Router,
+  Shortcuts, ScrollFocus, ErrorView and the developer tools - and every
+  module takes it as its first argument or resolves it from the control
+  (`Context.of`, through the owner component: views and fragments are built
+  under `Context.runAsOwner`). Several instances run side by side; the
+  instance guard that briefly refused a second one is gone. Proven in the
+  browser by `node/tests/e2e/two-components.spec.js`.
 
 ## Stage 1 - one embedded instance per page (feasible, a few days)
 
@@ -82,19 +87,23 @@ static area explicitly.
 Before building stage 1: a 1-2 day spike with a freestyle test page hosting
 the component in a `ComponentContainer`, to see what actually breaks.
 
-## Stage 2 - several instances per page (deferred, not recommended)
+## Stage 2 - several instances per page (done 2026-09-23)
 
-Every piece of frontend state is a module singleton: `core/AppState.js`,
-plus the module state of `Server`, `Session`, `Router`, `Shortcuts` and
-`ErrorView`. `Component.init` calls `AppState.reset()`, so a second instance
-resets the first. About 25 modules read `AppState`, 12 of them custom
-controls. Making the state per component means a context that modules find
-through the owner component instead of a module import. That touches the
-signatures of almost all of `core/` and `cc/` and most of the ~1,200 specs,
-and it adds a hosting mode that has to be tested forever against 1.71 and
-the current release. The benefit is small: two stateful abap2UI5 apps side
-by side on one page, each with its own draft chain, busy state and
-messages, is a rare and awkward UI.
+Was: every piece of frontend state a module singleton (`core/AppState.js`
+plus the module state of `Server`, `Session`, `Router`, `Shortcuts`,
+`ErrorView`), and `Component.init` reset it for whoever came last. Is: one
+context per component (`core/Context.js`), found through the controller
+(`oController.ctx`), the component, or the owner component of a control.
+What is still shared between two instances is what the page owns - the URL
+hash (both routed instances react to a change; an embedded instance leaves
+routing off, see stage 1), document title and favicon, the global
+BusyIndicator (each instance shows and hides it; two busy instances overlap
+on one overlay), the messaging facade, the developer tools' console capture
+(installed once, use-counted), the unsaved-changes prompt and the raw
+fatal-error overlay (one at a time). Two stateful apps side by side is still
+a rare UI; what the stage bought is that a launchpad in keep-alive mode, or
+a host that creates the component twice, no longer corrupts the first
+instance.
 
 ## A custom control (deferred)
 

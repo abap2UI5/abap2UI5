@@ -25,18 +25,18 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
+    result = `sap.ui.define(["z2ui5/core/Context"], (Context) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
+             `  const errors = [];` && |\n| &&
+             `` && |\n| &&
              `  function logError(message, error) {` && |\n| &&
-             `    const state = AppState.state;` && |\n| &&
-             `    if (!state.errors) state.errors = [];` && |\n| &&
              `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    state.errors.push(entry);` && |\n| &&
-             `    if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
+             `    errors.push(entry);` && |\n| &&
+             `    if (errors.length > MAX_ERRORS) errors.shift();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const CONTROLLER_FIELDS = [` && |\n| &&
@@ -56,8 +56,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isControllerAlive(oController) {` && |\n| &&
-             `    if (!oController) return false;` && |\n| &&
-             `    const state = AppState.state;` && |\n| &&
+             `    const ctx = oController?.ctx;` && |\n| &&
+             `    if (!ctx?.alive) return false;` && |\n| &&
+             `    const state = ctx.state;` && |\n| &&
              `    return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -78,15 +79,16 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function registerCallback(name, fn) {` && |\n| &&
-             `    const state = AppState.state;` && |\n| &&
+             `  function registerCallback(ctx, name, fn) {` && |\n| &&
+             `    const state = ctx?.state;` && |\n| &&
+             `    if (!state) return;` && |\n| &&
              `    if (!state[name]) state[name] = [];` && |\n| &&
              `    state[name].push(fn);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function unregisterCallback(name, fn) {` && |\n| &&
-             `    const state = AppState.state;` && |\n| &&
-             `    if (!state[name]) return;` && |\n| &&
+             `  function unregisterCallback(ctx, name, fn) {` && |\n| &&
+             `    const state = ctx?.state;` && |\n| &&
+             `    if (!state?.[name]) return;` && |\n| &&
              `    state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -151,8 +153,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function cancelPendingTimers() {` && |\n| &&
-             `    const timers = AppState.state.timers;` && |\n| &&
+             `  function cancelPendingTimers(ctx) {` && |\n| &&
+             `    const timers = ctx?.state?.timers;` && |\n| &&
              `    if (!timers) return;` && |\n| &&
              `    for (const key in timers) {` && |\n| &&
              `      cancelTimer(timers[key]);` && |\n| &&
@@ -189,17 +191,18 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function afterRoundtrip(owner, fn) {` && |\n| &&
-             `    if (!AppState.state.isBusy) {` && |\n| &&
+             `    const ctx = Context.of(owner);` && |\n| &&
+             `    if (!ctx?.state.isBusy) {` && |\n| &&
              `      fn();` && |\n| &&
              `      return () => {};` && |\n| &&
              `    }` && |\n| &&
              `    const once = () => {` && |\n| &&
-             `      unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `      unregisterCallback(ctx, "onAfterRendering", once);` && |\n| &&
              `      if (isDestroyed(owner)) return;` && |\n| &&
              `      fn();` && |\n| &&
              `    };` && |\n| &&
-             `    registerCallback("onAfterRendering", once);` && |\n| &&
-             `    return () => unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `    registerCallback(ctx, "onAfterRendering", once);` && |\n| &&
+             `    return () => unregisterCallback(ctx, "onAfterRendering", once);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function runCallbacks(callbacks, ...args) {` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        const rowDelta = rows[row];` && |\n| &&
              `        model = model?.[Number(row)]?.[field];` && |\n| &&
              `        if (leaf) {` && |\n| &&
-             `          rowDelta[field] = model;` && |\n| &&
+             `          rowDelta[field] = model;` && |\n|.
+    result = result &&
              `          break;` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
              `        if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
              `        node = rowDelta[field];` && |\n| &&
@@ -507,8 +510,30 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function hookCallback(owner, callbackName, method) {` && |\n| &&
              `    const bound = owner[method].bind(owner);` && |\n| &&
-             `    registerCallback(callbackName, bound);` && |\n| &&
-             `    return () => unregisterCallback(callbackName, bound);` && |\n| &&
+             `    let ctx = Context.of(owner);` && |\n| &&
+             `    if (ctx) {` && |\n| &&
+             `      registerCallback(ctx, callbackName, bound);` && |\n| &&
+             `      return () => unregisterCallback(ctx, callbackName, bound);` && |\n| &&
+             `    }` && |\n| &&
+             `    let delegate = {` && |\n| &&
+             `      onBeforeRendering: () => {` && |\n| &&
+             `        ctx = Context.of(owner);` && |\n| &&
+             `        if (!ctx) return;` && |\n| &&
+             `        owner.removeEventDelegate(delegate);` && |\n| &&
+             `        delegate = null;` && |\n| &&
+             `        registerCallback(ctx, callbackName, bound);` && |\n| &&
+             `      },` && |\n| &&
+             `    };` && |\n| &&
+             `    if (typeof owner.addEventDelegate === "function") {` && |\n| &&
+             `      owner.addEventDelegate(delegate);` && |\n| &&
+             `    }` && |\n| &&
+             `    return () => {` && |\n| &&
+             `      if (delegate) {` && |\n| &&
+             `        owner.removeEventDelegate?.(delegate);` && |\n| &&
+             `        delegate = null;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (ctx) unregisterCallback(ctx, callbackName, bound);` && |\n| &&
+             `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const MAX_ARG_DEPTH = 4;` && |\n| &&
@@ -564,6 +589,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
+             `    errors,` && |\n| &&
              `    logError,` && |\n| &&
              `    isDestroyed,` && |\n| &&
              `    isControllerAlive,` && |\n| &&

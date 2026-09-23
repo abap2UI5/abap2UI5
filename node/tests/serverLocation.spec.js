@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, bindContext } = require("./loadLibModule");
 
 // Tests the location cadence of Server.roundtrip: ORIGIN/PATHNAME/SEARCH are
 // session-constant, so the backend stores them with the draft
@@ -37,7 +38,10 @@ function loadServer() {
       },
     },
   });
-  const { module: Server } = loadModule("core/Server.js", {
+  // one context for both modules: Session keeps its latches on ctx.session,
+  // Server reads the config off ctx.state
+  const ctx = specContext({ oConfig: {} });
+  const { module: ServerModule } = loadModule("core/Server.js", {
     deps: {
       "z2ui5/core/Session": Session,
       "z2ui5/core/ScrollFocus": {
@@ -50,9 +54,6 @@ function loadServer() {
         cancelPendingTimers: () => cancels.push("cancelPendingTimers"),
       },
       "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
-      "z2ui5/core/AppState": {
-        state: { oConfig: {} },
-      },
     },
     sandbox: {
       window: {
@@ -70,10 +71,11 @@ function loadServer() {
   // stale guard - do the same here, so the latches advance exactly as they do
   // in the browser. `drop` simulates a request that never got there.
   let drop = false;
-  Server.readHttp = (oBody, token) => {
+  ServerModule.readHttp = (_ctx, oBody, token) => {
     bodies.push(oBody);
-    if (!drop) Session.confirmSent(token);
+    if (!drop) Session.confirmSent(ctx, token);
   };
+  const Server = bindContext(ServerModule, ctx, ["roundtrip", "restoreFromRoute"]);
   const dropNext = (v = true) => {
     drop = v;
   };

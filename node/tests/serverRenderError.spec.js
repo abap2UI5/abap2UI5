@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests Server's error routing outside the inner try/catches of readHttp:
 // readHttp is fire-and-forget, so an unexpected throw between those inner
@@ -22,9 +23,8 @@ function okResponse(id) {
 function load({ confirmSent = () => {} } = {}) {
   const errors = [];
   const fetchCalls = [];
-  const appState = {
-    state: { oSentModel: null, url: "/url" },
-  };
+  const ctx = specContext({ oSentModel: null, url: "/url" });
+  const appState = { state: ctx.state };
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
@@ -34,7 +34,6 @@ function load({ confirmSent = () => {} } = {}) {
         logError: () => {},
       },
       "z2ui5/core/Session": { confirmSent },
-      "z2ui5/core/AppState": appState,
     },
     sandbox: {
       AbortSignal: { any: () => ({}), timeout: () => ({}) },
@@ -57,19 +56,19 @@ function load({ confirmSent = () => {} } = {}) {
     },
   });
 
-  Server.responseError = (msg, title) => errors.push({ msg, title });
-  return { Server, errors, fetchCalls, appState };
+  Server.responseError = (_ctx, msg, title) => errors.push({ msg, title });
+  return { Server, ctx, errors, fetchCalls, appState };
 }
 
 test("an unexpected throw after the inner handlers reaches the fatal overlay", async () => {
   const boom = new Error("confirmSent broke");
-  const { Server, errors, fetchCalls } = load({
+  const { Server, ctx, errors, fetchCalls } = load({
     confirmSent: () => {
       throw boom;
     },
   });
 
-  const p = Server.readHttp({});
+  const p = Server.readHttp(ctx, {});
   fetchCalls[0].resolve(okResponse("A"));
   await p; // must settle instead of rejecting unhandled
 
@@ -80,14 +79,14 @@ test("an unexpected throw after the inner handlers reaches the fatal overlay", a
 test("with parallel requests only the winning one surfaces the throw - one overlay", async () => {
   // The stale request returns at its isStale guard before ever reaching the
   // commit section, so a throwing confirmSent can only fire for the winner.
-  const { Server, errors, fetchCalls } = load({
+  const { Server, ctx, errors, fetchCalls } = load({
     confirmSent: () => {
       throw new Error("commit boom");
     },
   });
 
-  const pA = Server.readHttp({}); // seq 1 - superseded
-  const pB = Server.readHttp({}); // seq 2 -> newest
+  const pA = Server.readHttp(ctx, {}); // seq 1 - superseded
+  const pB = Server.readHttp(ctx, {}); // seq 2 -> newest
   fetchCalls[0].resolve(okResponse("A"));
   fetchCalls[1].resolve(okResponse("B"));
   await Promise.all([pA, pB]);
@@ -97,7 +96,7 @@ test("with parallel requests only the winning one surfaces the throw - one overl
 });
 
 test("a rejection escaping _processAfterRendering lands in responseSuccess's catch", async () => {
-  const { Server, errors } = load();
+  const { Server, ctx, errors } = load();
   const boom = new Error("render broke");
   const controller = {
     _processAfterRendering: async () => {
@@ -109,30 +108,29 @@ test("a rejection escaping _processAfterRendering lands in responseSuccess's cat
       "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
       "z2ui5/core/Lib": { logError: () => {} },
       "z2ui5/core/ViewSlots": { getController: () => controller },
-      "z2ui5/core/AppState": { state: {} },
     },
   });
   ServerWithSlots.responseError = Server.responseError;
 
-  await ServerWithSlots.responseSuccess({ S_ACTION: {} }, 1);
+  await ServerWithSlots.responseSuccess(ctx, { S_ACTION: {} }, 1);
 
   expect(errors).toHaveLength(1);
   expect(errors[0].msg).toBe(boom);
 });
 
 test("showRenderError routes an openui5 script-load error to the SDK hint", () => {
-  const { Server, errors } = load();
+  const { Server, ctx, errors } = load();
   const sdkCalls = [];
-  Server._checkSDKcompatibility = (e) => sdkCalls.push(e);
+  Server._checkSDKcompatibility = (_ctx, e) => sdkCalls.push(e);
 
   const sdkError = new Error(
     "failed to load 'sap/x' from https://sdk.openui5.org: script load error",
   );
-  Server.showRenderError(sdkError, "title");
+  Server.showRenderError(ctx, sdkError, "title");
   expect(sdkCalls).toEqual([sdkError]);
   expect(errors).toHaveLength(0);
 
   const other = new Error("anything else");
-  Server.showRenderError(other, "App Terminated");
+  Server.showRenderError(ctx, other, "App Terminated");
   expect(errors).toEqual([{ msg: other, title: "App Terminated" }]);
 });

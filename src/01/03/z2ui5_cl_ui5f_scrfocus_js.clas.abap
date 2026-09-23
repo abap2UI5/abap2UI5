@@ -31,9 +31,8 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Element, Lib, Env, ViewSlots, AppState) => {` && |\n| &&
+             `  (Element, Lib, Env, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function closestUi5Element(dom) {` && |\n| &&
@@ -48,11 +47,11 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function stripSlotPrefix(fullId, slot) {` && |\n| &&
-             `      const view = ViewSlots.getView(slot.key);` && |\n| &&
+             `    function stripSlotPrefix(ctx, fullId, slot) {` && |\n| &&
+             `      const view = ViewSlots.getView(ctx, slot.key);` && |\n| &&
              `      if (!view) return fullId;` && |\n| &&
              `      const prefix = slot.fragmentId` && |\n| &&
-             `        ? ``${ViewSlots.fragmentIdOf(slot)}--``` && |\n| &&
+             `        ? ``${ViewSlots.fragmentIdOf(ctx, slot)}--``` && |\n| &&
              `        : ``${view.getId()}--``;` && |\n| &&
              `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `    }` && |\n| &&
@@ -66,7 +65,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getFocusInfo() {` && |\n| &&
+             `    function getFocusInfo(ctx) {` && |\n| &&
              `      try {` && |\n| &&
              `        const active = document.activeElement;` && |\n| &&
              `        if (!active) return undefined;` && |\n| &&
@@ -75,7 +74,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `        const fullId = ui5El.getId();` && |\n| &&
              `        let id = fullId;` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
-             `          const local = stripSlotPrefix(fullId, slot);` && |\n| &&
+             `          const local = stripSlotPrefix(ctx, fullId, slot);` && |\n| &&
              `          if (local !== fullId) {` && |\n| &&
              `            id = local;` && |\n| &&
              `            break;` && |\n| &&
@@ -95,45 +94,42 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const _scrollCache = {` && |\n| &&
-             `      target: undefined,` && |\n| &&
-             `      ui5El: undefined,` && |\n| &&
-             `      slotKey: undefined,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    function clearScrollCache() {` && |\n| &&
-             `      _scrollCache.target = undefined;` && |\n| &&
-             `      _scrollCache.ui5El = undefined;` && |\n| &&
-             `      _scrollCache.slotKey = undefined;` && |\n| &&
+             `    function clearScrollCache(ctx) {` && |\n| &&
+             `      const cache = ctx.scroll;` && |\n| &&
+             `      cache.target = undefined;` && |\n| &&
+             `      cache.ui5El = undefined;` && |\n| &&
+             `      cache.slotKey = undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function onScrollCapture(event) {` && |\n| &&
+             `    function onScrollCapture(ctx, event) {` && |\n| &&
              `      const target = event.target;` && |\n| &&
              `      if (!target || target.nodeType !== 1) return;` && |\n| &&
+             `      const _scrollCache = ctx.scroll;` && |\n| &&
              `` && |\n| &&
              `      if (target !== _scrollCache.target) {` && |\n| &&
              `        const ui5El = closestUi5Element(target);` && |\n| &&
              `        _scrollCache.target = target;` && |\n| &&
              `        _scrollCache.ui5El = ui5El;` && |\n| &&
              `        _scrollCache.slotKey = ui5El` && |\n| &&
-             `          ? ViewSlots.containingSlotKey(ui5El)` && |\n| &&
+             `          ? ViewSlots.containingSlotKey(ctx, ui5El)` && |\n| &&
              `          : undefined;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (_scrollCache.slotKey) {` && |\n| &&
-             `        AppState.state.lastScrolled[_scrollCache.slotKey] = {` && |\n| &&
+             `        ctx.state.lastScrolled[_scrollCache.slotKey] = {` && |\n| &&
              `          control: _scrollCache.ui5El,` && |\n| &&
              `          dom: target,` && |\n| &&
              `        };` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getScrollInfo() {` && |\n| &&
+             `    function getScrollInfo(ctx) {` && |\n| &&
+             `      const _scrollCache = ctx.scroll;` && |\n| &&
              `      if (_scrollCache.target && !_scrollCache.target.isConnected) {` && |\n| &&
-             `        clearScrollCache();` && |\n| &&
+             `        clearScrollCache(ctx);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const store = AppState.state.lastScrolled;` && |\n| &&
+             `      const store = ctx.state.lastScrolled;` && |\n| &&
              `      const out = {};` && |\n| &&
              `      for (const slot of ViewSlots.slots) {` && |\n| &&
              `        const entry = store[slot.key];` && |\n| &&
@@ -144,7 +140,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `          continue;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const id = stripSlotPrefix(entry.control.getId(), slot);` && |\n| &&
+             `        const id = stripSlotPrefix(ctx, entry.control.getId(), slot);` && |\n| &&
              `        out[slot.key] = {` && |\n| &&
              `          ID: id,` && |\n| &&
              `          X: entry.dom.scrollLeft || 0,` && |\n| &&
@@ -155,8 +151,8 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      return Object.keys(out).length ? out : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function reset() {` && |\n| &&
-             `      clearScrollCache();` && |\n| &&
+             `    function reset(ctx) {` && |\n| &&
+             `      clearScrollCache(ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
@@ -166,7 +162,6 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      closestUi5Element,` && |\n| &&
              `      focusTextInput,` && |\n| &&
              `      reset,` && |\n| &&
-             `      _scrollCache,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

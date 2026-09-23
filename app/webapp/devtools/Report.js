@@ -13,6 +13,10 @@
 // afterthought: each section becomes a collapsed <details> block so a
 // long report stays readable in a comment, and the code fences keep XML
 // and JSON from being eaten by the markdown renderer.
+//
+// A report is about ONE component context (core/Context.js) - the one
+// whose tools are open - so the builders take it first and hand it to the
+// tab registry, which renders that context's state.
 sap.ui.define(
   ["z2ui5/core/Lib", "z2ui5/devtools/Recorder", "z2ui5/devtools/Tabs"],
   (Lib, Recorder, Tabs) => {
@@ -32,7 +36,7 @@ sap.ui.define(
     // Assemble the plain-text report: every exported tab, in the
     // registry's export order, plus the ABAP class source that was
     // fetched asynchronously and passed in (empty when unavailable).
-    function buildExport(abapSource) {
+    function buildExport(ctx, abapSource) {
       const sections = [];
       const push = (title, content) => {
         if (!content) return;
@@ -51,12 +55,12 @@ sap.ui.define(
         sections.push(`===== ${title} =====\n${body}`);
       };
 
-      const entries = Tabs.exportTabs().map((tab) => ({
+      const entries = Tabs.exportTabs(ctx).map((tab) => ({
         order: tab.exportOrder,
         title: Tabs.exportTitle(tab),
         // Tabs.render is itself guarded, so one throwing source can never
         // blank the report.
-        body: Tabs.render(tab.key),
+        body: Tabs.render(ctx, tab.key),
       }));
       if (abapSource) {
         entries.push({
@@ -76,7 +80,11 @@ sap.ui.define(
     // holds it, so the second build (every tab rendered again, the XSLT
     // over every slot's XML, the formatted model) does not run a second
     // time for the same string. The one-click path builds it here.
-    function buildMarkdown(abapSource, plain = buildExport(abapSource)) {
+    function buildMarkdown(
+      ctx,
+      abapSource,
+      plain = buildExport(ctx, abapSource),
+    ) {
       const blocks = plain.split(/^===== (.+) =====$/m);
       // split() yields [preamble, title, body, title, body, ...]
       const out = ["## abap2UI5 - Developer Tools export", ""];
@@ -144,8 +152,8 @@ sap.ui.define(
     // Show the whole export in a stretched popup: a read-through TextArea
     // for the eye, and the four ways it leaves the browser. Markdown is
     // the emphasized one because an issue comment is where it is going.
-    function openDialog(appName, abapSource) {
-      const text = buildExport(abapSource);
+    function openDialog(ctx, appName, abapSource) {
+      const text = buildExport(ctx, abapSource);
       sap.ui.require(
         ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
         (Dialog, TextArea, Button) => {
@@ -171,7 +179,7 @@ sap.ui.define(
                 // Confirm on the button itself: this dialog is modal, so
                 // a MessageToast behind it would be invisible.
                 press: (oEvent) => {
-                  copyMarkdown(abapSource, text);
+                  copyMarkdown(ctx, abapSource, text);
                   confirmOnButton(oEvent.getSource());
                 },
               }),
@@ -195,7 +203,7 @@ sap.ui.define(
                 press: () =>
                   downloadText(
                     exportFileName(appName, "json"),
-                    Recorder.exportJson(),
+                    Recorder.exportJson(ctx),
                     "application/json",
                   ),
               }),
@@ -214,9 +222,9 @@ sap.ui.define(
     // The one-click path from the Overview tab: the finished issue body
     // on the clipboard, without going through the export popup first.
     // Returns a short result message for the caller to show.
-    function copyMarkdown(abapSource, plain) {
+    function copyMarkdown(ctx, abapSource, plain) {
       try {
-        Lib.copyToClipboard(buildMarkdown(abapSource, plain));
+        Lib.copyToClipboard(buildMarkdown(ctx, abapSource, plain));
         return "Bug report copied as Markdown - paste it into a GitHub issue.";
       } catch (e) {
         Lib.logError("DevTools Report: markdown export failed", e);

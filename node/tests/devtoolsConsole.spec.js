@@ -392,6 +392,45 @@ test.describe("lifecycle", () => {
     expect(h.Console.getEntries().length).toBe(1);
   });
 
+  // The capture is page-wide (one window.console) and use-counted: every
+  // component context's DevTools.install takes one use, its exit gives it
+  // back, and only the last one un-patches - see the module header.
+  test("a second user keeps the capture until the last one is gone", () => {
+    const h = loadConsole();
+    const before = h.consoleStub.log;
+    h.Console.install();
+    h.Console.install();
+    h.Console.uninstall();
+    // the first user still holds it
+    expect(h.consoleStub.log).not.toBe(before);
+    h.consoleStub.log("still captured");
+    expect(h.Console.getEntries().length).toBe(1);
+    h.Console.uninstall();
+    expect(h.consoleStub.log).toBe(before);
+    // one uninstall too many does not go negative
+    h.Console.uninstall();
+    h.Console.install();
+    expect(h.consoleStub.log).not.toBe(before);
+  });
+
+  test("every subscriber hears an error, and one can leave", () => {
+    const h = loadConsole();
+    const first = [];
+    const second = [];
+    h.Console.install();
+    h.Console.setAlertOnError(true);
+    const onFirst = () => first.push(true);
+    h.Console.addOnError(onFirst);
+    h.Console.addOnError(() => second.push(true));
+    h.consoleStub.error("boom");
+    expect(first.length).toBe(1);
+    expect(second.length).toBe(1);
+    h.Console.removeOnError(onFirst);
+    h.consoleStub.error("again");
+    expect(first.length).toBe(1);
+    expect(second.length).toBe(2);
+  });
+
   test("uninstall restores the native methods and drops the buffer", () => {
     const h = loadConsole();
     const before = h.consoleStub.log;
@@ -417,7 +456,7 @@ test.describe("open on error", () => {
     const h = loadConsole();
     const raised = [];
     h.Console.install();
-    h.Console.setOnError(() => raised.push(true));
+    h.Console.addOnError(() => raised.push(true));
     h.consoleStub.error("boom");
     expect(h.Console.isAlertOnError()).toBe(false);
     expect(raised.length).toBe(0);
@@ -428,7 +467,7 @@ test.describe("open on error", () => {
     const raised = [];
     h.Console.install();
     h.Console.setAlertOnError(true);
-    h.Console.setOnError((entry) => raised.push(entry));
+    h.Console.addOnError((entry) => raised.push(entry));
     h.consoleStub.error("boom");
     expect(raised.length).toBe(1);
     expect(raised[0].text).toBe("boom");
@@ -441,7 +480,7 @@ test.describe("open on error", () => {
     const h = loadConsole();
     h.Console.install();
     h.Console.setAlertOnError(true);
-    h.Console.setOnError(() => {
+    h.Console.addOnError(() => {
       throw new Error("subscriber broke");
     });
     h.consoleStub.error("boom");

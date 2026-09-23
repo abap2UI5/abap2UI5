@@ -36,7 +36,6 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `    "z2ui5/core/actions/Slots",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -48,28 +47,27 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `    Slots,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    Router,` && |\n| &&
-             `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (AppState.state.oResponse) this._processAfterRendering();` && |\n| &&
+             `        if (this.ctx.state.oResponse) this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _processAfterRendering(reqSeq) {` && |\n| &&
              `        let superseded = false;` && |\n| &&
              `        let replaced = false;` && |\n| &&
              `` && |\n| &&
-             `        const oResponse = AppState.state.oResponse;` && |\n| &&
+             `        const oResponse = this.ctx.state.oResponse;` && |\n| &&
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
              `        oResponse._processed = true;` && |\n| &&
              `        try {` && |\n| &&
-             `          const state = AppState.state;` && |\n| &&
+             `          const state = this.ctx.state;` && |\n| &&
              `          if (oResponse.APP && state.renderedApp !== oResponse.APP) {` && |\n| &&
              `            if (state.renderedApp) {` && |\n| &&
-             `              ViewSlots.destroy("POPUP");` && |\n| &&
-             `              ViewSlots.destroy("POPOVER");` && |\n| &&
+             `              ViewSlots.destroy(this.ctx, "POPUP");` && |\n| &&
+             `              ViewSlots.destroy(this.ctx, "POPOVER");` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
              `            state.shortcuts = {};` && |\n| &&
@@ -81,7 +79,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const seq = reqSeq ?? Server._requestSeq;` && |\n| &&
+             `          const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
              `` && |\n| &&
              `          if (oResponse.S_ACTION) {` && |\n| &&
              `            await this._runSystemActions(oResponse, seq);` && |\n| &&
@@ -90,40 +88,41 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          const alive = Lib.isControllerAlive(this);` && |\n| &&
              `          if (` && |\n| &&
              `            !alive ||` && |\n| &&
-             `            seq !== Server._requestSeq ||` && |\n| &&
-             `            oResponse !== AppState.state.oResponse` && |\n| &&
+             `            seq !== this.ctx.server.requestSeq ||` && |\n| &&
+             `            oResponse !== this.ctx.state.oResponse` && |\n| &&
              `          ) {` && |\n| &&
              `            superseded = true;` && |\n| &&
              `` && |\n| &&
-             `            replaced = !alive || oResponse !== AppState.state.oResponse;` && |\n| &&
+             `            replaced = !alive || oResponse !== this.ctx.state.oResponse;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          if (oResponse.MODELPRESENT) Slots.action("updateModel");` && |\n| &&
+             `          if (oResponse.MODELPRESENT) Slots.action(this.ctx, "updateModel");` && |\n| &&
              `` && |\n| &&
-             `          Router.sync({` && |\n| &&
+             `          Router.sync(this.ctx, {` && |\n| &&
              `            ...(oResponse._routerOptions || {}),` && |\n| &&
              `            id: oResponse.ID,` && |\n| &&
              `          });` && |\n| &&
-             `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
+             `          Lib.runCallbacks(this.ctx.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `` && |\n| &&
              `          Server.showRenderError(` && |\n| &&
+             `            this.ctx,` && |\n| &&
              `            e,` && |\n| &&
              `            "Unexpected Error Occurred - App Terminated",` && |\n| &&
              `          );` && |\n| &&
              `        } finally {` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            BusyIndicator.hide();` && |\n| &&
-             `            AppState.state.isBusy = false;` && |\n| &&
+             `            this.ctx.state.isBusy = false;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!replaced) await this._runPendingCustomJs(oResponse);` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            this._dispatchQueuedEvent();` && |\n| &&
              `` && |\n| &&
-             `            Router.dispatchPendingAppHash();` && |\n| &&
+             `            Router.dispatchPendingAppHash(this.ctx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -132,7 +131,10 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `        if (!systemJs) return;` && |\n| &&
              `        for (const item of systemJs) {` && |\n| &&
-             `          if (!Lib.isControllerAlive(this) || seq !== Server._requestSeq)` && |\n| &&
+             `          if (` && |\n| &&
+             `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            seq !== this.ctx.server.requestSeq` && |\n| &&
+             `          )` && |\n| &&
              `            return;` && |\n| &&
              `          await FrontendAction.runSystem(item, this, {` && |\n| &&
              `            seq,` && |\n| &&
@@ -142,9 +144,9 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _dispatchQueuedEvent() {` && |\n| &&
-             `        const queued = AppState.state.oQueuedEvent;` && |\n| &&
+             `        const queued = this.ctx.state.oQueuedEvent;` && |\n| &&
              `        if (!queued) return;` && |\n| &&
-             `        AppState.state.oQueuedEvent = null;` && |\n| &&
+             `        this.ctx.state.oQueuedEvent = null;` && |\n| &&
              `        if (!Lib.isControllerAlive(queued.controller)) return;` && |\n| &&
              `        queued.controller.eB(...queued.args);` && |\n| &&
              `      },` && |\n| &&
@@ -164,19 +166,19 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      destroyPopup() {` && |\n| &&
-             `        ViewSlots.destroy("POPUP");` && |\n| &&
+             `        ViewSlots.destroy(this.ctx, "POPUP");` && |\n| &&
              `      },` && |\n| &&
              `      destroyPopover() {` && |\n| &&
-             `        ViewSlots.destroy("POPOVER");` && |\n| &&
+             `        ViewSlots.destroy(this.ctx, "POPOVER");` && |\n| &&
              `      },` && |\n| &&
              `      destroyNestView() {` && |\n| &&
-             `        ViewSlots.destroy("NEST");` && |\n| &&
+             `        ViewSlots.destroy(this.ctx, "NEST");` && |\n| &&
              `      },` && |\n| &&
              `      destroyNestView2() {` && |\n| &&
-             `        ViewSlots.destroy("NEST2");` && |\n| &&
+             `        ViewSlots.destroy(this.ctx, "NEST2");` && |\n| &&
              `      },` && |\n| &&
              `      destroyView() {` && |\n| &&
-             `        ViewSlots.destroy("MAIN");` && |\n| &&
+             `        ViewSlots.destroy(this.ctx, "MAIN");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      eF(...args) {` && |\n| &&
@@ -196,8 +198,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      slotById(sSlot, sId) {` && |\n| &&
              `        const control = sSlot` && |\n| &&
-             `          ? ViewSlots.byId(sSlot, sId)` && |\n| &&
-             `          : ViewSlots.resolveById(sId);` && |\n| &&
+             `          ? ViewSlots.byId(this.ctx, sSlot, sId)` && |\n| &&
+             `          : ViewSlots.resolveById(this.ctx, sId);` && |\n| &&
              `        if (!control) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``slotById: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
@@ -210,8 +212,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      slotValue(sSlot, sId, sMethod) {` && |\n| &&
              `        try {` && |\n| &&
              `          const control = sSlot` && |\n| &&
-             `            ? ViewSlots.byId(sSlot, sId)` && |\n| &&
-             `            : ViewSlots.resolveById(sId);` && |\n| &&
+             `            ? ViewSlots.byId(this.ctx, sSlot, sId)` && |\n| &&
+             `            : ViewSlots.resolveById(this.ctx, sId);` && |\n| &&
              `          if (!control) {` && |\n| &&
              `            Lib.logError(` && |\n| &&
              `              ``slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'``,` && |\n| &&
@@ -242,9 +244,9 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (AppState.state.isBusy) {` && |\n| &&
+             `        if (this.ctx.state.isBusy) {` && |\n| &&
              `          if (queueLast) {` && |\n| &&
-             `            AppState.state.oQueuedEvent = {` && |\n| &&
+             `            this.ctx.state.oQueuedEvent = {` && |\n| &&
              `              controller: this,` && |\n| &&
              `              args: Lib.normalizeEventArgs(args),` && |\n| &&
              `            };` && |\n| &&
@@ -253,17 +255,17 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        Lib.cancelPendingTimers();` && |\n| &&
+             `        Lib.cancelPendingTimers(this.ctx);` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.isBusy = true;` && |\n| &&
+             `        this.ctx.state.isBusy = true;` && |\n| &&
              `        if (!noBusy) BusyIndicator.show();` && |\n| &&
              `` && |\n| &&
              `        const oBody = {};` && |\n| &&
-             `        AppState.state.oBody = oBody;` && |\n| &&
+             `        this.ctx.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
              `` && |\n| &&
-             `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
+             `        Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        const changedPaths = oModel?._z2ui5ChangedPaths;` && |\n| &&
              `        if (oModel && changedPaths?.size > 0) {` && |\n| &&
@@ -280,22 +282,22 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          );` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        AppState.state.oSentModel = oModel;` && |\n| &&
+             `        this.ctx.state.oSentModel = oModel;` && |\n| &&
              `` && |\n| &&
-             `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
+             `        oBody.ID = this.ctx.state.oResponse?.ID;` && |\n| &&
              `` && |\n| &&
              `        oBody.ARGUMENTS = Lib.normalizeEventArgs(args);` && |\n| &&
              `` && |\n| &&
-             `        Server.roundtrip(oBody);` && |\n| &&
+             `        Server.roundtrip(this.ctx, oBody);` && |\n| &&
              `` && |\n| &&
-             `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
+             `        Lib.runCallbacks(this.ctx.state.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
-             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        const oView = ViewSlots.getView(this.ctx, slotKey);` && |\n| &&
              `        if (!oView) return undefined;` && |\n| &&
              `` && |\n| &&
              `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&

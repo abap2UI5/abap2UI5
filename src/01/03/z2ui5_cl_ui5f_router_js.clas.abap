@@ -26,16 +26,13 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],` && |\n| &&
-             `  (HashChanger, AppState, Lib) => {` && |\n| &&
+             `  ["sap/ui/core/routing/HashChanger", "z2ui5/core/Lib"],` && |\n| &&
+             `  (HashChanger, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const APP_ROUTE_PREFIX = "/app/";` && |\n| &&
              `` && |\n| &&
              `    const SHELL_SEPARATOR = "&/";` && |\n| &&
-             `` && |\n| &&
-             `    let _fnNavigate = null;` && |\n| &&
-             `    let _boundHashChanged = null;` && |\n| &&
              `` && |\n| &&
              `    function hashChanger() {` && |\n| &&
              `      return HashChanger.getInstance();` && |\n| &&
@@ -99,34 +96,34 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function writeHash(sHash, bPush) {` && |\n| &&
-             `      if (bPush) AppState.state.hashPushCount += 1;` && |\n| &&
+             `    function writeHash(ctx, sHash, bPush) {` && |\n| &&
+             `      if (bPush) ctx.state.hashPushCount += 1;` && |\n| &&
              `      navTo(sHash, !bPush);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function writeLegacyUrl(sSuffix, bPush) {` && |\n| &&
+             `    function writeLegacyUrl(ctx, sSuffix, bPush) {` && |\n| &&
              `      const url = ``${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}``;` && |\n| &&
              `      if (bPush) {` && |\n| &&
-             `        AppState.state.hashPushCount += 1;` && |\n| &&
+             `        ctx.state.hashPushCount += 1;` && |\n| &&
              `        history.pushState(null, "", url);` && |\n| &&
              `      } else {` && |\n| &&
              `        history.replaceState(null, "", url);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function navBack(sFallback) {` && |\n| &&
-             `      if (!sFallback || AppState.state.hashPushCount > 0) {` && |\n| &&
+             `    function navBack(ctx, sFallback) {` && |\n| &&
+             `      if (!sFallback || ctx.state.hashPushCount > 0) {` && |\n| &&
              `        window.history.back();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      navTo(sFallback, true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function onHashChanged(sNewHash) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function onHashChanged(ctx, sNewHash) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `` && |\n| &&
              `      if (!state.navRouting) {` && |\n| &&
-             `        dispatchAppHashChange(sNewHash);` && |\n| &&
+             `        dispatchAppHashChange(ctx, sNewHash);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
@@ -142,20 +139,20 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      state.navFromHash = true;` && |\n| &&
-             `      if (_fnNavigate) _fnNavigate();` && |\n| &&
+             `      if (ctx.router.navigate) ctx.router.navigate();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function applyHashEvent(mOptions) {` && |\n| &&
+             `    function applyHashEvent(ctx, mOptions) {` && |\n| &&
              `      if (!mOptions.setHashEvent) return;` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const sEvent = String(mOptions.setHashEvent).trim();` && |\n| &&
              `      state.hashEvent = sEvent || null;` && |\n| &&
              `` && |\n| &&
              `      state.appHash = appHashNormalized(getRawHash());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function dispatchAppHashChange(sNewHash) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function dispatchAppHashChange(ctx, sNewHash) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      if (!state.hashEvent) return;` && |\n| &&
              `      const appHash = appHashNormalized(sNewHash);` && |\n| &&
              `      if (appHash === state.appHash) return;` && |\n| &&
@@ -171,16 +168,16 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      controller.eB([state.hashEvent]);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function dispatchPendingAppHash() {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function dispatchPendingAppHash(ctx) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const pending = state.pendingAppHash;` && |\n| &&
              `      if (pending === null || pending === undefined) return;` && |\n| &&
              `      state.pendingAppHash = null;` && |\n| &&
-             `      dispatchAppHashChange(pending);` && |\n| &&
+             `      dispatchAppHashChange(ctx, pending);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function repointCallerEntry(mOptions, draftForRoute) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function repointCallerEntry(ctx, mOptions, draftForRoute) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `      const prevApp = mOptions.navAppCallPrevApp;` && |\n| &&
              `      const prevDraft = mOptions.navAppCallPrevId;` && |\n| &&
              `      if (!draftForRoute || !prevApp || !prevDraft) return;` && |\n| &&
@@ -191,16 +188,16 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      navTo(prevRoute, true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function applyMode(mOptions) {` && |\n| &&
+             `    function applyMode(ctx, mOptions) {` && |\n| &&
              `      if (!mOptions.setNavRouting) return;` && |\n| &&
              `      const mode = String(mOptions.setNavRouting).toUpperCase();` && |\n| &&
              `      const on = mode === "KEEP" || mode === "FRESH";` && |\n| &&
-             `      AppState.state.navRouting = on;` && |\n| &&
-             `      AppState.state.navMode = on ? mode : null;` && |\n| &&
+             `      ctx.state.navRouting = on;` && |\n| &&
+             `      ctx.state.navMode = on ? mode : null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function updateAppRoute(mOptions, ID, app) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
+             `    function updateAppRoute(ctx, mOptions, ID, app) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
              `` && |\n| &&
              `      const draftForRoute = state.navMode === "FRESH" ? null : ID;` && |\n| &&
              `` && |\n| &&
@@ -215,7 +212,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `      const route = patternFor(app, draftForRoute);` && |\n| &&
              `      if (mOptions.checkNavAppCall) {` && |\n| &&
-             `        repointCallerEntry(mOptions, draftForRoute);` && |\n| &&
+             `        repointCallerEntry(ctx, mOptions, draftForRoute);` && |\n| &&
              `        state.currentApp = app;` && |\n| &&
              `        state.currentDraftId = draftForRoute;` && |\n| &&
              `        navTo(route);` && |\n| &&
@@ -224,25 +221,26 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function sync(mOptions) {` && |\n| &&
+             `    function sync(ctx, mOptions) {` && |\n| &&
              `      const ID = mOptions.id;` && |\n| &&
              `      try {` && |\n| &&
-             `        applyMode(mOptions);` && |\n| &&
-             `        applyHashEvent(mOptions);` && |\n| &&
+             `        applyMode(ctx, mOptions);` && |\n| &&
+             `        applyHashEvent(ctx, mOptions);` && |\n| &&
              `` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
              `` && |\n| &&
              `        const sAppWrite = mOptions.setPushState || mOptions.setHashReplace;` && |\n| &&
              `        const bPush = Boolean(mOptions.setPushState);` && |\n| &&
              `` && |\n| &&
              `        if (state.navRouting) {` && |\n| &&
              `          const app = state.oResponse?.APP;` && |\n| &&
-             `          if (app) updateAppRoute(mOptions, ID, app);` && |\n| &&
+             `          if (app) updateAppRoute(ctx, mOptions, ID, app);` && |\n| &&
              `` && |\n| &&
              `          if (!sAppWrite) return;` && |\n| &&
              `` && |\n| &&
              `          if (state.currentDraftId) {` && |\n| &&
              `            writeHash(` && |\n| &&
+             `              ctx,` && |\n| &&
              `              patternFor(state.currentApp, state.currentDraftId) + sAppWrite,` && |\n| &&
              `              bPush,` && |\n| &&
              `            );` && |\n| &&
@@ -253,11 +251,11 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        if (sAppWrite) {` && |\n| &&
              `          if (state.hashEvent) {` && |\n| &&
              `            state.appHash = appHashNormalized(sAppWrite);` && |\n| &&
-             `            writeHash(sAppWrite, bPush);` && |\n| &&
+             `            writeHash(ctx, sAppWrite, bPush);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          writeLegacyUrl(sAppWrite, bPush);` && |\n| &&
+             `          writeLegacyUrl(ctx, sAppWrite, bPush);` && |\n| &&
              `` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -273,22 +271,24 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function init(fnNavigate) {` && |\n| &&
-             `      _fnNavigate = fnNavigate;` && |\n| &&
+             `    function init(ctx, fnNavigate) {` && |\n| &&
+             `      ctx.router.navigate = fnNavigate;` && |\n| &&
              `` && |\n| &&
-             `      _boundHashChanged = (oEvent) =>` && |\n| &&
-             `        onHashChanged(oEvent.getParameter("newHash"));` && |\n| &&
-             `      hashChanger().attachEvent("hashChanged", _boundHashChanged);` && |\n| &&
+             `      const listener = (oEvent) =>` && |\n| &&
+             `        onHashChanged(ctx, oEvent.getParameter("newHash"));` && |\n| &&
+             `      ctx.router.hashListener = listener;` && |\n| &&
+             `      hashChanger().attachEvent("hashChanged", listener);` && |\n| &&
              `` && |\n| &&
              `      hashChanger().init();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function exit() {` && |\n| &&
-             `      if (_boundHashChanged) {` && |\n| &&
-             `        hashChanger().detachEvent("hashChanged", _boundHashChanged);` && |\n| &&
-             `        _boundHashChanged = null;` && |\n| &&
+             `    function exit(ctx) {` && |\n| &&
+             `      const listener = ctx.router.hashListener;` && |\n| &&
+             `      if (listener) {` && |\n| &&
+             `        hashChanger().detachEvent("hashChanged", listener);` && |\n| &&
+             `        ctx.router.hashListener = null;` && |\n| &&
              `      }` && |\n| &&
-             `      _fnNavigate = null;` && |\n| &&
+             `      ctx.router.navigate = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&

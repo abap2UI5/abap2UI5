@@ -72,8 +72,10 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
-             `      const control = controlId ? ViewSlots.resolveById(controlId) : null;` && |\n| &&
+             `      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);` && |\n| &&
+             `      const control = controlId` && |\n| &&
+             `        ? ViewSlots.resolveById(oController?.ctx, controlId)` && |\n| &&
+             `        : null;` && |\n| &&
              `      if (!oSVM || (controlId && !control)) {` && |\n| &&
              `        if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `          setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
@@ -108,7 +110,10 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `          finish();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        target = ViewSlots.resolveById(registered[0].getControl());` && |\n| &&
+             `        target = ViewSlots.resolveById(` && |\n| &&
+             `          oController?.ctx,` && |\n| &&
+             `          registered[0].getControl(),` && |\n| &&
+             `        );` && |\n| &&
              `        if (!target) {` && |\n| &&
              `          finish();` && |\n| &&
              `          return;` && |\n| &&
@@ -216,8 +221,8 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
-             `      const oFilterBar = ViewSlots.resolveById(filterBarId);` && |\n| &&
+             `      const oSVM = ViewSlots.resolveById(oController?.ctx, svmId);` && |\n| &&
+             `      const oFilterBar = ViewSlots.resolveById(oController?.ctx, filterBarId);` && |\n| &&
              `      if (!oSVM || !oFilterBar) {` && |\n| &&
              `        if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `          setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&

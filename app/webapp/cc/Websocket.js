@@ -5,15 +5,18 @@
 // Sending is deliberately NOT part of the control - an app publishes to the
 // AMC channel from ABAP, so consuming a push channel needs no app JavaScript.
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],
-  (Control, Lib, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
+  (Control, Lib, Context) => {
     "use strict";
 
     // A roundtrip already in flight makes View1.eB DROP the event (its
     // isBusy guard), so everything the control reports is queued and
     // delivered one item per roundtrip instead of being lost in a burst -
     // the queue waits for the roundtrip to land (Lib.afterRoundtrip, see
-    // _scheduleDrain) instead of polling for it.
+    // _scheduleDrain) instead of polling for it. "In flight" is asked of
+    // the control's own component (Context.of, state.isBusy); a control in
+    // no component is never waiting on one and delivers right away, the
+    // same answer Lib.afterRoundtrip gives it.
 
     // Reconnect policy for a connection the app did not close: exponential
     // backoff starting here, capped there, and after MAX_CONNECT_ATTEMPTS
@@ -318,7 +321,7 @@ sap.ui.define(
       // until the event can actually get through, so nothing is dropped.
       _drain() {
         if (!this._queue.length) return;
-        if (AppState.state.isBusy) {
+        if (Context.of(this)?.state.isBusy) {
           this._scheduleDrain();
           return;
         }

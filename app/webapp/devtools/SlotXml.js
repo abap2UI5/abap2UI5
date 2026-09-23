@@ -32,12 +32,13 @@ sap.ui.define(["z2ui5/core/ViewSlots"], (ViewSlots) => {
   }
 
   // "" for an unknown or empty slot, and for no slot at all (a picked
-  // control outside every slot).
-  function slotXml(slotKey) {
+  // control outside every slot). `ctx` is the component context whose
+  // slots are read (core/Context.js).
+  function slotXml(ctx, slotKey) {
     if (!slotKey) return "";
     return (
-      viewContent(ViewSlots.getView?.(slotKey)) ||
-      ViewSlots.getViewXml?.(slotKey) ||
+      viewContent(ViewSlots.getView?.(ctx, slotKey)) ||
+      ViewSlots.getViewXml?.(ctx, slotKey) ||
       ""
     );
   }

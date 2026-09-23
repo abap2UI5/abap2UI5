@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, specContext, bindContext } = require("./loadLibModule");
 
 // Tests Session.config: what a browser tells the backend about ITSELF
 // travels once per page load, not with every roundtrip. The backend stores it
@@ -10,8 +10,11 @@ const { loadLib } = require("./loadLibModule");
 // send latches advance in confirmSent( ), called by Server.readHttp once
 // the carrying request won its stale guard - a dropped request re-sends.
 
+// the latches live on the component's context (ctx.session); the functions
+// are bound to one spec context
 function loadSession(Device) {
-  const { module: Session } = loadModule("core/Session.js", {
+  const ctx = specContext();
+  const { module } = loadModule("core/Session.js", {
     deps: {
       "sap/ui/Device": Device,
       "z2ui5/core/Lib": loadLib().Lib,
@@ -24,7 +27,13 @@ function loadSession(Device) {
       },
     },
   });
-  return Session;
+  return bindContext(module, ctx, [
+    "config",
+    "takePending",
+    "confirmSent",
+    "location",
+    "reset",
+  ]);
 }
 
 function device({ portrait = true, width = 400, height = 800 } = {}) {
