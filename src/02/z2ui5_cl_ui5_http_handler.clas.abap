@@ -859,6 +859,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
     ENDIF.
+    " a handler kept across requests IS the stateful session. Everything
+    " else - F5, a bookmark, a new tab, a session the server let go - is a
+    " stateless request, whatever the draft it restores says (see
+    " z2ui5_cl_ui5_handler->mv_session_sticky); the app switches the session
+    " on again with set_session_stateful( ), which a stale flag used to
+    " turn into a no-op
+    lo_post->mv_session_sticky = xsdbool( so_sticky_handler IS BOUND ).
 
     " the only place the core's own response type meets the public one. Both
     " are structurally identical, so MOVE-CORRESPONDING carries every field

@@ -284,6 +284,23 @@ CLASS ltcl_test IMPLEMENTATION.
                   val = `app_start`
                   url = `?x=1&sap-startup-params=app_start%3Dfoo` ) ).
 
+    " ...and a parameter BEFORE the wrapper survives the unwrapping - it used
+    " to be dropped, so `?app_start=x&sap-startup-params=...` lost the app
+    " and a sap-client in front of the wrapper vanished from every rebuilt link
+    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab(
+                          `?x=1&sap-client=100&sap-startup-params=app_start%3Dfoo&y=2` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_params ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `1`
+                                        act = lt_params[ n = `x` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `100`
+                                        act = lt_params[ n = `sap-client` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `foo`
+                                        act = lt_params[ n = `app_start` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `2`
+                                        act = lt_params[ n = `y` ]-v ).
+
     cl_abap_unit_assert=>assert_equals(
         exp = `foo`
         act = z2ui5_cl_ui5_util_context=>url_param_get(
@@ -314,11 +331,27 @@ CLASS ltcl_string DEFINITION FINAL
     METHODS test_url_create_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_url_roundtrip     FOR TESTING RAISING cx_static_check.
     METHODS test_escape_html       FOR TESTING RAISING cx_static_check.
+    METHODS test_data_uri          FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_string IMPLEMENTATION.
+
+  METHOD test_data_uri.
+
+    " the payload is what follows the comma of a data URI...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `4869`
+        act = |{ z2ui5_cl_ui5_util_context=>conv_get_xstring_by_data_uri( `data:text/plain;base64,SGk=` ) }| ).
+
+    " ...and a bare base64 value without the prefix is the payload itself -
+    " it used to land in the metadata half and decode to nothing
+    cl_abap_unit_assert=>assert_equals(
+        exp = `4869`
+        act = |{ z2ui5_cl_ui5_util_context=>conv_get_xstring_by_data_uri( `SGk=` ) }| ).
+
+  ENDMETHOD.
 
   METHOD test_escape_html.
 
@@ -722,12 +755,40 @@ CLASS ltcl_itab DEFINITION FINAL
     METHODS test_filter_named_field FOR TESTING RAISING cx_static_check.
     METHODS test_filter_no_match    FOR TESTING RAISING cx_static_check.
     METHODS test_filter_elementary  FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_deep_row    FOR TESTING RAISING cx_static_check.
     METHODS test_corresponding      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_itab IMPLEMENTATION.
+
+  METHOD test_filter_deep_row.
+
+    " a master-detail row carries a table of children: with no field list
+    " every component is visited, and the table component used to be put
+    " into a string template, which is a runtime error. It holds no text to
+    " match and is skipped; the printable components still decide the row
+    TYPES:
+      BEGIN OF ty_s_deep,
+        name     TYPE string,
+        children TYPE string_table,
+        ref      TYPE REF TO data,
+      END OF ty_s_deep.
+    DATA lt_deep TYPE STANDARD TABLE OF ty_s_deep WITH EMPTY KEY.
+
+    lt_deep = VALUE #( ( name = `Ada`  children = VALUE #( ( `London` ) ) )
+                       ( name = `Alan` children = VALUE #( ( `Wilmslow` ) ) ) ).
+
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = `Alan`
+                                                CHANGING  tab    = lt_deep ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_deep ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Alan`
+                                        act = lt_deep[ 1 ]-name ).
+
+  ENDMETHOD.
 
   METHOD get_rows.
 
@@ -869,6 +930,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_exception_object FOR TESTING RAISING cx_static_check.
     METHODS test_box_plain_object     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
+    METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
@@ -1162,6 +1224,30 @@ CLASS ltcl_msg IMPLEMENTATION.
     " and remove them
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-visible ).
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-editable ).
+
+  ENDMETHOD.
+
+  METHOD test_token_odd_option.
+
+    " a row without an option (appended with sign and low only), a lower-case
+    " option and one the mapping does not know used to raise a raw
+    " CX_SY_ITAB_LINE_NOT_FOUND for the whole table; they render as equality
+    DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+
+    lt_range = VALUE #( ( sign = `I` low = `X` )
+                        ( sign = `I` option = `eq` low = `Y` )
+                        ( sign = `I` option = `ZZ` low = `Z` ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_token ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `=X`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `=Y`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `=Z`
+                                        act = lt_token[ 3 ]-key ).
 
   ENDMETHOD.
 

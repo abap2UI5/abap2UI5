@@ -175,6 +175,22 @@ test("patternFor / parse round-trip", () => {
   expect(Router.parse("/app/Z2UI5_CL_X").draft).toBe(""); // class only
 });
 
+test("a namespaced class round-trips through the route", () => {
+  const { Router } = loadRouter();
+  // the class carries the route separator in its own name, so its token is
+  // three segments long - reading only the first answered no route at all
+  expect(Router.patternFor("/NS/CL_X", "D1")).toBe("/app//NS/CL_X/D1");
+  expect(Router.parse("/app//NS/CL_X/D1")).toEqual({
+    app: "/NS/CL_X",
+    draft: "D1",
+  });
+  expect(Router.parse("#/app//NS/CL_X")).toEqual({ app: "/NS/CL_X", draft: "" });
+  expect(Router.parse(`#${FLP_SHELL}&/app//NS/CL_X/D1`).draft).toBe("D1");
+  // a lone leading slash names no class
+  expect(Router.parse("/app//NS")).toBe(null);
+  expect(Router.parse("/app//")).toBe(null);
+});
+
 test("non-app hashes parse to no route", () => {
   const { Router } = loadRouter();
   expect(Router.parse("")).toBe(null);

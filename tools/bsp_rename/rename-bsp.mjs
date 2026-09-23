@@ -295,12 +295,19 @@ function transformClass(content, N) {
 // Under --with-namespace also rewrite the UI5 app namespace / FLP identifiers.
 function transformManifest(content, N, withNamespace) {
   const target = N.ns ? `"/sap/bc/${N.nsLo}/${N.leafLo}"` : `"/sap/bc/${N.lo}"`;
-  let out = content.replace(new RegExp(`"/sap/bc/${escapeRe(OLD_LO)}"`, "g"), target);
+  let out = content;
   if (withNamespace) {
-    // every remaining z2ui5 in the manifest is a namespace / FLP identifier
+    // every z2ui5 in the manifest is a namespace / FLP identifier - the data
+    // source's `/sap/bc/z2ui5` included, which the next line then repoints.
+    // This pass used to run AFTER the repoint and walked over what it had
+    // just written: a name that keeps the prefix (Z2UI5_V2, the one the
+    // README hands out) came out as `/sap/bc/z2ui5_v2_v2` - the two-pass bug
+    // replaceTokens was written to end.
     out = out.split(OLD_LO).join(N.lo);
+    out = out.replace(new RegExp(`"/sap/bc/${escapeRe(N.lo)}"`, "g"), target);
+    return out;
   }
-  return out;
+  return out.replace(new RegExp(`"/sap/bc/${escapeRe(OLD_LO)}"`, "g"), target);
 }
 
 // JS / view XML / fragment XML / index.html / css: only touched with

@@ -83,7 +83,16 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    function parse(sHash) {` && |\n| &&
              `      const parts = segmentsOf(sHash);` && |\n| &&
-             `      if (!parts || !parts[0]) return null;` && |\n| &&
+             `      if (!parts) return null;` && |\n| &&
+             `` && |\n| &&
+             `      if (parts[0] === "") {` && |\n| &&
+             `        if (parts.length < 3 || !parts[1] || !parts[2]) return null;` && |\n| &&
+             `        return {` && |\n| &&
+             `          app: ``/${parts[1]}/${parts[2]}``,` && |\n| &&
+             `          draft: parts.length > 3 ? parts[3] : "",` && |\n| &&
+             `        };` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!parts[0]) return null;` && |\n| &&
              `      return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

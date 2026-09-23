@@ -38,7 +38,9 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
-    METHODS test_stack_leave_ancestor_gone FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave_own_stack FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_stateless FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_route_state FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_own_wins  FOR TESTING RAISING cx_static_check.
     METHODS test_hop_clears_routing_req FOR TESTING RAISING cx_static_check.
@@ -612,56 +614,139 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_stack_leave_ancestor_gone.
+  METHOD test_stack_leave_own_stack.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_target TYPE REF TO ltcl_test_app.
     DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_pop TYPE REF TO z2ui5_cl_ui5_action.
 
-    " persist the leave target, so the fresh-target takeover is NOT taken
-    " and the stack-pop path runs
+    " a persisted leave target comes back with the stack position ITS draft
+    " carries - never with the current app's ancestor written over it. That
+    " pop was the same value for a leave to the direct caller and the wrong
+    " one for a leave two levels up (the list got a back button that led
+    " to its own older draft), and it raised for a purged ancestor row
     lo_target = NEW #( ).
     lo_target_core = NEW #( ).
     lo_target_core->mo_app = lo_target.
     lo_target_core->ms_draft-id = `LEAVE_TARGET_DRAFT`.
+    lo_target_core->ms_draft-id_prev_app_stack = `TARGET_OWN_ANCESTOR`.
     lo_target_core->db_save( ).
 
+    " a leave two levels up: the current app's ancestor is NOT the target
     lo_http = NEW #( val = `` ).
     lo_action = NEW #( val = lo_http ).
     lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
     lo_action->mo_app->ms_draft-id = `LEAVE_GONE_CURRENT`.
-    " the ancestor stack draft was purged (cleanup( ) in a long-lived
-    " session) while the leave target still exists - the guard must skip
-    " the pop instead of raising NO_DRAFT_ENTRY in read_info
+    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_MIDDLE_APP_DRAFT`.
+    lo_action->ms_next-o_app_leave = lo_target.
+
+    lo_result = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `TARGET_OWN_ANCESTOR`
+                                        act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
+
+    " ...and the ancestor row purged by cleanup( ) changes nothing: no read
+    " of it is needed any more, so nothing can raise
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id                = `LEAVE_GONE_CURRENT2`.
     lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_PURGED_ANCESTOR`.
     lo_action->ms_next-o_app_leave = lo_target.
 
     lo_result = lo_action->factory_stack_leave( ).
 
-    " back-navigation survived, and the stale ancestor id neither raised
-    " nor took the target's stack position over
-    cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app_stack ).
+    cl_abap_unit_assert=>assert_equals( exp = `TARGET_OWN_ANCESTOR`
+                                        act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
-    " counter-check: with the ancestor draft present the same leave pops one
-    " level - the target's stack position becomes the ancestor's ancestor
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create(
-        draft     = VALUE #( id                = `LEAVE_ANCESTOR_DRAFT`
-                             id_prev_app_stack = `LEAVE_GRANDPARENT` )
-        model_xml = `<dummy/>` ).
+  ENDMETHOD.
 
+  METHOD test_first_start_stateless.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_saved TYPE REF TO z2ui5_cl_ui5_app_cont.
+
+    " a draft saved by a sticky app, restored into a request that is NOT in
+    " a stateful session (F5, a bookmark, a new tab): the persisted flag is
+    " dropped, so the app's next set_session_stateful( abap_true ) really
+    " switches - it used to be a no-op against a flag that said "already"
+    lo_saved = NEW #( ).
+    lo_saved->mo_app = NEW ltcl_test_app( ).
+    lo_saved->ms_draft-id = `STICKY_DRAFT_STATELESS`.
+    lo_saved->mv_check_sticky = abap_true.
+    lo_saved->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_http->ms_request-s_control-app_start_draft = `STICKY_DRAFT_STATELESS`.
     lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
-    lo_action->mo_app->ms_draft-id                = `LEAVE_GONE_CURRENT2`.
-    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_ANCESTOR_DRAFT`.
-    lo_action->ms_next-o_app_leave = lo_target.
 
-    lo_pop = lo_action->factory_stack_leave( ).
+    lo_result = lo_action->factory_first_start( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `LEAVE_GRANDPARENT`
-                                        act = lo_pop->mo_app->ms_draft-id_prev_app_stack ).
+    cl_abap_unit_assert=>assert_false( lo_result->mo_app->mv_check_sticky ).
+    cl_abap_unit_assert=>assert_false( lo_result->mv_check_sticky_start ).
+
+    " ...and kept in the stateful session it was saved in
+    lo_saved = NEW #( ).
+    lo_saved->mo_app = NEW ltcl_test_app( ).
+    lo_saved->ms_draft-id = `STICKY_DRAFT_STATEFUL`.
+    lo_saved->mv_check_sticky = abap_true.
+    lo_saved->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_http->mv_session_sticky = abap_true.
+    lo_http->ms_request-s_control-app_start_draft = `STICKY_DRAFT_STATEFUL`.
+    lo_action = NEW #( val = lo_http ).
+
+    lo_result = lo_action->factory_first_start( ).
+
+    cl_abap_unit_assert=>assert_true( lo_result->mo_app->mv_check_sticky ).
+    cl_abap_unit_assert=>assert_true( lo_result->mv_check_sticky_start ).
+
+  ENDMETHOD.
+
+  METHOD test_first_start_route_state.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_saved TYPE REF TO z2ui5_cl_ui5_app_cont.
+
+    " a ROUTE restore (#/app/<CLASS>/<id> - Back, Forward, reload) carries
+    " a draft but is not the app-state opt-in: it must not switch the
+    " app-state hash on (every response re-asserted it, and an app that
+    " turned routing off got a hash it never asked for)
+    lo_saved = NEW #( ).
+    lo_saved->mo_app = NEW ltcl_test_app( ).
+    lo_saved->ms_draft-id = `ROUTE_RESTORE_DRAFT`.
+    lo_saved->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_http->ms_request-s_control-app_start_draft = `ROUTE_RESTORE_DRAFT`.
+    lo_action = NEW #( val = lo_http ).
+
+    lo_result = lo_action->factory_first_start( ).
+
+    cl_abap_unit_assert=>assert_false( lo_result->ms_next-s_nav-set_app_state_active ).
+    cl_abap_unit_assert=>assert_false( lo_result->mo_app->mv_app_state_active ).
+
+    " an app-state bookmark (#/z2ui5-xapp-state=<id>) is that opt-in
+    lo_saved = NEW #( ).
+    lo_saved->mo_app = NEW ltcl_test_app( ).
+    lo_saved->ms_draft-id = `STATE_RESTORE_DRAFT`.
+    lo_saved->db_save( ).
+
+    lo_http = NEW #( val = `` ).
+    lo_http->ms_request-s_control-app_start_draft = `STATE_RESTORE_DRAFT`.
+    lo_http->ms_request-s_control-check_app_state = abap_true.
+    lo_action = NEW #( val = lo_http ).
+
+    lo_result = lo_action->factory_first_start( ).
+
+    cl_abap_unit_assert=>assert_true( lo_result->ms_next-s_nav-set_app_state_active ).
+    cl_abap_unit_assert=>assert_true( lo_result->mo_app->mv_app_state_active ).
 
   ENDMETHOD.
 

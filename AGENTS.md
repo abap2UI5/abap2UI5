@@ -114,7 +114,7 @@ Both scenarios are covered by unit tests in `z2ui5_cl_ui5_handler.clas.testclass
 
 #### Launchpad Special Case — The URL Hash
 
-Inside the FLP the shell owns the front of the hash and only the remainder is the **app hash**. Exactly two places know this rule and they mirror each other — **do not re-implement the split anywhere else**, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash (use `Router.hrefFor()`):
+Inside the FLP the shell owns the front of the hash and only the remainder is the **app hash**. Exactly two places know this rule and they mirror each other — **do not re-implement the split anywhere else**, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash — write the app hash through `Router.navTo()` and let the shell own the rest (the one `split("#")[0]` left, in `core/actions/Launchpad.js`, appends a full SHELL hash the FLP's `hrefForExternal` produced, which is the shell's own product, not an app hash):
 
 | Side | Owner |
 |---|---|
@@ -234,7 +234,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 - **Table `Z2UI5_T_01`** stores serialized app state (XML) keyed by UUID
 - Each roundtrip: load draft → restore app → call `main()` → save new draft with new UUID
 - Draft IDs chain via `id_prev` for back-navigation through the app stack
-- In-memory buffer cache avoids repeated DB reads within one request
+- There is deliberately NO read buffer: a second read after an overwrite sees the new row (`test_buffer` pins it)
 - **Owner binding:** each draft stores its creator's `sy-uname` (column `UNAME`); `read`/`check_exists` only return a draft to that same user, so a leaked or guessed draft id (bookmark URLs carry it) cannot restore another user's serialized state. A mismatch fails closed with the same `NO_DRAFT_ENTRY...` exception as "not found", so a shared bookmark degrades to a fresh app start. Legacy rows written before the column existed carry a blank owner and stay readable during the upgrade transition (they expire within a few hours), so no active session breaks on upgrade.
 
 **The store is swappable (`z2ui5_if_ui5_draft_store`).** The seven methods above

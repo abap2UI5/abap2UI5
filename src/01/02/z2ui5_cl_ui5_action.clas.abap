@@ -86,6 +86,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       result->mo_app = mo_handler->mo_action->mo_app.
     ELSE.
       result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_front-id ).
+      " the draft's sticky flag holds only in the stateful session it was
+      " saved in - see mv_session_sticky on the handler
+      IF mo_handler->mv_session_sticky = abap_false.
+        CLEAR result->mo_app->mv_check_sticky.
+      ENDIF.
     ENDIF.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
@@ -121,14 +126,27 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       TRY.
 
           result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_control-app_start_draft ).
+          " the draft's sticky flag holds only in the stateful session
+          " it was saved in - see mv_session_sticky on the handler
+          IF mo_handler->mv_session_sticky = abap_false.
+            CLEAR result->mo_app->mv_check_sticky.
+          ENDIF.
           result->mv_check_sticky_start = result->mo_app->mv_check_sticky.
           result->ms_actual-check_on_navigated = abap_true.
-          result->ms_next-s_nav-set_app_state_active = abap_true.
-          " on the app as well, not only on this request: ms_next is
-          " cleared per roundtrip, so a flag set only here survived one
-          " response and the next event wiped the app-state hash the
-          " bookmark was made of (see mv_app_state_active)
-          result->mo_app->mv_app_state_active = abap_true.
+          " only an app-state bookmark (#/z2ui5-xapp-state=<id>) turns
+          " the app-state hash on; a ROUTE restore (#/app/<CLASS>/<id>,
+          " the router's own Back/Forward and reload) carries a draft as
+          " well but is not that opt-in - flagged as one, every later
+          " response re-asserted setAppStateActive, and an app that
+          " switched routing off got an app-state hash it never asked for
+          IF mo_handler->ms_request-s_control-check_app_state = abap_true.
+            result->ms_next-s_nav-set_app_state_active = abap_true.
+            " on the app as well, not only on this request: ms_next is
+            " cleared per roundtrip, so a flag set only here survived one
+            " response and the next event wiped the app-state hash the
+            " bookmark was made of (see mv_app_state_active)
+            result->mo_app->mv_app_state_active = abap_true.
+          ENDIF.
           result->mo_app->ms_draft-id_prev_app_stack = ``.
           " normalize the chain like factory_by_frontend: id_prev must
           " point at the draft this restore was loaded from, not at
@@ -254,20 +272,15 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " a known app is returned to: pop one level off the stack. In a
-    " long-lived session the ancestor may have been purged by cleanup( )
-    " while the leave target still exists, and read_info then raises
-    " NO_DRAFT_ENTRY - caught here, the stack keeps what prepare_app_stack
-    " restored. One read: read( ) fails closed for exactly the cases a
-    " check_exists( ) in front of it answered false for (no row, a foreign
-    " owner), so the guard was a second SELECT on the same key per hop
-    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
-      TRY.
-          DATA(ls_draft) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_info( mo_app->ms_draft-id_prev_app_stack ).
-          result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
+    " a known app is returned to: prepare_app_stack restored it from its
+    " hop-time draft, and that draft carries the target's OWN stack position
+    " (ms_draft is serialized with the container). A pop used to stand here
+    " that read the CURRENT app's ancestor row and wrote ITS stack over the
+    " target's - the same value for a leave to the direct caller, and the
+    " wrong one for a leave two levels up (nav_app_leave( client->get_app(
+    " id ) ) from a wizard back to the list): the list then showed a back
+    " button that led to its own older draft. Nothing is left to do, and the
+    " purged-ancestor case the pop had to guard against went with it
 
   ENDMETHOD.
 

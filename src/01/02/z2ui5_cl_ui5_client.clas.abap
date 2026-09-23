@@ -298,7 +298,21 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_app_leave.
 
     IF app IS NOT SUPPLIED.
-      app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
+      TRY.
+          app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
+        CATCH cx_root.
+          " the caller's hop-time draft was purged by cleanup( ) while THIS
+          " app stayed in use (every click refreshes this app's row, never
+          " the one saved at the hop, and any cold start sweeps the old
+          " rows): the leave used to raise NO_DRAFT_ENTRY out of the whole
+          " roundtrip - the fatal overlay for pressing Back. There is
+          " nothing to go back to any more, so the stack is dropped, the
+          " user is told, and the roundtrip ends on this app the way a root
+          " leave does (main_process ends a leave with nothing on the stack)
+          CLEAR mo_action->mo_app->ms_draft-id_prev_app_stack.
+          z2ui5_if_client~message_toast_display( `Previous app state expired - there is nothing to go back to` ).
+          app = get_if_app( ).
+      ENDTRY.
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.

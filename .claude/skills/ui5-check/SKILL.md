@@ -124,8 +124,10 @@ Where it bit us: the developer tools' help button and the legacy popups in
 
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
-(`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers `src/99`
-and `app/webapp/` — files the linter does not read. It no longer keeps a list
+(`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers the
+framework's own `src/00`–`src/02` and `app/webapp/` — files the linter does
+not read (`src/99` is exempt as the frozen package; its two known bad icons
+are only printed). It no longer keeps a list
 of its own: the 655 names are **derived** from the linter's `data/icons.json`
 (`since <= 1.71`, minus what the font removed by then) and came out
 byte-for-byte equal to the hand-kept snapshot they replaced. The linter's data goes further than the snapshot this entry proposed:

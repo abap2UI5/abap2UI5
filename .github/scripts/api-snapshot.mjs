@@ -73,7 +73,22 @@ function statements(body) {
   return out;
 }
 
-const norm = (s) => s.replace(/\s+/g, " ").trim().toLowerCase();
+// Whitespace folded, keywords and names lower-cased - but the CONTENT of a
+// literal byte for byte: a public constant's value IS the contract (`MIT`,
+// every cs_event name the frontend compares), and lower-casing it let a case
+// change pass as "unchanged".
+const norm = (s) => {
+  const folded = s.replace(/\s+/g, " ").trim();
+  let out = "";
+  let inTick = false;
+  let inQuote = false;
+  for (const c of folded) {
+    if (c === "`" && !inQuote) inTick = !inTick;
+    else if (c === "'" && !inTick) inQuote = !inQuote;
+    out += inTick || inQuote ? c : c.toLowerCase();
+  }
+  return out;
+};
 
 const KIND_RE =
   /^(class-methods|methods|class-data|data|constants|types|interfaces|aliases|class-events|events)\b/i;

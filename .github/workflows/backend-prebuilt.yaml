@@ -21,12 +21,18 @@ name: backend-prebuilt
 # change over there first; the packer's header lists the shape.
 #
 # Two triggers, one job:
-#   - `release: published` - release.yaml has just created the release; this
-#     runs after it and the asset appears a while later (the transpile is the
-#     slow part). release.yaml does not wait for it, on purpose: a release
-#     that is a tag push stays a tag push, and the asset is an addition to it.
-#   - `workflow_dispatch` with a `tag` - re-attach for a past release, or for
-#     one whose run failed. `--clobber` replaces an asset that is already there.
+#   - `workflow_dispatch` with a `tag` - release.yaml dispatches it right after
+#     `gh release create`, and the asset appears a while later (the transpile
+#     is the slow part). release.yaml does not wait for it, on purpose: a
+#     release that is a tag push stays a tag push, and the asset is an
+#     addition to it. The same dispatch, by hand, re-attaches for a past
+#     release or for one whose run failed; `--clobber` replaces an asset that
+#     is already there.
+#   - `release: published` - a release created by hand in the GitHub UI or
+#     with a personal token. It does NOT fire for the release release.yaml
+#     creates: GitHub starts no workflow for an event produced with a
+#     workflow's own GITHUB_TOKEN, which is why 1.144.1 had no asset until the
+#     dispatch above existed.
 #
 # Only the `X.Y.Z` release gets the asset, not `X.Y.Z-702`: that release is
 # the downported SOURCES for a 7.02 system, while the backend is built by

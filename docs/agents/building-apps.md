@@ -369,7 +369,8 @@ places, or in neither, and the same view reads as a pile of fragments.
 **The blank lines are the part no gate catches.** abaplint's formatting rules
 are deliberately kept off the app chains (`align_parameters` and
 `line_break_multiple_parameters` are excluded in the framework repository's
-`.github/abaplint/auto_abaplint_fix.jsonc`, `indentation` is off — they would
+`.github/abaplint/auto_abaplint_fix.jsonc`, and `in_statement_indentation`
+is excluded for the shipped apps — they would
 flatten exactly the layout this section builds), and no linter rule judges
 where a blank line belongs. That stays with the reader.
 
@@ -613,9 +614,12 @@ The same tree, with the subtree held in a variable:
 
 - `client->popup_display( val = … )` opens a `core:FragmentDefinition`
   string (build it with `z2ui5_cl_ui5_view_builder` too) as a dialog. Closing: wire a
-  Close button to `client->_event( z2ui5_if_client=>cs_event-popup_close )`
-  (the framework handles it without reaching your `on_event`), or call
-  `client->popup_destroy( )` server-side after handling your own event.
+  Close button to `client->follow_up_action( val = z2ui5_if_client=>cs_event-popup_close )`
+  (round-trip free - the frontend tears the popup slot down without reaching
+  your `main`), or call `client->popup_destroy( )` server-side after handling
+  your own event. Not `_event( cs_event-popup_close )`: that is a backend
+  event named `POPUP_CLOSE` like any other, it reaches `main( )` and closes
+  nothing by itself.
 - `client->popover_display( xml = … by_id = … )` anchors a popover to a
   control id. **Mind the asymmetry**: the popup takes its XML as `val`, the
   popover as `xml` — one of the most common first-try mistakes.
@@ -717,12 +721,14 @@ The same tree, with the subtree held in a variable:
   start any `z2ui5_if_app` class. Check your authorizations at the top of
   `main` and render an error/leave when denied.
 - The default UI5 bootstrap loads from the CDN; system-local hosting and
-  CSP/theme/bootstrap customizing go through `z2ui5_if_exit` /
+  CSP/theme/bootstrap customizing go through `z2ui5_if_ui5_exit` /
   `z2ui5_cl_ui5_user_exit`.
 - **A third-party JS library is a deployment decision, not a view trick.**
-  The default CSP in `z2ui5_cl_ui5_user_exit` already whitelists `cdn.jsdelivr.net`
-  and `cdnjs.cloudflare.com`, so a library loaded from one of them is
-  allowed out of the box — anything else needs your own
+  The default CSP in `z2ui5_cl_ui5_user_exit` allows script only from the
+  UI5 CDN hosts (`ui5.sap.com`, `sapui5.hana.ondemand.com`,
+  `openui5.hana.ondemand.com`, `sdk.openui5.org`) — general-purpose CDNs
+  such as `cdn.jsdelivr.net` and `cdnjs.cloudflare.com` are deliberately
+  NOT on it. Every other host needs your own
   `content_security_policy` in the exit, and a system-local copy served by
   your own ICF node is the option that survives an offline system. Whichever
   you pick, load the library through the UI5 loader

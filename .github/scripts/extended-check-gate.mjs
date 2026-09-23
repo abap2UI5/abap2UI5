@@ -584,6 +584,14 @@ for (const file of files) {
 
   stmts.forEach((stmt, index) => {
     const flat = stmt.text.replace(/\n/g, " ");
+    /* The SHAPE of a statement is decided on its code - comments cut off,
+     * literal content dropped - and only the pragma / pseudo-comment presence
+     * on the raw text, because that is where a "#EC lives. On the raw text a
+     * `[ name = value ]` inside a backtick literal was a sequential read, a
+     * comment inside a SELECT saying "no WHERE needed" satisfied the WHERE
+     * test, and a trailing comment on CREATE DATA ... TYPE HANDLE defeated
+     * the period strip and made a plain variable look like a call. */
+    const code = stmt.text.split("\n").map(stripNoise).join(" ");
     const at = `${file}:${stmt.start}`;
 
     findings.push(...preferredParameterFindings(file, stmt));
@@ -591,7 +599,7 @@ for (const file of files) {
     // a LOOP that names a secondary key (USING KEY) reads through that key,
     // which is what the check asks for - z2ui5_if_ui5_types=>ty_t_attri
     // carries one for the child walks of the model service (2026-09)
-    if (/^\s*LOOP\s+AT\b/i.test(flat) && /\bWHERE\b/i.test(flat) && !/CI_SORTSEQ/i.test(flat) && !/\bUSING\s+KEY\b/i.test(flat)) {
+    if (/^\s*LOOP\s+AT\b/i.test(code) && /\bWHERE\b/i.test(code) && !/CI_SORTSEQ/i.test(flat) && !/\bUSING\s+KEY\b/i.test(code)) {
       findings.push({
         at,
         rule: "sortseq",
@@ -616,15 +624,18 @@ for (const file of files) {
     // An intentional sequential read opts out the same way as the LOOP AT
     // above: put "#EC CI_SORTSEQ on the statement.
     if (!/testclasses/.test(file) && !/CI_SORTSEQ/i.test(flat)) {
-      if (/^\s*READ\s+TABLE\b/i.test(flat)
-        && /\bWITH\s+KEY\b/i.test(flat)
-        && !/\bWITH\s+TABLE\s+KEY\b/i.test(flat)) {
+      // a BINARY SEARCH is a keyed read on a sorted standard table, not a
+      // sequential one - the check does not report it
+      if (/^\s*READ\s+TABLE\b/i.test(code)
+        && /\bWITH\s+KEY\b/i.test(code)
+        && !/\bWITH\s+TABLE\s+KEY\b/i.test(code)
+        && !/\bBINARY\s+SEARCH\b/i.test(code)) {
         findings.push({
           at,
           rule: "sortseq",
           message: 'READ TABLE ... WITH KEY is a sequential read - the extended check wants "#EC CI_SORTSEQ on the statement',
         });
-      } else if (/\[\s*[A-Za-z_][\w-]*\s*=/.test(flat)) {
+      } else if (/\[\s*[A-Za-z_][\w-]*\s*=/.test(code)) {
         findings.push({
           at,
           rule: "sortseq",
@@ -636,7 +647,7 @@ for (const file of files) {
     // the operand of TYPE HANDLE is a data object holding the descriptor -
     // a method call there is a syntax error on a system, and nothing before
     // a system objects: assign the descriptor to a variable first
-    const handle = /^\s*CREATE\s+DATA\b.*\bTYPE\s+HANDLE\s+(.+)$/i.exec(flat.replace(/\s*\.\s*$/, ""));
+    const handle = /^\s*CREATE\s+DATA\b.*\bTYPE\s+HANDLE\s+(.+)$/i.exec(code.replace(/\s*\.\s*$/, ""));
     if (handle && /\(/.test(handle[1])) {
       findings.push({
         at,
@@ -655,7 +666,7 @@ for (const file of files) {
     // A SELECT whose target is a SUBQUERY or a join carries its own WHERE
     // inside; the test is on the statement as a whole, so either spelling
     // satisfies it, and a missing one is a finding wherever it sits.
-    if (/^\s*SELECT\b/i.test(flat) && !/\bWHERE\b/i.test(flat) && !/CI_NOWHERE/i.test(flat)) {
+    if (/^\s*SELECT\b/i.test(code) && !/\bWHERE\b/i.test(code) && !/CI_NOWHERE/i.test(flat)) {
       findings.push({
         at,
         rule: "nowhere",
@@ -663,7 +674,7 @@ for (const file of files) {
       });
     }
 
-    if (/^\s*(FIND|REPLACE)\b/i.test(flat) && /\bREGEX\b/i.test(flat) && !/REGEX_POSIX/i.test(flat)) {
+    if (/^\s*(FIND|REPLACE)\b/i.test(code) && /\bREGEX\b/i.test(code) && !/REGEX_POSIX/i.test(flat)) {
       findings.push({
         at,
         rule: "regex_posix",

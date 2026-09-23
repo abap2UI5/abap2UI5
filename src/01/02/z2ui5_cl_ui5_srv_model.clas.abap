@@ -122,6 +122,16 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_from   TYPE string
         iv_to     TYPE string.
 
+    " abap_true when a reference row takes a payload of its own on the save
+    " (it is bound and owns its target); drops the alias of the children of
+    " a CLEARed reference on the way - see main_attri_db_save_srtti
+    METHODS dref_check_payload
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        iv_dref       TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS attri_get_val_ref
       IMPORTING
         iv_path       TYPE clike
@@ -892,10 +902,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       INSERT VALUE #( name = lr_attri->name
                       ref  = REF #( <dref> ) ) INTO TABLE lt_dref.
 
-      " a payload only for a reference that OWNS its target - an alias
-      " (name_ref) is pointed at its owner again on the load - and that
-      " points at something
-      IF lr_attri->name_ref IS NOT INITIAL OR <dref> IS INITIAL.
+      IF dref_check_payload( ir_attri = lr_attri
+                             iv_dref  = <dref> ) = abap_false.
         CONTINUE.
       ENDIF.
       UNASSIGN <val_deref>.
@@ -1509,6 +1517,27 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD dref_check_payload.
+
+    " a reference the app CLEARed points at nothing - and its dissolved
+    " children still carry the alias of the target it used to point at
+    " (name_ref on the `->*` row). The load re-points the reference at that
+    " owner unconditionally, so the CLEAR was undone by the next restore:
+    " the alias only gets re-checked for rows a live reference resolves,
+    " which an unbound one cannot be. Drop it here instead
+    IF iv_dref IS INITIAL.
+      refs_below_set( iv_parent = ir_attri->name
+                      iv_from   = |{ ir_attri->name }->|
+                      iv_to     = `` ).
+      RETURN.
+    ENDIF.
+
+    " a payload only for a reference that OWNS its target - an alias
+    " (name_ref) is pointed at its owner again on the load
+    result = xsdbool( ir_attri->name_ref IS INITIAL ).
+
+  ENDMETHOD.
+
   METHOD refs_below_set.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) USING KEY parent
@@ -1796,16 +1825,27 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " `2024-01-15` silently became `2024-01-` - no exception, no
     " t_model_skipped entry, and the next serialization shipped garbage.
     " Only the ISO spelling is unpacked here; any other text (a plain
-    " `20240115`, an empty cleared value) keeps the direct assignment, so a
-    " cell that never went through ajson's formatting stays as it was.
+    " `20240115`) keeps the direct assignment, so a cell that never went
+    " through ajson's formatting stays as it was. An EMPTY value - a cleared
+    " DatePicker / TimePicker - is the initial date or time: assigned as
+    " text it became eight (six) blanks, which is not IS INITIAL for the
+    " app and which ajson then shipped back as `    -  -  `.
     CASE iv_type_kind.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
+        IF lv_value IS INITIAL.
+          CLEAR <comp>.
+          RETURN.
+        ENDIF.
         IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
           lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
         ENDIF.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
+        IF lv_value IS INITIAL.
+          CLEAR <comp>.
+          RETURN.
+        ENDIF.
         IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
           lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
         ENDIF.
@@ -1813,11 +1853,22 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
         " ISO instant on the wire; the `T` at offset 10 is what tells it
-        " from a price. get_timestampl parses both spellings (Z, +hh:mm),
+        " from a price. get_timestampl parses the spellings Z and +hh:mm,
         " and the p-to-p assignment drops the fraction a short timestamp
-        " does not carry
+        " does not carry. What it cannot read (a negative offset, -05:00,
+        " which a western-hemisphere browser writes) it answers as an
+        " initial value WITHOUT raising - assigned unchecked, that zeroed
+        " the target with no trace. A non-empty instant that parses to
+        " nothing is a refusal like any other conversion failure: the old
+        " value stands and t_model_skipped says so
         IF strlen( lv_value ) >= 19 AND lv_value+10(1) = `T`.
-          <comp> = io_delta->get_timestampl( iv_path ).
+          DATA(lv_ts) = io_delta->get_timestampl( iv_path ).
+          IF lv_ts IS INITIAL.
+            RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+              EXPORTING
+                val = |MODEL_VALUE_REFUSED - '{ lv_value }' is no timestamp the model can read (only Z and +hh:mm offsets)|.
+          ENDIF.
+          <comp> = lv_ts.
           RETURN.
         ENDIF.
 
