@@ -46,12 +46,13 @@ and the page-location send cadence), `ScrollFocus.js` (focus/caret + per-slot
 scroll capture for `S_FOCUS`/`S_SCROLL`), `AppState.js` (owner of the shared
 frontend state + the documented inventory of all `z2ui5.*` globals),
 `ViewSlots.js` (access layer for the five view slots — lookups, byId
-resolution and teardown), `Lib.js` (shared helper module),
+resolution and teardown), `Lib.js` (shared helper module), `Env.js` (the
+UI5-release compatibility layer - every 1.71 fallback lives there),
 `FrontendAction.js` (the action registry/dispatcher behind the controller's
 `eF()` entry point and the response's action lists — the handlers live in
 `core/actions/`, one domain module each: `ControlCall.js` with the
-`CONTROL_GLOBAL`/`CONTROL_BY_ID`/`BINDING_CALL` whitelists and the message
-toast/box display hooks, `Slots.js` with the view-slot display machinery and
+`CONTROL_GLOBAL`/`CONTROL_BY_ID` whitelists and the message toast/box display
+hooks, `BindingCall.js` with the `BINDING_CALL` filter/sorter whitelist, `Slots.js` with the view-slot display machinery and
 model tracking, `Browser.js`, `Launchpad.js`, `Variants.js`, `Shortcuts.js` and
 `ViewOps.js`),
 `Router.js` (hash routing — the only module allowed to touch the URL hash)

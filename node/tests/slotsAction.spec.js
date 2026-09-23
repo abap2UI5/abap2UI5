@@ -80,12 +80,12 @@ function load({ resolveById = null, byId = null } = {}) {
         logError: (m) => errors.push(m),
         // no view in this spec uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
-        preloadFragmentModules: async () => {},
         isAlive: () => true,
         isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
         effectiveSizeLimit: () => undefined,
         whenRendered: (control, _owner, fn) => fn(control),
       },
+      "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
       "z2ui5/core/ViewSlots": {
         slots: [
           { key: "MAIN", ownsModel: true },

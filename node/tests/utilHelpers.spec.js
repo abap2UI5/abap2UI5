@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, loadEnv } = require("./loadLibModule");
 
 // Tests the security and session helpers shipped in app/webapp/core/Lib.js.
 // The module is loaded via a stubbed sap.ui.define (see loadLibModule.js),
@@ -294,56 +294,56 @@ test.describe("getElementById", () => {
   const el = { id: "btn1" };
 
   test("resolves a known control id to its element", () => {
-    const { Lib } = loadLib({ elements: { btn1: el } });
-    expect(Lib.getElementById("btn1")).toBe(el);
+    const { Env } = loadEnv({ elements: { btn1: el } });
+    expect(Env.getElementById("btn1")).toBe(el);
   });
 
   test("returns null for an empty or unknown id", () => {
-    const { Lib } = loadLib({ elements: { btn1: el } });
-    expect(Lib.getElementById("")).toBeNull();
-    expect(Lib.getElementById(undefined)).toBeNull();
-    expect(Lib.getElementById("missing")).toBeNull();
+    const { Env } = loadEnv({ elements: { btn1: el } });
+    expect(Env.getElementById("")).toBeNull();
+    expect(Env.getElementById(undefined)).toBeNull();
+    expect(Env.getElementById("missing")).toBeNull();
   });
 });
 
 test.describe("getMessaging (version-independent messaging facade)", () => {
   test("prefers the sap/ui/core/Messaging module when loaded", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     const Messaging = { getMessageModel: () => ({}), registerObject: () => {} };
     sandbox.sap.ui.require = (name) =>
       name === "sap/ui/core/Messaging" ? Messaging : undefined;
     sandbox.sap.ui.getCore = () => {
       throw new Error("must not fall back when Messaging exists");
     };
-    expect(Lib.getMessaging()).toBe(Messaging);
+    expect(Env.getMessaging()).toBe(Messaging);
   });
 
   test("falls back to the MessageManager singleton on older releases", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     const mm = { getMessageModel: () => ({}) };
     sandbox.sap.ui.require = () => undefined;
     sandbox.sap.ui.getCore = () => ({ getMessageManager: () => mm });
-    expect(Lib.getMessaging()).toBe(mm);
+    expect(Env.getMessaging()).toBe(mm);
   });
 
   test("returns null when neither API exists (bare bootstrap)", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.require = () => undefined;
-    expect(Lib.getMessaging()).toBeNull();
+    expect(Env.getMessaging()).toBeNull();
   });
 });
 
 test.describe("hasMessagingModule (warm-load gate for sap/ui/core/Messaging)", () => {
   test("true from 1.118 on", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.version = "1.142.0";
-    expect(Lib.hasMessagingModule()).toBe(true);
+    expect(Env.hasMessagingModule()).toBe(true);
   });
 
   test("false below 1.118, where the module would 404", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.version = "1.71.0";
-    expect(Lib.hasMessagingModule()).toBe(false);
+    expect(Env.hasMessagingModule()).toBe(false);
   });
 
   // The legacy-free (UI5 2.x) build drops the sap.ui.version global, so the
@@ -352,15 +352,15 @@ test.describe("hasMessagingModule (warm-load gate for sap/ui/core/Messaging)", (
   // sap/ui/core/Messaging - message> model and handleValidation would go
   // silently dead. An unreadable version therefore means "modern".
   test("true when the version global is absent (legacy-free build)", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     delete sandbox.sap.ui.version;
-    expect(Lib.hasMessagingModule()).toBe(true);
+    expect(Env.hasMessagingModule()).toBe(true);
   });
 
   test("true when the version is unparsable", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.version = "not-a-version";
-    expect(Lib.hasMessagingModule()).toBe(true);
+    expect(Env.hasMessagingModule()).toBe(true);
   });
 });
 
@@ -377,7 +377,7 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
     "<buttons><Button/></buttons></Dialog></core:FragmentDefinition>";
 
   test("gated to the releases whose fragment processing is synchronous", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     for (const [version, sync] of [
       ["1.71.81", true],
       ["1.82.2", true],
@@ -386,15 +386,15 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
       ["2.0.0", false],
     ]) {
       sandbox.sap.ui.version = version;
-      expect(Lib.fragmentLoadsSync(), version).toBe(sync);
+      expect(Env.fragmentLoadsSync(), version).toBe(sync);
     }
     delete sandbox.sap.ui.version;
-    expect(Lib.fragmentLoadsSync()).toBe(false);
+    expect(Env.fragmentLoadsSync()).toBe(false);
   });
 
   test("maps every control element to its module, skipping aggregations", () => {
-    const { Lib } = loadLib();
-    expect(Lib.fragmentControlModules(XML).sort()).toEqual([
+    const { Env } = loadEnv();
+    expect(Env.fragmentControlModules(XML).sort()).toEqual([
       "sap/m/Button",
       "sap/m/Dialog",
       "sap/m/Label",
@@ -407,32 +407,32 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
   });
 
   test("requires them asynchronously on 1.71 to 1.82", async () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.version = "1.71.81";
     const required = [];
     sandbox.sap.ui.require = (modules, onLoad) => {
       required.push(...modules);
       onLoad();
     };
-    await Lib.preloadFragmentModules(XML);
+    await Env.preloadFragmentModules(XML);
     expect(required).toContain("sap/ui/table/Table");
   });
 
   test("does nothing from 1.84 on", async () => {
-    const { Lib, sandbox } = loadLib();
+    const { Env, sandbox } = loadEnv();
     sandbox.sap.ui.version = "1.120.50";
     sandbox.sap.ui.require = () => {
       throw new Error("must not be reached");
     };
-    await Lib.preloadFragmentModules(XML);
+    await Env.preloadFragmentModules(XML);
   });
 
   test("a module that fails to load is logged, never thrown", async () => {
-    const { Lib, sandbox, state } = loadLib({ state: { errors: [] } });
+    const { Env, sandbox, state } = loadEnv({ state: { errors: [] } });
     sandbox.sap.ui.version = "1.71.81";
     sandbox.sap.ui.require = (_modules, _onLoad, onError) =>
       onError(new Error("404"));
-    await Lib.preloadFragmentModules(XML);
+    await Env.preloadFragmentModules(XML);
     expect(state.errors.length).toBe(1);
   });
 });

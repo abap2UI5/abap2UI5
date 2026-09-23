@@ -37,7 +37,7 @@ function loadControlCall(sandbox) {
     show: (text, opts) => toastCalls.push({ text, opts }),
   };
   // The message boxes this stub "opens": showBox gives a box with details an
-  // id and reaches back for it through Lib.getElementById, exactly as it does
+  // id and reaches back for it through Env.getElementById, exactly as it does
   // against a real MessageBox - so the stub answers with the layout UI5
   // builds, [message, "Show details" link, FormattedText(hidden)].
   const dialogs = {};
@@ -102,6 +102,8 @@ function loadControlCall(sandbox) {
       "sap/ui/model/Sorter": function () {},
       "z2ui5/core/Router": {},
       "z2ui5/core/Lib": Lib,
+      // the stub carries the Env probes this module uses as well
+      "z2ui5/core/Env": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
     },
   });

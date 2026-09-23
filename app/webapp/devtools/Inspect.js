@@ -14,6 +14,7 @@ sap.ui.define(
     "sap/ui/Device",
     "z2ui5/core/AppState",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Console",
@@ -24,6 +25,7 @@ sap.ui.define(
     Device,
     AppState,
     Lib,
+    Env,
     ScrollFocus,
     ViewSlots,
     Console,
@@ -110,7 +112,9 @@ sap.ui.define(
     // load a control, and it is nowhere else to be seen.
     function bootstrapElement() {
       try {
-        return document.getElementById("sap-ui-bootstrap");
+        return /** @type {HTMLScriptElement | null} */ (
+          document.getElementById("sap-ui-bootstrap")
+        );
       } catch {
         return null;
       }
@@ -232,8 +236,8 @@ sap.ui.define(
       // Theme and locale are read through the shared probes in core/Lib.js
       // (the same ones Component.init's S_UI5 block uses), not through a
       // wrapper of their own.
-      out.push(line("Theme", Lib.getTheme()));
-      const locale = Lib.getLocale();
+      out.push(line("Theme", Env.getTheme()));
+      const locale = Env.getLocale();
       out.push(line("Language", locale.language));
       out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));
       out.push(line("Content density", getContentDensity()));
@@ -998,7 +1002,7 @@ sap.ui.define(
       out.push(
         line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),
       );
-      out.push(line("Theme", Lib.getTheme()));
+      out.push(line("Theme", Env.getTheme()));
 
       out.push(section("View slots"));
       out.push(...formatSlots());

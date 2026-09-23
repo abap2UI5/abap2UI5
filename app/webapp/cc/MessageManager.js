@@ -3,9 +3,10 @@ sap.ui.define(
     "sap/ui/core/Control",
     "sap/ui/core/message/Message",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
   ],
-  (Control, Message, Lib, ViewSlots) => {
+  (Control, Message, Lib, Env, ViewSlots) => {
     "use strict";
 
     // A message key that is stable across a round-trip: two rows describing
@@ -76,7 +77,7 @@ sap.ui.define(
       renderer: Lib.EMPTY_RENDERER,
 
       setup() {
-        const messaging = Lib.getMessaging();
+        const messaging = Env.getMessaging();
         if (!Lib.claimOnce(this, messaging)) return;
         this._messaging = messaging;
         const view = ViewSlots.getView(

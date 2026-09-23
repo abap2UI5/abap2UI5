@@ -25,728 +25,583 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/AppState", "sap/ui/core/Element"],` && |\n| &&
-             `  (AppState, Element) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+    result = `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `    function getElementById(sId) {` && |\n| &&
-             `      if (!sId) return null;` && |\n| &&
-             `      if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
+             `  const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const core = sap.ui.getCore();` && |\n| &&
-             `        if (core?.byId) return core.byId(sId) || null;` && |\n| &&
-             `      }` && |\n| &&
+             `  function logError(message, error) {` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state.errors) state.errors = [];` && |\n| &&
+             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
+             `    if (error !== undefined) entry.error = error;` && |\n| &&
+             `    state.errors.push(entry);` && |\n| &&
+             `    if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
+             `  const CONTROLLER_FIELDS = [` && |\n| &&
+             `    "oController",` && |\n| &&
+             `    "oControllerNest",` && |\n| &&
+             `    "oControllerNest2",` && |\n| &&
+             `    "oControllerPopup",` && |\n| &&
+             `    "oControllerPopover",` && |\n| &&
+             `  ];` && |\n| &&
              `` && |\n| &&
-             `    let messagingFacade = null;` && |\n| &&
-             `    function getMessaging() {` && |\n| &&
-             `      if (messagingFacade) return messagingFacade;` && |\n| &&
-             `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
-             `      if (Messaging) {` && |\n| &&
-             `        messagingFacade = Messaging;` && |\n| &&
-             `        return Messaging;` && |\n| &&
-             `      }` && |\n| &&
+             `  function requireODataModel() {` && |\n| &&
+             `    const loaded = sap.ui.require("sap/ui/model/odata/v2/ODataModel");` && |\n| &&
+             `    if (loaded) return Promise.resolve(loaded);` && |\n| &&
+             `    return new Promise((resolve, reject) => {` && |\n| &&
+             `      sap.ui.require(["sap/ui/model/odata/v2/ODataModel"], resolve, reject);` && |\n| &&
+             `    });` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `      if (sap.ui.getCore) {` && |\n| &&
-             `        const core = sap.ui.getCore();` && |\n| &&
-             `        if (core?.getMessageManager) {` && |\n| &&
-             `          messagingFacade = core.getMessageManager();` && |\n| &&
-             `          return messagingFacade;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
+             `  function isControllerAlive(oController) {` && |\n| &&
+             `    if (!oController) return false;` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
+             `  function isDestroyed(obj) {` && |\n| &&
+             `    if (!obj) return false;` && |\n| &&
              `` && |\n| &&
-             `    function getThemingModule() {` && |\n| &&
-             `      return sap.ui.require("sap/ui/core/Theming") || null;` && |\n| &&
-             `    }` && |\n| &&
+             `    if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
+             `    return Boolean(obj.bIsDestroyed);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function getTheme() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Theming = getThemingModule();` && |\n| &&
-             `        if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `  function claimOnce(owner, target) {` && |\n| &&
+             `    if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
+             `    owner.setProperty("checkInit", true, true);` && |\n| &&
+             `    return true;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `        if (sap.ui.getCore) {` && |\n| &&
-             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `          if (config?.getTheme) return config.getTheme();` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        logError("Lib: reading theme failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return "";` && |\n| &&
-             `    }` && |\n| &&
+             `  function isAlive(obj) {` && |\n| &&
+             `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function getLocale() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
-             `        if (Localization?.getLanguage) {` && |\n| &&
-             `          return {` && |\n| &&
-             `            language: Localization.getLanguage(),` && |\n| &&
-             `            rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
-             `          };` && |\n| &&
-             `        }` && |\n| &&
+             `  function registerCallback(name, fn) {` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state[name]) state[name] = [];` && |\n| &&
+             `    state[name].push(fn);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `        if (sap.ui.getCore) {` && |\n| &&
-             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `          if (config?.getLanguage) {` && |\n| &&
-             `            return {` && |\n| &&
-             `              language: config.getLanguage(),` && |\n| &&
-             `              rtl: Boolean(config.getRTL?.()),` && |\n| &&
-             `            };` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        logError("Lib: reading locale failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `      return { language: "", rtl: false };` && |\n| &&
-             `    }` && |\n| &&
+             `  function unregisterCallback(name, fn) {` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state[name]) return;` && |\n| &&
+             `    state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function hasMessagingModule() {` && |\n| &&
-             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `  function readFileAsDataURL(file, owner, onLoaded, errorContext, onFailed) {` && |\n| &&
+             `    const reader = new FileReader();` && |\n| &&
+             `    reader.onload = () => {` && |\n| &&
+             `      if (isDestroyed(owner)) return;` && |\n| &&
+             `      onLoaded(reader.result);` && |\n| &&
+             `    };` && |\n| &&
+             `    reader.onerror = () => {` && |\n| &&
+             `      logError(``${errorContext}: FileReader failed``, reader.error);` && |\n| &&
+             `      if (onFailed && !isDestroyed(owner)) onFailed();` && |\n| &&
+             `    };` && |\n| &&
+             `    reader.readAsDataURL(file);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
-             `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
-             `    }` && |\n| &&
+             `  function readFilesInTurn(owner, errorContext, onFile) {` && |\n| &&
+             `    const queue = [];` && |\n| &&
+             `    let reading = false;` && |\n| &&
+             `    let cancelWait = null;` && |\n| &&
              `` && |\n| &&
-             `    function fragmentLoadsSync() {` && |\n| &&
-             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
-             `      return major === 1 && minor < 84;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;` && |\n| &&
-             `    const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;` && |\n| &&
-             `    function fragmentControlModules(xml) {` && |\n| &&
-             `      const text = String(xml ?? "");` && |\n| &&
-             `      const namespaces = new Map();` && |\n| &&
-             `      for (const [, prefix, namespace] of text.matchAll(XMLNS)) {` && |\n| &&
-             `        namespaces.set(prefix ?? "", namespace);` && |\n| &&
-             `      }` && |\n| &&
-             `      const result = new Set();` && |\n| &&
-             `      for (const [, prefix, name] of text.matchAll(ELEMENT)) {` && |\n| &&
-             `        const namespace = namespaces.get(prefix ?? "");` && |\n| &&
-             `        if (!namespace || name === "FragmentDefinition") continue;` && |\n| &&
-             `        result.add(``${namespace.replace(/\./g, "/")}/${name}``);` && |\n| &&
-             `      }` && |\n| &&
-             `      return [...result];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function preloadFragmentModules(xml) {` && |\n| &&
-             `      if (!fragmentLoadsSync()) return Promise.resolve();` && |\n| &&
-             `      const modules = fragmentControlModules(xml);` && |\n| &&
-             `      if (!modules.length) return Promise.resolve();` && |\n| &&
-             `      return new Promise((resolve) => {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          modules,` && |\n| &&
-             `          () => resolve(),` && |\n| &&
-             `          (e) => {` && |\n| &&
-             `            logError("Lib: preloading the fragment's controls failed", e);` && |\n| &&
-             `            resolve();` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_ERRORS = 100;` && |\n| &&
-             `` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
-             `      if (!state.errors) state.errors = [];` && |\n| &&
-             `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
-             `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      state.errors.push(entry);` && |\n| &&
-             `      if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const CONTROLLER_FIELDS = [` && |\n| &&
-             `      "oController",` && |\n| &&
-             `      "oControllerNest",` && |\n| &&
-             `      "oControllerNest2",` && |\n| &&
-             `      "oControllerPopup",` && |\n| &&
-             `      "oControllerPopover",` && |\n| &&
-             `    ];` && |\n| &&
-             `` && |\n| &&
-             `    function requireODataModel() {` && |\n| &&
-             `      const loaded = sap.ui.require("sap/ui/model/odata/v2/ODataModel");` && |\n| &&
-             `      if (loaded) return Promise.resolve(loaded);` && |\n| &&
-             `      return new Promise((resolve, reject) => {` && |\n| &&
-             `        sap.ui.require(["sap/ui/model/odata/v2/ODataModel"], resolve, reject);` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isControllerAlive(oController) {` && |\n| &&
-             `      if (!oController) return false;` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
-             `      return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isDestroyed(obj) {` && |\n| &&
-             `      if (!obj) return false;` && |\n| &&
-             `` && |\n| &&
-             `      if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
-             `      return Boolean(obj.bIsDestroyed);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function claimOnce(owner, target) {` && |\n| &&
-             `      if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
-             `      owner.setProperty("checkInit", true, true);` && |\n| &&
-             `      return true;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isAlive(obj) {` && |\n| &&
-             `      return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function registerCallback(name, fn) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
-             `      if (!state[name]) state[name] = [];` && |\n| &&
-             `      state[name].push(fn);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function unregisterCallback(name, fn) {` && |\n| &&
-             `      const state = AppState.state;` && |\n| &&
-             `      if (!state[name]) return;` && |\n| &&
-             `      state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function readFileAsDataURL(file, owner, onLoaded, errorContext, onFailed) {` && |\n| &&
-             `      const reader = new FileReader();` && |\n| &&
-             `      reader.onload = () => {` && |\n| &&
-             `        if (isDestroyed(owner)) return;` && |\n| &&
-             `        onLoaded(reader.result);` && |\n| &&
-             `      };` && |\n| &&
-             `      reader.onerror = () => {` && |\n| &&
-             `        logError(``${errorContext}: FileReader failed``, reader.error);` && |\n| &&
-             `        if (onFailed && !isDestroyed(owner)) onFailed();` && |\n| &&
-             `      };` && |\n| &&
-             `      reader.readAsDataURL(file);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function readFilesInTurn(owner, errorContext, onFile) {` && |\n| &&
-             `      const queue = [];` && |\n| &&
-             `      let reading = false;` && |\n| &&
-             `      let cancelWait = null;` && |\n| &&
-             `` && |\n| &&
-             `      const readNext = () => {` && |\n| &&
-             `        const file = queue.shift();` && |\n| &&
-             `        if (!file || isDestroyed(owner)) {` && |\n| &&
-             `          reading = false;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        reading = true;` && |\n| &&
-             `        const step = () => {` && |\n| &&
-             `          cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
-             `            cancelWait = null;` && |\n| &&
-             `            readNext();` && |\n| &&
-             `          });` && |\n| &&
-             `        };` && |\n| &&
-             `        readFileAsDataURL(` && |\n| &&
-             `          file,` && |\n| &&
-             `          owner,` && |\n| &&
-             `          (result) => {` && |\n| &&
-             `            onFile(file, result);` && |\n| &&
-             `            step();` && |\n| &&
-             `          },` && |\n| &&
-             `          errorContext,` && |\n| &&
-             `` && |\n| &&
-             `          readNext,` && |\n| &&
-             `        );` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      return {` && |\n| &&
-             `        add(files) {` && |\n| &&
-             `          for (const file of files) queue.push(file);` && |\n| &&
-             `          if (!reading) readNext();` && |\n| &&
-             `        },` && |\n| &&
-             `` && |\n| &&
-             `        cancel() {` && |\n| &&
-             `          queue.length = 0;` && |\n| &&
-             `          reading = false;` && |\n| &&
-             `          if (cancelWait) {` && |\n| &&
-             `            cancelWait();` && |\n| &&
-             `            cancelWait = null;` && |\n| &&
-             `          }` && |\n| &&
-             `        },` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function cancelPendingTimers() {` && |\n| &&
-             `      const timers = AppState.state.timers;` && |\n| &&
-             `      if (!timers) return;` && |\n| &&
-             `      for (const key in timers) {` && |\n| &&
-             `        cancelTimer(timers[key]);` && |\n| &&
-             `        delete timers[key];` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveStorageType(Storage, type, context, verb) {` && |\n| &&
-             `      const typeKey = String(type || "").toLowerCase();` && |\n| &&
-             `      const known = Storage.Type[typeKey];` && |\n| &&
-             `      const storageType = known || Storage.Type.session;` && |\n| &&
-             `      if (type && !known) {` && |\n| &&
-             `        logError(` && |\n| &&
-             `          ``${context}: unknown type '${type}', ${verb} the session store``,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return storageType;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function cancelTimer(handle) {` && |\n| &&
-             `      if (typeof handle === "function") handle();` && |\n| &&
-             `      else clearTimeout(handle);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function applyTokenUpdate(control, oEvent) {` && |\n| &&
-             `      const isRemoved = oEvent.getParameter("type") === "removed";` && |\n| &&
-             `      const rawList =` && |\n| &&
-             `        oEvent.getParameter(isRemoved ? "removedTokens" : "addedTokens") || [];` && |\n| &&
-             `      const tokens = rawList.map((item) => ({` && |\n| &&
-             `        KEY: item.getKey(),` && |\n| &&
-             `        TEXT: item.getText(),` && |\n| &&
-             `      }));` && |\n| &&
-             `` && |\n| &&
-             `      control.setProperty("addedTokens", isRemoved ? [] : tokens, true);` && |\n| &&
-             `      control.setProperty("removedTokens", isRemoved ? tokens : [], true);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function afterRoundtrip(owner, fn) {` && |\n| &&
-             `      if (!AppState.state.isBusy) {` && |\n| &&
-             `        fn();` && |\n| &&
-             `        return () => {};` && |\n| &&
-             `      }` && |\n| &&
-             `      const once = () => {` && |\n| &&
-             `        unregisterCallback("onAfterRendering", once);` && |\n| &&
-             `        if (isDestroyed(owner)) return;` && |\n| &&
-             `        fn();` && |\n| &&
-             `      };` && |\n| &&
-             `      registerCallback("onAfterRendering", once);` && |\n| &&
-             `      return () => unregisterCallback("onAfterRendering", once);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function runCallbacks(callbacks, ...args) {` && |\n| &&
-             `      if (!callbacks) return;` && |\n| &&
-             `      for (const fn of callbacks) {` && |\n| &&
-             `        if (!fn) continue;` && |\n| &&
-             `        try {` && |\n| &&
-             `          fn(...args);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          logError("runCallbacks: callback failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const pendingDelegates = new WeakMap();` && |\n| &&
-             `` && |\n| &&
-             `    function onNextRendering(control, fn, key) {` && |\n| &&
-             `      let byKey;` && |\n| &&
-             `      if (key) {` && |\n| &&
-             `        byKey = pendingDelegates.get(control);` && |\n| &&
-             `        if (!byKey) {` && |\n| &&
-             `          byKey = new Map();` && |\n| &&
-             `          pendingDelegates.set(control, byKey);` && |\n| &&
-             `        }` && |\n| &&
-             `        const prev = byKey.get(key);` && |\n| &&
-             `        if (prev) control.removeEventDelegate(prev);` && |\n| &&
-             `      }` && |\n| &&
-             `      const delegate = {` && |\n| &&
-             `        onAfterRendering: () => {` && |\n| &&
-             `          control.removeEventDelegate(delegate);` && |\n| &&
-             `          if (byKey) byKey.delete(key);` && |\n| &&
-             `          fn();` && |\n| &&
-             `        },` && |\n| &&
-             `      };` && |\n| &&
-             `      if (byKey) byKey.set(key, delegate);` && |\n| &&
-             `      control.addEventDelegate(delegate);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function whenRendered(control, owner, fn, key) {` && |\n| &&
-             `      if (control.getDomRef()) {` && |\n| &&
-             `        if (!isDestroyed(owner)) fn();` && |\n| &&
+             `    const readNext = () => {` && |\n| &&
+             `      const file = queue.shift();` && |\n| &&
+             `      if (!file || isDestroyed(owner)) {` && |\n| &&
+             `        reading = false;` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      onNextRendering(` && |\n| &&
-             `        control,` && |\n| &&
-             `        () => {` && |\n| &&
-             `          if (!isDestroyed(owner)) fn();` && |\n| &&
-             `        },` && |\n| &&
-             `        key,` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const XML_TEMPLATING = /sap\.ui\.core\.template\/1|\{\s*template>/;` && |\n| &&
-             `    function usesXmlTemplating(xml) {` && |\n| &&
-             `      return XML_TEMPLATING.test(String(xml ?? ""));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getTextPath(control, separator) {` && |\n| &&
-             `      const texts = [];` && |\n| &&
-             `      let node = control;` && |\n| &&
-             `` && |\n| &&
-             `      for (let i = 0; node && i < 100; i++) {` && |\n| &&
-             `        if (typeof node.getText !== "function") break;` && |\n| &&
-             `        const text = node.getText();` && |\n| &&
-             `        if (text) texts.push(text);` && |\n| &&
-             `        node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      return texts.reverse().join(separator || " > ");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function copyToClipboard(textToCopy) {` && |\n| &&
-             `      if (navigator.clipboard?.writeText) {` && |\n| &&
-             `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
-             `          logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
-             `          copyToClipboardFallback(textToCopy);` && |\n| &&
+             `      reading = true;` && |\n| &&
+             `      const step = () => {` && |\n| &&
+             `        cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
+             `          cancelWait = null;` && |\n| &&
+             `          readNext();` && |\n| &&
              `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      copyToClipboardFallback(textToCopy);` && |\n| &&
-             `    }` && |\n| &&
+             `      };` && |\n| &&
+             `      readFileAsDataURL(` && |\n| &&
+             `        file,` && |\n| &&
+             `        owner,` && |\n| &&
+             `        (result) => {` && |\n| &&
+             `          onFile(file, result);` && |\n| &&
+             `          step();` && |\n| &&
+             `        },` && |\n| &&
+             `        errorContext,` && |\n| &&
              `` && |\n| &&
-             `    function copyToClipboardFallback(textToCopy) {` && |\n| &&
-             `      const textarea = document.createElement("textarea");` && |\n| &&
-             `      textarea.value = textToCopy;` && |\n| &&
-             `      textarea.setAttribute("readonly", "");` && |\n| &&
-             `      textarea.style.position = "fixed";` && |\n| &&
-             `      textarea.style.top = "-1000px";` && |\n| &&
-             `      textarea.style.opacity = "0";` && |\n| &&
-             `      document.body.appendChild(textarea);` && |\n| &&
-             `      textarea.select();` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (!document.execCommand("copy")) {` && |\n| &&
-             `          logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (err) {` && |\n|.
-    result = result &&
-             `        logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
-             `      } finally {` && |\n| &&
-             `        document.body.removeChild(textarea);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
-             `` && |\n| &&
-             `    function toText(val) {` && |\n| &&
-             `      return val == null ? "" : String(val);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isTextInput(el) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")` && |\n| &&
+             `        readNext,` && |\n| &&
              `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function readCaret(el) {` && |\n| &&
-             `      if (!isTextInput(el)) return null;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const start = el.selectionStart;` && |\n| &&
-             `        const end = el.selectionEnd;` && |\n| &&
-             `        if (start == null || end == null) return null;` && |\n| &&
-             `        return { start, end };` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function deriveSystemType(system) {` && |\n| &&
-             `      if (!system) return "desktop";` && |\n| &&
-             `      if (system.phone) return "phone";` && |\n| &&
-             `      if (system.tablet) return "tablet";` && |\n| &&
-             `      if (system.combi) return "combi";` && |\n| &&
-             `      return "desktop";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function parseUrl(url) {` && |\n| &&
-             `      if (!url) return null;` && |\n| &&
-             `      try {` && |\n| &&
-             `        return new URL(url, window.location.origin);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `        return null;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function hasSafeProtocol(parsed) {` && |\n| &&
-             `      if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
-             `      logError(` && |\n| &&
-             `        ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `      );` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isValidRedirectURL(url) {` && |\n| &&
-             `      const parsed = parseUrl(url);` && |\n| &&
-             `      if (!parsed) return false;` && |\n| &&
-             `      if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `        logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `      return hasSafeProtocol(parsed);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isSafeRedirectProtocol(url) {` && |\n| &&
-             `      const parsed = parseUrl(url);` && |\n| &&
-             `      return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isSafeDownloadURL(url) {` && |\n| &&
-             `      const parsed = parseUrl(url);` && |\n| &&
-             `      return (` && |\n| &&
-             `        parsed !== null &&` && |\n| &&
-             `        (parsed.protocol === "data:" ||` && |\n| &&
-             `          parsed.protocol === "blob:" ||` && |\n| &&
-             `          SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function isValidContextId(id) {` && |\n| &&
-             `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function parseDeltaSteps(segs) {` && |\n| &&
-             `      const steps = [];` && |\n| &&
-             `      let i = 0;` && |\n| &&
-             `      while (i < segs.length) {` && |\n| &&
-             `        const row = segs[i];` && |\n| &&
-             `        if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
-             `        const field = segs[i + 1];` && |\n| &&
-             `        if (` && |\n| &&
-             `          field === undefined ||` && |\n| &&
-             `          field === "" ||` && |\n| &&
-             `          !Number.isNaN(Number(field))` && |\n| &&
-             `        ) {` && |\n| &&
-             `          return null;` && |\n| &&
-             `        }` && |\n| &&
-             `        i += 2;` && |\n| &&
-             `        if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
-             `          steps.push({ row, field, leaf: true });` && |\n| &&
-             `          return steps;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        steps.push({ row, field, leaf: false });` && |\n| &&
-             `      }` && |\n| &&
-             `      return null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `      const delta = {};` && |\n| &&
-             `      for (const path of paths) {` && |\n| &&
-             `        const parts = path.slice(1).split("/");` && |\n| &&
-             `        const attr = parts[0];` && |\n| &&
-             `        const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
-             `        if (!steps) {` && |\n| &&
-             `          delta[attr] = modelData[attr];` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
-             `        if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
-             `        let node = delta[attr];` && |\n| &&
-             `        let model = modelData[attr];` && |\n| &&
-             `        for (const { row, field, leaf } of steps) {` && |\n| &&
-             `          const rows = node.__delta;` && |\n| &&
-             `          if (!rows[row]) rows[row] = {};` && |\n| &&
-             `          const rowDelta = rows[row];` && |\n| &&
-             `          model = model?.[Number(row)]?.[field];` && |\n| &&
-             `          if (leaf) {` && |\n| &&
-             `            rowDelta[field] = model;` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
-             `          if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
-             `          node = rowDelta[field];` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return delta;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MSG_DETAIL_TAGS = new Set(["UL", "OL", "LI", "STRONG", "EM", "P"]);` && |\n| &&
-             `` && |\n| &&
-             `    const MSG_DROP_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);` && |\n| &&
-             `` && |\n| &&
-             `    let _msgParser = null;` && |\n| &&
-             `    let _sanitizeEl = null;` && |\n| &&
-             `` && |\n| &&
-             `    function escapeMessageText(text) {` && |\n| &&
-             `      _sanitizeEl.textContent = text;` && |\n| &&
-             `      return _sanitizeEl.innerHTML;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function sanitizeMessageNodes(node) {` && |\n| &&
-             `      let out = "";` && |\n| &&
-             `      for (const child of node.childNodes) {` && |\n| &&
-             `        if (child.nodeType === 3) {` && |\n| &&
-             `          out += escapeMessageText(child.nodeValue);` && |\n| &&
-             `        } else if (child.nodeType === 1) {` && |\n| &&
-             `          const tag = child.tagName.toUpperCase();` && |\n| &&
-             `          if (MSG_DROP_TAGS.has(tag)) {` && |\n| &&
-             `            continue;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (tag === "BR") {` && |\n| &&
-             `            out += "<br>";` && |\n| &&
-             `          } else if (MSG_DETAIL_TAGS.has(tag)) {` && |\n| &&
-             `            const name = tag.toLowerCase();` && |\n| &&
-             `            out += ``<${name}>${sanitizeMessageNodes(child)}</${name}>``;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            out += sanitizeMessageNodes(child);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function sanitizeMessageDetails(html) {` && |\n| &&
-             `      if (!_msgParser) {` && |\n| &&
-             `        _msgParser = new DOMParser();` && |\n| &&
-             `        _sanitizeEl = document.createElement("div");` && |\n| &&
-             `      }` && |\n| &&
-             `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `      return sanitizeMessageNodes(doc.body);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
-             `` && |\n| &&
-             `    function isRootModelSlot(slotKey) {` && |\n| &&
-             `      return ROOT_MODEL_SLOTS.includes(slotKey);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function effectiveSizeLimit(viewSizeLimits, slotKey) {` && |\n| &&
-             `      if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];` && |\n| &&
-             `      let max;` && |\n| &&
-             `      for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
-             `        const limit = viewSizeLimits[key];` && |\n| &&
-             `        if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
-             `          max = limit;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return max;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderInvisibleSpan(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart("span", oControl);` && |\n| &&
-             `      oRm.style("display", "none");` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close("span");` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
-             `` && |\n| &&
-             `    function hookCallback(owner, callbackName, method) {` && |\n| &&
-             `      const bound = owner[method].bind(owner);` && |\n| &&
-             `      registerCallback(callbackName, bound);` && |\n| &&
-             `      return () => unregisterCallback(callbackName, bound);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_ARG_DEPTH = 4;` && |\n| &&
-             `` && |\n| &&
-             `    function isManagedObject(value) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        value !== null &&` && |\n| &&
-             `        typeof value === "object" &&` && |\n| &&
-             `        typeof value.isA === "function" &&` && |\n| &&
-             `        value.isA("sap.ui.base.ManagedObject")` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const pad = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
-             `` && |\n| &&
-             `    function projectValue(value) {` && |\n| &&
-             `      if (` && |\n| &&
-             `        Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
-             `        !isNaN(value)` && |\n| &&
-             `      ) {` && |\n| &&
-             `        return (` && |\n| &&
-             `          ``${pad(value.getFullYear(), 4)}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`` +` && |\n| &&
-             `          ``T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}``` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `      return value;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function projectControl(control) {` && |\n| &&
-             `      const result = { ID: control.getId() };` && |\n| &&
-             `      const properties = control.getMetadata().getAllProperties();` && |\n| &&
-             `      for (const name in properties) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const value = control.getProperty(name);` && |\n| &&
-             `          if (value !== undefined) result[name] = projectValue(value);` && |\n| &&
-             `        } catch {}` && |\n| &&
-             `      }` && |\n| &&
-             `      return result;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function normalizeEventArg(value, depth) {` && |\n| &&
-             `      const level = depth || 0;` && |\n| &&
-             `      if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
-             `      if (isManagedObject(value)) return projectControl(value);` && |\n| &&
-             `      if (Array.isArray(value)) {` && |\n| &&
-             `        return value.map((entry) => normalizeEventArg(entry, level + 1));` && |\n| &&
-             `      }` && |\n| &&
-             `      return value;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function normalizeEventArgs(args) {` && |\n| &&
-             `      return args.map((arg) => normalizeEventArg(arg, 0));` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      fragmentLoadsSync,` && |\n| &&
-             `      fragmentControlModules,` && |\n| &&
-             `      preloadFragmentModules,` && |\n| &&
-             `      logError,` && |\n| &&
-             `      isDestroyed,` && |\n| &&
-             `      isControllerAlive,` && |\n| &&
-             `      requireODataModel,` && |\n| &&
-             `      afterRoundtrip,` && |\n| &&
-             `      isAlive,` && |\n| &&
-             `      claimOnce,` && |\n| &&
-             `      isTextInput,` && |\n| &&
-             `      readCaret,` && |\n| &&
-             `      registerCallback,` && |\n| &&
-             `      unregisterCallback,` && |\n| &&
-             `      readFilesInTurn,` && |\n| &&
-             `      cancelPendingTimers,` && |\n| &&
-             `      cancelTimer,` && |\n| &&
-             `      resolveStorageType,` && |\n| &&
-             `      applyTokenUpdate,` && |\n| &&
-             `      runCallbacks,` && |\n| &&
-             `      whenRendered,` && |\n| &&
-             `      onNextRendering,` && |\n| &&
-             `      usesXmlTemplating,` && |\n| &&
-             `      getTextPath,` && |\n| &&
-             `      copyToClipboard,` && |\n| &&
-             `      toText,` && |\n| &&
-             `      deriveSystemType,` && |\n| &&
-             `      isValidRedirectURL,` && |\n| &&
-             `      isSafeRedirectProtocol,` && |\n| &&
-             `      isSafeDownloadURL,` && |\n| &&
-             `      isValidContextId,` && |\n| &&
-             `      buildDeltaFromPaths,` && |\n| &&
-             `      sanitizeMessageDetails,` && |\n| &&
-             `      getElementById,` && |\n| &&
-             `      getMessaging,` && |\n| &&
-             `      hasMessagingModule,` && |\n| &&
-             `      getThemingModule,` && |\n| &&
-             `      getTheme,` && |\n| &&
-             `      getLocale,` && |\n| &&
-             `      isRootModelSlot,` && |\n| &&
-             `      effectiveSizeLimit,` && |\n| &&
-             `      renderInvisibleSpan,` && |\n| &&
-             `      EMPTY_RENDERER,` && |\n| &&
-             `      hookCallback,` && |\n| &&
-             `      normalizeEventArgs,` && |\n| &&
+             `      add(files) {` && |\n| &&
+             `        for (const file of files) queue.push(file);` && |\n| &&
+             `        if (!reading) readNext();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      cancel() {` && |\n| &&
+             `        queue.length = 0;` && |\n| &&
+             `        reading = false;` && |\n| &&
+             `        if (cancelWait) {` && |\n| &&
+             `          cancelWait();` && |\n| &&
+             `          cancelWait = null;` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function cancelPendingTimers() {` && |\n| &&
+             `    const timers = AppState.state.timers;` && |\n| &&
+             `    if (!timers) return;` && |\n| &&
+             `    for (const key in timers) {` && |\n| &&
+             `      cancelTimer(timers[key]);` && |\n| &&
+             `      delete timers[key];` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function resolveStorageType(Storage, type, context, verb) {` && |\n| &&
+             `    const typeKey = String(type || "").toLowerCase();` && |\n| &&
+             `    const known = Storage.Type[typeKey];` && |\n| &&
+             `    const storageType = known || Storage.Type.session;` && |\n| &&
+             `    if (type && !known) {` && |\n| &&
+             `      logError(``${context}: unknown type '${type}', ${verb} the session store``);` && |\n| &&
+             `    }` && |\n| &&
+             `    return storageType;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function cancelTimer(handle) {` && |\n| &&
+             `    if (typeof handle === "function") handle();` && |\n| &&
+             `    else clearTimeout(handle);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function applyTokenUpdate(control, oEvent) {` && |\n| &&
+             `    const isRemoved = oEvent.getParameter("type") === "removed";` && |\n| &&
+             `    const rawList =` && |\n| &&
+             `      oEvent.getParameter(isRemoved ? "removedTokens" : "addedTokens") || [];` && |\n| &&
+             `    const tokens = rawList.map((item) => ({` && |\n| &&
+             `      KEY: item.getKey(),` && |\n| &&
+             `      TEXT: item.getText(),` && |\n| &&
+             `    }));` && |\n| &&
+             `` && |\n| &&
+             `    control.setProperty("addedTokens", isRemoved ? [] : tokens, true);` && |\n| &&
+             `    control.setProperty("removedTokens", isRemoved ? tokens : [], true);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function afterRoundtrip(owner, fn) {` && |\n| &&
+             `    if (!AppState.state.isBusy) {` && |\n| &&
+             `      fn();` && |\n| &&
+             `      return () => {};` && |\n| &&
+             `    }` && |\n| &&
+             `    const once = () => {` && |\n| &&
+             `      unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `      if (isDestroyed(owner)) return;` && |\n| &&
+             `      fn();` && |\n| &&
+             `    };` && |\n| &&
+             `    registerCallback("onAfterRendering", once);` && |\n| &&
+             `    return () => unregisterCallback("onAfterRendering", once);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function runCallbacks(callbacks, ...args) {` && |\n| &&
+             `    if (!callbacks) return;` && |\n| &&
+             `    for (const fn of callbacks) {` && |\n| &&
+             `      if (!fn) continue;` && |\n| &&
+             `      try {` && |\n| &&
+             `        fn(...args);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError("runCallbacks: callback failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const pendingDelegates = new WeakMap();` && |\n| &&
+             `` && |\n| &&
+             `  function onNextRendering(control, fn, key) {` && |\n| &&
+             `    let byKey;` && |\n| &&
+             `    if (key) {` && |\n| &&
+             `      byKey = pendingDelegates.get(control);` && |\n| &&
+             `      if (!byKey) {` && |\n| &&
+             `        byKey = new Map();` && |\n| &&
+             `        pendingDelegates.set(control, byKey);` && |\n| &&
+             `      }` && |\n| &&
+             `      const prev = byKey.get(key);` && |\n| &&
+             `      if (prev) control.removeEventDelegate(prev);` && |\n| &&
+             `    }` && |\n| &&
+             `    const delegate = {` && |\n| &&
+             `      onAfterRendering: () => {` && |\n| &&
+             `        control.removeEventDelegate(delegate);` && |\n| &&
+             `        if (byKey) byKey.delete(key);` && |\n| &&
+             `        fn();` && |\n| &&
+             `      },` && |\n| &&
+             `    };` && |\n| &&
+             `    if (byKey) byKey.set(key, delegate);` && |\n| &&
+             `    control.addEventDelegate(delegate);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function whenRendered(control, owner, fn, key) {` && |\n| &&
+             `    if (control.getDomRef()) {` && |\n| &&
+             `      if (!isDestroyed(owner)) fn();` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    onNextRendering(` && |\n| &&
+             `      control,` && |\n| &&
+             `      () => {` && |\n| &&
+             `        if (!isDestroyed(owner)) fn();` && |\n| &&
+             `      },` && |\n| &&
+             `      key,` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const XML_TEMPLATING = /sap\.ui\.core\.template\/1|\{\s*template>/;` && |\n| &&
+             `  function usesXmlTemplating(xml) {` && |\n| &&
+             `    return XML_TEMPLATING.test(String(xml ?? ""));` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function getTextPath(control, separator) {` && |\n| &&
+             `    const texts = [];` && |\n| &&
+             `    let node = control;` && |\n| &&
+             `` && |\n| &&
+             `    for (let i = 0; node && i < 100; i++) {` && |\n| &&
+             `      if (typeof node.getText !== "function") break;` && |\n| &&
+             `      const text = node.getText();` && |\n| &&
+             `      if (text) texts.push(text);` && |\n| &&
+             `      node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    return texts.reverse().join(separator || " > ");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function copyToClipboard(textToCopy) {` && |\n| &&
+             `    if (navigator.clipboard?.writeText) {` && |\n| &&
+             `      navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
+             `        logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `        copyToClipboardFallback(textToCopy);` && |\n| &&
+             `      });` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    copyToClipboardFallback(textToCopy);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function copyToClipboardFallback(textToCopy) {` && |\n| &&
+             `    const textarea = document.createElement("textarea");` && |\n| &&
+             `    textarea.value = textToCopy;` && |\n| &&
+             `    textarea.setAttribute("readonly", "");` && |\n| &&
+             `    textarea.style.position = "fixed";` && |\n| &&
+             `    textarea.style.top = "-1000px";` && |\n| &&
+             `    textarea.style.opacity = "0";` && |\n| &&
+             `    document.body.appendChild(textarea);` && |\n| &&
+             `    textarea.select();` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (!document.execCommand("copy")) {` && |\n| &&
+             `        logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch (err) {` && |\n| &&
+             `      logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
+             `    } finally {` && |\n| &&
+             `      document.body.removeChild(textarea);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
+             `` && |\n| &&
+             `  function toText(val) {` && |\n| &&
+             `    return val == null ? "" : String(val);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isTextInput(el) {` && |\n| &&
+             `    return Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function readCaret(el) {` && |\n| &&
+             `    if (!isTextInput(el)) return null;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const start = el.selectionStart;` && |\n| &&
+             `      const end = el.selectionEnd;` && |\n| &&
+             `      if (start == null || end == null) return null;` && |\n| &&
+             `      return { start, end };` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function deriveSystemType(system) {` && |\n| &&
+             `    if (!system) return "desktop";` && |\n| &&
+             `    if (system.phone) return "phone";` && |\n| &&
+             `    if (system.tablet) return "tablet";` && |\n| &&
+             `    if (system.combi) return "combi";` && |\n| &&
+             `    return "desktop";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function parseUrl(url) {` && |\n| &&
+             `    if (!url) return null;` && |\n| &&
+             `    try {` && |\n| &&
+             `      return new URL(url, window.location.origin);` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function hasSafeProtocol(parsed) {` && |\n| &&
+             `    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
+             `    logError(` && |\n| &&
+             `      ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
+             `    );` && |\n| &&
+             `    return false;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isValidRedirectURL(url) {` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    if (!parsed) return false;` && |\n| &&
+             `    if (parsed.origin !== window.location.origin) {` && |\n| &&
+             `      logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `    return hasSafeProtocol(parsed);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isSafeRedirectProtocol(url) {` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isSafeDownloadURL(url) {` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    return (` && |\n| &&
+             `      parsed !== null &&` && |\n| &&
+             `      (parsed.protocol === "data:" ||` && |\n| &&
+             `        parsed.protocol === "blob:" ||` && |\n| &&
+             `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isValidContextId(id) {` && |\n| &&
+             `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function parseDeltaSteps(segs) {` && |\n| &&
+             `    const steps = [];` && |\n| &&
+             `    let i = 0;` && |\n| &&
+             `    while (i < segs.length) {` && |\n| &&
+             `      const row = segs[i];` && |\n| &&
+             `      if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
+             `      const field = segs[i + 1];` && |\n| &&
+             `      if (field === undefined || field === "" || !Number.isNaN(Number(field))) {` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      i += 2;` && |\n| &&
+             `      if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
+             `        steps.push({ row, field, leaf: true });` && |\n| &&
+             `        return steps;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      steps.push({ row, field, leaf: false });` && |\n| &&
+             `    }` && |\n| &&
+             `    return null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
+             `    const delta = {};` && |\n| &&
+             `    for (const path of paths) {` && |\n| &&
+             `      const parts = path.slice(1).split("/");` && |\n| &&
+             `      const attr = parts[0];` && |\n| &&
+             `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
+             `      if (!steps) {` && |\n| &&
+             `        delta[attr] = modelData[attr];` && |\n| &&
+             `        continue;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
+             `      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
+             `      let node = delta[attr];` && |\n| &&
+             `      let model = modelData[attr];` && |\n| &&
+             `      for (const { row, field, leaf } of steps) {` && |\n| &&
+             `        const rows = node.__delta;` && |\n| &&
+             `        if (!rows[row]) rows[row] = {};` && |\n| &&
+             `        const rowDelta = rows[row];` && |\n| &&
+             `        model = model?.[Number(row)]?.[field];` && |\n| &&
+             `        if (leaf) {` && |\n| &&
+             `          rowDelta[field] = model;` && |\n| &&
+             `          break;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n|.
+    result = result &&
+             `        if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
+             `        if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
+             `        node = rowDelta[field];` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `    return delta;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const MSG_DETAIL_TAGS = new Set(["UL", "OL", "LI", "STRONG", "EM", "P"]);` && |\n| &&
+             `` && |\n| &&
+             `  const MSG_DROP_TAGS = new Set(["SCRIPT", "STYLE", "TEMPLATE"]);` && |\n| &&
+             `` && |\n| &&
+             `  let _msgParser = null;` && |\n| &&
+             `  let _sanitizeEl = null;` && |\n| &&
+             `` && |\n| &&
+             `  function escapeMessageText(text) {` && |\n| &&
+             `    _sanitizeEl.textContent = text;` && |\n| &&
+             `    return _sanitizeEl.innerHTML;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function sanitizeMessageNodes(node) {` && |\n| &&
+             `    let out = "";` && |\n| &&
+             `    for (const child of node.childNodes) {` && |\n| &&
+             `      if (child.nodeType === 3) {` && |\n| &&
+             `        out += escapeMessageText(child.nodeValue);` && |\n| &&
+             `      } else if (child.nodeType === 1) {` && |\n| &&
+             `        const tag = child.tagName.toUpperCase();` && |\n| &&
+             `        if (MSG_DROP_TAGS.has(tag)) {` && |\n| &&
+             `          continue;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (tag === "BR") {` && |\n| &&
+             `          out += "<br>";` && |\n| &&
+             `        } else if (MSG_DETAIL_TAGS.has(tag)) {` && |\n| &&
+             `          const name = tag.toLowerCase();` && |\n| &&
+             `          out += ``<${name}>${sanitizeMessageNodes(child)}</${name}>``;` && |\n| &&
+             `        } else {` && |\n| &&
+             `          out += sanitizeMessageNodes(child);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `    return out;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function sanitizeMessageDetails(html) {` && |\n| &&
+             `    if (!_msgParser) {` && |\n| &&
+             `      _msgParser = new DOMParser();` && |\n| &&
+             `      _sanitizeEl = document.createElement("div");` && |\n| &&
+             `    }` && |\n| &&
+             `    const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
+             `    return sanitizeMessageNodes(doc.body);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
+             `` && |\n| &&
+             `  function isRootModelSlot(slotKey) {` && |\n| &&
+             `    return ROOT_MODEL_SLOTS.includes(slotKey);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function effectiveSizeLimit(viewSizeLimits, slotKey) {` && |\n| &&
+             `    if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];` && |\n| &&
+             `    let max;` && |\n| &&
+             `    for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
+             `      const limit = viewSizeLimits[key];` && |\n| &&
+             `      if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
+             `        max = limit;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `    return max;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function renderInvisibleSpan(oRm, oControl) {` && |\n| &&
+             `    oRm.openStart("span", oControl);` && |\n| &&
+             `    oRm.style("display", "none");` && |\n| &&
+             `    oRm.openEnd();` && |\n| &&
+             `    oRm.close("span");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const EMPTY_RENDERER = { apiVersion: 2, render() {} };` && |\n| &&
+             `` && |\n| &&
+             `  function hookCallback(owner, callbackName, method) {` && |\n| &&
+             `    const bound = owner[method].bind(owner);` && |\n| &&
+             `    registerCallback(callbackName, bound);` && |\n| &&
+             `    return () => unregisterCallback(callbackName, bound);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const MAX_ARG_DEPTH = 4;` && |\n| &&
+             `` && |\n| &&
+             `  function isManagedObject(value) {` && |\n| &&
+             `    return (` && |\n| &&
+             `      value !== null &&` && |\n| &&
+             `      typeof value === "object" &&` && |\n| &&
+             `      typeof value.isA === "function" &&` && |\n| &&
+             `      value.isA("sap.ui.base.ManagedObject")` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const pad = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
+             `` && |\n| &&
+             `  function projectValue(value) {` && |\n| &&
+             `    if (` && |\n| &&
+             `      Object.prototype.toString.call(value) === "[object Date]" &&` && |\n| &&
+             `      !isNaN(value)` && |\n| &&
+             `    ) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        ``${pad(value.getFullYear(), 4)}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`` +` && |\n| &&
+             `        ``T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}``` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    return value;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function projectControl(control) {` && |\n| &&
+             `    const result = { ID: control.getId() };` && |\n| &&
+             `    const properties = control.getMetadata().getAllProperties();` && |\n| &&
+             `    for (const name in properties) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const value = control.getProperty(name);` && |\n| &&
+             `        if (value !== undefined) result[name] = projectValue(value);` && |\n| &&
+             `      } catch {}` && |\n| &&
+             `    }` && |\n| &&
+             `    return result;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function normalizeEventArg(value, depth) {` && |\n| &&
+             `    const level = depth || 0;` && |\n| &&
+             `    if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
+             `    if (isManagedObject(value)) return projectControl(value);` && |\n| &&
+             `    if (Array.isArray(value)) {` && |\n| &&
+             `      return value.map((entry) => normalizeEventArg(entry, level + 1));` && |\n| &&
+             `    }` && |\n| &&
+             `    return value;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function normalizeEventArgs(args) {` && |\n| &&
+             `    return args.map((arg) => normalizeEventArg(arg, 0));` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return {` && |\n| &&
+             `    logError,` && |\n| &&
+             `    isDestroyed,` && |\n| &&
+             `    isControllerAlive,` && |\n| &&
+             `    requireODataModel,` && |\n| &&
+             `    afterRoundtrip,` && |\n| &&
+             `    isAlive,` && |\n| &&
+             `    claimOnce,` && |\n| &&
+             `    isTextInput,` && |\n| &&
+             `    readCaret,` && |\n| &&
+             `    registerCallback,` && |\n| &&
+             `    unregisterCallback,` && |\n| &&
+             `    readFilesInTurn,` && |\n| &&
+             `    cancelPendingTimers,` && |\n| &&
+             `    cancelTimer,` && |\n| &&
+             `    resolveStorageType,` && |\n| &&
+             `    applyTokenUpdate,` && |\n| &&
+             `    runCallbacks,` && |\n| &&
+             `    whenRendered,` && |\n| &&
+             `    onNextRendering,` && |\n| &&
+             `    usesXmlTemplating,` && |\n| &&
+             `    getTextPath,` && |\n| &&
+             `    copyToClipboard,` && |\n| &&
+             `    toText,` && |\n| &&
+             `    deriveSystemType,` && |\n| &&
+             `    isValidRedirectURL,` && |\n| &&
+             `    isSafeRedirectProtocol,` && |\n| &&
+             `    isSafeDownloadURL,` && |\n| &&
+             `    isValidContextId,` && |\n| &&
+             `    buildDeltaFromPaths,` && |\n| &&
+             `    sanitizeMessageDetails,` && |\n| &&
+             `    isRootModelSlot,` && |\n| &&
+             `    effectiveSizeLimit,` && |\n| &&
+             `    renderInvisibleSpan,` && |\n| &&
+             `    EMPTY_RENDERER,` && |\n| &&
+             `    hookCallback,` && |\n| &&
+             `    normalizeEventArgs,` && |\n| &&
+             `  };` && |\n| &&
+             `});` && |\n| &&
              `` && |\n| &&
               ``.
 

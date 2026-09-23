@@ -12,7 +12,7 @@ function load() {
   // slotXml / slotApp carry their defaults in AppState.createState( ) and
   // ViewSlots no longer creates them on first use
   const state = { slotXml: {}, slotApp: {} };
-  // Global UI5 registry stub behind Lib.getElementById - the fallback path
+  // Global UI5 registry stub behind Env.getElementById - the fallback path
   // resolveById() takes when no open slot owns the id.
   const globalElements = {};
   const { module } = loadModule("core/ViewSlots.js", {
@@ -25,6 +25,8 @@ function load() {
       },
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
+      },
+      "z2ui5/core/Env": {
         getElementById: (id) => globalElements[id] || null,
         getMessaging: () => ({
           getMessageModel: () => messageModel,
@@ -382,7 +384,6 @@ test("every slot's controller field is one Lib.isControllerAlive knows", () => {
   const { module: Lib } = loadModule("core/Lib.js", {
     deps: {
       "z2ui5/core/AppState": appState,
-      "sap/ui/core/Element": {},
     },
   });
   const { module: ViewSlots } = loadModule("core/ViewSlots.js", {

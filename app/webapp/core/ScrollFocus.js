@@ -2,10 +2,11 @@ sap.ui.define(
   [
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
-  (Element, Lib, ViewSlots, AppState) => {
+  (Element, Lib, Env, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -27,8 +28,8 @@ sap.ui.define(
       let el = dom;
       while (el && el.getAttribute) {
         if (el.hasAttribute("data-sap-ui")) {
-          // Lib.getElementById carries the version fallback for the lookup
-          return Lib.getElementById(el.id);
+          // Env.getElementById carries the version fallback for the lookup
+          return Env.getElementById(el.id);
         }
         el = el.parentElement;
       }

@@ -5,10 +5,11 @@ sap.ui.define(
     "sap/ui/model/json/JSONModel",
     "z2ui5/core/Server",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
-  (XMLView, Fragment, JSONModel, Server, Lib, ViewSlots, AppState) => {
+  (XMLView, Fragment, JSONModel, Server, Lib, Env, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -128,7 +129,7 @@ sap.ui.define(
       applyStoredSizeLimit(slotKey, oModel);
       // UI5 1.71 to 1.82 process a fragment synchronously - the controls it
       // needs must be loaded before, or they are eval'd (Lib, there)
-      await Lib.preloadFragmentModules(xml);
+      await Env.preloadFragmentModules(xml);
       const oFragment = await Fragment.load({
         definition: xml,
         controller: ViewSlots.getController(slotKey),

@@ -33,6 +33,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
@@ -46,6 +47,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    VersionInfo,` && |\n| &&
              `    DevTools,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    Env,` && |\n| &&
              `    AppState,` && |\n| &&
              `    Router,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
@@ -88,7 +90,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
-             `        if (Lib.hasMessagingModule()) {` && |\n| &&
+             `        if (Env.hasMessagingModule()) {` && |\n| &&
              `          sap.ui.require(` && |\n| &&
              `            ["sap/ui/core/Messaging"],` && |\n| &&
              `            () => {},` && |\n| &&
@@ -169,7 +171,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&
-             `              THEME: Lib.getTheme(),` && |\n| &&
+             `              THEME: Env.getTheme(),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&

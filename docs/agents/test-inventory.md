@@ -20,7 +20,8 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 |---|---|---|
 | `core/Lib.js` | `buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `sizeLimit.spec.js` | — |
 | `core/Lib.js` rendering and timer helpers | `libRendering.spec.js` | `onNextRendering`/`whenRendered` - one pending delegate per control and key (a keyed call replaces, an unkeyed one stacks, a dead owner is dropped), `usesXmlTemplating` - the templating namespace under any prefix or a `template>` binding, and `cancelTimer`/`cancelPendingTimers` - a slot holding a setTimeout handle or an afterRoundtrip cancel |
-| `core/Lib.js` Theming/Localization probes | `libEnvProbes.spec.js` | `getThemingModule`/`getTheme`/`getLocale` - the 1.118+ module branch, the 1.71 Configuration fallback, and the never-throw bare-bootstrap answer shared by Component, Inspect and the THEMING action target |
+| `core/Env.js` Theming/Localization probes | `libEnvProbes.spec.js` | `getThemingModule`/`getTheme`/`getLocale` - the 1.118+ module branch, the 1.71 Configuration fallback, and the never-throw bare-bootstrap answer shared by Component, Inspect and the THEMING action target |
+| `core/Env.js` element registry, messaging and fragment preload | `utilHelpers.spec.js` (`loadEnv`) | `getElementById`, `getMessaging`/`hasMessagingModule` (the 1.118 Messaging module vs. the MessageManager fallback, and an unreadable version meaning "modern"), `fragmentLoadsSync`/`fragmentControlModules`/`preloadFragmentModules` (the 1.71-1.82 synchronous-fragment workaround) |
 | `core/AppState.js` | `appState.spec.js` | — |
 | `core/ViewSlots.js` | `viewSlots.spec.js` | — |
 | `core/Router.js` | `router.spec.js` | — |
@@ -47,6 +48,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/Tree.js` | `tree.spec.js` | the per-`tree_id` snapshot, the guard that will not overwrite a valid one, and the restore-once-per-(snapshot, binding) rule that keeps a theme change from collapsing the user's expansions |
 | `controller/App.controller.js` startup wiring | `appController.spec.js` | — |
 | the message toast/box display hooks in `core/actions/ControlCall.js` | `messages.spec.js` | — |
+| `core/actions/BindingCall.js` | `frontendAction.spec.js` (`BINDING_CALL`) | the filter/sorter whitelist through the real dispatch: single and compound filter groups, the operator whitelist, clearing on empty values, the sorter flags |
 | `devtools/DeveloperTools.js` | `developerTools.spec.js` | the dialog, composed with the REAL registry rather than a stub |
 | `devtools/Tabs.js` | `devtoolsTabs.spec.js` | — |
 | `devtools/Format.js` | `devtoolsFormat.spec.js` | — |

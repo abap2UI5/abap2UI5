@@ -30,6 +30,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    "sap/ui/Device",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
@@ -40,6 +41,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    Device,` && |\n| &&
              `    AppState,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    Env,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    Console,` && |\n| &&
@@ -202,8 +204,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
              `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
              `` && |\n| &&
-             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
-             `      const locale = Lib.getLocale();` && |\n| &&
+             `      out.push(line("Theme", Env.getTheme()));` && |\n| &&
+             `      const locale = Env.getLocale();` && |\n| &&
              `      out.push(line("Language", locale.language));` && |\n| &&
              `      out.push(line("Text direction", locale.rtl ? "RTL" : "LTR"));` && |\n| &&
              `      out.push(line("Content density", getContentDensity()));` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `        for (const arg of args) out.push(``       ${renderArg(arg)}``);` && |\n| &&
              `      });` && |\n| &&
              `      return out;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function formatActions() {` && |\n|.
+             `    }` && |\n|.
     result = result &&
+             `` && |\n| &&
+             `    function formatActions() {` && |\n| &&
              `      const sAction = AppState.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Actions of the last response"];` && |\n| &&
              `      out.push("");` && |\n| &&
@@ -820,13 +822,13 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(` && |\n| &&
              `        line("Distribution", getDistribution(AppState.state.oConfig.S_UI5)),` && |\n| &&
              `      );` && |\n| &&
-             `      out.push(line("Theme", Lib.getTheme()));` && |\n| &&
+             `      out.push(line("Theme", Env.getTheme()));` && |\n| &&
              `` && |\n| &&
              `      out.push(section("View slots"));` && |\n| &&
-             `      out.push(...formatSlots());` && |\n| &&
-             `` && |\n| &&
-             `      out.push(section("Getting around"));` && |\n|.
+             `      out.push(...formatSlots());` && |\n|.
     result = result &&
+             `` && |\n| &&
+             `      out.push(section("Getting around"));` && |\n| &&
              `      out.push("  Ctrl+F12          open / close these tools");` && |\n| &&
              `      out.push("  Search field      one term across every tab at once");` && |\n| &&
              `      out.push("  (i) in the footer what every tab answers");` && |\n| &&

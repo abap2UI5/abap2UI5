@@ -186,7 +186,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " preload bundles (expression binding included - UI5 parses it without
       " eval). On 1.71 to 1.82 Fragment.load processes a popup synchronously and
       " evals every module it has to fetch; the frontend requires the popup's
-      " controls asynchronously first (Lib.preloadFragmentModules), so that
+      " controls asynchronously first (Env.preloadFragmentModules), so that
       " stays clean too. What it cannot see - a module a popup only names in a
       " binding type or a core:require - is still eval'd there; such an
       " installation switches 'unsafe-eval' back on in its exit (see

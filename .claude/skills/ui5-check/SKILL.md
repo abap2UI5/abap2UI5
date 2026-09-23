@@ -336,7 +336,7 @@ Not about names or layout — these only show up when the app runs.
   1.96.48, 1.108.54, 1.120.50 (all clean). The same XML as an
   `XMLView.create` view is clean on 1.71 and 1.82 too - only fragments
   (popup, popover) are affected, and `actions/Slots` closes that gap:
-  `Lib.preloadFragmentModules( )` requires the fragment's control classes
+  `Env.preloadFragmentModules( )` requires the fragment's control classes
   asynchronously before `Fragment.load` (the popup test above is clean on
   1.71 with it). Filtering by `getLoadedLibraries( )` is NOT enough: sap.m
   pulls `sap.ui.layout` in without its preload bundle, so the library reads

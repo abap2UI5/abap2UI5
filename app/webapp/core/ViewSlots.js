@@ -5,8 +5,13 @@
 // in-slot control resolution (byId) and teardown go through here instead
 // of touching AppState.state.oView / oViewPopup / ... directly.
 sap.ui.define(
-  ["sap/ui/core/Fragment", "z2ui5/core/Lib", "z2ui5/core/AppState"],
-  (Fragment, Lib, AppState) => {
+  [
+    "sap/ui/core/Fragment",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Env",
+    "z2ui5/core/AppState",
+  ],
+  (Fragment, Lib, Env, AppState) => {
     "use strict";
 
     // `key`    short slot name used in frontend event args and as the
@@ -128,7 +133,7 @@ sap.ui.define(
       if (AppState.state.oDeviceModel) {
         view.setModel(AppState.state.oDeviceModel, "device");
       }
-      const messaging = Lib.getMessaging?.();
+      const messaging = Env.getMessaging?.();
       if (messaging) {
         view.setModel(messaging.getMessageModel(), "message");
         messaging.registerObject(view, true);
@@ -174,7 +179,7 @@ sap.ui.define(
         const found = byId(slot.key, id);
         if (found) return found;
       }
-      return Lib.getElementById(id);
+      return Env.getElementById(id);
     }
 
     // The framework-owned JSON model as seen from a view or control: the
@@ -251,7 +256,7 @@ sap.ui.define(
       try {
         // Drop the validation registration attachSharedModels added, so
         // the messaging facade holds no stale entry for the destroyed view.
-        Lib.getMessaging?.()?.unregisterObject(view);
+        Env.getMessaging?.()?.unregisterObject(view);
       } catch (e) {
         Lib.logError(
           `ViewSlots.destroy: unregisterObject failed for ${key}`,

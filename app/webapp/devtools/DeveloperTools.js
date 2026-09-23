@@ -107,6 +107,7 @@ sap.ui.define(
     // synchronous XHR and executed with eval - which a Content-Security-
     // Policy without 'unsafe-eval' blocks. Requiring the modules
     // asynchronously up front makes the sync lookup a cache hit.
+    /** @returns {Promise<void>} */
     function preloadCodeEditor() {
       return new Promise((resolve) => {
         sap.ui.require(

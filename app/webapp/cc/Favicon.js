@@ -26,7 +26,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       // keep its own link and get a second, competing one appended on every
       // app start - which icon the browser then shows is up to it.
       // ~= matches one entry of the whitespace-separated rel list.
-      const existing = document.head.querySelector('link[rel~="icon"]');
+      const existing = /** @type {HTMLLinkElement | null} */ (
+        document.head.querySelector('link[rel~="icon"]')
+      );
       if (existing) {
         existing.href = href;
         return;
