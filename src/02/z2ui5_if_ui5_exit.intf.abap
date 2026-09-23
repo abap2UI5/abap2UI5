@@ -42,14 +42,7 @@ INTERFACE z2ui5_if_ui5_exit
       " - or the exit replaces the whole tag
       content_security_policy TYPE string,
       styles_css              TYPE string,
-      " NO LONGER READ: the generated page carries a constant
-      " <title>abap2UI5</title>, and the tab title is set by the running app
-      " with cs_event-set_title. The component stays because it is part of the
-      " public contract (rule 5) - an exit that still assigns it compiles and
-      " runs, the assignment just has no effect on the page
-      title                   TYPE string,
       t_add_config            TYPE z2ui5_if_client=>ty_t_name_value,
-      custom_js               TYPE string,
       t_security_header       TYPE z2ui5_if_client=>ty_t_name_value,
     END OF ty_s_http_config.
 

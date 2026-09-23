@@ -65,6 +65,18 @@ support case.
       snippet, `core/actions/LegacyCustomJs.js` and its generated
       mirror in `src/01/03/`. `efWireRoundtrip.spec.js` reads the wired
       `eF( )` form back as JavaScript now instead of through that parser
+- [x] `custom_js` and `title` removed from `z2ui5_if_ui5_exit=>ty_s_http_config`
+      (2026-09-23). `custom_js` was appended to the embedded `Component.js`
+      and ran as inline script on the direct-start page - arbitrary code an
+      exit could inject next to the frontend; frontend code an installation
+      needs ships in its own BSP instead (`z2ui5_ccc`,
+      abap2UI5/customer-frontend-extension). `title` had not been read for
+      a while: the page carries a constant `<title>` and a running app sets
+      its own with `cs_event-set_title`. Ecosystem count at removal: **0**
+      in `samples`, `samples-controls` and `samples-stack`. An exit that
+      still assigns either fails at compile time with "delete the line" as
+      the whole migration. API snapshot regenerated, recorded as BREAKING in
+      `changelog.txt`
 - [x] `ty_s_get-viewname` removed — never filled by the framework. API snapshot
       regenerated, recorded as BREAKING in `changelog.txt`
 - [x] `_bind_edit( )` migrated out of the framework apps and the samples
