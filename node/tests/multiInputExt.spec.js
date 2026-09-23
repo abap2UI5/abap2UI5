@@ -188,7 +188,10 @@ test("an unconfigured instance makes NO token from a suggestion row", () => {
 
 // a plain suggestionItems pick: MultiInput hands the sap.ui.core.Item over
 // as suggestionObject TOGETHER with the Token it built from key and text
-const suggestionItem = (key, text) => ({ getKey: () => key, getText: () => text });
+const suggestionItem = (key, text) => ({
+  getKey: () => key,
+  getText: () => text,
+});
 
 test("a plain suggestionItems pick returns the Token MultiInput built", () => {
   const target = inputStub();
@@ -251,7 +254,12 @@ test("TokenTextCells composes the demo kit's key(rest) shape", () => {
 
   const created = target.validators[0]({
     text: "",
-    suggestionObject: suggestionRow("Notebook Basic 15", "HT-1000", "Screens", "956 EUR"),
+    suggestionObject: suggestionRow(
+      "Notebook Basic 15",
+      "HT-1000",
+      "Screens",
+      "956 EUR",
+    ),
   });
 
   expect(created.key).toBe("Notebook Basic 15");
@@ -320,4 +328,42 @@ test("a configured instance still turns free text into a Token", () => {
   expect(created).toBeInstanceOf(Token);
   expect(created.key).toBe("blue");
   expect(created.text).toBe("blue");
+});
+
+// exit( ) takes the handlers back off the TARGET: a companion destroyed
+// while its input survives (a nested-view rebuild that leaves the MAIN input
+// in place) used to leave its token handler and validator on it for good.
+test("exit() detaches the token handler and the validator from the input", () => {
+  const input = {
+    ...inputStub(),
+    detachTokenUpdate(fn) {
+      this.handlers = this.handlers.filter((f) => f !== fn);
+    },
+    removeValidator(fn) {
+      this.validators = this.validators.filter((f) => f !== fn);
+    },
+  };
+  const { makeInstance } = load({ input });
+  const inst = makeInstance();
+  inst.init();
+  inst.setControl();
+  expect(input.handlers).toHaveLength(1);
+  expect(input.validators).toHaveLength(1);
+
+  inst.exit();
+
+  expect(input.handlers).toHaveLength(0);
+  expect(input.validators).toHaveLength(0);
+});
+
+test("exit() before setControl, or on a target without detach, is a no-op", () => {
+  const { makeInstance } = load({ input: inputStub() });
+  const early = makeInstance();
+  early.init();
+  expect(() => early.exit()).not.toThrow();
+  const inst = makeInstance();
+  inst.init();
+  inst.setControl();
+  // the stub has no detachTokenUpdate/removeValidator
+  expect(() => inst.exit()).not.toThrow();
 });

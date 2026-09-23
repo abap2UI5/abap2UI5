@@ -67,6 +67,24 @@ sap.ui.define(
       },
       exit() {
         this._unhook();
+        this._detach();
+      },
+
+      // The handlers setControl put on the TARGET input, taken off again:
+      // a companion destroyed while its target survives (a nested-view
+      // rebuild that leaves the MAIN input in place) used to leave them on
+      // the target for good. Every detach is optional-chained - the target
+      // may be gone already, or a double that has no detach.
+      _detach() {
+        const input = this._target;
+        this._target = null;
+        if (!input || Lib.isDestroyed(input)) return;
+        if (this._onTokenUpdate) {
+          input.detachTokenUpdate?.(this._onTokenUpdate);
+        }
+        if (this._validator) input.removeValidator?.(this._validator);
+        this._onTokenUpdate = null;
+        this._validator = null;
       },
 
       onTokenUpdate(oEvent) {
@@ -121,12 +139,15 @@ sap.ui.define(
         );
         if (!Lib.claimOnce(this, input)) return;
         try {
-          input.attachTokenUpdate(this.onTokenUpdate.bind(this));
+          // the bound handlers are kept for exit( )'s detach - see _detach
+          this._target = input;
+          this._onTokenUpdate = this.onTokenUpdate.bind(this);
+          input.attachTokenUpdate(this._onTokenUpdate);
           // Custom validator: a picked suggestion ROW becomes a Token built
           // from its cells (only when TokenKeyCell says which one), any
           // free-text entry becomes a Token whose key and visible text are
           // both the input string.
-          input.addValidator((args) => {
+          this._validator = (args) => {
             const picked = args?.suggestionObject;
             if (picked && typeof picked.getCells === "function") {
               // a tabular suggestion ROW: a Token only once TokenKeyCell
@@ -154,7 +175,8 @@ sap.ui.define(
               });
             }
             return new Token({ key: args.text, text: args.text });
-          });
+          };
+          input.addValidator(this._validator);
         } catch (e) {
           Lib.logError("MultiInputExt.setControl: setup failed", e);
         }

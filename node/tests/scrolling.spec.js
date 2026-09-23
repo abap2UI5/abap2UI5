@@ -27,6 +27,11 @@ function load({ controls = {}, domElements = {} } = {}) {
           if (!owner?.getModel) return undefined;
           return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
         },
+        // ... and its writer, the way core/ViewSlots.js spells it: the
+        // control marks a path through this, never through the set's name
+        markChanged(owner, path) {
+          this.trackedModel(owner)?._z2ui5ChangedPaths?.add(path);
+        },
       },
     },
     sandbox: {

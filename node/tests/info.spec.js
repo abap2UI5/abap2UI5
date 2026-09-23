@@ -22,26 +22,23 @@ const DEVICE_DATA = {
 function load({ deviceData = DEVICE_DATA, oConfig } = {}) {
   const { Lib, state: libState } = loadLib();
 
-  // the device model reaches the control via MAIN-view model propagation;
-  // a spec can start without it (first render of a freshly built view)
+  // the device model reaches the control by model propagation (every slot
+  // view carries it, ViewSlots.attachSharedModels), so the control asks
+  // its OWN getModel; a spec can start without it (first render of a
+  // freshly built view)
   let model = deviceData ? { getData: () => deviceData } : undefined;
 
   const { module: InfoDef } = loadModule("cc/Info.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/ViewSlots": {
-        getView: (key) =>
-          key === "MAIN"
-            ? { getModel: (name) => (name === "device" ? model : undefined) }
-            : undefined,
-      },
       "z2ui5/core/AppState": { state: { oConfig: oConfig || {} } },
     },
   });
 
   const instance = () => {
     const inst = Object.create(InfoDef);
+    inst.getModel = (name) => (name === "device" ? model : undefined);
     inst._set = {};
     inst.setProperty = (prop, val, suppress) => {
       inst._set[prop] = { val, suppress };

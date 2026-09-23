@@ -1,6 +1,6 @@
 // Invisible control that marks the session as having unsaved changes:
 // inside the Launchpad via the FLP dirty flag, standalone via the
-// browser's "leave page?" confirmation prompt.
+// browser's "leave page?" confirmation prompt (a beforeunload listener).
 sap.ui.define(
   ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],
   (Control, Lib, AppState) => {
@@ -19,8 +19,23 @@ sap.ui.define(
       e.returnValue = "";
     };
 
+    // Added and removed as a LISTENER, never assigned to
+    // window.onbeforeunload: the assignment overwrote whatever a host page
+    // (or anything else on it) had installed there, and clearing it to
+    // null took the host's handler down with ours. One listener per page
+    // whatever the number of instances - the flag is what keeps a second
+    // add (a no-op for the same function, but not free) and a stray
+    // remove off the event target.
+    let promptInstalled = false;
+
     function syncUnloadPrompt(anyDirty) {
-      window.onbeforeunload = anyDirty ? promptOnUnload : null;
+      if (anyDirty === promptInstalled) return;
+      if (anyDirty) {
+        window.addEventListener("beforeunload", promptOnUnload);
+      } else {
+        window.removeEventListener("beforeunload", promptOnUnload);
+      }
+      promptInstalled = anyDirty;
     }
 
     const Dirty = Control.extend("z2ui5.cc.Dirty", {

@@ -168,6 +168,10 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function markChanged(owner, path) {` && |\n| &&
+             `      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function containingSlotKey(element) {` && |\n| &&
              `      let current = element;` && |\n| &&
              `      while (current) {` && |\n| &&
@@ -231,6 +235,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&
+             `      markChanged,` && |\n| &&
              `      destroy,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

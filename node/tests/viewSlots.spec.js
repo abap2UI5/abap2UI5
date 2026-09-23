@@ -429,3 +429,25 @@ test("every slot's controller field is one Lib.isControllerAlive knows", () => {
     expect(Lib.isControllerAlive(marker)).toBe(true);
   }
 });
+
+// The one writer of the tracked model's change set outside actions/Slots:
+// a companion that writes into the model DATA (cc/Scrolling) marks the path
+// through this, so no control has to know the set's name.
+test.describe("markChanged", () => {
+  test("adds the path to the tracked model's change set", () => {
+    const { ViewSlots } = load();
+    const changed = new Set();
+    const owner = {
+      getModel: () => ({ _z2ui5Tracked: true, _z2ui5ChangedPaths: changed }),
+    };
+    ViewSlots.markChanged(owner, "/SCROLL/0/V");
+    expect([...changed]).toEqual(["/SCROLL/0/V"]);
+  });
+
+  test("is a no-op without a tracked model (an OData default in switch mode)", () => {
+    const { ViewSlots } = load();
+    const owner = { getModel: () => ({ getProperty: () => 1 }) };
+    expect(() => ViewSlots.markChanged(owner, "/x")).not.toThrow();
+    expect(() => ViewSlots.markChanged(null, "/x")).not.toThrow();
+  });
+});

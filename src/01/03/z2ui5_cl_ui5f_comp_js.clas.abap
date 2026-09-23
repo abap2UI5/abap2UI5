@@ -30,6 +30,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "sap/ui/core/UIComponent",` && |\n| &&
              `    "z2ui5/model/models",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
+             `    "z2ui5/core/Session",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
@@ -44,6 +45,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    UIComponent,` && |\n| &&
              `    Models,` && |\n| &&
              `    Server,` && |\n| &&
+             `    Session,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    DevTools,` && |\n| &&
              `    Lib,` && |\n| &&
@@ -220,6 +222,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
              `        Server.reset();` && |\n| &&
+             `` && |\n| &&
+             `        Session.reset();` && |\n| &&
              `` && |\n| &&
              `        ViewSlots.destroy("POPUP");` && |\n| &&
              `        ViewSlots.destroy("POPOVER");` && |\n| &&

@@ -153,9 +153,18 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `    });` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function controlFilters(binding) {` && |\n| &&
+             `    if (!binding) return undefined;` && |\n| &&
+             `    if (typeof binding.getFilters === "function") {` && |\n| &&
+             `      return binding.getFilters("Control");` && |\n| &&
+             `    }` && |\n| &&
+             `    return binding.aFilters;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    getElementById,` && |\n| &&
              `    getMessaging,` && |\n| &&
+             `    controlFilters,` && |\n| &&
              `    getThemingModule,` && |\n| &&
              `    getTheme,` && |\n| &&
              `    getLocale,` && |\n| &&

@@ -112,7 +112,14 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { config, takePending, confirmSent, location };` && |\n| &&
+             `  function reset() {` && |\n| &&
+             `    sessionConfigSent = false;` && |\n| &&
+             `    liveSent = "";` && |\n| &&
+             `    pending = null;` && |\n| &&
+             `    locationSent = false;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return { config, takePending, confirmSent, location, reset };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

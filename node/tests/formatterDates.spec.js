@@ -88,8 +88,21 @@ test.describe("DateAbapDateTimeToDateObject (ABAP date + time HHMMSS)", () => {
     // same guard as the date-only helper - a filled time does not make an
     // initial date a date
     expect(Formatter.DateAbapDateTimeToDateObject("00000000")).toBeNull();
-    expect(Formatter.DateAbapDateTimeToDateObject("00000000", "134501")).toBeNull();
+    expect(
+      Formatter.DateAbapDateTimeToDateObject("00000000", "134501"),
+    ).toBeNull();
     expect(Formatter.DateAbapDateTimeToDateObject("")).toBeNull();
+  });
+
+  // a default parameter covers undefined only - a bound time field that is
+  // null or empty in the model reached t.slice and threw inside the binding
+  test("a null or empty time is midnight, not a throw", () => {
+    for (const t of [null, ""]) {
+      const d = Formatter.DateAbapDateTimeToDateObject("20260702", t);
+      expect(d.getDate()).toBe(2);
+      expect(d.getHours()).toBe(0);
+      expect(d.getMinutes()).toBe(0);
+    }
   });
 });
 

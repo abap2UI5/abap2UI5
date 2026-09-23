@@ -217,6 +217,17 @@ sap.ui.define(
       return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
     }
 
+    // Mark a model path as edited on the framework model `owner` binds to,
+    // so the next roundtrip from that slot ships it in the delta - what the
+    // model's own propertyChange does for a bound control, for a companion
+    // that writes into the model DATA directly (cc/Scrolling). The set
+    // itself belongs to actions/Slots (trackChanges); this is the one
+    // writer outside it, so no control has to know its name. A no-op
+    // without a tracked model (an OData default in switch mode).
+    function markChanged(owner, path) {
+      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);
+    }
+
     // Returns the key of the slot a UI5 element belongs to, by walking up
     // the control tree until a live slot view is hit (innermost slot wins,
     // e.g. nested views). Undefined when the element is in no slot.
@@ -307,6 +318,7 @@ sap.ui.define(
       resolveById,
       containingSlotKey,
       trackedModel,
+      markChanged,
       destroy,
     };
   },

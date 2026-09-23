@@ -290,6 +290,33 @@ test.describe("logError", () => {
   });
 });
 
+// The control filters of a list binding, release-independently: the public
+// getFilters("Control") since 1.96, the private aFilters member before it -
+// and never "Application", which answers the app's own binding filters.
+test.describe("controlFilters", () => {
+  test("asks getFilters for the CONTROL filters where the binding has it", () => {
+    const { Env } = loadEnv();
+    const control = [{ sPath: "NAME" }];
+    const binding = {
+      aFilters: control,
+      getFilters: (type) => (type === "Control" ? control : []),
+    };
+    expect(Env.controlFilters(binding)).toBe(control);
+  });
+
+  test("falls back to the private aFilters on a release without getFilters", () => {
+    const { Env } = loadEnv();
+    const control = [{ sPath: "NAME" }];
+    expect(Env.controlFilters({ aFilters: control })).toBe(control);
+  });
+
+  test("answers undefined without a binding", () => {
+    const { Env } = loadEnv();
+    expect(Env.controlFilters(null)).toBeUndefined();
+    expect(Env.controlFilters(undefined)).toBeUndefined();
+  });
+});
+
 test.describe("getElementById", () => {
   const el = { id: "btn1" };
 

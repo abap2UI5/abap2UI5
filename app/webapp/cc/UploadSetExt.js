@@ -55,7 +55,27 @@ sap.ui.define(
       },
       exit() {
         this._unhook();
+        this._detach();
         if (this._reader) this._reader.cancel();
+      },
+
+      // The handlers setControl put on the TARGET upload set, taken off
+      // again: a companion destroyed while its target survives used to
+      // leave them on the target for good (cc/MultiInputExt has the same
+      // pair). Optional-chained: the removal handler is only attached on
+      // UI5 >= 1.83, and the target may be gone already.
+      _detach() {
+        const uploadSet = this._target;
+        this._target = null;
+        if (!uploadSet || Lib.isDestroyed(uploadSet)) return;
+        if (this._onItemAdded) {
+          uploadSet.detachAfterItemAdded?.(this._onItemAdded);
+        }
+        if (this._onItemRemoved) {
+          uploadSet.detachAfterItemRemoved?.(this._onItemRemoved);
+        }
+        this._onItemAdded = null;
+        this._onItemRemoved = null;
       },
 
       // The properties hold ONE file, and each change starts one roundtrip.
@@ -107,13 +127,17 @@ sap.ui.define(
         );
         if (!Lib.claimOnce(this, uploadSet)) return;
         try {
-          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
+          // the bound handlers are kept for exit( )'s detach - see _detach
+          this._target = uploadSet;
+          this._onItemAdded = this.onItemAdded.bind(this);
+          uploadSet.attachAfterItemAdded(this._onItemAdded);
           // afterItemRemoved is @since 1.83; below that, adds keep working
           // and the gap is reported instead of failing the whole setup
           // (beforeItemRemoved is no substitute - it fires before the
           // confirm dialog and would report cancelled removals)
           if (uploadSet.attachAfterItemRemoved) {
-            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
+            this._onItemRemoved = this.onItemRemoved.bind(this);
+            uploadSet.attachAfterItemRemoved(this._onItemRemoved);
           } else {
             Lib.logError(
               "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",

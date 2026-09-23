@@ -26,13 +26,8 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
+             `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
@@ -94,7 +89,7 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `      onAfterRendering() {` && |\n| &&
              `        if (!this._pendingInfo) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");` && |\n| &&
+             `          const deviceModel = this.getModel("device");` && |\n| &&
              `          const deviceData = deviceModel?.getData();` && |\n| &&
              `          if (!deviceData) return;` && |\n| &&
              `          this._pendingInfo = false;` && |\n| &&

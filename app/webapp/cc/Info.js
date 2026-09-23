@@ -1,11 +1,6 @@
 sap.ui.define(
-  [
-    "sap/ui/core/Control",
-    "z2ui5/core/Lib",
-    "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
-  ],
-  (Control, Lib, ViewSlots, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],
+  (Control, Lib, AppState) => {
     "use strict";
 
     // Invisible control that reports the UI5 version/theme and the device
@@ -82,11 +77,14 @@ sap.ui.define(
         try {
           // The device model is created by Component.init(); it exposes
           // system / resize / os / browser info. It reaches this control
-          // through model propagation, so on the very first rendering of a
-          // freshly built view it may not be attached yet - keep the pending
-          // flag in that case so the next rendering retries, instead of
+          // through model propagation - ViewSlots.attachSharedModels sets it
+          // on EVERY slot view, so the control's own getModel answers in a
+          // popup as well as in MAIN (this used to read the MAIN view's
+          // model by slot key). On the very first rendering of a freshly
+          // built view it may not be attached yet - keep the pending flag
+          // in that case so the next rendering retries, instead of
           // consuming it and never firing `finished` at all.
-          const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");
+          const deviceModel = this.getModel("device");
           const deviceData = deviceModel?.getData();
           if (!deviceData) return;
           this._pendingInfo = false;

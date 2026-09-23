@@ -61,6 +61,12 @@ sap.ui.define(
 
       exit() {
         this._unhook();
+        // The snapshot under treeStates[tree_id] deliberately outlives this
+        // instance: a view rebuild destroys the old Tree BEFORE the new one
+        // renders, and the new one restores its expansion from exactly that
+        // snapshot (onAfterRendering below). It goes with the app switch
+        // (View1._processAfterRendering) and the component teardown
+        // (AppState.reset), not here.
       },
 
       onAfterRendering() {

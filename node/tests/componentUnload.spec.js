@@ -52,7 +52,12 @@ test("pagehide into the back/forward cache keeps the app alive", () => {
 // reaches it (every open client leaked across the re-launch).
 function loadForExit(
   appState,
-  { modules = {}, destroyedSlots = [], shortcutResets = [] } = {},
+  {
+    modules = {},
+    destroyedSlots = [],
+    shortcutResets = [],
+    sessionResets = [],
+  } = {},
 ) {
   const noop = () => {};
   // exit() cancels the timers through Lib.cancelPendingTimers; the stub does
@@ -71,6 +76,7 @@ function loadForExit(
       "sap/ui/VersionInfo": {},
       "z2ui5/model/models": {},
       "z2ui5/core/Server": { endSession: noop, reset: noop },
+      "z2ui5/core/Session": { reset: () => sessionResets.push(true) },
       "z2ui5/devtools/DevTools": { exit: noop },
       "z2ui5/core/Lib": {
         logError: noop,
@@ -237,6 +243,15 @@ test("exit() tears the popup and popover slots down", () => {
 test("exit() takes the app's keyboard shortcut listener off document", () => {
   const { shortcutResets } = runExit(fakeAppState());
   expect(shortcutResets).toEqual([true]);
+});
+
+// The session block's once-per-page-load send latches are module state of
+// the same kind (core/Session.js) - an FLP re-launch keeps the page alive,
+// so the next app started with the previous one's send state.
+test("exit() resets the session block's send latches", () => {
+  const sessionResets = [];
+  runExit(fakeAppState(), { sessionResets });
+  expect(sessionResets).toEqual([true]);
 });
 
 test("exit() resets the cc/Dirty unsaved-changes guard when it is loaded", () => {

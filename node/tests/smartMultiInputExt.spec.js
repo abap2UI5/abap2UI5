@@ -267,3 +267,29 @@ test("a range without a matching token gets empty caption fields", () => {
   expect(inst._props.rangeData[0].tokenText).toBe("");
   expect(inst._props.rangeData[0].tokenLongKey).toBeUndefined();
 });
+
+// exit( ) takes both handlers back off the TARGET input - a companion
+// destroyed while its input survives used to leave them on it for good.
+test("exit() detaches both handlers from the input", () => {
+  const attached = { tokenUpdate: [], innerCreated: [] };
+  const input = {
+    attachTokenUpdate: (fn) => attached.tokenUpdate.push(fn),
+    attachInnerControlsCreated: (fn) => attached.innerCreated.push(fn),
+    detachTokenUpdate: (fn) => {
+      attached.tokenUpdate = attached.tokenUpdate.filter((f) => f !== fn);
+    },
+    detachInnerControlsCreated: (fn) => {
+      attached.innerCreated = attached.innerCreated.filter((f) => f !== fn);
+    },
+  };
+  const { makeInstance } = load({ input });
+  const inst = makeInstance();
+  inst.setControl();
+  expect(attached.tokenUpdate).toHaveLength(1);
+  expect(attached.innerCreated).toHaveLength(1);
+
+  inst.exit();
+
+  expect(attached.tokenUpdate).toHaveLength(0);
+  expect(attached.innerCreated).toHaveLength(0);
+});

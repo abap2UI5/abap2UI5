@@ -16,7 +16,13 @@ function loadSession(Device) {
       "sap/ui/Device": Device,
       "z2ui5/core/Lib": loadLib().Lib,
     },
-    sandbox: { window: { innerWidth: 1024, innerHeight: 768 } },
+    sandbox: {
+      window: {
+        innerWidth: 1024,
+        innerHeight: 768,
+        location: { origin: "http://h", pathname: "/sap/z2ui5", search: "" },
+      },
+    },
   });
   return Session;
 }
@@ -133,4 +139,26 @@ test("keeps sending until the version info has actually arrived", () => {
   // stored now - and the unchanged live fields are latched too, so the
   // follow-up event roundtrip sends nothing at all
   expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+});
+
+// The latches are module state and outlive the component - an FLP re-launch
+// keeps the page alive. Component.exit calls reset( ) so the next launch
+// starts from the same state as a page load: the whole block again, the
+// location again, and no confirmation token left over from the old app.
+test("reset() puts the send latches back to page-load state", () => {
+  const Session = loadSession(device());
+  Session.config(CONFIG);
+  Session.location();
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+  expect(Session.location("DRAFT1")).toBeNull();
+
+  Session.reset();
+
+  // a token built before the reset must not confirm anything afterwards
+  expect(Session.takePending()).toBeNull();
+  const out = Session.config(CONFIG, "DRAFT1");
+  expect(out.S_UI5).toEqual({ VERSION: "1.120.0" });
+  expect(out.S_DEVICE.OS).toEqual({ NAME: "Windows", VERSION: "11" });
+  expect(Session.location("DRAFT1")).not.toBeNull();
 });

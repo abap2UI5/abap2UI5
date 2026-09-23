@@ -66,6 +66,7 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
+             `        this._detach();` && |\n| &&
              `` && |\n| &&
              `        for (const resolve of this._aPendingInnerControlsCreated) resolve(null);` && |\n| &&
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
@@ -133,13 +134,28 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
-             `          input.attachInnerControlsCreated(` && |\n| &&
-             `            this.onInnerControlsCreated.bind(this),` && |\n| &&
-             `          );` && |\n| &&
+             `          this._target = input;` && |\n| &&
+             `          this._onTokenUpdate = this.onTokenUpdate.bind(this);` && |\n| &&
+             `          this._onInnerControlsCreated = this.onInnerControlsCreated.bind(this);` && |\n| &&
+             `          input.attachTokenUpdate(this._onTokenUpdate);` && |\n| &&
+             `          input.attachInnerControlsCreated(this._onInnerControlsCreated);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("SmartMultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _detach() {` && |\n| &&
+             `        const input = this._target;` && |\n| &&
+             `        this._target = null;` && |\n| &&
+             `        if (!input || Lib.isDestroyed(input)) return;` && |\n| &&
+             `        if (this._onTokenUpdate) {` && |\n| &&
+             `          input.detachTokenUpdate?.(this._onTokenUpdate);` && |\n| &&
+             `        }` && |\n| &&
+             `        if (this._onInnerControlsCreated) {` && |\n| &&
+             `          input.detachInnerControlsCreated?.(this._onInnerControlsCreated);` && |\n| &&
+             `        }` && |\n| &&
+             `        this._onTokenUpdate = null;` && |\n| &&
+             `        this._onInnerControlsCreated = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      inputInitialized() {` && |\n| &&

@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Env",
+    "z2ui5/core/ViewSlots",
+  ],
+  (Control, Lib, Env, ViewSlots) => {
     "use strict";
 
     // Invisible companion control for a sap.ui.table.Table (referenced via
@@ -105,17 +110,9 @@ sap.ui.define(
           // can skip when that same binding is still in place (see
           // _applyFilters).
           this._filterBinding = binding;
-          // Prefer the public getFilters API (UI5 >= 1.96); older releases
-          // only expose the private aFilters member. The column filter row
-          // is applied by sap.ui.table.Column.filter( ) as FilterType.CONTROL
-          // (1.71 and 1.120 alike), and the private aFilters IS the control
-          // filter array - so the public call has to ask for "Control" too.
-          // "Application" answered the app's own binding filters (usually
-          // none), and on every release with getFilters the user's column
-          // filter was gone after a view rebuild while 1.71 kept it.
-          this.aFilters = binding?.getFilters
-            ? binding.getFilters("Control")
-            : binding?.aFilters;
+          // the release-dependent read (getFilters since 1.96, the private
+          // aFilters before) lives in core/Env.js like every other one
+          this.aFilters = Env.controlFilters(binding);
         } catch (e) {
           Lib.logError("UITableExt.readFilter failed", e);
         }

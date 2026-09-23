@@ -3,6 +3,7 @@ sap.ui.define(
     "sap/ui/core/UIComponent",
     "z2ui5/model/models",
     "z2ui5/core/Server",
+    "z2ui5/core/Session",
     "sap/ui/VersionInfo",
     "z2ui5/devtools/DevTools",
     "z2ui5/core/Lib",
@@ -17,6 +18,7 @@ sap.ui.define(
     UIComponent,
     Models,
     Server,
+    Session,
     VersionInfo,
     DevTools,
     Lib,
@@ -315,6 +317,9 @@ sap.ui.define(
         Server.endSession();
         // and drop the module-scoped request state with it - see Server.reset
         Server.reset();
+        // ... and the once-per-page-load send latches of the session block,
+        // which are module state of the same kind - see Session.reset
+        Session.reset();
 
         // The two STANDALONE view slots. MAIN and its nested views sit in the
         // component's own control tree and fall with it; a popup and a

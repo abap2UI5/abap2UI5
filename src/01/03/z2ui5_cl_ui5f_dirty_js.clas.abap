@@ -37,8 +37,16 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      e.returnValue = "";` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    let promptInstalled = false;` && |\n| &&
+             `` && |\n| &&
              `    function syncUnloadPrompt(anyDirty) {` && |\n| &&
-             `      window.onbeforeunload = anyDirty ? promptOnUnload : null;` && |\n| &&
+             `      if (anyDirty === promptInstalled) return;` && |\n| &&
+             `      if (anyDirty) {` && |\n| &&
+             `        window.addEventListener("beforeunload", promptOnUnload);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        window.removeEventListener("beforeunload", promptOnUnload);` && |\n| &&
+             `      }` && |\n| &&
+             `      promptInstalled = anyDirty;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const Dirty = Control.extend("z2ui5.cc.Dirty", {` && |\n| &&

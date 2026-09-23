@@ -144,5 +144,20 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     };
   }
 
-  return { config, takePending, confirmSent, location };
+  // The send latches are module state and outlive the component: on an FLP
+  // re-launch the page stays alive. The draft-id condition in config( ) and
+  // location( ) already re-sends the whole block on the start request of
+  // the next app, so nothing was lost - but the module still carried the
+  // previous app's send state into the next one, the only module with such
+  // state and no reset( ). Component.exit calls it, so a launch starts
+  // from the same state as a page load. deviceStatic stays: the browser
+  // did not change.
+  function reset() {
+    sessionConfigSent = false;
+    liveSent = "";
+    pending = null;
+    locationSent = false;
+  }
+
+  return { config, takePending, confirmSent, location, reset };
 });
