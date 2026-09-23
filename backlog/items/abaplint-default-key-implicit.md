@@ -1,18 +1,40 @@
 ---
 target: abaplint
-title: 'Extend `obsolete_statement.defaultKey` to the IMPLICIT default key'
-summary: '`DATA t TYPE TABLE OF x.` with no `WITH … KEY` gets the same default key the explicit `WITH DEFAULT KEY` declares — every character-like component, unasked — and the rule reports only the spelled-out form, so the commoner spelling passes every gate'
-priority: medium
-state: open
+title: 'Extend `avoid_use.defaultKey` to the IMPLICIT default key'
+summary: '`DATA t TYPE TABLE OF x.` with no `WITH … KEY` gets the same default key as `WITH DEFAULT KEY`; `avoid_use.defaultKey` reports only the spelled-out form, but `fully_type_itabs` already reports the implicit one ("Specify table type" / "Specify table key") — deferred, there is nothing left to file'
+priority: low
+state: deferred
 first_seen: 2026-09-19
+checked_upstream: 2026-09-23
 upstream: abaplint/abaplint
 evidence:
-  - abap2UI5/samples-controls app 034 shipped `TYPE TABLE OF` without a key clause through a config that has `obsolete_statement.defaultKey` ON; the corpus gate grew a regex for it (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `default-key-table` — which reads app classes only
-  - measured 2026-09-19 over abap2UI5 `src/` (the probe beside this item) — 31 implicit default-key declarations, all in the vendored `z2ui5_cl_ajson` includes and test classes, code no abap2UI5-linter run ever reads
-  - measured 2026-09-19 on abaplint 2.120.52, `obsolete_statement` with `defaultKey: true` — `DATA lt TYPE TABLE OF string.` produces no finding; the rule's implementation matches the `DEFAULT KEY` tokens
+  - abap2UI5/samples-controls app 034 shipped `TYPE TABLE OF` without a key clause; the corpus gate grew a regex for it (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `default-key-table` — which reads app classes only
+  - measured 2026-09-19 over abap2UI5 `src/` (the probe beside this item) — 31 implicit default-key declarations, every one in code no abaplint run of this repository reports on - the vendored `src/00/01` (`noIssues` in `abaplint.jsonc`) and the frozen `src/99` (not in its `files`)
+  - measured 2026-09-19 on abaplint 2.120.52, `avoid_use` with `defaultKey: true` — `DATA lt TYPE TABLE OF string.` produces no finding; the rule matches the `DEFAULT KEY` tokens
+  - re-measured 2026-09-23 on 2.120.52 and 2.120.59, v750, isolated class - `fully_type_itabs` reports `DATA lt TYPE TABLE OF string.` ("Specify table type"), `DATA lt TYPE STANDARD TABLE OF string.` and `TYPES ty TYPE STANDARD TABLE OF string.` ("Specify table key"), and leaves `… WITH EMPTY KEY` alone; `avoid_use.defaultKey` reports only `… WITH DEFAULT KEY`. abap2UI5 and samples-controls both have `fully_type_itabs` on
 ---
 
-# Extend `obsolete_statement.defaultKey` to the IMPLICIT default key
+# Extend `avoid_use.defaultKey` to the IMPLICIT default key
+
+## Deferred — `fully_type_itabs` already covers it
+
+The first version of this item named the wrong rule (`obsolete_statement`
+has no `defaultKey` option — it is `avoid_use.defaultKey`) and said that
+`fully_type_itabs` "is about the row type, not the key". Re-measured on
+2026-09-23, that is not true: `fully_type_itabs` reports both implicit
+spellings, `TYPE TABLE OF x` ("Specify table type") and `TYPE STANDARD TABLE
+OF x` without a key clause ("Specify table key"), in `DATA` and in `TYPES`,
+on 2.120.52 as on 2.120.59.
+
+So the implicit default key is not a gap in abaplint, only in a configuration
+that has `avoid_use.defaultKey` on and `fully_type_itabs` off. The 31 sites
+the probe finds in this repository are all in code no abaplint run here
+reports on (`src/00/01` is `noIssues`, `src/99` is not in `files`), not code
+a rule missed. Asking upstream to make `avoid_use` report what
+`fully_type_itabs` already reports would be a duplicate finding on every
+such line. Do not re-propose it without a case `fully_type_itabs` misses.
+
+The analysis below is kept as it was written, with the rule name corrected.
 
 ## What happens
 
@@ -24,29 +46,23 @@ DATA lt_rows TYPE TABLE OF ty_row WITH DEFAULT KEY.   " the same table, spelled 
 Both declare the standard default key: every character-like component of
 the row, in declaration order. `SORT itab` without `BY`, `COLLECT`, `DELETE
 ADJACENT DUPLICATES` and `READ TABLE … WITH TABLE KEY` on such a table use
-that key, unasked — which is the whole reason `obsolete_statement.defaultKey`
+that key, unasked — which is the whole reason `avoid_use.defaultKey`
 exists ("from 7.40 SP02 write the key you mean, `WITH EMPTY KEY` when there
-is none"). The rule reports the second line and not the first, and the first
-is what people write.
+is none"). The rule reports the second line and not the first.
 
-## Why no existing rule catches it
+## Which rules see it
 
-`obsolete_statement` checks for the tokens `DEFAULT KEY`
-(`concatTokens().includes("EC DEFAULT_KEY")` for the pseudo comment, the
-`DEFAULT KEY` keyword pair for the finding). A declaration with no `WITH`
-clause at all never reaches that comparison. `fully_type_itabs` is about the
-row type, not the key.
+`avoid_use.defaultKey` checks for the tokens `DEFAULT KEY` (with the pseudo
+comment `"#EC DEFAULT_KEY` to waive it). A declaration with no `WITH` clause
+at all never reaches that comparison. `fully_type_itabs` does report it — see
+above.
 
-## Proposed rule
+## The change that was proposed
 
 Under the same `defaultKey` option, also report `TYPE [STANDARD] TABLE OF …`
 (in `DATA`, `TYPES`, `CLASS-DATA`, `STATICS`, parameter typing and inline
 `BEGIN OF` components) with no `WITH … KEY` clause, from v740sp02 on. Same
 pseudo comment `"#EC DEFAULT_KEY` to waive it.
-
-No quick fix: `WITH EMPTY KEY` and a real key are different tables, and
-choosing between them is the author's decision — the same reason the
-explicit form has none today.
 
 ## What it must NOT report
 

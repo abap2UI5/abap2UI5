@@ -318,7 +318,9 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 
 This class of defect has now bitten three times, twice reported by users after
 a pull, and it is the single most likely thing to break a system that is not on
-the newest release. abaplint's default target accepts all of it.
+the newest release. abaplint's default target accepts all of it; at `syntax.version`
+v750 or v702, `check_syntax` reports the first shape (below v756) and still
+accepts the other two (measured 2026-09-23 on 2.120.59).
 
 - **A generic `REF TO data` cannot be dereferenced inline.** `lr_ref->*` in an
   expression, and `ASSIGN COMPONENT … OF STRUCTURE mr_data->*`, both fail with
@@ -499,11 +501,13 @@ pitfalls".
   TYPE TABLE OF x.` is the same table as `… WITH DEFAULT KEY`: every
   character-like component, in declaration order, and `SORT` without `BY`,
   `COLLECT` and `DELETE ADJACENT DUPLICATES` use it unasked. abaplint's
-  `obsolete_statement` (`defaultKey`) reports only the spelled-out form
-  (measured on 2.120.52), so the commoner implicit spelling passed every gate
-  until `abap2UI5/samples-controls` app 034 shipped one and the corpus grew a
-  regex for it. Write `WITH EMPTY KEY`, or the key you mean. 31 sites in this
-  repository (2026-09-19), all in the vendored ajson code.
+  `avoid_use.defaultKey` reports only the spelled-out form; the implicit one is
+  `fully_type_itabs`' ("Specify table type" / "Specify table key", measured
+  2026-09-23 on 2.120.52 and 2.120.59), so a repository that switches that
+  rule off loses it - `abap2UI5/samples-controls` app 034 shipped one and the
+  corpus grew a regex for it. Write `WITH EMPTY KEY`, or the key you mean. 31
+  sites in this repository (2026-09-19), all in the vendored `src/00/01` code
+  (`noIssues`) and the frozen `src/99` (not linted by `abaplint.jsonc`).
 - **`FIND`/`REPLACE … REGEX` is POSIX**, which is deprecated. `FIND PCRE` only
   exists on >= 7.55 and this repo targets v750/7.02. Prefer plain string logic;
   when a regex is genuinely needed, carry `##REGEX_POSIX` (the vendored AJSON
