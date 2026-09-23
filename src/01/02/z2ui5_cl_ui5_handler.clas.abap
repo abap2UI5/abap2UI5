@@ -7,6 +7,19 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     DATA ms_response     TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA mv_response     TYPE string.
 
+    " whether THIS request runs in a stateful (sticky) session - set by
+    " z2ui5_cl_ui5_http_handler=>_http_post before main( ): true for the
+    " handler it kept across requests, false for one built for the request.
+    " A draft restored into a session that is NOT stateful (F5, a bookmark, a
+    " new tab - no context id travels) carries the persisted mv_check_sticky
+    " of the session it was saved in; left standing, every later
+    " set_session_stateful( abap_true ) of the app is a no-op (the flag
+    " already says so) and the session is never switched - the app believes
+    " it is stateful and is not. The two factories that load a draft read
+    " this and drop the flag when it is false. PUBLIC because both the HTTP
+    " handler and z2ui5_cl_ui5_action reach it - neither is a friend
+    DATA mv_session_sticky TYPE abap_bool.
+
     METHODS constructor
       IMPORTING
         val TYPE string.
@@ -121,18 +134,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " whether THIS request's body has been parsed into ms_request - see
     " main_begin and request_context_info
     DATA mv_request_parsed TYPE abap_bool.
-
-    " whether THIS request runs in a stateful (sticky) session - set by
-    " z2ui5_cl_ui5_http_handler=>_http_post before main( ): true for the
-    " handler it kept across requests, false for one built for the request.
-    " A draft restored into a session that is NOT stateful (F5, a bookmark, a
-    " new tab - no context id travels) carries the persisted mv_check_sticky
-    " of the session it was saved in; left standing, every later
-    " set_session_stateful( abap_true ) of the app is a no-op (the flag
-    " already says so) and the session is never switched - the app believes
-    " it is stateful and is not. The two factories that load a draft read
-    " this and drop the flag when it is false
-    DATA mv_session_sticky TYPE abap_bool.
 
     " upper bound for the event arguments one request may carry. The
     " frontend fills T_EVENT_ARG from the view's own argument list, so a

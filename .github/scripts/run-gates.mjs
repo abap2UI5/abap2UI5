@@ -51,6 +51,7 @@ const GATES = [
   { npm: "check:subrc", script: "subrc-after-assign-gate.mjs" },
   { npm: "check:cause", script: "exception-cause-gate.mjs" },
   { npm: "check_visibility", script: "testclass-visibility-gate.mjs" },
+  { npm: "check:members", script: "member-visibility-gate.mjs" },
   { npm: "check:naming", script: "object-naming-gate.mjs" },
   { npm: "check:dynamic", script: "dynamic-name-gate.mjs" },
   { npm: "check:prose", script: "prose-name-gate.mjs" },
