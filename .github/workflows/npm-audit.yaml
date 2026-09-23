@@ -1,0 +1,67 @@
+name: npm-audit
+
+# The advisories the two dependency trees ALREADY carry, judged weekly.
+#
+# dependency-review.yaml judges what a pull request adds to the tree and is
+# silent about what was there before - so an advisory published for a package
+# the lockfile has carried for a year fails nothing. Until this workflow the
+# repository ran `npm audit` nowhere: the root tree carried four high
+# advisories and app/ six, all in the UI5 build tooling, and nothing said so.
+#
+# What runs is .github/scripts/npm-audit-gate.mjs, not a bare `npm audit`: a
+# bare one is red until @ui5/project moves and trains everyone to click past
+# it. The gate carries the known advisories with the reason each one can stay
+# and fails only on a NEW high/critical one, or on an accepted one whose fix
+# has arrived - the list only shrinks. The script's header has the reasoning.
+#
+# No install: `npm audit` sends the lockfile to the registry and needs no
+# node_modules, and the gate is plain Node. The job holds nothing but a read
+# token and a checkout without credentials - it talks to the registry, and a
+# job that talks to the network should hold as little as it can.
+#
+# On pull requests only when a lockfile (or this gate) changes - a Dependabot
+# bump that pulls in a new high advisory is refused right there. Weekly
+# otherwise, because advisories arrive on their own schedule, not on ours.
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'   # Mondays 06:23 UTC
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'package-lock.json'
+      - 'app/package-lock.json'
+      - '.github/scripts/npm-audit-gate.mjs'
+      - '.github/workflows/npm-audit.yaml'
+
+concurrency:
+  group: npm-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    # forks get the schedule too - same guard as every other scheduled
+    # workflow; a pull request in a fork still runs it
+    if: github.event_name != 'schedule' || github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write  # to report failed scheduled runs
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: ./.github/actions/setup
+      with:
+        cache: "false"
+
+    - name: Audit both lockfiles against the accepted list
+      run: node .github/scripts/npm-audit-gate.mjs # npm run check:audit
+
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: ./.github/actions/report-scheduled-failure

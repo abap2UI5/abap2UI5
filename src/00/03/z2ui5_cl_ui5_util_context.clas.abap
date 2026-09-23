@@ -460,6 +460,22 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " abap_true when the class exists AND implements the interface. The
+    " question to ask before a CREATE OBJECT ... TYPE (name) whose name came
+    " from outside (a URL parameter, a hash route, a typed-in class name):
+    " answered from the class descriptor, which loads and instantiates
+    " nothing, so a class that is no app is refused before its class pool
+    " is ever touched. The descriptor's list carries the interfaces a
+    " superclass implements as well, so an app that inherits its
+    " z2ui5_if_app passes. abap_false for a name that is not a class at all
+    " (an interface, a data type, nothing)
+    CLASS-METHODS rtti_check_class_impl_intf
+      IMPORTING
+        class         TYPE clike
+        intf          TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
         val           TYPE any
@@ -1277,6 +1293,39 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     INSERT VALUE #( name   = lv_name
                     exists = result ) INTO TABLE gt_class_exists.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_class_impl_intf.
+
+    DATA lo_typedescr  TYPE REF TO cl_abap_typedescr.
+    DATA lo_classdescr TYPE REF TO cl_abap_classdescr.
+    DATA lv_intf       TYPE string.
+
+    " the existence check first: it is cached, and it is the one that
+    " answers "no such class" without a class-based exception (the
+    " functional describe_by_name form has none to catch)
+    IF rtti_check_class_exists( class ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    lv_intf = to_upper( intf ).
+
+    TRY.
+        cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = class
+                                              RECEIVING p_descr_ref     = lo_typedescr
+                                              EXCEPTIONS type_not_found = 1 ).
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+        " an interface or a data type carries the name too - the cast is
+        " what says "class", and a failed one is a plain abap_false
+        lo_classdescr ?= lo_typedescr.
+        " a handful of rows per class - the read is not the cost here
+        result = xsdbool( line_exists( lo_classdescr->interfaces[ name = lv_intf ] ) ). "#EC CI_SORTSEQ
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 

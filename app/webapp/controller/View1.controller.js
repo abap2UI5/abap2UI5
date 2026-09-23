@@ -83,9 +83,11 @@ sap.ui.define(
             // registers its own (actions/Shortcuts documents this reset) -
             // and so do its tree-expansion snapshots, which are keyed by the
             // LOCAL tree_id and would otherwise leak into a same-named tree
-            // of the next app
-            state.shortcuts = {};
-            state.treeStates = {};
+            // of the next app. Prototype-less like AppState.createState builds
+            // them: both are keyed by names from the wire, and a plain {}
+            // here would hand the second app a registry with a prototype again
+            state.shortcuts = Object.create(null);
+            state.treeStates = Object.create(null);
             // ... and so does the app-owned hash listener
             // (cs_event-hash_attach_changed): the backend keeps no record of
             // it and z2ui5_if_client promises it dies with the app switch,

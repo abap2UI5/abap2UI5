@@ -45,6 +45,19 @@
 #     it does not know, so a key from a newer release breaks check:abap2ui5
 #     everywhere until the pin moves - config changes that need a new key
 #     go into the bump commit too
+#
+# TWO JOBS, AND WHY. This workflow is the one place in the repository that
+# installs and EXECUTES code nobody here has reviewed yet: whatever npm
+# says is `latest` for @abap2ui5/linter and @abap2ui5/render-runtime, minutes
+# after it was published, at the lockfile's expense. That is the point of
+# it, and it is fine as long as the code it runs holds no token that can
+# write here. So the job that runs the package has `contents: read` and a
+# checkout without persisted credentials, and hands the two changed files
+# over as an artifact; the job that opens the pull request has the write
+# token and runs nothing from npm at all. A stolen npm token for the org
+# is then a bad linter release that fails this workflow, not a push to any
+# branch of this repository. The failure report is a third job for the same
+# reason: `issues: write` stays off the executing job too.
 name: bump-linter
 
 on:
@@ -63,18 +76,23 @@ permissions:
   contents: read
 
 jobs:
-  bump-linter:
+  bump:
     # forks get the schedule too, and a fork has no business opening weekly
     # bump PRs against itself - same guard as every other scheduled workflow
     if: github.repository == 'abap2UI5/abap2UI5'
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write  # to report failed scheduled runs
+      contents: read
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      changed: ${{ steps.pin.outputs.changed }}
+      version: ${{ steps.pin.outputs.version }}
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # nothing in this job pushes, and the package it runs must not find
+        # a token in .git/config (see the header)
+        persist-credentials: false
     # .nvmrc through the composite action rather than a literal '22' - the
     # drift that action exists to end (see its description)
     - uses: ./.github/actions/setup
@@ -105,9 +123,14 @@ jobs:
     - if: steps.pin.outputs.changed == 'true'
       run: npm run check:abap2ui5
 
-    # the render half, exactly as render-gate.yaml installs it
+    # the render half, exactly as render-gate.yaml installs it. The version
+    # comes in through the environment, not interpolated into the script:
+    # it is a value npm answered, and a `${{ }}` inside `run:` is pasted
+    # into the shell as text
     - if: steps.pin.outputs.changed == 'true'
-      run: npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@${{ steps.pin.outputs.version }}"
+      env:
+        LINTER_VERSION: ${{ steps.pin.outputs.version }}
+      run: npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@$LINTER_VERSION"
     # version+engine-keyed browser cache, the same pattern as test.yaml's
     # browser matrix - the Chromium download is the slowest part of the run
     # and identical from one Monday to the next
@@ -131,18 +154,72 @@ jobs:
     - if: steps.pin.outputs.changed == 'true'
       run: npm run check:render
 
-    - if: steps.pin.outputs.changed == 'true'
-      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+    # only the two files the bump changed travel to the writing job - not
+    # node_modules, not anything the package could have written
+    - name: Hand the bumped manifest and lock over
+      if: steps.pin.outputs.changed == 'true'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: linter-bump
+        path: |
+          package.json
+          package-lock.json
+        if-no-files-found: error
+        retention-days: 1
+
+  pull-request:
+    needs: bump
+    if: needs.bump.outputs.changed == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # create-pull-request authenticates with its own `token` input; the
+        # checkout credential is one more copy of the same token for no reason
+        persist-credentials: false
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: linter-bump
+    # the artifact was written by the job above from a tree that had just
+    # passed both gates; a manifest that no longer differs from main here
+    # would mean the two ran on different bases, so it is checked rather than
+    # assumed
+    - name: Check that the bump arrived
+      run: |
+        set -euo pipefail
+        if git diff --quiet package.json package-lock.json; then
+          echo "::error::the artifact carries no change"
+          exit 1
+        fi
+        git diff --stat package.json package-lock.json
+    - uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
         branch: bump-linter
         title: 'chore: bump @abap2ui5/linter'
-        commit-message: 'chore: bump @abap2ui5/linter to ${{ steps.pin.outputs.version }}'
+        commit-message: 'chore: bump @abap2ui5/linter to ${{ needs.bump.outputs.version }}'
         body: |
           Weekly move of `@abap2ui5/linter` to the latest version on npm
-          (${{ steps.pin.outputs.version }}). Both gates that consume it ran
+          (${{ needs.bump.outputs.version }}). Both gates that consume it ran
           over the shipped app classes in the workflow that opened this PR -
           `check:abap2ui5` and `check:render`.
 
+  report-failure:
+    needs: [bump, pull-request]
+    # `failure()` alone reads the whole chain; `pull-request` being skipped
+    # on a quiet Monday is not a failure and must not open an issue
+    if: always() && github.event_name == 'schedule' && (needs.bump.result == 'failure' || needs.pull-request.result == 'failure')
+    permissions:
+      contents: read
+      issues: write  # to report failed scheduled runs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
     - name: Report scheduled failure as issue
-      if: failure() && github.event_name == 'schedule'
       uses: ./.github/actions/report-scheduled-failure

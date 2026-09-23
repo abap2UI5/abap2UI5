@@ -344,6 +344,17 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
                       sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
                       with = \`\\n\`
                       occ  = 0 ).
+    " the HTML tokenizer runs BEFORE the JavaScript parser and ends the
+    " script element at the first </script it meets - inside a string
+    " literal or not. Only styles_css from the exit can carry one (the
+    " generated resources are XML and CSS the build has seen), so this is
+    " defence in depth for an admin-supplied value: every < becomes the JS
+    " escape \\x3c, which the literal reads back as the same character, and
+    " neither </script nor <!-- can reach the tokenizer any more
+    result = replace( val  = result
+                      sub  = \`<\`
+                      with = \`\\x3c\`
+                      occ  = 0 ).
 
   ENDMETHOD.
 

@@ -56,6 +56,12 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
 
   PRIVATE SECTION.
 
+    " the app instance for a first start - the client-named class, checked
+    " to be an app before it is created (the reasoning is on the method)
+    METHODS app_create
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_app.
+
     " set by prepare_app_stack on the action it builds: whether the target
     " came out of a persisted draft. Read by factory_stack_leave right
     " after, which used to ask the database a third time for the same fact
@@ -109,66 +115,83 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD factory_first_start.
 
+    result = NEW #( mo_handler ).
+
+    IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
+      TRY.
+
+          result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_control-app_start_draft ).
+          result->mv_check_sticky_start = result->mo_app->mv_check_sticky.
+          result->ms_actual-check_on_navigated = abap_true.
+          result->ms_next-s_nav-set_app_state_active = abap_true.
+          " on the app as well, not only on this request: ms_next is
+          " cleared per roundtrip, so a flag set only here survived one
+          " response and the next event wiped the app-state hash the
+          " bookmark was made of (see mv_app_state_active)
+          result->mo_app->mv_app_state_active = abap_true.
+          result->mo_app->ms_draft-id_prev_app_stack = ``.
+          " normalize the chain like factory_by_frontend: id_prev must
+          " point at the draft this restore was loaded from, not at
+          " whatever id was serialized in a previous session
+          result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
+          result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+          RETURN.
+        CATCH cx_root.
+          " expired or invalid bookmark draft - fall through to a fresh
+          " app start, but tell the user why the saved state is gone.
+          " There is no client object yet at this point in the factory,
+          " so the toast is queued directly through the action builder
+          " message_toast_display( ) delegates to.
+          NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
+              `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
+      ENDTRY.
+    ENDIF.
+
+    result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    DATA(li_app) = app_create( ).
+    result->mo_app->mo_app = li_app.
+    li_app->id_draft = result->mo_app->ms_draft-id.
+
+    result->ms_actual-check_on_navigated = abap_true.
+
+  ENDMETHOD.
+
+  METHOD app_create.
+
+    DATA(lv_app_start) = mo_handler->ms_request-s_control-app_start.
+
+    " asked BEFORE the CREATE OBJECT, not answered by it. The name is
+    " client-controlled (URL parameter, hash route, launchpad startup
+    " parameter) and the only thing CREATE OBJECT ... TYPE (name) checks is
+    " that the class fits the typed reference - it checks that on the loaded
+    " class, so whether the class pool of an arbitrary class on the system
+    " is loaded and its class constructor run before the refusal is kernel
+    " behaviour the framework should not have to lean on. The descriptor
+    " lookup loads and instantiates nothing. It is also the honest message:
+    " a class that exists but is no app used to be reported as "does not
+    " exist in the system". Either way the raise goes as it is to the single
+    " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which turns it
+    " into a 500 whose body carries the text for the frontend to display
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = lv_app_start
+                                                              intf  = `Z2UI5_IF_APP` ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = |The app '{ app_start_safe( lv_app_start ) }' | &&
+                |does not exist in the system or does not implement z2ui5_if_app.|.
+    ENDIF.
+
     TRY.
-        result = NEW #( mo_handler ).
+        CREATE OBJECT result TYPE (lv_app_start).
 
-        IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
-          TRY.
-
-              result->mo_app = z2ui5_cl_ui5_app_cont=>db_load( mo_handler->ms_request-s_control-app_start_draft ).
-              result->mv_check_sticky_start = result->mo_app->mv_check_sticky.
-              result->ms_actual-check_on_navigated = abap_true.
-              result->ms_next-s_nav-set_app_state_active = abap_true.
-              " on the app as well, not only on this request: ms_next is
-              " cleared per roundtrip, so a flag set only here survived one
-              " response and the next event wiped the app-state hash the
-              " bookmark was made of (see mv_app_state_active)
-              result->mo_app->mv_app_state_active = abap_true.
-              result->mo_app->ms_draft-id_prev_app_stack = ``.
-              " normalize the chain like factory_by_frontend: id_prev must
-              " point at the draft this restore was loaded from, not at
-              " whatever id was serialized in a previous session
-              result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
-              result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-              RETURN.
-            CATCH cx_root.
-              " expired or invalid bookmark draft - fall through to a fresh
-              " app start, but tell the user why the saved state is gone.
-              " There is no client object yet at this point in the factory,
-              " so the toast is queued directly through the action builder
-              " message_toast_display( ) delegates to.
-              NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
-                  `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
-          ENDTRY.
-        ENDIF.
-
-        result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-
-        DATA li_app TYPE REF TO z2ui5_if_app.
-        CREATE OBJECT li_app TYPE (mo_handler->ms_request-s_control-app_start).
-        result->mo_app->mo_app = li_app.
-        li_app->id_draft = result->mo_app->ms_draft-id.
-
-        result->ms_actual-check_on_navigated = abap_true.
-
-      CATCH cx_sy_create_object_error INTO DATA(x_create).
-        " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
-        " non-existent class). Just raise with a readable text - the single
-        " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ) turns it into a
-        " 500 whose body carries this message for the frontend to display.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val      = |The app '{ app_start_safe( mo_handler->ms_request-s_control-app_start ) }' | &&
-                       |does not exist in the system.|
-            previous = x_create.
       CATCH cx_root INTO DATA(x).
-        " anything else that failed on the way - the class exists. It used
-        " to be reported as "does not exist" too, which sent whoever read the
-        " 500 to check a class name that was right all along
+        " the class exists and is an app, and still could not be created -
+        " abstract, CREATE PRIVATE, a constructor that raised. It used to be
+        " reported as "does not exist" too, which sent whoever read the 500
+        " to check a class name that was right all along
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val      = |APP_START_ERROR - the app | &&
-                       |'{ app_start_safe( mo_handler->ms_request-s_control-app_start ) }' could not be started.|
+            val      = |APP_START_ERROR - the app '{ app_start_safe( lv_app_start ) }' could not be started.|
             previous = x.
     ENDTRY.
 
