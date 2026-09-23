@@ -109,6 +109,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/testclass-visibility-gate.mjs # npm run check_visibility
 
+      # a PRIVATE/PROTECTED member read by a class that is neither its owner,
+      # a friend nor (for PROTECTED) a subclass - abaplint and the transpiler
+      # do not check attribute visibility, so mv_session_sticky reached a
+      # user's system as 'Field "MV_SESSION_STICKY" is unknown.' (2026-09-23)
+      - name: classes reach other classes' members legally
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/member-visibility-gate.mjs # npm run check:members
+
       # a library named in abap_transpile.json without a sha pin in
       # fetch-deps.mjs is cloned at floating HEAD - the silent state
       # fetch-deps exists to rule out

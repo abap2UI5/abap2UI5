@@ -14,6 +14,7 @@
     "frontend:lint": "npx abaplint frontend/abap/cloud/abaplint.jsonc",
     "check": "npm run deps && npx abaplint",
     "check_visibility": "node .github/scripts/testclass-visibility-gate.mjs",
+    "check:members": "node .github/scripts/member-visibility-gate.mjs",
     "check:naming": "node .github/scripts/object-naming-gate.mjs",
     "check:dynamic": "node .github/scripts/dynamic-name-gate.mjs",
     "check:prose": "node .github/scripts/prose-name-gate.mjs",

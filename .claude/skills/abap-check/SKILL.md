@@ -310,6 +310,7 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it |
 | **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*` |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
+| **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` does not check attribute visibility and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal |
 
 **Backlog:** abaplint · abaplint-type-handle-method-call, abaplint-deref-of-method-call
 
@@ -468,6 +469,17 @@ pitfalls".
 
 **Gated:**
 
+- **A range-table row is checked against the domain of `SIGN` and `OPTION`.**
+  Any structure with the components `sign`/`option`/`low`/`high` is a
+  selection structure to the syntax check, and a `VALUE` row of one without an
+  option warns *Specification "OPTION" is missing in the selection structure*,
+  one with a literal outside the domain — lower case included — *"eq" is not a
+  permitted value for component "OPTION"*. Three of them came from a user's
+  system on 2026-09-23, out of `test_token_odd_option` in
+  `z2ui5_cl_ui5_util_context`, a test that feeds such rows on purpose. A test
+  that needs an odd row builds it field by field and passes the odd value
+  through a variable. Gated (`range_row`): only literals are judged, and a
+  header default (`VALUE #( sign = `I` option = `EQ` ( low = … ) )`) counts.
 - **`LOOP AT … WHERE` over a standard table is a sequential read** and wants
   `"#EC CI_SORTSEQ` on the statement. Fifteen were annotated in the three
   sweeps above, and the gate found seven more that had accumulated since.
