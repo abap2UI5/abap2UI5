@@ -73,6 +73,15 @@ INTERFACE z2ui5_if_ui5_exit
       " suppliable, though: an installation that is NOT behind a proxy that
       " sets it hardens the gate by switching this to abap_false in its
       " exit, so only the transport-level Host header is compared.
+      " Of a comma-separated list the FIRST entry is compared, on purpose:
+      " that is the header's meaning (each proxy appends the Host it saw,
+      " so the first is the one the browser sent, which is what Origin
+      " carries), and the last entry behind two proxies is an internal
+      " name. A proxy that APPENDS instead of replacing lets a client put
+      " its own entry first - a non-browser client, since a browser cannot
+      " send the header without a CORS preflight the ICF node answers 405,
+      " and a non-browser client is not a CSRF victim. Do not "fix" this by
+      " taking the last entry; the switch above is the hardening.
       check_trust_forwarded_host TYPE abap_bool,
     END OF ty_s_http_config_post.
 

@@ -272,6 +272,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     TRY.
         ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
+        " the same pre-check the URL start does (z2ui5_cl_ui5_action=>
+        " factory_first_start, the reasoning is there): the name was typed
+        " in, so a class that is no app is refused from its descriptor,
+        " before anything of it is loaded or instantiated
+        IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
+                                                                  intf  = `Z2UI5_IF_APP` ) = abap_false.
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING
+              val = |Class { ms_home-classname } does not exist or does not implement z2ui5_if_app|.
+        ENDIF.
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `Your app is ready - open it with the link in step 5!` ).
