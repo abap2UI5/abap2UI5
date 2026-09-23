@@ -15,7 +15,13 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-_Empty. Nothing is waiting to be filed against this one._
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`transpiler-find-case-negative-occ`](items/transpiler-find-case-negative-occ.md) | the transpiled find( ) searches case-sensitively whatever `case` says when it searches for `sub`, and answers -1 for a negative `occ` with a `sub` of two or more characters - correct ABAP finds nothing in the one place it runs without a system. Fix and tests are written and attached as a patch; filing is blocked only on write access to abaplint/transpiler | medium | 2026-09-23 | abaplint/transpiler |
 
 ---
 
