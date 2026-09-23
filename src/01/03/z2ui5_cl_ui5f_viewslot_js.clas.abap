@@ -73,6 +73,15 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
+             `    function ownId(localId) {` && |\n| &&
+             `      const owner = AppState.state.oOwnerComponent;` && |\n| &&
+             `      return owner?.createId ? owner.createId(localId) : localId;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function fragmentIdOf(slot) {` && |\n| &&
+             `      return slot.fragmentId ? ownId(slot.fragmentId) : undefined;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
              `` && |\n| &&
              `    function byKey(key) {` && |\n| &&
@@ -140,7 +149,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      if (!slot) return undefined;` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return undefined;` && |\n| &&
-             `      if (slot.fragmentId) return Fragment.byId(slot.fragmentId, id);` && |\n| &&
+             `      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(slot), id);` && |\n| &&
              `      return view.byId(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -217,6 +226,8 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      keyOfController,` && |\n| &&
              `      byId,` && |\n| &&
              `      byIdOfOwner,` && |\n| &&
+             `      ownId,` && |\n| &&
+             `      fragmentIdOf,` && |\n| &&
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&

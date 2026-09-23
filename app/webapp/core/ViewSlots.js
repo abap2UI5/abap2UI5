@@ -18,7 +18,8 @@ sap.ui.define(
     //           request's S_SCROLL keys
     // `prop` / `controllerProp`  AppState fields holding the live instances
     // `fragmentId`  only on the fragment-based slots (popup/popover): the
-    //               id their inner controls are registered under, and the
+    //               LOCAL id their inner controls are registered under
+    //               (the live one is ownId(fragmentId) - see there), and the
     //               marker that the slot must be close()d before destroy
     const slots = [
       {
@@ -61,6 +62,26 @@ sap.ui.define(
         fragmentId: "popoverId",
       },
     ];
+
+    // The id the framework's own views and fragments are created under:
+    // the local id prefixed with the owner component's id
+    // ("mainView" -> "<component>---mainView"), the prefix UI5 itself gives
+    // a manifest rootView. A bare id is page-global, so the MAIN view and
+    // the popup/popover fragments collided with any host control of the same
+    // name the moment the component shared a page with anything else, and
+    // two component instances with each other. Falls back to the bare id
+    // before App.controller has registered the owner (the Node specs, a
+    // bare bootstrap).
+    function ownId(localId) {
+      const owner = AppState.state.oOwnerComponent;
+      return owner?.createId ? owner.createId(localId) : localId;
+    }
+
+    // The live fragment id of a fragment slot (popup/popover), undefined
+    // for the view slots.
+    function fragmentIdOf(slot) {
+      return slot.fragmentId ? ownId(slot.fragmentId) : undefined;
+    }
 
     // Constant-time lookups for the frequently used resolutions (byId,
     // getView run on every roundtrip and scroll/focus capture)
@@ -164,7 +185,7 @@ sap.ui.define(
       if (!slot) return undefined;
       const view = AppState.state[slot.prop];
       if (!view) return undefined;
-      if (slot.fragmentId) return Fragment.byId(slot.fragmentId, id);
+      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(slot), id);
       return view.byId(id);
     }
 
@@ -281,6 +302,8 @@ sap.ui.define(
       keyOfController,
       byId,
       byIdOfOwner,
+      ownId,
+      fragmentIdOf,
       resolveById,
       containingSlotKey,
       trackedModel,

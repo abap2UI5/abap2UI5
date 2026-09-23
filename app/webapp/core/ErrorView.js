@@ -253,10 +253,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     // Always start from a fresh element: reusing a previous overlay would
     // keep its keydown focus-trap listener alive and stack a duplicate on
     // every further show() call.
-    document.getElementById("serverErrorContainer")?.remove();
+    document.getElementById("z2ui5ServerErrorContainer")?.remove();
 
     const container = document.createElement("div");
-    container.id = "serverErrorContainer";
+    container.id = "z2ui5ServerErrorContainer";
     // Square frame, same as the friendly dialog above - the two are the same
     // overlay to the user, one just renders without UI5.
     container.style.cssText = `

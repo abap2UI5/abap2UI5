@@ -87,6 +87,9 @@ function load({ resolveById = null, byId = null } = {}) {
       },
       "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: [
           { key: "MAIN", ownsModel: true },
           { key: "POPUP", ownsModel: true },

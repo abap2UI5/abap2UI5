@@ -52,7 +52,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      const view = ViewSlots.getView(slot.key);` && |\n| &&
              `      if (!view) return fullId;` && |\n| &&
              `      const prefix = slot.fragmentId` && |\n| &&
-             `        ? ``${slot.fragmentId}--``` && |\n| &&
+             `        ? ``${ViewSlots.fragmentIdOf(slot)}--``` && |\n| &&
              `        : ``${view.getId()}--``;` && |\n| &&
              `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `    }` && |\n| &&

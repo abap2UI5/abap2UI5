@@ -133,7 +133,7 @@ sap.ui.define(
       const oFragment = await Fragment.load({
         definition: xml,
         controller: ViewSlots.getController(slotKey),
-        id: fragmentId,
+        id: ViewSlots.ownId(fragmentId),
       });
       if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {
         oFragment.destroy();
@@ -306,7 +306,8 @@ sap.ui.define(
         definition: xml,
         models: oModel,
         controller: ViewSlots.getController("MAIN"),
-        id: "mainView",
+        // component-prefixed, never page-global - see ViewSlots.ownId
+        id: ViewSlots.ownId("mainView"),
         preprocessors: templatePreprocessors(xml, oViewModel),
       });
 

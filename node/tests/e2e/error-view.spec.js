@@ -32,7 +32,7 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
   await page.evaluate(
     (retry) =>
       new Promise((resolve) => {
-        document.getElementById("serverErrorContainer")?.remove();
+        document.getElementById("z2ui5ServerErrorContainer")?.remove();
         window["__retried"] = false;
         window["sap"].ui.require(
           ["z2ui5/core/ErrorView"],
@@ -84,7 +84,7 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
 test("is an accessible alertdialog with focus on the primary action", async () => {
   await showErrorView(false);
 
-  const dialog = page.locator("#serverErrorContainer");
+  const dialog = page.locator("#z2ui5ServerErrorContainer");
   await expect(dialog).toHaveAttribute("role", "alertdialog");
   await expect(dialog).toHaveAttribute("aria-modal", "true");
   await expect(dialog).toHaveAttribute("aria-labelledby", "serverErrorTitle");
@@ -109,7 +109,7 @@ test("Retry removes the overlay and runs the retry handler", async () => {
   await expect(retryButton).toBeFocused();
   await retryButton.click();
 
-  await expect(page.locator("#serverErrorContainer")).toHaveCount(0);
+  await expect(page.locator("#z2ui5ServerErrorContainer")).toHaveCount(0);
   expect(await page.evaluate(() => window["__retried"])).toBe(true);
 });
 

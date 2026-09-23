@@ -102,7 +102,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oFragment = await Fragment.load({` && |\n| &&
              `        definition: xml,` && |\n| &&
              `        controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `        id: fragmentId,` && |\n| &&
+             `        id: ViewSlots.ownId(fragmentId),` && |\n| &&
              `      });` && |\n| &&
              `      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {` && |\n| &&
              `        oFragment.destroy();` && |\n| &&
@@ -221,7 +221,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        definition: xml,` && |\n| &&
              `        models: oModel,` && |\n| &&
              `        controller: ViewSlots.getController("MAIN"),` && |\n| &&
-             `        id: "mainView",` && |\n| &&
+             `` && |\n| &&
+             `        id: ViewSlots.ownId("mainView"),` && |\n| &&
              `        preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&

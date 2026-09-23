@@ -181,6 +181,9 @@ test("getFocusInfo reports a control inside a popup fragment by its bare id", ()
     Element: { closestTo: () => control },
     deps: {
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
         getView: slotViews,
       },
@@ -202,6 +205,9 @@ test("getScrollInfo strips the view id in MAIN and the fragment id in POPUP", ()
   const { module: ScrollFocus } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
         getView: slotViews,
       },

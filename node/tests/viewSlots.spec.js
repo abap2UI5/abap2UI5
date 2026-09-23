@@ -169,6 +169,35 @@ test.describe("byId", () => {
   });
 });
 
+test.describe("ownId (component-prefixed framework ids)", () => {
+  // A bare "mainView" / "popupId" is page-global: it collides with any host
+  // control of that name once the component shares a page, and with a
+  // second component instance. The owner component's createId is what
+  // scopes them, the same prefix UI5 gives a manifest rootView.
+  test("prefixes with the owner component once one is registered", () => {
+    const { ViewSlots, state } = load();
+    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    expect(ViewSlots.ownId("mainView")).toBe("comp---mainView");
+    const popup = ViewSlots.slots.find((s) => s.key === "POPUP");
+    expect(ViewSlots.fragmentIdOf(popup)).toBe("comp---popupId");
+  });
+
+  test("the fragment slots resolve controls under the prefixed id", () => {
+    const { ViewSlots, state, fragmentCalls } = load();
+    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    state.oViewPopover = {};
+    expect(ViewSlots.byId("POPOVER", "btn")).toBe("comp---popoverId--btn");
+    expect(fragmentCalls).toEqual([["comp---popoverId", "btn"]]);
+  });
+
+  test("keeps the bare id before an owner is registered", () => {
+    const { ViewSlots } = load();
+    expect(ViewSlots.ownId("mainView")).toBe("mainView");
+    const main = ViewSlots.slots.find((s) => s.key === "MAIN");
+    expect(ViewSlots.fragmentIdOf(main)).toBeUndefined();
+  });
+});
+
 test.describe("byIdOfOwner", () => {
   test("resolves the id in the owner's own slot, not a same-id in MAIN", () => {
     const { ViewSlots, state } = load();

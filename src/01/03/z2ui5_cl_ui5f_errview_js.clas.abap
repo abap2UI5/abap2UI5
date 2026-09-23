@@ -195,10 +195,10 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function createContainer() {` && |\n| &&
-             `    document.getElementById("serverErrorContainer")?.remove();` && |\n| &&
+             `    document.getElementById("z2ui5ServerErrorContainer")?.remove();` && |\n| &&
              `` && |\n| &&
              `    const container = document.createElement("div");` && |\n| &&
-             `    container.id = "serverErrorContainer";` && |\n| &&
+             `    container.id = "z2ui5ServerErrorContainer";` && |\n| &&
              `` && |\n| &&
              `    container.style.cssText = ``` && |\n| &&
              `      position: fixed;` && |\n| &&
