@@ -35,11 +35,18 @@
 // newest is stable, and the newest one is the current state the existing
 // tabs show anyway. Retention is the only cost; there is no copying.
 sap.ui.define(
-  ["z2ui5/core/AppState", "z2ui5/core/Lib", "z2ui5/devtools/Format"],
-  (AppState, Lib, Format) => {
+  [
+    "z2ui5/core/AppState",
+    "z2ui5/core/Lib",
+    "z2ui5/devtools/Format",
+    "z2ui5/devtools/Persist",
+    "z2ui5/devtools/Diff",
+  ],
+  (AppState, Lib, Format, Persist, Diff) => {
     "use strict";
 
-    const { truncate, formatBytes } = Format;
+    const { formatBytes, renderValue } = Format;
+    const { collectDiff, diffLines, MAX_DIFF_ENTRIES } = Diff;
 
     // Tier 1 ring size. 50 records of metadata are far below the error log's
     // footprint and cover a long debugging session.
@@ -76,9 +83,7 @@ sap.ui.define(
     // cannot grow a record without bound.
     const MAX_MESSAGE_CHARS = 500;
 
-    // Rendering caps for the history / diff text output.
-    const MAX_DIFF_ENTRIES = 200;
-    const MAX_DIFF_DEPTH = 12;
+    // Longest value rendered inline in the model diff.
     const MAX_DIFF_VALUE_CHARS = 120;
 
     // Oldest first. Each entry:
@@ -327,27 +332,15 @@ sap.ui.define(
       enforcePayloadBudget();
     }
 
-    // True when the developer switched Tier 2 on. Guarded: sessionStorage
-    // throws in some embedded/privacy configurations, and a diagnostic tool
-    // must never be the thing that breaks the app.
+    // True when the developer switched Tier 2 on (the guarded read is
+    // devtools/Persist.js's - a diagnostic tool must never be the thing
+    // that breaks the app).
     function isRecordingPayloads() {
-      try {
-        return window.sessionStorage?.getItem(PAYLOAD_FLAG_KEY) === "X";
-      } catch {
-        return false;
-      }
+      return Persist.readFlag(PAYLOAD_FLAG_KEY);
     }
 
     function setRecordingPayloads(enabled) {
-      try {
-        if (enabled) {
-          window.sessionStorage?.setItem(PAYLOAD_FLAG_KEY, "X");
-        } else {
-          window.sessionStorage?.removeItem(PAYLOAD_FLAG_KEY);
-        }
-      } catch {
-        // storage unavailable - the switch then simply does not persist
-      }
+      Persist.writeFlag(PAYLOAD_FLAG_KEY, enabled);
       if (!enabled) dropAllPayloads();
     }
 
@@ -435,39 +428,22 @@ sap.ui.define(
     }
 
     function persist() {
-      try {
-        const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({
-          ...withoutPayloads(record),
-          previousLoad: true,
-        }));
-        if (!slim.length) return;
-        window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(slim));
-      } catch {
-        // storage full or unavailable - the history simply does not survive
-      }
+      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({
+        ...withoutPayloads(record),
+        previousLoad: true,
+      }));
+      Persist.saveList(RELOAD_KEY, slim);
     }
 
     // Adopt what the previous page load left behind, oldest first, so the
     // history reads as one timeline across the reload.
     function restore() {
-      let stored;
-      try {
-        stored = window.sessionStorage?.getItem(RELOAD_KEY);
-        window.sessionStorage?.removeItem(RELOAD_KEY);
-      } catch {
-        return;
-      }
-      if (!stored) return;
-      try {
-        const parsed = JSON.parse(stored);
-        if (!Array.isArray(parsed)) return;
-        records = parsed.slice(-RELOAD_MAX_RECORDS);
-        // Continue the numbering after the restored ones so the two halves
-        // of the timeline cannot collide.
-        nextSeq = (records[records.length - 1]?.seq || 0) + 1;
-      } catch {
-        records = [];
-      }
+      const stored = Persist.takeList(RELOAD_KEY);
+      if (!stored.length) return;
+      records = stored.slice(-RELOAD_MAX_RECORDS);
+      // Continue the numbering after the restored ones so the two halves
+      // of the timeline cannot collide.
+      nextSeq = (records[records.length - 1]?.seq || 0) + 1;
     }
 
     function install() {
@@ -725,94 +701,12 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
-    // Model diff between the two most recent recorded responses.
-    // ------------------------------------------------------------------
-
-    function isPlainObject(value) {
-      return (
-        value !== null && typeof value === "object" && !Array.isArray(value)
-      );
-    }
-
-    function renderValue(value) {
-      let text;
-      if (value === undefined) return "(absent)";
-      if (value === null) return "null";
-      if (typeof value === "object") {
-        try {
-          text = JSON.stringify(value);
-        } catch {
-          text = String(value);
-        }
-      } else {
-        text = String(value);
-      }
-      return truncate(text, MAX_DIFF_VALUE_CHARS);
-    }
-
-    // Walk two model trees in parallel and collect the differing paths.
-    // Arrays are compared by index - a table row inserted at the top does
-    // report every following row as changed, which is the honest answer for
-    // a model the backend rebuilds wholesale anyway.
-    function collectDiff(before, after, path, out, depth) {
-      if (out.length >= MAX_DIFF_ENTRIES) return;
-      if (before === after) return;
-      if (depth > MAX_DIFF_DEPTH) {
-        out.push({ path, type: "changed", before: "(too deep)", after: "" });
-        return;
-      }
-
-      const bothObjects = isPlainObject(before) && isPlainObject(after);
-      const bothArrays = Array.isArray(before) && Array.isArray(after);
-
-      if (bothObjects) {
-        const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
-        for (const key of keys) {
-          collectDiff(
-            before[key],
-            after[key],
-            `${path}/${key}`,
-            out,
-            depth + 1,
-          );
-        }
-        return;
-      }
-
-      if (bothArrays) {
-        const length = Math.max(before.length, after.length);
-        for (let i = 0; i < length; i++) {
-          collectDiff(before[i], after[i], `${path}/${i}`, out, depth + 1);
-        }
-        return;
-      }
-
-      if (before === undefined) {
-        out.push({ path, type: "added", before: undefined, after });
-        return;
-      }
-      if (after === undefined) {
-        out.push({ path, type: "removed", before, after: undefined });
-        return;
-      }
-      out.push({ path, type: "changed", before, after });
-    }
-
-    // ------------------------------------------------------------------
     // View XML diff between the two most recent responses that rebuilt a
     // slot. The model diff answers "what data changed"; this answers "why
-    // does the layout look different", which is the other half.
+    // does the layout look different", which is the other half. Both
+    // walks are devtools/Diff.js's; this module picks the two inputs and
+    // renders the result.
     // ------------------------------------------------------------------
-
-    // Lines compared before the diff gives up - a generated view can be
-    // thousands of lines and this walk is deliberately cheap.
-    const MAX_DIFF_LINES = 4000;
-
-    // How far ahead the walk looks for a line to resync on. A view change is
-    // local (an inserted control, a changed attribute), so a small window
-    // finds the anchor; a wholesale rebuild resyncs on nothing and is
-    // reported as a full replacement, which is the honest answer for it.
-    const DIFF_LOOKAHEAD = 25;
 
     // The XML a response displayed into `slotKey`, or "" when it rebuilt no
     // such slot. Shape per the backend's own unit tests:
@@ -827,67 +721,6 @@ sap.ui.define(
         if (typeof item[3] === "string") return item[3];
       }
       return "";
-    }
-
-    // Line diff with a bounded resync window. Not an LCS: a full one is
-    // quadratic, and for view XML - where edits are local - a lookahead
-    // walk produces the same reading at a fraction of the cost.
-    function diffLines(beforeText, afterText) {
-      const a = beforeText.split("\n").slice(0, MAX_DIFF_LINES);
-      const b = afterText.split("\n").slice(0, MAX_DIFF_LINES);
-      const out = [];
-      let i = 0;
-      let j = 0;
-      while ((i < a.length || j < b.length) && out.length < MAX_DIFF_ENTRIES) {
-        if (i < a.length && j < b.length && a[i] === b[j]) {
-          i += 1;
-          j += 1;
-          continue;
-        }
-        let addedRun = -1;
-        let removedRun = -1;
-        for (let k = 1; k <= DIFF_LOOKAHEAD; k += 1) {
-          if (
-            addedRun < 0 &&
-            i < a.length &&
-            j + k < b.length &&
-            a[i] === b[j + k]
-          ) {
-            addedRun = k;
-          }
-          if (
-            removedRun < 0 &&
-            j < b.length &&
-            i + k < a.length &&
-            b[j] === a[i + k]
-          ) {
-            removedRun = k;
-          }
-          if (addedRun >= 0 || removedRun >= 0) break;
-        }
-        if (addedRun >= 0 && (removedRun < 0 || addedRun <= removedRun)) {
-          for (let k = 0; k < addedRun; k += 1) {
-            out.push({ type: "+", line: b[j + k], number: j + k + 1 });
-          }
-          j += addedRun;
-        } else if (removedRun >= 0) {
-          for (let k = 0; k < removedRun; k += 1) {
-            out.push({ type: "-", line: a[i + k], number: i + k + 1 });
-          }
-          i += removedRun;
-        } else {
-          // nothing to resync on - report the pair as a replacement
-          if (i < a.length) {
-            out.push({ type: "-", line: a[i], number: i + 1 });
-            i += 1;
-          }
-          if (j < b.length) {
-            out.push({ type: "+", line: b[j], number: j + 1 });
-            j += 1;
-          }
-        }
-      }
-      return out;
     }
 
     // The two most recent records whose response rebuilt `slotKey`.
@@ -962,6 +795,10 @@ sap.ui.define(
       return xml.replace(/></g, ">\n<");
     }
 
+    // ------------------------------------------------------------------
+    // Model diff between the two most recent recorded responses.
+    // ------------------------------------------------------------------
+
     // The two most recent records that actually carry a response payload.
     function lastTwoResponses() {
       const withPayload = records.filter((record) => record.response);
@@ -986,13 +823,9 @@ sap.ui.define(
         );
       }
       const [previous, current] = pair;
-      const out = [];
-      collectDiff(
+      const out = collectDiff(
         previous.response?.MODEL,
         current.response?.MODEL,
-        "",
-        out,
-        0,
       );
 
       const header = [
@@ -1013,14 +846,18 @@ sap.ui.define(
         const path = entry.path || "/";
         if (entry.type === "added") {
           header.push(`+ ${path}`);
-          header.push(`    ${renderValue(entry.after)}`);
+          header.push(`    ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}`);
         } else if (entry.type === "removed") {
           header.push(`- ${path}`);
-          header.push(`    ${renderValue(entry.before)}`);
+          header.push(`    ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}`);
         } else {
           header.push(`~ ${path}`);
-          header.push(`    before: ${renderValue(entry.before)}`);
-          header.push(`    after:  ${renderValue(entry.after)}`);
+          header.push(
+            `    before: ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}`,
+          );
+          header.push(
+            `    after:  ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}`,
+          );
         }
       }
       if (out.length >= MAX_DIFF_ENTRIES) {

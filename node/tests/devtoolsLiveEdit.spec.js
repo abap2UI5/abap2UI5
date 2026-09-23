@@ -12,6 +12,9 @@ const { loadModule } = require("./loadModule");
 // what the second table inside LiveEdit was).
 function realTabs() {
   const { module } = loadModule("devtools/Tabs.js", {
+    // devtools/SlotXml.js (the slot reader) is loaded for real; every
+    // other dependency is stubbed below
+    autoLoad: true,
     deps: {
       // Only the table is read here (Tabs.get), never a produce() - so
       // the modules a tab renders from stay empty stubs.

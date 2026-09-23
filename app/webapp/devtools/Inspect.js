@@ -1,10 +1,16 @@
-// Read-only inspectors of the developer tools.
+// Read-only inspectors of the developer tools: Overview, Environment,
+// Registry, Actions and Error, plus the ABAP-source line lookup.
 //
 // Like devtools/Recorder.js this module is OUTSIDE the framework: it
 // only reads state other modules own (AppState, ViewSlots, the recorded
 // history) and renders it as text for a developer-tools tab. Nothing here
 // is wired into a framework code path, and nothing in the framework knows
 // this file exists.
+//
+// The Log tab (devtools/Log.js), the Bindings tab (devtools/Bindings.js)
+// and the help text (devtools/Help.js) are separate modules; their
+// renderers are re-exported here so the tab registry and the dialog reach
+// every inspector through one module.
 //
 // Everything renders to plain text rather than a control tree, because the
 // same string has to serve two consumers: the CodeEditor in the dialog and
@@ -17,9 +23,12 @@ sap.ui.define(
     "z2ui5/core/Env",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
-    "z2ui5/devtools/Console",
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/Format",
+    "z2ui5/devtools/SlotXml",
+    "z2ui5/devtools/Log",
+    "z2ui5/devtools/Bindings",
+    "z2ui5/devtools/Help",
   ],
   (
     Device,
@@ -28,9 +37,12 @@ sap.ui.define(
     Env,
     ScrollFocus,
     ViewSlots,
-    Console,
     Recorder,
     Format,
+    SlotXml,
+    Log,
+    Bindings,
+    Help,
   ) => {
     "use strict";
 
@@ -70,14 +82,6 @@ sap.ui.define(
     // early exit on MAX_SCRAPED_EVENTS never leaves a lastIndex behind).
     const EVENT_CALL = new RegExp(Format.FRAMEWORK_CALL.source, "g");
 
-    // An absolute binding path in view XML: a `{/A` binding, `${/A` in
-    // an expression, path:'/A', parts:['/A','/B'] (the comma continues a
-    // parts list). Any quote followed by "/" used to count, which read
-    // src="/sap/public/..." and href="/some/page" as bindings of /sap and
-    // /some and reported them as missing from the model
-    const BINDING_PATH =
-      /(?:\{\s*|\$\{\s*|path\s*:\s*['"]|parts\s*:\s*\[\s*['"]|,\s*['"])\/([A-Za-z_][A-Za-z0-9_]*)/g;
-
     // A word character for the whole-word test of findEventLine.
     const WORD_CHAR = /[a-z0-9_]/;
     const isWordChar = (ch) => ch !== undefined && WORD_CHAR.test(ch);
@@ -90,15 +94,11 @@ sap.ui.define(
       return `  ${label.padEnd(LABEL_WIDTH)}${text}`;
     }
 
-    function section(title) {
-      return `\n${title}\n${"-".repeat(title.length)}`;
-    }
-
     function yesNo(value) {
       return value ? "yes" : "no";
     }
 
-    const { truncate, formatBytes } = Format;
+    const { truncate, section, renderValue } = Format;
 
     // ------------------------------------------------------------------
     // Environment
@@ -372,28 +372,6 @@ sap.ui.define(
     // Registry - what the frontend currently has registered
     // ------------------------------------------------------------------
 
-    // The view XML a slot currently holds: the live view's own viewContent
-    // when UI5 kept it, else the source ViewSlots recorded when the slot was
-    // filled (a fragment or a `definition`-built view keeps none).
-    //
-    // Private member access, developer tools only: XMLView keeps the raw XML
-    // as a pseudo property in mProperties but does not declare it in its
-    // metadata, so getProperty("viewContent") throws. Read the plain object
-    // instead. devtools/Tabs.js keeps the same read for the tab registry
-    // and devtools/Picker.js for the picked control's handlers: this module
-    // cannot borrow Tabs' copy (Tabs already depends on this one, so the
-    // import would close a cycle), and driving the registry through this
-    // one instead would leave the Tabs specs exercising an Inspect stub
-    // rather than the shipped read. Three readers, one rule - change them
-    // together.
-    function slotXml(slotKey) {
-      return (
-        ViewSlots.getView(slotKey)?.mProperties?.viewContent ||
-        ViewSlots.getViewXml(slotKey) ||
-        ""
-      );
-    }
-
     // Backend event names bound in a view's XML. The framework binds an
     // event as `.eB(['NAME'])` / `.eF(['NAME'])` (see the backend's
     // get_event), so the names can be read back off the XML the slot was
@@ -457,7 +435,7 @@ sap.ui.define(
       out.push(section("Backend events bound in the current views"));
       let any = false;
       for (const slot of ViewSlots.slots) {
-        const events = scrapeEvents(slotXml(slot.key));
+        const events = scrapeEvents(SlotXml.slotXml(slot.key));
         if (!events.length) continue;
         any = true;
         out.push(`  [${slot.key}]`);
@@ -478,15 +456,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     function renderArg(arg) {
-      if (arg === null) return "null";
-      if (typeof arg === "object") {
-        try {
-          return truncate(JSON.stringify(arg), MAX_ARG_CHARS);
-        } catch {
-          return "[object]";
-        }
-      }
-      return truncate(arg, MAX_ARG_CHARS);
+      return renderValue(arg, MAX_ARG_CHARS);
     }
 
     function renderActionList(list, title) {
@@ -521,369 +491,6 @@ sap.ui.define(
         ...renderActionList(sAction?.T_SYSTEM, "T_SYSTEM (view lifecycle)"),
       );
       out.push(...renderActionList(sAction?.T_CUSTOM, "T_CUSTOM (app)"));
-      return out.join("\n");
-    }
-
-    // ------------------------------------------------------------------
-    // Log - ONE timeline of everything the app logged
-    //
-    // These used to be three tabs: the framework's own error log, the
-    // console capture, and the backend messages. They are three views of
-    // the same timeline, and splitting them forced the developer to
-    // correlate three tabs by timestamp by hand - which is exactly the
-    // work a log is supposed to save. Merged and sorted by time, with the
-    // origin in a column, the sequence reads itself: a UI5 binding warning,
-    // then the toast the user saw, then the uncaught error that followed.
-    // ------------------------------------------------------------------
-
-    const LEVEL_LABEL = {
-      error: "ERROR",
-      warn: "WARN ",
-      info: "INFO ",
-      log: "LOG  ",
-      debug: "DEBUG",
-    };
-
-    // Column width of the origin marker. The longest is "rejection" at
-    // nine characters, so nine would leave no separating space.
-    const SOURCE_WIDTH = 10;
-
-    // Indent of a wrapped line (a stack trace) so it lines up under the
-    // message rather than under the timestamp.
-    const CONTINUATION_INDENT = " ".repeat(23 + SOURCE_WIDTH);
-
-    // The framework's own error log (Lib.logError) stores the caught error
-    // alongside the message, and that is where the STACK TRACE is - the one
-    // thing that says which line actually threw. Render it under its
-    // message rather than dropping it.
-    function frameworkEntryText(entry) {
-      if (entry.error === undefined) return entry.message;
-      let detail;
-      if (entry.error && typeof entry.error === "object") {
-        detail = entry.error.stack || entry.error.message;
-      }
-      if (!detail) {
-        try {
-          detail = String(entry.error);
-        } catch {
-          detail = "(error could not be rendered)";
-        }
-      }
-      return `${entry.message}\n${detail}`;
-    }
-
-    // A message box carries its severity in the method name
-    // (MessageBox.error / .warning / .success); a toast has none.
-    function messageLevel(message) {
-      const method = String(message.method || "").toLowerCase();
-      if (method === "error" || method === "alert") return "error";
-      if (method === "warning") return "warn";
-      return "info";
-    }
-
-    function messageSource(message) {
-      return message.target === "MESSAGE_BOX"
-        ? `box.${message.method || "show"}`
-        : "toast";
-    }
-
-    // Everything, in one array, oldest first. Sorted by the ISO timestamp
-    // every source already carries - lexicographic order is chronological
-    // for ISO strings, so no date parsing is needed.
-    function collectLog() {
-      const out = [];
-      for (const entry of AppState.state.errors || []) {
-        out.push({
-          ts: entry.ts,
-          level: "error",
-          source: "framework",
-          text: frameworkEntryText(entry),
-        });
-      }
-      for (const entry of Console.getEntries()) {
-        out.push({
-          ts: entry.ts,
-          level: entry.level,
-          source: entry.source,
-          text: entry.text,
-          previousLoad: entry.previousLoad,
-        });
-      }
-      for (const record of Recorder.getRecords()) {
-        for (const message of record.messages || []) {
-          out.push({
-            ts: record.ts,
-            level: messageLevel(message),
-            source: messageSource(message),
-            text: message.text,
-            previousLoad: record.previousLoad,
-          });
-        }
-      }
-      out.sort((a, b) => {
-        if (a.ts === b.ts) return 0;
-        return a.ts < b.ts ? -1 : 1;
-      });
-      return out;
-    }
-
-    function countLevels(entries) {
-      const out = { error: 0, warn: 0, info: 0, log: 0, debug: 0 };
-      for (const entry of entries) {
-        if (out[entry.level] !== undefined) out[entry.level] += 1;
-      }
-      return out;
-    }
-
-    function formatLog() {
-      const entries = collectLog();
-      const lines = ["abap2UI5 Developer Tools - Log"];
-      lines.push("");
-      lines.push(
-        "  One timeline of everything the app logged, so the browser's own",
-      );
-      lines.push(
-        "  devtools do not have to be open. The origin is in the third",
-      );
-      lines.push("  column:");
-      lines.push("");
-      lines.push(
-        "    framework   the framework's own error log (Lib.logError)",
-      );
-      lines.push("    ui5         UI5's log - binding and control problems");
-      lines.push("    console     a console.* call from the app or a library");
-      lines.push("    uncaught    an uncaught error");
-      lines.push("    rejection   an unhandled promise rejection");
-      lines.push("    toast/box   a backend message the user was shown");
-      lines.push("");
-      const counts = countLevels(entries);
-      const dropped = Console.getDropped();
-      lines.push(
-        `  ${entries.length} entr(ies) - ${counts.error} error,` +
-          ` ${counts.warn} warn, ${counts.info} info, ${counts.log} log,` +
-          ` ${counts.debug} debug` +
-          (dropped ? ` (${dropped} older console entries dropped)` : ""),
-      );
-      lines.push("");
-      if (!entries.length) {
-        lines.push("  (nothing logged yet)");
-        return lines.join("\n");
-      }
-      for (const entry of entries) {
-        const label = LEVEL_LABEL[entry.level] || entry.level.toUpperCase();
-        const head =
-          `  ${entry.ts.slice(11, 23)}${entry.previousLoad ? "*" : " "} ` +
-          `${label}  ${entry.source.padEnd(SOURCE_WIDTH)}`;
-        const [first, ...rest] = String(entry.text).split("\n");
-        lines.push(`${head}${first}`);
-        // a stack trace keeps its own lines, indented under its message
-        for (const line of rest) {
-          lines.push(`${CONTINUATION_INDENT}${line.trim()}`);
-        }
-      }
-      if (entries.some((entry) => entry.previousLoad)) {
-        lines.push("");
-        lines.push(
-          "  A '*' after the time marks an entry of the PREVIOUS page load," +
-            " carried across the reload.",
-        );
-      }
-      return lines.join("\n");
-    }
-
-    // ------------------------------------------------------------------
-    // Bindings - model paths, and which of them the user edited
-    // ------------------------------------------------------------------
-
-    // Describe a model value the way a developer scanning for "why is this
-    // field empty" needs: type, size, and a short preview.
-    function describeValue(value) {
-      if (value === null) return "null";
-      if (value === undefined) return "(absent)";
-      if (Array.isArray(value)) {
-        return `table, ${value.length} row(s)`;
-      }
-      if (typeof value === "object") {
-        return `structure, ${Object.keys(value).length} field(s)`;
-      }
-      if (value === "") return `${typeof value} (empty)`;
-      return `${typeof value}  ${truncate(value, 60)}`;
-    }
-
-    function formatSlotBindings(slotKey) {
-      const view = ViewSlots.getView(slotKey);
-      if (!view) return [];
-      // tracked resolver - see modelAttributeCount
-      const model = ViewSlots.trackedModel(view);
-      const data = model?.getData?.();
-      if (!data) return [];
-      const out = [section(`Slot ${slotKey}`)];
-      // The edited-path set the next roundtrip will ship as its delta.
-      // Slots.trackChanges parks it on the model itself; nothing surfaces
-      // it today, which is why "why was my edit not sent" is hard to answer.
-      // read only below, so the model's own set serves as is - no copy
-      const dirty = model._z2ui5ChangedPaths || new Set();
-      // a table edit is tracked on the deep path, so an attribute is dirty
-      // when any tracked path starts with it: the attribute is the first
-      // segment (`/TAB/0/COL` -> TAB, the rule buildDeltaFromPaths applies).
-      // Derived once - the loop below used to materialise the whole set
-      // and scan it per attribute, attributes x edited paths on every render
-      const dirtyAttrs = new Set(
-        Array.from(dirty, (p) => p.split("/")[1]).filter(Boolean),
-      );
-      const keys = Object.keys(data).sort();
-      if (!keys.length) out.push("  (model is empty)");
-      for (const key of keys) {
-        const path = `/${key}`;
-        const isDirty = dirtyAttrs.has(key);
-        out.push(
-          `  ${isDirty ? "*" : " "} ${path.padEnd(30)}${describeValue(data[key])}`,
-        );
-      }
-      if (dirty.size) {
-        out.push("");
-        out.push("  Edited paths queued for the next roundtrip:");
-        for (const path of Array.from(dirty).sort()) out.push(`    ${path}`);
-      }
-      out.push(...formatPendingDelta(dirty, data));
-      out.push(...formatBindingCheck(slotKey, data));
-      out.push(...formatSizeRanking(data));
-      return out;
-    }
-
-    // Absolute model paths bound in a view's XML. Only the ABSOLUTE ones
-    // ("{/NAME}", "{path: '/NAME'}", "${/NAME}" inside an expression) can be
-    // checked against the model - a relative binding inside an aggregation
-    // template ("{COL}") resolves against the row context and says nothing
-    // on its own, so it is deliberately not collected.
-    //
-    // Returns the top-level ATTRIBUTE of each path ("/TAB/0/COL" -> "TAB"),
-    // because that is what client->_bind( ) creates and what the model has
-    // as a key.
-    function scrapeBindingAttributes(xml) {
-      if (!xml) return [];
-      const found = new Set();
-      // a "/" only where a BINDING starts an absolute path: {/A}, ${/A} in
-      // an expression, path:'/A', parts:['/A','/B'] - see BINDING_PATH
-      for (const match of xml.matchAll(BINDING_PATH)) found.add(match[1]);
-      return Array.from(found).sort();
-    }
-
-    // The check that answers "why is my field empty": every absolute path
-    // the view binds, against the attributes the model actually carries. A
-    // renamed ABAP attribute, a typo, or a forgotten client->_bind( ) all
-    // land here, and nothing else in the tools makes them visible.
-    function formatBindingCheck(slotKey, data) {
-      const bound = scrapeBindingAttributes(slotXml(slotKey));
-      if (!bound.length) return [];
-      const missing = bound.filter((name) => !(name in data));
-      const out = [];
-      if (missing.length) {
-        out.push("");
-        out.push("  BOUND IN THE VIEW BUT NOT IN THE MODEL:");
-        for (const name of missing) out.push(`    /${name}`);
-        out.push(
-          "    -> a typo, a renamed ABAP attribute, or a missing" +
-            " client->_bind( ).",
-        );
-      }
-      // The other direction is worth one line, not a list: an unbound
-      // attribute is wasted payload, not a defect.
-      const boundSet = new Set(bound);
-      const unused = Object.keys(data).filter((name) => !boundSet.has(name));
-      if (unused.length) {
-        out.push("");
-        out.push(
-          `  ${unused.length} model attribute(s) not bound in this view:` +
-            ` ${unused.slice(0, 12).join(", ")}` +
-            `${unused.length > 12 ? ", ..." : ""}`,
-        );
-      }
-      return out;
-    }
-
-    // Serialized size of one model attribute. This is the number that
-    // explains a large response - and the ranking below turns "the response
-    // is 800 KB" into "/T_ITEMS is 92 % of it".
-    function attributeSize(value) {
-      try {
-        const json = JSON.stringify(value);
-        return json === undefined ? 0 : json.length;
-      } catch {
-        return 0;
-      }
-    }
-
-    function formatSizeRanking(data) {
-      const sizes = Object.keys(data)
-        .map((name) => ({ name, size: attributeSize(data[name]) }))
-        .sort((a, b) => b.size - a.size);
-      const total = sizes.reduce((sum, entry) => sum + entry.size, 0);
-      if (!total) return [];
-      const out = ["", `  Model size: ${formatBytes(total)} serialized`];
-      // Only the heavy end is interesting; a long tail of small scalars
-      // would bury it.
-      for (const entry of sizes.slice(0, 8)) {
-        if (!entry.size) continue;
-        const share = Math.round((entry.size * 100) / total);
-        const rows = Array.isArray(data[entry.name])
-          ? `, ${data[entry.name].length} row(s)`
-          : "";
-        out.push(
-          `    ${`/${entry.name}`.padEnd(30)}${formatBytes(entry.size).padStart(8)}` +
-            `  ${String(share).padStart(3)}%${rows}`,
-        );
-      }
-      return out;
-    }
-
-    // The delta the NEXT roundtrip will actually put on the wire, built
-    // with the very function the framework uses for it
-    // (Lib.buildDeltaFromPaths). Answers "why does my change not arrive in
-    // the backend" BEFORE the roundtrip instead of after it.
-    function formatPendingDelta(dirty, data) {
-      if (!dirty.size) return [];
-      const out = ["", "  Delta the next roundtrip will send:"];
-      try {
-        const delta = Lib.buildDeltaFromPaths(dirty, data);
-        const json = JSON.stringify(delta, null, 2);
-        for (const line of truncate(json, 1200).split("\n")) {
-          out.push(`    ${line}`);
-        }
-      } catch (e) {
-        Lib.logError("DevTools Inspect: building the delta preview failed", e);
-        out.push("    (could not be built)");
-      }
-      return out;
-    }
-
-    // `slotKey` restricts the report to one slot - the developer tools
-    // pick the slot in their own selector now, so a Bindings tab that
-    // always rendered every slot would repeat what the selector already
-    // said. Without it every model-owning slot is reported, which is what
-    // the export wants.
-    function formatBindings(slotKey) {
-      const out = ["abap2UI5 Developer Tools - Model bindings"];
-      out.push("");
-      out.push(
-        "  A '*' marks an attribute the user edited: those paths travel as" +
-          " the delta of the next roundtrip.",
-      );
-      out.push(
-        "  MAIN, NEST and NEST2 share one model by UI5 propagation, so they" +
-          " are listed once, under MAIN.",
-      );
-      let any = false;
-      for (const slot of ViewSlots.slots) {
-        // only the slots that own a model - the nested ones would repeat MAIN
-        if (!slot.ownsModel) continue;
-        if (slotKey && slot.key !== slotKey) continue;
-        const lines = formatSlotBindings(slot.key);
-        if (!lines.length) continue;
-        any = true;
-        out.push(...lines);
-      }
-      if (!any) out.push("\n  (no slot carries a model yet)");
       return out.join("\n");
     }
 
@@ -963,7 +570,7 @@ sap.ui.define(
         ),
       );
 
-      const counts = countLevels(collectLog());
+      const counts = Log.countLevels(Log.collectLog());
       const loud = counts.error + counts.warn;
       out.push(
         line(
@@ -1032,136 +639,20 @@ sap.ui.define(
       return `"${record.event || "(start)"}"${timing}`;
     }
 
-    // ------------------------------------------------------------------
-    // Help - what each tab answers, and the entry points
-    // ------------------------------------------------------------------
-
-    // Discoverability is the real barrier here: a tab that nobody knows
-    // exists helps nobody, and Ctrl+F12 is not guessable. Kept as text
-    // next to the tabs it describes so it cannot drift into a wiki.
-    const HELP = [
-      "abap2UI5 Developer Tools",
-      "",
-      "Opening",
-      "-------",
-      "  Ctrl+F12                    open / close these tools",
-      "  ?z2ui5-devtools=1           open them on page load (for problems",
-      "                              that happen during startup)",
-      "  ?z2ui5-devtools=HISTORY     open them directly on a view, by its key",
-      "",
-      "  Without one named, they reopen where you left off.",
-      "",
-      "The six tabs, and what each is for",
-      "----------------------------------",
-      "  Overview      which app, which roundtrip, is anything broken - and",
-      "                where to go next. The landing tab",
-      "  Problems      what went wrong",
-      "  Roundtrips    what went over the wire",
-      "  View & Data   what the screen is made of, and what fills it",
-      "  System        what the app is running on, and its ABAP class",
-      "  Search        one term across EVERY other tab at once - answers",
-      "                'where does /CUSTOMER appear?' without opening each",
-      "",
-      "Problems",
-      "--------",
-      "  Error         the last fatal error, with Retry / Restart / Logout",
-      "  Log           ONE timeline of everything logged: the framework's",
-      "                own error log (with stack traces), UI5's log (binding",
-      "                and control problems), uncaught errors, unhandled",
-      "                rejections, every console.* call, and the backend",
-      "                messages the user was shown - so the browser's own",
-      "                devtools do not have to be open",
-      "",
-      "Roundtrips",
-      "----------",
-      "  History       every roundtrip: backend vs. render time, payload",
-      "                sizes, draft ids - and the ones that never rendered",
-      "  Request /     the raw JSON on the wire",
-      "  Response",
-      "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",
-      "  Model Diff    what the backend changed between two responses",
-      "  View Diff     what changed in the view XML between two rebuilds",
-      "",
-      "  'Record Payloads' keeps the request/response bodies, which is what",
-      "  the two diffs need. OFF by default: it is the only part of the",
-      "  history that costs real memory (2 MB budget, oldest dropped first).",
-      "",
-      "View & Data",
-      "-----------",
-      "  Pick the SLOT on the left (only the filled ones are offered), then",
-      "  the aspect:",
-      "",
-      "  XML           the view XML the slot holds",
-      "  Model         the JSON model behind it",
-      "  Bindings      the model attributes, '*' on the paths that will",
-      "                travel as the next delta, the delta itself, the paths",
-      "                bound in the view that the model does NOT have (the",
-      "                usual cause of an empty field), and the attributes",
-      "                ranked by size (the usual cause of a huge response)",
-      "  Picked        'Pick Control' closes these tools, lets you click any",
-      "  Control       control in the app, and reports which ABAP attribute",
-      "                feeds it with its current value. Escape cancels",
-      "",
-      "  On an XML view: 'Apply to App' renders the edited XML into the",
-      "  running app with NO roundtrip and no activation - a local preview",
-      "  the next response replaces again. 'Reset' puts the original back.",
-      "",
-      "System",
-      "------",
-      "  Environment   versions, SAPUI5 vs OpenUI5, the SDK url the page",
-      "                bootstrapped from and its resource roots, theme,",
-      "                language, content density, session, device, the",
-      "                focus/scroll block sent on every roundtrip, slots",
-      "  Registry      shortcuts, timers, callbacks, bound backend events",
-      "  ABAP Source   the running app's class. 'Open in ADT' opens it in a",
-      "                new tab, at the line of the last event",
-      "",
-      "Always available",
-      "----------------",
-      "  Copy             put the current view's content on the clipboard",
-      "  Report a Bug     see below",
-      "  (i)              this help",
-      "",
-      "  'Open on Error' (on Overview) pops these tools open on the Log as",
-      "  soon as anything logs at error level. Off by default.",
-      "",
-      "Reporting a bug",
-      "---------------",
-      "  'Report a Bug' puts the whole session state on the clipboard as a",
-      "  GitHub-ready issue body: environment, the error, the log, the",
-      "  roundtrip history and the running app's ABAP class, each in a",
-      "  collapsed section. Paste it into an issue as it is.",
-      "",
-      "  'Export' opens the same content for reading, with downloads. With",
-      "  Record Payloads on, Download History (JSON) additionally carries",
-      "  the actual request/response bodies.",
-      "",
-      "  The console errors and the roundtrip history survive a page reload",
-      "  (sessionStorage), so an app that died and was reloaded keeps its",
-      "  evidence - those rows are marked with a '*'.",
-    ].join("\n");
-
-    function formatHelp() {
-      return HELP;
-    }
-
     return {
       formatEnvironment,
       formatError,
-      formatHelp,
       formatOverview,
       formatRegistry,
       formatActions,
-      formatLog,
-      formatBindings,
       findEventLine,
+      // the inspectors that live in their own module, reachable here so
+      // the tab registry and the dialog know one module for all of them
+      formatLog: Log.formatLog,
+      formatBindings: Bindings.formatBindings,
+      formatHelp: Help.formatHelp,
       // exposed for the unit specs
-      _internals: {
-        scrapeEvents,
-        scrapeBindingAttributes,
-        describeValue,
-        getDistribution,
-      },
+      _internals: { scrapeEvents, getDistribution },
     };
   },
 );

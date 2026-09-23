@@ -30,8 +30,9 @@ sap.ui.define(
     "z2ui5/devtools/Inspect",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/SlotXml",
   ],
-  (AppState, ViewSlots, Format, Inspect, Picker, Recorder) => {
+  (AppState, ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -64,39 +65,15 @@ sap.ui.define(
       return Boolean(data) && Object.keys(data).length > 0;
     }
 
-    function getViewContent(view) {
-      // Private member access (developer tools only): XMLView keeps the raw
-      // XML string as a pseudo property in mProperties, but does not declare
-      // it in its metadata - getProperty("viewContent") therefore throws and
-      // would abort the whole tab selection. Read the plain object instead.
-      return view?.mProperties?.viewContent;
-    }
-
     function getRenderedContent(view) {
       // Private member access (developer tools only): _xContent holds the
       // view XML after XML templating ran; there is no public equivalent.
       return view?._xContent?.outerHTML;
     }
 
-    // The view XML a slot currently holds: the live view's own viewContent
-    // when UI5 kept it, else the source ViewSlots recorded when the slot was
-    // filled (a fragment or a `definition`-built view keeps none).
-    //
-    // Read from the SLOT, never from the last response: a slot lives and dies
-    // by ViewSlots.setView/destroy, and both ways of tearing one down end up
-    // there - the backend's ["VIEW_SLOTS","destroy",...] action and the
-    // roundtrip-free frontend close (cs_event-popup_close / popover_close,
-    // which the backend formats as that very same action). Scraping the last
-    // response's display action instead made the frontend close look like a
-    // popup that was still open: no roundtrip happens, so the response that
-    // opened it stayed the current one.
-    function getSlotXml(slotKey) {
-      return (
-        getViewContent(ViewSlots.getView(slotKey)) ||
-        ViewSlots.getViewXml(slotKey) ||
-        ""
-      );
-    }
+    // The view XML a slot currently holds - the shared reader of
+    // devtools/SlotXml.js, which says where it reads from and why.
+    const getSlotXml = SlotXml.slotXml;
 
     function slotFilled(slotKey) {
       return Boolean(getSlotXml(slotKey));

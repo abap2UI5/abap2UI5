@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { fakeDocument } = require("./fakeDocument");
 
 // Checks app/webapp/devtools/DeveloperTools.fragment.xml against the
 // control that backs it.
@@ -78,7 +79,11 @@ function loadDialogModel() {
   const { module: DeveloperTools } = loadModule("devtools/DeveloperTools.js", {
     autoLoad: true,
     deps: {
-      "sap/ui/core/Control": { extend: (_name, spec) => spec },
+      // getId is the one ManagedObject member the dialog reads (the
+      // fragment id derives from it)
+      "sap/ui/core/Control": {
+        extend: (_name, spec) => ({ getId: () => "__tools0", ...spec }),
+      },
       "sap/ui/core/Fragment": {
         load: async () => ({ setModel: (m) => models.push(m), open() {} }),
         byId: () => ({ setContent() {} }),
@@ -162,6 +167,8 @@ function loadDialogModel() {
       },
       URLSearchParams,
       fetch: async () => ({ ok: false }),
+      // the ABAP Source frame is built as an element (devtools/AbapSource)
+      document: fakeDocument(),
       sap: { ui: { require: (_mods, resolve) => resolve() } },
       window: {
         location: { origin: "https://sap.example.com", search: "" },

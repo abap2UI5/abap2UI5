@@ -30,6 +30,7 @@ sap.ui.define(
     "z2ui5/devtools/Console",
     "z2ui5/devtools/Inspect",
     "z2ui5/devtools/LiveEdit",
+    "z2ui5/devtools/Persist",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/Report",
@@ -46,6 +47,7 @@ sap.ui.define(
     Console,
     Inspect,
     LiveEdit,
+    Persist,
     Picker,
     Recorder,
     Report,
@@ -53,10 +55,10 @@ sap.ui.define(
   ) => {
     "use strict";
 
-    // Fragment id under which the developer tools dialog's controls are
-    // registered; used to resolve controls by their id instead of by
-    // content position.
-    const FRAGMENT_ID = "z2ui5DeveloperTools";
+    // Suffix of the fragment id under which the dialog's controls are
+    // registered (see fragmentId below); used to resolve controls by their
+    // id instead of by content position.
+    const FRAGMENT_SUFFIX = "tools";
 
     // The sub-view the tools were last on. Reopening where you were
     // working is what makes them usable across a debugging session -
@@ -73,19 +75,11 @@ sap.ui.define(
     const STATUS_MS = 6000;
 
     function readLastTab() {
-      try {
-        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";
-      } catch {
-        return "";
-      }
+      return Persist.read(LAST_TAB_KEY);
     }
 
     function writeLastTab(tabKey) {
-      try {
-        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);
-      } catch {
-        // storage unavailable - the memory is then per dialog instance
-      }
+      Persist.write(LAST_TAB_KEY, tabKey);
     }
 
     // The sub-view to open on. A remembered or requested key that no
@@ -121,6 +115,16 @@ sap.ui.define(
     }
 
     const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {
+      // The fragment id the dialog's controls are registered under,
+      // derived from THIS instance's id: a fixed page-global id would
+      // register a second instance's editor under the same
+      // "...--developerToolsEditor" and fail its load. Stable for the
+      // instance's life, so the fragment is loaded once and reused (rule
+      // 17 of AGENTS.md) - see close( ).
+      fragmentId() {
+        return `${this.getId()}--${FRAGMENT_SUFFIX}`;
+      },
+
       // ----------------------------------------------------------------
       // Navigation
       // ----------------------------------------------------------------
@@ -307,7 +311,7 @@ sap.ui.define(
 
       // Show the ABAP source of the running app inside an iframe.
       showAbapSource(oModel) {
-        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
+        const contentControl = Fragment.byId(this.fragmentId(), "sourceHtml");
         // setContent (not a bare setProperty) so an already rendered
         // iframe is replaced in the live DOM; a plain property set never
         // reached the DOM once the control had rendered, leaving a stale
@@ -579,7 +583,7 @@ sap.ui.define(
             this.oDialog = await Fragment.load({
               name: "z2ui5.devtools.DeveloperTools",
               controller: this,
-              id: FRAGMENT_ID,
+              id: this.fragmentId(),
             });
           }
           // If the user closed the app while the fragment was loading we
@@ -672,7 +676,7 @@ sap.ui.define(
         // re-loading the fragment each time raced the close animation on
         // older UI5 (1.71): the CodeEditor's fragment-scoped id survived
         // long enough that the reload threw "adding element with
-        // duplicate id 'z2ui5DeveloperTools--developerToolsEditor'". The
+        // duplicate id '<fragmentId()>--developerToolsEditor'". The
         // instance is destroyed once in exit() when the control itself
         // goes away.
         this.oDialog.close();

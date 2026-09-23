@@ -16,12 +16,14 @@ sap.ui.define(
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Format",
+    "z2ui5/devtools/SlotXml",
   ],
-  (Element, Lib, Env, ViewSlots, Format) => {
+  (Element, Lib, Env, ViewSlots, Format, SlotXml) => {
     "use strict";
 
-    // the framework event wire, shared with the inspectors (see Format)
-    const { FRAMEWORK_CALL } = Format;
+    // the framework event wire and the value description, shared with the
+    // inspectors (see Format)
+    const { FRAMEWORK_CALL, describeValue } = Format;
 
     // Preview length of a bound value in the report.
     const MAX_VALUE_CHARS = 80;
@@ -42,11 +44,6 @@ sap.ui.define(
     // The report of the last successful pick, so the Picked Control tab
     // can be rendered from the registry like every other tab.
     let lastPickReport = "";
-
-    function truncate(value, max) {
-      const text = String(value);
-      return text.length <= max ? text : `${text.slice(0, max)}...`;
-    }
 
     // Resolve the UI5 control that owns a DOM node. Element.closestTo
     // arrived in 1.106; on older releases walk up to the nearest node
@@ -141,17 +138,6 @@ sap.ui.define(
       return out;
     }
 
-    // The XML a view slot was filled with - the two readers Inspect.slotXml
-    // documents, in the same order.
-    function slotXml(slotKey) {
-      if (!slotKey) return "";
-      return (
-        ViewSlots.getView?.(slotKey)?.mProperties?.viewContent ||
-        ViewSlots.getViewXml?.(slotKey) ||
-        ""
-      );
-    }
-
     // The attributes of the element that declares this control in its
     // slot's XML, found by the control's LOCAL id (the view prefixes the
     // XML id with its own: "mainView--btn1"). Empty for a control the XML
@@ -162,7 +148,7 @@ sap.ui.define(
       const localId = String(control.getId?.() || "")
         .split("--")
         .pop();
-      const xml = slotXml(slotKey);
+      const xml = SlotXml.slotXml(slotKey);
       if (!localId || !xml) return "";
       // a UI5 id may carry `.` (btn.1) - escaped, so it does not match btn-1
       const id = regExpEscape(localId);
@@ -200,15 +186,16 @@ sap.ui.define(
       return out.sort();
     }
 
+    // The value behind a binding path, described by shape: a table by its
+    // rows, a structure by its fields, a scalar as a preview. The absence
+    // labels name the binding, not the value - what the reader asked was
+    // "what does this path resolve to".
     function renderValue(value) {
-      if (value === undefined) return "(no value at this path)";
-      if (value === null) return "null";
-      if (Array.isArray(value)) return `table, ${value.length} row(s)`;
-      if (typeof value === "object") {
-        return `structure, ${Object.keys(value).length} field(s)`;
-      }
-      if (value === "") return "(empty string)";
-      return truncate(value, MAX_VALUE_CHARS);
+      return describeValue(value, {
+        max: MAX_VALUE_CHARS,
+        absent: "(no value at this path)",
+        empty: "(empty string)",
+      });
     }
 
     // Build the report for a picked control. Exported so it can be unit

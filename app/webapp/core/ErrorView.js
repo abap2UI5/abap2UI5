@@ -452,7 +452,14 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       friendlyDialog = dialog;
       dialog.open();
       return true;
-    } catch {
+    } catch (e) {
+      // The caller falls back to the raw-DOM overlay, which shows the
+      // ORIGINAL error - the reason the UI5 dialog could not be built would
+      // otherwise vanish with it. The console is the one channel this
+      // module can count on (it imports no logger by design, and the UI5
+      // core may be what just broke); the developer tools' console capture
+      // carries the line into their Log tab.
+      window.console?.error?.("ErrorView: friendly dialog failed", e);
       return false;
     }
   }

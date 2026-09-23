@@ -63,12 +63,18 @@ sap.ui.define(
       window.open(url, "_blank", "noopener,noreferrer");
     }
 
-    // The iframe markup for the inline preview, or "" when the class is
-    // unknown.
+    // The iframe markup for the inline preview (what the core:HTML control
+    // of the dialog is fed), or "" when the class is unknown. Built as an
+    // element and serialized, never as a string with the url pasted in:
+    // the DOM does the attribute escaping, so nothing here has to reason
+    // about what the class name may contain.
     function iframeHtml() {
       const url = sourceUrl();
       if (!url) return "";
-      return `<iframe src="${url}" style="width:100%;height:85vh;border:none;" />`;
+      const iframe = document.createElement("iframe");
+      iframe.setAttribute("src", url);
+      iframe.setAttribute("style", "width:100%;height:85vh;border:none;");
+      return iframe.outerHTML;
     }
 
     // Fetch the class source via the ADT REST endpoint. Returns the raw

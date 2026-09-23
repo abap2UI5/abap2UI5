@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { fakeDocument } = require("./fakeDocument");
 
 // Tests the real implementation shipped in
 // app/webapp/devtools/AbapSource.js - the running app's ABAP class as the
@@ -21,6 +22,8 @@ function loadAbapSource({
     },
     sandbox: {
       fetch: fetchImpl,
+      // the inline preview is built as an element, not as a string
+      document: fakeDocument(),
       window: windowStub || {
         location: { origin: "https://sap.example.com" },
         open() {},
@@ -48,7 +51,9 @@ test.describe("Source url", () => {
 
   test("frames the source for the inline preview", () => {
     const AbapSource = loadAbapSource({ responseData: { S_FRONT: { APP } } });
-    expect(AbapSource.iframeHtml()).toContain(`src="${EXPECTED_URL}"`);
+    const html = AbapSource.iframeHtml();
+    expect(html).toContain(`src="${EXPECTED_URL}"`);
+    expect(html).toMatch(/^<iframe .*><\/iframe>$/);
   });
 
   test("frames nothing when there is no class to frame", () => {

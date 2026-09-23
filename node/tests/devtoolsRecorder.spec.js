@@ -86,9 +86,10 @@ function loadRecorder({ storage = {} } = {}) {
   };
 
   const { module } = loadModule("devtools/Recorder.js", {
-    // devtools/Format.js (the shared truncate/formatBytes) is loaded for
-    // real: every other dependency is stubbed below, so autoLoad reaches
-    // only that one module
+    // devtools/Format.js (the shared formatBytes/renderValue),
+    // devtools/Persist.js (the sessionStorage access) and devtools/Diff.js
+    // (the two diff walks) are loaded for real: every other dependency is
+    // stubbed below, so autoLoad reaches only those
     autoLoad: true,
     deps: {
       "z2ui5/core/AppState": AppState,

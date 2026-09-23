@@ -60,7 +60,10 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `    function iframeHtml() {` && |\n| &&
              `      const url = sourceUrl();` && |\n| &&
              `      if (!url) return "";` && |\n| &&
-             `      return ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``;` && |\n| &&
+             `      const iframe = document.createElement("iframe");` && |\n| &&
+             `      iframe.setAttribute("src", url);` && |\n| &&
+             `      iframe.setAttribute("style", "width:100%;height:85vh;border:none;");` && |\n| &&
+             `      return iframe.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function fetchSource() {` && |\n| &&

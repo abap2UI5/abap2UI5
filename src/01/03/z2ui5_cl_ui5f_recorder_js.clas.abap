@@ -26,11 +26,18 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/AppState", "z2ui5/core/Lib", "z2ui5/devtools/Format"],` && |\n| &&
-             `  (AppState, Lib, Format) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/devtools/Format",` && |\n| &&
+             `    "z2ui5/devtools/Persist",` && |\n| &&
+             `    "z2ui5/devtools/Diff",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (AppState, Lib, Format, Persist, Diff) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const { truncate, formatBytes } = Format;` && |\n| &&
+             `    const { formatBytes, renderValue } = Format;` && |\n| &&
+             `    const { collectDiff, diffLines, MAX_DIFF_ENTRIES } = Diff;` && |\n| &&
              `` && |\n| &&
              `    const MAX_RECORDS = 50;` && |\n| &&
              `` && |\n| &&
@@ -45,8 +52,6 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `` && |\n| &&
              `    const MAX_MESSAGE_CHARS = 500;` && |\n| &&
              `` && |\n| &&
-             `    const MAX_DIFF_ENTRIES = 200;` && |\n| &&
-             `    const MAX_DIFF_DEPTH = 12;` && |\n| &&
              `    const MAX_DIFF_VALUE_CHARS = 120;` && |\n| &&
              `` && |\n| &&
              `    let records = [];` && |\n| &&
@@ -214,21 +219,11 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isRecordingPayloads() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return window.sessionStorage?.getItem(PAYLOAD_FLAG_KEY) === "X";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
+             `      return Persist.readFlag(PAYLOAD_FLAG_KEY);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function setRecordingPayloads(enabled) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (enabled) {` && |\n| &&
-             `          window.sessionStorage?.setItem(PAYLOAD_FLAG_KEY, "X");` && |\n| &&
-             `        } else {` && |\n| &&
-             `          window.sessionStorage?.removeItem(PAYLOAD_FLAG_KEY);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `      Persist.writeFlag(PAYLOAD_FLAG_KEY, enabled);` && |\n| &&
              `      if (!enabled) dropAllPayloads();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -296,34 +291,19 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function persist() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({` && |\n| &&
-             `          ...withoutPayloads(record),` && |\n| &&
-             `          previousLoad: true,` && |\n| &&
-             `        }));` && |\n| &&
-             `        if (!slim.length) return;` && |\n| &&
-             `        window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(slim));` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `      const slim = records.slice(-RELOAD_MAX_RECORDS).map((record) => ({` && |\n| &&
+             `        ...withoutPayloads(record),` && |\n| &&
+             `        previousLoad: true,` && |\n| &&
+             `      }));` && |\n| &&
+             `      Persist.saveList(RELOAD_KEY, slim);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function restore() {` && |\n| &&
-             `      let stored;` && |\n| &&
-             `      try {` && |\n| &&
-             `        stored = window.sessionStorage?.getItem(RELOAD_KEY);` && |\n| &&
-             `        window.sessionStorage?.removeItem(RELOAD_KEY);` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!stored) return;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const parsed = JSON.parse(stored);` && |\n| &&
-             `        if (!Array.isArray(parsed)) return;` && |\n| &&
-             `        records = parsed.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
+             `      const stored = Persist.takeList(RELOAD_KEY);` && |\n| &&
+             `      if (!stored.length) return;` && |\n| &&
+             `      records = stored.slice(-RELOAD_MAX_RECORDS);` && |\n| &&
              `` && |\n| &&
-             `        nextSeq = (records[records.length - 1]?.seq || 0) + 1;` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        records = [];` && |\n| &&
-             `      }` && |\n| &&
+             `      nextSeq = (records[records.length - 1]?.seq || 0) + 1;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function install() {` && |\n| &&
@@ -424,8 +404,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function summaryLines(list) {` && |\n| &&
-             `      const timed = list.filter((r) => r.backendMs !== null);` && |\n|.
-    result = result &&
+             `      const timed = list.filter((r) => r.backendMs !== null);` && |\n| &&
              `      if (!timed.length) return [];` && |\n| &&
              `      const out = ["Summary"];` && |\n| &&
              `      const backend = timed.map((r) => r.backendMs);` && |\n| &&
@@ -445,7 +424,8 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        const biggest = sized.reduce((a, b) =>` && |\n| &&
              `          b.respBytes > a.respBytes ? b : a,` && |\n| &&
              `        );` && |\n| &&
-             `        const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n| &&
+             `        const total = sized.reduce((sum, r) => sum + r.respBytes, 0);` && |\n|.
+    result = result &&
              `        out.push(` && |\n| &&
              `          ``  Response: ${formatBytes(total)} total,`` +` && |\n| &&
              `            `` largest #${biggest.seq} ${biggest.event || "(start)"}`` +` && |\n| &&
@@ -550,76 +530,6 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      return lines.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isPlainObject(value) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        value !== null && typeof value === "object" && !Array.isArray(value)` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function renderValue(value) {` && |\n| &&
-             `      let text;` && |\n| &&
-             `      if (value === undefined) return "(absent)";` && |\n| &&
-             `      if (value === null) return "null";` && |\n| &&
-             `      if (typeof value === "object") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          text = JSON.stringify(value);` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          text = String(value);` && |\n| &&
-             `        }` && |\n| &&
-             `      } else {` && |\n| &&
-             `        text = String(value);` && |\n| &&
-             `      }` && |\n| &&
-             `      return truncate(text, MAX_DIFF_VALUE_CHARS);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function collectDiff(before, after, path, out, depth) {` && |\n| &&
-             `      if (out.length >= MAX_DIFF_ENTRIES) return;` && |\n| &&
-             `      if (before === after) return;` && |\n| &&
-             `      if (depth > MAX_DIFF_DEPTH) {` && |\n| &&
-             `        out.push({ path, type: "changed", before: "(too deep)", after: "" });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const bothObjects = isPlainObject(before) && isPlainObject(after);` && |\n| &&
-             `      const bothArrays = Array.isArray(before) && Array.isArray(after);` && |\n| &&
-             `` && |\n| &&
-             `      if (bothObjects) {` && |\n| &&
-             `        const keys = new Set([...Object.keys(before), ...Object.keys(after)]);` && |\n| &&
-             `        for (const key of keys) {` && |\n| &&
-             `          collectDiff(` && |\n| &&
-             `            before[key],` && |\n| &&
-             `            after[key],` && |\n| &&
-             `            ``${path}/${key}``,` && |\n| &&
-             `            out,` && |\n| &&
-             `            depth + 1,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (bothArrays) {` && |\n| &&
-             `        const length = Math.max(before.length, after.length);` && |\n| &&
-             `        for (let i = 0; i < length; i++) {` && |\n| &&
-             `          collectDiff(before[i], after[i], ``${path}/${i}``, out, depth + 1);` && |\n| &&
-             `        }` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (before === undefined) {` && |\n| &&
-             `        out.push({ path, type: "added", before: undefined, after });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (after === undefined) {` && |\n| &&
-             `        out.push({ path, type: "removed", before, after: undefined });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      out.push({ path, type: "changed", before, after });` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const MAX_DIFF_LINES = 4000;` && |\n| &&
-             `` && |\n| &&
-             `    const DIFF_LOOKAHEAD = 25;` && |\n| &&
-             `` && |\n| &&
              `    function displayedXml(response, slotKey) {` && |\n| &&
              `      const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;` && |\n| &&
              `      if (!Array.isArray(system)) return "";` && |\n| &&
@@ -630,63 +540,6 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        if (typeof item[3] === "string") return item[3];` && |\n| &&
              `      }` && |\n| &&
              `      return "";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function diffLines(beforeText, afterText) {` && |\n| &&
-             `      const a = beforeText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
-             `      const b = afterText.split("\n").slice(0, MAX_DIFF_LINES);` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      let i = 0;` && |\n| &&
-             `      let j = 0;` && |\n| &&
-             `      while ((i < a.length || j < b.length) && out.length < MAX_DIFF_ENTRIES) {` && |\n| &&
-             `        if (i < a.length && j < b.length && a[i] === b[j]) {` && |\n| &&
-             `          i += 1;` && |\n| &&
-             `          j += 1;` && |\n| &&
-             `          continue;` && |\n| &&
-             `        }` && |\n| &&
-             `        let addedRun = -1;` && |\n| &&
-             `        let removedRun = -1;` && |\n| &&
-             `        for (let k = 1; k <= DIFF_LOOKAHEAD; k += 1) {` && |\n| &&
-             `          if (` && |\n| &&
-             `            addedRun < 0 &&` && |\n| &&
-             `            i < a.length &&` && |\n| &&
-             `            j + k < b.length &&` && |\n| &&
-             `            a[i] === b[j + k]` && |\n| &&
-             `          ) {` && |\n| &&
-             `            addedRun = k;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (` && |\n| &&
-             `            removedRun < 0 &&` && |\n| &&
-             `            j < b.length &&` && |\n| &&
-             `            i + k < a.length &&` && |\n| &&
-             `            b[j] === a[i + k]` && |\n| &&
-             `          ) {` && |\n| &&
-             `            removedRun = k;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (addedRun >= 0 || removedRun >= 0) break;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (addedRun >= 0 && (removedRun < 0 || addedRun <= removedRun)) {` && |\n| &&
-             `          for (let k = 0; k < addedRun; k += 1) {` && |\n| &&
-             `            out.push({ type: "+", line: b[j + k], number: j + k + 1 });` && |\n| &&
-             `          }` && |\n| &&
-             `          j += addedRun;` && |\n| &&
-             `        } else if (removedRun >= 0) {` && |\n| &&
-             `          for (let k = 0; k < removedRun; k += 1) {` && |\n| &&
-             `            out.push({ type: "-", line: a[i + k], number: i + k + 1 });` && |\n| &&
-             `          }` && |\n| &&
-             `          i += removedRun;` && |\n| &&
-             `        } else {` && |\n| &&
-             `          if (i < a.length) {` && |\n| &&
-             `            out.push({ type: "-", line: a[i], number: i + 1 });` && |\n| &&
-             `            i += 1;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (j < b.length) {` && |\n| &&
-             `            out.push({ type: "+", line: b[j], number: j + 1 });` && |\n| &&
-             `            j += 1;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function lastTwoViews(slotKey) {` && |\n| &&
@@ -775,13 +628,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      }` && |\n| &&
              `      const [previous, current] = pair;` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      collectDiff(` && |\n| &&
+             `      const out = collectDiff(` && |\n| &&
              `        previous.response?.MODEL,` && |\n| &&
              `        current.response?.MODEL,` && |\n| &&
-             `        "",` && |\n| &&
-             `        out,` && |\n| &&
-             `        0,` && |\n| &&
              `      );` && |\n| &&
              `` && |\n| &&
              `      const header = [` && |\n| &&
@@ -802,14 +651,18 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        const path = entry.path || "/";` && |\n| &&
              `        if (entry.type === "added") {` && |\n| &&
              `          header.push(``+ ${path}``);` && |\n| &&
-             `          header.push(``    ${renderValue(entry.after)}``);` && |\n| &&
+             `          header.push(``    ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}``);` && |\n| &&
              `        } else if (entry.type === "removed") {` && |\n| &&
              `          header.push(``- ${path}``);` && |\n| &&
-             `          header.push(``    ${renderValue(entry.before)}``);` && |\n| &&
+             `          header.push(``    ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}``);` && |\n| &&
              `        } else {` && |\n| &&
              `          header.push(``~ ${path}``);` && |\n| &&
-             `          header.push(``    before: ${renderValue(entry.before)}``);` && |\n| &&
-             `          header.push(``    after:  ${renderValue(entry.after)}``);` && |\n| &&
+             `          header.push(` && |\n| &&
+             `            ``    before: ${renderValue(entry.before, MAX_DIFF_VALUE_CHARS)}``,` && |\n| &&
+             `          );` && |\n| &&
+             `          header.push(` && |\n| &&
+             `            ``    after:  ${renderValue(entry.after, MAX_DIFF_VALUE_CHARS)}``,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (out.length >= MAX_DIFF_ENTRIES) {` && |\n| &&
@@ -825,8 +678,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        payloadsRecorded: isRecordingPayloads(),` && |\n| &&
              `        records: getRecords(),` && |\n| &&
              `      };` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        return JSON.stringify(payload, null, 2);` && |\n| &&
              `      } catch {` && |\n| &&
              `        const metaOnly = records.map(withoutPayloads);` && |\n| &&

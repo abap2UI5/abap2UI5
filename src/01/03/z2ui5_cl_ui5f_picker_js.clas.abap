@@ -32,11 +32,12 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Format",` && |\n| &&
+             `    "z2ui5/devtools/SlotXml",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Element, Lib, Env, ViewSlots, Format) => {` && |\n| &&
+             `  (Element, Lib, Env, ViewSlots, Format, SlotXml) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const { FRAMEWORK_CALL } = Format;` && |\n| &&
+             `    const { FRAMEWORK_CALL, describeValue } = Format;` && |\n| &&
              `` && |\n| &&
              `    const MAX_VALUE_CHARS = 80;` && |\n| &&
              `` && |\n| &&
@@ -52,11 +53,6 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    let frameId = 0;` && |\n| &&
              `` && |\n| &&
              `    let lastPickReport = "";` && |\n| &&
-             `` && |\n| &&
-             `    function truncate(value, max) {` && |\n| &&
-             `      const text = String(value);` && |\n| &&
-             `      return text.length <= max ? text : ``${text.slice(0, max)}...``;` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    function controlFromDom(node) {` && |\n| &&
              `      if (!node) return null;` && |\n| &&
@@ -144,22 +140,13 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function slotXml(slotKey) {` && |\n| &&
-             `      if (!slotKey) return "";` && |\n| &&
-             `      return (` && |\n| &&
-             `        ViewSlots.getView?.(slotKey)?.mProperties?.viewContent ||` && |\n| &&
-             `        ViewSlots.getViewXml?.(slotKey) ||` && |\n| &&
-             `        ""` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");` && |\n| &&
              `` && |\n| &&
              `    function xmlAttributesOf(control, slotKey) {` && |\n| &&
              `      const localId = String(control.getId?.() || "")` && |\n| &&
              `        .split("--")` && |\n| &&
              `        .pop();` && |\n| &&
-             `      const xml = slotXml(slotKey);` && |\n| &&
+             `      const xml = SlotXml.slotXml(slotKey);` && |\n| &&
              `      if (!localId || !xml) return "";` && |\n| &&
              `` && |\n| &&
              `      const id = regExpEscape(localId);` && |\n| &&
@@ -191,14 +178,11 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function renderValue(value) {` && |\n| &&
-             `      if (value === undefined) return "(no value at this path)";` && |\n| &&
-             `      if (value === null) return "null";` && |\n| &&
-             `      if (Array.isArray(value)) return ``table, ${value.length} row(s)``;` && |\n| &&
-             `      if (typeof value === "object") {` && |\n| &&
-             `        return ``structure, ${Object.keys(value).length} field(s)``;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (value === "") return "(empty string)";` && |\n| &&
-             `      return truncate(value, MAX_VALUE_CHARS);` && |\n| &&
+             `      return describeValue(value, {` && |\n| &&
+             `        max: MAX_VALUE_CHARS,` && |\n| &&
+             `        absent: "(no value at this path)",` && |\n| &&
+             `        empty: "(empty string)",` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function describe(control) {` && |\n| &&

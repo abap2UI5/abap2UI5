@@ -25,7 +25,7 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define([], () => {` && |\n| &&
+    result = `sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const MAX_ENTRIES = 300;` && |\n| &&
@@ -89,49 +89,24 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isAlertOnError() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      return window.sessionStorage?.getItem(ALERT_KEY) === "X";` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
+             `    return Persist.readFlag(ALERT_KEY);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function setAlertOnError(enabled) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      if (enabled) {` && |\n| &&
-             `        window.sessionStorage?.setItem(ALERT_KEY, "X");` && |\n| &&
-             `      } else {` && |\n| &&
-             `        window.sessionStorage?.removeItem(ALERT_KEY);` && |\n| &&
-             `      }` && |\n| &&
-             `    } catch {}` && |\n| &&
+             `    Persist.writeFlag(ALERT_KEY, enabled);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function persist() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const errors = entries` && |\n| &&
-             `        .filter((entry) => entry.level === "error")` && |\n| &&
-             `        .slice(-RELOAD_MAX_ENTRIES)` && |\n| &&
-             `        .map((entry) => ({ ...entry, previousLoad: true }));` && |\n| &&
-             `      if (!errors.length) return;` && |\n| &&
-             `      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(errors));` && |\n| &&
-             `    } catch {}` && |\n| &&
+             `    const errors = entries` && |\n| &&
+             `      .filter((entry) => entry.level === "error")` && |\n| &&
+             `      .slice(-RELOAD_MAX_ENTRIES)` && |\n| &&
+             `      .map((entry) => ({ ...entry, previousLoad: true }));` && |\n| &&
+             `    Persist.saveList(RELOAD_KEY, errors);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function restore() {` && |\n| &&
-             `    let stored;` && |\n| &&
-             `    try {` && |\n| &&
-             `      stored = window.sessionStorage?.getItem(RELOAD_KEY);` && |\n| &&
-             `      window.sessionStorage?.removeItem(RELOAD_KEY);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    if (!stored) return;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const parsed = JSON.parse(stored);` && |\n| &&
-             `      if (Array.isArray(parsed)) entries = parsed.slice(-RELOAD_MAX_ENTRIES);` && |\n| &&
-             `    } catch {` && |\n| &&
-             `      entries = [];` && |\n| &&
-             `    }` && |\n| &&
+             `    const stored = Persist.takeList(RELOAD_KEY);` && |\n| &&
+             `    if (stored.length) entries = stored.slice(-RELOAD_MAX_ENTRIES);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isErrorLike(value) {` && |\n| &&

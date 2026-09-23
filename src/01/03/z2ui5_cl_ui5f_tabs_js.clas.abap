@@ -33,8 +33,9 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    "z2ui5/devtools/Inspect",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
+             `    "z2ui5/devtools/SlotXml",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, ViewSlots, Format, Inspect, Picker, Recorder) => {` && |\n| &&
+             `  (AppState, ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
@@ -47,21 +48,11 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getViewContent(view) {` && |\n| &&
-             `      return view?.mProperties?.viewContent;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getSlotXml(slotKey) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        getViewContent(ViewSlots.getView(slotKey)) ||` && |\n| &&
-             `        ViewSlots.getViewXml(slotKey) ||` && |\n| &&
-             `        ""` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
+             `    const getSlotXml = SlotXml.slotXml;` && |\n| &&
              `` && |\n| &&
              `    function slotFilled(slotKey) {` && |\n| &&
              `      return Boolean(getSlotXml(slotKey));` && |\n| &&
@@ -424,8 +415,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    function render(tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab) return "";` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        return tab.produce() ?? "";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&
@@ -434,7 +424,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `` && |\n| &&
              `    function renderTemplated(tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
-             `      if (!tab?.rendered) return "";` && |\n| &&
+             `      if (!tab?.rendered) return "";` && |\n|.
+    result = result &&
              `      try {` && |\n| &&
              `        return tab.rendered() || "";` && |\n| &&
              `      } catch {` && |\n| &&

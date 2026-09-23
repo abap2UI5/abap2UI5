@@ -28,6 +28,10 @@ function loadConsole({ storage = {} } = {}) {
   };
 
   const { module } = loadModule("devtools/Console.js", {
+    // devtools/Persist.js (the guarded sessionStorage access) is loaded
+    // for real - it is the module's only dependency, so autoLoad reaches
+    // only that one
+    autoLoad: true,
     sandbox: {
       window: {
         console: consoleStub,

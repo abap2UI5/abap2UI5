@@ -337,7 +337,8 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      friendlyDialog = dialog;` && |\n| &&
              `      dialog.open();` && |\n| &&
              `      return true;` && |\n| &&
-             `    } catch {` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      window.console?.error?.("ErrorView: friendly dialog failed", e);` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
              `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
-             `` && |\n| &&
-             `    const h3 = document.createElement("h3");` && |\n|.
+             `` && |\n|.
     result = result &&
+             `    const h3 = document.createElement("h3");` && |\n| &&
              `    h3.id = "serverErrorTitle";` && |\n| &&
              `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&

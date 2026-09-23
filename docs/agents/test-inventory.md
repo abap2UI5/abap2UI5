@@ -57,7 +57,13 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `devtools/DevTools.js` | `devtoolsFacade.spec.js` | — |
 | `devtools/Recorder.js` | `devtoolsRecorder.spec.js` | — |
 | `devtools/Console.js` | `devtoolsConsole.spec.js` | — |
-| `devtools/Inspect.js` | `devtoolsInspect.spec.js` | — |
+| `devtools/Inspect.js` | `devtoolsInspect.spec.js` | the Overview, Environment, Registry, Actions and Error reports, and that the inspectors of their own module (below) answer through `Inspect` as well |
+| `devtools/Log.js` | `devtoolsLog.spec.js` | the Log tab: the three sources merged into one timeline, the origin column, the level counts the Overview reads |
+| `devtools/Bindings.js` | `devtoolsBindings.spec.js` | the Bindings tab: the missing-path check, the size ranking, the delta preview built with the real `Lib.buildDeltaFromPaths`, one slot per call |
+| `devtools/Help.js` | `devtoolsInspect.spec.js` (through `Inspect.formatHelp`) | — |
+| `devtools/Diff.js` | `devtoolsDiff.spec.js` | the two pure diff walks - changed/added/removed paths, table rows by index, the depth and entry caps; the resync window of the line diff |
+| `devtools/Persist.js` | `devtoolsPersist.spec.js` | the guarded sessionStorage access every devtools module shares - a throwing or missing storage answers the default and never the caller, a carried-over list is consumed on read |
+| `devtools/SlotXml.js` | `devtoolsSlotXml.spec.js` | the one slot-XML reader of the tools: the live view's XML over the recorded source, and never through `getProperty` |
 | `devtools/Picker.js` | `devtoolsPicker.spec.js` | — |
 | `devtools/LiveEdit.js` | `devtoolsLiveEdit.spec.js` | — |
 | `devtools/DeveloperTools.fragment.xml` against the control that backs it | `devtoolsFragment.spec.js` | a handler the fragment names that the controller does not have, or a bound property nothing seeds, is not a syntax error anywhere and fails as a dead button on somebody's system |

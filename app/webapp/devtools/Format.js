@@ -1,4 +1,6 @@
-// Value formatting for the developer tools - JSON and XML to display text.
+// Value formatting for the developer tools - JSON and XML to display text,
+// and the one-line value previews and report helpers every inspector
+// shares.
 //
 // Split out of devtools/DeveloperTools.js so the tab registry
 // (devtools/Tabs.js) can produce finished text without depending on the
@@ -139,6 +141,53 @@ sap.ui.define([], () => {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  // A section heading of a text report: the title, underlined, after a
+  // blank line. Every inspector renders its report this way.
+  function section(title) {
+    return `\n${title}\n${"-".repeat(title.length)}`;
+  }
+
+  // A value as ONE inline preview line: an object as its JSON, anything
+  // else as its string form, cut at `max`. What the action list and the
+  // model diff show for an argument or a changed value.
+  function renderValue(value, max) {
+    if (value === undefined) return "(absent)";
+    if (value === null) return "null";
+    let text;
+    if (typeof value === "object") {
+      try {
+        text = JSON.stringify(value);
+      } catch {
+        text = String(value);
+      }
+    } else {
+      text = String(value);
+    }
+    return truncate(text, max);
+  }
+
+  // A model value the way a developer scanning for "why is this field
+  // empty" needs it: a table by its row count, a structure by its field
+  // count, a scalar as a short preview. The Bindings tab and the picked
+  // control both describe values this way and label the edge cases
+  // differently, so those are the options: `absent` is the text for
+  // undefined, `empty` for "", `typed` prefixes a scalar with its type
+  // ("string  Miller AG") and `max` cuts the preview.
+  function describeValue(
+    value,
+    { max = 60, typed = false, absent = "(absent)", empty = "(empty)" } = {},
+  ) {
+    if (value === null) return "null";
+    if (value === undefined) return absent;
+    if (Array.isArray(value)) return `table, ${value.length} row(s)`;
+    if (typeof value === "object") {
+      return `structure, ${Object.keys(value).length} field(s)`;
+    }
+    if (value === "") return typed ? `${typeof value} ${empty}` : empty;
+    const preview = truncate(value, max);
+    return typed ? `${typeof value}  ${preview}` : preview;
+  }
+
   // A framework event wire in a handler's source or a view attribute:
   // eB / eBP / eF, then the quoted event name (single, double or the
   // XML-escaped apostrophe of a view attribute) - either right after the
@@ -150,5 +199,14 @@ sap.ui.define([], () => {
   const FRAMEWORK_CALL =
     /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
 
-  return { toJson, prettifyXml, truncate, formatBytes, FRAMEWORK_CALL };
+  return {
+    toJson,
+    prettifyXml,
+    truncate,
+    formatBytes,
+    section,
+    renderValue,
+    describeValue,
+    FRAMEWORK_CALL,
+  };
 });

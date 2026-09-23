@@ -25,12 +25,12 @@
 //
 // Like the rest of devtools/ this module is outside the framework: no
 // framework module knows it exists, and devtools/DevTools.js is what
-// installs it. It depends on nothing at all - not even on the rest of
-// devtools/: it observes the browser and UI5 and hands the captured
-// entries over as DATA. Rendering them is devtools/Inspect.js's job,
+// installs it. It depends on nothing but the guarded sessionStorage access
+// of devtools/Persist.js: it observes the browser and UI5 and hands the
+// captured entries over as DATA. Rendering them is devtools/Log.js's job,
 // which merges them with the framework's error log and the backend
 // messages into one timeline (the Log tab).
-sap.ui.define([], () => {
+sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {
   "use strict";
 
   // Ring size. Console output is far chattier than the roundtrip history,
@@ -140,54 +140,25 @@ sap.ui.define([], () => {
   }
 
   function isAlertOnError() {
-    try {
-      return window.sessionStorage?.getItem(ALERT_KEY) === "X";
-    } catch {
-      return false;
-    }
+    return Persist.readFlag(ALERT_KEY);
   }
 
   function setAlertOnError(enabled) {
-    try {
-      if (enabled) {
-        window.sessionStorage?.setItem(ALERT_KEY, "X");
-      } else {
-        window.sessionStorage?.removeItem(ALERT_KEY);
-      }
-    } catch {
-      // storage unavailable - the switch then does not persist
-    }
+    Persist.writeFlag(ALERT_KEY, enabled);
   }
 
   // Carry the error-level entries into the next page load (see RELOAD_KEY).
   function persist() {
-    try {
-      const errors = entries
-        .filter((entry) => entry.level === "error")
-        .slice(-RELOAD_MAX_ENTRIES)
-        .map((entry) => ({ ...entry, previousLoad: true }));
-      if (!errors.length) return;
-      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(errors));
-    } catch {
-      // storage full or unavailable - they simply do not survive
-    }
+    const errors = entries
+      .filter((entry) => entry.level === "error")
+      .slice(-RELOAD_MAX_ENTRIES)
+      .map((entry) => ({ ...entry, previousLoad: true }));
+    Persist.saveList(RELOAD_KEY, errors);
   }
 
   function restore() {
-    let stored;
-    try {
-      stored = window.sessionStorage?.getItem(RELOAD_KEY);
-      window.sessionStorage?.removeItem(RELOAD_KEY);
-    } catch {
-      return;
-    }
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) entries = parsed.slice(-RELOAD_MAX_ENTRIES);
-    } catch {
-      entries = [];
-    }
+    const stored = Persist.takeList(RELOAD_KEY);
+    if (stored.length) entries = stored.slice(-RELOAD_MAX_ENTRIES);
   }
 
   // Errors are recognised by SHAPE, not with `instanceof Error`: an error

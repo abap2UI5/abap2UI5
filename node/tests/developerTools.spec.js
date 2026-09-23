@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { fakeDocument } = require("./fakeDocument");
 
 // Tests the real implementation shipped in
 // app/webapp/devtools/DeveloperTools.js - the dialog - composed with the
@@ -118,8 +119,11 @@ function loadDeveloperTools({
   };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
-  // for these prototype methods.
-  const Control = { extend: (_name, spec) => spec };
+  // for these prototype methods. getId is the one ManagedObject member the
+  // dialog reads (the fragment id derives from it).
+  const Control = {
+    extend: (_name, spec) => ({ getId: () => "__tools0", ...spec }),
+  };
   const { module } = loadModule("devtools/DeveloperTools.js", {
     // devtools/Tabs.js, Format.js, Report.js and AbapSource.js are loaded
     // for real - the grouping and the rendering are what these specs are
@@ -166,6 +170,8 @@ function loadDeveloperTools({
         }
       },
       URLSearchParams,
+      // the ABAP Source frame is built as an element (devtools/AbapSource)
+      document: fakeDocument(),
       window: windowStub || {
         location: { origin: "https://sap.example.com", search: "" },
         open() {},

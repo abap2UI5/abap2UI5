@@ -37,6 +37,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/Inspect",` && |\n| &&
              `    "z2ui5/devtools/LiveEdit",` && |\n| &&
+             `    "z2ui5/devtools/Persist",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `    "z2ui5/devtools/Report",` && |\n| &&
@@ -53,6 +54,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    Console,` && |\n| &&
              `    Inspect,` && |\n| &&
              `    LiveEdit,` && |\n| &&
+             `    Persist,` && |\n| &&
              `    Picker,` && |\n| &&
              `    Recorder,` && |\n| &&
              `    Report,` && |\n| &&
@@ -60,7 +62,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
+             `    const FRAGMENT_SUFFIX = "tools";` && |\n| &&
              `` && |\n| &&
              `    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";` && |\n| &&
              `` && |\n| &&
@@ -69,17 +71,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    const STATUS_MS = 6000;` && |\n| &&
              `` && |\n| &&
              `    function readLastTab() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
+             `      return Persist.read(LAST_TAB_KEY);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function writeLastTab(tabKey) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `      Persist.write(LAST_TAB_KEY, tabKey);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function resolveTab(tabKey) {` && |\n| &&
@@ -103,6 +99,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {` && |\n| &&
+             `      fragmentId() {` && |\n| &&
+             `        return ``${this.getId()}--${FRAGMENT_SUFFIX}``;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      renderTab(tabKey, oModel) {` && |\n| &&
              `        const key = resolveTab(tabKey);` && |\n| &&
              `        const tab = Tabs.get(key);` && |\n| &&
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      showAbapSource(oModel) {` && |\n| &&
-             `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
+             `        const contentControl = Fragment.byId(this.fragmentId(), "sourceHtml");` && |\n| &&
              `` && |\n| &&
              `        contentControl?.setContent(AbapSource.iframeHtml());` && |\n| &&
              `` && |\n| &&
@@ -415,7 +415,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
-             `              id: FRAGMENT_ID,` && |\n| &&
+             `              id: this.fragmentId(),` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
