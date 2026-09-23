@@ -1,0 +1,183 @@
+From 4f05c12cb8c86a88f8bf4c0d70973a72e61c6a84 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 23 Sep 2026 22:45:29 +0000
+Subject: [PATCH] find( ): honour case for sub, and search from the right for a
+ negative occ
+
+Two bugs in the non-regex branch of the built-in find( ):
+
+- `case = abap_false` was ignored when searching with `sub`: the regex
+  branch applied it as the `i` flag, the `sub` branch always ran a
+  case-sensitive indexOf. find( val = `Hello World` sub = `WORLD`
+  case = abap_false ) answered -1 instead of 6. Both strings are now
+  lower-cased one character at a time, keeping any character whose lower
+  case form has another length, so every offset stays valid.
+
+- A negative `occ` reversed `val` but not `sub`, and mapped the offset back
+  with `val.length - found - 1`, which only holds for a one-character
+  `sub`. find( val = `abcab` sub = `ab` occ = -1 ) answered -1 instead of
+  3. It now searches from the right with lastIndexOf on the string as it
+  is, within the range that starts at `off`. An empty `sub` keeps the
+  previous behaviour.
+
+The existing negative-occ tests all used sub = '/', which is why this
+passed. New tests cover case with sub, case with occ in both directions,
+multi-character sub with a negative occ, and negative occ with off.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01HPFnCq1yiXQKsQcrs64g48
+---
+ packages/runtime/src/builtin/find.ts | 40 +++++++++++++++--
+ test/builtin/find.ts                 | 66 ++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+), 3 deletions(-)
+
+diff --git a/packages/runtime/src/builtin/find.ts b/packages/runtime/src/builtin/find.ts
+index 8ecc188..65c771d 100644
+--- a/packages/runtime/src/builtin/find.ts
++++ b/packages/runtime/src/builtin/find.ts
+@@ -45,7 +45,7 @@ export function find(input: IFindInput) {
+       return new Integer().set(-1);
+     }
+   } else {
+-    const sub = typeof input.sub === "string" ? input.sub : input.sub?.get();
++    let sub = typeof input.sub === "string" ? input.sub : input.sub?.get() || "";
+     let off = position(input.off) || 0;
+     let occ = position(input.occ);
+ 
+@@ -55,6 +55,28 @@ export function find(input: IFindInput) {
+       occ = 1;
+     }
+ 
++    const caseInput = typeof input.case === "string" ? input.case : input.case?.get();
++    if (caseInput !== undefined && caseInput !== "X") {
++      val = foldCase(val);
++      sub = foldCase(sub);
++    }
++
++    if (occ < 0 && sub !== "") {
++      // search from the right, on the string as it is, so a "sub" of any length
++      // matches and the offset needs no mapping back
++      let from = val.length - sub.length;
++      let found = -1;
++      for (let i = 0; i < Math.abs(occ); i++) {
++        found = from < off ? -1 : val.lastIndexOf(sub, from);
++        if (found < off) {
++          return new Integer().set(-1);
++        }
++        from = found - 1;
++      }
++      return new Integer().set(found);
++    }
++
++    // only an empty "sub" still comes here with a negative "occ", unchanged
+     let negative = false;
+     if (occ < 0) {
+       negative = true;
+@@ -71,7 +93,7 @@ export function find(input: IFindInput) {
+ 
+     let found = -1;
+     for (let i = 0; i < occ; i++) {
+-      found = val.indexOf(sub || "", off);
++      found = val.indexOf(sub, off);
+       if (found >= 0) {
+         off = found + 1;
+       }
+@@ -83,4 +105,16 @@ export function find(input: IFindInput) {
+ 
+     return new Integer().set(found);
+   }
+-}
+\ No newline at end of file
++}
++
++// lower case one character at a time and keep a character whose lower case form
++// has another length, so every offset stays valid - a plain toLowerCase( )
++// turns e.g. "\u0130" into two code units
++function foldCase(str: string): string {
++  let ret = "";
++  for (const character of str) {
++    const lower = character.toLowerCase();
++    ret += lower.length === character.length ? lower : character;
++  }
++  return ret;
++}
+diff --git a/test/builtin/find.ts b/test/builtin/find.ts
+index 514fa22..fe31d18 100644
+--- a/test/builtin/find.ts
++++ b/test/builtin/find.ts
+@@ -200,6 +200,72 @@ WRITE lv_offset.`;
+     expect(abap.console.get()).to.equal("5");
+   });
+ 
++  it("find, case = abap_false with sub", async () => {
++    const code = `
++    DATA lv TYPE i.
++    lv = find( val = 'Hello World' sub = 'WORLD' case = abap_false ).
++    ASSERT lv = 6.
++    lv = find( val = '{"startDate":"2018"}' sub = '"startdate":"' case = abap_false ).
++    ASSERT lv = 1.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++  });
++
++  it("find, case = abap_true with sub stays case sensitive", async () => {
++    const code = `
++    DATA lv TYPE i.
++    lv = find( val = 'Hello World' sub = 'WORLD' case = abap_true ).
++    ASSERT lv = -1.
++    lv = find( val = 'Hello World' sub = 'WORLD' ).
++    ASSERT lv = -1.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++  });
++
++  it("find, case = abap_false with sub and occ", async () => {
++    const code = `
++    DATA lv TYPE i.
++    lv = find( val = 'aXbxcX' sub = 'x' occ = 2 case = abap_false ).
++    ASSERT lv = 3.
++    lv = find( val = 'aXbxcX' sub = 'x' occ = -1 case = abap_false ).
++    ASSERT lv = 5.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++  });
++
++  it("find with occ negative, sub longer than one character", async () => {
++    const code = `
++    DATA lv TYPE i.
++    lv = find( val = 'abcab' sub = 'ab' occ = -1 ).
++    ASSERT lv = 3.
++    lv = find( val = 'abcab' sub = 'ab' occ = -2 ).
++    ASSERT lv = 0.
++    lv = find( val = 'abcab' sub = 'ab' occ = -3 ).
++    ASSERT lv = -1.
++    lv = find( val = 'foo/barr/moo' sub = 'rr/' occ = -1 ).
++    ASSERT lv = 6.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++  });
++
++  it("find with occ negative and off", async () => {
++    const code = `
++    DATA lv TYPE i.
++    lv = find( val = 'abcabcab' sub = 'ab' off = 1 occ = -1 ).
++    ASSERT lv = 6.
++    lv = find( val = 'abcabcab' sub = 'ab' off = 1 occ = -2 ).
++    ASSERT lv = 3.
++    lv = find( val = 'abcabcab' sub = 'ab' off = 1 occ = -3 ).
++    ASSERT lv = -1.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++  });
++
+   it("pcre", async () => {
+     const code = `
+     DATA val TYPE i.
+-- 
+2.43.0
+
