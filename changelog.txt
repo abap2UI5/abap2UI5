@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* 7.02 branch: the test classes of z2ui5_cl_ui5_srv_bind and z2ui5_cl_ui5_srv_model activate again on 7.02-7.4x ("The field <TAB> specified under LIKE ... has a generic type"); npm run downport now fails on that shape
 * Security hardening in the GET page: every < in the exit's styles_css is embedded as \x3c in the bootstrap script, so a </script> in a stylesheet cannot end the script element (defence in depth - the value is admin-supplied); the frontend's per-app shortcut and tree-state registries are prototype-less after an app switch as well
 * Security hardening at the app start: a class named by the URL parameter, the hash route, the launchpad startup parameter or the start page's input is checked to implement z2ui5_if_app from its RTTI descriptor before it is instantiated, so a name that is no app loads nothing - and the error says "does not implement z2ui5_if_app" instead of "does not exist in the system"
 ! Security: the default CSP no longer allows 'unsafe-eval'; on UI5 1.71 to 1.82 popups preload their controls asynchronously to stay clean - only a module a popup names in a binding type or core:require still needs it there, switch it on in the user exit (see z2ui5_if_ui5_exit, content_security_policy)
