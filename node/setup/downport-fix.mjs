@@ -20,6 +20,7 @@
  *   node node/setup/downport-fix.mjs downport-config
  *   node node/setup/downport-fix.mjs copy-src
  *   node node/setup/downport-fix.mjs prepare-transpile
+ *   node node/setup/downport-fix.mjs check-generic-like
  */
 import { fileURLToPath } from "url";
 import { readFileSync, writeFileSync, readdirSync, rmSync, cpSync } from "node:fs";
@@ -113,6 +114,55 @@ const MODES = {
     console.log("copy-src: src/ copied to node/downport/");
   },
 
+  /* The downport lowers `REF #( x )` in an operand position into
+   *
+   *   DATA temp1 LIKE REF TO x.
+   *   GET REFERENCE OF x INTO temp1.
+   *
+   * and does so for a generically typed field symbol too, which a real
+   * 7.02-7.4x system refuses: "The field "<TAB>" specified under LIKE either
+   * does not have a type or has a generic type" - the whole class pool, test
+   * include included, fails to compile. abaplint's own v702 check_syntax
+   * passes that line (measured on 2.120.52: 0 issues over the tree that
+   * carried two of them), so ABAP_702.yaml cannot see it and neither can the
+   * source-side gates - `REF #( <tab> )` is valid at v750. This check reads
+   * the downport's OUTPUT, the only place the shape exists.
+   * Fix in src/: assign to a typed variable first (`lr = REF #( <tab> ).`
+   * with `lr TYPE REF TO data`), then pass the variable - the downport turns
+   * that into a plain `GET REFERENCE OF <tab> INTO lr`. */
+  "check-generic-like": () => {
+    const SELF_TEST = [
+      ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.\n  DATA temp1 LIKE REF TO <tab>.", 1],
+      ["METHOD m.\n  FIELD-SYMBOLS <row> TYPE any.\n  DATA temp1 LIKE <row>.", 1],
+      ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE ANY TABLE.\n  DATA temp1 LIKE LINE OF <tab>.", 1],
+      // a concrete type is what LIKE needs, and a component is never generic here
+      ["METHOD m.\n  FIELD-SYMBOLS <row> TYPE ty_s_row.\n  DATA temp1 LIKE REF TO <row>.", 0],
+      ["METHOD m.\n  FIELD-SYMBOLS <tab> TYPE STANDARD TABLE OF ty_s_row.\n  DATA temp1 LIKE <tab>.", 0],
+      // the typed declaration in the NEXT method must not see the generic one
+      ["METHOD a.\n  FIELD-SYMBOLS <row> TYPE any.\nENDMETHOD.\nMETHOD b.\n  FIELD-SYMBOLS <row> TYPE ty_s_row.\n  DATA temp1 LIKE REF TO <row>.", 0],
+    ];
+    for (const [text, expected] of SELF_TEST) {
+      const got = genericLikeFindings(text).length;
+      if (got !== expected) {
+        console.error("check-generic-like: self-test failed");
+        console.error(`  ${text.replaceAll("\n", " | ")}`);
+        console.error(`  expected ${expected} finding(s), got ${got}`);
+        process.exit(1);
+      }
+    }
+    const files = abapFiles(DOWNPORT);
+    const findings = files.flatMap((file) =>
+      genericLikeFindings(readFileSync(file, "utf8")).map((f) => ({ file: file.slice(DOWNPORT.length + 1), ...f })));
+    if (findings.length) {
+      console.error(`check-generic-like: ${findings.length} declaration(s) LIKE a generically typed field symbol:`);
+      for (const f of findings) console.error(`  node/downport/${f.file}:${f.line}: ${f.text}`);
+      console.error("  7.02-7.4x refuses these (\"specified under LIKE ... has a generic type\").");
+      console.error("  In src/: assign REF #( <fs> ) to a variable TYPE REF TO data first and pass that.");
+      process.exit(1);
+    }
+    console.log(`check-generic-like: ${files.length} file(s), no LIKE on a generic field symbol - OK`);
+  },
+
   /* Clear node/output/ and drop the test-server sources into the downport
    * tree so the transpiler folds them in. Was `rm -rf && cp`. */
   "prepare-transpile": () => {
@@ -131,6 +181,31 @@ const MODES = {
     console.log(`prepare-transpile: node/output cleared, ${copied} node/srv file(s) copied`);
   },
 };
+
+/* A field symbol typed generically - `TYPE any`, `TYPE data`, `TYPE STANDARD
+ * TABLE`, ... - carries no static type a declaration could copy. */
+const GENERIC_FS =
+  /^TYPE\s+(?:any(?:\s+table)?|data|simple|clike|csequence|xsequence|numeric|c|n|x|p|decfloat|table|(?:standard|index|sorted|hashed)\s+table)\s*\.?$/i;
+const FS_DECL = /^\s*FIELD-SYMBOLS\s+(<\w+>)\s+(.*?)\s*$/i;
+const DATA_LIKE_FS = /^\s*DATA\s+\w+\s+LIKE\s+(?:REF\s+TO\s+|LINE\s+OF\s+)?(<\w+>)\s*\./i;
+
+/* Every `DATA x LIKE [REF TO | LINE OF] <fs>` whose <fs> the same method
+ * declares generically. Scoped per METHOD because the same name is `TYPE
+ * any` in one test method and a concrete row type in the next. */
+function genericLikeFindings(text) {
+  const out = [];
+  let decl = new Map();
+  text.split("\n").forEach((line, i) => {
+    if (/^\s*(?:METHOD|FORM|FUNCTION)\s/i.test(line)) decl = new Map();
+    const fs = FS_DECL.exec(line);
+    if (fs) decl.set(fs[1].toLowerCase(), fs[2]);
+    const like = DATA_LIKE_FS.exec(line);
+    if (like && GENERIC_FS.test(decl.get(like[1].toLowerCase()) ?? "")) {
+      out.push({ line: i + 1, text: line.trim() });
+    }
+  });
+  return out;
+}
 
 const mode = process.argv[2];
 if (!Object.hasOwn(MODES, mode)) {

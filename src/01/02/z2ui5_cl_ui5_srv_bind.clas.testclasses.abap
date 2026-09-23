@@ -293,6 +293,7 @@ CLASS ltcl_01_path IMPLEMENTATION.
 
   METHOD reference_deref.
 
+    DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
     " the app hands over the dereferenced data - _bind( <fs> ), not the
@@ -302,8 +303,12 @@ CLASS ltcl_01_path IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{/MR_ANY/*}`
                                         act = bind( mo_app->mr_any ) ).
     ASSIGN mo_app->mr_tab->* TO <tab>.
+    " into a typed variable, not straight into bind( ): the 7.02 downport
+    " declares its temporary LIKE REF TO the operand, and a generic <tab>
+    " has no type to take - "specified under LIKE ... has a generic type"
+    lr_tab = REF #( <tab> ).
     cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*}`
-                                        act = bind( REF #( <tab> ) ) ).
+                                        act = bind( lr_tab ) ).
 
   ENDMETHOD.
 

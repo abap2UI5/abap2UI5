@@ -825,6 +825,26 @@ break one of those four.
   how long either is, and abaplint over `src/` is green because the name is
   legal until it is renamed. **Gate: `npm run rename`**, which `abaplint.yaml`
   runs last for exactly this reason.
+- **Never pass `REF #( <fs> )` of a generically typed field symbol as an
+  operand.** `bind( REF #( <tab> ) )` with `<tab> TYPE STANDARD TABLE` is valid
+  at v750; the downport lowers the operand-position `REF #( )` into
+  `DATA temp17 LIKE REF TO <tab>.` plus `GET REFERENCE OF <tab> INTO temp17`,
+  and a 7.02–7.4x system refuses the declaration - *"The field "<TAB>"
+  specified under LIKE either does not have a type or has a generic type"*,
+  the whole class pool with it. Found in two test classes,
+  `z2ui5_cl_ui5_srv_bind` and `z2ui5_cl_ui5_srv_model` (2026-09-23). Every
+  check was green: the source is valid, the transpiled suite runs v750, and
+  abaplint's v702 `check_syntax` over the downported tree reports 0 issues
+  on that exact line (measured on 2.120.52). **Assign to a typed variable
+  first** - `lr_tab = REF #( <tab> ).` with `lr_tab TYPE REF TO data`, then
+  `bind( lr_tab )`; the downport turns that into a plain
+  `GET REFERENCE OF <tab> INTO lr_tab`. A typed field symbol is fine - the
+  temporary copies its type. **Gate:** `npm run downport` ends with
+  `downport-fix.mjs check-generic-like`, which reads the OUTPUT (the only
+  place the shape exists) and fails on any `DATA … LIKE [REF TO | LINE OF]`
+  a field symbol the same method types generically; `test.yaml` runs it on
+  every pull request. Generic *parameters* (`val TYPE any`) in the same
+  position are not covered - no case yet.
 - **Do not let an inline `DATA(…)` take its type from an offset/length
   expression.** `DATA(lv_field) = ls_attri->name+9.` made abaplint's
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and
