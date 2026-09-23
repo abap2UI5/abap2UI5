@@ -947,6 +947,7 @@ The following items may look like gaps but are intentional design choices:
   backlog item `backlog/items/frontend-action-named-api.md` as the reference for
   the future object; usage data there too (corpus 2026-08: 295 control_global
   wires / 137 control_by_id / 25 binding_call / 3 keyboard_shortcut).
+- **Embedding abap2UI5 into other UI5 apps is deferred, not forgotten.** Running it as a reuse component (freestyle views, Fiori elements extensions), several instances per page, and a wrapping custom control were assessed on 2026-09-23 and deferred until there is real demand. The findings, the staged plan and why the page-wide listeners stay page-wide are in `backlog/items/embed-as-reuse-component.md`. The framework's own ids are already component-prefixed (`ViewSlots.ownId`). Do not re-propose the rest as general cleanup.
 - **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
 
 ### Scope Exclusions for Code Reviews, Security Audits & Improvement Work
