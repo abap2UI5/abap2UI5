@@ -749,6 +749,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD bind_all.
 
+    DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
     CLEAR mt_bound.
@@ -790,7 +791,10 @@ CLASS ltcl_00_base IMPLEMENTATION.
     " S19/S20 - through the component
     bind( REF #( mo_app->ms_with_oref-o_obj->mv_inner ) ).
     ASSIGN mo_app->ms_with_dref-r_tab->* TO <tab>.
-    bind( REF #( <tab> ) ).
+    " into a typed variable first - the 7.02 downport declares its temporary
+    " LIKE REF TO the operand, which a generic <tab> cannot give it
+    lr_tab = REF #( <tab> ).
+    bind( lr_tab ).
 
   ENDMETHOD.
 
