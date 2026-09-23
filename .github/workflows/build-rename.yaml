@@ -21,8 +21,11 @@ on:
         type: string
         default: znamespace
 
+# read at the workflow level, write on the one job that pushes the branch -
+# the shape every other writing workflow here has. It was `contents: write`
+# for the whole workflow, the only one of them.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: build_rename-${{ inputs.namespace }}
@@ -32,6 +35,8 @@ jobs:
   build_rename:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     env:
       NAMESPACE: ${{ inputs.namespace }}
     steps:

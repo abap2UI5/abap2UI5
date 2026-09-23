@@ -18,11 +18,59 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_copy_ref_object       FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_question   FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_full_url   FOR TESTING RAISING cx_static_check.
+    METHODS test_impl_intf_app        FOR TESTING RAISING cx_static_check.
+    METHODS test_impl_intf_lower_case FOR TESTING RAISING cx_static_check.
+    METHODS test_impl_intf_no_app     FOR TESTING RAISING cx_static_check.
+    METHODS test_impl_intf_no_class   FOR TESTING RAISING cx_static_check.
+    METHODS test_impl_intf_interface  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
+
+  METHOD test_impl_intf_app.
+
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                                                               intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_impl_intf_lower_case.
+
+    " the interface name is normalised the way a class name is
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                                                               intf  = `z2ui5_if_app` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_impl_intf_no_app.
+
+    " exists, is a class, implements something else entirely
+    cl_abap_unit_assert=>assert_false(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `Z2UI5_CL_UI5_UTIL_CONTEXT`
+                                                               intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_impl_intf_no_class.
+
+    cl_abap_unit_assert=>assert_false(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `ZCL_THIS_CLASS_DOES_NOT_EXIST`
+                                                               intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_impl_intf_interface.
+
+    " an interface is not a class - it cannot be created, so it is no app
+    cl_abap_unit_assert=>assert_false(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `Z2UI5_IF_APP`
+                                                               intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
 
   METHOD test_bool_abap_true.
 

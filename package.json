@@ -59,6 +59,7 @@
     "check:commands": "node .github/scripts/agents-commands-gate.mjs",
     "check:format": "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc",
     "check:eslint": "eslint .",
+    "check:audit": "node .github/scripts/npm-audit-gate.mjs",
     "fmt:chains": "abap2ui5lint --fix",
     "check:abapgit": "node .github/scripts/abapgit-format-gate.mjs",
     "check:atc": "node .github/scripts/extended-check-gate.mjs",
