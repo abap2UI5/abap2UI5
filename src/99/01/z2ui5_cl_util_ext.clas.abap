@@ -2176,7 +2176,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     DATA lr_rline TYPE REF TO data.
 
     TRY.
-        CREATE DATA lr_filter TYPE ('BAL_S_LFIL').
+        DATA(lv_type_name) = `BAL_S_LFIL`.
+        CREATE DATA lr_filter TYPE (lv_type_name).
         ASSIGN lr_filter->* TO <filter>.
 
         IF object IS NOT INITIAL.
@@ -2232,7 +2233,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           INSERT <rline> INTO TABLE <range>.
         ENDIF.
 
-        CREATE DATA lr_headers TYPE ('BALHDR_T').
+        lv_type_name = `BALHDR_T`.
+        CREATE DATA lr_headers TYPE (lv_type_name).
         ASSIGN lr_headers->* TO <headers>.
 
         lv_fm = `BAL_DB_SEARCH`.
@@ -2345,7 +2347,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     DATA lr_rline TYPE REF TO data.
 
     TRY.
-        CREATE DATA lr_filter TYPE ('BAL_S_LFIL').
+        DATA(lv_type_name) = `BAL_S_LFIL`.
+        CREATE DATA lr_filter TYPE (lv_type_name).
         ASSIGN lr_filter->* TO <filter>.
 
         ASSIGN COMPONENT `OBJECT` OF STRUCTURE <filter> TO <range>.
@@ -2549,11 +2552,14 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           ENDIF.
           ASSIGN lr_handles->* TO <handles>.
 
-          CREATE DATA lr_single TYPE ('BAL_T_LOGH').
+          DATA(lv_type_name) = `BAL_T_LOGH`.
+          CREATE DATA lr_single TYPE (lv_type_name).
           ASSIGN lr_single->* TO <single>.
-          CREATE DATA lr_msgh TYPE ('BAL_T_MSGH').
+          lv_type_name = `BAL_T_MSGH`.
+          CREATE DATA lr_msgh TYPE (lv_type_name).
           ASSIGN lr_msgh->* TO <msgh>.
-          CREATE DATA lr_msg TYPE ('BAL_S_MSG').
+          lv_type_name = `BAL_S_MSG`.
+          CREATE DATA lr_msg TYPE (lv_type_name).
           ASSIGN lr_msg->* TO <msg>.
 
           LOOP AT <handles> ASSIGNING <handle>.
@@ -2665,7 +2671,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       FIELD-SYMBOLS <comp>    TYPE any.
 
       TRY.
-          CREATE DATA lr_log TYPE ('BAL_S_LOG').
+          DATA(lv_type_name) = `BAL_S_LOG`.
+          CREATE DATA lr_log TYPE (lv_type_name).
           ASSIGN lr_log->* TO <log>.
           ASSIGN COMPONENT `OBJECT` OF STRUCTURE <log> TO <comp>.
           <comp> = object.
@@ -2674,7 +2681,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           ASSIGN COMPONENT `EXTNUMBER` OF STRUCTURE <log> TO <comp>.
           <comp> = id.
 
-          CREATE DATA lr_handle TYPE ('BALLOGHNDL').
+          lv_type_name = `BALLOGHNDL`.
+          CREATE DATA lr_handle TYPE (lv_type_name).
           ASSIGN lr_handle->* TO <handle>.
 
           lv_fm = `BAL_LOG_CREATE`.
@@ -2692,7 +2700,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           bal_std_msg_add( handle = <handle>
                            t_log  = t_log ).
 
-          CREATE DATA lr_handles TYPE ('BAL_T_LOGH').
+          lv_type_name = `BAL_T_LOGH`.
+          CREATE DATA lr_handles TYPE (lv_type_name).
           ASSIGN lr_handles->* TO <handles>.
           INSERT <handle> INTO TABLE <handles>.
 
@@ -2954,10 +2963,12 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     DATA lv_fm TYPE string.
 
     TRY.
-        CREATE DATA lr_objects TYPE STANDARD TABLE OF (`E071`).
+        DATA(lv_type_name) = `E071`.
+        CREATE DATA lr_objects TYPE STANDARD TABLE OF (lv_type_name).
         ASSIGN lr_objects->* TO <objects>.
 
-        CREATE DATA lr_header TYPE (`TRWBO_REQUEST_HEADER`).
+        lv_type_name = `TRWBO_REQUEST_HEADER`.
+        CREATE DATA lr_header TYPE (lv_type_name).
         ASSIGN lr_header->* TO <header>.
         ASSIGN COMPONENT `TRKORR` OF STRUCTURE <header> TO <comp>.
         <comp> = trkorr.
@@ -3256,7 +3267,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         FIELD-SYMBOLS <trkorr> TYPE any.
         DATA lv_class TYPE string.
 
-        CREATE DATA lr_header TYPE (`TRWBO_REQUEST_HEADER`).
+        DATA(lv_type_name) = `TRWBO_REQUEST_HEADER`.
+        CREATE DATA lr_header TYPE (lv_type_name).
         ASSIGN lr_header->* TO <header>.
 
         lv_class = `CL_ADT_CTS_MANAGEMENT`.
@@ -3329,7 +3341,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         FIELD-SYMBOLS <strkorr> TYPE any.
         DATA lv_fm TYPE string.
 
-        CREATE DATA lr_headers TYPE (`TRWBO_REQUEST_HEADERS`).
+        DATA(lv_type_name) = `TRWBO_REQUEST_HEADERS`.
+        CREATE DATA lr_headers TYPE (lv_type_name).
         ASSIGN lr_headers->* TO <headers>.
 
         lv_fm = `TR_READ_REQUEST_WITH_TASKS`.
@@ -3412,7 +3425,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           ENDIF.
         ENDIF.
 
-        CREATE DATA lr_exc TYPE (`STMSCALERT`).
+        DATA(lv_type_name) = `STMSCALERT`.
+        CREATE DATA lr_exc TYPE (lv_type_name).
         ASSIGN lr_exc->* TO <exc>.
 
         lv_fm = `TMS_MGR_REFRESH_IMPORT_QUEUES`.
@@ -3486,7 +3500,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         FIELD-SYMBOLS <comp>     TYPE any.
         DATA lv_fm TYPE string.
 
-        CREATE DATA lr_settings TYPE (`CTSLG_SETTINGS`).
+        DATA(lv_type_name) = `CTSLG_SETTINGS`.
+        CREATE DATA lr_settings TYPE (lv_type_name).
         ASSIGN lr_settings->* TO <settings>.
         ASSIGN COMPONENT `SYSTEMS` OF STRUCTURE <settings> TO <systems>.
 
@@ -3495,7 +3510,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         <sysline> = system.
         INSERT <sysline> INTO TABLE <systems>.
 
-        CREATE DATA lr_cofile TYPE (`CTSLG_COFILE`).
+        lv_type_name = `CTSLG_COFILE`.
+        CREATE DATA lr_cofile TYPE (lv_type_name).
         ASSIGN lr_cofile->* TO <cofile>.
 
         lv_fm = `TR_READ_GLOBAL_INFO_OF_REQUEST`.
@@ -3602,7 +3618,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
       IF ls_log-id IS NOT INITIAL AND ls_log-no IS NOT INITIAL.
 
-        CREATE DATA lr_msg TYPE ('BAL_S_MSG').
+        DATA(lv_type_name) = `BAL_S_MSG`.
+        CREATE DATA lr_msg TYPE (lv_type_name).
         ASSIGN lr_msg->* TO <msg>.
         ASSIGN COMPONENT `MSGTY` OF STRUCTURE <msg> TO <comp>.
         <comp> = ls_log-type.
@@ -3660,7 +3677,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
                                       id        = id ).
     ASSIGN lr_filter->* TO <filter>.
 
-    CREATE DATA lr_headers TYPE ('BALHDR_T').
+    DATA(lv_type_name) = `BALHDR_T`.
+    CREATE DATA lr_headers TYPE (lv_type_name).
     ASSIGN lr_headers->* TO <headers>.
 
     lv_fm = `BAL_DB_SEARCH`.
@@ -3675,7 +3693,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CREATE DATA result TYPE ('BAL_T_LOGH').
+    lv_type_name = `BAL_T_LOGH`.
+    CREATE DATA result TYPE (lv_type_name).
     ASSIGN result->* TO <handles>.
 
     lv_fm = `BAL_DB_LOAD`.
@@ -3693,7 +3712,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     FIELD-SYMBOLS <filter> TYPE any.
 
-    CREATE DATA result TYPE ('BAL_S_LFIL').
+    DATA(lv_type_name) = `BAL_S_LFIL`.
+    CREATE DATA result TYPE (lv_type_name).
     ASSIGN result->* TO <filter>.
 
     bal_std_filter_add( EXPORTING comp   = `OBJECT`
@@ -3888,7 +3908,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     DATA ls_lock       TYPE ty_s_lock.
 
     TRY.
-        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        DATA(lv_type_name) = `SEQG3`.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (lv_type_name).
         ASSIGN lr_enq->* TO <lt_enq>.
 
         IF client IS INITIAL.
@@ -4002,9 +4023,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     DATA lv_function   TYPE string.
 
     TRY.
-        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        DATA(lv_type_name) = `SEQG3`.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (lv_type_name).
         ASSIGN lr_enq->* TO <lt_enq>.
-        CREATE DATA lr_row TYPE (`SEQG3`).
+        CREATE DATA lr_row TYPE (lv_type_name).
         ASSIGN lr_row->* TO <ls_enq>.
 
         LOOP AT t_lock INTO ls_lock.
@@ -4229,9 +4251,11 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             i_recipient = lo_recipient.
 
         " Build body text table
-        CREATE DATA lr_body TYPE (`BCSY_TEXT`).
+        DATA(lv_type_name) = `BCSY_TEXT`.
+        CREATE DATA lr_body TYPE (lv_type_name).
         ASSIGN lr_body->* TO <body>.
-        CREATE DATA lr_line TYPE (`SOLI`).
+        lv_type_name = `SOLI`.
+        CREATE DATA lr_line TYPE (lv_type_name).
         ASSIGN lr_line->* TO <line>.
 
         DATA(lt_lines) = z2ui5_cl_util=>c_split( val = body sep = z2ui5_cl_util=>cv_char_util_newline ).
@@ -4486,8 +4510,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     lv_objectid   = objectid.
 
     TRY.
-        CREATE DATA lr_headers TYPE STANDARD TABLE OF (`CDHDR`).
-        CREATE DATA lr_positions TYPE STANDARD TABLE OF (`CDPOS`).
+        DATA(lv_type_name) = `CDHDR`.
+        CREATE DATA lr_headers TYPE STANDARD TABLE OF (lv_type_name).
+        lv_type_name = `CDPOS`.
+        CREATE DATA lr_positions TYPE STANDARD TABLE OF (lv_type_name).
         ASSIGN lr_headers->* TO <headers>.
         ASSIGN lr_positions->* TO <positions>.
 
