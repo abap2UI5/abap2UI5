@@ -9,7 +9,7 @@ const { loadLib } = require("./loadLibModule");
 // guard chain, not a stub's opinion of it:
 //   DOWNLOAD_B64_FILE  protocol guard, active data: MIME block, filename
 //                      sanitizer, the attach-click-remove anchor dance
-//   OPEN_NEW_TAB       same-origin guard, opener cleared on the new tab
+//   OPEN_NEW_TAB       same-origin guard, opened with noopener,noreferrer
 //   URLHELPER          CR/LF header-injection block, REDIRECT protocol
 //                      guard (external http/https allowed, schemes not)
 function load() {
@@ -90,10 +90,11 @@ function load() {
         // same origin the real Lib resolves against (loadLibModule)
         location: { origin: "http://localhost:3000", pathname: "/sap/z2ui5" },
         history: { back: () => historyBacks.push(1) },
-        open: (url, target) => {
-          const win = { opener: "the-parent-window" };
-          opened.push({ url, target, win });
-          return win;
+        // a browser answers null for a "noopener" open - there is no
+        // window handle to reach back to, which is the point
+        open: (url, target, features) => {
+          opened.push({ url, target, features });
+          return null;
         },
       },
     },
@@ -304,17 +305,22 @@ test.describe("DOWNLOAD_B64_FILE", () => {
 });
 
 test.describe("OPEN_NEW_TAB", () => {
-  test("a same-origin URL opens in _blank with the opener cleared", () => {
+  test("a same-origin URL opens in _blank with noopener and noreferrer", () => {
     const { handlers, opened, boxErrors } = load();
 
-    handlers.OPEN_NEW_TAB(null, ["OPEN_NEW_TAB", "/sap/z2ui5?app=demo"]);
+    expect(() =>
+      handlers.OPEN_NEW_TAB(null, ["OPEN_NEW_TAB", "/sap/z2ui5?app=demo"]),
+    ).not.toThrow();
 
     expect(boxErrors).toHaveLength(0);
     expect(opened).toHaveLength(1);
     expect(opened[0].url).toBe("/sap/z2ui5?app=demo");
     expect(opened[0].target).toBe("_blank");
-    // the new tab must not be able to reach back via window.opener
-    expect(opened[0].win.opener).toBe(null);
+    // the new tab must not be able to reach back via window.opener, and
+    // must not learn this page's URL (the draft id rides in its hash) -
+    // both are the browser's job through the features string, and the
+    // null the browser then returns is not touched
+    expect(opened[0].features).toBe("noopener,noreferrer");
   });
 
   test("a cross-origin URL is refused with a MessageBox, nothing opens", () => {

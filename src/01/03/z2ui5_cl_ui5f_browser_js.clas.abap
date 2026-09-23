@@ -207,9 +207,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const newWindow = window.open(args[1], "_blank");` && |\n| &&
              `` && |\n| &&
-             `      if (newWindow) newWindow.opener = null;` && |\n| &&
+             `      window.open(args[1], "_blank", "noopener,noreferrer");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&

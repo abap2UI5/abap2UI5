@@ -252,9 +252,15 @@ sap.ui.define(
         );
         return;
       }
-      const newWindow = window.open(args[1], "_blank");
-      // Clear opener to prevent the new tab from accessing window.opener.
-      if (newWindow) newWindow.opener = null;
+      // "noopener" severs the new tab from this window at the browser
+      // level - window.opener is null over there and the call returns null
+      // here, so there is no handle left to clear afterwards (clearing
+      // `opener` on the returned window, what this did before, only worked
+      // when the browser handed one back). "noreferrer" keeps this page's
+      // URL, the draft id in its hash included, out of the Referer the new
+      // tab sends. The same shape as the devtools' ADT link
+      // (devtools/AbapSource.js).
+      window.open(args[1], "_blank", "noopener,noreferrer");
     }
 
     function evUrlHelper(oController, args) {

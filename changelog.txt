@@ -21,6 +21,8 @@ unreleased
 - BREAKING: the `z2ui5.Util` and `z2ui5.Formatter` globals and the deprecated `z2ui5/Util` module removed; bind the date helpers via core:require of `z2ui5/model/formatter` (UI5 1.74 and later)
 ! The backend GET page hands its settings (checkLocal, ccResourceRoot, cccResourceRoot) to the component as component data instead of a global
 ! The framework's own views and popups get component-prefixed ids: the main view is `<component>---mainView` instead of `mainView`, the popup/popover fragments `<component>---popupId`/`popoverId`, and the fatal-error overlay `z2ui5ServerErrorContainer`. Control ids an app declares and resolves (control_by_id, focus, scroll) are unchanged; only CSS or scripts matching the full rendered DOM id (`#mainView--...`) need the new prefix
+! A second z2ui5.Component on the same page is refused with an error (Component._claimSingleInstance) instead of silently resetting the first instance's state - the frontend state is per page until it is per component (backlog/items/embed-as-reuse-component.md)
+* Security hardening in the frontend: OPEN_NEW_TAB opens the tab with noopener,noreferrer; cc/History refuses a search value that does not start with "?" (it rewrote the path); the wire-keyed AppState records (timers, shortcuts, viewSizeLimits, treeStates) are prototype-less
 
 
 2026-09-22 v1.144.1

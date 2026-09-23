@@ -176,16 +176,20 @@ sap.ui.define(
       const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;
       const shortcuts = AppState.state.shortcuts;
       // a combo that spells a property Object.prototype carries - `__proto__`,
-      // `constructor` - is no key combination, and shortcuts[combo] for it
-      // reaches the prototype: a scope written under `__proto__` landed on
-      // Object.prototype itself, for every object of the page
+      // `constructor` - is no key combination. The registry itself is
+      // prototype-less since 2026-09-23 (AppState.createState), so such a
+      // write no longer reaches Object.prototype; the check stays for the
+      // log line, which is the only way an app learns its wire was wrong.
       if (combo in Object.prototype) {
         Lib.logError(
           `KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination`,
         );
         return;
       }
-      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});
+      // the scope map is keyed by a control id off the wire, so it is
+      // prototype-less for the same reason as the registry around it
+      const scopes =
+        shortcuts[combo] ?? (shortcuts[combo] = Object.create(null));
       if (!args[2]) {
         delete scopes[scope];
         // a combo with no registration left must not keep an empty entry:

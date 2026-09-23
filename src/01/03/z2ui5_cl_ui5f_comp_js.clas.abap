@@ -56,6 +56,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    let liveInstance = null;` && |\n| &&
+             `` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        manifest: "json",` && |\n| &&
@@ -63,6 +65,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
+             `        this._claimSingleInstance();` && |\n| &&
+             `` && |\n| &&
              `        AppState.reset();` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `` && |\n| &&
@@ -106,6 +110,21 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        DevTools.install();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _claimSingleInstance() {` && |\n| &&
+             `        if (` && |\n| &&
+             `          liveInstance &&` && |\n| &&
+             `          liveInstance !== this &&` && |\n| &&
+             `          Lib.isAlive(liveInstance)` && |\n| &&
+             `        ) {` && |\n| &&
+             `          throw new Error(` && |\n| &&
+             `            "z2ui5.Component: a second instance on the same page is not " +` && |\n| &&
+             `              "supported - the frontend state is shared per page (see " +` && |\n| &&
+             `              "core/AppState.js)",` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        liveInstance = this;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installUnloadListener() {` && |\n| &&
@@ -186,6 +205,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
+             `        if (liveInstance === this) liveInstance = null;` && |\n| &&
+             `` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&

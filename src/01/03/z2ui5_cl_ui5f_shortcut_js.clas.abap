@@ -151,7 +151,9 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
+             `` && |\n| &&
+             `      const scopes =` && |\n| &&
+             `        shortcuts[combo] ?? (shortcuts[combo] = Object.create(null));` && |\n| &&
              `      if (!args[2]) {` && |\n| &&
              `        delete scopes[scope];` && |\n| &&
              `` && |\n| &&

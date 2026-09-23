@@ -215,14 +215,21 @@ sap.ui.define([], () => {
       // in-app history entry to consume, so a fallback replaces instead.
       hashPushCount: 0,
 
-      // Control / helper state
+      // Control / helper state. The records keyed by a value that comes off
+      // the wire - a timer key, a shortcut combo, a view key, a tree id -
+      // are prototype-less: on a plain object `record["constructor"]`
+      // answers Object.prototype's function and `record["__proto__"] = x`
+      // writes into the prototype itself, so a malformed key was a wrong
+      // answer or a write into every object of the page instead of a miss.
+      // Same reason the dispatch tables in core/FrontendAction.js and
+      // core/actions/ControlCall.js are built with Object.create(null).
       errors: [],
-      timers: {},
-      shortcuts: {},
+      timers: Object.create(null),
+      shortcuts: Object.create(null),
       lastScrolled: {},
       odataClients: new Set(),
-      viewSizeLimits: {},
-      treeStates: {},
+      viewSizeLimits: Object.create(null),
+      treeStates: Object.create(null),
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)

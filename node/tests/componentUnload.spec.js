@@ -72,7 +72,12 @@ function loadForExit(
       "z2ui5/model/models": {},
       "z2ui5/core/Server": { endSession: noop, reset: noop },
       "z2ui5/devtools/DevTools": { exit: noop },
-      "z2ui5/core/Lib": { logError: noop, cancelPendingTimers },
+      "z2ui5/core/Lib": {
+        logError: noop,
+        cancelPendingTimers,
+        // the shipped isAlive, reduced to the flag a component carries
+        isAlive: (obj) => Boolean(obj) && !obj.bIsDestroyed,
+      },
       "z2ui5/core/AppState": appState,
       "z2ui5/core/Router": { exit: noop },
       "z2ui5/core/ScrollFocus": { reset: noop },
@@ -117,7 +122,9 @@ function fakeAppState(overrides = {}) {
   return appState;
 }
 
-function runExit(appState, options) {
+// `prepare(inst, def)` runs on the instance before its exit() - for the
+// specs that need something claimed or installed first.
+function runExit(appState, options, prepare = () => {}) {
   const destroyedSlots = [];
   const shortcutResets = [];
   const { module: def, sandbox } = loadForExit(appState, {
@@ -135,9 +142,41 @@ function runExit(appState, options) {
   inst._boundUnload = () => {};
   inst._boundScroll = () => {};
   inst._launchpad = null;
+  prepare(inst, def);
   inst.exit();
-  return { inst, cleared, destroyedSlots, shortcutResets };
+  return { inst, def, cleared, destroyedSlots, shortcutResets };
 }
+
+// One instance per page: the frontend state is a module singleton, and the
+// AppState.reset() in init() used to wipe the first instance's state for a
+// second one SILENTLY - the first app failed later, far from the cause.
+test("a second live instance on the page is refused, a destroyed one is not", () => {
+  const { module: def } = loadForExit(fakeAppState());
+
+  const first = Object.create(def);
+  first._claimSingleInstance();
+
+  const second = Object.create(def);
+  expect(() => second._claimSingleInstance()).toThrow(/second instance/);
+  // the refusal happened before anything was touched
+  expect(() => first._claimSingleInstance()).not.toThrow();
+
+  // an FLP re-launch destroys the old component before it creates the new
+  // one - a dead predecessor holds no claim
+  first.bIsDestroyed = true;
+  expect(() => second._claimSingleInstance()).not.toThrow();
+});
+
+test("exit() releases the page claim for the next launch", () => {
+  const { def } = runExit(fakeAppState(), {}, (inst) =>
+    inst._claimSingleInstance(),
+  );
+
+  // the instance that exited is still "alive" by its flag - the claim has
+  // to go with exit(), not with the destroy flag
+  const next = Object.create(def);
+  expect(() => next._claimSingleInstance()).not.toThrow();
+});
 
 test("exit() destroys the OData clients the framework created, a throwing one included", () => {
   const destroyed = [];

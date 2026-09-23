@@ -29,6 +29,9 @@ sap.ui.define(
   ) => {
     "use strict";
 
+    // The one live z2ui5.Component of the page - see _claimSingleInstance.
+    let liveInstance = null;
+
     return UIComponent.extend("z2ui5.Component", {
       metadata: {
         manifest: "json",
@@ -36,6 +39,10 @@ sap.ui.define(
       },
 
       init() {
+        // Before the reset below: a second instance must not get as far as
+        // wiping the first one's state.
+        this._claimSingleInstance();
+
         // core/AppState owns the shared state of the whole app. Start from
         // clean defaults (also on an FLP re-launch), so the base init() and
         // all helpers can rely on a fully initialized state from here on.
@@ -126,6 +133,37 @@ sap.ui.define(
         DevTools.install();
         this._installScrollListener();
         this._installRouterListener();
+      },
+
+      // ------------------------------------------------------------------
+      // One instance per page
+      // ------------------------------------------------------------------
+
+      // The frontend state is a module singleton (core/AppState.js, plus
+      // the module state of Server, Session, Router, Shortcuts and
+      // ErrorView), so a second z2ui5.Component on the same page would
+      // share all of it - and the AppState.reset( ) in init( ) wiped the
+      // first instance's views, controllers and session SILENTLY: the first
+      // app went on rendering into state that now belonged to the second,
+      // and failed later with "App Terminated", far from the cause. Refusing
+      // the second instance here is the honest answer until the state is
+      // per component (backlog/items/embed-as-reuse-component.md, stage 2).
+      // A destroyed predecessor does not count: an FLP re-launch destroys
+      // the old component before it creates the new one, and exit( )
+      // releases the claim either way.
+      _claimSingleInstance() {
+        if (
+          liveInstance &&
+          liveInstance !== this &&
+          Lib.isAlive(liveInstance)
+        ) {
+          throw new Error(
+            "z2ui5.Component: a second instance on the same page is not " +
+              "supported - the frontend state is shared per page (see " +
+              "core/AppState.js)",
+          );
+        }
+        liveInstance = this;
       },
 
       // ------------------------------------------------------------------
@@ -252,6 +290,10 @@ sap.ui.define(
       // ------------------------------------------------------------------
 
       exit() {
+        // First: release the page claim, so the next launch can take it
+        // even if a step below throws.
+        if (liveInstance === this) liveInstance = null;
+
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,

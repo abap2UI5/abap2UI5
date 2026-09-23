@@ -38,6 +38,9 @@ general cleanup.
   id (`ViewSlots.ownId`), and the fatal-error overlay is
   `z2ui5ServerErrorContainer`. Nothing the framework creates carries a bare
   page-global id any more.
+- **Done 2026-09-23:** a second instance on the same page is refused with
+  an error (`Component._claimSingleInstance`) instead of silently resetting
+  the first one's state. The guard is what stage 2 removes.
 
 ## Stage 1 - one embedded instance per page (feasible, a few days)
 
