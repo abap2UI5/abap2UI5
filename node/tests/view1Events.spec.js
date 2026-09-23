@@ -658,7 +658,7 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     const cleared = [];
     const state = { timers: {} };
     const { Lib } = loadLib({
-      z2ui5: state,
+      state,
       clearTimeout: (handle) => cleared.push(handle),
     });
     const bodies = [];

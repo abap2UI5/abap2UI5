@@ -59,15 +59,15 @@ test.describe("getTheme (Theming since 1.118, Configuration before)", () => {
   });
 
   test("logs and answers empty when the probe throws", () => {
-    const { Lib, sandbox } = libWithUi({
+    const { Lib, state } = libWithUi({
       require: () => undefined,
       getCore: () => {
         throw new Error("boom");
       },
     });
     expect(Lib.getTheme()).toBe("");
-    expect(sandbox.z2ui5.errors.length).toBe(1);
-    expect(sandbox.z2ui5.errors[0].message).toContain("theme");
+    expect(state.errors.length).toBe(1);
+    expect(state.errors[0].message).toContain("theme");
   });
 });
 

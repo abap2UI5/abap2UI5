@@ -16,7 +16,7 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
     const main = { eB() {} };
     const popup = { eB() {} };
     const state = { oController: main, oControllerPopup: popup };
-    const { Lib } = loadLib({ z2ui5: state });
+    const { Lib } = loadLib({ state });
     expect(Lib.isControllerAlive(main)).toBe(true);
     expect(Lib.isControllerAlive(popup)).toBe(true);
     // a stray object that only LOOKS like a controller is not alive
@@ -40,7 +40,7 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
 test.describe("afterRoundtrip (one value per roundtrip)", () => {
   test("runs right away when no roundtrip is in flight", () => {
     const state = { isBusy: false, onAfterRendering: [] };
-    const { Lib } = loadLib({ z2ui5: state });
+    const { Lib } = loadLib({ state });
     let ran = 0;
     Lib.afterRoundtrip({}, () => ran++);
     expect(ran).toBe(1);
@@ -49,7 +49,7 @@ test.describe("afterRoundtrip (one value per roundtrip)", () => {
 
   test("waits for the roundtrip to land, once, and unhooks itself", () => {
     const state = { isBusy: true, onAfterRendering: [] };
-    const { Lib } = loadLib({ z2ui5: state });
+    const { Lib } = loadLib({ state });
     let ran = 0;
     Lib.afterRoundtrip({}, () => ran++);
     expect(ran).toBe(0);
@@ -62,7 +62,7 @@ test.describe("afterRoundtrip (one value per roundtrip)", () => {
 
   test("a destroyed owner is not called, and the wait can be cancelled", () => {
     const state = { isBusy: true, onAfterRendering: [] };
-    const { Lib } = loadLib({ z2ui5: state });
+    const { Lib } = loadLib({ state });
     let ran = 0;
     const owner = { bIsDestroyed: false };
     Lib.afterRoundtrip(owner, () => ran++);
@@ -253,7 +253,7 @@ test.describe("runCallbacks", () => {
   });
 
   test("a throwing callback is logged and does not stop the others", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Lib, state } = loadLib();
     const calls = [];
     Lib.runCallbacks([
       () => {
@@ -262,7 +262,7 @@ test.describe("runCallbacks", () => {
       () => calls.push("ok"),
     ]);
     expect(calls).toEqual(["ok"]);
-    expect(sandbox.z2ui5.errors[0].error.message).toBe("boom");
+    expect(state.errors[0].error.message).toBe("boom");
   });
 
   test("tolerates a missing callback array", () => {
@@ -273,20 +273,20 @@ test.describe("runCallbacks", () => {
 
 test.describe("logError", () => {
   test("caps the error log at 100 entries, dropping the oldest", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Lib, state } = loadLib();
     for (let i = 0; i < 150; i++) Lib.logError(`error ${i}`);
-    expect(sandbox.z2ui5.errors.length).toBe(100);
-    expect(sandbox.z2ui5.errors[0].message).toBe("error 50");
-    expect(sandbox.z2ui5.errors[99].message).toBe("error 149");
+    expect(state.errors.length).toBe(100);
+    expect(state.errors[0].message).toBe("error 50");
+    expect(state.errors[99].message).toBe("error 149");
   });
 
   test("stores the error object only when one was passed", () => {
-    const { Lib, sandbox } = loadLib();
+    const { Lib, state } = loadLib();
     Lib.logError("plain message");
     Lib.logError("with error", new Error("boom"));
-    expect(sandbox.z2ui5.errors[0]).not.toHaveProperty("error");
-    expect(sandbox.z2ui5.errors[1].error.message).toBe("boom");
-    expect(sandbox.z2ui5.errors[1].ts).toBeTruthy();
+    expect(state.errors[0]).not.toHaveProperty("error");
+    expect(state.errors[1].error.message).toBe("boom");
+    expect(state.errors[1].ts).toBeTruthy();
   });
 });
 
@@ -428,12 +428,12 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
   });
 
   test("a module that fails to load is logged, never thrown", async () => {
-    const { Lib, sandbox } = loadLib({ z2ui5: { errors: [] } });
+    const { Lib, sandbox, state } = loadLib({ state: { errors: [] } });
     sandbox.sap.ui.version = "1.71.81";
     sandbox.sap.ui.require = (_modules, _onLoad, onError) =>
       onError(new Error("404"));
     await Lib.preloadFragmentModules(XML);
-    expect(sandbox.z2ui5.errors.length).toBe(1);
+    expect(state.errors.length).toBe(1);
   });
 });
 

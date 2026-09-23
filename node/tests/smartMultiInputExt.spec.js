@@ -10,7 +10,7 @@ const { loadLib } = require("./loadLibModule");
 // key normalization of setRangeData, the destroyed-guard after its await,
 // and the range enrichment in onTokenUpdate.
 function load({ input } = {}) {
-  const { Lib, sandbox } = loadLib();
+  const { Lib, state } = loadLib();
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
@@ -41,7 +41,7 @@ function load({ input } = {}) {
     return inst;
   }
 
-  return { makeInstance, errors, state: sandbox.z2ui5 };
+  return { makeInstance, errors, state };
 }
 
 // A token stub with the data() get/set convention of sap.ui.core.Element.

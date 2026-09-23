@@ -14,7 +14,7 @@ const { loadLib } = require("./loadLibModule");
 //                      guard (external http/https allowed, schemes not)
 function load() {
   // The real Lib: its sandbox origin anchors the same-origin checks.
-  const { Lib, sandbox: libSandbox } = loadLib();
+  const { Lib, state: libState } = loadLib();
 
   const boxErrors = [];
   const urlHelperCalls = [];
@@ -109,7 +109,7 @@ function load() {
     opened,
     boxErrors,
     urlHelperCalls,
-    errors: () => (libSandbox.z2ui5.errors || []).map((e) => e.message),
+    errors: () => (libState.errors || []).map((e) => e.message),
   };
 }
 

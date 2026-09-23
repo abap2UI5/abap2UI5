@@ -9,12 +9,10 @@ export default [
       sourceType: "script",
       globals: {
         ...globals.browser,
-        // UI5 framework global
+        // UI5 framework global. There is deliberately no `z2ui5` entry: the
+        // frontend has no global of its own (shared state lives in
+        // core/AppState.js), so no-undef reports any `z2ui5.x` access.
         sap: "readonly",
-        // Shared abap2UI5 state object. Declared by the backend-generated
-        // HTML page; Component.js re-creates it when running standalone,
-        // therefore it must be writable.
-        z2ui5: "writable",
       },
     },
     linterOptions: {
@@ -25,8 +23,8 @@ export default [
       // The frontend evaluates no code it receives: follow-up actions are
       // data, dispatched by name (core/FrontendAction.js).
       "no-new-func": "error",
-      // Many handlers intentionally swallow errors after logging them to
-      // z2ui5.errors; unused catch parameters are accepted.
+      // Many handlers intentionally swallow errors after logging them via
+      // Lib.logError; unused catch parameters are accepted.
       "no-unused-vars": [
         "error",
         { caughtErrors: "none", argsIgnorePattern: "^_" },

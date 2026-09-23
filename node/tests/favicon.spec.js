@@ -19,7 +19,7 @@ function load({ head = [] } = {}) {
 
   // The REAL Lib: the control's URL guard is Lib.isSafeDownloadURL, and a
   // hand-stub of it would just restate the expectation under test.
-  const { Lib, sandbox: libSandbox } = loadLib();
+  const { Lib, state: libState } = loadLib();
 
   const { module: FaviconDef, sandbox } = loadModule("cc/Favicon.js", {
     deps: {
@@ -60,7 +60,7 @@ function load({ head = [] } = {}) {
 
   // Lib.logError records into ITS sandbox's shared state - expose it so the
   // refusal tests can assert the guard actually fired.
-  return { instance, links, created, errors: () => libSandbox.z2ui5.errors };
+  return { instance, links, created, errors: () => libState.errors };
 }
 
 // rel="icon", the spelling the SET_FAVICON action creates too - the

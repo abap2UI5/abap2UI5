@@ -22,7 +22,7 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
   // and the control share ONE state object, the way they do in the app -
   // afterRoundtrip decides on the same isBusy the control's drain sees.
   const state = { isBusy };
-  const Lib = { ...loadLib({ z2ui5: state }).Lib, logError: (m) => errors.push(m) };
+  const Lib = { ...loadLib({ state }).Lib, logError: (m) => errors.push(m) };
   const sockets = [];
   let failConstruct = false;
   class FakeWebSocket {

@@ -34,8 +34,8 @@ function makeFileReaderStub() {
 function load({ uploadSet } = {}) {
   const { readers, FakeFileReader } = makeFileReaderStub();
   // The real Lib: registerCallback/claimOnce/readFileAsDataURL are the
-  // shipped ones; the shared state object is observable via sandbox.z2ui5.
-  const { Lib, sandbox } = loadLib({ FileReader: FakeFileReader });
+  // shipped ones; the shared state object is observable via the `state` loadLib returns.
+  const { Lib, state } = loadLib({ FileReader: FakeFileReader });
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
@@ -46,7 +46,7 @@ function load({ uploadSet } = {}) {
       "z2ui5/core/ViewSlots": { byIdOfOwner: () => uploadSet ?? null },
       // the same state object Lib's callbacks live on - isBusy is what the
       // control reads after each change (see the multi-select spec)
-      "z2ui5/core/AppState": { state: sandbox.z2ui5 },
+      "z2ui5/core/AppState": { state },
     },
   });
 
@@ -74,7 +74,7 @@ function load({ uploadSet } = {}) {
     return inst;
   }
 
-  return { makeInstance, readers, errors, state: sandbox.z2ui5 };
+  return { makeInstance, readers, errors, state };
 }
 
 // Lib.logError is captured by the module factory, so replacing the export

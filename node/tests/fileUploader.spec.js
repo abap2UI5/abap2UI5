@@ -38,7 +38,7 @@ function load() {
   const { readers, FakeFileReader } = makeFileReaderStub();
   // The real Lib (readFileAsDataURL, isDestroyed) with the FileReader global
   // stubbed inside Lib's own module sandbox.
-  const { Lib, sandbox } = loadLib({ FileReader: FakeFileReader });
+  const { Lib, state } = loadLib({ FileReader: FakeFileReader });
 
   class Button {
     constructor(settings) {
@@ -156,7 +156,7 @@ function load() {
     render,
     changeEvent,
     readers,
-    state: sandbox.z2ui5,
+    state,
   };
 }
 

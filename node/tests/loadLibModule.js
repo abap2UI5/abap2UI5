@@ -6,12 +6,11 @@
 const { loadModule } = require("./loadModule");
 
 function loadLib(overrides = {}) {
-  // Lib reaches the shared state via its AppState dependency. The stub's
-  // `state` is the same object that is exposed as sandbox.z2ui5, so the
-  // existing spec assertions on sandbox.z2ui5.errors keep observing what
-  // the helpers write.
-  const { elements = {}, ...rest } = overrides;
-  const state = rest.z2ui5 ?? {};
+  // Lib reaches the shared state via its AppState dependency ONLY. The
+  // stub's `state` is returned to the spec, never put into the sandbox as a
+  // global: a `z2ui5` global there would let production code that reads one
+  // pass these specs, and the frontend has had none since 2026-09-22.
+  const { elements = {}, state = {}, ...rest } = overrides;
   // Lib.getElementById resolves control ids through sap.ui.core.Element;
   // the stub's registry lets a spec register elements to resolve.
   const Element = { getElementById: (sId) => elements[sId] || null };
@@ -22,12 +21,11 @@ function loadLib(overrides = {}) {
     },
     sandbox: {
       // window.location.origin anchors relative URL resolution.
-      z2ui5: state,
       window: { location: { origin: "http://localhost:3000" } },
       ...rest,
     },
   });
-  return { Lib: module, sandbox };
+  return { Lib: module, sandbox, state };
 }
 
 module.exports = { loadLib };

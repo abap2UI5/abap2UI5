@@ -10,7 +10,7 @@ const { loadLib } = require("./loadLibModule");
 // control's own model), the restore path (scrollTo preferred over DOM), and
 // the "log, never throw" guards.
 function load({ controls = {}, domElements = {} } = {}) {
-  const { Lib, sandbox } = loadLib();
+  const { Lib, state } = loadLib();
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
@@ -44,7 +44,7 @@ function load({ controls = {}, domElements = {} } = {}) {
     return inst;
   }
 
-  return { makeInstance, errors, state: sandbox.z2ui5 };
+  return { makeInstance, errors, state };
 }
 
 test("init registers the onBeforeRoundtrip hook, exit removes it", () => {
