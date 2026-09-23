@@ -62,6 +62,7 @@ const CHECKS = [
 if (full) {
   CHECKS.push(
     { cmd: "npm run check:ui5", argv: ["npm", "run", "check:ui5"] },
+    { cmd: "npm run check:types", argv: ["npm", "run", "check:types"] },
     { cmd: "npm --prefix app run lint", argv: ["npm", "--prefix", "app", "run", "lint"] },
   );
 }

@@ -39,6 +39,7 @@
     "check:frozen": "node .github/scripts/frozen-paths-gate.mjs",
     "check:frozen-only": "node .github/scripts/frozen-only-gate.mjs",
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
+    "check:types": "npm --prefix app run typecheck",
     "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && node .github/scripts/app2abap-gate.mjs",
     "check:frontend": "npm run frontend:build && node tools/check-pages.mjs",
     "check:api": "node .github/scripts/api-snapshot.mjs",
