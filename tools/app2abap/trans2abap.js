@@ -211,6 +211,7 @@ const CLASS_NAME_STEMS = {
     'core/FrontendAction.js': 'frontact_js',
     'core/ScrollFocus.js': 'scrfocus_js',
     'core/ViewSlots.js': 'viewslot_js',
+    'core/actions/BindingCall.js': 'bindcall_js',
     'core/actions/ControlCall.js': 'ctrlcall_js',
     'core/actions/Launchpad.js': 'launchpd_js',
     'core/actions/Shortcuts.js': 'shortcut_js',

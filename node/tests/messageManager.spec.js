@@ -64,6 +64,8 @@ function load() {
       "sap/ui/core/Control": controlStub(),
       "sap/ui/core/message/Message": Message,
       "z2ui5/core/Lib": Lib,
+      // the stub carries the Env probes this module uses as well
+      "z2ui5/core/Env": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
     },
   });

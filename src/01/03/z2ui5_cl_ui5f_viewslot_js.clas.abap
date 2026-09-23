@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Fragment", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Fragment, Lib, AppState) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Fragment",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Fragment, Lib, Env, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const slots = [` && |\n| &&
@@ -67,6 +72,15 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `        fragmentId: "popoverId",` && |\n| &&
              `      },` && |\n| &&
              `    ];` && |\n| &&
+             `` && |\n| &&
+             `    function ownId(localId) {` && |\n| &&
+             `      const owner = AppState.state.oOwnerComponent;` && |\n| &&
+             `      return owner?.createId ? owner.createId(localId) : localId;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function fragmentIdOf(slot) {` && |\n| &&
+             `      return slot.fragmentId ? ownId(slot.fragmentId) : undefined;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
              `` && |\n| &&
@@ -110,7 +124,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      if (AppState.state.oDeviceModel) {` && |\n| &&
              `        view.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `      }` && |\n| &&
-             `      const messaging = Lib.getMessaging?.();` && |\n| &&
+             `      const messaging = Env.getMessaging?.();` && |\n| &&
              `      if (messaging) {` && |\n| &&
              `        view.setModel(messaging.getMessageModel(), "message");` && |\n| &&
              `        messaging.registerObject(view, true);` && |\n| &&
@@ -135,7 +149,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      if (!slot) return undefined;` && |\n| &&
              `      const view = AppState.state[slot.prop];` && |\n| &&
              `      if (!view) return undefined;` && |\n| &&
-             `      if (slot.fragmentId) return Fragment.byId(slot.fragmentId, id);` && |\n| &&
+             `      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(slot), id);` && |\n| &&
              `      return view.byId(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -145,7 +159,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `        const found = byId(slot.key, id);` && |\n| &&
              `        if (found) return found;` && |\n| &&
              `      }` && |\n| &&
-             `      return Lib.getElementById(id);` && |\n| &&
+             `      return Env.getElementById(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function trackedModel(owner) {` && |\n| &&
@@ -187,7 +201,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
-             `        Lib.getMessaging?.()?.unregisterObject(view);` && |\n| &&
+             `        Env.getMessaging?.()?.unregisterObject(view);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``ViewSlots.destroy: unregisterObject failed for ${key}``,` && |\n| &&
@@ -212,6 +226,8 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      keyOfController,` && |\n| &&
              `      byId,` && |\n| &&
              `      byIdOfOwner,` && |\n| &&
+             `      ownId,` && |\n| &&
+             `      fragmentIdOf,` && |\n| &&
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&

@@ -32,10 +32,11 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (XMLView, Fragment, JSONModel, Server, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  (XMLView, Fragment, JSONModel, Server, Lib, Env, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
@@ -97,11 +98,11 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oModel = createViewModel(slotKey);` && |\n| &&
              `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `` && |\n| &&
-             `      await Lib.preloadFragmentModules(xml);` && |\n| &&
+             `      await Env.preloadFragmentModules(xml);` && |\n| &&
              `      const oFragment = await Fragment.load({` && |\n| &&
              `        definition: xml,` && |\n| &&
              `        controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `        id: fragmentId,` && |\n| &&
+             `        id: ViewSlots.ownId(fragmentId),` && |\n| &&
              `      });` && |\n| &&
              `      if (!Lib.isAlive(AppState.state.oApp) || isSuperseded(seq)) {` && |\n| &&
              `        oFragment.destroy();` && |\n| &&
@@ -220,7 +221,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        definition: xml,` && |\n| &&
              `        models: oModel,` && |\n| &&
              `        controller: ViewSlots.getController("MAIN"),` && |\n| &&
-             `        id: "mainView",` && |\n| &&
+             `` && |\n| &&
+             `        id: ViewSlots.ownId("mainView"),` && |\n| &&
              `        preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&

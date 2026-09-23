@@ -2,10 +2,11 @@ sap.ui.define(
   [
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
   ],
-  (Element, Lib, ViewSlots, AppState) => {
+  (Element, Lib, Env, ViewSlots, AppState) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -27,8 +28,8 @@ sap.ui.define(
       let el = dom;
       while (el && el.getAttribute) {
         if (el.hasAttribute("data-sap-ui")) {
-          // Lib.getElementById carries the version fallback for the lookup
-          return Lib.getElementById(el.id);
+          // Env.getElementById carries the version fallback for the lookup
+          return Env.getElementById(el.id);
         }
         el = el.parentElement;
       }
@@ -39,7 +40,7 @@ sap.ui.define(
     // gets the id as the app declared it. Returns the id unchanged when the
     // control does not belong to that slot.
     //
-    // The prefix comes from the slot's `fragmentId` where it has one (POPUP
+    // The prefix comes from the slot's fragment id where it has one (POPUP
     // and POPOVER - see ViewSlots.slots), and only otherwise from the view
     // id. A fragment's inner controls are registered under the FRAGMENT id
     // ("popupId--input"), while the instance the slot holds is the fragment
@@ -54,7 +55,7 @@ sap.ui.define(
       const view = ViewSlots.getView(slot.key);
       if (!view) return fullId;
       const prefix = slot.fragmentId
-        ? `${slot.fragmentId}--`
+        ? `${ViewSlots.fragmentIdOf(slot)}--`
         : `${view.getId()}--`;
       return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
     }

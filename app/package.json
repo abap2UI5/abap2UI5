@@ -19,7 +19,8 @@
     "@ui5/linter": "^1.23.6",
     "eslint": "^10.10.0",
     "globals": "^17.12.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "start": "fiori run --open \"test/flpSandbox.html?sap-ui-xx-viewCache=false#z2ui5-display\"",
@@ -29,7 +30,8 @@
     "start-variants-management": "fiori run --open \"preview.html?sap-ui-xx-viewCache=false&fiori-tools-rta-mode=true&sap-ui-rta-skip-flex-validation=true#preview-app\"",
     "format": "prettier --write 'webapp/**/*.js'",
     "format:check": "prettier --check 'webapp/**/*.js'",
-    "lint": "eslint 'webapp/**/*.js'"
+    "lint": "eslint 'webapp/**/*.js'",
+    "typecheck": "tsc -p ."
   },
   "sapuxLayer": "CUSTOMER_BASE"
 }

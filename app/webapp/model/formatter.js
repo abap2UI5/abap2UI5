@@ -60,6 +60,7 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   // Splits an 8-character ABAP date string "YYYYMMDD" into the [year, month,
   // day] tuple JavaScript's Date constructor expects. Note: Date months are
   // 0-based, so we subtract 1 from the month component.
+  /** @returns {[number, number, number]} */
   function parseYmd(d) {
     return [
       Number(d.slice(0, 4)),

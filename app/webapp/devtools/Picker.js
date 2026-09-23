@@ -13,10 +13,11 @@ sap.ui.define(
   [
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Format",
   ],
-  (Element, Lib, ViewSlots, Format) => {
+  (Element, Lib, Env, ViewSlots, Format) => {
     "use strict";
 
     // the framework event wire, shared with the inspectors (see Format)
@@ -63,7 +64,7 @@ sap.ui.define(
       while (current && current !== document.body) {
         const id = current.id;
         if (id) {
-          const control = Lib.getElementById(id);
+          const control = Env.getElementById(id);
           if (control) return control;
         }
         current = current.parentElement;

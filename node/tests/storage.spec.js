@@ -15,7 +15,7 @@ function load({ stored = null, value = "", type = "local" } = {}) {
   // The REAL Lib for the type resolution the control shares with the
   // STORE_DATA action (Lib.resolveStorageType): its log lands in Lib's own
   // sandbox, which the errors below read together with the control's
-  const { Lib, sandbox: libSandbox } = loadLib();
+  const { Lib, state: libState } = loadLib();
   const { module: StorageControl } = loadModule("cc/Storage.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
@@ -34,7 +34,7 @@ function load({ stored = null, value = "", type = "local" } = {}) {
     },
   });
   const libErrors = () =>
-    (libSandbox.z2ui5.errors || []).map((e) => e.message);
+    (libState.errors || []).map((e) => e.message);
 
   const fired = [];
   const instance = Object.create(StorageControl);

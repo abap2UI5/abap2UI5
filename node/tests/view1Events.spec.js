@@ -658,7 +658,7 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     const cleared = [];
     const state = { timers: {} };
     const { Lib } = loadLib({
-      z2ui5: state,
+      state,
       clearTimeout: (handle) => cleared.push(handle),
     });
     const bodies = [];
@@ -746,6 +746,9 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
           logError: () => {},
         },
         "z2ui5/core/ViewSlots": {
+          // the real module prefixes with the owner component; no owner here
+          ownId: (id) => id,
+          fragmentIdOf: (slot) => slot.fragmentId,
           slots: [],
           getView: () => undefined,
           getController: () => undefined,
@@ -869,6 +872,9 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         requireODataModel: () => Promise.resolve(ODataModel),
       },
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: [{ key: "MAIN", ownsModel: true }],
         getView: (key) => openSlots[key],
         getController: () => undefined,

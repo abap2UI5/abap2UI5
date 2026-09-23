@@ -29,10 +29,11 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Format",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Element, Lib, ViewSlots, Format) => {` && |\n| &&
+             `  (Element, Lib, Env, ViewSlots, Format) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const { FRAMEWORK_CALL } = Format;` && |\n| &&
@@ -70,7 +71,7 @@ CLASS z2ui5_cl_ui5f_picker_js IMPLEMENTATION.
              `      while (current && current !== document.body) {` && |\n| &&
              `        const id = current.id;` && |\n| &&
              `        if (id) {` && |\n| &&
-             `          const control = Lib.getElementById(id);` && |\n| &&
+             `          const control = Env.getElementById(id);` && |\n| &&
              `          if (control) return control;` && |\n| &&
              `        }` && |\n| &&
              `        current = current.parentElement;` && |\n| &&

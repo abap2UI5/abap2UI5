@@ -32,6 +32,7 @@ _a decision was made not to do this now, and why_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`frontend-action-named-api`](items/frontend-action-named-api.md) | 425 + 99 calls across 130 ports go through a positional argument table — deferred to a future dedicated ACTION OBJECT (maintainer decision 2026-08-11), and this item is the collected requirement for it | medium | 2026-08-11 | abap2UI5/abap2UI5 |
+| [`embed-as-reuse-component`](items/embed-as-reuse-component.md) | The frontend runs once per page and owns the page - stage 1 (one embedded instance via ComponentContainer) is feasible, stage 2 (several instances) and a wrapping custom control are deferred until there is real demand (maintainer decision 2026-09-23) | low | 2026-09-23 | abap2UI5/abap2UI5 |
 
 ---
 

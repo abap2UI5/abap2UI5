@@ -89,14 +89,14 @@ export default [
   {
     // The specs load app/webapp modules into a stubbed UI5 runtime, so they
     // build browser-shaped objects (window, document, URL, setTimeout) and
-    // the `sap` and `z2ui5` globals the frontend config also declares.
+    // the `sap` global the frontend config also declares. No `z2ui5`: the
+    // frontend has no global of its own, so a spec has none to stub.
     files: ["node/tests/**/*.js", "node/tests-examples/**/*.js"],
     languageOptions: {
       globals: {
         ...globals.node,
         ...globals.browser,
         sap: "writable",
-        z2ui5: "writable",
       },
     },
   },

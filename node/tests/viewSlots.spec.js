@@ -12,7 +12,7 @@ function load() {
   // slotXml / slotApp carry their defaults in AppState.createState( ) and
   // ViewSlots no longer creates them on first use
   const state = { slotXml: {}, slotApp: {} };
-  // Global UI5 registry stub behind Lib.getElementById - the fallback path
+  // Global UI5 registry stub behind Env.getElementById - the fallback path
   // resolveById() takes when no open slot owns the id.
   const globalElements = {};
   const { module } = loadModule("core/ViewSlots.js", {
@@ -25,6 +25,8 @@ function load() {
       },
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
+      },
+      "z2ui5/core/Env": {
         getElementById: (id) => globalElements[id] || null,
         getMessaging: () => ({
           getMessageModel: () => messageModel,
@@ -164,6 +166,35 @@ test.describe("byId", () => {
     expect(ViewSlots.byId("UNKNOWN", "btn")).toBeUndefined();
     // A closed fragment slot must not hit the Fragment registry.
     expect(fragmentCalls).toEqual([]);
+  });
+});
+
+test.describe("ownId (component-prefixed framework ids)", () => {
+  // A bare "mainView" / "popupId" is page-global: it collides with any host
+  // control of that name once the component shares a page, and with a
+  // second component instance. The owner component's createId is what
+  // scopes them, the same prefix UI5 gives a manifest rootView.
+  test("prefixes with the owner component once one is registered", () => {
+    const { ViewSlots, state } = load();
+    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    expect(ViewSlots.ownId("mainView")).toBe("comp---mainView");
+    const popup = ViewSlots.slots.find((s) => s.key === "POPUP");
+    expect(ViewSlots.fragmentIdOf(popup)).toBe("comp---popupId");
+  });
+
+  test("the fragment slots resolve controls under the prefixed id", () => {
+    const { ViewSlots, state, fragmentCalls } = load();
+    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    state.oViewPopover = {};
+    expect(ViewSlots.byId("POPOVER", "btn")).toBe("comp---popoverId--btn");
+    expect(fragmentCalls).toEqual([["comp---popoverId", "btn"]]);
+  });
+
+  test("keeps the bare id before an owner is registered", () => {
+    const { ViewSlots } = load();
+    expect(ViewSlots.ownId("mainView")).toBe("mainView");
+    const main = ViewSlots.slots.find((s) => s.key === "MAIN");
+    expect(ViewSlots.fragmentIdOf(main)).toBeUndefined();
   });
 });
 
@@ -382,7 +413,6 @@ test("every slot's controller field is one Lib.isControllerAlive knows", () => {
   const { module: Lib } = loadModule("core/Lib.js", {
     deps: {
       "z2ui5/core/AppState": appState,
-      "sap/ui/core/Element": {},
     },
   });
   const { module: ViewSlots } = loadModule("core/ViewSlots.js", {

@@ -12,7 +12,7 @@ const { loadLib } = require("./loadLibModule");
 // both validator branches, and the "log, never throw" guard around the
 // attach calls.
 function load({ input } = {}) {
-  const { Lib, sandbox } = loadLib();
+  const { Lib, state } = loadLib();
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
@@ -50,7 +50,7 @@ function load({ input } = {}) {
     return inst;
   }
 
-  return { makeInstance, errors, state: sandbox.z2ui5, Token };
+  return { makeInstance, errors, state, Token };
 }
 
 // A MultiInput stub recording the attached handler and validators.

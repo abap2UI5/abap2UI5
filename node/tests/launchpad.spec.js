@@ -19,7 +19,7 @@ const { loadLib } = require("./loadLibModule");
 function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
   // The real Lib: its sandbox origin (http://localhost:3000, loadLibModule)
   // anchors the same-origin check of the EXT redirect.
-  const { Lib, sandbox: libSandbox } = loadLib();
+  const { Lib, state: libState } = loadLib();
 
   const redirects = [];
 
@@ -41,7 +41,7 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
   return {
     handlers: Launchpad.handlers,
     redirects,
-    errors: () => (libSandbox.z2ui5.errors || []).map((e) => e.message),
+    errors: () => (libState.errors || []).map((e) => e.message),
   };
 }
 

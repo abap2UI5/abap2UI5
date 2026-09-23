@@ -20,7 +20,7 @@ const DEVICE_DATA = {
 };
 
 function load({ deviceData = DEVICE_DATA, oConfig } = {}) {
-  const { Lib, sandbox: libSandbox } = loadLib();
+  const { Lib, state: libState } = loadLib();
 
   // the device model reaches the control via MAIN-view model propagation;
   // a spec can start without it (first render of a freshly built view)
@@ -56,7 +56,7 @@ function load({ deviceData = DEVICE_DATA, oConfig } = {}) {
     attachDeviceModel: () => {
       model = { getData: () => DEVICE_DATA };
     },
-    errors: () => libSandbox.z2ui5.errors || [],
+    errors: () => libState.errors || [],
   };
 }
 

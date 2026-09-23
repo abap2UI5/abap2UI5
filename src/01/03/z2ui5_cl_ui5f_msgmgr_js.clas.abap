@@ -30,9 +30,10 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `    "sap/ui/core/Control",` && |\n| &&
              `    "sap/ui/core/message/Message",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Message, Lib, ViewSlots) => {` && |\n| &&
+             `  (Control, Message, Lib, Env, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const KEY_SEP = String.fromCharCode(1);` && |\n| &&
@@ -74,7 +75,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `` && |\n| &&
              `      setup() {` && |\n| &&
-             `        const messaging = Lib.getMessaging();` && |\n| &&
+             `        const messaging = Env.getMessaging();` && |\n| &&
              `        if (!Lib.claimOnce(this, messaging)) return;` && |\n| &&
              `        this._messaging = messaging;` && |\n| &&
              `        const view = ViewSlots.getView(` && |\n| &&

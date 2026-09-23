@@ -29,10 +29,11 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Element, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  (Element, Lib, Env, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function closestUi5Element(dom) {` && |\n| &&
@@ -40,7 +41,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      let el = dom;` && |\n| &&
              `      while (el && el.getAttribute) {` && |\n| &&
              `        if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
-             `          return Lib.getElementById(el.id);` && |\n| &&
+             `          return Env.getElementById(el.id);` && |\n| &&
              `        }` && |\n| &&
              `        el = el.parentElement;` && |\n| &&
              `      }` && |\n| &&
@@ -51,7 +52,7 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      const view = ViewSlots.getView(slot.key);` && |\n| &&
              `      if (!view) return fullId;` && |\n| &&
              `      const prefix = slot.fragmentId` && |\n| &&
-             `        ? ``${slot.fragmentId}--``` && |\n| &&
+             `        ? ``${ViewSlots.fragmentIdOf(slot)}--``` && |\n| &&
              `        : ``${view.getId()}--``;` && |\n| &&
              `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `    }` && |\n| &&

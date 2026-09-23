@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '4520ec6b3628a018'.
+    CONSTANTS build_hash TYPE string VALUE 'e19e5e752adba078'.
 
     CLASS-METHODS get
       IMPORTING
@@ -64,6 +64,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_ui5f_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_ui5f_view1_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_ui5f_appstate_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/Env.js": function()\{{ z2ui5_cl_ui5f_env_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_ui5f_lib_js=>get( ) }\},| && |\n| &&
@@ -72,6 +73,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/Server.js": function()\{{ z2ui5_cl_ui5f_server_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Session.js": function()\{{ z2ui5_cl_ui5f_session_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ViewSlots.js": function()\{{ z2ui5_cl_ui5f_viewslot_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/actions/BindingCall.js": function()\{{ z2ui5_cl_ui5f_bindcall_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Browser.js": function()\{{ z2ui5_cl_ui5f_browser_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ControlCall.js": function()\{{ z2ui5_cl_ui5f_ctrlcall_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Launchpad.js": function()\{{ z2ui5_cl_ui5f_launchpd_js=>get( ) }\},| && |\n| &&

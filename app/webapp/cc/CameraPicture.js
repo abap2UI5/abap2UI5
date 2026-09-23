@@ -12,6 +12,7 @@ sap.ui.define(
     // Camera button: opens a dialog with the live camera stream, captures
     // a photo on demand and hands it to the backend as a base64 JPEG in
     // `value` (plus a small preview thumbnail) via the OnPhoto event.
+    /** @type {CanvasRenderingContext2DSettings} */
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
     // width/height size the trigger button; a bare number is treated as px.
@@ -51,8 +52,12 @@ sap.ui.define(
       // Returns true when a photo was taken, false when it could not be (so
       // the caller can keep the dialog open and let the status line explain).
       capture() {
-        const video = document.getElementById(`${this.getId()}-video`);
-        const canvas = document.getElementById(`${this.getId()}-canvas`);
+        const video = /** @type {HTMLVideoElement | null} */ (
+          document.getElementById(`${this.getId()}-video`)
+        );
+        const canvas = /** @type {HTMLCanvasElement | null} */ (
+          document.getElementById(`${this.getId()}-canvas`)
+        );
         if (!video || !canvas) return false;
 
         const videoWidth = video.videoWidth;
@@ -113,7 +118,9 @@ sap.ui.define(
           for (const track of this._stream.getTracks()) track.stop();
         }
         this._stream = null;
-        const video = document.getElementById(`${this.getId()}-video`);
+        const video = /** @type {HTMLVideoElement | null} */ (
+          document.getElementById(`${this.getId()}-video`)
+        );
         if (video) video.srcObject = null;
       },
 
@@ -170,7 +177,9 @@ sap.ui.define(
 
         this._oScanDialog.attachEventOnce("afterOpen", async () => {
           if (Lib.isDestroyed(this)) return;
-          const video = document.getElementById(`${this.getId()}-video`);
+          const video = /** @type {HTMLVideoElement | null} */ (
+            document.getElementById(`${this.getId()}-video`)
+          );
           if (!video) {
             this._setStatus("Camera preview element not found.");
             Lib.logError(

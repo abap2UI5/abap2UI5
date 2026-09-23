@@ -28,6 +28,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/actions/ControlCall",` && |\n| &&
+             `    "z2ui5/core/actions/BindingCall",` && |\n| &&
              `    "z2ui5/core/actions/Browser",` && |\n| &&
              `    "z2ui5/core/actions/Launchpad",` && |\n| &&
              `    "z2ui5/core/actions/Variants",` && |\n| &&
@@ -38,6 +39,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    ControlCall,` && |\n| &&
+             `    BindingCall,` && |\n| &&
              `    Browser,` && |\n| &&
              `    Launchpad,` && |\n| &&
              `    Variants,` && |\n| &&
@@ -51,6 +53,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    const handlers = Object.assign(` && |\n| &&
              `      Object.create(null),` && |\n| &&
              `      ControlCall.handlers,` && |\n| &&
+             `      BindingCall.handlers,` && |\n| &&
              `      Browser.handlers,` && |\n| &&
              `      Launchpad.handlers,` && |\n| &&
              `      Variants.handlers,` && |\n| &&

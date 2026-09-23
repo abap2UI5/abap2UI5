@@ -155,7 +155,7 @@ test.describe("usesXmlTemplating", () => {
 test.describe("cancelTimer / cancelPendingTimers", () => {
   test("clears a handle and runs a cancel function alike", () => {
     const cleared = [];
-    const { Lib, sandbox } = loadLib({
+    const { Lib, state } = loadLib({
       clearTimeout: (h) => cleared.push(h),
     });
     let cancelled = 0;
@@ -164,10 +164,10 @@ test.describe("cancelTimer / cancelPendingTimers", () => {
     expect(cleared).toEqual([7]);
     expect(cancelled).toBe(1);
 
-    sandbox.z2ui5.timers = { A: 11, B: () => cancelled++ };
+    state.timers = { A: 11, B: () => cancelled++ };
     Lib.cancelPendingTimers();
     expect(cleared).toEqual([7, 11]);
     expect(cancelled).toBe(2);
-    expect(sandbox.z2ui5.timers).toEqual({});
+    expect(state.timers).toEqual({});
   });
 });

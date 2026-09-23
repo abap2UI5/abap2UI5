@@ -70,7 +70,7 @@ test("falls back to the data-sap-ui DOM walk without closestTo", () => {
   const control = { id: "page" };
   const { module: ScrollFocus } = loadScrollFocus({
     deps: {
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Env": {
         getElementById: (id) => (id === "page" ? control : null),
       },
     },
@@ -84,7 +84,7 @@ test("falls back to the data-sap-ui DOM walk without closestTo", () => {
 
 test("fallback returns null when no control root is found", () => {
   const { module: ScrollFocus } = loadScrollFocus({
-    deps: { "z2ui5/core/Lib": { getElementById: () => null } },
+    deps: { "z2ui5/core/Env": { getElementById: () => null } },
   });
 
   const plain = fakeDomNode({ id: "no-control" });
@@ -100,7 +100,7 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
       },
       "z2ui5/core/AppState": { state },
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Env": {
         getElementById: (id) => (id === "page" ? control : null),
       },
     },
@@ -129,7 +129,7 @@ function loadScrollFocusWithScrollCache({ connected }) {
         slots: [],
       },
       "z2ui5/core/AppState": { state: { lastScrolled: {} } },
-      "z2ui5/core/Lib": {
+      "z2ui5/core/Env": {
         getElementById: (id) => (id === "page" ? control : null),
       },
     },
@@ -181,6 +181,9 @@ test("getFocusInfo reports a control inside a popup fragment by its bare id", ()
     Element: { closestTo: () => control },
     deps: {
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
         getView: slotViews,
       },
@@ -202,6 +205,9 @@ test("getScrollInfo strips the view id in MAIN and the fragment id in POPUP", ()
   const { module: ScrollFocus } = loadScrollFocus({
     deps: {
       "z2ui5/core/ViewSlots": {
+        // the real module prefixes with the owner component; no owner here
+        ownId: (id) => id,
+        fragmentIdOf: (slot) => slot.fragmentId,
         slots: SLOTS_WITH_POPUP,
         getView: slotViews,
       },

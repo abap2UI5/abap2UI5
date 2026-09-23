@@ -335,7 +335,9 @@ sap.ui.define(
         // would otherwise leave one behind per change. `~=` matches one entry
         // of the whitespace-separated rel list, so a page declaring the
         // legacy rel="shortcut icon" is found too.
-        const existing = document.head.querySelector('link[rel~="icon"]');
+        const existing = /** @type {HTMLLinkElement | null} */ (
+          document.head.querySelector('link[rel~="icon"]')
+        );
         if (existing) {
           existing.href = href;
           return;

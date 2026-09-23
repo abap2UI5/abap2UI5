@@ -1,6 +1,7 @@
 sap.ui.define(
   [
     "z2ui5/core/actions/ControlCall",
+    "z2ui5/core/actions/BindingCall",
     "z2ui5/core/actions/Browser",
     "z2ui5/core/actions/Launchpad",
     "z2ui5/core/actions/Variants",
@@ -11,6 +12,7 @@ sap.ui.define(
   ],
   (
     ControlCall,
+    BindingCall,
     Browser,
     Launchpad,
     Variants,
@@ -39,6 +41,7 @@ sap.ui.define(
     const handlers = Object.assign(
       Object.create(null),
       ControlCall.handlers,
+      BindingCall.handlers,
       Browser.handlers,
       Launchpad.handlers,
       Variants.handlers,
