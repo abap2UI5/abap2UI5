@@ -359,9 +359,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " internal name, Origin still carries the EXTERNAL one - comparing
     " against Host would then 403 every legitimate request. The proxy
     " puts the external authority into X-Forwarded-Host; prefer it when
-    " present (first entry - each hop may append its own). The header
-    " is client-suppliable, so an installation without such a proxy
-    " can stop trusting it via the exit (check_trust_forwarded_host)
+    " present. First entry, deliberately: each hop appends the Host it
+    " saw, so the first is the browser's and the last behind two proxies
+    " is an internal name - the reasoning, and why the last entry is not
+    " the fix for an appending proxy, is on the exit field
+    " (z2ui5_if_ui5_exit=>ty_s_http_config_post-check_trust_forwarded_host).
+    " The header is client-suppliable, so an installation without such a
+    " proxy stops trusting it via that switch
     DATA(lv_host) = COND string(
         WHEN is_config-check_trust_forwarded_host = abap_true
         THEN mo_server->get_header_field( `x-forwarded-host` ) ).
