@@ -70,8 +70,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `              ViewSlots.destroy(this.ctx, "POPOVER");` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
-             `            state.shortcuts = {};` && |\n| &&
-             `            state.treeStates = {};` && |\n| &&
+             `            state.shortcuts = Object.create(null);` && |\n| &&
+             `            state.treeStates = Object.create(null);` && |\n| &&
              `` && |\n| &&
              `            state.hashEvent = null;` && |\n| &&
              `            state.appHash = "";` && |\n| &&

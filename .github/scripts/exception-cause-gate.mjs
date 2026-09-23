@@ -91,7 +91,8 @@ for (const file of files) {
     // into the new message.
     const val = /\bval\s*=\s*(.*?)(?:\s+\w+\s*=|$)/is.exec(flat);
     if (!val) continue;
-    if (!/\bget_text\s*\(\s*\)/i.test(val[1])) continue;
+    // get_longtext( ) is the same flattening with a longer string
+    if (!/\bget_(?:long)?text\s*\(\s*\)/i.test(val[1])) continue;
 
     findings.push({ at: `${file}:${stmt.start}`, val: val[1].trim().replace(/\.$/, "") });
   }

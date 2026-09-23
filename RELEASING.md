@@ -108,8 +108,10 @@ tab: same gates, same notes, no tag and no release.
 
 ## After a release
 
-- **The prebuilt backend arrives later.** Publishing the release triggers
-  `backend-prebuilt.yaml`, which checks out the tag, downports, transpiles,
+- **The prebuilt backend arrives later.** `release.yaml` dispatches
+  `backend-prebuilt.yaml` right after publishing (a `release: published`
+  event alone would not start it: GitHub runs no workflow for an event the
+  workflow's own token produced). That run checks out the tag, downports, transpiles,
   runs the unit suite and attaches `backend-<version>.tar.gz` to the `X.Y.Z`
   release — tens of minutes after the release exists, so a release without
   that asset for a while is normal, and `release.yaml` does not wait for it.

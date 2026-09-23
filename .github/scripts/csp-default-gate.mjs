@@ -110,6 +110,18 @@ for (const line of hostStmt) {
     declaredHosts.push(...m[1].split(/\s+/).filter(Boolean));
   }
 }
+// Hosts are read from backtick literals only. A list rewritten with another
+// literal form would read as empty here while every `{ lv_ui5_hosts }` token
+// below still counted as reviewed - "0 host(s) OK" on a policy nobody looked
+// at, which is the silent pass the header says must not happen.
+if (declaredHosts.length === 0) {
+  console.log(`csp-default: lv_ui5_hosts in ${SOURCE} declares no host this gate can read`);
+  console.log("");
+  console.log("The list is read from backtick literals. If it moved to another literal");
+  console.log("form, teach this gate the new spelling - a list it cannot read is a");
+  console.log("policy it cannot review.");
+  process.exit(1);
+}
 for (const host of declaredHosts) {
   if (!UI5_HOSTS.has(host)) {
     problems.push(

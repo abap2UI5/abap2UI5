@@ -73,8 +73,9 @@ INTERFACE z2ui5_if_ui5_draft_store
     RETURNING
       VALUE(result) TYPE abap_bool.
 
-  "! Drop expired drafts. Called once per roundtrip by the handler, so it must
-  "! be cheap and must not raise.
+  "! Drop expired drafts. Called once per app cold start by the handler
+  "! (factory_first_start), never per roundtrip, so it must be cheap and must
+  "! not raise.
   METHODS cleanup.
 
 ENDINTERFACE.

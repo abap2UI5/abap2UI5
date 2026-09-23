@@ -56,6 +56,8 @@ jobs:
     if: github.repository == 'abap2UI5/abap2UI5'
     permissions:
       contents: write
+      # gh workflow run backend-prebuilt.yaml (see the last step)
+      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -115,6 +117,21 @@ jobs:
           --title "$VERSION" \
           --notes-file release-notes.md \
           --verify-tag
+
+    # A release created with the workflow's own GITHUB_TOKEN raises no
+    # `release: published` run anywhere: GitHub does not start workflows for
+    # events that token produced (the same rule autofix.yaml's header records
+    # for its commits). backend-prebuilt.yaml listens for exactly that event,
+    # so every release cut here shipped without its backend asset - 1.144.1
+    # has none. Dispatch it by name instead, with the tag the event would
+    # have carried; the workflow's own concurrency group makes a second run
+    # for the same tag wait rather than race.
+    - name: Attach the prebuilt backend
+      if: github.ref_type == 'tag'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        VERSION: ${{ steps.notes.outputs.version }}
+      run: gh workflow run backend-prebuilt.yaml -f tag="$VERSION"
 
     # The 702 branch is rebuilt from main by auto_downport on every push, so at
     # tag time it already carries the downport of this commit. Tagging it is

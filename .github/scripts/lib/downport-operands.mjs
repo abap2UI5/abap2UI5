@@ -82,9 +82,15 @@ function callEndingAt(code, closeAt) {
 }
 
 /* The three positions, each as the slice of the line that IS the position.
- * Line-scoped on purpose: a key or a WHERE operand split across lines still
- * gets its `= builtin( ` on one of them, and a whole-statement parse would buy
- * nothing but a way to disagree with the reader about where the finding is.
+ * Takes ONE STATEMENT, flattened to a line (the gate joins the code of its
+ * lines with a blank). This used to be line-scoped on the theory that a key or
+ * a WHERE operand split across lines "still gets its `= builtin( ` on one of
+ * them" - true, and useless: the anchor (`WITH KEY`, `LOOP AT ... WHERE`, the
+ * `) IS` of a predicate) is what names the position, and on a continuation
+ * line there is no anchor, so `READ TABLE lt WITH KEY` followed by
+ * `name = to_upper( x ) INTO ls.` on the next line was never a finding. The
+ * repository writes its WHERE on a line of its own routinely, so a #2664-class
+ * site in house style shipped green.
  *
  * There were THREE. The table-expression key - `line_exists( tab[ k =
  * to_upper( x ) ] )`, the shape of #2664 itself - is gone, because it is not

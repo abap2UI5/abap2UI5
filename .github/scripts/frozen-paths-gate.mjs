@@ -80,7 +80,17 @@ if (!base) {
   }
   base = "origin/main";
 }
-const range = process.env.BASE_SHA ? [base, head] : [`${base}...${head}`];
+// The diff and the "before" tree both start at the MERGE BASE, never at the
+// base ref itself. A pull request's base.sha is the base branch's TIP, and
+// diffing two-dot against it charges every change main made after the branch
+// was cut to this pull request, reversed: a never-shipped object main deleted
+// from src/99 came back as "added" in an older pull request, had no
+// relocation source and was refused as an in-place edit of a file the change
+// never touched - a red that only a rebase cleared. A push's event.before is
+// the previous tip of a linear history, so its merge base with the new head
+// is itself and that leg is unchanged.
+const baseRef = git("merge-base", base, head)[0];
+const range = [baseRef, head];
 
 // Touched - added, modified or renamed within the package. Refused unless the
 // file ARRIVED here (see below). (-d, lowercase, excludes deletions.)
@@ -94,7 +104,6 @@ const tree = git("ls-tree", "-r", "--name-only", head, "--", "src");
 
 // The tree as it was BEFORE the change, to tell an object that arrived in the
 // package from one that was edited inside it.
-const baseRef = process.env.BASE_SHA || git("merge-base", base, head)[0];
 const before = git("ls-tree", "-r", "--name-only", baseRef, "--", "src");
 
 // The latest release tag (plain x.y.z - the -702 downport tags carry the same

@@ -1510,6 +1510,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_startup) = substring_after( val = |&{ lv_search }|
                                         sub = `&sap-startup-params=` ).
     IF lv_startup IS NOT INITIAL.
+      " what stands BEFORE the wrapper is as much a parameter as what follows
+      " it: `?app_start=x&sap-startup-params=...` used to lose app_start, and
+      " a `sap-client` in front of the wrapper was gone from every link
+      " app_get_url rebuilt from this table. lv_before keeps the prepended
+      " `&`, so the empty first segment it produces below is skipped like a
+      " trailing one
+      DATA(lv_before) = substring_before( val = |&{ lv_search }|
+                                          sub = `&sap-startup-params=` ).
       SPLIT lv_startup AT `&` INTO DATA(lv_packed) DATA(lv_rest).
       lv_packed = replace( val  = lv_packed
                            sub  = `%3D`
@@ -1528,6 +1536,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       lv_search = lv_packed.
       IF lv_rest IS NOT INITIAL.
         lv_search = |{ lv_packed }&{ lv_rest }|.
+      ENDIF.
+      IF lv_before IS NOT INITIAL.
+        lv_search = |{ lv_before }&{ lv_search }|.
       ENDIF.
     ENDIF.
 

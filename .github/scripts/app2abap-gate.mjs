@@ -81,7 +81,9 @@ const contentOf = (paths) => {
 const before = treeState();
 const beforeContent = contentOf(before.keys());
 
-execFileSync("npm", ["run", "app2abap"], { stdio: "inherit" });
+// npm is npm.cmd on Windows and needs a shell there (see run-verify.mjs)
+const WIN = process.platform === "win32";
+execFileSync(WIN ? "npm.cmd" : "npm", ["run", "app2abap"], { stdio: "inherit", shell: WIN });
 
 const after = treeState();
 const afterContent = contentOf(after.keys());

@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '982f4286f6f0de0b'.
+    CONSTANTS build_hash TYPE string VALUE '4b431ac23b9ba29a'.
 
     CLASS-METHODS get
       IMPORTING
@@ -128,6 +128,14 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     result = replace( val  = result
                       sub  = `'`
                       with = `\'`
+                      occ  = 0 ).
+    " the HTML parser ends the <script> element at the first `</` it sees,
+    " whatever the JS string context - a `</script` in a customer's
+    " styles_css (a CSS comment is enough) cut the block short and left the
+    " page blank. `<\/` is `</` to JavaScript and nothing to the HTML parser.
+    result = replace( val  = result
+                      sub  = `</`
+                      with = `<\/`
                       occ  = 0 ).
     " a raw line break ends a JS string literal just like an apostrophe does -
     " only styles_css can carry one, the generated resources are single-line.

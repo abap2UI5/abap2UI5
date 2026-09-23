@@ -78,6 +78,16 @@ import { walk } from "./lib/walk.mjs";
 // probe that disagreed with this gate would be arguing for a rule this
 // repository does not enforce.
 import { BUILTINS, CALL, stripNoise, positions } from "./lib/downport-operands.mjs";
+import { statements } from "./lib/abap-statements.mjs";
+
+/* One STATEMENT's code, flattened: the trailing comment and every literal's
+ * content dropped per line (stripNoise), the lines joined with a blank. The
+ * positions are anchored by a keyword - `WITH KEY`, `LOOP AT ... WHERE`, the
+ * `) IS` of a predicate - and a scan that looked at one line at a time found
+ * no anchor on a continuation line, so a `WHERE` written on a line of its own
+ * (the house style, 30+ times in src/01 and src/02) or a `WITH KEY` whose
+ * operands start on the next line was never looked at. */
+const codeOf = (text) => text.split("\n").map(stripNoise).join(" ");
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -134,10 +144,19 @@ const SELF_TEST = [
   ["IF to_upper( a ) = b AND c IS INITIAL.", null],
   // a `)` that closes a parenthesised condition closes no call
   ["IF ( lv_a = lv_b ) IS INITIAL.", null],
+  /* The same three positions with the statement split across lines - the
+   * shape the repository actually writes, and the one a line-scoped scan
+   * could not see because the anchoring keyword and the call sat on
+   * different lines. */
+  ["READ TABLE lt_parts WITH KEY\n      name = to_upper( iv_name ) INTO DATA(ls_part).", "WITH KEY operand"],
+  ["LOOP AT lt_rows INTO DATA(ls)\n      WHERE name = to_upper( iv_name ).", "internal-table WHERE operand"],
+  ["IF condense( val )\n   IS INITIAL.", "predicate-expression operand"],
+  // a comment line inside the statement is not code
+  ["LOOP AT lt_rows INTO DATA(ls)\n    \" the filter\n    WHERE name = lo_app->get_name( ).", null],
 ];
 
 for (const [line, expected] of SELF_TEST) {
-  const code = stripNoise(line);
+  const code = codeOf(line);
   const hit = positions(code).find((pos) => CALL.test(pos.text));
   const got = hit ? hit.where : null;
   if (got !== expected) {
@@ -162,15 +181,19 @@ const files = walk(ROOT, "src")
 const findings = [];
 
 for (const file of files) {
-  const lines = readFileSync(ROOT + file, "utf8").split("\n");
-  lines.forEach((raw, i) => {
-    const code = stripNoise(raw);
-    if (!CALL.test(code)) return; // cheap reject: most lines never reach the split
+  for (const stmt of statements(readFileSync(ROOT + file, "utf8"))) {
+    const code = codeOf(stmt.text);
+    if (!CALL.test(code)) continue; // cheap reject: most statements never reach the split
     for (const pos of positions(code)) {
       const hit = CALL.exec(pos.text);
-      if (hit) findings.push({ file, line: i + 1, where: pos.where, fn: hit[1], text: raw.trim() });
+      if (hit) {
+        // reported at the statement's first line; the text shown is the line
+        // that carries the call, so a multi-line statement still points at it
+        const at = stmt.text.split("\n").find((l) => CALL.test(stripNoise(l))) ?? stmt.text;
+        findings.push({ file, line: stmt.start, where: pos.where, fn: hit[1], text: at.trim() });
+      }
     }
-  });
+  }
 }
 
 console.log(

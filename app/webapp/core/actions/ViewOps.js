@@ -165,10 +165,11 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         if (!(timerKey in timers)) timers[timerKey] = cancel;
         return;
       }
-      // dispatch as a background event (args[2] = ignore busy): between
-      // the check above and the dispatch nothing can start a roundtrip,
-      // and the flag keeps a tick from being dropped by a busy guard that
-      // a stale state.isBusy would otherwise raise
+      // dispatch: between the check above and the dispatch nothing can
+      // start a roundtrip, and a tick that lands during one waits on
+      // afterRoundtrip instead of being dropped. Slot [2] of the event
+      // array is the reserved placeholder View1.eB ignores (view1Events
+      // spec) - it is kept for the wire shape, it switches nothing
       oController.eB([callbackEvent, false, true]);
     };
     timers[timerKey] = setTimeout(fire, delay);

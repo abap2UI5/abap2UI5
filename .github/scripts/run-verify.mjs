@@ -47,6 +47,14 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 const full = process.argv.includes("--full");
 
+// On Windows `npm` is `npm.cmd`, and Node refuses to spawn a .cmd without a
+// shell (EINVAL since 22, ENOENT before) - so the runner around the portable
+// downport-fix.mjs could not itself run there. Loud, never a false pass: the
+// spawn fails before any member starts.
+const WIN = process.platform === "win32";
+const NPM = WIN ? "npm.cmd" : "npm";
+const SPAWN_OPTS = { cwd: ROOT, shell: WIN };
+
 // independent checks: all of them run concurrently, failures are collected.
 // `cmd` is what a developer types to rerun one on its own.
 const CHECKS = [
@@ -57,13 +65,13 @@ const CHECKS = [
   "check:format",
   "check:standard",
   "check:cloud",
-].map((script) => ({ cmd: `npm run ${script}`, argv: ["npm", "run", script] }));
+].map((script) => ({ cmd: `npm run ${script}`, argv: [NPM, "run", script] }));
 
 if (full) {
   CHECKS.push(
-    { cmd: "npm run check:ui5", argv: ["npm", "run", "check:ui5"] },
-    { cmd: "npm run check:types", argv: ["npm", "run", "check:types"] },
-    { cmd: "npm --prefix app run lint", argv: ["npm", "--prefix", "app", "run", "lint"] },
+    { cmd: "npm run check:ui5", argv: [NPM, "run", "check:ui5"] },
+    { cmd: "npm run check:types", argv: [NPM, "run", "check:types"] },
+    { cmd: "npm --prefix app run lint", argv: [NPM, "--prefix", "app", "run", "lint"] },
   );
 }
 
@@ -79,13 +87,13 @@ const BUILD = [
 
 const runSync = (label, argv) => {
   console.log(`\n=== ${label} ===`);
-  const res = spawnSync(argv[0], argv.slice(1), { cwd: ROOT, stdio: "inherit" });
+  const res = spawnSync(argv[0], argv.slice(1), { ...SPAWN_OPTS, stdio: "inherit" });
   return res.status === 0;
 };
 
 // the hoisted prerequisites (see header): deps for the abaplint members, the
 // app toolchain for the --full members
-if (!runSync("npm run deps", ["npm", "run", "deps"])) {
+if (!runSync("npm run deps", [NPM, "run", "deps"])) {
   console.error("\nverify: npm run deps failed — nothing that lints can run without the pinned checkouts");
   process.exit(1);
 }
@@ -100,7 +108,7 @@ const CONCURRENCY = Math.min(8, Math.max(2, os.cpus().length));
 
 function runCheck(member) {
   return new Promise((resolve) => {
-    const child = spawn(member.argv[0], member.argv.slice(1), { cwd: ROOT });
+    const child = spawn(member.argv[0], member.argv.slice(1), SPAWN_OPTS);
     /* Collect the raw chunks and decode ONCE at the end. `out += chunk`
      * decodes each Buffer on its own, and a chunk boundary can fall inside a
      * multi-byte character - abaplint's output and these gates' reports are
@@ -150,7 +158,7 @@ if (failed.length) {
 }
 
 for (const script of BUILD) {
-  if (!runSync(`npm run ${script}`, ["npm", "run", script])) {
+  if (!runSync(`npm run ${script}`, [NPM, "run", script])) {
     console.error(`\nverify: npm run ${script} failed — the pipeline stops here (later members depend on it)`);
     process.exit(1);
   }

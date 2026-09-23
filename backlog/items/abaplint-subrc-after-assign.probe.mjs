@@ -66,8 +66,12 @@ let lastKind = 'simple';
  * at where it is written.
  *
  * A trailing `"` comment is cut first (outside string literals, so a `"` in a
- * `'…'` or `|…|` stays text), otherwise a commented line never looks like the
- * end of a statement and swallows the next one. */
+ * `'…'`, a `|…|` or a `` `…` `` stays text), otherwise a commented line never
+ * looks like the end of a statement and swallows the next one. The backtick
+ * was missing from that list: a `"` inside a backtick literal ended the line
+ * before its period, the statement swallowed the ASSIGN below it, and the
+ * `sy-subrc` test after that ASSIGN was never reported - the false negative
+ * this probe exists to rule out, in the shape src/ writes on 2000+ lines. */
 function stripTrailingComment(line) {
   let quote = null;
   for (let i = 0; i < line.length; i++) {
@@ -76,7 +80,7 @@ function stripTrailingComment(line) {
       if (ch === quote) quote = null;
       continue;
     }
-    if (ch === "'" || ch === '|') quote = ch;
+    if (ch === "'" || ch === '|' || ch === '`') quote = ch;
     else if (ch === '"') return line.slice(0, i);
   }
   return line;

@@ -236,6 +236,23 @@ CLASS ltcl_test IMPLEMENTATION.
                   val = `app_start`
                   url = `?x=1&sap-startup-params=app_start%3Dfoo` ) ).
 
+    " ...and a parameter BEFORE the wrapper survives the unwrapping - it used
+    " to be dropped, so `?app_start=x&sap-startup-params=...` lost the app
+    " and a sap-client in front of the wrapper vanished from every rebuilt link
+    DATA(lt_params) = z2ui5_cl_ui5_util_context=>url_param_get_tab(
+                          `?x=1&sap-client=100&sap-startup-params=app_start%3Dfoo&y=2` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_params ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `1`
+                                        act = lt_params[ n = `x` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `100`
+                                        act = lt_params[ n = `sap-client` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `foo`
+                                        act = lt_params[ n = `app_start` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `2`
+                                        act = lt_params[ n = `y` ]-v ).
+
     cl_abap_unit_assert=>assert_equals(
         exp = `foo`
         act = z2ui5_cl_ui5_util_context=>url_param_get(

@@ -55,7 +55,7 @@
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
-import { join, dirname, relative } from "node:path";
+import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
 // The banner without the provenance line; branch-stamp.mjs stamps the commit
@@ -128,8 +128,14 @@ function initBranch(branch, abapgitXml) {
 // Tested against the path RELATIVE to the repo: the absolute checkout path can
 // itself carry a dist/ or .git segment (~/dist/abap2UI5), and then the test
 // filters the root away and cpSync silently copies nothing.
+//
+// Normalised to forward slashes first: path.relative answers backslashes on
+// Windows (a supported CLI platform, see pack-backend.mjs), and against those
+// the pattern never matched - `app\node_modules` was copied into every cloud
+// tree, hundreds of MB and the .git directories of any git dependency with it.
+const posix = (p) => p.split(sep).join("/");
 const skipBuildArtifacts = (src) =>
-  !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(relative(core, src));
+  !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(posix(relative(core, src)));
 
 // Quiet on success, never on failure: the discarded log is the only thing
 // that says WHY a step failed (same pattern as runUi5Build in
@@ -152,7 +158,7 @@ function runQuiet(args, cwd) {
 // pattern-matched so a new project file has to be decided on, not silently
 // delivered or silently dropped.
 const DEV_ONLY = new Set([".editorconfig", ".prettierrc", "eslint.config.mjs", "ui5lint.config.mjs"]);
-const skipDevProjectFiles = (src) => !DEV_ONLY.has(relative(join(core, "app"), src));
+const skipDevProjectFiles = (src) => !DEV_ONLY.has(posix(relative(join(core, "app"), src)));
 
 // abap/cloud carries the abaplint config that lints it in place. It belongs to
 // this repository, not to the delivered package - the output branch gets its
