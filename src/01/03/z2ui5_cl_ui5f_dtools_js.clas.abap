@@ -31,12 +31,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/devtools/AbapSource",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/Inspect",` && |\n| &&
              `    "z2ui5/devtools/LiveEdit",` && |\n| &&
+             `    "z2ui5/devtools/Persist",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `    "z2ui5/devtools/Report",` && |\n| &&
@@ -47,12 +47,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    Fragment,` && |\n| &&
              `    JSONModel,` && |\n| &&
              `    Lib,` && |\n| &&
-             `    AppState,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    AbapSource,` && |\n| &&
              `    Console,` && |\n| &&
              `    Inspect,` && |\n| &&
              `    LiveEdit,` && |\n| &&
+             `    Persist,` && |\n| &&
              `    Picker,` && |\n| &&
              `    Recorder,` && |\n| &&
              `    Report,` && |\n| &&
@@ -60,7 +60,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
+             `    const FRAGMENT_SUFFIX = "tools";` && |\n| &&
              `` && |\n| &&
              `    const LAST_TAB_KEY = "z2ui5.devtools.lastTab";` && |\n| &&
              `` && |\n| &&
@@ -69,23 +69,17 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    const STATUS_MS = 6000;` && |\n| &&
              `` && |\n| &&
              `    function readLastTab() {` && |\n| &&
-             `      try {` && |\n| &&
-             `        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        return "";` && |\n| &&
-             `      }` && |\n| &&
+             `      return Persist.read(LAST_TAB_KEY);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function writeLastTab(tabKey) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `      Persist.write(LAST_TAB_KEY, tabKey);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function resolveTab(tabKey) {` && |\n| &&
-             `      if (Tabs.isEnabled(Tabs.get(tabKey))) return tabKey;` && |\n| &&
+             `    function resolveTab(ctx, tabKey) {` && |\n| &&
+             `      if (Tabs.isEnabled(ctx, Tabs.get(tabKey))) return tabKey;` && |\n| &&
              `      if (Tabs.isKnown(tabKey)) {` && |\n| &&
-             `        const sibling = Tabs.firstTabOf(Tabs.groupOf(tabKey));` && |\n| &&
+             `        const sibling = Tabs.firstTabOf(ctx, Tabs.groupOf(tabKey));` && |\n| &&
              `        if (sibling) return sibling;` && |\n| &&
              `      }` && |\n| &&
              `      return DEFAULT_TAB;` && |\n| &&
@@ -103,8 +97,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {` && |\n| &&
+             `      fragmentId() {` && |\n| &&
+             `        return ``${this.getId()}--${FRAGMENT_SUFFIX}``;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      renderTab(tabKey, oModel) {` && |\n| &&
-             `        const key = resolveTab(tabKey);` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
+             `        const key = resolveTab(ctx, tabKey);` && |\n| &&
              `        const tab = Tabs.get(key);` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
              `` && |\n| &&
@@ -112,7 +111,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.selectedGroup = tab.group;` && |\n| &&
              `        writeLastTab(key);` && |\n| &&
              `` && |\n| &&
-             `        const slots = Tabs.enabledSlots().map((slot) => ({` && |\n| &&
+             `        const slots = Tabs.enabledSlots(ctx).map((slot) => ({` && |\n| &&
              `          key: slot.key,` && |\n| &&
              `          text: slot.label,` && |\n| &&
              `        }));` && |\n| &&
@@ -123,11 +122,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `        let views;` && |\n| &&
              `        if (tab.group === "VIEWDATA") {` && |\n| &&
-             `          views = Tabs.aspectsOfSlot(data.selectedSlot).concat(` && |\n| &&
+             `          views = Tabs.aspectsOfSlot(ctx, data.selectedSlot).concat(` && |\n| &&
              `            Tabs.get("PICK"),` && |\n| &&
              `          );` && |\n| &&
              `        } else {` && |\n| &&
-             `          views = Tabs.enabledTabs(tab.group);` && |\n| &&
+             `          views = Tabs.enabledTabs(ctx, tab.group);` && |\n| &&
              `        }` && |\n| &&
              `        data.views = views.map((entry) => ({` && |\n| &&
              `          key: entry.key,` && |\n| &&
@@ -142,15 +141,14 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.isErrorView = key === "ERROR";` && |\n| &&
              `        data.isSourceView = key === "SOURCE";` && |\n| &&
              `        data.hasRetry =` && |\n| &&
-             `          key === "ERROR" &&` && |\n| &&
-             `          typeof AppState.state.lastError?.onRetry === "function";` && |\n| &&
+             `          key === "ERROR" && typeof ctx.state.lastError?.onRetry === "function";` && |\n| &&
              `        data.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
              `        data.openOnError = Console.isAlertOnError();` && |\n| &&
              `` && |\n| &&
              `        data.problemCount = this.problemCount();` && |\n| &&
              `` && |\n| &&
              `        if (tab.kind === "search") {` && |\n| &&
-             `          this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");` && |\n| &&
+             `          this.displayEditor(oModel, Tabs.search(ctx, data.searchTerm), "text");` && |\n| &&
              `` && |\n| &&
              `          data.isTemplating = false;` && |\n| &&
              `          oModel.refresh();` && |\n| &&
@@ -165,16 +163,19 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        this.displayEditor(oModel, Tabs.render(key), tab.kind);` && |\n| &&
+             `        this.displayEditor(oModel, Tabs.render(ctx, key), tab.kind);` && |\n| &&
              `` && |\n| &&
-             `        data.canApply = LiveEdit.canApply(key);` && |\n| &&
+             `        data.canApply = LiveEdit.canApply(ctx, key);` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onGroupSelect(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const groupKey = oEvent.getSource().getSelectedKey();` && |\n| &&
-             `        this.renderTab(Tabs.firstTabOf(groupKey) || DEFAULT_TAB, oModel);` && |\n| &&
+             `        this.renderTab(` && |\n| &&
+             `          Tabs.firstTabOf(this.ctx, groupKey) || DEFAULT_TAB,` && |\n| &&
+             `          oModel,` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onViewSelect(oEvent) {` && |\n| &&
@@ -186,7 +187,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
              `        const aspect = Tabs.get(oModel.getData().selectedTab)?.aspect;` && |\n| &&
-             `        this.renderTab(Tabs.tabFor(oSource.getSelectedKey(), aspect), oModel);` && |\n| &&
+             `        this.renderTab(` && |\n| &&
+             `          Tabs.tabFor(this.ctx, oSource.getSelectedKey(), aspect),` && |\n| &&
+             `          oModel,` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onSearch(oEvent) {` && |\n| &&
@@ -219,7 +223,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (oSource.getPressed()) {` && |\n| &&
              `          if (!data.xContent) {` && |\n| &&
-             `            data.xContent = Tabs.renderTemplated(data.selectedTab);` && |\n| &&
+             `            data.xContent = Tabs.renderTemplated(this.ctx, data.selectedTab);` && |\n| &&
              `          }` && |\n| &&
              `          data.value = data.xContent;` && |\n| &&
              `        } else {` && |\n| &&
@@ -229,11 +233,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      showAbapSource(oModel) {` && |\n| &&
-             `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
+             `        const contentControl = Fragment.byId(this.fragmentId(), "sourceHtml");` && |\n| &&
              `` && |\n| &&
-             `        contentControl?.setContent(AbapSource.iframeHtml());` && |\n| &&
+             `        contentControl?.setContent(AbapSource.iframeHtml(this.ctx));` && |\n| &&
              `` && |\n| &&
-             `        AbapSource.fetchSource();` && |\n| &&
+             `        AbapSource.fetchSource(this.ctx);` && |\n| &&
              `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
@@ -243,7 +247,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onOpenAbapInAdt() {` && |\n| &&
-             `        AbapSource.openInAdt();` && |\n| &&
+             `        AbapSource.openInAdt(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      showStatus(oModel, text) {` && |\n| &&
@@ -263,15 +267,15 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      async onReportBug(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const source = await AbapSource.fetchSource();` && |\n| &&
+             `        const source = await AbapSource.fetchSource(this.ctx);` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.showStatus(oModel, Report.copyMarkdown(source));` && |\n| &&
+             `        this.showStatus(oModel, Report.copyMarkdown(this.ctx, source));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onExport() {` && |\n| &&
-             `        const source = await AbapSource.fetchSource();` && |\n| &&
+             `        const source = await AbapSource.fetchSource(this.ctx);` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        Report.openDialog(AbapSource.appName(), source);` && |\n| &&
+             `        Report.openDialog(this.ctx, AbapSource.appName(this.ctx), source);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onCopyTab(oEvent) {` && |\n| &&
@@ -279,7 +283,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const data = oSource.getModel().getData();` && |\n| &&
              `        let text = data.value || "";` && |\n| &&
              `        if (data.isSourceView) {` && |\n| &&
-             `          text = await AbapSource.fetchSource();` && |\n| &&
+             `          text = await AbapSource.fetchSource(this.ctx);` && |\n| &&
              `          if (Lib.isDestroyed(oSource)) return;` && |\n| &&
              `        }` && |\n| &&
              `        Lib.copyToClipboard(text);` && |\n| &&
@@ -288,7 +292,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onErrorRetry() {` && |\n| &&
-             `        const onRetry = AppState.state.lastError?.onRetry;` && |\n| &&
+             `        const onRetry = this.ctx.state.lastError?.onRetry;` && |\n| &&
              `` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
@@ -298,12 +302,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        window.location.reload();` && |\n| &&
              `      },` && |\n| &&
              `      onErrorLogout() {` && |\n| &&
-             `        ErrorView.handleLogout();` && |\n| &&
+             `        ErrorView.handleLogout(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onToggleRecordPayloads(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
-             `        Recorder.setRecordingPayloads(oSource.getPressed());` && |\n| &&
+             `        Recorder.setRecordingPayloads(this.ctx, oSource.getPressed());` && |\n| &&
              `        const oModel = oSource.getModel();` && |\n| &&
              `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
              `      },` && |\n| &&
@@ -320,7 +324,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
-             `        Picker.start((report) => {` && |\n| &&
+             `        Picker.start(this.ctx, (report) => {` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this.show(report ? "PICK" : previousTab);` && |\n| &&
              `        });` && |\n| &&
@@ -329,26 +333,26 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      async onApplyXml(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        const data = oModel.getData();` && |\n| &&
-             `        if (LiveEdit.isBusy()) {` && |\n| &&
+             `        if (LiveEdit.isBusy(this.ctx)) {` && |\n| &&
              `          this.showStatus(oModel, "A roundtrip is running - try again.");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const tabKey = data.selectedTab;` && |\n| &&
              `` && |\n| &&
              `        const before = this.backendXml(tabKey);` && |\n| &&
-             `        const result = await LiveEdit.apply(tabKey, data.value);` && |\n| &&
+             `        const result = await LiveEdit.apply(this.ctx, tabKey, data.value);` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        if (!this._appliedXml) this._appliedXml = {};` && |\n| &&
              `        this._appliedXml[tabKey] = {` && |\n| &&
              `          original: before,` && |\n| &&
              `` && |\n| &&
-             `          applied: Tabs.render(tabKey),` && |\n| &&
+             `          applied: Tabs.render(this.ctx, tabKey),` && |\n| &&
              `        };` && |\n| &&
              `        this.showStatus(oModel, result);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      backendXml(tabKey) {` && |\n| &&
-             `        const current = Tabs.render(tabKey);` && |\n| &&
+             `        const current = Tabs.render(this.ctx, tabKey);` && |\n| &&
              `        const record = this._appliedXml?.[tabKey];` && |\n| &&
              `        if (!record) return current;` && |\n| &&
              `        if (record.applied !== current) {` && |\n| &&
@@ -415,23 +419,23 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
-             `              id: FRAGMENT_ID,` && |\n| &&
+             `              id: this.fragmentId(),` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (Lib.isDestroyed(this)) {` && |\n| &&
-             `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
+             `            if (this.oDialog) this.oDialog.destroy();` && |\n|.
+    result = result &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `          const requested =` && |\n| &&
              `            typeof initialTab === "string" && initialTab` && |\n| &&
              `              ? initialTab` && |\n| &&
              `              : readLastTab();` && |\n| &&
              `` && |\n| &&
-             `          const appName = AbapSource.appName();` && |\n| &&
+             `          const appName = AbapSource.appName(this.ctx);` && |\n| &&
              `          const oModel = new JSONModel({` && |\n| &&
              `            title: appName` && |\n| &&
              `              ? ``abap2UI5 - Developer Tools - ${appName}``` && |\n| &&
@@ -480,8 +484,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      problemCount() {` && |\n| &&
-             `        const errors = (AppState.state.errors || []).length;` && |\n| &&
-             `        const total = errors + (AppState.state.lastError ? 1 : 0);` && |\n| &&
+             `        const errors = (Lib.errors || []).length;` && |\n| &&
+             `        const total = errors + (this.ctx?.state?.lastError ? 1 : 0);` && |\n| &&
              `        return total ? String(total) : "";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -492,7 +496,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.reopenErrorOnClose = false;` && |\n| &&
              `` && |\n| &&
              `        this.oDialog.close();` && |\n| &&
-             `        if (reopenError) ErrorView.reopenErrorDialog();` && |\n| &&
+             `        if (reopenError) ErrorView.reopenErrorDialog(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&

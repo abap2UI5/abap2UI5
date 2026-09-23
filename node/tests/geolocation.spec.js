@@ -117,15 +117,21 @@ test("a geolocation error is logged and fired as event - never thrown, no UI", (
   expect(inst.finished).toBe(0);
 });
 
-test("a missing geolocation API is a silent no-op", () => {
+// No API at all (an insecure origin, a locked-down browser) used to be a
+// silent return: `finished` never came and nothing said why. It is a failure
+// the app has to hear like the three the API reports itself - code 0, which
+// the API never uses, tells them apart.
+test("a missing geolocation API is reported through the error event", () => {
   const { makeInstance, errors } = load({ navigator: {} });
   const inst = makeInstance();
 
   inst.onAfterRendering();
 
   expect(inst.finished).toBe(0);
-  expect(inst.errorEvents).toHaveLength(0);
-  expect(errors).toHaveLength(0);
+  expect(inst.errorEvents).toEqual([
+    { code: "0", message: "Geolocation API not available" },
+  ]);
+  expect(errors.some((m) => m.includes("Geolocation error (0)"))).toBe(true);
 });
 
 test("a synchronously throwing getCurrentPosition is logged, not thrown", () => {

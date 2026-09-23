@@ -61,24 +61,19 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  let sessionConfigSent = false;` && |\n| &&
-             `` && |\n| &&
-             `  let liveSent = "";` && |\n| &&
-             `` && |\n| &&
-             `  let pending = null;` && |\n| &&
-             `` && |\n| &&
-             `  function config(oConfig, draftId) {` && |\n| &&
+             `  function config(ctx, oConfig, draftId) {` && |\n| &&
+             `    const latches = ctx.session;` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
              `    const liveKey = JSON.stringify(live);` && |\n| &&
-             `    if (sessionConfigSent && draftId) {` && |\n| &&
-             `      if (liveKey === liveSent) {` && |\n| &&
-             `        pending = null;` && |\n| &&
+             `    if (latches.configSent && draftId) {` && |\n| &&
+             `      if (liveKey === latches.liveSent) {` && |\n| &&
+             `        latches.pending = null;` && |\n| &&
              `        return {};` && |\n| &&
              `      }` && |\n| &&
-             `      pending = { live: liveKey };` && |\n| &&
+             `      latches.pending = { live: liveKey };` && |\n| &&
              `      return { S_DEVICE: live };` && |\n| &&
              `    }` && |\n| &&
-             `    pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };` && |\n| &&
+             `    latches.pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };` && |\n| &&
              `    return {` && |\n| &&
              `      S_UI5: oConfig?.S_UI5,` && |\n| &&
              `      ComponentData: oConfig?.ComponentData,` && |\n| &&
@@ -86,25 +81,25 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function takePending() {` && |\n| &&
-             `    const p = pending;` && |\n| &&
-             `    pending = null;` && |\n| &&
+             `  function takePending(ctx) {` && |\n| &&
+             `    const p = ctx.session.pending;` && |\n| &&
+             `    ctx.session.pending = null;` && |\n| &&
              `    return p;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function confirmSent(p) {` && |\n| &&
+             `  function confirmSent(ctx, p) {` && |\n| &&
              `    if (!p) return;` && |\n| &&
-             `    if (p.config) sessionConfigSent = true;` && |\n| &&
-             `    if (p.live !== undefined) liveSent = p.live;` && |\n| &&
-             `    if (p.location) locationSent = true;` && |\n| &&
+             `    const latches = ctx.session;` && |\n| &&
+             `    if (p.config) latches.configSent = true;` && |\n| &&
+             `    if (p.live !== undefined) latches.liveSent = p.live;` && |\n| &&
+             `    if (p.location) latches.locationSent = true;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  let locationSent = false;` && |\n| &&
+             `  function location(ctx, draftId) {` && |\n| &&
+             `    const latches = ctx.session;` && |\n| &&
+             `    if (draftId && latches.locationSent) return null;` && |\n| &&
              `` && |\n| &&
-             `  function location(draftId) {` && |\n| &&
-             `    if (draftId && locationSent) return null;` && |\n| &&
-             `` && |\n| &&
-             `    pending = { ...pending, location: true };` && |\n| &&
+             `    latches.pending = { ...latches.pending, location: true };` && |\n| &&
              `    return {` && |\n| &&
              `      ORIGIN: window.location.origin,` && |\n| &&
              `      PATHNAME: window.location.pathname,` && |\n| &&
@@ -112,7 +107,15 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { config, takePending, confirmSent, location };` && |\n| &&
+             `  function reset(ctx) {` && |\n| &&
+             `    const latches = ctx.session;` && |\n| &&
+             `    latches.configSent = false;` && |\n| &&
+             `    latches.liveSent = "";` && |\n| &&
+             `    latches.pending = null;` && |\n| &&
+             `    latches.locationSent = false;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return { config, takePending, confirmSent, location, reset };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

@@ -1,11 +1,6 @@
 sap.ui.define(
-  [
-    "sap/ui/core/Control",
-    "z2ui5/core/Lib",
-    "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
-  ],
-  (Control, Lib, ViewSlots, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
+  (Control, Lib, Context) => {
     "use strict";
 
     // Invisible control that reports the UI5 version/theme and the device
@@ -82,19 +77,31 @@ sap.ui.define(
         try {
           // The device model is created by Component.init(); it exposes
           // system / resize / os / browser info. It reaches this control
-          // through model propagation, so on the very first rendering of a
-          // freshly built view it may not be attached yet - keep the pending
-          // flag in that case so the next rendering retries, instead of
+          // through model propagation - ViewSlots.attachSharedModels sets it
+          // on EVERY slot view, so the control's own getModel answers in a
+          // popup as well as in MAIN (this used to read the MAIN view's
+          // model by slot key). On the very first rendering of a freshly
+          // built view it may not be attached yet - keep the pending flag
+          // in that case so the next rendering retries, instead of
           // consuming it and never firing `finished` at all.
-          const deviceModel = ViewSlots.getView("MAIN")?.getModel("device");
+          const deviceModel = this.getModel("device");
           const deviceData = deviceModel?.getData();
           if (!deviceData) return;
           this._pendingInfo = false;
 
           const { system, resize, os, browser } = deviceData;
           // Filled by Component._initVersionInfo (async, may not have
-          // resolved yet on the very first render).
-          const ui5Info = AppState.state.oConfig.S_UI5;
+          // resolved yet on the very first render) on the config of this
+          // control's component. A control in no component (Context.of
+          // answers null) has no UI5 info to report: the device fields
+          // still go out, the UI5 ones stay empty, and the gap is logged.
+          const ctx = Context.of(this);
+          if (!ctx) {
+            Lib.logError(
+              "Info.onAfterRendering: no component context, UI5 info left empty",
+            );
+          }
+          const ui5Info = ctx?.state.oConfig?.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
           // Single system-type label, same derivation as core/Session.js.

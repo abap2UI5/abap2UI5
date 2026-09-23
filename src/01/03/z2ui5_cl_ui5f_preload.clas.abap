@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'e19e5e752adba078'.
+    CONSTANTS build_hash TYPE string VALUE '982f4286f6f0de0b'.
 
     CLASS-METHODS get
       IMPORTING
@@ -64,6 +64,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_ui5f_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_ui5f_view1_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_ui5f_appstate_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/Context.js": function()\{{ z2ui5_cl_ui5f_context_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Env.js": function()\{{ z2ui5_cl_ui5f_env_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&
@@ -83,16 +84,22 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/css/style.css": '{ escape_js_literal( styles_css ) }',| && |\n| &&
              |      "z2ui5/devtools/AbapSource.js": function()\{{ z2ui5_cl_ui5f_abapsrc_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Bindings.js": function()\{{ z2ui5_cl_ui5f_bindings_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Console.js": function()\{{ z2ui5_cl_ui5f_console_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/DevTools.js": function()\{{ z2ui5_cl_ui5f_devtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
              |      "z2ui5/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Diff.js": function()\{{ z2ui5_cl_ui5f_diff_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Format.js": function()\{{ z2ui5_cl_ui5f_dtformat_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Help.js": function()\{{ z2ui5_cl_ui5f_help_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Log.js": function()\{{ z2ui5_cl_ui5f_log_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Persist.js": function()\{{ z2ui5_cl_ui5f_persist_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Recorder.js": function()\{{ z2ui5_cl_ui5f_recorder_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Report.js": function()\{{ z2ui5_cl_ui5f_report_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/SlotXml.js": function()\{{ z2ui5_cl_ui5f_slotxml_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Tabs.js": function()\{{ z2ui5_cl_ui5f_tabs_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&

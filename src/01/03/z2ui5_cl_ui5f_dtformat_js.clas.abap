@@ -125,10 +125,54 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `    return ``${(bytes / (1024 * 1024)).toFixed(1)} MB``;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function section(title) {` && |\n| &&
+             `    return ``\n${title}\n${"-".repeat(title.length)}``;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function renderValue(value, max) {` && |\n| &&
+             `    if (value === undefined) return "(absent)";` && |\n| &&
+             `    if (value === null) return "null";` && |\n| &&
+             `    let text;` && |\n| &&
+             `    if (typeof value === "object") {` && |\n| &&
+             `      try {` && |\n| &&
+             `        text = JSON.stringify(value);` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        text = String(value);` && |\n| &&
+             `      }` && |\n| &&
+             `    } else {` && |\n| &&
+             `      text = String(value);` && |\n| &&
+             `    }` && |\n| &&
+             `    return truncate(text, max);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function describeValue(` && |\n| &&
+             `    value,` && |\n| &&
+             `    { max = 60, typed = false, absent = "(absent)", empty = "(empty)" } = {},` && |\n| &&
+             `  ) {` && |\n| &&
+             `    if (value === null) return "null";` && |\n| &&
+             `    if (value === undefined) return absent;` && |\n| &&
+             `    if (Array.isArray(value)) return ``table, ${value.length} row(s)``;` && |\n| &&
+             `    if (typeof value === "object") {` && |\n| &&
+             `      return ``structure, ${Object.keys(value).length} field(s)``;` && |\n| &&
+             `    }` && |\n| &&
+             `    if (value === "") return typed ? ``${typeof value} ${empty}`` : empty;` && |\n| &&
+             `    const preview = truncate(value, max);` && |\n| &&
+             `    return typed ? ``${typeof value}  ${preview}`` : preview;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  const FRAMEWORK_CALL =` && |\n| &&
              `    /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
              `` && |\n| &&
-             `  return { toJson, prettifyXml, truncate, formatBytes, FRAMEWORK_CALL };` && |\n| &&
+             `  return {` && |\n| &&
+             `    toJson,` && |\n| &&
+             `    prettifyXml,` && |\n| &&
+             `    truncate,` && |\n| &&
+             `    formatBytes,` && |\n| &&
+             `    section,` && |\n| &&
+             `    renderValue,` && |\n| &&
+             `    describeValue,` && |\n| &&
+             `    FRAMEWORK_CALL,` && |\n| &&
+             `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

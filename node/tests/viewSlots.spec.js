@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, contextStub, bindContext } = require("./loadLibModule");
 
 // Tests the real app/webapp/core/ViewSlots.js against a stubbed AppState
 // state object, a recording Fragment stub and a recording Lib.logError
@@ -9,13 +10,15 @@ const { loadModule } = require("./loadModule");
 function load() {
   const fragmentCalls = [];
   const errors = [];
-  // slotXml / slotApp carry their defaults in AppState.createState( ) and
-  // ViewSlots no longer creates them on first use
-  const state = { slotXml: {}, slotApp: {} };
+  // the slots live on the component's context (core/Context.js); the
+  // state carries the defaults of AppState.createState( ), and the module
+  // functions below are bound to this one context
+  const ctx = specContext();
+  const state = ctx.state;
   // Global UI5 registry stub behind Env.getElementById - the fallback path
   // resolveById() takes when no open slot owns the id.
   const globalElements = {};
-  const { module } = loadModule("core/ViewSlots.js", {
+  const { module: real } = loadModule("core/ViewSlots.js", {
     deps: {
       "sap/ui/core/Fragment": {
         byId: (fragmentId, id) => {
@@ -34,14 +37,28 @@ function load() {
           unregisterObject: (view) => unregisterCalls.push(view),
         }),
       },
-      "z2ui5/core/AppState": { state },
+      "z2ui5/core/Context": contextStub(ctx),
     },
   });
+  const module = bindContext(real, ctx, [
+    "getView",
+    "setView",
+    "getViewXml",
+    "getViewApp",
+    "getController",
+    "byId",
+    "resolveById",
+    "ownId",
+    "fragmentIdOf",
+    "containingSlotKey",
+    "destroy",
+  ]);
   const unregisterCalls = [];
   const registerCalls = [];
   const messageModel = { id: "messageModel" };
   return {
     ViewSlots: module,
+    ctx,
     state,
     fragmentCalls,
     errors,
@@ -71,7 +88,9 @@ test.describe("view and controller access", () => {
     ViewSlots.setView("NEST", view);
     expect(state.oViewNest).toBe(view);
     expect(ViewSlots.getView("NEST")).toBe(view);
-    expect(ViewSlots.getView("POPUP")).toBeUndefined();
+    // the slot's default is null (AppState.createState); an unknown key
+    // has no field at all
+    expect(ViewSlots.getView("POPUP")).toBeNull();
     expect(ViewSlots.getView("UNKNOWN")).toBeUndefined();
   });
 
@@ -138,10 +157,13 @@ test.describe("view and controller access", () => {
   });
 
   test("keyOfController finds the slot a controller serves", () => {
-    const { ViewSlots, state } = load();
-    const controller = {};
+    // a controller carries its context (App.controller); the slot is read
+    // off that context's state
+    const { ViewSlots, ctx, state } = load();
+    const controller = { ctx };
     state.oControllerPopover = controller;
     expect(ViewSlots.keyOfController(controller)).toBe("POPOVER");
+    expect(ViewSlots.keyOfController({ ctx })).toBeUndefined();
     expect(ViewSlots.keyOfController({})).toBeUndefined();
   });
 });
@@ -175,16 +197,16 @@ test.describe("ownId (component-prefixed framework ids)", () => {
   // second component instance. The owner component's createId is what
   // scopes them, the same prefix UI5 gives a manifest rootView.
   test("prefixes with the owner component once one is registered", () => {
-    const { ViewSlots, state } = load();
-    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    const { ViewSlots, ctx } = load();
+    ctx.component = { createId: (id) => `comp---${id}` };
     expect(ViewSlots.ownId("mainView")).toBe("comp---mainView");
     const popup = ViewSlots.slots.find((s) => s.key === "POPUP");
     expect(ViewSlots.fragmentIdOf(popup)).toBe("comp---popupId");
   });
 
   test("the fragment slots resolve controls under the prefixed id", () => {
-    const { ViewSlots, state, fragmentCalls } = load();
-    state.oOwnerComponent = { createId: (id) => `comp---${id}` };
+    const { ViewSlots, ctx, state, fragmentCalls } = load();
+    ctx.component = { createId: (id) => `comp---${id}` };
     state.oViewPopover = {};
     expect(ViewSlots.byId("POPOVER", "btn")).toBe("comp---popoverId--btn");
     expect(fragmentCalls).toEqual([["comp---popoverId", "btn"]]);
@@ -306,7 +328,7 @@ test.describe("destroy", () => {
     const { ViewSlots, state } = load();
     ViewSlots.destroy("POPUP");
     ViewSlots.destroy("UNKNOWN");
-    expect(state.oViewPopup).toBeUndefined();
+    expect(state.oViewPopup).toBeNull();
   });
 
   test("drops the recorded XML, whoever triggered the teardown", () => {
@@ -408,24 +430,45 @@ test.describe("destroy", () => {
 // make its controller read as dead. Pinned here, with both real modules on
 // one state.
 test("every slot's controller field is one Lib.isControllerAlive knows", () => {
-  const state = {};
-  const appState = { state };
+  const ctx = specContext();
   const { module: Lib } = loadModule("core/Lib.js", {
     deps: {
-      "z2ui5/core/AppState": appState,
+      "z2ui5/core/Context": contextStub(ctx),
     },
   });
   const { module: ViewSlots } = loadModule("core/ViewSlots.js", {
     deps: {
       "sap/ui/core/Fragment": {},
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": appState,
+      "z2ui5/core/Context": contextStub(ctx),
     },
   });
   expect(ViewSlots.slots.length).toBeGreaterThan(0);
   for (const slot of ViewSlots.slots) {
-    const marker = { slot: slot.key };
-    state[slot.controllerProp] = marker;
+    const marker = { slot: slot.key, ctx };
+    ctx.state[slot.controllerProp] = marker;
     expect(Lib.isControllerAlive(marker)).toBe(true);
   }
+});
+
+// The one writer of the tracked model's change set outside actions/Slots:
+// a companion that writes into the model DATA (cc/Scrolling) marks the path
+// through this, so no control has to know the set's name.
+test.describe("markChanged", () => {
+  test("adds the path to the tracked model's change set", () => {
+    const { ViewSlots } = load();
+    const changed = new Set();
+    const owner = {
+      getModel: () => ({ _z2ui5Tracked: true, _z2ui5ChangedPaths: changed }),
+    };
+    ViewSlots.markChanged(owner, "/SCROLL/0/V");
+    expect([...changed]).toEqual(["/SCROLL/0/V"]);
+  });
+
+  test("is a no-op without a tracked model (an OData default in switch mode)", () => {
+    const { ViewSlots } = load();
+    const owner = { getModel: () => ({ getProperty: () => 1 }) };
+    expect(() => ViewSlots.markChanged(owner, "/x")).not.toThrow();
+    expect(() => ViewSlots.markChanged(null, "/x")).not.toThrow();
+  });
 });

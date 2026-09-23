@@ -45,6 +45,7 @@ sap.ui.define(
       },
       exit() {
         this._unhook();
+        this._detach();
         // Resolve any still-pending promises so awaiters don't hang.
         for (const resolve of this._aPendingInnerControlsCreated) resolve(null);
         this._aPendingInnerControlsCreated = [];
@@ -137,13 +138,31 @@ sap.ui.define(
         );
         if (!Lib.claimOnce(this, input)) return;
         try {
-          input.attachTokenUpdate(this.onTokenUpdate.bind(this));
-          input.attachInnerControlsCreated(
-            this.onInnerControlsCreated.bind(this),
-          );
+          // the bound handlers are kept for exit( )'s detach - see _detach
+          this._target = input;
+          this._onTokenUpdate = this.onTokenUpdate.bind(this);
+          this._onInnerControlsCreated = this.onInnerControlsCreated.bind(this);
+          input.attachTokenUpdate(this._onTokenUpdate);
+          input.attachInnerControlsCreated(this._onInnerControlsCreated);
         } catch (e) {
           Lib.logError("SmartMultiInputExt.setControl: setup failed", e);
         }
+      },
+      // The handlers setControl put on the TARGET input, taken off again:
+      // a companion destroyed while its target survives used to leave them
+      // on the target for good (cc/MultiInputExt has the same pair).
+      _detach() {
+        const input = this._target;
+        this._target = null;
+        if (!input || Lib.isDestroyed(input)) return;
+        if (this._onTokenUpdate) {
+          input.detachTokenUpdate?.(this._onTokenUpdate);
+        }
+        if (this._onInnerControlsCreated) {
+          input.detachInnerControlsCreated?.(this._onInnerControlsCreated);
+        }
+        this._onTokenUpdate = null;
+        this._onInnerControlsCreated = null;
       },
       // Returns a Promise that resolves once the smart multi input's inner
       // controls exist - they are created lazily on first interaction.

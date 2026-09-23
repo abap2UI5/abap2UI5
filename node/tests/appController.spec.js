@@ -8,7 +8,9 @@ const { loadModule } = require("./loadModule");
 // by the ViewSlots table, not a hardcoded list), the app container lookup,
 // and the initial roundtrip kick-off.
 function load({ manifest, checkLocal = false, href = "http://localhost:3000/" } = {}) {
+  // the controller reads the owner component's context (Context.of)
   const state = { checkLocal };
+  const ctx = { state, alive: true };
   const roundtrips = [];
   class View1Controller {}
   const slots = [
@@ -21,8 +23,8 @@ function load({ manifest, checkLocal = false, href = "http://localhost:3000/" } 
     deps: {
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
       "z2ui5/controller/View1.controller": View1Controller,
-      "z2ui5/core/Server": { roundtrip: () => roundtrips.push(1) },
-      "z2ui5/core/AppState": { state },
+      "z2ui5/core/Server": { roundtrip: (c) => roundtrips.push(c) },
+      "z2ui5/core/Context": { of: (component) => (component ? ctx : null) },
       "z2ui5/core/ViewSlots": { slots },
     },
     sandbox: { window: { location: { href } } },
@@ -42,6 +44,7 @@ function load({ manifest, checkLocal = false, href = "http://localhost:3000/" } 
 
   return {
     inst,
+    ctx,
     state,
     roundtrips,
     component,
@@ -111,4 +114,15 @@ test("onInit kicks off exactly one initial roundtrip", () => {
   inst.onInit();
 
   expect(roundtrips).toHaveLength(1);
+});
+
+// Every View1 controller carries the context: it is how each event handler
+// and action reaches the state, and what Lib.isControllerAlive tests.
+test("the controllers carry the component's context, and the roundtrip gets it", () => {
+  const { inst, ctx, state, roundtrips, slots } = load({ manifest: MANIFEST });
+
+  inst.onInit();
+
+  for (const slot of slots) expect(state[slot.controllerProp].ctx).toBe(ctx);
+  expect(roundtrips).toEqual([ctx]);
 });

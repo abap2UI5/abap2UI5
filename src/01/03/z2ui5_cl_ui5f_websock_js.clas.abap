@@ -26,8 +26,8 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Control, Lib, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
+             `  (Control, Lib, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const RECONNECT_BASE_MS = 500;` && |\n| &&
@@ -253,7 +253,7 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `` && |\n| &&
              `      _drain() {` && |\n| &&
              `        if (!this._queue.length) return;` && |\n| &&
-             `        if (AppState.state.isBusy) {` && |\n| &&
+             `        if (Context.of(this)?.state.isBusy) {` && |\n| &&
              `          this._scheduleDrain();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

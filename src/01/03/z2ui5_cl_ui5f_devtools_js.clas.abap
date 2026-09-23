@@ -38,23 +38,27 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `` && |\n| &&
              `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
              `` && |\n| &&
-             `    let instance = null;` && |\n| &&
-             `    let boundKeydown = null;` && |\n| &&
-             `    let errorDetailsHook = null;` && |\n| &&
+             `    function recordOf(ctx) {` && |\n| &&
+             `      return ctx?.devtools || null;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
-             `    function get() {` && |\n| &&
-             `      if (!instance) {` && |\n| &&
-             `        instance = new DeveloperTools();` && |\n| &&
+             `    function get(ctx) {` && |\n| &&
+             `      const record = recordOf(ctx);` && |\n| &&
+             `      if (!record) return null;` && |\n| &&
+             `      if (!record.tools) {` && |\n| &&
+             `        const tools = new DeveloperTools();` && |\n| &&
+             `        tools.ctx = ctx;` && |\n| &&
+             `        record.tools = tools;` && |\n| &&
              `      }` && |\n| &&
-             `      return instance;` && |\n| &&
+             `      return record.tools;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function toggle() {` && |\n| &&
-             `      get().toggle();` && |\n| &&
+             `    function toggle(ctx) {` && |\n| &&
+             `      get(ctx)?.toggle();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function show(tabKey) {` && |\n| &&
-             `      get().show(tabKey);` && |\n| &&
+             `    function show(ctx, tabKey) {` && |\n| &&
+             `      get(ctx)?.show(tabKey);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function searchParams() {` && |\n| &&
@@ -76,53 +80,67 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      return key === "1" || key === "X" ? "" : key;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function onErrorDetails() {` && |\n| &&
-             `      const dialog = get();` && |\n| &&
+             `    function onErrorDetails(ctx) {` && |\n| &&
+             `      const dialog = get(ctx);` && |\n| &&
+             `      if (!dialog) return;` && |\n| &&
              `      dialog.reopenErrorOnClose = true;` && |\n| &&
              `      dialog.show("ERROR");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function install() {` && |\n| &&
-             `      if (boundKeydown) return;` && |\n| &&
+             `    function install(ctx) {` && |\n| &&
+             `      const record = recordOf(ctx);` && |\n| &&
+             `      if (!record || record.keydown) return;` && |\n| &&
              `` && |\n| &&
-             `      Recorder.install();` && |\n| &&
+             `      Recorder.install(ctx);` && |\n| &&
              `` && |\n| &&
              `      Console.install();` && |\n| &&
+             `      record.console = true;` && |\n| &&
              `` && |\n| &&
-             `      Console.setOnError(() => {` && |\n| &&
-             `        if (instance?.oDialog?.isOpen?.()) return;` && |\n| &&
-             `        show("LOG");` && |\n| &&
-             `      });` && |\n| &&
-             `` && |\n| &&
-             `      errorDetailsHook = onErrorDetails;` && |\n| &&
-             `      Lib.registerCallback("onErrorDetails", errorDetailsHook);` && |\n| &&
-             `` && |\n| &&
-             `      boundKeydown = (event) => {` && |\n| &&
-             `        if (event.ctrlKey && event.key === "F12") toggle();` && |\n| &&
+             `      record.onConsoleError = () => {` && |\n| &&
+             `        if (record.tools?.oDialog?.isOpen?.()) return;` && |\n| &&
+             `        show(ctx, "LOG");` && |\n| &&
              `      };` && |\n| &&
-             `      document.addEventListener("keydown", boundKeydown);` && |\n| &&
+             `      Console.addOnError(record.onConsoleError);` && |\n| &&
              `` && |\n| &&
-             `      if (isAutoOpenRequested()) show(autoOpenTab() || undefined);` && |\n| &&
+             `      record.errorDetailsHook = () => onErrorDetails(ctx);` && |\n| &&
+             `      Lib.registerCallback(ctx, "onErrorDetails", record.errorDetailsHook);` && |\n| &&
+             `` && |\n| &&
+             `      record.keydown = (event) => {` && |\n| &&
+             `        if (event.ctrlKey && event.key === "F12") toggle(ctx);` && |\n| &&
+             `      };` && |\n| &&
+             `      document.addEventListener("keydown", record.keydown);` && |\n| &&
+             `` && |\n| &&
+             `      if (isAutoOpenRequested()) show(ctx, autoOpenTab() || undefined);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function exit() {` && |\n| &&
-             `      if (boundKeydown) {` && |\n| &&
-             `        document.removeEventListener("keydown", boundKeydown);` && |\n| &&
-             `        boundKeydown = null;` && |\n| &&
+             `    function exit(ctx) {` && |\n| &&
+             `      const record = recordOf(ctx);` && |\n| &&
+             `      if (!record) return;` && |\n| &&
+             `      if (record.keydown) {` && |\n| &&
+             `        document.removeEventListener("keydown", record.keydown);` && |\n| &&
+             `        record.keydown = null;` && |\n| &&
              `      }` && |\n| &&
-             `      if (errorDetailsHook) {` && |\n| &&
-             `        Lib.unregisterCallback("onErrorDetails", errorDetailsHook);` && |\n| &&
-             `        errorDetailsHook = null;` && |\n| &&
+             `      if (record.errorDetailsHook) {` && |\n| &&
+             `        Lib.unregisterCallback(ctx, "onErrorDetails", record.errorDetailsHook);` && |\n| &&
+             `        record.errorDetailsHook = null;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (record.onConsoleError) {` && |\n| &&
+             `        Console.removeOnError(record.onConsoleError);` && |\n| &&
+             `        record.onConsoleError = null;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (instance) {` && |\n| &&
-             `        instance.destroy();` && |\n| &&
-             `        instance = null;` && |\n| &&
+             `      if (record.tools) {` && |\n| &&
+             `        record.tools.destroy();` && |\n| &&
+             `        record.tools = null;` && |\n| &&
              `      }` && |\n| &&
-             `      Console.uninstall();` && |\n| &&
-             `      Recorder.uninstall();` && |\n| &&
              `` && |\n| &&
-             `      Picker.stop();` && |\n| &&
+             `      if (record.console) {` && |\n| &&
+             `        record.console = false;` && |\n| &&
+             `        Console.uninstall();` && |\n| &&
+             `      }` && |\n| &&
+             `      Recorder.uninstall(ctx);` && |\n| &&
+             `` && |\n| &&
+             `      Picker.stop(ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&

@@ -51,19 +51,18 @@ sap.ui.define(
           const bindingPath =
             bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
           // Mark changed entries dirty on THIS control's own model - the same
-          // per-model set View1 ships as the delta - not a shared global set.
-          // resolved through the shared tracked-model resolver: in switch
-          // mode this control's propagated DEFAULT model is the OData one,
-          // which has no change set - the scroll positions then never
-          // travelled
-          const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;
+          // per-model set View1 ships as the delta - through
+          // ViewSlots.markChanged, which resolves the framework's tracked
+          // model (in switch mode the propagated DEFAULT model is the OData
+          // one, which has no change set - the positions then never
+          // travelled) and keeps the set's name out of this control.
           for (const [index, item] of items.entries()) {
             const control = ViewSlots.byIdOfOwner(this, item.N);
             const scrollTop = this._getScrollTop(control);
             if (item.V !== scrollTop) {
               item.V = scrollTop;
-              if (bindingPath && changedPaths) {
-                changedPaths.add(`${bindingPath}/${index}/V`);
+              if (bindingPath) {
+                ViewSlots.markChanged(this, `${bindingPath}/${index}/V`);
               }
             }
           }

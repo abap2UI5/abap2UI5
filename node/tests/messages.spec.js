@@ -73,8 +73,10 @@ function loadControlCall(sandbox) {
   // ViewSlots.resolveById maps a control id to its element for the
   // dependentOn option. Only "knownId" resolves here.
   const elements = { knownId: { id: "knownId" } };
+  // the slot registry takes the context first (core/ViewSlots.js); the
+  // stub ignores it
   const ViewSlots = {
-    resolveById: (sId) => elements[sId] || null,
+    resolveById: (_ctx, sId) => elements[sId] || null,
     byId: () => null,
     getView: () => null,
   };

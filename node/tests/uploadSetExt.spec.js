@@ -44,9 +44,9 @@ function load({ uploadSet } = {}) {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": { byIdOfOwner: () => uploadSet ?? null },
-      // the same state object Lib's callbacks live on - isBusy is what the
-      // control reads after each change (see the multi-select spec)
-      "z2ui5/core/AppState": { state },
+      // the control itself reads no state: Lib's hooks and afterRoundtrip
+      // resolve its context (the spec's one) and answer from `state`, the
+      // isBusy the multi-select spec toggles
     },
   });
 
@@ -182,7 +182,8 @@ test("several files picked at once reach the backend one after the other", () =>
   };
 
   // UploadSet fires afterItemAdded once per file, in one synchronous loop
-  for (const file of files) inst.onItemAdded(itemEvent({ getFileObject: () => file }));
+  for (const file of files)
+    inst.onItemAdded(itemEvent({ getFileObject: () => file }));
 
   // ONE reader at a time - the others wait in the queue
   expect(readers).toHaveLength(1);
@@ -233,9 +234,7 @@ test("an item without a file object is ignored", () => {
 test("a read finishing after destroy writes nothing (real Lib owner guard)", () => {
   const { makeInstance, readers } = load();
   const inst = makeInstance();
-  inst.onItemAdded(
-    itemEvent({ getFileObject: () => ({ name: "late.txt" }) }),
-  );
+  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "late.txt" }) }));
 
   inst._destroyed = true;
   readers[0].finish();
@@ -280,7 +279,8 @@ test("a file the reader cannot read does not stall the ones behind it", () => {
     state.isBusy = true;
   };
 
-  for (const file of files) inst.onItemAdded(itemEvent({ getFileObject: () => file }));
+  for (const file of files)
+    inst.onItemAdded(itemEvent({ getFileObject: () => file }));
 
   readers[0].fail();
   expect(inst.changes).toBe(0);
@@ -296,7 +296,9 @@ test("a file added after a failed read is still read", () => {
   const { makeInstance, readers, state } = load();
   const inst = makeInstance();
 
-  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "locked.pdf" }) }));
+  inst.onItemAdded(
+    itemEvent({ getFileObject: () => ({ name: "locked.pdf" }) }),
+  );
   readers[0].fail();
   inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "later.pdf" }) }));
   readers[1].finish();
@@ -320,7 +322,8 @@ test("exit() empties the queue and cancels the pending wait", () => {
     { name: "a.pdf", type: "application/pdf", size: 1 },
     { name: "b.pdf", type: "application/pdf", size: 2 },
   ];
-  for (const file of files) inst.onItemAdded(itemEvent({ getFileObject: () => file }));
+  for (const file of files)
+    inst.onItemAdded(itemEvent({ getFileObject: () => file }));
   readers[0].finish();
 
   inst.exit();
@@ -329,4 +332,29 @@ test("exit() empties the queue and cancels the pending wait", () => {
   expect(state.onAfterRendering).toHaveLength(0);
   // ... and the file still queued is never read
   expect(readers).toHaveLength(1);
+});
+
+// exit( ) takes both handlers back off the TARGET upload set - a companion
+// destroyed while its target survives used to leave them on it for good.
+test("exit() detaches the item handlers from the upload set", () => {
+  const uploadSet = {
+    ...uploadSetStub(),
+    detachAfterItemAdded(fn) {
+      this.added = this.added.filter((f) => f !== fn);
+    },
+    detachAfterItemRemoved(fn) {
+      this.removed = this.removed.filter((f) => f !== fn);
+    },
+  };
+  const { makeInstance } = load({ uploadSet });
+  const inst = makeInstance();
+  inst.init();
+  inst.setControl();
+  expect(uploadSet.added).toHaveLength(1);
+  expect(uploadSet.removed).toHaveLength(1);
+
+  inst.exit();
+
+  expect(uploadSet.added).toHaveLength(0);
+  expect(uploadSet.removed).toHaveLength(0);
 });

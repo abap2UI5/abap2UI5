@@ -1,13 +1,15 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, contextStub } = require("./loadLibModule");
 
 // cc/Tree.js: keeps a sap.m.Tree's expand/collapse state across roundtrips.
 // A rebuilt binding starts fully collapsed, so the companion snapshots the
 // tree state before every roundtrip and restores it after the next render.
 //
-// The state lives in AppState.state.treeStates, keyed by tree_id, and that
-// is where every rule this spec pins comes from:
+// The state lives in state.treeStates of the companion's component context
+// (Context.of), keyed by tree_id, and that is where every rule this spec
+// pins comes from:
 //
 //  - keyed by tree_id, so a main-view tree and a tree in a popup keep
 //    independent snapshots instead of overwriting each other;
@@ -21,11 +23,17 @@ const { loadModule } = require("./loadModule");
 //    actually applies it;
 //  - resolution goes through ViewSlots.byIdOfOwner, not resolveById, so a
 //    same-id tree in another open slot is never picked up;
-//  - and every entry point logs rather than throws (AGENTS.md rule 10).
-function load({ trees = {}, treeStates = {} } = {}) {
+//  - and every entry point logs rather than throws (AGENTS.md rule 10),
+//    including a companion in no component at all (`context: false`,
+//    Context.of answers null), which has nowhere to keep a snapshot.
+function load({ trees = {}, treeStates = {}, context = true } = {}) {
   const errors = [];
   const callbacks = {};
   const lookups = [];
+  const ctx = specContext({ treeStates });
+  const Context = context
+    ? contextStub(ctx)
+    : { ...contextStub(ctx), of: () => null };
 
   const { module: TreeDef } = loadModule("cc/Tree.js", {
     deps: {
@@ -53,7 +61,7 @@ function load({ trees = {}, treeStates = {} } = {}) {
           return trees[id] ?? null;
         },
       },
-      "z2ui5/core/AppState": { state: { treeStates } },
+      "z2ui5/core/Context": Context,
     },
   });
 
@@ -65,7 +73,9 @@ function load({ trees = {}, treeStates = {} } = {}) {
     return inst;
   }
 
-  return { instance, errors, callbacks, treeStates, lookups };
+  // ctx.state.treeStates IS the seeded object (specContext assigns it), so
+  // the spec reads the snapshots off the one the control writes
+  return { instance, errors, callbacks, treeStates: ctx.state.treeStates, lookups };
 }
 
 // A tree binding recording what was done to it, and the sap.m.Tree that
@@ -251,6 +261,31 @@ test("no snapshot, no binding, no tree_id: nothing happens and nothing throws", 
   // no tree_id at all
   const c = load({ trees: {}, treeStates: { tbl: { a: 1 } } });
   expect(() => c.instance("").onAfterRendering()).not.toThrow();
+});
+
+// A companion in no component has nowhere to keep a snapshot: neither
+// entry point throws, nothing is snapshotted or restored, the control keeps
+// rendering, and the gap is logged ONCE per instance - onAfterRendering
+// runs on every re-render, and a log line per render would flood the ring.
+test("in no component: logged once, nothing preserved, rendering goes on", () => {
+  const binding = makeBinding("expanded");
+  const l = load({
+    trees: { tbl: makeTree(binding) },
+    treeStates: { tbl: { a: 1 } },
+    context: false,
+  });
+  const inst = l.instance("tbl");
+
+  expect(() => {
+    inst.setBackend();
+    inst.onAfterRendering();
+    inst.onAfterRendering();
+  }).not.toThrow();
+
+  expect(l.treeStates).toEqual({ tbl: { a: 1 } });
+  expect(binding.calls).toEqual([]);
+  expect(l.errors).toHaveLength(1);
+  expect(l.errors[0][0]).toContain("no component context");
 });
 
 test("a throwing setTreeState is logged, not propagated", () => {

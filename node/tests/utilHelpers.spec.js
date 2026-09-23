@@ -12,23 +12,32 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
   test("alive while the current state owns the controller, dead after a reset", () => {
     // a sap.ui.core.mvc.Controller carries no destroyed flag on any release
     // and the slot controllers are never destroyed - the one thing that ends
-    // their life is AppState.reset( ), which drops them from the state
+    // their life is Context.destroy( ), which rebuilds the state they were
+    // in. A controller carries its context (App.controller), and being one
+    // of that context's live slot controllers is the test.
     const main = { eB() {} };
     const popup = { eB() {} };
     const state = { oController: main, oControllerPopup: popup };
-    const { Lib } = loadLib({ state });
+    const { Lib, ctx } = loadLib({ state });
+    main.ctx = ctx;
+    popup.ctx = ctx;
     expect(Lib.isControllerAlive(main)).toBe(true);
     expect(Lib.isControllerAlive(popup)).toBe(true);
-    // a stray object that only LOOKS like a controller is not alive
+    // a stray object that only LOOKS like a controller is not alive - with
+    // or without a context
     expect(Lib.isControllerAlive({ eB() {} })).toBe(false);
+    expect(Lib.isControllerAlive({ eB() {}, ctx })).toBe(false);
     expect(Lib.isControllerAlive(null)).toBe(false);
     expect(Lib.isControllerAlive(undefined)).toBe(false);
     // FLP teardown / re-launch: a fresh set is registered, the old one is dead
-    state.oController = { eB() {} };
+    state.oController = { eB() {}, ctx };
     state.oControllerPopup = null;
     expect(Lib.isControllerAlive(main)).toBe(false);
     expect(Lib.isControllerAlive(popup)).toBe(false);
     expect(Lib.isControllerAlive(state.oController)).toBe(true);
+    // ... and a dead context ends every controller of it
+    ctx.alive = false;
+    expect(Lib.isControllerAlive(state.oController)).toBe(false);
   });
 
   test("isDestroyed cannot tell - a controller without any flag reads alive", () => {
@@ -287,6 +296,33 @@ test.describe("logError", () => {
     expect(state.errors[0]).not.toHaveProperty("error");
     expect(state.errors[1].error.message).toBe("boom");
     expect(state.errors[1].ts).toBeTruthy();
+  });
+});
+
+// The control filters of a list binding, release-independently: the public
+// getFilters("Control") since 1.96, the private aFilters member before it -
+// and never "Application", which answers the app's own binding filters.
+test.describe("controlFilters", () => {
+  test("asks getFilters for the CONTROL filters where the binding has it", () => {
+    const { Env } = loadEnv();
+    const control = [{ sPath: "NAME" }];
+    const binding = {
+      aFilters: control,
+      getFilters: (type) => (type === "Control" ? control : []),
+    };
+    expect(Env.controlFilters(binding)).toBe(control);
+  });
+
+  test("falls back to the private aFilters on a release without getFilters", () => {
+    const { Env } = loadEnv();
+    const control = [{ sPath: "NAME" }];
+    expect(Env.controlFilters({ aFilters: control })).toBe(control);
+  });
+
+  test("answers undefined without a binding", () => {
+    const { Env } = loadEnv();
+    expect(Env.controlFilters(null)).toBeUndefined();
+    expect(Env.controlFilters(undefined)).toBeUndefined();
   });
 });
 

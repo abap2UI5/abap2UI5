@@ -22,16 +22,21 @@
 // sessionStorage both store them, and a key that stopped resolving would
 // silently reopen on the default tab. What changed is only how they are
 // GROUPED for display.
+//
+// The table is static; what a tab SHOWS is the state of one component
+// context (core/Context.js). So every probe of an entry - produce, enabled,
+// rendered, inExport - and every lookup below that runs one takes the
+// context first, and the dialog hands its own in (DeveloperTools.ctx).
 sap.ui.define(
   [
-    "z2ui5/core/AppState",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Format",
     "z2ui5/devtools/Inspect",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
+    "z2ui5/devtools/SlotXml",
   ],
-  (AppState, ViewSlots, Format, Inspect, Picker, Recorder) => {
+  (ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -59,17 +64,9 @@ sap.ui.define(
     // DATA - an app without bound attributes serves an empty object, and
     // omitting the sub-view says "nothing here" more clearly than
     // rendering {}.
-    function hasModelData(slotKey) {
-      const data = getModelJson(ViewSlots.getView(slotKey));
+    function hasModelData(ctx, slotKey) {
+      const data = getModelJson(ViewSlots.getView(ctx, slotKey));
       return Boolean(data) && Object.keys(data).length > 0;
-    }
-
-    function getViewContent(view) {
-      // Private member access (developer tools only): XMLView keeps the raw
-      // XML string as a pseudo property in mProperties, but does not declare
-      // it in its metadata - getProperty("viewContent") therefore throws and
-      // would abort the whole tab selection. Read the plain object instead.
-      return view?.mProperties?.viewContent;
     }
 
     function getRenderedContent(view) {
@@ -78,28 +75,12 @@ sap.ui.define(
       return view?._xContent?.outerHTML;
     }
 
-    // The view XML a slot currently holds: the live view's own viewContent
-    // when UI5 kept it, else the source ViewSlots recorded when the slot was
-    // filled (a fragment or a `definition`-built view keeps none).
-    //
-    // Read from the SLOT, never from the last response: a slot lives and dies
-    // by ViewSlots.setView/destroy, and both ways of tearing one down end up
-    // there - the backend's ["VIEW_SLOTS","destroy",...] action and the
-    // roundtrip-free frontend close (cs_event-popup_close / popover_close,
-    // which the backend formats as that very same action). Scraping the last
-    // response's display action instead made the frontend close look like a
-    // popup that was still open: no roundtrip happens, so the response that
-    // opened it stayed the current one.
-    function getSlotXml(slotKey) {
-      return (
-        getViewContent(ViewSlots.getView(slotKey)) ||
-        ViewSlots.getViewXml(slotKey) ||
-        ""
-      );
-    }
+    // The view XML a slot currently holds - the shared reader of
+    // devtools/SlotXml.js, which says where it reads from and why.
+    const getSlotXml = SlotXml.slotXml;
 
-    function slotFilled(slotKey) {
-      return Boolean(getSlotXml(slotKey));
+    function slotFilled(ctx, slotKey) {
+      return Boolean(getSlotXml(ctx, slotKey));
     }
 
     // ------------------------------------------------------------------
@@ -148,9 +129,10 @@ sap.ui.define(
     //   group        the top-level tab it appears under
     //   label        its name in the sub-view selector
     //   kind         "json" | "xml" | "text" | "source" - how it renders
-    //   produce()    the finished display string
-    //   rendered()   optional: the post-XML-templating variant (xml only)
-    //   enabled()    optional: false hides the sub-view entirely
+    //   produce(ctx)   the finished display string
+    //   rendered(ctx)  optional: the post-XML-templating variant (xml only)
+    //   enabled(ctx)   optional: false hides the sub-view entirely
+    //   inExport(ctx)  optional: false keeps an enabled tab out of the export
     //   slot/aspect  View & Data only - the two selector dimensions
     //   exportOrder  position in the export; absent = not exported
     //   exportTitle  section title; defaults to the upper-cased label
@@ -162,7 +144,7 @@ sap.ui.define(
         group: "OVERVIEW",
         label: "Overview",
         kind: "text",
-        produce: () => Inspect.formatOverview(),
+        produce: (ctx) => Inspect.formatOverview(ctx),
         // Not exported and not searched: every line of it is a summary of
         // a section the export already carries in full.
         searchable: false,
@@ -174,8 +156,8 @@ sap.ui.define(
         group: "PROBLEMS",
         label: "Error",
         kind: "text",
-        produce: () => Inspect.formatError(),
-        enabled: () => Boolean(AppState.state.lastError),
+        produce: (ctx) => Inspect.formatError(ctx),
+        enabled: (ctx) => Boolean(ctx.state.lastError),
         exportOrder: 20,
       },
       {
@@ -183,7 +165,7 @@ sap.ui.define(
         group: "PROBLEMS",
         label: "Log",
         kind: "text",
-        produce: () => Inspect.formatLog(),
+        produce: (ctx) => Inspect.formatLog(ctx),
         exportOrder: 30,
       },
 
@@ -193,7 +175,7 @@ sap.ui.define(
         group: "ROUNDTRIPS",
         label: "History",
         kind: "text",
-        produce: () => Recorder.formatHistory(),
+        produce: (ctx) => Recorder.formatHistory(ctx),
         exportOrder: 40,
       },
       {
@@ -201,7 +183,7 @@ sap.ui.define(
         group: "ROUNDTRIPS",
         label: "Request",
         kind: "json",
-        produce: () => Format.toJson(AppState.state.oBody),
+        produce: (ctx) => Format.toJson(ctx.state.oBody),
         exportOrder: 80,
       },
       {
@@ -209,7 +191,7 @@ sap.ui.define(
         group: "ROUNDTRIPS",
         label: "Response",
         kind: "json",
-        produce: () => Format.toJson(AppState.state.responseData),
+        produce: (ctx) => Format.toJson(ctx.state.responseData),
         exportOrder: 70,
       },
       {
@@ -217,7 +199,7 @@ sap.ui.define(
         group: "ROUNDTRIPS",
         label: "Actions",
         kind: "text",
-        produce: () => Inspect.formatActions(),
+        produce: (ctx) => Inspect.formatActions(ctx),
         exportOrder: 60,
       },
       {
@@ -225,21 +207,21 @@ sap.ui.define(
         group: "ROUNDTRIPS",
         label: "Model Diff",
         kind: "text",
-        produce: () => Recorder.formatModelDiff(),
+        produce: (ctx) => Recorder.formatModelDiff(ctx),
         // Only in the export when it says something: without payload
         // recording it is a one-line "switch it on" notice, and a report
         // full of those reads as if the tools were broken.
         exportOrder: 50,
-        inExport: () => Recorder.isRecordingPayloads(),
+        inExport: (_ctx) => Recorder.isRecordingPayloads(),
       },
       {
         key: "VIEWDIFF",
         group: "ROUNDTRIPS",
         label: "View Diff",
         kind: "text",
-        produce: () => Recorder.formatViewDiff(),
+        produce: (ctx) => Recorder.formatViewDiff(ctx),
         exportOrder: 51,
-        inExport: () => Recorder.isRecordingPayloads(),
+        inExport: (_ctx) => Recorder.isRecordingPayloads(),
       },
 
       // -------- View & Data --------
@@ -251,10 +233,12 @@ sap.ui.define(
         aspect: "XML",
         label: "XML",
         kind: "xml",
-        produce: () => Format.prettifyXml(getSlotXml("MAIN")),
-        rendered: () =>
-          Format.prettifyXml(getRenderedContent(ViewSlots.getView("MAIN"))),
-        enabled: () => slotFilled("MAIN"),
+        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "MAIN")),
+        rendered: (ctx) =>
+          Format.prettifyXml(
+            getRenderedContent(ViewSlots.getView(ctx, "MAIN")),
+          ),
+        enabled: (ctx) => slotFilled(ctx, "MAIN"),
         exportOrder: 90,
         exportTitle: "VIEW",
       },
@@ -265,8 +249,9 @@ sap.ui.define(
         aspect: "MODEL",
         label: "Model",
         kind: "json",
-        produce: () => Format.toJson(getModelJson(ViewSlots.getView("MAIN"))),
-        enabled: () => hasModelData("MAIN"),
+        produce: (ctx) =>
+          Format.toJson(getModelJson(ViewSlots.getView(ctx, "MAIN"))),
+        enabled: (ctx) => hasModelData(ctx, "MAIN"),
         exportOrder: 91,
         exportTitle: "VIEW MODEL",
       },
@@ -277,8 +262,8 @@ sap.ui.define(
         aspect: "BINDINGS",
         label: "Bindings",
         kind: "text",
-        produce: () => Inspect.formatBindings("MAIN"),
-        enabled: () => hasModelData("MAIN"),
+        produce: (ctx) => Inspect.formatBindings(ctx, "MAIN"),
+        enabled: (ctx) => hasModelData(ctx, "MAIN"),
         exportOrder: 92,
         exportTitle: "VIEW BINDINGS",
       },
@@ -290,8 +275,8 @@ sap.ui.define(
         aspect: "XML",
         label: "XML",
         kind: "xml",
-        produce: () => Format.prettifyXml(getSlotXml("POPUP")),
-        enabled: () => slotFilled("POPUP"),
+        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPUP")),
+        enabled: (ctx) => slotFilled(ctx, "POPUP"),
         exportOrder: 100,
         // Every slot has a sub-view called "XML", so the export title
         // has to name the slot - the default (the label) would produce
@@ -305,8 +290,9 @@ sap.ui.define(
         aspect: "MODEL",
         label: "Model",
         kind: "json",
-        produce: () => Format.toJson(getModelJson(ViewSlots.getView("POPUP"))),
-        enabled: () => hasModelData("POPUP"),
+        produce: (ctx) =>
+          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPUP"))),
+        enabled: (ctx) => hasModelData(ctx, "POPUP"),
         exportOrder: 101,
         exportTitle: "POPUP MODEL",
       },
@@ -317,8 +303,8 @@ sap.ui.define(
         aspect: "BINDINGS",
         label: "Bindings",
         kind: "text",
-        produce: () => Inspect.formatBindings("POPUP"),
-        enabled: () => hasModelData("POPUP"),
+        produce: (ctx) => Inspect.formatBindings(ctx, "POPUP"),
+        enabled: (ctx) => hasModelData(ctx, "POPUP"),
         exportOrder: 102,
         exportTitle: "POPUP BINDINGS",
       },
@@ -330,8 +316,8 @@ sap.ui.define(
         aspect: "XML",
         label: "XML",
         kind: "xml",
-        produce: () => Format.prettifyXml(getSlotXml("POPOVER")),
-        enabled: () => slotFilled("POPOVER"),
+        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPOVER")),
+        enabled: (ctx) => slotFilled(ctx, "POPOVER"),
         exportOrder: 110,
         exportTitle: "POPOVER",
       },
@@ -342,9 +328,9 @@ sap.ui.define(
         aspect: "MODEL",
         label: "Model",
         kind: "json",
-        produce: () =>
-          Format.toJson(getModelJson(ViewSlots.getView("POPOVER"))),
-        enabled: () => hasModelData("POPOVER"),
+        produce: (ctx) =>
+          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPOVER"))),
+        enabled: (ctx) => hasModelData(ctx, "POPOVER"),
         exportOrder: 111,
         exportTitle: "POPOVER MODEL",
       },
@@ -355,8 +341,8 @@ sap.ui.define(
         aspect: "BINDINGS",
         label: "Bindings",
         kind: "text",
-        produce: () => Inspect.formatBindings("POPOVER"),
-        enabled: () => hasModelData("POPOVER"),
+        produce: (ctx) => Inspect.formatBindings(ctx, "POPOVER"),
+        enabled: (ctx) => hasModelData(ctx, "POPOVER"),
         exportOrder: 112,
         exportTitle: "POPOVER BINDINGS",
       },
@@ -369,10 +355,12 @@ sap.ui.define(
         aspect: "XML",
         label: "XML",
         kind: "xml",
-        produce: () => Format.prettifyXml(getSlotXml("NEST")),
-        rendered: () =>
-          Format.prettifyXml(getRenderedContent(ViewSlots.getView("NEST"))),
-        enabled: () => slotFilled("NEST"),
+        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST")),
+        rendered: (ctx) =>
+          Format.prettifyXml(
+            getRenderedContent(ViewSlots.getView(ctx, "NEST")),
+          ),
+        enabled: (ctx) => slotFilled(ctx, "NEST"),
         exportOrder: 120,
         exportTitle: "NEST1",
       },
@@ -383,10 +371,12 @@ sap.ui.define(
         aspect: "XML",
         label: "XML",
         kind: "xml",
-        produce: () => Format.prettifyXml(getSlotXml("NEST2")),
-        rendered: () =>
-          Format.prettifyXml(getRenderedContent(ViewSlots.getView("NEST2"))),
-        enabled: () => slotFilled("NEST2"),
+        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),
+        rendered: (ctx) =>
+          Format.prettifyXml(
+            getRenderedContent(ViewSlots.getView(ctx, "NEST2")),
+          ),
+        enabled: (ctx) => slotFilled(ctx, "NEST2"),
         exportOrder: 121,
         exportTitle: "NEST2",
       },
@@ -400,8 +390,8 @@ sap.ui.define(
         aspect: "PICK",
         label: "Picked Control",
         kind: "text",
-        produce: () =>
-          Picker.lastReport() ||
+        produce: (ctx) =>
+          Picker.lastReport(ctx) ||
           'No control picked yet - press "Pick Control", then click any' +
             " control in the app.",
         searchable: true,
@@ -431,7 +421,7 @@ sap.ui.define(
         group: "SYSTEM",
         label: "Environment",
         kind: "text",
-        produce: () => Inspect.formatEnvironment(),
+        produce: (ctx) => Inspect.formatEnvironment(ctx),
         // First section of the export on purpose: versions, UI5
         // distribution, launchpad and device are what a reader of a
         // shared report needs before anything else, and asking for them
@@ -443,7 +433,7 @@ sap.ui.define(
         group: "SYSTEM",
         label: "Registry",
         kind: "text",
-        produce: () => Inspect.formatRegistry(),
+        produce: (ctx) => Inspect.formatRegistry(ctx),
         exportOrder: 61,
       },
       {
@@ -474,10 +464,10 @@ sap.ui.define(
       return Boolean(tabKey && byKey.has(tabKey));
     }
 
-    function isEnabled(tab) {
+    function isEnabled(ctx, tab) {
       if (!tab) return false;
       try {
-        return tab.enabled ? Boolean(tab.enabled()) : true;
+        return tab.enabled ? Boolean(tab.enabled(ctx)) : true;
       } catch {
         // A source that throws while deciding whether it has anything to
         // show must not take the whole tab strip with it.
@@ -491,26 +481,28 @@ sap.ui.define(
 
     // The tabs of a group that have something to show right now, in
     // table order.
-    function enabledTabs(groupKey) {
-      return TABS.filter((tab) => tab.group === groupKey && isEnabled(tab));
+    function enabledTabs(ctx, groupKey) {
+      return TABS.filter(
+        (tab) => tab.group === groupKey && isEnabled(ctx, tab),
+      );
     }
 
     // The tab a group opens on when it is selected without a specific
     // sub-view - the first one that is enabled.
-    function firstTabOf(groupKey) {
+    function firstTabOf(ctx, groupKey) {
       // find( ) stops at the first hit: enabledTabs( ) would run every
       // probe of the group to hand back one entry
       const first = TABS.find(
-        (tab) => tab.group === groupKey && isEnabled(tab),
+        (tab) => tab.group === groupKey && isEnabled(ctx, tab),
       );
       return first?.key || "";
     }
 
     // The slots that hold something, in SLOTS order. Drives the slot
     // selector of View & Data; empty slots are not offered at all.
-    function enabledSlots() {
+    function enabledSlots(ctx) {
       const available = new Set(
-        enabledTabs("VIEWDATA")
+        enabledTabs(ctx, "VIEWDATA")
           .filter((tab) => tab.slot)
           .map((tab) => tab.slot),
       );
@@ -518,8 +510,8 @@ sap.ui.define(
     }
 
     // The aspects available for one slot, in ASPECTS order.
-    function aspectsOfSlot(slotKey) {
-      return enabledTabs("VIEWDATA")
+    function aspectsOfSlot(ctx, slotKey) {
+      return enabledTabs(ctx, "VIEWDATA")
         .filter((tab) => tab.slot === slotKey)
         .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));
     }
@@ -527,8 +519,8 @@ sap.ui.define(
     // The tab for a (slot, aspect) pair, falling back to the slot's
     // first available aspect - switching from Popup/Model to a slot that
     // has no model must land somewhere rather than nowhere.
-    function tabFor(slotKey, aspect) {
-      const aspects = aspectsOfSlot(slotKey);
+    function tabFor(ctx, slotKey, aspect) {
+      const aspects = aspectsOfSlot(ctx, slotKey);
       const exact = aspects.find((tab) => tab.aspect === aspect);
       return (exact || aspects[0])?.key || "";
     }
@@ -539,22 +531,22 @@ sap.ui.define(
 
     // The finished display string of a tab. Guarded: one broken source
     // may not blank the dialog, and the message says which tab broke.
-    function render(tabKey) {
+    function render(ctx, tabKey) {
       const tab = get(tabKey);
       if (!tab) return "";
       try {
-        return tab.produce() ?? "";
+        return tab.produce(ctx) ?? "";
       } catch (e) {
         return `(${tab.label} could not be rendered: ${e?.message || e})`;
       }
     }
 
     // The post-XML-templating variant, for the tabs that have one.
-    function renderTemplated(tabKey) {
+    function renderTemplated(ctx, tabKey) {
       const tab = get(tabKey);
       if (!tab?.rendered) return "";
       try {
-        return tab.rendered() || "";
+        return tab.rendered(ctx) || "";
       } catch {
         return "";
       }
@@ -562,19 +554,21 @@ sap.ui.define(
 
     // Every tab the cross-tab search looks at. A tab that is disabled
     // right now holds nothing, so searching it would only cost time.
-    function searchableTabs() {
-      return TABS.filter((tab) => tab.searchable !== false && isEnabled(tab));
+    function searchableTabs(ctx) {
+      return TABS.filter(
+        (tab) => tab.searchable !== false && isEnabled(ctx, tab),
+      );
     }
 
     // Every tab the export carries, in exportOrder. `inExport` is the
     // second gate, for content that exists but says nothing worth
     // shipping (a model diff without payload recording).
-    function exportTabs() {
+    function exportTabs(ctx) {
       return TABS.filter((tab) => {
         if (tab.exportOrder === undefined) return false;
-        if (!isEnabled(tab)) return false;
+        if (!isEnabled(ctx, tab)) return false;
         try {
-          return tab.inExport ? Boolean(tab.inExport()) : true;
+          return tab.inExport ? Boolean(tab.inExport(ctx)) : true;
         } catch {
           return false;
         }
@@ -612,14 +606,14 @@ sap.ui.define(
     //
     // Tabs.render is guarded per tab, so one throwing source can never
     // blank the whole result.
-    function search(term) {
+    function search(ctx, term) {
       const needle = String(term || "").toLowerCase();
       if (!needle) return "(enter a search term)";
       const sections = [];
       let totalHits = 0;
 
-      for (const tab of searchableTabs()) {
-        const text = render(tab.key);
+      for (const tab of searchableTabs(ctx)) {
+        const text = render(ctx, tab.key);
         if (!text) continue;
         const lines = String(text).split("\n");
         const hits = [];

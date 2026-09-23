@@ -4,8 +4,10 @@
 // view XML, post-render crash, missing SDK module). The only ways out are
 // the explicit actions - Retry when the caller offered one, Restart /
 // Refresh, Logout. Built from raw DOM so it still works when the UI5 core
-// itself is in a broken state.
-sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
+// itself is in a broken state. No dependencies at all for the same
+// reason; the component's context is handed in (core/Context.js), and what
+// this module keeps between calls lives on `ctx.errorView`.
+sap.ui.define([], () => {
   "use strict";
 
   // Errors longer than this are truncated before being shown to the user,
@@ -40,15 +42,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   const MESSAGE_CLASS = "z2ui5ErrorMessage";
   const HINT_CLASS = "z2ui5ErrorHint";
 
-  // Remember the last dialog's inputs so reopenErrorDialog can re-show the
-  // popup after a details provider hands control back (see openErrorDetails).
-  let lastDialogTitle = "";
-  let lastDialogDetails = "";
-  let lastDialogOptions = {};
-
-  // The currently open friendly error dialog, so a second fatal error (or a
-  // reopenErrorDialog call) never stacks two of them.
-  let friendlyDialog = null;
+  // `ctx.errorView` (core/Context.js): the last dialog's inputs (title,
+  // details, options), so reopenErrorDialog can re-show the popup after a
+  // details provider hands control back (see openErrorDetails), and the
+  // currently open friendly error dialog (dialog), so a second fatal error
+  // or a reopen never stacks two of them.
 
   // A numeric entity as the character it names. fromCodePoint, not
   // fromCharCode: everything above U+FFFF (an emoji in a backend message,
@@ -285,8 +283,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // standard install that is the in-app developer tools
   // (devtools/DevTools.js). With nothing registered the Details button
   // is left out entirely rather than being a no-op.
-  function hasErrorDetails() {
-    return (AppState.state.onErrorDetails || []).length > 0;
+  function hasErrorDetails(ctx) {
+    return (ctx?.state?.onErrorDetails || []).length > 0;
   }
 
   // Run the registered details providers. Each is isolated: a provider that
@@ -294,8 +292,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // still recorded in AppState.state.lastError either way. Deliberately not
   // via Lib.runCallbacks: this module imports nothing from core/Lib.js so it
   // still works when the core failed to load.
-  function openErrorDetails() {
-    for (const fn of AppState.state.onErrorDetails || []) {
+  function openErrorDetails(ctx) {
+    for (const fn of ctx?.state?.onErrorDetails || []) {
       if (!fn) continue;
       try {
         fn();
@@ -317,19 +315,20 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // with Escape - MessageBox always closes on Escape and offers no way to
   // suppress it, whereas a Dialog with an escapeHandler that rejects stays
   // open until the user picks an explicit action.
-  function showFriendlyDialog(title, details, options = {}) {
+  function showFriendlyDialog(ctx, title, details, options = {}) {
     try {
       const Dialog = sap.ui.require("sap/m/Dialog");
       const Button = sap.ui.require("sap/m/Button");
       const Text = sap.ui.require("sap/m/Text");
       if (!Dialog || !Button || !Text) return false;
-      lastDialogTitle = title;
-      lastDialogDetails = details;
-      lastDialogOptions = options;
+      const store = ctx.errorView;
+      store.title = title;
+      store.details = details;
+      store.options = options;
       // Never stack two error popups (a second fatal error or a reopen).
-      if (friendlyDialog) {
-        friendlyDialog.destroy();
-        friendlyDialog = null;
+      if (store.dialog) {
+        store.dialog.destroy();
+        store.dialog = null;
       }
       ensureDialogStyles();
       // Show only the extracted error text; a short neutral fallback covers
@@ -399,13 +398,13 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // dropped connection forced a full restart.
       const buttons = [];
       // Only offered when a details provider registered - see hasErrorDetails.
-      if (hasErrorDetails()) {
+      if (hasErrorDetails(ctx)) {
         buttons.push(
           new Button({
             text: "Details",
             press: () => {
               dialog.close();
-              openErrorDetails();
+              openErrorDetails(ctx);
             },
           }),
         );
@@ -444,15 +443,22 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         buttons,
         initialFocus: restartButton,
         afterClose: () => {
-          if (friendlyDialog === dialog) friendlyDialog = null;
+          if (store.dialog === dialog) store.dialog = null;
           dialog.destroy();
         },
       });
       withClass(dialog, DIALOG_CLASS);
-      friendlyDialog = dialog;
+      store.dialog = dialog;
       dialog.open();
       return true;
-    } catch {
+    } catch (e) {
+      // The caller falls back to the raw-DOM overlay, which shows the
+      // ORIGINAL error - the reason the UI5 dialog could not be built would
+      // otherwise vanish with it. The console is the one channel this
+      // module can count on (it imports no logger by design, and the UI5
+      // core may be what just broke); the developer tools' console capture
+      // carries the line into their Log tab.
+      window.console?.error?.("ErrorView: friendly dialog failed", e);
       return false;
     }
   }
@@ -461,31 +467,30 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // the details are an error dump of up to 50 000 characters that otherwise
   // stays referenced by this module for the life of the page. The open
   // dialog, if any, is left alone - its own afterClose releases it.
-  function reset() {
-    lastDialogTitle = "";
-    lastDialogDetails = "";
-    lastDialogOptions = {};
+  function reset(ctx) {
+    const store = ctx.errorView;
+    store.title = "";
+    store.details = "";
+    store.options = {};
   }
 
   // Re-show the friendly error dialog with the last error's content - called
   // by a details provider when the user closes it, so they land back on the
   // error popup instead of the broken app. No-op if UI5 cannot render it.
-  function reopenErrorDialog() {
-    return showFriendlyDialog(
-      lastDialogTitle,
-      lastDialogDetails,
-      lastDialogOptions,
-    );
+  function reopenErrorDialog(ctx) {
+    const store = ctx.errorView;
+    return showFriendlyDialog(ctx, store.title, store.details, store.options);
   }
 
   // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
-  function handleLogout() {
+  function handleLogout(ctx) {
     const fallback = () => {
       window.location.href = "/sap/public/bc/icf/logoff";
     };
     try {
-      if (AppState.state.oLaunchpad?.Container?.logout) {
-        AppState.state.oLaunchpad.Container.logout();
+      const launchpad = ctx?.state?.oLaunchpad;
+      if (launchpad?.Container?.logout) {
+        launchpad.Container.logout();
       } else {
         fallback();
       }
@@ -506,15 +511,15 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // right away. If the modules cannot be loaded (broken core) or still cannot
   // render, the errback / retry paths show the raw overlay so the error is
   // never swallowed.
-  function loadFriendlyDialogAsync(title, details, options) {
+  function loadFriendlyDialogAsync(ctx, title, details, options) {
     try {
       const require = sap?.ui?.require;
       if (typeof require !== "function") return false;
       require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {
-        if (!showFriendlyDialog(title, details, options)) {
-          showRawOverlay(title, details, options);
+        if (!showFriendlyDialog(ctx, title, details, options)) {
+          showRawOverlay(ctx, title, details, options);
         }
-      }, () => showRawOverlay(title, details, options));
+      }, () => showRawOverlay(ctx, title, details, options));
       return true;
     } catch {
       return false;
@@ -526,7 +531,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // the overlay and re-runs the failed request (offered by Server.readHttp
   // for network/timeout failures, where the request may never have reached
   // the server and app state is still intact).
-  function show(response, title, options = {}) {
+  function show(ctx, response, title, options = {}) {
     // V8 stacks start with "Error: <message>", but Firefox/SpiderMonkey
     // stacks are frame lines only - prepend the message when the stack does
     // not already carry it, so the overlay never shows a stack without the
@@ -547,7 +552,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
     // Record the fatal error so the Developer Tools Error tab can re-show it
     // (title, text and the same Retry action) after the overlay is gone.
-    AppState.state.lastError = {
+    ctx.state.lastError = {
       title: title || DEFAULT_TITLE,
       text: errorMessage,
       onRetry: typeof options.onRetry === "function" ? options.onRetry : null,
@@ -555,20 +560,20 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
     // Prefer a friendly UI5 dialog (the error text + Details / Restart, plus
     // Retry when the caller offered one).
-    if (showFriendlyDialog(title, errorMessage, options)) return;
+    if (showFriendlyDialog(ctx, title, errorMessage, options)) return;
 
     // Its modules were not loaded yet: load them asynchronously and retry, so
     // the error still lands in the friendly popup first (see
     // loadFriendlyDialogAsync). Only when async loading is unavailable do we
     // fall through to the raw-DOM overlay immediately.
-    if (loadFriendlyDialogAsync(title, errorMessage, options)) return;
+    if (loadFriendlyDialogAsync(ctx, title, errorMessage, options)) return;
 
-    showRawOverlay(title, errorMessage, options);
+    showRawOverlay(ctx, title, errorMessage, options);
   }
 
   // The raw-DOM fatal overlay - the last-resort error display, built without
   // UI5 so it still works when the core cannot render the friendly dialog.
-  function showRawOverlay(title, errorMessage, options = {}) {
+  function showRawOverlay(ctx, title, errorMessage, options = {}) {
     const errorContainer = createContainer();
 
     // Announce the overlay to assistive technology: without a dialog role
@@ -612,7 +617,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       });
     }
     addAction("Refresh", () => window.location.reload());
-    addAction("Logout", () => handleLogout());
+    addAction("Logout", () => handleLogout(ctx));
 
     headerDiv.appendChild(actionsDiv);
     errorContainer.appendChild(headerDiv);

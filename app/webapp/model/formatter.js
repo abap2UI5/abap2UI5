@@ -120,14 +120,18 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
       if (isNoAbapDate(d)) return null;
       return new Date(...parseYmd(d));
     },
-    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.
-    DateAbapDateTimeToDateObject(d, t = "000000") {
+    // t is an ABAP time string "HHMMSS"; an omitted, null or empty one
+    // is midnight. A default parameter covers undefined only, and a bound
+    // time field that is null in the model used to reach t.slice and throw
+    // inside the binding.
+    DateAbapDateTimeToDateObject(d, t) {
       if (isNoAbapDate(d)) return null;
+      const time = t ? String(t) : "000000";
       return new Date(
         ...parseYmd(d),
-        Number(t.slice(0, 2)),
-        Number(t.slice(2, 4)),
-        Number(t.slice(4, 6)),
+        Number(time.slice(0, 2)),
+        Number(time.slice(2, 4)),
+        Number(time.slice(4, 6)),
       );
     },
 

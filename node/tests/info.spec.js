@@ -19,29 +19,34 @@ const DEVICE_DATA = {
   browser: { name: "cr" },
 };
 
-function load({ deviceData = DEVICE_DATA, oConfig } = {}) {
-  const { Lib, state: libState } = loadLib();
+// `context: false` loads the control as one in no component: Context.of
+// answers null, so there is no config to read the UI5 info from.
+function load({ deviceData = DEVICE_DATA, oConfig, context = true } = {}) {
+  // the control reads S_UI5 off the config of its component's context - the
+  // one context the spec's Lib runs in
+  const {
+    Lib,
+    state: libState,
+    Context,
+  } = loadLib({ state: { oConfig: oConfig || {} } });
 
-  // the device model reaches the control via MAIN-view model propagation;
-  // a spec can start without it (first render of a freshly built view)
+  // the device model reaches the control by model propagation (every slot
+  // view carries it, ViewSlots.attachSharedModels), so the control asks
+  // its OWN getModel; a spec can start without it (first render of a
+  // freshly built view)
   let model = deviceData ? { getData: () => deviceData } : undefined;
 
   const { module: InfoDef } = loadModule("cc/Info.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/ViewSlots": {
-        getView: (key) =>
-          key === "MAIN"
-            ? { getModel: (name) => (name === "device" ? model : undefined) }
-            : undefined,
-      },
-      "z2ui5/core/AppState": { state: { oConfig: oConfig || {} } },
+      "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },
     },
   });
 
   const instance = () => {
     const inst = Object.create(InfoDef);
+    inst.getModel = (name) => (name === "device" ? model : undefined);
     inst._set = {};
     inst.setProperty = (prop, val, suppress) => {
       inst._set[prop] = { val, suppress };
@@ -131,6 +136,30 @@ test("a missing oConfig reports empty UI5 fields, not 'undefined'", () => {
   expect(inst._set.ui5_version.val).toBe("");
   expect(inst._set.ui5_theme.val).toBe("");
   expect(inst._set.ui5_gav.val).toBe("");
+});
+
+// A control in no component has the device model or not like any other
+// (propagation), but no component config to take the UI5 info from: the
+// device fields still go out and `finished` still fires, the UI5 ones stay
+// empty, and the gap is logged rather than thrown (AGENTS.md rule 10).
+test("in no component: device fields go out, UI5 fields stay empty, logged", () => {
+  const { instance, errors } = load({
+    oConfig: { S_UI5: { VERSION: "1.144.0", THEME: "sap_horizon", GAV: "g" } },
+    context: false,
+  });
+  const inst = instance();
+  inst.init();
+
+  expect(() => inst.onAfterRendering()).not.toThrow();
+
+  expect(inst.fired).toBe(1);
+  expect(inst._set.device_os.val).toBe("win");
+  expect(inst._set.ui5_version.val).toBe("");
+  expect(inst._set.ui5_theme.val).toBe("");
+  expect(inst._set.ui5_gav.val).toBe("");
+  expect(
+    errors().some((e) => e.message.includes("no component context")),
+  ).toBe(true);
 });
 
 test("exit() disarms the pending pass", () => {

@@ -32,19 +32,21 @@
 // travels under the wire value SET_NAV_ROUTING - the name the hash_* family
 // was renamed from, kept so no app's queued action had to move).
 sap.ui.define(
-  ["sap/ui/core/routing/HashChanger", "z2ui5/core/AppState", "z2ui5/core/Lib"],
-  (HashChanger, AppState, Lib) => {
+  ["sap/ui/core/routing/HashChanger", "z2ui5/core/Lib"],
+  (HashChanger, Lib) => {
     "use strict";
 
     const APP_ROUTE_PREFIX = "/app/";
     // Separates the FLP shell hash from the app (inner) hash.
     const SHELL_SEPARATOR = "&/";
 
-    // Injected by Component.js - runs the roundtrip that restores the app a
-    // matched route points at. Kept as a callback so the router does not
-    // depend on Server (Component wires both and owns their lifecycle).
-    let _fnNavigate = null;
-    let _boundHashChanged = null;
+    // Per component (`ctx.router`, core/Context.js): `navigate`, injected by
+    // Component.js, runs the roundtrip that restores the app a matched route
+    // points at - a callback so the router does not depend on Server
+    // (Component wires both and owns their lifecycle); `hashListener` is
+    // this context's hashChanged listener on the page's one HashChanger.
+    // The URL itself stays page-wide: every routed instance reacts to a
+    // hash change, which is why an embedded instance leaves routing off.
 
     function hashChanger() {
       return HashChanger.getInstance();
@@ -177,8 +179,8 @@ sap.ui.define(
     // History.getPreviousHash - while a REPLACE writes in place and leaves
     // the history depth alone. What differs between the three is only WHAT
     // is written, never what a push or a replace means.
-    function writeHash(sHash, bPush) {
-      if (bPush) AppState.state.hashPushCount += 1;
+    function writeHash(ctx, sHash, bPush) {
+      if (bPush) ctx.state.hashPushCount += 1;
       navTo(sHash, !bPush);
     }
 
@@ -187,10 +189,10 @@ sap.ui.define(
     // RAW hash so the FLP shell hash survives - appending it to the app
     // hash alone would rewrite "#SO-action&/x" to "#x" and strand the
     // launchpad.
-    function writeLegacyUrl(sSuffix, bPush) {
+    function writeLegacyUrl(ctx, sSuffix, bPush) {
       const url = `${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}`;
       if (bPush) {
-        AppState.state.hashPushCount += 1;
+        ctx.state.hashPushCount += 1;
         history.pushState(null, "", url);
       } else {
         history.replaceState(null, "", url);
@@ -206,8 +208,8 @@ sap.ui.define(
     // lands on that route via a REPLACE - deliberately NOT adopted, so the
     // change dispatches the listener and the backend renders the fallback -
     // and without one it behaves like the plain browser button.
-    function navBack(sFallback) {
-      if (!sFallback || AppState.state.hashPushCount > 0) {
+    function navBack(ctx, sFallback) {
+      if (!sFallback || ctx.state.hashPushCount > 0) {
         window.history.back();
         return;
       }
@@ -223,14 +225,14 @@ sap.ui.define(
     // a UI5 route's patternMatched handler: it decides whether the new hash
     // names a DIFFERENT app state than the one on screen and, if so, asks the
     // backend to restore it.
-    function onHashChanged(sNewHash) {
-      const state = AppState.state;
+    function onHashChanged(ctx, sNewHash) {
+      const state = ctx.state;
 
       // Routing is opt-in per app (cs_event-hash_routing); until one
       // enabled it, the hash belongs entirely to the app (cs_event-hash_set,
       // and - when the app registered one - the HASH_LISTENER event).
       if (!state.navRouting) {
-        dispatchAppHashChange(sNewHash);
+        dispatchAppHashChange(ctx, sNewHash);
         return;
       }
 
@@ -253,7 +255,7 @@ sap.ui.define(
       // browser sits at a non-top history position - rewriting there would
       // drop the forward entries and break the Forward button).
       state.navFromHash = true;
-      if (_fnNavigate) _fnNavigate();
+      if (ctx.router.navigate) ctx.router.navigate();
     }
 
     // ------------------------------------------------------------------
@@ -274,9 +276,9 @@ sap.ui.define(
     // (a response naming another app), AppState.reset( ) on the teardown.
     // Applies with routing OFF only - a routed app's hash belongs to the
     // router, not to the app.
-    function applyHashEvent(mOptions) {
+    function applyHashEvent(ctx, mOptions) {
       if (!mOptions.setHashEvent) return;
-      const state = AppState.state;
+      const state = ctx.state;
       const sEvent = String(mOptions.setHashEvent).trim();
       state.hashEvent = sEvent || null;
       // adopt the hash the browser stands on as the app's known value, so
@@ -290,8 +292,8 @@ sap.ui.define(
     // so a rebuilt view needs no re-registration to stay dispatchable). The
     // new hash needs no argument - S_FRONT.HASH rides on every request, so
     // the backend reads it from s_config-hash.
-    function dispatchAppHashChange(sNewHash) {
-      const state = AppState.state;
+    function dispatchAppHashChange(ctx, sNewHash) {
+      const state = ctx.state;
       if (!state.hashEvent) return;
       const appHash = appHashNormalized(sNewHash);
       if (appHash === state.appHash) return;
@@ -315,12 +317,12 @@ sap.ui.define(
 
     // The write side of the parking above: called once a roundtrip has
     // landed (View1._processAfterRendering, after isBusy went false).
-    function dispatchPendingAppHash() {
-      const state = AppState.state;
+    function dispatchPendingAppHash(ctx) {
+      const state = ctx.state;
       const pending = state.pendingAppHash;
       if (pending === null || pending === undefined) return;
       state.pendingAppHash = null;
-      dispatchAppHashChange(pending);
+      dispatchAppHashChange(ctx, pending);
     }
 
     // ------------------------------------------------------------------
@@ -339,8 +341,8 @@ sap.ui.define(
     // replaceHash updates it in place and leaves the history depth alone.
     // KEEP mode only - a FRESH route carries no draft and always restarts
     // the app anyway.
-    function repointCallerEntry(mOptions, draftForRoute) {
-      const state = AppState.state;
+    function repointCallerEntry(ctx, mOptions, draftForRoute) {
+      const state = ctx.state;
       const prevApp = mOptions.navAppCallPrevApp;
       const prevDraft = mOptions.navAppCallPrevId;
       if (!draftForRoute || !prevApp || !prevDraft) return;
@@ -366,18 +368,18 @@ sap.ui.define(
     // mode follows the app the user is actually looking at - the way UI5
     // routing is configured once in the manifest rather than re-asserted on
     // every navigation.
-    function applyMode(mOptions) {
+    function applyMode(ctx, mOptions) {
       if (!mOptions.setNavRouting) return;
       const mode = String(mOptions.setNavRouting).toUpperCase();
       const on = mode === "KEEP" || mode === "FRESH";
-      AppState.state.navRouting = on;
-      AppState.state.navMode = on ? mode : null;
+      ctx.state.navRouting = on;
+      ctx.state.navMode = on ? mode : null;
     }
 
     // Adopt the rendered app as the current route and write it to the hash.
     // Only called while routing is on and the response named an app.
-    function updateAppRoute(mOptions, ID, app) {
-      const state = AppState.state;
+    function updateAppRoute(ctx, mOptions, ID, app) {
+      const state = ctx.state;
 
       // In FRESH mode the route carries the class only, so every history
       // entry (Back/Forward/reload/bookmark) starts the app fresh; in KEEP
@@ -413,7 +415,7 @@ sap.ui.define(
       if (mOptions.checkNavAppCall) {
         // repoint the caller's entry first - it borrows the echo guard, so
         // restore it to this app before pushing the route
-        repointCallerEntry(mOptions, draftForRoute);
+        repointCallerEntry(ctx, mOptions, draftForRoute);
         state.currentApp = app;
         state.currentDraftId = draftForRoute;
         navTo(route);
@@ -425,13 +427,13 @@ sap.ui.define(
     // Keep the URL in sync with what was just rendered - the ROUTER/sync
     // system action, run once per roundtrip. The options object is
     // self-contained: `id` carries the response's draft id.
-    function sync(mOptions) {
+    function sync(ctx, mOptions) {
       const ID = mOptions.id;
       try {
-        applyMode(mOptions);
-        applyHashEvent(mOptions);
+        applyMode(ctx, mOptions);
+        applyHashEvent(ctx, mOptions);
 
-        const state = AppState.state;
+        const state = ctx.state;
         // The hash the app asked to have written, and in which flavour:
         // set_push_state adds a history entry, hash_replace writes in
         // place. Every branch below writes THIS value - only where it goes
@@ -441,7 +443,7 @@ sap.ui.define(
 
         if (state.navRouting) {
           const app = state.oResponse?.APP;
-          if (app) updateAppRoute(mOptions, ID, app);
+          if (app) updateAppRoute(ctx, mOptions, ID, app);
           // Routing owns the app-state hash; skip the legacy handling below.
           if (!sAppWrite) return;
           // In KEEP mode the suffix is pushed as a real ROUTE through the
@@ -459,6 +461,7 @@ sap.ui.define(
           // route restarts the app either way).
           if (state.currentDraftId) {
             writeHash(
+              ctx,
               patternFor(state.currentApp, state.currentDraftId) + sAppWrite,
               bPush,
             );
@@ -476,11 +479,11 @@ sap.ui.define(
             // cache). Adopt the value first so the write's own echo dies in
             // dispatchAppHashChange.
             state.appHash = appHashNormalized(sAppWrite);
-            writeHash(sAppWrite, bPush);
+            writeHash(ctx, sAppWrite, bPush);
             return;
           }
           // The app writes its own hash suffix, the legacy way.
-          writeLegacyUrl(sAppWrite, bPush);
+          writeLegacyUrl(ctx, sAppWrite, bPush);
           // The written hash IS the desired URL - stop here. The cleanup
           // below is a no-op while hasher's cached hash is empty (legacy
           // mode), but with routing on the cache holds the app route, so
@@ -516,14 +519,15 @@ sap.ui.define(
     // Lifecycle
     // ------------------------------------------------------------------
 
-    function init(fnNavigate) {
-      _fnNavigate = fnNavigate;
+    function init(ctx, fnNavigate) {
+      ctx.router.navigate = fnNavigate;
       // Listening to the HashChanger's hashChanged event is what makes the
       // native browser Back/Forward buttons - and the FLP shell's back
       // button, which drives the same history - navigate between apps.
-      _boundHashChanged = (oEvent) =>
-        onHashChanged(oEvent.getParameter("newHash"));
-      hashChanger().attachEvent("hashChanged", _boundHashChanged);
+      const listener = (oEvent) =>
+        onHashChanged(ctx, oEvent.getParameter("newHash"));
+      ctx.router.hashListener = listener;
+      hashChanger().attachEvent("hashChanged", listener);
 
       // The stopped router removed with the manifest routing section used to
       // initialize the HashChanger (and its underlying hasher singleton) as a
@@ -536,12 +540,13 @@ sap.ui.define(
       hashChanger().init();
     }
 
-    function exit() {
-      if (_boundHashChanged) {
-        hashChanger().detachEvent("hashChanged", _boundHashChanged);
-        _boundHashChanged = null;
+    function exit(ctx) {
+      const listener = ctx.router.hashListener;
+      if (listener) {
+        hashChanger().detachEvent("hashChanged", listener);
+        ctx.router.hashListener = null;
       }
-      _fnNavigate = null;
+      ctx.router.navigate = null;
     }
 
     return {

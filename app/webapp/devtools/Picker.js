@@ -9,6 +9,13 @@
 // Outside the framework like the rest of devtools/: it works purely
 // against the public UI5 element API and the view-slot registry, and
 // installs its own document listener only while a pick is running.
+//
+// The PICK is page-wide by nature - one cursor, one overlay, one set of
+// capture listeners on document - so at most one runs at a time, whichever
+// component context started it. What the pick READS (which slot of which
+// context a control sits in, that slot's XML) and what it leaves behind
+// (the report the Picked Control tab shows, `ctx.devtools.pickReport`)
+// belong to the context that asked, so every function takes it first.
 sap.ui.define(
   [
     "sap/ui/core/Element",
@@ -16,12 +23,14 @@ sap.ui.define(
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Format",
+    "z2ui5/devtools/SlotXml",
   ],
-  (Element, Lib, Env, ViewSlots, Format) => {
+  (Element, Lib, Env, ViewSlots, Format, SlotXml) => {
     "use strict";
 
-    // the framework event wire, shared with the inspectors (see Format)
-    const { FRAMEWORK_CALL } = Format;
+    // the framework event wire and the value description, shared with the
+    // inspectors (see Format)
+    const { FRAMEWORK_CALL, describeValue } = Format;
 
     // Preview length of a bound value in the report.
     const MAX_VALUE_CHARS = 80;
@@ -30,6 +39,9 @@ sap.ui.define(
     const OVERLAY_ID = "z2ui5DevToolsPickerOverlay";
 
     let active = false;
+    // the context whose pick is running - stop(ctx) leaves another
+    // context's pick alone
+    let activeCtx = null;
     let onDone = null;
     let boundMove = null;
     let boundClick = null;
@@ -38,15 +50,6 @@ sap.ui.define(
     // a highlight is scheduled for - see boundMove
     let lastNode = null;
     let frameId = 0;
-
-    // The report of the last successful pick, so the Picked Control tab
-    // can be rendered from the registry like every other tab.
-    let lastPickReport = "";
-
-    function truncate(value, max) {
-      const text = String(value);
-      return text.length <= max ? text : `${text.slice(0, max)}...`;
-    }
 
     // Resolve the UI5 control that owns a DOM node. Element.closestTo
     // arrived in 1.106; on older releases walk up to the nearest node
@@ -141,28 +144,17 @@ sap.ui.define(
       return out;
     }
 
-    // The XML a view slot was filled with - the two readers Inspect.slotXml
-    // documents, in the same order.
-    function slotXml(slotKey) {
-      if (!slotKey) return "";
-      return (
-        ViewSlots.getView?.(slotKey)?.mProperties?.viewContent ||
-        ViewSlots.getViewXml?.(slotKey) ||
-        ""
-      );
-    }
-
     // The attributes of the element that declares this control in its
     // slot's XML, found by the control's LOCAL id (the view prefixes the
     // XML id with its own: "mainView--btn1"). Empty for a control the XML
     // gives no id, and for one outside a slot.
     const regExpEscape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    function xmlAttributesOf(control, slotKey) {
+    function xmlAttributesOf(ctx, control, slotKey) {
       const localId = String(control.getId?.() || "")
         .split("--")
         .pop();
-      const xml = slotXml(slotKey);
+      const xml = SlotXml.slotXml(ctx, slotKey);
       if (!localId || !xml) return "";
       // a UI5 id may carry `.` (btn.1) - escaped, so it does not match btn-1
       const id = regExpEscape(localId);
@@ -181,9 +173,9 @@ sap.ui.define(
     // handler's source only answers for a handler attached in code. The
     // name is read where it IS written: off the element's attribute in the
     // slot XML the view was built from, `press=".eB(['SAVE'])"`.
-    function collectEvents(control, slotKey) {
+    function collectEvents(ctx, control, slotKey) {
       const registry = control.mEventRegistry || {};
-      const attributes = xmlAttributesOf(control, slotKey);
+      const attributes = xmlAttributesOf(ctx, control, slotKey);
       const out = [];
       for (const [name, handlers] of Object.entries(registry)) {
         for (const handler of handlers || []) {
@@ -200,26 +192,27 @@ sap.ui.define(
       return out.sort();
     }
 
+    // The value behind a binding path, described by shape: a table by its
+    // rows, a structure by its fields, a scalar as a preview. The absence
+    // labels name the binding, not the value - what the reader asked was
+    // "what does this path resolve to".
     function renderValue(value) {
-      if (value === undefined) return "(no value at this path)";
-      if (value === null) return "null";
-      if (Array.isArray(value)) return `table, ${value.length} row(s)`;
-      if (typeof value === "object") {
-        return `structure, ${Object.keys(value).length} field(s)`;
-      }
-      if (value === "") return "(empty string)";
-      return truncate(value, MAX_VALUE_CHARS);
+      return describeValue(value, {
+        max: MAX_VALUE_CHARS,
+        absent: "(no value at this path)",
+        empty: "(empty string)",
+      });
     }
 
     // Build the report for a picked control. Exported so it can be unit
     // tested without a DOM pick.
-    function describe(control) {
+    function describe(ctx, control) {
       if (!control) return "(no control found at that position)";
       const out = ["abap2UI5 Developer Tools - Picked control"];
       out.push("");
       out.push(`  Type        ${control.getMetadata?.().getName?.() || "?"}`);
       out.push(`  Id          ${control.getId?.() || "?"}`);
-      const slotKey = ViewSlots.containingSlotKey?.(control);
+      const slotKey = ViewSlots.containingSlotKey?.(ctx, control);
       out.push(`  View slot   ${slotKey || "(not inside a view slot)"}`);
 
       const bindings = collectBindings(control);
@@ -235,7 +228,7 @@ sap.ui.define(
         out.push(`      value  ${renderValue(binding.value)}`);
       }
 
-      const events = collectEvents(control, slotKey);
+      const events = collectEvents(ctx, control, slotKey);
       out.push("");
       out.push("Events");
       out.push("------");
@@ -250,9 +243,14 @@ sap.ui.define(
       return out.join("\n");
     }
 
-    function stop() {
+    // End the running pick. With a context, only when the pick is THAT
+    // context's (DevTools.exit of one component must not cut short a pick
+    // the other one is in the middle of); without one, whatever runs.
+    function stop(ctx) {
       if (!active) return;
+      if (ctx && activeCtx !== ctx) return;
       active = false;
+      activeCtx = null;
       document.removeEventListener("mousemove", boundMove, true);
       document.removeEventListener("click", boundClick, true);
       document.removeEventListener("keydown", boundKey, true);
@@ -275,9 +273,10 @@ sap.ui.define(
     // user clicks, or null when the pick was cancelled with Escape. The
     // listeners run in the CAPTURE phase and swallow the click, so picking
     // a button never also presses it.
-    function start(callback) {
+    function start(ctx, callback) {
       if (active) return;
       active = true;
+      activeCtx = ctx;
       onDone = callback;
 
       // mousemove fires at pointer rate, and each highlight is a control
@@ -299,16 +298,16 @@ sap.ui.define(
         const control = controlFromDom(event.target);
         let report;
         try {
-          report = describe(control);
+          report = describe(ctx, control);
         } catch (e) {
           Lib.logError("DevTools Picker: describe failed", e);
           report = "(could not inspect that control)";
         }
-        // Kept here rather than on the dialog: the Picked Control tab is
-        // rendered from the tab registry like every other tab, and the
-        // registry must be able to reach a tab's content without the
-        // dialog handing it over.
-        lastPickReport = report;
+        // Kept on the context rather than on the dialog: the Picked
+        // Control tab is rendered from the tab registry like every other
+        // tab, and the registry must be able to reach a tab's content
+        // without the dialog handing it over.
+        if (ctx?.devtools) ctx.devtools.pickReport = report;
         const done = onDone;
         stop();
         if (done) done(report);
@@ -332,10 +331,10 @@ sap.ui.define(
       stop,
       describe,
       isActive: () => active,
-      // The report of the most recent successful pick, "" before the
-      // first one. A cancelled pick (Escape) leaves the previous report
-      // standing - the user did not ask to throw it away.
-      lastReport: () => lastPickReport,
+      // The report of the most recent successful pick of that context, ""
+      // before the first one. A cancelled pick (Escape) leaves the previous
+      // report standing - the user did not ask to throw it away.
+      lastReport: (ctx) => ctx?.devtools?.pickReport || "",
       _internals: { collectBindings, collectEvents, renderValue },
     };
   },

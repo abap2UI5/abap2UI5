@@ -18,18 +18,26 @@
 // The tab KEYS underneath are unchanged, because they are a
 // compatibility surface: "?z2ui5-devtools=HISTORY" and the remembered
 // last tab in sessionStorage both store them.
+//
+// One dialog per component context (core/Context.js): DevTools.get( )
+// creates the instance and puts the context on it as `ctx` before anything
+// else touches it, and every view below shows THAT context's state - the
+// dialog hands `this.ctx` to the tab registry, the inspectors, the
+// recorder, the picker, the live editor and the report, none of which
+// reach a singleton. What is not per context is named where it is read:
+// Lib.errors (the page-wide error ring) and the console capture.
 sap.ui.define(
   [
     "sap/ui/core/Control",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
     "z2ui5/core/Lib",
-    "z2ui5/core/AppState",
     "z2ui5/core/ErrorView",
     "z2ui5/devtools/AbapSource",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/Inspect",
     "z2ui5/devtools/LiveEdit",
+    "z2ui5/devtools/Persist",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/Report",
@@ -40,12 +48,12 @@ sap.ui.define(
     Fragment,
     JSONModel,
     Lib,
-    AppState,
     ErrorView,
     AbapSource,
     Console,
     Inspect,
     LiveEdit,
+    Persist,
     Picker,
     Recorder,
     Report,
@@ -53,10 +61,10 @@ sap.ui.define(
   ) => {
     "use strict";
 
-    // Fragment id under which the developer tools dialog's controls are
-    // registered; used to resolve controls by their id instead of by
-    // content position.
-    const FRAGMENT_ID = "z2ui5DeveloperTools";
+    // Suffix of the fragment id under which the dialog's controls are
+    // registered (see fragmentId below); used to resolve controls by their
+    // id instead of by content position.
+    const FRAGMENT_SUFFIX = "tools";
 
     // The sub-view the tools were last on. Reopening where you were
     // working is what makes them usable across a debugging session -
@@ -73,29 +81,21 @@ sap.ui.define(
     const STATUS_MS = 6000;
 
     function readLastTab() {
-      try {
-        return window.sessionStorage?.getItem(LAST_TAB_KEY) || "";
-      } catch {
-        return "";
-      }
+      return Persist.read(LAST_TAB_KEY);
     }
 
     function writeLastTab(tabKey) {
-      try {
-        window.sessionStorage?.setItem(LAST_TAB_KEY, tabKey);
-      } catch {
-        // storage unavailable - the memory is then per dialog instance
-      }
+      Persist.write(LAST_TAB_KEY, tabKey);
     }
 
     // The sub-view to open on. A remembered or requested key that no
     // longer resolves - stored by an older version, a typo in the URL
     // parameter, or a popup that has since closed - falls back to its
     // group's first available view, and only then to the default.
-    function resolveTab(tabKey) {
-      if (Tabs.isEnabled(Tabs.get(tabKey))) return tabKey;
+    function resolveTab(ctx, tabKey) {
+      if (Tabs.isEnabled(ctx, Tabs.get(tabKey))) return tabKey;
       if (Tabs.isKnown(tabKey)) {
-        const sibling = Tabs.firstTabOf(Tabs.groupOf(tabKey));
+        const sibling = Tabs.firstTabOf(ctx, Tabs.groupOf(tabKey));
         if (sibling) return sibling;
       }
       return DEFAULT_TAB;
@@ -121,6 +121,16 @@ sap.ui.define(
     }
 
     const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {
+      // The fragment id the dialog's controls are registered under,
+      // derived from THIS instance's id: a fixed page-global id would
+      // register a second instance's editor under the same
+      // "...--developerToolsEditor" and fail its load. Stable for the
+      // instance's life, so the fragment is loaded once and reused (rule
+      // 17 of AGENTS.md) - see close( ).
+      fragmentId() {
+        return `${this.getId()}--${FRAGMENT_SUFFIX}`;
+      },
+
       // ----------------------------------------------------------------
       // Navigation
       // ----------------------------------------------------------------
@@ -129,7 +139,8 @@ sap.ui.define(
       // point routes through here: the group tabs, the two selectors,
       // show(initialTab), the pick that returns, the payload toggle.
       renderTab(tabKey, oModel) {
-        const key = resolveTab(tabKey);
+        const ctx = this.ctx;
+        const key = resolveTab(ctx, tabKey);
         const tab = Tabs.get(key);
         const data = oModel.getData();
 
@@ -140,7 +151,7 @@ sap.ui.define(
         // The two selectors of View & Data. The slot list is rebuilt on
         // every selection because a popup opens and closes underneath
         // the tools while they are open.
-        const slots = Tabs.enabledSlots().map((slot) => ({
+        const slots = Tabs.enabledSlots(ctx).map((slot) => ({
           key: slot.key,
           text: slot.label,
         }));
@@ -159,11 +170,11 @@ sap.ui.define(
         // because it belongs to the group rather than to a slot.
         let views;
         if (tab.group === "VIEWDATA") {
-          views = Tabs.aspectsOfSlot(data.selectedSlot).concat(
+          views = Tabs.aspectsOfSlot(ctx, data.selectedSlot).concat(
             Tabs.get("PICK"),
           );
         } else {
-          views = Tabs.enabledTabs(tab.group);
+          views = Tabs.enabledTabs(ctx, tab.group);
         }
         data.views = views.map((entry) => ({
           key: entry.key,
@@ -179,8 +190,7 @@ sap.ui.define(
         data.isErrorView = key === "ERROR";
         data.isSourceView = key === "SOURCE";
         data.hasRetry =
-          key === "ERROR" &&
-          typeof AppState.state.lastError?.onRetry === "function";
+          key === "ERROR" && typeof ctx.state.lastError?.onRetry === "function";
         data.recordPayloads = Recorder.isRecordingPayloads();
         data.openOnError = Console.isAlertOnError();
         // Refreshed per selection, not only on open: a timer or a late
@@ -190,7 +200,7 @@ sap.ui.define(
         if (tab.kind === "search") {
           // The result is rendered from the term in the dialog model; a
           // fresh open shows the "(enter a search term)" prompt.
-          this.displayEditor(oModel, Tabs.search(data.searchTerm), "text");
+          this.displayEditor(oModel, Tabs.search(ctx, data.searchTerm), "text");
           // Set after displayEditor, which derives the templating toggle
           // from the content - a hit inside a templated view XML carries
           // the "xmlns:template" that would otherwise offer the toggle
@@ -218,17 +228,20 @@ sap.ui.define(
         // that carries "xmlns:template" - which nearly no app does. Paying
         // for it on every single sub-view selection bought nothing; it is
         // computed on the first press instead (see onTemplatingPress).
-        this.displayEditor(oModel, Tabs.render(key), tab.kind);
+        this.displayEditor(oModel, Tabs.render(ctx, key), tab.kind);
         // A view tab is editable: its XML can be rendered back into the
         // slot without a roundtrip (devtools/LiveEdit.js).
-        data.canApply = LiveEdit.canApply(key);
+        data.canApply = LiveEdit.canApply(ctx, key);
         oModel.refresh();
       },
 
       onGroupSelect(oEvent) {
         const oModel = oEvent.getSource().getModel();
         const groupKey = oEvent.getSource().getSelectedKey();
-        this.renderTab(Tabs.firstTabOf(groupKey) || DEFAULT_TAB, oModel);
+        this.renderTab(
+          Tabs.firstTabOf(this.ctx, groupKey) || DEFAULT_TAB,
+          oModel,
+        );
       },
 
       onViewSelect(oEvent) {
@@ -244,7 +257,10 @@ sap.ui.define(
         const oSource = oEvent.getSource();
         const oModel = oSource.getModel();
         const aspect = Tabs.get(oModel.getData().selectedTab)?.aspect;
-        this.renderTab(Tabs.tabFor(oSource.getSelectedKey(), aspect), oModel);
+        this.renderTab(
+          Tabs.tabFor(this.ctx, oSource.getSelectedKey(), aspect),
+          oModel,
+        );
       },
 
       // ----------------------------------------------------------------
@@ -296,7 +312,7 @@ sap.ui.define(
         // next press - see displayEditor for why not on every selection.
         if (oSource.getPressed()) {
           if (!data.xContent) {
-            data.xContent = Tabs.renderTemplated(data.selectedTab);
+            data.xContent = Tabs.renderTemplated(this.ctx, data.selectedTab);
           }
           data.value = data.xContent;
         } else {
@@ -307,18 +323,18 @@ sap.ui.define(
 
       // Show the ABAP source of the running app inside an iframe.
       showAbapSource(oModel) {
-        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
+        const contentControl = Fragment.byId(this.fragmentId(), "sourceHtml");
         // setContent (not a bare setProperty) so an already rendered
         // iframe is replaced in the live DOM; a plain property set never
         // reached the DOM once the control had rendered, leaving a stale
         // class on screen after navigating to another app.
-        contentControl?.setContent(AbapSource.iframeHtml());
+        contentControl?.setContent(AbapSource.iframeHtml(this.ctx));
 
         // Warm the source cache in the background so the ADT button can
         // deep-link at the current event's line. Opening this view is the
         // moment a developer is heading for the source, and the fetch must
         // not block the switch - failures are swallowed by fetchSource.
-        AbapSource.fetchSource();
+        AbapSource.fetchSource(this.ctx);
 
         if (!oModel) return;
         const data = oModel.getData();
@@ -328,7 +344,7 @@ sap.ui.define(
       },
 
       onOpenAbapInAdt() {
-        AbapSource.openInAdt();
+        AbapSource.openInAdt(this.ctx);
       },
 
       // ----------------------------------------------------------------
@@ -356,17 +372,17 @@ sap.ui.define(
       // state as a GitHub issue body, on the clipboard, in one press.
       async onReportBug(oEvent) {
         const oModel = oEvent.getSource().getModel();
-        const source = await AbapSource.fetchSource();
+        const source = await AbapSource.fetchSource(this.ctx);
         if (Lib.isDestroyed(this)) return;
-        this.showStatus(oModel, Report.copyMarkdown(source));
+        this.showStatus(oModel, Report.copyMarkdown(this.ctx, source));
       },
 
       async onExport() {
         // the await is a network fetch to the ADT endpoint, so the dialog can
         // be gone by the time it resolves - same guard its two siblings carry
-        const source = await AbapSource.fetchSource();
+        const source = await AbapSource.fetchSource(this.ctx);
         if (Lib.isDestroyed(this)) return;
-        Report.openDialog(AbapSource.appName(), source);
+        Report.openDialog(this.ctx, AbapSource.appName(this.ctx), source);
       },
 
       // Put what is shown on the clipboard. A CodeEditor has no select-all
@@ -385,7 +401,7 @@ sap.ui.define(
           // text the way Report a Bug and Export take it; the fetch is
           // cached and the view warmed it on arrival, so this is normally
           // already in hand.
-          text = await AbapSource.fetchSource();
+          text = await AbapSource.fetchSource(this.ctx);
           if (Lib.isDestroyed(oSource)) return;
         }
         Lib.copyToClipboard(text);
@@ -400,7 +416,7 @@ sap.ui.define(
       // captured request, hard-reload, or log out (reusing ErrorView's own
       // logout so the launchpad/fallback logic stays in one place).
       onErrorRetry() {
-        const onRetry = AppState.state.lastError?.onRetry;
+        const onRetry = this.ctx.state.lastError?.onRetry;
         // Retrying re-runs the request, so don't bounce back to the error
         // popup.
         this.reopenErrorOnClose = false;
@@ -411,7 +427,7 @@ sap.ui.define(
         window.location.reload();
       },
       onErrorLogout() {
-        ErrorView.handleLogout();
+        ErrorView.handleLogout(this.ctx);
       },
 
       // Tier 2 of the recorder: keeping request/response bodies is the
@@ -422,7 +438,7 @@ sap.ui.define(
       // history report the flag's state.
       onToggleRecordPayloads(oEvent) {
         const oSource = oEvent.getSource();
-        Recorder.setRecordingPayloads(oSource.getPressed());
+        Recorder.setRecordingPayloads(this.ctx, oSource.getPressed());
         const oModel = oSource.getModel();
         this.renderTab(oModel.getData().selectedTab, oModel);
       },
@@ -451,7 +467,7 @@ sap.ui.define(
         const previousTab = this.oDialog?.getModel()?.getData()?.selectedTab;
         this.reopenErrorOnClose = false;
         this.close();
-        Picker.start((report) => {
+        Picker.start(this.ctx, (report) => {
           if (Lib.isDestroyed(this)) return;
           this.show(report ? "PICK" : previousTab);
         });
@@ -463,7 +479,7 @@ sap.ui.define(
       async onApplyXml(oEvent) {
         const oModel = oEvent.getSource().getModel();
         const data = oModel.getData();
-        if (LiveEdit.isBusy()) {
+        if (LiveEdit.isBusy(this.ctx)) {
           this.showStatus(oModel, "A roundtrip is running - try again.");
           return;
         }
@@ -473,14 +489,14 @@ sap.ui.define(
         // backendXml hands the recorded original back - so an edit can
         // never promote itself to the original.
         const before = this.backendXml(tabKey);
-        const result = await LiveEdit.apply(tabKey, data.value);
+        const result = await LiveEdit.apply(this.ctx, tabKey, data.value);
         if (Lib.isDestroyed(this)) return;
         if (!this._appliedXml) this._appliedXml = {};
         this._appliedXml[tabKey] = {
           original: before,
           // What this Apply put there, so a later Reset can tell a slot
           // that still holds the edit from one a roundtrip has replaced.
-          applied: Tabs.render(tabKey),
+          applied: Tabs.render(this.ctx, tabKey),
         };
         this.showStatus(oModel, result);
       },
@@ -494,7 +510,7 @@ sap.ui.define(
       // the slot still holds what Apply put there: once it does not, a real
       // roundtrip has replaced the view and ITS XML is the original now.
       backendXml(tabKey) {
-        const current = Tabs.render(tabKey);
+        const current = Tabs.render(this.ctx, tabKey);
         const record = this._appliedXml?.[tabKey];
         if (!record) return current;
         if (record.applied !== current) {
@@ -579,7 +595,7 @@ sap.ui.define(
             this.oDialog = await Fragment.load({
               name: "z2ui5.devtools.DeveloperTools",
               controller: this,
-              id: FRAGMENT_ID,
+              id: this.fragmentId(),
             });
           }
           // If the user closed the app while the fragment was loading we
@@ -597,7 +613,7 @@ sap.ui.define(
               ? initialTab
               : readLastTab();
 
-          const appName = AbapSource.appName();
+          const appName = AbapSource.appName(this.ctx);
           const oModel = new JSONModel({
             // The dialog title always names the app the tools are looking
             // at - every view below shows that app's data, and after a
@@ -650,13 +666,13 @@ sap.ui.define(
         }
       },
 
-      // What the Problems tab badge shows: a fatal error counts, and so
-      // does anything the log captured at error level. "" hides the badge
-      // - IconTabFilter renders a "0" otherwise, which reads as a problem
-      // in itself.
+      // What the Problems tab badge shows: a fatal error of this context
+      // counts, and so does anything the (page-wide) error ring captured.
+      // "" hides the badge - IconTabFilter renders a "0" otherwise, which
+      // reads as a problem in itself.
       problemCount() {
-        const errors = (AppState.state.errors || []).length;
-        const total = errors + (AppState.state.lastError ? 1 : 0);
+        const errors = (Lib.errors || []).length;
+        const total = errors + (this.ctx?.state?.lastError ? 1 : 0);
         return total ? String(total) : "";
       },
 
@@ -672,11 +688,11 @@ sap.ui.define(
         // re-loading the fragment each time raced the close animation on
         // older UI5 (1.71): the CodeEditor's fragment-scoped id survived
         // long enough that the reload threw "adding element with
-        // duplicate id 'z2ui5DeveloperTools--developerToolsEditor'". The
+        // duplicate id '<fragmentId()>--developerToolsEditor'". The
         // instance is destroyed once in exit() when the control itself
         // goes away.
         this.oDialog.close();
-        if (reopenError) ErrorView.reopenErrorDialog();
+        if (reopenError) ErrorView.reopenErrorDialog(this.ctx);
       },
 
       // The dialog is not an aggregation of this control, so destroy()

@@ -3,7 +3,10 @@
 // core/ViewSlots.js). It carries the protocol entry points the backend binds
 // events to (eB, eBP, eF), builds the request for backend events and runs
 // the response's two action phases. The display machinery behind those
-// actions lives in core/actions/Slots.js.
+// actions lives in core/actions/Slots.js. Every instance carries the
+// context of its component as `ctx` (core/Context.js, set by
+// App.controller): it is what every action handler reads the state through,
+// and Lib.isControllerAlive's liveness test is membership in that context.
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
@@ -15,7 +18,6 @@ sap.ui.define(
     "z2ui5/core/actions/Slots",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Router",
-    "z2ui5/core/AppState",
   ],
   (
     Controller,
@@ -27,7 +29,6 @@ sap.ui.define(
     Slots,
     ViewSlots,
     Router,
-    AppState,
   ) => {
     "use strict";
 
@@ -35,7 +36,7 @@ sap.ui.define(
       onAfterRendering() {
         // _processAfterRendering re-checks _processed itself - only the
         // null check is load-bearing here
-        if (AppState.state.oResponse) this._processAfterRendering();
+        if (this.ctx.state.oResponse) this._processAfterRendering();
       },
 
       // Runs once after each roundtrip's view has been rendered, in two
@@ -59,8 +60,8 @@ sap.ui.define(
         // and never reach the finally, which would hide the busy state and
         // consume the pending custom JS mid-phase, on the wrong controller.
         // The record is also pinned for the finally: the shared
-        // AppState.state.oResponse may point at a newer response by then.
-        const oResponse = AppState.state.oResponse;
+        // this.ctx.state.oResponse may point at a newer response by then.
+        const oResponse = this.ctx.state.oResponse;
         if (!oResponse || oResponse._processed) return;
         oResponse._processed = true;
         try {
@@ -72,11 +73,11 @@ sap.ui.define(
           // popup_display still opens afterwards. (A hop to another
           // instance of the SAME class is invisible here - the backend
           // queues the teardown for exactly that case.)
-          const state = AppState.state;
+          const state = this.ctx.state;
           if (oResponse.APP && state.renderedApp !== oResponse.APP) {
             if (state.renderedApp) {
-              ViewSlots.destroy("POPUP");
-              ViewSlots.destroy("POPOVER");
+              ViewSlots.destroy(this.ctx, "POPUP");
+              ViewSlots.destroy(this.ctx, "POPOVER");
             }
             // the leaving app's keyboard shortcuts die with it - the new app
             // registers its own (actions/Shortcuts documents this reset) -
@@ -88,7 +89,7 @@ sap.ui.define(
             // ... and so does the app-owned hash listener
             // (cs_event-hash_attach_changed): the backend keeps no record of
             // it and z2ui5_if_client promises it dies with the app switch,
-            // but AppState.reset( ) only runs on the component teardown. A
+            // but the context is only torn down with the component. A
             // listener the leaving app registered kept dispatching ITS event
             // name into the next app on every Back / hash edit, and
             // Router.sync skipped the app-state URL upkeep for that app as
@@ -104,7 +105,7 @@ sap.ui.define(
           // bumped the sequence)
           // never attaches popups/nested views the backend no longer knows.
           // ONE stamp for BOTH phases - see the guard below.
-          const seq = reqSeq ?? Server._requestSeq;
+          const seq = reqSeq ?? this.ctx.server.requestSeq;
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
           // after-render hooks below - with the ROUTER and updateModel
@@ -134,8 +135,8 @@ sap.ui.define(
           const alive = Lib.isControllerAlive(this);
           if (
             !alive ||
-            seq !== Server._requestSeq ||
-            oResponse !== AppState.state.oResponse
+            seq !== this.ctx.server.requestSeq ||
+            oResponse !== this.ctx.state.oResponse
           ) {
             // a NEWER request owns the busy state and the parked hash from
             // here on (see the finally below) - this response only stops
@@ -143,7 +144,7 @@ sap.ui.define(
             // ... but what is ON SCREEN is still what this response built,
             // unless the app is gone or the newer response has landed - a
             // request merely DISPATCHED is still in flight.
-            replaced = !alive || oResponse !== AppState.state.oResponse;
+            replaced = !alive || oResponse !== this.ctx.state.oResponse;
             return;
           }
           // A MODEL key in the response IS the model push - run it after the
@@ -154,22 +155,23 @@ sap.ui.define(
           // model by UI5 propagation) and a popup left open across a
           // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes
           // the standalone slots down with it - see actions/Slots).
-          if (oResponse.MODELPRESENT) Slots.action("updateModel");
+          if (oResponse.MODELPRESENT) Slots.action(this.ctx, "updateModel");
           // Phase 2: ONE history/hash sync per response. A ROUTER action only
           // travels when the roundtrip carries nav intent - its options were
           // stashed by the ControlCall hook. The plain response still syncs,
           // so hash routing and app-state tracking follow every new draft id.
-          Router.sync({
+          Router.sync(this.ctx, {
             ...(oResponse._routerOptions || {}),
             id: oResponse.ID,
           });
-          Lib.runCallbacks(AppState.state.onAfterRendering);
+          Lib.runCallbacks(this.ctx.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
           // Server decides which overlay this failure gets: a view that could
           // not load a sap.com module on openui5 shows the SDK hint, anything
           // else the fatal overlay (see Server.showRenderError).
           Server.showRenderError(
+            this.ctx,
             e,
             "Unexpected Error Occurred - App Terminated",
           );
@@ -186,7 +188,7 @@ sap.ui.define(
           // a CLICK dropped while its roundtrip ran raised it at 0 delay.
           if (!superseded) {
             BusyIndicator.hide();
-            AppState.state.isBusy = false;
+            this.ctx.state.isBusy = false;
           }
           // Its OWN follow-up actions are a different matter, and they run.
           // They are what the backend queued FOR THIS RESPONSE, and nothing
@@ -215,7 +217,7 @@ sap.ui.define(
             // an app-hash change (Back/Forward under app-owned routing) that
             // arrived while this roundtrip was in flight was parked by the
             // router - deliver it now that the busy guard would let it through
-            Router.dispatchPendingAppHash();
+            Router.dispatchPendingAppHash(this.ctx);
           }
         }
       },
@@ -236,7 +238,10 @@ sap.ui.define(
           // response - the remaining actions would tear down or overwrite
           // what the newer response builds (the per-display guards check
           // the same stamp, but the synchronous teardowns do not).
-          if (!Lib.isControllerAlive(this) || seq !== Server._requestSeq)
+          if (
+            !Lib.isControllerAlive(this) ||
+            seq !== this.ctx.server.requestSeq
+          )
             return;
           await FrontendAction.runSystem(item, this, {
             seq,
@@ -258,9 +263,9 @@ sap.ui.define(
       // it was typed into closed by the response - is dropped: its screen
       // is gone, and its model with it.
       _dispatchQueuedEvent() {
-        const queued = AppState.state.oQueuedEvent;
+        const queued = this.ctx.state.oQueuedEvent;
         if (!queued) return;
-        AppState.state.oQueuedEvent = null;
+        this.ctx.state.oQueuedEvent = null;
         if (!Lib.isControllerAlive(queued.controller)) return;
         queued.controller.eB(...queued.args);
       },
@@ -287,19 +292,19 @@ sap.ui.define(
       // Thin wrappers around the shared slot teardown in ViewSlots, kept
       // because existing apps may call them via custom JS.
       destroyPopup() {
-        ViewSlots.destroy("POPUP");
+        ViewSlots.destroy(this.ctx, "POPUP");
       },
       destroyPopover() {
-        ViewSlots.destroy("POPOVER");
+        ViewSlots.destroy(this.ctx, "POPOVER");
       },
       destroyNestView() {
-        ViewSlots.destroy("NEST");
+        ViewSlots.destroy(this.ctx, "NEST");
       },
       destroyNestView2() {
-        ViewSlots.destroy("NEST2");
+        ViewSlots.destroy(this.ctx, "NEST2");
       },
       destroyView() {
-        ViewSlots.destroy("MAIN");
+        ViewSlots.destroy(this.ctx, "MAIN");
       },
 
       // ------------------------------------------------------------------
@@ -367,8 +372,8 @@ sap.ui.define(
       // read, which is the case this exists for and cannot throw.
       slotById(sSlot, sId) {
         const control = sSlot
-          ? ViewSlots.byId(sSlot, sId)
-          : ViewSlots.resolveById(sId);
+          ? ViewSlots.byId(this.ctx, sSlot, sId)
+          : ViewSlots.resolveById(this.ctx, sId);
         if (!control) {
           Lib.logError(
             `slotById: no control '${sId}' in slot '${sSlot || "(any)"}'`,
@@ -397,8 +402,8 @@ sap.ui.define(
       slotValue(sSlot, sId, sMethod) {
         try {
           const control = sSlot
-            ? ViewSlots.byId(sSlot, sId)
-            : ViewSlots.resolveById(sId);
+            ? ViewSlots.byId(this.ctx, sSlot, sId)
+            : ViewSlots.resolveById(this.ctx, sId);
           if (!control) {
             Lib.logError(
               `slotValue: no control '${sId}' in slot '${sSlot || "(any)"}'`,
@@ -481,9 +486,9 @@ sap.ui.define(
         // typed raises the overlay instantly, over the very field being typed
         // into. That is the right answer for a dropped click and the wrong one
         // for a keystroke, which is why it is a per-wire decision.
-        if (AppState.state.isBusy) {
+        if (this.ctx.state.isBusy) {
           if (queueLast) {
-            AppState.state.oQueuedEvent = {
+            this.ctx.state.oQueuedEvent = {
               controller: this,
               args: Lib.normalizeEventArgs(args),
             };
@@ -495,27 +500,27 @@ sap.ui.define(
         // A new roundtrip overrides any pending timer - the shared helper,
         // because the OTHER path that starts one (Server.restoreFromRoute,
         // the Back/Forward restore) owes the same cancel and had nothing.
-        Lib.cancelPendingTimers();
+        Lib.cancelPendingTimers(this.ctx);
 
         // The busy STATE is set either way - the guard above, the queued
         // dispatch, the parked hash routing and the request sequencing all
         // read it, and a wire that opted out of the overlay has not opted out
         // of being one roundtrip in flight. Only the overlay is skipped.
-        AppState.state.isBusy = true;
+        this.ctx.state.isBusy = true;
         if (!noBusy) BusyIndicator.show();
 
         // The request body is built locally and handed explicitly through
-        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
+        // Server.roundtrip/readHttp. It is mirrored to this.ctx.state.oBody right
         // away so onBeforeRoundtrip hooks and the developer tools see it.
         const oBody = {};
-        AppState.state.oBody = oBody;
+        this.ctx.state.oBody = oBody;
 
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
         const oModel = this._pickModelForRoundtrip(useMainModel);
 
-        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);
+        Lib.runCallbacks(this.ctx.state.onBeforeRoundtrip);
 
         // If the user edited model paths, send only the delta to keep the
         // payload small. The edited paths live on the picked model itself
@@ -541,9 +546,9 @@ sap.ui.define(
         // Remember which model this request carried so the winning response
         // clears exactly its edits (Server.readHttp) - a stale response clears
         // nothing, and edits in other models stay pending for their own send.
-        AppState.state.oSentModel = oModel;
+        this.ctx.state.oSentModel = oModel;
 
-        oBody.ID = AppState.state.oResponse?.ID;
+        oBody.ID = this.ctx.state.oResponse?.ID;
         // Arguments travel as raw JSON values - the request body is
         // serialized exactly once in Server.readHttp. Object arguments are
         // turned into JSON strings by the backend when it fills
@@ -558,12 +563,12 @@ sap.ui.define(
         // must not reach this call's own rest-parameter array.
         oBody.ARGUMENTS = Lib.normalizeEventArgs(args);
 
-        Server.roundtrip(oBody);
+        Server.roundtrip(this.ctx, oBody);
         // "after roundtrip" means AFTER THE DISPATCH, not after the
         // response: readHttp is fire-and-forget, so these callbacks run
         // synchronously once the request went out. A hook that needs the
         // response or the re-rendered view belongs on onAfterRendering.
-        Lib.runCallbacks(AppState.state.onAfterRoundtrip);
+        Lib.runCallbacks(this.ctx.state.onAfterRoundtrip);
       },
 
       _pickModelForRoundtrip(useMainModel) {
@@ -572,7 +577,7 @@ sap.ui.define(
         const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);
         if (!slotKey) return undefined;
 
-        const oView = ViewSlots.getView(slotKey);
+        const oView = ViewSlots.getView(this.ctx, slotKey);
         if (!oView) return undefined;
 
         // MAIN and its nested views (NEST/NEST2) share one framework-owned

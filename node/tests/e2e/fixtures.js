@@ -19,7 +19,12 @@
 // point UI5_PINNED_RESOURCES at a local OpenUI5 `resources/` directory of
 // the pinned release (e.g. assembled from the @openui5/* npm packages);
 // every request under the pinned bootstrap's resources/ root is then
-// served from that directory instead of the network.
+// served from that directory instead of the network. Such a tree is
+// source-only - no library-preload bundles - so the ui5loader fetches
+// every module synchronously and evals it, which the framework's default
+// CSP refuses (AGENTS.md rule 13). The offline run therefore adds
+// 'unsafe-eval' to the served page's script-src, and ONLY then: the CDN
+// legs run under the shipped CSP, which is what keeps rule 13 gated.
 const fs = require("fs");
 const path = require("path");
 const base = require("@playwright/test");
@@ -76,6 +81,13 @@ const test = base.test.extend({
           }
           let body = await response.text();
           body = body.split(DEFAULT_BOOTSTRAP).join(`src="${ui5Src}"`);
+          if (localResources) {
+            // the source-only tree evals - see the header
+            body = body.replace(
+              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+            );
+          }
           if (ui5Theme) {
             body = body
               .split(DEFAULT_THEME)

@@ -41,6 +41,13 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const search = Lib.toText(val);` && |\n| &&
              `` && |\n| &&
+             `        if (search && !search.startsWith("?")) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``History.setSearch: '${search}' is no query string - it has to start with "?"``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        history.replaceState(` && |\n| &&
              `          history.state,` && |\n| &&
              `          "",` && |\n| &&

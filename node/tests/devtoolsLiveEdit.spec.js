@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
 // app/webapp/devtools/LiveEdit.js - the local, roundtrip-free
@@ -12,10 +13,12 @@ const { loadModule } = require("./loadModule");
 // what the second table inside LiveEdit was).
 function realTabs() {
   const { module } = loadModule("devtools/Tabs.js", {
+    // devtools/SlotXml.js (the slot reader) is loaded for real; every
+    // other dependency is stubbed below
+    autoLoad: true,
     deps: {
       // Only the table is read here (Tabs.get), never a produce() - so
       // the modules a tab renders from stay empty stubs.
-      "z2ui5/core/AppState": { state: {} },
       "z2ui5/core/ViewSlots": {
         getView: () => undefined,
         getViewXml: () => "",
@@ -29,15 +32,19 @@ function realTabs() {
   return module;
 }
 
+// The slot a tab edits belongs to one component context (core/Context.js):
+// apply/canApply/isBusy take it first, and the display action it drives
+// receives the same one.
 function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
+  const ctx = specContext({ isBusy });
   const calls = [];
   const logged = [];
   const destroyed = [];
   let failWith = null;
 
   const Slots = {
-    action(method, slotKey, xml, mOptions, seq) {
-      calls.push({ method, slotKey, xml, mOptions, seq });
+    action(actionCtx, method, slotKey, xml, mOptions, seq) {
+      calls.push({ ctx: actionCtx, method, slotKey, xml, mOptions, seq });
       if (failWith) throw failWith;
       return Promise.resolve();
     },
@@ -45,18 +52,18 @@ function loadLiveEdit({ views = {}, slotXml = {}, isBusy = false } = {}) {
   const { module } = loadModule("devtools/LiveEdit.js", {
     deps: {
       "z2ui5/core/actions/Slots": Slots,
-      "z2ui5/core/AppState": { state: { isBusy } },
       "z2ui5/core/Lib": { logError: (m) => logged.push(m) },
       "z2ui5/core/ViewSlots": {
-        getView: (key) => views[key],
-        getViewXml: (key) => slotXml[key],
-        destroy: (key) => destroyed.push(key),
+        getView: (_ctx, key) => views[key],
+        getViewXml: (_ctx, key) => slotXml[key],
+        destroy: (_ctx, key) => destroyed.push(key),
       },
       "z2ui5/devtools/Tabs": realTabs(),
     },
   });
   return {
     LiveEdit: module,
+    ctx,
     calls,
     logged,
     fail: (e) => {
@@ -102,29 +109,31 @@ test.describe("tab to slot mapping", () => {
   });
 
   test("a non-view tab maps to nothing and cannot be applied", () => {
-    const { LiveEdit } = loadLiveEdit();
+    const { LiveEdit, ctx } = loadLiveEdit();
     // MODEL names a slot in the registry, but shows the model rather than
     // the XML - there is nothing to render back into the slot.
     expect(LiveEdit.slotOfTab("MODEL")).toBe(undefined);
     expect(LiveEdit.slotOfTab("PICK")).toBe(undefined);
-    expect(LiveEdit.canApply("MODEL")).toBe(false);
-    expect(LiveEdit.canApply("HISTORY")).toBe(false);
-    expect(LiveEdit.canApply("NOT_A_TAB")).toBe(false);
+    expect(LiveEdit.canApply(ctx, "MODEL")).toBe(false);
+    expect(LiveEdit.canApply(ctx, "HISTORY")).toBe(false);
+    expect(LiveEdit.canApply(ctx, "NOT_A_TAB")).toBe(false);
   });
 
   test("a view tab is only applicable while its slot is filled", () => {
     const empty = loadLiveEdit();
-    expect(empty.LiveEdit.canApply("POPUP")).toBe(false);
+    expect(empty.LiveEdit.canApply(empty.ctx, "POPUP")).toBe(false);
     const filled = loadLiveEdit({ views: { POPUP: fakeView() } });
-    expect(filled.LiveEdit.canApply("POPUP")).toBe(true);
+    expect(filled.LiveEdit.canApply(filled.ctx, "POPUP")).toBe(true);
   });
 });
 
 test.describe("apply", () => {
   test("re-renders the slot through the display action", async () => {
     const h = loadLiveEdit({ views: { MAIN: fakeView({ data: { A: 1 } }) } });
-    const result = await h.LiveEdit.apply("VIEW", "<mvc:View/>");
+    const result = await h.LiveEdit.apply(h.ctx, "VIEW", "<mvc:View/>");
     expect(h.calls.length).toBe(1);
+    // the display runs in the context whose slot is edited
+    expect(h.calls[0].ctx).toBe(h.ctx);
     expect(h.calls[0].method).toBe("display");
     expect(h.calls[0].slotKey).toBe("MAIN");
     expect(h.calls[0].xml).toBe("<mvc:View/>");
@@ -137,7 +146,7 @@ test.describe("apply", () => {
   test("carries the model over for a standalone slot", async () => {
     const view = fakeView({ data: { A: 1 } });
     const h = loadLiveEdit({ views: { POPUP: view } });
-    await h.LiveEdit.apply("POPUP", "<Dialog/>");
+    await h.LiveEdit.apply(h.ctx, "POPUP", "<Dialog/>");
     // the same view double is returned after the display, so the restored
     // data is observable on it
     expect(view._read()).toEqual({ A: 1 });
@@ -145,14 +154,14 @@ test.describe("apply", () => {
 
   test("refuses an empty editor and a tab without a slot", async () => {
     const h = loadLiveEdit({ views: { MAIN: fakeView() } });
-    expect(await h.LiveEdit.apply("VIEW", "   ")).toContain("empty");
-    expect(await h.LiveEdit.apply("MODEL", "<x/>")).toContain("no view slot");
+    expect(await h.LiveEdit.apply(h.ctx, "VIEW", "   ")).toContain("empty");
+    expect(await h.LiveEdit.apply(h.ctx, "MODEL", "<x/>")).toContain("no view slot");
     expect(h.calls.length).toBe(0);
   });
 
   test("refuses a slot that is not filled", async () => {
     const h = loadLiveEdit();
-    expect(await h.LiveEdit.apply("POPUP", "<Dialog/>")).toContain(
+    expect(await h.LiveEdit.apply(h.ctx, "POPUP", "<Dialog/>")).toContain(
       "not filled",
     );
     expect(h.calls.length).toBe(0);
@@ -161,7 +170,7 @@ test.describe("apply", () => {
   test("a broken XML reports the error instead of throwing", async () => {
     const h = loadLiveEdit({ views: { MAIN: fakeView() } });
     h.fail(new Error("Opening tag not closed"));
-    const result = await h.LiveEdit.apply("VIEW", "<mvc:View>");
+    const result = await h.LiveEdit.apply(h.ctx, "VIEW", "<mvc:View>");
     expect(result).toContain("Could not build the view");
     expect(result).toContain("Opening tag not closed");
     expect(h.logged.length).toBe(1);
@@ -183,7 +192,9 @@ test.describe("isBusy", () => {
   });
 
   test("reports a running roundtrip", () => {
-    expect(loadLiveEdit({ isBusy: true }).LiveEdit.isBusy()).toBe(true);
-    expect(loadLiveEdit().LiveEdit.isBusy()).toBe(false);
+    const busy = loadLiveEdit({ isBusy: true });
+    expect(busy.LiveEdit.isBusy(busy.ctx)).toBe(true);
+    const idle = loadLiveEdit();
+    expect(idle.LiveEdit.isBusy(idle.ctx)).toBe(false);
   });
 });

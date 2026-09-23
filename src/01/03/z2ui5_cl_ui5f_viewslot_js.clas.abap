@@ -30,9 +30,9 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Fragment, Lib, Env, AppState) => {` && |\n| &&
+             `  (Fragment, Lib, Env, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const slots = [` && |\n| &&
@@ -73,13 +73,13 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
-             `    function ownId(localId) {` && |\n| &&
-             `      const owner = AppState.state.oOwnerComponent;` && |\n| &&
+             `    function ownId(ctx, localId) {` && |\n| &&
+             `      const owner = ctx?.component;` && |\n| &&
              `      return owner?.createId ? owner.createId(localId) : localId;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function fragmentIdOf(slot) {` && |\n| &&
-             `      return slot.fragmentId ? ownId(slot.fragmentId) : undefined;` && |\n| &&
+             `    function fragmentIdOf(ctx, slot) {` && |\n| &&
+             `      return slot.fragmentId ? ownId(ctx, slot.fragmentId) : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
@@ -88,41 +88,43 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return slotsByKey.get(key);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getView(key) {` && |\n| &&
+             `    function getView(ctx, key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
-             `      return slot ? AppState.state[slot.prop] : undefined;` && |\n| &&
+             `      return slot ? ctx?.state[slot.prop] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function setView(key, view, xml) {` && |\n| &&
+             `    function setView(ctx, key, view, xml) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return;` && |\n| &&
-             `      AppState.state[slot.prop] = view;` && |\n| &&
-             `      slotXmlStore()[key] = xml;` && |\n| &&
+             `      ctx.state[slot.prop] = view;` && |\n| &&
              `` && |\n| &&
-             `      slotAppStore()[key] = AppState.state.oResponse?.APP;` && |\n| &&
-             `      attachSharedModels(view);` && |\n| &&
+             `      Context.registerView(ctx, view);` && |\n| &&
+             `      slotXmlStore(ctx)[key] = xml;` && |\n| &&
+             `` && |\n| &&
+             `      slotAppStore(ctx)[key] = ctx.state.oResponse?.APP;` && |\n| &&
+             `      attachSharedModels(ctx, view);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getViewXml(key) {` && |\n| &&
-             `      return slotXmlStore()[key];` && |\n| &&
+             `    function getViewXml(ctx, key) {` && |\n| &&
+             `      return slotXmlStore(ctx)[key];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function slotXmlStore() {` && |\n| &&
-             `      return AppState.state.slotXml;` && |\n| &&
+             `    function slotXmlStore(ctx) {` && |\n| &&
+             `      return ctx.state.slotXml;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getViewApp(key) {` && |\n| &&
-             `      return slotAppStore()[key];` && |\n| &&
+             `    function getViewApp(ctx, key) {` && |\n| &&
+             `      return slotAppStore(ctx)[key];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function slotAppStore() {` && |\n| &&
-             `      return AppState.state.slotApp;` && |\n| &&
+             `    function slotAppStore(ctx) {` && |\n| &&
+             `      return ctx.state.slotApp;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function attachSharedModels(view) {` && |\n| &&
+             `    function attachSharedModels(ctx, view) {` && |\n| &&
              `      if (!view) return;` && |\n| &&
-             `      if (AppState.state.oDeviceModel) {` && |\n| &&
-             `        view.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
+             `      if (ctx.state.oDeviceModel) {` && |\n| &&
+             `        view.setModel(ctx.state.oDeviceModel, "device");` && |\n| &&
              `      }` && |\n| &&
              `      const messaging = Env.getMessaging?.();` && |\n| &&
              `      if (messaging) {` && |\n| &&
@@ -131,32 +133,31 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getController(key) {` && |\n| &&
+             `    function getController(ctx, key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
-             `      return slot ? AppState.state[slot.controllerProp] : undefined;` && |\n| &&
+             `      return slot ? ctx?.state[slot.controllerProp] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function keyOfController(controller) {` && |\n| &&
-             `      if (!controller) return undefined;` && |\n| &&
-             `      const slot = slots.find(` && |\n| &&
-             `        (s) => AppState.state[s.controllerProp] === controller,` && |\n| &&
-             `      );` && |\n| &&
+             `      const state = controller?.ctx?.state;` && |\n| &&
+             `      if (!state) return undefined;` && |\n| &&
+             `      const slot = slots.find((s) => state[s.controllerProp] === controller);` && |\n| &&
              `      return slot ? slot.key : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function byId(key, id) {` && |\n| &&
+             `    function byId(ctx, key, id) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      if (!slot) return undefined;` && |\n| &&
-             `      const view = AppState.state[slot.prop];` && |\n| &&
+             `      const view = ctx?.state[slot.prop];` && |\n| &&
              `      if (!view) return undefined;` && |\n| &&
-             `      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(slot), id);` && |\n| &&
+             `      if (slot.fragmentId) return Fragment.byId(fragmentIdOf(ctx, slot), id);` && |\n| &&
              `      return view.byId(id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function resolveById(id) {` && |\n| &&
+             `    function resolveById(ctx, id) {` && |\n| &&
              `      if (!id) return null;` && |\n| &&
              `      for (const slot of slots) {` && |\n| &&
-             `        const found = byId(slot.key, id);` && |\n| &&
+             `        const found = byId(ctx, slot.key, id);` && |\n| &&
              `        if (found) return found;` && |\n| &&
              `      }` && |\n| &&
              `      return Env.getElementById(id);` && |\n| &&
@@ -168,11 +169,17 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function containingSlotKey(element) {` && |\n| &&
+             `    function markChanged(owner, path) {` && |\n| &&
+             `      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function containingSlotKey(ctx, element) {` && |\n| &&
+             `      const state = ctx?.state;` && |\n| &&
+             `      if (!state) return undefined;` && |\n| &&
              `      let current = element;` && |\n| &&
              `      while (current) {` && |\n| &&
              `        for (const slot of slots) {` && |\n| &&
-             `          if (AppState.state[slot.prop] === current) return slot.key;` && |\n| &&
+             `          if (state[slot.prop] === current) return slot.key;` && |\n| &&
              `        }` && |\n| &&
              `        current = current.getParent?.();` && |\n| &&
              `      }` && |\n| &&
@@ -180,18 +187,20 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function byIdOfOwner(owner, id) {` && |\n| &&
-             `      return byId(containingSlotKey(owner) ?? "MAIN", id);` && |\n| &&
+             `      const ctx = Context.of(owner);` && |\n| &&
+             `      if (!ctx) return undefined;` && |\n| &&
+             `      return byId(ctx, containingSlotKey(ctx, owner) ?? "MAIN", id);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function destroy(key) {` && |\n| &&
+             `    function destroy(ctx, key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
-             `      if (!slot) return;` && |\n| &&
+             `      if (!slot || !ctx?.state) return;` && |\n| &&
              `` && |\n| &&
-             `      for (const dep of slot.dependentSlots ?? []) destroy(dep);` && |\n| &&
+             `      for (const dep of slot.dependentSlots ?? []) destroy(ctx, dep);` && |\n| &&
              `` && |\n| &&
-             `      delete slotXmlStore()[key];` && |\n| &&
-             `      delete slotAppStore()[key];` && |\n| &&
-             `      const view = AppState.state[slot.prop];` && |\n| &&
+             `      delete slotXmlStore(ctx)[key];` && |\n| &&
+             `      delete slotAppStore(ctx)[key];` && |\n| &&
+             `      const view = ctx.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `      if (slot.fragmentId) {` && |\n| &&
              `        try {` && |\n| &&
@@ -213,7 +222,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``ViewSlots.destroy: view.destroy() failed for ${key}``, e);` && |\n| &&
              `      }` && |\n| &&
-             `      AppState.state[slot.prop] = null;` && |\n| &&
+             `      ctx.state[slot.prop] = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
@@ -231,6 +240,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&
+             `      markChanged,` && |\n| &&
              `      destroy,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

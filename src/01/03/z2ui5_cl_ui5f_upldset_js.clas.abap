@@ -78,7 +78,22 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
+             `        this._detach();` && |\n| &&
              `        if (this._reader) this._reader.cancel();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _detach() {` && |\n| &&
+             `        const uploadSet = this._target;` && |\n| &&
+             `        this._target = null;` && |\n| &&
+             `        if (!uploadSet || Lib.isDestroyed(uploadSet)) return;` && |\n| &&
+             `        if (this._onItemAdded) {` && |\n| &&
+             `          uploadSet.detachAfterItemAdded?.(this._onItemAdded);` && |\n| &&
+             `        }` && |\n| &&
+             `        if (this._onItemRemoved) {` && |\n| &&
+             `          uploadSet.detachAfterItemRemoved?.(this._onItemRemoved);` && |\n| &&
+             `        }` && |\n| &&
+             `        this._onItemAdded = null;` && |\n| &&
+             `        this._onItemRemoved = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFile(file) {` && |\n| &&
@@ -118,10 +133,13 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        if (!Lib.claimOnce(this, uploadSet)) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
+             `          this._target = uploadSet;` && |\n| &&
+             `          this._onItemAdded = this.onItemAdded.bind(this);` && |\n| &&
+             `          uploadSet.attachAfterItemAdded(this._onItemAdded);` && |\n| &&
              `` && |\n| &&
              `          if (uploadSet.attachAfterItemRemoved) {` && |\n| &&
-             `            uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
+             `            this._onItemRemoved = this.onItemRemoved.bind(this);` && |\n| &&
+             `            uploadSet.attachAfterItemRemoved(this._onItemRemoved);` && |\n| &&
              `          } else {` && |\n| &&
              `            Lib.logError(` && |\n| &&
              `              "UploadSetExt: afterItemRemoved needs UI5 >= 1.83, removals will not be reported",` && |\n| &&

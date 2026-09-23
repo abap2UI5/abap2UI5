@@ -25,7 +25,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
+    result = `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
@@ -40,12 +40,6 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `  const DIALOG_CLASS = "z2ui5ErrorDialog";` && |\n| &&
              `  const MESSAGE_CLASS = "z2ui5ErrorMessage";` && |\n| &&
              `  const HINT_CLASS = "z2ui5ErrorHint";` && |\n| &&
-             `` && |\n| &&
-             `  let lastDialogTitle = "";` && |\n| &&
-             `  let lastDialogDetails = "";` && |\n| &&
-             `  let lastDialogOptions = {};` && |\n| &&
-             `` && |\n| &&
-             `  let friendlyDialog = null;` && |\n| &&
              `` && |\n| &&
              `  function fromCodePoint(raw, codePoint) {` && |\n| &&
              `    if (!(codePoint >= 0 && codePoint <= 0x10ffff)) return raw;` && |\n| &&
@@ -220,12 +214,12 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    return container;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function hasErrorDetails() {` && |\n| &&
-             `    return (AppState.state.onErrorDetails || []).length > 0;` && |\n| &&
+             `  function hasErrorDetails(ctx) {` && |\n| &&
+             `    return (ctx?.state?.onErrorDetails || []).length > 0;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function openErrorDetails() {` && |\n| &&
-             `    for (const fn of AppState.state.onErrorDetails || []) {` && |\n| &&
+             `  function openErrorDetails(ctx) {` && |\n| &&
+             `    for (const fn of ctx?.state?.onErrorDetails || []) {` && |\n| &&
              `      if (!fn) continue;` && |\n| &&
              `      try {` && |\n| &&
              `        fn();` && |\n| &&
@@ -233,19 +227,20 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function showFriendlyDialog(title, details, options = {}) {` && |\n| &&
+             `  function showFriendlyDialog(ctx, title, details, options = {}) {` && |\n| &&
              `    try {` && |\n| &&
              `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
              `      const Button = sap.ui.require("sap/m/Button");` && |\n| &&
              `      const Text = sap.ui.require("sap/m/Text");` && |\n| &&
              `      if (!Dialog || !Button || !Text) return false;` && |\n| &&
-             `      lastDialogTitle = title;` && |\n| &&
-             `      lastDialogDetails = details;` && |\n| &&
-             `      lastDialogOptions = options;` && |\n| &&
+             `      const store = ctx.errorView;` && |\n| &&
+             `      store.title = title;` && |\n| &&
+             `      store.details = details;` && |\n| &&
+             `      store.options = options;` && |\n| &&
              `` && |\n| &&
-             `      if (friendlyDialog) {` && |\n| &&
-             `        friendlyDialog.destroy();` && |\n| &&
-             `        friendlyDialog = null;` && |\n| &&
+             `      if (store.dialog) {` && |\n| &&
+             `        store.dialog.destroy();` && |\n| &&
+             `        store.dialog = null;` && |\n| &&
              `      }` && |\n| &&
              `      ensureDialogStyles();` && |\n| &&
              `` && |\n| &&
@@ -291,13 +286,13 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `` && |\n| &&
              `      const buttons = [];` && |\n| &&
              `` && |\n| &&
-             `      if (hasErrorDetails()) {` && |\n| &&
+             `      if (hasErrorDetails(ctx)) {` && |\n| &&
              `        buttons.push(` && |\n| &&
              `          new Button({` && |\n| &&
              `            text: "Details",` && |\n| &&
              `            press: () => {` && |\n| &&
              `              dialog.close();` && |\n| &&
-             `              openErrorDetails();` && |\n| &&
+             `              openErrorDetails(ctx);` && |\n| &&
              `            },` && |\n| &&
              `          }),` && |\n| &&
              `        );` && |\n| &&
@@ -329,40 +324,40 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `        buttons,` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
              `        afterClose: () => {` && |\n| &&
-             `          if (friendlyDialog === dialog) friendlyDialog = null;` && |\n| &&
+             `          if (store.dialog === dialog) store.dialog = null;` && |\n| &&
              `          dialog.destroy();` && |\n| &&
              `        },` && |\n| &&
              `      });` && |\n| &&
              `      withClass(dialog, DIALOG_CLASS);` && |\n| &&
-             `      friendlyDialog = dialog;` && |\n| &&
+             `      store.dialog = dialog;` && |\n| &&
              `      dialog.open();` && |\n| &&
              `      return true;` && |\n| &&
-             `    } catch {` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      window.console?.error?.("ErrorView: friendly dialog failed", e);` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function reset() {` && |\n| &&
-             `    lastDialogTitle = "";` && |\n| &&
-             `    lastDialogDetails = "";` && |\n| &&
-             `    lastDialogOptions = {};` && |\n| &&
+             `  function reset(ctx) {` && |\n| &&
+             `    const store = ctx.errorView;` && |\n| &&
+             `    store.title = "";` && |\n| &&
+             `    store.details = "";` && |\n| &&
+             `    store.options = {};` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function reopenErrorDialog() {` && |\n| &&
-             `    return showFriendlyDialog(` && |\n| &&
-             `      lastDialogTitle,` && |\n| &&
-             `      lastDialogDetails,` && |\n| &&
-             `      lastDialogOptions,` && |\n| &&
-             `    );` && |\n| &&
+             `  function reopenErrorDialog(ctx) {` && |\n| &&
+             `    const store = ctx.errorView;` && |\n| &&
+             `    return showFriendlyDialog(ctx, store.title, store.details, store.options);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function handleLogout() {` && |\n| &&
+             `  function handleLogout(ctx) {` && |\n| &&
              `    const fallback = () => {` && |\n| &&
              `      window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
              `    };` && |\n| &&
              `    try {` && |\n| &&
-             `      if (AppState.state.oLaunchpad?.Container?.logout) {` && |\n| &&
-             `        AppState.state.oLaunchpad.Container.logout();` && |\n| &&
+             `      const launchpad = ctx?.state?.oLaunchpad;` && |\n| &&
+             `      if (launchpad?.Container?.logout) {` && |\n| &&
+             `        launchpad.Container.logout();` && |\n| &&
              `      } else {` && |\n| &&
              `        fallback();` && |\n| &&
              `      }` && |\n| &&
@@ -371,22 +366,22 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function loadFriendlyDialogAsync(title, details, options) {` && |\n| &&
+             `  function loadFriendlyDialogAsync(ctx, title, details, options) {` && |\n| &&
              `    try {` && |\n| &&
              `      const require = sap?.ui?.require;` && |\n| &&
              `      if (typeof require !== "function") return false;` && |\n| &&
              `      require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {` && |\n| &&
-             `        if (!showFriendlyDialog(title, details, options)) {` && |\n| &&
-             `          showRawOverlay(title, details, options);` && |\n| &&
+             `        if (!showFriendlyDialog(ctx, title, details, options)) {` && |\n| &&
+             `          showRawOverlay(ctx, title, details, options);` && |\n| &&
              `        }` && |\n| &&
-             `      }, () => showRawOverlay(title, details, options));` && |\n| &&
+             `      }, () => showRawOverlay(ctx, title, details, options));` && |\n| &&
              `      return true;` && |\n| &&
              `    } catch {` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function show(response, title, options = {}) {` && |\n| &&
+             `  function show(ctx, response, title, options = {}) {` && |\n| &&
              `    const stack = response?.stack ? String(response.stack) : "";` && |\n| &&
              `    const message = String(response);` && |\n| &&
              `    const full = stack` && |\n| &&
@@ -400,20 +395,20 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
              `        : full;` && |\n| &&
              `` && |\n| &&
-             `    AppState.state.lastError = {` && |\n| &&
+             `    ctx.state.lastError = {` && |\n| &&
              `      title: title || DEFAULT_TITLE,` && |\n| &&
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    if (showFriendlyDialog(title, errorMessage, options)) return;` && |\n| &&
+             `    if (showFriendlyDialog(ctx, title, errorMessage, options)) return;` && |\n| &&
              `` && |\n| &&
-             `    if (loadFriendlyDialogAsync(title, errorMessage, options)) return;` && |\n| &&
+             `    if (loadFriendlyDialogAsync(ctx, title, errorMessage, options)) return;` && |\n| &&
              `` && |\n| &&
-             `    showRawOverlay(title, errorMessage, options);` && |\n| &&
+             `    showRawOverlay(ctx, title, errorMessage, options);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function showRawOverlay(title, errorMessage, options = {}) {` && |\n| &&
+             `  function showRawOverlay(ctx, title, errorMessage, options = {}) {` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
@@ -424,13 +419,13 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    headerDiv.style.cssText =` && |\n| &&
              `      "padding: 0.75rem 1rem; background: #bb0000; color: white; display: flex; justify-content: space-between; align-items: center; gap: 1rem;";` && |\n| &&
              `` && |\n| &&
-             `    const h3 = document.createElement("h3");` && |\n|.
-    result = result &&
+             `    const h3 = document.createElement("h3");` && |\n| &&
              `    h3.id = "serverErrorTitle";` && |\n| &&
              `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    const btnStyle =` && |\n| &&
              `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
              `` && |\n| &&
@@ -453,7 +448,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `    addAction("Refresh", () => window.location.reload());` && |\n| &&
-             `    addAction("Logout", () => handleLogout());` && |\n| &&
+             `    addAction("Logout", () => handleLogout(ctx));` && |\n| &&
              `` && |\n| &&
              `    headerDiv.appendChild(actionsDiv);` && |\n| &&
              `    errorContainer.appendChild(headerDiv);` && |\n| &&

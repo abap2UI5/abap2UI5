@@ -26,9 +26,18 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Control, Lib, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
+             `  (Control, Lib, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    function launchpadOf(control, where) {` && |\n| &&
+             `      const ctx = Context.of(control);` && |\n| &&
+             `      if (!ctx) {` && |\n| &&
+             `        Lib.logError(``LPTitle.${where}: no component context, ignored``);` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return ctx.state.oLaunchpad;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
              `      metadata: {` && |\n| &&
@@ -44,7 +53,7 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `      setTitle(val) {` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
              `        try {` && |\n| &&
-             `          const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
+             `          const shell = launchpadOf(this, "setTitle")?.ShellUIService;` && |\n| &&
              `          if (!shell?.setTitle) return;` && |\n| &&
              `` && |\n| &&
              `          const result = shell.setTitle(Lib.toText(val));` && |\n| &&
@@ -62,7 +71,10 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `      setApplicationFullWidth(val) {` && |\n| &&
              `        this.setProperty("ApplicationFullWidth", val, true);` && |\n| &&
              `        try {` && |\n| &&
-             `          const config = AppState.state.oLaunchpad?.AppConfiguration;` && |\n| &&
+             `          const config = launchpadOf(` && |\n| &&
+             `            this,` && |\n| &&
+             `            "setApplicationFullWidth",` && |\n| &&
+             `          )?.AppConfiguration;` && |\n| &&
              `          if (config?.setApplicationFullWidth) {` && |\n| &&
              `            config.setApplicationFullWidth(val);` && |\n| &&
              `          }` && |\n| &&

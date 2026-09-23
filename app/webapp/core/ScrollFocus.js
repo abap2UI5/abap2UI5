@@ -4,9 +4,8 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
   ],
-  (Element, Lib, Env, ViewSlots, AppState) => {
+  (Element, Lib, Env, ViewSlots) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -16,6 +15,10 @@ sap.ui.define(
     // Server.roundtrip on every event. The backend does not act on them
     // itself: it exposes them to the app (client->get( )), which echoes a
     // SET_FOCUS / SCROLL_TO follow-up action to restore after a re-render.
+    // Per component: the records live on the context (`ctx.state.
+    // lastScrolled`, `ctx.scroll`), and the document-level scroll listener
+    // Component.init installs per context records only elements inside
+    // that context's slots.
     // ------------------------------------------------------------------
 
     // Resolve the UI5 element owning a DOM node. Element.closestTo exists
@@ -51,11 +54,11 @@ sap.ui.define(
     // SET_FOCUS / SCROLL_TO the app echoed back resolves through
     // Fragment.byId, which prefixed the id a second time - so restoring
     // focus or the scroll position in a popup silently found no control.
-    function stripSlotPrefix(fullId, slot) {
-      const view = ViewSlots.getView(slot.key);
+    function stripSlotPrefix(ctx, fullId, slot) {
+      const view = ViewSlots.getView(ctx, slot.key);
       if (!view) return fullId;
       const prefix = slot.fragmentId
-        ? `${ViewSlots.fragmentIdOf(slot)}--`
+        ? `${ViewSlots.fragmentIdOf(ctx, slot)}--`
         : `${view.getId()}--`;
       return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
     }
@@ -77,7 +80,7 @@ sap.ui.define(
     // Returning undefined when no UI5 control owns the focus lets
     // JSON.stringify omit S_FOCUS from the request entirely, matching
     // getScrollInfo (the backend treats a missing key like an empty one).
-    function getFocusInfo() {
+    function getFocusInfo(ctx) {
       try {
         const active = document.activeElement;
         if (!active) return undefined;
@@ -86,7 +89,7 @@ sap.ui.define(
         const fullId = ui5El.getId();
         let id = fullId;
         for (const slot of ViewSlots.slots) {
-          const local = stripSlotPrefix(fullId, slot);
+          const local = stripSlotPrefix(ctx, fullId, slot);
           if (local !== fullId) {
             id = local;
             break;
@@ -111,21 +114,15 @@ sap.ui.define(
       }
     }
 
-    // The per-element resolution cache of onScrollCapture (see there).
-    // An object rather than three locals so the unit specs can observe the
-    // release behavior of getScrollInfo.
-    const _scrollCache = {
-      target: undefined,
-      ui5El: undefined,
-      slotKey: undefined,
-    };
-
-    // The one way the cache is emptied - getScrollInfo releases it once
-    // the node left the document, reset( ) on the component teardown.
-    function clearScrollCache() {
-      _scrollCache.target = undefined;
-      _scrollCache.ui5El = undefined;
-      _scrollCache.slotKey = undefined;
+    // The per-element resolution cache of onScrollCapture (see there) is
+    // `ctx.scroll` (core/Context.js) - per component, and observable by
+    // the unit specs. The one way it is emptied: getScrollInfo releases it
+    // once the node left the document, reset( ) on the component teardown.
+    function clearScrollCache(ctx) {
+      const cache = ctx.scroll;
+      cache.target = undefined;
+      cache.ui5El = undefined;
+      cache.slotKey = undefined;
     }
 
     // Records which element the user actually scrolled, per view slot.
@@ -134,9 +131,10 @@ sap.ui.define(
     // capture listeners on ancestors, so one listener observes every
     // scrollable container - no per-roundtrip walk over the control tree,
     // and no guessing which container "looks scrolled".
-    function onScrollCapture(event) {
+    function onScrollCapture(ctx, event) {
       const target = event.target;
       if (!target || target.nodeType !== 1) return;
+      const _scrollCache = ctx.scroll;
 
       // Scroll events fire up to once per frame per element while the user
       // drags, but the same DOM element keeps firing throughout a gesture.
@@ -150,32 +148,33 @@ sap.ui.define(
         _scrollCache.target = target;
         _scrollCache.ui5El = ui5El;
         _scrollCache.slotKey = ui5El
-          ? ViewSlots.containingSlotKey(ui5El)
+          ? ViewSlots.containingSlotKey(ctx, ui5El)
           : undefined;
       }
 
       if (_scrollCache.slotKey) {
-        AppState.state.lastScrolled[_scrollCache.slotKey] = {
+        ctx.state.lastScrolled[_scrollCache.slotKey] = {
           control: _scrollCache.ui5El,
           dom: target,
         };
       }
     }
 
-    function getScrollInfo() {
+    function getScrollInfo(ctx) {
       // Release the per-element resolution cache of onScrollCapture once
       // its DOM node left the document (view replaced/destroyed) - the
       // detached element and its control would otherwise stay referenced
       // until the user scrolls the next time.
+      const _scrollCache = ctx.scroll;
       if (_scrollCache.target && !_scrollCache.target.isConnected) {
-        clearScrollCache();
+        clearScrollCache(ctx);
       }
 
       // Reads scrollLeft/scrollTop straight from the DOM element the user
       // last scrolled in each view slot (recorded by onScrollCapture).
       // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
       // absent from the result - restoring 0/0 would be a no-op anyway.
-      const store = AppState.state.lastScrolled;
+      const store = ctx.state.lastScrolled;
       const out = {};
       for (const slot of ViewSlots.slots) {
         const entry = store[slot.key];
@@ -191,7 +190,7 @@ sap.ui.define(
           continue;
         }
 
-        const id = stripSlotPrefix(entry.control.getId(), slot);
+        const id = stripSlotPrefix(ctx, entry.control.getId(), slot);
         out[slot.key] = {
           ID: id,
           X: entry.dom.scrollLeft || 0,
@@ -206,12 +205,12 @@ sap.ui.define(
     // (Component.exit): getScrollInfo releases it on the next roundtrip,
     // and after an exit there is none - the detached node and its control
     // stayed referenced by this module until the next app's first scroll.
-    function reset() {
-      clearScrollCache();
+    function reset(ctx) {
+      clearScrollCache(ctx);
     }
 
     // closestUi5Element and focusTextInput are pure resolution helpers,
-    // exported (with the cache) for the unit specs.
+    // exported for the unit specs (the cache is `ctx.scroll`).
     return {
       getFocusInfo,
       getScrollInfo,
@@ -219,7 +218,6 @@ sap.ui.define(
       closestUi5Element,
       focusTextInput,
       reset,
-      _scrollCache,
     };
   },
 );

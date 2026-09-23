@@ -28,12 +28,11 @@ CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "z2ui5/core/actions/Slots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Tabs",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Slots, AppState, Lib, ViewSlots, Tabs) => {` && |\n| &&
+             `  (Slots, Lib, ViewSlots, Tabs) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function slotOfTab(tabKey) {` && |\n| &&
@@ -41,33 +40,33 @@ CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
              `      return tab?.aspect === "XML" ? tab.slot : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function canApply(tabKey) {` && |\n| &&
+             `    function canApply(ctx, tabKey) {` && |\n| &&
              `      const slotKey = slotOfTab(tabKey);` && |\n| &&
              `      if (!slotKey) return false;` && |\n| &&
-             `      return Boolean(ViewSlots.getView(slotKey));` && |\n| &&
+             `      return Boolean(ViewSlots.getView(ctx, slotKey));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function apply(tabKey, xml) {` && |\n| &&
+             `    async function apply(ctx, tabKey, xml) {` && |\n| &&
              `      const slotKey = slotOfTab(tabKey);` && |\n| &&
              `      if (!slotKey) return "This tab shows no view slot - nothing to apply.";` && |\n| &&
              `      if (!xml || !xml.trim()) return "The editor is empty - nothing to apply.";` && |\n| &&
              `` && |\n| &&
-             `      const oldView = ViewSlots.getView(slotKey);` && |\n| &&
+             `      const oldView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
              `      if (!oldView) return ``Slot ${slotKey} is not filled - nothing to apply.``;` && |\n| &&
              `      const oldModel = oldView.getModel?.();` && |\n| &&
              `      const modelData = oldModel?.getData?.();` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&
              `        const options =` && |\n| &&
-             `          slotKey === "MAIN" ? AppState.state.lastMainDisplayOptions || {} : {};` && |\n| &&
-             `        await Slots.action("display", slotKey, xml, options, undefined);` && |\n| &&
+             `          slotKey === "MAIN" ? ctx.state.lastMainDisplayOptions || {} : {};` && |\n| &&
+             `        await Slots.action(ctx, "display", slotKey, xml, options, undefined);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools LiveEdit: applying the edited XML failed", e);` && |\n| &&
              `        return ``Could not build the view: ${e?.message || e}``;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&
-             `        const newView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        const newView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
              `        const newModel = newView?.getModel?.();` && |\n| &&
              `        if (modelData && newModel?.setData && slotKey !== "MAIN") {` && |\n| &&
              `          newModel.setData(modelData);` && |\n| &&
@@ -82,8 +81,8 @@ CLASS z2ui5_cl_ui5f_liveedit_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isBusy() {` && |\n| &&
-             `      return Boolean(AppState.state.isBusy);` && |\n| &&
+             `    function isBusy(ctx) {` && |\n| &&
+             `      return Boolean(ctx?.state?.isBusy);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { apply, canApply, slotOfTab, isBusy };` && |\n| &&

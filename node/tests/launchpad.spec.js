@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, withSpecController } = require("./loadLibModule");
 
 // Tests the handlers of core/actions/Launchpad.js - the actions against the
 // SAP Fiori Launchpad shell. The launchpad services are injected at component
@@ -19,7 +19,9 @@ const { loadLib } = require("./loadLibModule");
 function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
   // The real Lib: its sandbox origin (http://localhost:3000, loadLibModule)
   // anchors the same-origin check of the EXT redirect.
-  const { Lib, state: libState } = loadLib();
+  // the handlers read the launchpad services off the calling controller's
+  // context; the spec's one context carries them
+  const { Lib, state: libState, ctx } = loadLib({ state: { oLaunchpad } });
 
   const redirects = [];
 
@@ -31,7 +33,6 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
         },
       },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": { state: { oLaunchpad } },
     },
     sandbox: {
       window: { location: { href } },
@@ -39,7 +40,7 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
   });
 
   return {
-    handlers: Launchpad.handlers,
+    handlers: withSpecController(Launchpad.handlers, ctx).handlers,
     redirects,
     errors: () => (libState.errors || []).map((e) => e.message),
   };

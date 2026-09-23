@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, specContext, contextStub } = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -16,17 +16,20 @@ const { loadLib } = require("./loadLibModule");
 //  - the updateModel fan-out over the open model-owning slots
 //  - _processAfterRendering (stale-response guards, implicit teardown)
 
+// Every View1 controller carries its component's context (`ctx`, set by
+// App.controller); the specs give the controller definition the spec's one
+// context, the way the app gives each instance the component's.
 function loadController(extraDeps) {
-  const Lib = loadLib().Lib;
+  const { Lib, ctx } = loadLib();
   const { module: ctrl } = loadModule("controller/View1.controller.js", {
     deps: {
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": { state: {} },
       ...(extraDeps || {}),
     },
   });
+  ctrl.ctx = ctx;
   return ctrl;
 }
 
@@ -37,7 +40,7 @@ function loadController(extraDeps) {
 // fixture, which is a different thing entirely.
 function withSlotStub(byId, resolveById) {
   const errors = [];
-  const Lib = loadLib().Lib;
+  const { Lib, ctx } = loadLib();
   const realLogError = Lib.logError;
   Lib.logError = (...args) => errors.push(args[0]);
   const { module: controller } = loadModule("controller/View1.controller.js", {
@@ -45,13 +48,14 @@ function withSlotStub(byId, resolveById) {
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": { state: {} },
+      // the slot registry takes the context first; the stubs ignore it
       "z2ui5/core/ViewSlots": {
-        byId: byId || (() => undefined),
-        resolveById: resolveById || (() => null),
+        byId: (_ctx, ...a) => (byId || (() => undefined))(...a),
+        resolveById: (_ctx, ...a) => (resolveById || (() => null))(...a),
       },
     },
   });
+  controller.ctx = ctx;
   return { controller, errors, restore: () => (Lib.logError = realLogError) };
 }
 
@@ -102,8 +106,8 @@ function withSlots(
       { key: "POPUP", ownsModel: true },
       { key: "POPOVER", ownsModel: true },
     ],
-    getView: (key) => views[key],
-    getViewApp: (key) => slotApps[key],
+    getView: (_ctx, key) => views[key],
+    getViewApp: (_ctx, key) => slotApps[key],
     destroy: () => {},
     // mirrors the real resolver (core/ViewSlots.js): only a model
     // carrying the _z2ui5Tracked marker is the framework's
@@ -113,9 +117,10 @@ function withSlots(
       return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
     },
   };
-  const { module: Slots } = loadModule("core/actions/Slots.js", {
+  const ctx = specContext({ oResponse });
+  const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
     deps: {
-      "z2ui5/core/Server": {},
+      "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
         // no view in these specs uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
@@ -125,14 +130,12 @@ function withSlots(
         isRootModelSlot: (k) => k === "MAIN" || k === "NEST" || k === "NEST2",
       },
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/AppState": {
-        state: {
-          oResponse,
-          viewSizeLimits: {},
-        },
-      },
     },
   });
+  // the action takes the context first; bound to the spec's one
+  const Slots = {
+    action: (...a) => SlotsModule.action(ctx, ...a),
+  };
   return { Slots, applied, views };
 }
 
@@ -392,7 +395,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // the request stamp lives on Server: a spec bumps it to dispatch a newer
     // request mid-phase, which is what "superseded" means BEFORE that
     // request's own response has landed
-    const server = { _requestSeq: 1, responseError: () => {} };
+    const server = { responseError: () => {} };
     const pushes = [];
     const syncs = [];
     const hooks = [];
@@ -400,7 +403,14 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const busy = [];
     const pendingHash = [];
     const customs = [];
-    const state = { onAfterRendering: [() => hooks.push("ran")], isBusy: true };
+    // the request stamp lives on the context (ctx.server.requestSeq): a
+    // spec bumps it to dispatch a newer request mid-phase
+    const ctx = specContext({
+      onAfterRendering: [() => hooks.push("ran")],
+      isBusy: true,
+    });
+    ctx.server.requestSeq = 1;
+    const state = ctx.state;
     // mutable: a spec tears the app down mid-phase (reset / FLP re-launch),
     // which is the OTHER way this response's screen can be gone
     const app = { alive: true };
@@ -422,17 +432,20 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           runSystem: () => hooks.onRunSystem?.(),
           runCustom: (item) => customs.push(item),
         },
-        "z2ui5/core/actions/Slots": { action: (method) => pushes.push(method) },
-        "z2ui5/core/ViewSlots": { destroy: (key) => destroys.push(key) },
+        "z2ui5/core/actions/Slots": {
+          action: (_ctx, method) => pushes.push(method),
+        },
+        "z2ui5/core/ViewSlots": { destroy: (_ctx, key) => destroys.push(key) },
         "z2ui5/core/Router": {
-          sync: (o) => syncs.push(o),
+          sync: (_ctx, o) => syncs.push(o),
           dispatchPendingAppHash: () => pendingHash.push("delivered"),
         },
-        "z2ui5/core/AppState": { state },
       },
     });
+    ctrl.ctx = ctx;
     return {
       ctrl,
+      ctx,
       state,
       server,
       pushes,
@@ -512,8 +525,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   test("a response cut short by a newer REQUEST stops before phase 2", async () => {
     const {
       ctrl,
+      ctx,
       state,
-      server,
       pushes,
       syncs,
       hooks,
@@ -530,7 +543,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // the restore dispatches its request while the system actions run - the
     // response record still points at THIS response, only the stamp moved
     hooks.onRunSystem = () => {
-      server._requestSeq = 2;
+      ctx.server.requestSeq = 2;
     };
 
     await ctrl._processAfterRendering(1);
@@ -656,9 +669,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 test.describe("eB cancels the pending timers before it dispatches", () => {
   function loadForDispatch() {
     const cleared = [];
-    const state = { timers: {} };
-    const { Lib } = loadLib({
-      state,
+    const { Lib, state, ctx } = loadLib({
       clearTimeout: (handle) => cleared.push(handle),
     });
     const bodies = [];
@@ -667,7 +678,7 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
         "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
         "sap/m/MessageBox": { alert: () => {} },
-        "z2ui5/core/Server": { roundtrip: (oBody) => bodies.push(oBody) },
+        "z2ui5/core/Server": { roundtrip: (_ctx, oBody) => bodies.push(oBody) },
         "z2ui5/core/Lib": Lib,
         "z2ui5/core/FrontendAction": {},
         "z2ui5/core/actions/Slots": {},
@@ -675,10 +686,10 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
         // the request carries no model delta, which is not what is under test
         "z2ui5/core/ViewSlots": { keyOfController: () => undefined },
         "z2ui5/core/Router": {},
-        "z2ui5/core/AppState": { state },
       },
       sandbox: { navigator: { onLine: true } },
     });
+    ctrl.ctx = ctx;
     return { ctrl, state, cleared, bodies };
   }
 
@@ -733,11 +744,19 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
       this.destroy = () => {};
       this.setSizeLimit = () => {};
     }
-    const { module: Slots } = loadModule("core/actions/Slots.js", {
+    const ctx = specContext({
+      // the shipped default - displayMain empties it on every rebuild
+      oApp: {
+        removeAllPages: () => {},
+        insertPage: (v) => pages.push(v),
+      },
+    });
+    ctx.server.requestSeq = requestSeq;
+    const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
         "sap/ui/core/mvc/XMLView": { create: async () => oView },
         "sap/ui/model/json/JSONModel": JSONModel,
-        "z2ui5/core/Server": { _requestSeq: requestSeq },
+        "z2ui5/core/Context": contextStub(ctx),
         "z2ui5/core/Lib": {
           usesXmlTemplating: () => false,
           effectiveSizeLimit: () => undefined,
@@ -747,27 +766,17 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         },
         "z2ui5/core/ViewSlots": {
           // the real module prefixes with the owner component; no owner here
-          ownId: (id) => id,
-          fragmentIdOf: (slot) => slot.fragmentId,
+          ownId: (_ctx, id) => id,
+          fragmentIdOf: (_ctx, slot) => slot.fragmentId,
           slots: [],
           getView: () => undefined,
           getController: () => undefined,
           setView: () => {},
-          destroy: (key) => destroyed.push(key),
-        },
-        "z2ui5/core/AppState": {
-          state: {
-            viewSizeLimits: {},
-            // the shipped default - displayMain empties it on every rebuild
-            odataClients: new Set(),
-            oApp: {
-              removeAllPages: () => {},
-              insertPage: (v) => pages.push(v),
-            },
-          },
+          destroy: (_ctx, key) => destroyed.push(key),
         },
       },
     });
+    const Slots = { action: (...a) => SlotsModule.action(ctx, ...a) };
     return { Slots, destroyed, pages, oView };
   }
 
@@ -842,12 +851,11 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         destroy: () => {},
       };
     }
-    const state = {
+    const odataCtx = specContext({
       oResponse: { OVIEWMODEL: { A: 1 }, APP: "ZCL_APP" },
-      viewSizeLimits: {},
-      odataClients: new Set(),
       oApp: { removeAllPages: () => {}, insertPage: () => {} },
-    };
+    });
+    const state = odataCtx.state;
     const openSlots = { MAIN: makeView("mainView") };
     // the client is loaded on first use through Lib.requireODataModel,
     // which probes sap.ui.require( id ) - seeded here, so the stub is
@@ -873,18 +881,18 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
       },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
-        ownId: (id) => id,
-        fragmentIdOf: (slot) => slot.fragmentId,
+        ownId: (_ctx, id) => id,
+        fragmentIdOf: (_ctx, slot) => slot.fragmentId,
         slots: [{ key: "MAIN", ownsModel: true }],
-        getView: (key) => openSlots[key],
+        getView: (_ctx, key) => openSlots[key],
         getController: () => undefined,
-        setView: (key, view) => (openSlots[key] = view),
-        destroy: (key) => delete openSlots[key],
+        setView: (_ctx, key, view) => (openSlots[key] = view),
+        destroy: (_ctx, key) => delete openSlots[key],
         trackedModel: () => undefined,
       },
-      "z2ui5/core/AppState": { state },
+      "z2ui5/core/Context": contextStub(odataCtx),
     };
-    const { module: Slots } = loadModule("core/actions/Slots.js", {
+    const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
         ...shared,
         "sap/ui/core/mvc/XMLView": {
@@ -899,25 +907,34 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         },
         "sap/ui/core/Fragment": {},
         "sap/ui/model/json/JSONModel": JSONModel,
-        "z2ui5/core/Server": {},
       },
     });
+    const Slots = { action: (...a) => SlotsModule.action(odataCtx, ...a) };
     const { module: ViewOps } = loadModule("core/actions/ViewOps.js", {
       deps: shared,
       sandbox,
     });
-    return { Slots, ViewOps, state, clients, destroyed, openSlots };
+    return {
+      Slots,
+      ViewOps,
+      ctx: odataCtx,
+      state,
+      clients,
+      destroyed,
+      openSlots,
+    };
   }
 
   // SET_ODATA_MODEL is async since the client loads on first use - awaited,
-  // as the custom-action runner awaits it
-  const setOData = (ViewOps, url, name) =>
-    ViewOps.handlers.SET_ODATA_MODEL(null, ["SET_ODATA_MODEL", url, name]);
+  // as the custom-action runner awaits it. The handler reads the context
+  // off the calling controller.
+  const setOData = (ViewOps, ctx, url, name) =>
+    ViewOps.handlers.SET_ODATA_MODEL({ ctx }, ["SET_ODATA_MODEL", url, name]);
 
   test("a NAMED SET_ODATA_MODEL client is destroyed on the next MAIN rebuild", async () => {
-    const { Slots, ViewOps, clients, destroyed } = loadODataOwnership();
+    const { Slots, ViewOps, ctx, clients, destroyed } = loadODataOwnership();
 
-    await setOData(ViewOps, "/sap/opu/odata/sap/ORDERS/", "orders");
+    await setOData(ViewOps, ctx, "/sap/opu/odata/sap/ORDERS/", "orders");
     expect(clients).toHaveLength(1);
 
     await Slots.action("display", "MAIN", "<View/>", {}, undefined);
@@ -943,17 +960,17 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
   });
 
   test("a re-issue destroys the client it replaces, an app's own model never", async () => {
-    const { ViewOps, state, clients, destroyed, openSlots } =
+    const { ViewOps, ctx, state, clients, destroyed, openSlots } =
       loadODataOwnership();
     // a model the app itself put on the view is in no inventory
     const appOwned = { destroy: () => destroyed.push(appOwned) };
     openSlots.MAIN.setModel(appOwned, "app");
 
-    await setOData(ViewOps, "/svc/one/", "orders");
-    await setOData(ViewOps, "/svc/two/", "orders");
+    await setOData(ViewOps, ctx, "/svc/one/", "orders");
+    await setOData(ViewOps, ctx, "/svc/two/", "orders");
     expect(destroyed).toEqual([clients[0]]);
 
-    await setOData(ViewOps, "/svc/three/", "app");
+    await setOData(ViewOps, ctx, "/svc/three/", "app");
     expect(destroyed).toEqual([clients[0]]);
     expect(state.odataClients.size).toBe(2);
   });
@@ -974,14 +991,9 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     const roundtrips = [];
     const busy = [];
     const pendingHash = [];
-    const state = {
-      isBusy: false,
-      oQueuedEvent: null,
-      oSentModel: null,
-      onBeforeRoundtrip: [],
-      onAfterRoundtrip: [],
-      onAfterRendering: [],
-    };
+    const ctx = specContext();
+    ctx.server.requestSeq = 1;
+    const state = ctx.state;
     const values = { VALUE: "" };
     const model = {
       _z2ui5ChangedPaths: new Set(),
@@ -998,9 +1010,8 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
         },
         "sap/m/MessageBox": {},
         "z2ui5/core/Server": {
-          _requestSeq: 1,
           responseError: () => {},
-          roundtrip: (body) => roundtrips.push(body),
+          roundtrip: (_ctx, body) => roundtrips.push(body),
         },
         "z2ui5/core/Lib": {
           isDestroyed: () => false,
@@ -1035,10 +1046,10 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
           sync: () => {},
           dispatchPendingAppHash: () => pendingHash.push("delivered"),
         },
-        "z2ui5/core/AppState": { state },
       },
       sandbox: { navigator: { onLine: true } },
     });
+    ctrl.ctx = ctx;
     // typing into the bound field: the control writes the model and the
     // change tracker (actions/Slots trackChanges) records the path
     const type = (text) => {

@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext, bindContext } = require("./loadLibModule");
 
 // Tests core/Router.js - the hash router (UI5 Router style). Three areas:
 //
@@ -37,7 +38,10 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     detachEvent: () => {},
     init: () => {},
   };
-  const state = {
+  // the router works on the component's context (core/Context.js); the
+  // module functions below are bound to this one, so the specs read as
+  // before
+  const ctx = specContext({
     navRouting: true,
     navMode: "KEEP",
     currentApp: CALLER,
@@ -45,7 +49,8 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     navFromHash: false,
     hashPushCount: 0,
     ...stateOverrides,
-  };
+  });
+  const state = ctx.state;
   const pushes = [];
   const replaces = [];
   const backs = [];
@@ -56,10 +61,9 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     pathname: "/sap/z2ui5",
     search: "",
   };
-  const { module: Router } = loadModule("core/Router.js", {
+  const { module } = loadModule("core/Router.js", {
     deps: {
       "sap/ui/core/routing/HashChanger": { getInstance: () => hashChanger },
-      "z2ui5/core/AppState": { state },
       "z2ui5/core/Lib": {
         logError: (msg, e) => errors.push({ msg, e }),
         isControllerAlive: (o) => !!(o && !o.destroyed),
@@ -76,8 +80,17 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
       },
     },
   });
+  const Router = bindContext(module, ctx, [
+    "init",
+    "exit",
+    "sync",
+    "navBack",
+    "onHashChanged",
+    "dispatchPendingAppHash",
+  ]);
   return {
     Router,
+    ctx,
     state,
     writes,
     pushes,

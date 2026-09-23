@@ -78,6 +78,19 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        this._unhook();` && |\n| &&
+             `        this._detach();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _detach() {` && |\n| &&
+             `        const input = this._target;` && |\n| &&
+             `        this._target = null;` && |\n| &&
+             `        if (!input || Lib.isDestroyed(input)) return;` && |\n| &&
+             `        if (this._onTokenUpdate) {` && |\n| &&
+             `          input.detachTokenUpdate?.(this._onTokenUpdate);` && |\n| &&
+             `        }` && |\n| &&
+             `        if (this._validator) input.removeValidator?.(this._validator);` && |\n| &&
+             `        this._onTokenUpdate = null;` && |\n| &&
+             `        this._validator = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
@@ -129,9 +142,11 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        if (!Lib.claimOnce(this, input)) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
+             `          this._target = input;` && |\n| &&
+             `          this._onTokenUpdate = this.onTokenUpdate.bind(this);` && |\n| &&
+             `          input.attachTokenUpdate(this._onTokenUpdate);` && |\n| &&
              `` && |\n| &&
-             `          input.addValidator((args) => {` && |\n| &&
+             `          this._validator = (args) => {` && |\n| &&
              `            const picked = args?.suggestionObject;` && |\n| &&
              `            if (picked && typeof picked.getCells === "function") {` && |\n| &&
              `              return this.tokenFromRow(picked);` && |\n| &&
@@ -150,7 +165,8 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `              });` && |\n| &&
              `            }` && |\n| &&
              `            return new Token({ key: args.text, text: args.text });` && |\n| &&
-             `          });` && |\n| &&
+             `          };` && |\n| &&
+             `          input.addValidator(this._validator);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&

@@ -25,76 +25,76 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/AppState", "z2ui5/devtools/Inspect"],` && |\n| &&
-             `  (AppState, Inspect) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+    result = `sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `    let cache = null;` && |\n| &&
+             `  let cache = null;` && |\n| &&
              `` && |\n| &&
-             `    function appName() {` && |\n| &&
-             `      return AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
-             `    }` && |\n| &&
+             `  function appName(ctx) {` && |\n| &&
+             `    return ctx?.state?.responseData?.S_FRONT?.APP || "";` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function sourceUrl() {` && |\n| &&
-             `      const name = appName();` && |\n| &&
-             `      if (!name) return "";` && |\n| &&
-             `      return ``${window.location.origin}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
-             `    }` && |\n| &&
+             `  function sourceUrl(ctx) {` && |\n| &&
+             `    const name = appName(ctx);` && |\n| &&
+             `    if (!name) return "";` && |\n| &&
+             `    return ``${window.location.origin}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function adtUrl() {` && |\n| &&
-             `      const url = sourceUrl();` && |\n| &&
-             `      if (!url) return "";` && |\n| &&
-             `      const event = AppState.state.oBody?.S_FRONT?.EVENT;` && |\n| &&
-             `      if (!event || cache?.app !== appName() || !cache?.source) return url;` && |\n| &&
-             `      const lineNumber = Inspect.findEventLine(cache.source, event);` && |\n| &&
-             `      return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
-             `    }` && |\n| &&
+             `  function adtUrl(ctx) {` && |\n| &&
+             `    const url = sourceUrl(ctx);` && |\n| &&
+             `    if (!url) return "";` && |\n| &&
+             `    const event = ctx?.state?.oBody?.S_FRONT?.EVENT;` && |\n| &&
+             `    if (!event || cache?.app !== appName(ctx) || !cache?.source) return url;` && |\n| &&
+             `    const lineNumber = Inspect.findEventLine(cache.source, event);` && |\n| &&
+             `    return lineNumber ? ``${url}#start=${lineNumber},1`` : url;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function openInAdt() {` && |\n| &&
-             `      const url = adtUrl();` && |\n| &&
-             `      if (!url) return;` && |\n| &&
-             `      window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
-             `    }` && |\n| &&
+             `  function openInAdt(ctx) {` && |\n| &&
+             `    const url = adtUrl(ctx);` && |\n| &&
+             `    if (!url) return;` && |\n| &&
+             `    window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function iframeHtml() {` && |\n| &&
-             `      const url = sourceUrl();` && |\n| &&
-             `      if (!url) return "";` && |\n| &&
-             `      return ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``;` && |\n| &&
-             `    }` && |\n| &&
+             `  function iframeHtml(ctx) {` && |\n| &&
+             `    const url = sourceUrl(ctx);` && |\n| &&
+             `    if (!url) return "";` && |\n| &&
+             `    const iframe = document.createElement("iframe");` && |\n| &&
+             `    iframe.setAttribute("src", url);` && |\n| &&
+             `    iframe.setAttribute("style", "width:100%;height:85vh;border:none;");` && |\n| &&
+             `    return iframe.outerHTML;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    async function fetchSource() {` && |\n| &&
-             `      const url = sourceUrl();` && |\n| &&
-             `      if (!url) return "";` && |\n| &&
-             `      const name = appName();` && |\n| &&
-             `      if (cache?.app === name) return cache.source;` && |\n| &&
-             `      let source = "";` && |\n| &&
-             `      try {` && |\n| &&
-             `        const response = await fetch(url, {` && |\n| &&
-             `          headers: { Accept: "text/plain" },` && |\n| &&
-             `          credentials: "same-origin",` && |\n| &&
-             `        });` && |\n| &&
-             `        if (response.ok) source = await response.text();` && |\n| &&
-             `      } catch {}` && |\n| &&
+             `  async function fetchSource(ctx) {` && |\n| &&
+             `    const url = sourceUrl(ctx);` && |\n| &&
+             `    if (!url) return "";` && |\n| &&
+             `    const name = appName(ctx);` && |\n| &&
+             `    if (cache?.app === name) return cache.source;` && |\n| &&
+             `    let source = "";` && |\n| &&
+             `    try {` && |\n| &&
+             `      const response = await fetch(url, {` && |\n| &&
+             `        headers: { Accept: "text/plain" },` && |\n| &&
+             `        credentials: "same-origin",` && |\n| &&
+             `      });` && |\n| &&
+             `      if (response.ok) source = await response.text();` && |\n| &&
+             `    } catch {}` && |\n| &&
              `` && |\n| &&
-             `      if (source) cache = { app: name, source };` && |\n| &&
-             `      return source;` && |\n| &&
-             `    }` && |\n| &&
+             `    if (source) cache = { app: name, source };` && |\n| &&
+             `    return source;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    return {` && |\n| &&
-             `      appName,` && |\n| &&
-             `      sourceUrl,` && |\n| &&
-             `      adtUrl,` && |\n| &&
-             `      openInAdt,` && |\n| &&
-             `      iframeHtml,` && |\n| &&
-             `      fetchSource,` && |\n| &&
+             `  return {` && |\n| &&
+             `    appName,` && |\n| &&
+             `    sourceUrl,` && |\n| &&
+             `    adtUrl,` && |\n| &&
+             `    openInAdt,` && |\n| &&
+             `    iframeHtml,` && |\n| &&
+             `    fetchSource,` && |\n| &&
              `` && |\n| &&
-             `      _setCache: (value) => {` && |\n| &&
-             `        cache = value;` && |\n| &&
-             `      },` && |\n| &&
-             `    };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `    _setCache: (value) => {` && |\n| &&
+             `      cache = value;` && |\n| &&
+             `    },` && |\n| &&
+             `  };` && |\n| &&
+             `});` && |\n| &&
              `` && |\n| &&
               ``.
 

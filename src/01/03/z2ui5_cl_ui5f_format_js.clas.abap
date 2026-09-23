@@ -57,13 +57,14 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `      return new Date(...parseYmd(d));` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    DateAbapDateTimeToDateObject(d, t = "000000") {` && |\n| &&
+             `    DateAbapDateTimeToDateObject(d, t) {` && |\n| &&
              `      if (isNoAbapDate(d)) return null;` && |\n| &&
+             `      const time = t ? String(t) : "000000";` && |\n| &&
              `      return new Date(` && |\n| &&
              `        ...parseYmd(d),` && |\n| &&
-             `        Number(t.slice(0, 2)),` && |\n| &&
-             `        Number(t.slice(2, 4)),` && |\n| &&
-             `        Number(t.slice(4, 6)),` && |\n| &&
+             `        Number(time.slice(0, 2)),` && |\n| &&
+             `        Number(time.slice(2, 4)),` && |\n| &&
+             `        Number(time.slice(4, 6)),` && |\n| &&
              `      );` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&

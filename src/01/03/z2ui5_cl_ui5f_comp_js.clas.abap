@@ -30,11 +30,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "sap/ui/core/UIComponent",` && |\n| &&
              `    "z2ui5/model/models",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
+             `    "z2ui5/core/Session",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/devtools/DevTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -44,11 +45,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    UIComponent,` && |\n| &&
              `    Models,` && |\n| &&
              `    Server,` && |\n| &&
+             `    Session,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    DevTools,` && |\n| &&
              `    Lib,` && |\n| &&
              `    Env,` && |\n| &&
-             `    AppState,` && |\n| &&
+             `    Context,` && |\n| &&
              `    Router,` && |\n| &&
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
@@ -63,8 +65,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        AppState.reset();` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
+             `        this.ctx = Context.create(this);` && |\n| &&
+             `        const state = this.ctx.state;` && |\n| &&
              `` && |\n| &&
              `        const {` && |\n| &&
              `          checkLocal,` && |\n| &&
@@ -103,7 +105,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
              `` && |\n| &&
-             `        DevTools.install();` && |\n| &&
+             `        DevTools.install(this.ctx);` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
              `      },` && |\n| &&
@@ -116,7 +118,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installScrollListener() {` && |\n| &&
-             `        this._boundScroll = (event) => ScrollFocus.onScrollCapture(event);` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
+             `        this._boundScroll = (event) => ScrollFocus.onScrollCapture(ctx, event);` && |\n| &&
              `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `          passive: true,` && |\n| &&
@@ -124,7 +127,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installRouterListener() {` && |\n| &&
-             `        Router.init(() => Server.restoreFromRoute());` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
+             `        Router.init(ctx, () => Server.restoreFromRoute(ctx));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _initLaunchpad() {` && |\n| &&
@@ -133,7 +137,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        this._launchpad = launchpad;` && |\n| &&
-             `        AppState.state.oLaunchpad = launchpad;` && |\n| &&
+             `        this.ctx.state.oLaunchpad = launchpad;` && |\n| &&
              `` && |\n| &&
              `        const setIfAlive = (key, value) => {` && |\n| &&
              `          if (Lib.isAlive(this) && this._launchpad === launchpad) {` && |\n| &&
@@ -167,7 +171,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          if (Lib.isAlive(this)) {` && |\n| &&
-             `            AppState.state.oConfig.S_UI5 = {` && |\n| &&
+             `            this.ctx.state.oConfig.S_UI5 = {` && |\n| &&
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&
@@ -186,31 +190,34 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
-             `        Router.exit();` && |\n| &&
+             `        Router.exit(ctx);` && |\n| &&
              `` && |\n| &&
-             `        DevTools.exit();` && |\n| &&
+             `        DevTools.exit(ctx);` && |\n| &&
              `` && |\n| &&
-             `        Shortcuts.reset();` && |\n| &&
+             `        Shortcuts.reset(ctx);` && |\n| &&
              `` && |\n| &&
-             `        Server.endSession();` && |\n| &&
+             `        Server.endSession(ctx);` && |\n| &&
              `` && |\n| &&
-             `        Server.reset();` && |\n| &&
+             `        Server.reset(ctx);` && |\n| &&
              `` && |\n| &&
-             `        ViewSlots.destroy("POPUP");` && |\n| &&
-             `        ViewSlots.destroy("POPOVER");` && |\n| &&
+             `        Session.reset(ctx);` && |\n| &&
              `` && |\n| &&
-             `        Lib.cancelPendingTimers();` && |\n| &&
-             `        if (AppState.state.oDeviceModel) {` && |\n| &&
-             `          AppState.state.oDeviceModel.destroy();` && |\n| &&
+             `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
+             `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
+             `` && |\n| &&
+             `        Lib.cancelPendingTimers(ctx);` && |\n| &&
+             `        if (ctx.state.oDeviceModel) {` && |\n| &&
+             `          ctx.state.oDeviceModel.destroy();` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        sap.ui.require("z2ui5/cc/Dirty")?.reset?.();` && |\n| &&
+             `        sap.ui.require("z2ui5/cc/Dirty")?.reset?.(ctx);` && |\n| &&
              `` && |\n| &&
-             `        for (const oClient of AppState.state.odataClients) {` && |\n| &&
+             `        for (const oClient of ctx.state.odataClients) {` && |\n| &&
              `          try {` && |\n| &&
              `            oClient.destroy();` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -225,8 +232,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        this._launchpad = null;` && |\n| &&
              `` && |\n| &&
-             `        ScrollFocus.reset();` && |\n| &&
-             `        AppState.reset();` && |\n| &&
+             `        ScrollFocus.reset(ctx);` && |\n| &&
+             `        Context.destroy(ctx);` && |\n| &&
              `` && |\n| &&
              `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
              `      },` && |\n| &&

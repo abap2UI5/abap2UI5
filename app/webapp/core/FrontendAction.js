@@ -8,7 +8,6 @@ sap.ui.define(
     "z2ui5/core/actions/Shortcuts",
     "z2ui5/core/actions/ViewOps",
     "z2ui5/core/Lib",
-    "z2ui5/core/AppState",
   ],
   (
     ControlCall,
@@ -19,7 +18,6 @@ sap.ui.define(
     Shortcuts,
     ViewOps,
     Lib,
-    AppState,
   ) => {
     "use strict";
 
@@ -32,7 +30,8 @@ sap.ui.define(
     // per domain, merged here into the one dispatch table. Handlers share
     // the uniform signature (oController, args); ones that need to reach
     // controller state (eB, ...) receive the calling controller as first
-    // argument.
+    // argument - and through it the component's context (oController.ctx,
+    // core/Context.js), which is where every handler reads the state.
     // ------------------------------------------------------------------
     // Object.create(null) rather than {}: args[0] is an action name off the
     // wire, and on a plain object handlers["valueOf"] resolves to a function
@@ -56,7 +55,7 @@ sap.ui.define(
     function execute(oController, args) {
       // runCallbacks isolates each hook in its own try/catch, so a throwing
       // before-event hook cannot escape here.
-      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
+      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);
 
       try {
         const handler = handlers[args[0]];
@@ -89,7 +88,7 @@ sap.ui.define(
     // threaded through the dispatch as an argument - never parked on shared
     // state, where a parallel response's phase would overwrite it.
     function executeSystem(oController, args, ctx) {
-      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
+      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);
       const handler = handlers[args[0]];
       if (!handler) {
         Lib.logError(`FrontendAction: unknown system action '${args[0]}'`);

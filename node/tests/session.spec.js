@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, specContext, bindContext } = require("./loadLibModule");
 
 // Tests Session.config: what a browser tells the backend about ITSELF
 // travels once per page load, not with every roundtrip. The backend stores it
@@ -10,15 +10,30 @@ const { loadLib } = require("./loadLibModule");
 // send latches advance in confirmSent( ), called by Server.readHttp once
 // the carrying request won its stale guard - a dropped request re-sends.
 
+// the latches live on the component's context (ctx.session); the functions
+// are bound to one spec context
 function loadSession(Device) {
-  const { module: Session } = loadModule("core/Session.js", {
+  const ctx = specContext();
+  const { module } = loadModule("core/Session.js", {
     deps: {
       "sap/ui/Device": Device,
       "z2ui5/core/Lib": loadLib().Lib,
     },
-    sandbox: { window: { innerWidth: 1024, innerHeight: 768 } },
+    sandbox: {
+      window: {
+        innerWidth: 1024,
+        innerHeight: 768,
+        location: { origin: "http://h", pathname: "/sap/z2ui5", search: "" },
+      },
+    },
   });
-  return Session;
+  return bindContext(module, ctx, [
+    "config",
+    "takePending",
+    "confirmSent",
+    "location",
+    "reset",
+  ]);
 }
 
 function device({ portrait = true, width = 400, height = 800 } = {}) {
@@ -133,4 +148,26 @@ test("keeps sending until the version info has actually arrived", () => {
   // stored now - and the unchanged live fields are latched too, so the
   // follow-up event roundtrip sends nothing at all
   expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+});
+
+// The latches are module state and outlive the component - an FLP re-launch
+// keeps the page alive. Component.exit calls reset( ) so the next launch
+// starts from the same state as a page load: the whole block again, the
+// location again, and no confirmation token left over from the old app.
+test("reset() puts the send latches back to page-load state", () => {
+  const Session = loadSession(device());
+  Session.config(CONFIG);
+  Session.location();
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+  expect(Session.location("DRAFT1")).toBeNull();
+
+  Session.reset();
+
+  // a token built before the reset must not confirm anything afterwards
+  expect(Session.takePending()).toBeNull();
+  const out = Session.config(CONFIG, "DRAFT1");
+  expect(out.S_UI5).toEqual({ VERSION: "1.120.0" });
+  expect(out.S_DEVICE.OS).toEqual({ NAME: "Windows", VERSION: "11" });
+  expect(Session.location("DRAFT1")).not.toBeNull();
 });

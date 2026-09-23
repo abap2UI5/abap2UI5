@@ -68,14 +68,13 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `          const bindingPath =` && |\n| &&
              `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `` && |\n| &&
-             `          const changedPaths = ViewSlots.trackedModel(this)?._z2ui5ChangedPaths;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
              `            const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `            const scrollTop = this._getScrollTop(control);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&
              `              item.V = scrollTop;` && |\n| &&
-             `              if (bindingPath && changedPaths) {` && |\n| &&
-             `                changedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             `              if (bindingPath) {` && |\n| &&
+             `                ViewSlots.markChanged(this, ``${bindingPath}/${index}/V``);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&

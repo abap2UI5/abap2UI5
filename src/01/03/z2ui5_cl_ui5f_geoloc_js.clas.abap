@@ -124,7 +124,13 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `      if (!this._pendingGeolocate) return;` && |\n| &&
              `      this._pendingGeolocate = false;` && |\n| &&
              `      try {` && |\n| &&
-             `        if (!navigator.geolocation) return;` && |\n| &&
+             `        if (!navigator.geolocation) {` && |\n| &&
+             `          this.callbackError({` && |\n| &&
+             `            code: 0,` && |\n| &&
+             `            message: "Geolocation API not available",` && |\n| &&
+             `          });` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        navigator.geolocation.getCurrentPosition(` && |\n| &&
              `          this.callbackPosition.bind(this),` && |\n| &&
              `          this.callbackError.bind(this),` && |\n| &&

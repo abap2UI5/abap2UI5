@@ -129,3 +129,68 @@ test.describe("prettifyXml", () => {
     );
   });
 });
+
+test.describe("section", () => {
+  test("underlines the title after a blank line", () => {
+    expect(loadFormat().section("App")).toBe("\nApp\n---");
+  });
+});
+
+// The inline preview the action list and the model diff render a value as.
+test.describe("renderValue", () => {
+  test("renders an object as its JSON and a scalar as its string", () => {
+    const Format = loadFormat();
+    expect(Format.renderValue({ A: 1 }, 100)).toBe('{"A":1}');
+    expect(Format.renderValue(42, 100)).toBe("42");
+    expect(Format.renderValue(null, 100)).toBe("null");
+    expect(Format.renderValue(undefined, 100)).toBe("(absent)");
+  });
+
+  test("cuts at the given length and says how long it was", () => {
+    expect(loadFormat().renderValue("x".repeat(500), 10)).toBe(
+      `${"x".repeat(10)}... (500 chars)`,
+    );
+  });
+
+  test("degrades to the string form when the JSON cannot be built", () => {
+    expect(loadFormat().renderValue({ big: 10n }, 100)).toBe("[object Object]");
+  });
+});
+
+// The shape description the Bindings tab and the picked control share.
+test.describe("describeValue", () => {
+  test("describes tables and structures by shape, not by dumping them", () => {
+    const Format = loadFormat();
+    expect(Format.describeValue([1, 2, 3])).toBe("table, 3 row(s)");
+    expect(Format.describeValue({ A: 1 })).toBe("structure, 1 field(s)");
+    expect(Format.describeValue(null)).toBe("null");
+  });
+
+  test("labels the edge cases the way the caller names them", () => {
+    const Format = loadFormat();
+    expect(Format.describeValue(undefined)).toBe("(absent)");
+    expect(Format.describeValue("")).toBe("(empty)");
+    expect(
+      Format.describeValue(undefined, { absent: "(no value at this path)" }),
+    ).toBe("(no value at this path)");
+    expect(Format.describeValue("", { empty: "(empty string)" })).toBe(
+      "(empty string)",
+    );
+  });
+
+  test("prefixes a scalar with its type on request", () => {
+    const Format = loadFormat();
+    expect(Format.describeValue("Miller AG", { typed: true })).toBe(
+      "string  Miller AG",
+    );
+    expect(Format.describeValue(7, { typed: true })).toBe("number  7");
+    expect(Format.describeValue("", { typed: true })).toBe("string (empty)");
+    expect(Format.describeValue("Miller AG")).toBe("Miller AG");
+  });
+
+  test("cuts a long scalar at the given length", () => {
+    expect(loadFormat().describeValue("x".repeat(90), { max: 80 })).toBe(
+      `${"x".repeat(80)}... (90 chars)`,
+    );
+  });
+});

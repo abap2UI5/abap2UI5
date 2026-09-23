@@ -161,7 +161,9 @@ sap.ui.define(
         Lib.logError(`BINDING_CALL: method '${method}' not allowed`);
         return;
       }
-      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
+      const binding = ViewSlots.resolveById(oController?.ctx, id)?.getBinding?.(
+        aggregation,
+      );
       if (!binding || typeof binding[method] !== "function") {
         Lib.logError(
           `BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'`,

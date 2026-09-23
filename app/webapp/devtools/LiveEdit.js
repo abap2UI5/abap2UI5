@@ -9,16 +9,17 @@
 //
 // Outside the framework like the rest of devtools/: it drives the
 // same public slot-display entry point (core/actions/Slots.action) the
-// backend's VIEW_SLOTS action uses, and adds nothing to it.
+// backend's VIEW_SLOTS action uses, and adds nothing to it. The slot it
+// re-renders belongs to one component context (core/Context.js), so
+// every function that touches a slot takes the context first.
 sap.ui.define(
   [
     "z2ui5/core/actions/Slots",
-    "z2ui5/core/AppState",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Tabs",
   ],
-  (Slots, AppState, Lib, ViewSlots, Tabs) => {
+  (Slots, Lib, ViewSlots, Tabs) => {
     "use strict";
 
     // Which view slot a developer-tools tab edits, read from the tab
@@ -38,10 +39,10 @@ sap.ui.define(
 
     // True when the given tab can be applied right now: it maps to a slot
     // and that slot actually holds something to replace.
-    function canApply(tabKey) {
+    function canApply(ctx, tabKey) {
       const slotKey = slotOfTab(tabKey);
       if (!slotKey) return false;
-      return Boolean(ViewSlots.getView(slotKey));
+      return Boolean(ViewSlots.getView(ctx, slotKey));
     }
 
     // Re-render `tabKey`'s slot with `xml`. Returns a short result message
@@ -53,12 +54,12 @@ sap.ui.define(
     // without this a popup re-rendered from the editor would come back
     // bound to whatever the last response carried rather than to what the
     // user currently sees.
-    async function apply(tabKey, xml) {
+    async function apply(ctx, tabKey, xml) {
       const slotKey = slotOfTab(tabKey);
       if (!slotKey) return "This tab shows no view slot - nothing to apply.";
       if (!xml || !xml.trim()) return "The editor is empty - nothing to apply.";
 
-      const oldView = ViewSlots.getView(slotKey);
+      const oldView = ViewSlots.getView(ctx, slotKey);
       if (!oldView) return `Slot ${slotKey} is not filled - nothing to apply.`;
       const oldModel = oldView.getModel?.();
       const modelData = oldModel?.getData?.();
@@ -71,8 +72,8 @@ sap.ui.define(
         // an empty {} stripped them and broke the preview of exactly those
         // apps.
         const options =
-          slotKey === "MAIN" ? AppState.state.lastMainDisplayOptions || {} : {};
-        await Slots.action("display", slotKey, xml, options, undefined);
+          slotKey === "MAIN" ? ctx.state.lastMainDisplayOptions || {} : {};
+        await Slots.action(ctx, "display", slotKey, xml, options, undefined);
       } catch (e) {
         Lib.logError("DevTools LiveEdit: applying the edited XML failed", e);
         return `Could not build the view: ${e?.message || e}`;
@@ -82,7 +83,7 @@ sap.ui.define(
       // their model - MAIN's rebuild already reads the current model data,
       // and the nested slots inherit MAIN's by propagation.
       try {
-        const newView = ViewSlots.getView(slotKey);
+        const newView = ViewSlots.getView(ctx, slotKey);
         const newModel = newView?.getModel?.();
         if (modelData && newModel?.setData && slotKey !== "MAIN") {
           newModel.setData(modelData);
@@ -99,8 +100,8 @@ sap.ui.define(
 
     // True while a roundtrip is running - applying then would race the
     // response's own display of the same slot.
-    function isBusy() {
-      return Boolean(AppState.state.isBusy);
+    function isBusy(ctx) {
+      return Boolean(ctx?.state?.isBusy);
     }
 
     // No originalXml( ) here any more: the dialog's Reset reads the slot

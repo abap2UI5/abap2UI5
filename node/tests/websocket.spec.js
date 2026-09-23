@@ -10,19 +10,27 @@ const { loadLib } = require("./loadLibModule");
 //     never throws and never surfaces UI of its own.
 //   - destroyed-guards: a socket callback or the drain timer firing after the
 //     control was torn down must be a silent no-op.
-//   - the busy queue: while a roundtrip is in flight (AppState.state.isBusy)
-//     nothing is delivered; items queue and drain one per retry, in order.
+//   - the busy queue: while a roundtrip is in flight (state.isBusy of the
+//     control's component context) nothing is delivered; items queue and
+//     drain one per retry, in order. A control in no component (Context.of
+//     answers null) is never waiting on a roundtrip.
 //   - the give-up budget: every way a connection can fail to become usable
 //     counts against MAX_CONNECT_ATTEMPTS, so no failure mode reconnects
 //     forever (see CONNECT_STABLE_MS in the control).
-function load({ isBusy = false, origin = "https://host.example" } = {}) {
+function load({
+  isBusy = false,
+  origin = "https://host.example",
+  context = true,
+} = {}) {
   const errors = [];
   // The real Lib so isDestroyed/renderInvisibleSpan/afterRoundtrip are the
   // shipped ones; only logError is replaced to capture the messages. Lib
-  // and the control share ONE state object, the way they do in the app -
-  // afterRoundtrip decides on the same isBusy the control's drain sees.
-  const state = { isBusy };
-  const Lib = { ...loadLib({ state }).Lib, logError: (m) => errors.push(m) };
+  // and the control share ONE context (and its state), the way they do in
+  // the app - afterRoundtrip decides on the same isBusy the control's
+  // drain sees. `state` is that context's state, seeded with isBusy.
+  const lib = loadLib({ state: { isBusy } });
+  const { state, Context } = lib;
+  const Lib = { ...lib.Lib, logError: (m) => errors.push(m) };
   const sockets = [];
   let failConstruct = false;
   class FakeWebSocket {
@@ -64,7 +72,7 @@ function load({ isBusy = false, origin = "https://host.example" } = {}) {
         },
       },
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/AppState": { state },
+      "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },
     },
     sandbox: {
       WebSocket: FakeWebSocket,
@@ -435,6 +443,25 @@ test("an item fired while idle is delivered without waiting for a roundtrip", ()
   expect(timers).toHaveLength(0);
   runTimers();
   expect(inst.received).toEqual(["now"]);
+});
+
+// A control in no component (Context.of answers null) has no roundtrip to
+// wait for: the busy flag of the spec's context does not apply to it, and
+// the item goes out on the deferred drain - the same answer the real
+// Lib.afterRoundtrip gives such a control.
+test("in no component the queue never waits for a roundtrip", () => {
+  const { makeInstance, sockets, state, runTimers } = load({
+    isBusy: true,
+    context: false,
+  });
+  const inst = makeInstance({ path: "/sap/bc/apc/x" });
+  inst.onAfterRendering();
+
+  sockets[0].onmessage({ data: "hello" });
+  runTimers();
+
+  expect(inst.received).toEqual(["hello"]);
+  expect(state.onAfterRendering).toHaveLength(0);
 });
 
 test("messages and errors share the queue and keep their order", () => {

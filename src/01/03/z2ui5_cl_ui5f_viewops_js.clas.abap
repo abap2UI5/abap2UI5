@@ -25,241 +25,238 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Lib, ViewSlots, AppState) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+    result = `sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
+             `  const SMOOTH_SCROLL_MS = 300;` && |\n| &&
              `` && |\n| &&
-             `    function evSetSizeLimit(oController, args) {` && |\n| &&
-             `      const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
-             `      const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
-             `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
+             `  function evSetSizeLimit(oController, args) {` && |\n| &&
+             `    const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
+             `    const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
+             `    const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `` && |\n| &&
-             `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
-             `      const previous = AppState.state.viewSizeLimits[viewKey];` && |\n| &&
-             `      if (isValidLimit) {` && |\n| &&
-             `        AppState.state.viewSizeLimits[viewKey] = limit;` && |\n| &&
-             `      } else {` && |\n| &&
-             `        delete AppState.state.viewSizeLimits[viewKey];` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      if (previous === AppState.state.viewSizeLimits[viewKey]) return;` && |\n| &&
-             `` && |\n| &&
-             `      const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;` && |\n| &&
-             `` && |\n| &&
-             `      const view = ViewSlots.getView(modelKey);` && |\n| &&
-             `      const model = view` && |\n| &&
-             `        ? (ViewSlots.trackedModel(view) ?? view.getModel())` && |\n| &&
-             `        : undefined;` && |\n| &&
-             `      if (model) {` && |\n| &&
-             `        const effective = Lib.effectiveSizeLimit(` && |\n| &&
-             `          AppState.state.viewSizeLimits,` && |\n| &&
-             `          viewKey,` && |\n| &&
-             `        );` && |\n| &&
-             `` && |\n| &&
-             `        model.setSizeLimit(effective ?? 100);` && |\n| &&
-             `        model.refresh(true);` && |\n| &&
-             `      }` && |\n| &&
+             `    const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
+             `    const previous = oController.ctx.state.viewSizeLimits[viewKey];` && |\n| &&
+             `    if (isValidLimit) {` && |\n| &&
+             `      oController.ctx.state.viewSizeLimits[viewKey] = limit;` && |\n| &&
+             `    } else {` && |\n| &&
+             `      delete oController.ctx.state.viewSizeLimits[viewKey];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function evSetODataModel(oController, args) {` && |\n| &&
-             `      let oModel;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const ODataModel = await Lib.requireODataModel();` && |\n| &&
-             `        oModel = new ODataModel({` && |\n| &&
-             `          serviceUrl: args[1],` && |\n| &&
-             `          annotationURI: args[3] || "",` && |\n| &&
-             `        });` && |\n| &&
-             `        const oView = ViewSlots.getView("MAIN");` && |\n| &&
-             `        if (oView) {` && |\n| &&
-             `          const name = args[2] || undefined;` && |\n| &&
+             `    if (previous === oController.ctx.state.viewSizeLimits[viewKey]) return;` && |\n| &&
              `` && |\n| &&
-             `          const previous = oView.getModel(name);` && |\n| &&
-             `          oView.setModel(oModel, name);` && |\n| &&
-             `          AppState.state.odataClients.add(oModel);` && |\n| &&
+             `    const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;` && |\n| &&
              `` && |\n| &&
-             `          if (` && |\n| &&
-             `            previous !== oModel &&` && |\n| &&
-             `            AppState.state.odataClients.has(previous)` && |\n| &&
-             `          ) {` && |\n| &&
-             `            AppState.state.odataClients.delete(previous);` && |\n| &&
-             `            previous.destroy();` && |\n| &&
-             `          }` && |\n| &&
-             `        } else {` && |\n| &&
-             `          oModel.destroy();` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
-             `` && |\n| &&
-             `        AppState.state.odataClients.delete(oModel);` && |\n| &&
-             `        oModel?.destroy?.();` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evBindElement(oController, args) {` && |\n| &&
-             `      const slot = args[1] || "MAIN";` && |\n| &&
-             `      const view = ViewSlots.getView(slot);` && |\n| &&
-             `      if (!view) {` && |\n| &&
-             `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
-             `      if (!path) {` && |\n| &&
-             `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evStartTimer(oController, args) {` && |\n| &&
-             `      const timerKey = args[0];` && |\n| &&
-             `      const callbackEvent = args[1];` && |\n| &&
-             `      const delay = Number(args[2]) || 0;` && |\n| &&
-             `      const timers = AppState.state.timers;` && |\n| &&
-             `      Lib.cancelTimer(timers[timerKey]);` && |\n| &&
-             `      const fire = () => {` && |\n| &&
-             `        delete timers[timerKey];` && |\n| &&
-             `` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (AppState.state.isBusy) {` && |\n| &&
-             `          const cancel = Lib.afterRoundtrip(oController, () => {` && |\n| &&
-             `            timers[timerKey] = setTimeout(fire, 0);` && |\n| &&
-             `          });` && |\n| &&
-             `          if (!(timerKey in timers)) timers[timerKey] = cancel;` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        oController.eB([callbackEvent, false, true]);` && |\n| &&
-             `      };` && |\n| &&
-             `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function resolveTarget(action, id) {` && |\n| &&
-             `      const oElement = ViewSlots.resolveById(id);` && |\n| &&
-             `      if (!oElement) Lib.logError(``${action}: no control '${id}'``);` && |\n| &&
-             `      return oElement;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = resolveTarget("SET_FOCUS", args[1]);` && |\n| &&
-             `      if (!oElement) return;` && |\n| &&
-             `` && |\n| &&
-             `      const applyFocus = () => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          if (args[2] != null && args[2] !== "") {` && |\n| &&
-             `            info.selectionStart = Number(args[2]);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (args[3] != null && args[3] !== "") {` && |\n| &&
-             `            info.selectionEnd = Number(args[3]);` && |\n| &&
-             `          }` && |\n| &&
-             `          oElement.applyFocusInfo(info);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `` && |\n| &&
-             `      Lib.whenRendered(` && |\n| &&
-             `        oElement,` && |\n| &&
-             `        oController,` && |\n| &&
-             `        () => {` && |\n| &&
-             `          applyFocus();` && |\n| &&
-             `          const dom = oElement.getDomRef();` && |\n| &&
-             `          if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
-             `` && |\n| &&
-             `          const prevActive = document.activeElement;` && |\n| &&
-             `` && |\n| &&
-             `          const samePlace = (el) =>` && |\n| &&
-             `            el == null ||` && |\n| &&
-             `            el === document.body ||` && |\n| &&
-             `            el === prevActive ||` && |\n| &&
-             `            Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
-             `` && |\n| &&
-             `          Lib.onNextRendering(` && |\n| &&
-             `            oElement,` && |\n| &&
-             `            () => {` && |\n| &&
-             `              setTimeout(() => {` && |\n| &&
-             `                if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `                if (!samePlace(document.activeElement)) return;` && |\n| &&
-             `                applyFocus();` && |\n| &&
-             `              }, 0);` && |\n| &&
-             `            },` && |\n| &&
-             `            "focusRetry",` && |\n| &&
-             `          );` && |\n| &&
-             `        },` && |\n| &&
-             `        "focus",` && |\n| &&
+             `    const view = ViewSlots.getView(oController.ctx, modelKey);` && |\n| &&
+             `    const model = view` && |\n| &&
+             `      ? (ViewSlots.trackedModel(view) ?? view.getModel())` && |\n| &&
+             `      : undefined;` && |\n| &&
+             `    if (model) {` && |\n| &&
+             `      const effective = Lib.effectiveSizeLimit(` && |\n| &&
+             `        oController.ctx.state.viewSizeLimits,` && |\n| &&
+             `        viewKey,` && |\n| &&
              `      );` && |\n| &&
+             `` && |\n| &&
+             `      model.setSizeLimit(effective ?? 100);` && |\n| &&
+             `      model.refresh(true);` && |\n| &&
              `    }` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function evScrollTo(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = resolveTarget("SCROLL_TO", args[1]);` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
-             `        const y = Number(args[2]) || 0;` && |\n| &&
-             `        const x = Number(args[3]) || 0;` && |\n| &&
-             `        const behavior = args[4] || "auto";` && |\n| &&
-             `        const smooth = behavior === "smooth";` && |\n| &&
+             `  async function evSetODataModel(oController, args) {` && |\n| &&
+             `    let oModel;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const ODataModel = await Lib.requireODataModel();` && |\n| &&
+             `      oModel = new ODataModel({` && |\n| &&
+             `        serviceUrl: args[1],` && |\n| &&
+             `        annotationURI: args[3] || "",` && |\n| &&
+             `      });` && |\n| &&
+             `      const oView = ViewSlots.getView(oController.ctx, "MAIN");` && |\n| &&
+             `      if (oView) {` && |\n| &&
+             `        const name = args[2] || undefined;` && |\n| &&
              `` && |\n| &&
-             `        let handled = false;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const delegate = oElement.getScrollDelegate?.();` && |\n| &&
-             `          if (delegate?.scrollTo) {` && |\n| &&
-             `            delegate.scrollTo(x, y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
-             `            handled = true;` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch {}` && |\n| &&
+             `        const previous = oView.getModel(name);` && |\n| &&
+             `        oView.setModel(oModel, name);` && |\n| &&
+             `        oController.ctx.state.odataClients.add(oModel);` && |\n| &&
              `` && |\n| &&
-             `        if (!handled) {` && |\n| &&
-             `          const dom =` && |\n| &&
-             `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
-             `            oElement.getDomRef();` && |\n| &&
-             `          if (dom?.scrollTo) {` && |\n| &&
-             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `          } else if (dom) {` && |\n| &&
-             `            dom.scrollTop = y;` && |\n| &&
-             `            dom.scrollLeft = x;` && |\n| &&
-             `          } else if (oElement.scrollTo) {` && |\n| &&
-             `            oElement.scrollTo(y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
-             `          }` && |\n| &&
+             `        if (` && |\n| &&
+             `          previous !== oModel &&` && |\n| &&
+             `          oController.ctx.state.odataClients.has(previous)` && |\n| &&
+             `        ) {` && |\n| &&
+             `          oController.ctx.state.odataClients.delete(previous);` && |\n| &&
+             `          previous.destroy();` && |\n| &&
              `        }` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        oModel.destroy();` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `` && |\n| &&
-             `    function evScrollIntoView(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = resolveTarget("SCROLL_INTO_VIEW", args[1]);` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
-             `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
-             `        dom.scrollIntoView({` && |\n| &&
-             `          behavior: args[2] || "smooth",` && |\n| &&
-             `          block: args[3] || "start",` && |\n| &&
-             `          inline: args[4] || "nearest",` && |\n| &&
+             `      oController.ctx.state.odataClients.delete(oModel);` && |\n| &&
+             `      oModel?.destroy?.();` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function evBindElement(oController, args) {` && |\n| &&
+             `    const slot = args[1] || "MAIN";` && |\n| &&
+             `    const view = ViewSlots.getView(oController.ctx, slot);` && |\n| &&
+             `    if (!view) {` && |\n| &&
+             `      Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
+             `    if (!path) {` && |\n| &&
+             `      Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    view.bindElement(``${path}/${args[2]}``);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function evStartTimer(oController, args) {` && |\n| &&
+             `    const timerKey = args[0];` && |\n| &&
+             `    const callbackEvent = args[1];` && |\n| &&
+             `    const delay = Number(args[2]) || 0;` && |\n| &&
+             `    const timers = oController.ctx.state.timers;` && |\n| &&
+             `    Lib.cancelTimer(timers[timerKey]);` && |\n| &&
+             `    const fire = () => {` && |\n| &&
+             `      delete timers[timerKey];` && |\n| &&
+             `` && |\n| &&
+             `      if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `` && |\n| &&
+             `      if (oController.ctx.state.isBusy) {` && |\n| &&
+             `        const cancel = Lib.afterRoundtrip(oController, () => {` && |\n| &&
+             `          timers[timerKey] = setTimeout(fire, 0);` && |\n| &&
              `        });` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
+             `        if (!(timerKey in timers)) timers[timerKey] = cancel;` && |\n| &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
-             `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
-             `      BIND_ELEMENT: evBindElement,` && |\n| &&
-             `      START_TIMER: evStartTimer,` && |\n| &&
-             `      SET_FOCUS: evSetFocus,` && |\n| &&
-             `      SCROLL_TO: evScrollTo,` && |\n| &&
-             `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
+             `      oController.eB([callbackEvent, false, true]);` && |\n| &&
+             `    };` && |\n| &&
+             `    timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function resolveTarget(oController, action, id) {` && |\n| &&
+             `    const oElement = ViewSlots.resolveById(oController?.ctx, id);` && |\n| &&
+             `    if (!oElement) Lib.logError(``${action}: no control '${id}'``);` && |\n| &&
+             `    return oElement;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function evSetFocus(oController, args) {` && |\n| &&
+             `    const oElement = resolveTarget(oController, "SET_FOCUS", args[1]);` && |\n| &&
+             `    if (!oElement) return;` && |\n| &&
+             `` && |\n| &&
+             `    const applyFocus = () => {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const info = oElement.getFocusInfo();` && |\n| &&
+             `        if (args[2] != null && args[2] !== "") {` && |\n| &&
+             `          info.selectionStart = Number(args[2]);` && |\n| &&
+             `        }` && |\n| &&
+             `        if (args[3] != null && args[3] !== "") {` && |\n| &&
+             `          info.selectionEnd = Number(args[3]);` && |\n| &&
+             `        }` && |\n| &&
+             `        oElement.applyFocusInfo(info);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return { handlers };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `    Lib.whenRendered(` && |\n| &&
+             `      oElement,` && |\n| &&
+             `      oController,` && |\n| &&
+             `      () => {` && |\n| &&
+             `        applyFocus();` && |\n| &&
+             `        const dom = oElement.getDomRef();` && |\n| &&
+             `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
+             `` && |\n| &&
+             `        const prevActive = document.activeElement;` && |\n| &&
+             `` && |\n| &&
+             `        const samePlace = (el) =>` && |\n| &&
+             `          el == null ||` && |\n| &&
+             `          el === document.body ||` && |\n| &&
+             `          el === prevActive ||` && |\n| &&
+             `          Boolean(el.id && prevActive && el.id === prevActive.id);` && |\n| &&
+             `` && |\n| &&
+             `        Lib.onNextRendering(` && |\n| &&
+             `          oElement,` && |\n| &&
+             `          () => {` && |\n| &&
+             `            setTimeout(() => {` && |\n| &&
+             `              if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `` && |\n| &&
+             `              if (!samePlace(document.activeElement)) return;` && |\n| &&
+             `              applyFocus();` && |\n| &&
+             `            }, 0);` && |\n| &&
+             `          },` && |\n| &&
+             `          "focusRetry",` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
+             `      "focus",` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function evScrollTo(oController, args) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n| &&
+             `      if (!oElement) return;` && |\n| &&
+             `      const y = Number(args[2]) || 0;` && |\n| &&
+             `      const x = Number(args[3]) || 0;` && |\n| &&
+             `      const behavior = args[4] || "auto";` && |\n| &&
+             `      const smooth = behavior === "smooth";` && |\n| &&
+             `` && |\n| &&
+             `      let handled = false;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const delegate = oElement.getScrollDelegate?.();` && |\n| &&
+             `        if (delegate?.scrollTo) {` && |\n| &&
+             `          delegate.scrollTo(x, y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
+             `          handled = true;` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch {}` && |\n| &&
+             `` && |\n| &&
+             `      if (!handled) {` && |\n| &&
+             `        const dom =` && |\n| &&
+             `          document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
+             `          oElement.getDomRef();` && |\n| &&
+             `        if (dom?.scrollTo) {` && |\n| &&
+             `          dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
+             `        } else if (dom) {` && |\n| &&
+             `          dom.scrollTop = y;` && |\n| &&
+             `          dom.scrollLeft = x;` && |\n| &&
+             `        } else if (oElement.scrollTo) {` && |\n| &&
+             `          oElement.scrollTo(y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function evScrollIntoView(oController, args) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const oElement = resolveTarget(oController, "SCROLL_INTO_VIEW", args[1]);` && |\n| &&
+             `      if (!oElement) return;` && |\n| &&
+             `      const dom = oElement.getDomRef();` && |\n| &&
+             `      if (!dom || !dom.scrollIntoView) return;` && |\n| &&
+             `      dom.scrollIntoView({` && |\n| &&
+             `        behavior: args[2] || "smooth",` && |\n| &&
+             `        block: args[3] || "start",` && |\n| &&
+             `        inline: args[4] || "nearest",` && |\n| &&
+             `      });` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const handlers = {` && |\n| &&
+             `    SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
+             `    SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
+             `    BIND_ELEMENT: evBindElement,` && |\n| &&
+             `    START_TIMER: evStartTimer,` && |\n| &&
+             `    SET_FOCUS: evSetFocus,` && |\n| &&
+             `    SCROLL_TO: evScrollTo,` && |\n| &&
+             `    SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  return { handlers };` && |\n| &&
+             `});` && |\n| &&
              `` && |\n| &&
               ``.
 

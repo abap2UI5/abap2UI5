@@ -3,11 +3,12 @@ sap.ui.define(
     "sap/ui/core/UIComponent",
     "z2ui5/model/models",
     "z2ui5/core/Server",
+    "z2ui5/core/Session",
     "sap/ui/VersionInfo",
     "z2ui5/devtools/DevTools",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
-    "z2ui5/core/AppState",
+    "z2ui5/core/Context",
     "z2ui5/core/Router",
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
@@ -17,11 +18,12 @@ sap.ui.define(
     UIComponent,
     Models,
     Server,
+    Session,
     VersionInfo,
     DevTools,
     Lib,
     Env,
-    AppState,
+    Context,
     Router,
     ScrollFocus,
     ViewSlots,
@@ -36,11 +38,16 @@ sap.ui.define(
       },
 
       init() {
-        // core/AppState owns the shared state of the whole app. Start from
-        // clean defaults (also on an FLP re-launch), so the base init() and
-        // all helpers can rely on a fully initialized state from here on.
-        AppState.reset();
-        const state = AppState.state;
+        // The context of THIS component (core/Context.js): its state, its
+        // request bookkeeping, its listeners. Nothing of it is shared with
+        // another z2ui5.Component on the page - several can run side by
+        // side since 2026-09-23 - and every module below the component
+        // reaches it through the controllers App.controller creates, or
+        // through Context.of for a control. Fresh defaults, also on an FLP
+        // re-launch, so the base init() and all helpers can rely on a fully
+        // initialized state from here on.
+        this.ctx = Context.create(this);
+        const state = this.ctx.state;
 
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
         // its settings as component data; they configure the frontend and
@@ -123,7 +130,7 @@ sap.ui.define(
         // "?z2ui5-devtools=" auto open. This call and the exit() below are
         // the framework's ENTIRE coupling to devtools/ - keep it that
         // way (see the module header there).
-        DevTools.install();
+        DevTools.install(this.ctx);
         this._installScrollListener();
         this._installRouterListener();
       },
@@ -150,8 +157,11 @@ sap.ui.define(
         // Scroll events do not bubble, but they do trigger capture-phase
         // listeners on ancestors - a single document-level listener observes
         // every scrollable container. ScrollFocus.onScrollCapture records the
-        // last scrolled element per view slot for the S_SCROLL request info.
-        this._boundScroll = (event) => ScrollFocus.onScrollCapture(event);
+        // last scrolled element per view slot for the S_SCROLL request info -
+        // of THIS component's slots only, so a second component's listener
+        // records its own and ignores ours.
+        const ctx = this.ctx;
+        this._boundScroll = (event) => ScrollFocus.onScrollCapture(ctx, event);
         document.addEventListener("scroll", this._boundScroll, {
           capture: true,
           passive: true,
@@ -168,7 +178,8 @@ sap.ui.define(
         // manage their own hash are unaffected. Server does the actual
         // restore roundtrip; it is injected here so the router stays free of
         // a Server dependency.
-        Router.init(() => Server.restoreFromRoute());
+        const ctx = this.ctx;
+        Router.init(ctx, () => Server.restoreFromRoute(ctx));
       },
 
       // ------------------------------------------------------------------
@@ -181,7 +192,7 @@ sap.ui.define(
 
         const launchpad = { Container };
         this._launchpad = launchpad;
-        AppState.state.oLaunchpad = launchpad;
+        this.ctx.state.oLaunchpad = launchpad;
 
         // The FLP services load asynchronously. By the time they resolve, the
         // component may already have been destroyed (e.g. user navigated away
@@ -226,7 +237,7 @@ sap.ui.define(
         try {
           const info = await VersionInfo.load();
           if (Lib.isAlive(this)) {
-            AppState.state.oConfig.S_UI5 = {
+            this.ctx.state.oConfig.S_UI5 = {
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
               GAV: info.gav,
@@ -252,27 +263,29 @@ sap.ui.define(
       // ------------------------------------------------------------------
 
       exit() {
+        const ctx = this.ctx;
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
-        Router.exit();
+        Router.exit(ctx);
 
-        // Drops the shortcut, the dialog instance and the recorded history -
-        // all of which are module-scoped and would otherwise outlive the
-        // component on an FLP re-launch.
-        DevTools.exit();
+        // Drops the shortcut, the dialog instance and the recorded history
+        // of this context's developer tools.
+        DevTools.exit(ctx);
 
         // The same for the APP's keyboard shortcuts, which are a different
         // module: the registry is app-scoped and the state rebuild below
-        // empties it, but the `document` keydown listener behind it is module
-        // state and stayed installed for the life of the page - see
-        // core/actions/Shortcuts.reset.
-        Shortcuts.reset();
+        // empties it, but the `document` keydown listener behind it has to
+        // come off explicitly - see core/actions/Shortcuts.reset.
+        Shortcuts.reset(ctx);
 
-        Server.endSession();
-        // and drop the module-scoped request state with it - see Server.reset
-        Server.reset();
+        Server.endSession(ctx);
+        // and drop the request bookkeeping with it - see Server.reset
+        Server.reset(ctx);
+        // ... and the once-per-page-load send latches of the session block
+        // - see Session.reset
+        Session.reset(ctx);
 
         // The two STANDALONE view slots. MAIN and its nested views sit in the
         // component's own control tree and fall with it; a popup and a
@@ -288,32 +301,30 @@ sap.ui.define(
         // in a slot this does not cover). ViewSlots.destroy( ) closes the
         // fragment first and unregisters the view from the messaging facade,
         // the same way an app switch and a MAIN rebuild take them down.
-        ViewSlots.destroy("POPUP");
-        ViewSlots.destroy("POPOVER");
+        ViewSlots.destroy(ctx, "POPUP");
+        ViewSlots.destroy(ctx, "POPOVER");
 
-        // Global state that would outlive the component (FLP keeps the page
-        // alive). Only what AppState.reset( ) at the end of this method
-        // cannot do is done here: reset REBUILDS the state object, so every
-        // plain field (the timer handles, the shortcut registry, the model
+        // What would outlive the component (FLP keeps the page alive). Only
+        // what Context.destroy( ) at the end of this method cannot do is
+        // done here: destroy REBUILDS the state object, so every plain
+        // field (the timer handles, the shortcut registry, the model
         // reference) is back at its default by itself - but a pending
         // timeout keeps firing and a device model keeps its handlers on the
         // Device singleton unless they are cancelled and destroyed first.
-        // Clearing those fields by hand on top of that only restated three
-        // lines further down what reset already does.
-        Lib.cancelPendingTimers();
-        if (AppState.state.oDeviceModel) {
-          AppState.state.oDeviceModel.destroy();
+        Lib.cancelPendingTimers(ctx);
+        if (ctx.state.oDeviceModel) {
+          ctx.state.oDeviceModel.destroy();
         }
 
-        // The unsaved-changes guard of cc/Dirty is MODULE state (one global
-        // browser prompt, one FLP dirty flag, so the control has to know
-        // about every live instance at once) and no teardown path destroys
-        // the POPUP and POPOVER slots - a Dirty control inside a dialog
-        // never runs its own exit( ), and its entry kept
-        // window.onbeforeunload installed for an app that is already gone.
+        // The unsaved-changes guard of cc/Dirty is MODULE state (one page
+        // prompt, one FLP dirty flag, so the control has to know about every
+        // live instance at once) and no teardown path destroys the POPUP and
+        // POPOVER slots - a Dirty control inside a dialog never runs its own
+        // exit( ), and its entry kept the prompt installed for an app that
+        // is already gone. Only THIS context's instances are dropped.
         // Resolved lazily: an app that uses no Dirty control has not loaded
         // the module, and then there is nothing to reset.
-        sap.ui.require("z2ui5/cc/Dirty")?.reset?.();
+        sap.ui.require("z2ui5/cc/Dirty")?.reset?.(ctx);
 
         // The OData clients the framework created for MAIN (the inventory
         // AppState.state.odataClients documents): a model is no aggregation,
@@ -322,7 +333,7 @@ sap.ui.define(
         // every client that was open alive, $metadata request, caches and
         // queues included. Each destroy on its own: one that throws must not
         // stop the rest of this teardown.
-        for (const oClient of AppState.state.odataClients) {
+        for (const oClient of ctx.state.odataClients) {
           try {
             oClient.destroy();
           } catch (e) {
@@ -335,9 +346,9 @@ sap.ui.define(
         //     next app the user opens.
         //  2. Drop this component's own reference to the shared launchpad
         //     object, which is what turns every still-pending init Promise
-        //     into a no-op (setIfAlive compares against it). The shared
-        //     AppState field is not nulled here - AppState.reset( ) below
-        //     rebuilds the state and with it that field.
+        //     into a no-op (setIfAlive compares against it). The state's
+        //     field is not nulled here - Context.destroy( ) below rebuilds
+        //     the state and with it that field.
         try {
           this._launchpad?.Container?.setDirtyFlag?.(false);
         } catch (e) {
@@ -345,18 +356,18 @@ sap.ui.define(
         }
         this._launchpad = null;
 
-        // Last: the scroll cache and the state itself. ScrollFocus keeps the
-        // DOM node and the control of the last scroll gesture until the NEXT
-        // roundtrip releases them, and there is no next roundtrip after an
-        // exit. AppState.reset( ) is what Lib.isControllerAlive documents as
-        // the end of a controller's life: the state is rebuilt with the slot
-        // fields null, so every guard on it (timers, shortcuts, variant
-        // polls, the hash dispatcher) answers "dead" between this teardown
-        // and the next launch - instead of the old state holding the five
-        // views, their controllers and the last response's model until
-        // reset( ) ran for the next app, if it ever did.
-        ScrollFocus.reset();
-        AppState.reset();
+        // Last: the scroll cache and the context itself. ScrollFocus keeps
+        // the DOM node and the control of the last scroll gesture until the
+        // NEXT roundtrip releases them, and there is no next roundtrip after
+        // an exit. Context.destroy( ) is what Lib.isControllerAlive documents
+        // as the end of a controller's life: the context reads dead and its
+        // state is rebuilt with the slot fields null, so every guard on it
+        // (timers, shortcuts, variant polls, the hash dispatcher) answers
+        // "dead" from here on - instead of the state holding the five views,
+        // their controllers and the last response's model for as long as
+        // something still referenced it.
+        ScrollFocus.reset(ctx);
+        Context.destroy(ctx);
 
         if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);
       },

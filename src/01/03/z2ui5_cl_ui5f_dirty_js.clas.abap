@@ -26,8 +26,8 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Control, Lib, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
+             `  (Control, Lib, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const dirtyControls = new Set();` && |\n| &&
@@ -37,8 +37,16 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      e.returnValue = "";` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    let promptInstalled = false;` && |\n| &&
+             `` && |\n| &&
              `    function syncUnloadPrompt(anyDirty) {` && |\n| &&
-             `      window.onbeforeunload = anyDirty ? promptOnUnload : null;` && |\n| &&
+             `      if (anyDirty === promptInstalled) return;` && |\n| &&
+             `      if (anyDirty) {` && |\n| &&
+             `        window.addEventListener("beforeunload", promptOnUnload);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        window.removeEventListener("beforeunload", promptOnUnload);` && |\n| &&
+             `      }` && |\n| &&
+             `      promptInstalled = anyDirty;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const Dirty = Control.extend("z2ui5.cc.Dirty", {` && |\n| &&
@@ -61,22 +69,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _applyDirtyState() {` && |\n| &&
-             `        const anyDirty = dirtyControls.size > 0;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const launchpad = AppState.state.oLaunchpad;` && |\n| &&
-             `          const hasFlpDirtyFlag =` && |\n| &&
-             `            launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;` && |\n| &&
-             `          if (hasFlpDirtyFlag) {` && |\n| &&
-             `            launchpad.Container.setDirtyFlag(anyDirty);` && |\n| &&
-             `` && |\n| &&
-             `            syncUnloadPrompt(false);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            syncUnloadPrompt(anyDirty);` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);` && |\n| &&
-             `          syncUnloadPrompt(anyDirty);` && |\n| &&
-             `        }` && |\n| &&
+             `        applyDirtyState(Context.of(this)?.state.oLaunchpad);` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        dirtyControls.delete(this);` && |\n| &&
@@ -85,9 +78,34 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
-             `    Dirty.reset = function reset() {` && |\n| &&
-             `      dirtyControls.clear();` && |\n| &&
-             `      syncUnloadPrompt(false);` && |\n| &&
+             `    function applyDirtyState(launchpad) {` && |\n| &&
+             `      const anyDirty = dirtyControls.size > 0;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const hasFlpDirtyFlag =` && |\n| &&
+             `          launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;` && |\n| &&
+             `        if (hasFlpDirtyFlag) {` && |\n| &&
+             `          launchpad.Container.setDirtyFlag(anyDirty);` && |\n| &&
+             `` && |\n| &&
+             `          syncUnloadPrompt(false);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          syncUnloadPrompt(anyDirty);` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);` && |\n| &&
+             `        syncUnloadPrompt(anyDirty);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    Dirty.reset = function reset(ctx) {` && |\n| &&
+             `      for (const inst of dirtyControls) {` && |\n| &&
+             `        if (Context.of(inst) === ctx) dirtyControls.delete(inst);` && |\n| &&
+             `      }` && |\n| &&
+             `      let launchpad = ctx?.state?.oLaunchpad;` && |\n| &&
+             `      for (const inst of dirtyControls) {` && |\n| &&
+             `        if (launchpad) break;` && |\n| &&
+             `        launchpad = Context.of(inst)?.state.oLaunchpad;` && |\n| &&
+             `      }` && |\n| &&
+             `      applyDirtyState(launchpad);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return Dirty;` && |\n| &&

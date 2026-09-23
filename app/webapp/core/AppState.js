@@ -1,11 +1,14 @@
-// Owner of the shared frontend state. All of it lives in the private
-// `state` object below; framework modules access it via the `state` export
-// and nothing else. There is NO global: the `z2ui5` object on `window` that
-// used to mirror every field (and carried a public contract for apps, the
-// js_loader popup and the backend GET page) was removed on 2026-09-22 - see
-// docs/removal-plan.md, section 0. Configuration that the backend GET page
-// used to put on that global now arrives as component data
-// (Component.init, z2ui5_cl_ui5_http_handler=>_http_get).
+// The SHAPE of the frontend state of one z2ui5.Component - the field
+// inventory below and its defaults (createState). The instance lives on
+// the component's context (core/Context.js, one per component since
+// 2026-09-23); framework modules reach it as `ctx.state`, and a custom
+// control through Context.of(this). There is NO global and NO singleton:
+// the `z2ui5` object on `window` that used to mirror every field was
+// removed on 2026-09-22 (docs/removal-plan.md, section 0), and the one
+// module-level `state` this file kept afterwards went with the
+// per-component context - two components on a page used to reset each
+// other through it. Configuration from the backend GET page arrives as
+// component data (Component.init).
 //
 // createState() below creates every field with its default in one place -
 // no module needs lazy `if (!state.x) state.x = ...` bootstrapping for the
@@ -89,7 +92,6 @@
 //                     model (e.g. a popover) are never shipped against this one
 //
 // Control / helper state
-//   errors            capped error log, see Lib.logError
 //   timers            single pending backend timer (actions/ViewOps)
 //   shortcuts         registered keyboard shortcuts, normalized combo ->
 //                     scope -> { event, controller }, the scope being a view
@@ -121,8 +123,10 @@
 sap.ui.define([], () => {
   "use strict";
 
-  // Fresh defaults for every internal field. Collections start out as
-  // empty containers so consumers can use them without existence checks.
+  // Fresh defaults for every field. Collections start out as empty
+  // containers so consumers can use them without existence checks. Called
+  // once per component by Context.create, and again by Context.destroy so
+  // a dead context releases what it held.
   function createState() {
     return {
       // Configuration
@@ -215,14 +219,21 @@ sap.ui.define([], () => {
       // in-app history entry to consume, so a fallback replaces instead.
       hashPushCount: 0,
 
-      // Control / helper state
-      errors: [],
-      timers: {},
-      shortcuts: {},
+      // Control / helper state. The records keyed by a value that comes off
+      // the wire - a timer key, a shortcut combo, a view key, a tree id -
+      // are prototype-less: on a plain object `record["constructor"]`
+      // answers Object.prototype's function and `record["__proto__"] = x`
+      // writes into the prototype itself, so a malformed key was a wrong
+      // answer or a write into every object of the page instead of a miss.
+      // Same reason the dispatch tables in core/FrontendAction.js and
+      // core/actions/ControlCall.js are built with Object.create(null).
+      // (The error log is not here: Lib.logError's ring is page-wide.)
+      timers: Object.create(null),
+      shortcuts: Object.create(null),
       lastScrolled: {},
       odataClients: new Set(),
-      viewSizeLimits: {},
-      treeStates: {},
+      viewSizeLimits: Object.create(null),
+      treeStates: Object.create(null),
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)
@@ -234,19 +245,5 @@ sap.ui.define([], () => {
     };
   }
 
-  let state = createState();
-
-  // Reset every field to its default - on a component start (fresh
-  // defaults, also for an FLP re-launch) and on its teardown.
-  function reset() {
-    state = createState();
-  }
-
-  return {
-    reset,
-    // Live state - always the current object, also after reset().
-    get state() {
-      return state;
-    },
-  };
+  return { createState };
 });

@@ -3,9 +3,9 @@ sap.ui.define(
     "sap/ui/core/Control",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
+    "z2ui5/core/Context",
   ],
-  (Control, Lib, ViewSlots, AppState) => {
+  (Control, Lib, ViewSlots, Context) => {
     "use strict";
 
     // Invisible control that preserves the expand/collapse state of a
@@ -32,6 +32,24 @@ sap.ui.define(
         return treeControl?.getBinding("items");
       },
 
+      // The snapshot store of the companion's component (state.treeStates
+      // of its context). Null for a companion in no component (Context.of
+      // answers null): there is nowhere to keep a snapshot, and nothing to
+      // restore from - logged ONCE per instance (onAfterRendering runs on
+      // every re-render) and the control keeps rendering, it just does
+      // not preserve anything.
+      _treeStates(where) {
+        const states = Context.of(this)?.state.treeStates;
+        if (states) return states;
+        if (!this._noContextLogged) {
+          this._noContextLogged = true;
+          Lib.logError(
+            `Tree.${where}: no component context, tree state not preserved`,
+          );
+        }
+        return null;
+      },
+
       // Snapshots are keyed by tree_id so several trees on one page (e.g. a
       // main-view tree plus a tree in a popup) keep independent state - a
       // single shared slot would let one companion overwrite another's.
@@ -39,12 +57,14 @@ sap.ui.define(
         try {
           const id = this.getProperty("tree_id");
           if (!id) return;
+          const treeStates = this._treeStates("setBackend");
+          if (!treeStates) return;
           const binding = this._getTreeBinding();
           // Only overwrite the snapshot when the binding is actually
           // resolvable - a momentarily missing binding must not wipe a
           // still-valid snapshot for this id.
           if (binding) {
-            AppState.state.treeStates[id] = binding.getCurrentTreeState();
+            treeStates[id] = binding.getCurrentTreeState();
           }
         } catch (e) {
           Lib.logError("Tree.setBackend: failed", e);
@@ -61,12 +81,19 @@ sap.ui.define(
 
       exit() {
         this._unhook();
+        // The snapshot under treeStates[tree_id] deliberately outlives this
+        // instance: a view rebuild destroys the old Tree BEFORE the new one
+        // renders, and the new one restores its expansion from exactly that
+        // snapshot (onAfterRendering below). It goes with the app switch
+        // (View1._processAfterRendering) and the component teardown
+        // (Context.destroy rebuilds the state), not here.
       },
 
       onAfterRendering() {
         try {
           const id = this.getProperty("tree_id");
-          const snapshot = id && AppState.state.treeStates[id];
+          if (!id) return;
+          const snapshot = this._treeStates("onAfterRendering")?.[id];
           if (!snapshot) return;
           const binding = this._getTreeBinding();
           if (!binding) return;

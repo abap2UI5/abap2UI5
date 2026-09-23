@@ -25,151 +25,150 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/AppState"],` && |\n| &&
-             `  (Lib, ViewSlots, AppState) => {` && |\n| &&
-             `    "use strict";` && |\n| &&
+    result = `sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const SHORTCUT_MODIFIERS = ["ctrl", "shift", "alt", "meta"];` && |\n| &&
+             `  const SHORTCUT_MODIFIERS = ["ctrl", "shift", "alt", "meta"];` && |\n| &&
              `` && |\n| &&
-             `    const SHORTCUT_ALIASES = {` && |\n| &&
-             `      control: "ctrl",` && |\n| &&
-             `      cmd: "meta",` && |\n| &&
-             `      command: "meta",` && |\n| &&
-             `      option: "alt",` && |\n| &&
-             `      esc: "escape",` && |\n| &&
-             `      del: "delete",` && |\n| &&
-             `      ins: "insert",` && |\n| &&
-             `      return: "enter",` && |\n| &&
-             `      space: " ",` && |\n| &&
+             `  const SHORTCUT_ALIASES = {` && |\n| &&
+             `    control: "ctrl",` && |\n| &&
+             `    cmd: "meta",` && |\n| &&
+             `    command: "meta",` && |\n| &&
+             `    option: "alt",` && |\n| &&
+             `    esc: "escape",` && |\n| &&
+             `    del: "delete",` && |\n| &&
+             `    ins: "insert",` && |\n| &&
+             `    return: "enter",` && |\n| &&
+             `    space: " ",` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  function shortcutToken(part) {` && |\n| &&
+             `    const t = part.trim().toLowerCase();` && |\n| &&
+             `` && |\n| &&
+             `    return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES, t)` && |\n| &&
+             `      ? SHORTCUT_ALIASES[t]` && |\n| &&
+             `      : t;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function normalizeShortcut(combo) {` && |\n| &&
+             `    const parts = String(combo ?? "")` && |\n| &&
+             `      .split("+")` && |\n| &&
+             `      .map(shortcutToken)` && |\n| &&
+             `      .filter((p) => p !== "");` && |\n| &&
+             `    const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));` && |\n| &&
+             `    const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));` && |\n| &&
+             `    if (keys.length === 0) return "";` && |\n| &&
+             `    return [...mods, keys[keys.length - 1]].join("+");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function shortcutFromEvent(oEvent) {` && |\n| &&
+             `    const key = String(oEvent.key ?? "").toLowerCase();` && |\n| &&
+             `` && |\n| &&
+             `    if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))` && |\n| &&
+             `      return "";` && |\n| &&
+             `    const mods = [];` && |\n| &&
+             `    if (oEvent.ctrlKey) mods.push("ctrl");` && |\n| &&
+             `    if (oEvent.shiftKey) mods.push("shift");` && |\n| &&
+             `    if (oEvent.altKey) mods.push("alt");` && |\n| &&
+             `    if (oEvent.metaKey) mods.push("meta");` && |\n| &&
+             `    return [...mods, key].join("+");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
+             `` && |\n| &&
+             `  const SHORTCUT_GLOBAL = "";` && |\n| &&
+             `` && |\n| &&
+             `  function scopeControlOpen(ctx, id) {` && |\n| &&
+             `    const c = ViewSlots.resolveById(ctx, id);` && |\n| &&
+             `    if (!c) return false;` && |\n| &&
+             `    if (typeof c.isOpen === "function") return !!c.isOpen();` && |\n| &&
+             `    return typeof c.getVisible === "function" ? c.getVisible() !== false : true;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function shortcutEntry(ctx, combo) {` && |\n| &&
+             `    const shortcuts = ctx.state.shortcuts;` && |\n| &&
+             `    if (!Object.prototype.hasOwnProperty.call(shortcuts, combo)) {` && |\n| &&
+             `      return undefined;` && |\n| &&
+             `    }` && |\n| &&
+             `    const scopes = shortcuts[combo];` && |\n| &&
+             `    for (const key of Object.keys(scopes)) {` && |\n| &&
+             `      if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
+             `      if (scopeControlOpen(ctx, key)) return scopes[key];` && |\n| &&
+             `    }` && |\n| &&
+             `    for (const key of SHORTCUT_SLOTS) {` && |\n| &&
+             `      if (scopes[key] && ViewSlots.getView(ctx, key)) return scopes[key];` && |\n| &&
+             `    }` && |\n| &&
+             `    return scopes[SHORTCUT_GLOBAL];` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function installShortcutListener(ctx) {` && |\n| &&
+             `    if (ctx.shortcuts.listener || typeof document === "undefined") return;` && |\n| &&
+             `    const listener = (oEvent) => {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const entry = shortcutEntry(ctx, shortcutFromEvent(oEvent));` && |\n| &&
+             `        if (!entry) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (!Lib.isControllerAlive(entry.controller)) return;` && |\n| &&
+             `` && |\n| &&
+             `        oEvent.preventDefault();` && |\n| &&
+             `        entry.controller.eB([entry.event]);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("KEYBOARD_SHORTCUT: dispatch failed", e);` && |\n| &&
+             `      }` && |\n| &&
              `    };` && |\n| &&
+             `    ctx.shortcuts.listener = listener;` && |\n| &&
+             `    document.addEventListener("keydown", listener);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    function shortcutToken(part) {` && |\n| &&
-             `      const t = part.trim().toLowerCase();` && |\n| &&
+             `  function reset(ctx) {` && |\n| &&
+             `    const listener = ctx?.shortcuts?.listener;` && |\n| &&
+             `    if (!listener || typeof document === "undefined") return;` && |\n| &&
+             `    document.removeEventListener("keydown", listener);` && |\n| &&
+             `    ctx.shortcuts.listener = null;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `      return Object.prototype.hasOwnProperty.call(SHORTCUT_ALIASES, t)` && |\n| &&
-             `        ? SHORTCUT_ALIASES[t]` && |\n| &&
-             `        : t;` && |\n| &&
+             `  function evKeyboardShortcut(oController, args) {` && |\n| &&
+             `    const ctx = oController?.ctx;` && |\n| &&
+             `    if (!ctx) {` && |\n| &&
+             `      Lib.logError("KEYBOARD_SHORTCUT: no context to register in");` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    const combo = normalizeShortcut(args[1]);` && |\n| &&
+             `    if (!combo) {` && |\n| &&
+             `      Lib.logError(` && |\n| &&
+             `        ``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``,` && |\n| &&
+             `      );` && |\n| &&
+             `      return;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function normalizeShortcut(combo) {` && |\n| &&
-             `      const parts = String(combo ?? "")` && |\n| &&
-             `        .split("+")` && |\n| &&
-             `        .map(shortcutToken)` && |\n| &&
-             `        .filter((p) => p !== "");` && |\n| &&
-             `      const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));` && |\n| &&
-             `      const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));` && |\n| &&
-             `      if (keys.length === 0) return "";` && |\n| &&
-             `      return [...mods, keys[keys.length - 1]].join("+");` && |\n| &&
+             `    const raw = String(args[3] ?? "");` && |\n| &&
+             `    const upper = raw.toUpperCase();` && |\n| &&
+             `    const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;` && |\n| &&
+             `    const shortcuts = ctx.state.shortcuts;` && |\n| &&
+             `` && |\n| &&
+             `    if (combo in Object.prototype) {` && |\n| &&
+             `      Lib.logError(``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``);` && |\n| &&
+             `      return;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function shortcutFromEvent(oEvent) {` && |\n| &&
-             `      const key = String(oEvent.key ?? "").toLowerCase();` && |\n| &&
+             `    const scopes = shortcuts[combo] ?? (shortcuts[combo] = Object.create(null));` && |\n| &&
+             `    if (!args[2]) {` && |\n| &&
+             `      delete scopes[scope];` && |\n| &&
              `` && |\n| &&
-             `      if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))` && |\n| &&
-             `        return "";` && |\n| &&
-             `      const mods = [];` && |\n| &&
-             `      if (oEvent.ctrlKey) mods.push("ctrl");` && |\n| &&
-             `      if (oEvent.shiftKey) mods.push("shift");` && |\n| &&
-             `      if (oEvent.altKey) mods.push("alt");` && |\n| &&
-             `      if (oEvent.metaKey) mods.push("meta");` && |\n| &&
-             `      return [...mods, key].join("+");` && |\n| &&
+             `      if (Object.keys(scopes).length === 0) delete shortcuts[combo];` && |\n| &&
+             `      return;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
+             `    scopes[scope] = { event: args[2], controller: oController };` && |\n| &&
+             `    installShortcutListener(ctx);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
-             `    const SHORTCUT_GLOBAL = "";` && |\n| &&
+             `  const handlers = {` && |\n| &&
+             `    KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
+             `  };` && |\n| &&
              `` && |\n| &&
-             `    function scopeControlOpen(id) {` && |\n| &&
-             `      const c = ViewSlots.resolveById(id);` && |\n| &&
-             `      if (!c) return false;` && |\n| &&
-             `      if (typeof c.isOpen === "function") return !!c.isOpen();` && |\n| &&
-             `      return typeof c.getVisible === "function"` && |\n| &&
-             `        ? c.getVisible() !== false` && |\n| &&
-             `        : true;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function shortcutEntry(combo) {` && |\n| &&
-             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
-             `      if (!Object.prototype.hasOwnProperty.call(shortcuts, combo)) {` && |\n| &&
-             `        return undefined;` && |\n| &&
-             `      }` && |\n| &&
-             `      const scopes = shortcuts[combo];` && |\n| &&
-             `      for (const key of Object.keys(scopes)) {` && |\n| &&
-             `        if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
-             `        if (scopeControlOpen(key)) return scopes[key];` && |\n| &&
-             `      }` && |\n| &&
-             `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
-             `        if (scopes[key] && ViewSlots.getView(key)) return scopes[key];` && |\n| &&
-             `      }` && |\n| &&
-             `      return scopes[SHORTCUT_GLOBAL];` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    let shortcutListener = null;` && |\n| &&
-             `` && |\n| &&
-             `    function installShortcutListener() {` && |\n| &&
-             `      if (shortcutListener || typeof document === "undefined") return;` && |\n| &&
-             `      shortcutListener = (oEvent) => {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const entry = shortcutEntry(shortcutFromEvent(oEvent));` && |\n| &&
-             `          if (!entry) return;` && |\n| &&
-             `` && |\n| &&
-             `          if (!Lib.isControllerAlive(entry.controller)) return;` && |\n| &&
-             `` && |\n| &&
-             `          oEvent.preventDefault();` && |\n| &&
-             `          entry.controller.eB([entry.event]);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("KEYBOARD_SHORTCUT: dispatch failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `      document.addEventListener("keydown", shortcutListener);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function reset() {` && |\n| &&
-             `      if (!shortcutListener || typeof document === "undefined") return;` && |\n| &&
-             `      document.removeEventListener("keydown", shortcutListener);` && |\n| &&
-             `      shortcutListener = null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function evKeyboardShortcut(oController, args) {` && |\n| &&
-             `      const combo = normalizeShortcut(args[1]);` && |\n| &&
-             `      if (!combo) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const raw = String(args[3] ?? "");` && |\n| &&
-             `      const upper = raw.toUpperCase();` && |\n| &&
-             `      const scope = SHORTCUT_SLOTS.includes(upper) ? upper : raw;` && |\n| &&
-             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
-             `` && |\n| &&
-             `      if (combo in Object.prototype) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``KEYBOARD_SHORTCUT: '${args[1]}' is not a key combination``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const scopes = shortcuts[combo] ?? (shortcuts[combo] = {});` && |\n| &&
-             `      if (!args[2]) {` && |\n| &&
-             `        delete scopes[scope];` && |\n| &&
-             `` && |\n| &&
-             `        if (Object.keys(scopes).length === 0) delete shortcuts[combo];` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      scopes[scope] = { event: args[2], controller: oController };` && |\n| &&
-             `      installShortcutListener();` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const handlers = {` && |\n| &&
-             `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    return { handlers, reset };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
+             `  return { handlers, reset };` && |\n| &&
+             `});` && |\n| &&
              `` && |\n| &&
               ``.
 

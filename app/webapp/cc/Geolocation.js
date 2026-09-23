@@ -108,7 +108,17 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       if (!this._pendingGeolocate) return;
       this._pendingGeolocate = false;
       try {
-        if (!navigator.geolocation) return;
+        if (!navigator.geolocation) {
+          // No API at all (an insecure origin, a locked-down browser) is a
+          // failure the app has to hear like any other: `finished` never
+          // comes, and without the event nothing said why. Code 0 is
+          // outside the three codes the API itself reports (1 to 3).
+          this.callbackError({
+            code: 0,
+            message: "Geolocation API not available",
+          });
+          return;
+        }
         navigator.geolocation.getCurrentPosition(
           this.callbackPosition.bind(this),
           this.callbackError.bind(this),

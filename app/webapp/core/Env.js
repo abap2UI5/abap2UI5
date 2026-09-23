@@ -220,9 +220,26 @@ sap.ui.define(["sap/ui/core/Element", "z2ui5/core/Lib"], (Element, Lib) => {
     });
   }
 
+  // The CONTROL filters of a list binding - the ones a sap.ui.table column
+  // filter row applies (Column.filter( ) uses FilterType.Control on 1.71
+  // and 1.120 alike). ListBinding.getFilters(sFilterType) arrived in 1.96;
+  // older releases only expose the private aFilters member, which IS that
+  // array. "Application" would answer the app's own binding filters
+  // instead, usually none - and the user's column filter was then gone
+  // after a view rebuild on every release with getFilters while 1.71 kept
+  // it (cc/UITableExt, the one caller). Undefined without a binding.
+  function controlFilters(binding) {
+    if (!binding) return undefined;
+    if (typeof binding.getFilters === "function") {
+      return binding.getFilters("Control");
+    }
+    return binding.aFilters;
+  }
+
   return {
     getElementById,
     getMessaging,
+    controlFilters,
     getThemingModule,
     getTheme,
     getLocale,

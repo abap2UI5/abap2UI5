@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { specContext } = require("./loadLibModule");
 
 // Tests the real registry shipped in app/webapp/devtools/Tabs.js - the ONE
 // table that says what a developer-tools tab is.
@@ -11,7 +12,8 @@ const { loadModule } = require("./loadModule");
 // looked at the Model Diff or the picked control, and the export's section
 // titles named tabs that do not exist. The specs below pin the properties
 // that made that drift possible - every tab reachable, searchable and
-// exportable from the same table.
+// exportable from the same table. What a tab shows is the state of one
+// component context (core/Context.js), which every probe takes first.
 
 // Mimics the relevant shape of a real sap.ui.core.mvc.XMLView: the raw XML
 // string is kept as a pseudo property in mProperties, but is NOT declared
@@ -36,15 +38,13 @@ function loadTabs({
   pickReport = "",
   inspect = {},
 } = {}) {
+  const ctx = specContext({ responseData, oBody, lastError });
   const { module } = loadModule("devtools/Tabs.js", {
     autoLoad: true,
     deps: {
-      "z2ui5/core/AppState": {
-        state: { responseData, oBody, lastError, oConfig: {} },
-      },
       "z2ui5/core/ViewSlots": {
-        getView: (key) => views[key],
-        getViewXml: (key) => slotXml[key],
+        getView: (_ctx, key) => views[key],
+        getViewXml: (_ctx, key) => slotXml[key],
         // the shipped resolver, byte for byte (core/ViewSlots.js): the
         // framework model is the DEFAULT one, or the named "http" one once
         // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot
@@ -61,7 +61,7 @@ function loadTabs({
         formatActions: () => "ACTIONS REPORT",
         formatRegistry: () => "REGISTRY REPORT",
         formatEnvironment: () => "ENV REPORT",
-        formatBindings: (slot) => `BINDINGS REPORT ${slot || "(all)"}`,
+        formatBindings: (_ctx, slot) => `BINDINGS REPORT ${slot || "(all)"}`,
         ...inspect,
       },
       "z2ui5/devtools/Picker": { lastReport: () => pickReport },
@@ -94,7 +94,7 @@ function loadTabs({
       },
     },
   });
-  return module;
+  return { Tabs: module, ctx };
 }
 
 // A MAIN view built with switch_default_model_path: the DEFAULT model is the
@@ -114,7 +114,7 @@ function fakeSwitchModeView(viewContent, data) {
 
 test.describe("Groups", () => {
   test("six groups, in the order a debugging session runs", () => {
-    const Tabs = loadTabs();
+    const { Tabs } = loadTabs();
     expect(Tabs.GROUPS.map((g) => g.key)).toEqual([
       "OVERVIEW",
       "PROBLEMS",
@@ -126,7 +126,7 @@ test.describe("Groups", () => {
   });
 
   test("every tab belongs to a declared group", () => {
-    const Tabs = loadTabs();
+    const { Tabs } = loadTabs();
     const known = new Set(Tabs.GROUPS.map((g) => g.key));
     for (const tab of Tabs._internals.TABS) {
       expect(known.has(tab.group), `${tab.key} -> ${tab.group}`).toBe(true);
@@ -134,9 +134,9 @@ test.describe("Groups", () => {
   });
 
   test("the tools land on the Overview, not on raw response JSON", () => {
-    const Tabs = loadTabs();
+    const { Tabs, ctx } = loadTabs();
     expect(Tabs.DEFAULT_GROUP).toBe("OVERVIEW");
-    expect(Tabs.firstTabOf("OVERVIEW")).toBe("OVERVIEW");
+    expect(Tabs.firstTabOf(ctx, "OVERVIEW")).toBe("OVERVIEW");
   });
 });
 
@@ -169,42 +169,49 @@ test.describe("Tab keys are a compatibility surface", () => {
     "NEST2",
   ]) {
     test(`${key} still resolves`, () => {
-      expect(loadTabs().isKnown(key)).toBe(true);
+      expect(loadTabs().Tabs.isKnown(key)).toBe(true);
     });
   }
 
   test("an unknown key does not", () => {
-    expect(loadTabs().isKnown("MESSAGES")).toBe(false);
-    expect(loadTabs().isKnown("")).toBe(false);
+    expect(loadTabs().Tabs.isKnown("MESSAGES")).toBe(false);
+    expect(loadTabs().Tabs.isKnown("")).toBe(false);
   });
 });
 
 test.describe("Availability", () => {
   test("the Error tab is offered only once something failed", () => {
-    expect(loadTabs().isEnabled(loadTabs().get("ERROR"))).toBe(false);
+    const { Tabs, ctx } = loadTabs();
+    expect(Tabs.isEnabled(ctx, Tabs.get("ERROR"))).toBe(false);
     const withError = loadTabs({ lastError: { title: "x", text: "y" } });
-    expect(withError.isEnabled(withError.get("ERROR"))).toBe(true);
+    expect(
+      withError.Tabs.isEnabled(withError.ctx, withError.Tabs.get("ERROR")),
+    ).toBe(true);
   });
 
   test("an empty slot is offered no sub-view at all", () => {
-    const Tabs = loadTabs();
-    expect(Tabs.isEnabled(Tabs.get("POPUP"))).toBe(false);
-    expect(Tabs.enabledSlots()).toEqual([]);
+    const { Tabs, ctx } = loadTabs();
+    expect(Tabs.isEnabled(ctx, Tabs.get("POPUP"))).toBe(false);
+    expect(Tabs.enabledSlots(ctx)).toEqual([]);
   });
 
   test("a filled slot brings its XML", () => {
-    const Tabs = loadTabs({ slotXml: { POPUP: "<Dialog/>" } });
-    expect(Tabs.isEnabled(Tabs.get("POPUP"))).toBe(true);
-    expect(Tabs.enabledSlots().map((s) => s.key)).toEqual(["POPUP"]);
+    const { Tabs, ctx } = loadTabs({ slotXml: { POPUP: "<Dialog/>" } });
+    expect(Tabs.isEnabled(ctx, Tabs.get("POPUP"))).toBe(true);
+    expect(Tabs.enabledSlots(ctx).map((s) => s.key)).toEqual(["POPUP"]);
   });
 
   test("a model sub-view needs the model to carry data", () => {
     const empty = loadTabs({ views: { MAIN: fakeXmlView("<View/>", {}) } });
-    expect(empty.isEnabled(empty.get("MODEL"))).toBe(false);
+    expect(empty.Tabs.isEnabled(empty.ctx, empty.Tabs.get("MODEL"))).toBe(
+      false,
+    );
     const filled = loadTabs({
       views: { MAIN: fakeXmlView("<View/>", { NAME: "x" }) },
     });
-    expect(filled.isEnabled(filled.get("MODEL"))).toBe(true);
+    expect(filled.Tabs.isEnabled(filled.ctx, filled.Tabs.get("MODEL"))).toBe(
+      true,
+    );
   });
 
   // With OData in the default slot the framework model is the named "http"
@@ -213,18 +220,18 @@ test.describe("Availability", () => {
   // switch-mode app were hidden, while the bindings renderer next door
   // resolved the model correctly and had plenty to show.
   test("switch mode: the model sub-views follow the framework model", () => {
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       views: { MAIN: fakeSwitchModeView("<View/>", { NAME: "x" }) },
     });
-    expect(Tabs.isEnabled(Tabs.get("MODEL"))).toBe(true);
-    expect(Tabs.isEnabled(Tabs.get("BINDINGS"))).toBe(true);
-    expect(Tabs.render("MODEL")).toContain("NAME");
+    expect(Tabs.isEnabled(ctx, Tabs.get("MODEL"))).toBe(true);
+    expect(Tabs.isEnabled(ctx, Tabs.get("BINDINGS"))).toBe(true);
+    expect(Tabs.render(ctx, "MODEL")).toContain("NAME");
   });
 
   test("a source that throws while deciding hides its tab rather than the strip", () => {
-    const Tabs = loadTabs();
+    const { Tabs, ctx } = loadTabs();
     expect(
-      Tabs.isEnabled({
+      Tabs.isEnabled(ctx, {
         key: "X",
         label: "X",
         enabled: () => {
@@ -246,7 +253,8 @@ test.describe("View & Data - slot x aspect", () => {
     });
 
   test("the slot selector offers only the filled slots, in order", () => {
-    expect(filled().enabledSlots().map((s) => s.key)).toEqual([
+    const { Tabs, ctx } = filled();
+    expect(Tabs.enabledSlots(ctx).map((s) => s.key)).toEqual([
       "MAIN",
       "POPUP",
       "NEST",
@@ -254,7 +262,8 @@ test.describe("View & Data - slot x aspect", () => {
   });
 
   test("a slot with a model offers all three aspects", () => {
-    expect(filled().aspectsOfSlot("MAIN").map((t) => t.aspect)).toEqual([
+    const { Tabs, ctx } = filled();
+    expect(Tabs.aspectsOfSlot(ctx, "MAIN").map((t) => t.aspect)).toEqual([
       "XML",
       "MODEL",
       "BINDINGS",
@@ -262,21 +271,26 @@ test.describe("View & Data - slot x aspect", () => {
   });
 
   test("a nested slot offers only its XML - it inherits MAIN's model", () => {
-    expect(filled().aspectsOfSlot("NEST").map((t) => t.key)).toEqual(["NEST1"]);
+    const { Tabs, ctx } = filled();
+    expect(Tabs.aspectsOfSlot(ctx, "NEST").map((t) => t.key)).toEqual([
+      "NEST1",
+    ]);
   });
 
   test("switching slot keeps the aspect where the new slot has it", () => {
-    expect(filled().tabFor("POPUP", "BINDINGS")).toBe("POPUP_BINDINGS");
-    expect(filled().tabFor("POPUP", "MODEL")).toBe("POPUP_MODEL");
+    const { Tabs, ctx } = filled();
+    expect(Tabs.tabFor(ctx, "POPUP", "BINDINGS")).toBe("POPUP_BINDINGS");
+    expect(Tabs.tabFor(ctx, "POPUP", "MODEL")).toBe("POPUP_MODEL");
   });
 
   test("and falls back to the slot's first aspect where it does not", () => {
     // going from Main/Bindings to a nested view has to land somewhere
-    expect(filled().tabFor("NEST", "BINDINGS")).toBe("NEST1");
+    const { Tabs, ctx } = filled();
+    expect(Tabs.tabFor(ctx, "NEST", "BINDINGS")).toBe("NEST1");
   });
 
   test("the picked control is in the group but is not about a slot", () => {
-    const Tabs = filled();
+    const { Tabs } = filled();
     expect(Tabs.get("PICK").group).toBe("VIEWDATA");
     expect(Tabs.get("PICK").slot).toBe(undefined);
   });
@@ -284,44 +298,49 @@ test.describe("View & Data - slot x aspect", () => {
 
 test.describe("Rendering", () => {
   test("renders a tab through its own producer", () => {
-    expect(loadTabs().render("LOG")).toBe("LOG REPORT");
+    const { Tabs, ctx } = loadTabs();
+    expect(Tabs.render(ctx, "LOG")).toBe("LOG REPORT");
   });
 
   test("the bindings tab is scoped to its slot", () => {
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       views: { POPUP: fakeXmlView("<Dialog/>", { A: 1 }) },
     });
-    expect(Tabs.render("POPUP_BINDINGS")).toBe("BINDINGS REPORT POPUP");
+    expect(Tabs.render(ctx, "POPUP_BINDINGS")).toBe("BINDINGS REPORT POPUP");
   });
 
   test("a throwing producer names the tab instead of blanking the dialog", () => {
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       inspect: {
         formatLog: () => {
           throw new Error("inspector broke");
         },
       },
     });
-    const out = Tabs.render("LOG");
+    const out = Tabs.render(ctx, "LOG");
     expect(out).toContain("Log could not be rendered");
     expect(out).toContain("inspector broke");
   });
 
   test("an unknown key renders nothing rather than throwing", () => {
-    expect(loadTabs().render("NOPE")).toBe("");
+    const { Tabs, ctx } = loadTabs();
+    expect(Tabs.render(ctx, "NOPE")).toBe("");
   });
 });
 
 test.describe("Cross-tab search", () => {
-  const searchable = () =>
-    loadTabs({
+  // one search over a fresh harness whose slots carry the term
+  const searchable = (term) => {
+    const { Tabs, ctx } = loadTabs({
       views: { MAIN: fakeXmlView('<Input value="{/CUSTOMER}"/>', { A: 1 }) },
       responseData: { MODEL: { CUSTOMER: "Miller AG" } },
       inspect: { formatBindings: () => "/CUSTOMER  string  Miller AG" },
     });
+    return Tabs.search(ctx, term);
+  };
 
   test("reports every tab that contains the term", () => {
-    const out = searchable().search("CUSTOMER");
+    const out = searchable("CUSTOMER");
     expect(out).toContain("View & Data > Main > XML");
     expect(out).toContain("View & Data > Main > Bindings");
     expect(out).toContain("hit(s)");
@@ -331,26 +350,26 @@ test.describe("Cross-tab search", () => {
   // sub-view called "XML", so a bare "[XML] 4 hits" says nothing about
   // where to look.
   test("names the group and slot, not just the sub-view", () => {
-    const Tabs = loadTabs({ slotXml: { POPUP: '<Input value="{/HIT}"/>' } });
-    expect(Tabs.search("HIT")).toContain("View & Data > Popup > XML");
+    const { Tabs, ctx } = loadTabs({ slotXml: { POPUP: '<Input value="{/HIT}"/>' } });
+    expect(Tabs.search(ctx, "HIT")).toContain("View & Data > Popup > XML");
   });
 
   test("is case-insensitive and shows the line number", () => {
-    const out = searchable().search("customer");
+    const out = searchable("customer");
     expect(out).toContain("View & Data > Main > XML");
     expect(out).toMatch(/\d+: /);
   });
 
   test("says so when nothing matches", () => {
-    expect(searchable().search("zzz-nothing")).toContain("no hit");
+    expect(searchable("zzz-nothing")).toContain("no hit");
   });
 
   test("an empty term asks for one instead of listing everything", () => {
-    expect(searchable().search("")).toContain("enter a search term");
+    expect(searchable("")).toContain("enter a search term");
   });
 
   test("a throwing source does not blank the whole result", () => {
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       views: { MAIN: fakeXmlView("<Input value='{/NEEDLE}'/>") },
       inspect: {
         formatEnvironment: () => {
@@ -358,48 +377,49 @@ test.describe("Cross-tab search", () => {
         },
       },
     });
-    expect(Tabs.search("NEEDLE")).toContain("View & Data > Main > XML");
+    expect(Tabs.search(ctx, "NEEDLE")).toContain("View & Data > Main > XML");
   });
 
   // Both of these were invisible to the old hand-written scan list.
   test("searches the model diff", () => {
-    const Tabs = loadTabs({ recording: true });
-    expect(Tabs.search("MODEL DIFF")).toContain("Roundtrips > Model Diff");
+    const { Tabs, ctx } = loadTabs({ recording: true });
+    expect(Tabs.search(ctx, "MODEL DIFF")).toContain("Roundtrips > Model Diff");
   });
 
   test("searches the picked control", () => {
-    const Tabs = loadTabs({ pickReport: "Control sap.m.Input NEEDLE" });
-    expect(Tabs.search("NEEDLE")).toContain("View & Data > Picked Control");
+    const { Tabs, ctx } = loadTabs({ pickReport: "Control sap.m.Input NEEDLE" });
+    expect(Tabs.search(ctx, "NEEDLE")).toContain("View & Data > Picked Control");
   });
 
   // The search lives on a tab of its own now; scanning that tab would
   // report the previous result as a hit, and exporting it would ship a
   // stale result nobody asked for.
   test("the Search tab is reachable but never scanned or exported", () => {
-    const Tabs = loadTabs();
+    const { Tabs, ctx } = loadTabs();
     expect(Tabs.isKnown("SEARCH")).toBe(true);
-    expect(Tabs.firstTabOf("SEARCH")).toBe("SEARCH");
-    expect(Tabs.searchableTabs().map((t) => t.key)).not.toContain("SEARCH");
-    expect(Tabs.exportTabs().map((t) => t.key)).not.toContain("SEARCH");
+    expect(Tabs.firstTabOf(ctx, "SEARCH")).toBe("SEARCH");
+    expect(Tabs.searchableTabs(ctx).map((t) => t.key)).not.toContain("SEARCH");
+    expect(Tabs.exportTabs(ctx).map((t) => t.key)).not.toContain("SEARCH");
   });
 });
 
 test.describe("Export set", () => {
   test("is ordered by exportOrder, environment first", () => {
-    const titles = loadTabs().exportTabs().map((t) => t.exportTitle || t.label);
+    const { Tabs, ctx } = loadTabs();
+    const titles = Tabs.exportTabs(ctx).map((t) => t.exportTitle || t.label);
     expect(titles[0]).toBe("Environment");
   });
 
   test("every exported tab has a title and they are unique", () => {
     // The old export invented its own titles ("ROUNDTRIP HISTORY") and
     // told the reader to open a tab of that name - which does not exist.
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       views: { MAIN: fakeXmlView("<View/>", { A: 1 }) },
       slotXml: { POPUP: "<Dialog/>" },
       lastError: { title: "x", text: "y" },
       recording: true,
     });
-    const titles = Tabs.exportTabs().map((tab) => Tabs.exportTitle(tab));
+    const titles = Tabs.exportTabs(ctx).map((tab) => Tabs.exportTitle(tab));
     expect(titles.length).toBeGreaterThan(5);
     for (const title of titles) expect(title).toBeTruthy();
     expect(new Set(titles).size).toBe(titles.length);
@@ -409,7 +429,7 @@ test.describe("Export set", () => {
   // section title: three slots would export three sections called "XML"
   // and the reader could not tell which popup a block belonged to.
   test("a slot's sections name the slot", () => {
-    const Tabs = loadTabs({
+    const { Tabs, ctx } = loadTabs({
       views: {
         MAIN: fakeXmlView("<mvc:View/>", { A: 1 }),
         POPUP: fakeXmlView("<Dialog/>", { B: 2 }),
@@ -418,34 +438,29 @@ test.describe("Export set", () => {
         NEST2: fakeXmlView("<core:View/>"),
       },
     });
-    for (const tab of Tabs.exportTabs()) {
+    for (const tab of Tabs.exportTabs(ctx)) {
       if (!tab.slot) continue;
       expect(tab.exportTitle, `${tab.key} needs an explicit export title`).
         toBeTruthy();
     }
-    const titles = Tabs.exportTabs().map((tab) => Tabs.exportTitle(tab));
+    const titles = Tabs.exportTabs(ctx).map((tab) => Tabs.exportTitle(tab));
     expect(titles).toContain("POPUP");
     expect(titles).toContain("NEST1");
     expect(new Set(titles).size).toBe(titles.length);
   });
 
   test("the diffs only travel when payloads were actually recorded", () => {
-    expect(
-      loadTabs()
-        .exportTabs()
-        .map((t) => t.key),
-    ).not.toContain("DIFF");
-    expect(
-      loadTabs({ recording: true })
-        .exportTabs()
-        .map((t) => t.key),
-    ).toContain("DIFF");
+    const exported = (options) => {
+      const { Tabs, ctx } = loadTabs(options);
+      return Tabs.exportTabs(ctx).map((t) => t.key);
+    };
+    expect(exported()).not.toContain("DIFF");
+    expect(exported({ recording: true })).toContain("DIFF");
   });
 
   test("an empty slot exports nothing for that slot", () => {
-    const keys = loadTabs()
-      .exportTabs()
-      .map((t) => t.key);
+    const { Tabs, ctx } = loadTabs();
+    const keys = Tabs.exportTabs(ctx).map((t) => t.key);
     expect(keys).not.toContain("POPUP");
     expect(keys).not.toContain("POPUP_MODEL");
   });

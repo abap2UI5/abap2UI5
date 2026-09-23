@@ -142,7 +142,9 @@ CLASS z2ui5_cl_ui5f_bindcall_js IMPLEMENTATION.
              `        Lib.logError(``BINDING_CALL: method '${method}' not allowed``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);` && |\n| &&
+             `      const binding = ViewSlots.resolveById(oController?.ctx, id)?.getBinding?.(` && |\n| &&
+             `        aggregation,` && |\n| &&
+             `      );` && |\n| &&
              `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&

@@ -99,6 +99,20 @@ test("a null value is the same empty query string", () => {
   expect(calls[0][2]).toBe("/x");
 });
 
+// The value is written straight after the pathname, so one without the
+// leading "?" rewrote the PATH ("app=x" made /sap/bc/z2ui5app=x) - and
+// replaceState takes any same-origin path without complaint.
+test("a value that is no query string is refused and logged, the URL untouched", () => {
+  const { instance, calls, errors } = load({ pathname: "/sap/bc/z2ui5" });
+
+  instance().setSearch("app=z2ui5_cl_demo");
+
+  expect(calls).toHaveLength(0);
+  expect(errors).toHaveLength(1);
+  expect(errors[0][0]).toContain("History.setSearch");
+  expect(errors[0][0]).toContain("app=z2ui5_cl_demo");
+});
+
 // The hash is kept: core/Router.js owns it, and in the FLP the front of it
 // is the SHELL's (#SO-action&/...). Rewriting the URL without it stranded
 // the launchpad, and with routing active it dropped the

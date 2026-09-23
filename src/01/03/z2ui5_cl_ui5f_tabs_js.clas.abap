@@ -27,14 +27,14 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
 
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Format",` && |\n| &&
              `    "z2ui5/devtools/Inspect",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
+             `    "z2ui5/devtools/SlotXml",` && |\n| &&
              `  ],` && |\n| &&
-             `  (AppState, ViewSlots, Format, Inspect, Picker, Recorder) => {` && |\n| &&
+             `  (ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
@@ -42,29 +42,19 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return model?.getData?.();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function hasModelData(slotKey) {` && |\n| &&
-             `      const data = getModelJson(ViewSlots.getView(slotKey));` && |\n| &&
+             `    function hasModelData(ctx, slotKey) {` && |\n| &&
+             `      const data = getModelJson(ViewSlots.getView(ctx, slotKey));` && |\n| &&
              `      return Boolean(data) && Object.keys(data).length > 0;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function getViewContent(view) {` && |\n| &&
-             `      return view?.mProperties?.viewContent;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getSlotXml(slotKey) {` && |\n| &&
-             `      return (` && |\n| &&
-             `        getViewContent(ViewSlots.getView(slotKey)) ||` && |\n| &&
-             `        ViewSlots.getViewXml(slotKey) ||` && |\n| &&
-             `        ""` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
+             `    const getSlotXml = SlotXml.slotXml;` && |\n| &&
              `` && |\n| &&
-             `    function slotFilled(slotKey) {` && |\n| &&
-             `      return Boolean(getSlotXml(slotKey));` && |\n| &&
+             `    function slotFilled(ctx, slotKey) {` && |\n| &&
+             `      return Boolean(getSlotXml(ctx, slotKey));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const GROUPS = [` && |\n| &&
@@ -94,7 +84,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "OVERVIEW",` && |\n| &&
              `        label: "Overview",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatOverview(),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatOverview(ctx),` && |\n| &&
              `` && |\n| &&
              `        searchable: false,` && |\n| &&
              `      },` && |\n| &&
@@ -104,8 +94,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "PROBLEMS",` && |\n| &&
              `        label: "Error",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatError(),` && |\n| &&
-             `        enabled: () => Boolean(AppState.state.lastError),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatError(ctx),` && |\n| &&
+             `        enabled: (ctx) => Boolean(ctx.state.lastError),` && |\n| &&
              `        exportOrder: 20,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -113,7 +103,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "PROBLEMS",` && |\n| &&
              `        label: "Log",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatLog(),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatLog(ctx),` && |\n| &&
              `        exportOrder: 30,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -122,7 +112,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "History",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Recorder.formatHistory(),` && |\n| &&
+             `        produce: (ctx) => Recorder.formatHistory(ctx),` && |\n| &&
              `        exportOrder: 40,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -130,7 +120,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "Request",` && |\n| &&
              `        kind: "json",` && |\n| &&
-             `        produce: () => Format.toJson(AppState.state.oBody),` && |\n| &&
+             `        produce: (ctx) => Format.toJson(ctx.state.oBody),` && |\n| &&
              `        exportOrder: 80,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -138,7 +128,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "Response",` && |\n| &&
              `        kind: "json",` && |\n| &&
-             `        produce: () => Format.toJson(AppState.state.responseData),` && |\n| &&
+             `        produce: (ctx) => Format.toJson(ctx.state.responseData),` && |\n| &&
              `        exportOrder: 70,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -146,7 +136,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "Actions",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatActions(),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatActions(ctx),` && |\n| &&
              `        exportOrder: 60,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -154,19 +144,19 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "Model Diff",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Recorder.formatModelDiff(),` && |\n| &&
+             `        produce: (ctx) => Recorder.formatModelDiff(ctx),` && |\n| &&
              `` && |\n| &&
              `        exportOrder: 50,` && |\n| &&
-             `        inExport: () => Recorder.isRecordingPayloads(),` && |\n| &&
+             `        inExport: (_ctx) => Recorder.isRecordingPayloads(),` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "VIEWDIFF",` && |\n| &&
              `        group: "ROUNDTRIPS",` && |\n| &&
              `        label: "View Diff",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Recorder.formatViewDiff(),` && |\n| &&
+             `        produce: (ctx) => Recorder.formatViewDiff(ctx),` && |\n| &&
              `        exportOrder: 51,` && |\n| &&
-             `        inExport: () => Recorder.isRecordingPayloads(),` && |\n| &&
+             `        inExport: (_ctx) => Recorder.isRecordingPayloads(),` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      {` && |\n| &&
@@ -176,10 +166,12 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: () => Format.prettifyXml(getSlotXml("MAIN")),` && |\n| &&
-             `        rendered: () =>` && |\n| &&
-             `          Format.prettifyXml(getRenderedContent(ViewSlots.getView("MAIN"))),` && |\n| &&
-             `        enabled: () => slotFilled("MAIN"),` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "MAIN")),` && |\n| &&
+             `        rendered: (ctx) =>` && |\n| &&
+             `          Format.prettifyXml(` && |\n| &&
+             `            getRenderedContent(ViewSlots.getView(ctx, "MAIN")),` && |\n| &&
+             `          ),` && |\n| &&
+             `        enabled: (ctx) => slotFilled(ctx, "MAIN"),` && |\n| &&
              `        exportOrder: 90,` && |\n| &&
              `        exportTitle: "VIEW",` && |\n| &&
              `      },` && |\n| &&
@@ -190,8 +182,9 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "MODEL",` && |\n| &&
              `        label: "Model",` && |\n| &&
              `        kind: "json",` && |\n| &&
-             `        produce: () => Format.toJson(getModelJson(ViewSlots.getView("MAIN"))),` && |\n| &&
-             `        enabled: () => hasModelData("MAIN"),` && |\n| &&
+             `        produce: (ctx) =>` && |\n| &&
+             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "MAIN"))),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "MAIN"),` && |\n| &&
              `        exportOrder: 91,` && |\n| &&
              `        exportTitle: "VIEW MODEL",` && |\n| &&
              `      },` && |\n| &&
@@ -202,8 +195,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "BINDINGS",` && |\n| &&
              `        label: "Bindings",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatBindings("MAIN"),` && |\n| &&
-             `        enabled: () => hasModelData("MAIN"),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatBindings(ctx, "MAIN"),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "MAIN"),` && |\n| &&
              `        exportOrder: 92,` && |\n| &&
              `        exportTitle: "VIEW BINDINGS",` && |\n| &&
              `      },` && |\n| &&
@@ -215,8 +208,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: () => Format.prettifyXml(getSlotXml("POPUP")),` && |\n| &&
-             `        enabled: () => slotFilled("POPUP"),` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPUP")),` && |\n| &&
+             `        enabled: (ctx) => slotFilled(ctx, "POPUP"),` && |\n| &&
              `        exportOrder: 100,` && |\n| &&
              `` && |\n| &&
              `        exportTitle: "POPUP",` && |\n| &&
@@ -228,8 +221,9 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "MODEL",` && |\n| &&
              `        label: "Model",` && |\n| &&
              `        kind: "json",` && |\n| &&
-             `        produce: () => Format.toJson(getModelJson(ViewSlots.getView("POPUP"))),` && |\n| &&
-             `        enabled: () => hasModelData("POPUP"),` && |\n| &&
+             `        produce: (ctx) =>` && |\n| &&
+             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPUP"))),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "POPUP"),` && |\n| &&
              `        exportOrder: 101,` && |\n| &&
              `        exportTitle: "POPUP MODEL",` && |\n| &&
              `      },` && |\n| &&
@@ -240,8 +234,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "BINDINGS",` && |\n| &&
              `        label: "Bindings",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatBindings("POPUP"),` && |\n| &&
-             `        enabled: () => hasModelData("POPUP"),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatBindings(ctx, "POPUP"),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "POPUP"),` && |\n| &&
              `        exportOrder: 102,` && |\n| &&
              `        exportTitle: "POPUP BINDINGS",` && |\n| &&
              `      },` && |\n| &&
@@ -253,8 +247,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: () => Format.prettifyXml(getSlotXml("POPOVER")),` && |\n| &&
-             `        enabled: () => slotFilled("POPOVER"),` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "POPOVER")),` && |\n| &&
+             `        enabled: (ctx) => slotFilled(ctx, "POPOVER"),` && |\n| &&
              `        exportOrder: 110,` && |\n| &&
              `        exportTitle: "POPOVER",` && |\n| &&
              `      },` && |\n| &&
@@ -265,9 +259,9 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "MODEL",` && |\n| &&
              `        label: "Model",` && |\n| &&
              `        kind: "json",` && |\n| &&
-             `        produce: () =>` && |\n| &&
-             `          Format.toJson(getModelJson(ViewSlots.getView("POPOVER"))),` && |\n| &&
-             `        enabled: () => hasModelData("POPOVER"),` && |\n| &&
+             `        produce: (ctx) =>` && |\n| &&
+             `          Format.toJson(getModelJson(ViewSlots.getView(ctx, "POPOVER"))),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "POPOVER"),` && |\n| &&
              `        exportOrder: 111,` && |\n| &&
              `        exportTitle: "POPOVER MODEL",` && |\n| &&
              `      },` && |\n| &&
@@ -278,8 +272,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "BINDINGS",` && |\n| &&
              `        label: "Bindings",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatBindings("POPOVER"),` && |\n| &&
-             `        enabled: () => hasModelData("POPOVER"),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatBindings(ctx, "POPOVER"),` && |\n| &&
+             `        enabled: (ctx) => hasModelData(ctx, "POPOVER"),` && |\n| &&
              `        exportOrder: 112,` && |\n| &&
              `        exportTitle: "POPOVER BINDINGS",` && |\n| &&
              `      },` && |\n| &&
@@ -291,10 +285,12 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: () => Format.prettifyXml(getSlotXml("NEST")),` && |\n| &&
-             `        rendered: () =>` && |\n| &&
-             `          Format.prettifyXml(getRenderedContent(ViewSlots.getView("NEST"))),` && |\n| &&
-             `        enabled: () => slotFilled("NEST"),` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST")),` && |\n| &&
+             `        rendered: (ctx) =>` && |\n| &&
+             `          Format.prettifyXml(` && |\n| &&
+             `            getRenderedContent(ViewSlots.getView(ctx, "NEST")),` && |\n| &&
+             `          ),` && |\n| &&
+             `        enabled: (ctx) => slotFilled(ctx, "NEST"),` && |\n| &&
              `        exportOrder: 120,` && |\n| &&
              `        exportTitle: "NEST1",` && |\n| &&
              `      },` && |\n| &&
@@ -305,10 +301,12 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: () => Format.prettifyXml(getSlotXml("NEST2")),` && |\n| &&
-             `        rendered: () =>` && |\n| &&
-             `          Format.prettifyXml(getRenderedContent(ViewSlots.getView("NEST2"))),` && |\n| &&
-             `        enabled: () => slotFilled("NEST2"),` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n| &&
+             `        rendered: (ctx) =>` && |\n| &&
+             `          Format.prettifyXml(` && |\n| &&
+             `            getRenderedContent(ViewSlots.getView(ctx, "NEST2")),` && |\n| &&
+             `          ),` && |\n| &&
+             `        enabled: (ctx) => slotFilled(ctx, "NEST2"),` && |\n| &&
              `        exportOrder: 121,` && |\n| &&
              `        exportTitle: "NEST2",` && |\n| &&
              `      },` && |\n| &&
@@ -319,8 +317,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        aspect: "PICK",` && |\n| &&
              `        label: "Picked Control",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () =>` && |\n| &&
-             `          Picker.lastReport() ||` && |\n| &&
+             `        produce: (ctx) =>` && |\n| &&
+             `          Picker.lastReport(ctx) ||` && |\n| &&
              `          'No control picked yet - press "Pick Control", then click any' +` && |\n| &&
              `            " control in the app.",` && |\n| &&
              `        searchable: true,` && |\n| &&
@@ -342,7 +340,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "SYSTEM",` && |\n| &&
              `        label: "Environment",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatEnvironment(),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatEnvironment(ctx),` && |\n| &&
              `` && |\n| &&
              `        exportOrder: 10,` && |\n| &&
              `      },` && |\n| &&
@@ -351,7 +349,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        group: "SYSTEM",` && |\n| &&
              `        label: "Registry",` && |\n| &&
              `        kind: "text",` && |\n| &&
-             `        produce: () => Inspect.formatRegistry(),` && |\n| &&
+             `        produce: (ctx) => Inspect.formatRegistry(ctx),` && |\n| &&
              `        exportOrder: 61,` && |\n| &&
              `      },` && |\n| &&
              `      {` && |\n| &&
@@ -376,10 +374,10 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return Boolean(tabKey && byKey.has(tabKey));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isEnabled(tab) {` && |\n| &&
+             `    function isEnabled(ctx, tab) {` && |\n| &&
              `      if (!tab) return false;` && |\n| &&
              `      try {` && |\n| &&
-             `        return tab.enabled ? Boolean(tab.enabled()) : true;` && |\n| &&
+             `        return tab.enabled ? Boolean(tab.enabled(ctx)) : true;` && |\n| &&
              `      } catch {` && |\n| &&
              `        return false;` && |\n| &&
              `      }` && |\n| &&
@@ -389,69 +387,73 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return get(tabKey)?.group || DEFAULT_GROUP;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function enabledTabs(groupKey) {` && |\n| &&
-             `      return TABS.filter((tab) => tab.group === groupKey && isEnabled(tab));` && |\n| &&
+             `    function enabledTabs(ctx, groupKey) {` && |\n| &&
+             `      return TABS.filter(` && |\n| &&
+             `        (tab) => tab.group === groupKey && isEnabled(ctx, tab),` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function firstTabOf(groupKey) {` && |\n| &&
+             `    function firstTabOf(ctx, groupKey) {` && |\n| &&
              `      const first = TABS.find(` && |\n| &&
-             `        (tab) => tab.group === groupKey && isEnabled(tab),` && |\n| &&
+             `        (tab) => tab.group === groupKey && isEnabled(ctx, tab),` && |\n| &&
              `      );` && |\n| &&
              `      return first?.key || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function enabledSlots() {` && |\n| &&
+             `    function enabledSlots(ctx) {` && |\n| &&
              `      const available = new Set(` && |\n| &&
-             `        enabledTabs("VIEWDATA")` && |\n| &&
+             `        enabledTabs(ctx, "VIEWDATA")` && |\n| &&
              `          .filter((tab) => tab.slot)` && |\n| &&
              `          .map((tab) => tab.slot),` && |\n| &&
              `      );` && |\n| &&
              `      return SLOTS.filter((slot) => available.has(slot.key));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function aspectsOfSlot(slotKey) {` && |\n| &&
-             `      return enabledTabs("VIEWDATA")` && |\n| &&
+             `    function aspectsOfSlot(ctx, slotKey) {` && |\n| &&
+             `      return enabledTabs(ctx, "VIEWDATA")` && |\n| &&
              `        .filter((tab) => tab.slot === slotKey)` && |\n| &&
              `        .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function tabFor(slotKey, aspect) {` && |\n| &&
-             `      const aspects = aspectsOfSlot(slotKey);` && |\n| &&
+             `    function tabFor(ctx, slotKey, aspect) {` && |\n| &&
+             `      const aspects = aspectsOfSlot(ctx, slotKey);` && |\n| &&
              `      const exact = aspects.find((tab) => tab.aspect === aspect);` && |\n| &&
              `      return (exact || aspects[0])?.key || "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function render(tabKey) {` && |\n| &&
+             `    function render(ctx, tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab) return "";` && |\n| &&
              `      try {` && |\n|.
     result = result &&
-             `        return tab.produce() ?? "";` && |\n| &&
+             `        return tab.produce(ctx) ?? "";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function renderTemplated(tabKey) {` && |\n| &&
+             `    function renderTemplated(ctx, tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab?.rendered) return "";` && |\n| &&
              `      try {` && |\n| &&
-             `        return tab.rendered() || "";` && |\n| &&
+             `        return tab.rendered(ctx) || "";` && |\n| &&
              `      } catch {` && |\n| &&
              `        return "";` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function searchableTabs() {` && |\n| &&
-             `      return TABS.filter((tab) => tab.searchable !== false && isEnabled(tab));` && |\n| &&
+             `    function searchableTabs(ctx) {` && |\n| &&
+             `      return TABS.filter(` && |\n| &&
+             `        (tab) => tab.searchable !== false && isEnabled(ctx, tab),` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function exportTabs() {` && |\n| &&
+             `    function exportTabs(ctx) {` && |\n| &&
              `      return TABS.filter((tab) => {` && |\n| &&
              `        if (tab.exportOrder === undefined) return false;` && |\n| &&
-             `        if (!isEnabled(tab)) return false;` && |\n| &&
+             `        if (!isEnabled(ctx, tab)) return false;` && |\n| &&
              `        try {` && |\n| &&
-             `          return tab.inExport ? Boolean(tab.inExport()) : true;` && |\n| &&
+             `          return tab.inExport ? Boolean(tab.inExport(ctx)) : true;` && |\n| &&
              `        } catch {` && |\n| &&
              `          return false;` && |\n| &&
              `        }` && |\n| &&
@@ -473,14 +475,14 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `      return parts.join(" > ");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function search(term) {` && |\n| &&
+             `    function search(ctx, term) {` && |\n| &&
              `      const needle = String(term || "").toLowerCase();` && |\n| &&
              `      if (!needle) return "(enter a search term)";` && |\n| &&
              `      const sections = [];` && |\n| &&
              `      let totalHits = 0;` && |\n| &&
              `` && |\n| &&
-             `      for (const tab of searchableTabs()) {` && |\n| &&
-             `        const text = render(tab.key);` && |\n| &&
+             `      for (const tab of searchableTabs(ctx)) {` && |\n| &&
+             `        const text = render(ctx, tab.key);` && |\n| &&
              `        if (!text) continue;` && |\n| &&
              `        const lines = String(text).split("\n");` && |\n| &&
              `        const hits = [];` && |\n| &&

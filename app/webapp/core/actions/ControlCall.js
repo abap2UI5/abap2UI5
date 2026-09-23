@@ -158,7 +158,10 @@ sap.ui.define(
         // lifecycle - the backend sends the control id, resolved here. A
         // missing/unresolvable id drops the option instead of passing a
         // string UI5 would choke on.
-        const oDependentOn = ViewSlots.resolveById(o.dependentOn);
+        const oDependentOn = ViewSlots.resolveById(
+          oController?.ctx,
+          o.dependentOn,
+        );
         if (oDependentOn) o.dependentOn = oDependentOn;
         else delete o.dependentOn;
       }
@@ -473,7 +476,14 @@ sap.ui.define(
           updateModel: [],
         },
         display: (oController, method, aArgs, mOptions, ctx) =>
-          Slots.action(method, aArgs[0], aArgs[1], mOptions, ctx?.seq),
+          Slots.action(
+            oController?.ctx,
+            method,
+            aArgs[0],
+            aArgs[1],
+            mOptions,
+            ctx?.seq,
+          ),
       },
       // The browser history / URL. Router computes ONE outcome from the whole
       // options object - adopt the hash, push a route entry, replace it, or
@@ -487,7 +497,7 @@ sap.ui.define(
         methods: { sync: [] },
         display: (oController, method, aArgs, mOptions, ctx) => {
           if (ctx?.response) ctx.response._routerOptions = mOptions;
-          else Router.sync(mOptions);
+          else Router.sync(oController?.ctx, mOptions);
         },
       },
       BUSY_INDICATOR: {
@@ -585,7 +595,10 @@ sap.ui.define(
     // `view` (optional) is the slot the owning control was resolved in, so a
     // controlId argument resolves against the same view first - this keeps
     // slot-local ids unambiguous (e.g. a NavContainer navigating to one of
-    // its own pages) before falling back to the global lookup.
+    // its own pages) before falling back to the global lookup. `ctx` is the
+    // calling controller's context (core/Context.js), whose slots the ids
+    // resolve in; it rides LAST so the kinds that need no control (the
+    // boolean cast BindingCall borrows) are called without one.
     // A control CLONED from an aggregation template has no id the backend can
     // spell. UI5 mints it as `<templateId>-<parentId>-<index>` - deterministic,
     // but the parent id carries the VIEW PREFIX the framework assigns at
@@ -600,10 +613,10 @@ sap.ui.define(
     // call can express. A plain id (no slashes) resolves exactly as before.
     const AGG_ITEM = /^([^/]+)\/([A-Za-z_][\w]*)\/(\d+)$/;
 
-    function resolveControl(raw, view) {
+    function resolveControl(raw, view, ctx) {
       const byId = (id) =>
-        (view && ViewSlots.byId(view.toUpperCase(), id)) ||
-        ViewSlots.resolveById(id);
+        (view && ViewSlots.byId(ctx, view.toUpperCase(), id)) ||
+        ViewSlots.resolveById(ctx, id);
 
       const m = AGG_ITEM.exec(String(raw ?? ""));
       if (!m) return byId(raw);
@@ -637,19 +650,19 @@ sap.ui.define(
     // the within-area, so it has to arrive as an explicit null - and a
     // non-empty id that resolves to nothing is null too, never `undefined`,
     // which some UI5 setters read as "no argument given" instead of "clear".
-    function resolveControlOrNull(raw, view) {
+    function resolveControlOrNull(raw, view, ctx) {
       if (raw === "" || raw === undefined || raw === null) return null;
-      return resolveControl(raw, view) || null;
+      return resolveControl(raw, view, ctx) || null;
     }
 
-    function castArg(kind, raw, view) {
+    function castArg(kind, raw, view, ctx) {
       switch (kind) {
         case "int":
           return Number(raw);
         case "bool":
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
-          return resolveControl(raw, view);
+          return resolveControl(raw, view, ctx);
         case "pageId": {
           // Like `controlId`, but hands the container the resolved control's
           // ID rather than the control. Only for methods whose UI5 signature
@@ -658,7 +671,7 @@ sap.ui.define(
           // resolution step is what makes this safe: the rendered id carries
           // the view prefix the backend never sees, so passing the raw ABAP
           // literal instead would break every existing navigation.
-          const page = resolveControl(raw, view);
+          const page = resolveControl(raw, view, ctx);
           if (page && typeof page.getId === "function") return page.getId();
           // No control under that id. Today the container absorbs this
           // silently (it just navigates its last column and logs a UI5
@@ -677,7 +690,7 @@ sap.ui.define(
           // not as the `false` castArgAuto would infer. Same "empty means
           // null" contract as the `within` kind below, so both go through the
           // one helper.
-          return resolveControlOrNull(raw, view);
+          return resolveControlOrNull(raw, view, ctx);
         case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
           // and hand over the CONTROL itself, not its DOM element. Every
@@ -686,7 +699,7 @@ sap.ui.define(
           // element throws ("getParent is not a function") and the popup never
           // opens. DatePicker/TimePicker/Menu accept a control just as well,
           // so a control is the universally-correct anchor.
-          return resolveControl(raw, view);
+          return resolveControl(raw, view, ctx);
         case "within":
           // sap.ui.core.Popup.setWithinArea: a control id confines every popup
           // to that control, an EMPTY argument releases the restriction (the
@@ -694,7 +707,7 @@ sap.ui.define(
           // accepts a sap.ui.core.Element and dereferences its DOM node when a
           // popup opens, so handing over the CONTROL - not its DOM element -
           // is what survives a re-render of the area in between.
-          return resolveControlOrNull(raw, view);
+          return resolveControlOrNull(raw, view, ctx);
         case "object":
           // the backend embeds an argument that starts with { or [ as real
           // JSON (get_event_client_ajson), so on that path the value arrives
@@ -769,7 +782,7 @@ sap.ui.define(
     // `target` (optional) is the { control, method } the call will land on -
     // only the CONTROL_BY_ID path can supply it, and it is only consulted on
     // the inferred branch.
-    function castArgs(kinds, rawArgs, view, target) {
+    function castArgs(kinds, rawArgs, view, target, ctx) {
       // kinds === null: unlisted-but-allowed method, infer each arg's type
       if (kinds === null) {
         // a setXxx takes its value first, and that is the only position a
@@ -788,7 +801,7 @@ sap.ui.define(
         count++;
       return kinds
         .slice(0, count)
-        .map((kind, i) => castArg(kind, rawArgs[i], view));
+        .map((kind, i) => castArg(kind, rawArgs[i], view, ctx));
     }
 
     // Collections already registered in this session. UI5 tolerates a repeat
@@ -902,7 +915,13 @@ sap.ui.define(
         );
         return;
       }
-      const anchor = castArgs(kinds, args.slice(4), view)[0];
+      const anchor = castArgs(
+        kinds,
+        args.slice(4),
+        view,
+        undefined,
+        oController?.ctx,
+      )[0];
       // Defer the open until the anchor is rendered: a Save-style roundtrip
       // can make the anchor (e.g. a button hidden until there are messages)
       // visible in the same response, so it may not be in the DOM yet.
@@ -925,7 +944,13 @@ sap.ui.define(
         Lib.logError(`CONTROL_BY_ID: 'openBy' not callable on control '${id}'`);
         return;
       }
-      const anchor = castArgs(kinds, args.slice(4), view)[0];
+      const anchor = castArgs(
+        kinds,
+        args.slice(4),
+        view,
+        undefined,
+        oController?.ctx,
+      )[0];
       // Same reason as toggleBy: wait for the anchor to render.
       whenAnchorRendered(anchor, oController, () => {
         if (typeof control.openBy === "function") control.openBy(anchor);
@@ -1063,7 +1088,8 @@ sap.ui.define(
       // a fully-qualified id (the form UI5 messages return from
       // getControlIds()) resolved fine as an argument and reported "not
       // callable" as the target of the very same call.
-      const control = resolveControl(id, view);
+      const ctx = oController?.ctx;
+      const control = resolveControl(id, view, ctx);
       const pseudo = PSEUDO_METHODS[method];
       if (pseudo) {
         pseudo({ control, id, view, method, kinds, args, oController });
@@ -1084,7 +1110,7 @@ sap.ui.define(
         return;
       }
       control[method](
-        ...castArgs(kinds, args.slice(4), view, { control, method }),
+        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),
       );
     }
 
@@ -1154,7 +1180,9 @@ sap.ui.define(
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
-      obj[method](...castArgs(kinds, raw));
+      obj[method](
+        ...castArgs(kinds, raw, undefined, undefined, oController?.ctx),
+      );
     }
 
     // replace placeholders in a template with the positional values (as

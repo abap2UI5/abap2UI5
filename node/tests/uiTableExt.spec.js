@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { loadEnv } = require("./loadLibModule");
 
 // Tests the real app/webapp/cc/UITableExt.js. The control reads the active
 // filters/sorters of a sap.ui.table before a roundtrip (onBeforeRoundtrip)
@@ -81,6 +82,9 @@ function load({ deferRender = false } = {}) {
     deps: {
       "sap/ui/core/Control": controlStub(),
       "z2ui5/core/Lib": Lib,
+      // the real release bridge: getFilters("Control") where the binding
+      // has it (1.96+), the private aFilters before
+      "z2ui5/core/Env": loadEnv().Env,
       "z2ui5/core/ViewSlots": ViewSlots,
     },
     sandbox: { z2ui5 },

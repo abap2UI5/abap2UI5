@@ -33,9 +33,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
@@ -124,7 +123,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evHashBack(oController, args) {` && |\n| &&
-             `      Router.navBack(args ? args[1] : undefined);` && |\n| &&
+             `      Router.navBack(oController?.ctx, args ? args[1] : undefined);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evLocationReload(oController, args) {` && |\n| &&
@@ -141,7 +140,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      const explicitUrl = args[1];` && |\n| &&
              `      const logoutUrl = explicitUrl || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
-             `        const container = AppState.state.oLaunchpad?.Container;` && |\n| &&
+             `        const container = oController?.ctx?.state.oLaunchpad?.Container;` && |\n| &&
              `` && |\n| &&
              `        if (container?.logout && !explicitUrl) {` && |\n| &&
              `          container.logout();` && |\n| &&
@@ -207,9 +206,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const newWindow = window.open(args[1], "_blank");` && |\n| &&
              `` && |\n| &&
-             `      if (newWindow) newWindow.opener = null;` && |\n| &&
+             `      window.open(args[1], "_blank", "noopener,noreferrer");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&

@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, Env, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
@@ -100,9 +105,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `          this._filterBinding = binding;` && |\n| &&
              `` && |\n| &&
-             `          this.aFilters = binding?.getFilters` && |\n| &&
-             `            ? binding.getFilters("Control")` && |\n| &&
-             `            : binding?.aFilters;` && |\n| &&
+             `          this.aFilters = Env.controlFilters(binding);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&
              `        }` && |\n| &&

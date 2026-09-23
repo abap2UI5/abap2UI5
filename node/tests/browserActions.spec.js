@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, withSpecController } = require("./loadLibModule");
 
 // Tests the URL-shaped handlers of core/actions/Browser.js - the actions
 // that can navigate away or hand data out of the app, through the REAL
@@ -9,12 +9,12 @@ const { loadLib } = require("./loadLibModule");
 // guard chain, not a stub's opinion of it:
 //   DOWNLOAD_B64_FILE  protocol guard, active data: MIME block, filename
 //                      sanitizer, the attach-click-remove anchor dance
-//   OPEN_NEW_TAB       same-origin guard, opener cleared on the new tab
+//   OPEN_NEW_TAB       same-origin guard, opened with noopener,noreferrer
 //   URLHELPER          CR/LF header-injection block, REDIRECT protocol
 //                      guard (external http/https allowed, schemes not)
 function load() {
   // The real Lib: its sandbox origin anchors the same-origin checks.
-  const { Lib, state: libState } = loadLib();
+  const { Lib, state: libState, ctx } = loadLib();
 
   const boxErrors = [];
   const urlHelperCalls = [];
@@ -74,7 +74,7 @@ function load() {
         { Type: { local: "local", session: "session" } },
       ),
       "z2ui5/core/Router": {
-        navBack: (fallback) => navBacks.push(fallback),
+        navBack: (_ctx, fallback) => navBacks.push(fallback),
       },
       "z2ui5/core/Lib": Lib,
       // STORE_DATA resolves a model-path payload the way SET_SIZE_LIMIT
@@ -82,7 +82,6 @@ function load() {
       "z2ui5/core/ViewSlots": {
         trackedModel: (owner) => owner?.__tracked,
       },
-      "z2ui5/core/AppState": { state: {} },
     },
     sandbox: {
       document: documentStub,
@@ -90,17 +89,20 @@ function load() {
         // same origin the real Lib resolves against (loadLibModule)
         location: { origin: "http://localhost:3000", pathname: "/sap/z2ui5" },
         history: { back: () => historyBacks.push(1) },
-        open: (url, target) => {
-          const win = { opener: "the-parent-window" };
-          opened.push({ url, target, win });
-          return win;
+        // a browser answers null for a "noopener" open - there is no
+        // window handle to reach back to, which is the point
+        open: (url, target, features) => {
+          opened.push({ url, target, features });
+          return null;
         },
       },
     },
   });
 
   return {
-    handlers: Browser.handlers,
+    // the handlers read the context off the calling controller; the
+    // specs' bare fixtures get the spec's one
+    handlers: withSpecController(Browser.handlers, ctx).handlers,
     stores,
     historyBacks,
     navBacks,
@@ -304,17 +306,22 @@ test.describe("DOWNLOAD_B64_FILE", () => {
 });
 
 test.describe("OPEN_NEW_TAB", () => {
-  test("a same-origin URL opens in _blank with the opener cleared", () => {
+  test("a same-origin URL opens in _blank with noopener and noreferrer", () => {
     const { handlers, opened, boxErrors } = load();
 
-    handlers.OPEN_NEW_TAB(null, ["OPEN_NEW_TAB", "/sap/z2ui5?app=demo"]);
+    expect(() =>
+      handlers.OPEN_NEW_TAB(null, ["OPEN_NEW_TAB", "/sap/z2ui5?app=demo"]),
+    ).not.toThrow();
 
     expect(boxErrors).toHaveLength(0);
     expect(opened).toHaveLength(1);
     expect(opened[0].url).toBe("/sap/z2ui5?app=demo");
     expect(opened[0].target).toBe("_blank");
-    // the new tab must not be able to reach back via window.opener
-    expect(opened[0].win.opener).toBe(null);
+    // the new tab must not be able to reach back via window.opener, and
+    // must not learn this page's URL (the draft id rides in its hash) -
+    // both are the browser's job through the features string, and the
+    // null the browser then returns is not touched
+    expect(opened[0].features).toBe("noopener,noreferrer");
   });
 
   test("a cross-origin URL is refused with a MessageBox, nothing opens", () => {

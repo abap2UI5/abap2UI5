@@ -25,12 +25,24 @@
 //
 // Like the rest of devtools/ this module is outside the framework: no
 // framework module knows it exists, and devtools/DevTools.js is what
-// installs it. It depends on nothing at all - not even on the rest of
-// devtools/: it observes the browser and UI5 and hands the captured
-// entries over as DATA. Rendering them is devtools/Inspect.js's job,
+// installs it. It depends on nothing but the guarded sessionStorage access
+// of devtools/Persist.js: it observes the browser and UI5 and hands the
+// captured entries over as DATA. Rendering them is devtools/Log.js's job,
 // which merges them with the framework's error log and the backend
 // messages into one timeline (the Log tab).
-sap.ui.define([], () => {
+//
+// PAGE-WIDE, deliberately - the one part of the developer tools that is
+// not per component context (core/Context.js): there is one
+// window.console, one sap/base/Log and one window to listen on, and a
+// console line names no component. So the capture is installed ONCE and
+// counted: DevTools.install of every context calls install( ), the first
+// call patches, DevTools.exit calls uninstall( ), and only the last one
+// un-patches - a second context's install/exit neither double-wraps the
+// console nor pulls the capture out from under the first. The error
+// subscribers (addOnError) are a set for the same reason: every context's
+// tools want to hear about an error-level entry, and each takes its own
+// hook off again at exit.
+sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {
   "use strict";
 
   // Ring size. Console output is far chattier than the roundtrip history,
@@ -67,7 +79,7 @@ sap.ui.define([], () => {
   const RELOAD_MAX_ENTRIES = 40;
 
   // Opt-in: announce an error-level entry to whoever subscribed via
-  // setOnError. The developer tools turn that into "open on the Console
+  // addOnError. The developer tools turn that into "open on the Console
   // tab"; the setting lives HERE because this is where the errors are, and
   // because the dialog and the lifecycle facade both need to reach it
   // without importing each other.
@@ -82,16 +94,16 @@ sap.ui.define([], () => {
   let dropped = 0;
 
   const originals = {};
-  let installed = false;
+  // contexts that hold the capture installed - see the module header
+  let users = 0;
   let ui5Listener = null;
   let onWindowError = null;
   let onRejection = null;
   let onPageHide = null;
 
-  // Optional notification of an error-level entry, used by
-  // devtools/DevTools.js for its "open on error" option. One
-  // subscriber is enough - the tools are the only consumer.
-  let onErrorEntry = null;
+  // Notification of an error-level entry, used by devtools/DevTools.js
+  // for its "open on error" option - one subscriber per context's tools.
+  const onErrorEntry = new Set();
 
   // Re-entrancy guard: formatting an argument must never end up calling a
   // captured console method again (a getter that logs, a toJSON that
@@ -126,68 +138,45 @@ sap.ui.define([], () => {
       text: body,
     };
     entries.push(entry);
-    if (level === "error" && onErrorEntry && isAlertOnError()) {
-      try {
-        onErrorEntry(entry);
-      } catch {
-        // a subscriber must never break the capture
+    if (level === "error" && onErrorEntry.size && isAlertOnError()) {
+      for (const fn of onErrorEntry) {
+        try {
+          fn(entry);
+        } catch {
+          // a subscriber must never break the capture
+        }
       }
     }
   }
 
-  function setOnError(fn) {
-    onErrorEntry = fn;
+  function addOnError(fn) {
+    if (typeof fn === "function") onErrorEntry.add(fn);
+  }
+
+  function removeOnError(fn) {
+    onErrorEntry.delete(fn);
   }
 
   function isAlertOnError() {
-    try {
-      return window.sessionStorage?.getItem(ALERT_KEY) === "X";
-    } catch {
-      return false;
-    }
+    return Persist.readFlag(ALERT_KEY);
   }
 
   function setAlertOnError(enabled) {
-    try {
-      if (enabled) {
-        window.sessionStorage?.setItem(ALERT_KEY, "X");
-      } else {
-        window.sessionStorage?.removeItem(ALERT_KEY);
-      }
-    } catch {
-      // storage unavailable - the switch then does not persist
-    }
+    Persist.writeFlag(ALERT_KEY, enabled);
   }
 
   // Carry the error-level entries into the next page load (see RELOAD_KEY).
   function persist() {
-    try {
-      const errors = entries
-        .filter((entry) => entry.level === "error")
-        .slice(-RELOAD_MAX_ENTRIES)
-        .map((entry) => ({ ...entry, previousLoad: true }));
-      if (!errors.length) return;
-      window.sessionStorage?.setItem(RELOAD_KEY, JSON.stringify(errors));
-    } catch {
-      // storage full or unavailable - they simply do not survive
-    }
+    const errors = entries
+      .filter((entry) => entry.level === "error")
+      .slice(-RELOAD_MAX_ENTRIES)
+      .map((entry) => ({ ...entry, previousLoad: true }));
+    Persist.saveList(RELOAD_KEY, errors);
   }
 
   function restore() {
-    let stored;
-    try {
-      stored = window.sessionStorage?.getItem(RELOAD_KEY);
-      window.sessionStorage?.removeItem(RELOAD_KEY);
-    } catch {
-      return;
-    }
-    if (!stored) return;
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) entries = parsed.slice(-RELOAD_MAX_ENTRIES);
-    } catch {
-      entries = [];
-    }
+    const stored = Persist.takeList(RELOAD_KEY);
+    if (stored.length) entries = stored.slice(-RELOAD_MAX_ENTRIES);
   }
 
   // Errors are recognised by SHAPE, not with `instanceof Error`: an error
@@ -414,8 +403,8 @@ sap.ui.define([], () => {
   }
 
   function install() {
-    if (installed) return;
-    installed = true;
+    users += 1;
+    if (users > 1) return;
     restore();
 
     onWindowError = (event) => {
@@ -450,8 +439,9 @@ sap.ui.define([], () => {
   }
 
   function uninstall() {
-    if (!installed) return;
-    installed = false;
+    if (!users) return;
+    users -= 1;
+    if (users) return;
     uninstallConsole();
     uninstallUi5Log();
     if (onWindowError) window.removeEventListener("error", onWindowError);
@@ -462,7 +452,7 @@ sap.ui.define([], () => {
     onWindowError = null;
     onRejection = null;
     onPageHide = null;
-    onErrorEntry = null;
+    onErrorEntry.clear();
     pendingUi5Echo = null;
     entries = [];
     dropped = 0;
@@ -481,7 +471,8 @@ sap.ui.define([], () => {
   return {
     install,
     uninstall,
-    setOnError,
+    addOnError,
+    removeOnError,
     isAlertOnError,
     setAlertOnError,
     getEntries,

@@ -75,13 +75,12 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `` && |\n| &&
              `      hashPushCount: 0,` && |\n| &&
              `` && |\n| &&
-             `      errors: [],` && |\n| &&
-             `      timers: {},` && |\n| &&
-             `      shortcuts: {},` && |\n| &&
+             `      timers: Object.create(null),` && |\n| &&
+             `      shortcuts: Object.create(null),` && |\n| &&
              `      lastScrolled: {},` && |\n| &&
              `      odataClients: new Set(),` && |\n| &&
-             `      viewSizeLimits: {},` && |\n| &&
-             `      treeStates: {},` && |\n| &&
+             `      viewSizeLimits: Object.create(null),` && |\n| &&
+             `      treeStates: Object.create(null),` && |\n| &&
              `      lastError: null,` && |\n| &&
              `` && |\n| &&
              `      onBeforeRoundtrip: [],` && |\n| &&
@@ -92,19 +91,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  let state = createState();` && |\n| &&
-             `` && |\n| &&
-             `  function reset() {` && |\n| &&
-             `    state = createState();` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  return {` && |\n| &&
-             `    reset,` && |\n| &&
-             `` && |\n| &&
-             `    get state() {` && |\n| &&
-             `      return state;` && |\n| &&
-             `    },` && |\n| &&
-             `  };` && |\n| &&
+             `  return { createState };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.
