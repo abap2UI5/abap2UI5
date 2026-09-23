@@ -494,8 +494,8 @@ sap.ui.define(
       list.forEach((item, index) => {
         const number = String(index + 1).padStart(3);
         if (!Array.isArray(item)) {
-          // legacy app-authored raw JS snippet, passed through untouched
-          out.push(`${number}  [legacy JS] ${truncate(item, MAX_ARG_CHARS)}`);
+          // not an action payload - the frontend does not run it
+          out.push(`${number}  [not run] ${truncate(item, MAX_ARG_CHARS)}`);
           return;
         }
         const [name, ...args] = item;

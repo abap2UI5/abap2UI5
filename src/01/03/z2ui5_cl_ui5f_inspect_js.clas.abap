@@ -414,7 +414,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      list.forEach((item, index) => {` && |\n| &&
              `        const number = String(index + 1).padStart(3);` && |\n| &&
              `        if (!Array.isArray(item)) {` && |\n| &&
-             `          out.push(``${number}  [legacy JS] ${truncate(item, MAX_ARG_CHARS)}``);` && |\n| &&
+             `          out.push(``${number}  [not run] ${truncate(item, MAX_ARG_CHARS)}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const [name, ...args] = item;` && |\n| &&

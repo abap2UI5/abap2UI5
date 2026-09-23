@@ -96,6 +96,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    async function loadSlotFragment(slotKey, fragmentId, xml, seq) {` && |\n| &&
              `      const oModel = createViewModel(slotKey);` && |\n| &&
              `      applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
+             `` && |\n| &&
+             `      await Lib.preloadFragmentModules(xml);` && |\n| &&
              `      const oFragment = await Fragment.load({` && |\n| &&
              `        definition: xml,` && |\n| &&
              `        controller: ViewSlots.getController(slotKey),` && |\n| &&

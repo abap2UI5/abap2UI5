@@ -45,6 +45,39 @@ support case.
       array stays reserved and always false so nothing behind it shifts;
       `View1.eB` ignores a truthy value there. API snapshot regenerated,
       recorded as BREAKING in `changelog.txt`
+- [x] Raw JavaScript in `follow_up_action( )` removed (2026-09-22). A `val`
+      that was not a `cs_event-*` name was queued verbatim and run in the
+      browser through `Function( )` (or parsed as an `eF( … )` call string) —
+      it needed a CSP with `'unsafe-eval'` and was the last string-typed
+      entry in an otherwise pure-data action list. Now every `val` travels as
+      the event name of a JSON action, so a raw snippet reaches the frontend
+      as an unknown action and is not run; no exception, no check, the
+      signature is unchanged. Replacements: `control_global` for the UI5
+      globals (MessageToast, MessageBox, BusyIndicator), `control_by_id` for a
+      control method, `hash_back` for `history.back( )`, and a custom control
+      in the customer frontend BSP (`z2ui5_ccc`) for code of the app's own.
+      Ecosystem count at
+      removal: **0** across `samples`, `samples-controls` and `samples-stack`
+      (every `->follow_up_action(` whose `val` is not a `cs_event-*`
+      constant, a legacy `_event( )` snippet included — `removal-blockers.mjs`
+      counts the shape). Gone with it: `queue_app_js`, the `js` field of
+      `ty_s_queued_action`, the `.eB(['` snippet parsing in
+      `z2ui5_cl_ui5_action` that derived a nav hop's next event from such a
+      snippet, `core/actions/LegacyCustomJs.js` and its generated
+      mirror in `src/01/03/`. `efWireRoundtrip.spec.js` reads the wired
+      `eF( )` form back as JavaScript now instead of through that parser
+- [x] `custom_js` and `title` removed from `z2ui5_if_ui5_exit=>ty_s_http_config`
+      (2026-09-23). `custom_js` was appended to the embedded `Component.js`
+      and ran as inline script on the direct-start page - arbitrary code an
+      exit could inject next to the frontend; frontend code an installation
+      needs ships in its own BSP instead (`z2ui5_ccc`,
+      abap2UI5/customer-frontend-extension). `title` had not been read for
+      a while: the page carries a constant `<title>` and a running app sets
+      its own with `cs_event-set_title`. Ecosystem count at removal: **0**
+      in `samples`, `samples-controls` and `samples-stack`. An exit that
+      still assigns either fails at compile time with "delete the line" as
+      the whole migration. API snapshot regenerated, recorded as BREAKING in
+      `changelog.txt`
 - [x] `ty_s_get-viewname` removed — never filled by the framework. API snapshot
       regenerated, recorded as BREAKING in `changelog.txt`
 - [x] `_bind_edit( )` migrated out of the framework apps and the samples
@@ -162,7 +195,9 @@ support case.
       UI5 onNavBack pattern with an optional fallback hash): with
       `hash_attach_changed` registered, a consumed history step round-trips
       as the registered event, which raw JS could never wire — a REAL back,
-      not a composed target, is what makes the router ports 1:1
+      not a composed target, is what makes the router ports 1:1. The raw-JS
+      replacement named above is gone too (see raw JavaScript in
+      `follow_up_action( )` above)
 - [x] `z2ui5_if_types` retired to `src/99` — every type it held now sits on the
       object that uses it (`ty_s_get` / `ty_s_event_control` / `ty_s_name_value`
       / `ty_t_name_value` / `cs_device` on `z2ui5_if_client`, the three HTTP
@@ -203,10 +238,11 @@ support case.
         the global resolves to nothing now
       - the `developerTools` mirror on the global
 
-      All of it `- BREAKING:` under `unreleased` in `changelog.txt`. The
-      migration for `cs_event-z2ui5` is the raw expression the docs'
-      deprecations page already names, `follow_up_action( `myFunction()` )`
-      on a function the app defines on `window`
+      All of it `- BREAKING:` under `unreleased` in `changelog.txt`. There
+      is no frontend path left for app-registered code: raw JavaScript in
+      `follow_up_action( )` is gone as well (see its entry above), so such
+      code ships as a custom control in the customer frontend BSP
+      (`z2ui5_ccc`)
 
 ---
 
@@ -400,12 +436,6 @@ controls a public contract, so these break hand-written view XML. Regenerate
       hash itself stays — `app_state_set_active( )` writes it, and
       `app_state_get_href( )` composes the link that restores it.
 
-> **Cannot go yet:** the `eF('…')` string parser in `core/actions/LegacyCustomJs.js`. It is
-> the legacy path only for *framework* follow-up actions (those are JSON since
-> #2501) — a WIRED action still emits the code form into view XML
-> (`get_event_client( )`, reached through `follow_up_action( )`'s
-> `IF result IS SUPPLIED` branch or through its obsolete second name
-> `_event_client( )`), so the parser stays until that is JSON too.
 
 ---
 
@@ -413,9 +443,9 @@ controls a public contract, so these break hand-written view XML. Regenerate
 
 Not part of any public contract; removable whenever.
 
-- [ ] **`follow_up_action( _event( ) )` snippet parsing** — in
-      `z2ui5_cl_ui5_action=>prepare_app_stack`. A `SPLIT` on `.eB(['` that
-      reverse-engineers the next event out of a legacy JS string.
+- [x] **`follow_up_action( _event( ) )` snippet parsing** — in
+      `z2ui5_cl_ui5_action=>prepare_app_stack`, removed with raw JavaScript
+      in `follow_up_action( )` (§0).
 - [x] **The dynamic slot loops** — `reset_view_update_flags` 20 → 10 lines,
       `check_view_update_needed` 43 → 22. Plain `CLEAR` / `IF` on the statically
       known slots; `cs_view_slot_list` and `cs_model_slot_list` are gone, and

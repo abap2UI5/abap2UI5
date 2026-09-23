@@ -77,10 +77,9 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
 
   METHOD test_link_enabled.
 
-    " link_enabled is the plain model value the step-5 link binds to - it
-    " replaced a UI5 expression binding, which would be eval-compiled and
-    " therefore break under a strict CSP. It must stay the exact inverse of
-    " class_editable, so the link is only clickable after a successful check.
+    " link_enabled is the plain model value the step-5 link binds to. It must
+    " stay the exact inverse of class_editable, so the link is only clickable
+    " after a successful check.
     DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-link_enabled = abap_true.

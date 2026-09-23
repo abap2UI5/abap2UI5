@@ -71,7 +71,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_get_title.
 
-    " The tab title is constant: `cs_config-title` is not read any more, and an
+    " The tab title is constant: the exit has no title field any more, and an
     " app that wants its own title sets it while it runs, with
     " cs_event-set_title. Pinned as the literal tag, because a <title> holding
     " whatever the exit happened to assign is exactly what changed here - and
@@ -323,8 +323,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_css
-                                                  custom_js   = `` ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( lv_css ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `content: \'x\';` ) ).
 
@@ -353,8 +352,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = `.a { content: 'x'; }`
-                                                  custom_js   = `` ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( `.a { content: 'x'; }` ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
@@ -689,14 +687,6 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     ls_config = ls_base.
     ls_config-styles_css = `.z2ui5-test { color: red; }`.
-    lv_body = shell_for_config( ls_config ).
-    cl_abap_unit_assert=>assert_differs( exp = lv_key_base
-                                         act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
-    cl_abap_unit_assert=>assert_differs( exp = lv_body_base
-                                         act = lv_body ).
-
-    ls_config = ls_base.
-    ls_config-custom_js = `console.log(1);`.
     lv_body = shell_for_config( ls_config ).
     cl_abap_unit_assert=>assert_differs( exp = lv_key_base
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).

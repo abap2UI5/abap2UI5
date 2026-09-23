@@ -181,11 +181,16 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
         `sdk.openui5.org *.sdk.openui5.org`.
 
-      " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
-      " module source as a string); without it the 1.71 bootstrap fails with a
-      " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
-      " affects older releases, and 'unsafe-inline' is already allowed so the
-      " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
+      " NO 'unsafe-eval': nothing abap2UI5 ships evaluates code, and UI5 from
+      " 1.84 on runs without it as long as it loads asynchronously from its
+      " preload bundles (expression binding included - UI5 parses it without
+      " eval). On 1.71 to 1.82 Fragment.load processes a popup synchronously and
+      " evals every module it has to fetch; the frontend requires the popup's
+      " controls asynchronously first (Lib.preloadFragmentModules), so that
+      " stays clean too. What it cannot see - a module a popup only names in a
+      " binding type or a core:require - is still eval'd there; such an
+      " installation switches 'unsafe-eval' back on in its exit (see
+      " z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy).
       "
       " script-src and style-src are EXPLICIT on purpose, not left to the
       " default-src fallback: default-src carries data:/blob: for images,
@@ -197,7 +202,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       gv_csp_default =
         |<meta http-equiv="Content-Security-Policy" | &&
         |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
-        |script-src 'self' 'unsafe-inline' 'unsafe-eval' { lv_ui5_hosts }; | &&
+        |script-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
         |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
         |connect-src 'self' { lv_ui5_hosts }; | &&
         |worker-src 'self' blob:; | &&

@@ -1040,15 +1040,21 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   "! Schedule a frontend action to run after the backend response has been
-  "! processed. Two ways to call it: pass a frontend event as val (a
-  "! cs_event-* constant, e.g. cs_event-set_title) with its arguments in
-  "! t_arg and the framework builds the event call; or pass a raw JavaScript
-  "! expression as val, without t_arg, to run it as it is. The families below
-  "! take structured arguments; t_arg is POSITIONAL, and an empty argument
-  "! between filled ones keeps its slot as ``.
+  "! processed: pass a frontend event as val (a cs_event-* constant, e.g.
+  "! cs_event-set_title) with its arguments in t_arg, and the framework builds
+  "! the event call as pure data. The families below take structured
+  "! arguments; t_arg is POSITIONAL, and an empty argument between filled ones
+  "! keeps its slot as ``.
   "!
-  "! Every one of them also works roundtrip-free when WIRED IN THE VIEW: write
-  "! the same call where its result is consumed -
+  "! A raw JavaScript expression as val (e.g. `sap.m.MessageToast.show('x')`)
+  "! is not run - that form was removed. Its cs_event-* equivalents:
+  "! control_global for the UI5 globals (MessageToast, MessageBox,
+  "! BusyIndicator), control_by_id for a control method and hash_back for
+  "! history.back( ). Frontend code of the app's own ships as a custom
+  "! control in the customer frontend BSP (z2ui5_ccc).
+  "!
+  "! Every cs_event-* action also works roundtrip-free when WIRED IN THE
+  "! VIEW: write the same call where its result is consumed -
   "! `)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )` -
   "! and the action runs in the browser without a server call.
   "!
@@ -1213,8 +1219,7 @@ INTERFACE z2ui5_if_client
   "! params = path, descending, group (abap_bool as `X`/``):
   "! ``client->follow_up_action( val = client->cs_event-binding_call t_arg = VALUE #( ( `tab` ) ( `items` ) ( `filter` ) ( `NAME` ) ( `Contains` ) ( `ab` ) ) )``.
   "!
-  "! @parameter val | the frontend event - a cs_event-* constant - or a raw
-  "!                  JavaScript expression when t_arg is not supplied.
+  "! @parameter val | the frontend event - a cs_event-* constant.
   "! @parameter view | the view slot the action's control id is resolved in:
   "!                  cs_view-main, the default, searches every open view;
   "!                  cs_view-popup, -popover, -nested, -nested2 scope the

@@ -14,12 +14,11 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
     " digest of every embedded frontend source, fixed at generation time -
     " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'e9f479d24839087a'.
+    CONSTANTS build_hash TYPE string VALUE '4520ec6b3628a018'.
 
     CLASS-METHODS get
       IMPORTING
         styles_css    TYPE string
-        custom_js     TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -39,7 +38,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD get.
 
-    result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }{ custom_js }\},| && |\n| &&
+    result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraPicture.js": function()\{{ z2ui5_cl_ui5f_campic_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&
@@ -76,7 +75,6 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Browser.js": function()\{{ z2ui5_cl_ui5f_browser_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ControlCall.js": function()\{{ z2ui5_cl_ui5f_ctrlcall_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Launchpad.js": function()\{{ z2ui5_cl_ui5f_launchpd_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/core/actions/LegacyCustomJs.js": function()\{{ z2ui5_cl_ui5f_legacy_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Shortcuts.js": function()\{{ z2ui5_cl_ui5f_shortcut_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Slots.js": function()\{{ z2ui5_cl_ui5f_slots_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&

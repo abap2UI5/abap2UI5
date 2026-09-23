@@ -80,6 +80,7 @@ function load({ resolveById = null, byId = null } = {}) {
         logError: (m) => errors.push(m),
         // no view in this spec uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
+        preloadFragmentModules: async () => {},
         isAlive: () => true,
         isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
         effectiveSizeLimit: () => undefined,

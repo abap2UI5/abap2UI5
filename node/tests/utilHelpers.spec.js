@@ -364,6 +364,79 @@ test.describe("hasMessagingModule (warm-load gate for sap/ui/core/Messaging)", (
   });
 });
 
+// UI5 1.71 to 1.82 process a fragment synchronously and eval every control
+// module that is not loaded yet - refused by the default CSP, which has no
+// 'unsafe-eval'. The popup and popover loads require those modules first.
+test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
+  const XML =
+    '<core:FragmentDefinition xmlns:core="sap.ui.core" xmlns="sap.m" ' +
+    'xmlns:l=\'sap.ui.layout\' xmlns:t="sap.ui.table" xmlns:z2ui5="z2ui5.cc">' +
+    '<Dialog title="x"><content><l:VerticalLayout><Text text="a"/></l:VerticalLayout>' +
+    '<t:Table><t:columns><t:Column><Label text="c"/><t:template><Text text="v"/>' +
+    "</t:template></t:Column></t:columns></t:Table><z2ui5:Timer/></content>" +
+    "<buttons><Button/></buttons></Dialog></core:FragmentDefinition>";
+
+  test("gated to the releases whose fragment processing is synchronous", () => {
+    const { Lib, sandbox } = loadLib();
+    for (const [version, sync] of [
+      ["1.71.81", true],
+      ["1.82.2", true],
+      ["1.84.0", false],
+      ["1.120.50", false],
+      ["2.0.0", false],
+    ]) {
+      sandbox.sap.ui.version = version;
+      expect(Lib.fragmentLoadsSync(), version).toBe(sync);
+    }
+    delete sandbox.sap.ui.version;
+    expect(Lib.fragmentLoadsSync()).toBe(false);
+  });
+
+  test("maps every control element to its module, skipping aggregations", () => {
+    const { Lib } = loadLib();
+    expect(Lib.fragmentControlModules(XML).sort()).toEqual([
+      "sap/m/Button",
+      "sap/m/Dialog",
+      "sap/m/Label",
+      "sap/m/Text",
+      "sap/ui/layout/VerticalLayout",
+      "sap/ui/table/Column",
+      "sap/ui/table/Table",
+      "z2ui5/cc/Timer",
+    ]);
+  });
+
+  test("requires them asynchronously on 1.71 to 1.82", async () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.71.81";
+    const required = [];
+    sandbox.sap.ui.require = (modules, onLoad) => {
+      required.push(...modules);
+      onLoad();
+    };
+    await Lib.preloadFragmentModules(XML);
+    expect(required).toContain("sap/ui/table/Table");
+  });
+
+  test("does nothing from 1.84 on", async () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.version = "1.120.50";
+    sandbox.sap.ui.require = () => {
+      throw new Error("must not be reached");
+    };
+    await Lib.preloadFragmentModules(XML);
+  });
+
+  test("a module that fails to load is logged, never thrown", async () => {
+    const { Lib, sandbox } = loadLib({ z2ui5: { errors: [] } });
+    sandbox.sap.ui.version = "1.71.81";
+    sandbox.sap.ui.require = (_modules, _onLoad, onError) =>
+      onError(new Error("404"));
+    await Lib.preloadFragmentModules(XML);
+    expect(sandbox.z2ui5.errors.length).toBe(1);
+  });
+});
+
 test.describe("getTextPath (ancestor-text breadcrumb of a control)", () => {
   const { Lib } = loadLib();
 
@@ -423,7 +496,10 @@ test.describe("isTextInput / readCaret (caret capture)", () => {
 
   test("reads the caret of a text field", () => {
     expect(Lib.readCaret(field("INPUT", 2, 5))).toEqual({ start: 2, end: 5 });
-    expect(Lib.readCaret(field("TEXTAREA", 0, 0))).toEqual({ start: 0, end: 0 });
+    expect(Lib.readCaret(field("TEXTAREA", 0, 0))).toEqual({
+      start: 0,
+      end: 0,
+    });
   });
 
   test("returns null for a non-text element", () => {

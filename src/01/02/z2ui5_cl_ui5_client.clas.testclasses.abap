@@ -669,7 +669,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     li_client ?= mo_client.
-    li_client->follow_up_action( `sap.m.MessageToast.show('test')` ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
+                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `test` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).

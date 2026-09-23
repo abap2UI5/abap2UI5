@@ -22,9 +22,8 @@ export default [
     },
     rules: {
       ...js.configs.recommended.rules,
-      // A legacy app-authored raw-JS snippet is executed via the Function
-      // constructor in core/actions/LegacyCustomJs.js. Keep this visible as
-      // an explicit eslint-disable at the single place where it is allowed.
+      // The frontend evaluates no code it receives: follow-up actions are
+      // data, dispatched by name (core/FrontendAction.js).
       "no-new-func": "error",
       // Many handlers intentionally swallow errors after logging them to
       // z2ui5.errors; unused catch parameters are accepted.

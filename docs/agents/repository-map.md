@@ -52,8 +52,8 @@ resolution and teardown), `Lib.js` (shared helper module),
 `core/actions/`, one domain module each: `ControlCall.js` with the
 `CONTROL_GLOBAL`/`CONTROL_BY_ID`/`BINDING_CALL` whitelists and the message
 toast/box display hooks, `Slots.js` with the view-slot display machinery and
-model tracking, `Browser.js`, `Launchpad.js`, `Variants.js`, `Shortcuts.js`,
-`ViewOps.js`, and `LegacyCustomJs.js` with the legacy `eF()`-string parser),
+model tracking, `Browser.js`, `Launchpad.js`, `Variants.js`, `Shortcuts.js` and
+`ViewOps.js`),
 `Router.js` (hash routing — the only module allowed to touch the URL hash)
 and `ErrorView.js` (the fatal-error overlay).
 

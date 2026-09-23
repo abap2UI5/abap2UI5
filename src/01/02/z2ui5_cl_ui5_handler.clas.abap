@@ -149,9 +149,8 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! back (pathname/search only travel on app-start-shaped requests).
     METHODS launchpad_derive.
 
-    "! Write one action queue into the response JSON - each framework action
-    "! as the real nested array it was built as, each legacy raw-JS snippet
-    "! as the string entry the frontend's legacy path keys on.
+    "! Write one action queue into the response JSON - each action as the
+    "! real nested array it was built as.
     METHODS actions_serialize
       IMPORTING
         ajson    TYPE REF TO z2ui5_if_ajson
@@ -1024,13 +1023,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     ajson->touch_array( path ).
     LOOP AT t_action REFERENCE INTO DATA(lr_action).
-      IF lr_action->o_json IS BOUND.
-        ajson->push( iv_path = path
-                     iv_val  = lr_action->o_json ).
-      ELSE.
-        ajson->push( iv_path = path
-                     iv_val  = lr_action->js ).
-      ENDIF.
+      ajson->push( iv_path = path
+                   iv_val  = lr_action->o_json ).
     ENDLOOP.
 
   ENDMETHOD.

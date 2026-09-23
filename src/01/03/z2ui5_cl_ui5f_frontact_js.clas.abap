@@ -33,7 +33,6 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    "z2ui5/core/actions/Variants",` && |\n| &&
              `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
              `    "z2ui5/core/actions/ViewOps",` && |\n| &&
-             `    "z2ui5/core/actions/LegacyCustomJs",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
@@ -44,7 +43,6 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    Variants,` && |\n| &&
              `    Shortcuts,` && |\n| &&
              `    ViewOps,` && |\n| &&
-             `    LegacyCustomJs,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
@@ -104,19 +102,17 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `` && |\n| &&
              `    function runCustom(item, oController) {` && |\n| &&
              `      try {` && |\n| &&
-             `        if (Array.isArray(item)) {` && |\n| &&
-             `          return oController.eF(...item);` && |\n| &&
-             `        }` && |\n| &&
-             `        const snippet = item.trim();` && |\n| &&
-             `        if (snippet.startsWith("[")) {` && |\n| &&
+             `        let args = item;` && |\n| &&
+             `        if (typeof item === "string") {` && |\n| &&
              `          try {` && |\n| &&
-             `            const args = JSON.parse(snippet);` && |\n| &&
-             `            if (Array.isArray(args)) {` && |\n| &&
-             `              return oController.eF(...args);` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch {}` && |\n| &&
+             `            args = JSON.parse(item);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            args = null;` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
-             `        LegacyCustomJs.run(item, oController);` && |\n| &&
+             `        if (Array.isArray(args)) {` && |\n| &&
+             `          return oController.eF(...args);` && |\n| &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("customJs: execution failed", e);` && |\n| &&
              `      }` && |\n| &&

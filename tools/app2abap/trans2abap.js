@@ -213,7 +213,6 @@ const CLASS_NAME_STEMS = {
     'core/ViewSlots.js': 'viewslot_js',
     'core/actions/ControlCall.js': 'ctrlcall_js',
     'core/actions/Launchpad.js': 'launchpd_js',
-    'core/actions/LegacyCustomJs.js': 'legacy_js',
     'core/actions/Shortcuts.js': 'shortcut_js',
     'manifest.json': 'manifest',
     'model/formatter.js': 'format_js',
@@ -253,7 +252,7 @@ function generateClassName(filePath) {
 // same version constant still changes the tag - the handler used to hash the
 // assembled ~700 KB body on every page load for that guarantee.
 function buildPreloadClass(entries, buildHash) {
-    const entryLines = entries.map(({ urlPath, className, isJs, isComponent, isStyleCss }) => {
+    const entryLines = entries.map(({ urlPath, className, isJs, isStyleCss }) => {
         // A .js entry is a function body - the source is JavaScript and goes in
         // verbatim. Every other entry is a text resource embedded as a
         // single-quoted JS string literal, so its content must be escaped for
@@ -262,8 +261,7 @@ function buildPreloadClass(entries, buildHash) {
             return `|      "${urlPath}": '{ escape_js_literal( styles_css ) }',| && |\\n|`;
         }
         if (isJs) {
-            const suffix = isComponent ? `{ custom_js }` : '';
-            return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }${suffix}\\},| && |\\n|`;
+            return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
         }
         return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
     });
@@ -289,7 +287,6 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     CLASS-METHODS get
       IMPORTING
         styles_css    TYPE string
-        custom_js     TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -446,7 +443,6 @@ async function main() {
                     urlPath: `z2ui5/${relPath}`,
                     className: className.toLowerCase(),
                     isJs: file.endsWith('.js'),
-                    isComponent: relPath === 'Component.js',
                     isStyleCss: relPath === 'css/style.css',
                 });
             }

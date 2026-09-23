@@ -318,9 +318,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
       IF result IS NOT INITIAL.
         result = result && `|`.
       ENDIF.
-      result = result && COND #( WHEN ls_queued-o_json IS BOUND
-                                 THEN ls_queued-o_json->stringify( )
-                                 ELSE ls_queued-js ).
+      result = result && ls_queued-o_json->stringify( ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -1244,16 +1242,13 @@ CLASS ltcl_02_response IMPLEMENTATION.
            INTO TABLE ls_response-s_front-s_action-t_system.
     INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ) )
            INTO TABLE ls_response-s_front-s_action-t_custom.
-    " a legacy raw-JS snippet an app queued keeps riding as a string entry
-    INSERT VALUE #( js = `eF('SET_FOCUS','id2')` )
-           INTO TABLE ls_response-s_front-s_action-t_custom.
 
     DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
     cl_abap_unit_assert=>assert_true(
         xsdbool( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"],"eF('SET_FOCUS','id2')"]` ) ).
+        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"]]` ) ).
 
   ENDMETHOD.
 

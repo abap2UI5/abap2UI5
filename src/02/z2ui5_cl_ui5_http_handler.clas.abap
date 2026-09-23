@@ -489,8 +489,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
                          |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
                          |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
-                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }| &&
-                         |{ strlen( ls_config-custom_js ) }:{ ls_config-custom_js }|.
+                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }|.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config_key).
       lv_cache_key = lv_cache_key &&
                      |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
@@ -539,8 +538,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " The entries for all embedded frontend files come from the generated
     " preload mapping (see .github/app2abap/trans2abap.js), so the list can
     " never run out of sync with app/webapp.
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( styles_css = lv_style_css
-                                                   custom_js  = ls_config-custom_js ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( lv_style_css ).
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own frontend artefacts (z2ui5_ccc,
@@ -566,9 +564,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                         |"ccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                         |"cccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_ccc"\}\}|.
 
-    " The tab title is a constant. It used to come from `cs_config-title`, and
-    " that field is still on the structure - it is simply no longer read. The
-    " tab title belongs to the running app, which sets it through
+    " The tab title is a constant. It used to come from `cs_config-title`,
+    " which is gone from the exit structure. The tab title belongs to the running app, which sets it through
     " cs_event-set_title at any point in its life; two mechanisms for one
     " string meant the page and the app could disagree about what the tab says,
     " and only one of them can react to what the app is actually showing. What

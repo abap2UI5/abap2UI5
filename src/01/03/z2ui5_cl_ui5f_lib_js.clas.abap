@@ -114,6 +114,47 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function fragmentLoadsSync() {` && |\n| &&
+             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `` && |\n| &&
+             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      return major === 1 && minor < 84;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;` && |\n| &&
+             `    const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;` && |\n| &&
+             `    function fragmentControlModules(xml) {` && |\n| &&
+             `      const text = String(xml ?? "");` && |\n| &&
+             `      const namespaces = new Map();` && |\n| &&
+             `      for (const [, prefix, namespace] of text.matchAll(XMLNS)) {` && |\n| &&
+             `        namespaces.set(prefix ?? "", namespace);` && |\n| &&
+             `      }` && |\n| &&
+             `      const result = new Set();` && |\n| &&
+             `      for (const [, prefix, name] of text.matchAll(ELEMENT)) {` && |\n| &&
+             `        const namespace = namespaces.get(prefix ?? "");` && |\n| &&
+             `        if (!namespace || name === "FragmentDefinition") continue;` && |\n| &&
+             `        result.add(``${namespace.replace(/\./g, "/")}/${name}``);` && |\n| &&
+             `      }` && |\n| &&
+             `      return [...result];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function preloadFragmentModules(xml) {` && |\n| &&
+             `      if (!fragmentLoadsSync()) return Promise.resolve();` && |\n| &&
+             `      const modules = fragmentControlModules(xml);` && |\n| &&
+             `      if (!modules.length) return Promise.resolve();` && |\n| &&
+             `      return new Promise((resolve) => {` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          modules,` && |\n| &&
+             `          () => resolve(),` && |\n| &&
+             `          (e) => {` && |\n| &&
+             `            logError("Lib: preloading the fragment's controls failed", e);` && |\n| &&
+             `            resolve();` && |\n| &&
+             `          },` && |\n| &&
+             `        );` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
              `    function logError(message, error) {` && |\n| &&
@@ -383,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        if (!document.execCommand("copy")) {` && |\n| &&
              `          logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
              `        }` && |\n| &&
-             `      } catch (err) {` && |\n| &&
+             `      } catch (err) {` && |\n|.
+    result = result &&
              `        logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
              `      } finally {` && |\n| &&
              `        document.body.removeChild(textarea);` && |\n| &&
@@ -424,8 +466,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `    function parseUrl(url) {` && |\n| &&
              `      if (!url) return null;` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        return new URL(url, window.location.origin);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
@@ -658,6 +699,9 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
+             `      fragmentLoadsSync,` && |\n| &&
+             `      fragmentControlModules,` && |\n| &&
+             `      preloadFragmentModules,` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isControllerAlive,` && |\n| &&

@@ -32,16 +32,17 @@ INTERFACE z2ui5_if_ui5_exit
     BEGIN OF ty_s_http_config,
       src                     TYPE string,
       theme                   TYPE string,
+      " the CSP meta tag of the page, pre-filled with the default before the
+      " exit runs. The default carries no 'unsafe-eval'. Only on UI5 1.71 to
+      " 1.82 can a popup still need it - one whose XML names a module in a
+      " binding type or a core:require that is not loaded yet. Such an
+      " installation switches it on here -
+      "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
+      "           WITH `script-src 'self' 'unsafe-eval'`.
+      " - or the exit replaces the whole tag
       content_security_policy TYPE string,
       styles_css              TYPE string,
-      " NO LONGER READ: the generated page carries a constant
-      " <title>abap2UI5</title>, and the tab title is set by the running app
-      " with cs_event-set_title. The component stays because it is part of the
-      " public contract (rule 5) - an exit that still assigns it compiles and
-      " runs, the assignment just has no effect on the page
-      title                   TYPE string,
       t_add_config            TYPE z2ui5_if_client=>ty_t_name_value,
-      custom_js               TYPE string,
       t_security_header       TYPE z2ui5_if_client=>ty_t_name_value,
     END OF ty_s_http_config.
 

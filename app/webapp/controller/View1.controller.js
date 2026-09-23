@@ -245,7 +245,7 @@ sap.ui.define(
         }
       },
 
-      // Execute the follow-up JS snippets stashed by Server.responseSuccess.
+      // Execute the follow-up actions stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
       // The read side of the queueLast slot in eB: the LAST event a
       // check_queue_last wire fired while the roundtrip that just landed was

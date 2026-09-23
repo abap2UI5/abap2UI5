@@ -27,9 +27,6 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
         " Inverse of class_editable, bound as a plain value to the step-5 link.
-        " It exists as its own field on purpose: deriving it in the view with a
-        " UI5 expression binding ( {= ... } ) would make the view eval-compiled
-        " and break it under a Content-Security-Policy without 'unsafe-eval'.
         link_enabled           TYPE abap_bool,
       END OF ms_home.
 

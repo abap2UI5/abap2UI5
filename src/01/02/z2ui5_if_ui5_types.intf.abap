@@ -119,15 +119,12 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_system_action.
   TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
 
-  " One QUEUED frontend action. A framework action is built as JSON right
-  " away (o_json, the ["EVENT",...] array) and embedded into the response
-  " as-is - no string round trip. `js` carries only what an app passed
-  " VERBATIM to follow_up_action: the legacy raw-JS snippet, which travels
-  " as a string entry and which the frontend runs down its legacy path.
+  " One QUEUED frontend action, built as JSON right away (o_json, the
+  " ["EVENT",...] array) and embedded into the response as-is - no string
+  " round trip.
   TYPES:
     BEGIN OF ty_s_queued_action,
       o_json TYPE REF TO z2ui5_if_ajson,
-      js     TYPE string,
     END OF ty_s_queued_action.
   TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
 

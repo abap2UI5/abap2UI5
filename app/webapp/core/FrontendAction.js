@@ -6,7 +6,6 @@ sap.ui.define(
     "z2ui5/core/actions/Variants",
     "z2ui5/core/actions/Shortcuts",
     "z2ui5/core/actions/ViewOps",
-    "z2ui5/core/actions/LegacyCustomJs",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
   ],
@@ -17,7 +16,6 @@ sap.ui.define(
     Variants,
     Shortcuts,
     ViewOps,
-    LegacyCustomJs,
     Lib,
     AppState,
   ) => {
@@ -120,36 +118,25 @@ sap.ui.define(
       return executeSystem(oController, args, ctx);
     }
 
-    // Run one APP follow-up action / custom-JS snippet from the response's
-    // T_CUSTOM list.
-    // Format A:  a real JSON array ["EVENT", ...args] - the structured form
-    //            every framework follow-up action travels in (embedded into
-    //            the response by the backend - handler actions_serialize). Pure
-    //            data, dispatched via oController.eF( ) - no code is parsed
-    //            or evaluated on this path. The stringified form stays
-    //            accepted so a skewed backend keeps working.
-    // Formats B/C: legacy app-authored snippets (raw strings the backend
-    //            passes through untouched) - see actions/LegacyCustomJs.
+    // Run one APP follow-up action from the response's T_CUSTOM list: a
+    // JSON array ["EVENT", ...args], embedded into the response by the
+    // backend (handler actions_serialize). Pure data, dispatched via
+    // oController.eF( ) - no code is parsed or evaluated here. The
+    // stringified form stays accepted so a skewed backend keeps working.
+    // Anything else is not run.
     function runCustom(item, oController) {
       try {
-        if (Array.isArray(item)) {
-          return oController.eF(...item);
-        }
-        const snippet = item.trim();
-        if (snippet.startsWith("[")) {
-          // JSON array -> structured follow-up action. A raw-JS expression
-          // that merely starts with "[" is no JSON array, so it fails the
-          // parse and falls through to the legacy formats.
+        let args = item;
+        if (typeof item === "string") {
           try {
-            const args = JSON.parse(snippet);
-            if (Array.isArray(args)) {
-              return oController.eF(...args);
-            }
+            args = JSON.parse(item);
           } catch {
-            // not JSON - keep going with the legacy formats
+            args = null;
           }
         }
-        LegacyCustomJs.run(item, oController);
+        if (Array.isArray(args)) {
+          return oController.eF(...args);
+        }
       } catch (e) {
         Lib.logError("customJs: execution failed", e);
       }

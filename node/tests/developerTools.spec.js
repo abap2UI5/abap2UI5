@@ -1253,8 +1253,7 @@ test.describe("show()", () => {
   };
 
   test("seeds the app class name into the dialog title", async () => {
-    // The fragment binds the title to a plain /title property - never an
-    // expression binding, which is compiled with eval (AGENTS.md rule 13).
+    // The fragment binds the title to a plain /title property.
     const { data } = await openTools({
       responseData: { S_FRONT: { APP: "Z2UI5_CL_MY_APP" } },
     });
