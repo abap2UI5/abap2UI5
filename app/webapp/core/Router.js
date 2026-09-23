@@ -141,7 +141,21 @@ sap.ui.define(
     // app-state hash, a bare FLP shell hash - all ignored by the router).
     function parse(sHash) {
       const parts = segmentsOf(sHash);
-      if (!parts || !parts[0]) return null;
+      if (!parts) return null;
+      // A namespaced class (/NS/CL_X) carries the route separator in its
+      // own name: patternFor writes "app//NS/CL_X/<draft>", so the token
+      // is three segments long - ["", "NS", "CL_X", draft]. Reading only
+      // the first segment answered an empty app and no route at all, so
+      // Back/Forward between namespaced apps was inert. The backend's
+      // route_split reads the same shape.
+      if (parts[0] === "") {
+        if (parts.length < 3 || !parts[1] || !parts[2]) return null;
+        return {
+          app: `/${parts[1]}/${parts[2]}`,
+          draft: parts.length > 3 ? parts[3] : "",
+        };
+      }
+      if (!parts[0]) return null;
       return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };
     }
 

@@ -332,6 +332,11 @@ INTERFACE z2ui5_if_ui5_types
         check_launchpad TYPE abap_bool,
         app_start       TYPE string,
         app_start_draft TYPE string,
+        " abap_true when app_start_draft came from the app-state bookmark
+        " hash (#/z2ui5-xapp-state=<id>), abap_false when it came from a
+        " route (#/app/<CLASS>/<id>) - only the former is the app's opt-in
+        " to the app-state hash (z2ui5_cl_ui5_action=>factory_first_start)
+        check_app_state TYPE abap_bool,
       END OF s_control,
     END OF ty_s_request.
 

@@ -1083,6 +1083,24 @@ CLASS ltcl_01_request IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
                                         act = lo_handler->request_app_start_route( `#//app/ZCL_X` ) ).
 
+    " a namespaced class carries the route separator in its own name: the
+    " token is three segments long and the draft is the fourth - cutting at
+    " the first slash used to answer an empty class, so the route was
+    " ignored and the app restarted fresh on every reload and Back
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
+                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `D1`
+                                        act = lo_handler->request_app_start_route_draft( `#/app//NS/CL_X/D1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
+                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route_draft( `#/app//NS/CL_X` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
+                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X/D1?x=1` ) ).
+    " a lone leading slash names no class
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = lo_handler->request_app_start_route( `#/app//NS` ) ).
+
   ENDMETHOD.
 
   METHOD test_route_launchpad.
@@ -1727,6 +1745,7 @@ CLASS ltcl_03_dispatch DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_sticky_keep_saves_draft FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_resent FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_hop_default FOR TESTING RAISING cx_static_check.
+    METHODS test_leave_expired_stack_ends FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1776,6 +1795,35 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lo_app->mv_main_calls ).
     cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_action->ms_next-o_app_leave ).
+
+  ENDMETHOD.
+
+  METHOD test_leave_expired_stack_ends.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_app TYPE REF TO ltcl_app_leave_root.
+
+    " the caller's hop-time draft was purged by cleanup( ) while this app
+    " stayed in use: the leave has nowhere to go, the stack is dropped, the
+    " user is told, and the roundtrip ends on this app - it used to raise
+    " NO_DRAFT_ENTRY out of the whole roundtrip for pressing Back
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id_prev_app_stack = `PURGED_HOP_DRAFT_OF_CALLER`.
+
+    cl_abap_unit_assert=>assert_true( lo_handler->main_process( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_app->mv_main_calls ).
+    cl_abap_unit_assert=>assert_initial( lo_handler->mo_action->mo_app->ms_draft-id_prev_app_stack ).
+    cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_action->ms_next-o_app_leave ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_handler->mo_action->ms_next-s_action-t_custom ) ).
+    cl_abap_unit_assert=>assert_char_cp(
+        exp = `["MESSAGE_TOAST","show","Previous app state expired*`
+        act = lo_handler->mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 

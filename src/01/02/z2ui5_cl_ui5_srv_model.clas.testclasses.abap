@@ -2328,6 +2328,32 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 2 ]-tm ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
+    " a cleared picker sends "" - the initial date/time, not eight blanks
+    " (which is not IS INITIAL and which ajson shipped back as `    -  -  `)
+    DATA lv_date_init TYPE d.
+    DATA lv_time_init TYPE t.
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"DT":"","TM":""}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_date_init
+                                        act = lo_app->mt_tab[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_time_init
+                                        act = lo_app->mt_tab[ 1 ]-tm ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " an instant with a NEGATIVE offset is one ajson cannot read - it used
+    " to answer an initial timestamp that was assigned without a word; now
+    " it is a refusal: the old value stands and the cell is traced
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:45Z"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:45-05:00"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_ts
+                                        act = lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    CLEAR lo_model->mt_skipped.
+
     " refused: the grouped thousands separator, text into a number - the
     " old value stands (on a system the failed conversion clears the target
     " first; the copy in delta_apply_field puts it back), the good cell in
@@ -2590,6 +2616,9 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " one of three shared references pointed at a table of its own: the
     " draft follows the new targets, not the owners of the first pass
     METHODS alias_repointed_survives   FOR TESTING RAISING cx_static_check.
+    " a reference the app CLEARed stays cleared across the draft - the
+    " restore used to point it back at the owner its `->*` row still named
+    METHODS alias_cleared_stays_cleared FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -3190,6 +3219,31 @@ CLASS ltcl_05_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD alias_cleared_stays_cleared.
+
+    " roundtrip 1: the alias into mt_std, as the fixture has it
+    bind_all( ).
+    mo_model->main_attri_db_save_srtti( ).
+    mo_model->main_attri_reattach( ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
+                                        act = row( `MR_ALIAS_TAB->*` )-name_ref ).
+
+    " main( ) of roundtrip 2: the app lets go of the alias
+    CLEAR mo_app->mr_alias_tab.
+
+    " the save drops the alias the child row carried - nothing to re-point
+    mo_model->main_attri_db_save_srtti( ).
+    cl_abap_unit_assert=>assert_initial( row( `MR_ALIAS_TAB->*` )-name_ref ).
+    mo_model->main_attri_reattach( ).
+    cl_abap_unit_assert=>assert_not_bound( mo_app->mr_alias_tab ).
+
+    " ...and the draft read into a new instance keeps it cleared
+    roundtrip( ).
+    cl_abap_unit_assert=>assert_not_bound( act = mo_app->mr_alias_tab
+                                           msg = `the restore pointed the cleared alias at its old owner again` ).
+
+  ENDMETHOD.
 
   METHOD alias_repointed_survives.
 

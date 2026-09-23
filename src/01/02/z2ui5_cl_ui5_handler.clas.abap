@@ -122,6 +122,18 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " main_begin and request_context_info
     DATA mv_request_parsed TYPE abap_bool.
 
+    " whether THIS request runs in a stateful (sticky) session - set by
+    " z2ui5_cl_ui5_http_handler=>_http_post before main( ): true for the
+    " handler it kept across requests, false for one built for the request.
+    " A draft restored into a session that is NOT stateful (F5, a bookmark, a
+    " new tab - no context id travels) carries the persisted mv_check_sticky
+    " of the session it was saved in; left standing, every later
+    " set_session_stateful( abap_true ) of the app is a no-op (the flag
+    " already says so) and the session is never switched - the app believes
+    " it is stateful and is not. The two factories that load a draft read
+    " this and drop the flag when it is false
+    DATA mv_session_sticky TYPE abap_bool.
+
     " upper bound for the event arguments one request may carry. The
     " frontend fills T_EVENT_ARG from the view's own argument list, so a
     " legitimate event has a handful - and every object or array argument
@@ -234,6 +246,15 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
 
     " the part of iv_val before the first iv_sub, or iv_val when it does not
     " occur - cuts a route token off at the next separator
+    " the class token of a route remainder and what follows it - see the
+    " implementation for the namespaced-class shape it exists for
+    METHODS route_split
+      IMPORTING
+        iv_rest  TYPE string
+      EXPORTING
+        ev_class TYPE string
+        ev_after TYPE string.
+
     METHODS cut_at
       IMPORTING
         iv_val        TYPE string
@@ -270,6 +291,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             request_app_start( iv_search    = result-s_front-search
                                io_comp_data = result-s_front-o_comp_data ).
           result-s_control-app_start_draft = request_app_start_draft( result-s_front-hash ).
+          result-s_control-check_app_state = xsdbool( result-s_control-app_start_draft IS NOT INITIAL ).
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
@@ -673,16 +695,56 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
-        " the class token ends at the next route / query separator
-        lv_rest = cut_at( iv_val = lv_rest
-                          iv_sub = `/` ).
-        lv_rest = cut_at( iv_val = lv_rest
-                          iv_sub = `&` ).
-        lv_rest = cut_at( iv_val = lv_rest
-                          iv_sub = `?` ).
-        result = z2ui5_cl_ui5_util_context=>c_trim_upper( lv_rest ).
+        DATA lv_class TYPE string.
+        DATA lv_after TYPE string.
+        route_split( EXPORTING iv_rest  = lv_rest
+                     IMPORTING ev_class = lv_class
+                               ev_after = lv_after ).
+        result = z2ui5_cl_ui5_util_context=>c_trim_upper( lv_class ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD route_split.
+    " The class token of a route remainder '<CLASS>[/<DRAFT>][&...][?...]', and
+    " what follows it. A namespaced class (/NS/CL_X) carries the route
+    " separator in its own name - Router.patternFor writes it as
+    " 'app//NS/CL_X/<DRAFT>' - so its token is three segments long and the
+    " class ends at the slash after the second one, not at the first. Cutting
+    " at the first slash answered an EMPTY class for every namespaced app:
+    " the route was ignored, the `?app_start=` query took over and a
+    " bookmark, a reload or Back restarted the app fresh instead of
+    " restoring the draft. app/webapp/core/Router.js (parse) mirrors this
+    CLEAR: ev_class, ev_after.
+    DATA(lv_rest) = cut_at( iv_val = iv_rest
+                            iv_sub = `&` ).
+    lv_rest = cut_at( iv_val = lv_rest
+                      iv_sub = `?` ).
+    DATA(lv_off) = 0.
+    IF strlen( lv_rest ) > 1 AND lv_rest(1) = `/`.
+      DATA(lv_tail) = substring( val = lv_rest
+                                 off = 1 ).
+      DATA(lv_ns_end) = find( val = lv_tail
+                              sub = `/` ).
+      " a lone leading slash names no class
+      IF lv_ns_end < 0.
+        RETURN.
+      ENDIF.
+      lv_off = lv_ns_end + 2.
+    ENDIF.
+    DATA(lv_head) = substring( val = lv_rest
+                               off = lv_off ).
+    DATA(lv_end) = find( val = lv_head
+                         sub = `/` ).
+    IF lv_end < 0.
+      ev_class = lv_rest.
+      RETURN.
+    ENDIF.
+    lv_end = lv_end + lv_off.
+    ev_class = substring( val = lv_rest
+                          len = lv_end ).
+    ev_after = substring( val = lv_rest
+                          off = lv_end + 1 ).
   ENDMETHOD.
 
   METHOD request_app_start_route_draft.
@@ -695,20 +757,18 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
-        " cut off a trailing query / fragment, then take the 2nd path segment -
-        " the 1st is the class, and a draft id carries no further separator
-        lv_rest = cut_at( iv_val = lv_rest
-                          iv_sub = `&` ).
-        lv_rest = cut_at( iv_val = lv_rest
-                          iv_sub = `?` ).
-        DATA(lv_off) = find( val = lv_rest
-                             sub = `/` ).
-        IF lv_off < 0.
+        " the draft is the segment after the class token (route_split knows
+        " how long that token is), and it carries no further separator
+        DATA lv_class TYPE string.
+        DATA lv_after TYPE string.
+        route_split( EXPORTING iv_rest  = lv_rest
+                     IMPORTING ev_class = lv_class
+                               ev_after = lv_after ).
+        IF lv_after IS INITIAL.
           RETURN.
         ENDIF.
         result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-            cut_at( iv_val = substring( val = lv_rest
-                                        off = lv_off + 1 )
+            cut_at( iv_val = lv_after
                     iv_sub = `/` ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
