@@ -571,20 +571,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " and only one of them can react to what the app is actually showing. What
     " is left here is the name the browser shows while UI5 boots, before any
     " app can speak - and a page whose <title> is empty shows the URL.
-    "
-    " The bootstrap attributes keep their old camelCase spelling and
-    " compatVersion="edge" / bindingSyntax="complex" on purpose: UI5 1.71 - the
-    " oldest release abap2UI5 supports - understands only that spelling and
-    " needs both flags, while UI5 2.x ignores what it no longer knows. They can
-    " go when 1.71 support ends, not before. The IE-only X-UA-Compatible meta
-    " tag is gone: 1.71 itself still ran in IE11, but the frontend is written
-    " in ES2020 (optional chaining, async/await), which IE cannot even parse.
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
                   |{ ls_config-content_security_policy }\n| &&
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
+                  |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
                   |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
