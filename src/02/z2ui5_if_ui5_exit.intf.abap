@@ -39,8 +39,18 @@ INTERFACE z2ui5_if_ui5_exit
       " installation switches it on here -
       "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
       "           WITH `script-src 'self' 'unsafe-eval'`.
-      " - or the exit replaces the whole tag
+      " - or the exit replaces the whole tag.
+      " Its script-src carries no 'unsafe-inline' either: after the exit ran,
+      " the framework appends the hash of the page's one inline script to
+      " every script-src (and script-src-elem) - here and in a policy sent
+      " through t_security_header - so nothing else inline runs. A script-src
+      " that names 'unsafe-inline' itself is left without the hash, which is
+      " how an installation that needs inline script of its own opts back in
+      "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
+      "           WITH `script-src 'self' 'unsafe-inline'`.
       content_security_policy TYPE string,
+      " CSS of the installation's own, written into the page head as a
+      " <style> element of its own (a < is escaped as \3c )
       styles_css              TYPE string,
       t_add_config            TYPE z2ui5_if_client=>ty_t_name_value,
       t_security_header       TYPE z2ui5_if_client=>ty_t_name_value,

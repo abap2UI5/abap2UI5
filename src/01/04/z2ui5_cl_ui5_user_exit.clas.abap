@@ -192,6 +192,16 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " installation switches 'unsafe-eval' back on in its exit (see
       " z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy).
       "
+      " NO 'unsafe-inline' for scripts either. The page's one inline script -
+      " onInitComponent with the embedded preload - is fixed per build, and
+      " z2ui5_cl_ui5_http_handler=>_http_get adds its SHA-256 to script-src
+      " (z2ui5_cl_ui5f_preload=>script_hash). Everything else inline - an
+      " injected <script>, an onerror= attribute, a javascript: URL - is
+      " refused by the browser. An installation that needs inline script of
+      " its own puts 'unsafe-inline' back in its exit; a script-src that names
+      " it is left without the hash (see _csp_add_script_hash). style-src
+      " keeps it: UI5 renders style attributes itself.
+      "
       " script-src and style-src are EXPLICIT on purpose, not left to the
       " default-src fallback: default-src carries data:/blob: for images,
       " fonts and media, and a data: that falls through to script-src is a
@@ -202,7 +212,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       gv_csp_default =
         |<meta http-equiv="Content-Security-Policy" | &&
         |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
-        |script-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
+        |script-src 'self' { lv_ui5_hosts }; | &&
         |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
         |connect-src 'self' { lv_ui5_hosts }; | &&
         |worker-src 'self' blob:; | &&

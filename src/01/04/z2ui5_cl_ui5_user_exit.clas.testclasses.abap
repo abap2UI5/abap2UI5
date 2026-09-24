@@ -49,6 +49,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_no_unsafe_inline FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -113,7 +114,37 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
             WITH `script-src 'self' 'unsafe-eval'`.
 
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'unsafe-inline'` ) ).
+        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' ui5.sap.com` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_no_unsafe_inline.
+
+    " the default script-src carries no 'unsafe-inline': the page's one
+    " inline script is allowed by the hash z2ui5_cl_ui5_http_handler adds,
+    " nothing else inline runs. style-src keeps it - UI5 writes style
+    " attributes itself
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lt_directive TYPE string_table.
+    DATA lv_checked TYPE i.
+
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
+    SPLIT ls_config-content_security_policy AT `;` INTO TABLE lt_directive.
+    LOOP AT lt_directive INTO DATA(lv_directive).
+      IF lv_directive CS `script-src`.
+        cl_abap_unit_assert=>assert_false( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+        lv_checked = lv_checked + 1.
+      ELSEIF lv_directive CS `style-src`.
+        cl_abap_unit_assert=>assert_true( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+        lv_checked = lv_checked + 1.
+      ENDIF.
+    ENDLOOP.
+
+    " both directives exist and were looked at - a renamed one must not
+    " turn this into a test of nothing
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lv_checked ).
 
   ENDMETHOD.
 

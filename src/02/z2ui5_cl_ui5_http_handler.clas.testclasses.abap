@@ -20,7 +20,6 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_no_headers   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_referer      FOR TESTING RAISING cx_static_check.
-    METHODS test_preload_escaping  FOR TESTING RAISING cx_static_check.
     METHODS test_preload_literals  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -308,33 +307,11 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  " The next two tests exercise z2ui5_cl_ui5f_preload rather than this class.
-  " That class is generated (see .github/app2abap/trans2abap.js) and its
+  " The next test exercises z2ui5_cl_ui5f_preload rather than this class.
+  " That class is generated (see tools/app2abap/trans2abap.js) and its
   " package is wiped on every regeneration, so it cannot carry a test include
   " of its own - and _http_get( ) above is the consumer that breaks: it drops
   " the preload into the one <script> block that defines onInitComponent.
-
-  METHOD test_preload_escaping.
-
-    " styles_css comes from the exit unfiltered and lands inside a JS
-    " single-quoted string literal, so an apostrophe, a backslash or a line
-    " break in a customer's own CSS has to arrive escaped.
-    DATA lv_css TYPE string.
-
-    lv_css = `.a::after { content: 'x'; }` && |\n| && `.b { background: url("i\c.png"); }`.
-
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( lv_css ).
-
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `content: \'x\';` ) ).
-
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `}\n.b` ) ).
-
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_preload CS `url("i\\c.png")` ) ).
-
-    " and nothing raw survives next to the escaped copies
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_preload CS `content: 'x';` ) ).
-
-  ENDMETHOD.
 
   METHOD test_preload_literals.
 
@@ -352,7 +329,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( `.a { content: 'x'; }` ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
@@ -601,6 +578,16 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_get_stale_tag_builds    FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_end_to_end      FOR TESTING RAISING cx_static_check.
     METHODS test_etag_after_304_of_other FOR TESTING RAISING cx_static_check.
+    " the inline script of the shell is allowed by its hash, not by
+    " 'unsafe-inline' - see _csp_add_script_hash
+    METHODS test_csp_hash_default        FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_unsafe_inline  FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_directives     FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_header_value   FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_once           FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_security_hdr   FOR TESTING RAISING cx_static_check.
+    METHODS test_shell_script_is_preload FOR TESTING RAISING cx_static_check.
+    METHODS test_style_exit_element      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1272,6 +1259,193 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
     cl_abap_unit_assert=>assert_equals( exp = `text/plain; charset=UTF-8`
                                         act = header_value( `content-type` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_default.
+
+    " the default policy: the hash lands in script-src and nowhere else -
+    " default-src and style-src cover UI5's inline styles, and a hash there
+    " would switch 'unsafe-inline' off for them
+    DATA lt_directive TYPE string_table.
+    DATA lv_checked TYPE i.
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config( ).
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+    DATA(lv_policy) = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( ls_config-content_security_policy ).
+
+    SPLIT lv_policy AT `;` INTO TABLE lt_directive.
+    LOOP AT lt_directive INTO DATA(lv_directive).
+      IF lv_directive CS `script-src`.
+        cl_abap_unit_assert=>assert_true( xsdbool( lv_directive CS lv_source ) ).
+        lv_checked = lv_checked + 1.
+      ELSE.
+        cl_abap_unit_assert=>assert_false( xsdbool( lv_directive CS lv_source ) ).
+      ENDIF.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lv_checked ).
+    " the tag around the policy is untouched
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_policy CP `<meta http-equiv="Content-Security-Policy" content="*"/>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_unsafe_inline.
+
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+    " a script-src that says 'unsafe-inline' is the exit's decision that
+    " inline script runs - a hash next to it would take that back
+    DATA(lv_policy) = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'`.
+    cl_abap_unit_assert=>assert_equals( exp = lv_policy
+                                        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( lv_policy ) ).
+
+    " ...unless a hash or a nonce already switched it off: then the shell's
+    " script needs its own hash like anywhere else
+    lv_policy = `script-src 'self' 'unsafe-inline' 'nonce-abc'`.
+    cl_abap_unit_assert=>assert_equals(
+        exp = |script-src 'self' 'unsafe-inline' 'nonce-abc' { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( lv_policy ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_directives.
+
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+    " script-src-elem governs <script> elements too and gets the hash;
+    " script-src-attr governs handler attributes, which no hash allows
+    cl_abap_unit_assert=>assert_equals(
+        exp = |script-src-attr 'none'; script-src-elem 'self' { lv_source }; script-src 'self' { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
+                  `script-src-attr 'none'; script-src-elem 'self'; script-src 'self'` ) ).
+
+    " the name has to stand alone - a host or another directive that only
+    " contains it is no script-src
+    cl_abap_unit_assert=>assert_equals(
+        exp = `img-src my-script-src.example; x-script-src 'self'`
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
+                  `img-src my-script-src.example; x-script-src 'self'` ) ).
+
+    " no script-src at all: default-src decides and is left alone (it
+    " covers styles as well)
+    cl_abap_unit_assert=>assert_equals(
+        exp = `default-src 'self' 'unsafe-inline'`
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( `default-src 'self' 'unsafe-inline'` ) ).
+
+    " the names are case-insensitive, and nothing else changes case
+    cl_abap_unit_assert=>assert_equals(
+        exp = |Script-Src 'self' Host.Example { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( `Script-Src 'self' Host.Example` ) ).
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_header_value.
+
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+    " a header value ends without a quote or a semicolon
+    cl_abap_unit_assert=>assert_equals(
+        exp = |default-src 'self'; script-src 'self' { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( `default-src 'self'; script-src 'self'` ) ).
+
+    " in a meta tag the content attribute's quote ends the last directive
+    cl_abap_unit_assert=>assert_equals(
+        exp = |<meta http-equiv="Content-Security-Policy" content="script-src 'self' { lv_source }"/>|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
+                  `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_once.
+
+    " an exit that listed the hash itself gets no second copy
+    DATA(lv_policy) = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    cl_abap_unit_assert=>assert_equals( exp = lv_policy
+                                        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( lv_policy ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_security_hdr.
+
+    " a policy the exit sends as a response header needs the hash as much as
+    " the meta tag - the enforcing header and the report-only one alike
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    handler_create( ).
+    mo_handler->ms_req-method = `GET`.
+    mo_handler->ms_res = VALUE #( body          = `<html></html>`
+                                  status_code   = 200
+                                  status_reason = `OK` ).
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get = VALUE #(
+        t_security_header = VALUE #(
+            ( n = `Content-Security-Policy`             v = `script-src 'self'` )
+            ( n = `Content-Security-Policy-Report-Only` v = `script-src 'none'` )
+            ( n = `X-Frame-Options`                     v = `SAMEORIGIN` ) ) ).
+    z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
+
+    mo_handler->set_response( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = |script-src 'self' { lv_source }|
+                                        act = header_value( `content-security-policy` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = |script-src 'none' { lv_source }|
+                                        act = header_value( `content-security-policy-report-only` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `SAMEORIGIN`
+                                        act = header_value( `x-frame-options` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_shell_script_is_preload.
+
+    " the page's one inline script is exactly the generated text its hash was
+    " taken over - one character between the tags and the browser refuses it
+    DATA(lv_body) = shell_for_config( VALUE #(
+        theme                   = `sap_horizon`
+        src                     = `https://sdk.example/sap-ui-core.js`
+        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ) ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'"| ) >= 0 ) ).
+    " and it is the only inline script: the other tag is the bootstrap,
+    " which loads UI5 by src (the preload itself is taken out first - an
+    " embedded .js file may well spell <script in a string)
+    DATA(lv_rest) = replace( val  = lv_body
+                             sub  = z2ui5_cl_ui5f_preload=>get( )
+                             with = `` ).
+    SPLIT lv_rest AT `<script` INTO TABLE DATA(lt_part).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_part ) ).
+
+  ENDMETHOD.
+
+  METHOD test_style_exit_element.
+
+    " the exit's styles_css is a <style> element of its own - outside the
+    " hashed script, so the hash stays fixed - and a < in it cannot end the
+    " element: it becomes the CSS escape \3c
+    DATA(lv_body) = shell_for_config( VALUE #(
+        theme      = `sap_horizon`
+        src        = `https://sdk.example/sap-ui-core.js`
+        styles_css = `.a::after { content: '</style><script>x()</script>'; }` ) ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = `<style>.a::after { content: '\3c /style>\3c script>x()\3c /script>'; }</style>` ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( find( val = lv_body
+                                                      sub = `x()</script>` ) >= 0 ) ).
+
+    " no styles_css, no element: the page's own <style> is the only one
+    lv_body = shell_for_config( VALUE #( theme = `sap_horizon`
+                                         src   = `https://sdk.example/sap-ui-core.js` ) ).
+    SPLIT lv_body AT `<style>` INTO TABLE DATA(lt_part).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_part ) ).
 
   ENDMETHOD.
 

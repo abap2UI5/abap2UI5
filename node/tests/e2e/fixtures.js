@@ -25,6 +25,15 @@
 // CSP refuses (AGENTS.md rule 13). The offline run therefore adds
 // 'unsafe-eval' to the served page's script-src, and ONLY then: the CDN
 // legs run under the shipped CSP, which is what keeps rule 13 gated.
+// The same tree's sap-ui-core.js is the DEV bootstrap, which
+// document.write()s two inline scripts of its own - the built bundle the
+// CDN serves runs the same two calls inside itself. The shipped policy
+// allows inline script by hash only (the page's own script, see
+// z2ui5_cl_ui5_http_handler=>_csp_add_script_hash), so the offline run
+// lists exactly these two by hash as well, rather than putting
+// 'unsafe-inline' back into the policy under test (a browser would ignore
+// it next to the page's hash anyway). Identical in 1.71 and 1.144.
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const base = require("@playwright/test");
@@ -34,6 +43,17 @@ const base = require("@playwright/test");
 const DEFAULT_BOOTSTRAP =
   'src="https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js"';
 const DEFAULT_THEME = 'data-sap-ui-theme="sap_horizon"';
+
+// The inline scripts the source-only dev bootstrap writes - see the header
+const DEV_BOOTSTRAP_HASHES = [
+  'sap.ui.requireSync("sap/ui/core/Core");',
+  "sap.ui.getCore().boot && sap.ui.getCore().boot();",
+]
+  .map(
+    (script) =>
+      `'sha256-${crypto.createHash("sha256").update(script, "utf8").digest("base64")}'`,
+  )
+  .join(" ");
 
 const test = base.test.extend({
   // Full URL of the sap-ui-core.js to boot instead of the evergreen CDN
@@ -82,10 +102,11 @@ const test = base.test.extend({
           let body = await response.text();
           body = body.split(DEFAULT_BOOTSTRAP).join(`src="${ui5Src}"`);
           if (localResources) {
-            // the source-only tree evals - see the header
+            // the source-only tree evals and its dev bootstrap writes two
+            // inline scripts - see the header
             body = body.replace(
-              "script-src 'self' 'unsafe-inline'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self'",
+              `script-src 'self' 'unsafe-eval' ${DEV_BOOTSTRAP_HASHES}`,
             );
           }
           if (ui5Theme) {

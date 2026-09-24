@@ -24,6 +24,11 @@
 //      confined to non-script directives; the list only shrinks)
 //   3. script-src is an explicit directive, and every `scheme:` source stands
 //      in a directive that is listed for it - script-src is in no such list
+//   4. script-src carries no 'unsafe-inline' (SECURITY.md again): the page's
+//      one inline script runs by the hash z2ui5_cl_ui5_http_handler adds
+//      (_csp_add_script_hash), and a keyword that let every other inline
+//      script run - an injected <script>, an onerror= attribute, a
+//      javascript: URL - would make that hash decoration
 //
 // If the anchors stop matching, the gate has to learn the new spelling rather
 // than pass silently on a grep that matches nothing.
@@ -168,6 +173,15 @@ let sawScriptSrc = false;
 for (const directive of directives) {
   const [name, ...sources] = directive.split(/\s+/);
   if (name === "script-src") sawScriptSrc = true;
+  if (name === "script-src" && sources.includes("'unsafe-inline'")) {
+    problems.push(
+      "script-src carries 'unsafe-inline'\n"
+      + "    the page's one inline script is allowed by its hash (added by\n"
+      + "    z2ui5_cl_ui5_http_handler=>_csp_add_script_hash) - the keyword would let\n"
+      + "    every OTHER inline script run too, which is what an HTML injection needs.\n"
+      + "    An installation that wants it puts it back in its exit (SECURITY.md).",
+    );
+  }
   for (const token of sources) {
     if (/^'.*'$/.test(token)) continue; // 'self', 'none', the unsafe-* keywords
     if (token === "@UI5_HOSTS@") continue; // the reviewed list, checked above
@@ -261,5 +275,6 @@ if (problems.length) {
 
 console.log(
   `csp-default: ${declaredHosts.length} UI5 CDN host(s), ${directives.length} directive(s), `
-  + `${seenScheme.size} listed scheme source(s), script-src explicit and free of them - OK`,
+  + `${seenScheme.size} listed scheme source(s), script-src explicit and free of them `
+  + "and of 'unsafe-inline' - OK",
 );

@@ -171,6 +171,65 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
     return abapClassTemplate(className, formattedLines.join('\n'), sourcePath);
 }
 
+// The string the class formatAsAbapClass builds hands back from get( ) at run
+// time - the same line split, the same trailing-whitespace strip, and the
+// same separator (a newline after every line of a .js file, including the
+// empty one after its last newline; none at all for the special files). The
+// CSP hash of the GET shell's inline script is taken over this value at
+// generation time (see inlineScript), so it has to be byte for byte what the
+// ABAP side produces - change one, change the other.
+function embeddedValue(content, isSpecialFile) {
+    const lines = content.split('\n').map((line) => line.replace(/\s+$/, ''));
+    return isSpecialFile ? lines.join('') : lines.map((line) => `${line}\n`).join('');
+}
+
+// JavaScript twin of escape_js_literal in the generated preload class (below):
+// backslash first, then the apostrophe, CR, LF and every < - the order the
+// ABAP method applies them in.
+function escapeJsLiteral(value) {
+    return value
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, '\\r')
+        .replace(/\n/g, '\\n')
+        .replace(/</g, '\\x3c');
+}
+
+// The lines around the preload entries in the GET shell's one inline
+// <script>: the global onInitComponent the bootstrap tag names in
+// data-sap-ui-oninit, which registers the preload and starts the component.
+// Each line is followed by a newline, the first one is empty (the script
+// text starts with the newline after <script>). Held once, as data, so the
+// ABAP string template in buildPreloadClass and the hashed JavaScript string
+// in inlineScript cannot drift apart.
+const SCRIPT_OPEN = ['', '  function onInitComponent(){', '    sap.ui.require.preload({'];
+const SCRIPT_CLOSE = [
+    '    });',
+    '    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){',
+    '     ComponentSupport.run();',
+    '    });',
+    '  }',
+];
+
+// One preload entry as the script text carries it: a .js file as the body of
+// a function, anything else as a single-quoted string literal.
+function preloadEntryText({ urlPath, isJs, value }) {
+    return isJs ? `      "${urlPath}": function(){${value}},` : `      "${urlPath}": '${escapeJsLiteral(value)}',`;
+}
+
+// The complete text of the inline <script> exactly as the generated get( )
+// returns it - what the browser hashes against the CSP's script-src.
+function inlineScript(entries) {
+    return [...SCRIPT_OPEN, ...entries.map(preloadEntryText), ...SCRIPT_CLOSE].map((line) => `${line}\n`).join('');
+}
+
+// A text as the body of an ABAP string template |...|: the four characters
+// the template itself interprets are escaped. The literal newline after each
+// line is written as \n by the caller.
+function abapTemplateText(text) {
+    return text.replace(/[\\|{}]/g, (c) => `\\${c}`);
+}
+
 // Embedded frontend artefacts carry the `ui5f` segment (UI5 frontend); plain
 // ABAP artefacts use `ui5` (z2ui5_cl_ui5_view_builder).
 const CLASS_NAME_PREFIX = 'z2ui5_cl_ui5f_';
@@ -243,30 +302,35 @@ function generateClassName(filePath) {
     return className;
 }
 
-// Builds the generated z2ui5_cl_ui5f_preload class. It returns the
-// sap.ui.require.preload entries for every embedded frontend file, so the
-// preload list used by z2ui5_cl_ui5_http_handler=>_http_get can never run out
-// of sync with the files in app/webapp. style.css and Component.js take their
-// content / custom-js suffix from the exit configuration, hence the two
-// parameters. buildHash is a digest of every embedded source, computed here
-// once: the GET shell's ETag carries it, so a redeployed frontend with the
-// same version constant still changes the tag - the handler used to hash the
-// assembled ~700 KB body on every page load for that guarantee.
-function buildPreloadClass(entries, buildHash) {
-    const entryLines = entries.map(({ urlPath, className, isJs, isStyleCss }) => {
+// Builds the generated z2ui5_cl_ui5f_preload class. Its get( ) returns the
+// complete text of the GET shell's one inline <script> - onInitComponent and
+// the sap.ui.require.preload entries for every embedded frontend file - so
+// the preload list z2ui5_cl_ui5_http_handler=>_http_get embeds can never run
+// out of sync with the files in app/webapp. The text is fixed per build, and
+// that is what the two constants rest on: both are one SHA-256 digest of it,
+// taken here once (inlineScript is its JavaScript twin).
+//   script_hash  the digest as a CSP hash source - _http_get lists it in the
+//                policy's script-src, so the inline script runs without
+//                'unsafe-inline' and nothing else inline does
+//   build_hash   a short hex form - the GET shell's ETag carries it, so a
+//                redeployed frontend with the same version constant still
+//                changes the tag
+// Nothing configurable may enter the text: an exit value in it would make the
+// digest a runtime question. The exit's styles_css used to be embedded here
+// and is written as a <style> element of its own by the handler now.
+function buildPreloadClass(entries, buildHash, scriptHash) {
+    const templateLines = (lines) => lines.map((line) => `|${abapTemplateText(line)}\\n|`);
+    const entryLines = entries.map(({ urlPath, className, isJs }) => {
         // A .js entry is a function body - the source is JavaScript and goes in
         // verbatim. Every other entry is a text resource embedded as a
         // single-quoted JS string literal, so its content must be escaped for
         // that literal (see escape_js_literal below).
-        if (isStyleCss) {
-            return `|      "${urlPath}": '{ escape_js_literal( styles_css ) }',| && |\\n|`;
-        }
         if (isJs) {
             return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
         }
         return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
     });
-    const joined = entryLines.join(' &&\n             ');
+    const joined = [...templateLines(SCRIPT_OPEN), ...entryLines, ...templateLines(SCRIPT_CLOSE)].join(' &&\n             ');
     return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Embedded frontend resource, generated from app/webapp/ by
@@ -281,13 +345,19 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PUBLIC SECTION.
 
-    " digest of every embedded frontend source, fixed at generation time -
-    " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
+    " a digest of the script get( ) returns - every embedded frontend source
+    " and the code around them - fixed at generation time. Part of the GET
+    " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
     CONSTANTS build_hash TYPE string VALUE '${buildHash}'.
 
+    " the same digest as a CSP hash source, without the quotes around it:
+    " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
+    " script-src, so this one inline script runs without 'unsafe-inline'.
+    " It is the SHA-256 of get( ) byte for byte - a script that differs by one
+    " character does not run at all, which the browser e2e legs would show
+    CONSTANTS script_hash TYPE string VALUE '${scriptHash}'.
+
     CLASS-METHODS get
-      IMPORTING
-        styles_css    TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -317,9 +387,8 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     " single-quoted string literal, inside the single <script> block that
     " defines onInitComponent (z2ui5_cl_ui5_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
-    " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them, and so
-    " does a customer's own styles_css from the exit. An unescaped one ends the
-    " literal early, which is a syntax error for the whole block: the browser
+    " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them. An
+    " unescaped one ends the literal early, which is a syntax error for the whole block: the browser
     " then never defines onInitComponent, the bootstrap call fails and the page
     " stays blank. Escape for the literal here instead of banning the
     " characters in the frontend sources.
@@ -333,7 +402,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
                       with = \`\\'\`
                       occ  = 0 ).
     " a raw line break ends a JS string literal just like an apostrophe does -
-    " only styles_css can carry one, the generated resources are single-line.
+    " the special files are embedded single-line, so this is defence in depth.
     " char constants come from the context class - the one place allowed to
     " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
     result = replace( val  = result
@@ -346,11 +415,9 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
                       occ  = 0 ).
     " the HTML tokenizer runs BEFORE the JavaScript parser and ends the
     " script element at the first </script it meets - inside a string
-    " literal or not. Only styles_css from the exit can carry one (the
-    " generated resources are XML and CSS the build has seen), so this is
-    " defence in depth for an admin-supplied value: every < becomes the JS
-    " escape \\x3c, which the literal reads back as the same character, and
-    " neither </script nor <!-- can reach the tokenizer any more
+    " literal or not. An XML fragment is full of <, so every one of them
+    " becomes the JS escape \\x3c, which the literal reads back as the same
+    " character, and neither </script nor <!-- can reach the tokenizer
     result = replace( val  = result
                       sub  = \`<\`
                       with = \`\\x3c\`
@@ -402,9 +469,6 @@ async function main() {
         // regardless of the filesystem's readdir order.
         const files = getAllFiles(sourceDir).sort();
         const preloadEntries = [];
-        // every embedded source as the class carries it, in generation order
-        // (sorted above), so the digest is a function of the committed tree
-        const buildDigest = crypto.createHash('sha256');
 
         // Class names ignore folders (cc/Foo.js and Foo.js would both map to
         // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
@@ -450,12 +514,13 @@ async function main() {
             // Collect the preload entry. index.html is the standalone dev
             // page and is not preloaded by the generated GET response.
             if (relPath !== 'index.html') {
-                buildDigest.update(relPath, 'utf8').update('\0').update(sourceContent, 'utf8').update('\0');
                 preloadEntries.push({
                     urlPath: `z2ui5/${relPath}`,
                     className: className.toLowerCase(),
                     isJs: file.endsWith('.js'),
-                    isStyleCss: relPath === 'css/style.css',
+                    // what the class returns at run time - the preload's
+                    // share of the hashed script text
+                    value: embeddedValue(sourceContent, isSpecialFile),
                 });
             }
         }
@@ -465,10 +530,18 @@ async function main() {
         // localeCompare depends on the host locale/ICU build, and the sort
         // order is committed output (src/01/03).
         preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
+        // One SHA-256 over the script text the page will carry, UTF-8 like the
+        // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
+        // bytes a browser hashes to decide whether the script may run.
+        const digest = crypto.createHash('sha256').update(inlineScript(preloadEntries), 'utf8').digest();
         // 16 hex characters: a validator, not a security digest, and the tag
         // travels in every GET response header
-        const buildHash = buildDigest.digest('hex').slice(0, 16);
-        emit(path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'), buildPreloadClass(preloadEntries, buildHash));
+        const buildHash = digest.toString('hex').slice(0, 16);
+        const scriptHash = `sha256-${digest.toString('base64')}`;
+        emit(
+            path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'),
+            buildPreloadClass(preloadEntries, buildHash, scriptHash),
+        );
         emit(
             path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
             `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`,
