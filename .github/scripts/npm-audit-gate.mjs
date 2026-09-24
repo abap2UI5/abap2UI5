@@ -68,22 +68,6 @@ const ACCEPTED = new Map([
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",
   }],
-  ["GHSA-3jxr-9vmj-r5cp", {
-    trees: ["app"],
-    reason: "brace-expansion 3.x/4.x/5.x: DoS via exponential expansion. Transitive under "
-      + "@ui5/cli in app/ only; the patterns it expands are the UI5 tooling's own globs, "
-      + "not input. No non-major fix in the @ui5/* range yet",
-  }],
-  ["GHSA-mh99-v99m-4gvg", {
-    trees: ["app"],
-    reason: "brace-expansion: DoS via unbounded expansion length - same package, same chain "
-      + "and same reasoning as GHSA-3jxr-9vmj-r5cp",
-  }],
-  ["GHSA-rgw5-rvv9-x895", {
-    trees: ["app"],
-    reason: "brace-expansion: DoS via unbounded intermediate arrays - same package, same "
-      + "chain and same reasoning as GHSA-3jxr-9vmj-r5cp",
-  }],
 ]);
 
 const problems = [];
