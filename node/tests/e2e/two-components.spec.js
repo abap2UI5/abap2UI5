@@ -34,34 +34,37 @@ async function waitForMainView(page, id) {
   }, id);
 }
 
-async function bootSecondComponent(page) {
-  await page.evaluate((id) => {
-    const host = document.createElement("div");
-    host.id = `${id}-host`;
-    host.style.height = "50%";
-    document.body.appendChild(host);
-    return new Promise((resolve, reject) => {
-      window.sap.ui.require(
-        ["sap/ui/core/ComponentContainer"],
-        (Container) => {
-          try {
-            const container = new Container({
-              name: "z2ui5",
-              id: `${id}-container`,
-              settings: { id },
-              async: true,
-              manifest: true,
-              componentCreated: () => resolve(true),
-            });
-            container.placeAt(host);
-          } catch (e) {
-            reject(e);
-          }
-        },
-        reject,
-      );
-    });
-  }, SECOND);
+async function bootSecondComponent(page, componentData) {
+  await page.evaluate(
+    ([id, data]) => {
+      const host = document.createElement("div");
+      host.id = `${id}-host`;
+      host.style.height = "50%";
+      document.body.appendChild(host);
+      return new Promise((resolve, reject) => {
+        window.sap.ui.require(
+          ["sap/ui/core/ComponentContainer"],
+          (Container) => {
+            try {
+              const container = new Container({
+                name: "z2ui5",
+                id: `${id}-container`,
+                settings: data ? { id, componentData: data } : { id },
+                async: true,
+                manifest: true,
+                componentCreated: () => resolve(true),
+              });
+              container.placeAt(host);
+            } catch (e) {
+              reject(e);
+            }
+          },
+          reject,
+        );
+      });
+    },
+    [SECOND, componentData],
+  );
 }
 
 // What the page can say about one component: whether its context exists,
@@ -155,4 +158,45 @@ test("destroying the second component leaves the first one running", async ({
   // the first app still answers a roundtrip: its start page is interactive
   await expect(page.locator(`[id$="${FIRST}---mainView"]`)).toHaveCount(1);
   await expect(page.locator(`[id$="${SECOND}---mainView"]`)).toHaveCount(0);
+});
+
+// A host app names the backend of the component it embeds through
+// componentData.endpoint (Component.init, App.controller) - a service node
+// not at the manifest's /sap/bc/z2ui5. The express server answers every
+// path, so the roundtrip only succeeds if it went where the host said.
+test("a host's componentData.endpoint is where that component's roundtrips go", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await waitForMainView(page, FIRST);
+
+  const posts = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") posts.push(request);
+  });
+  await bootSecondComponent(page, { endpoint: "/sap/bc/z2ui5_embedded" });
+  await waitForMainView(page, SECOND);
+
+  expect(posts.map((r) => new URL(r.url()).pathname)).toEqual([
+    "/sap/bc/z2ui5_embedded",
+  ]);
+  // it configures the frontend and is not app data: it does not travel to
+  // the backend inside the component data
+  const body = JSON.parse(posts[0].postData() || "{}");
+  expect(body.value.S_FRONT.CONFIG.ComponentData).toBeUndefined();
+
+  // the first component still talks to the page it was served from
+  const urls = await page.evaluate(
+    (ids) =>
+      ids.map((id) => {
+        const Component = window.sap.ui.require("sap/ui/core/Component");
+        const component = Component.getComponentById
+          ? Component.getComponentById(id)
+          : Component.get(id);
+        return component.ctx.state.url;
+      }),
+    [FIRST, SECOND],
+  );
+  expect(urls[0]).toMatch(/^http:\/\/localhost:3000\//);
+  expect(urls[1]).toBe("/sap/bc/z2ui5_embedded");
 });

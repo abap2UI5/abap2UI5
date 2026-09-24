@@ -28,7 +28,11 @@ needs it; a custom control is a thin wrapper on top of it.
   `componentData` (`Component.init`).
 - The start app does not need the URL. `componentData.startupParameters.app_start`
   is read by the backend (`z2ui5_cl_ui5_handler`, the launchpad path).
-- The backend endpoint comes from `sap.app/dataSources/http`.
+- The backend endpoint comes from `sap.app/dataSources/http`, or - since
+  2026-09-24 - from `componentData.endpoint`, which a host passes per
+  instance (`Component.init`, `controller/App.controller.js`). Only the top
+  level of the component data is read, never the launchpad's
+  `startupParameters`, so a link cannot point the roundtrips elsewhere.
 - `Component.exit` tears down listeners, timers, popups and OData clients.
 - Actions are data (no eval, no custom JS), so a host with a strict CSP is
   fine.
@@ -111,6 +115,12 @@ A `z2ui5.Embed` control with `appStart`/`endpoint` properties would only be
 a thin wrapper around the `ComponentContainer`. It is worth writing after
 stage 1, not instead of it. The UI5 standard for this is a reuse
 component, not a custom control.
+
+A first version is under way in
+[abap2UI5/test-cc](https://github.com/abap2UI5/test-cc): the npm package
+`@abap2ui5/reuse-custom-control` with a `z2ui5.reuse.Container` control
+that ships this frontend at a pinned commit. It is what asked for
+`componentData.endpoint`; the stage 1 items above are still what it lacks.
 
 ## 1.71
 

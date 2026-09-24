@@ -18,12 +18,16 @@ sap.ui.define(
         const state = ctx.state;
         state.oOwnerComponent = this.getOwnerComponent();
 
-        // Read the backend URI from the manifest; optional chaining keeps a
-        // missing entry from blowing up. Served by the backend GET page
-        // (checkLocal, see Component.init) the page itself is the endpoint.
+        // The backend URL, first match wins:
+        //  1. the endpoint a host app passed as component data (Component.init)
+        //  2. the page itself when it was served by the backend GET page
+        //     (checkLocal, see Component.init)
+        //  3. the manifest's data source - BSP and launchpad; optional
+        //     chaining keeps a missing entry from blowing up
         const manifest = state.oOwnerComponent.getManifest();
         const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
-        state.url = state.checkLocal ? window.location.href : uri;
+        state.url =
+          state.endpoint || (state.checkLocal ? window.location.href : uri);
 
         // Wire up the controller instances and the app container. One
         // controller per view slot, driven by the slot table in

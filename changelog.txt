@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ A host app that embeds z2ui5.Component (a ComponentContainer, a reuse control) names its backend with componentData.endpoint - it wins over the manifest's /sap/bc/z2ui5, so a service node under another name needs no copy of the manifest. Read from the top level of the component data only, never from the launchpad's startupParameters (a link cannot redirect the roundtrips), and not sent to the backend
 * 7.02 branch: the test classes of z2ui5_cl_ui5_srv_bind and z2ui5_cl_ui5_srv_model activate again on 7.02-7.4x ("The field <TAB> specified under LIKE ... has a generic type"); npm run downport now fails on that shape
 * Security hardening in the GET page: every < in the exit's styles_css is embedded as \x3c in the bootstrap script, so a </script> in a stylesheet cannot end the script element (defence in depth - the value is admin-supplied); the frontend's per-app shortcut and tree-state registries are prototype-less after an app switch as well
 * Security hardening at the app start: a class named by the URL parameter, the hash route, the launchpad startup parameter or the start page's input is checked to implement z2ui5_if_app from its RTTI descriptor before it is instantiated, so a name that is no app loads nothing - and the error says "does not implement z2ui5_if_app" instead of "does not exist in the system"

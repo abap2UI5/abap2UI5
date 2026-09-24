@@ -50,19 +50,34 @@ sap.ui.define(
         const state = this.ctx.state;
 
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
-        // its settings as component data; they configure the frontend and
-        // are not app data, so they are split off here and never travel to
-        // the backend with the rest of the component data. In BSP and
-        // Launchpad mode none of them is present.
+        // its settings as component data, and so does a host app that
+        // embeds this component (endpoint, see below); they configure the
+        // frontend and are not app data, so they are split off here and
+        // never travel to the backend with the rest of the component data.
+        // In BSP and Launchpad mode none of them is present.
         const {
           checkLocal,
           ccResourceRoot,
           cccResourceRoot,
+          endpoint,
           ...componentData
         } = this.getComponentData() || {};
         state.checkLocal = checkLocal === true;
         state.ccResourceRoot = ccResourceRoot || null;
         state.cccResourceRoot = cccResourceRoot || null;
+
+        // The backend URL of a host app that embeds this component, e.g.
+        // new ComponentContainer({ name: "z2ui5", settings: { componentData:
+        // { endpoint: "/sap/bc/z2ui5_other" } } }) - for a service node not
+        // at the manifest's /sap/bc/z2ui5. It wins over the manifest and the
+        // page URL (App.controller). Only the TOP level of the component data
+        // is read: in the launchpad the URL's parameters arrive under
+        // startupParameters, and a link must never be able to point the
+        // roundtrips - and the data they carry - at another server.
+        state.endpoint =
+          typeof endpoint === "string" && endpoint.trim()
+            ? endpoint.trim()
+            : null;
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
         // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc
