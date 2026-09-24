@@ -29,6 +29,11 @@ on:
     - cron: '47 5 * * 2'   # Tuesdays 05:47 UTC, after the framework pin bump
   workflow_dispatch:
 
+# one run at a time: a manual dispatch that overlaps the weekly cron would
+# open two pull requests for the same bump
+concurrency:
+  group: sync-shared
+
 permissions:
   contents: read
 
