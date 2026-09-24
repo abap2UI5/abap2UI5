@@ -27,6 +27,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/ViewSlots.js` | `viewSlots.spec.js` | — |
 | `core/Router.js` | `router.spec.js` | — |
 | `Component.js` unload wiring | `componentUnload.spec.js` | — |
+| `Component.js` component data | `componentData.spec.js` | the frontend settings split off in `init` - `checkLocal`, the two resource roots and a host's `endpoint` land in the state and never in the `ComponentData` sent to the backend; an `endpoint` among the launchpad's `startupParameters` is not taken |
 | `cc/UITableExt.js` | `uiTableExt.spec.js` | — |
 | `cc/Focus.js` | `focus.spec.js` | — |
 | `cc/Dirty.js` | `dirty.spec.js` | — |
@@ -47,7 +48,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/History.js` | `history.spec.js` | — |
 | `cc/Timer.js` | `timer.spec.js` | the arm-from-the-renderer flag, the one-shot that disarms itself, the repeating re-arm and both destroy re-checks, over a stub clock |
 | `cc/Tree.js` | `tree.spec.js` | the per-`tree_id` snapshot, the guard that will not overwrite a valid one, and the restore-once-per-(snapshot, binding) rule that keeps a theme change from collapsing the user's expansions |
-| `controller/App.controller.js` startup wiring | `appController.spec.js` | — |
+| `controller/App.controller.js` startup wiring | `appController.spec.js` | the backend URL - a host's `endpoint` before the page URL of the GET page before the manifest's data source |
 | the message toast/box display hooks in `core/actions/ControlCall.js` | `messages.spec.js` | — |
 | `core/actions/BindingCall.js` | `frontendAction.spec.js` (`BINDING_CALL`) | the filter/sorter whitelist through the real dispatch: single and compound filter groups, the operator whitelist, clearing on empty values, the sorter flags |
 | `devtools/DeveloperTools.js` | `developerTools.spec.js` | the dialog, composed with the REAL registry rather than a stub |

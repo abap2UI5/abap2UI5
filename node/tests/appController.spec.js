@@ -3,13 +3,18 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // controller/App.controller.js: the shell controller's one-time startup
-// wiring. Under test: the backend-URL decision (manifest URI vs. the page
-// URL in local mode), one View1 controller instance per view slot (driven
-// by the ViewSlots table, not a hardcoded list), the app container lookup,
-// and the initial roundtrip kick-off.
-function load({ manifest, checkLocal = false, href = "http://localhost:3000/" } = {}) {
+// wiring. Under test: the backend-URL decision (a host's endpoint vs. the
+// page URL in local mode vs. the manifest URI), one View1 controller
+// instance per view slot (driven by the ViewSlots table, not a hardcoded
+// list), the app container lookup, and the initial roundtrip kick-off.
+function load({
+  manifest,
+  checkLocal = false,
+  endpoint = null,
+  href = "http://localhost:3000/",
+} = {}) {
   // the controller reads the owner component's context (Context.of)
-  const state = { checkLocal };
+  const state = { checkLocal, endpoint };
   const ctx = { state, alive: true };
   const roundtrips = [];
   class View1Controller {}
@@ -76,6 +81,31 @@ test("local mode (checkLocal) uses the page URL instead", () => {
   inst.onInit();
 
   expect(state.url).toBe("http://localhost:3000/?app_start=x");
+});
+
+// A host app embedding the component names the backend itself
+// (componentData.endpoint, split off in Component.init).
+test("a host's endpoint wins over the manifest data source", () => {
+  const { inst, state } = load({
+    manifest: MANIFEST,
+    endpoint: "/sap/bc/z2ui5_other",
+  });
+
+  inst.onInit();
+
+  expect(state.url).toBe("/sap/bc/z2ui5_other");
+});
+
+test("a host's endpoint wins over the page URL of local mode too", () => {
+  const { inst, state } = load({
+    manifest: MANIFEST,
+    checkLocal: true,
+    endpoint: "/sap/bc/z2ui5_other",
+  });
+
+  inst.onInit();
+
+  expect(state.url).toBe("/sap/bc/z2ui5_other");
 });
 
 test("a manifest without the data source does not blow up", () => {

@@ -31,6 +31,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `  function createState() {` && |\n| &&
              `    return {` && |\n| &&
              `      checkLocal: false,` && |\n| &&
+             `      endpoint: null,` && |\n| &&
              `      url: null,` && |\n| &&
              `      oConfig: {},` && |\n| &&
              `      ccResourceRoot: null,` && |\n| &&

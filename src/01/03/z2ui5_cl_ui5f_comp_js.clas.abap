@@ -72,11 +72,17 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          checkLocal,` && |\n| &&
              `          ccResourceRoot,` && |\n| &&
              `          cccResourceRoot,` && |\n| &&
+             `          endpoint,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
              `        state.checkLocal = checkLocal === true;` && |\n| &&
              `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
+             `` && |\n| &&
+             `        state.endpoint =` && |\n| &&
+             `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
+             `            ? endpoint.trim()` && |\n| &&
+             `            : null;` && |\n| &&
              `` && |\n| &&
              `        const paths = {};` && |\n| &&
              `        if (state.ccResourceRoot) paths.z2ui5_cci = state.ccResourceRoot;` && |\n| &&
