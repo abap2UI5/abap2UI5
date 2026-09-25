@@ -19,6 +19,9 @@
 // Configuration
 //   checkLocal        true when served by the backend GET page, which
 //                     passes it as component data (Component.init)
+//   endpoint          backend endpoint a host app passed as component data,
+//                     e.g. through a ComponentContainer, else null
+//                     (Component.init)
 //   url               backend endpoint for roundtrips (App.controller)
 //   oConfig           { S_UI5: version info, ComponentData } (Component)
 //   ccResourceRoot    absolute path of the custom-control BSP, passed as
@@ -131,6 +134,7 @@ sap.ui.define([], () => {
     return {
       // Configuration
       checkLocal: false,
+      endpoint: null,
       url: null,
       oConfig: {},
       ccResourceRoot: null,
