@@ -79,9 +79,18 @@ look first.
   of the body. Be aware that the attribute dump renders whatever a
   customer's or SAP's exception classes carry - an installation whose
   exceptions hold sensitive payloads belongs in the hardened camp.
-- **The default CSP carries `unsafe-inline` but no `unsafe-eval`.** abap2UI5
-  evaluates no code it receives, and UI5 runs without `unsafe-eval` when it
-  loads asynchronously. On 1.71 to 1.82 a popup is processed synchronously;
+- **The default CSP carries neither `unsafe-eval` nor, for scripts,
+  `unsafe-inline`.** The page's one inline script (the embedded frontend
+  preload) is allowed by its SHA-256 hash, generated with the frontend and
+  added to every `script-src` after the exit ran - so no other inline
+  script, inline event handler or `javascript:` URL runs, whatever an HTML or
+  binding injection manages to put on the page. `style-src` keeps
+  `unsafe-inline`: UI5 writes style attributes itself. An installation that
+  needs inline script of its own names `'unsafe-inline'` in its exit's
+  `script-src`; such a directive is left without the hash (a browser ignores
+  `'unsafe-inline'` next to any hash). abap2UI5 evaluates no code it
+  receives, and UI5 runs without `unsafe-eval` when it loads
+  asynchronously. On 1.71 to 1.82 a popup is processed synchronously;
   the frontend loads its controls asynchronously first, so that stays clean
   as well. A module a popup only names in a binding type or a
   `core:require` is still fetched synchronously and eval'd there — an
@@ -89,8 +98,9 @@ look first.
   (the one-line `REPLACE` documented on
   `z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy`). An exit
   can also replace the whole policy, including switching to a real
-  `Content-Security-Policy` response header via `t_security_header`. `data:`/`blob:` sources are confined to the non-script
-  directives (an explicit `script-src` shadows the `default-src` fallback).
+  `Content-Security-Policy` response header via `t_security_header` (the
+  hash is added there too). `data:`/`blob:` sources are confined to the
+  non-script directives (an explicit `script-src` shadows the `default-src` fallback).
 - **The default bootstrap loads UI5 from a public CDN**
   (`sdk.openui5.org`) so a fresh installation runs with zero configuration.
   That makes the CDN a trusted party of the DEFAULT setup: it serves the
@@ -99,8 +109,8 @@ look first.
   should repoint `cs_config-src` in their exit to an on-stack or otherwise
   controlled UI5 (`/sap/public/bc/ui5_ui5/resources/sap-ui-core.js` on
   systems that ship it) - the default CSP allows only the UI5 CDN hosts,
-  nothing else (`npm run check:csp` holds this claim, and the script-src
-  one above, to the shipped source).
+  nothing else (`npm run check:csp` holds this claim, and the two script-src
+  ones above, to the shipped source).
 
 ## Credit
 

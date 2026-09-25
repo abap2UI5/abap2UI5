@@ -12,13 +12,19 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PUBLIC SECTION.
 
-    " digest of every embedded frontend source, fixed at generation time -
-    " part of the GET shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'ad1285a0d2c1496a'.
+    " a digest of the script get( ) returns - every embedded frontend source
+    " and the code around them - fixed at generation time. Part of the GET
+    " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
+    CONSTANTS build_hash TYPE string VALUE '9638e79a5ec4fb69'.
+
+    " the same digest as a CSP hash source, without the quotes around it:
+    " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
+    " script-src, so this one inline script runs without 'unsafe-inline'.
+    " It is the SHA-256 of get( ) byte for byte - a script that differs by one
+    " character does not run at all, which the browser e2e legs would show
+    CONSTANTS script_hash TYPE string VALUE 'sha256-ljjnml7E+2leisUGkZPgnDY02yQcK0PcCEvOZVyaht8='.
 
     CLASS-METHODS get
-      IMPORTING
-        styles_css    TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -38,7 +44,10 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD get.
 
-    result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
+    result = |\n| &&
+             |  function onInitComponent()\{\n| &&
+             |    sap.ui.require.preload(\{\n| &&
+             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraPicture.js": function()\{{ z2ui5_cl_ui5f_campic_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&
@@ -82,7 +91,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Slots.js": function()\{{ z2ui5_cl_ui5f_slots_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/css/style.css": '{ escape_js_literal( styles_css ) }',| && |\n| &&
+             |      "z2ui5/css/style.css": '{ escape_js_literal( z2ui5_cl_ui5f_style_css=>get( ) ) }',| && |\n| &&
              |      "z2ui5/devtools/AbapSource.js": function()\{{ z2ui5_cl_ui5f_abapsrc_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Bindings.js": function()\{{ z2ui5_cl_ui5f_bindings_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Console.js": function()\{{ z2ui5_cl_ui5f_console_js=>get( ) }\},| && |\n| &&
@@ -104,7 +113,12 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n|.
+             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n| &&
+             |    \});\n| &&
+             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
+             |     ComponentSupport.run();\n| &&
+             |    \});\n| &&
+             |  \}\n|.
 
   ENDMETHOD.
 
@@ -114,9 +128,8 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     " single-quoted string literal, inside the single <script> block that
     " defines onInitComponent (z2ui5_cl_ui5_http_handler=>_http_get). Its content
     " is arbitrary text and does carry apostrophes - a UI5 expression binding
-    " in a fragment (title="{= ${/appName} ? 'a' : 'b' }") writes them, and so
-    " does a customer's own styles_css from the exit. An unescaped one ends the
-    " literal early, which is a syntax error for the whole block: the browser
+    " in a fragment (title="{= ${/appName} ? 'a' : 'b' }") writes them. An
+    " unescaped one ends the literal early, which is a syntax error for the whole block: the browser
     " then never defines onInitComponent, the bootstrap call fails and the page
     " stays blank. Escape for the literal here instead of banning the
     " characters in the frontend sources.
@@ -130,7 +143,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
                       with = `\'`
                       occ  = 0 ).
     " a raw line break ends a JS string literal just like an apostrophe does -
-    " only styles_css can carry one, the generated resources are single-line.
+    " the special files are embedded single-line, so this is defence in depth.
     " char constants come from the context class - the one place allowed to
     " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
     result = replace( val  = result
@@ -143,11 +156,9 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
                       occ  = 0 ).
     " the HTML tokenizer runs BEFORE the JavaScript parser and ends the
     " script element at the first </script it meets - inside a string
-    " literal or not. Only styles_css from the exit can carry one (the
-    " generated resources are XML and CSS the build has seen), so this is
-    " defence in depth for an admin-supplied value: every < becomes the JS
-    " escape \x3c, which the literal reads back as the same character, and
-    " neither </script nor <!-- can reach the tokenizer any more
+    " literal or not. An XML fragment is full of <, so every one of them
+    " becomes the JS escape \x3c, which the literal reads back as the same
+    " character, and neither </script nor <!-- can reach the tokenizer
     result = replace( val  = result
                       sub  = `<`
                       with = `\x3c`

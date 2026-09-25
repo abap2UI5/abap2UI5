@@ -241,6 +241,34 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " a content security policy - the exit's meta tag or a header value -
+    " with the shell script's hash added to its script-src (see the method)
+    CLASS-METHODS _csp_add_script_hash
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the offset right behind the directive name script-src or
+    " script-src-elem that starts at iv_hit of the lower-cased policy - or -1
+    " when the match is part of another name, or is script-src-attr
+    CLASS-METHODS _csp_script_src_end
+      IMPORTING
+        iv_lower      TYPE string
+        iv_hit        TYPE i
+      RETURNING
+        VALUE(result) TYPE i.
+
+    " where the sources of the directive whose name ends at iv_off stop: at
+    " the next ; - or at the quote that closes a meta tag's content
+    " attribute, or at the end of a header value
+    CLASS-METHODS _csp_directive_stop
+      IMPORTING
+        iv_lower      TYPE string
+        iv_off        TYPE i
+      RETURNING
+        VALUE(result) TYPE i.
+
 ENDCLASS.
 
 
@@ -434,6 +462,141 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _csp_add_script_hash.
+
+    " The shell's one inline script (z2ui5_cl_ui5f_preload=>get) is allowed
+    " by its hash, not by 'unsafe-inline': every script-src and
+    " script-src-elem directive of the policy gets the hash source appended.
+    " The default policy carries no 'unsafe-inline' for scripts, so without
+    " the hash the page would not boot - and with it, no other inline script,
+    " inline event handler or javascript: URL runs, whatever reaches the page.
+    "
+    " A directive that says 'unsafe-inline' itself is left alone, unless it
+    " already carries a hash or a nonce: there the exit decided that inline
+    " script runs, and a hash would silently take that back (a browser
+    " ignores 'unsafe-inline' next to any hash). That is how an exit opts
+    " back in - REPLACE `script-src 'self'` WITH `script-src 'self'
+    " 'unsafe-inline'` - and how a policy that replaces the whole tag and
+    " still carries the old default keeps working as it did.
+    " script-src-attr is not touched: it governs event handler attributes,
+    " which a hash does not allow. default-src neither: it covers styles too,
+    " and a hash there would switch UI5's inline styles off.
+    DATA lv_offset  TYPE i.
+    DATA lv_hit     TYPE i.
+    DATA lv_end     TYPE i.
+    DATA lv_stop    TYPE i.
+    DATA lv_sources TYPE string.
+
+    result = val.
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    " an exit that listed the hash itself gets no second copy
+    IF val IS INITIAL OR find( val = val
+                               sub = lv_source ) >= 0.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_lower) = to_lower( result ).
+    DO.
+      lv_hit = find( val = lv_lower
+                     sub = `script-src`
+                     off = lv_offset ).
+      IF lv_hit < 0.
+        EXIT.
+      ENDIF.
+      lv_offset = lv_hit + 10.
+      lv_end = _csp_script_src_end( iv_lower = lv_lower
+                                    iv_hit   = lv_hit ).
+      IF lv_end < 0.
+        CONTINUE.
+      ENDIF.
+
+      lv_stop = _csp_directive_stop( iv_lower = lv_lower
+                                     iv_off   = lv_end ).
+      lv_sources = substring( val = lv_lower
+                              off = lv_end
+                              len = lv_stop - lv_end ).
+      IF find( val = lv_sources
+               sub = `'unsafe-inline'` ) >= 0
+          AND find( val = lv_sources
+                    sub = `'sha` ) < 0
+          AND find( val = lv_sources
+                    sub = `'nonce-` ) < 0.
+        lv_offset = lv_stop.
+        CONTINUE.
+      ENDIF.
+
+      result = substring( val = result
+                          len = lv_stop ) && | { lv_source }| &&
+               substring( val = result
+                          off = lv_stop ).
+      lv_lower  = to_lower( result ).
+      lv_offset = lv_stop + strlen( lv_source ) + 1.
+    ENDDO.
+
+  ENDMETHOD.
+
+  METHOD _csp_script_src_end.
+
+    " the characters a directive name is made of - a match with one of them
+    " right before or right after it is part of a longer name or host
+    CONSTANTS lc_name_chars TYPE string VALUE `abcdefghijklmnopqrstuvwxyz0123456789-`.
+    DATA lv_char TYPE string.
+
+    result = -1.
+    IF iv_hit > 0.
+      lv_char = substring( val = iv_lower
+                           off = iv_hit - 1
+                           len = 1 ).
+      IF lv_char CO lc_name_chars.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    DATA(lv_end) = iv_hit + 10.
+    IF strlen( iv_lower ) >= lv_end + 5.
+      lv_char = substring( val = iv_lower
+                           off = lv_end
+                           len = 5 ).
+      CASE lv_char.
+        WHEN `-elem`.
+          lv_end = lv_end + 5.
+        WHEN `-attr`.
+          " handler attributes - a hash does not allow them, see
+          " _csp_add_script_hash
+          RETURN.
+      ENDCASE.
+    ENDIF.
+
+    IF strlen( iv_lower ) > lv_end.
+      lv_char = substring( val = iv_lower
+                           off = lv_end
+                           len = 1 ).
+      IF lv_char CO lc_name_chars.
+        RETURN.
+      ENDIF.
+    ENDIF.
+    result = lv_end.
+
+  ENDMETHOD.
+
+  METHOD _csp_directive_stop.
+
+    result = strlen( iv_lower ).
+    DATA(lv_semicolon) = find( val = iv_lower
+                               sub = `;`
+                               off = iv_off ).
+    IF lv_semicolon >= 0.
+      result = lv_semicolon.
+    ENDIF.
+    DATA(lv_quote) = find( val = iv_lower
+                           sub = `"`
+                           off = iv_off ).
+    IF lv_quote >= 0 AND lv_quote < result.
+      result = lv_quote.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD factory.
 
     IF server IS BOUND.
@@ -535,14 +698,21 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_style_css) = COND string( WHEN ls_config-styles_css IS INITIAL
-                                      THEN z2ui5_cl_ui5f_style_css=>get( )
-                                      ELSE ls_config-styles_css ).
-
-    " The entries for all embedded frontend files come from the generated
-    " preload mapping (see .github/app2abap/trans2abap.js), so the list can
-    " never run out of sync with app/webapp.
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( lv_style_css ).
+    " The exit's own stylesheet, as a <style> element of its own. It used to
+    " ride inside the inline script below, as the preload entry
+    " z2ui5/css/style.css - which nothing loads since manifest.json stopped
+    " declaring the resource (AGENTS.md rule 18), and which made the script
+    " text a function of the config, so its CSP hash could not be fixed at
+    " generation time. Every < becomes the CSS escape \3c (the blank ends the
+    " escape), which reads back as the same character in a string, a url( )
+    " or a selector - an admin-supplied </style> cannot end the element
+    DATA(lv_style_exit) = ``.
+    IF ls_config-styles_css IS NOT INITIAL.
+      lv_style_exit = |<style>{ replace( val   = ls_config-styles_css
+                                          sub  = `<`
+                                          with = `\3c `
+                                          occ  = 0 ) }</style>\n|.
+    ENDIF.
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own frontend artefacts (z2ui5_ccc,
@@ -568,6 +738,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                         |"ccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
                         |"cccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_ccc"\}\}|.
 
+    " The one inline script of the page - onInitComponent and the preload of
+    " every embedded frontend file - is generated from app/webapp together
+    " with its CSP hash (z2ui5_cl_ui5f_preload, tools/app2abap/trans2abap.js),
+    " and _csp_add_script_hash lists that hash in the policy's script-src.
+    " Nothing may be added between the two script tags: the browser runs the
+    " script only while it is byte for byte the text the hash was taken over.
+    "
     " The tab title is a constant. It used to come from `cs_config-title`,
     " which is gone from the exit structure. The tab title belongs to the running app, which sets it through
     " cs_event-set_title at any point in its life; two mechanisms for one
@@ -578,7 +755,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
-                  |{ ls_config-content_security_policy }\n| &&
+                  |{ _csp_add_script_hash( ls_config-content_security_policy ) }\n| &&
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
@@ -586,16 +763,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&
-                  |<script>\n| &&
-                  |  function onInitComponent()\{\n| &&
-                  |    sap.ui.require.preload(\{\n| &&
-                  lv_preload &&
-                  |    \});\n| &&
-                  |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
-                  |     ComponentSupport.run();\n| &&
-                  |    \});\n| &&
-                  |  \}\n| &&
-                  |</script>\n| &&
+                  lv_style_exit &&
+                  |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>\n| &&
                   |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
                   |data-sap-ui-theme="{ _attr_escape( ls_config-theme ) }" src="{ _attr_escape( ls_config-src ) }"|.
@@ -841,6 +1010,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+      " a policy the exit sends as a header (the enforcing one or the
+      " -Report-Only one) has to allow the shell's inline script by its hash
+      " exactly like the meta tag - see _csp_add_script_hash
+      IF ls_header-n CP `content-security-policy*`.
+        ls_header-v = _csp_add_script_hash( ls_header-v ).
+      ENDIF.
       mo_server->set_header_field( n = ls_header-n
                                    v = ls_header-v ).
     ENDLOOP.

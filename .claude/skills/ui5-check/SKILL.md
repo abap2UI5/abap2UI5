@@ -345,6 +345,21 @@ Not about names or layout — these only show up when the app runs.
   as loaded and `VerticalLayout.js` is still fetched and eval'd. What the
   preload cannot see - a module named only in a binding type or a
   `core:require` - still needs `'unsafe-eval'` below 1.84.
+- **No inline script runs, on any release.** The default CSP's script-src
+  carries no `'unsafe-inline'`; the page's own inline script (the embedded
+  preload) runs by its SHA-256 hash, which also makes every browser ignore an
+  `'unsafe-inline'` an exit left next to it. A `<script>` or an `onclick=`
+  inside a `core:HTML` content, a `javascript:` href, a handler attribute in
+  any markup a custom control writes - refused, and the console names the
+  CSP. Measured 2026-09-24 in Chromium against the transpiled backend: the
+  shell boots with no violation on the built UI5 bundle. The source-only
+  `sap-ui-core.js` of the `@openui5/sap.ui.core` npm package is the DEV
+  bootstrap and `document.write()`s two inline scripts of its own (1.71 and
+  1.144 alike) - an offline run on such a tree lists them by hash
+  (`node/tests/e2e/fixtures.js`), the CDN build runs the same calls inside
+  itself. **Linter:** a rule would flag `on*=` attributes and `<script` in a
+  `core:HTML` `content`, and `javascript:` in any URL-typed property of the
+  rendered view.
 - **Keep `"async": true` on the manifest's `rootView`.** 1.71 does not know
   `IAsyncContentCreation` (since 1.89), so a rootView without the flag is
   built synchronously: the App controller's dependencies (`sap/m/MessageBox`)
