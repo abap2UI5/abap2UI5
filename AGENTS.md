@@ -325,44 +325,89 @@ available: the frontend looked for a key the backend no longer wrote, read its
 absence as "nothing to do", and rendered an empty page with no error anywhere.
 A number on the wire turns that into a sentence somebody can read.
 
-### The transpiled framework is a package (`@abap2ui5/runtime`)
+### The transpiled framework is a package (`@abap2ui5/node`)
 
 `backend-prebuilt.yaml` packs the transpiled tree **twice**, from one build.
 The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
-first; two steps at the end of the same job are the second, packing
-`node/output`, `node/setup/setup.mjs` (the hook `output/init.mjs` imports by
-the relative path fixed in `node/setup/abap_transpile.json`) and `app/webapp`
-into the npm package **`@abap2ui5/runtime`** —
-`node/setup/runtime.package.json` is its manifest, copied into a staging
-directory outside the checkout at pack time. **It is deliberately not
-`node/package.json`:** a `package.json` inside `node/` makes that directory an
-npm package root, so `npm run <script>` from there stops walking up to this
-repository's scripts — `cd node && npm run express` answers *"Missing script"*,
-which is what `node/playwright.config.js` starts its web server with, and all
-four browser projects fail to boot. The file's own header records it. The version is the framework's, set at pack time; the committed
-`0.0.0-set-at-release` is deliberate. The `.tgz` is uploaded as a workflow
-artefact on every run; `npm publish` happens only when the organisation has an
-`NPM_TOKEN` secret — without one the step warns and the run stays green.
+first; `npm run pack:npm` (`node/setup/pack-npm.mjs`) at the end of the same
+job is the second: the npm package **`@abap2ui5/node`**, assembled in a
+staging directory outside the checkout from `node/output`,
+`node/setup/setup.mjs` (the hook `output/init.mjs` imports by the relative
+path fixed in `node/setup/abap_transpile.json`), **`node/srv/host.mjs`** (the
+entry point, below), `app/webapp`, `node/downport` (so a host can transpile
+its own app classes with the framework as a library - the README's "Your own
+apps") and `node/setup/npm.README.md`. `node/setup/npm.package.json` is its
+manifest. **It is deliberately not `node/package.json`:** a `package.json`
+inside `node/` makes that directory an npm package root, so `npm run <script>`
+from there stops walking up to this repository's scripts — `cd node && npm run
+express` answers *"Missing script"*, which is what `node/playwright.config.js`
+starts its web server with, and all four browser projects fail to boot. The
+file's own header records it. The version is the framework's, set at pack
+time; the committed `0.0.0-set-at-pack` is deliberate. The two `@abaplint`
+dependencies are pinned at pack time to the **exact** versions in
+`package-lock.json`: transpiler output is tied to its runtime, and a caret
+range would let `npm i` pair the output with a runtime it never ran on. The
+transpiler version, the commit and the build time go into the manifest's
+`abap2ui5` field.
+
+**`node/srv/host.mjs` is the entry point, and `npm run express` runs through
+it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
+`webappDir` and `HANDLER_CLASS`; `express.mjs` is the twelve lines that call
+`serve()` with `PORT`/`HOST` and print the log line `mcp-server` waits for
+("Listening on"). One code path for the dev server and the package, so what
+CI drives in the browser projects is what a host installs. It is packed as
+`srv/host.mjs` next to `output/` and `setup/` — the same neighbours it has in
+the checkout — so its relative imports need no rewriting; the webapp is the one
+path that differs (`app/webapp` here, `webapp/` there) and `webappDir` tries
+both. `express` is an optional peer of the package and is imported lazily,
+only by `createApp()`/`serve()`.
+
+**`--check` is the proof, and the workflow runs it before it uploads.**
+`pack:npm -- --check` installs the tarball into a scratch project with
+`express` and the pinned `@abaplint/transpiler-cli`, and drives it as a host
+would: `serve()` answers GET / with the framework's page, `webappDir` finds the
+component, and a class the scratch project transpiles against
+`node_modules/@abap2ui5/node/downport` registers in the running runtime. The
+`files` allowlist is the one defect a package like this can ship (the working
+tree has every file whether or not it is listed), and only an install catches
+it. Needs the registry; a few minutes.
+
+**Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds
+`id-token: write`, pins the npm that can publish that way, and runs
+`npm publish --provenance`. npm can only be pointed at this workflow for a
+package that already exists, so the first version is published by hand
+(RELEASING.md, "One-time setup"); until then the step ends in a **warning** —
+the package is not on the registry, so a failed publish is expected — and the
+tarball is still uploaded as a workflow artefact. Once the package exists, a
+failed publish is an error. A stored `NPM_TOKEN` still works and takes
+precedence.
 
 Why two deliveries and not one: the tarball is resolved by NAME from a GitHub
 release and carries `node/deps` and `node/downport`, which is what a tool that
 downloads and builds against it needs (`abap2UI5/mcp-server`). A host that
-merely RUNS the framework — a CAP plugin, a serverless function — is an
-ordinary Node project: it declares dependencies in `package.json` and already
-has `npm i`, and it needs the FRONTEND, which the tarball does not carry. A
-host that pins `@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
-`z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
+merely RUNS the framework — a CAP plugin, a container, a serverless function —
+is an ordinary Node project: it declares dependencies in `package.json` and
+already has `npm i`, and it needs the FRONTEND, which the tarball does not
+carry. A host that pins `@abap2ui5/node@X.Y.Z` gets the backend, the frontend
+and `z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
 version above cannot guarantee for a host that assembles them itself.
+
+Why the name: the package was first drafted as `@abap2ui5/runtime`, and
+`@abap2ui5/render-runtime` (the UI5 runtime the linter's render gate installs)
+already existed — two "runtimes" that have nothing in common, side by side in
+the same scope. `node` says what a consumer gets: abap2UI5 for Node. Never
+published under the old name, so nothing had to be deprecated.
 
 It rides in that workflow rather than in `release.yaml` because the downport
 and the transpile have already run there; a job of its own would spend another
 half hour producing the same bytes.
 
-What the package promises is only what `output/init.mjs` and the webapp
-promise: it is transpiler output, and the shape of that output — the static
-`ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` — is
-`@abaplint/transpiler`'s, not ours. A host that reaches into it couples to the
-transpiler, and should say so in a test of its own.
+What the package promises is only what `host.mjs`, `output/init.mjs` and the
+webapp promise: everything else in `output/` is transpiler output, and the
+shape of that output — the static `ATTRIBUTES`/`METHODS` maps,
+`constructor_( )`, `~` becoming `$` — is `@abaplint/transpiler`'s, not ours.
+A host that reaches into it couples to the transpiler, and should say so in a
+test of its own.
 
 ### A missing codepage class must not take down the view
 

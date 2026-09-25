@@ -65,6 +65,9 @@ jobs:
     permissions:
       # gh release upload writes to the release; nothing else here writes
       contents: write
+      # the OIDC token npm exchanges for a publish credential (trusted
+      # publishing) - see the publish step at the end
+      id-token: write
     runs-on: ubuntu-latest
     # The downport (three abaplint --fix passes) and the transpile are the
     # slow half of `npm run verify`; test.yaml gives the transpile alone 15
@@ -123,63 +126,80 @@ jobs:
     # A SECOND delivery of the same transpile, for a different consumer and
     # by a different mechanism. The tarball above is resolved by name from a
     # GitHub release, which suits a tool that downloads it (mcp-server). A
-    # host that is an ordinary Node project - a CAP plugin, a serverless
-    # function - declares its dependencies in package.json, and `npm i` is
-    # the mechanism it already has; asking it to fetch and unpack a release
-    # asset is a build step it would have to write and keep alive.
+    # host that is an ordinary Node project - a CAP plugin, a container, a
+    # serverless function - declares its dependencies in package.json, and
+    # `npm i` is the mechanism it already has; asking it to fetch and unpack
+    # a release asset is a build step it would have to write and keep alive.
     #
     # It rides HERE rather than in release.yaml because the expensive part -
     # the downport and the transpile - has already run above, and running it
     # a second time in a job of its own would cost the same ~30 minutes to
     # produce the same bytes.
     #
-    # What differs from the tarball: the package carries app/webapp (the UI5
-    # shell) and node/setup/setup.mjs, and not node/deps or node/downport. A
-    # host that RUNS the framework needs the frontend from the same commit as
-    # the backend - that is the guarantee the package exists to give, and the
-    # one z2ui5_if_ui5_types=>c_protocol cannot give a host that pairs the
-    # halves itself.
-    #
-    # Assembled in a STAGING directory outside the checkout, and the manifest
-    # is node/setup/runtime.package.json rather than node/package.json: a
-    # package.json inside node/ makes that directory an npm package root, so
-    # `npm run express` from there stops finding this repository's scripts and
-    # every browser project fails to boot. The header of that file says so too.
-    - name: Pack @abap2ui5/runtime
+    # node/setup/pack-npm.mjs assembles and packs it (its header lists the
+    # contents and why each is there); --check then installs the tarball
+    # into a scratch project and drives it - the framework has to answer
+    # GET /, the webapp has to be there, and a class the scratch project
+    # transpiles against downport/ has to register in the running runtime.
+    # A tarball that fails its own install is not uploaded, let alone
+    # published.
+    - name: Pack @abap2ui5/node and prove the tarball installs
       id: pack_npm
       run: |
-        VERSION="$(node -p "require('./package.json').version")"
-        STAGE="$(mktemp -d)"
-        mkdir -p "$STAGE/setup"
-        cp node/setup/runtime.package.json "$STAGE/package.json"
-        cp -r node/output "$STAGE/output"
-        cp node/setup/setup.mjs "$STAGE/setup/setup.mjs"
-        cp -r app/webapp "$STAGE/webapp"
-        (cd "$STAGE" && npm version --no-git-tag-version "$VERSION" && npm pack)
-        mkdir -p runtime-package && cp "$STAGE"/*.tgz runtime-package/
-        ls -la runtime-package/
-        echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-        echo "stage=$STAGE" >> "$GITHUB_OUTPUT"
+        npm run pack:npm -- --check --out npm-package
+        echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: abap2ui5-runtime-${{ steps.pack_npm.outputs.version }}
-        path: runtime-package/*.tgz
+        name: abap2ui5-node-${{ steps.pack_npm.outputs.version }}
+        path: npm-package/*.tgz
         if-no-files-found: error
 
-    # Published only when the organisation has stored an NPM_TOKEN (an
-    # automation token for the @abap2ui5 scope). Without one the step says so
-    # and the run stays green: the tarball above is uploaded either way, so a
-    # missing token costs the publish and nothing else - and never the
-    # release, which was created before this workflow started.
-    - name: Publish @abap2ui5/runtime
+    # Node 22 ships npm 10.x, which has no OIDC support - it would fall
+    # through to asking for a token and fail confusingly. Trusted publishing
+    # needs 11.5.1 or newer. PINNED, not @latest: this is the one step in the
+    # repository that holds a publishing identity, and @latest hands whatever
+    # npm published this morning the right to run inside it. The same pin as
+    # abap2UI5/linter's release.yml - raise both deliberately.
+    - name: Use an npm that can publish via OIDC
+      run: npm install -g npm@12.0.2
+
+    # Trusted publishing (OIDC): no NPM_TOKEN to leak or rotate, and npm
+    # records a provenance attestation tying the tarball to this run and
+    # commit. `id-token: write` on the job is what mints the token, and the
+    # package's Settings -> Trusted Publisher on npmjs.com has to name this
+    # repository and this workflow file. That setting can only be made for a
+    # package that ALREADY EXISTS, so the very first version is published by
+    # hand (RELEASING.md, "One-time setup") - and until that has happened a
+    # failed publish here is expected, not an error:
+    #
+    #   package not on the registry yet  -> a warning naming the bootstrap,
+    #                                       the run stays green (the tarball
+    #                                       above is uploaded either way)
+    #   package on the registry          -> the bootstrap is done, so a
+    #                                       failed publish is a failed publish
+    #
+    # A stored NPM_TOKEN still works and takes precedence - it is the
+    # fallback for an organisation that has not moved to trusted publishing.
+    - name: Publish @abap2ui5/node
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        STAGE: ${{ steps.pack_npm.outputs.stage }}
+        VERSION: ${{ steps.pack_npm.outputs.version }}
       run: |
-        if [ -z "$NODE_AUTH_TOKEN" ]; then
-          echo "::warning::NPM_TOKEN is not set - @abap2ui5/runtime ${{ steps.pack_npm.outputs.version }} was packed (see the workflow artefact) but not published."
+        set -u
+        NAME="$(node -p "require('./node/setup/npm.package.json').name")"
+        if [ -n "${NODE_AUTH_TOKEN:-}" ]; then
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+          echo "publishing $NAME@$VERSION with NPM_TOKEN"
+        else
+          echo "publishing $NAME@$VERSION via trusted publishing (OIDC)"
+        fi
+        if npm publish ./npm-package/*.tgz --access public --provenance; then
+          echo "published $NAME@$VERSION"
           exit 0
         fi
-        echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
-        (cd "$STAGE" && npm publish ./*.tgz --access public)
+        if npm view "$NAME" version >/dev/null 2>&1; then
+          echo "::error::$NAME is on the registry, but publishing $VERSION failed - see the npm output above (a version that already exists? the trusted publisher not pointing at this workflow?)"
+          exit 1
+        fi
+        echo "::warning::$NAME@$VERSION was packed and uploaded as a workflow artefact but NOT published: the package does not exist on the registry yet, and trusted publishing can only be configured for one that does. Bootstrap it once by hand - RELEASING.md, 'One-time setup' - then every release publishes here."

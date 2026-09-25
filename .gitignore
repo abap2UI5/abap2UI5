@@ -8,8 +8,9 @@ node_modules
 /backend-manifest.json
 /backend-*.tar.gz
 
-# the @abap2ui5/runtime tarball, staged by backend-prebuilt.yaml before upload
-/runtime-package/
+# the @abap2ui5/node tarball, written by `npm run pack:npm` (node/setup/pack-npm.mjs)
+# and uploaded by backend-prebuilt.yaml
+/npm-package/
 /node/coverage/
 /coverage/
 .github/out
