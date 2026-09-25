@@ -54,7 +54,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->mv_image                 = iv_image.
     r_result->mv_title                 = iv_title.
     r_result->mv_cancel_text           = iv_cancel_text.
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.
@@ -98,13 +98,16 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`      v = `sap.m`
             )->a( n = `xmlns:core` v = `sap.ui.core`
             )->a( n = `xmlns:ie`   v = `sap.suite.ui.commons.imageeditor` ).
 
-    DATA(popup) = view->ele( `Dialog`
+
+    popup = view->ele( `Dialog`
         )->a( n = `title`               v = mv_title
         )->a( n = `icon`                v = `sap-icon://edit`
         )->a( n = `contentHeight`       v = `80%`

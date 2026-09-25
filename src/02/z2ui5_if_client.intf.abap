@@ -89,7 +89,7 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
   TYPES:
     "! One table cell of this roundtrip's delta that could NOT be applied. The
@@ -138,7 +138,7 @@ INTERFACE z2ui5_if_client
     END OF ty_s_model_skip.
   "! The table of skipped cells get( )-t_model_skipped carries, one
   "! ty_s_model_skip row per cell this roundtrip's delta could not apply.
-  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
+  TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH DEFAULT KEY.
 
   TYPES:
     "! Everything the frontend sent with this roundtrip - the return type of

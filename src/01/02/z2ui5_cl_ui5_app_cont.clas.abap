@@ -177,7 +177,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       result = gi_serializer.
       RETURN.
     ENDIF.
-    result = NEW z2ui5_cl_ui5_serializer( ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_serializer.
 
   ENDMETHOD.
 
@@ -201,9 +201,16 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lv_id) = CONV string( id ).
+    DATA temp29 TYPE string.
+    DATA lv_id LIKE temp29.
+    DATA lr_buf TYPE REF TO z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    DATA temp30 TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    temp29 = id.
 
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH TABLE KEY id = lv_id.
+    lv_id = temp29.
+
+
+    READ TABLE mt_buffer REFERENCE INTO lr_buf WITH TABLE KEY id = lv_id.
     IF sy-subrc = 0.
       result = lr_buf->app.
       RETURN.
@@ -212,7 +219,11 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     result = draft_parse( id ).
     result->create_model( )->main_attri_db_load( ).
 
-    INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
+
+    CLEAR temp30.
+    temp30-id = lv_id.
+    temp30-app = result.
+    INSERT temp30 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
@@ -234,7 +245,9 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " `app`, because `app` is the instance it deserialized. A buffered
     " container around a DIFFERENT instance of the same id stays unusable
     " here, as before
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf)
+    DATA lr_buf TYPE REF TO z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    DATA temp31 TYPE z2ui5_cl_ui5_app_cont=>ty_s_buffer.
+    READ TABLE mt_buffer REFERENCE INTO lr_buf
          WITH TABLE KEY id = app->id_draft.
     IF sy-subrc = 0 AND lr_buf->app->mo_app = app.
       result = lr_buf->app.
@@ -263,18 +276,24 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
     " logic: an id already in the buffer leaves the existing entry alone and
     " sets sy-subrc = 4, which is the wanted outcome and not an error
-    INSERT VALUE #( id  = app->id_draft
-                    app = result ) INTO TABLE mt_buffer.
+
+    CLEAR temp31.
+    temp31-id = app->id_draft.
+    temp31-app = result.
+    INSERT temp31 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
   METHOD app_refresh_draft_id.
+    DATA temp32 TYPE REF TO z2ui5_if_app.
 
     IF mo_app IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
+
+    temp32 ?= mo_app.
+    temp32->id_draft = ms_draft-id.
 
   ENDMETHOD.
 
@@ -292,7 +311,8 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_model) = create_model( ).
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+    lo_model = create_model( ).
     lo_model->main_json_to_attri( model     = io_model
                                   iv_prefix = iv_path ).
     result = lo_model->mt_skipped.
@@ -307,15 +327,15 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD draft_parse.
 
-    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
+    DATA ls_db TYPE z2ui5_t_01.
+    ls_db = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
 
   METHOD create_model.
 
-    result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
-                                         app   = mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = mt_attri app = mo_app.
 
   ENDMETHOD.
 ENDCLASS.

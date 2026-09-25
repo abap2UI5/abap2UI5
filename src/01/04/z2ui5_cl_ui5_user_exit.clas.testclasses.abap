@@ -86,6 +86,7 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD test_defaults_http_get.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp1 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -94,7 +95,9 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-src ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
+
+    temp1 = boolc( ls_config-content_security_policy CS `Content-Security-Policy` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_config-t_security_header ).
 
@@ -106,16 +109,22 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " and the one-line REPLACE the exit interface documents for UI5 1.71 to
     " 1.82 puts it into script-src, the one directive that needs it
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `unsafe-eval` ) ).
+
+    temp2 = boolc( ls_config-content_security_policy CS `unsafe-eval` ).
+    cl_abap_unit_assert=>assert_false( temp2 ).
 
     REPLACE `script-src 'self'` IN ls_config-content_security_policy
             WITH `script-src 'self' 'unsafe-eval'`.
 
+
+    temp3 = boolc( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' ui5.sap.com` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' ui5.sap.com` ) ).
+        temp3 ).
 
   ENDMETHOD.
 
@@ -128,16 +137,24 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA lt_directive TYPE string_table.
     DATA lv_checked TYPE i.
+    DATA lv_directive LIKE LINE OF lt_directive.
+        DATA temp4 TYPE xsdboolean.
+        DATA temp5 TYPE xsdboolean.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
     SPLIT ls_config-content_security_policy AT `;` INTO TABLE lt_directive.
-    LOOP AT lt_directive INTO DATA(lv_directive).
+
+    LOOP AT lt_directive INTO lv_directive.
       IF lv_directive CS `script-src`.
-        cl_abap_unit_assert=>assert_false( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+
+        temp4 = boolc( lv_directive CS `'unsafe-inline'` ).
+        cl_abap_unit_assert=>assert_false( temp4 ).
         lv_checked = lv_checked + 1.
       ELSEIF lv_directive CS `style-src`.
-        cl_abap_unit_assert=>assert_true( xsdbool( lv_directive CS `'unsafe-inline'` ) ).
+
+        temp5 = boolc( lv_directive CS `'unsafe-inline'` ).
+        cl_abap_unit_assert=>assert_true( temp5 ).
         lv_checked = lv_checked + 1.
       ENDIF.
     ENDLOOP.
@@ -152,6 +169,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD test_no_secure_ctx_header.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp1 LIKE sy-subrc.
+    DATA temp7 TYPE xsdboolean.
+    DATA temp2 LIKE sy-subrc.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
@@ -159,10 +180,20 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " plain-HTTP on-premise system ignores it and logs a console error on
     " every app start (reasoning at set_config_http_get). HTTPS installations
     " add it in their own exit
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Opener-Policy` ] ) ) ). "#EC CI_SORTSEQ
+
+
+    READ TABLE ls_config-t_security_header WITH KEY n = `Cross-Origin-Opener-Policy` TRANSPORTING NO FIELDS.
+    temp1 = sy-subrc.
+    temp6 = boolc( temp1 = 0 ).
+    cl_abap_unit_assert=>assert_false( temp6 ). "#EC CI_SORTSEQ
 
     " ... while the one that IS honoured over plain HTTP stays
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( ls_config-t_security_header[ n = `Cross-Origin-Resource-Policy` ] ) ) ). "#EC CI_SORTSEQ
+
+
+    READ TABLE ls_config-t_security_header WITH KEY n = `Cross-Origin-Resource-Policy` TRANSPORTING NO FIELDS.
+    temp2 = sy-subrc.
+    temp7 = boolc( temp2 = 0 ).
+    cl_abap_unit_assert=>assert_true( temp7 ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -208,9 +239,10 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    DATA li_exit TYPE REF TO z2ui5_if_ui5_exit.
+    li_exit = z2ui5_cl_ui5_user_exit=>get_instance( ).
 
-    z2ui5_cl_ui5_user_exit=>gi_user_exit_dep = NEW ltcl_exit_dep( ).
+    CREATE OBJECT z2ui5_cl_ui5_user_exit=>gi_user_exit_dep TYPE ltcl_exit_dep.
 
     li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
@@ -229,28 +261,63 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     " the exit sees the app the way the handler resolves it: a case change
     " or an encoded namespace used to bypass an exit keyed on the name
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        path     = `/sap/bc/z2ui5`
-        t_params = VALUE #( ( n = `app_start` v = ` zcl_my_app ` ) ) ) ).
+    DATA temp1 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp5 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp6 LIKE LINE OF temp5.
+    DATA temp2 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp7 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp8 LIKE LINE OF temp7.
+    DATA temp3 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp9 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp10 LIKE LINE OF temp9.
+    DATA temp4 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    CLEAR temp1.
+    temp1-path = `/sap/bc/z2ui5`.
+
+    CLEAR temp5.
+
+    temp6-n = `app_start`.
+    temp6-v = ` zcl_my_app `.
+    INSERT temp6 INTO TABLE temp5.
+    temp1-t_params = temp5.
+    z2ui5_cl_ui5_user_exit=>init_context( temp1 ).
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-path ).
 
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        t_params = VALUE #( ( n = `app_start` v = `%2Fns%2Fzcl_my_app` ) ) ) ).
+
+    CLEAR temp2.
+
+    CLEAR temp7.
+
+    temp8-n = `app_start`.
+    temp8-v = `%2Fns%2Fzcl_my_app`.
+    INSERT temp8 INTO TABLE temp7.
+    temp2-t_params = temp7.
+    z2ui5_cl_ui5_user_exit=>init_context( temp2 ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
     " the launchpad spelling of a namespace - the handler's own
     " normalisation, so the two cannot drift apart again
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
-        t_params = VALUE #( ( n = `app_start` v = `-ns-zcl_my_app` ) ) ) ).
+
+    CLEAR temp3.
+
+    CLEAR temp9.
+
+    temp10-n = `app_start`.
+    temp10-v = `-ns-zcl_my_app`.
+    INSERT temp10 INTO TABLE temp9.
+    temp3-t_params = temp9.
+    z2ui5_cl_ui5_user_exit=>init_context( temp3 ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
     " a POST carries no app_start - the context says so instead of guessing
-    z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
+
+    CLEAR temp4.
+    z2ui5_cl_ui5_user_exit=>init_context( temp4 ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
   ENDMETHOD.

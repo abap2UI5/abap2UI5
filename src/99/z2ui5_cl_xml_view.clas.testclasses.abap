@@ -66,13 +66,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_popup TYPE REF TO z2ui5_cl_xml_view.
     DATA lv_xml TYPE string.
     DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
     lo_popup = z2ui5_cl_xml_view=>factory_popup( ).
 
     lv_xml = lo_popup->dialog( `Test` )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
 
-    temp1 = xsdbool( lv_xml CS `Dialog` ).
+
+    temp2 = boolc( lv_xml CS `Dialog` ).
+    temp1 = temp2.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
   ENDMETHOD.
@@ -83,19 +86,28 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp2 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
     DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->shell(
       )->page( `My Page`
       )->stringify( ).
 
 
-    temp2 = xsdbool( lv_xml CS `Shell` ).
+
+    temp5 = boolc( lv_xml CS `Shell` ).
+    temp2 = temp5.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    temp3 = xsdbool( lv_xml CS `Page` ).
+
+    temp6 = boolc( lv_xml CS `Page` ).
+    temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
-    temp4 = xsdbool( lv_xml CS `My Page` ).
+
+    temp7 = boolc( lv_xml CS `My Page` ).
+    temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
@@ -104,13 +116,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp5 TYPE xsdboolean.
+    DATA temp8 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->simple_form( editable = abap_true
       )->stringify( ).
 
 
-    temp5 = xsdbool( lv_xml CS `SimpleForm` ).
+
+    temp8 = boolc( lv_xml CS `SimpleForm` ).
+    temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
@@ -120,6 +135,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp6 TYPE xsdboolean.
     DATA temp7 TYPE xsdboolean.
+    DATA temp9 TYPE xsdboolean.
+    DATA temp10 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->button( text  = `Click Me`
@@ -127,10 +144,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp6 = xsdbool( lv_xml CS `Button` ).
+
+    temp9 = boolc( lv_xml CS `Button` ).
+    temp6 = temp9.
     cl_abap_unit_assert=>assert_true( temp6 ).
 
-    temp7 = xsdbool( lv_xml CS `Click Me` ).
+
+    temp10 = boolc( lv_xml CS `Click Me` ).
+    temp7 = temp10.
     cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
@@ -140,6 +161,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp8 TYPE xsdboolean.
     DATA temp9 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
+    DATA temp12 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->input( value       = `{/NAME}`
@@ -147,10 +170,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp8 = xsdbool( lv_xml CS `Input` ).
+
+    temp11 = boolc( lv_xml CS `Input` ).
+    temp8 = temp11.
     cl_abap_unit_assert=>assert_true( temp8 ).
 
-    temp9 = xsdbool( lv_xml CS `Enter name` ).
+
+    temp12 = boolc( lv_xml CS `Enter name` ).
+    temp9 = temp12.
     cl_abap_unit_assert=>assert_true( temp9 ).
 
   ENDMETHOD.
@@ -160,16 +187,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp10 TYPE xsdboolean.
     DATA temp11 TYPE xsdboolean.
+    DATA temp13 TYPE xsdboolean.
+    DATA temp14 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->label( `My Label`
       )->stringify( ).
 
 
-    temp10 = xsdbool( lv_xml CS `Label` ).
+
+    temp13 = boolc( lv_xml CS `Label` ).
+    temp10 = temp13.
     cl_abap_unit_assert=>assert_true( temp10 ).
 
-    temp11 = xsdbool( lv_xml CS `My Label` ).
+
+    temp14 = boolc( lv_xml CS `My Label` ).
+    temp11 = temp14.
     cl_abap_unit_assert=>assert_true( temp11 ).
 
   ENDMETHOD.
@@ -179,16 +212,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp12 TYPE xsdboolean.
     DATA temp13 TYPE xsdboolean.
+    DATA temp15 TYPE xsdboolean.
+    DATA temp16 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->text( `Hello World`
       )->stringify( ).
 
 
-    temp12 = xsdbool( lv_xml CS `Text` ).
+
+    temp15 = boolc( lv_xml CS `Text` ).
+    temp12 = temp15.
     cl_abap_unit_assert=>assert_true( temp12 ).
 
-    temp13 = xsdbool( lv_xml CS `Hello World` ).
+
+    temp16 = boolc( lv_xml CS `Hello World` ).
+    temp13 = temp16.
     cl_abap_unit_assert=>assert_true( temp13 ).
 
   ENDMETHOD.
@@ -198,6 +237,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp14 TYPE xsdboolean.
     DATA temp15 TYPE xsdboolean.
+    DATA temp17 TYPE xsdboolean.
+    DATA temp18 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->vbox(
@@ -206,10 +247,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp14 = xsdbool( lv_xml CS `VBox` ).
+
+    temp17 = boolc( lv_xml CS `VBox` ).
+    temp14 = temp17.
     cl_abap_unit_assert=>assert_true( temp14 ).
 
-    temp15 = xsdbool( lv_xml CS `HBox` ).
+
+    temp18 = boolc( lv_xml CS `HBox` ).
+    temp15 = temp18.
     cl_abap_unit_assert=>assert_true( temp15 ).
 
   ENDMETHOD.
@@ -219,16 +264,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp16 TYPE xsdboolean.
     DATA temp17 TYPE xsdboolean.
+    DATA temp19 TYPE xsdboolean.
+    DATA temp20 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->table( headertext = `My Table`
       )->stringify( ).
 
 
-    temp16 = xsdbool( lv_xml CS `Table` ).
+
+    temp19 = boolc( lv_xml CS `Table` ).
+    temp16 = temp19.
     cl_abap_unit_assert=>assert_true( temp16 ).
 
-    temp17 = xsdbool( lv_xml CS `My Table` ).
+
+    temp20 = boolc( lv_xml CS `My Table` ).
+    temp17 = temp20.
     cl_abap_unit_assert=>assert_true( temp17 ).
 
   ENDMETHOD.
@@ -238,16 +289,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp18 TYPE xsdboolean.
     DATA temp19 TYPE xsdboolean.
+    DATA temp21 TYPE xsdboolean.
+    DATA temp22 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory_popup(
       )->dialog( title = `Confirm`
                  icon  = `sap-icon://hint`
       )->stringify( ).
 
 
-    temp18 = xsdbool( lv_xml CS `Dialog` ).
+
+    temp21 = boolc( lv_xml CS `Dialog` ).
+    temp18 = temp21.
     cl_abap_unit_assert=>assert_true( temp18 ).
 
-    temp19 = xsdbool( lv_xml CS `Confirm` ).
+
+    temp22 = boolc( lv_xml CS `Confirm` ).
+    temp19 = temp22.
     cl_abap_unit_assert=>assert_true( temp19 ).
 
   ENDMETHOD.
@@ -281,6 +338,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp20 TYPE xsdboolean.
     DATA temp21 TYPE xsdboolean.
     DATA temp22 TYPE xsdboolean.
+    DATA temp23 TYPE xsdboolean.
+    DATA temp24 TYPE xsdboolean.
+    DATA temp25 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->simple_form(
@@ -290,13 +350,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp20 = xsdbool( lv_xml CS `content` ).
+
+    temp23 = boolc( lv_xml CS `content` ).
+    temp20 = temp23.
     cl_abap_unit_assert=>assert_true( temp20 ).
 
-    temp21 = xsdbool( lv_xml CS `Label` ).
+
+    temp24 = boolc( lv_xml CS `Label` ).
+    temp21 = temp24.
     cl_abap_unit_assert=>assert_true( temp21 ).
 
-    temp22 = xsdbool( lv_xml CS `Input` ).
+
+    temp25 = boolc( lv_xml CS `Input` ).
+    temp22 = temp25.
     cl_abap_unit_assert=>assert_true( temp22 ).
 
   ENDMETHOD.
@@ -307,6 +373,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp23 TYPE xsdboolean.
     DATA temp24 TYPE xsdboolean.
     DATA temp25 TYPE xsdboolean.
+    DATA temp26 TYPE xsdboolean.
+    DATA temp27 TYPE xsdboolean.
+    DATA temp28 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->table(
@@ -320,13 +389,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp23 = xsdbool( lv_xml CS `columns` ).
+
+    temp26 = boolc( lv_xml CS `columns` ).
+    temp23 = temp26.
     cl_abap_unit_assert=>assert_true( temp23 ).
 
-    temp24 = xsdbool( lv_xml CS `Column` ).
+
+    temp27 = boolc( lv_xml CS `Column` ).
+    temp24 = temp27.
     cl_abap_unit_assert=>assert_true( temp24 ).
 
-    temp25 = xsdbool( lv_xml CS `ColumnListItem` ).
+
+    temp28 = boolc( lv_xml CS `ColumnListItem` ).
+    temp25 = temp28.
     cl_abap_unit_assert=>assert_true( temp25 ).
 
   ENDMETHOD.
@@ -336,16 +411,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp26 TYPE xsdboolean.
     DATA temp27 TYPE xsdboolean.
+    DATA temp29 TYPE xsdboolean.
+    DATA temp30 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->message_page( text        = `Page not found`
                        description = `Check the URL`
       )->stringify( ).
 
 
-    temp26 = xsdbool( lv_xml CS `MessagePage` ).
+
+    temp29 = boolc( lv_xml CS `MessagePage` ).
+    temp26 = temp29.
     cl_abap_unit_assert=>assert_true( temp26 ).
 
-    temp27 = xsdbool( lv_xml CS `Page not found` ).
+
+    temp30 = boolc( lv_xml CS `Page not found` ).
+    temp27 = temp30.
     cl_abap_unit_assert=>assert_true( temp27 ).
 
   ENDMETHOD.
@@ -356,6 +437,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp28 TYPE xsdboolean.
     DATA temp29 TYPE xsdboolean.
     DATA temp30 TYPE xsdboolean.
+    DATA temp31 TYPE xsdboolean.
+    DATA temp32 TYPE xsdboolean.
+    DATA temp33 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->icon_tab_bar(
@@ -366,13 +450,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp28 = xsdbool( lv_xml CS `IconTabBar` ).
+
+    temp31 = boolc( lv_xml CS `IconTabBar` ).
+    temp28 = temp31.
     cl_abap_unit_assert=>assert_true( temp28 ).
 
-    temp29 = xsdbool( lv_xml CS `IconTabFilter` ).
+
+    temp32 = boolc( lv_xml CS `IconTabFilter` ).
+    temp29 = temp32.
     cl_abap_unit_assert=>assert_true( temp29 ).
 
-    temp30 = xsdbool( lv_xml CS `Tab1` ).
+
+    temp33 = boolc( lv_xml CS `Tab1` ).
+    temp30 = temp33.
     cl_abap_unit_assert=>assert_true( temp30 ).
 
   ENDMETHOD.
@@ -382,6 +472,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp31 TYPE xsdboolean.
     DATA temp32 TYPE xsdboolean.
+    DATA temp34 TYPE xsdboolean.
+    DATA temp35 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->select( selectedkey = `{/SELECTED}`
@@ -389,10 +481,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp31 = xsdbool( lv_xml CS `Select` ).
+
+    temp34 = boolc( lv_xml CS `Select` ).
+    temp31 = temp34.
     cl_abap_unit_assert=>assert_true( temp31 ).
 
-    temp32 = xsdbool( lv_xml CS `{/SELECTED}` ).
+
+    temp35 = boolc( lv_xml CS `{/SELECTED}` ).
+    temp32 = temp35.
     cl_abap_unit_assert=>assert_true( temp32 ).
 
   ENDMETHOD.
@@ -402,6 +498,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp33 TYPE xsdboolean.
     DATA temp34 TYPE xsdboolean.
+    DATA temp36 TYPE xsdboolean.
+    DATA temp37 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->combobox( selectedkey = `{/KEY}`
@@ -409,10 +507,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp33 = xsdbool( lv_xml CS `ComboBox` ).
+
+    temp36 = boolc( lv_xml CS `ComboBox` ).
+    temp33 = temp36.
     cl_abap_unit_assert=>assert_true( temp33 ).
 
-    temp34 = xsdbool( lv_xml CS `Choose` ).
+
+    temp37 = boolc( lv_xml CS `Choose` ).
+    temp34 = temp37.
     cl_abap_unit_assert=>assert_true( temp34 ).
 
   ENDMETHOD.
@@ -422,6 +524,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp35 TYPE xsdboolean.
     DATA temp36 TYPE xsdboolean.
+    DATA temp38 TYPE xsdboolean.
+    DATA temp39 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->checkbox( text     = `Accept`
@@ -429,10 +533,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp35 = xsdbool( lv_xml CS `CheckBox` ).
+
+    temp38 = boolc( lv_xml CS `CheckBox` ).
+    temp35 = temp38.
     cl_abap_unit_assert=>assert_true( temp35 ).
 
-    temp36 = xsdbool( lv_xml CS `Accept` ).
+
+    temp39 = boolc( lv_xml CS `Accept` ).
+    temp36 = temp39.
     cl_abap_unit_assert=>assert_true( temp36 ).
 
   ENDMETHOD.
@@ -442,6 +550,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp37 TYPE xsdboolean.
     DATA temp38 TYPE xsdboolean.
+    DATA temp40 TYPE xsdboolean.
+    DATA temp41 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->date_picker( value       = `{/DATE}`
@@ -449,10 +559,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp37 = xsdbool( lv_xml CS `DatePicker` ).
+
+    temp40 = boolc( lv_xml CS `DatePicker` ).
+    temp37 = temp40.
     cl_abap_unit_assert=>assert_true( temp37 ).
 
-    temp38 = xsdbool( lv_xml CS `Pick date` ).
+
+    temp41 = boolc( lv_xml CS `Pick date` ).
+    temp38 = temp41.
     cl_abap_unit_assert=>assert_true( temp38 ).
 
   ENDMETHOD.
@@ -462,6 +576,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp39 TYPE xsdboolean.
     DATA temp40 TYPE xsdboolean.
+    DATA temp42 TYPE xsdboolean.
+    DATA temp43 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->text_area( value = `{/NOTES}`
@@ -469,10 +585,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp39 = xsdbool( lv_xml CS `TextArea` ).
+
+    temp42 = boolc( lv_xml CS `TextArea` ).
+    temp39 = temp42.
     cl_abap_unit_assert=>assert_true( temp39 ).
 
-    temp40 = xsdbool( lv_xml CS `{/NOTES}` ).
+
+    temp43 = boolc( lv_xml CS `{/NOTES}` ).
+    temp40 = temp43.
     cl_abap_unit_assert=>assert_true( temp40 ).
 
   ENDMETHOD.
@@ -482,6 +602,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp41 TYPE xsdboolean.
     DATA temp42 TYPE xsdboolean.
+    DATA temp44 TYPE xsdboolean.
+    DATA temp45 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->link( text = `Click here`
@@ -489,10 +611,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp41 = xsdbool( lv_xml CS `Link` ).
+
+    temp44 = boolc( lv_xml CS `Link` ).
+    temp41 = temp44.
     cl_abap_unit_assert=>assert_true( temp41 ).
 
-    temp42 = xsdbool( lv_xml CS `Click here` ).
+
+    temp45 = boolc( lv_xml CS `Click here` ).
+    temp42 = temp45.
     cl_abap_unit_assert=>assert_true( temp42 ).
 
   ENDMETHOD.
@@ -502,16 +628,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp43 TYPE xsdboolean.
     DATA temp44 TYPE xsdboolean.
+    DATA temp46 TYPE xsdboolean.
+    DATA temp47 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->title( `My Title`
       )->stringify( ).
 
 
-    temp43 = xsdbool( lv_xml CS `Title` ).
+
+    temp46 = boolc( lv_xml CS `Title` ).
+    temp43 = temp46.
     cl_abap_unit_assert=>assert_true( temp43 ).
 
-    temp44 = xsdbool( lv_xml CS `My Title` ).
+
+    temp47 = boolc( lv_xml CS `My Title` ).
+    temp44 = temp47.
     cl_abap_unit_assert=>assert_true( temp44 ).
 
   ENDMETHOD.
@@ -521,6 +653,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp45 TYPE xsdboolean.
     DATA temp46 TYPE xsdboolean.
+    DATA temp48 TYPE xsdboolean.
+    DATA temp49 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->overflow_toolbar(
@@ -529,10 +663,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp45 = xsdbool( lv_xml CS `OverflowToolbar` ).
+
+    temp48 = boolc( lv_xml CS `OverflowToolbar` ).
+    temp45 = temp48.
     cl_abap_unit_assert=>assert_true( temp45 ).
 
-    temp46 = xsdbool( lv_xml CS `Button` ).
+
+    temp49 = boolc( lv_xml CS `Button` ).
+    temp46 = temp49.
     cl_abap_unit_assert=>assert_true( temp46 ).
 
   ENDMETHOD.
@@ -541,13 +679,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp47 TYPE xsdboolean.
+    DATA temp50 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->toolbar_spacer(
       )->stringify( ).
 
 
-    temp47 = xsdbool( lv_xml CS `ToolbarSpacer` ).
+
+    temp50 = boolc( lv_xml CS `ToolbarSpacer` ).
+    temp47 = temp50.
     cl_abap_unit_assert=>assert_true( temp47 ).
 
   ENDMETHOD.
@@ -556,6 +697,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp48 TYPE xsdboolean.
+    DATA temp51 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->scroll_container( height   = `100%`
@@ -563,7 +705,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp48 = xsdbool( lv_xml CS `ScrollContainer` ).
+
+    temp51 = boolc( lv_xml CS `ScrollContainer` ).
+    temp48 = temp51.
     cl_abap_unit_assert=>assert_true( temp48 ).
 
   ENDMETHOD.
@@ -573,6 +717,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp49 TYPE xsdboolean.
     DATA temp50 TYPE xsdboolean.
+    DATA temp52 TYPE xsdboolean.
+    DATA temp53 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->list( headertext = `Items`
@@ -582,10 +728,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp49 = xsdbool( lv_xml CS `List` ).
+
+    temp52 = boolc( lv_xml CS `List` ).
+    temp49 = temp52.
     cl_abap_unit_assert=>assert_true( temp49 ).
 
-    temp50 = xsdbool( lv_xml CS `StandardListItem` ).
+
+    temp53 = boolc( lv_xml CS `StandardListItem` ).
+    temp50 = temp53.
     cl_abap_unit_assert=>assert_true( temp50 ).
 
   ENDMETHOD.
@@ -594,6 +744,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp51 TYPE xsdboolean.
+    DATA temp54 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->switch( state = `{/ACTIVE}`
@@ -601,7 +752,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp51 = xsdbool( lv_xml CS `Switch` ).
+
+    temp54 = boolc( lv_xml CS `Switch` ).
+    temp51 = temp54.
     cl_abap_unit_assert=>assert_true( temp51 ).
 
   ENDMETHOD.
@@ -611,6 +764,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp52 TYPE xsdboolean.
     DATA temp53 TYPE xsdboolean.
+    DATA temp55 TYPE xsdboolean.
+    DATA temp56 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->radio_button( text     = `Option A`
@@ -618,10 +773,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp52 = xsdbool( lv_xml CS `RadioButton` ).
+
+    temp55 = boolc( lv_xml CS `RadioButton` ).
+    temp52 = temp55.
     cl_abap_unit_assert=>assert_true( temp52 ).
 
-    temp53 = xsdbool( lv_xml CS `Option A` ).
+
+    temp56 = boolc( lv_xml CS `Option A` ).
+    temp53 = temp56.
     cl_abap_unit_assert=>assert_true( temp53 ).
 
   ENDMETHOD.
@@ -630,6 +789,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp54 TYPE xsdboolean.
+    DATA temp57 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->progress_indicator( percentvalue = `75`
@@ -638,7 +798,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp54 = xsdbool( lv_xml CS `ProgressIndicator` ).
+
+    temp57 = boolc( lv_xml CS `ProgressIndicator` ).
+    temp54 = temp57.
     cl_abap_unit_assert=>assert_true( temp54 ).
 
   ENDMETHOD.
@@ -647,6 +809,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp55 TYPE xsdboolean.
+    DATA temp58 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->slider( value = `{/SLIDER_VAL}`
@@ -655,7 +818,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp55 = xsdbool( lv_xml CS `Slider` ).
+
+    temp58 = boolc( lv_xml CS `Slider` ).
+    temp55 = temp58.
     cl_abap_unit_assert=>assert_true( temp55 ).
 
   ENDMETHOD.
@@ -668,6 +833,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp58 TYPE xsdboolean.
     DATA temp59 TYPE xsdboolean.
     DATA temp60 TYPE xsdboolean.
+    DATA temp61 TYPE xsdboolean.
+    DATA temp62 TYPE xsdboolean.
+    DATA temp63 TYPE xsdboolean.
+    DATA temp64 TYPE xsdboolean.
+    DATA temp65 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->shell(
       )->page( `Deep`
@@ -678,19 +848,29 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp56 = xsdbool( lv_xml CS `Shell` ).
+
+    temp61 = boolc( lv_xml CS `Shell` ).
+    temp56 = temp61.
     cl_abap_unit_assert=>assert_true( temp56 ).
 
-    temp57 = xsdbool( lv_xml CS `Page` ).
+
+    temp62 = boolc( lv_xml CS `Page` ).
+    temp57 = temp62.
     cl_abap_unit_assert=>assert_true( temp57 ).
 
-    temp58 = xsdbool( lv_xml CS `VBox` ).
+
+    temp63 = boolc( lv_xml CS `VBox` ).
+    temp58 = temp63.
     cl_abap_unit_assert=>assert_true( temp58 ).
 
-    temp59 = xsdbool( lv_xml CS `HBox` ).
+
+    temp64 = boolc( lv_xml CS `HBox` ).
+    temp59 = temp64.
     cl_abap_unit_assert=>assert_true( temp59 ).
 
-    temp60 = xsdbool( lv_xml CS `Level4` ).
+
+    temp65 = boolc( lv_xml CS `Level4` ).
+    temp60 = temp65.
     cl_abap_unit_assert=>assert_true( temp60 ).
 
   ENDMETHOD.
@@ -707,6 +887,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp61 TYPE xsdboolean.
     DATA temp62 TYPE xsdboolean.
     DATA temp63 TYPE xsdboolean.
+    DATA temp66 TYPE xsdboolean.
+    DATA temp67 TYPE xsdboolean.
+    DATA temp68 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( ).
 
     lo_page = lo_view->page( `Test` ).
@@ -724,13 +907,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lv_xml = lo_back->button( text = `Added to page` )->stringify( ).
 
 
-    temp61 = xsdbool( lv_xml CS `VBox` ).
+
+    temp66 = boolc( lv_xml CS `VBox` ).
+    temp61 = temp66.
     cl_abap_unit_assert=>assert_true( temp61 ).
 
-    temp62 = xsdbool( lv_xml CS `HBox` ).
+
+    temp67 = boolc( lv_xml CS `HBox` ).
+    temp62 = temp67.
     cl_abap_unit_assert=>assert_true( temp62 ).
 
-    temp63 = xsdbool( lv_xml CS `Added to page` ).
+
+    temp68 = boolc( lv_xml CS `Added to page` ).
+    temp63 = temp68.
     cl_abap_unit_assert=>assert_true( temp63 ).
 
   ENDMETHOD.
@@ -739,13 +928,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA lv_xml TYPE string.
     DATA temp64 TYPE xsdboolean.
+    DATA temp69 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->shell(
       )->page( `NS Test`
       )->stringify( ).
 
 
-    temp64 = xsdbool( lv_xml CS `xmlns` ).
+
+    temp69 = boolc( lv_xml CS `xmlns` ).
+    temp64 = temp69.
     cl_abap_unit_assert=>assert_true( temp64 ).
 
   ENDMETHOD.
@@ -756,6 +948,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp65 TYPE xsdboolean.
     DATA temp66 TYPE xsdboolean.
     DATA temp67 TYPE xsdboolean.
+    DATA temp70 TYPE xsdboolean.
+    DATA temp71 TYPE xsdboolean.
+    DATA temp72 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->button( text    = `Save`
@@ -766,13 +961,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp65 = xsdbool( lv_xml CS `Save` ).
+
+    temp70 = boolc( lv_xml CS `Save` ).
+    temp65 = temp70.
     cl_abap_unit_assert=>assert_true( temp65 ).
 
-    temp66 = xsdbool( lv_xml CS `sap-icon://save` ).
+
+    temp71 = boolc( lv_xml CS `sap-icon://save` ).
+    temp66 = temp71.
     cl_abap_unit_assert=>assert_true( temp66 ).
 
-    temp67 = xsdbool( lv_xml CS `Emphasized` ).
+
+    temp72 = boolc( lv_xml CS `Emphasized` ).
+    temp67 = temp72.
     cl_abap_unit_assert=>assert_true( temp67 ).
 
   ENDMETHOD.
@@ -785,6 +986,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp68 TYPE xsdboolean.
     DATA temp69 TYPE xsdboolean.
     DATA temp70 TYPE xsdboolean.
+    DATA temp73 TYPE xsdboolean.
+    DATA temp74 TYPE xsdboolean.
+    DATA temp75 TYPE xsdboolean.
     CLEAR temp1.
 
     temp2-n = `myProp`.
@@ -799,13 +1003,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp68 = xsdbool( lv_xml CS `MyCustomControl` ).
+
+    temp73 = boolc( lv_xml CS `MyCustomControl` ).
+    temp68 = temp73.
     cl_abap_unit_assert=>assert_true( temp68 ).
 
-    temp69 = xsdbool( lv_xml CS `myProp` ).
+
+    temp74 = boolc( lv_xml CS `myProp` ).
+    temp69 = temp74.
     cl_abap_unit_assert=>assert_true( temp69 ).
 
-    temp70 = xsdbool( lv_xml CS `myValue` ).
+
+    temp75 = boolc( lv_xml CS `myValue` ).
+    temp70 = temp75.
     cl_abap_unit_assert=>assert_true( temp70 ).
 
   ENDMETHOD.
@@ -815,6 +1025,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp71 TYPE xsdboolean.
     DATA temp72 TYPE xsdboolean.
+    DATA temp76 TYPE xsdboolean.
+    DATA temp77 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->segmented_button( `{/SEG_KEY}`
@@ -824,10 +1036,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp71 = xsdbool( lv_xml CS `SegmentedButton` ).
+
+    temp76 = boolc( lv_xml CS `SegmentedButton` ).
+    temp71 = temp76.
     cl_abap_unit_assert=>assert_true( temp71 ).
 
-    temp72 = xsdbool( lv_xml CS `SegmentedButtonItem` ).
+
+    temp77 = boolc( lv_xml CS `SegmentedButtonItem` ).
+    temp72 = temp77.
     cl_abap_unit_assert=>assert_true( temp72 ).
 
   ENDMETHOD.
@@ -837,6 +1053,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp73 TYPE xsdboolean.
     DATA temp74 TYPE xsdboolean.
+    DATA temp78 TYPE xsdboolean.
+    DATA temp79 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->object_header( title      = `Order 123`
@@ -845,10 +1063,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp73 = xsdbool( lv_xml CS `ObjectHeader` ).
+
+    temp78 = boolc( lv_xml CS `ObjectHeader` ).
+    temp73 = temp78.
     cl_abap_unit_assert=>assert_true( temp73 ).
 
-    temp74 = xsdbool( lv_xml CS `Order 123` ).
+
+    temp79 = boolc( lv_xml CS `Order 123` ).
+    temp74 = temp79.
     cl_abap_unit_assert=>assert_true( temp74 ).
 
   ENDMETHOD.
@@ -858,27 +1080,50 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     " split_container has to return the new SplitContainer element so the
     " masterPages/detailPages aggregations nest inside it - it previously
     " returned the parent and the aggregations ended up next to it
-    DATA(lo_split) = z2ui5_cl_xml_view=>factory(
+    DATA lo_split TYPE REF TO z2ui5_cl_xml_view.
+    DATA lv_xml TYPE string.
+    DATA lv_off_open TYPE i.
+    DATA lv_off_master TYPE i.
+    DATA lv_off_detail TYPE i.
+    DATA lv_off_close TYPE i.
+    DATA temp80 TYPE xsdboolean.
+    DATA temp81 TYPE xsdboolean.
+    DATA temp82 TYPE xsdboolean.
+    DATA temp83 TYPE xsdboolean.
+    lo_split = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->split_container( mode = `ShowHideMode` ).
     lo_split->master_pages( )->page( `Master` ).
     lo_split->detail_pages( )->page( `Detail` ).
 
-    DATA(lv_xml) = lo_split->stringify( ).
 
-    DATA(lv_off_open)   = find( val = lv_xml
+    lv_xml = lo_split->stringify( ).
+
+
+    lv_off_open   = find( val = lv_xml
                                 sub = `<SplitContainer` ).
-    DATA(lv_off_master) = find( val = lv_xml
+
+    lv_off_master = find( val = lv_xml
                                 sub = `<masterPages` ).
-    DATA(lv_off_detail) = find( val = lv_xml
+
+    lv_off_detail = find( val = lv_xml
                                 sub = `<detailPages` ).
-    DATA(lv_off_close)  = find( val = lv_xml
+
+    lv_off_close  = find( val = lv_xml
                                 sub = `</SplitContainer>` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_open >= 0 ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_master > lv_off_open ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_detail > lv_off_master ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_close > lv_off_detail ) ).
+
+    temp80 = boolc( lv_off_open >= 0 ).
+    cl_abap_unit_assert=>assert_true( temp80 ).
+
+    temp81 = boolc( lv_off_master > lv_off_open ).
+    cl_abap_unit_assert=>assert_true( temp81 ).
+
+    temp82 = boolc( lv_off_detail > lv_off_master ).
+    cl_abap_unit_assert=>assert_true( temp82 ).
+
+    temp83 = boolc( lv_off_close > lv_off_detail ).
+    cl_abap_unit_assert=>assert_true( temp83 ).
 
   ENDMETHOD.
 
@@ -902,49 +1147,77 @@ CLASS ltcl_test_xml_output IMPLEMENTATION.
 
   METHOD test_attribute_escaping.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+    DATA lv_xml TYPE string.
+    DATA temp84 TYPE xsdboolean.
+    DATA temp85 TYPE xsdboolean.
+    DATA temp86 TYPE xsdboolean.
+    lv_xml = z2ui5_cl_xml_view=>factory(
         )->shell(
         )->page( `Escape Test`
         )->button( text = `A & B "quoted" <tag>`
         )->stringify( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&amp;` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&lt;` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&quot;` ) ).
+
+    temp84 = boolc( lv_xml CS `&amp;` ).
+    cl_abap_unit_assert=>assert_true( temp84 ).
+
+    temp85 = boolc( lv_xml CS `&lt;` ).
+    cl_abap_unit_assert=>assert_true( temp85 ).
+
+    temp86 = boolc( lv_xml CS `&quot;` ).
+    cl_abap_unit_assert=>assert_true( temp86 ).
 
   ENDMETHOD.
 
   METHOD test_no_raw_specials.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+    DATA lv_xml TYPE string.
+    DATA temp87 TYPE xsdboolean.
+    DATA temp88 TYPE xsdboolean.
+    lv_xml = z2ui5_cl_xml_view=>factory(
         )->shell(
         )->page( `Escape Test`
         )->button( text = `A & B <tag>`
         )->stringify( ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `<tag>` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `A & B` ) ).
+
+    temp87 = boolc( lv_xml CS `<tag>` ).
+    cl_abap_unit_assert=>assert_false( temp87 ).
+
+    temp88 = boolc( lv_xml CS `A & B` ).
+    cl_abap_unit_assert=>assert_false( temp88 ).
 
   ENDMETHOD.
 
   METHOD test_closing_tags.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+    DATA lv_xml TYPE string.
+    DATA temp89 TYPE xsdboolean.
+    DATA temp90 TYPE xsdboolean.
+    DATA temp91 TYPE xsdboolean.
+    lv_xml = z2ui5_cl_xml_view=>factory(
         )->shell(
         )->page( `Nest Test`
         )->vbox(
         )->button( text = `Click`
         )->stringify( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Page>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Shell>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<Button` ) ).
+
+    temp89 = boolc( lv_xml CS `</Page>` ).
+    cl_abap_unit_assert=>assert_true( temp89 ).
+
+    temp90 = boolc( lv_xml CS `</Shell>` ).
+    cl_abap_unit_assert=>assert_true( temp90 ).
+
+    temp91 = boolc( lv_xml CS `<Button` ).
+    cl_abap_unit_assert=>assert_true( temp91 ).
 
   ENDMETHOD.
 
   METHOD test_stringify_idempotent.
 
-    DATA(lo_view) = z2ui5_cl_xml_view=>factory(
+    DATA lo_view TYPE REF TO z2ui5_cl_xml_view.
+    lo_view = z2ui5_cl_xml_view=>factory(
         )->shell(
         )->page( `Stable Test`
         )->button( text = `Click` ).
@@ -956,15 +1229,22 @@ CLASS ltcl_test_xml_output IMPLEMENTATION.
 
   METHOD test_z2ui5_cc_namespace.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view=>factory_popup(
+    DATA lv_xml TYPE string.
+    DATA temp92 TYPE xsdboolean.
+    DATA temp93 TYPE xsdboolean.
+    lv_xml = z2ui5_cl_xml_view=>factory_popup(
         )->dialog( `NS Test`
         )->content(
         )->_z2ui5(
         )->timer( `MY_EVENT`
         )->stringify( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `z2ui5:Timer` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `z2ui5.cc` ) ).
+
+    temp92 = boolc( lv_xml CS `z2ui5:Timer` ).
+    cl_abap_unit_assert=>assert_true( temp92 ).
+
+    temp93 = boolc( lv_xml CS `z2ui5.cc` ).
+    cl_abap_unit_assert=>assert_true( temp93 ).
 
   ENDMETHOD.
 
