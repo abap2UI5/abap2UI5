@@ -3,7 +3,8 @@
  * npm-publish — publish one packed tarball, with the bootstrap rule.
  *
  * Used by backend-prebuilt.yaml for both packages this repository publishes,
- * @abap2ui5/node and @abap2ui5/frontend, so the rule below exists once.
+ * @abap2ui5/node-runtime and @abap2ui5/embed-control, so the rule below exists
+ * once.
  *
  * Trusted publishing (OIDC) is the mechanism: the job holds `id-token: write`,
  * npm exchanges that token for a publish credential, and `--provenance`

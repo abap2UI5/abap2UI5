@@ -1,21 +1,22 @@
 {
   "_comment": [
-    "The manifest of @abap2ui5/frontend - the abap2UI5 UI5 component (app/webapp)",
-    "as an npm package. tools/pack-frontend.mjs copies it into a STAGING directory",
+    "The manifest of @abap2ui5/embed-control - the abap2UI5 frontend (app/webapp:",
+    "the UI5 component z2ui5 and the control z2ui5.reuse.Container) as an npm package. tools/pack-frontend.mjs copies it into a STAGING directory",
     "outside the checkout, sets the version to the framework's, records the commit",
     "under `abap2ui5`, drops this comment and packs there. The version below is",
     "deliberately a placeholder: `npm run check:version` holds the framework's",
     "version in package.json and z2ui5_if_app=>version - not here."
   ],
-  "name": "@abap2ui5/frontend",
+  "name": "@abap2ui5/embed-control",
   "version": "0.0.0-set-at-pack",
-  "description": "The abap2UI5 frontend: the UI5 component z2ui5 that renders what an abap2UI5 backend sends. A UI5 tooling project of type module, with its Component-preload.js - for a UI5 app that embeds abap2UI5, a static host or a CDN.",
+  "description": "Run abap2UI5 apps inside any UI5 app: the control z2ui5.reuse.Container and the abap2UI5 frontend it wraps (the UI5 component z2ui5, with its Component-preload.js), as a UI5 tooling project of type module.",
   "keywords": [
     "abap2ui5",
     "ui5",
     "openui5",
     "sapui5",
     "ui5-module",
+    "custom-control",
     "abap",
     "fiori"
   ],

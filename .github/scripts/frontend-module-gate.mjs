@@ -68,6 +68,10 @@ const ALLOWED = new Set([
   'sap/ui/VersionInfo',
   'sap/ui/core/BusyIndicator',
   'sap/ui/core/Control',
+  // reuse/Container.js, the host-side control: both on the floor (ComponentContainer
+  // from the start, its `lifecycle` setting since 1.56) and driven in a browser on
+  // 1.71 by the embed example tests
+  'sap/ui/core/ComponentContainer',
   'sap/ui/core/Element',
   'sap/ui/core/Fragment',
   'sap/ui/core/HTML',
@@ -85,6 +89,8 @@ const ALLOWED = new Set([
   'sap/ui/model/json/JSONModel',
   'sap/ui/unified/FileUploader',
   'sap/ui/util/Storage',
+  // reuse/Container.js: @since 1.58
+  'sap/ui/dom/includeStylesheet',
 ]);
 
 function jsFiles(dir, out = []) {

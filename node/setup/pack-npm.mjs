@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * pack-npm — the built framework as the npm package @abap2ui5/node.
+ * pack-npm — the built framework as the npm package @abap2ui5/node-runtime.
  *
  * The SECOND delivery of one transpile, next to pack-backend.mjs's tarball:
  *   - the tarball (backend-<version>.tar.gz) is resolved by NAME from a
@@ -27,24 +27,25 @@
  *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
  *                     Same neighbours as in the checkout, so its relative
  *                     imports need no rewriting - see its header
- *   webapp/           app/webapp - the UI5 component, from the SAME commit as
- *                     the backend: the pairing z2ui5_if_ui5_types=>c_protocol
- *                     can only detect, this package guarantees
  *   downport/         node/downport - the 7.02-downported ABAP the transpile
  *                     read, so a host can transpile ITS OWN app classes with
  *                     the framework as a library (README, "Your own apps")
+ *
+ * No webapp/: the UI5 component is embedded in the page the framework serves
+ * on GET (src/01/03, transpiled into output/ like everything else), so a Node
+ * host needs no frontend files. @abap2ui5/embed-control is app/webapp as files,
+ * for the hosts that do (tools/pack-frontend.mjs).
  *
  * Assembled in a STAGING directory outside the checkout: the manifest is
  * deliberately not node/package.json (its header says why), and `npm pack`
  * wants the manifest at the root of what it packs.
  *
- *   node node/setup/pack-npm.mjs                  -> npm-package/abap2ui5-node-<version>.tgz
+ *   node node/setup/pack-npm.mjs                  -> npm-package/abap2ui5-node-runtime-<version>.tgz
  *   node node/setup/pack-npm.mjs --out <dir>      -> somewhere else
  *   node node/setup/pack-npm.mjs --check          pack, then PROVE the tarball:
  *     install it into a scratch project the way a host would and drive it -
- *     serve() has to answer GET / with the framework's page, webappDir has to
- *     find the component, and a class transpiled by the scratch project
- *     against downport/ has to register in the running runtime. The listing
+ *     serve() has to answer GET / with the framework's page, the UI5 component
+ *     embedded, and a class transpiled by the scratch project against downport/ has to register in the running runtime. The listing
  *     says what the tarball holds; only an install says whether it works.
  *
  * Refuses (exit 1) when the built trees are not there and names the scripts
@@ -90,7 +91,6 @@ const REQUIRED = [
   { path: "node/output/init.mjs", by: "npm run auto_transpile" },
   { path: "node/output/cl_express_icf_shim.clas.mjs", by: "npm run auto_transpile" },
   { path: "node/output/zcl_sicf.clas.mjs", by: "npm run auto_transpile" },
-  { path: "app/webapp/manifest.json", by: "the checkout (app/webapp is committed)" },
   { path: "node/setup/npm.README.md", by: "the checkout (the package README is committed)" },
 ];
 const missing = REQUIRED.filter((r) => !fs.existsSync(path.join(ROOT, r.path)));
@@ -139,7 +139,6 @@ const COPIES = [
   ["node/output", "output"],
   ["node/setup/setup.mjs", "setup/setup.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
-  ["app/webapp", "webapp"],
   ["node/downport", "downport"],
   ["node/setup/npm.README.md", "README.md"],
   ["LICENSE", "LICENSE"],
@@ -170,11 +169,10 @@ try {
     "package.json", "README.md", "LICENSE",
     "srv/host.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
-    "webapp/manifest.json", "webapp/Component.js",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
   const problems = MUST.filter((f) => !files.has(f)).map((f) => `${f} is not in the tarball`);
-  const stray = [...files].filter((f) => f.split("/").includes(".git") || f.startsWith("node_modules/"));
+  const stray = [...files].filter((f) => f.split("/").includes(".git") || f.startsWith("node_modules/") || f.startsWith("webapp/"));
   if (stray.length) problems.push(`${stray.length} stray entr${stray.length === 1 ? "y" : "ies"} (first: ${stray[0]})`);
   if (problems.length) {
     fs.rmSync(tarball, { force: true });
@@ -198,13 +196,13 @@ if (!check) process.exit(0);
 
 // --- prove it ---------------------------------------------------------------
 /* A scratch project with the tarball installed, driven the way a host drives
- * it. Three claims the README makes, each checked from the INSTALLED
+ * it. Two claims the README makes, each checked from the INSTALLED
  * package - the working tree has every file whether or not `files` lists it,
  * so nothing short of an install can catch a missing entry:
- *   1. serve() answers GET / with the framework's page (the handler, the
- *      shim, ZCL_SICF and the database hook all came along and boot)
- *   2. webappDir finds the component
- *   3. a class transpiled BY THE HOST against downport/ registers in the
+ *   1. serve() answers GET / with the framework's page and the UI5 component
+ *      embedded in it (the handler, the shim, ZCL_SICF and the database hook
+ *      all came along and boot, and the frontend needs no files of its own)
+ *   2. a class transpiled BY THE HOST against downport/ registers in the
  *      running runtime - the "Your own apps" recipe, executed literally
  */
 console.log("\npack-npm --check: installing the tarball into a scratch project");
@@ -247,7 +245,7 @@ try {
     input_folder: "abap",
     output_folder: "output",
     libs: [
-      { folder: "/node_modules/@abap2ui5/node/downport", files: "/**/*.*" },
+      { folder: "/node_modules/@abap2ui5/node-runtime/downport", files: "/**/*.*" },
       { url: "https://github.com/open-abap/open-abap-core", folder: "/deps/open-abap-core" },
     ],
     write_unit_tests: false,
@@ -256,9 +254,7 @@ try {
   run(WIN ? "npx.cmd" : "npx", ["abap_transpile", "abap_transpile.json"]);
 
   fs.writeFileSync(path.join(scratch, "check.mjs"), `
-import { serve, webappDir } from "@abap2ui5/node";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { serve } from "@abap2ui5/node-runtime";
 const fail = (what) => { console.error("FAIL: " + what); process.exit(1); };
 const ok = (what) => console.log("ok  " + what);
 
@@ -269,12 +265,10 @@ try {
   const body = await res.text();
   if (res.status !== 200) fail("GET / answered " + res.status);
   if (!/z2ui5/.test(body)) fail("GET / is not the abap2UI5 page:\\n" + body.slice(0, 400));
-  ok("serve() answers GET / with the framework's page (" + body.length + " bytes)");
-
-  if (!webappDir) fail("webappDir is null - webapp/ did not come along");
-  const manifest = JSON.parse(readFileSync(join(webappDir, "manifest.json"), "utf8"));
-  if (manifest["sap.app"]?.id !== "z2ui5") fail("webappDir does not hold the z2ui5 component");
-  ok("webappDir holds the z2ui5 component");
+  if (!body.includes('"z2ui5/Component.js"') || !body.includes('"z2ui5/reuse/Container.js"')) {
+    fail("the page does not carry the UI5 component - the frontend is not embedded");
+  }
+  ok("serve() answers GET / with the framework's page, the UI5 component embedded (" + body.length + " bytes)");
 
   await import("./output/zcl_host_app.clas.mjs");
   if (!globalThis.abap?.Classes?.ZCL_HOST_APP) fail("ZCL_HOST_APP did not register in the runtime");

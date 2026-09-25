@@ -42,9 +42,10 @@ changelog.
 
 ## One-time setup — the npm packages
 
-Every release also publishes two npm packages (AGENTS.md, "The transpiled
-framework is a package"): **`@abap2ui5/node`**, the transpiled framework for a
-Node host, and **`@abap2ui5/frontend`**, the UI5 component. `backend-prebuilt.yaml`
+Every release also publishes two npm packages (AGENTS.md, "The npm
+packages"): **`@abap2ui5/node-runtime`**, the transpiled framework for a Node
+host, and **`@abap2ui5/embed-control`**, the UI5 frontend with the control that
+embeds an abap2UI5 app in a UI5 app. `backend-prebuilt.yaml`
 packs both, proves each by installing it once (`--check`), uploads each as a
 workflow artefact and publishes it by **trusted publishing** — OIDC, with
 provenance, no token. npm lets a package be pointed at a workflow only once
@@ -59,14 +60,14 @@ The artefacts of that run ARE the bootstrap — nothing has to be built locally:
 1. Cut the release as below and let `backend-prebuilt.yaml` finish (the
    `frontend` job takes minutes, `attach` about half an hour).
 2. From the run's summary page, download the artefacts
-   `abap2ui5-node-<version>` and `abap2ui5-frontend-<version>` and unzip
+   `abap2ui5-node-runtime-<version>` and `abap2ui5-embed-control-<version>` and unzip
    them — each holds one `.tgz`.
 3. Publish both:
 
    ```sh
    npm login
-   npm publish ./abap2ui5-frontend-<version>.tgz --access public
-   npm publish ./abap2ui5-node-<version>.tgz --access public
+   npm publish ./abap2ui5-embed-control-<version>.tgz --access public
+   npm publish ./abap2ui5-node-runtime-<version>.tgz --access public
    ```
 
    (No `--provenance` here: npm generates an attestation only from a
@@ -161,7 +162,7 @@ tab: same gates, same notes, no tag and no release.
   change over there first. The `-702` release gets no asset: it is the
   downported sources, and the backend is built from the same commit anyway.
 - **The npm packages arrive with it.** The same `backend-prebuilt.yaml` run
-  packs `@abap2ui5/node@<version>` and `@abap2ui5/frontend@<version>`, installs
+  packs `@abap2ui5/node-runtime@<version>` and `@abap2ui5/embed-control@<version>`, installs
   each once before it is uploaded (`--check`), and publishes both by trusted
   publishing — the frontend within minutes, its own job needs no transpile. A
   warning instead of a publish means the one-time setup above has not happened

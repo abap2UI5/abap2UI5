@@ -15,14 +15,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '9638e79a5ec4fb69'.
+    CONSTANTS build_hash TYPE string VALUE 'd1e25307e3ba7e13'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-ljjnml7E+2leisUGkZPgnDY02yQcK0PcCEvOZVyaht8='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-0eJTB+O6fhNPOlkdDT8mmG8RXfkI6IOgLzd8pj61Jrk='.
 
     CLASS-METHODS get
       RETURNING
@@ -113,6 +113,8 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/reuse/Container.css": '{ escape_js_literal( z2ui5_cl_ui5f_reuse_css=>get( ) ) }',| && |\n| &&
+             |      "z2ui5/reuse/Container.js": function()\{{ z2ui5_cl_ui5f_reuse_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n| &&
              |    \});\n| &&
              |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&

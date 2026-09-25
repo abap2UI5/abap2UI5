@@ -1,7 +1,7 @@
 {
   "_comment": [
-    "The manifest of @abap2ui5/node - abap2UI5 transpiled to JavaScript, for a",
-    "Node host. It lives HERE and NOT at node/package.json: a package.json inside",
+    "The manifest of @abap2ui5/node-runtime - abap2UI5 transpiled to JavaScript,",
+    "for a Node host. It lives HERE and NOT at node/package.json: a package.json inside",
     "node/ makes that directory an npm package root, and `npm run <script>` from",
     "there stops walking up to this repository's own scripts. `cd node && npm run",
     "express` then answers `Missing script: express`, which is exactly what",
@@ -13,9 +13,9 @@
     "the package's version is the framework's, and `npm run check:version` holds",
     "that in package.json and z2ui5_if_app=>version - not here."
   ],
-  "name": "@abap2ui5/node",
+  "name": "@abap2ui5/node-runtime",
   "version": "0.0.0-set-at-pack",
-  "description": "abap2UI5 for Node: the framework transpiled to JavaScript by @abaplint/transpiler over open-abap, with an HTTP handler, an express server, the UI5 frontend and the ABAP sources to transpile your own apps against - from one release commit.",
+  "description": "abap2UI5 for Node: the framework transpiled to JavaScript by @abaplint/transpiler over open-abap, with an HTTP handler, an express server and the ABAP sources to transpile your own apps against. It serves the UI5 frontend itself, from the same release commit.",
   "keywords": [
     "abap2ui5",
     "abap",
@@ -47,7 +47,6 @@
     "output",
     "setup/setup.mjs",
     "srv/host.mjs",
-    "webapp",
     "downport"
   ],
   "exports": {
@@ -55,7 +54,6 @@
     "./package.json": "./package.json",
     "./output/*": "./output/*",
     "./setup/*": "./setup/*",
-    "./webapp/*": "./webapp/*",
     "./downport/*": "./downport/*"
   },
   "dependencies": {

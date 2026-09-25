@@ -1,6 +1,7 @@
 /*
  * host.mjs - abap2UI5 in a Node process: the entry point of the npm package
- * @abap2ui5/node, and what node/srv/express.mjs starts the dev server with.
+ * @abap2ui5/node-runtime, and what node/srv/express.mjs starts the dev server
+ * with.
  *
  * A host that runs the framework needs four things, and this module is the
  * one place that knows where they are:
@@ -29,36 +30,23 @@
  * THE PATHS. This file is packed into the package as srv/host.mjs, next to
  * output/ and setup/ - the same neighbours it has here (node/srv next to
  * node/output and node/setup), so `../output/init.mjs` resolves in both
- * places and nothing is rewritten at pack time. The webapp is the one
- * exception: app/webapp here, webapp/ in the package. `webappDir` tries the
- * package's place first and this repository's second, and is null when
- * neither is there (a tarball unpacked without it) rather than a path that
- * does not exist.
+ * places and nothing is rewritten at pack time.
  *
- * The frontend is served by the framework itself: the GET branch of
- * z2ui5_cl_ui5_http_handler answers with the page and the preload it carries
- * as ABAP constants (src/01/03, generated from app/webapp). `webappDir` is
- * for a host that wants the UI5 component as FILES - to serve it statically,
- * to put it behind a CDN, or to hand it to a UI5 tooling build.
+ * THE FRONTEND needs nothing here. The GET branch of
+ * z2ui5_cl_ui5_http_handler answers with the page and the whole UI5 component
+ * embedded in it - every module, view and stylesheet, carried as ABAP
+ * constants (src/01/03, generated from app/webapp) and transpiled with the
+ * backend - so the page and the roundtrips come from the same commit by
+ * construction. A host that wants the component as FILES (a launchpad tile, a
+ * UI5 app embedding it, a CDN) installs @abap2ui5/embed-control, which is
+ * app/webapp as a UI5 module; the package used to carry a second copy of it
+ * that nothing in a Node host read.
  */
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
 
 /** The ICF handler class every request goes to - node/srv/zcl_sicf.clas.abap. */
 export const HANDLER_CLASS = "ZCL_SICF";
-
-/**
- * The directory of the UI5 component (app/webapp of abap2UI5), or null.
- * @type {string | null}
- */
-export const webappDir =
-  ["../webapp/", "../../app/webapp/"]
-    .map((rel) => fileURLToPath(new URL(rel, import.meta.url)))
-    .find((dir) => existsSync(join(dir, "manifest.json"))) ?? null;
 
 let booted;
 

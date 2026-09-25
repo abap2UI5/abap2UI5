@@ -1,5 +1,5 @@
 // The dev server: abap2UI5 on http://localhost:3000, through the same entry
-// point the npm package @abap2ui5/node exports (host.mjs) - so what
+// point the npm package @abap2ui5/node-runtime exports (host.mjs) - so what
 // `npm run express` runs is what a host installs.
 import { serve } from "./host.mjs";
 

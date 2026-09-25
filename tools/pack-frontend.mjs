@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /*
- * pack-frontend — app/webapp as the npm package @abap2ui5/frontend.
+ * pack-frontend — app/webapp as the npm package @abap2ui5/embed-control.
  *
- * The UI5 component z2ui5, for the consumers that do not get it from an ABAP
- * system: a UI5 app that embeds abap2UI5 apps (abap2UI5/embed builds on it), a
- * static host or a CDN. It is the THIRD delivery of app/webapp next to the
- * BSP/cloud branches of abap2UI5/frontend (tools/build-branches.mjs) and the
- * copy inside @abap2ui5/node (node/setup/pack-npm.mjs) - same files, same
- * commit, a different mechanism for a different consumer.
+ * The abap2UI5 frontend for the consumers that do not get it from an ABAP
+ * system: above all a UI5 app that embeds abap2UI5 apps with the control
+ * z2ui5.reuse.Container (app/webapp/reuse/), and a static host or a CDN for
+ * the component alone. It is the second delivery of app/webapp next to the
+ * BSP/cloud branches of abap2UI5/frontend (tools/build-branches.mjs) - same
+ * files, same commit, a different mechanism for a different consumer. The
+ * backend's own page needs neither: it carries the component as ABAP
+ * constants (src/01/03).
  *
  * What goes in, and where it comes from:
  *   package.json   frontend/npm/package.json, the version set to the
@@ -31,12 +33,12 @@
  * longer than 255 characters. Neither limit exists on npm, so the package
  * ships the conventional Component-preload.js that UI5 requests by itself.
  *
- *   node tools/pack-frontend.mjs                 -> npm-package/abap2ui5-frontend-<version>.tgz
+ *   node tools/pack-frontend.mjs                 -> npm-package/abap2ui5-embed-control-<version>.tgz
  *   node tools/pack-frontend.mjs --out <dir>     -> somewhere else
  *   node tools/pack-frontend.mjs --check         pack, then PROVE the tarball:
  *     install it into a scratch UI5 application the way a consumer would and
- *     run `ui5 build --all` there - the component and its preload have to
- *     arrive under dist/resources/z2ui5/. That is the README's claim, and only
+ *     run `ui5 build --all` there - the control, the component and its
+ *     preload have to arrive under dist/resources/z2ui5/. That is the README's claim, and only
  *     an install can check it: the working tree has every file whether or
  *     not `files` lists it.
  */
@@ -210,7 +212,7 @@ try {
   ui5(["build", "--all", "--dest", "dist", "--loglevel", "warn"], scratch);
 
   const out = path.join(scratch, "dist", "resources", "z2ui5");
-  const expect = ["Component.js", "manifest.json", "Component-preload.js", "core/Context.js", "view/App.view.xml"];
+  const expect = ["Component.js", "manifest.json", "Component-preload.js", "core/Context.js", "view/App.view.xml", "reuse/Container.js", "reuse/Container.css"];
   const missing = expect.filter((f) => !fs.existsSync(path.join(out, f)));
   if (missing.length) {
     console.error(`pack-frontend --check: FAIL - ui5 build --all did not deliver ${missing.join(", ")} under dist/resources/z2ui5/`);
@@ -221,7 +223,7 @@ try {
     console.error("pack-frontend --check: FAIL - dist/resources/z2ui5/manifest.json is not the z2ui5 component");
     process.exit(1);
   }
-  console.log("ok  ui5 build --all of a consumer app delivers the component and its preload under resources/z2ui5/");
+  console.log("ok  ui5 build --all of a consumer app delivers the control, the component and its preload under resources/z2ui5/");
   console.log("pack-frontend --check: the tarball installs and builds");
 } finally {
   fs.rmSync(scratch, { recursive: true, force: true });

@@ -1,0 +1,21 @@
+/* z2ui5.reuse.Container - loaded once by Container.js */
+
+.z2ui5ReuseContainer {
+  /* the embedded sap.m.App and its absolutely positioned pages stay inside
+     the area the host gave the control */
+  position: relative;
+  overflow: hidden;
+}
+
+/* sap.m.Shell - the root of many abap2UI5 views, the hello world app's too -
+   limits the app width by a media query on the VIEWPORT: from 1280px on,
+   html.sap-desktop .sapMShellAppWidthLimited .sapMShellCentralBox is 1280px
+   wide and centered with left: 50% and a negative margin. Inside a container
+   narrower than the viewport that pushes the app out to the left. Here the
+   container is the "screen", so the box fills it. The selector has to
+   outweigh sap.m's (0,3,1), hence the doubled Shell class: (0,4,0). */
+.z2ui5ReuseContainer .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox {
+  left: 0;
+  margin-left: 0;
+  width: 100%;
+}
