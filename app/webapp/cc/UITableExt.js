@@ -73,15 +73,26 @@ sap.ui.define(
           // firing, and re-applying, on the eventual render. The callback
           // reads the CURRENT filters/sorters when it runs, so the one
           // pending deferral applies what the latest readBackend recorded.
-          if (this._applyPending) return;
+          // The deferral belongs to the table INSTANCE it was registered
+          // on: a rebuild that replaces the table before it ever rendered
+          // (a closed popup rebuilt, a tab never opened) takes the delegate
+          // with the dead instance, and the flag alone would then latch
+          // forever - no re-apply for the rest of the session.
+          if (this._applyPending && this._pendingTable === oTable) return;
           this._applyPending = true;
+          this._pendingTable = oTable;
           Lib.whenRendered(oTable, this, () => {
+            // a deferral of an older instance that fires after all: the
+            // pending one is the newer table's, and stays
+            if (this._pendingTable !== oTable) return;
             this._applyPending = false;
+            this._pendingTable = null;
             this._applyGuarded(oTable, this.aFilters, "_applyFilters");
             this._applyGuarded(oTable, this.aSorters, "_applySorters");
           });
         } catch (e) {
           this._applyPending = false;
+          this._pendingTable = null;
           Lib.logError("UITableExt.applyBackend failed", e);
         }
       },

@@ -363,69 +363,89 @@ sap.ui.define(
       ctx.state.oApp.insertPage(oView);
     }
 
-    // The MAIN rebuild is the one display that cannot simply run: it is
-    // serialized through ctx.server.viewBuild because XMLView.create claims
-    // the fixed "mainView" id synchronously, so two overlapping builds
-    // (a slow library load plus a parallel/multi-req response) would throw
-    // "duplicate id". Each queued build re-checks that it has not been
-    // superseded before it starts.
-    function displayMain(ctx, xml, mOptions, seq) {
+    // A display under a FIXED id cannot simply run: XMLView.create claims
+    // the "mainView" id synchronously and Fragment.load({ id }) does the
+    // same for the popup and popover ids, so two overlapping builds of the
+    // same slot (a slow library load plus a parallel request - a
+    // Back/Forward restore while a popup is still loading) would throw
+    // "duplicate id", and that throw is the fatal overlay. Such builds are
+    // serialized through ctx.server.viewBuild: one chain for all three
+    // slots, so a MAIN build and a popup build never interleave either
+    // (the MAIN build tears the popup down). Each queued build re-checks
+    // that it has not been superseded before it starts, and the teardown
+    // of the slot happens inside the step, not at action time - an early
+    // destroy empties the slot while an OLDER queued build may still be
+    // awaiting, and that build would then land in a slot the newer one
+    // believes to be its own. A rejected build never blocks the chain.
+    function chainBuild(ctx, seq, build) {
       ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild)
         .catch(() => {})
         .then(() => {
           if (isSuperseded(ctx, seq)) {
             return undefined;
           }
-          // The implicit teardown of the previous MAIN view happens HERE,
-          // in the same synchronous step that claims the fixed "mainView"
-          // id (XMLView.create in displayView) - never earlier at action
-          // time: an early destroy empties the slot while an OLDER queued
-          // build may still be awaiting, which would let that stale build
-          // slip past displayView's "a newer view took the slot" guard and
-          // then crash THIS build on a duplicate id.
-          // the previous MAIN's framework-created OData clients do not die
-          // with the view (a model is no aggregation): without this every
-          // switch-mode rebuild leaked a full OData client - its $metadata
-          // request, caches and queues included. EVERY tracked client goes,
-          // not just the one in the default slot: this used to inspect
-          // getModel() alone, so a NAMED SET_ODATA_MODEL client (see
-          // actions/ViewOps) survived the view that carried it and the next
-          // re-issue found nothing to destroy - the same leak, one model
-          // name over. Only clients the framework created are in the
-          // inventory; dependent slots are already down at this point.
-          ViewSlots.destroy(ctx, "MAIN");
-          // each destroy on its own, as Component.exit does it: a client
-          // whose $metadata request is still pending can throw, and a
-          // throw here rejects the serialised build chain - the fatal
-          // "App Terminated" overlay over a MAIN slot already torn down,
-          // with the remaining clients left alive
-          for (const oClient of ctx.state.odataClients) {
-            try {
-              oClient.destroy();
-            } catch (e) {
-              Lib.logError("displayMain: destroying an OData client failed", e);
-            }
-          }
-          ctx.state.odataClients.clear();
-          // A new MAIN view means a new screen, so the two STANDALONE slots
-          // go with it. They live outside the MAIN control tree and would
-          // otherwise float on top of a page they no longer belong to - a
-          // dialog of the previous screen over the new one. The backend
-          // relies on this and sends no destroy action for them next to a
-          // MAIN display (z2ui5_cl_ui5_frontend=>slots_serialize). A
-          // popup/popover the SAME response opens still opens: slot actions
-          // are serialized MAIN first, and each one is awaited before the
-          // next runs (View1._runSystemActions).
-          ViewSlots.destroy(ctx, "POPUP");
-          ViewSlots.destroy(ctx, "POPOVER");
-          return displayView(
-            ctx,
-            xml,
-            ctx.state.oResponse?.OVIEWMODEL,
-            mOptions,
-          );
+          return build();
         });
       return ctx.server.viewBuild;
+    }
+
+    // The MAIN rebuild, serialized through chainBuild (see there).
+    function displayMain(ctx, xml, mOptions, seq) {
+      return chainBuild(ctx, seq, () => {
+        // The implicit teardown of the previous MAIN view happens HERE,
+        // in the same synchronous step that claims the fixed "mainView"
+        // id (XMLView.create in displayView) - never earlier at action
+        // time: an early destroy empties the slot while an OLDER queued
+        // build may still be awaiting, which would let that stale build
+        // slip past displayView's "a newer view took the slot" guard and
+        // then crash THIS build on a duplicate id.
+        // the previous MAIN's framework-created OData clients do not die
+        // with the view (a model is no aggregation): without this every
+        // switch-mode rebuild leaked a full OData client - its $metadata
+        // request, caches and queues included. EVERY tracked client goes,
+        // not just the one in the default slot: this used to inspect
+        // getModel() alone, so a NAMED SET_ODATA_MODEL client (see
+        // actions/ViewOps) survived the view that carried it and the next
+        // re-issue found nothing to destroy - the same leak, one model
+        // name over. Only clients the framework created are in the
+        // inventory; dependent slots are already down at this point.
+        ViewSlots.destroy(ctx, "MAIN");
+        // each destroy on its own, as Component.exit does it: a client
+        // whose $metadata request is still pending can throw, and a
+        // throw here rejects the serialised build chain - the fatal
+        // "App Terminated" overlay over a MAIN slot already torn down,
+        // with the remaining clients left alive
+        for (const oClient of ctx.state.odataClients) {
+          try {
+            oClient.destroy();
+          } catch (e) {
+            Lib.logError("displayMain: destroying an OData client failed", e);
+          }
+        }
+        ctx.state.odataClients.clear();
+        // A new MAIN view means a new screen, so the two STANDALONE slots
+        // go with it. They live outside the MAIN control tree and would
+        // otherwise float on top of a page they no longer belong to - a
+        // dialog of the previous screen over the new one. The backend
+        // relies on this and sends no destroy action for them next to a
+        // MAIN display (z2ui5_cl_ui5_frontend=>slots_serialize). A
+        // popup/popover the SAME response opens still opens: slot actions
+        // are serialized MAIN first, and each one is awaited before the
+        // next runs (View1._runSystemActions).
+        ViewSlots.destroy(ctx, "POPUP");
+        ViewSlots.destroy(ctx, "POPOVER");
+        return displayView(ctx, xml, ctx.state.oResponse?.OVIEWMODEL, mOptions);
+      });
+    }
+
+    // The two fragment slots, serialized through the same chain: the slot
+    // is replaced inside the step, once every earlier build has settled.
+    function displayStandalone(ctx, slotKey, xml, mOptions, seq) {
+      return chainBuild(ctx, seq, () => {
+        ViewSlots.destroy(ctx, slotKey);
+        if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);
+        return displayPopover(ctx, xml, mOptions.openById, seq);
+      });
     }
 
     // Push the response's model into one slot, if it is open at all.
@@ -545,8 +565,9 @@ sap.ui.define(
       if (isSuperseded(ctx, seq)) return undefined;
       // A display REPLACES the slot, so tear down whatever it holds first -
       // implicitly, the backend sends no destroy action with a display
-      // (destroying an empty slot is a no-op). MAIN tears down inside its
-      // serialized build chain (see displayMain) - its slot may still be
+      // (destroying an empty slot is a no-op). The slots built under a
+      // fixed id - MAIN and the two fragment slots - tear down inside the
+      // serialized build chain (see chainBuild): their slot may still be
       // claimed by an older awaiting build.
       if (slotKey === "MAIN") {
         // remembered per display so a NON-roundtrip re-display of the same
@@ -556,11 +577,10 @@ sap.ui.define(
         ctx.state.lastMainDisplayOptions = options;
         return displayMain(ctx, xml, options, seq);
       }
-      ViewSlots.destroy(ctx, slotKey);
-      if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);
-      if (slotKey === "POPOVER") {
-        return displayPopover(ctx, xml, options.openById, seq);
+      if (slotKey === "POPUP" || slotKey === "POPOVER") {
+        return displayStandalone(ctx, slotKey, xml, options, seq);
       }
+      ViewSlots.destroy(ctx, slotKey);
       return displayNestedView(ctx, xml, slotKey, options, seq);
     }
 

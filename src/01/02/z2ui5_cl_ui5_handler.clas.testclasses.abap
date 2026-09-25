@@ -405,6 +405,8 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_context_info_stale_action FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start_ns FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_encoded_slash FOR TESTING RAISING cx_static_check.
+    METHODS test_app_start_normalize FOR TESTING RAISING cx_static_check.
+    METHODS test_context_info_capped FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part FOR TESTING RAISING cx_static_check.
     METHODS test_app_get_url FOR TESTING RAISING cx_static_check.
@@ -945,6 +947,58 @@ CLASS ltcl_01_request IMPLEMENTATION.
         exp = `ZCL_APP`
         act = lo_handler->request_app_start( iv_search    = `?app_start=zcl_app`
                                              io_comp_data = lo_no_comp_data ) ).
+
+  ENDMETHOD.
+
+  METHOD test_app_start_normalize.
+
+    " the one normalisation of an app class name, shared with the exit
+    " context: trimmed and upper-cased, the two namespace spellings a
+    " request can carry both spelled back to /ns/class
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_handler=>app_start_normalize( ` zcl_my_app ` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_handler=>app_start_normalize( `%2Fns%2Fzcl_my_app` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_handler=>app_start_normalize( `-ns-zcl_my_app` ) ).
+    " a hyphen not in first position is left alone - only the launchpad
+    " prefix is spelled back
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL-X`
+                                        act = z2ui5_cl_ui5_handler=>app_start_normalize( `zcl-x` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_handler=>app_start_normalize( `` ) ).
+
+    " the query path reads the launchpad spelling too now
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_no_comp_data TYPE REF TO z2ui5_if_ajson.
+    lo_handler = NEW #( val = `` ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `/NS/ZCL_APP`
+        act = lo_handler->request_app_start( iv_search    = `?app_start=-ns-zcl_app`
+                                             io_comp_data = lo_no_comp_data ) ).
+
+  ENDMETHOD.
+
+  METHOD test_context_info_capped.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lv_long    TYPE string.
+
+    " the event name and the draft id come off the request like the url,
+    " and are capped like it - a crafted body cannot pad the error page
+    DO 400 TIMES.
+      lv_long = lv_long && `E`.
+    ENDDO.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action = NEW z2ui5_cl_ui5_action( lo_handler ).
+    lo_handler->mo_action->ms_actual-event = lv_long.
+    lo_handler->mo_action->mo_app->ms_draft-id_prev = lv_long.
+    lo_handler->mv_request_parsed = abap_true.
+
+    DATA(lv_info) = lo_handler->request_context_info( ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS lv_long ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS |event { lv_long(300) }...| ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS |draft { lv_long(300) }...| ) ).
 
   ENDMETHOD.
 

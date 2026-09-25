@@ -465,9 +465,9 @@ Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
 hold: `43515c97`, `0d9a7485`, `5b9e16ea` and `44642cbe` are four separate
 sweeps of findings that had to be collected from a system afterwards. What a
-script can decide is now a gate; the rest is below. The full list with the case
-that produced each one also lives in `AGENTS.md`, "Extended-check (SLIN/ATC)
-pitfalls".
+script can decide is now a gate; the rest is below. This section IS the full
+list - `AGENTS.md` ("Extended-check (SLIN/ATC) pitfalls") keeps one paragraph
+and points here, so a new trap is added here and nowhere else.
 
 **Gated:**
 
@@ -485,6 +485,12 @@ pitfalls".
 - **`LOOP AT … WHERE` over a standard table is a sequential read** and wants
   `"#EC CI_SORTSEQ` on the statement. Fifteen were annotated in the three
   sweeps above, and the gate found seven more that had accumulated since.
+  **"Sequential read" is all three spellings**, not just the `LOOP AT …
+  WHERE` the gate started with: `READ TABLE … WITH KEY` (not `WITH TABLE
+  KEY`, which is a primary-key read) and a table expression keyed on a
+  component — `line_exists( tab[ name = … ] )` — are the same finding, and
+  four of them shipped unannotated while the repository's own precedent
+  carried the pragma. The gate reads all three now.
   A LOOP that names a secondary key (`USING KEY … WHERE <key component> =`)
   is a keyed read and wants no pragma; the gate skips it. The one such key in
   the framework is `parent` on `z2ui5_if_ui5_types=>ty_t_attri` (2026-09) -
@@ -521,7 +527,13 @@ pitfalls".
   `z2ui5_if_client=>cs_nav_mode` here, then `cs_status` in
   `abap2UI5/samples-stack` (`7459f39`), then **five findings on samples-stack's
   overview app from a user's system** (2026-08-17) — two blocks before
-  `CONSTANTS:`, three comments between the parameters of one method. That
+  `CONSTANTS:`, three comments between the parameters of one method. Then a
+  fourth: **"directly before" means with nothing in between, a plain `"`
+  comment included** — a note to whoever edits the framework, placed between
+  the block and the `METHODS` it documents, detaches it (bit us on
+  `z2ui5_if_client~check_on_navigated`, 2026-09-16; put such a note ABOVE the
+  block). A plain `"` comment inside a parameter list stays legal, which is
+  why the `"obsolete …` note on `_bind( )`'s `path` has no `!`. That
   third recurrence turned it into a gate: decided here by `check:atc`, in
   samples-stack by its own `npm run check:abapdoc`, both by the same purely
   structural test (what statement follows the block; what the code line above
@@ -689,6 +701,14 @@ pitfalls".
   fix — as a floor, not as the gate for this finding. What would decide this
   one is `redundant-conv-i`'s shape generalized from `i` to any concrete type
   with a concretely-typed operand, and that is not written yet.
+- **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
+  type-compatible with a formal parameter typed `string` — the view builder's
+  `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
+  a SYNTAX_ERROR of the whole class (bit us on `abap2UI5/samples`' app 519,
+  the sample whose subject is translatable texts, 2026-09-16). Read it into a
+  variable and pass that; a plain assignment is a conversion and always
+  allowed, and a symbol inside a string template needs nothing, an embedded
+  expression being a general expression position. Gated by `check:atc`.
 - **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
   every value in a WHERE comparison is escaped, a literal included — bare
   `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes
@@ -807,6 +827,12 @@ break one of those four.
   **Gate:** `npm run check:downport` over `src/` keeps the two positions an
   author writes 7.02-ready themselves, which the downport passes through as
   they stand: a `WITH [TABLE] KEY` operand and an internal-table `WHERE`.
+  **A third position, same cause: the operand of a predicate expression.**
+  `condense( val ) IS INITIAL` answers `Unexpected operator "IS"` on 7.02 —
+  the name is only read as a function where a string expression is allowed,
+  and the compiler falls back to reading it as a method call (bit us in
+  `z2ui5_cl_ui5_handler=>request_parse_body`, 2026-09-16). Same fix, same
+  gate: a variable on the line above, `npm run check:downport`.
 - **An object name over 25 characters breaks the namespace rename.** There is a
   fourth target, and it is easy to forget because nothing in `src/` mentions it:
   `build-rename.yaml` produces the `rename_<name>` branches for a consumer who

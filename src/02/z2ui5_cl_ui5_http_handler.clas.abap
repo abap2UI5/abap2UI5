@@ -447,6 +447,32 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     SPLIT result AT `?` INTO result lv_rest.
     SPLIT result AT `#` INTO result lv_rest.
 
+    " a default port is no port: a browser writes `Origin: https://host`
+    " while the proxy in front of the ICF node forwards `host:443`, and the
+    " two are the same authority - the request was refused as cross-origin
+    " (403) for the port the scheme implies. Both defaults are stripped
+    " whatever the scheme was: the Host side carries none to compare with
+    DATA lv_len  TYPE i.
+    DATA lv_tail TYPE string.
+    lv_len = strlen( result ).
+    IF lv_len > 4.
+      lv_tail = substring( val = result
+                           off = lv_len - 4 ).
+      IF lv_tail = `:443`.
+        result = substring( val = result
+                            len = lv_len - 4 ).
+        RETURN.
+      ENDIF.
+    ENDIF.
+    IF lv_len > 3.
+      lv_tail = substring( val = result
+                           off = lv_len - 3 ).
+      IF lv_tail = `:80`.
+        result = substring( val = result
+                            len = lv_len - 3 ).
+      ENDIF.
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD _attr_escape.

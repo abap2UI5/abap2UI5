@@ -297,6 +297,14 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
         before cutting, there is no declarative equivalent for a *custom*
         transformation (only `omit_initial` / `omit_initial_paths` / `json`).
 
+- [ ] **`get_request( )`** of `z2ui5_cl_ui5_http_handler` — public API with
+      no caller anywhere in this repository (the class comment at the
+      declaration says so): it reads the raw request off the server object
+      for app code that wants it outside a roundtrip. Candidate for the next
+      deliberate API revision if it stays unused.
+      - Blocker: none known in-repo; check the ecosystem (`samples`,
+        `samples-controls`, `samples-stack`) for a caller before cutting.
+
 - [x] `check_sticky` / `check_initialized` of `z2ui5_if_app` removed — the
       state had already moved to `z2ui5_cl_ui5_app_cont`'s `mv_check_sticky` /
       `mv_check_initialized`, and what was left were mirrors an
@@ -338,8 +346,9 @@ breaking change for any downstream app that still references it.
       - **Blocker C: cleared 2026-09-22.** The last consumers anywhere were
         the 17 popup apps in `src/99/02`, frozen code reaching for frozen
         code. They are ported onto `z2ui5_cl_ui5_view_builder` (maintainer
-        decision; the narrow `check:frozen` exemption that allowed it is in
-        `.github/scripts/frozen-paths-gate.mjs` and goes away with it). A
+        decision; the narrow `check:frozen` exemption that allowed it was
+        removed from `.github/scripts/frozen-paths-gate.mjs` on 2026-09-25,
+        with the port complete - `src/99/02` is frozen again). A
         grep for `z2ui5_cl_xml_view` across `src/` now finds the class, its
         own test include, and **one prose comment** in
         `z2ui5_cl_ui5_util_context` — no code. **All three blockers are
@@ -369,12 +378,19 @@ breaking change for any downstream app that still references it.
         [abap-util](https://github.com/abap-util/abap-util), or get nothing.
       - docs still uses them on 3 pages (logon language, lock, spreadsheet).
       - Dropping a **table** (`Z2UI5_T_91`) needs an explicit note — data loss.
-- [ ] **`src/99/02/` — 18 `z2ui5_cl_pop_*` classes (2,326 lines)**
+- [ ] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
       → [popups addon](https://github.com/abap2UI5-addons/popups)
-      - **Blocker:** verify the addon actually covers all 18. `z2ui5_cl_pop_bal`
+      - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
         was already dropped in 1.142.0 without a replacement — do not repeat
-        that silently.
+        that silently. (The eighteenth, `z2ui5_cl_pop_js_loader`, went on
+        2026-09-22 with the `z2ui5` global it existed for — §0 above.)
       - docs uses them on 9 pages; samples in 4 classes.
+      - [x] **Off `z2ui5_cl_xml_view` since 2026-09-22**, all 17 on
+        `z2ui5_cl_ui5_view_builder` (the port that cleared Blocker C above);
+        the `check:frozen` exemption that allowed the port closed 2026-09-25.
+        This does not move the removal itself — the classes still ship and
+        are still frozen — it only means the popups no longer hold the
+        retired builder in place.
 - [ ] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
@@ -409,7 +425,12 @@ controls a public contract, so these break hand-written view XML. Regenerate
 `src/01/03/` with `npm run app2abap` — never edit it by hand.
 
 - [ ] **8 invisible custom controls (~613 lines)** — each already carries an
-      `// OBSOLETE:` header:
+      `// OBSOLETE:` header. Three of them (`Favicon`, `Title`, `LPTitle`)
+      delegate to the action handler that replaced them since 2026-09-25
+      and carry no logic of their own any more; `Timer`, `Focus`, `Scrolling`
+      and `Info` keep theirs, because their behaviour is not the action's
+      (a control that fires an event vs. an action that dispatches one, a
+      caret race guard, a per-item scroll capture, a bound property set):
 
       | File | Replacement |
       |---|---|
@@ -426,8 +447,15 @@ controls a public contract, so these break hand-written view XML. Regenerate
       removed with the `z2ui5` global, see §0.
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
       `destroyNestView2` / `destroyView`** — in `View1.controller.js`.
-      Thin wrappers around `ViewSlots.destroy()`, kept because apps may call
-      them from custom JS.
+      Thin wrappers around `ViewSlots.destroy()`. Custom JS, the caller
+      they were kept for, is gone (`follow_up_action( )` runs no raw
+      JavaScript since 2026-09-22, see §0), and nothing in this repository
+      or in the three sample catalogues names them (checked 2026-09-25).
+      They stay for now because a view names a controller method as data —
+      `press=".destroyPopup"` or `$controller.destroyPopup()` in an app's
+      own view XML rendered by an older backend — and such a caller breaks
+      at runtime, not at build time. Removable once the ecosystem grep stays
+      empty for a release.
 - [ ] **Legacy app-state hash handling in `core/Router.js`** (the note in
       `parse( )`, and the two branches in `sync( )`) — only removable if the pre-routing app-state hash is dropped
       entirely. The two names this entry used to say to check first are

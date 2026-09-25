@@ -31,7 +31,7 @@
       {"object": "Z2UI5_CL_UTIL", "class": "ltcl_time_ops", "method": "diff_seconds", "note": "NodeJS cl_abap_tstmp carries fractional seconds, second-exact diff asserts are off by one"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters", "note": "CL_ABAP_CONV_IN_CE=>uccpi dynamic call not supported in NodeJS runtime"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
-      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_05_draft", "method": "dref_chain_survives", "note": "with @abaplint/runtime 2.13.91 the test no longer stops at CREATE DATA ... TYPE REF TO data (abaplint/transpiler#1852), but open-abap-core cl_abap_typedescr=>describe_by_data_ref then fails on the ref-to-data chain (TypeError reading constructor, describe_by_data) - re-check on the next open-abap-core pin bump"}
+      {"object": "Z2UI5_CL_UI5_SRV_MODEL", "class": "ltcl_05_draft", "method": "dref_chain_survives", "note": "re-verified 2026-09-25 on @abaplint/runtime 2.13.91 with open-abap-core b2d219d: the test no longer stops at CREATE DATA ... TYPE REF TO data (abaplint/transpiler#1852), but open-abap-core cl_abap_typedescr=>describe_by_data_ref still fails on the ref-to-data chain (TypeError reading constructor, describe_by_data) - re-check on the next open-abap-core pin bump; dref_parent_recreate runs on a real system only until then"}
     ]
   }
 }

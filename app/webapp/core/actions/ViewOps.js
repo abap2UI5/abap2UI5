@@ -220,6 +220,12 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
       oElement,
       oController,
       () => {
+        // whenRendered's own owner guard is isDestroyed( ), which cannot
+        // answer for a CONTROLLER (no ManagedObject - see Lib.isControllerAlive):
+        // a focus deferred to the control's next rendering must not move it
+        // once the app that asked for it is gone, the way the retry below
+        // and the anchor wait in ControlCall already ask
+        if (!Lib.isControllerAlive(oController)) return;
         applyFocus();
         const dom = oElement.getDomRef();
         if (dom && dom.contains(document.activeElement)) return;

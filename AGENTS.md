@@ -53,6 +53,8 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
+| [playground](https://github.com/abap2UI5/playground) | The sample catalogue site, <https://abap2ui5.github.io/playground/samples/> — every sample of the three corpora, searchable by control and by UI5 release, most of them one click from running in the browser; `README.md` sends readers there and its `apps.json` index is what an agent fetches. A canary: it builds against a commit SHA of this repository (CONVENTIONS §9) |
+| [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) | The single-class build of the framework. `trigger_local.yaml` pushes `src/` into its `input/` on every push to `main` (deploy key `ACTION_KEY_LOCAL`, the refresh script pinned by hash in `.github/pins/`), and its own workflows fold the sources into one class per target — `z2ui5_cl_abap2ui5_local`, the name a user's SLIN run reports findings against (`abap-check` skill, §3) |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
 
@@ -85,43 +87,27 @@ Browser (UI5 SPA)                          ABAP Backend
 **Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `MODEL` (view model changes as deltas).
 **Response JSON** contains a new draft ID, the app class name, and two action lists under `S_ACTION`: `T_SYSTEM` view-lifecycle calls (which carry any view XML) and `T_CUSTOM` follow-up actions (including messages). `MODEL` — the full JSON view model — travels only when something bound changed.
 
-#### Launchpad Special Case — Request Body Wrapping
+#### Launchpad Special Cases — settled at the code sites
 
-The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` reaches through it via a `/value` path prefix.
+Two things differ inside the SAP Fiori Launchpad, and both are explained where
+they are handled, not here:
 
-When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
-
-`request_parse_body` handles both cases defensively by computing a root prefix once (a keyed `exists` check instead of slicing/copying the whole tree just to unwrap it). Nothing is sliced off the request tree after that: the MODEL container travels with the path of its node (`ty_s_request-model_path`) and the model service reads below that path, and the S_FRONT container is read field by field below its own path — every field one keyed lookup, so a request carrying a mass delta never pays a walk over the delta for the container next to it (a `slice( )` walks every node of the tree with a pattern compare). The one slice left is the launchpad `ComponentData`, taken only when the request carries it:
-```abap
-DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
-                             THEN `/value` ).
-" standalone: lv_root = `/value`   launchpad/gateway: lv_root = `` (empty)
-result-o_model    = lo_ajson.
-result-model_path = lv_root && `/MODEL`.
-DATA(lv_front)    = lv_root && `/S_FRONT`.
-result-s_front-id = lo_ajson->get_string( lv_front && `/ID` ).
-```
-
-The Launchpad context is detected afterwards from the parsed request fields:
-```abap
-result-s_control-check_launchpad = xsdbool(
-    result-s_front-search   CS `scenario=LAUNCHPAD`
-    OR result-s_front-pathname CS `/ui2/flp`
-    OR result-s_front-pathname CS `test/flpSandbox` ).
-```
-
-Both scenarios are covered by unit tests in `z2ui5_cl_ui5_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_no_wrapper`).
-
-#### Launchpad Special Case — The URL Hash
-
-Inside the FLP the shell owns the front of the hash and only the remainder is the **app hash**. Exactly two places know this rule and they mirror each other — **do not re-implement the split anywhere else**, and do not rebuild a URL from `location.href.split("#")[0]` plus an app hash — write the app hash through `Router.navTo()` and let the shell own the rest (the one `split("#")[0]` left, in `core/actions/Launchpad.js`, appends a full SHELL hash the FLP's `hrefForExternal` produced, which is the shell's own product, not an app hash):
-
-| Side | Owner |
-|---|---|
-| Frontend | `app/webapp/core/Router.js` — `splitHash()`; the only module that **writes** the hash or splits it (`core/Server.js` and `core/actions/Launchpad.js` read the raw hash without splitting it) |
-| Backend | `z2ui5_cl_ui5_handler` — `hash_get_app_part` (used by the route parser and the app-state parser) and its complement `hash_get_shell_part` (used by `z2ui5_cl_ui5_client`'s `app_state_get_href` and by the handler's own `app_get_url`); one owner class, both directions of the same split. The one provenance-dependent shape — a bare hash with neither a leading `/` nor a `&/` — is a declared PARAMETER of the split (`check_bare_is_shell`), never a caller-side re-implementation |
-
-Both modules carry the full explanation (hash layout, why the split keys off the leading `/` rather than the first `&/`, what breaks otherwise) in their header comments. Covered by `node/tests/router.spec.js` and the `test_hash_app_part` / `test_route_launchpad` / `test_app_state_hash` unit tests.
+- **The POST body may arrive without the `{ "value": … }` envelope** the
+  frontend always sends (`app/webapp/core/Server.js`) — an FLP shell or a
+  Gateway proxy can strip it. `z2ui5_cl_ui5_handler=>request_parse_body`
+  computes the root prefix once and reads every container below it; the
+  comment there says why nothing is sliced, and `test_parse_body_with_wrapper`
+  / `test_parse_body_no_wrapper` pin both shapes.
+- **The shell owns the front of the URL hash; only the remainder is the app
+  hash.** Exactly two places know the split and mirror each other:
+  `app/webapp/core/Router.js` (`splitHash()`, the only module that writes the
+  hash) and `z2ui5_cl_ui5_handler` (`hash_get_app_part` /
+  `hash_get_shell_part`). Both headers carry the hash layout and the
+  reasoning; `node/tests/router.spec.js` and `test_hash_app_part` /
+  `test_route_launchpad` / `test_app_state_hash` cover it. **Do not
+  re-implement the split anywhere else, and do not rebuild a URL from
+  `location.href.split("#")[0]` plus an app hash** — write the app hash
+  through `Router.navTo()` and let the shell own the rest.
 
 ### Layered Design
 
@@ -145,19 +131,20 @@ src/
 
   **For AI assistants this means: never change the production code under `src/99/` or add consumers on it.** It is out of scope for reviews and audits. The `check_gates` workflow enforces the freeze; the `*.testclasses.abap` files and the abapGit `.clas.xml` sidecars are exempt from it, because the tests keep running in CI and must follow the core internals they assert on. Moving an object **out** of the package is also allowed — abapGit installs the repository, not the folder, so an object that relocates and keeps shipping breaks no downstream install. The gate refuses a deletion only when the object name exists nowhere else under `src/` afterwards **and** the object shipped in the latest release tag — an object added since that release has never reached an installation, so dropping it breaks nothing. Anything edited in place is refused either way.
 
-  **One exemption is open, and it is the only one: the popup apps**
-  (`src/99/02/z2ui5_cl_pop_*.clas.abap`) are being ported off
-  `z2ui5_cl_xml_view` onto `z2ui5_cl_ui5_view_builder` (maintainer decision
-  2026-09-22), so that the retired builder ends with zero consumers anywhere
-  and can go. The freeze is there so an installation that upgrades keeps
-  **compiling**, and this port changes no class name, no method and no
-  signature — only how each class assembles the XML string it already
-  produced, which the popup tests pin with `CS` assertions on the displayed
-  XML. The exemption is a named pathspec in
-  `.github/scripts/frozen-paths-gate.mjs` and goes away with the last ported
-  class. It covers nothing else: not `src/99/01`, not `z2ui5_cl_xml_view`
-  itself, and it is **not** a precedent — any other change under `src/99`
-  still needs its own maintainer decision recorded here.
+  **One exemption was opened and has closed again: the popup apps**
+  (`src/99/02/z2ui5_cl_pop_*.clas.abap`) were ported off `z2ui5_cl_xml_view`
+  onto `z2ui5_cl_ui5_view_builder` (maintainer decision 2026-09-22), so that
+  the retired builder has zero consumers anywhere and can go. The port is
+  complete — none of the 17 classes names the retired builder any more — and
+  the named pathspec that allowed it came out of
+  `.github/scripts/frozen-paths-gate.mjs` on 2026-09-25, so `src/99/02` is
+  frozen again like the rest of the package. It was defensible because the
+  freeze exists so an installation that upgrades keeps **compiling**, and
+  the port changed no class name, no method and no signature — only how each
+  class assembles the XML string it already produced, which the popup tests
+  pin with `CS` assertions on the displayed XML. It covered nothing else and
+  it is **not** a precedent — any other change under `src/99` still needs its
+  own maintainer decision recorded here.
 
   **One deletion is recorded as such a decision: `z2ui5_cl_pop_js_loader`**
   (maintainer decision 2026-09-22). The popup existed to load app JavaScript
@@ -166,8 +153,8 @@ src/
   nothing left to talk to, and it was deleted rather than kept compiling
   against a runtime that no longer answers it. It is a released object, so
   an installation naming it stops compiling — the entry in `changelog.txt`
-  and `docs/removal-plan.md` §0 says so. The deletion rides through the
-  popup pathspec above; it widens nothing else.
+  and `docs/removal-plan.md` §0 says so. The deletion went through the
+  popup pathspec above while it was open; it widened nothing else.
 
 ### Utilities — the context class is the only door
 
@@ -237,73 +224,15 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_ui5_s
 - There is deliberately NO read buffer: a second read after an overwrite sees the new row (`test_buffer` pins it)
 - **Owner binding:** each draft stores its creator's `sy-uname` (column `UNAME`); `read`/`check_exists` only return a draft to that same user, so a leaked or guessed draft id (bookmark URLs carry it) cannot restore another user's serialized state. A mismatch fails closed with the same `NO_DRAFT_ENTRY...` exception as "not found", so a shared bookmark degrades to a fresh app start. Legacy rows written before the column existed carry a blank owner and stay readable during the upgrade transition (they expire within a few hours), so no active session breaks on upgrade.
 
-**The store is swappable (`z2ui5_if_ui5_draft_store`).** The seven methods above
-are an interface, `z2ui5_cl_ui5_srv_draft` is its shipped implementation, and
-every caller goes through `z2ui5_cl_ui5_srv_draft=>get_instance( )`. On a system
-nothing changes: without `set_instance( )` that call answers a fresh
-`NEW z2ui5_cl_ui5_srv_draft( )` per call, which is literally what each call site
-did before, so `Z2UI5_T_01` and all nine of its SQL statements are still what
-runs.
-
-The seam exists for the runtimes that are not an SAP system. `node/srv/express.mjs`
-already serves this framework through the transpiler over open-abap, and
-`node/setup/setup.mjs` only gets away with it by recreating the draft table in
-SQLite. A host with persistence of its own — a CAP service with a CDS entity, a
-Node process with a document store — previously had to fork the class to use it;
-now it implements the interface and calls `set_instance( )` at startup. Tests can
-do the same.
-
-What an implementation must keep is written on the interface, because it was
-never written down anywhere before: a draft belongs to the user that created it,
-and `read_draft( )`, `read_info( )` and `check_exists( )` answer "not found" for
-anybody else **identically**, so a caller cannot tell a foreign draft from a
-missing one. `count_entries( )` is owner-scoped for the same reason;
-`count_entries_total( )` deliberately is not, because it reports the size of the
-store itself.
-
-Note there are no `ALIASES` on the class — `no_aliases` is an error here, and
-none are needed: an interface reference takes the plain method names. A caller
-holding a concrete `z2ui5_cl_ui5_srv_draft` would have to qualify, which is the
-second reason everything goes through `get_instance( )`.
-
-### App state serialization (`z2ui5_if_ui5_serializer`)
-
-The state that goes into the draft is the whole `z2ui5_cl_ui5_app_cont` — the
-app instance, `mt_attri`, the draft ids — turned into a string by
-`all_xml_stringify( )` and rebuilt by `all_xml_parse( )`. Both now delegate to
-`z2ui5_cl_ui5_app_cont=>get_serializer( )`.
-
-The shipped implementation, `z2ui5_cl_ui5_serializer`, is the mechanism
-that has always run here and is unchanged statement for statement:
-`main_attri_db_save_srtti( )` detaches the data references, `CALL TRANSFORMATION
-id` writes the asXML, `main_attri_reattach( )` gives the live instance its
-references back, and the one retry rebuilds the rows from the instance as it is
-now before giving up with `APP_SERIALIZATION_ERROR`. Without `set_serializer( )`
-`get_serializer( )` answers a fresh one per call, so a system behaves
-identically.
-
-Why the seam is here rather than anywhere else: this is the **one** part of the
-framework that is ABAP's type system rather than ABAP code. `CALL TRANSFORMATION
-id` walks type descriptors, and S-RTTI serializes a descriptor so
-`CREATE DATA … TYPE HANDLE` can rebuild it on the other side. Neither has a
-counterpart in a JavaScript runtime — a JS object carries no static type to
-describe — so a host running this framework through the transpiler (which
-`node/srv/express.mjs` already does) cannot reproduce it and has to persist its
-own shape instead. Everything else in the engine transfers; this did not, and
-it was wired straight into the container.
-
-Both ends of the interface are `REF TO object`, not `REF TO
-z2ui5_cl_ui5_app_cont`: an interface here may not reference a class
-(`intf_referencing_clas`, an error) and naming it would close a cycle, since
-the container is what calls the interface. `z2ui5_cl_ui5_serializer`
-narrows once, in `narrow( )`. Note the typed local in its `parse( )` — the
-transformation rebuilds the object from the class named in the asXML and needs
-a concretely typed target, so a `REF TO object` there would give it nothing to
-build into.
-
-What an implementation has to keep is a round trip, not a format:
-`parse( stringify( container ) )` must answer a container the framework can go
-on with. The string in between is the implementation's business.
+**Both the store and the serializer are seams.** `z2ui5_if_ui5_draft_store`
+is reached through `z2ui5_cl_ui5_srv_draft=>get_instance( )`,
+`z2ui5_if_ui5_serializer` through `z2ui5_cl_ui5_app_cont=>get_serializer( )`,
+and on an SAP system nothing changes: without `set_instance( )` /
+`set_serializer( )` the shipped classes run statement for statement as before.
+Who the seams are for (hosts that are not an SAP system), what an
+implementation must keep and why each seam sits where it does is
+**`docs/agents/architecture-seams.md`**; the contracts themselves are on the
+two interfaces.
 
 ### The wire carries its own version (`c_protocol`)
 
@@ -325,65 +254,22 @@ available: the frontend looked for a key the backend no longer wrote, read its
 absence as "nothing to do", and rendered an empty page with no error anywhere.
 A number on the wire turns that into a sentence somebody can read.
 
-### The transpiled framework is a package (`@abap2ui5/runtime`)
+### Two things settled elsewhere
 
-`backend-prebuilt.yaml` packs the transpiled tree **twice**, from one build.
-The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
-first; two steps at the end of the same job are the second, packing
-`node/output`, `node/setup/setup.mjs` (the hook `output/init.mjs` imports by
-the relative path fixed in `node/setup/abap_transpile.json`) and `app/webapp`
-into the npm package **`@abap2ui5/runtime`** —
-`node/setup/runtime.package.json` is its manifest, copied into a staging
-directory outside the checkout at pack time. **It is deliberately not
-`node/package.json`:** a `package.json` inside `node/` makes that directory an
-npm package root, so `npm run <script>` from there stops walking up to this
-repository's scripts — `cd node && npm run express` answers *"Missing script"*,
-which is what `node/playwright.config.js` starts its web server with, and all
-four browser projects fail to boot. The file's own header records it. The version is the framework's, set at pack time; the committed
-`0.0.0-set-at-release` is deliberate. The `.tgz` is uploaded as a workflow
-artefact on every run; `npm publish` happens only when the organisation has an
-`NPM_TOKEN` secret — without one the step warns and the run stays green.
-
-Why two deliveries and not one: the tarball is resolved by NAME from a GitHub
-release and carries `node/deps` and `node/downport`, which is what a tool that
-downloads and builds against it needs (`abap2UI5/mcp-server`). A host that
-merely RUNS the framework — a CAP plugin, a serverless function — is an
-ordinary Node project: it declares dependencies in `package.json` and already
-has `npm i`, and it needs the FRONTEND, which the tarball does not carry. A
-host that pins `@abap2ui5/runtime@X.Y.Z` gets the backend, the frontend and
-`z2ui5_if_ui5_types=>c_protocol` from one commit, which is what the wire
-version above cannot guarantee for a host that assembles them itself.
-
-It rides in that workflow rather than in `release.yaml` because the downport
-and the transpile have already run there; a job of its own would spend another
-half hour producing the same bytes.
-
-What the package promises is only what `output/init.mjs` and the webapp
-promise: it is transpiler output, and the shape of that output — the static
-`ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` — is
-`@abaplint/transpiler`'s, not ours. A host that reaches into it couples to the
-transpiler, and should say so in a test of its own.
-
-### A missing codepage class must not take down the view
-
-`conv_get_string_by_xstring( )` / `conv_get_xstring_by_string( )` try
-`CL_ABAP_CONV_CODEPAGE` and fall back to `CL_ABAP_CONV_IN_CE` / `_OUT_CE`,
-both through dynamic `CALL METHOD` because neither is available on every
-release. Since 2026-09 **the fallback has its own `TRY`**: it used to be the
-body of the first `CATCH`, so when it failed too a raw
-`CX_SY_DYN_CALL_ILLEGAL_CLASS` left a utility method under a name no caller
-handles. Now both failures chain into `UNSUPPORTED_CODEPAGE_API`, a
-`z2ui5_cx_ui5_util_error` like everything else here.
-
-That matters because of who calls it. `z2ui5_cl_ui5_view_builder`'s
-`xml_escape( )` builds its control-character set through this method, lazily,
-on the first escape of the process — so on a release with neither class, or in
-any runtime where a dynamic `CALL METHOD` resolves nothing, **every view render
-died**. The builder now catches `z2ui5_cx_ui5_util_error` and degrades: the set
-stays empty, the `CA` scan matches no control character, and `&`, `<`, `>`,
-`"`, newline, CR and tab are escaped exactly as before. Dropping those 29 exotic
-bytes repairs legacy long texts; it is not a correctness requirement of the
-view, so losing it must not cost the render.
+- **`@abap2ui5/runtime`.** `backend-prebuilt.yaml` packs the transpiled tree
+  twice from one build: the release tarball (`npm run pack:backend`) and the
+  npm package `@abap2ui5/runtime`, whose manifest is
+  `node/setup/runtime.package.json` — **deliberately not `node/package.json`**
+  (a `package.json` inside `node/` makes `npm run` stop there; the file's
+  header says what broke). What each delivery is for and what the package
+  promises is the `@abap2ui5/runtime` section of `docs/agents/ci-workflows.md`.
+- **A missing codepage class must not take down the view.**
+  `conv_get_string_by_xstring( )` chains both dynamic-call failures into
+  `UNSUPPORTED_CODEPAGE_API`, and `z2ui5_cl_ui5_view_builder=>xml_escape( )`
+  catches it and degrades (the control-character set stays empty; `&`, `<`,
+  `>`, `"`, newline, CR and tab escape exactly as before). The reasoning is
+  at both code sites and, with the seams above, in
+  `docs/agents/architecture-seams.md`.
 
 ### Key Design Patterns
 
@@ -560,7 +446,7 @@ ABAP Cloud system it drags in a release contract that outlives the reason it
 was added. A type an app needs is a `TYPES` in an interface; a constant is a
 `CONSTANTS`; a lookup table is an internal table built in ABAP.
 
-Three `TABL` objects remain, each because nothing else can do its job:
+Two `TABL` objects remain, each because nothing else can do its job:
 
 | Object | Why it cannot be ABAP |
 |---|---|
@@ -606,113 +492,11 @@ naming what ABAP could not express.
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
 The sources are also run through the extended program check in real systems,
-which flags things `npm run check` cannot see. The traps a script can
-decide are gated by `npm run check:atc` — a **sequential read** over a standard
-table (wants `"#EC CI_SORTSEQ` on the statement), an empty
-`CATCH` block (wants `##NO_HANDLER`), POSIX regex (below), a misplaced
-ABAP Doc block (below), an ignored `PREFERRED PARAMETER` (below), a
-`SELECT` with no `WHERE` clause (below) and a range-table row without
-`sign`/`option` or with a literal outside their domain (below).
-"Sequential read" is all three spellings, not just the
-`LOOP AT ... WHERE` the gate started with: `READ TABLE ... WITH KEY` (not
-`WITH TABLE KEY`, which is a primary-key read) and a table expression keyed on
-a component — `line_exists( tab[ name = ... ] )` — are the same finding, and
-four of them shipped unannotated while the repository's own precedent carried
-the pragma. The rest need a reader. Known traps — avoid them up
-front, a green abaplint does not prove their absence:
-
-- **`SELECT` without a `WHERE` clause** wants `"#EC CI_NOWHERE` (bit us in
-  `z2ui5_cl_ui5_srv_draft=>count_entries`). Gated by `npm run check:atc` since
-  the prose alone let thirty-six of them ship across `samples` and
-  `samples-stack`, where the same gate now runs (2026-09-16).
-  `count_entries_total` is the shape to copy: a full read on purpose, saying
-  so on the statement.
-- **`CREATE OBJECT ... TYPE (name)` into a generic reference followed by a
-  `CAST`** is flagged as insecure object creation. Declare the typed reference
-  and create into it directly:
-  ```abap
-  DATA li_app TYPE REF TO z2ui5_if_app.
-  CREATE OBJECT li_app TYPE (lv_classname).
-  ```
-- **POSIX regex is deprecated.** `FIND/REPLACE ... REGEX` uses the POSIX
-  standard; the PCRE replacement (`FIND PCRE`) only exists on >= 7.55 and this
-  repo targets v750/7.02. Prefer plain string logic over regex where feasible;
-  when a regex is genuinely needed, add the `##REGEX_POSIX` pragma to the
-  statement (the established convention — the vendored AJSON code does the same).
-- **No redundant conversions.** Do not wrap a value in `CONV string( ... )`
-  (or `CONV #( ... )`) when the source already has the target type — assign it
-  directly (bit us in `z2ui5_cl_ui5_action=>factory_first_start`, where
-  `s_control-app_start` is already a `string`).
-- **ABAP Doc (`"!`) position** — gated by `npm run check:atc` since it
-  recurred a third time (five findings on samples-stack's overview app from a
-  user's system, 2026-08-17): a doc comment must sit directly before the one
-  declaration it documents. In a chained statement (`CONSTANTS: BEGIN OF ...`)
-  that means *inside* the chain, directly before the element — a `"!` block
-  before the chain keyword is "in the wrong position" (bit us on
-  `z2ui5_if_client=>cs_nav_mode`). **Directly** means with nothing in between,
-  a plain `"` comment included: a note to whoever edits the framework, placed
-  between the block and the `METHODS` it documents, detaches it (bit us on
-  `z2ui5_if_client~check_on_navigated`, 2026-09-16 — put such a note ABOVE the
-  block).
-- **Never `"!` inside a parameter list** (same gate). A single parameter of a
-  `METHODS` statement is not a declaration of its own, so a `"!` block in
-  front of it (anywhere between `IMPORTING` and the final `.`) is "in the
-  wrong position". Document parameters in the method's own doc block, before
-  the `METHODS` keyword, with `"! @parameter <name> | <text>` (see
-  `z2ui5_cl_xml_view` for the house style; bit us on
-  `z2ui5_if_client~_bind( omit_initial )`). A plain `"` comment inside the
-  list stays legal — that is why the `"obsolete …` note on `path` has no `!`.
-- **ABAP Doc is parsed as HTML:** a literal `<`/`>`/`&` must be escaped as
-  `&lt;`/`&gt;`/`&amp;` — a placeholder like `#/app/<CLASS>` is otherwise read
-  as an unsupported, unclosed HTML tag; write `#/app/&lt;CLASS&gt;`. Gated by
-  `npm run check:atc` since three `<wa>`/`<row>` shipped in `z2ui5_if_client`
-  past this very sentence (2026-09-02).
-- **`CREATE DATA … TYPE HANDLE` takes a data object.** A method call as the
-  operand (`TYPE HANDLE cl_abap_structdescr=>create( … )`) is a syntax error
-  on a system that abaplint and the transpiler both accept; assign the
-  descriptor to a variable first. Gated by `npm run check:atc`.
-- **`->*` dereferences a variable, not a call.** `row_ref( iv_name )->*`
-  and the same shape after a constructor expression are a syntax error on
-  7.50; abaplint parses the chain at v750 and the transpiler runs it. Give
-  the reference its own variable on the line above and dereference that
-  (bit us in the test class of `z2ui5_cl_ui5_srv_model`, reported from a
-  user's SAP_ABA 750 SP33 system, #2722). Gated by `npm run check:atc`.
-- **`PREFERRED PARAMETER` needs every IMPORTING parameter to be optional.**
-  With a mandatory one in the list the addition is ignored — the short form
-  `meth( x )` fills that single mandatory parameter anyway — and the compiler
-  warns *"Declare the parameter … as OPTIONAL"*. Do not add it to keep
-  positional callers working when a second, defaulted parameter arrives; they
-  keep working without it (bit us in
-  `z2ui5_cl_ui5_util_context=>msg_get_internal`, found on a user's system hours
-  after #2719 added it). Gated by `npm run check:atc`.
-- **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
-  type-compatible with a formal parameter typed `string` — the view builder's
-  `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
-  a SYNTAX_ERROR of the whole class (bit us on `samples`' app 519, the sample
-  whose subject is translatable texts, 2026-09-16). Read it into a variable
-  and pass that; a plain assignment is a conversion and always allowed, and a
-  symbol inside a string template needs nothing, an embedded expression being
-  a general expression position. Gated by `npm run check:atc`.
-- **A 7.02 built-in function in the operand of a predicate expression** —
-  `condense( val ) IS INITIAL` answers `Unexpected operator "IS"`, because the
-  name is only read as a function where a string expression is allowed and the
-  compiler falls back to reading it as a method call (bit us in
-  `z2ui5_cl_ui5_handler=>request_parse_body`, 2026-09-16). Same fix and same
-  gate as the other operand positions: a variable, `npm run check:downport`.
-- **A range-table row wants a valid `SIGN` and `OPTION`.** A structure with
-  `sign`/`option`/`low`/`high` is a selection structure to the syntax check:
-  a `VALUE` row without an option, or with `'eq'`/`'ZZ'` in it, is a warning on
-  every pull (bit us in the test class of `z2ui5_cl_ui5_util_context`,
-  2026-09-23). A test that needs an odd row builds it field by field through a
-  variable. Gated by `npm run check:atc`.
-  A functional METHOD call there is correct and is not reported.
-- **No `DATA( )` from a generic parameter** (`DATA(lv) = val` with
-  `val TYPE clike`): SLIN reports the fixed type the inline declaration picks.
-  Declare the variable and assign. Not gated, the statement does not carry the
-  parameter's type.
-- **No catch-and-re-raise of a `cx_root` variable** in a method without a
-  RAISING clause — SLIN reads it as an undeclared `CX_STATIC_CHECK`. To run
-  code on the way out and let the exception travel on, use `CLEANUP`.
+which flags things `npm run check` cannot see. `npm run check:atc` gates the
+traps a script can decide; the complete catalogue — every trap with the case
+that produced it, gated or not — is **section 3 of the `abap-check` skill**
+(`.claude/skills/abap-check/SKILL.md`). Read it before finishing any change
+under `src/`, and add the case there when a system reports a new one.
 
 ## Build & Validation
 
@@ -745,7 +529,7 @@ not something to know before starting.
 | File | Why |
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
-| `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
+| `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation), and the types they return and take |
 | `src/02/z2ui5_cl_ui5_view_builder.clas.abap` | Generic XML view builder — the standard for all apps |
 | `src/01/02/z2ui5_cl_ui5_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_ui5_client.clas.abap` | Implements z2ui5_if_client |
@@ -755,7 +539,6 @@ not something to know before starting.
 
 | File | Why |
 |---|---|
-| `src/02/z2ui5_if_client.intf.abap` | The client API, and the types its methods return and take |
 | `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (`z2ui5_if_exit` is its superseded name) |
 | `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | Default exit + user-exit class support |
 | `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
@@ -773,48 +556,17 @@ not something to know before starting.
 | `app/webapp/core/Env.js` | UI5-release compatibility layer (1.71 fallbacks) |
 | `app/webapp/core/Server.js` | Roundtrip lifecycle + request/response wire format docs |
 
-## Commit Message Style
+## Commits, pull requests, issues
 
-**`.github/shared/CONVENTIONS.md` section 7 is the rule, and it binds this
-repository** (see the `.github/shared/` row in `docs/agents/repository-map.md`): a subject in the
-imperative describing the **outcome**, not the mechanics — "Hold the corpus
-counts to the corpora that own them", not "update script". Machine commits in
-pipeline repositories keep their verb prefix (`mirror:`, `transpile:`,
-`prepare:`, `build:`, `trigger:`, `deploy:`), and those prefixes mean the same
-thing in every repository.
-
-This section used to state a third rule of its own (conventional commits) while
-`CONTRIBUTING.md` stated a fourth, so of the three places a contributor might
-look, two disagreed with the one the reviewer holds them to. There is one now,
-and the copies point at it.
-
-### Pull request titles
-
-- **The PR title becomes the squash-merge commit subject — make it describe
-  the change.** Before merging, replace any auto-generated title (e.g. a
-  branch name like `Claude/...-abc123`) with a short descriptive title that
-  states what actually changed.
-- **One topic per PR.** A structural change (moving classes between packages,
-  renaming, restructuring) must not ride along in a PR titled for an
-  unrelated fix — split it into its own PR so the history stays searchable.
-
-### Issues reported by users
-
-- **Never close an issue somebody else reported, and never let a merge close
-  it.** The reporter is the only one who can confirm the fix, because the
-  defect is on *their* system and ours is what shipped it. Merging a PR is
-  not the end of the report — activating the fix on the affected system is,
-  and only they can do that. So do not use a closing keyword (`Fixes #NNNN`,
-  `Closes #NNNN`, `Resolves #NNNN`) in a PR title, body or commit message:
-  GitHub acts on it at merge time and closes the issue without anybody
-  deciding to. Write `Report: #NNNN` or `See #NNNN` instead, which links the
-  two without the side effect. #2664 was closed exactly this way.
-- **A reply on an issue is written for the reporter, not as a record of the
-  analysis.** A few lines: what was actually wrong, what they do now, and
-  whether their own reading of it was right. The evidence, the ruled-out
-  alternatives and the reasoning belong in the PR body and in the code
-  comment at the fix — a reader who wants them follows the link. A long
-  answer buries the one sentence the reporter needs.
+The rule is **`.github/shared/CONVENTIONS.md` §7** — a subject in the
+imperative describing the outcome, one topic per pull request, the PR title
+becomes the squash subject — and `CONTRIBUTING.md` ("Submitting Changes")
+carries the how-to for titles and issue replies. One prohibition an agent
+cannot look up in time: **never close an issue somebody else reported, and
+never let a merge close it** — no `Fixes #NNNN` / `Closes #NNNN` /
+`Resolves #NNNN` in a title, body or commit message (GitHub acts on it at
+merge time); write `Report: #NNNN` or `See #NNNN`. Only the reporter can
+confirm the fix, on their system — #2664 was closed exactly this way.
 
 ## Important Rules for AI Assistants
 
@@ -840,17 +592,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - When in doubt, add rather than change
    - **No public signature may name a Layer 1 type.** A `z2ui5_if_ui5_types=>…` in a `src/02` signature makes an internal a de-facto public contract and blocks renaming it. The public class declares its own type instead — see `z2ui5_cl_ui5_http_handler=>ty_s_http_res`, which is structurally identical to the core's and meets it once, in `_http_post( )`, via `MOVE-CORRESPONDING`
    - **Machine-enforced** by `check_gates.yaml`: every public `src/02` signature is recorded in `.github/api-snapshot.json`; a removed/changed signature fails the PR (revert it — never edit the snapshot to silence the gate), and an addition fails until you record it with `node .github/scripts/api-snapshot.mjs --write` and commit the snapshot alongside
-   - The recorded exceptions, all owner-approved; 1-4 come from the move to the `ui5` namespace, 5 from retiring the shared type interface, 6 from renaming the exit interface, 7 from moving the pure UI5 options of the two message methods onto the control and 8 from retiring the obsolete spellings, 9 from removing `cs_event-z2ui5` and 10 from dropping two exit fields. Not a precedent for editing the snapshot on any other finding — 1 and 2 are `CHANGED`, 3 is the far heavier `REMOVED`:
-     1. `_http_post`/`_http_get`/`_main` moved from `z2ui5_if_core_types=>ty_s_http_res` to the handler's own `ty_s_http_res` when the core layer became `z2ui5_if_ui5_types`. The underscore methods had no caller outside the class's own test class
-     2. `_http_post`/`_main`/`get_request` and `z2ui5_cl_exit=>init_context` moved from `z2ui5_cl_a2ui5_http=>ty_s_http_req` to `z2ui5_if_types=>ty_s_http_req` when `src/00/03` became `z2ui5_cl_ui5_*`. Structure unchanged field for field, and `get_request`/`init_context` never assigned the whole record anyway (`CORRESPONDING #( )` and field-wise writes)
-     3. `z2ui5_cl_app_startup` → `z2ui5_cl_ui5_app_start` and `z2ui5_cl_app_hello_world` → `z2ui5_cl_ui5_app_hi_world` retired 17 public symbols under their old names. Unlike 1 and 2 this is a **name** change, not a type reference: a bookmarked `?app_start=z2ui5_cl_app_hello_world`, a launchpad tile pointing at either class, or downstream code naming them stops working with no fallback. Shipped deliberately without compatibility shims — if that turns out to be too sharp, the repo's own precedent is the `class` / `class_old` pair in `z2ui5_cl_ui5_app_start=>render_samples( )`
-     4. The `ui5`-rename restructuring itself, recorded in a change of its own so the blast radius is the whole diff rather than a footnote. The snapshot went from 100 keys to **70**, then to **80** once `z2ui5_if_types` came back into `src/02` (see "Layered Design"). Against the 100: 44 `REMOVED`, 14 unrecorded additions, 1 `CHANGED`. **38 of the 44 removals are relocations, not deletions** — the object still ships and downstream code still compiles, it simply left the folder the snapshot scans: `z2ui5_cl_http_handler` (10, now a deprecated shim forwarding to `z2ui5_cl_ui5_http_handler`) to `src/99`; `z2ui5_cl_ui5_app_start` (15) and `z2ui5_cl_ui5_app_hi_world` (2) to `src/01/04`; `z2ui5_if_types` (11) to `src/99` and back again, so of the 38 only 27 are still outside the snapshot. The other **6 are real**: `z2ui5_cl_exit` (4) became `src/01/04/z2ui5_cl_ui5_user_exit`, with no shim — apps extend the still-public `z2ui5_if_exit`, so only code naming the *class* breaks; and `z2ui5_if_app~check_initialized` / `~check_sticky` (2) were dropped as dead lifecycle mirrors (use `client->check_on_init( )` / `client->set_session_stateful( )`), which fails at compile time rather than at runtime. The 14 additions are `z2ui5_cl_ui5_http_handler` under its new name (11) plus `cs_device` / `ty_s_name_value` / `ty_t_name_value`, which `z2ui5_if_client` now owns. The 1 `CHANGED` is `z2ui5_if_client=>cs_event` and is a **false positive**: the constants were reordered, none added or removed — the gate compares a block byte for byte, and for a set of independently named constants the order carries no contract. Left as-is because the regeneration absorbs it; if a reorder ever fails a PR again, teach the gate to compare constants blocks as a set rather than editing the snapshot around it
-     5. `z2ui5_if_types` retired to `src/99` so every type sits on the object that uses it: 10 `REMOVED` (its own symbols leaving the scanned folder) and 4 `CHANGED` (`get( )`, `_event( )` and the two `z2ui5_if_exit` methods, which now name the type next to them instead of one in another interface). Nothing was deleted or reshaped — the interface ships unchanged from the frozen package, so `z2ui5_if_types=>ty_s_get` still compiles downstream, and each moved type is identical field for field, so a caller's own declarations stay compatible with the new signatures. Snapshot 80 keys to **75**
-     6. `z2ui5_if_exit` renamed to `z2ui5_if_ui5_exit` **without** an incompatibility: 5 `REMOVED` (the old interface's own symbols, leaving the scanned folder for `src/99`) against 5 additions under the new name. Every existing exit keeps working - the old interface ships unchanged and `z2ui5_cl_ui5_user_exit` still looks it up and calls it - and its three types are declared AS the ones on the new interface (`types ty_s_http_config type z2ui5_if_ui5_exit=>ty_s_http_config`) rather than repeated, so they cannot drift while the framework hands the same structure to both
-     7. `message_toast_display( )` and `message_box_display( )` lost every parameter that was a **plain UI5 option** and nothing else: 11 on the toast (`width`, `my`, `at`, `of`, `offset`, `collision`, `autoclose`, `animationtimingfunction`, `animationduration`, `closeonbrowsernavigation`, `class`) and 5 on the box (`textdirection`, `icon`, `closeonnavigation`, `dependenton`, `contentwidth`). 2 `CHANGED`, and unlike 1-6 this one **breaks a caller at compile time** rather than relocating a name — which is the whole reason it is recorded here. The rule it draws: the client method carries what an ABAP app decides (the data in any shape, the kind of box, the buttons as a table, the backend event its closing raises), a pure pass-through option is set on the CONTROL, as the option object of a `CONTROL_GLOBAL` `MESSAGE_TOAST`/`MESSAGE_BOX` call — the same object the method itself builds, so nothing an app could express before is out of reach, and `Z2UI5_CL_SMP_APP_381` / `Z2UI5_CL_SMP_APP_512` are the two samples that show the pair. What stayed is what an ABAP app decides: `text TYPE any`, `type`, `title`, `styleclass`, `actions`, `emphasizedaction`, `initialfocus`, `details`, `onclose` on the box; `text`, `duration`, `onclose` on the toast.
-     8. The removals of 2026-09-13/14, each a `REMOVED` or `CHANGED` of its own and each recorded with its migration in `docs/removal-plan.md` §0 and in `changelog.txt`: `ty_s_event_control-check_allow_multi_req` (replaced by `check_queue_last`), the inert `view` parameter of `_bind( )` / `_bind_edit( )`, the obsolete URL-API spellings `set_push_state( )`, `set_app_state_active( )`, `cs_event-set_nav_routing`, `cs_event-set_push_state`, `cs_event-set_app_state_active`, `cs_event-clipboard_app_state` and `cs_event-wizard_set_next_step`. Zero callers in the ecosystem at removal; the new entry goes here AND into the removal plan, so this list stays the complete record it claims to be
-     9. `cs_event-z2ui5` removed (maintainer decision 2026-09-22), 1 `CHANGED` on `cs_event`: the frontend event it named called a function an app had put on the `z2ui5` global, and the global is gone — so the constant would name an event no frontend handles any more. Removed together with its only producer, `z2ui5_cl_pop_js_loader`, and recorded in `docs/removal-plan.md` §0 and `changelog.txt`. Raw JavaScript in `follow_up_action( )` was removed in the same week, so there is no frontend path left for app-registered code: it ships as a custom control in the customer frontend BSP (`z2ui5_ccc`). A framework need that has no frontend action is a whitelist entry (rule 19), not a new escape hatch
-     10. `custom_js` and `title` of `z2ui5_if_ui5_exit=>ty_s_http_config` removed on 2026-09-23 - one `CHANGED`. `custom_js` ran as inline script on the direct-start page, `title` had not been read since the page title became constant. Zero users in the ecosystem; recorded in `docs/removal-plan.md` §0 and in `changelog.txt`
+   - The recorded exceptions — ten so far, all owner-approved, from the move to the `ui5` namespace to the exit-field removal of 2026-09-23 — are **`docs/agents/api-snapshot-exceptions.md`**. Not a precedent for editing the snapshot on any other finding; a new entry goes there AND into `docs/removal-plan.md` §0, so that list stays the complete record it claims to be
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID), their properties and events (bound by existing app views), the controller methods `eB`/`eF`, and the `z2ui5/model/formatter` module (reached from a view via `core:require`). Additive changes only. **There is no frontend global** — the `z2ui5` object on `window`, and with it the `z2ui5.Util` / `z2ui5.Formatter` globals and the `z2ui5/Util` module, was removed on 2026-09-22; do not bring one back. View XML using the custom controls must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
 8. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Anything that differs between UI5 1.71 and the current release goes through `app/webapp/core/Env.js`** instead (element registry, messaging, theming, localization, the 1.71-1.82 fragment preload) — the one module allowed to call the deprecated fallbacks, so a raised floor removes code there and nowhere else (specs: `loadEnv` in the same helper). **The frontend state is per component: `app/webapp/core/Context.js` creates one context per `z2ui5.Component`** (`Component.init`), and `app/webapp/core/AppState.js` is only the SHAPE of its state — the complete field inventory and the defaults (`createState()`). There is no singleton: a module below the component takes the context as its first argument (`ctx.state`, plus the per-module records `ctx.server`, `ctx.session`, `ctx.router`, ...), an action handler reads it off the calling controller (`oController.ctx`), a custom control asks `Context.of(this)` — the views and fragments are built under the component as owner (`Context.runAsOwner` in `actions/Slots`), so UI5's own `getOwnerComponentFor` answers for every control inside them. Several components on one page share none of it since 2026-09-23; what stays page-wide by nature (the URL hash, the title, the global BusyIndicator, `Lib.logError`'s ring) is listed in the header of `Context.js`. Nothing is put on `window`: there is no `z2ui5` global and ui5lint's `no-project-globals` keeps it that way. Configuration from the backend GET page arrives as component data (`Component.init`). Do not add lazy `if (!state.x)` bootstrapping; add the field with its default to `AppState.createState()` instead, and a per-module record to `Context.create()`.
@@ -897,66 +639,38 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 
 ## Design Decisions & Known Non-Issues
 
-The following items may look like gaps but are intentional design choices:
+Each of these was proposed, measured and declined; what was measured and why
+is **`docs/agents/decisions.md`**. What stays here is the part an agent must
+know before it proposes the same thing again:
 
-- **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
-- **Draft cleanup (`z2ui5_cl_ui5_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` takes one `INSERT` per roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
-- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm --prefix app run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
-- **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here. What the framework does check is the **type**, not the user: `z2ui5_cl_ui5_action=>app_create` refuses a name whose class does not implement `z2ui5_if_app` from its RTTI descriptor (`rtti_check_class_impl_intf`) before anything is instantiated, so a URL cannot make the system load an arbitrary class pool — and the error says "does not implement" instead of "does not exist". That is a type check on the way to `CREATE OBJECT`, not an authorization hook, and it does not change the decision above.
-- **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **The pre-main model snapshot in `z2ui5_cl_ui5_handler=>main_process` deliberately serializes a second time on delta roundtrips.** On a delta roundtrip it is the first of up to two full model serializations, and that is a decision, not an oversight: every variant that drops it trades that CPU pass for a full-model push over the wire. The full reasoning lives in the comment at that code site — do not re-propose it as a performance bug.
-- **The developer tools cannot be lazy-loaded out of the preload, and the
-  hard `sap.ui.define` dependencies in `devtools/DevTools.js` are deliberate.**
-  On an ABAP system every frontend file arrives in ONE
-  `sap.ui.require.preload` block inside the GET response
-  (`z2ui5_cl_ui5f_preload`), and the bootstrap sets the resource root to the
-  ICF node, which answers every GET with the shell page — so a module dropped
-  from that block is fetched as `text/html`, never defines, and the tools
-  simply do not open (rule 18 is the same constraint stated from the other
-  side). Requiring lazily *without* dropping them from the preload moves only
-  the factory execution, not the bytes; and `Console` and `Recorder` have to
-  install eagerly anyway, because a history collected after the problem is
-  worth nothing. Measured 2026-08-28: `devtools/` is 32.7% of the preload's
-  bytes and at most 23.2% of it could ever be deferred. Making that real is an
-  on-demand delivery path for a module the page did not receive — a design
-  change to the HTTP handler, not an edit to `DevTools.js`. The full reasoning
-  is in that file's header.
-- **An app implements `z2ui5_if_app` — there is deliberately NO app base
-  class, and the dispatcher boilerplate is accepted.** Every app hand-writes
-  the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`
-  / `check_on_navigated`) plus its `client` member — measured 2026-08-11 in the
-  samples-controls corpus as ~4.4k lines of identical ceremony across 366 classes
-  (the corpus has grown since; the measurement is the one the decision was made on).
-  A proposal for an optional abstract `z2ui5_cl_app` with
-  `on_init`/`on_event`/`on_navigated` hooks (plain inheritance, 702-safe,
-  purely additive) was made and **declined 2026-08-11**: it is too much
-  overhead for the gain — the app contract stays ONE interface, with no
-  inheritance chain, no base-class lifecycle to learn and no second way to
-  write an app. Do not add a base class, do not add lifecycle hooks to
-  `z2ui5_if_app`, and do not report the repeated dispatcher as duplication.
-- **Named frontend-action wrappers belong in a future ACTION OBJECT, not on
-  `z2ui5_if_client` — parked, do not re-add them to the interface.** A set of
-  named convenience methods over the positional `t_arg` wire (`toast_client`,
-  `control_call`/`control_call_client`, `binding_filter`/`binding_sort` +
-  `_client` twins — thin delegations, unit-tested byte-identical to the
-  generic `follow_up_action`/`_event_client` form) was implemented on
-  2026-08-11 and deliberately **reverted the same day** (maintainer
-  decision): instead of growing the already-large client interface method by
-  method, these actions shall eventually be collected in **one dedicated
-  action object** with a clean, designed surface (e.g. reachable from the
-  client, grouping toast/control/binding/keyboard actions). The idea is being
-  observed against real usage first; the design comes later. Until then the
-  generic `follow_up_action` — as a statement to schedule an action, written
-  where its result is consumed to wire one — remains the only API (its
-  obsolete second name for the wired half is `_event_client`); do not
-  re-introduce per-method wrappers on `z2ui5_if_client`. The reverted
-  implementation (interface docs, delegations, byte-identity tests) is
-  preserved in git history (`f1a1813`, reverted by `208b7ec`) and in the
-  backlog item `backlog/items/frontend-action-named-api.md` as the reference for
-  the future object; usage data there too (corpus 2026-08: 295 control_global
-  wires / 137 control_by_id / 25 binding_call / 3 keyboard_shortcut).
-- **Embedding abap2UI5 into other UI5 apps is deferred, not forgotten.** Running it as a reuse component (freestyle views, Fiori elements extensions), several instances per page, and a wrapping custom control were assessed on 2026-09-23 and deferred until there is real demand. The findings, the staged plan and why the page-wide listeners stay page-wide are in `backlog/items/embed-as-reuse-component.md`. The framework's own ids are already component-prefixed (`ViewSlots.ownId`). Do not re-propose the rest as general cleanup.
-- **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
+- **`Z2UI5_T_01` has no version column, gets no secondary index on
+  `TIMESTAMPL`, and draft cleanup is not throttled or debounced** — do not
+  (re-)introduce any of the three.
+- **No `componentPreload` declaration** in `app/webapp/manifest.json` /
+  `index.html` — both production delivery paths already bundle every module.
+- **No central app-start authorization hook.** Authorization belongs in the
+  app's own `z2ui5_if_app~main`; the framework checks the *type*
+  (`rtti_check_class_impl_intf`), not the user. Do not add an
+  `AUTHORITY-CHECK` or a `check_app_start_allowed` exit, and do not report
+  its absence as a vulnerability.
+- **`changelog.txt`** is the changelog; no separate `CHANGELOG.md`.
+- **The pre-main model snapshot in `z2ui5_cl_ui5_handler=>main_process`
+  serializes a second time on delta roundtrips on purpose** — reasoning at
+  the code site; do not re-propose it as a performance bug.
+- **The developer tools stay in the preload and `devtools/DevTools.js` keeps
+  its hard `sap.ui.define` dependencies** — reasoning in that file's header.
+- **No app base class and no lifecycle hooks on `z2ui5_if_app`** (declined
+  2026-08-11) — do not add either, and do not report the repeated
+  dispatcher as duplication.
+- **No named frontend-action wrappers on `z2ui5_if_client`** (reverted
+  2026-08-11, parked for a future action object —
+  `backlog/items/frontend-action-named-api.md`); `follow_up_action` stays the
+  only API.
+- **Embedding abap2UI5 as a reuse component is deferred** (2026-09-23,
+  `backlog/items/embed-as-reuse-component.md`) — do not re-propose the rest
+  as general cleanup.
+- **`z2ui5_cl_xml_view` (src/99) is not extended, refactored or split**, and
+  its size is not a finding.
 
 ### Scope Exclusions for Code Reviews, Security Audits & Improvement Work
 
@@ -964,5 +678,5 @@ When reviewing, auditing, or proposing improvements to this repository, treat th
 
 - **The production code of `src/99/`.** It is **frozen legacy code** (see "Layered Design"): no in-repo consumers, kept solely so existing downstream installations keep compiling. Do **not** report, harden, refactor or extend it. For example, the unescaped single quote in the dynamic `WHERE` builders of `z2ui5_cl_util_ext` is a **non-issue** here, and the ~16K-line size of `z2ui5_cl_xml_view` is not a finding either. Only the `*.testclasses.abap` files under `src/99/` are maintained — they run in CI and may need adapting when core internals they assert on change.
 - **The `_bind` / `_bind_edit` "mass assignment" question** — binding was **intentionally unified** (see "Data Binding" above): `_bind` and `_bind_edit` behave identically and every bound attribute is writable from the client `MODEL`. `_bind_edit` is a **compatibility-only alias of `_bind`** and is slated for **removal (~1 year out)**. A proposal to split them again — a separate "editable" flag so `_bind` becomes display-only while only `_bind_edit` writes back — is explicitly **rejected**: it would reintroduce exactly the distinction that was deliberately removed and break the many apps that rely on `_bind` round-tripping. Treat "an attribute exposed via `_bind` is writable from the client model" as **by design**, not a vulnerability.
-- **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry above: rejected as not worth the per-write index-maintenance cost.
-- **The "no app-start authorization" question** — see the app-start entry under "Design Decisions" above. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.
+- **A secondary index on `Z2UI5_T_01-TIMESTAMPL`** — see the draft-cleanup entry in `docs/agents/decisions.md`: rejected as not worth the per-write index-maintenance cost.
+- **The "no app-start authorization" question** — see the app-start entry in `docs/agents/decisions.md`. That any authenticated user reaching the ICF node can instantiate any `z2ui5_if_app` class is **by design**: authorization lives in the app's own `z2ui5_if_app~main` (like a transaction guarding itself), not in a framework `AUTHORITY-CHECK` or a `check_app_start_allowed` exit. Do not report the missing central hook as a vulnerability, and do not add one.

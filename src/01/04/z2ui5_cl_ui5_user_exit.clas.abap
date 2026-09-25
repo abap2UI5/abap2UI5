@@ -25,11 +25,19 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " the class name the lookup answered, remembered together with gi_me:
     " get_user_exit_class is asked again after get_instance in the same
     " request (the start page's system popup names the exit), and each
-    " lookup is a repository read. Known only once the instance is built -
-    " a failed instantiation leaves both unset, so the next request asks
-    " again (see exit_instantiate)
+    " lookup is a repository read. Known only once the instance is built
+    " from a lookup that CAME BACK - a failed instantiation leaves both
+    " unset (see exit_instantiate), a lookup that raised leaves the flag
+    " unset (see get_instance), so the next request asks again either way
     CLASS-DATA gv_exit_class       TYPE string.
     CLASS-DATA gv_exit_class_known TYPE abap_bool.
+
+    " the repository lookup itself, raising whatever the repository raises.
+    " get_user_exit_class and get_instance are its two callers and the only
+    " places that decide what a failed lookup means
+    CLASS-METHODS exit_class_lookup
+      RETURNING
+        VALUE(result) TYPE string.
 
   PRIVATE SECTION.
     " the default CSP meta tag, assembled once per roll area. This method
@@ -59,7 +67,26 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_class_name) = get_user_exit_class( ).
+    DATA lv_class_name TYPE string.
+    DATA lv_known      TYPE abap_bool.
+
+    IF gv_exit_class_known = abap_true.
+      lv_class_name = gv_exit_class.
+      lv_known      = abap_true.
+    ELSE.
+      TRY.
+          lv_class_name = exit_class_lookup( ).
+          lv_known      = abap_true.
+        CATCH cx_root ##NO_HANDLER.
+          " a repository read that raised (a transient error, a runtime
+          " without a class repository) is not an answer: this request runs
+          " on the shipped defaults, and the name is asked again on the next
+          " lookup instead of being remembered as "no exit installed" for
+          " the rest of a sticky session - the fail-open-silently the doc of
+          " exit_instantiate rules out. Only a lookup that came back is
+          " latched below
+      ENDTRY.
+    ENDIF.
 
     IF lv_class_name IS NOT INITIAL.
       exit_instantiate( lv_class_name ).
@@ -67,7 +94,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     gi_me = NEW z2ui5_cl_ui5_user_exit( ).
     gv_exit_class       = lv_class_name.
-    gv_exit_class_known = abap_true.
+    gv_exit_class_known = lv_known.
     result = gi_me.
 
   ENDMETHOD.
@@ -119,43 +146,49 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
-        " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
-        " z2ui5_cl_ui5_user_exit and carried the rename into this literal, which
-        " left the lookup asking for an interface that does not exist: no class
-        " implements it, so every user exit in every system silently stopped
-        " being found. A dynamic name is not a reference the compiler checks -
-        " .github/scripts/dynamic-name-gate.mjs does it instead
-        DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
-        DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
-
-        " The superseded interface is looked up too, for as long as it ships -
-        " but only when the current one names nothing. Each lookup is a
-        " repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP, XCO
-        " on cloud), and gi_me does not outlive a request on stateless ICF, so
-        " both were paid on every request. An exit written against
-        " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
-        " both is found under the current name (the cast order in
-        " exit_instantiate calls it once, through that interface). A system that
-        " carries one class per interface - a configuration the class doc
-        " rules out, only one exit can be active - gets the current one
-        " instead of whichever sorted first across both lists.
-        " no self-exclusion on this list: the shipped exit implements
-        " z2ui5_if_ui5_exit only, so it is never in it
-        IF lines( exit_classes ) = 0.
-          exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
-        ENDIF.
-
-        " only one user exit can be active, so the pick must not depend on the
-        " order the class lookup happens to return (SEOCLASS select order on
-        " standard ABAP, XCO order on cloud) - a system with two implementing
-        " classes would otherwise silently run a different exit after a
-        " transport or a system copy. Sorting makes it reproducible.
-        SORT exit_classes BY classname.
-
-        result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
+        result = exit_class_lookup( ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD exit_class_lookup.
+
+    " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
+    " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
+    " z2ui5_cl_ui5_user_exit and carried the rename into this literal, which
+    " left the lookup asking for an interface that does not exist: no class
+    " implements it, so every user exit in every system silently stopped
+    " being found. A dynamic name is not a reference the compiler checks -
+    " .github/scripts/dynamic-name-gate.mjs does it instead
+    DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
+    DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+
+    " The superseded interface is looked up too, for as long as it ships -
+    " but only when the current one names nothing. Each lookup is a
+    " repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP, XCO
+    " on cloud), and gi_me does not outlive a request on stateless ICF, so
+    " both were paid on every request. An exit written against
+    " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
+    " both is found under the current name (the cast order in
+    " exit_instantiate calls it once, through that interface). A system that
+    " carries one class per interface - a configuration the class doc
+    " rules out, only one exit can be active - gets the current one
+    " instead of whichever sorted first across both lists.
+    " no self-exclusion on this list: the shipped exit implements
+    " z2ui5_if_ui5_exit only, so it is never in it
+    IF lines( exit_classes ) = 0.
+      exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+    ENDIF.
+
+    " only one user exit can be active, so the pick must not depend on the
+    " order the class lookup happens to return (SEOCLASS select order on
+    " standard ABAP, XCO order on cloud) - a system with two implementing
+    " classes would otherwise silently run a different exit after a
+    " transport or a system copy. Sorting makes it reproducible.
+    SORT exit_classes BY classname.
+
+    result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
 
   ENDMETHOD.
 
@@ -214,6 +247,24 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
         |script-src 'self' { lv_ui5_hosts }; | &&
         |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
+        " img-src and media-src are EXPLICIT too, with what default-src
+        " carries for them ('self', data:, blob:, the UI5 hosts - the two
+        " legacy `schemas` tokens were never reviewed for images and stay
+        " where they are): they are the directives the favicon
+        " (cs_event-set_favicon) and the audio source (cs_event-play_audio)
+        " are checked against, so an exit that needs a cross-origin icon or
+        " sound host adds it HERE, to the one directive that needs it, and
+        " the browser's refusal names the directive instead of default-src.
+        " The frontend's URL guard (Lib.isSafeDownloadURL) checks the scheme
+        " only; whether the host may be loaded is decided by this policy.
+        |img-src 'self' data: blob: { lv_ui5_hosts }; | &&
+        |media-src 'self' data: blob: { lv_ui5_hosts }; | &&
+        " connect-src stays at 'self' plus the UI5 hosts: a same-origin
+        " WebSocket (z2ui5.cc.Websocket, an ABAP push channel) is covered by
+        " 'self' under CSP level 3, which every browser this frontend runs on
+        " implements. No ws:/wss: scheme source here - that is a wildcard over
+        " every host; a channel on another port or behind a dispatcher names
+        " its exact origin in the exit's connect-src instead.
         |connect-src 'self' { lv_ui5_hosts }; | &&
         |worker-src 'self' blob:; | &&
         " Hardening directives (no runtime cost for a UI5 app): block plugin
@@ -307,20 +358,17 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
   METHOD init_context.
 
     gs_context = CORRESPONDING #( http_info ).
-    " normalized the way request_app_start reads the parameter - trimmed,
-    " upper-cased, a percent-encoded namespace unpacked - so an exit keyed on
+    " normalized the way request_app_start reads the parameter - the SAME
+    " method: trimmed, upper-cased, a percent-encoded namespace unpacked,
+    " the launchpad spelling -ns-class spelled back - so an exit keyed on
     " the app (details hidden for one, a tighter CSP for another) is not
     " bypassed by a case change or an encoded slash. It stays what the URL of
     " THIS request says: empty on every POST (the SPA posts to the manifest
     " URI) and when the app is named by the hash route, which never reaches
     " the server - a hint for the page request, not the authority on what
     " runs (see the interface doc)
-    gs_context-app_start = z2ui5_cl_ui5_util_context=>c_trim_upper(
+    gs_context-app_start = z2ui5_cl_ui5_handler=>app_start_normalize(
         VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
-    gs_context-app_start = replace( val = gs_context-app_start
-                                 sub    = `%2F`
-                                 with   = `/`
-                                 occ    = 0 ).
 
   ENDMETHOD.
 

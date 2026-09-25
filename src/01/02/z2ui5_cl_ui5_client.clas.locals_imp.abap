@@ -7,12 +7,10 @@
 CLASS lcl_node_value DEFINITION FINAL.
 
   PUBLIC SECTION.
-    " any spelling of a numeric zero is initial - ajson writes a packed field
-    " with decimals as `0.00` and a float as `0.0E+00` (both are |{ value }|),
-    " and a plain compare against `0` kept exactly the "price" column
-    " omit_initial is documented for. CO: every character of the value is one
-    " of these, i.e. no non-zero digit. A string, a bool and null are initial
-    " when empty
+    " a number is initial in every spelling of zero - the one predicate
+    " for that is z2ui5_cl_ui5_util_json_fl=>check_number_initial, shared
+    " with the framework's no-empty-values filter. A string, a bool and
+    " null are initial when empty
     CLASS-METHODS check_initial
       IMPORTING
         is_node       TYPE z2ui5_if_ajson_types=>ty_node
@@ -28,7 +26,7 @@ CLASS lcl_node_value IMPLEMENTATION.
   METHOD check_initial.
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      result = xsdbool( is_node-value CO `0.-+Ee` ).
+      result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
     ELSE.
       result = xsdbool( is_node-value IS INITIAL ).
     ENDIF.
@@ -131,9 +129,13 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
     LOOP AT it_paths INTO DATA(lv_path).
       DATA(lv_name) = to_upper( lv_path ).
-      " a caller may write the field with or without a leading slash
+      " a caller may write the field with or without a leading slash - and
+      " with a trailing one (`/ROWS/MAX/`), which used to make the last
+      " segment empty and drop the path without a word: the empty segments
+      " go, the last one left is the name
       IF lv_name CS `/`.
         SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
+        DELETE lt_parts WHERE table_line IS INITIAL.
         lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
       ENDIF.
       IF lv_name IS NOT INITIAL.
