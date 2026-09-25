@@ -37,6 +37,19 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    if (error !== undefined) entry.error = error;` && |\n| &&
              `    errors.push(entry);` && |\n| &&
              `    if (errors.length > MAX_ERRORS) errors.shift();` && |\n| &&
+             `    mirrorToUi5Log(message, error);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function mirrorToUi5Log(message, error) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (typeof sap === "undefined" || typeof sap.ui?.require !== "function")` && |\n| &&
+             `        return;` && |\n| &&
+             `      const Log = sap.ui.require("sap/base/Log");` && |\n| &&
+             `      if (typeof Log?.warning !== "function") return;` && |\n| &&
+             `      const details =` && |\n| &&
+             `        error === undefined ? undefined : String(error?.stack || error);` && |\n| &&
+             `      Log.warning(message, details, "z2ui5");` && |\n| &&
+             `    } catch {}` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const CONTROLLER_FIELDS = [` && |\n| &&
@@ -411,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
              `      if (!steps) {` && |\n| &&
              `        delta[attr] = modelData[attr];` && |\n| &&
-             `        continue;` && |\n| &&
+             `        continue;` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
@@ -424,8 +438,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        const rowDelta = rows[row];` && |\n| &&
              `        model = model?.[Number(row)]?.[field];` && |\n| &&
              `        if (leaf) {` && |\n| &&
-             `          rowDelta[field] = model;` && |\n|.
-    result = result &&
+             `          rowDelta[field] = model;` && |\n| &&
              `          break;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

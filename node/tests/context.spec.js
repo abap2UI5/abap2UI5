@@ -58,6 +58,7 @@ test.describe("create", () => {
     });
     expect(ctx.router).toEqual({ navigate: null, hashListener: null });
     expect(ctx.shortcuts).toEqual({ listener: null });
+    expect(ctx.variants).toEqual({ activeInits: new Set() });
     expect(ctx.scroll).toEqual({ target: undefined, ui5El: undefined, slotKey: undefined });
     expect(ctx.errorView).toEqual({ title: "", details: "", options: {}, dialog: null });
     expect(ctx.devtools).toEqual({});

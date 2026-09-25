@@ -29,8 +29,8 @@ Two audiences, two entry points:
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
 - [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
-- [samples](https://github.com/abap2UI5/samples): 150 curated example apps, one
-  class each. [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
+- [samples](https://github.com/abap2UI5/samples): the curated example apps,
+  one class each. [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)
   lists every one of them with the words to search it by — ask it whether a
   sample already exists before writing an app from scratch
 - [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly
@@ -52,7 +52,14 @@ Two audiences, two entry points:
   directory outside src/ - app/, node/, tools/, frontend/, .github/
   and every gate script in it
 - [CI/CD workflows](docs/agents/ci-workflows.md): what every workflow does,
-  grouped by purpose
+  grouped by purpose, and the two deliveries of the transpiled backend
+- [Architecture seams](docs/agents/architecture-seams.md): the swappable
+  draft store and serializer (for hosts that are not an SAP system) and the
+  codepage fallback a view render survives
+- [Design decisions](docs/agents/decisions.md): what was proposed, measured
+  and declined - AGENTS.md keeps only the one-line prohibitions
+- [API-snapshot exceptions](docs/agents/api-snapshot-exceptions.md): the
+  recorded times the public-API snapshot was regenerated over a change
 - [JS unit spec inventory](docs/agents/test-inventory.md): which app/webapp
   module has which spec under node/tests/
 - [CONTRIBUTING.md](CONTRIBUTING.md): human contributor workflow

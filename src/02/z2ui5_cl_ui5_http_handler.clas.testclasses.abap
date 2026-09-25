@@ -20,6 +20,7 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_no_headers   FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_referer      FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_default_port FOR TESTING RAISING cx_static_check.
     METHODS test_preload_literals  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -304,6 +305,40 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                             host    = `app.corp:44300` ).
 
     cl_abap_unit_assert=>assert_true( lv_rejected ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_default_port.
+
+    " the port a scheme implies is no difference in authority: the browser
+    " writes the Origin without it, a proxy forwards the Host with it
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://app.corp`
+                            referer = ``
+                            host    = `app.corp:443` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `http://app.corp:80`
+                            referer = ``
+                            host    = `app.corp` ) ).
+    " ...while a real port still counts
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://app.corp:8443`
+                            referer = ``
+                            host    = `app.corp` ) ).
+    " and a host that merely ENDS in the digits is not a default port
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://App443/x`
+                            referer = ``
+                            host    = `app443` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://app443`
+                            referer = ``
+                            host    = `app` ) ).
 
   ENDMETHOD.
 

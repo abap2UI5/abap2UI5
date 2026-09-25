@@ -74,15 +74,19 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `          const oTable = this._getTable();` && |\n| &&
              `          if (!oTable) return;` && |\n| &&
              `` && |\n| &&
-             `          if (this._applyPending) return;` && |\n| &&
+             `          if (this._applyPending && this._pendingTable === oTable) return;` && |\n| &&
              `          this._applyPending = true;` && |\n| &&
+             `          this._pendingTable = oTable;` && |\n| &&
              `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
+             `            if (this._pendingTable !== oTable) return;` && |\n| &&
              `            this._applyPending = false;` && |\n| &&
+             `            this._pendingTable = null;` && |\n| &&
              `            this._applyGuarded(oTable, this.aFilters, "_applyFilters");` && |\n| &&
              `            this._applyGuarded(oTable, this.aSorters, "_applySorters");` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          this._applyPending = false;` && |\n| &&
+             `          this._pendingTable = null;` && |\n| &&
              `          Lib.logError("UITableExt.applyBackend failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

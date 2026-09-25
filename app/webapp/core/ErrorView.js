@@ -483,6 +483,18 @@ sap.ui.define([], () => {
   }
 
   // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
+  //
+  // Deliberately NOT the SYSTEM_LOGOUT action of core/actions/Browser.js,
+  // and less than it: that one first terminates a stateful BSP session
+  // through a hidden iframe (?sap-sessioncmd=logoff) and validates the
+  // target URL, and it is reached through the action dispatch, Lib and
+  // MessageBox. This overlay exists for the moment the app is BROKEN - the
+  // UI5 core may not be usable, a module may have failed to load - so it
+  // is dependency-free by design (see the header) and does the one thing
+  // that needs nothing: the launchpad's logout when there is one, the ICF
+  // logoff otherwise. A stateful BSP context an overlay logout leaves
+  // behind expires with the session timeout; Browser.js says the same from
+  // its side.
   function handleLogout(ctx) {
     const fallback = () => {
       window.location.href = "/sap/public/bc/icf/logoff";

@@ -336,7 +336,14 @@ sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {
       const level = UI5_LEVELS[logEntry?.level] || "info";
       const component = logEntry?.component ? `[${logEntry.component}] ` : "";
       const details = logEntry?.details ? ` - ${logEntry.details}` : "";
-      push(level, "ui5", `${component}${logEntry?.message || ""}${details}`);
+      // Lib.logError mirrors its ring into sap/base/Log under the
+      // component "z2ui5" so the browser console shows it; the ring itself
+      // is already a source of the Log tab (devtools/Log.js), so the
+      // mirror is not kept a second time - only its console echo below is
+      // still recognised as one
+      if (logEntry?.component !== "z2ui5") {
+        push(level, "ui5", `${component}${logEntry?.message || ""}${details}`);
+      }
       // Rebuilt exactly as sap/base/Log builds the line it is about to
       // print (`date time message - details component`, unchanged from 1.71
       // to today), so the next console capture recognises its own echo.

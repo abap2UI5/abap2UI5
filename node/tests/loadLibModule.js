@@ -34,6 +34,7 @@ function specContext(seed = {}) {
     },
     router: { navigate: null, hashListener: null },
     shortcuts: { listener: null },
+    variants: { activeInits: new Set() },
     scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
     errorView: { title: "", details: "", options: {}, dialog: null },
     devtools: {},

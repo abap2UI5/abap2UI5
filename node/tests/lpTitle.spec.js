@@ -5,23 +5,34 @@ const { loadLib } = require("./loadLibModule");
 
 // cc/LPTitle.js (obsolete, kept for backward compatibility): sets the FLP
 // shell title / full-width mode when running inside the Launchpad, does
-// nothing standalone. Under test: the standalone no-op, the toText
-// normalization handed to the shell service, async + sync failure logging
-// ("log, never throw"), and the suppressed invalidation of the property
-// writes (the control renders nothing). The launchpad record is read off
-// the control's component context (Context.of) - the one context the
-// spec's Lib runs in; `context: false` loads the control as one in no
-// component, where Context.of answers null.
+// nothing standalone. The title setter IS the SET_TITLE_LAUNCHPAD action
+// of core/actions/Launchpad.js since 2026-09-25 (the control hands the
+// value and its context over), so the REAL action module runs here. Under
+// test: the standalone no-op, the toText normalization handed to the shell
+// service, async + sync failure logging ("log, never throw"), and the
+// suppressed invalidation of the property writes (the control renders
+// nothing). The launchpad record is read off the control's component
+// context (Context.of) - the one context the spec's Lib runs in;
+// `context: false` loads the control as one in no component, where
+// Context.of answers null.
 function load({ oLaunchpad = null, context = true } = {}) {
   const { Lib, Context } = loadLib({ state: { oLaunchpad } });
   const errors = [];
   Lib.logError = (m) => errors.push(m);
+
+  const { module: Launchpad } = loadModule("core/actions/Launchpad.js", {
+    deps: {
+      "sap/m/library": { URLHelper: {} },
+      "z2ui5/core/Lib": Lib,
+    },
+  });
 
   const { module: LPTitleDef } = loadModule("cc/LPTitle.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },
+      "z2ui5/core/actions/Launchpad": Launchpad,
     },
   });
 

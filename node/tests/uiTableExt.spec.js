@@ -424,3 +424,57 @@ test.describe("one deferred re-apply per roundtrip", () => {
     expect(env.pendingRenders).toHaveLength(1);
   });
 });
+
+// The deferral flag belongs to the table INSTANCE it was registered on. A
+// rebuild that replaced the table before it ever rendered (a closed popup
+// rebuilt, a tab never opened) took whenRendered's delegate with the dead
+// instance - and the flag alone then latched forever: no re-apply for the
+// rest of the session, on every table the control resolved from then on.
+test.describe("a deferral on a table that never rendered", () => {
+  test("a replaced table instance gets a deferral of its own", () => {
+    const env = load({ deferRender: true });
+    const ext = makeExt(env);
+    const col = makeColumn("NAME");
+    const filters = [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }];
+    const dead = makeTable(makeBinding({ filters }), [col]);
+    env.setTable(dead);
+
+    ext.readBackend();
+    ext.applyBackend(); // deferred on `dead`, which never renders
+    expect(env.pendingRenders).toHaveLength(1);
+
+    // the rebuild produced a new table instance under the same id, with a
+    // fresh unfiltered binding
+    const b1 = makeBinding({ filters: [] });
+    const rebuilt = makeTable(b1, [col]);
+    env.setTable(rebuilt);
+    ext.applyBackend();
+    expect(env.pendingRenders).toHaveLength(2);
+
+    // the new table renders: its deferral applies, once
+    env.pendingRenders[1]();
+    expect(b1.calls.filter).toBe(1);
+    expect(col.state.filterValue).toBe("Bob");
+
+    // the dead table's deferral firing after all applies nothing - the
+    // pending one is the newer table's
+    env.pendingRenders[0]();
+    expect(b1.calls.filter).toBe(1);
+
+    // ... and the next roundtrip defers again, so the flag did not latch
+    ext.applyBackend();
+    expect(env.pendingRenders).toHaveLength(3);
+  });
+
+  test("the same table instance still gets one deferral", () => {
+    const env = load({ deferRender: true });
+    const ext = makeExt(env);
+    const table = makeTable(makeBinding(), [makeColumn("NAME")]);
+    env.setTable(table);
+
+    ext.readBackend();
+    ext.applyBackend();
+    ext.applyBackend();
+    expect(env.pendingRenders).toHaveLength(1);
+  });
+});

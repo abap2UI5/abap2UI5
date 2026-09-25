@@ -80,10 +80,24 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
   // ids, and after a rebuild resolving them in the NEW view and re-wiring
   // there. The key clears when the chain reaches any terminal state, so a
   // later re-issue (after a rebuild replaced the controls) starts fresh.
-  const activeInits = new Set();
+  // The set lives on the CONTEXT (ctx.variants, core/Context.js), not in
+  // this module: control ids repeat across components, so a module-wide
+  // set made two z2ui5.Component instances on one page share one chain -
+  // the second component's init was dropped as a duplicate of the first's
+  // for the whole 5 seconds that chain polled.
+  function activeInitsOf(oController, action) {
+    const ctx = oController?.ctx;
+    if (!ctx) {
+      Lib.logError(`${action}: no context to register in`);
+      return null;
+    }
+    return ctx.variants.activeInits;
+  }
 
   function evSmartVariantInit(oController, args) {
     const [, svmId, controlId] = args;
+    const activeInits = activeInitsOf(oController, "SMART_VARIANT_INIT");
+    if (!activeInits) return;
     const key = `${svmId}|${controlId || ""}`;
     if (activeInits.has(key)) return;
     activeInits.add(key);
@@ -279,6 +293,8 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
     // FILTER_BAR_WIRED is not a substitute for the dedup: it is set only once
     // BOTH controls resolve, so while the view is still building every
     // re-issued action stacked another concurrent 5-second chain.
+    const activeInits = activeInitsOf(oController, "FILTER_BAR_VARIANT_INIT");
+    if (!activeInits) return;
     const key = `${svmId}|${filterBarId || ""}`;
     if (activeInits.has(key)) return;
     activeInits.add(key);

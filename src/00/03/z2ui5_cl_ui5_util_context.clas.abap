@@ -353,18 +353,11 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    "! The S-RTTI descriptor graph and the data of a dynamically typed
-    "! object as ONE combined asXML document - the shape a draft written
-    "! before 2026-09 carries. No production caller since the pair methods
-    "! below replaced it; kept as the writer of that legacy shape for the
-    "! draft-restore fixture in z2ui5_cl_ui5_srv_model's test class
-    CLASS-METHODS xml_srtti_stringify
-      IMPORTING
-        !data         TYPE any
-      RETURNING
-        VALUE(result) TYPE string.
-
-    "! The way back for the ONE combined asXML document (see above)
+    "! The way back for the ONE combined asXML document - the S-RTTI
+    "! descriptor graph and the data in one, the shape every draft written
+    "! before 2026-09 carries. The framework only READS it any more (the
+    "! pair methods below write); the writer of the legacy shape lives with
+    "! the one test that needs it, in z2ui5_cl_ui5_srv_model's test class
     CLASS-METHODS xml_srtti_parse
       IMPORTING
         rtti_data     TYPE clike
@@ -648,6 +641,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " abap_true when one component of a row holds the search text - the
     " per-field half of itab_filter_by_val. A component that is not printable
     " (a table of children, a reference) holds no text and answers false
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
     CLASS-METHODS itab_filter_check_field
       IMPORTING
         field         TYPE any
@@ -721,6 +715,19 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         exists TYPE abap_bool,
       END OF ty_s_class_exists.
     CLASS-DATA gt_class_exists TYPE HASHED TABLE OF ty_s_class_exists WITH UNIQUE KEY name.
+
+    " rtti_check_class_impl_intf, cached per class and interface the way
+    " the existence check is: it is asked on every app start, and each
+    " answer was TWO describes of the same class (the existence check and
+    " its own) - one describe now, and none on the next start of the same
+    " app in this roll area
+    TYPES:
+      BEGIN OF ty_s_class_impl_intf,
+        name   TYPE string,
+        intf   TYPE string,
+        result TYPE abap_bool,
+      END OF ty_s_class_impl_intf.
+    CLASS-DATA gt_class_impl_intf TYPE HASHED TABLE OF ty_s_class_impl_intf WITH UNIQUE KEY name intf.
 
     CLASS-DATA gv_check_cloud TYPE abap_bool.
 
@@ -1322,32 +1329,43 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     DATA lo_typedescr  TYPE REF TO cl_abap_typedescr.
     DATA lo_classdescr TYPE REF TO cl_abap_classdescr.
+    DATA lv_class      TYPE string.
     DATA lv_intf       TYPE string.
 
-    " the existence check first: it is cached, and it is the one that
-    " answers "no such class" without a class-based exception (the
-    " functional describe_by_name form has none to catch)
-    IF rtti_check_class_exists( class ) = abap_false.
+    " cached per pair - see gt_class_impl_intf at the declaration
+    lv_class = to_upper( class ).
+    lv_intf  = to_upper( intf ).
+
+    READ TABLE gt_class_impl_intf REFERENCE INTO DATA(lr_hit)
+         WITH TABLE KEY name = lv_class
+                        intf = lv_intf.
+    IF sy-subrc = 0.
+      result = lr_hit->result.
       RETURN.
     ENDIF.
 
-    lv_intf = to_upper( intf ).
-
+    " ONE describe: the non-functional form answers "no such class" with
+    " sy-subrc rather than an exception, so the separate existence check
+    " that used to run first (its own describe of the same class) is not
+    " needed here
     TRY.
-        cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = class
+        cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = lv_class
                                               RECEIVING p_descr_ref     = lo_typedescr
                                               EXCEPTIONS type_not_found = 1 ).
-        IF sy-subrc <> 0.
-          RETURN.
+        IF sy-subrc = 0.
+          " an interface or a data type carries the name too - the cast is
+          " what says "class", and a failed one is a plain abap_false
+          lo_classdescr ?= lo_typedescr.
+          " a handful of rows per class - the read is not the cost here
+          result = xsdbool( line_exists( lo_classdescr->interfaces[ name = lv_intf ] ) ). "#EC CI_SORTSEQ
         ENDIF.
-        " an interface or a data type carries the name too - the cast is
-        " what says "class", and a failed one is a plain abap_false
-        lo_classdescr ?= lo_typedescr.
-        " a handful of rows per class - the read is not the cost here
-        result = xsdbool( line_exists( lo_classdescr->interfaces[ name = lv_intf ] ) ). "#EC CI_SORTSEQ
 
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+    INSERT VALUE #( name   = lv_class
+                    intf   = lv_intf
+                    result = result ) INTO TABLE gt_class_impl_intf.
 
   ENDMETHOD.
 
@@ -1703,43 +1721,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " here (z2ui5_cl_ui5_srv_model=>attri_srtti_parse)
     result = xml_srtti_parse_pair( iv_type = rtti_data
                                    iv_data = rtti_data ).
-
-  ENDMETHOD.
-
-  METHOD xml_srtti_stringify.
-
-    IF rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true.
-
-      DATA srtti TYPE REF TO object.
-      DATA(lv_classname) = `ZCL_SRTTI_TYPEDESCR`.
-      CALL METHOD (lv_classname)=>(`CREATE_BY_DATA_OBJECT`)
-        EXPORTING
-          data_object = data
-        RECEIVING
-          srtti       = srtti.
-      CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
-
-    ELSE.
-
-      TRY.
-          CALL METHOD z2ui5_cl_srt_typedescr=>(`CREATE_BY_DATA_OBJECT`)
-            EXPORTING
-              data_object = data
-            RECEIVING
-              srtti       = srtti.
-          CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
-
-        CATCH cx_root INTO DATA(lx_srtti).
-
-          " keep the root cause - a transformation error on the app's own
-          " data must not be masked behind a bare UNSUPPORTED_FEATURE
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING
-              val      = `UNSUPPORTED_FEATURE`
-              previous = lx_srtti.
-
-      ENDTRY.
-    ENDIF.
 
   ENDMETHOD.
 

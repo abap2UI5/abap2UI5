@@ -53,6 +53,8 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      shortcuts: { listener: null },` && |\n| &&
              `` && |\n| &&
+             `      variants: { activeInits: new Set() },` && |\n| &&
+             `` && |\n| &&
              `      scroll: { target: undefined, ui5El: undefined, slotKey: undefined },` && |\n| &&
              `` && |\n| &&
              `      errorView: { title: "", details: "", options: {}, dialog: null },` && |\n| &&

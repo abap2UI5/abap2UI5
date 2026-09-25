@@ -158,6 +158,17 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
     " class_constructor is the alternative and abap-check names it a trap
     CLASS-DATA gv_escape_specials TYPE string.
     CLASS-DATA gv_escape_controls TYPE string.
+    " the characters an element or attribute NAME must not carry - the
+    " markup and quote characters and whitespace; same lazy fill
+    CLASS-DATA gv_name_specials TYPE string.
+
+    " fail fast on a name that is no XML name: `n = 'te"xt'` used to render
+    " an attribute that ended early, and the view died in the browser far
+    " from the line that wrote it. Same road as every other misuse (raise)
+    METHODS name_check
+      IMPORTING
+        val  TYPE string
+        what TYPE string.
 
     " every misuse of the chain ends here: a catchable exception naming the
     " element and attribute, which the framework renders like any other error
@@ -194,6 +205,12 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD ele.
 
+    name_check( val  = n
+                what = `element name` ).
+    IF ns IS NOT INITIAL.
+      name_check( val  = ns
+                  what = `namespace prefix` ).
+    ENDIF.
     result = NEW #( ).
     result->root = root.
     result->parent = me.
@@ -230,6 +247,8 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     IF name IS INITIAL AND t_child IS INITIAL.
       raise( |a( n = '{ n }' ) on the empty builder root - open an element with ele( ) first| ).
     ENDIF.
+    name_check( val  = n
+                what = `attribute name` ).
     " v, b and t are mutually exclusive, and one of them is required - the
     " check and the resolution sit in attr_value, see there
     DATA(val) = attr_value( n       = n
@@ -273,6 +292,21 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val = |VIEW_BUILDER_ERROR - { val }|.
+
+  ENDMETHOD.
+
+
+  METHOD name_check.
+
+    IF gv_name_specials IS INITIAL.
+      gv_name_specials = ` <>"'&/=`
+          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    ENDIF.
+    IF val IS INITIAL OR val CA gv_name_specials.
+      raise( |{ what } '{ val }' is not a valid XML name| ).
+    ENDIF.
 
   ENDMETHOD.
 

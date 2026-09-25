@@ -1,47 +1,34 @@
 // Invisible control that sets the browser favicon from its bound
 // `favicon` URL (updates the existing <link> tag or creates one).
-sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
-  "use strict";
-  // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.
-  return Control.extend("z2ui5.cc.Favicon", {
-    metadata: {
-      properties: {
-        favicon: {
-          type: "string",
+sap.ui.define(
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/actions/Browser"],
+  (Control, Lib, Browser) => {
+    "use strict";
+    // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.
+    //
+    // The setter IS that event: it hands the value to the SET_FAVICON
+    // action handler (core/actions/Browser.js), which owns the URL guard
+    // (Lib.isSafeDownloadURL - active schemes and empty values refused)
+    // and the one decision worth having in one place: a page that already
+    // declares an icon link gets THAT link updated, never a second,
+    // competing one appended. The control used to carry a copy of both,
+    // and the two spellings of the link (rel="icon" vs the legacy
+    // "shortcut icon") drifted between them once.
+    return Control.extend("z2ui5.cc.Favicon", {
+      metadata: {
+        properties: {
+          favicon: {
+            type: "string",
+          },
         },
       },
-    },
-    setFavicon(val) {
-      // Empty renderer -> suppress the no-op invalidation; the effect below
-      // (updating the <link> tag) is what actually matters.
-      this.setProperty("favicon", val, true);
-      const href = Lib.toText(val);
-      // same guard as the SET_FAVICON action - see core/actions/Browser.js
-      if (!Lib.isSafeDownloadURL(href)) {
-        Lib.logError(`Favicon: refused unsafe URL "${href}"`);
-        return;
-      }
-      // Match ANY icon link, not just rel="shortcut icon": a page that
-      // declares the modern rel="icon" (or "icon shortcut") would otherwise
-      // keep its own link and get a second, competing one appended on every
-      // app start - which icon the browser then shows is up to it.
-      // ~= matches one entry of the whitespace-separated rel list.
-      const existing = /** @type {HTMLLinkElement | null} */ (
-        document.head.querySelector('link[rel~="icon"]')
-      );
-      if (existing) {
-        existing.href = href;
-        return;
-      }
-      // rel="icon", the same link the SET_FAVICON action creates
-      // (actions/Browser.js) - the control used to write the legacy
-      // "shortcut icon", so which of the two spellings a page carried
-      // depended on which side set the icon first
-      const link = document.createElement("link");
-      link.rel = "icon";
-      link.href = href;
-      document.head.appendChild(link);
-    },
-    renderer: Lib.EMPTY_RENDERER,
-  });
-});
+      setFavicon(val) {
+        // Empty renderer -> suppress the no-op invalidation; the effect below
+        // (updating the <link> tag) is what actually matters.
+        this.setProperty("favicon", val, true);
+        Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);
+      },
+      renderer: Lib.EMPTY_RENDERER,
+    });
+  },
+);

@@ -51,7 +51,7 @@ The repository structure:
 - `tools/` - generators that build artefacts out of `app/webapp/` (embedded ABAP, BSP packaging, delivery branches)
 - `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
 - `node/` - Node.js transpilation setup
-- `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
+- `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory, and holds the design decisions, the architecture seams and the recorded API-snapshot exceptions; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
 - `backlog/` - findings that belong in ANOTHER repository of the ecosystem (abaplint, the transpiler, the linter). Found a defect that is not ours to fix? It goes here rather than getting lost - see [`backlog/README.md`](backlog/README.md)
 - `.claude/skills/` - task-scoped guidance (the ABAP and UI5 problem catalogues a green CI does not catch)
 - `.github/` - CI/CD workflows and configurations
@@ -289,6 +289,34 @@ git push origin feature/your-feature-name
    - Why the change is needed
    - How to test the changes
    - Whether changes were made via abapGit
+
+### Pull request titles
+
+- **The PR title becomes the squash-merge commit subject — make it describe
+  the change.** Before merging, replace any auto-generated title (e.g. a
+  branch name like `Claude/...-abc123`) with a short descriptive title that
+  states what actually changed.
+- **One topic per PR.** A structural change (moving classes between packages,
+  renaming, restructuring) must not ride along in a PR titled for an
+  unrelated fix — split it into its own PR so the history stays searchable.
+
+### Issues reported by users
+
+- **Never close an issue somebody else reported, and never let a merge close
+  it.** The reporter is the only one who can confirm the fix, because the
+  defect is on *their* system and ours is what shipped it. Merging a PR is
+  not the end of the report — activating the fix on the affected system is,
+  and only they can do that. So do not use a closing keyword (`Fixes #NNNN`,
+  `Closes #NNNN`, `Resolves #NNNN`) in a PR title, body or commit message:
+  GitHub acts on it at merge time and closes the issue without anybody
+  deciding to. Write `Report: #NNNN` or `See #NNNN` instead, which links the
+  two without the side effect. #2664 was closed exactly this way.
+- **A reply on an issue is written for the reporter, not as a record of the
+  analysis.** A few lines: what was actually wrong, what they do now, and
+  whether their own reading of it was right. The evidence, the ruled-out
+  alternatives and the reasoning belong in the PR body and in the code
+  comment at the fix — a reader who wants them follows the link. A long
+  answer buries the one sentence the reporter needs.
 
 ### 3. PR Review Process
 1. **Automated Checks** - CI runs all tests automatically
