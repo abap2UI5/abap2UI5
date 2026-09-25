@@ -84,6 +84,7 @@
     "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
     "pack:backend": "node node/setup/pack-backend.mjs",
     "pack:npm": "node node/setup/pack-npm.mjs",
+    "pack:frontend": "node tools/pack-frontend.mjs",
     "test": "npm run unit && npm run check:js",
     "check:guide": "node .github/scripts/check-guide-api.mjs"
   },

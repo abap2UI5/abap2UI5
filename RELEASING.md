@@ -40,35 +40,44 @@ system**: `z2ui5_if_app=>version` is what abapGit shows and what
 holds it to `package.json`, and `npm run check:release` holds both to the
 changelog.
 
-## One-time setup — the npm package
+## One-time setup — the npm packages
 
-Every release also publishes the transpiled framework as the npm package
-**`@abap2ui5/node`** (AGENTS.md, "The transpiled framework is a package").
-The workflow publishes it by **trusted publishing** (OIDC, with provenance, no
-token) — but npm lets a package be pointed at a workflow only once the package
-exists, so the first version is published by hand, once, by a maintainer of
-the npm organisation `abap2ui5` (which already owns `@abap2ui5/linter`,
-`@abap2ui5/render-runtime` and `@abap2ui5/mcp-server`):
+Every release also publishes two npm packages (AGENTS.md, "The transpiled
+framework is a package"): **`@abap2ui5/node`**, the transpiled framework for a
+Node host, and **`@abap2ui5/frontend`**, the UI5 component. `backend-prebuilt.yaml`
+packs both, proves each by installing it once (`--check`), uploads each as a
+workflow artefact and publishes it by **trusted publishing** — OIDC, with
+provenance, no token. npm lets a package be pointed at a workflow only once
+the package exists, so the first version of each is published by hand, once,
+by a maintainer of the npm organisation `abap2ui5` (which already owns
+`@abap2ui5/linter`, `@abap2ui5/render-runtime` and `@abap2ui5/mcp-server`).
+Until then the publish steps end in a warning naming this section, and the run
+stays green.
 
-```sh
-npm run downport && npm run auto_transpile   # the built tree (a few minutes)
-npm run pack:npm -- --check                  # npm-package/abap2ui5-node-<version>.tgz, installed and driven once
-npm login
-npm publish ./npm-package/*.tgz --access public
-```
+The artefacts of that run ARE the bootstrap — nothing has to be built locally:
 
-(No `--provenance` on that one: npm generates an attestation only from a
-supported CI and aborts anywhere else. The bootstrap version ships without it;
-every release the workflow cuts has it.) Do this on a **release tag** checked
-out clean, so the version published by hand is a version that exists — the
-packer sets the package version from `package.json`.
+1. Cut the release as below and let `backend-prebuilt.yaml` finish (the
+   `frontend` job takes minutes, `attach` about half an hour).
+2. From the run's summary page, download the artefacts
+   `abap2ui5-node-<version>` and `abap2ui5-frontend-<version>` and unzip
+   them — each holds one `.tgz`.
+3. Publish both:
 
-Then, on npmjs.com → `@abap2ui5/node` → **Settings → Trusted Publisher**, point
-it at `abap2UI5/abap2UI5` and the workflow file `backend-prebuilt.yaml`. From
-the next release on, the workflow publishes with no token. Until this is done,
-its publish step ends in a warning naming this section, and the run stays green
-— the tarball is uploaded as a workflow artefact either way. An `NPM_TOKEN`
-organisation secret is the fallback, not the plan.
+   ```sh
+   npm login
+   npm publish ./abap2ui5-frontend-<version>.tgz --access public
+   npm publish ./abap2ui5-node-<version>.tgz --access public
+   ```
+
+   (No `--provenance` here: npm generates an attestation only from a
+   supported CI and aborts anywhere else. The bootstrap versions ship without
+   it; every release the workflow cuts has it.)
+4. On npmjs.com, for **each** of the two packages: **Settings → Trusted
+   Publisher → GitHub Actions**, organisation `abap2UI5`, repository
+   `abap2UI5`, workflow file `backend-prebuilt.yaml`, no environment.
+
+From the next release on, the workflow publishes both with no token. An
+`NPM_TOKEN` organisation secret is the fallback, not the plan.
 
 ## Cutting a release
 
@@ -151,13 +160,14 @@ tab: same gates, same notes, no tag and no release.
   downloads instead of building the backend itself — renaming either is a
   change over there first. The `-702` release gets no asset: it is the
   downported sources, and the backend is built from the same commit anyway.
-- **The npm package arrives with it.** The same `backend-prebuilt.yaml` run
-  packs `@abap2ui5/node@<version>` (`npm run pack:npm -- --check`: the tarball
-  is installed into a scratch project and driven before it is uploaded) and
-  publishes it by trusted publishing. A warning instead of a publish means the
-  one-time setup above has not happened yet; an error means it has and the
-  publish failed for a reason worth reading. The published version cannot be
-  changed afterwards — fix forward with the next release, as with the tags.
+- **The npm packages arrive with it.** The same `backend-prebuilt.yaml` run
+  packs `@abap2ui5/node@<version>` and `@abap2ui5/frontend@<version>`, installs
+  each once before it is uploaded (`--check`), and publishes both by trusted
+  publishing — the frontend within minutes, its own job needs no transpile. A
+  warning instead of a publish means the one-time setup above has not happened
+  yet; an error means it has and the publish failed for a reason worth
+  reading. A published version cannot be changed afterwards — fix forward with
+  the next release, as with the tags.
 - **The ecosystem can pin again.** Anything resolving the framework from `main`
   out of necessity rather than choice should name the new tag once it carries
   what that repository needs. `app-template`'s `abaplint.jsonc` is the standing

@@ -53,6 +53,8 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
+| [embed](https://github.com/abap2UI5/embed) (formerly test-cc) | `@abap2ui5/embed` — a UI5 custom control that runs an abap2UI5 app inside any UI5 app, on top of `@abap2ui5/frontend` |
+| [cap2UI5](https://github.com/cap2UI5/cap2UI5) | `cap2ui5` — a CAP plugin that hosts `@abap2ui5/node`: drafts in a CDS entity, apps as JavaScript classes next to the ABAP ones |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
 
@@ -373,14 +375,34 @@ tree has every file whether or not it is listed), and only an install catches
 it. Needs the registry; a few minutes.
 
 **Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds
-`id-token: write`, pins the npm that can publish that way, and runs
-`npm publish --provenance`. npm can only be pointed at this workflow for a
-package that already exists, so the first version is published by hand
-(RELEASING.md, "One-time setup"); until then the step ends in a **warning** —
-the package is not on the registry, so a failed publish is expected — and the
-tarball is still uploaded as a workflow artefact. Once the package exists, a
-failed publish is an error. A stored `NPM_TOKEN` still works and takes
-precedence.
+`id-token: write`, pins the npm that can publish that way, and hands the
+tarball to `.github/scripts/npm-publish.mjs` — one script for both packages
+this repository publishes, so the rule exists once. npm can only be pointed at
+a workflow for a package that already exists, so the first version of each is
+published by hand from the workflow artefact (RELEASING.md, "One-time setup —
+the npm packages"); until then the script ends in a **warning** and the run
+stays green. Once the package exists, a failed publish is an error; a version
+that is already there is a no-op, so a re-dispatch for a tag does not go red.
+A stored `NPM_TOKEN` still works and takes precedence.
+
+**The frontend is a package of its own (`@abap2ui5/frontend`).**
+`npm run pack:frontend` (`tools/pack-frontend.mjs`) packs `app/webapp`
+unchanged plus a `Component-preload.js` built with the UI5 CLI of `app/`,
+under `frontend/npm/`'s manifest, README and `ui5.yaml` — a UI5 tooling
+project of type `module`, so a UI5 app that depends on it gets
+`/resources/z2ui5/` served and built without any configuration. It is for
+the consumers that do not get the frontend from an ABAP system or with the
+backend: a UI5 app embedding abap2UI5 apps (`abap2UI5/embed` builds on it),
+a static host, a CDN. It is the conventional `Component-preload.js`, not the
+BSP branches' `preload.js` — a BSP page name cannot carry a hyphen, npm has no
+such limit. `--check` installs the tarball into a scratch UI5 app and runs
+`ui5 build --all`. It is published by its own job in `backend-prebuilt.yaml`
+(`frontend`): it needs no downport and no transpile, so it does not wait for
+them, and it lives in the SAME workflow file because npm's Trusted Publisher
+names the file. `@abap2ui5/node` keeps its own copy of `webapp/` rather than
+depending on this package: one package that carries both halves is what makes
+"same commit" a guarantee, and a host installing it does not depend on a
+second publish having succeeded.
 
 Why two deliveries and not one: the tarball is resolved by NAME from a GitHub
 release and carries `node/deps` and `node/downport`, which is what a tool that

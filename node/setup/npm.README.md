@@ -149,6 +149,8 @@ say so in a test of its own.
 - [`backend-<version>.tar.gz`](https://github.com/abap2UI5/abap2UI5/releases) on every
   release - the same transpile with the pinned library checkouts, for a tool
   that downloads and builds against it (what [abap2UI5/mcp-server](https://github.com/abap2UI5/mcp-server) does)
+- [`@abap2ui5/frontend`](https://www.npmjs.com/package/@abap2ui5/frontend) - the
+  same `webapp/` alone, as a UI5 tooling project, for a UI5 app or a static host
 - [`@abap2ui5/embed`](https://www.npmjs.com/package/@abap2ui5/embed) - the UI5
   custom control that runs an abap2UI5 app inside your own UI5 app, against
   this server or an SAP system

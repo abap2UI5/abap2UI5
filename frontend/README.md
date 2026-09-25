@@ -8,6 +8,7 @@ code. What turns the webapp into a branch lives in [`tools/`](../tools).
 | --- | --- |
 | `abap/cloud/`, `abap/standard/` | the ICF/BSP ABAP artefacts each branch ships — the HTTP handler, its SICF/service definitions, the packages |
 | `abap/cloud/abaplint.jsonc` | lints the above in place (`npm run frontend:lint`), and is copied into each branch with its glob turned to `/src/` |
+| `npm/` | the manifest, README and `ui5.yaml` of the npm package `@abap2ui5/frontend` — `npm run pack:frontend` (`tools/pack-frontend.mjs`) puts them around `app/webapp` and its `Component-preload.js` |
 | `common/` | README, LICENSE, SECURITY, CODE_OF_CONDUCT, .gitignore — the files every generated branch inherits |
 
 The Fiori project the cloud branches ship is **not** here: those branches carry
