@@ -211,6 +211,13 @@ const SCRIPT_CLOSE = [
     '  }',
 ];
 
+// The lines around the same entries in the frontend BUNDLE - the script a
+// GET of the node with ?z2ui5-bundle answers with (z2ui5_cl_ui5_http_handler
+// =>_http_get_bundle), for a page that embeds the component. Only the
+// registration: that page is running already, so nothing is started here.
+const BUNDLE_OPEN = ['sap.ui.require.preload({'];
+const BUNDLE_CLOSE = ['});'];
+
 // One preload entry as the script text carries it: a .js file as the body of
 // a function, anything else as a single-quoted string literal.
 function preloadEntryText({ urlPath, isJs, value }) {
@@ -318,6 +325,10 @@ function generateClassName(filePath) {
 // Nothing configurable may enter the text: an exit value in it would make the
 // digest a runtime question. The exit's styles_css used to be embedded here
 // and is written as a <style> element of its own by the handler now.
+// get_bundle( ) returns the same entries as a script of its own (BUNDLE_OPEN
+// / BUNDLE_CLOSE) - served as a file, not inline, so no hash is taken over
+// it. Both methods read the entries from one private method, so the class
+// carries every embedded file once.
 function buildPreloadClass(entries, buildHash, scriptHash) {
     const templateLines = (lines) => lines.map((line) => `|${abapTemplateText(line)}\\n|`);
     const entryLines = entries.map(({ urlPath, className, isJs }) => {
@@ -330,7 +341,10 @@ function buildPreloadClass(entries, buildHash, scriptHash) {
         }
         return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
     });
-    const joined = [...templateLines(SCRIPT_OPEN), ...entryLines, ...templateLines(SCRIPT_CLOSE)].join(' &&\n             ');
+    const concat = (parts) => parts.join(' &&\n             ');
+    const script = concat([...templateLines(SCRIPT_OPEN), 'entries( )', ...templateLines(SCRIPT_CLOSE)]);
+    const bundle = concat([...templateLines(BUNDLE_OPEN), 'entries( )', ...templateLines(BUNDLE_CLOSE)]);
+    const joined = concat(entryLines);
     return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Embedded frontend resource, generated from app/webapp/ by
@@ -361,8 +375,20 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the same entries as a script of its own, for a page that embeds the
+    " component: sap.ui.require.preload( ) and nothing else - no function
+    " around it, no start (z2ui5_cl_ui5_http_handler=>_http_get_bundle)
+    CLASS-METHODS get_bundle
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    " one line per embedded file - shared by get( ) and get_bundle( )
+    CLASS-METHODS entries
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS escape_js_literal
       IMPORTING
@@ -376,6 +402,18 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD get.
+
+    result = ${script}.
+
+  ENDMETHOD.
+
+  METHOD get_bundle.
+
+    result = ${bundle}.
+
+  ENDMETHOD.
+
+  METHOD entries.
 
     result = ${joined}.
 

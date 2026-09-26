@@ -106,6 +106,19 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     METHODS set_response.
 
   PRIVATE SECTION.
+    " The URL parameter that turns a GET of this node into the frontend as a
+    " script of its own, for a page that embeds the component (see
+    " _http_get_bundle). Without it a GET is the page, as it always was - the
+    " one ICF node stays the direct way into abap2UI5.
+    CONSTANTS c_bundle_param TYPE string VALUE `z2ui5-bundle`.
+
+    " The sibling BSPs of the frontend (see the settings in _http_get): the
+    " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
+    " customer's own artefacts (z2ui5_ccc, customer-frontend-extension).
+    " Handed to the component by the page and by the bundle alike.
+    CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
+    CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
+
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
@@ -175,6 +188,18 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " direct _main( ) call never meets the header of an earlier request.
     " Per request like ss_config_http_get, and reset with it
     CLASS-DATA sv_if_none_match  TYPE string.
+
+    " a GET that asks for the bundle - the c_bundle_param in its URL
+    CLASS-METHODS _is_bundle_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " the frontend as a script of its own - see the method
+    CLASS-METHODS _http_get_bundle
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
 
     " a cache validator, not a cryptographic hash - see the method
     CLASS-METHODS _get_etag
@@ -761,8 +786,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " view names the namespace. There is no window.z2ui5 global any more; it
     " used to carry these fields (removed 2026-09-22).
     DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
-                        |"ccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_cci", | &&
-                        |"cccResourceRoot" : "/sap/bc/ui5_ui5/sap/z2ui5_ccc"\}\}|.
+                        |"ccResourceRoot" : "{ c_cci_root }", | &&
+                        |"cccResourceRoot" : "{ c_ccc_root }"\}\}|.
 
     " The one inline script of the page - onInitComponent and the preload of
     " every embedded frontend file - is generated from app/webapp together
@@ -814,6 +839,66 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     sv_get_cache_key  = lv_cache_key.
     sv_get_cache_body = result-body.
+
+  ENDMETHOD.
+
+  METHOD _is_bundle_request.
+
+    " the name only - the parameter carries no value worth reading (the
+    " names come lower-cased from url_param_get_tab); a handful of URL
+    " parameters, read sequentially
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _http_get_bundle.
+
+    " GET <node>?z2ui5-bundle - the frontend of THIS installation as a script
+    " of its own, for a UI5 app that embeds the z2ui5 component instead of
+    " opening the page: z2ui5.reuse.Container (abap2UI5/reuse-custom-control)
+    " loads it with a <script> and then creates the component. The frontend
+    " then always has the version of the backend it talks to, and the host
+    " ships none. Everything else about the node stays as it is - without
+    " the parameter a GET is the page, a POST the roundtrip.
+    "
+    " The script is the page's own preload, taken from the same generated
+    " entries (z2ui5_cl_ui5f_preload=>get_bundle): every module registered
+    " as a function, the XML and JSON resources as strings, nothing run and
+    " nothing evaluated from a string - so a host with script-src 'self' and
+    " no 'unsafe-eval' needs nothing extra. It carries no user or app data,
+    " and it is the same for everybody; set_response sends it as JavaScript
+    " with the security headers (nosniff) and a tag to revalidate against.
+    "
+    " The define at its end is the one thing that is not the page's preload:
+    " z2ui5/embed hands the embedding page what only the installation knows -
+    " the paths of the sibling BSPs, which the page passes as component data
+    " as well (see _http_get) - and a page tells the bundle from anything else
+    " by it: a logon page or an older abap2UI5 answering with its shell
+    " defines no such module.
+    DATA(lv_etag) = _get_etag( c_bundle_param ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF _check_etag_match( iv_header = lv_if_none_match
+                          iv_etag   = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body = z2ui5_cl_ui5f_preload=>get_bundle( ) &&
+                  |sap.ui.define("z2ui5/embed", function () \{\n| &&
+                  |  "use strict";\n| &&
+                  |  return \{\n| &&
+                  |    componentData: \{\n| &&
+                  |      ccResourceRoot: "{ c_cci_root }",\n| &&
+                  |      cccResourceRoot: "{ c_ccc_root }"\n| &&
+                  |    \}\n| &&
+                  |  \};\n| &&
+                  |\});\n|.
+    result-status_code   = 200.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 
@@ -930,17 +1015,21 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " compare below stays for a 200 that reached this method without
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
+    " The bundle (?z2ui5-bundle) revalidates the same way, under its own tag
+    DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
+                               AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
-    IF ms_req-method = `GET` AND sv_get_etag IS NOT INITIAL
-        AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
-      lv_etag_get = sv_get_etag.
-      IF ms_res-status_code = 200
-          AND _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
-                                 iv_etag   = sv_get_etag ) = abap_true.
-        ms_res-status_code   = 304.
-        ms_res-status_reason = `Not Modified`.
-        CLEAR ms_res-body.
-      ENDIF.
+    IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
+      lv_etag_get = COND #( WHEN lv_bundle = abap_true
+                            THEN _get_etag( c_bundle_param )
+                            ELSE sv_get_etag ).
+    ENDIF.
+    IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
+        AND _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
+                               iv_etag   = lv_etag_get ) = abap_true.
+      ms_res-status_code   = 304.
+      ms_res-status_reason = `Not Modified`.
+      CLEAR ms_res-body.
     ENDIF.
 
     mo_server->set_cdata( ms_res-body ).
@@ -949,10 +1038,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " text - serving them as text/plain, together with the X-Content-Type-
     " Options: nosniff header below, stops a container that defaults to
     " text/html from rendering a reflected app name / exception text as markup
-    " (reflected-XSS). Success bodies are HTML for the GET shell and JSON for
-    " the POST roundtrip.
+    " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
+    " for the bundle and JSON for the POST roundtrip.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
+        WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
         WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
         ELSE `application/json; charset=UTF-8` ).
     mo_server->set_header_field( n = `content-type`
@@ -1121,7 +1211,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
         CASE is_req-method.
           WHEN `GET`.
-            result = _http_get( ).
+            IF _is_bundle_request( is_req-t_params ) = abap_true.
+              result = _http_get_bundle( ).
+            ELSE.
+              result = _http_get( ).
+            ENDIF.
           WHEN `POST`.
             result = _http_post( is_req ).
           WHEN OTHERS.

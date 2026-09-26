@@ -28,8 +28,20 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the same entries as a script of its own, for a page that embeds the
+    " component: sap.ui.require.preload( ) and nothing else - no function
+    " around it, no start (z2ui5_cl_ui5_http_handler=>_http_get_bundle)
+    CLASS-METHODS get_bundle
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    " one line per embedded file - shared by get( ) and get_bundle( )
+    CLASS-METHODS entries
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS escape_js_literal
       IMPORTING
@@ -47,7 +59,26 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     result = |\n| &&
              |  function onInitComponent()\{\n| &&
              |    sap.ui.require.preload(\{\n| &&
-             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
+             entries( ) &&
+             |    \});\n| &&
+             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
+             |     ComponentSupport.run();\n| &&
+             |    \});\n| &&
+             |  \}\n|.
+
+  ENDMETHOD.
+
+  METHOD get_bundle.
+
+    result = |sap.ui.require.preload(\{\n| &&
+             entries( ) &&
+             |\});\n|.
+
+  ENDMETHOD.
+
+  METHOD entries.
+
+    result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraPicture.js": function()\{{ z2ui5_cl_ui5f_campic_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&
@@ -113,12 +144,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n| &&
-             |    \});\n| &&
-             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
-             |     ComponentSupport.run();\n| &&
-             |    \});\n| &&
-             |  \}\n|.
+             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n|.
 
   ENDMETHOD.
 

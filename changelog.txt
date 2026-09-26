@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ GET /sap/bc/z2ui5?z2ui5-bundle answers with the frontend as a script of its own - the preload the page embeds (z2ui5_cl_ui5f_preload=>get_bundle), JavaScript with nosniff and an ETag of its own, plus a z2ui5/embed module carrying the sibling BSP paths - for a UI5 app that embeds the z2ui5 component instead of opening the page; without the parameter a GET is the page as before
 * User exit: a class-repository lookup that raised (a transient error) is no longer remembered as "no exit installed" for the rest of a sticky session - get_user_exit_class( ) asks the repository again on the next call; only a lookup that answered is latched
 * The exit context's is_context-app_start is normalised by the handler's own method (z2ui5_cl_ui5_handler=>app_start_normalize): it now unpacks the launchpad spelling -ns-class to /ns/class like the handler does, and the ?app_start= query reads that spelling too
 ! View builder: a( ), ele( ) and tag( ) raise VIEW_BUILDER_ERROR on an attribute name, element name or namespace prefix that is no XML name (empty, or carrying < > " ' & / = or whitespace) instead of rendering a view the browser refuses far from the line that wrote it
