@@ -22,6 +22,9 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_csrf_referer      FOR TESTING RAISING cx_static_check.
     METHODS test_csrf_default_port FOR TESTING RAISING cx_static_check.
     METHODS test_preload_literals  FOR TESTING RAISING cx_static_check.
+    " GET ?z2ui5-bundle is the frontend as a script, every other GET the page
+    METHODS test_main_get_bundle   FOR TESTING RAISING cx_static_check.
+    METHODS test_main_get_no_bundle FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -396,6 +399,50 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_main_get_bundle.
+
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+    " the page's preload registration and nothing of the page around it
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = ls_result-body
+                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `onInitComponent` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `ComponentSupport` ) ).
+    " ...and the module the embedding page recognises it by, with the
+    " sibling BSPs the page itself hands the component as well
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_main_get_no_bundle.
+
+    " any other parameter - an app_start above all - keeps the page: the node
+    " stays the direct way into abap2UI5
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        t_params = VALUE #( ( n = `app_start`
+                              v = `z2ui5_cl_ui5_app_hi_world` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `z2ui5/embed` ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -623,6 +670,10 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_csp_hash_security_hdr   FOR TESTING RAISING cx_static_check.
     METHODS test_shell_script_is_preload FOR TESTING RAISING cx_static_check.
     METHODS test_style_exit_element      FOR TESTING RAISING cx_static_check.
+    " the bundle: sent as JavaScript under a tag of its own, revalidated to a
+    " bodyless 304, and without touching the page's tag
+    METHODS test_bundle_response         FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_304              FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1481,6 +1532,73 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     SPLIT lv_body AT `<style>` INTO TABLE DATA(lt_part).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_part ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_response.
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = mo_mock->mv_cdata
+                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `application/javascript; charset=UTF-8`
+                                        act = header_value( `content-type` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `nosniff`
+                                        act = header_value( `x-content-type-options` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_http_handler=>_get_etag( `z2ui5-bundle` )
+                                        act = header_value( `etag` ) ).
+    " the page's tag and cache are not the bundle's business
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_304.
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
+    mo_handler->main( ).
+    DATA(lv_tag) = header_value( `etag` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_tag ).
+
+    " the reload, in a new work process: the tag comes back, the script not
+    caches_clear( ).
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
+    INSERT VALUE #( n = `if-none-match`
+                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 304
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_tag
+                                        act = header_value( `etag` ) ).
+
+    " the page's tag is another one - it does not 304 the page
+    caches_clear( ).
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    INSERT VALUE #( n = `if-none-match`
+                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `<!DOCTYPE html>` ) ).
 
   ENDMETHOD.
 
