@@ -8,8 +8,8 @@ node_modules
 /backend-manifest.json
 /backend-*.tar.gz
 
-# the npm tarballs, written by `npm run pack:node-runtime` and
-# `npm run pack:embed-control`, uploaded by backend-prebuilt.yaml
+# the npm tarball, written by `npm run pack:node-runtime` and uploaded by
+# backend-prebuilt.yaml
 /npm-package/
 /node/coverage/
 /coverage/

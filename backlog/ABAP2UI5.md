@@ -21,7 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`embed-as-reuse-component`](items/embed-as-reuse-component.md) | Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; the wrapping custom control z2ui5.embed.Container ships in app/webapp/embed and as @abap2ui5/embed-control; stage 1 (the embedded flag that turns the page-wide behaviours off) stays open until there is real demand | low | 2026-09-23 | abap2UI5/abap2UI5 |
+| [`embed-as-reuse-component`](items/embed-as-reuse-component.md) | Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; stage 1 (the embedded flag that turns the page-wide behaviours off) and a wrapping custom control stay open until there is real demand | low | 2026-09-23 | abap2UI5/abap2UI5 |
 | [`on-demand-module-route-for-deferred-devtools`](items/on-demand-module-route-for-deferred-devtools.md) | 'The handler answers every GET with the shell, so a module dropped from the preload is unfetchable - deferring the ~23% of preload bytes the devtools could give up needs a whitelisted single-module GET route plus a frontend loader path, and the whitelist has to be GENERATED or it violates the no-manual-preload-list rule' | low | 2026-09-01 | abap2UI5/abap2UI5 |
 
 ---

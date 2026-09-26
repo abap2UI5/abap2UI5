@@ -33,8 +33,7 @@
  *
  * No webapp/: the UI5 component is embedded in the page the framework serves
  * on GET (src/01/03, transpiled into output/ like everything else), so a Node
- * host needs no frontend files. @abap2ui5/embed-control is app/webapp as files,
- * for the hosts that do (tools/pack-frontend.mjs).
+ * host needs no frontend files.
  *
  * Assembled in a STAGING directory outside the checkout: the manifest is
  * deliberately not node/package.json (its header says why), and `npm pack`
@@ -265,7 +264,7 @@ try {
   const body = await res.text();
   if (res.status !== 200) fail("GET / answered " + res.status);
   if (!/z2ui5/.test(body)) fail("GET / is not the abap2UI5 page:\\n" + body.slice(0, 400));
-  if (!body.includes('"z2ui5/Component.js"') || !body.includes('"z2ui5/embed/Container.js"')) {
+  if (!body.includes('"z2ui5/Component.js"')) {
     fail("the page does not carry the UI5 component - the frontend is not embedded");
   }
   ok("serve() answers GET / with the framework's page, the UI5 component embedded (" + body.length + " bytes)");

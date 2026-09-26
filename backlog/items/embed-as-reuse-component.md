@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; the wrapping custom control z2ui5.embed.Container ships in app/webapp/embed and as @abap2ui5/embed-control; stage 1 (the embedded flag that turns the page-wide behaviours off) stays open until there is real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; stage 1 (the embedded flag that turns the page-wide behaviours off) and a wrapping custom control stay open until there is real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -14,13 +14,12 @@ evidence:
 # Embed abap2UI5 in other UI5 apps as a reuse component
 
 **Status: stage 2 done (2026-09-23, maintainer decision to build it after
-all) and the custom control shipped (2026-09-25); stage 1 open.** abap2UI5 is built for the
+all), stage 1 and the custom control open.** abap2UI5 is built for the
 whole page: a stateful roundtrip per event, and the backend drives routing,
 popups, title and favicon. Embedding it as one area of a host app (a
 freestyle view, a Fiori elements V4 custom section or V2 reuse component)
 needs stage 1 below, which is only worth its cost once someone actually
-needs it; the custom control that already exists is a thin wrapper and
-inherits every limit stage 1 would lift.
+needs it; a custom control is a thin wrapper on top of it.
 
 ## Already in place
 
@@ -110,21 +109,18 @@ a rare UI; what the stage bought is that a launchpad in keep-alive mode, or
 a host that creates the component twice, no longer corrupts the first
 instance.
 
-## The custom control (done, without stage 1)
+## A custom control (deferred)
 
-`z2ui5.embed.Container` (`app/webapp/embed/Container.js`) is the thin wrapper
-around the `ComponentContainer` this section used to defer: `app`,
-`endpoint`, `params` and a size, each change of the first three a new
-component and so a new backend session. It was written in
-[abap2UI5/embed-example](https://github.com/abap2UI5/embed-example) (formerly test-cc) as the
-npm package `@abap2ui5/reuse-custom-control`, later `@abap2ui5/embed`, in the
-namespace `z2ui5.reuse`, and moved
-into this webapp as `z2ui5.embed` before it was ever published: it ships as
-`@abap2ui5/embed-control` (the whole webapp as a UI5 module), and the embed
-repository keeps the example host app, its browser tests on UI5 1.71 and
-1.136, and the frontend-cc delivery. It is what asked for
-`componentData.endpoint`. The stage 1 items above are still what it lacks -
-its package README lists them as known limitations.
+A `z2ui5.Embed` control with `appStart`/`endpoint` properties would only be
+a thin wrapper around the `ComponentContainer`. It is worth writing after
+stage 1, not instead of it. The UI5 standard for this is a reuse
+component, not a custom control.
+
+A first version is under way in
+[abap2UI5/test-cc](https://github.com/abap2UI5/test-cc): the npm package
+`@abap2ui5/reuse-custom-control` with a `z2ui5.reuse.Container` control
+that ships this frontend at a pinned commit. It is what asked for
+`componentData.endpoint`; the stage 1 items above are still what it lacks.
 
 ## 1.71
 

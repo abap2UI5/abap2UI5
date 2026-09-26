@@ -270,9 +270,6 @@ const CLASS_NAME_STEMS = {
     'core/FrontendAction.js': 'frontact_js',
     'core/ScrollFocus.js': 'scrfocus_js',
     'core/ViewSlots.js': 'viewslot_js',
-    // the host-side embedding control; `container_*` is one character too long
-    'embed/Container.css': 'embed_css',
-    'embed/Container.js': 'embed_js',
     'core/actions/BindingCall.js': 'bindcall_js',
     'core/actions/ControlCall.js': 'ctrlcall_js',
     'core/actions/Launchpad.js': 'launchpd_js',

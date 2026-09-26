@@ -2,11 +2,9 @@ name: backend-prebuilt
 # Attaches the transpiled Node backend to every release, as
 # `backend-<version>.tar.gz`.
 #
-# And publishes the two npm packages of a release from the same tag:
-# @abap2ui5/node-runtime (the job `attach`, after the transpile it already runs) and
-# @abap2ui5/embed-control (the job `frontend`, which needs no transpile) - both
-# through .github/scripts/npm-publish.mjs; RELEASING.md has the one-time
-# setup that trusted publishing needs.
+# And publishes the npm package @abap2ui5/node-runtime from the same tag,
+# after the transpile it already runs, through .github/scripts/npm-publish.mjs;
+# RELEASING.md has the one-time setup that trusted publishing needs.
 #
 # Why this exists: abap2UI5/mcp-server boots every app against a transpiled
 # Node backend (its lib/runtime.mjs, `buildBackend`), and its first "full"
@@ -163,80 +161,16 @@ jobs:
 
     # Node 22 ships npm 10.x, which has no OIDC support - it would fall
     # through to asking for a token and fail confusingly. Trusted publishing
-    # needs 11.5.1 or newer. PINNED, not @latest: this is one of the two jobs
-    # in the repository that hold a publishing identity, and @latest hands
-    # whatever npm published this morning the right to run inside it. The same
-    # pin as the frontend job below and abap2UI5/linter's release.yml - raise
-    # them together.
+    # needs 11.5.1 or newer. PINNED, not @latest: this is the one step in the
+    # repository that holds a publishing identity, and @latest hands whatever
+    # npm published this morning the right to run inside it. The same pin as
+    # abap2UI5/linter's release.yml - raise them together.
     - name: Use an npm that can publish via OIDC
       run: npm install -g npm@12.0.2
 
     # The bootstrap rule (a warning until the package exists on the registry,
-    # an error afterwards) lives in the script, once for both packages.
+    # an error afterwards) lives in the script.
     - name: Publish @abap2ui5/node-runtime
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-node-runtime-*.tgz
-
-  # --- the frontend, as an npm package --------------------------------------
-  #
-  # app/webapp as @abap2ui5/embed-control (tools/pack-frontend.mjs; its header says
-  # what goes in and why). A job of its own because it needs none of the above:
-  # no downport, no transpile - the UI5 CLI of app/ builds the preload in
-  # seconds, so it is on the registry long before the backend half is.
-  #
-  # Same trigger, same tag, same version check, same publish script as the
-  # node-runtime package - and the same workflow FILE, which matters: npm's Trusted
-  # Publisher names the file, so both packages point at backend-prebuilt.yaml.
-  frontend:
-    if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
-    permissions:
-      contents: read
-      # the OIDC token npm exchanges for a publish credential
-      id-token: write
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      TAG: ${{ github.event.release.tag_name || inputs.tag }}
-    steps:
-    - name: Checkout the release tag
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        ref: ${{ github.event.release.tag_name || inputs.tag }}
-        persist-credentials: false
-
-    # app-npm-ci: the UI5 CLI that builds Component-preload.js is app/'s
-    - uses: ./.github/actions/setup
-      with:
-        app-npm-ci: "true"
-
-    - name: The tag and package.json name the same version
-      run: |
-        VERSION="$(node -p "require('./package.json').version")"
-        if [ "$VERSION" != "$TAG" ]; then
-          echo "::error::package.json at tag $TAG says version $VERSION - dispatch this workflow with a release tag (X.Y.Z)."
-          exit 1
-        fi
-
-    # --check installs the tarball into a scratch UI5 app and runs
-    # `ui5 build --all` there: the control, the component and its preload arrive
-    # under dist/resources/z2ui5/ - what the package README promises.
-    - name: Pack @abap2ui5/embed-control and prove it builds in a consumer app
-      id: pack
-      run: |
-        npm run pack:embed-control -- --check --out npm-package
-        echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-
-    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-      with:
-        name: abap2ui5-embed-control-${{ steps.pack.outputs.version }}
-        path: npm-package/*.tgz
-        if-no-files-found: error
-
-    - name: Use an npm that can publish via OIDC
-      run: npm install -g npm@12.0.2
-
-    - name: Publish @abap2ui5/embed-control
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-embed-control-*.tgz

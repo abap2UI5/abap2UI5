@@ -53,7 +53,6 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
-| [embed-example](https://github.com/abap2UI5/embed-example) (formerly test-cc) | The example host app for `@abap2ui5/embed-control` (a plain UI5 app placing `z2ui5.embed.Container`), its browser tests, and the build of [frontend-cc](https://github.com/abap2UI5/frontend-cc), the example delivered ready to install |
 | [cap2UI5](https://github.com/cap2UI5/cap2UI5) | `cap2ui5` — a CAP plugin that hosts `@abap2ui5/node-runtime`: drafts in a CDS entity, apps as JavaScript classes next to the ABAP ones |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
@@ -327,41 +326,34 @@ available: the frontend looked for a key the backend no longer wrote, read its
 absence as "nothing to do", and rendered an empty page with no error anywhere.
 A number on the wire turns that into a sentence somebody can read.
 
-### The npm packages (`@abap2ui5/node-runtime`, `@abap2ui5/embed-control`)
+### The transpiled framework is a package (`@abap2ui5/node-runtime`)
 
-Every release publishes two npm packages, one per side of the wire. Both are
-packed in `backend-prebuilt.yaml`, both prove themselves by being installed
-once before they are uploaded (`--check`), and both are published by the same
-script.
-
-| Package | What | Built by | For |
-|---|---|---|---|
-| `@abap2ui5/node-runtime` | the framework transpiled to JavaScript: `output/`, `setup/setup.mjs`, `srv/host.mjs`, `downport/` | `npm run pack:node-runtime` (`node/setup/pack-npm.mjs`), job `attach`, after the downport and transpile it already runs | a Node host that RUNS abap2UI5 - cap2UI5, a container, a plain express app |
-| `@abap2ui5/embed-control` | `app/webapp` unchanged plus a `Component-preload.js`: the component `z2ui5` and the control `z2ui5.embed.Container`, as a UI5 tooling project of type `module` | `npm run pack:embed-control` (`tools/pack-frontend.mjs`), job `frontend`, no transpile needed | a UI5 app that embeds abap2UI5 apps; a static host or a CDN for the component |
-
-**`@abap2ui5/node-runtime`.** The manifest is `node/setup/npm.package.json`,
-copied into a staging directory outside the checkout at pack time. **It is
-deliberately not `node/package.json`:** a `package.json` inside `node/` makes
-that directory an npm package root, so `npm run <script>` from there stops
-walking up to this repository's scripts — `cd node && npm run express` answers
-*"Missing script"*, which is what `node/playwright.config.js` starts its web
-server with, and all four browser projects fail to boot. The version is the
-framework's, set at pack time (the committed `0.0.0-set-at-pack` is
-deliberate); the two `@abaplint` dependencies are pinned to the **exact**
-versions in `package-lock.json`, because transpiler output is tied to its
-runtime; the transpiler version, the commit and the build time go into the
-manifest's `abap2ui5` field. `downport/` is there so a host can transpile its
-own app classes with the framework as a library (the README's "Your own
-apps").
+`backend-prebuilt.yaml` packs the transpiled tree **twice**, from one build.
+The release tarball (`backend-<version>.tar.gz`, `npm run pack:backend`) is the
+first; `npm run pack:node-runtime` (`node/setup/pack-npm.mjs`) at the end of the
+same job is the second: the npm package **`@abap2ui5/node-runtime`**,
+assembled in a staging directory outside the checkout from `node/output`,
+`node/setup/setup.mjs` (the hook `output/init.mjs` imports by the relative
+path fixed in `node/setup/abap_transpile.json`), **`node/srv/host.mjs`** (the
+entry point, below), `node/downport` (so a host can transpile its own app
+classes with the framework as a library - the README's "Your own apps") and
+`node/setup/npm.README.md`. `node/setup/npm.package.json` is its manifest.
+**It is deliberately not `node/package.json`:** a `package.json` inside
+`node/` makes that directory an npm package root, so `npm run <script>` from
+there stops walking up to this repository's scripts — `cd node && npm run
+express` answers *"Missing script"*, which is what `node/playwright.config.js`
+starts its web server with, and all four browser projects fail to boot. The
+version is the framework's, set at pack time (the committed
+`0.0.0-set-at-pack` is deliberate); the two `@abaplint` dependencies are
+pinned to the **exact** versions in `package-lock.json`, because transpiler
+output is tied to its runtime; the transpiler version, the commit and the
+build time go into the manifest's `abap2ui5` field.
 
 **It carries no `webapp/`, on purpose.** The GET page the framework serves
 embeds the whole component - every module, view and stylesheet - from the
 constants in `src/01/03`, which are transpiled with everything else, so the
 page and the roundtrips come from one commit by construction and a Node host
-needs no frontend files. A first cut shipped `app/webapp` in the package as
-well, justified by exactly that same-commit guarantee; the backend already
-gave it, and the copy was read by nothing but a static mount in cap2UI5 that
-nothing requested.
+needs no frontend files.
 
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
 it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`
@@ -377,53 +369,34 @@ scratch project with `express` and the pinned `@abaplint/transpiler-cli`:
 scratch project transpiles against `downport/` has to register in the running
 runtime.
 
-**`@abap2ui5/embed-control`.** The manifest, README and `ui5.yaml` are in
-`frontend/npm/`. The control is `app/webapp/embed/Container.js`: a thin
-wrapper that creates a `ComponentContainer` holding `z2ui5` with
-`componentData.startupParameters.app_start` and `componentData.endpoint`. It
-was written in abap2UI5/embed-example (formerly test-cc) as a package of its
-own, `@abap2ui5/embed`, in the namespace `z2ui5.reuse`, and moved here -
-renamed to `z2ui5.embed`, matching the package - before either was ever
-published: 7 kB do not
-earn a package, a repository and a version pin of their own, and next to the
-component the control and what it wraps can never be of different releases.
-It rides in `src/01/03` like every webapp file (nothing in the standalone page
-or the launchpad loads it). The bundle is the conventional
-`Component-preload.js`, not the BSP branches' `preload.js` — a BSP page name
-cannot carry a hyphen, npm has no such limit. `--check` installs the tarball
-into a scratch UI5 app and runs `ui5 build --all`: the control, the component
-and its preload have to arrive under `dist/resources/z2ui5/`. The job is
-separate from `attach` because it needs no transpile, and in the SAME workflow
-file because npm's Trusted Publisher names the file.
+**Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds
+`id-token: write`, pins the npm that can publish that way, and hands the
+tarball to `.github/scripts/npm-publish.mjs`. npm can only be pointed at a
+workflow for a package that already exists, so the first version is published
+by hand from the workflow artefact (RELEASING.md, "One-time setup — the npm
+package"); until then the script ends in a **warning** and the run stays
+green. Once the package exists, a failed publish is an error; a version
+already there is a no-op, so a re-dispatch for a tag does not go red. A stored
+`NPM_TOKEN` still works and takes precedence.
 
-**Publishing is trusted publishing (OIDC), with a bootstrap.** Both jobs hold
-`id-token: write`, pin the npm that can publish that way, and hand the
-tarball to `.github/scripts/npm-publish.mjs`, so the rule exists once. npm can
-only be pointed at a workflow for a package that already exists, so the first
-version of each is published by hand from the workflow artefact (RELEASING.md,
-"One-time setup — the npm packages"); until then the script ends in a
-**warning** and the run stays green. Once the package exists, a failed publish
-is an error; a version already there is a no-op, so a re-dispatch for a tag
-does not go red. A stored `NPM_TOKEN` still works and takes precedence.
+**The name.** Drafted first as `@abap2ui5/runtime` (next to the linter's
+unrelated `@abap2ui5/render-runtime`), then as `@abap2ui5/node`; neither was
+ever published. `node-runtime` says what a consumer does with it: run
+abap2UI5 in Node.
 
-**The names.** Drafted first as `@abap2ui5/runtime` (which sat next to the
-linter's unrelated `@abap2ui5/render-runtime`), then as `@abap2ui5/node` and
-`@abap2ui5/frontend`; none of them was ever published. The final names say
-what a consumer does with each: run abap2UI5 in Node, embed it in a UI5 app.
-
-Why the backend is a package AND a release tarball: the tarball
-(`backend-<version>.tar.gz`, `npm run pack:backend`) is resolved by NAME from a
+Why a package AND a release tarball: the tarball is resolved by NAME from a
 GitHub release and carries `node/deps` and `node/downport`, which is what a
 tool that downloads and builds against it needs (`abap2UI5/mcp-server`). A
-host that merely RUNS the framework is an ordinary Node project and already
-has `npm i`. Both ride `backend-prebuilt.yaml` rather than `release.yaml`
-because the downport and the transpile have already run there.
+host that merely RUNS the framework — cap2UI5, a container, a serverless
+function — is an ordinary Node project and already has `npm i`. Both ride
+`backend-prebuilt.yaml` rather than `release.yaml` because the downport and
+the transpile have already run there.
 
-What `@abap2ui5/node-runtime` promises is only what `host.mjs` and
-`output/init.mjs` promise: everything else in `output/` is transpiler output,
-and its shape — the static `ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~`
-becoming `$` — is `@abaplint/transpiler`'s, not ours. A host that reaches
-into it couples to the transpiler, and should say so in a test of its own.
+What the package promises is only what `host.mjs` and `output/init.mjs`
+promise: everything else in `output/` is transpiler output, and its shape —
+the static `ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` —
+is `@abaplint/transpiler`'s, not ours. A host that reaches into it couples to
+the transpiler, and should say so in a test of its own.
 
 ### A missing codepage class must not take down the view
 

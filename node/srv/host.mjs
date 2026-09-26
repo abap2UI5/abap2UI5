@@ -37,10 +37,8 @@
  * embedded in it - every module, view and stylesheet, carried as ABAP
  * constants (src/01/03, generated from app/webapp) and transpiled with the
  * backend - so the page and the roundtrips come from the same commit by
- * construction. A host that wants the component as FILES (a launchpad tile, a
- * UI5 app embedding it, a CDN) installs @abap2ui5/embed-control, which is
- * app/webapp as a UI5 module; the package used to carry a second copy of it
- * that nothing in a Node host read.
+ * construction, and the package carries no frontend files of its own. A
+ * first cut shipped app/webapp as well; nothing in a Node host read it.
  */
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
