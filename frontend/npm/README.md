@@ -7,7 +7,7 @@ decides the view and handles every event. This package puts such an app into
 **your** UI5 app as an ordinary control, next to your own controls:
 
 ```xml
-<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5="z2ui5.reuse">
+<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5="z2ui5.embed">
   <z2ui5:Container app="Z2UI5_CL_UI5_APP_HI_WORLD" height="400px"/>
 </mvc:View>
 ```
@@ -34,7 +34,7 @@ pick up every dependency that has a `ui5.yaml`).
 In an XML view, as above, or in code:
 
 ```js
-sap.ui.require(["z2ui5/reuse/Container"], (Container) => {
+sap.ui.require(["z2ui5/embed/Container"], (Container) => {
   new Container({
     app: "ZCL_MY_ABAP2UI5_APP",
     params: { customer: "4711" },
@@ -100,7 +100,7 @@ the browser must reach the service through your app's origin:
 - **`ui5 serve`** - a proxy middleware forwards `/sap` to the system. The
   proxy rewrites `Host` but passes the browser's `Origin` on, so it also has
   to drop `Origin` and `Referer`; the
-  [example app](https://github.com/abap2UI5/embed/tree/main/examples/host-app)
+  [example app](https://github.com/abap2UI5/embed-example/tree/main/examples/host-app)
   shows both pieces
 
 The frontend in this package and the abap2UI5 on the backend talk over a
@@ -147,7 +147,7 @@ an embedded app still
 
 | Path | |
 |---|---|
-| `webapp/reuse/Container.js` | The control `z2ui5.reuse.Container`, and `Container.css` next to it |
+| `webapp/embed/Container.js` | The control `z2ui5.embed.Container`, and `Container.css` next to it |
 | `webapp/` | The UI5 component `z2ui5`: `Component.js`, `manifest.json`, `core/`, `controller/`, `view/`, `cc/` (the framework's own controls), `model/`, `css/`, `devtools/` - and `index.html`, the standalone page |
 | `webapp/Component-preload.js` | Every module in one file, so a host loads the component with one request instead of one per module; `Component-preload.js.map` points into the unminified sources next to it |
 | `ui5.yaml` | The UI5 tooling project: `/resources/z2ui5/` is `webapp/` |

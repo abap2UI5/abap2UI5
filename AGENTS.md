@@ -53,7 +53,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
-| [embed](https://github.com/abap2UI5/embed) (formerly test-cc) | The example host app for `@abap2ui5/embed-control` (a plain UI5 app placing `z2ui5.reuse.Container`), its browser tests, and the build of [frontend-cc](https://github.com/abap2UI5/frontend-cc), the example delivered ready to install |
+| [embed-example](https://github.com/abap2UI5/embed-example) (formerly test-cc) | The example host app for `@abap2ui5/embed-control` (a plain UI5 app placing `z2ui5.embed.Container`), its browser tests, and the build of [frontend-cc](https://github.com/abap2UI5/frontend-cc), the example delivered ready to install |
 | [cap2UI5](https://github.com/cap2UI5/cap2UI5) | `cap2ui5` — a CAP plugin that hosts `@abap2ui5/node-runtime`: drafts in a CDS entity, apps as JavaScript classes next to the ABAP ones |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
@@ -337,7 +337,7 @@ script.
 | Package | What | Built by | For |
 |---|---|---|---|
 | `@abap2ui5/node-runtime` | the framework transpiled to JavaScript: `output/`, `setup/setup.mjs`, `srv/host.mjs`, `downport/` | `npm run pack:node-runtime` (`node/setup/pack-npm.mjs`), job `attach`, after the downport and transpile it already runs | a Node host that RUNS abap2UI5 - cap2UI5, a container, a plain express app |
-| `@abap2ui5/embed-control` | `app/webapp` unchanged plus a `Component-preload.js`: the component `z2ui5` and the control `z2ui5.reuse.Container`, as a UI5 tooling project of type `module` | `npm run pack:embed-control` (`tools/pack-frontend.mjs`), job `frontend`, no transpile needed | a UI5 app that embeds abap2UI5 apps; a static host or a CDN for the component |
+| `@abap2ui5/embed-control` | `app/webapp` unchanged plus a `Component-preload.js`: the component `z2ui5` and the control `z2ui5.embed.Container`, as a UI5 tooling project of type `module` | `npm run pack:embed-control` (`tools/pack-frontend.mjs`), job `frontend`, no transpile needed | a UI5 app that embeds abap2UI5 apps; a static host or a CDN for the component |
 
 **`@abap2ui5/node-runtime`.** The manifest is `node/setup/npm.package.json`,
 copied into a staging directory outside the checkout at pack time. **It is
@@ -378,11 +378,13 @@ scratch project transpiles against `downport/` has to register in the running
 runtime.
 
 **`@abap2ui5/embed-control`.** The manifest, README and `ui5.yaml` are in
-`frontend/npm/`. The control is `app/webapp/reuse/Container.js`: a thin
+`frontend/npm/`. The control is `app/webapp/embed/Container.js`: a thin
 wrapper that creates a `ComponentContainer` holding `z2ui5` with
 `componentData.startupParameters.app_start` and `componentData.endpoint`. It
-was written in abap2UI5/embed (formerly test-cc) as a package of its own,
-`@abap2ui5/embed`, and moved here before that was ever published: 7 kB do not
+was written in abap2UI5/embed-example (formerly test-cc) as a package of its
+own, `@abap2ui5/embed`, in the namespace `z2ui5.reuse`, and moved here -
+renamed to `z2ui5.embed`, matching the package - before either was ever
+published: 7 kB do not
 earn a package, a repository and a version pin of their own, and next to the
 component the control and what it wraps can never be of different releases.
 It rides in `src/01/03` like every webapp file (nothing in the standalone page

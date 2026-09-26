@@ -3,7 +3,7 @@
 # this package in its dependencies gets /resources/z2ui5/ served by
 # `ui5 serve` and copied into dist/resources/ by `ui5 build --all` (UI5 CLI 3
 # and later pick up every dependency that carries a ui5.yaml). The control is
-# z2ui5/reuse/Container, the component is z2ui5 - both under one root.
+# z2ui5/embed/Container, the component is z2ui5 - both under one root.
 specVersion: "4.0"
 type: module
 metadata:

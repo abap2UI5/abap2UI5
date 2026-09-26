@@ -4,7 +4,7 @@
  *
  * The abap2UI5 frontend for the consumers that do not get it from an ABAP
  * system: above all a UI5 app that embeds abap2UI5 apps with the control
- * z2ui5.reuse.Container (app/webapp/reuse/), and a static host or a CDN for
+ * z2ui5.embed.Container (app/webapp/embed/), and a static host or a CDN for
  * the component alone. It is the second delivery of app/webapp next to the
  * BSP/cloud branches of abap2UI5/frontend (tools/build-branches.mjs) - same
  * files, same commit, a different mechanism for a different consumer. The
@@ -25,7 +25,7 @@
  *                  one request for the whole component instead of ~50. The
  *                  map is pointed at the unminified sources the package
  *                  ships under their own names, not at the -dbg copies that
- *                  exist only in the build output (the fix abap2UI5/embed's
+ *                  exist only in the build output (the fix abap2UI5/embed-example's
  *                  sync-frontend.mjs made first).
  *
  * The BSP branches build their bundle differently (tools/app2bsp/preload.js)
@@ -212,7 +212,7 @@ try {
   ui5(["build", "--all", "--dest", "dist", "--loglevel", "warn"], scratch);
 
   const out = path.join(scratch, "dist", "resources", "z2ui5");
-  const expect = ["Component.js", "manifest.json", "Component-preload.js", "core/Context.js", "view/App.view.xml", "reuse/Container.js", "reuse/Container.css"];
+  const expect = ["Component.js", "manifest.json", "Component-preload.js", "core/Context.js", "view/App.view.xml", "embed/Container.js", "embed/Container.css"];
   const missing = expect.filter((f) => !fs.existsSync(path.join(out, f)));
   if (missing.length) {
     console.error(`pack-frontend --check: FAIL - ui5 build --all did not deliver ${missing.join(", ")} under dist/resources/z2ui5/`);

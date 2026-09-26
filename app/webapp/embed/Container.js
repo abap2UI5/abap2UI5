@@ -1,6 +1,6 @@
-// z2ui5.reuse.Container - runs an abap2UI5 app inside any UI5 app.
+// z2ui5.embed.Container - runs an abap2UI5 app inside any UI5 app.
 //
-//   <mvc:View xmlns:z2ui5="z2ui5.reuse">
+//   <mvc:View xmlns:z2ui5="z2ui5.embed">
 //     <z2ui5:Container app="Z2UI5_CL_UI5_APP_HI_WORLD" height="400px"/>
 //   </mvc:View>
 //
@@ -21,8 +21,9 @@
 // rather than patching the running one, and destroying the control destroys
 // the component, which ends the backend session (Component#exit).
 //
-// Written in abap2UI5/embed (formerly test-cc) as @abap2ui5/embed and moved
-// here before that package was ever published: a 7 kB wrapper does not earn a
+// Written in abap2UI5/embed-example (formerly test-cc) as @abap2ui5/embed, in
+// the namespace z2ui5.reuse, and moved here - renamed to z2ui5.embed - before
+// either was ever published: a 7 kB wrapper does not earn a
 // package, a repository and a version pin of its own.
 sap.ui.define(
   [
@@ -40,11 +41,11 @@ sap.ui.define(
     // a strict Content-Security-Policy (no 'unsafe-inline') needs nothing
     // extra for it.
     includeStylesheet(
-      sap.ui.require.toUrl("z2ui5/reuse/Container.css"),
-      "z2ui5-reuse-container-css",
+      sap.ui.require.toUrl("z2ui5/embed/Container.css"),
+      "z2ui5-embed-container-css",
     );
 
-    return Control.extend("z2ui5.reuse.Container", {
+    return Control.extend("z2ui5.embed.Container", {
       metadata: {
         properties: {
           // The ABAP class to run - it implements z2ui5_if_app, e.g.
@@ -94,7 +95,7 @@ sap.ui.define(
         apiVersion: 2,
         render(rm, control) {
           rm.openStart("div", control);
-          rm.class("z2ui5ReuseContainer");
+          rm.class("z2ui5EmbedContainer");
           rm.style("width", control.getWidth());
           rm.style("height", control.getHeight());
           rm.openEnd();

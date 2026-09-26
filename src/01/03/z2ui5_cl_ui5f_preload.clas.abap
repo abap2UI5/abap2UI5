@@ -15,14 +15,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'd1e25307e3ba7e13'.
+    CONSTANTS build_hash TYPE string VALUE '28e28e9717350c86'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-0eJTB+O6fhNPOlkdDT8mmG8RXfkI6IOgLzd8pj61Jrk='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-KOKOlxc1DIYj0kpWdEXts3U4eS+q77lhDhMgJQrWL+k='.
 
     CLASS-METHODS get
       RETURNING
@@ -110,11 +110,11 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/devtools/Report.js": function()\{{ z2ui5_cl_ui5f_report_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/SlotXml.js": function()\{{ z2ui5_cl_ui5f_slotxml_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Tabs.js": function()\{{ z2ui5_cl_ui5f_tabs_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/embed/Container.css": '{ escape_js_literal( z2ui5_cl_ui5f_embed_css=>get( ) ) }',| && |\n| &&
+             |      "z2ui5/embed/Container.js": function()\{{ z2ui5_cl_ui5f_embed_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/reuse/Container.css": '{ escape_js_literal( z2ui5_cl_ui5f_reuse_css=>get( ) ) }',| && |\n| &&
-             |      "z2ui5/reuse/Container.js": function()\{{ z2ui5_cl_ui5f_reuse_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n| &&
              |    \});\n| &&
              |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&

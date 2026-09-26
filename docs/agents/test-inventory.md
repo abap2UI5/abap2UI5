@@ -28,7 +28,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/Router.js` | `router.spec.js` | — |
 | `Component.js` unload wiring | `componentUnload.spec.js` | — |
 | `Component.js` component data | `componentData.spec.js` | the frontend settings split off in `init` - `checkLocal`, the two resource roots and a host's `endpoint` land in the state and never in the `ComponentData` sent to the backend; an `endpoint` among the launchpad's `startupParameters` is not taken |
-| `reuse/Container.js` | `reuseContainer.spec.js` | the host-side control: the stylesheet included once at module load, nothing started while `app` is empty, the component data in the launchpad's shape with `endpoint` on the top level (and none without one), a changed start property replacing the component while an unchanged one keeps it |
+| `embed/Container.js` | `embedContainer.spec.js` | the host-side control: the stylesheet included once at module load, nothing started while `app` is empty, the component data in the launchpad's shape with `endpoint` on the top level (and none without one), a changed start property replacing the component while an unchanged one keeps it |
 | `cc/UITableExt.js` | `uiTableExt.spec.js` | — |
 | `cc/Focus.js` | `focus.spec.js` | — |
 | `cc/Dirty.js` | `dirty.spec.js` | — |

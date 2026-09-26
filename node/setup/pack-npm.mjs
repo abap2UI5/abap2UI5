@@ -265,7 +265,7 @@ try {
   const body = await res.text();
   if (res.status !== 200) fail("GET / answered " + res.status);
   if (!/z2ui5/.test(body)) fail("GET / is not the abap2UI5 page:\\n" + body.slice(0, 400));
-  if (!body.includes('"z2ui5/Component.js"') || !body.includes('"z2ui5/reuse/Container.js"')) {
+  if (!body.includes('"z2ui5/Component.js"') || !body.includes('"z2ui5/embed/Container.js"')) {
     fail("the page does not carry the UI5 component - the frontend is not embedded");
   }
   ok("serve() answers GET / with the framework's page, the UI5 component embedded (" + body.length + " bytes)");

@@ -2,8 +2,8 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// reuse/Container.js - the control a HOST app places to run an abap2UI5 app
-// between its own controls (z2ui5.reuse.Container). It is thin on purpose,
+// embed/Container.js - the control a HOST app places to run an abap2UI5 app
+// between its own controls (z2ui5.embed.Container). It is thin on purpose,
 // and each of its few decisions is a way embedding goes wrong:
 //   - the stylesheet is included once, by module load, not per instance
 //   - nothing starts while `app` is empty
@@ -26,7 +26,7 @@ function load() {
       containers.push(this);
     }
   }
-  const { module: Def } = loadModule("reuse/Container.js", {
+  const { module: Def } = loadModule("embed/Container.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "sap/ui/core/ComponentContainer": ComponentContainerStub,
@@ -66,7 +66,7 @@ function load() {
 test("the stylesheet is included once, at module load, under a fixed id", () => {
   const { stylesheets } = load();
   expect(stylesheets).toEqual([
-    { url: "/resources/z2ui5/reuse/Container.css", id: "z2ui5-reuse-container-css" },
+    { url: "/resources/z2ui5/embed/Container.css", id: "z2ui5-embed-container-css" },
   ]);
 });
 

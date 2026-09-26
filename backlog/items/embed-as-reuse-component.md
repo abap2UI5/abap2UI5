@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; the wrapping custom control z2ui5.reuse.Container ships in app/webapp/reuse and as @abap2ui5/embed-control; stage 1 (the embedded flag that turns the page-wide behaviours off) stays open until there is real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; the wrapping custom control z2ui5.embed.Container ships in app/webapp/embed and as @abap2ui5/embed-control; stage 1 (the embedded flag that turns the page-wide behaviours off) stays open until there is real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -112,13 +112,14 @@ instance.
 
 ## The custom control (done, without stage 1)
 
-`z2ui5.reuse.Container` (`app/webapp/reuse/Container.js`) is the thin wrapper
+`z2ui5.embed.Container` (`app/webapp/embed/Container.js`) is the thin wrapper
 around the `ComponentContainer` this section used to defer: `app`,
 `endpoint`, `params` and a size, each change of the first three a new
 component and so a new backend session. It was written in
-[abap2UI5/embed](https://github.com/abap2UI5/embed) (formerly test-cc) as the
-npm package `@abap2ui5/reuse-custom-control`, later `@abap2ui5/embed`, and moved
-into this webapp before it was ever published: it ships as
+[abap2UI5/embed-example](https://github.com/abap2UI5/embed-example) (formerly test-cc) as the
+npm package `@abap2ui5/reuse-custom-control`, later `@abap2ui5/embed`, in the
+namespace `z2ui5.reuse`, and moved
+into this webapp as `z2ui5.embed` before it was ever published: it ships as
 `@abap2ui5/embed-control` (the whole webapp as a UI5 module), and the embed
 repository keeps the example host app, its browser tests on UI5 1.71 and
 1.136, and the frontend-cc delivery. It is what asked for
