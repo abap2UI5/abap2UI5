@@ -33,7 +33,7 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const EXTERNAL = new Map([
   [
     "Z2UI5_CL_APP_ICF_CONFIG",
-    "ships in abap2UI5/abap2UI5-icf-config - guarded by rtti_check_class_exists",
+    "ships in abap2UI5-addons/config-management - guarded by rtti_check_class_exists",
   ],
   [
     "Z2UI5_CL_CC_DEMO_OUT",
