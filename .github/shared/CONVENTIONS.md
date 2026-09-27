@@ -142,7 +142,8 @@ Rules that follow from the role:
   this sentence was rewritten, with no repository saying why. A rule whose
   exception cannot be written down is a rule that gets ignored silently rather
   than argued with.
-- `@abap2ui5/linter` and `@abap2ui5/render-runtime` ship from one tag and are
+- `@abap2ui5/linter` and `@abap2ui5/linter-render` (published as
+  `@abap2ui5/render-runtime` up to 0.7.0) ship from one tag and are
   installed on the same minor line. A runtime older than the snapshot the linter
   was built against serves controls the gate then judges by metadata it does not
   have.

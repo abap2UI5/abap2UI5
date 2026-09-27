@@ -93,7 +93,7 @@
   },
 
   // No render gate IN THIS CONFIG, because it would be paid for by every job:
-  // it needs @abap2ui5/render-runtime (~123 MB of UI5), the shared setup action
+  // it needs @abap2ui5/linter-render (~123 MB of UI5), the shared setup action
   // runs `npm ci` for all of them, and most have nothing to do with views.
   //
   // It does run, though — `npm run check:render` turns it on against this same
