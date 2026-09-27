@@ -35,10 +35,9 @@ Rules that follow from the role:
   names the workflow that writes it, and says where to file bugs. Its issues are
   disabled. A `-build` suffix in the repository name means channel, always.
 - The role is what the README states, not what the name suggests. Only the
-  `-build` suffix carries meaning; nothing else in a name is constrained. In
-  particular `builder-cap2UI5`, `builder-cap2UI5-web` and `builder-abap2UI5-js`
-  are sources that BUILD a channel — the opposite of a `-build` repository —
-  and they keep their names.
+  `-build` suffix carries meaning; nothing else in a name is constrained. A
+  `builder-…` repository, in particular, is a source that BUILDS a channel —
+  the opposite of a `-build` repository — and keeps its name.
 - A source repository never carries a hand-maintained copy of content another
   repository owns. Either generate it, or gate it (section 5).
 
