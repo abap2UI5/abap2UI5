@@ -3,7 +3,7 @@ name: render-gate
 # The linter's render gate, over this repository's own app classes.
 #
 # abap2UI5 asks four other repositories to pass this gate and did not run it
-# itself. The reason was good as far as it went - @abap2ui5/render-runtime is
+# itself. The reason was good as far as it went - @abap2ui5/linter-render is
 # ~123 MB of UI5 and the shared setup action runs `npm ci` for every job, so
 # putting it in devDependencies makes seventeen workflows pay for a check that
 # concerns two of them - but the conclusion did not follow. A job of its own
@@ -65,8 +65,12 @@ jobs:
         VER=$(node -p "require('./package-lock.json').packages['node_modules/@abap2ui5/linter'].version")
         echo "linter $VER (from package-lock.json)"
         # Same version: the two packages are cut from one tag, and the peer
-        # range is what fails if that ever stops being true.
-        npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@$VER"
+        # range is what fails if that ever stops being true. The runtime was
+        # published as @abap2ui5/render-runtime up to 0.7.0 and is
+        # @abap2ui5/linter-render after that - whichever carries this version.
+        RT=@abap2ui5/linter-render
+        npm view "$RT@$VER" version >/dev/null 2>&1 || RT=@abap2ui5/render-runtime
+        npm i --no-save --no-audit --no-fund "$RT@$VER"
 
     # version+engine-keyed browser cache, the same pattern as test.yaml's
     # browser matrix - this job runs on every src/** pull request and was

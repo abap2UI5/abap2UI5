@@ -22,7 +22,7 @@
 # safe - a rule regression fails this workflow instead of landing on main:
 #
 #   check:abap2ui5   the properties half, the one check_gates.yaml runs
-#   check:render     the render half, which needs @abap2ui5/render-runtime
+#   check:render     the render half, which needs @abap2ui5/linter-render
 #
 # The runtime is installed --no-save at the linter's exact version, the way
 # render-gate.yaml does it: the two packages are cut from one tag, and it is
@@ -48,7 +48,7 @@
 #
 # TWO JOBS, AND WHY. This workflow is the one place in the repository that
 # installs and EXECUTES code nobody here has reviewed yet: whatever npm
-# says is `latest` for @abap2ui5/linter and @abap2ui5/render-runtime, minutes
+# says is `latest` for @abap2ui5/linter and @abap2ui5/linter-render, minutes
 # after it was published, at the lockfile's expense. That is the point of
 # it, and it is fine as long as the code it runs holds no token that can
 # write here. So the job that runs the package has `contents: read` and a
@@ -130,7 +130,12 @@ jobs:
     - if: steps.pin.outputs.changed == 'true'
       env:
         LINTER_VERSION: ${{ steps.pin.outputs.version }}
-      run: npm i --no-save --no-audit --no-fund "@abap2ui5/render-runtime@$LINTER_VERSION"
+      # published as @abap2ui5/render-runtime up to 0.7.0, as
+      # @abap2ui5/linter-render after that - whichever carries this version
+      run: |
+        RT=@abap2ui5/linter-render
+        npm view "$RT@$LINTER_VERSION" version >/dev/null 2>&1 || RT=@abap2ui5/render-runtime
+        npm i --no-save --no-audit --no-fund "$RT@$LINTER_VERSION"
     # version+engine-keyed browser cache, the same pattern as test.yaml's
     # browser matrix - the Chromium download is the slowest part of the run
     # and identical from one Monday to the next
