@@ -53,6 +53,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
 | [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
 | [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
+| [cap2UI5](https://github.com/cap2UI5/cap2UI5) | `cap2ui5` — a CAP plugin that hosts `@abap2ui5/node-runtime`: drafts in a CDS entity, apps as JavaScript classes next to the ABAP ones |
 | [playground](https://github.com/abap2UI5/playground) | The sample catalogue site, <https://abap2ui5.github.io/playground/samples/> — every sample of the three corpora, searchable by control and by UI5 release, most of them one click from running in the browser; `README.md` sends readers there and its `apps.json` index is what an agent fetches. A canary: it builds against a commit SHA of this repository (CONVENTIONS §9) |
 | [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) | The single-class build of the framework. `trigger_local.yaml` pushes `src/` into its `input/` on every push to `main` (deploy key `ACTION_KEY_LOCAL`, the refresh script pinned by hash in `.github/pins/`), and its own workflows fold the sources into one class per target — `z2ui5_cl_abap2ui5_local`, the name a user's SLIN run reports findings against (`abap-check` skill, §3) |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
@@ -256,13 +257,16 @@ A number on the wire turns that into a sentence somebody can read.
 
 ### Two things settled elsewhere
 
-- **`@abap2ui5/runtime`.** `backend-prebuilt.yaml` packs the transpiled tree
-  twice from one build: the release tarball (`npm run pack:backend`) and the
-  npm package `@abap2ui5/runtime`, whose manifest is
-  `node/setup/runtime.package.json` — **deliberately not `node/package.json`**
-  (a `package.json` inside `node/` makes `npm run` stop there; the file's
-  header says what broke). What each delivery is for and what the package
-  promises is the `@abap2ui5/runtime` section of `docs/agents/ci-workflows.md`.
+- **`@abap2ui5/node-runtime`.** `backend-prebuilt.yaml` packs the transpiled
+  tree twice from one build: the release tarball (`npm run pack:backend`) and
+  the npm package `@abap2ui5/node-runtime` (`npm run pack:node-runtime`),
+  whose manifest is `node/setup/npm.package.json` — **deliberately not
+  `node/package.json`** (a `package.json` inside `node/` makes `npm run` stop
+  there; the file's header says what broke). Its entry point is
+  `node/srv/host.mjs`, which `npm run express` runs through too. What each
+  delivery is for, how the package is proven and published, and what it
+  promises is the `@abap2ui5/node-runtime` section of
+  `docs/agents/ci-workflows.md`.
 - **A missing codepage class must not take down the view.**
   `conv_get_string_by_xstring( )` chains both dynamic-call failures into
   `UNSUPPORTED_CODEPAGE_API`, and `z2ui5_cl_ui5_view_builder=>xml_escape( )`
