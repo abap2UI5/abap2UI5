@@ -162,6 +162,15 @@ sap.ui.define(
     // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the
     // FLP; otherwise terminate a possible stateful BSP session first and
     // then navigate to the logout URL.
+    //
+    // The fatal-error overlay (core/ErrorView.js, handleLogout) has a
+    // logout of its own and does NOT call this one, on purpose: the
+    // overlay is dependency-free so it still works when the UI5 core is
+    // broken, and it skips the BSP terminate and the URL validation
+    // below - it only ever navigates to the launchpad logout or the fixed
+    // ICF logoff URL. This handler is the app-facing logout (cs_event-
+    // system_logout) and the complete one; a stateful BSP context the
+    // overlay's logout leaves alive expires with the session timeout.
     function evSystemLogout(oController, args) {
       // one reading of "no URL given" for both branches: an empty second
       // argument (a legacy eF('SYSTEM_LOGOUT','') snippet) fell back to the

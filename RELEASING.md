@@ -43,15 +43,15 @@ changelog.
 ## One-time setup — the npm package
 
 Every release also publishes the transpiled framework as the npm package
-**`@abap2ui5/node-runtime`** (AGENTS.md, "The transpiled framework is a
-package"). `backend-prebuilt.yaml` packs it, proves it by installing it once
-(`--check`), uploads it as a workflow artefact and publishes it by **trusted
-publishing** — OIDC, with provenance, no token. npm lets a package be pointed
-at a workflow only once the package exists, so the first version is published
-by hand, once, by a maintainer of the npm organisation `abap2ui5` (which
-already owns `@abap2ui5/linter`, `@abap2ui5/render-runtime` and
-`@abap2ui5/mcp-server`). Until then the publish step ends in a warning naming
-this section, and the run stays green.
+**`@abap2ui5/node-runtime`** (`docs/agents/ci-workflows.md`, "The transpiled
+framework is a package"). `backend-prebuilt.yaml` packs it, proves it by
+installing it once (`--check`), uploads it as a workflow artefact and
+publishes it by **trusted publishing** — OIDC, with provenance, no token. npm
+lets a package be pointed at a workflow only once the package exists, so the
+first version is published by hand, once, by a maintainer of the npm
+organisation `abap2ui5` (which already owns `@abap2ui5/linter`,
+`@abap2ui5/render-runtime` and `@abap2ui5/mcp-server`). Until then the publish
+step ends in a warning naming this section, and the run stays green.
 
 The artefact of that run IS the bootstrap — nothing has to be built locally:
 

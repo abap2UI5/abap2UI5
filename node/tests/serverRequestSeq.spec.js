@@ -277,6 +277,32 @@ test("reset() drops a queued event, so it never lands in the next app", () => {
   expect(appState.state.oQueuedEvent).toBeNull();
 });
 
+// A Back/Forward restore replaces the screen the queued keystroke was typed
+// into: dispatched after the restore's response, it went out under the
+// restored draft id - the old screen's event into the app the restore
+// brought up. Same drop as reset( ) and responseError, third path.
+test("restoreFromRoute() drops a queued event - the restore replaces its screen", () => {
+  const roundtrips = [];
+  const cancelled = [];
+  const ctx = specContext({
+    oQueuedEvent: { controller: {}, args: [["LIVE_CHANGE"]] },
+  });
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
+      "z2ui5/core/Lib": { cancelPendingTimers: (c) => cancelled.push(c) },
+    },
+  });
+  Server.roundtrip = (_ctx, body) => roundtrips.push(body);
+
+  Server.restoreFromRoute(ctx);
+
+  expect(ctx.state.oQueuedEvent).toBeNull();
+  expect(ctx.state.isBusy).toBe(true);
+  expect(cancelled).toEqual([ctx]);
+  expect(roundtrips).toEqual([{}]);
+});
+
 test("responseError drops a queued event - the overlay ends the app", () => {
   // the real responseError, not the spy load() installs
   const shown = [];

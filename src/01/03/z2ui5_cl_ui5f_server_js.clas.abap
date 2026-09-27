@@ -81,6 +81,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        BusyIndicator.show(0);` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(ctx);` && |\n| &&
+             `` && |\n| &&
+             `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        this.roundtrip(ctx, {});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -233,7 +235,12 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
              `` && |\n| &&
-             `            this.responseError(ctx, text || ``HTTP ${response.status}``);` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              ctx,` && |\n| &&
+             `              text || ``HTTP ${response.status}``,` && |\n| &&
+             `              undefined,` && |\n| &&
+             `              response.status >= 502 ? oRetry : undefined,` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&

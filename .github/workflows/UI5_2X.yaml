@@ -29,4 +29,4 @@ jobs:
     - name: eslint
       run: cd app && npm run lint
     - name: tsc (type-checks the frontend, no emit)
-      run: cd app && npm run typecheck
+      run: npm run check:types

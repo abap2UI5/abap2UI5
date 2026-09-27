@@ -171,6 +171,27 @@ function classNames(root) {
 
 const here = classNames(ROOT);
 
+/* Which of the repositories above THIS checkout is - decided from what the
+ * repository says about itself, never from the folder it was cloned into:
+ * `catalogue.json` names it under `repository` (samples) or `repo` (the
+ * other two), and package.json's `repository.url` names it for a checkout
+ * without a catalogue. A clone called `samples-main` or `work` used to read
+ * as a foreign repository, and every local name then went to the raw
+ * SAMPLES.md lookup instead of the tree in front of the script. */
+const SELF = (() => {
+  const tail = (url) => String(url ?? '').match(/abap2UI5\/([A-Za-z0-9_.-]+?)(?:\.git)?\/?$/i)?.[1];
+  for (const [file, pick] of [
+    ['catalogue.json', (j) => tail(j.repository ?? j.repo)],
+    ['package.json', (j) => tail(j.repository?.url ?? j.repository)],
+  ]) {
+    try {
+      const name = pick(JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8')));
+      if (name) return name;
+    } catch { /* not there, or not JSON - try the next one */ }
+  }
+  return path.basename(ROOT);
+})();
+
 /* Where a sibling repository is, if it is here at all. The environment wins,
  * the way it does for abap2UI5/mcp-server's resolvers - and it has to: a CI runner
  * cannot check a repository out ABOVE the workspace, so `../<repo>` is a local
@@ -291,7 +312,7 @@ for (const { label: file, text } of sources) {
         + '    a leftover from a rename, or a name to add to ABSENT with its reason');
       continue;
     }
-    if (owner.repo === path.basename(ROOT)) {
+    if (owner.repo === SELF) {
       problems.push(`${file}: names \`${name}\`, which this repository does not have`);
       continue;
     }

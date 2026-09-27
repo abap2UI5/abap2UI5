@@ -29,6 +29,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_keeps_filled_object  FOR TESTING RAISING cx_static_check.
     METHODS test_drops_empty_object   FOR TESTING RAISING cx_static_check.
     METHODS test_keeps_on_open_visit  FOR TESTING RAISING cx_static_check.
+    METHODS test_number_initial       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -48,6 +49,20 @@ CLASS ltcl_test IMPLEMENTATION.
                             value    = iv_value
                             children = iv_children )
         iv_visit = iv_visit ).
+
+  ENDMETHOD.
+
+  METHOD test_number_initial.
+
+    " every spelling of zero is initial, anything with a non-zero digit is
+    " not - the predicate this filter and the client's local filters share
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.00` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.0E+00` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-0` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `0.01` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `-1` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_json_fl=>check_number_initial( `1.0E+02` ) ).
 
   ENDMETHOD.
 

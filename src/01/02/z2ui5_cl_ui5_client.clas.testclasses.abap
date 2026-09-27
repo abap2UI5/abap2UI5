@@ -1157,13 +1157,14 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " initial) survives as long as its column is not listed. That is the whole
     " reason the scoped form exists next to the blanket omit_initial.
     DATA(li_filter) = CAST z2ui5_if_ajson_filter(
-        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX` ) ) ) ).
+        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX/` ) ) ) ).
 
     " listed + initial -> dropped
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
-    " listed by its last path segment as well
+    " listed by its last path segment as well - a trailing slash used to
+    " leave that segment empty and the path silently unlisted
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = li_filter->keep_node( VALUE #( name = `MAX` type = `str` value = `` ) ) ).

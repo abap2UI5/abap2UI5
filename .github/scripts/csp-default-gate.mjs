@@ -71,12 +71,21 @@ const LEGACY_TOKENS = new Map([
  * is a wildcard over hosts, so it belongs in the same closed list the hosts
  * themselves are in.
  *
- * The two entries are what the SHIPPED default needs today and nothing else:
- * default-src carries data:/blob: for images, fonts and media, and worker-src
- * carries blob: because that is how a UI5 worker is started. A new one is a
- * line here and a look - the ratchet the host list already has. */
+ * The entries are what the SHIPPED default needs today and nothing else:
+ * default-src carries data:/blob: for fonts and everything without a
+ * directive of its own, img-src and media-src repeat them explicitly (the
+ * favicon and the audio action are checked against those two, so an exit
+ * adds a host there - the ABAP comment at the policy has the reasoning),
+ * worker-src carries blob: because that is how a UI5 worker is started.
+ * connect-src carries NO scheme source: 'self' covers a same-origin
+ * WebSocket under CSP level 3, and ws:/wss: would be a wildcard over every
+ * host - a channel on another port or behind a dispatcher names its exact
+ * origin in the exit's connect-src instead. A new one
+ * is a line here and a look - the ratchet the host list already has. */
 const SCHEME_SOURCES = new Map([
   ["default-src", new Set(["data:", "blob:"])],
+  ["img-src", new Set(["data:", "blob:"])],
+  ["media-src", new Set(["data:", "blob:"])],
   ["worker-src", new Set(["blob:"])],
 ]);
 

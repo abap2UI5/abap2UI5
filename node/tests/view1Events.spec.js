@@ -395,7 +395,12 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // the request stamp lives on Server: a spec bumps it to dispatch a newer
     // request mid-phase, which is what "superseded" means BEFORE that
     // request's own response has landed
-    const server = { responseError: () => {} };
+    const renderErrors = [];
+    const server = {
+      responseError: () => {},
+      showRenderError: (_ctx, e, title) => renderErrors.push({ e, title }),
+    };
+    const logged = [];
     const pushes = [];
     const syncs = [];
     const hooks = [];
@@ -424,13 +429,18 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           isDestroyed: () => false,
           isControllerAlive: () => app.alive,
           runCallbacks: (arr) => (arr || []).forEach((f) => f()),
-          logError: () => {},
+          logError: (m) => logged.push(m),
         },
         "z2ui5/core/FrontendAction": {
           // a spec may replace the response mid-phase, the way a parallel
           // request does while the system actions are still awaiting
           runSystem: () => hooks.onRunSystem?.(),
-          runCustom: (item) => customs.push(item),
+          // ... and hand an action's result back - a promise for the async
+          // ones (SET_ODATA_MODEL), which the runner awaits
+          runCustom: (item) => {
+            customs.push(item);
+            return hooks.onRunCustom?.(item);
+          },
         },
         "z2ui5/core/actions/Slots": {
           action: (_ctx, method) => pushes.push(method),
@@ -456,6 +466,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       pendingHash,
       customs,
       app,
+      renderErrors,
+      logged,
     };
   }
 
@@ -472,6 +484,15 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.hashEvent = "NAV";
     state.appHash = "/page2";
     state.pendingAppHash = "/page3";
+    // ... and the keystroke a check_queue_last wire of app A kept while
+    // the roundtrip that switched to B was in flight: dispatched after
+    // this response it went out under B's draft id, an event B never
+    // registered
+    const queuedDispatches = [];
+    state.oQueuedEvent = {
+      controller: { eB: (...a) => queuedDispatches.push(a) },
+      args: [["LIVE_CHANGE", false, false, false, true], "abc"],
+    };
     state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B", MODELPRESENT: false };
 
     await ctrl._processAfterRendering(1);
@@ -481,8 +502,111 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(state.hashEvent).toBe(null);
     expect(state.appHash).toBe("");
     expect(state.pendingAppHash).toBe(null);
+    expect(state.oQueuedEvent).toBe(null);
+    expect(queuedDispatches).toEqual([]);
     // the standalone slots of the leaving app go with it
     expect(destroys).toEqual(["POPUP", "POPOVER"]);
+  });
+
+  test("a same-app response still dispatches the queued event", async () => {
+    // the counterpart: the drop is about the app SWITCH, not about every
+    // response - a roundtrip of the same app hands the kept keystroke on
+    const { ctrl, state } = loadForAfterRendering();
+    state.renderedApp = "Z2UI5_CL_APP_A";
+    const queuedDispatches = [];
+    state.oQueuedEvent = {
+      controller: { eB: (...a) => queuedDispatches.push(a) },
+      args: [["LIVE_CHANGE"], "abc"],
+    };
+    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_A", MODELPRESENT: false };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(state.oQueuedEvent).toBe(null);
+    expect(queuedDispatches).toEqual([[["LIVE_CHANGE"], "abc"]]);
+  });
+
+  // FrontendAction.execute promises that a failing handler is logged, never
+  // thrown - and kept it for the synchronous ones only. An async action
+  // (SET_ODATA_MODEL loading its client) that REJECTED escaped the await in
+  // _runPendingCustomJs: the actions behind it never ran, the queued event
+  // and the parked hash were skipped, and a screen that had rendered fine
+  // ended in the fatal "App Terminated" overlay plus an unhandled rejection.
+  test("a rejected async follow-up action is logged and the rest still runs", async () => {
+    const { ctrl, state, hooks, customs, logged, renderErrors, pendingHash } =
+      loadForAfterRendering();
+    const queuedDispatches = [];
+    state.oQueuedEvent = {
+      controller: { eB: (...a) => queuedDispatches.push(a) },
+      args: [["LIVE_CHANGE"], "abc"],
+    };
+    state.oResponse = {
+      ID: "D1",
+      _pendingCustomJs: [["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]],
+    };
+    hooks.onRunCustom = (item) =>
+      item[0] === "SET_ODATA_MODEL"
+        ? Promise.reject(new Error("datajs 404"))
+        : undefined;
+
+    await ctrl._processAfterRendering(1);
+
+    expect(customs).toEqual([["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]]);
+    expect(
+      logged.some((m) => m.includes("async action 'SET_ODATA_MODEL' failed")),
+    ).toBe(true);
+    expect(renderErrors).toEqual([]);
+    expect(queuedDispatches).toEqual([[["LIVE_CHANGE"], "abc"]]);
+    expect(pendingHash).toEqual(["delivered"]);
+    expect(state.isBusy).toBe(false);
+  });
+
+  // The display phase of a response a newer REQUEST superseded (a
+  // Back/Forward restore mid-build) may well fail - a slot the restore tore
+  // down, a duplicate id - and that failure is the newer request's to own,
+  // as Server.readHttp swallows a stale request's own. It used to raise the
+  // fatal overlay over the screen the restore's response was building, and
+  // the overlay ends the app. Busy stays with the newer request, exactly as
+  // for a superseded response that did not throw.
+  test("a superseded response's failed build raises no overlay", async () => {
+    const { ctrl, ctx, state, hooks, busy, renderErrors, logged, customs } =
+      loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      S_ACTION: { T_SYSTEM: [{}] },
+      _pendingCustomJs: [["TOAST"]],
+    };
+    hooks.onRunSystem = () => {
+      ctx.server.requestSeq = 2;
+      throw new Error("adding element with duplicate id 'popupId'");
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(renderErrors).toEqual([]);
+    expect(logged.some((m) => m.includes("unexpected error"))).toBe(true);
+    expect(busy).toEqual([]);
+    expect(state.isBusy).toBe(true);
+    // merely superseded, not replaced: the screen is still this one's, so
+    // its own follow-up actions run as for the non-throwing case above
+    expect(customs).toEqual([["TOAST"]]);
+  });
+
+  test("the winning response's failed build still raises the overlay", async () => {
+    const { ctrl, state, hooks, busy, renderErrors } = loadForAfterRendering();
+    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+    const boom = new Error("view XML broken");
+    hooks.onRunSystem = () => {
+      throw boom;
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(renderErrors).toEqual([
+      { e: boom, title: "Unexpected Error Occurred - App Terminated" },
+    ]);
+    expect(busy).toEqual(["hide"]);
+    expect(state.isBusy).toBe(false);
   });
 
   test("a REPLACED response leaves busy, custom JS and the parked hash to the newer one", async () => {
@@ -712,6 +836,24 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     expect(cleared).toEqual([]);
     expect(state.timers).toEqual({});
     expect(bodies).toHaveLength(1);
+  });
+
+  // A wire hand-written as eB('SAVE') used to be destructured character by
+  // character: the event went out as "S", the flags read from the letters,
+  // and the backend answered with nothing an app could recognise. There is
+  // no event to send - say so and stop.
+  test("a first argument that is no event array is logged, not sent", () => {
+    const { ctrl, state, bodies } = loadForDispatch();
+
+    ctrl.eB("SAVE");
+    ctrl.eB();
+
+    expect(bodies).toEqual([]);
+    expect(state.isBusy).toBe(false);
+    expect(state.errors.map((e) => e.message)).toEqual([
+      'eB: the first argument must be the event array, got "SAVE"',
+      "eB: the first argument must be the event array, got undefined",
+    ]);
   });
 
   // the drop-on-busy path returns BEFORE the cancel: the roundtrip in flight

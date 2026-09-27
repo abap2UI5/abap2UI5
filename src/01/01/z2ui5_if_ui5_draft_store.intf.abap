@@ -74,8 +74,12 @@ INTERFACE z2ui5_if_ui5_draft_store
       VALUE(result) TYPE abap_bool.
 
   "! Drop expired drafts. Called once per app cold start by the handler
-  "! (factory_first_start), never per roundtrip, so it must be cheap and must
-  "! not raise.
+  "! (factory_first_start), never per roundtrip, so it must be cheap. It may
+  "! raise: the shipped implementation reads the expiry from the exit
+  "! (z2ui5_cl_ui5_user_exit=>set_config_http_post), which fails closed when
+  "! the installed exit cannot be instantiated, and the handler's outer TRY
+  "! answers that with the error page - a store must not swallow such a
+  "! failure to keep this call quiet.
   METHODS cleanup.
 
 ENDINTERFACE.

@@ -15,21 +15,33 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '9638e79a5ec4fb69'.
+    CONSTANTS build_hash TYPE string VALUE '8921b3f7cd8bb526'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-ljjnml7E+2leisUGkZPgnDY02yQcK0PcCEvOZVyaht8='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-iSGz982LtSYoPjAkVZhbeF97I4FszSokR+xBIpYBdO0='.
 
     CLASS-METHODS get
       RETURNING
         VALUE(result) TYPE string.
 
+    " the same entries as a script of its own, for a page that embeds the
+    " component: sap.ui.require.preload( ) and nothing else - no function
+    " around it, no start (z2ui5_cl_ui5_http_handler=>_http_get_bundle)
+    CLASS-METHODS get_bundle
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    " one line per embedded file - shared by get( ) and get_bundle( )
+    CLASS-METHODS entries
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS escape_js_literal
       IMPORTING
@@ -47,7 +59,26 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     result = |\n| &&
              |  function onInitComponent()\{\n| &&
              |    sap.ui.require.preload(\{\n| &&
-             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
+             entries( ) &&
+             |    \});\n| &&
+             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
+             |     ComponentSupport.run();\n| &&
+             |    \});\n| &&
+             |  \}\n|.
+
+  ENDMETHOD.
+
+  METHOD get_bundle.
+
+    result = |sap.ui.require.preload(\{\n| &&
+             entries( ) &&
+             |\});\n|.
+
+  ENDMETHOD.
+
+  METHOD entries.
+
+    result = |      "z2ui5/Component.js": function()\{{ z2ui5_cl_ui5f_comp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraPicture.js": function()\{{ z2ui5_cl_ui5f_campic_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&
@@ -113,12 +144,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n| &&
-             |    \});\n| &&
-             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
-             |     ComponentSupport.run();\n| &&
-             |    \});\n| &&
-             |  \}\n|.
+             |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n|.
 
   ENDMETHOD.
 

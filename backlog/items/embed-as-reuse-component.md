@@ -109,6 +109,15 @@ a rare UI; what the stage bought is that a launchpad in keep-alive mode, or
 a host that creates the component twice, no longer corrupts the first
 instance.
 
+- **Done 2026-09-26:** the frontend as a script of its own. A GET of the
+  node with `?z2ui5-bundle` answers with the preload the page embeds
+  (`z2ui5_cl_ui5f_preload=>get_bundle`, generated from the same entries as
+  the page script) plus a `z2ui5/embed` module with the sibling BSP paths
+  (`z2ui5_cl_ui5_http_handler=>_http_get_bundle`). A host loads it with a
+  `<script src>` and creates the component - no copy of the frontend in the
+  host, and always the frontend of the backend it talks to. Without the
+  parameter the node answers with the page as before.
+
 ## A custom control (deferred)
 
 A `z2ui5.Embed` control with `appStart`/`endpoint` properties would only be

@@ -164,6 +164,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      oElement,` && |\n| &&
              `      oController,` && |\n| &&
              `      () => {` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `        applyFocus();` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (dom && dom.contains(document.activeElement)) return;` && |\n| &&

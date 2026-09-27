@@ -5,51 +5,68 @@ const { loadLib } = require("./loadLibModule");
 
 // cc/Favicon.js (obsolete, replaced by cs_event-set_favicon): sets the
 // browser tab icon from its bound `favicon` URL. The whole control is one
-// setter, and the one decision in it is which <link> to write: a page that
+// setter, and since 2026-09-25 that setter IS the SET_FAVICON action of
+// core/actions/Browser.js - the control hands the value over and keeps no
+// copy of the logic. So what is pinned here runs through the REAL action
+// module: the one decision in it is which <link> to write - a page that
 // already declares an icon must have THAT link updated, not a second,
 // competing one appended - which of the two the browser then honours is up
-// to the browser. Also under test: the URL guard (same validator as the
-// SET_FAVICON action - active schemes and empty values are refused), the
-// invalidation suppression (an empty renderer means a re-render would
-// achieve nothing) and Lib.toText, which turns an unbound property into ""
-// rather than "undefined".
+// to the browser. Also under test: the URL guard (Lib.isSafeDownloadURL -
+// active schemes and empty values are refused), the invalidation
+// suppression (an empty renderer means a re-render would achieve nothing)
+// and Lib.toText, which turns an unbound property into "" rather than
+// "undefined".
 function load({ head = [] } = {}) {
   const links = head;
   const created = [];
 
-  // The REAL Lib: the control's URL guard is Lib.isSafeDownloadURL, and a
+  // The REAL Lib: the action's URL guard is Lib.isSafeDownloadURL, and a
   // hand-stub of it would just restate the expectation under test.
   const { Lib, state: libState } = loadLib();
 
-  const { module: FaviconDef, sandbox } = loadModule("cc/Favicon.js", {
+  const document = {
+    head: {
+      // ~= matches one entry of the whitespace-separated rel list, which
+      // is the selector the action uses.
+      querySelector: (sel) => {
+        expect(sel).toBe('link[rel~="icon"]');
+        return (
+          links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ??
+          null
+        );
+      },
+      // appendChild is on the same head object the action queried.
+      appendChild: (el) => links.push(el),
+    },
+    createElement: (tag) => {
+      const el = { tagName: tag.toUpperCase(), rel: "", href: "" };
+      created.push(el);
+      return el;
+    },
+  };
+
+  // the real action module the control delegates to; its other handlers'
+  // dependencies are inert here
+  const { module: Browser } = loadModule("core/actions/Browser.js", {
+    deps: {
+      "sap/m/MessageBox": {},
+      "sap/m/library": { URLHelper: {} },
+      "sap/ui/util/Storage": function () {},
+      "z2ui5/core/Router": {},
+      "z2ui5/core/Lib": Lib,
+      "z2ui5/core/ViewSlots": {},
+    },
+    sandbox: { document },
+  });
+
+  const { module: FaviconDef } = loadModule("cc/Favicon.js", {
     deps: {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
+      "z2ui5/core/actions/Browser": Browser,
     },
-    sandbox: {
-      document: {
-        head: {
-          // ~= matches one entry of the whitespace-separated rel list, which
-          // is the selector the control uses.
-          querySelector: (sel) => {
-            expect(sel).toBe('link[rel~="icon"]');
-            return (
-              links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ??
-              null
-            );
-          },
-        },
-        createElement: (tag) => {
-          const el = { tagName: tag.toUpperCase(), rel: "", href: "" };
-          created.push(el);
-          return el;
-        },
-      },
-    },
+    sandbox: { document },
   });
-
-  // appendChild is on the same head object the control queried.
-  sandbox.document.head.appendChild = (el) => links.push(el);
 
   const instance = () => {
     const inst = Object.create(FaviconDef);
@@ -124,9 +141,9 @@ test("apple-touch-icon is not treated as the favicon link", () => {
   expect(links).toHaveLength(2);
 });
 
-// The URL guard (Lib.isSafeDownloadURL, same as the SET_FAVICON action)
-// refuses an empty value: an unbound property must not touch the page's
-// icon links - and in particular never write the string "undefined".
+// The URL guard (Lib.isSafeDownloadURL, the SET_FAVICON action's) refuses
+// an empty value: an unbound property must not touch the page's icon
+// links - and in particular never write the string "undefined".
 test("an unset value is refused - no link is written", () => {
   const { instance, links, errors } = load();
 
@@ -134,7 +151,7 @@ test("an unset value is refused - no link is written", () => {
 
   expect(links).toHaveLength(0);
   expect(errors()).toHaveLength(1);
-  expect(errors()[0].message).toContain("Favicon");
+  expect(errors()[0].message).toContain("SET_FAVICON: refused unsafe URL");
 });
 
 // An active scheme is refused and an existing icon link keeps its href.

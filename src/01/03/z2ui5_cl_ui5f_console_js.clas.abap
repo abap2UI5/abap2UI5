@@ -216,7 +216,10 @@ CLASS z2ui5_cl_ui5f_console_js IMPLEMENTATION.
              `      const level = UI5_LEVELS[logEntry?.level] || "info";` && |\n| &&
              `      const component = logEntry?.component ? ``[${logEntry.component}] `` : "";` && |\n| &&
              `      const details = logEntry?.details ? `` - ${logEntry.details}`` : "";` && |\n| &&
-             `      push(level, "ui5", ``${component}${logEntry?.message || ""}${details}``);` && |\n| &&
+             `` && |\n| &&
+             `      if (logEntry?.component !== "z2ui5") {` && |\n| &&
+             `        push(level, "ui5", ``${component}${logEntry?.message || ""}${details}``);` && |\n| &&
+             `      }` && |\n| &&
              `` && |\n| &&
              `      pendingUi5Echo =` && |\n| &&
              `        ``${logEntry?.date || ""} ${logEntry?.time || ""} `` +` && |\n| &&

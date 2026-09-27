@@ -70,6 +70,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       router: { navigate: null, hashListener: null },
       // core/actions/Shortcuts.js - the document keydown listener
       shortcuts: { listener: null },
+      // core/actions/Variants.js - the variant-init wait chains in flight
+      variants: { activeInits: new Set() },
       // core/ScrollFocus.js - the per-element resolution cache
       scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
       // core/ErrorView.js - the last dialog's inputs and the open dialog

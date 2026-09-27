@@ -48,6 +48,18 @@
  * the symbol is part of the framework's utility surface, which is a decision a
  * reviewer sees in the diff.
  *
+ * The REVERSE pass closes the other half of the claim. The forward pass reads
+ * the markers and proves nothing live calls what they mark; it cannot see a
+ * public method of the context class that has NO live caller and NO marker -
+ * which is what `xml_srtti_stringify` was (2026-09-25): a test fixture writer
+ * left in the class, unmarked, and the abap-util sync would have harvested it
+ * into the catalog as a utility. So every PUBLIC method of the class is
+ * checked the other way round: without a live caller in src/00 - src/02 (a
+ * test class, a frozen method of the class itself and the method's own
+ * declaration and implementation do not count) it has to carry the marker.
+ * Mark it when src/99 still calls it; otherwise remove it, or move it to the
+ * test class that uses it.
+ *
  * Run: node .github/scripts/frozen-only-gate.mjs   (npm run check:frozen-only)
  */
 import { fileURLToPath } from "url";
@@ -220,14 +232,85 @@ for (const file of files) {
   });
 }
 
+/* Step 3, the reverse pass: every PUBLIC method of a class that carries
+ * markers has a live caller, or a marker (see the header). A live caller is
+ * `<class>=>name` in the code half of a line of another non-test file in
+ * scope, or a bare `name` inside a method body of the class itself that is
+ * neither the method's own implementation nor a frozen method. */
+const orphans = [];
+
+for (const file of ownerFiles) {
+  const cls = basename(file).replace(/\.clas\..*$/, "");
+  const lines = sources.get(file).split("\n");
+
+  // the PUBLIC SECTION of the definition part, method declarations only
+  const publicMethods = [];
+  let section = null;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*PUBLIC SECTION\b/i.test(line)) section = "public";
+    else if (/^\s*(PROTECTED|PRIVATE) SECTION\b/i.test(line)) section = "other";
+    else if (/^\s*ENDCLASS\b/i.test(line)) break;
+    const m = /^\s*(?:CLASS-METHODS|METHODS)\s+([a-z_0-9]+)/i.exec(line);
+    if (m && section === "public") publicMethods.push({ name: m[1].toLowerCase(), line: i + 1 });
+  }
+
+  for (const method of publicMethods) {
+    if (marked.has(method.name)) continue;
+    if (method.name === "constructor" || method.name === SETUP_METHOD) continue;
+    const bare = new RegExp(`\\b${method.name}\\b`, "i");
+    const qualified = new RegExp(`\\b${cls}=>${method.name}\\b`, "i");
+    let live = false;
+
+    for (const other of files) {
+      if (live) break;
+      if (isTestClass(other)) continue;
+      const own = other === file;
+      let inMethod = null;
+      for (const raw of sources.get(other).split("\n")) {
+        const start = METHOD_START.exec(raw);
+        if (start) inMethod = start[1].toLowerCase();
+        else if (/^\s*ENDMETHOD\b/i.test(raw)) inMethod = null;
+        const code = codeOf(raw);
+        if (!code) continue;
+        if (own) {
+          // a body of another, non-frozen method of the class
+          if (!inMethod || start || inMethod === method.name || marked.has(inMethod)) continue;
+          if (bare.test(code)) { live = true; break; }
+        } else if (qualified.test(code)) {
+          live = true;
+          break;
+        }
+      }
+    }
+
+    if (!live) orphans.push({ file, line: method.line, name: method.name, cls });
+  }
+}
+
 console.log(
   `frozen-only: ${marked.size} marked symbol(s), ${files.length} file(s) in src/00 - src/02 checked, `
   + `${SELF_TEST.length} self-test case(s) passed`,
 );
 
-if (findings.length === 0) {
-  console.log("no live caller on a FROZEN-ONLY symbol - OK");
+if (findings.length === 0 && orphans.length === 0) {
+  console.log("no live caller on a FROZEN-ONLY symbol, no unmarked public method without one - OK");
   process.exit(0);
+}
+
+if (orphans.length > 0) {
+  console.error(`\n${orphans.length} public method(s) without a live caller and without the marker:`);
+  for (const o of orphans) {
+    console.error(`  ${o.file}:${o.line}: \`${o.cls}=>${o.name}\``);
+  }
+  console.error(
+    "\nA public method of the context class is either part of the framework's"
+    + "\nutility surface - then something in src/00 - src/02 calls it - or it survives"
+    + "\nfor the frozen src/99 package and says so with the FROZEN-ONLY marker. Mark it"
+    + "\nwhen src/99 calls it; otherwise remove it, or move it into the test class"
+    + "\nthat uses it (the abap-util sync harvests this class into a catalog).",
+  );
+  if (findings.length === 0) process.exit(1);
 }
 
 console.error(`\n${findings.length} problem(s):`);

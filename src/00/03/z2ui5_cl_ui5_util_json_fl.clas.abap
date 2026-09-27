@@ -35,6 +35,20 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
 
+    "! Whether the VALUE of a NUMBER node is a numeric zero in any of its
+    "! spellings: ajson writes a packed field with decimals as `0.00` and a
+    "! float as `0.0E+00` (both are |{ value }|), and a plain compare
+    "! against `0` kept exactly the "price" column omit_initial is
+    "! documented for. CO: every character is one of the set, i.e. there
+    "! is no non-zero digit. The one predicate for this filter and for the
+    "! row-preserving filters local to z2ui5_cl_ui5_client, which used to
+    "! carry a copy of the line
+    CLASS-METHODS check_number_initial
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     CLASS-DATA gi_no_empty_values TYPE REF TO z2ui5_if_ajson_filter.
@@ -62,6 +76,12 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_number_initial.
+
+    result = xsdbool( val CO `0.-+Ee` ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_ajson_filter~keep_node.
 
     rv_keep = abap_true.
@@ -74,9 +94,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
             rv_keep = xsdbool( is_node-value <> `false` ).
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            " every spelling of zero (`0`, `0.00`, `0.0E+00`) is empty - see
-            " lcl_node_value=>check_initial in z2ui5_cl_ui5_client
-            rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
+            rv_keep = xsdbool( check_number_initial( is_node-value ) = abap_false ).
           WHEN z2ui5_if_ajson_types=>node_type-string.
             rv_keep = xsdbool( is_node-value <> `` ).
         ENDCASE.

@@ -47,6 +47,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_expiry_clamped      FOR TESTING RAISING cx_static_check.
     METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
+    METHODS test_lookup_fail_no_latch FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_inline FOR TESTING RAISING cx_static_check.
@@ -241,6 +242,13 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
                                         act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
 
+    " the launchpad spelling of a namespace - the handler's own
+    " normalisation, so the two cannot drift apart again
+    z2ui5_cl_ui5_user_exit=>init_context( VALUE #(
+        t_params = VALUE #( ( n = `app_start` v = `-ns-zcl_my_app` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/NS/ZCL_MY_APP`
+                                        act = z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
+
     " a POST carries no app_start - the context says so instead of guessing
     z2ui5_cl_ui5_user_exit=>init_context( VALUE #( ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gs_context-app_start ).
@@ -260,6 +268,39 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit_dep ).
+
+  ENDMETHOD.
+
+  METHOD test_lookup_fail_no_latch.
+
+    " the class name is remembered only when the repository answered. A
+    " lookup that raised - a transient repository error on a system, and
+    " in the transpiled runtime this suite runs on there is no
+    " SEO_INTERFACE_IMPLEM_GET_ALL at all - leaves gv_exit_class_known
+    " unset, so the next request asks again instead of running on "no exit
+    " installed" for the rest of a sticky session. Which of the two
+    " branches this runtime takes is asked of the lookup itself first;
+    " both are the contract, and one of them runs on every target
+    DATA lv_answered TYPE abap_bool.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>exit_class_lookup( ).
+        lv_answered = abap_true.
+      CATCH cx_root.
+        lv_answered = abap_false.
+    ENDTRY.
+
+    CLEAR z2ui5_cl_ui5_user_exit=>gi_me.
+    CLEAR z2ui5_cl_ui5_user_exit=>gv_exit_class.
+    CLEAR z2ui5_cl_ui5_user_exit=>gv_exit_class_known.
+
+    z2ui5_cl_ui5_user_exit=>get_instance( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_answered
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
+    " and the public question goes back to the repository while nothing
+    " is latched - never to a remembered empty answer
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_user_exit=>gv_exit_class
+                                        act = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
 
   ENDMETHOD.
 

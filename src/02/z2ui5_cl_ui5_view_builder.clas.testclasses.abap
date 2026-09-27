@@ -21,6 +21,7 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS text_parameter_beside_empty_v FOR TESTING.
     METHODS misuse_raises_not_dumps FOR TESTING.
     METHODS end_past_root_raises FOR TESTING.
+    METHODS invalid_name_raises FOR TESTING.
 ENDCLASS.
 
 
@@ -385,6 +386,61 @@ CLASS ltcl_builder IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_dup).
         cl_abap_unit_assert=>assert_true( xsdbool( lx_dup->get_text( ) CS `Panel` ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD invalid_name_raises.
+
+    " a name that is no XML name is refused where it is written, not by the
+    " browser: a quote or a markup character in an attribute name closed
+    " the attribute early, whitespace split it in two
+    DATA lt_bad TYPE string_table.
+    lt_bad = VALUE #( ( `te"xt` ) ( `te'xt` ) ( `te<xt` ) ( `te>xt` ) ( `te&xt` )
+                      ( `te xt` ) ( `te=xt` ) ( `te/xt` ) ( `` ) ).
+
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( `Panel` ).
+      TRY.
+          view->a( n = lv_bad
+                   v = `x` ).
+          cl_abap_unit_assert=>fail( |attribute name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_attr).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_attr->get_text( ) CS `attribute name` ) ).
+      ENDTRY.
+      TRY.
+          view->tag( lv_bad ).
+          cl_abap_unit_assert=>fail( |element name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_tag).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_tag->get_text( ) CS `element name` ) ).
+      ENDTRY.
+      " an EMPTY prefix is the default (no namespace) and passes
+      IF lv_bad IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      TRY.
+          view->ele( n  = `Text`
+                     ns = lv_bad ).
+          cl_abap_unit_assert=>fail( |namespace prefix '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_ns).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_ns->get_text( ) CS `namespace prefix` ) ).
+      ENDTRY.
+    ENDLOOP.
+
+    " the names a view is made of still pass: a prefixed one, a dotted one
+    DATA(lv_xml) = z2ui5_cl_ui5_view_builder=>factory(
+        )->ele( n  = `View`
+                ns = `mvc`
+            )->a( n = `xmlns:mvc`
+                  v = `sap.ui.core.mvc`
+            )->a( n = `core:require`
+                  v = `{ f: 'z2ui5/model/formatter' }`
+            )->tag( n  = `Fragment`
+                    ns = `core`
+                )->a( n = `fragmentName`
+                      v = `my.frag`
+        )->stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<mvc:View xmlns:mvc="sap.ui.core.mvc"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<core:Fragment fragmentName="my.frag"/>` ) ).
 
   ENDMETHOD.
 

@@ -2098,6 +2098,70 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(errors.length).toBe(1);
     expect(errors[0]).toContain("no SmartVariantManagement");
   });
+
+  // The once-per-key guard lives on the CONTEXT (ctx.variants.activeInits),
+  // not in the module: control ids repeat across components, so a
+  // module-wide set made two z2ui5.Component instances on one page share
+  // one wait chain - the second component's init returned as a duplicate
+  // of the first's, and its variant management stayed un-anchored for the
+  // five seconds that chain polled.
+  test("two components keep their own wait chains for the same ids", () => {
+    const ctxA = specContext();
+    const ctxB = specContext();
+    const oSVM = svm(["smartFilterBar"]);
+    const controlsOf = new Map([
+      // A's view is still building: nothing resolves, its chain polls
+      [ctxA, {}],
+      [ctxB, { pageVariantId: oSVM, smartFilterBar: { id: "smartFilterBar" } }],
+    ]);
+    const { module: Variants } = loadModule("core/actions/Variants.js", {
+      deps: {
+        "z2ui5/core/Lib": {
+          logError: () => {},
+          isDestroyed: () => false,
+          isControllerAlive: (c) => c.ctx.alive,
+        },
+        "z2ui5/core/ViewSlots": {
+          resolveById: (ctx, id) => controlsOf.get(ctx)?.[id] || null,
+        },
+      },
+    });
+    const args = ["SMART_VARIANT_INIT", "pageVariantId", "smartFilterBar"];
+
+    Variants.handlers.SMART_VARIANT_INIT({ ctx: ctxA }, args);
+    expect(ctxA.variants.activeInits.has("pageVariantId|smartFilterBar")).toBe(
+      true,
+    );
+
+    Variants.handlers.SMART_VARIANT_INIT({ ctx: ctxB }, args);
+    // B's chain ran to its terminal state right away - the anchor is placed
+    // and the key released - although A's chain holds the same key
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+    expect(ctxB.variants.activeInits.size).toBe(0);
+    expect(ctxA.variants.activeInits.size).toBe(1);
+    // end A's poll: a dead context finishes the chain on its next tick
+    ctxA.alive = false;
+  });
+
+  test("a controller without a context is logged, never registered", () => {
+    const errors = [];
+    const { module: Variants } = loadModule("core/actions/Variants.js", {
+      deps: {
+        "z2ui5/core/Lib": { logError: (m) => errors.push(m) },
+        "z2ui5/core/ViewSlots": {},
+      },
+    });
+    Variants.handlers.SMART_VARIANT_INIT(null, ["SMART_VARIANT_INIT", "v"]);
+    Variants.handlers.FILTER_BAR_VARIANT_INIT(null, [
+      "FILTER_BAR_VARIANT_INIT",
+      "v",
+      "bar",
+    ]);
+    expect(errors).toEqual([
+      "SMART_VARIANT_INIT: no context to register in",
+      "FILTER_BAR_VARIANT_INIT: no context to register in",
+    ]);
+  });
 });
 
 test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)", () => {
@@ -2991,6 +3055,47 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     expect(fx.applied).toHaveLength(1);
     expect(fx.doc.activeElement).toBe(otherField);
     expect(fx.delegates).toEqual([]);
+  });
+
+  // Lib.whenRendered's own owner guard is isDestroyed( ), which cannot
+  // answer for a CONTROLLER (Lib.isControllerAlive is the test, see there):
+  // a focus deferred to the control's next rendering has to ask it in the
+  // callback itself - the retry below it and ControlCall's anchor wait
+  // did, the first apply did not, so an app torn down while its target was
+  // still unrendered moved the focus once it rendered under the next app.
+  test("a focus deferred to a rendering is dropped once its app is gone", () => {
+    const pending = [];
+    const fx = focusFixture({ focusable: true });
+    const oController = { ctx: specContext(), alive: true };
+    const { module: ViewOps } = loadModule("core/actions/ViewOps.js", {
+      sandbox: { document: fx.doc },
+      deps: {
+        "z2ui5/core/Lib": {
+          logError: () => {},
+          isControllerAlive: (c) => c.alive,
+          // the control has no DOM yet: the real helper defers to its
+          // next rendering
+          whenRendered: (_control, _owner, fn) => pending.push(fn),
+          onNextRendering: () => {},
+        },
+        "z2ui5/core/ViewSlots": { resolveById: () => fx.control },
+      },
+    });
+
+    ViewOps.handlers.SET_FOCUS(oController, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(pending).toHaveLength(1);
+    expect(fx.applied).toEqual([]);
+
+    // the app is torn down before the control renders
+    oController.alive = false;
+    pending[0]();
+    expect(fx.applied).toEqual([]);
+
+    // the same deferral with the app alive applies
+    oController.alive = true;
+    ViewOps.handlers.SET_FOCUS(oController, ["SET_FOCUS", "inp", "0", "4"]);
+    pending[1]();
+    expect(fx.applied).toEqual([{ selectionStart: 0, selectionEnd: 4 }]);
   });
 });
 

@@ -12,15 +12,24 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //   OPEN_NEW_TAB       same-origin guard, opened with noopener,noreferrer
 //   URLHELPER          CR/LF header-injection block, REDIRECT protocol
 //                      guard (external http/https allowed, schemes not)
-function load() {
+//   LOCATION_RELOAD    same-origin guard before the navigation
+//   SYSTEM_LOGOUT      the launchpad logout, the BSP terminate iframe with
+//                      its load / safety-net finish, the ICF logoff fallback
+//   PLAY_AUDIO         protocol guard, a rejected play( ) caught into the log
+// `pathname` is the page's path (a BSP path switches SYSTEM_LOGOUT to the
+// iframe terminate), `oLaunchpad` the launchpad record of the context.
+function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
   // The real Lib: its sandbox origin anchors the same-origin checks.
-  const { Lib, state: libState, ctx } = loadLib();
+  const { Lib, state: libState, ctx } = loadLib({ state: { oLaunchpad } });
 
   const boxErrors = [];
   const urlHelperCalls = [];
   const anchors = [];
+  const frames = [];
   const bodyOps = [];
   const opened = [];
+  const timers = [];
+  const audios = [];
 
   const historyBacks = [];
   const navBacks = [];
@@ -30,13 +39,24 @@ function load() {
       const el = {
         tagName: tag.toUpperCase(),
         href: "",
+        src: "",
+        style: {},
         download: undefined,
         clicks: 0,
+        listeners: {},
+        removed: false,
         click() {
           this.clicks += 1;
         },
+        addEventListener(type, fn) {
+          this.listeners[type] = fn;
+        },
+        remove() {
+          this.removed = true;
+        },
       };
       if (tag === "a") anchors.push(el);
+      if (tag === "iframe") frames.push(el);
       return el;
     },
     body: {
@@ -44,6 +64,19 @@ function load() {
       removeChild: (el) => bodyOps.push(["remove", el]),
     },
   };
+  const location = { origin: "http://localhost:3000", pathname, href: "" };
+  // what a play( ) answers is decided per test (playResult), so both the
+  // autoplay-policy rejection and the synchronous throw are reachable
+  let playResult = () => Promise.resolve();
+  class Audio {
+    constructor(src) {
+      this.src = src;
+      audios.push(this);
+    }
+    play() {
+      return playResult(this);
+    }
+  }
 
   const { module: Browser } = loadModule("core/actions/Browser.js", {
     deps: {
@@ -85,9 +118,15 @@ function load() {
     },
     sandbox: {
       document: documentStub,
+      Audio,
+      // the 1.5 s safety net of the BSP terminate is recorded, not waited for
+      setTimeout: (fn, ms) => {
+        timers.push({ fn, ms });
+        return timers.length;
+      },
       window: {
         // same origin the real Lib resolves against (loadLibModule)
-        location: { origin: "http://localhost:3000", pathname: "/sap/z2ui5" },
+        location,
         history: { back: () => historyBacks.push(1) },
         // a browser answers null for a "noopener" open - there is no
         // window handle to reach back to, which is the point
@@ -107,13 +146,207 @@ function load() {
     historyBacks,
     navBacks,
     anchors,
+    frames,
     bodyOps,
     opened,
     boxErrors,
     urlHelperCalls,
+    location,
+    timers,
+    audios,
+    setPlayResult: (fn) => {
+      playResult = fn;
+    },
     errors: () => (libState.errors || []).map((e) => e.message),
   };
 }
+
+test.describe("LOCATION_RELOAD", () => {
+  test("a same-origin URL is navigated to", () => {
+    const { handlers, location, boxErrors } = load();
+    handlers.LOCATION_RELOAD(null, ["LOCATION_RELOAD", "/sap/z2ui5?app=x"]);
+    expect(location.href).toBe("/sap/z2ui5?app=x");
+    expect(boxErrors).toEqual([]);
+  });
+
+  test("a cross-origin or javascript: URL is refused with a MessageBox", () => {
+    const { handlers, location, boxErrors } = load();
+    handlers.LOCATION_RELOAD(null, ["LOCATION_RELOAD", "https://evil.example/"]);
+    handlers.LOCATION_RELOAD(null, ["LOCATION_RELOAD", "javascript:alert(1)"]);
+    expect(location.href).toBe("");
+    expect(boxErrors).toHaveLength(2);
+    expect(boxErrors[0]).toContain("Invalid redirect URL");
+  });
+});
+
+test.describe("SYSTEM_LOGOUT", () => {
+  test("outside a BSP path it goes straight to the ICF logoff", () => {
+    const { handlers, location, frames } = load();
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT"]);
+    expect(frames).toEqual([]);
+    expect(location.href).toBe("/sap/public/bc/icf/logoff");
+  });
+
+  test("an explicit same-origin logout URL replaces the ICF one", () => {
+    const { handlers, location } = load();
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", "/sap/bc/logoff?x=1"]);
+    expect(location.href).toBe("/sap/bc/logoff?x=1");
+  });
+
+  test("a cross-origin logout URL is refused with a MessageBox", () => {
+    const { handlers, location, boxErrors } = load();
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", "https://evil.example/out"]);
+    expect(location.href).toBe("");
+    expect(boxErrors[0]).toContain("Invalid logout URL");
+  });
+
+  test("inside the launchpad its own logout wins when no URL is given", () => {
+    const logouts = [];
+    const { handlers, location } = load({
+      oLaunchpad: { Container: { logout: () => logouts.push(1) } },
+    });
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT"]);
+    expect(logouts).toEqual([1]);
+    expect(location.href).toBe("");
+
+    // an EXPLICIT URL is the app's decision and bypasses the shell; an
+    // empty string is "no URL" for both branches
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", ""]);
+    expect(logouts).toEqual([1, 1]);
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", "/sap/bc/logoff"]);
+    expect(logouts).toEqual([1, 1]);
+    expect(location.href).toBe("/sap/bc/logoff");
+  });
+
+  test("a throwing launchpad logout falls back to the redirect", () => {
+    const { handlers, location, errors } = load({
+      oLaunchpad: {
+        Container: {
+          logout: () => {
+            throw new Error("shell gone");
+          },
+        },
+      },
+    });
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT"]);
+    expect(errors()).toContain("SYSTEM_LOGOUT: ushell logout failed");
+    expect(location.href).toBe("/sap/public/bc/icf/logoff");
+  });
+
+  // Hosted as a BSP application the ICF logoff alone leaves the stateful
+  // BSP context alive: a hidden iframe first hits the BSP path with
+  // ?sap-sessioncmd=logoff, and the redirect follows its load
+  test("on a BSP path the terminate iframe loads first, then the redirect", () => {
+    const { handlers, location, frames, bodyOps, timers } = load({
+      pathname: "/sap/bc/bsp/sap/z2ui5/index.html",
+    });
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT"]);
+
+    expect(frames).toHaveLength(1);
+    const frame = frames[0];
+    expect(frame.src).toBe("/sap/bc/bsp/sap/z2ui5/index.html?sap-sessioncmd=logoff");
+    expect(frame.style.display).toBe("none");
+    expect(bodyOps).toEqual([["append", frame]]);
+    // nothing navigates before the terminate answered
+    expect(location.href).toBe("");
+    expect(timers.map((t) => t.ms)).toEqual([1500]);
+
+    frame.listeners.load();
+    expect(frame.removed).toBe(true);
+    expect(location.href).toBe("/sap/public/bc/icf/logoff");
+
+    // the safety net firing afterwards is a no-op: one finish
+    location.href = "";
+    timers[0].fn();
+    expect(location.href).toBe("");
+  });
+
+  test("the safety net redirects when the terminate never answers", () => {
+    const { handlers, location, frames, timers } = load({
+      pathname: "/sap/bc/bsp/sap/z2ui5/index.html",
+    });
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", "/sap/bc/logoff"]);
+    expect(location.href).toBe("");
+
+    timers[0].fn();
+    expect(frames[0].removed).toBe(true);
+    expect(location.href).toBe("/sap/bc/logoff");
+    // ... and the late load event is the same no-op
+    location.href = "";
+    frames[0].listeners.load();
+    expect(location.href).toBe("");
+  });
+
+  test("a refused logout URL still removes the iframe - no leak per attempt", () => {
+    const { handlers, location, frames, boxErrors } = load({
+      pathname: "/sap/bc/bsp/sap/z2ui5/index.html",
+    });
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT", "https://evil.example/out"]);
+    frames[0].listeners.load();
+    expect(frames[0].removed).toBe(true);
+    expect(location.href).toBe("");
+    expect(boxErrors[0]).toContain("Invalid logout URL");
+  });
+
+  test("an iframe the document refuses is logged and the redirect still runs", () => {
+    const env = load({ pathname: "/sap/bc/bsp/sap/z2ui5/index.html" });
+    const { handlers, location, errors } = env;
+    // body.appendChild throws (a document torn down mid-logout)
+    env.bodyOps.push = () => {
+      throw new Error("no body");
+    };
+    handlers.SYSTEM_LOGOUT({}, ["SYSTEM_LOGOUT"]);
+    expect(errors()).toContain("SYSTEM_LOGOUT: BSP terminate iframe failed");
+    expect(location.href).toBe("/sap/public/bc/icf/logoff");
+  });
+});
+
+test.describe("PLAY_AUDIO", () => {
+  test("a same-origin, a cross-origin http(s) and a data: source play", () => {
+    const { handlers, audios, errors } = load();
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "/sounds/ping.mp3"]);
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "https://cdn.example/ping.mp3"]);
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "data:audio/mp3;base64,QQ=="]);
+    expect(audios.map((a) => a.src)).toEqual([
+      "/sounds/ping.mp3",
+      "https://cdn.example/ping.mp3",
+      "data:audio/mp3;base64,QQ==",
+    ]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("an active scheme and an empty source are blocked before any Audio exists", () => {
+    const { handlers, audios, errors } = load();
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "javascript:alert(1)"]);
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", ""]);
+    expect(audios).toEqual([]);
+    expect(errors().filter((m) => m === "PLAY_AUDIO: blocked unsafe audio URL")).toHaveLength(2);
+  });
+
+  test("a play( ) rejected by the autoplay policy is logged, never unhandled", async () => {
+    const { handlers, errors, setPlayResult } = load();
+    setPlayResult(() => Promise.reject(new Error("NotAllowedError")));
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "/sounds/ping.mp3"]);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(errors()).toContain("PLAY_AUDIO: failed for '/sounds/ping.mp3'");
+  });
+
+  test("a play( ) that throws synchronously is logged the same way", () => {
+    const { handlers, errors, setPlayResult } = load();
+    setPlayResult(() => {
+      throw new Error("no audio device");
+    });
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "/sounds/ping.mp3"]);
+    expect(errors()).toContain("PLAY_AUDIO: failed for '/sounds/ping.mp3'");
+  });
+
+  test("a play( ) that answers nothing (an old engine) is fine", () => {
+    const { handlers, errors, setPlayResult } = load();
+    setPlayResult(() => undefined);
+    handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "/sounds/ping.mp3"]);
+    expect(errors()).toEqual([]);
+  });
+});
 
 test.describe("HASH_BACK", () => {
   test("hands the back decision to the router, nothing else", () => {

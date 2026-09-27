@@ -52,16 +52,6 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    "! The same action stringified. No production caller any more - kept for
-    "! the unit specs that pin the TEXT form of a client event.
-    METHODS get_event_client_json
-      IMPORTING
-        val           TYPE clike
-        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
-        t_arg         TYPE string_table OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
     " Escape a value so it is safe as the body of a single-quoted JS string
     " literal emitted into the view XML. Backslash MUST be escaped first (so
     " the escapes added afterwards are not themselves re-escaped); without it a
@@ -174,6 +164,12 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " (resolveById); a concrete view scopes the lookup to that slot.
         DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
                                           ELSE CONV string( view ) ).
+        " an INSERT at index 2 into an EMPTY table is a no-op (sy-subrc 4)
+        " and the view went missing from the wire; a wire without an id
+        " keeps the empty id slot in front of the view instead
+        IF lt_arg IS INITIAL.
+          APPEND `` TO lt_arg.
+        ENDIF.
         INSERT lv_view_slot INTO lt_arg INDEX 2.
 
       WHEN z2ui5_if_client=>cs_event-bind_element.
@@ -199,21 +195,6 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     result-t_arg = lt_arg.
 
   ENDMETHOD.
-
-  METHOD get_event_client_json.
-
-    TRY.
-        result = get_event_client_ajson( val   = val
-                                         view  = view
-                                         t_arg = t_arg )->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = lx_error.
-    ENDTRY.
-
-  ENDMETHOD.
-
 
   METHOD get_event_client_ajson.
 

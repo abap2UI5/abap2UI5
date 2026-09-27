@@ -116,10 +116,11 @@ sap.ui.define(
       //               newly dispatched request aborts them all - it
       //               supersedes them, so there is no point letting the
       //               backend finish work whose response would be dropped
-      //   viewBuild   chain that serializes full MAIN-view rebuilds (see
-      //               actions/Slots.displayMain): XMLView.create claims the
-      //               fixed main view id synchronously, so two overlapping
-      //               builds would throw "duplicate id"
+      //   viewBuild   chain that serializes the displays under a FIXED id -
+      //               the MAIN rebuild and the two fragment slots (see
+      //               actions/Slots.chainBuild): XMLView.create and
+      //               Fragment.load({ id }) claim the id synchronously, so
+      //               two overlapping builds would throw "duplicate id"
 
       endSession(ctx) {
         if (!Lib.isValidContextId(ctx.state.contextId)) return;
@@ -189,6 +190,12 @@ sap.ui.define(
         // dispatch) - a poll armed one Back ago otherwise kept ticking its
         // old event into the app the restore just brought up.
         Lib.cancelPendingTimers(ctx);
+        // ... and so does the event a check_queue_last wire kept for the
+        // screen being left: it was typed into a view the restore replaces,
+        // and dispatching it after the restore's response would send the
+        // old app's event under the restored draft id (reset( ) and
+        // responseError drop it for the same reason)
+        ctx.state.oQueuedEvent = null;
         this.roundtrip(ctx, {});
       },
 
@@ -402,7 +409,17 @@ sap.ui.define(
             if (isStale()) return;
             // An empty error body would render an empty overlay - fall back
             // to the status code so the user sees at least what failed.
-            this.responseError(ctx, text || `HTTP ${response.status}`);
+            // A 502/503/504 is the gateway or the dispatcher answering for a
+            // backend that did not - a restart or a queue that is full - and
+            // the request may well not have reached it, which is the case
+            // Retry exists for; a 500 is the backend itself (a dump), and
+            // re-sending the same body would only dump again.
+            this.responseError(
+              ctx,
+              text || `HTTP ${response.status}`,
+              undefined,
+              response.status >= 502 ? oRetry : undefined,
+            );
             return;
           }
 

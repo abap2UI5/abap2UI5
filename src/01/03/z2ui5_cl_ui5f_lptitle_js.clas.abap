@@ -26,17 +26,22 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
-             `  (Control, Lib, Context) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/actions/Launchpad",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, Context, Launchpad) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    function launchpadOf(control, where) {` && |\n| &&
+             `    function contextOf(control, where) {` && |\n| &&
              `      const ctx = Context.of(control);` && |\n| &&
              `      if (!ctx) {` && |\n| &&
              `        Lib.logError(``LPTitle.${where}: no component context, ignored``);` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&
-             `      return ctx.state.oLaunchpad;` && |\n| &&
+             `      return ctx;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
@@ -52,29 +57,20 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      setTitle(val) {` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
-             `        try {` && |\n| &&
-             `          const shell = launchpadOf(this, "setTitle")?.ShellUIService;` && |\n| &&
-             `          if (!shell?.setTitle) return;` && |\n| &&
+             `        const ctx = contextOf(this, "setTitle");` && |\n| &&
+             `        if (!ctx) return;` && |\n| &&
              `` && |\n| &&
-             `          const result = shell.setTitle(Lib.toText(val));` && |\n| &&
-             `` && |\n| &&
-             `          if (result?.catch) {` && |\n| &&
-             `            result.catch((e) =>` && |\n| &&
-             `              Lib.logError("LPTitle: Launchpad Service setTitle failed", e),` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("LPTitle: Launchpad Service setTitle failed", e);` && |\n| &&
-             `        }` && |\n| &&
+             `        Launchpad.handlers.SET_TITLE_LAUNCHPAD({ ctx }, [` && |\n| &&
+             `          "SET_TITLE_LAUNCHPAD",` && |\n| &&
+             `          val,` && |\n| &&
+             `        ]);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      setApplicationFullWidth(val) {` && |\n| &&
              `        this.setProperty("ApplicationFullWidth", val, true);` && |\n| &&
              `        try {` && |\n| &&
-             `          const config = launchpadOf(` && |\n| &&
-             `            this,` && |\n| &&
-             `            "setApplicationFullWidth",` && |\n| &&
-             `          )?.AppConfiguration;` && |\n| &&
+             `          const config = contextOf(this, "setApplicationFullWidth")?.state` && |\n| &&
+             `            .oLaunchpad?.AppConfiguration;` && |\n| &&
              `          if (config?.setApplicationFullWidth) {` && |\n| &&
              `            config.setApplicationFullWidth(val);` && |\n| &&
              `          }` && |\n| &&

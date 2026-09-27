@@ -78,6 +78,21 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " An app class name the way the framework reads it off a request:
+    " trimmed, upper-cased, a percent-encoded namespace (%2Fns%2Fclass)
+    " unpacked, the launchpad spelling -ns-class (a startup parameter
+    " cannot carry a slash) spelled back to /ns/class. The ONE
+    " normalisation - request_app_start reads every source through it and
+    " z2ui5_cl_ui5_user_exit=>init_context hands the exit the same name,
+    " so an exit keyed on the app sees exactly the class the handler
+    " starts. The two used to be separate copies, and the exit's did not
+    " know the launchpad spelling
+    CLASS-METHODS app_start_normalize
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     " Everything about the failing roundtrip that only this class knows:
@@ -85,6 +100,15 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " request origin. Rendered as the outermost entry of the error chain.
     " Must never raise itself - it runs while an exception is being handled.
     METHODS request_context_info
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " a client-controlled value on its way into the error body, capped so
+    " a crafted request cannot pad it with kilobytes of noise - the url,
+    " the event name and the draft id all come off the request
+    CLASS-METHODS context_info_cap
+      IMPORTING
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -499,27 +523,23 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   METHOD request_app_start.
     TRY.
         IF io_comp_data IS BOUND.
-          result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-              io_comp_data->get( `/startupParameters/app_start/1` ) ).
+          result = app_start_normalize( io_comp_data->get( `/startupParameters/app_start/1` ) ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     IF result IS NOT INITIAL.
-      " a launchpad startup parameter cannot carry a slash, so a namespaced
-      " class travels as `-ns-class` in the intent and is spelled back to
-      " `/ns/class` here - the first two hyphens only, a hyphen inside the
-      " class name itself is not one an ABAP name can have anyway
-      IF result(1) = `-`.
-        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
-        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
-      ENDIF.
       RETURN.
     ENDIF.
 
-    result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-        z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
-                                                  url = iv_search ) ).
+    result = app_start_normalize( z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
+                                                                            url = iv_search ) ).
+  ENDMETHOD.
+
+  METHOD app_start_normalize.
+
+    result = z2ui5_cl_ui5_util_context=>c_trim_upper( val ).
+
     " a namespaced class name carries slashes, and a client that
     " percent-encodes the value (%2Fns%2Fclass) is well within the URL
     " rules; url_param_get leaves values encoded, so the one encoding a
@@ -528,6 +548,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                       sub  = `%2F`
                       with = `/`
                       occ  = 0 ).
+
+    " a launchpad startup parameter cannot carry a slash, so a namespaced
+    " class travels as `-ns-class` in the intent and is spelled back to
+    " `/ns/class` here - the first two hyphens only, a hyphen inside the
+    " class name itself is not one an ABAP name can have anyway
+    IF result IS INITIAL.
+      RETURN.
+    ENDIF.
+    IF result(1) = `-`.
+      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD hash_split.
@@ -887,10 +920,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " handler's action is the previous roundtrip's, whose event and draft
     " have nothing to do with the body that just failed
     IF mo_action IS BOUND AND mv_request_parsed = abap_true.
-      lv_event = mo_action->ms_actual-event.
+      lv_event = context_info_cap( mo_action->ms_actual-event ).
 
       IF mo_action->mo_app IS BOUND.
-        lv_draft = mo_action->mo_app->ms_draft-id_prev.
+        lv_draft = context_info_cap( mo_action->mo_app->ms_draft-id_prev ).
 
         IF mo_action->mo_app->mo_app IS BOUND.
           lv_app = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
@@ -898,13 +931,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " the url comes from the client - cap it so a crafted request cannot pad
-    " the error body with kilobytes of noise
-    DATA(lv_url) = ms_request-s_front-pathname && ms_request-s_front-search.
-    IF strlen( lv_url ) > 300.
-      lv_url = substring( val = lv_url
-                          len = 300 ) && `...`.
-    ENDIF.
+    " the url comes from the client - capped like the event and the draft
+    " id above (context_info_cap)
+    DATA(lv_url) = context_info_cap( ms_request-s_front-pathname && ms_request-s_front-search ).
 
     " app_start is client-controlled and is reflected into the error body:
     " the same class-name-safe strip as z2ui5_cl_ui5_action=>factory_first_start
@@ -920,6 +949,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
              COND #( WHEN lv_app_start IS NOT INITIAL
                      THEN |, app_start { lv_app_start }| ) &&
              COND #( WHEN lv_url IS NOT INITIAL THEN |, url { lv_url }| ).
+
+  ENDMETHOD.
+
+  METHOD context_info_cap.
+
+    result = val.
+    IF strlen( result ) > 300.
+      result = substring( val = result
+                          len = 300 ) && `...`.
+    ENDIF.
 
   ENDMETHOD.
 

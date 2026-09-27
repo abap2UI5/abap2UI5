@@ -279,6 +279,13 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         name TYPE string,
         ref  TYPE REF TO data,
       END OF ty_s_ref_idx.
+    " NO secondary key on ref, although the binding search scans this
+    " table for it (attri_search): a sorted secondary key on a REF TO data
+    " component is accepted by every abaplint target and refused by the
+    " transpiled runtime, whose secondary index sorts the rows by
+    " comparing the references' targets (@abaplint/runtime 2.13.91:
+    " "table, no header line" from compare/lt on the first keyed loop) -
+    " so the unit suite cannot run it. Re-check on the next runtime bump
     TYPES ty_t_ref_idx TYPE SORTED TABLE OF ty_s_ref_idx WITH UNIQUE KEY name.
 
     " name -> data reference, as resolved the last time this INSTANCE walked
@@ -1096,7 +1103,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " first the index: a row this instance resolved before that pointed at
     " exactly this data object. The hit is confirmed by a fresh ASSIGN - an
     " app that re-pointed the reference since is caught here, and the scan
-    " below then decides as if there had been no index
+    " below then decides as if there had been no index. A sequential scan
+    " on purpose - see ty_t_ref_idx for the key the runtime refuses
     LOOP AT mt_ref_idx REFERENCE INTO DATA(lr_idx) WHERE ref = val. "#EC CI_SORTSEQ
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_hit)
            WITH TABLE KEY name = lr_idx->name.
@@ -1790,9 +1798,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD delta_row_index.
 
+    " digits only, and at least one: CONV i( `1.5` ) rounds to 2, `+1`
+    " and `1e3` convert too, so a key the client never wrote that way
+    " would have landed the cells in a row it never named. An empty key
+    " is no row either - CONV i( `` ) is 0, which used to be row 1.
+    " Surrounding blanks are not a spelling, ` 1 ` names row index 1 like
+    " every other ABAP numeric text (delta_malformed_survives pins it)
+    DATA lv_key TYPE string.
+    lv_key = condense( iv_key ).
+    IF lv_key IS INITIAL OR lv_key CN `0123456789`.
+      RETURN.
+    ENDIF.
     TRY.
         result = CONV i( iv_key ) + 1.
       CATCH cx_root.
+        " more digits than an integer holds
         result = 0.
     ENDTRY.
     IF result < 1.

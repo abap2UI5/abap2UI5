@@ -2,23 +2,28 @@
 // full-width mode when the app runs inside the FLP; does nothing when
 // running standalone.
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
-  (Control, Lib, Context) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Context",
+    "z2ui5/core/actions/Launchpad",
+  ],
+  (Control, Lib, Context, Launchpad) => {
     "use strict";
 
-    // The launchpad record of the control's component (state.oLaunchpad,
-    // filled by Component._initLaunchpad inside the FLP). Null standalone
-    // AND for a control in no component (Context.of answers null): the
-    // second cannot tell whether there is a shell to talk to, so it is
-    // logged once per call site - it looks exactly like standalone
+    // The context of the control's component (core/Context.js), whose
+    // state carries the launchpad record (state.oLaunchpad, filled by
+    // Component._initLaunchpad inside the FLP). Null for a control in no
+    // component: that one cannot tell whether there is a shell to talk to,
+    // so it is logged once per call site - it looks exactly like standalone
     // otherwise - and the setter stays the no-op it is standalone.
-    function launchpadOf(control, where) {
+    function contextOf(control, where) {
       const ctx = Context.of(control);
       if (!ctx) {
         Lib.logError(`LPTitle.${where}: no component context, ignored`);
         return null;
       }
-      return ctx.state.oLaunchpad;
+      return ctx;
     }
 
     // OBSOLETE: replaced by the frontend event cs_event-set_title_launchpad - kept for backward compatibility.
@@ -37,30 +42,24 @@ sap.ui.define(
         // Empty renderer -> suppress the no-op invalidation; the effect below
         // (setting the shell title) is what actually matters.
         this.setProperty("title", val, true);
-        try {
-          const shell = launchpadOf(this, "setTitle")?.ShellUIService;
-          if (!shell?.setTitle) return;
-          // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:
-          // never hand undefined/null to the shell service.
-          const result = shell.setTitle(Lib.toText(val));
-          // setTitle may return a Promise; report any async failure.
-          if (result?.catch) {
-            result.catch((e) =>
-              Lib.logError("LPTitle: Launchpad Service setTitle failed", e),
-            );
-          }
-        } catch (e) {
-          Lib.logError("LPTitle: Launchpad Service setTitle failed", e);
-        }
+        const ctx = contextOf(this, "setTitle");
+        if (!ctx) return;
+        // The setter IS the SET_TITLE_LAUNCHPAD event: the action handler
+        // (core/actions/Launchpad.js) reads the shell service off the
+        // context, normalizes the title (never undefined/null to the shell)
+        // and logs a rejecting or throwing setTitle instead of throwing -
+        // the control used to carry a copy of all three.
+        Launchpad.handlers.SET_TITLE_LAUNCHPAD({ ctx }, [
+          "SET_TITLE_LAUNCHPAD",
+          val,
+        ]);
       },
 
       setApplicationFullWidth(val) {
         this.setProperty("ApplicationFullWidth", val, true);
         try {
-          const config = launchpadOf(
-            this,
-            "setApplicationFullWidth",
-          )?.AppConfiguration;
+          const config = contextOf(this, "setApplicationFullWidth")?.state
+            .oLaunchpad?.AppConfiguration;
           if (config?.setApplicationFullWidth) {
             config.setApplicationFullWidth(val);
           }

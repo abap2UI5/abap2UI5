@@ -1,6 +1,41 @@
 CLASS ltcl_test DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_event DEFINITION LOCAL FRIENDS ltcl_test.
 
+" the TEXT form of a client action, for the specs below that pin it. The
+" production shape is get_event_client_ajson( ) - the response embeds the
+" array as it is - so the stringify is this helper's and not the class's
+CLASS ltcl_json DEFINITION FINAL FOR TESTING.
+
+  PUBLIC SECTION.
+    CLASS-METHODS of
+      IMPORTING
+        io_event      TYPE REF TO z2ui5_cl_ui5_srv_event
+        val           TYPE clike
+        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
+        t_arg         TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+ENDCLASS.
+
+
+CLASS ltcl_json IMPLEMENTATION.
+
+  METHOD of.
+
+    TRY.
+        result = io_event->get_event_client_ajson( val   = val
+                                                   view  = view
+                                                   t_arg = t_arg )->stringify( ).
+      CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = lx_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
@@ -126,7 +161,8 @@ CLASS ltcl_test IMPLEMENTATION.
     " the follow-up action path formats the same call as pure data
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","VIEW_SLOTS","destroy","POPUP"]`
-        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-popup_close ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-popup_close ) ).
 
   ENDMETHOD.
 
@@ -513,8 +549,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["SET_TITLE","My Title"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-set_title
-                                               t_arg = VALUE #( ( `My Title` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-set_title
+                             t_arg    = VALUE #( ( `My Title` ) ) ) ).
 
   ENDMETHOD.
 
@@ -524,7 +561,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["LOCATION_RELOAD"]`
-        act = lo_event->get_event_client_json( z2ui5_if_client=>cs_event-location_reload ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-location_reload ) ).
 
   ENDMETHOD.
 
@@ -541,32 +579,37 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               view  = z2ui5_if_client=>cs_view-nested
-                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-nested
+                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST2","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               view  = z2ui5_if_client=>cs_view-nested2
-                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-nested2
+                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPUP","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               view  = z2ui5_if_client=>cs_view-popup
-                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-popup
+                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPOVER","to","myPage"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               view  = z2ui5_if_client=>cs_view-popover
-                                               t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-popover
+                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
   ENDMETHOD.
 
@@ -582,31 +625,35 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","POPUP","3","/MT_TAB"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
-                                               view  = z2ui5_if_client=>cs_view-popup
-                                               t_arg = VALUE #( ( `3` ) ( `{/MT_TAB}` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-bind_element
+                             view     = z2ui5_if_client=>cs_view-popup
+                             t_arg    = VALUE #( ( `3` ) ( `{/MT_TAB}` ) ) ) ).
 
     " the default view, and a binding that carries no braces at all
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","0","/MT_TAB"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
-                                               t_arg = VALUE #( ( `0` ) ( `/MT_TAB` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-bind_element
+                             t_arg    = VALUE #( ( `0` ) ( `/MT_TAB` ) ) ) ).
 
     " no binding argument at all: the third element is simply not there,
     " and the frontend's `String(args[3] ?? "")` answers the empty path
     " with a log line instead of element-binding the slot to a bare `/3`
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","3"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
-                                               t_arg = VALUE #( ( `3` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-bind_element
+                             t_arg    = VALUE #( ( `3` ) ) ) ).
 
     " an EMPTY index between the slot and the path keeps its position - the
     " positional trim only drops what TRAILS. Dropping it would shift the
     " path into the index slot and element-bind the view to `MAIN/`
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","","/MT_TAB"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-bind_element
-                                               t_arg = VALUE #( ( `` ) ( `{/MT_TAB}` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-bind_element
+                             t_arg    = VALUE #( ( `` ) ( `{/MT_TAB}` ) ) ) ).
 
   ENDMETHOD.
 
@@ -618,14 +665,28 @@ CLASS ltcl_test IMPLEMENTATION.
     " keeps it empty (cross-view resolveById on the frontend)
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               view  = z2ui5_if_client=>cs_view-popover
-                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-popover
+                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+
+    " no arguments at all: the view still lands in its slot, behind an
+    " empty id - the INSERT at index 2 used to be a no-op on an empty table
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["CONTROL_BY_ID","","POPUP"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             view     = z2ui5_if_client=>cs_view-popup ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', '', 'POPUP')`
+        act = lo_event->get_event_client( val  = z2ui5_if_client=>cs_event-control_by_id
+                                          view = z2ui5_if_client=>cs_view-popup ) ).
 
   ENDMETHOD.
 
@@ -637,8 +698,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " empties are dropped - same contract as the JS form (get_t_arg)
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_by_id
-                                               t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_by_id
+                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
 
   ENDMETHOD.
 
@@ -651,8 +713,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " JSON.parse of the whole array
     cl_abap_unit_assert=>assert_equals(
         exp = `["STORE_DATA",{"KEY":"K1"}]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-store_data
-                                               t_arg = VALUE #( ( `{"KEY":"K1"}` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-store_data
+                             t_arg    = VALUE #( ( `{"KEY":"K1"}` ) ) ) ).
 
   ENDMETHOD.
 
@@ -664,8 +727,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " parse and stays a plain string, like the frontend fallback produced
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","{0} Pressed"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-control_global
-                                               t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `{0} Pressed` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-control_global
+                             t_arg    = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `{0} Pressed` ) ) ) ).
 
   ENDMETHOD.
 
@@ -678,8 +742,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " out of (the injection surface of the old eF( ) form)
     cl_abap_unit_assert=>assert_equals(
         exp = `["CLIPBOARD_COPY","he said \"hi\" \\ bye"]`
-        act = lo_event->get_event_client_json( val   = z2ui5_if_client=>cs_event-clipboard_copy
-                                               t_arg = VALUE #( ( `he said "hi" \ bye` ) ) ) ).
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-clipboard_copy
+                             t_arg    = VALUE #( ( `he said "hi" \ bye` ) ) ) ).
 
   ENDMETHOD.
 

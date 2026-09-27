@@ -25,24 +25,27 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/actions/Browser"],` && |\n| &&
+             `  (Control, Lib, Browser) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.cc.Title", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        title: {` && |\n| &&
-             `          type: "string",` && |\n| &&
+             `    return Control.extend("z2ui5.cc.Title", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          title: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
-             `    setTitle(val) {` && |\n| &&
-             `      this.setProperty("title", val, true);` && |\n| &&
-             `      document.title = Lib.toText(val);` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `      setTitle(val) {` && |\n| &&
+             `        this.setProperty("title", val, true);` && |\n| &&
+             `        Browser.handlers.SET_TITLE(null, ["SET_TITLE", val]);` && |\n| &&
+             `      },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
+             `    });` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

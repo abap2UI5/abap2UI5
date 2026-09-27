@@ -174,8 +174,8 @@ never both hand-maintained and copied.
 | `CLAUDE.md` | every repository that has `AGENTS.md` | A pointer to `AGENTS.md`, nothing else. Gated in `abap2UI5` by `check:conventions`. Claude Code reads `CLAUDE.md` and nothing else by that name, so guidance without one is invisible to it. |
 | `CONTRIBUTING.md` | every source and corpus repository | How to propose a change, and what CI will check. |
 | `SECURITY.md` | every repository that ships code | Where to report a vulnerability. |
-| `CHANGELOG.md` | every product repository | Keep-a-Changelog format, `## Unreleased` on top. |
-| `RELEASING.md` | every product repository | The human checklist; the mechanics live in `release.yml`. |
+| `changelog.txt` | every repository that cuts releases | The record of what shipped, `unreleased` on top, one line per user-visible change. Machine-read: `release.yaml` builds the release notes from the section under the tag and `check:release` refuses a tag whose entry is missing. `CHANGELOG.md` is the same file under the Keep-a-Changelog spelling for the npm-published products (`linter`, `mcp-server`, `vscode-extension`); a repository has one of the two, never both. |
+| `RELEASING.md` | every repository that cuts releases | The human checklist; the mechanics live in the release workflow (`release.yaml`, or `release.yml` where the repository already uses that extension, §2). |
 
 English for code, comments, commit messages, pull requests and issues. All text
 files are LF-only, enforced by `.gitattributes` in every repository that carries

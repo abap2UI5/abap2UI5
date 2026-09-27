@@ -297,6 +297,60 @@ test.describe("logError", () => {
     expect(state.errors[1].error.message).toBe("boom");
     expect(state.errors[1].ts).toBeTruthy();
   });
+
+  // The ring is read by the developer tools alone; every entry is also
+  // mirrored into sap/base/Log as a WARNING under the component "z2ui5", so
+  // the browser console (at sap-ui-logLevel=WARNING or in debug mode) and
+  // the support assistant see what used to be invisible without the tools.
+  // Resolved with the probing require at call time: sap/base/Log is no
+  // define dependency of Lib, and these specs run without UI5.
+  test("mirrors every entry into sap/base/Log under the component z2ui5", () => {
+    const warnings = [];
+    const Log = { warning: (...a) => warnings.push(a) };
+    const { Lib, state } = loadLib({
+      sap: { ui: { require: (id) => (id === "sap/base/Log" ? Log : undefined) } },
+    });
+
+    Lib.logError("plain message");
+    Lib.logError("with error", new Error("boom"));
+    Lib.logError("with a string", "detail text");
+
+    expect(state.errors).toHaveLength(3);
+    expect(warnings).toHaveLength(3);
+    expect(warnings[0]).toEqual(["plain message", undefined, "z2ui5"]);
+    expect(warnings[1][0]).toBe("with error");
+    expect(warnings[1][1]).toContain("boom");
+    expect(warnings[1][2]).toBe("z2ui5");
+    expect(warnings[2]).toEqual(["with a string", "detail text", "z2ui5"]);
+  });
+
+  test("a missing or broken UI5 log never costs the entry or the caller", () => {
+    // no sap.ui.require at all (these specs, a bare bootstrap)
+    const bare = loadLib();
+    expect(() => bare.Lib.logError("no ui5")).not.toThrow();
+    expect(bare.state.errors.map((e) => e.message)).toEqual(["no ui5"]);
+
+    // a require that throws, and a Log without warning( )
+    const throwing = loadLib({
+      sap: {
+        ui: {
+          require: () => {
+            throw new Error("loader broken");
+          },
+        },
+      },
+    });
+    expect(() => throwing.Lib.logError("broken loader")).not.toThrow();
+    expect(throwing.state.errors.map((e) => e.message)).toEqual([
+      "broken loader",
+    ]);
+
+    const noWarning = loadLib({ sap: { ui: { require: () => ({}) } } });
+    expect(() => noWarning.Lib.logError("no warning")).not.toThrow();
+    expect(noWarning.state.errors.map((e) => e.message)).toEqual([
+      "no warning",
+    ]);
+  });
 });
 
 // The control filters of a list binding, release-independently: the public

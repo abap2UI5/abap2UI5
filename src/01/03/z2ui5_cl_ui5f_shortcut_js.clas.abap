@@ -51,12 +51,15 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function normalizeShortcut(combo) {` && |\n| &&
-             `    const parts = String(combo ?? "")` && |\n| &&
-             `      .split("+")` && |\n| &&
-             `      .map(shortcutToken)` && |\n| &&
-             `      .filter((p) => p !== "");` && |\n| &&
+             `    const tokens = String(combo ?? "").split("+");` && |\n| &&
+             `    const plusKey =` && |\n| &&
+             `      tokens.length >= 2 &&` && |\n| &&
+             `      tokens[tokens.length - 1].trim() === "" &&` && |\n| &&
+             `      tokens[tokens.length - 2].trim() === "";` && |\n| &&
+             `    const parts = tokens.map(shortcutToken).filter((p) => p !== "");` && |\n| &&
              `    const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));` && |\n| &&
              `    const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));` && |\n| &&
+             `    if (plusKey) keys.push("+");` && |\n| &&
              `    if (keys.length === 0) return "";` && |\n| &&
              `    return [...mods, keys[keys.length - 1]].join("+");` && |\n| &&
              `  }` && |\n| &&
@@ -167,7 +170,7 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `    KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
-             `  return { handlers, reset };` && |\n| &&
+             `  return { handlers, reset, normalizeShortcut, shortcutFromEvent };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

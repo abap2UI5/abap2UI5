@@ -40,13 +40,22 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
 
   // "Ctrl+Shift+S" / "shift + CTRL + s" -> "ctrl+shift+s". Returns an empty
   // string when no actual key (only modifiers) is named.
+  //
+  // The "+" key itself is spelled "Ctrl++": the separator is the key, so
+  // split( ) yields two EMPTY tokens at the end, and dropping empties read
+  // the combo as modifiers only. That trailing PAIR is the key - a single
+  // trailing empty token ("Ctrl+") still names none. It is what a keydown
+  // for "+" normalizes to as well (shortcutFromEvent joins with "+").
   function normalizeShortcut(combo) {
-    const parts = String(combo ?? "")
-      .split("+")
-      .map(shortcutToken)
-      .filter((p) => p !== "");
+    const tokens = String(combo ?? "").split("+");
+    const plusKey =
+      tokens.length >= 2 &&
+      tokens[tokens.length - 1].trim() === "" &&
+      tokens[tokens.length - 2].trim() === "";
+    const parts = tokens.map(shortcutToken).filter((p) => p !== "");
     const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));
     const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));
+    if (plusKey) keys.push("+");
     if (keys.length === 0) return "";
     return [...mods, keys[keys.length - 1]].join("+");
   }
@@ -207,5 +216,7 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
     KEYBOARD_SHORTCUT: evKeyboardShortcut,
   };
 
-  return { handlers, reset };
+  // the two pure halves of the registry are exported for the unit specs
+  // (node/tests/shortcuts.spec.js); the listener reads them from here
+  return { handlers, reset, normalizeShortcut, shortcutFromEvent };
 });

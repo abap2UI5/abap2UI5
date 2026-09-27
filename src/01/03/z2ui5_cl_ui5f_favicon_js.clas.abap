@@ -25,40 +25,27 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/actions/Browser"],` && |\n| &&
+             `  (Control, Lib, Browser) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        favicon: {` && |\n| &&
-             `          type: "string",` && |\n| &&
+             `    return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          favicon: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
-             `    setFavicon(val) {` && |\n| &&
-             `      this.setProperty("favicon", val, true);` && |\n| &&
-             `      const href = Lib.toText(val);` && |\n| &&
-             `` && |\n| &&
-             `      if (!Lib.isSafeDownloadURL(href)) {` && |\n| &&
-             `        Lib.logError(``Favicon: refused unsafe URL "${href}"``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
-             `      if (existing) {` && |\n| &&
-             `        existing.href = href;` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `      const link = document.createElement("link");` && |\n| &&
-             `      link.rel = "icon";` && |\n| &&
-             `      link.href = href;` && |\n| &&
-             `      document.head.appendChild(link);` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `      setFavicon(val) {` && |\n| &&
+             `        this.setProperty("favicon", val, true);` && |\n| &&
+             `        Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);` && |\n| &&
+             `      },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
+             `    });` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

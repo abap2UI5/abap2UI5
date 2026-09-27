@@ -64,6 +64,14 @@ sap.ui.define(
         const oResponse = this.ctx.state.oResponse;
         if (!oResponse || oResponse._processed) return;
         oResponse._processed = true;
+        // Stamp of the request this response belongs to: every await in
+        // the display phase re-checks it, so a response superseded by a
+        // parallel request (a Back/Forward restore, or a teardown that
+        // bumped the sequence)
+        // never attaches popups/nested views the backend no longer knows.
+        // ONE stamp for BOTH phases - see the guard below - and for the
+        // catch, which asks it before it raises the fatal overlay.
+        const seq = reqSeq ?? this.ctx.server.requestSeq;
         try {
           // An APP SWITCH kills the two standalone slots implicitly: they
           // live outside the MAIN control tree, so they do not fall with
@@ -99,15 +107,14 @@ sap.ui.define(
             state.hashEvent = null;
             state.appHash = "";
             state.pendingAppHash = null;
+            // ... and the event a check_queue_last wire kept while the
+            // roundtrip ran: it was typed into the leaving app's view, and
+            // the dispatch below (_dispatchQueuedEvent) would otherwise
+            // send it under the NEW app's draft id, where the backend
+            // routes it to an app that never registered the event
+            state.oQueuedEvent = null;
             state.renderedApp = oResponse.APP;
           }
-          // Stamp of the request this response belongs to: every await in
-          // the display phase re-checks it, so a response superseded by a
-          // parallel request (a Back/Forward restore, or a teardown that
-          // bumped the sequence)
-          // never attaches popups/nested views the backend no longer knows.
-          // ONE stamp for BOTH phases - see the guard below.
-          const seq = reqSeq ?? this.ctx.server.requestSeq;
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
           // after-render hooks below - with the ROUTER and updateModel
@@ -169,14 +176,32 @@ sap.ui.define(
           Lib.runCallbacks(this.ctx.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
-          // Server decides which overlay this failure gets: a view that could
-          // not load a sap.com module on openui5 shows the SDK hint, anything
-          // else the fatal overlay (see Server.showRenderError).
-          Server.showRenderError(
-            this.ctx,
-            e,
-            "Unexpected Error Occurred - App Terminated",
-          );
+          // A failure of a response a NEWER request has superseded, or
+          // whose app is gone, is not the user's concern: the newer request
+          // owns the outcome and the screen, exactly as Server.readHttp
+          // swallows a stale request's own failure. A build a Back/Forward
+          // restore cut short used to raise the fatal overlay over the
+          // screen the restore's response was about to build (a duplicate
+          // id, or a slot the restore had already torn down) - and the
+          // overlay ends the app.
+          if (
+            !Lib.isControllerAlive(this) ||
+            seq !== this.ctx.server.requestSeq
+          ) {
+            superseded = true;
+            replaced =
+              !Lib.isControllerAlive(this) ||
+              oResponse !== this.ctx.state.oResponse;
+          } else {
+            // Server decides which overlay this failure gets: a view that
+            // could not load a sap.com module on openui5 shows the SDK hint,
+            // anything else the fatal overlay (see Server.showRenderError).
+            Server.showRenderError(
+              this.ctx,
+              e,
+              "Unexpected Error Occurred - App Terminated",
+            );
+          }
         } finally {
           // A superseded response (a Back/Forward restore or a parallel
           // request replaced it while its views were still loading) leaves
@@ -276,7 +301,13 @@ sap.ui.define(
       // loading its client on first use) is awaited before the next one
       // runs, so the order the backend queued them in is the order their
       // effects land in - every other action is synchronous and costs no
-      // tick here.
+      // tick here. A REJECTED promise is logged and the next action runs:
+      // FrontendAction.execute promises that a failing handler is logged,
+      // never thrown, and the synchronous half keeps that. An await without
+      // a catch broke it for the asynchronous half - the rejection escaped
+      // the finally of _processAfterRendering, skipped the queued event and
+      // the parked hash behind it, and turned a rendered screen into the
+      // fatal "App Terminated" overlay.
       async _runPendingCustomJs(oResponse) {
         const customJs = oResponse?._pendingCustomJs;
         if (oResponse) oResponse._pendingCustomJs = null;
@@ -285,14 +316,29 @@ sap.ui.define(
         for (const item of customJs) {
           const result = FrontendAction.runCustom(item, this);
           if (result && typeof result.then === "function") {
-            await result;
+            try {
+              await result;
+            } catch (e) {
+              Lib.logError(
+                `FrontendAction: async action '${item?.[0]}' failed`,
+                e,
+              );
+            }
             if (!Lib.isControllerAlive(this)) return;
           }
         }
       },
 
-      // Thin wrappers around the shared slot teardown in ViewSlots, kept
-      // because existing apps may call them via custom JS.
+      // Thin wrappers around the shared slot teardown in ViewSlots. Nothing
+      // in this repository or in the sample catalogues calls them, and the
+      // caller they were kept for - custom JS - is gone (follow_up_action
+      // runs no raw JavaScript since 2026-09-22, no-new-func is an ESLint
+      // error). They stay because a view names a controller method as DATA:
+      // an event attribute of an app's own view XML (`press=".destroyPopup"`,
+      // `$controller.destroyPopup()` in an argument expression) rendered by
+      // an older backend, or a customer custom control holding the
+      // controller, breaks at runtime and not at build time if they go.
+      // Their removal is tracked in docs/removal-plan.md section 3.
       destroyPopup() {
         ViewSlots.destroy(this.ctx, "POPUP");
       },
@@ -453,6 +499,17 @@ sap.ui.define(
       // by an older backend must keep reading the same.
       // ------------------------------------------------------------------
       eB(...args) {
+        // The first argument is the event ARRAY. A string there - a wire
+        // hand-written as eB('SAVE') - used to be destructured character by
+        // character and round-tripped as the event "S", which the backend
+        // answered with nothing an app could recognise. Say so instead;
+        // there is no event to send.
+        if (!Array.isArray(args[0])) {
+          Lib.logError(
+            `eB: the first argument must be the event array, got ${JSON.stringify(args[0])}`,
+          );
+          return;
+        }
         const [, , , useMainModel, queueLast, noBusy] = args[0];
 
         if (!navigator.onLine) {

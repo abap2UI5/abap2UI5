@@ -62,6 +62,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        const oResponse = this.ctx.state.oResponse;` && |\n| &&
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
              `        oResponse._processed = true;` && |\n| &&
+             `` && |\n| &&
+             `        const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
              `        try {` && |\n| &&
              `          const state = this.ctx.state;` && |\n| &&
              `          if (oResponse.APP && state.renderedApp !== oResponse.APP) {` && |\n| &&
@@ -76,10 +78,10 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            state.hashEvent = null;` && |\n| &&
              `            state.appHash = "";` && |\n| &&
              `            state.pendingAppHash = null;` && |\n| &&
+             `` && |\n| &&
+             `            state.oQueuedEvent = null;` && |\n| &&
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
-             `          const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
              `` && |\n| &&
              `          if (oResponse.S_ACTION) {` && |\n| &&
              `            await this._runSystemActions(oResponse, seq);` && |\n| &&
@@ -107,11 +109,21 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `` && |\n| &&
-             `          Server.showRenderError(` && |\n| &&
-             `            this.ctx,` && |\n| &&
-             `            e,` && |\n| &&
-             `            "Unexpected Error Occurred - App Terminated",` && |\n| &&
-             `          );` && |\n| &&
+             `          if (` && |\n| &&
+             `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            seq !== this.ctx.server.requestSeq` && |\n| &&
+             `          ) {` && |\n| &&
+             `            superseded = true;` && |\n| &&
+             `            replaced =` && |\n| &&
+             `              !Lib.isControllerAlive(this) ||` && |\n| &&
+             `              oResponse !== this.ctx.state.oResponse;` && |\n| &&
+             `          } else {` && |\n| &&
+             `            Server.showRenderError(` && |\n| &&
+             `              this.ctx,` && |\n| &&
+             `              e,` && |\n| &&
+             `              "Unexpected Error Occurred - App Terminated",` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `        } finally {` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            BusyIndicator.hide();` && |\n| &&
@@ -159,7 +171,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        for (const item of customJs) {` && |\n| &&
              `          const result = FrontendAction.runCustom(item, this);` && |\n| &&
              `          if (result && typeof result.then === "function") {` && |\n| &&
-             `            await result;` && |\n| &&
+             `            try {` && |\n| &&
+             `              await result;` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              Lib.logError(` && |\n| &&
+             `                ``FrontendAction: async action '${item?.[0]}' failed``,` && |\n| &&
+             `                e,` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
              `            if (!Lib.isControllerAlive(this)) return;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -235,6 +254,12 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      eB(...args) {` && |\n| &&
+             `        if (!Array.isArray(args[0])) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``eB: the first argument must be the event array, got ${JSON.stringify(args[0])}``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        const [, , , useMainModel, queueLast, noBusy] = args[0];` && |\n| &&
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&

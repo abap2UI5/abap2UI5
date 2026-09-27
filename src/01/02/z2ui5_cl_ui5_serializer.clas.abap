@@ -1,10 +1,25 @@
-CLASS z2ui5_cl_ui5_serializer DEFINITION PUBLIC FINAL CREATE PUBLIC.
+" Not FINAL, for one reason: the test class subclasses it to make xml_of( )
+" fail. No shape of app data fails the transformation on BOTH a system and
+" the transpiled runtime (open-abap skips what a system refuses), and the
+" retry, the reattach on both failure paths and the chained first cause
+" are exactly what has to be pinned. Nothing else is meant to inherit
+CLASS z2ui5_cl_ui5_serializer DEFINITION PUBLIC CREATE PUBLIC.
 
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_ui5_serializer.
 
   PROTECTED SECTION.
+
+    "! The one transformation of the container - the step every failure of
+    "! stringify( ) comes from, and the seam the test class overrides (see
+    "! the class comment)
+    METHODS xml_of
+      IMPORTING
+        container     TYPE REF TO z2ui5_cl_ui5_app_cont
+      RETURNING
+        VALUE(result) TYPE string.
+
   PRIVATE SECTION.
 
     "! The model over a container, built from its public attributes rather
@@ -42,6 +57,12 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD xml_of.
+
+    result = z2ui5_cl_ui5_util_context=>xml_stringify( container ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_ui5_serializer~parse.
 
     " The transformation needs a CONCRETELY typed target - it rebuilds the
@@ -64,7 +85,7 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_ui5_util_context=>xml_stringify( lo_cont ).
+        result = xml_of( lo_cont ).
         " the live instance gets its references BACK, not a parsed copy: the
         " same objects the save detached, one assignment each instead of one
         " S-RTTI parse per reference (which is what a fresh container from
@@ -87,7 +108,7 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
     TRY.
         lo_model->main_attri_refresh( ).
         lo_model->main_attri_db_save_srtti( ).
-        result = z2ui5_cl_ui5_util_context=>xml_stringify( lo_cont ).
+        result = xml_of( lo_cont ).
         lo_model->main_attri_reattach( ).
         RETURN.
       CATCH cx_root.

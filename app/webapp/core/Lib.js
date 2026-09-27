@@ -4,6 +4,16 @@
 // (Context.of) - nothing here reaches a singleton. core/AppState.js
 // documents the state's field inventory with its defaults.
 //
+// The language and browser floor of app/webapp/, stated once: the frontend
+// is written in ES2020+ (optional chaining, nullish coalescing, matchAll,
+// async/await, class fields) and runs on OpenUI5 1.71 and later; there is
+// no IE11 and no transpilation step - the files ship as written, through
+// the ABAP preload (src/01/03) and the standalone build alike. Every
+// browser a supported UI5 release runs on speaks that level, so a
+// polyfill or a downlevel spelling for an older engine is never needed
+// here. What DOES differ between releases is UI5 itself, and that goes
+// through core/Env.js (below), never through a feature test in a module.
+//
 // Nothing UI5-release dependent belongs here either: core/Env.js is the one
 // module that bridges UI5 1.71 and the current release (element registry,
 // messaging, theming, localization, the synchronous-fragment workaround).
@@ -38,12 +48,39 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   const errors = [];
 
   // Append an entry to the error log and drop the oldest entry once the
-  // cap is reached.
+  // cap is reached, and mirror it into UI5's own log (below).
   function logError(message, error) {
     const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
     errors.push(entry);
     if (errors.length > MAX_ERRORS) errors.shift();
+    mirrorToUi5Log(message, error);
+  }
+
+  // The ring above is read by the developer tools alone, so a wire typo, a
+  // refused URL or a lost toast used to be invisible unless somebody opened
+  // them: the browser console said nothing. Every entry now also goes to
+  // sap/base/Log as a WARNING under the component "z2ui5" - UI5's log
+  // level decides whether the console shows it (ERROR by default, so a
+  // productive page stays quiet; sap-ui-logLevel=WARNING or the debug
+  // mode turns it on), and the support assistant and the devtools' UI5
+  // capture see it either way. Resolved with the probing require at call
+  // time, never as a define dependency: this module is loaded by the Node
+  // specs under a stubbed sap.ui.define with no UI5 at all, and a logger
+  // that cannot log must never throw. sap/base/Log exists since 1.58 and
+  // sits in the core preload of every supported release.
+  function mirrorToUi5Log(message, error) {
+    try {
+      if (typeof sap === "undefined" || typeof sap.ui?.require !== "function")
+        return;
+      const Log = sap.ui.require("sap/base/Log");
+      if (typeof Log?.warning !== "function") return;
+      const details =
+        error === undefined ? undefined : String(error?.stack || error);
+      Log.warning(message, details, "z2ui5");
+    } catch {
+      // a broken log is not a reason to lose the entry above, or the call
+    }
   }
 
   // True while `oController` is one of the slot controllers its context's
@@ -565,6 +602,16 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // Returns true for URLs that are safe as download targets: data: and
   // blob: (generated content) plus http(s). Blocks javascript: and other
   // active schemes, consistent with the redirect validators above.
+  //
+  // "Safe" is a statement about the SCHEME, not about the host: a
+  // cross-origin http(s) URL passes, and whether the page may then LOAD it
+  // is the Content Security Policy's decision, not this function's. The
+  // shipped default (z2ui5_cl_ui5_user_exit) names 'self', data:, blob:
+  // and the UI5 CDN hosts in img-src and media-src, so a favicon
+  // (SET_FAVICON, cc/Favicon) or an audio source (PLAY_AUDIO) on any other
+  // host is accepted here and then refused by the browser with a CSP
+  // violation in the console, and nothing else - an installation that
+  // wants it adds the host to img-src / media-src in its exit.
   function isSafeDownloadURL(url) {
     const parsed = parseUrl(url);
     return (

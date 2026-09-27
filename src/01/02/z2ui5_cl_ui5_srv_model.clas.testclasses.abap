@@ -2144,6 +2144,18 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `X`
                                         act = mo_app->mt_std[ 1 ]-col1 ).
 
+    " a key that CONVERTS but is no row index: `1.5` rounds to 2, `+1`
+    " converts to 1 - each used to land the cell in a row the client
+    " never named. Digits only, so neither writes (a blank-padded and the
+    " empty key are in delta_malformed_survives)
+    mo_model->main_json_to_attri( delta( `{"MT_STD":{"__delta":{"1.5":{"COL1":"Z"},"+1":{"COL1":"Z"}}}}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `X`
+                                        act = mo_app->mt_std[ 1 ]-col1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `b`
+                                        act = mo_app->mt_std[ 2 ]-col1 ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( mo_app->mt_std ) ).
+
   ENDMETHOD.
 
   METHOD delta_malformed_survives.
@@ -2623,6 +2635,16 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a reference the app CLEARed stays cleared across the draft - the
     " restore used to point it back at the owner its `->*` row still named
     METHODS alias_cleared_stays_cleared FOR TESTING RAISING cx_static_check.
+
+    " the payload shape every draft before 2026-09 carried: the S-RTTI
+    " descriptor graph and the data in ONE asXML document. The framework
+    " only reads it now (z2ui5_cl_ui5_util_context=>xml_srtti_parse); the
+    " writer lives here, with the one test that restores such a draft
+    METHODS legacy_document
+      IMPORTING
+        data          TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -2753,7 +2775,7 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     DATA(lr_val) = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = lr_row->srtti_type
                                                                     iv_data = lr_row->srtti_data ).
     ASSIGN lr_val->* TO <val>.
-    lr_row->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val> ).
+    lr_row->srtti_data = legacy_document( <val> ).
     CLEAR lr_row->srtti_type.
 
     mo_model->main_attri_db_load( ).
@@ -2761,6 +2783,13 @@ CLASS ltcl_05_draft IMPLEMENTATION.
                                        msg = `the one-document payload was not restored` ).
     cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_B` )-srtti_data ).
     inv_identity_shared( ).
+
+  ENDMETHOD.
+
+  METHOD legacy_document.
+
+    DATA(lo_srtti) = z2ui5_cl_ui5_util_context=>xml_srtti_descr( data ).
+    CALL TRANSFORMATION id SOURCE srtti = lo_srtti dobj = data RESULT XML result.
 
   ENDMETHOD.
 

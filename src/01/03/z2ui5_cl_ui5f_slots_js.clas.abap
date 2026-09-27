@@ -256,35 +256,43 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      ctx.state.oApp.insertPage(oView);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function displayMain(ctx, xml, mOptions, seq) {` && |\n| &&
+             `    function chainBuild(ctx, seq, build) {` && |\n| &&
              `      ctx.server.viewBuild = Promise.resolve(ctx.server.viewBuild)` && |\n| &&
              `        .catch(() => {})` && |\n| &&
              `        .then(() => {` && |\n| &&
              `          if (isSuperseded(ctx, seq)) {` && |\n| &&
              `            return undefined;` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
-             `          ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
-             `` && |\n| &&
-             `          for (const oClient of ctx.state.odataClients) {` && |\n| &&
-             `            try {` && |\n| &&
-             `              oClient.destroy();` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          ctx.state.odataClients.clear();` && |\n| &&
-             `` && |\n| &&
-             `          ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
-             `          ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `          return displayView(` && |\n| &&
-             `            ctx,` && |\n| &&
-             `            xml,` && |\n| &&
-             `            ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
-             `            mOptions,` && |\n| &&
-             `          );` && |\n| &&
+             `          return build();` && |\n| &&
              `        });` && |\n| &&
              `      return ctx.server.viewBuild;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function displayMain(ctx, xml, mOptions, seq) {` && |\n| &&
+             `      return chainBuild(ctx, seq, () => {` && |\n| &&
+             `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
+             `` && |\n| &&
+             `        for (const oClient of ctx.state.odataClients) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            oClient.destroy();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        ctx.state.odataClients.clear();` && |\n| &&
+             `` && |\n| &&
+             `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
+             `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
+             `        return displayView(ctx, xml, ctx.state.oResponse?.OVIEWMODEL, mOptions);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function displayStandalone(ctx, slotKey, xml, mOptions, seq) {` && |\n| &&
+             `      return chainBuild(ctx, seq, () => {` && |\n| &&
+             `        ViewSlots.destroy(ctx, slotKey);` && |\n| &&
+             `        if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);` && |\n| &&
+             `        return displayPopover(ctx, xml, mOptions.openById, seq);` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function updateModelIfRequired(ctx, slotKey) {` && |\n| &&
@@ -346,11 +354,10 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        ctx.state.lastMainDisplayOptions = options;` && |\n| &&
              `        return displayMain(ctx, xml, options, seq);` && |\n| &&
              `      }` && |\n| &&
-             `      ViewSlots.destroy(ctx, slotKey);` && |\n| &&
-             `      if (slotKey === "POPUP") return displayFragment(ctx, xml, seq);` && |\n| &&
-             `      if (slotKey === "POPOVER") {` && |\n| &&
-             `        return displayPopover(ctx, xml, options.openById, seq);` && |\n| &&
+             `      if (slotKey === "POPUP" || slotKey === "POPOVER") {` && |\n| &&
+             `        return displayStandalone(ctx, slotKey, xml, options, seq);` && |\n| &&
              `      }` && |\n| &&
+             `      ViewSlots.destroy(ctx, slotKey);` && |\n| &&
              `      return displayNestedView(ctx, xml, slotKey, options, seq);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

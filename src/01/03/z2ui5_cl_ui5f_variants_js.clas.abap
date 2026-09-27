@@ -58,10 +58,19 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `    oSVM.initialise(fnCallback || (() => {}), target);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  const activeInits = new Set();` && |\n| &&
+             `  function activeInitsOf(oController, action) {` && |\n| &&
+             `    const ctx = oController?.ctx;` && |\n| &&
+             `    if (!ctx) {` && |\n| &&
+             `      Lib.logError(``${action}: no context to register in``);` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `    return ctx.variants.activeInits;` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
              `  function evSmartVariantInit(oController, args) {` && |\n| &&
              `    const [, svmId, controlId] = args;` && |\n| &&
+             `    const activeInits = activeInitsOf(oController, "SMART_VARIANT_INIT");` && |\n| &&
+             `    if (!activeInits) return;` && |\n| &&
              `    const key = ``${svmId}|${controlId || ""}``;` && |\n| &&
              `    if (activeInits.has(key)) return;` && |\n| &&
              `    activeInits.add(key);` && |\n| &&
@@ -211,6 +220,8 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `  function evFilterBarVariantInit(oController, args) {` && |\n| &&
              `    const [, svmId, filterBarId] = args;` && |\n| &&
              `` && |\n| &&
+             `    const activeInits = activeInitsOf(oController, "FILTER_BAR_VARIANT_INIT");` && |\n| &&
+             `    if (!activeInits) return;` && |\n| &&
              `    const key = ``${svmId}|${filterBarId || ""}``;` && |\n| &&
              `    if (activeInits.has(key)) return;` && |\n| &&
              `    activeInits.add(key);` && |\n| &&

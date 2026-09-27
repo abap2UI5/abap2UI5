@@ -91,13 +91,16 @@ const EXTERNAL_PATTERNS = [
 // about the rename itself. Each needs the file it may appear in, so recording
 // one cannot quietly excuse the same stale name somewhere it IS wrong.
 const HISTORICAL = new Map([
-  ["Z2UI5_IF_CORE_TYPES", "AGENTS.md"],
-  ["Z2UI5_CL_EXIT", "AGENTS.md"],
-  ["Z2UI5_CL_A2UI5_HTTP", "AGENTS.md"],
-  ["Z2UI5_CL_APP_STARTUP", "AGENTS.md"],
-  ["Z2UI5_CL_APP_HELLO_WORLD", "AGENTS.md"],
+  // the rule-5 exceptions moved out of AGENTS.md into their own page on
+  // 2026-09-25; the five renamed classes they record moved with them
+  ["Z2UI5_IF_CORE_TYPES", "docs/agents/api-snapshot-exceptions.md"],
+  ["Z2UI5_CL_EXIT", "docs/agents/api-snapshot-exceptions.md"],
+  ["Z2UI5_CL_A2UI5_HTTP", "docs/agents/api-snapshot-exceptions.md"],
+  ["Z2UI5_CL_APP_STARTUP", "docs/agents/api-snapshot-exceptions.md"],
+  ["Z2UI5_CL_APP_HELLO_WORLD", "docs/agents/api-snapshot-exceptions.md"],
   ["Z2UI5_CL_POPUP_CONTEXT", "AGENTS.md"],
-  ["Z2UI5_CL_APP", "AGENTS.md"],
+  // the declined base class, named where the decision's reasoning now lives
+  ["Z2UI5_CL_APP", "docs/agents/decisions.md"],
   ["Z2UI5_IF_ACTION", "docs/removal-plan.md"],
   // the removal plan records that this popup class was dropped in 1.142.0
   // without a replacement, as the reason not to repeat that for the other 17
@@ -114,9 +117,10 @@ const HISTORICAL_FILES = new Map([
   ["Z2UI5_CL_UI5_JSON", new Set(["changelog.txt", "docs/removal-plan.md", "docs/agents/building-apps.md"])],
   // The js_loader popup was deleted from src/99/02 together with the z2ui5
   // global it existed to write into (maintainer decision 2026-09-22): the
-  // changelog entry announces the removal, the removal plan records it, and
-  // AGENTS.md names it as the one deletion that decision covers.
-  ["Z2UI5_CL_POP_JS_LOADER", new Set(["changelog.txt", "docs/removal-plan.md", "AGENTS.md"])],
+  // changelog entry announces the removal, the removal plan records it,
+  // AGENTS.md names it as the one deletion that decision covers, and the
+  // rule-5 exceptions page names it as the producer of cs_event-z2ui5.
+  ["Z2UI5_CL_POP_JS_LOADER", new Set(["changelog.txt", "docs/removal-plan.md", "AGENTS.md", "docs/agents/api-snapshot-exceptions.md"])],
 ]);
 
 // Same idea, per file: the abap-check catalogue is a list of defects that
