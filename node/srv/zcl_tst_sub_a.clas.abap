@@ -9,16 +9,14 @@ CLASS zcl_tst_sub_a DEFINITION PUBLIC.
         connid TYPE string,
       END OF ty_s_row.
 
-    " abap2ui5lint-disable unbound-public-attribute -- zcl_tst_host reaches both through ASSIGN mo_app->(...)
     " the embedding contract of the nested-view samples (339): the host
     " hands over the Page to build into and reads mv_view_display back,
     " both through a dynamic ASSIGN - so both stay PUBLIC although nothing
-    " here binds them. A block rather than a next-line directive because
-    " the linter reports them a few lines early (the TYPES structure above
-    " shifts its offsets)
+    " here binds them. Only the flag needs the directive: the linter does
+    " not report a TYPE REF TO attribute
+    " abap2ui5lint-disable-next-line unbound-public-attribute -- zcl_tst_host reaches it through ASSIGN mo_app->(...)
     DATA mv_view_display TYPE abap_bool.
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
-    " abap2ui5lint-enable
     DATA mv_table        TYPE string.
 
     " a runtime-built table behind a generic reference, the same table a

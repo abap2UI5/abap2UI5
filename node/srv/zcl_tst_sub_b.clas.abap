@@ -9,23 +9,22 @@ CLASS zcl_tst_sub_b DEFINITION PUBLIC.
         connid TYPE string,
       END OF ty_s_row.
 
-    " abap2ui5lint-disable unbound-public-attribute -- the host's ASSIGN and the draft's reference restore need PUBLIC, see below
     " the same embedding contract as zcl_tst_sub_a, with OTHER attribute
     " names (sample 342 next to 339): after a tab switch the rows the host
     " dissolved for the other class resolve to nothing on this one. The
     " host reaches mv_view_display and mo_parent_page through a dynamic
     " ASSIGN, and the draft restores a data reference only from a PUBLIC
     " attribute (z2ui5_cl_ui5_srv_model=>main_attri_db_save_srtti) - the
-    " three references to one table are what this fixture checks. A block
-    " rather than next-line directives because the linter reports these a
-    " few lines early (the TYPES structure above shifts its offsets)
+    " three references to one table are what this fixture checks. Only the
+    " flag needs the directive: the linter does not report a TYPE REF TO
+    " attribute
+    " abap2ui5lint-disable-next-line unbound-public-attribute -- zcl_tst_host reaches it through ASSIGN mo_app->(...)
     DATA mv_view_display TYPE abap_bool.
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
 
     DATA mt_data     TYPE REF TO data.
     DATA mt_data_tmp TYPE REF TO data.
     DATA mo_lay      TYPE REF TO zcl_tst_layout.
-    " abap2ui5lint-enable
 
     METHODS set_app_data
       IMPORTING
