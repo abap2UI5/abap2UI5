@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ follow_up_action( cs_event-start_timer ) takes an optional third t_arg: `X` (abap_true) keeps the global busy indicator down for the tick's roundtrip - the check_no_busy of _event( ) for a timer tick, so a poll or a carousel whose backend call takes longer than a second no longer flashes the full-screen overlay. Only the overlay goes: the tick is still the one roundtrip in flight, and a click that lands meanwhile is dropped by the busy guard as before. A START_TIMER with two arguments dispatches exactly what it did
 
 
 2026-09-26 v1.145.0
