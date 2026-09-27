@@ -16,6 +16,12 @@ const { specContext, loadLib } = require("./loadLibModule");
 //   PROTOCOL         a number that is present and differs is reported; an
 //                    absent one is a backend older than the field and let
 //                    through
+//   403 + X-CSRF-Token: Required
+//                    a token layer in front (an SAP approuter, a Gateway)
+//                    asks for a token: fetched once, the same body sent
+//                    once more with it, kept for the POSTs after - and
+//                    reported like any other 403 when no token comes back
+//                    or the layer refuses again
 // The sequencing (a stale response is dropped) is serverRequestSeq.spec.js,
 // the timeout abort serverTimeout.spec.js.
 
@@ -248,5 +254,173 @@ test.describe("the session id header", () => {
       "SID:ANON:host:abc",
     );
     expect(env.fetches[0].opts.headers["sap-contextid"]).toBeUndefined();
+  });
+});
+
+test.describe("the X-CSRF-Token handshake", () => {
+  const BODY = { S_FRONT: { EVENT: "SAVE" }, MODEL: { A: 1 } };
+
+  // what an SAP approuter answers a POST without a valid token
+  const refused = () =>
+    response({
+      ok: false,
+      status: 403,
+      text: "The request does not contain a x-csrf-token",
+      headers: { "x-csrf-token": "Required" },
+    });
+  const token = (value) => response({ headers: { "x-csrf-token": value } });
+  const good = (id) => response({ json: { S_FRONT: { ID: id, S_ACTION: {} } } });
+
+  // let readHttp run up to its next fetch, or to its end
+  async function flush() {
+    for (let i = 0; i < 5; i++) await new Promise((r) => setTimeout(r, 0));
+  }
+
+  test("nothing is fetched and no token is sent while no layer asks", async () => {
+    const env = load();
+    await answer(env, good("x"));
+
+    expect(env.fetches).toHaveLength(1);
+    expect(env.fetches[0].opts.headers["X-CSRF-Token"]).toBeUndefined();
+    expect(env.successes.map((s) => s.ID)).toEqual(["x"]);
+  });
+
+  test("a 403 asking for a token fetches one and sends the same body once more with it", async () => {
+    const env = load();
+    const p = env.Server.readHttp(env.ctx, BODY, null);
+    env.fetches[0].resolve(refused());
+    await flush();
+
+    // the standard fetch: HEAD on the same URL, "Fetch" in the header
+    expect(env.fetches).toHaveLength(2);
+    expect(env.fetches[1].url).toBe("/sap/z2ui5");
+    expect(env.fetches[1].opts.method).toBe("HEAD");
+    expect(env.fetches[1].opts.headers).toEqual({ "X-CSRF-Token": "Fetch" });
+    env.fetches[1].resolve(token("tok-1"));
+    await flush();
+
+    // the identical body again, now carrying the token
+    expect(env.fetches).toHaveLength(3);
+    expect(env.fetches[2].opts.method).toBe("POST");
+    expect(env.fetches[2].opts.body).toBe(env.fetches[0].opts.body);
+    expect(env.fetches[2].opts.headers["X-CSRF-Token"]).toBe("tok-1");
+    env.fetches[2].resolve(good("x"));
+    await p;
+
+    expect(env.errors).toEqual([]);
+    expect(env.successes.map((s) => s.ID)).toEqual(["x"]);
+    expect(env.ctx.server.csrfToken).toBe("tok-1");
+  });
+
+  test("the token rides on every later POST without a second fetch", async () => {
+    const env = load();
+    env.ctx.server.csrfToken = "tok-1";
+    await answer(env, good("y"));
+
+    expect(env.fetches).toHaveLength(1);
+    expect(env.fetches[0].opts.headers["X-CSRF-Token"]).toBe("tok-1");
+    expect(env.successes.map((s) => s.ID)).toEqual(["y"]);
+  });
+
+  test("a token the layer stopped accepting is replaced by a fresh one", async () => {
+    const env = load();
+    env.ctx.server.csrfToken = "tok-old";
+    const p = env.Server.readHttp(env.ctx, BODY, null);
+    expect(env.fetches[0].opts.headers["X-CSRF-Token"]).toBe("tok-old");
+    env.fetches[0].resolve(refused());
+    await flush();
+    env.fetches[1].resolve(token("tok-new"));
+    await flush();
+    expect(env.fetches[2].opts.headers["X-CSRF-Token"]).toBe("tok-new");
+    env.fetches[2].resolve(good("z"));
+    await p;
+
+    expect(env.successes.map((s) => s.ID)).toEqual(["z"]);
+  });
+
+  test("the framework's own 403 carries no header, is final and fetches nothing", async () => {
+    const env = load();
+    await answer(
+      env,
+      response({
+        ok: false,
+        status: 403,
+        text: "CSRF validation failed - cross-origin request rejected",
+      }),
+    );
+
+    expect(env.fetches).toHaveLength(1);
+    expect(env.errors).toEqual([
+      {
+        msg: "CSRF validation failed - cross-origin request rejected",
+        title: undefined,
+        options: undefined,
+      },
+    ]);
+  });
+
+  test("a layer that refuses the fresh token too ends in the overlay, not in a loop", async () => {
+    const env = load();
+    const p = env.Server.readHttp(env.ctx, BODY, null);
+    env.fetches[0].resolve(refused());
+    await flush();
+    env.fetches[1].resolve(token("tok-1"));
+    await flush();
+    env.fetches[2].resolve(refused());
+    await p;
+
+    expect(env.fetches).toHaveLength(3);
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toBe("The request does not contain a x-csrf-token");
+    expect(env.errors[0].options).toBeUndefined();
+    expect(env.successes).toEqual([]);
+  });
+
+  for (const [what, answerFetch] of [
+    ["an answer without a token", (call) => call.resolve(response())],
+    [
+      "a refused fetch",
+      (call) => call.resolve(response({ ok: false, status: 403, text: "no" })),
+    ],
+    ["an answer that asks back", (call) => call.resolve(token("Required"))],
+    ["a failed fetch", (call) => call.reject(new TypeError("Failed to fetch"))],
+  ]) {
+    test(`${what} reports the refusal that asked for the token, sends nothing more`, async () => {
+      const env = load();
+      const p = env.Server.readHttp(env.ctx, BODY, null);
+      env.fetches[0].resolve(refused());
+      await flush();
+      answerFetch(env.fetches[1]);
+      await p;
+
+      expect(env.fetches).toHaveLength(2);
+      expect(env.errors).toHaveLength(1);
+      expect(env.errors[0].msg).toBe("The request does not contain a x-csrf-token");
+      expect(env.ctx.server.csrfToken).toBe("");
+    });
+  }
+
+  test("a request superseded during the fetch is not sent again and stays silent", async () => {
+    const env = load();
+    const p = env.Server.readHttp(env.ctx, BODY, null);
+    env.fetches[0].resolve(refused());
+    await flush();
+    expect(env.fetches[1].opts.method).toBe("HEAD");
+
+    // a newer request goes out while the token is on its way
+    const newer = env.Server.readHttp(env.ctx, { S_FRONT: { EVENT: "NEXT" } }, null);
+    expect(env.fetches).toHaveLength(3);
+    env.fetches[1].resolve(token("tok-1"));
+    await p;
+
+    // the older body did not go out again, and nothing was reported for it
+    expect(env.fetches).toHaveLength(3);
+    expect(env.errors).toEqual([]);
+    // the token is kept all the same - the POST after the newer one takes it
+    expect(env.ctx.server.csrfToken).toBe("tok-1");
+    // and the newer request's own answer is committed as usual
+    env.fetches[2].resolve(good("n"));
+    await newer;
+    expect(env.successes.map((s) => s.ID)).toEqual(["n"]);
   });
 });

@@ -335,11 +335,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         CASE ms_req-method.
           WHEN `HEAD` OR `POST`.
             " CSRF gate. It covers BOTH state-changing verbs: a POST runs the
-            " app, and the HEAD below terminates the stateful session. HEAD is
-            " a CORS-simple method, so any page can send it with credentials
-            " and the reply being opaque does not stop the call from executing
-            " - gating only the POST would have left the one state change a
-            " cross-origin page can still reach. Reading the config is cheap
+            " app, and the HEAD below can terminate the stateful session. HEAD
+            " is a CORS-simple method, so any page can send it with credentials
+            " and the reply being opaque does not stop the call from executing.
+            " The terminate also needs the `sap-terminate` header, which a
+            " cross-origin page cannot add without a preflight - the gate is
+            " the first fence there all the same. Reading the config is cheap
             " (get_instance is cached); check_csrf_active defaults to abap_true
             " (seeded in z2ui5_cl_ui5_user_exit=>set_config_http_post), so a
             " cross-origin request is rejected unless an app opts out via its
@@ -352,25 +353,39 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                 status_code   = 403
                                 status_reason = `Forbidden` ).
             ELSEIF ms_req-method = `HEAD`.
-              " the session-terminate ping from the frontend (core/Server.js
-              " endSession). It used to RETURN before set_response( ), which
-              " sent the reply with status code 0 and none of the security
-              " headers. An empty 200 through the normal tail keeps status and
-              " headers consistent with every other reply.
+              " Two HEADs reach this node, both sent by the frontend
+              " (core/Server.js): the session-terminate ping of endSession,
+              " which carries `sap-terminate: session`, and the X-CSRF-Token
+              " fetch of the token handshake, which a token layer in front -
+              " an SAP approuter route with csrfProtection - answers and then
+              " forwards here. Only the ping ends the stateful session. This
+              " branch ended it on every HEAD before the handshake existed;
+              " on the fetch that would drop a stateful app's session in the
+              " middle of the very handshake meant to let its next roundtrip
+              " through.
+              "
+              " The ping used to RETURN before set_response( ), which sent the
+              " reply with status code 0 and none of the security headers. An
+              " empty 200 through the normal tail keeps status and headers
+              " consistent with every other reply, for both HEADs.
               "
               " Deliberate conflation, worth stating: to HTTP, HEAD on this
               " URL is "GET without a body" and should answer with the GET
               " shell's headers (a cache may fold a HEAD reply into its
               " stored GET entry). Here it is not - HEAD is repurposed as the
-              " terminate ping, and set_response( ) answers it through the
-              " no-store branch (no ETag, no revalidation), NOT with the
-              " shell's cache headers. That is the wanted behaviour: a
-              " terminate ping answered from a cache terminates nothing, and
-              " a no-store HEAD reply is what keeps intermediaries from
-              " updating their stored GET shell from it. Nothing but the
-              " framework's own frontend sends HEAD to this node, so the
-              " generic-client reading of HEAD has no consumer to serve.
-              mo_server->set_session_stateful( 0 ).
+              " terminate ping and the token fetch, and set_response( )
+              " answers both through the no-store branch (no ETag, no
+              " revalidation), NOT with the shell's cache headers. That is the
+              " wanted behaviour: a terminate ping answered from a cache
+              " terminates nothing, and a no-store HEAD reply is what keeps
+              " intermediaries from updating their stored GET shell from it.
+              " Nothing but the framework's own frontend sends HEAD to this
+              " node, so the generic-client reading of HEAD has no consumer
+              " to serve.
+              DATA(lv_terminate) = mo_server->get_header_field( `sap-terminate` ).
+              IF to_lower( lv_terminate ) = `session`.
+                mo_server->set_session_stateful( 0 ).
+              ENDIF.
               ms_res = VALUE #( status_code   = 200
                                 status_reason = `OK` ).
             ELSE.

@@ -57,8 +57,13 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // The per-instance module records. Each is documented where it is
       // used; the defaults sit here so a module never bootstraps its own.
       // core/Server.js - the request stamp, the fetches in flight, the
-      // serialised MAIN build chain
-      server: { requestSeq: 0, inflight: new Set(), viewBuild: null },
+      // serialised MAIN build chain, the X-CSRF-Token of a layer in front
+      server: {
+        requestSeq: 0,
+        inflight: new Set(),
+        viewBuild: null,
+        csrfToken: "",
+      },
       // core/Session.js - the once-per-page-load send latches
       session: {
         configSent: false,

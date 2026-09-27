@@ -121,6 +121,10 @@ sap.ui.define(
       //               actions/Slots.chainBuild): XMLView.create and
       //               Fragment.load({ id }) claim the id synchronously, so
       //               two overlapping builds would throw "duplicate id"
+      //   csrfToken   the X-CSRF-Token a token layer in front of the backend
+      //               (an SAP approuter, a Gateway) handed out, sent with
+      //               every POST. Empty until a layer asks for one - most
+      //               systems have none, and never do (see readHttp)
 
       endSession(ctx) {
         if (!Lib.isValidContextId(ctx.state.contextId)) return;
@@ -345,27 +349,29 @@ sap.ui.define(
           // Step 1: send the request.
           let response;
           try {
-            // Only forward "sap-contextid" once we actually own a valid
-            // session id - otherwise omit the header entirely (never send ""
-            // or "undefined"; see isValidContextId).
-            const headers = {
-              "Content-Type": "application/json",
-              "sap-contextid-accept": "header",
-            };
-            if (Lib.isValidContextId(ctx.state.contextId)) {
-              headers["sap-contextid"] = ctx.state.contextId;
-            }
             const body = JSON.stringify({ value: oBody });
             // one shared number, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time
             ctx.state.lastRequestBytes = body.length;
-            response = await fetch(ctx.state.url, {
-              method: "POST",
-              headers,
-              body,
-              signal,
-            });
+            response = await this._post(ctx, body, signal);
+            // A CSRF token layer in front of the backend - an SAP approuter
+            // route with csrfProtection, a Gateway - refused the request for
+            // want of a token: fetch one and send the same body once more,
+            // the handshake UI5's OData models do. Nothing is fetched before
+            // a layer asks, so a system without one never sees an extra
+            // request, and the body goes out again at most once, so a token
+            // the layer keeps refusing ends in the error overlay below
+            // instead of a loop. Sending it again is safe: the layer refuses
+            // BEFORE it forwards anything, the backend never saw the first
+            // attempt. Same stamp, same signal - it is still this request.
+            if (
+              this._csrfTokenRequired(response) &&
+              (await this._fetchCsrfToken(ctx, signal)) &&
+              !isStale()
+            ) {
+              response = await this._post(ctx, body, signal);
+            }
           } catch (e) {
             // A superseded request that fails is not the user's concern - the
             // newer request owns the outcome, so swallow it without an overlay.
@@ -508,6 +514,82 @@ sap.ui.define(
           ctx.server.inflight.delete(superseder);
           cancel();
         }
+      },
+
+      // One POST of the roundtrip body - split off so the CSRF re-send in
+      // readHttp builds its headers the same way.
+      _post(ctx, body, signal) {
+        // Only forward "sap-contextid" once we actually own a valid
+        // session id - otherwise omit the header entirely (never send ""
+        // or "undefined"; see isValidContextId).
+        const headers = {
+          "Content-Type": "application/json",
+          "sap-contextid-accept": "header",
+        };
+        if (Lib.isValidContextId(ctx.state.contextId)) {
+          headers["sap-contextid"] = ctx.state.contextId;
+        }
+        // the token a layer in front handed out (see _fetchCsrfToken) - no
+        // header at all while none did
+        if (ctx.server.csrfToken) {
+          headers["X-CSRF-Token"] = ctx.server.csrfToken;
+        }
+        return fetch(ctx.state.url, {
+          method: "POST",
+          headers,
+          body,
+          signal,
+        });
+      },
+
+      // A token layer's refusal: 403 with "X-CSRF-Token: Required", what an
+      // SAP approuter and a Gateway answer a modifying request without a
+      // valid token. The framework's own CSRF gate (the Origin check in
+      // z2ui5_cl_ui5_http_handler) answers a 403 WITHOUT that header, and
+      // that one is final - no token would change its mind.
+      _csrfTokenRequired(response) {
+        const value = response.headers.get("x-csrf-token") || "";
+        return (
+          response.status === 403 && value.trim().toLowerCase() === "required"
+        );
+      },
+
+      // Ask the token layer for a token: HEAD with "X-CSRF-Token: Fetch",
+      // the token comes back in the same header, and is sent with every POST
+      // from then on (ctx.server.csrfToken). A HEAD because it is the
+      // standard fetch, and the layer forwards it to the backend after
+      // setting its token - z2ui5_cl_ui5_http_handler ends a stateful
+      // session only on the HEAD that carries sap-terminate (endSession),
+      // so this one leaves it running. Answers whether a token arrived and
+      // never throws: without one, the refusal that asked for it is
+      // reported as it is. The token of an earlier fetch is dropped first -
+      // the layer just refused it.
+      async _fetchCsrfToken(ctx, signal) {
+        ctx.server.csrfToken = "";
+        try {
+          const response = await fetch(ctx.state.url, {
+            method: "HEAD",
+            headers: { "X-CSRF-Token": "Fetch" },
+            signal,
+          });
+          const token = (response.headers.get("x-csrf-token") || "").trim();
+          const lower = token.toLowerCase();
+          if (
+            response.ok &&
+            token &&
+            lower !== "required" &&
+            lower !== "fetch"
+          ) {
+            ctx.server.csrfToken = token;
+          }
+        } catch (e) {
+          // an abort - a newer request, or the timeout backstop - is no
+          // failure of the fetch itself; anything else is worth a log line
+          if (e?.name !== "AbortError" && e?.name !== "TimeoutError") {
+            Lib.logError("_fetchCsrfToken: token fetch failed", e);
+          }
+        }
+        return ctx.server.csrfToken !== "";
       },
 
       // The edits a winning request carried are done with; the ones made

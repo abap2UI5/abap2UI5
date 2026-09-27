@@ -645,6 +645,10 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_control_post      FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_error     FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_head      FOR TESTING RAISING cx_static_check.
+    " the two HEADs: only the terminate ping ends the stateful session, the
+    " X-CSRF-Token fetch a token layer forwards leaves it running
+    METHODS test_head_terminate_ping     FOR TESTING RAISING cx_static_check.
+    METHODS test_head_token_fetch_keeps  FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_trusted        FOR TESTING RAISING cx_static_check.
     " the contextid handover, cookie -> header and back
     METHODS test_ctxid_cookie_to_header  FOR TESTING RAISING cx_static_check.
@@ -970,6 +974,45 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `no-cache, no-store, must-revalidate`
                                         act = header_value( `cache-control` ) ).
     cl_abap_unit_assert=>assert_initial( header_value( `etag` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_head_terminate_ping.
+
+    " core/Server.js endSession: the ping carries `sap-terminate: session`
+    " and ends the stateful session, answered with an empty 200
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `HEAD` ).
+    mo_mock->mt_req_header = VALUE #( ( n = `sap-terminate`
+                                        v = `session` ) ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_mock->mv_stateful_set ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = mo_mock->mv_stateful ).
+
+  ENDMETHOD.
+
+  METHOD test_head_token_fetch_keeps.
+
+    " the X-CSRF-Token fetch of core/Server.js, which a token layer in front
+    " (an SAP approuter) answers and then forwards here: an empty 200, and
+    " the stateful session is not touched - ending it would drop a stateful
+    " app's session in the middle of the handshake
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `HEAD` ).
+    mo_mock->mt_req_header = VALUE #( ( n = `x-csrf-token`
+                                        v = `Fetch` ) ).
+
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_initial( mo_mock->mv_stateful_set ).
 
   ENDMETHOD.
 

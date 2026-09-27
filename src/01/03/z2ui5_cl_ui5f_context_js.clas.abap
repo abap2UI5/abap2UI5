@@ -40,7 +40,12 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `      alive: true,` && |\n| &&
              `      state: AppState.createState(),` && |\n| &&
              `` && |\n| &&
-             `      server: { requestSeq: 0, inflight: new Set(), viewBuild: null },` && |\n| &&
+             `      server: {` && |\n| &&
+             `        requestSeq: 0,` && |\n| &&
+             `        inflight: new Set(),` && |\n| &&
+             `        viewBuild: null,` && |\n| &&
+             `        csrfToken: "",` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      session: {` && |\n| &&
              `        configSent: false,` && |\n| &&
