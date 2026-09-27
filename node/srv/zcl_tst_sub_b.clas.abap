@@ -9,23 +9,32 @@ CLASS zcl_tst_sub_b DEFINITION PUBLIC.
         connid TYPE string,
       END OF ty_s_row.
 
+    " abap2ui5lint-disable unbound-public-attribute -- the host's ASSIGN and the draft's reference restore need PUBLIC, see below
     " the same embedding contract as zcl_tst_sub_a, with OTHER attribute
     " names (sample 342 next to 339): after a tab switch the rows the host
-    " dissolved for the other class resolve to nothing on this one
+    " dissolved for the other class resolve to nothing on this one. The
+    " host reaches mv_view_display and mo_parent_page through a dynamic
+    " ASSIGN, and the draft restores a data reference only from a PUBLIC
+    " attribute (z2ui5_cl_ui5_srv_model=>main_attri_db_save_srtti) - the
+    " three references to one table are what this fixture checks. A block
+    " rather than next-line directives because the linter reports these a
+    " few lines early (the TYPES structure above shifts its offsets)
     DATA mv_view_display TYPE abap_bool.
-    DATA mv_init         TYPE abap_bool.
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
-    DATA mv_table        TYPE string.
 
     DATA mt_data     TYPE REF TO data.
     DATA mt_data_tmp TYPE REF TO data.
     DATA mo_lay      TYPE REF TO zcl_tst_layout.
+    " abap2ui5lint-enable
 
     METHODS set_app_data
       IMPORTING
         table TYPE string.
 
   PROTECTED SECTION.
+    DATA mv_init  TYPE abap_bool.
+    DATA mv_table TYPE string.
+
     METHODS on_event
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -124,12 +133,11 @@ CLASS zcl_tst_sub_b IMPLEMENTATION.
                                                 tab       = mo_lay->ms_data-t_layout
                                                 tab_index = lv_index )
           )->tag( `Text`
-              )->a( n = `text` v = layout->name ).
+              )->a( n = `text` t = layout->name ).
     ENDLOOP.
 
     cells = table->ele( `items`
         )->ele( `ColumnListItem`
-            " abap2ui5lint-disable-next-line relative-binding-without-context -- SELKZ exists at runtime only
             )->a( n = `selected` v = `{SELKZ}`
             )->ele( `cells` ).
     LOOP AT mo_lay->ms_data-t_layout REFERENCE INTO layout.
@@ -152,7 +160,6 @@ CLASS zcl_tst_sub_b IMPLEMENTATION.
     " framework's init question was answered long ago (sample 342, where
     " 339 hangs its get_data( ) on check_on_init and stays empty after a
     " switch)
-    " abap2ui5lint-disable-next-line manual-init-flag -- check_on_init( ) answers for the host's draft, not for this instance
     IF mv_init = abap_false.
       mv_init = abap_true.
       get_data( ).

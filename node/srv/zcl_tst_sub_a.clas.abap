@@ -9,11 +9,16 @@ CLASS zcl_tst_sub_a DEFINITION PUBLIC.
         connid TYPE string,
       END OF ty_s_row.
 
+    " abap2ui5lint-disable unbound-public-attribute -- zcl_tst_host reaches both through ASSIGN mo_app->(...)
     " the embedding contract of the nested-view samples (339): the host
-    " hands over the Page to build into and reads mv_view_display back
+    " hands over the Page to build into and reads mv_view_display back,
+    " both through a dynamic ASSIGN - so both stay PUBLIC although nothing
+    " here binds them. A block rather than a next-line directive because
+    " the linter reports them a few lines early (the TYPES structure above
+    " shifts its offsets)
     DATA mv_view_display TYPE abap_bool.
-    DATA mv_init         TYPE abap_bool.
     DATA mo_parent_page  TYPE REF TO z2ui5_cl_ui5_view_builder.
+    " abap2ui5lint-enable
     DATA mv_table        TYPE string.
 
     " a runtime-built table behind a generic reference, the same table a
@@ -27,6 +32,8 @@ CLASS zcl_tst_sub_a DEFINITION PUBLIC.
         table TYPE string.
 
   PROTECTED SECTION.
+    DATA mv_init TYPE abap_bool.
+
     METHODS on_event
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -147,12 +154,11 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
                                                 tab       = mo_layout->ms_data-t_layout
                                                 tab_index = lv_index )
           )->tag( `Text`
-              )->a( n = `text` v = layout->name ).
+              )->a( n = `text` t = layout->name ).
     ENDLOOP.
 
     cells = table->ele( `items`
         )->ele( `ColumnListItem`
-            " abap2ui5lint-disable-next-line relative-binding-without-context -- SELKZ exists at runtime only
             )->a( n = `selected` v = `{SELKZ}`
             )->ele( `cells` ).
     LOOP AT mo_layout->ms_data-t_layout REFERENCE INTO layout.
@@ -190,6 +196,7 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
       client->message_toast_display( `ERROR - sub-app a: references diverged` ).
     ENDIF.
 
+    " abap2ui5lint-disable-next-line unconditional-popup-display -- on_event( ) displays the popup from its ROW_POPUP branch only; the linter follows the call, not the CASE
     on_event( client ).
 
   ENDMETHOD.

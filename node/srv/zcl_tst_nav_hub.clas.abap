@@ -2,11 +2,11 @@ CLASS zcl_tst_nav_hub DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    DATA input   TYPE string.
-    DATA counter TYPE i.
+    DATA input TYPE string.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
+    DATA client  TYPE REF TO z2ui5_if_client.
+    DATA counter TYPE i.
     METHODS view_display.
   PRIVATE SECTION.
 ENDCLASS.
@@ -19,10 +19,7 @@ CLASS zcl_tst_nav_hub IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
-      view_display( ).
-
-    ELSEIF client->check_on_navigated( ).
+    IF client->check_on_navigated( ).
       view_display( ).
 
     ELSEIF client->check_on_event( ).
@@ -61,7 +58,7 @@ CLASS zcl_tst_nav_hub IMPLEMENTATION.
     page->tag( `Input`
         )->a( n = `value` v = client->_bind( input ) ).
     page->tag( `Button`
-        )->a( n = `text`  v = |increment ({ counter })|
+        )->a( n = `text`  t = |increment ({ counter })|
         )->a( n = `press` v = client->_event( `INC` ) ).
     page->tag( `Button`
         )->a( n = `text`  v = `go-detail`

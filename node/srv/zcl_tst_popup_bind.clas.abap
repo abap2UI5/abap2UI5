@@ -48,6 +48,7 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
           ms_row = mt_tab[ 1 ].
           popup_display( ).
 
+        " abap2ui5lint-disable-next-line handler-without-event -- posted by popup-binding.spec.js as the same row click; the view wires ROW_SELECT only
         WHEN `ROW_SELECT_CALL`.
           " the third shape, and the reported one: the row click hands over
           " to a SEPARATE app that owns the dialog
@@ -58,6 +59,7 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
                                                descr = mt_tab[ 1 ]-description ).
           client->nav_app_call( lo_popup_app ).
 
+        " abap2ui5lint-disable-next-line handler-without-event -- posted by popup-binding.spec.js as the same row click; the view wires ROW_SELECT only
         WHEN `ROW_SELECT_REBUILD`.
           " the same gesture from an app that RE-DISPLAYS the main view in
           " the same round-trip. A main display takes the standalone slots
@@ -139,7 +141,7 @@ CLASS zcl_tst_popup_bind IMPLEMENTATION.
     dialog->ele( `buttons`
         )->tag( `Button`
             )->a( n = `text`  v = `Cancel`
-            )->a( n = `press` v = client->_event( client->cs_event-popup_close ) ).
+            )->a( n = `press` v = client->follow_up_action( val = client->cs_event-popup_close ) ).
 
     client->popup_display( popup->stringify( ) ).
 
