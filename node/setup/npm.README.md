@@ -71,8 +71,12 @@ transpiler version that wrote `output/` in its `package.json`
 the package pins:
 
 ```bash
-npm install --save-dev @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.transpiler")
+npm install --save-dev --save-exact @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.transpiler")
 ```
+
+`--save-exact` because transpiler output is tied to its runtime: without it
+npm records a caret range, and a later install moves the transpiler away from
+the runtime this package pins.
 
 `abap_transpile.json`:
 
@@ -90,6 +94,7 @@ npm install --save-dev @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/no
 ```
 
 ```bash
+git clone --depth 1 https://github.com/open-abap/open-abap-core deps/open-abap-core   # once
 npx abap_transpile abap_transpile.json      # abap/*.abap -> output/*.mjs
 ```
 
@@ -109,8 +114,18 @@ The transpile type-checks your class against the framework (`ignoreSyntaxCheck`
 is off), so a method that does not exist on `z2ui5_if_client` fails there
 rather than at runtime. `files` is needed because the transpiler reads a
 library below `/src/**` by default and `downport/` is flat. `open-abap-core`
-is what stands in for the ABAP standard library; the transpiler clones it
-into `deps/` on the first run.
+is what stands in for the ABAP standard library: the transpiler reads it from
+`deps/open-abap-core` when that folder exists, and otherwise clones the `url`
+into a temporary folder on every run - hence the clone above. Both libraries
+are there for the type check; at runtime the package provides them.
+
+Import your own classes and nothing else from `output/`. The transpile writes
+every object it read there, the libraries included - a second copy of the
+framework and of open-abap-core, several hundred files - and your classes
+need none of it: they resolve everything through the running runtime, so each
+of your class files is imported on its own. A deployment has to carry the
+files you import, so keep them inside the tree it ships - a CAP project's
+`cds build`, for one, copies `srv/` but not a top-level `output/`.
 
 ## Persistence
 
