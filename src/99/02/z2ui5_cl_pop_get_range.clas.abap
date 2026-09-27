@@ -11,7 +11,7 @@ CLASS z2ui5_cl_pop_get_range DEFINITION PUBLIC.
         key    TYPE string,
       END OF ty_s_filter_pop.
 
-    DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
+    DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH DEFAULT KEY.
 
     CLASS-METHODS factory
       IMPORTING
@@ -45,13 +45,16 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
   METHOD factory.
+    DATA temp22 TYPE z2ui5_cl_ui5_util_context=>ty_s_range.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
 
     z2ui5_cl_ui5_util_context=>itab_corresponding( EXPORTING val = t_range
                                        CHANGING  tab             = r_result->ms_result-t_range ).
 
-    INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
+
+    CLEAR temp22.
+    INSERT temp22 INTO TABLE r_result->ms_result-t_range.
 
   ENDMETHOD.
 
@@ -63,19 +66,26 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA lo_popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA item TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA grid TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp23 TYPE string_table.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`        v = `sap.m`
             )->a( n = `xmlns:core`   v = `sap.ui.core`
             )->a( n = `xmlns:layout` v = `sap.ui.layout` ).
 
-    DATA(lo_popup) = view->ele( `Dialog`
+
+    lo_popup = view->ele( `Dialog`
         )->a( n = `afterClose`    v = client->_event( `BUTTON_CANCEL` )
         )->a( n = `contentHeight` v = `50%`
         )->a( n = `contentWidth`  v = `50%`
         )->a( n = `title`         v = `Define Filter Conditions` ).
 
-    DATA(item) = lo_popup->ele( `VBox`
+
+    item = lo_popup->ele( `VBox`
         )->a( n = `height`         v = `100%`
         )->a( n = `justifyContent` v = `SpaceBetween`
         )->ele( `List`
@@ -83,7 +93,8 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
             )->a( n = `items`  v = client->_bind( mt_filter )
             )->ele( `CustomListItem` ).
 
-    DATA(grid) = item->ele( n = `Grid` ns = `layout` ).
+
+    grid = item->ele( n = `Grid` ns = `layout` ).
 
     grid->ele( `ComboBox`
         )->a( n = `selectedKey` v = `{OPTION}`
@@ -101,11 +112,14 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         )->a( n = `visible` v = `{= ${OPTION} === 'BT' }`
         )->a( n = `submit`  v = client->_event( `BUTTON_CONFIRM` ) ).
 
+
+    CLEAR temp23.
+    INSERT `${KEY}` INTO TABLE temp23.
     grid->tag( `Button`
         )->a( n = `icon`  v = `sap-icon://decline`
         )->a( n = `type`  v = `Transparent`
         )->a( n = `press` v = client->_event( val   = `POPUP_DELETE`
-                                              t_arg = VALUE #( ( `${KEY}` ) ) ) ).
+                                              t_arg = temp23 ) ).
 
     lo_popup->ele( `buttons`
         )->tag( `Button`
@@ -130,19 +144,30 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+      DATA temp25 LIKE LINE OF ms_result-t_range.
+      DATA lr_range LIKE REF TO temp25.
+        DATA temp26 TYPE z2ui5_cl_pop_get_range=>ty_s_filter_pop.
+        DATA temp27 LIKE LINE OF mt_filter.
+        DATA lr_filter LIKE REF TO temp27.
+          DATA temp28 TYPE z2ui5_cl_ui5_util_context=>ty_s_range.
+        DATA temp29 TYPE z2ui5_cl_pop_get_range=>ty_s_filter_pop.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       mt_mapping = z2ui5_cl_ui5_util_context=>filter_get_token_range_mapping( ).
 
       CLEAR mt_filter.
-      LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_range).
-        INSERT VALUE #( low    = lr_range->low
-                        high   = lr_range->high
-                        option = lr_range->option
-                        key    = z2ui5_cl_ui5_util_context=>uuid_get_c32( )
-          ) INTO TABLE mt_filter.
+
+
+      LOOP AT ms_result-t_range REFERENCE INTO lr_range.
+
+        CLEAR temp26.
+        temp26-low = lr_range->low.
+        temp26-high = lr_range->high.
+        temp26-option = lr_range->option.
+        temp26-key = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+        INSERT temp26 INTO TABLE mt_filter.
       ENDLOOP.
 
       view_display( ).
@@ -154,15 +179,19 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
 
         CLEAR ms_result-t_range.
-        LOOP AT mt_filter REFERENCE INTO DATA(lr_filter).
+
+
+        LOOP AT mt_filter REFERENCE INTO lr_filter.
           IF lr_filter->low IS INITIAL AND lr_filter->high IS INITIAL.
             CONTINUE.
           ENDIF.
-          INSERT VALUE #( sign   = `I`
-                          option = lr_filter->option
-                          low    = lr_filter->low
-                          high   = lr_filter->high
-            ) INTO TABLE ms_result-t_range.
+
+          CLEAR temp28.
+          temp28-sign = `I`.
+          temp28-option = lr_filter->option.
+          temp28-low = lr_filter->low.
+          temp28-high = lr_filter->high.
+          INSERT temp28 INTO TABLE ms_result-t_range.
         ENDLOOP.
 
         ms_result-check_confirmed = abap_true.
@@ -174,7 +203,10 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN `POPUP_ADD`.
-        INSERT VALUE #( key = z2ui5_cl_ui5_util_context=>uuid_get_c32( ) ) INTO TABLE mt_filter.
+
+        CLEAR temp29.
+        temp29-key = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+        INSERT temp29 INTO TABLE mt_filter.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE`.

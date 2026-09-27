@@ -121,13 +121,13 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH EMPTY KEY.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5_view_builder WITH DEFAULT KEY.
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH DEFAULT KEY.
 
     DATA name    TYPE string.
     DATA prefix  TYPE string.
@@ -197,7 +197,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = result.
 
   ENDMETHOD.
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       name_check( val  = ns
                   what = `namespace prefix` ).
     ENDIF.
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->root = root.
     result->parent = me.
     result->name = n.
@@ -232,6 +232,15 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD a.
+    DATA val TYPE string.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    DATA target LIKE me.
+      FIELD-SYMBOLS <temp4> LIKE LINE OF t_child.
+      DATA temp5 LIKE sy-tabix.
+    DATA temp6 LIKE sy-subrc.
+    DATA temp7 TYPE z2ui5_cl_ui5_view_builder=>ty_s_name_value.
 
     " one rule: the attribute lands on the element the chain is pointing at -
     " the child just added by ele( )/tag( ), or this node itself while it has
@@ -251,25 +260,47 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
                 what = `attribute name` ).
     " v, b and t are mutually exclusive, and one of them is required - the
     " check and the resolution sit in attr_value, see there
-    DATA(val) = attr_value( n       = n
+
+
+    temp1 = boolc( v IS SUPPLIED ).
+
+    temp2 = boolc( b IS SUPPLIED ).
+
+    temp3 = boolc( t IS SUPPLIED ).
+    val = attr_value( n       = n
                             v       = v
                             b       = b
                             t       = t
-                            check_v = xsdbool( v IS SUPPLIED )
-                            check_b = xsdbool( b IS SUPPLIED )
-                            check_t = xsdbool( t IS SUPPLIED ) ).
+                            check_v = temp1
+                            check_b = temp2
+                            check_t = temp3 ).
 
     " the attribute goes on the element opened last - the root itself as
     " long as it has no child
-    DATA(target) = me.
+
+    target = me.
     IF t_child IS NOT INITIAL.
-      target = t_child[ lines( t_child ) ].
+
+
+      temp5 = sy-tabix.
+      READ TABLE t_child INDEX lines( t_child ) ASSIGNING <temp4>.
+      sy-tabix = temp5.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      target = <temp4>.
     ENDIF.
-    IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+
+    READ TABLE target->t_pair WITH KEY n = n TRANSPORTING NO FIELDS.
+    temp6 = sy-subrc.
+    IF temp6 = 0. "#EC CI_SORTSEQ
       raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
     ENDIF.
-    APPEND VALUE #( n = n
-                    v = val ) TO target->t_pair.
+
+    CLEAR temp7.
+    temp7-n = n.
+    temp7-v = val.
+    APPEND temp7 TO target->t_pair.
     result = me.
 
   ENDMETHOD.
@@ -314,6 +345,16 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
   METHOD render_into.
 
     DATA child TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA temp8 TYPE string.
+    DATA qname LIKE temp8.
+    DATA lt_attr TYPE string_table.
+    DATA temp9 LIKE LINE OF t_pair.
+    DATA lr_pair LIKE REF TO temp9.
+      DATA temp10 LIKE LINE OF lt_attr.
+    DATA attrs TYPE string.
+      DATA temp11 LIKE LINE OF ct_out.
+    DATA temp12 LIKE LINE OF ct_out.
+    DATA temp13 LIKE LINE OF ct_out.
 
     " empty builder root - render only the children
     IF name IS INITIAL.
@@ -323,32 +364,53 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
+
+    IF prefix IS INITIAL.
+      temp8 = name.
+    ELSE.
+      temp8 = |{ prefix }:{ name }|.
+    ENDIF.
+
+    qname = temp8.
     " table-then-concat for the attributes: a string template accumulator
     " re-copied every attribute rendered so far on each further one,
     " quadratic on attribute-heavy elements. REFERENCE INTO - the loop used
     " to copy a two-string structure per attribute
-    DATA lt_attr TYPE string_table.
-    LOOP AT t_pair REFERENCE INTO DATA(lr_pair).
-      INSERT | { lr_pair->n }="{ xml_escape( lr_pair->v ) }"| INTO TABLE lt_attr.
+
+
+
+    LOOP AT t_pair REFERENCE INTO lr_pair.
+
+      temp10 = | { lr_pair->n }="{ xml_escape( lr_pair->v ) }"|.
+      INSERT temp10 INTO TABLE lt_attr.
     ENDLOOP.
-    DATA(attrs) = concat_lines_of( lt_attr ).
+
+    attrs = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
-      APPEND |<{ qname }{ attrs }/>| TO ct_out.
+
+      temp11 = |<{ qname }{ attrs }/>|.
+      APPEND temp11 TO ct_out.
       RETURN.
     ENDIF.
 
-    APPEND |<{ qname }{ attrs }>| TO ct_out.
+
+    temp12 = |<{ qname }{ attrs }>|.
+    APPEND temp12 TO ct_out.
     LOOP AT t_child INTO child.
       child->render_into( CHANGING ct_out = ct_out ).
     ENDLOOP.
-    APPEND |</{ qname }>| TO ct_out.
+
+    temp13 = |</{ qname }>|.
+    APPEND temp13 TO ct_out.
 
   ENDMETHOD.
 
 
   METHOD xml_escape.
+          DATA temp14 TYPE xstring.
+      DATA lv_off TYPE i.
+      DATA lv_len TYPE i.
 
     " one CA scan up front: replace( occ = 0 ) copies the whole string on
     " every call even when nothing matches, and a value without any special
@@ -360,8 +422,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       " stays a single statement; built from their UTF-8 bytes through the
       " context class (the one door to the codepage API)
       TRY.
+
+          temp14 = `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F`.
           gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
-              CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+              temp14 ).
         CATCH z2ui5_cx_ui5_util_error.
           " No codepage API here (UNSUPPORTED_CODEPAGE_API). Degrade instead of
           " failing: the set stays empty, the CA scan below then matches no
@@ -429,8 +493,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       " one replace per character, no regex: [[:cntrl:]] is not a class every
       " runtime this code runs on knows (the transpiled one left every byte
       " in place), and this branch is the rare one
-      DATA(lv_off) = 0.
-      DATA(lv_len) = strlen( gv_escape_controls ).
+
+      lv_off = 0.
+
+      lv_len = strlen( gv_escape_controls ).
       WHILE lv_off < lv_len.
         result = replace( val  = result
                           sub  = gv_escape_controls+lv_off(1)
@@ -444,6 +510,8 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
 
   METHOD attr_value.
+    DATA lv_supplied TYPE i.
+      DATA temp15 TYPE string.
 
     " v, b and t are mutually exclusive - each is judged by whether it was
     " SUPPLIED, because an empty value and "not passed" look the same
@@ -461,7 +529,8 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " ...with one tolerance kept from the days of v and b alone: an EMPTY v
     " next to b or t is ignored rather than refused, so a call that passed
     " `v = `` b = flag` before this parameter existed still renders
-    DATA(lv_supplied) = 0.
+
+    lv_supplied = 0.
     IF check_v = abap_true AND v IS NOT INITIAL.
       lv_supplied = lv_supplied + 1.
     ENDIF.
@@ -476,7 +545,13 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     ENDIF.
 
     IF check_b = abap_true.
-      result = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+
+      IF b = abap_true.
+        temp15 = `true`.
+      ELSE.
+        temp15 = `false`.
+      ENDIF.
+      result = temp15.
     ELSEIF check_t = abap_true.
       " t is text: the literal escaping the app used to have to remember is
       " applied here; the XML escaping follows on render like for every value
