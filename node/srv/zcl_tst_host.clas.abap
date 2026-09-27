@@ -13,14 +13,17 @@ CLASS zcl_tst_host DEFINITION PUBLIC.
 
     " sample 338 as a fixture: an IconTabBar whose tabs are SUB-APPS of two
     " different classes, held in one REF TO object and created by name
-    DATA mv_selectedkey     TYPE string.
-    DATA mv_selectedkey_tmp TYPE string.
-    DATA mt_tab             TYPE ty_t_tab.
-    DATA mo_app             TYPE REF TO object.
+    DATA mv_selectedkey TYPE string.
+    " PUBLIC although nothing here binds it: the model dissolves a public
+    " object reference, which is how the sub-app's own _bind( ) calls
+    " resolve (MO_APP->MT_TABLE, ...)
+    DATA mo_app         TYPE REF TO object.
 
   PROTECTED SECTION.
-    DATA client       TYPE REF TO z2ui5_if_client.
-    DATA mo_main_page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA client             TYPE REF TO z2ui5_if_client.
+    DATA mo_main_page       TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA mv_selectedkey_tmp TYPE string.
+    DATA mt_tab             TYPE ty_t_tab.
 
     METHODS view_display.
     METHODS render_sub_app.
@@ -72,8 +75,8 @@ CLASS zcl_tst_host IMPLEMENTATION.
 
     LOOP AT mt_tab REFERENCE INTO DATA(line).
       items->ele( `IconTabFilter`
-          )->a( n = `text` v = line->class
-          )->a( n = `key`  v = line->id ).
+          )->a( n = `text` t = line->class
+          )->a( n = `key`  t = line->id ).
     ENDLOOP.
 
     " the Page is what the sub-app builds into (see the nested-view samples)

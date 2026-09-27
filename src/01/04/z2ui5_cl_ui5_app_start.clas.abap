@@ -362,6 +362,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     DATA(page) = view->ele( n = `View` ns = `mvc`
         )->a( n = `xmlns`         v = `sap.m`
         )->a( n = `xmlns:mvc`     v = `sap.ui.core.mvc`
+        " abap2ui5lint-disable-next-line unused-namespace-declaration -- form: is used by the SimpleForm create_layout_form( ) adds, which the linter does not follow
         )->a( n = `xmlns:form`    v = `sap.ui.layout.form`
         )->a( n = `xmlns:core`    v = `sap.ui.core`
         )->a( n = `displayBlock`  v = `true`
@@ -690,6 +691,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     DATA(dialog) = popup->ele( n = `FragmentDefinition` ns = `core`
         )->a( n = `xmlns`       v = `sap.m`
         )->a( n = `xmlns:core`  v = `sap.ui.core`
+        " abap2ui5lint-disable-next-line unused-namespace-declaration -- form: is used by the SimpleForm create_layout_form( ) adds, which the linter does not follow
         )->a( n = `xmlns:form`  v = `sap.ui.layout.form`
 
         )->ele( `Dialog`
@@ -788,7 +790,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     form->tag( `Label`
         )->a( n = `text`  v = label
         )->tag( `Text`
-            )->a( n = `text`  v = text ).
+            )->a( n = `text`  t = text ).
 
   ENDMETHOD.
 
