@@ -88,7 +88,7 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     " gate), and what a start page does with its own popup is neither
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
-    " lives in the abap2UI5-setup repository, resolved dynamically (listed
+    " lives in abap2UI5-addons/config-management, resolved dynamically (listed
     " in dynamic-name-gate's EXTERNAL) - a constant, because the same name
     " used to exist in two spellings here, which is how a rename gets one of
     " them wrong
