@@ -71,6 +71,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS json_placeholder_stays_string FOR TESTING.
     METHODS json_escaping FOR TESTING.
     METHODS json_bind_element FOR TESTING.
+    METHODS json_start_timer_no_busy FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -745,6 +746,37 @@ CLASS ltcl_test IMPLEMENTATION.
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-clipboard_copy
                              t_arg    = VALUE #( ( `he said "hi" \ bye` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD json_start_timer_no_busy.
+
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    " START_TIMER's optional third argument, the tick's check_no_busy: an
+    " ABAP boolean as t_arg carries every boolean, `X` for abap_true, behind
+    " the delay - where the frontend reads it (core/actions/ViewOps.js,
+    " evStartTimer) ...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["START_TIMER","TICK","5000","X"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-start_timer
+                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ).
+
+    " ... abap_false is the empty string there, a trailing empty that is
+    " dropped, so the wire is the two-argument one every existing timer
+    " sends ...
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["START_TIMER","TICK","5000"]`
+        act = ltcl_json=>of( io_event = lo_event
+                             val      = z2ui5_if_client=>cs_event-start_timer
+                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ) ) ).
+
+    " ... and the roundtrip-free wire of a view attribute carries it alike
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('START_TIMER', 'TICK', '5000', 'X')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-start_timer
+                                          t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ).
 
   ENDMETHOD.
 

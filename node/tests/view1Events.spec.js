@@ -1378,6 +1378,46 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     ctrl.eB(PLAIN);
     expect(busy).toEqual(["show(0)"]);
   });
+
+  // START_TIMER's tick is the other producer of [5]: armed with its optional
+  // third argument (abap_true), actions/ViewOps dispatches this array - the
+  // reserved slot [2] set as every tick sends it, the flag behind two
+  // falses. frontendAction.spec.js pins that the handler emits exactly this.
+  const SILENT_TICK = ["TICK", false, true, false, false, true];
+
+  test("a no-busy START_TIMER tick round-trips without raising the indicator", () => {
+    const { ctrl, state, roundtrips, busy } = loadForQueue();
+
+    ctrl.eB(SILENT_TICK);
+
+    // a real roundtrip, the app busy - only the overlay stayed down, and
+    // the reserved [2] still switches nothing
+    expect(roundtrips).toHaveLength(1);
+    expect(state.isBusy).toBe(true);
+    expect(busy).toEqual([]);
+  });
+
+  test("a plain START_TIMER tick raises the indicator as it always did", () => {
+    const { ctrl, busy } = loadForQueue();
+
+    ctrl.eB(["TICK", false, true]);
+
+    expect(busy).toEqual(["show"]);
+  });
+
+  test("a click during a no-busy tick is still dropped, with its overlay", () => {
+    const { ctrl, state, roundtrips, busy } = loadForQueue();
+    ctrl.eB(SILENT_TICK);
+
+    ctrl.eB(PLAIN);
+
+    // the tick opted out of the overlay, not out of being the one roundtrip
+    // in flight: the guard drops the click (nothing kept, nothing sent) and
+    // gives it the immediate feedback a dropped click always got
+    expect(roundtrips).toHaveLength(1);
+    expect(state.oQueuedEvent).toBeNull();
+    expect(busy).toEqual(["show(0)"]);
+  });
 });
 
 // ---------------------------------------------------------------------------

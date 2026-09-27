@@ -1226,8 +1226,9 @@ sap.ui.define(
         evControlCall(oController, ["CONTROL_GLOBAL", ...args], ctx);
     }
 
-    // castArg is exported for core/actions/BindingCall.js, so both halves
-    // of the call surface read an ABAP boolean the same way.
+    // castArg is exported for core/actions/BindingCall.js and for
+    // START_TIMER's no-busy flag in core/actions/ViewOps.js, so every
+    // action reads an ABAP boolean the same way.
     return { handlers, castArg };
   },
 );

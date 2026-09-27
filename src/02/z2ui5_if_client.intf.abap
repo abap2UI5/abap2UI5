@@ -1169,6 +1169,23 @@ INTERFACE z2ui5_if_client
   "! more specific statement), then the innermost open slot wins. An empty
   "! event name removes the registration of THAT scope only.
   "!
+  "! **cs_event-start_timer** - raise a BACKEND event once after a delay,
+  "! t_arg = event name, delay in milliseconds:
+  "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ) )``.
+  "! There is one timer per app: arming it again replaces the pending one,
+  "! and every roundtrip cancels it, so a repeating timer - a poll, a
+  "! carousel - is re-armed by every response that keeps it going. A tick
+  "! that meets a roundtrip in flight waits for it instead of being dropped.
+  "! The tick is a roundtrip like any other and raises the global busy
+  "! indicator after the usual one-second delay; an optional THIRD t_arg
+  "! `X` (abap_bool as `X`/``, like every flag in t_arg) keeps it down - the
+  "! check_no_busy of _event( ) for the tick, so a poll whose backend call
+  "! takes longer than that no longer flashes the full-screen overlay:
+  "! ``client->follow_up_action( val = client->cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) )``.
+  "! As with check_no_busy only the overlay goes: the tick is still the one
+  "! roundtrip in flight, and a click that lands meanwhile is dropped by the
+  "! busy guard and raises the overlay at once, like every dropped click.
+  "!
   "! **cs_event-hash_attach_changed** - APP-OWNED hash routing
   "! (HashChanger#attachHashChanged), the 1:1 counterpart of a UI5 router's
   "! own hash (`#/Page2`) for an app that does NOT use hash_routing, t_arg = a

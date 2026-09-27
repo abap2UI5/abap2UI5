@@ -2943,6 +2943,97 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers).toHaveLength(2);
     expect(timers[1].ms).toBe(500);
   });
+
+  // The optional third argument is the tick's check_no_busy: without it a
+  // tick raised the global busy indicator like any roundtrip, after UI5's
+  // 1 s default delay, and a poll whose backend call took longer flashed the
+  // full-screen overlay (samples-controls demo_004's carousel, ticks of
+  // 1.1-1.4 s against the transpiled backend). The flag travels where
+  // View1.eB reads a check_no_busy wire's - position [5] - and eB's side of
+  // it is pinned in view1Events.spec.js.
+  function loadTimer() {
+    const timers = [];
+    const loaded = load({
+      sandbox: {
+        setTimeout: (fn, ms) => {
+          timers.push({ fn, ms });
+          return timers.length;
+        },
+        clearTimeout: () => {},
+      },
+    });
+    loaded.AppState.state.timers = {};
+    loaded.AppState.state.onAfterRendering = [];
+    const ebCalls = [];
+    const oController = { eB: (a) => ebCalls.push(a) };
+    return { ...loaded, timers, ebCalls, oController };
+  }
+
+  test("an ABAP-true third argument dispatches the tick with the no-busy flag", () => {
+    const { FrontendAction, AppState, timers, ebCalls, oController } =
+      loadTimer();
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
+    expect(timers[0].ms).toBe(1000);
+    timers[0].fn();
+
+    // [5] set, with useMainModel [3] and queueLast [4] written as false in
+    // front of it rather than closing the gap; the reserved [2] as ever
+    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    expect(AppState.state.timers).toEqual({});
+  });
+
+  test("the flag is read like every ABAP boolean of the call surface", () => {
+    // ControlCall's own `bool` cast, borrowed: `X` (abap_true) and the
+    // spellings a hand-written wire uses switch it on ...
+    for (const on of ["X", "true", true]) {
+      const { FrontendAction, timers, ebCalls, oController } = loadTimer();
+      FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", on]);
+      timers[0].fn();
+      expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    }
+    // ... and everything else - abap_false, which never reaches the wire as
+    // a trailing empty, among them - dispatches the array a two-argument
+    // START_TIMER always dispatched
+    for (const off of [[], [""], [" "], ["false"], ["-"]]) {
+      const { FrontendAction, timers, ebCalls, oController } = loadTimer();
+      FrontendAction.execute(oController, [
+        "START_TIMER",
+        "POLL",
+        "10",
+        ...off,
+      ]);
+      timers[0].fn();
+      expect(ebCalls).toEqual([["POLL", false, true]]);
+    }
+  });
+
+  test("a no-busy tick that waited for a roundtrip in flight keeps its flag", () => {
+    const { FrontendAction, AppState, timers, ebCalls, oController } =
+      loadTimer();
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
+    AppState.state.isBusy = true;
+    timers[0].fn();
+    expect(ebCalls).toEqual([]);
+
+    // the roundtrip landed: the waited tick goes out silent, not plain
+    AppState.state.isBusy = false;
+    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    timers[1].fn();
+    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+  });
+
+  test("a replacing START_TIMER decides the flag afresh", () => {
+    // one slot: the armed timer is the LAST one issued, flag included - a
+    // no-busy tick re-armed without the argument is a plain tick again
+    const { FrontendAction, timers, ebCalls, oController } = loadTimer();
+
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
+    FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
+    timers[1].fn();
+    expect(ebCalls).toEqual([["POLL", false, true]]);
+  });
 });
 
 test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {

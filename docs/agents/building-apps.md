@@ -592,9 +592,16 @@ The same tree, with the subtree held in a variable:
   overlay is not shown). There is no flag for
   sending every firing at once: only the newest response may commit, so the
   earlier roundtrips would be work thrown away. A background wire that must
-  not wait — a timer tick, a poll — needs no flag either: `START_TIMER`
+  not wait — a timer tick, a poll — needs no queue flag either: `START_TIMER`
   carries its own slot and waits out the roundtrip in flight
-  (`core/actions/ViewOps.js`, `evStartTimer`).
+  (`core/actions/ViewOps.js`, `evStartTimer`). What it does share with a
+  click is the overlay: a tick raises it after the usual one-second delay,
+  so a poll whose backend call takes longer flashes it over a screen nobody
+  is waiting on. An optional third `t_arg`, `` `X` `` — `abap_true` as
+  `t_arg` spells every flag — is the tick's `check_no_busy`:
+  `` client->follow_up_action( val = z2ui5_if_client=>cs_event-start_timer t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ``.
+  Like the flag, it takes the overlay down and nothing else — a click that
+  lands while the tick is in flight is still dropped, and still raises it.
   `check_prevent_default` / `prevent_default_expr` cancel the
   control's built-in default before the roundtrip, `check_arg_literal`
   quotes every argument — see the doc on `z2ui5_if_client=>_event`.

@@ -493,7 +493,9 @@ sap.ui.define(
       //   [5] "no busy" flag (s_ctrl-check_no_busy) - the roundtrip runs
       //       exactly as it otherwise would, state.isBusy included, but the
       //       global busy indicator is not raised for it (both show() calls
-      //       below are skipped); for the same per-keystroke wires
+      //       below are skipped); for the same per-keystroke wires, and for
+      //       a START_TIMER tick armed with its no-busy argument, which
+      //       actions/ViewOps dispatches with this slot set
       // A new flag goes BEHIND the existing ones - the backend (get_event)
       // and this destructuring agree on the positions, and a wire rendered
       // by an older backend must keep reading the same.
