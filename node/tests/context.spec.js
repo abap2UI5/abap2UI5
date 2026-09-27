@@ -49,7 +49,12 @@ test.describe("create", () => {
   test("carries every per-module record with its defaults", () => {
     const { Context } = load();
     const ctx = Context.create(component("a"));
-    expect(ctx.server).toEqual({ requestSeq: 0, inflight: new Set(), viewBuild: null });
+    expect(ctx.server).toEqual({
+      requestSeq: 0,
+      inflight: new Set(),
+      viewBuild: null,
+      csrfToken: "",
+    });
     expect(ctx.session).toEqual({
       configSent: false,
       liveSent: "",

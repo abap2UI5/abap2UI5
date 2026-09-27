@@ -183,22 +183,18 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            const headers = {` && |\n| &&
-             `              "Content-Type": "application/json",` && |\n| &&
-             `              "sap-contextid-accept": "header",` && |\n| &&
-             `            };` && |\n| &&
-             `            if (Lib.isValidContextId(ctx.state.contextId)) {` && |\n| &&
-             `              headers["sap-contextid"] = ctx.state.contextId;` && |\n| &&
-             `            }` && |\n| &&
              `            const body = JSON.stringify({ value: oBody });` && |\n| &&
              `` && |\n| &&
              `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
-             `            response = await fetch(ctx.state.url, {` && |\n| &&
-             `              method: "POST",` && |\n| &&
-             `              headers,` && |\n| &&
-             `              body,` && |\n| &&
-             `              signal,` && |\n| &&
-             `            });` && |\n| &&
+             `            response = await this._post(ctx, body, signal);` && |\n| &&
+             `` && |\n| &&
+             `            if (` && |\n| &&
+             `              this._csrfTokenRequired(response) &&` && |\n| &&
+             `              (await this._fetchCsrfToken(ctx, signal)) &&` && |\n| &&
+             `              !isStale()` && |\n| &&
+             `            ) {` && |\n| &&
+             `              response = await this._post(ctx, body, signal);` && |\n| &&
+             `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
@@ -302,6 +298,59 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _post(ctx, body, signal) {` && |\n| &&
+             `        const headers = {` && |\n| &&
+             `          "Content-Type": "application/json",` && |\n| &&
+             `          "sap-contextid-accept": "header",` && |\n| &&
+             `        };` && |\n| &&
+             `        if (Lib.isValidContextId(ctx.state.contextId)) {` && |\n| &&
+             `          headers["sap-contextid"] = ctx.state.contextId;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (ctx.server.csrfToken) {` && |\n| &&
+             `          headers["X-CSRF-Token"] = ctx.server.csrfToken;` && |\n| &&
+             `        }` && |\n| &&
+             `        return fetch(ctx.state.url, {` && |\n| &&
+             `          method: "POST",` && |\n| &&
+             `          headers,` && |\n| &&
+             `          body,` && |\n| &&
+             `          signal,` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _csrfTokenRequired(response) {` && |\n| &&
+             `        const value = response.headers.get("x-csrf-token") || "";` && |\n| &&
+             `        return (` && |\n| &&
+             `          response.status === 403 && value.trim().toLowerCase() === "required"` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      async _fetchCsrfToken(ctx, signal) {` && |\n| &&
+             `        ctx.server.csrfToken = "";` && |\n| &&
+             `        try {` && |\n| &&
+             `          const response = await fetch(ctx.state.url, {` && |\n| &&
+             `            method: "HEAD",` && |\n| &&
+             `            headers: { "X-CSRF-Token": "Fetch" },` && |\n| &&
+             `            signal,` && |\n| &&
+             `          });` && |\n| &&
+             `          const token = (response.headers.get("x-csrf-token") || "").trim();` && |\n| &&
+             `          const lower = token.toLowerCase();` && |\n| &&
+             `          if (` && |\n| &&
+             `            response.ok &&` && |\n| &&
+             `            token &&` && |\n| &&
+             `            lower !== "required" &&` && |\n| &&
+             `            lower !== "fetch"` && |\n| &&
+             `          ) {` && |\n| &&
+             `            ctx.server.csrfToken = token;` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          if (e?.name !== "AbortError" && e?.name !== "TimeoutError") {` && |\n| &&
+             `            Lib.logError("_fetchCsrfToken: token fetch failed", e);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        return ctx.server.csrfToken !== "";` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _clearSentPaths(oModel) {` && |\n| &&
              `        const pending = oModel?._z2ui5ChangedPaths;` && |\n| &&
              `        if (!pending) return;` && |\n| &&
@@ -375,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n| &&
+             `    };` && |\n|.
+    result = result &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

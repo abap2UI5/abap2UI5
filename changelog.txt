@@ -13,6 +13,8 @@ Legend
 unreleased
 ----------
 + follow_up_action( cs_event-start_timer ) takes an optional third t_arg: `X` (abap_true) keeps the global busy indicator down for the tick's roundtrip - the check_no_busy of _event( ) for a timer tick, so a poll or a carousel whose backend call takes longer than a second no longer flashes the full-screen overlay. Only the overlay goes: the tick is still the one roundtrip in flight, and a click that lands meanwhile is dropped by the busy guard as before. A START_TIMER with two arguments dispatches exactly what it did
++ Frontend: the standard X-CSRF-Token handshake - a POST refused with 403 and "X-CSRF-Token: Required" (an SAP approuter route with csrfProtection, a Gateway) fetches a token with a HEAD, sends the same body once more with it and keeps the token for the following POSTs; nothing is fetched while no layer asks, so abap2UI5 runs behind the approuter configuration CAP generates without an extra route that switches csrfProtection off
+! HEAD: only the terminate ping (sap-terminate: session, sent by the frontend's endSession) ends the stateful session - any other HEAD, such as the token fetch a token layer forwards to the backend, is answered with an empty 200 and leaves the session running
 
 
 2026-09-26 v1.145.0
