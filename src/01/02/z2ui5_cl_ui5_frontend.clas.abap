@@ -36,17 +36,22 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
     "! Display a view in a slot. The frontend tears the slot down implicitly
     "! before it builds (actions/Slots) - a display REPLACES the slot, so no
     "! separate destroy action travels with it. Displaying a slot twice
-    "! queues ONE display, with the last XML.
+    "! queues ONE display, with the last XML. The transition options are the
+    "! MAIN view's only: the page change the root sap.m.App animates.
     METHODS slot_display
       IMPORTING
         slot                          TYPE clike
         xml                           TYPE clike
-        id                            TYPE clike OPTIONAL
-        method_insert                 TYPE clike OPTIONAL
-        method_destroy                TYPE clike OPTIONAL
-        open_by_id                    TYPE clike OPTIONAL
-        switch_default_model_path     TYPE clike OPTIONAL
-        switch_default_model_anno_uri TYPE clike OPTIONAL.
+        id                            TYPE clike     OPTIONAL
+        method_insert                 TYPE clike     OPTIONAL
+        method_destroy                TYPE clike     OPTIONAL
+        open_by_id                    TYPE clike     OPTIONAL
+        switch_default_model_path     TYPE clike     OPTIONAL
+        switch_default_model_anno_uri TYPE clike     OPTIONAL
+        transition                    TYPE clike     OPTIONAL
+        transition_back               TYPE abap_bool DEFAULT abap_false
+        nav_back                      TYPE abap_bool DEFAULT abap_false
+        app_instance                  TYPE clike     OPTIONAL.
 
     "! Turn the collected view-lifecycle calls into SYSTEM actions - in slot
     "! order, so the frontend only has to run what it receives: a nested view
@@ -299,8 +304,9 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
     TRY.
         " The options carry what is specific to a slot - the popover's
         " anchor, a nested view's insert/destroy methods, the MAIN view's
-        " model switch. An option the caller left alone is absent, never
-        " sent as an empty value.
+        " model switch and page transition. An option the caller left alone
+        " is absent, never sent as an empty value - so a frontend that knows
+        " no transition reads a display exactly as before.
         DATA(li_opt) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         set_opt_strings(
             json = li_opt
@@ -309,7 +315,15 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
                             ( name = `methodDestroy`             val = method_destroy )
                             ( name = `openById`                  val = open_by_id )
                             ( name = `switchDefaultModelPath`    val = switch_default_model_path )
-                            ( name = `switchDefaultModelAnnoUri` val = switch_default_model_anno_uri ) ) ).
+                            ( name = `switchDefaultModelAnnoUri` val = switch_default_model_anno_uri )
+                            ( name = `transition`                val = transition )
+                            ( name = `appInstance`               val = app_instance ) ) ).
+        set_opt_bool( json = li_opt
+                      name = `transitionBack`
+                      val  = transition_back ).
+        set_opt_bool( json = li_opt
+                      name = `navBack`
+                      val  = nav_back ).
 
         INSERT VALUE #( slot    = slot
                         method  = z2ui5_if_ui5_types=>cs_slot_action-display

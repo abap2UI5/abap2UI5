@@ -9,6 +9,11 @@ Legend
 - : removed
 
 
+unreleased
+----------
++ Page transitions: view_display( transition = ... ) animates the new main view (slide, baseSlide, fade, flip, show); nav_app_leave( ), the browser Back button under hash routing and transition_back = abap_true play it reversed
+
+
 2026-09-26 v1.145.0
 -------------------
 + Various improvements for AIs

@@ -97,9 +97,13 @@ module.exports = defineConfig(
        first, then verify it against 1.71 and widen this testMatch. Runs as
        its own leg of the `browser` matrix in test.yaml; for sandboxes
        without CDN egress see UI5_PINNED_RESOURCES in tests/e2e/fixtures.js. */
+    /* page-transition runs here too: the NavContainer calls it drives
+       (to, insertPreviousPage, backToPage, the afterNavigate report) are
+       the 1.71 API, and the demo views it opens are held to 1.71 by the
+       linter - so the oldest release is where a regression would show. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */

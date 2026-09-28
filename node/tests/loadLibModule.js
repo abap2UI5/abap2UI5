@@ -32,7 +32,7 @@ function specContext(seed = {}) {
       pending: null,
       locationSent: false,
     },
-    router: { navigate: null, hashListener: null },
+    router: { navigate: null, hashListener: null, trail: [], trailPos: -1 },
     shortcuts: { listener: null },
     variants: { activeInits: new Set() },
     scroll: { target: undefined, ui5El: undefined, slotKey: undefined },

@@ -205,7 +205,17 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      ViewSlots.setView(ctx, slotKey, oView, xml);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function displayView(ctx, xml, viewModel, mOptions = {}) {` && |\n| &&
+             `    const MAIN_VIEW_ID = "mainView";` && |\n| &&
+             `    const MAIN_VIEW_ID_ALT = "mainView2";` && |\n| &&
+             `` && |\n| &&
+             `    async function displayView(` && |\n| &&
+             `      ctx,` && |\n| &&
+             `      xml,` && |\n| &&
+             `      viewModel,` && |\n| &&
+             `      mOptions = {},` && |\n| &&
+             `      place = swapAlone,` && |\n| &&
+             `      localId = MAIN_VIEW_ID,` && |\n| &&
+             `    ) {` && |\n| &&
              `      const oViewModel = createViewModel(ctx, "MAIN", viewModel);` && |\n| &&
              `` && |\n| &&
              `      const switchPath = mOptions.switchDefaultModelPath;` && |\n| &&
@@ -232,7 +242,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          models: oModel,` && |\n| &&
              `          controller: ViewSlots.getController(ctx, "MAIN"),` && |\n| &&
              `` && |\n| &&
-             `          id: ViewSlots.ownId(ctx, "mainView"),` && |\n| &&
+             `          id: ViewSlots.ownId(ctx, localId),` && |\n| &&
              `          preprocessors: templatePreprocessors(xml, oViewModel),` && |\n| &&
              `        }),` && |\n| &&
              `      );` && |\n| &&
@@ -247,13 +257,179 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      if (!Lib.isAlive(ctx.state.oApp)) {` && |\n| &&
              `        discardBuild();` && |\n| &&
-             `        return;` && |\n| &&
+             `        return undefined;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      ViewSlots.setView(ctx, "MAIN", oView, xml);` && |\n| &&
              `      if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
+             `      return place(ctx, oView);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function swapAlone(ctx, oView) {` && |\n| &&
              `      ctx.state.oApp.removeAllPages();` && |\n| &&
              `      ctx.state.oApp.insertPage(oView);` && |\n| &&
+             `      return true;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const TRANSITION_OPTIONS = [` && |\n| &&
+             `      "transition",` && |\n| &&
+             `      "transitionBack",` && |\n| &&
+             `      "navBack",` && |\n| &&
+             `      "appInstance",` && |\n| &&
+             `    ];` && |\n| &&
+             `` && |\n| &&
+             `    const TRANSITION_TIMEOUT = 3000;` && |\n| &&
+             `` && |\n| &&
+             `    function isSameOwner(ctx, options) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `      const instance = options.appInstance || "";` && |\n| &&
+             `      if (instance && state.mainInstance) {` && |\n| &&
+             `        return instance === state.mainInstance;` && |\n| &&
+             `      }` && |\n| &&
+             `      const pageApp = ViewSlots.getViewApp(ctx, "MAIN");` && |\n| &&
+             `      return Boolean(pageApp) && pageApp === state.oResponse?.APP;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function transitionPlan(ctx, options) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `      const oCurrent = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
+             `` && |\n| &&
+             `      if (!oCurrent?.getDomRef?.() || !state.oApp?.getDomRef?.()) return null;` && |\n| &&
+             `` && |\n| &&
+             `      const explicitBack = options.transitionBack === true;` && |\n| &&
+             `      const recognizedBack =` && |\n| &&
+             `        options.navBack === true ||` && |\n| &&
+             `        (state.navFromHash && state.navDirection === "back");` && |\n| &&
+             `      if (explicitBack || recognizedBack) {` && |\n| &&
+             `        if (!state.mainArrival) return null;` && |\n| &&
+             `` && |\n| &&
+             `        if (!explicitBack && isSameOwner(ctx, options)) return null;` && |\n| &&
+             `        return { back: true, name: state.mainArrival };` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!options.transition) return null;` && |\n| &&
+             `      return { back: false, name: String(options.transition) };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function rememberPlainArrival(ctx, options, bSameOwner) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `      if (!bSameOwner || options.transition) {` && |\n| &&
+             `        state.mainArrival = String(options.transition || "");` && |\n| &&
+             `      }` && |\n| &&
+             `      state.mainInstance =` && |\n| &&
+             `        options.appInstance || (bSameOwner ? state.mainInstance : "");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function freezePage(oPage) {` && |\n| &&
+             `      const dom = oPage?.getDomRef?.();` && |\n| &&
+             `      if (dom?.style) dom.style.pointerEvents = "none";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function leavePage(ctx, oOld, aOldClients) {` && |\n| &&
+             `      const oApp = ctx.state.oApp;` && |\n| &&
+             `      try {` && |\n| &&
+             `        if (Lib.isAlive(oApp) && Lib.isAlive(oOld)) oApp.removePage(oOld);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Slots: removing the page that left failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      try {` && |\n| &&
+             `        if (Lib.isAlive(oOld)) oOld.destroy();` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Slots: destroying the page that left failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const oClient of aOldClients) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          oClient.destroy();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function navigatePage(ctx, oOld, oView, plan, mOptions, aOldClients) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `      const oApp = state.oApp;` && |\n| &&
+             `      let settle;` && |\n| &&
+             `      let timer = null;` && |\n| &&
+             `      const change = new Promise((resolve) => {` && |\n| &&
+             `        settle = resolve;` && |\n| &&
+             `      });` && |\n| &&
+             `` && |\n| &&
+             `      const onAfterNavigate = (oEvent) => {` && |\n| &&
+             `        if (oEvent.getParameter("toId") === oView.getId()) finish();` && |\n| &&
+             `      };` && |\n| &&
+             `      const finish = () => {` && |\n| &&
+             `        if (!settle) return;` && |\n| &&
+             `        const fnSettle = settle;` && |\n| &&
+             `        settle = null;` && |\n| &&
+             `        clearTimeout(timer);` && |\n| &&
+             `` && |\n| &&
+             `        if (Lib.isAlive(oApp)) oApp.detachAfterNavigate(onAfterNavigate);` && |\n| &&
+             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
+             `        if (state.mainTransition === change) state.mainTransition = null;` && |\n| &&
+             `        fnSettle();` && |\n| &&
+             `      };` && |\n| &&
+             `      state.mainTransition = change;` && |\n| &&
+             `      oApp.attachAfterNavigate(onAfterNavigate);` && |\n| &&
+             `` && |\n| &&
+             `      timer = setTimeout(finish, TRANSITION_TIMEOUT);` && |\n| &&
+             `` && |\n| &&
+             `      state.mainArrival = plan.back` && |\n| &&
+             `        ? String(mOptions.transition || "")` && |\n| &&
+             `        : plan.name;` && |\n| &&
+             `      state.mainInstance = mOptions.appInstance || "";` && |\n| &&
+             `` && |\n| &&
+             `      oApp.addPage(oView);` && |\n| &&
+             `      try {` && |\n| &&
+             `        if (plan.back) {` && |\n| &&
+             `          oApp.to(oOld.getId(), plan.name);` && |\n| &&
+             `          oApp.insertPreviousPage(` && |\n| &&
+             `            oView.getId(),` && |\n| &&
+             `            mOptions.transition || plan.name,` && |\n| &&
+             `          );` && |\n| &&
+             `          oApp.backToPage(oView.getId());` && |\n| &&
+             `        } else {` && |\n| &&
+             `          oApp.to(oView.getId(), plan.name);` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Slots: the page transition failed", e);` && |\n| &&
+             `        finish();` && |\n| &&
+             `      }` && |\n| &&
+             `      return true;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    async function displayPaged(ctx, xml, mOptions, plan) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `` && |\n| &&
+             `      const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
+             `` && |\n| &&
+             `      const aOldClients = [...state.odataClients];` && |\n| &&
+             `      state.odataClients.clear();` && |\n| &&
+             `` && |\n| &&
+             `      ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
+             `      ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
+             `      freezePage(oOld);` && |\n| &&
+             `      const localId =` && |\n| &&
+             `        oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
+             `          ? MAIN_VIEW_ID_ALT` && |\n| &&
+             `          : MAIN_VIEW_ID;` && |\n| &&
+             `      let bPlaced;` && |\n| &&
+             `      try {` && |\n| &&
+             `        bPlaced = await displayView(` && |\n| &&
+             `          ctx,` && |\n| &&
+             `          xml,` && |\n| &&
+             `          state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `          mOptions,` && |\n| &&
+             `          (c, oView) =>` && |\n| &&
+             `            navigatePage(c, oOld, oView, plan, mOptions, aOldClients),` && |\n| &&
+             `          localId,` && |\n| &&
+             `        );` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        leavePage(ctx, oOld, aOldClients);` && |\n|.
+    result = result &&
+             `        throw e;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      if (!bPlaced) leavePage(ctx, oOld, aOldClients);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function chainBuild(ctx, seq, build) {` && |\n| &&
@@ -269,7 +445,16 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function displayMain(ctx, xml, mOptions, seq) {` && |\n| &&
-             `      return chainBuild(ctx, seq, () => {` && |\n| &&
+             `      return chainBuild(ctx, seq, async () => {` && |\n| &&
+             `        if (ctx.state.mainTransition) {` && |\n| &&
+             `          await ctx.state.mainTransition;` && |\n| &&
+             `          if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `        const plan = transitionPlan(ctx, mOptions);` && |\n| &&
+             `        if (plan) return displayPaged(ctx, xml, mOptions, plan);` && |\n| &&
+             `` && |\n| &&
+             `        rememberPlainArrival(ctx, mOptions, isSameOwner(ctx, mOptions));` && |\n| &&
+             `` && |\n| &&
              `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
              `        for (const oClient of ctx.state.odataClients) {` && |\n| &&
@@ -351,7 +536,9 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
              `` && |\n| &&
              `      if (slotKey === "MAIN") {` && |\n| &&
-             `        ctx.state.lastMainDisplayOptions = options;` && |\n| &&
+             `        const reusable = { ...options };` && |\n| &&
+             `        for (const key of TRANSITION_OPTIONS) delete reusable[key];` && |\n| &&
+             `        ctx.state.lastMainDisplayOptions = reusable;` && |\n| &&
              `        return displayMain(ctx, xml, options, seq);` && |\n| &&
              `      }` && |\n| &&
              `      if (slotKey === "POPUP" || slotKey === "POPOVER") {` && |\n| &&

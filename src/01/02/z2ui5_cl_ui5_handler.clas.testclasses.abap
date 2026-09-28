@@ -2045,6 +2045,66 @@ CLASS ltcl_app_twice IMPLEMENTATION.
 ENDCLASS.
 
 
+" page transitions: a caller that arrives with slide and calls a callee that
+" arrives with fade. What has to hold on this side of the wire: the name
+" travels with the MAIN display, the way back through nav_app_leave( ) is
+" flagged, a leave to a FRESH instance and a plain display are not
+CLASS ltcl_app_anim_callee DEFINITION DEFERRED.
+
+CLASS ltcl_app_anim_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_anim_callee DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_anim_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      client->view_display( val        = `<mvc:View><Text text="caller"/></mvc:View>`
+                            transition = z2ui5_if_client=>cs_transition-slide ).
+    ELSEIF client->check_on_navigated( ).
+      client->view_display( val        = `<mvc:View><Text text="caller"/></mvc:View>`
+                            transition = z2ui5_if_client=>cs_transition-slide ).
+    ELSEIF client->check_on_event( `CALL` ).
+      client->nav_app_call( NEW ltcl_app_anim_callee( ) ).
+    ELSEIF client->check_on_event( `PREVIOUS` ).
+      " a wizard's Previous button: the app's own way back
+      client->view_display( val             = `<mvc:View><Text text="step 1"/></mvc:View>`
+                            transition      = z2ui5_if_client=>cs_transition-slide
+                            transition_back = abap_true ).
+    ELSEIF client->check_on_event( `PLAIN` ).
+      client->view_display( `<mvc:View><Text text="plain"/></mvc:View>` ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_app_anim_callee IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_navigated( ).
+      client->view_display( val        = `<mvc:View><Text text="callee"/></mvc:View>`
+                            transition = z2ui5_if_client=>cs_transition-fade ).
+    ELSEIF client->check_on_event( `BACK` ).
+      client->nav_app_leave( ).
+    ELSEIF client->check_on_event( `REPLACE` ).
+      " a leave to a FRESH instance takes this app's place - a forward move
+      client->nav_app_leave( NEW ltcl_app_anim_caller( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " ---------------------------------------------------------------------------
 " 04 - navigation: nav_app_call and the way back - a popup app answers
 " alone, a silent one ships no model, the caller reads the popup app back,
@@ -2066,6 +2126,16 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     " ...and what it writes into that table is what the caller shows on the
     " way back through nav_app_leave( caller )
     METHODS popup_writes_caller_table FOR TESTING RAISING cx_static_check.
+    " view_display( transition ) travels with the MAIN display - and a
+    " display without one sends exactly what it always sent
+    METHODS transition_travels FOR TESTING RAISING cx_static_check.
+    " nav_app_leave( ) back to the caller is a way back, the call is not;
+    " the caller keeps its instance through the draft
+    METHODS transition_leave_is_back FOR TESTING RAISING cx_static_check.
+    " a leave to a FRESH instance replaces the app - a forward move
+    METHODS transition_fresh_leave_fwd FOR TESTING RAISING cx_static_check.
+    " transition_back = abap_true: an app's own way back between its screens
+    METHODS transition_explicit_back FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the popup caller's first render, saved as a draft
     METHODS caller_started
@@ -2222,6 +2292,98 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"three"` )
                                       msg = `the row the popup app appended was lost on the way back` ).
+
+  ENDMETHOD.
+
+  METHOD transition_travels.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_anim_caller( ) ).
+    DATA(lv_system) = system_actions_of( lo_start ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"transition":"slide"*`
+                                         act = lv_system ).
+    " the instance the frontend compares before it plays a way back
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"appInstance":"*`
+                                         act = lv_system ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `transitionBack` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `navBack` ) ).
+
+    " a display without a transition sends what it always sent - no name,
+    " no instance, no direction
+    DATA(lo_plain) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `PLAIN` ).
+    lv_system = system_actions_of( lo_plain ).
+    cl_abap_unit_assert=>assert_true( check_display( io_handler = lo_plain
+                                                     iv_slot    = z2ui5_if_client=>cs_view-main ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `"transition` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `appInstance` ) ).
+
+  ENDMETHOD.
+
+  METHOD transition_leave_is_back.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_anim_caller( ) ).
+    DATA(lv_caller) = substring_before( val = substring_after( val = system_actions_of( lo_start )
+                                                               sub = `"appInstance":"` )
+                                        sub = `"` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_caller ).
+
+    " the call is a forward move: the callee's own transition, no back flag,
+    " and an instance of its own
+    DATA(lo_callee) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                                iv_event = `CALL` ).
+    DATA(lv_system) = system_actions_of( lo_callee ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"transition":"fade"*`
+                                         act = lv_system ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `navBack` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS lv_caller ) ).
+
+    " the leave returns to the caller restored from the stack - the way back
+    DATA(lo_back) = event_on( iv_id    = lo_callee->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    lv_system = system_actions_of( lo_back ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `ANIM_CALLER` ) ).
+    cl_abap_unit_assert=>assert_true( lo_back->mo_action->ms_actual-check_nav_back ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"navBack":true*`
+                                         act = lv_system ).
+    " ...recognized, not asked for: the app's own transition_back stays off
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `transitionBack` ) ).
+    " ...with the caller's own transition - the one it leaves with on ITS
+    " way back - and the SAME instance it arrived as: it came out of its
+    " draft, so the frontend can tell it from the page being left
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"transition":"slide"*`
+                                         act = lv_system ).
+    cl_abap_unit_assert=>assert_char_cp( exp = |*"appInstance":"{ lv_caller }"*|
+                                         act = lv_system ).
+
+  ENDMETHOD.
+
+  METHOD transition_fresh_leave_fwd.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_anim_caller( ) ).
+    DATA(lo_callee) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                                iv_event = `CALL` ).
+    " a leave to a FRESH instance takes the callee's place in the stack - a
+    " forward move, played with the new instance's own transition
+    DATA(lo_fresh) = event_on( iv_id    = lo_callee->ms_response-s_front-id
+                               iv_event = `REPLACE` ).
+    DATA(lv_system) = system_actions_of( lo_fresh ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_fresh->ms_response-s_front-app CS `ANIM_CALLER` ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"transition":"slide"*`
+                                         act = lv_system ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `navBack` ) ).
+
+  ENDMETHOD.
+
+  METHOD transition_explicit_back.
+
+    DATA(lo_start) = started_with( NEW ltcl_app_anim_caller( ) ).
+    DATA(lo_prev) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `PREVIOUS` ).
+    DATA(lv_system) = system_actions_of( lo_prev ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*"transitionBack":true*`
+                                         act = lv_system ).
+    " an app's own step back is no return from another app
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `navBack` ) ).
 
   ENDMETHOD.
 ENDCLASS.

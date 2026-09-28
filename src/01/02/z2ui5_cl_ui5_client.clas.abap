@@ -437,10 +437,33 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
+    " The way back is recognized, not asked for: a roundtrip that returned to
+    " its caller through nav_app_leave( ) carries check_nav_back (see
+    " z2ui5_cl_ui5_action=>factory_stack_leave), and travels as navBack. It
+    " is kept apart from transition_back, the app's OWN way back between its
+    " screens: the frontend plays navBack only when the page on screen
+    " belongs to another app instance, transition_back always. The browser
+    " Back button is the frontend's to recognize (core/Router.js).
+    DATA(lv_nav_back) = mo_action->ms_actual-check_nav_back.
+
+    " The app INSTANCE the view belongs to - what that comparison reads. An
+    " app that never took the MAIN slot, a popup-as-app (the shape of every
+    " built-in popup), leaves its caller's page on screen, and the return
+    " from it must not animate that page away from itself. Minted only where
+    " a transition is in play, so a plain display sends what it always did.
+    DATA(lv_instance) = ``.
+    IF transition IS NOT INITIAL OR transition_back = abap_true OR lv_nav_back = abap_true.
+      lv_instance = nav_app_set_id( get_if_app( ) ).
+    ENDIF.
+
     mo_frontend->slot_display( slot                          = z2ui5_if_client=>cs_view-main
                                xml                           = val
                                switch_default_model_path     = switch_default_model_path
-                               switch_default_model_anno_uri = switch_default_model_anno_uri ).
+                               switch_default_model_anno_uri = switch_default_model_anno_uri
+                               transition                    = transition
+                               transition_back               = transition_back
+                               nav_back                      = lv_nav_back
+                               app_instance                  = lv_instance ).
 
   ENDMETHOD.
 

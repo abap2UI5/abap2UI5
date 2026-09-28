@@ -282,6 +282,12 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " button that led to its own older draft. Nothing is left to do, and the
     " purged-ancestor case the pop had to guard against went with it
 
+    " ... except to say which way the screen moves: this is the one hop that
+    " goes BACK, so the target's view_display( ) plays the page being left
+    " out in reverse (the fresh-instance case above returned already - it
+    " replaces the current app, a forward move)
+    result->ms_actual-check_nav_back = abap_true.
+
   ENDMETHOD.
 
   METHOD app_start_safe.

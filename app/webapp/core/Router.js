@@ -186,6 +186,77 @@ sap.ui.define(
       }
     }
 
+    // ------------------------------------------------------------------
+    // The trail - which way a browser navigation went
+    // ------------------------------------------------------------------
+
+    // The app hashes this page load wrote, in history order, and the
+    // position the browser stands on (ctx.router.trail / trailPos) - what
+    // UI5's History.getDirection( ) keeps, for the routes of THIS router.
+    // The page transition of the MAIN view needs the answer: a browser Back
+    // plays the page being left out in reverse (actions/Slots). History
+    // itself is not asked: it learns the trail only from the hash changes
+    // it witnessed after its module loaded, and every write here goes
+    // through this module anyway. A push cuts the forward part off, as the
+    // browser does; a replace rewrites the entry the browser stands on.
+    function trailWrite(ctx, sHash, bReplace) {
+      const r = ctx.router;
+      const h = appHashNormalized(sHash);
+      if (bReplace && r.trailPos >= 0) {
+        r.trail[r.trailPos] = h;
+        return;
+      }
+      r.trail = r.trail.slice(0, r.trailPos + 1);
+      r.trail.push(h);
+      r.trailPos = r.trail.length - 1;
+    }
+
+    // Every write of this module with a context: the trail first, then the
+    // hash - the echo the write fires then finds itself where the browser
+    // stands and moves nothing.
+    function write(ctx, sHash, bReplace) {
+      trailWrite(ctx, sHash, bReplace);
+      navTo(sHash, bReplace);
+    }
+
+    // Move along the trail to the hash the browser now stands on and answer
+    // which way that was: "back", "forward", or "" - for the echo of a
+    // write (no move), and for a hash that is nowhere on the trail: a
+    // manual edit or a bookmark, which the browser adds as a new entry, so
+    // the trail does too. The NEAREST occurrence decides, the neighbours
+    // first: a FRESH route carries no draft id, so one app can stand on both
+    // sides of the current entry - that stays "", as History has it
+    // ("Unknown"), and the trail assumes the step back.
+    function trailMove(ctx, sHash) {
+      const r = ctx.router;
+      const h = appHashNormalized(sHash);
+      const pos = r.trailPos;
+      if (r.trail[pos] === h) return "";
+      const prev = pos > 0 && r.trail[pos - 1] === h;
+      const next = r.trail[pos + 1] === h;
+      if (prev) {
+        r.trailPos = pos - 1;
+        return next ? "" : "back";
+      }
+      if (next) {
+        r.trailPos = pos + 1;
+        return "forward";
+      }
+      // a longer jump (history.go(-2), the history menu of the button)
+      const before = pos > 0 ? r.trail.lastIndexOf(h, pos - 1) : -1;
+      if (before >= 0) {
+        r.trailPos = before;
+        return "back";
+      }
+      const after = r.trail.indexOf(h, pos + 1);
+      if (after >= 0) {
+        r.trailPos = after;
+        return "forward";
+      }
+      trailWrite(ctx, h, false);
+      return "";
+    }
+
     // Every hash write of sync( ) comes in the same two flavours, and the
     // three places that write one used to spell both halves out: a PUSH
     // adds a history entry (Back returns to what was there) and counts
@@ -195,7 +266,7 @@ sap.ui.define(
     // is written, never what a push or a replace means.
     function writeHash(ctx, sHash, bPush) {
       if (bPush) ctx.state.hashPushCount += 1;
-      navTo(sHash, !bPush);
+      write(ctx, sHash, !bPush);
     }
 
     // The same pair for the legacy write, which goes through the History
@@ -204,13 +275,15 @@ sap.ui.define(
     // hash alone would rewrite "#SO-action&/x" to "#x" and strand the
     // launchpad.
     function writeLegacyUrl(ctx, sSuffix, bPush) {
-      const url = `${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}`;
+      const sRaw = `${getRawHash()}${sSuffix}`;
+      const url = `${window.location.pathname}${window.location.search}#${sRaw}`;
       if (bPush) {
         ctx.state.hashPushCount += 1;
         history.pushState(null, "", url);
       } else {
         history.replaceState(null, "", url);
       }
+      trailWrite(ctx, sRaw, !bPush);
     }
 
     // The UI5 onNavBack pattern (History.getPreviousHash), app-owned - the
@@ -227,7 +300,7 @@ sap.ui.define(
         window.history.back();
         return;
       }
-      navTo(sFallback, true);
+      write(ctx, sFallback, true);
     }
 
     // ------------------------------------------------------------------
@@ -241,6 +314,11 @@ sap.ui.define(
     // backend to restore it.
     function onHashChanged(ctx, sNewHash) {
       const state = ctx.state;
+
+      // Every change moves the trail - the echoes of our own writes too,
+      // which move nothing - so the NEXT Back/Forward is read against where
+      // the browser really stands, whatever this one turns out to be.
+      const direction = trailMove(ctx, sNewHash);
 
       // Routing is opt-in per app (cs_event-hash_routing); until one
       // enabled it, the hash belongs entirely to the app (cs_event-hash_set,
@@ -269,6 +347,9 @@ sap.ui.define(
       // browser sits at a non-top history position - rewriting there would
       // drop the forward entries and break the Forward button).
       state.navFromHash = true;
+      // ...and which way it went: a Back plays the page being left out in
+      // reverse (actions/Slots). Lives and dies with navFromHash.
+      state.navDirection = direction;
       if (ctx.router.navigate) ctx.router.navigate();
     }
 
@@ -368,7 +449,7 @@ sap.ui.define(
       // navigation and fires a restore roundtrip. The caller of this
       // function sets the state back to the called app right afterwards.
       state.currentDraftId = prevDraft;
-      navTo(prevRoute, true);
+      write(ctx, prevRoute, true);
     }
 
     // Apply the routing mode the backend sent with this response. The flag
@@ -415,6 +496,7 @@ sap.ui.define(
         // rewriting it here would drop the forward entries and break the
         // Forward button. Just adopt the state.
         state.navFromHash = false;
+        state.navDirection = "";
         return;
       }
       if (mOptions.setPushState || mOptions.setHashReplace) return;
@@ -432,9 +514,9 @@ sap.ui.define(
         repointCallerEntry(ctx, mOptions, draftForRoute);
         state.currentApp = app;
         state.currentDraftId = draftForRoute;
-        navTo(route);
+        write(ctx, route, false);
       } else if (getHash() !== route) {
-        navTo(route, true);
+        write(ctx, route, true);
       }
     }
 
@@ -523,7 +605,7 @@ sap.ui.define(
         const newHash = mOptions.setAppStateActive
           ? `/z2ui5-xapp-state=${ID || ""}`
           : "";
-        navTo(newHash, true);
+        write(ctx, newHash, true);
       } catch (e) {
         Lib.logError("Router.sync: history update failed", e);
       }

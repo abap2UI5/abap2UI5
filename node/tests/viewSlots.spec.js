@@ -52,6 +52,7 @@ function load() {
     "fragmentIdOf",
     "containingSlotKey",
     "destroy",
+    "detach",
   ]);
   const unregisterCalls = [];
   const registerCalls = [];
@@ -421,6 +422,40 @@ test.describe("destroy", () => {
     expect(state.oViewNest).toBeNull();
     expect(state.oView).toBe(mainView);
     expect(state.oViewNest2).toBe(nest2View);
+  });
+});
+
+// detach( ): what the page transition of the MAIN view uses instead of
+// destroy( ) - the slot empties exactly as with destroy( ), but the instance
+// stays alive: the old page leaves the screen only once the NavContainer is
+// done moving (actions/Slots), with its nested views inside it.
+test.describe("detach", () => {
+  test("empties MAIN and its nests without destroying anything", () => {
+    const { ViewSlots, state, unregisterCalls } = load();
+    const calls = [];
+    const mainView = { destroy: () => calls.push("MAIN") };
+    const nestView = { destroy: () => calls.push("NEST") };
+    state.oView = mainView;
+    state.oViewNest = nestView;
+    state.slotXml.MAIN = "<View/>";
+    state.slotApp.MAIN = "ZCL_APP";
+    state.slotXml.NEST = "<View/>";
+
+    expect(ViewSlots.detach("MAIN")).toBe(mainView);
+
+    expect(calls).toEqual([]);
+    expect(state.oView).toBeNull();
+    expect(state.oViewNest).toBeNull();
+    expect(state.slotXml).toEqual({});
+    expect(state.slotApp).toEqual({});
+    // no validation registration stays behind for a page that is leaving
+    expect(unregisterCalls).toEqual([nestView, mainView]);
+  });
+
+  test("answers undefined for a slot that is not open", () => {
+    const { ViewSlots } = load();
+    expect(ViewSlots.detach("MAIN")).toBeUndefined();
+    expect(ViewSlots.detach("NOPE")).toBeUndefined();
   });
 });
 

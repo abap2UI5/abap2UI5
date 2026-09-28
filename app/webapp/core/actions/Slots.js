@@ -279,13 +279,31 @@ sap.ui.define(
       ViewSlots.setView(ctx, slotKey, oView, xml);
     }
 
+    // The local id of the MAIN view. A page transition builds the arriving
+    // page under the OTHER one while the leaving page still holds this one
+    // (displayPaged) - so a MAIN view is "mainView" or "mainView2", and code
+    // that needs its id asks the view (ViewSlots.getView), never spells it.
+    const MAIN_VIEW_ID = "mainView";
+    const MAIN_VIEW_ID_ALT = "mainView2";
+
     // Replace the main app view with the XML coming from the backend.
     // Deliberately WITHOUT a request stamp: displayMain has already checked
     // it before it enters the build chain, and the build that starts is
     // installed even when a newer request supersedes it meanwhile - see the
     // reasoning at the await below. The parameter used to sit here unread,
     // which reads like a guard that is honoured somewhere in this function.
-    async function displayView(ctx, xml, viewModel, mOptions = {}) {
+    // `place` puts the built view on screen - the plain swap by default, the
+    // page transition's navigation for displayPaged - and `localId` is the
+    // id it is built under. Answers what `place` answered, undefined when
+    // the build was discarded.
+    async function displayView(
+      ctx,
+      xml,
+      viewModel,
+      mOptions = {},
+      place = swapAlone,
+      localId = MAIN_VIEW_ID,
+    ) {
       const oViewModel = createViewModel(ctx, "MAIN", viewModel);
 
       const switchPath = mOptions.switchDefaultModelPath;
@@ -323,7 +341,7 @@ sap.ui.define(
           models: oModel,
           controller: ViewSlots.getController(ctx, "MAIN"),
           // component-prefixed, never page-global - see ViewSlots.ownId
-          id: ViewSlots.ownId(ctx, "mainView"),
+          id: ViewSlots.ownId(ctx, localId),
           preprocessors: templatePreprocessors(xml, oViewModel),
         }),
       );
@@ -342,7 +360,7 @@ sap.ui.define(
       // Guard against the app being destroyed during the await above.
       if (!Lib.isAlive(ctx.state.oApp)) {
         discardBuild();
-        return;
+        return undefined;
       }
 
       // A MAIN build superseded by a newer request while XMLView.create was
@@ -359,8 +377,249 @@ sap.ui.define(
 
       ViewSlots.setView(ctx, "MAIN", oView, xml);
       if (switchPath) oView.setModel(oViewModel, "http");
+      return place(ctx, oView);
+    }
+
+    // The plain swap: the page goes up alone - the old one is gone already,
+    // displayMain tore it down before the build.
+    function swapAlone(ctx, oView) {
       ctx.state.oApp.removeAllPages();
       ctx.state.oApp.insertPage(oView);
+      return true;
+    }
+
+    // ------------------------------------------------------------------
+    // Page transitions of the MAIN view - view_display( transition )
+    // ------------------------------------------------------------------
+    //
+    // The root control is a sap.m.App, i.e. a sap.m.NavContainer, and its
+    // to( ) / backToPage( ) play the animations - with BOTH pages in the
+    // container at once. The plain swap never has two: it tears the old view
+    // down before it builds the new one (the fixed id, see chainBuild). A
+    // page change therefore builds the new view under the other id, leaves
+    // the old page on screen until the new one is ready, navigates, and
+    // destroys the old page once the NavContainer reports the navigation
+    // done (afterNavigate).
+    //
+    // WHICH animation plays is the sap.m.NavContainer rule, the one UI5's
+    // own router follows. Forward, the transition the new page names. Back,
+    // the transition the page being left ARRIVED with, reversed - through
+    // insertPreviousPage + backToPage, exactly as sap/m/routing/
+    // TargetHandler does it. The container remembers an arrival only for a
+    // page it navigated to itself, and the plain swap puts a page up without
+    // navigating, so the arrival is tracked here (state.mainArrival) and
+    // written into the container right before a way back: on a one-page
+    // stack, to( <the current page>, <transition> ) sets the entry's
+    // transition and navigates nowhere (UI5 logs a warning for it - the
+    // router's initial page gets the same one).
+
+    // the options that make a display a page change - a re-display of the
+    // same screen outside a roundtrip (devtools LiveEdit) reuses the rest
+    const TRANSITION_OPTIONS = [
+      "transition",
+      "transitionBack",
+      "navBack",
+      "appInstance",
+    ];
+
+    // The longest a page change may take before the old page goes anyway.
+    // A safety net only - the slowest built-in transition (flip) ends after
+    // well under a second, and UI5 itself warns after five.
+    const TRANSITION_TIMEOUT = 3000;
+
+    // Does the page on screen belong to the app instance this display is
+    // for? A display that is part of a page change carries its instance
+    // (appInstance, z2ui5_cl_ui5_client=>view_display); without one on
+    // either side the app CLASS decides, the owner every display records
+    // (ViewSlots.getViewApp).
+    function isSameOwner(ctx, options) {
+      const state = ctx.state;
+      const instance = options.appInstance || "";
+      if (instance && state.mainInstance) {
+        return instance === state.mainInstance;
+      }
+      const pageApp = ViewSlots.getViewApp(ctx, "MAIN");
+      return Boolean(pageApp) && pageApp === state.oResponse?.APP;
+    }
+
+    // What a MAIN display does with the page on screen: null for the plain
+    // swap, else { back, name } - the direction, and the transition the
+    // NavContainer plays: forward the one the new page names, back the one
+    // the page being left arrived with.
+    function transitionPlan(ctx, options) {
+      const state = ctx.state;
+      const oCurrent = ViewSlots.getView(ctx, "MAIN");
+      // nothing to leave, or nothing rendered to move: the first display, a
+      // view_destroy( ) before, a component that is not rendered yet
+      if (!oCurrent?.getDomRef?.() || !state.oApp?.getDomRef?.()) return null;
+      // the app's own way back (transition_back) - and the recognized ones:
+      // a return through nav_app_leave( ), a browser Back through a route
+      const explicitBack = options.transitionBack === true;
+      const recognizedBack =
+        options.navBack === true ||
+        (state.navFromHash && state.navDirection === "back");
+      if (explicitBack || recognizedBack) {
+        // the page being left came without a transition - nothing to reverse
+        if (!state.mainArrival) return null;
+        // a return from an app that never took the MAIN slot, a
+        // popup-as-app: the caller's page is still up and leaves nothing
+        if (!explicitBack && isSameOwner(ctx, options)) return null;
+        return { back: true, name: state.mainArrival };
+      }
+      if (!options.transition) return null;
+      return { back: false, name: String(options.transition) };
+    }
+
+    // The arrival the plain swap leaves behind. The SAME app putting up its
+    // screen again keeps what the page came with - the way back from it
+    // still reverses that; another app's page arrives with what it names.
+    function rememberPlainArrival(ctx, options, bSameOwner) {
+      const state = ctx.state;
+      if (!bSameOwner || options.transition) {
+        state.mainArrival = String(options.transition || "");
+      }
+      state.mainInstance =
+        options.appInstance || (bSameOwner ? state.mainInstance : "");
+    }
+
+    // A page on its way out takes no pointer input: an event from it would
+    // run through the MAIN controller under the NEW page's model and draft.
+    // The focus stays - the NavContainer hands it to the new page when the
+    // move ends (autoFocus), which it only does for a focus it finds there.
+    function freezePage(oPage) {
+      const dom = oPage?.getDomRef?.();
+      if (dom?.style) dom.style.pointerEvents = "none";
+    }
+
+    // The old page's end: out of the container, destroyed with the nested
+    // views inside it, and the OData clients it was bound to after it.
+    function leavePage(ctx, oOld, aOldClients) {
+      const oApp = ctx.state.oApp;
+      try {
+        if (Lib.isAlive(oApp) && Lib.isAlive(oOld)) oApp.removePage(oOld);
+      } catch (e) {
+        Lib.logError("Slots: removing the page that left failed", e);
+      }
+      try {
+        if (Lib.isAlive(oOld)) oOld.destroy();
+      } catch (e) {
+        Lib.logError("Slots: destroying the page that left failed", e);
+      }
+      for (const oClient of aOldClients) {
+        try {
+          oClient.destroy();
+        } catch (e) {
+          Lib.logError("displayMain: destroying an OData client failed", e);
+        }
+      }
+    }
+
+    // Navigate from the old page to the new one - both are in the slot's
+    // hands now, the new one already registered - and settle the change
+    // once the NavContainer is done. The change is state.mainTransition
+    // until then: the next MAIN display and the follow-up actions of this
+    // response wait for it (View1._processAfterRendering).
+    function navigatePage(ctx, oOld, oView, plan, mOptions, aOldClients) {
+      const state = ctx.state;
+      const oApp = state.oApp;
+      let settle;
+      let timer = null;
+      const change = new Promise((resolve) => {
+        settle = resolve;
+      });
+      // only the navigation to THIS page ends this change - a queued one of
+      // the container could report first
+      const onAfterNavigate = (oEvent) => {
+        if (oEvent.getParameter("toId") === oView.getId()) finish();
+      };
+      const finish = () => {
+        if (!settle) return;
+        const fnSettle = settle;
+        settle = null;
+        clearTimeout(timer);
+        // the safety timeout can fire after the component went down - a
+        // destroyed container has no event registry left to detach from
+        if (Lib.isAlive(oApp)) oApp.detachAfterNavigate(onAfterNavigate);
+        leavePage(ctx, oOld, aOldClients);
+        if (state.mainTransition === change) state.mainTransition = null;
+        fnSettle();
+      };
+      state.mainTransition = change;
+      oApp.attachAfterNavigate(onAfterNavigate);
+      // a navigation that never reports back must not keep the old page
+      // and the follow-up actions waiting
+      timer = setTimeout(finish, TRANSITION_TIMEOUT);
+
+      // the new page's arrival, for its own way back later: forward the
+      // transition it came with, back the one it names for itself
+      state.mainArrival = plan.back
+        ? String(mOptions.transition || "")
+        : plan.name;
+      state.mainInstance = mOptions.appInstance || "";
+
+      oApp.addPage(oView);
+      try {
+        if (plan.back) {
+          // the leaving page's entry carries its arrival - what backToPage
+          // reverses. The "show" transition runs synchronously, and with it
+          // afterNavigate and finish( )
+          oApp.to(oOld.getId(), plan.name);
+          oApp.insertPreviousPage(
+            oView.getId(),
+            mOptions.transition || plan.name,
+          );
+          oApp.backToPage(oView.getId());
+        } else {
+          oApp.to(oView.getId(), plan.name);
+        }
+      } catch (e) {
+        Lib.logError("Slots: the page transition failed", e);
+        finish();
+      }
+      return true;
+    }
+
+    // The page change: the new view is built while the old page stays up,
+    // under the id the old one does not hold, and navigatePage takes it
+    // from there. Resolves once the navigation STARTED, so the nested views,
+    // the popups and the model push of the same response go in while the
+    // pages move.
+    async function displayPaged(ctx, xml, mOptions, plan) {
+      const state = ctx.state;
+      // out of the SLOT now, off the screen once the new page is in -
+      // detached, not destroyed, with the nested views that leave with it
+      const oOld = ViewSlots.detach(ctx, "MAIN");
+      // ...and its OData clients stay until it is gone: a page bound to a
+      // destroyed model empties while it is still moving
+      const aOldClients = [...state.odataClients];
+      state.odataClients.clear();
+      // the standalone slots go right away, as with the plain swap
+      ViewSlots.destroy(ctx, "POPUP");
+      ViewSlots.destroy(ctx, "POPOVER");
+      freezePage(oOld);
+      const localId =
+        oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)
+          ? MAIN_VIEW_ID_ALT
+          : MAIN_VIEW_ID;
+      let bPlaced;
+      try {
+        bPlaced = await displayView(
+          ctx,
+          xml,
+          state.oResponse?.OVIEWMODEL,
+          mOptions,
+          (c, oView) =>
+            navigatePage(c, oOld, oView, plan, mOptions, aOldClients),
+          localId,
+        );
+      } catch (e) {
+        // the build failed: the old page must not stay behind, frozen,
+        // under the fatal overlay the failure raises
+        leavePage(ctx, oOld, aOldClients);
+        throw e;
+      }
+      // discarded - the app was torn down while the view was built
+      if (!bPlaced) leavePage(ctx, oOld, aOldClients);
     }
 
     // A display under a FIXED id cannot simply run: XMLView.create claims
@@ -391,7 +650,18 @@ sap.ui.define(
 
     // The MAIN rebuild, serialized through chainBuild (see there).
     function displayMain(ctx, xml, mOptions, seq) {
-      return chainBuild(ctx, seq, () => {
+      return chainBuild(ctx, seq, async () => {
+        // A page change still in motion ends first: its leaving page is
+        // still in the container, and every display starts from one page.
+        // Time passed - the stamp is asked again.
+        if (ctx.state.mainTransition) {
+          await ctx.state.mainTransition;
+          if (isSuperseded(ctx, seq)) return undefined;
+        }
+        const plan = transitionPlan(ctx, mOptions);
+        if (plan) return displayPaged(ctx, xml, mOptions, plan);
+        // asked BEFORE the teardown below, which drops the record it reads
+        rememberPlainArrival(ctx, mOptions, isSameOwner(ctx, mOptions));
         // The implicit teardown of the previous MAIN view happens HERE,
         // in the same synchronous step that claims the fixed "mainView"
         // id (XMLView.create in displayView) - never earlier at action
@@ -573,8 +843,11 @@ sap.ui.define(
         // remembered per display so a NON-roundtrip re-display of the same
         // slot (devtools LiveEdit) can reuse them: a switch-mode MAIN
         // re-displayed with empty options came back without its OData
-        // default model and looked broken in the preview
-        ctx.state.lastMainDisplayOptions = options;
+        // default model and looked broken in the preview. Without the page
+        // transition - a re-display shows the same screen, it goes nowhere
+        const reusable = { ...options };
+        for (const key of TRANSITION_OPTIONS) delete reusable[key];
+        ctx.state.lastMainDisplayOptions = reusable;
         return displayMain(ctx, xml, options, seq);
       }
       if (slotKey === "POPUP" || slotKey === "POPOVER") {
