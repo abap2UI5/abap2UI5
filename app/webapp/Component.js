@@ -60,11 +60,21 @@ sap.ui.define(
           ccResourceRoot,
           cccResourceRoot,
           endpoint,
+          embedded,
           ...componentData
         } = this.getComponentData() || {};
         state.checkLocal = checkLocal === true;
         state.ccResourceRoot = ccResourceRoot || null;
         state.cccResourceRoot = cccResourceRoot || null;
+
+        // A component inside a page it does not own - a host app that
+        // embeds it, a Fiori elements custom section. The URL is the host's
+        // then (core/Router.js, core/Server.js). The z2ui5/embed module of
+        // ?z2ui5-bundle passes it - a page that loads the frontend that way
+        // embeds it by definition - and a host with a ComponentContainer of
+        // its own may pass it itself; like the endpoint, it is read on the
+        // TOP level only.
+        state.embedded = embedded === true;
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:

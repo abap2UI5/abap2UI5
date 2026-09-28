@@ -104,7 +104,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          ID: oBody.ID,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `` && |\n| &&
-             `          HASH: window.location.hash,` && |\n| &&
+             `          HASH: state.embedded ? "" : window.location.hash,` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
              `` && |\n| &&

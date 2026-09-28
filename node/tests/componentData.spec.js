@@ -99,3 +99,33 @@ test("the GET page settings are still split off as before", () => {
   expect(state.endpoint).toBeNull();
   expect(state.oConfig.ComponentData).toBeUndefined();
 });
+
+// ?z2ui5-bundle's z2ui5/embed module passes embedded: a page that loads the
+// frontend that way embeds it, and its URL is the host's (core/Router.js,
+// core/Server.js). A setting like the endpoint - never app data.
+test("an embedding page's flag lands in the state, not in the data sent to the backend", () => {
+  const state = init({
+    embedded: true,
+    endpoint: "/sap/bc/z2ui5",
+    startupParameters: { app_start: ["ZCL_APP"], customer: ["4711"] },
+  });
+
+  expect(state.embedded).toBe(true);
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { app_start: ["ZCL_APP"], customer: ["4711"] },
+  });
+});
+
+test("only a boolean true embeds - the page and the launchpad do not", () => {
+  expect(init({ embedded: "true" }).embedded).toBe(false);
+  expect(init({ embedded: 1 }).embedded).toBe(false);
+  expect(init({}).embedded).toBe(false);
+  expect(init(undefined).embedded).toBe(false);
+  // a launchpad link cannot switch it on either: startup parameters are app
+  // data, and they stay where they are
+  const state = init({ startupParameters: { embedded: ["true"] } });
+  expect(state.embedded).toBe(false);
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { embedded: ["true"] },
+  });
+});

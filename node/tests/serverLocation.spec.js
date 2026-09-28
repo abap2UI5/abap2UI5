@@ -11,7 +11,7 @@ const { specContext, bindContext } = require("./loadLibModule");
 // (Back/Forward) is exactly such a request. HASH carries the live routing
 // state and goes out every time.
 
-function loadServer() {
+function loadServer(stateOverrides = {}) {
   const bodies = [];
   const cancels = [];
   // the cadence latch lives in core/Session.js - load the real module (a
@@ -40,7 +40,7 @@ function loadServer() {
   });
   // one context for both modules: Session keeps its latches on ctx.session,
   // Server reads the config off ctx.state
-  const ctx = specContext({ oConfig: {} });
+  const ctx = specContext({ oConfig: {}, ...stateOverrides });
   const { module: ServerModule } = loadModule("core/Server.js", {
     deps: {
       "z2ui5/core/Session": Session,
@@ -97,6 +97,24 @@ test("the first roundtrip carries the location, an event roundtrip omits it", ()
   // the hash stays live on every request
   expect(bodies[0].S_FRONT.HASH).toBe("#/route");
   expect(bodies[1].S_FRONT.HASH).toBe("#/route");
+});
+
+// Embedded (state.embedded), the hash is the host's route - "#/route"
+// here. The backend lets a hash route win over the app a start names
+// (z2ui5_cl_ui5_handler=>request_json_to_abap), so a host route that
+// read like "#/app/<CLASS>" would start that class instead of the host's
+// app_start.
+test("an embedded component does not report the host's hash", () => {
+  const { Server, bodies } = loadServer({ embedded: true });
+
+  Server.roundtrip({});
+  Server.roundtrip({ ID: "DRAFT1" });
+
+  expect(bodies[0].S_FRONT.HASH).toBeUndefined();
+  expect(bodies[1].S_FRONT.HASH).toBeUndefined();
+  // the location is not the hash - it still travels on its own cadence
+  expect(bodies[0].S_FRONT.ORIGIN).toBe("https://host");
+  expect(bodies[1].S_FRONT.ORIGIN).toBeUndefined();
 });
 
 test("an app-start-shaped request re-sends the location (route restore)", () => {

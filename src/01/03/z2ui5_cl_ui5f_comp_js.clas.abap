@@ -73,11 +73,14 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          ccResourceRoot,` && |\n| &&
              `          cccResourceRoot,` && |\n| &&
              `          endpoint,` && |\n| &&
+             `          embedded,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
              `        state.checkLocal = checkLocal === true;` && |\n| &&
              `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
+             `` && |\n| &&
+             `        state.embedded = embedded === true;` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
