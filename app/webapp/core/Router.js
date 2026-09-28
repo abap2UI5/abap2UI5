@@ -46,7 +46,8 @@ sap.ui.define(
     // (Component wires both and owns their lifecycle); `hashListener` is
     // this context's hashChanged listener on the page's one HashChanger.
     // The URL itself stays page-wide: every routed instance reacts to a
-    // hash change, which is why an embedded instance leaves routing off.
+    // hash change, which is why an embedded instance (state.embedded) leaves
+    // the hash to its host - it neither listens (init) nor writes (sync).
 
     function hashChanger() {
       return HashChanger.getInstance();
@@ -442,6 +443,12 @@ sap.ui.define(
     // system action, run once per roundtrip. The options object is
     // self-contained: `id` carries the response's draft id.
     function sync(ctx, mOptions) {
+      // Embedded, the hash is the host's (state.embedded, Component.init):
+      // no route, no app hash, and above all not the per-roundtrip cleanup
+      // at the end - its replaceHash("") wipes the host's own route, and a
+      // Fiori elements app answers that by leaving its object page for the
+      // list. An embedded app that asks for routing or a hash gets neither.
+      if (ctx.state.embedded) return;
       const ID = mOptions.id;
       try {
         applyMode(ctx, mOptions);
@@ -535,6 +542,10 @@ sap.ui.define(
 
     function init(ctx, fnNavigate) {
       ctx.router.navigate = fnNavigate;
+      // Embedded, there is no hash of ours to listen to, and the host has
+      // initialized the HashChanger itself if it routes at all - a host
+      // route change is none of this component's business.
+      if (ctx.state.embedded) return;
       // Listening to the HashChanger's hashChanged event is what makes the
       // native browser Back/Forward buttons - and the FLP shell's back
       // button, which drives the same history - navigate between apps.

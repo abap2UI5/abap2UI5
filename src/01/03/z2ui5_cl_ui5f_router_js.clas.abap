@@ -231,6 +231,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function sync(ctx, mOptions) {` && |\n| &&
+             `      if (ctx.state.embedded) return;` && |\n| &&
              `      const ID = mOptions.id;` && |\n| &&
              `      try {` && |\n| &&
              `        applyMode(ctx, mOptions);` && |\n| &&
@@ -282,6 +283,8 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `    function init(ctx, fnNavigate) {` && |\n| &&
              `      ctx.router.navigate = fnNavigate;` && |\n| &&
+             `` && |\n| &&
+             `      if (ctx.state.embedded) return;` && |\n| &&
              `` && |\n| &&
              `      const listener = (oEvent) =>` && |\n| &&
              `        onHashChanged(ctx, oEvent.getParameter("newHash"));` && |\n| &&

@@ -200,3 +200,48 @@ test("a host's componentData.endpoint is where that component's roundtrips go", 
   expect(urls[0]).toMatch(/^http:\/\/localhost:3000\//);
   expect(urls[1]).toBe("/sap/bc/z2ui5_embedded");
 });
+
+// A component in a page it does not own - componentData.embedded, which the
+// z2ui5/embed module of ?z2ui5-bundle passes - leaves the URL to that page
+// (core/Router.js, core/Server.js). The page here stands on a route of its
+// own, the way a Fiori elements object page does: before the flag, the
+// component's first roundtrip ended with a replaceHash("") that took it away,
+// and the host went back to its list.
+test("an embedded component leaves the page's hash alone", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await waitForMainView(page, FIRST);
+  await page.evaluate(() => {
+    window.location.hash = "#/Customers('1001')";
+  });
+
+  const posts = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST") posts.push(request);
+  });
+  await bootSecondComponent(page, { embedded: true });
+  await waitForMainView(page, SECOND);
+  // the hash sync runs after the view is built, before the busy state of
+  // the roundtrip is released (View1._processAfterRendering) - wait for
+  // that, and a frame on top
+  await page.waitForFunction((id) => {
+    const Component = window.sap.ui.require("sap/ui/core/Component");
+    const component = Component.getComponentById
+      ? Component.getComponentById(id)
+      : Component.get(id);
+    const state = component.ctx.state;
+    return Boolean(state.oResponse) && !state.isBusy;
+  }, SECOND);
+  await page.evaluate(
+    () => new Promise((resolve) => requestAnimationFrame(() => resolve(true))),
+  );
+
+  expect(new URL(page.url()).hash).toBe("#/Customers('1001')");
+  expect(posts).toHaveLength(1);
+  const body = JSON.parse(posts[0].postData() || "{}");
+  // the page's route is not the app's state: it is not reported ...
+  expect(body.value.S_FRONT.HASH).toBeUndefined();
+  // ... and the flag configures the frontend, it is no app data
+  expect(body.value.S_FRONT.CONFIG.ComponentData).toBeUndefined();
+});

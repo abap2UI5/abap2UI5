@@ -23,6 +23,9 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
   // records every hash write plus the echo guard (currentDraftId) in place at
   // that moment - onHashChanged compares against it
   const writes = [];
+  // the listeners init attached, and how often it initialized the engine
+  const listeners = [];
+  let inits = 0;
   let current = hash;
   const hashChanger = {
     getHash: () => current,
@@ -34,9 +37,11 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
       writes.push({ op: "replace", hash: h, guard: state.currentDraftId });
       current = h;
     },
-    attachEvent: () => {},
+    attachEvent: (name, fn) => listeners.push({ name, fn }),
     detachEvent: () => {},
-    init: () => {},
+    init: () => {
+      inits += 1;
+    },
   };
   // the router works on the component's context (core/Context.js); the
   // module functions below are bound to this one, so the specs read as
@@ -97,6 +102,8 @@ function loadRouter({ state: stateOverrides = {}, hash = "", href } = {}) {
     replaces,
     backs,
     errors,
+    listeners,
+    inits: () => inits,
     setHash: (h) => {
       current = h;
     },
@@ -693,6 +700,51 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
     draft: "D9",
   });
   expect(Router.parse(`//app/${CALLEE}`).app).toBe(CALLEE);
+});
+
+// ---------------------------------------------------------------------------
+// Embedded - the hash is the host's (state.embedded)
+// ---------------------------------------------------------------------------
+
+test("an embedded component neither listens to the hash nor starts its engine", () => {
+  // the host routes by the hash (a Fiori elements object page) or not at
+  // all - either way a hash change is none of the component's business
+  const { Router, listeners, inits } = loadRouter({
+    state: { embedded: true },
+    hash: "Customers('1001')",
+  });
+  Router.init(() => {
+    throw new Error("an embedded component restored from a host route");
+  });
+  expect(listeners).toEqual([]);
+  expect(inits()).toBe(0);
+  // the standalone page does both
+  const page = loadRouter();
+  page.Router.init(() => {});
+  expect(page.listeners.map((l) => l.name)).toEqual(["hashChanged"]);
+  expect(page.inits()).toBe(1);
+});
+
+test("an embedded component's roundtrips leave the host's hash alone", () => {
+  // the per-roundtrip cleanup is what broke a Fiori elements host: its
+  // replaceHash("") took the object page's route away after every click
+  for (const navRouting of [false, true]) {
+    const { Router, writes, pushes, replaces, errors } = loadRouter({
+      state: { embedded: true, navRouting },
+      hash: "Customers('1001')",
+    });
+    Router.sync({ id: "D2" });
+    Router.sync({ setAppStateActive: true, id: "D3" });
+    // an app that asks for routing or a hash of its own gets neither
+    Router.sync({ setNavRouting: "KEEP", id: "D4" });
+    Router.sync({ setPushState: "?pos=1", id: "D5" });
+    Router.sync({ setHashReplace: "?pos=2", id: "D6" });
+    Router.sync({ setHashEvent: "HASH_CHANGED", id: "D7" });
+    expect(writes).toEqual([]);
+    expect(pushes).toEqual([]);
+    expect(replaces).toEqual([]);
+    expect(errors).toEqual([]);
+  }
 });
 
 // The option names are a contract with the backend: z2ui5_cl_ui5_act_front=>

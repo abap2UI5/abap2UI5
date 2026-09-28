@@ -36,6 +36,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      oConfig: {},` && |\n| &&
              `      ccResourceRoot: null,` && |\n| &&
              `      cccResourceRoot: null,` && |\n| &&
+             `      embedded: false,` && |\n| &&
              `` && |\n| &&
              `      oApp: null,` && |\n| &&
              `      oOwnerComponent: null,` && |\n| &&
