@@ -130,6 +130,9 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            this.ctx.state.isBusy = false;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
+             `          if (!replaced && this.ctx.state.mainTransition) {` && |\n| &&
+             `            await this.ctx.state.mainTransition;` && |\n| &&
+             `          }` && |\n| &&
              `          if (!replaced) await this._runPendingCustomJs(oResponse);` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            this._dispatchQueuedEvent();` && |\n| &&

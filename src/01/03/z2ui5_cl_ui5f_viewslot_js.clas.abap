@@ -225,6 +225,23 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      ctx.state[slot.prop] = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function detach(ctx, key) {` && |\n| &&
+             `      const slot = byKey(key);` && |\n| &&
+             `      if (!slot || !ctx?.state) return undefined;` && |\n| &&
+             `      for (const dep of slot.dependentSlots ?? []) detach(ctx, dep);` && |\n| &&
+             `      delete slotXmlStore(ctx)[key];` && |\n| &&
+             `      delete slotAppStore(ctx)[key];` && |\n| &&
+             `      const view = ctx.state[slot.prop];` && |\n| &&
+             `      if (!view) return undefined;` && |\n| &&
+             `      try {` && |\n| &&
+             `        Env.getMessaging?.()?.unregisterObject(view);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError(``ViewSlots.detach: unregisterObject failed for ${key}``, e);` && |\n| &&
+             `      }` && |\n| &&
+             `      ctx.state[slot.prop] = null;` && |\n| &&
+             `      return view;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      slots,` && |\n| &&
              `      getView,` && |\n| &&
@@ -242,6 +259,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      trackedModel,` && |\n| &&
              `      markChanged,` && |\n| &&
              `      destroy,` && |\n| &&
+             `      detach,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

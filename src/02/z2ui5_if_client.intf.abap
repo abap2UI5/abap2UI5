@@ -314,6 +314,26 @@ INTERFACE z2ui5_if_client
       keep    TYPE string VALUE `KEEP`,
     END OF cs_nav_mode.
 
+  CONSTANTS:
+    "! The page transitions of view_display( transition = ... ) - the names
+    "! sap.m.NavContainer.to( ) takes, played by the framework's root
+    "! sap.m.App when it replaces the MAIN view:
+    "!  slide      - the new page comes in from the right (since the Fiori 3
+    "!               themes a short slide combined with a fade)
+    "!  base_slide - the classic full-width slide. UI5 1.74 and newer; an
+    "!               older release plays slide instead
+    "!  fade       - the pages cross-fade
+    "!  flip       - the page turns over
+    "!  show       - no animation, but the old page stays up until the new one
+    "!               is built, and the change counts for the way back
+    BEGIN OF cs_transition,
+      slide      TYPE string VALUE `slide`,
+      base_slide TYPE string VALUE `baseSlide`,
+      fade       TYPE string VALUE `fade`,
+      flip       TYPE string VALUE `flip`,
+      show       TYPE string VALUE `show`,
+    END OF cs_transition.
+
   "! Empty the MAIN view slot on this response - the screen goes blank until
   "! the next view_display( ). Rarely needed: a new view_display( ) replaces
   "! the view anyway. It is for the app that wants the page cleared without
@@ -335,11 +355,28 @@ INTERFACE z2ui5_if_client
   "!                  (`/sap/opu/odata/IWBEP/GWSAMPLE_BASIC/`). abap2UI5's own
   "!                  data then lives in the named `http` model, reached with
   "!                  `_bind( val = ... switch_default_model = abap_true )`.
+  "! @parameter transition | the page transition the new view arrives with -
+  "!                  a cs_transition value. The old view stays on screen until
+  "!                  the new one is built and then leaves with the animation.
+  "!                  Empty: the view is swapped without one, as before. Pass
+  "!                  it where the SCREEN changes - the check_on_navigated( )
+  "!                  branch - not on every re-render. Going back plays the
+  "!                  sap.m.NavContainer rule: the page being left runs the
+  "!                  transition it arrived with in reverse, whatever is passed
+  "!                  here, and this value is what the new page will leave with
+  "!                  on the next way back.
+  "! @parameter transition_back | abap_true plays the change as a way BACK -
+  "!                  for an app that steps back between its own screens, a
+  "!                  wizard's Previous button. Not needed after
+  "!                  nav_app_leave( ) or the browser Back button under
+  "!                  hash_routing: both are recognized.
   METHODS view_display
     IMPORTING
       val                           TYPE clike
-      switch_default_model_anno_uri TYPE clike OPTIONAL
-      switch_default_model_path     TYPE clike OPTIONAL.
+      switch_default_model_anno_uri TYPE clike     OPTIONAL
+      switch_default_model_path     TYPE clike     OPTIONAL
+      transition                    TYPE clike     OPTIONAL
+      transition_back               TYPE abap_bool DEFAULT abap_false.
 
   "! obsolete - does NOTHING. An event round-trip that changes bound data
   "! pushes the model AUTOMATICALLY: the framework compares the model state

@@ -60,6 +60,18 @@
 //   oLaunchpad        FLP services when running inside the launchpad, else
 //                     null (Component._initLaunchpad)
 //
+// Page transitions of the MAIN view (view_display( transition ) - written
+// by actions/Slots, which keeps the reasoning)
+//   mainArrival       the transition the page on MAIN arrived with, "" when
+//                     it came without one - what the way back plays in
+//                     reverse (the sap.m.NavContainer rule)
+//   mainInstance      the app INSTANCE that page belongs to (its display's
+//                     appInstance, "" when the display carried none) - a
+//                     way back only animates a page that changes owner
+//   mainTransition    the page change in flight: a promise that settles once
+//                     the old page is gone, null when none runs. The next
+//                     MAIN build and the follow-up actions wait for it
+//
 // Roundtrip state
 //   oBody             mirror of the current request payload - the body
 //                     itself travels as a parameter through
@@ -165,6 +177,11 @@ sap.ui.define([], () => {
       slotApp: {},
       oLaunchpad: null,
 
+      // Page transitions of the MAIN view (see the inventory above)
+      mainArrival: "",
+      mainInstance: "",
+      mainTransition: null,
+
       // Roundtrip state
       oBody: null,
       oResponse: null,
@@ -199,6 +216,12 @@ sap.ui.define([], () => {
       //                 the resulting render must NOT rewrite the hash: the
       //                 browser is at a non-top history position and rewriting
       //                 there drops the forward entries (Forward would break).
+      //  navDirection   which way that browser navigation went - "back",
+      //                 "forward", or "" when the route is nowhere on this
+      //                 page load's trail (a manual edit, a bookmark). Set
+      //                 and cleared together with navFromHash; the MAIN
+      //                 display of the restore reads it (actions/Slots), a
+      //                 "back" plays the page being left out in reverse.
       //  hashEvent      app-owned hash routing (routing OFF): the backend
       //                 event name the app registered via
       //                 cs_event-hash_attach_changed (Router.applyHashEvent,
@@ -221,6 +244,7 @@ sap.ui.define([], () => {
       currentApp: null,
       currentDraftId: null,
       navFromHash: false,
+      navDirection: "",
       hashEvent: null,
       appHash: "",
       pendingAppHash: null,

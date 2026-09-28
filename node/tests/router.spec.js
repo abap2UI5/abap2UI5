@@ -277,6 +277,115 @@ test("a non-app hash and disabled routing are both ignored", () => {
 });
 
 // ---------------------------------------------------------------------------
+// 3a'. The trail - which way a browser navigation went. The page transition
+//      of the MAIN view plays a Back in reverse (actions/Slots), so a
+//      restore has to know whether the browser went back or forward.
+// ---------------------------------------------------------------------------
+
+// A -> nav_app_call B -> nav_app_call C, written the way Router.sync writes
+// it. The fake HashChanger does not echo, so the boot hash is replayed by
+// hand: HashChanger.init( ) fires it, and that is what seeds the trail.
+function threeApps(stateOverrides = {}) {
+  const env = loadRouter({
+    state: { currentApp: "A", currentDraftId: "D1", ...stateOverrides },
+  });
+  let restores = 0;
+  env.Router.init(() => restores++);
+  const keep = env.state.navMode !== "FRESH";
+  env.Router.onHashChanged(keep ? "app/A/D1" : "app/A");
+  env.state.oResponse = { APP: "B" };
+  env.Router.sync({ checkNavAppCall: true, id: "D2" });
+  env.state.oResponse = { APP: "C" };
+  env.Router.sync({ checkNavAppCall: true, id: "D3" });
+  return { ...env, restores: () => restores };
+}
+
+test("the trail follows the writes: a push appends, the browser stands on the last", () => {
+  const { ctx } = threeApps();
+  expect(ctx.router.trail).toEqual(["/app/A/D1", "/app/B/D2", "/app/C/D3"]);
+  expect(ctx.router.trailPos).toBe(2);
+});
+
+test("a Back along the trail is a way back, a Forward a way forward", () => {
+  const { Router, state, ctx, restores } = threeApps();
+
+  Router.onHashChanged("app/B/D2");
+  expect(restores()).toBe(1);
+  expect(state.navFromHash).toBe(true);
+  expect(state.navDirection).toBe("back");
+  expect(ctx.router.trailPos).toBe(1);
+
+  // the restore renders: the direction goes with navFromHash
+  state.oResponse = { APP: "B" };
+  Router.sync({ id: "D2" });
+  expect(state.navFromHash).toBe(false);
+  expect(state.navDirection).toBe("");
+
+  Router.onHashChanged("app/C/D3");
+  expect(state.navDirection).toBe("forward");
+  expect(ctx.router.trailPos).toBe(2);
+});
+
+test("a longer jump back - the history menu of the button - is still back", () => {
+  const { Router, state, ctx } = threeApps();
+  Router.onHashChanged("app/A/D1");
+  expect(state.navDirection).toBe("back");
+  expect(ctx.router.trailPos).toBe(0);
+});
+
+test("the echo of a write moves nothing", () => {
+  const { Router, state, ctx, restores } = threeApps();
+  Router.onHashChanged("app/C/D3");
+  expect(restores()).toBe(0);
+  expect(ctx.router.trailPos).toBe(2);
+  expect(state.navDirection).toBe("");
+});
+
+test("a hash nowhere on the trail has no direction - and joins it", () => {
+  const { Router, state, ctx } = threeApps();
+  // a manual edit or a bookmark: a new browser entry
+  Router.onHashChanged("app/X/D7");
+  expect(state.navFromHash).toBe(true);
+  expect(state.navDirection).toBe("");
+  expect(ctx.router.trail[ctx.router.trailPos]).toBe("/app/X/D7");
+});
+
+test("a push after a Back cuts the forward part off, as the browser does", () => {
+  const { Router, state, ctx } = threeApps();
+  Router.onHashChanged("app/B/D2");
+  state.oResponse = { APP: "B" };
+  Router.sync({ id: "D2" });
+  state.oResponse = { APP: "E" };
+  Router.sync({ checkNavAppCall: true, id: "D5" });
+  expect(ctx.router.trail).toEqual(["/app/A/D1", "/app/B/D2", "/app/E/D5"]);
+});
+
+test("FRESH: one app on both sides of the entry leaves the direction open", () => {
+  // A -> B -> A, a FRESH route carries the class only
+  const { Router, state, ctx } = loadRouter({
+    state: { navMode: "FRESH", currentApp: "A", currentDraftId: null },
+  });
+  Router.init(() => {});
+  Router.onHashChanged("app/A");
+  state.oResponse = { APP: "B" };
+  Router.sync({ checkNavAppCall: true, id: "D2" });
+  state.oResponse = { APP: "A" };
+  Router.sync({ checkNavAppCall: true, id: "D3" });
+  expect(ctx.router.trail).toEqual(["/app/A", "/app/B", "/app/A"]);
+
+  // Back to B - A is only below
+  Router.onHashChanged("app/B");
+  expect(state.navDirection).toBe("back");
+  state.oResponse = { APP: "B" };
+  Router.sync({ id: "D4" });
+
+  // standing on B, A is below AND above: either button - no claim
+  Router.onHashChanged("app/A");
+  expect(state.navFromHash).toBe(true);
+  expect(state.navDirection).toBe("");
+});
+
+// ---------------------------------------------------------------------------
 // 3b. Write side - sync
 // ---------------------------------------------------------------------------
 

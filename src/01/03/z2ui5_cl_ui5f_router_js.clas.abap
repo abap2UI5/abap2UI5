@@ -105,19 +105,68 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function trailWrite(ctx, sHash, bReplace) {` && |\n| &&
+             `      const r = ctx.router;` && |\n| &&
+             `      const h = appHashNormalized(sHash);` && |\n| &&
+             `      if (bReplace && r.trailPos >= 0) {` && |\n| &&
+             `        r.trail[r.trailPos] = h;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      r.trail = r.trail.slice(0, r.trailPos + 1);` && |\n| &&
+             `      r.trail.push(h);` && |\n| &&
+             `      r.trailPos = r.trail.length - 1;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function write(ctx, sHash, bReplace) {` && |\n| &&
+             `      trailWrite(ctx, sHash, bReplace);` && |\n| &&
+             `      navTo(sHash, bReplace);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function trailMove(ctx, sHash) {` && |\n| &&
+             `      const r = ctx.router;` && |\n| &&
+             `      const h = appHashNormalized(sHash);` && |\n| &&
+             `      const pos = r.trailPos;` && |\n| &&
+             `      if (r.trail[pos] === h) return "";` && |\n| &&
+             `      const prev = pos > 0 && r.trail[pos - 1] === h;` && |\n| &&
+             `      const next = r.trail[pos + 1] === h;` && |\n| &&
+             `      if (prev) {` && |\n| &&
+             `        r.trailPos = pos - 1;` && |\n| &&
+             `        return next ? "" : "back";` && |\n| &&
+             `      }` && |\n| &&
+             `      if (next) {` && |\n| &&
+             `        r.trailPos = pos + 1;` && |\n| &&
+             `        return "forward";` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      const before = pos > 0 ? r.trail.lastIndexOf(h, pos - 1) : -1;` && |\n| &&
+             `      if (before >= 0) {` && |\n| &&
+             `        r.trailPos = before;` && |\n| &&
+             `        return "back";` && |\n| &&
+             `      }` && |\n| &&
+             `      const after = r.trail.indexOf(h, pos + 1);` && |\n| &&
+             `      if (after >= 0) {` && |\n| &&
+             `        r.trailPos = after;` && |\n| &&
+             `        return "forward";` && |\n| &&
+             `      }` && |\n| &&
+             `      trailWrite(ctx, h, false);` && |\n| &&
+             `      return "";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function writeHash(ctx, sHash, bPush) {` && |\n| &&
              `      if (bPush) ctx.state.hashPushCount += 1;` && |\n| &&
-             `      navTo(sHash, !bPush);` && |\n| &&
+             `      write(ctx, sHash, !bPush);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function writeLegacyUrl(ctx, sSuffix, bPush) {` && |\n| &&
-             `      const url = ``${window.location.pathname}${window.location.search}#${getRawHash()}${sSuffix}``;` && |\n| &&
+             `      const sRaw = ``${getRawHash()}${sSuffix}``;` && |\n| &&
+             `      const url = ``${window.location.pathname}${window.location.search}#${sRaw}``;` && |\n| &&
              `      if (bPush) {` && |\n| &&
              `        ctx.state.hashPushCount += 1;` && |\n| &&
              `        history.pushState(null, "", url);` && |\n| &&
              `      } else {` && |\n| &&
              `        history.replaceState(null, "", url);` && |\n| &&
              `      }` && |\n| &&
+             `      trailWrite(ctx, sRaw, !bPush);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function navBack(ctx, sFallback) {` && |\n| &&
@@ -125,11 +174,13 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        window.history.back();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      navTo(sFallback, true);` && |\n| &&
+             `      write(ctx, sFallback, true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function onHashChanged(ctx, sNewHash) {` && |\n| &&
              `      const state = ctx.state;` && |\n| &&
+             `` && |\n| &&
+             `      const direction = trailMove(ctx, sNewHash);` && |\n| &&
              `` && |\n| &&
              `      if (!state.navRouting) {` && |\n| &&
              `        dispatchAppHashChange(ctx, sNewHash);` && |\n| &&
@@ -148,6 +199,8 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      state.navFromHash = true;` && |\n| &&
+             `` && |\n| &&
+             `      state.navDirection = direction;` && |\n| &&
              `      if (ctx.router.navigate) ctx.router.navigate();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -194,7 +247,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `      if (getHash() === prevRoute) return;` && |\n| &&
              `` && |\n| &&
              `      state.currentDraftId = prevDraft;` && |\n| &&
-             `      navTo(prevRoute, true);` && |\n| &&
+             `      write(ctx, prevRoute, true);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function applyMode(ctx, mOptions) {` && |\n| &&
@@ -215,6 +268,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `      if (state.navFromHash) {` && |\n| &&
              `        state.navFromHash = false;` && |\n| &&
+             `        state.navDirection = "";` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (mOptions.setPushState || mOptions.setHashReplace) return;` && |\n| &&
@@ -224,9 +278,9 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        repointCallerEntry(ctx, mOptions, draftForRoute);` && |\n| &&
              `        state.currentApp = app;` && |\n| &&
              `        state.currentDraftId = draftForRoute;` && |\n| &&
-             `        navTo(route);` && |\n| &&
+             `        write(ctx, route, false);` && |\n| &&
              `      } else if (getHash() !== route) {` && |\n| &&
-             `        navTo(route, true);` && |\n| &&
+             `        write(ctx, route, true);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -275,7 +329,7 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `        const newHash = mOptions.setAppStateActive` && |\n| &&
              `          ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `          : "";` && |\n| &&
-             `        navTo(newHash, true);` && |\n| &&
+             `        write(ctx, newHash, true);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("Router.sync: history update failed", e);` && |\n| &&
              `      }` && |\n| &&

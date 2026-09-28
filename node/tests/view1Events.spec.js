@@ -561,6 +561,30 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(state.isBusy).toBe(false);
   });
 
+  // A page transition of the MAIN view (view_display( transition ),
+  // actions/Slots) still moving when the response's follow-up actions are
+  // due: they wait for it - a SET_FOCUS belongs to the page as it will
+  // stand, and the NavContainer's autofocus at the end of the move would
+  // take the focus back from an earlier one. The busy state does NOT wait:
+  // the new page takes input while it comes in.
+  test("the follow-up actions wait for the page transition in flight", async () => {
+    const { ctrl, state, customs, busy } = loadForAfterRendering();
+    let endMove;
+    state.mainTransition = new Promise((resolve) => {
+      endMove = resolve;
+    });
+    state.oResponse = { ID: "D1", _pendingCustomJs: [["SET_FOCUS", "inp"]] };
+
+    const done = ctrl._processAfterRendering(1);
+    for (let i = 0; i < 5; i += 1) await Promise.resolve();
+    expect(busy).toEqual(["hide"]);
+    expect(customs).toEqual([]);
+
+    endMove();
+    await done;
+    expect(customs).toEqual([["SET_FOCUS", "inp"]]);
+  });
+
   // The display phase of a response a newer REQUEST superseded (a
   // Back/Forward restore mid-build) may well fail - a slot the restore tore
   // down, a duplicate id - and that failure is the newer request's to own,
@@ -912,6 +936,7 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
           fragmentIdOf: (_ctx, slot) => slot.fragmentId,
           slots: [],
           getView: () => undefined,
+          getViewApp: () => undefined,
           getController: () => undefined,
           setView: () => {},
           destroy: (_ctx, key) => destroyed.push(key),
@@ -1027,6 +1052,7 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         fragmentIdOf: (_ctx, slot) => slot.fragmentId,
         slots: [{ key: "MAIN", ownsModel: true }],
         getView: (_ctx, key) => openSlots[key],
+        getViewApp: () => undefined,
         getController: () => undefined,
         setView: (_ctx, key, view) => (openSlots[key] = view),
         destroy: (_ctx, key) => delete openSlots[key],

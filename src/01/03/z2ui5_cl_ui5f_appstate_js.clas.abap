@@ -55,6 +55,10 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      slotApp: {},` && |\n| &&
              `      oLaunchpad: null,` && |\n| &&
              `` && |\n| &&
+             `      mainArrival: "",` && |\n| &&
+             `      mainInstance: "",` && |\n| &&
+             `      mainTransition: null,` && |\n| &&
+             `` && |\n| &&
              `      oBody: null,` && |\n| &&
              `      oResponse: null,` && |\n| &&
              `      renderedApp: null,` && |\n| &&
@@ -71,6 +75,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      currentApp: null,` && |\n| &&
              `      currentDraftId: null,` && |\n| &&
              `      navFromHash: false,` && |\n| &&
+             `      navDirection: "",` && |\n| &&
              `      hashEvent: null,` && |\n| &&
              `      appHash: "",` && |\n| &&
              `      pendingAppHash: null,` && |\n| &&

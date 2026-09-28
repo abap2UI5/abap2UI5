@@ -233,6 +233,15 @@ sap.ui.define(
           // _runPendingCustomJs asks isControllerAlive for the torn-down app.
           // Order unchanged: after the busy indicator is down, so
           // render-dependent actions like SET_FOCUS find their control.
+          // A page transition of the MAIN view still in motion ends first
+          // (actions/Slots): a SET_FOCUS or SCROLL_TO belongs to the page
+          // as it will stand, and the NavContainer's own autofocus at the
+          // end of the move would take the focus back from an earlier one.
+          // The promise never rejects - it settles on the move's end or on
+          // its timeout.
+          if (!replaced && this.ctx.state.mainTransition) {
+            await this.ctx.state.mainTransition;
+          }
           if (!replaced) await this._runPendingCustomJs(oResponse);
           if (!superseded) {
             // The event a check_queue_last wire kept while this roundtrip ran

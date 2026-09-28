@@ -54,7 +54,7 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `        locationSent: false,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      router: { navigate: null, hashListener: null },` && |\n| &&
+             `      router: { navigate: null, hashListener: null, trail: [], trailPos: -1 },` && |\n| &&
              `` && |\n| &&
              `      shortcuts: { listener: null },` && |\n| &&
              `` && |\n| &&

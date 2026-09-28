@@ -377,6 +377,14 @@ INTERFACE z2ui5_if_ui5_types
       " serialized into the draft, so a trace can never outlive the edit
       " that caused it
       t_model_skipped    TYPE z2ui5_if_client=>ty_t_model_skip,
+      " The app was reached by going BACK: a nav_app_leave( ) returned to an
+      " instance restored from the stack (z2ui5_cl_ui5_action=>
+      " factory_stack_leave). view_display( ) sends it as the MAIN display's
+      " navBack, so the page being left plays its arrival transition in
+      " reverse - the sap.m.NavContainer rule. A leave to a FRESH instance is
+      " a forward navigation that discards the current app and does not set
+      " it
+      check_nav_back     TYPE abap_bool,
     END OF ty_s_actual.
 
 ENDINTERFACE.

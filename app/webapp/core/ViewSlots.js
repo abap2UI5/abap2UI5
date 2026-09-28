@@ -314,6 +314,33 @@ sap.ui.define(
       ctx.state[slot.prop] = null;
     }
 
+    // Empty a slot WITHOUT destroying what it holds, and hand the instance
+    // back: the page transition of the MAIN view keeps the old page on
+    // screen while the new one arrives, and destroys it itself once the
+    // NavContainer is done (actions/Slots). Everything destroy( ) does to
+    // the SLOT happens here too - the records dropped, the validation
+    // registration undone, the dependent slots (NEST/NEST2, which live
+    // inside MAIN's tree) emptied the same way - so the slot reads empty and
+    // the next display fills it as if destroy( ) had run. Only the instance
+    // itself stays alive, and its nested views with it: they leave the
+    // screen as part of the old page. Undefined when the slot is not open.
+    function detach(ctx, key) {
+      const slot = byKey(key);
+      if (!slot || !ctx?.state) return undefined;
+      for (const dep of slot.dependentSlots ?? []) detach(ctx, dep);
+      delete slotXmlStore(ctx)[key];
+      delete slotAppStore(ctx)[key];
+      const view = ctx.state[slot.prop];
+      if (!view) return undefined;
+      try {
+        Env.getMessaging?.()?.unregisterObject(view);
+      } catch (e) {
+        Lib.logError(`ViewSlots.detach: unregisterObject failed for ${key}`, e);
+      }
+      ctx.state[slot.prop] = null;
+      return view;
+    }
+
     return {
       slots,
       getView,
@@ -331,6 +358,7 @@ sap.ui.define(
       trackedModel,
       markChanged,
       destroy,
+      detach,
     };
   },
 );

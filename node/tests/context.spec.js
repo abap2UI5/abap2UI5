@@ -61,7 +61,12 @@ test.describe("create", () => {
       pending: null,
       locationSent: false,
     });
-    expect(ctx.router).toEqual({ navigate: null, hashListener: null });
+    expect(ctx.router).toEqual({
+      navigate: null,
+      hashListener: null,
+      trail: [],
+      trailPos: -1,
+    });
     expect(ctx.shortcuts).toEqual({ listener: null });
     expect(ctx.variants).toEqual({ activeInits: new Set() });
     expect(ctx.scroll).toEqual({ target: undefined, ui5El: undefined, slotKey: undefined });
