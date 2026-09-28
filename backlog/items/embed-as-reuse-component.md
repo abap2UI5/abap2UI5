@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page; stage 1 (the embedded flag that turns the page-wide behaviours off) and a wrapping custom control stay open until there is real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); stage 1, the embedded flag that turns the page-wide behaviours off, stays open until there is real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -14,7 +14,7 @@ evidence:
 # Embed abap2UI5 in other UI5 apps as a reuse component
 
 **Status: stage 2 done (2026-09-23, maintainer decision to build it after
-all), stage 1 and the custom control open.** abap2UI5 is built for the
+all), the custom control exists, stage 1 open.** abap2UI5 is built for the
 whole page: a stateful roundtrip per event, and the backend drives routing,
 popups, title and favicon. Embedding it as one area of a host app (a
 freestyle view, a Fiori elements V4 custom section or V2 reuse component)
@@ -118,18 +118,23 @@ instance.
   host, and always the frontend of the backend it talks to. Without the
   parameter the node answers with the page as before.
 
-## A custom control (deferred)
+## A custom control (exists)
 
-A `z2ui5.Embed` control with `appStart`/`endpoint` properties would only be
-a thin wrapper around the `ComponentContainer`. It is worth writing after
-stage 1, not instead of it. The UI5 standard for this is a reuse
-component, not a custom control.
+The wrapper around the `ComponentContainer` came before stage 1 after all:
+`z2ui5.embed.Container` in
+[abap2UI5/embed-control](https://github.com/abap2UI5/embed-control), the
+npm package `@abap2ui5/embed-control`, with `app`, `endpoint` and `params`
+properties. It ships no frontend - it loads the bundle above from the
+backend it talks to, so it needs abap2UI5 1.145.0 or later - and it is what
+asked for `componentData.endpoint` and the bundle. The stage 1 items above
+are still what it lacks: until the embedded flag exists, an embedded app
+shows the global busy indicator, may set the title and the favicon, takes
+part in hash routing and renders its root as `sap.m.App`.
 
-A first version is under way in
-[abap2UI5/test-cc](https://github.com/abap2UI5/test-cc): the npm package
-`@abap2ui5/reuse-custom-control` with a `z2ui5.reuse.Container` control
-that ships this frontend at a pinned commit. It is what asked for
-`componentData.endpoint`; the stage 1 items above are still what it lacks.
+The control requires the bundle's `z2ui5/embed` module by that name, and
+its own namespace `z2ui5.embed` sits below it, mapped to the host app's
+`thirdparty/` - so the module keeps its name and `app/webapp` gets no
+`embed/` folder.
 
 ## 1.71
 
