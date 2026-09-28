@@ -58,7 +58,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) | The single-class build of the framework. `trigger_local.yaml` pushes `src/` into its `input/` on every push to `main` (deploy key `ACTION_KEY_LOCAL`, the refresh script pinned by hash in `.github/pins/`), and its own workflows fold the sources into one class per target — `z2ui5_cl_abap2ui5_local`, the name a user's SLIN run reports findings against (`abap-check` skill, §3) |
 | [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
 | [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
-| [embed-control](https://github.com/abap2UI5/embed-control) | `@abap2ui5/embed-control` — the UI5 control `z2ui5.embed.Container`, which runs an abap2UI5 app inside any UI5 app. It ships no frontend: it loads this one through `?z2ui5-bundle` (`z2ui5_cl_ui5_http_handler=>_http_get_bundle`) and requires the `z2ui5/embed` module that bundle defines, so that name is its contract. Its own namespace `z2ui5.embed` sits below the name and is mapped to the host app's `thirdparty/` — `app/webapp` gets no `embed/` folder |
+| [embed-control](https://github.com/abap2UI5/embed-control) | `@abap2ui5/embed-control` — the UI5 control `z2ui5.embed.Container`, which runs an abap2UI5 app inside any UI5 app. It ships no frontend: it loads this one through `?z2ui5-bundle` (`z2ui5_cl_ui5_http_handler=>_http_get_bundle`) and requires the `z2ui5/embed` module that bundle defines, so that name is its contract - its `componentData` includes `embedded: true`, which hands the URL to the host (`state.embedded`, a Fiori elements object page routes by it). Its own namespace `z2ui5.embed` sits below the name and is mapped to the host app's `thirdparty/` — `app/webapp` gets no `embed/` folder |
 
 > **Building apps?** See the routing note at the very top of this file — the guide is `docs/agents/building-apps.md`. The rendered docs site is <https://abap2ui5.github.io/docs/> — unreachable from many sandboxes, which is why the guide lives in-repo.
 
@@ -671,9 +671,11 @@ know before it proposes the same thing again:
   2026-08-11, parked for a future action object —
   `backlog/items/frontend-action-named-api.md`); `follow_up_action` stays the
   only API.
-- **Embedding abap2UI5 as a reuse component is deferred** (2026-09-23,
-  `backlog/items/embed-as-reuse-component.md`) — do not re-propose the rest
-  as general cleanup.
+- **Embedding abap2UI5 as a reuse component goes as far as demand asked**
+  (`backlog/items/embed-as-reuse-component.md`): per-component state, the
+  bundle, and the embedded flag that hands the URL to the host (2026-09-28,
+  for a Fiori elements custom section). The rest of stage 1 is deferred - do
+  not re-propose it as general cleanup.
 - **`z2ui5_cl_xml_view` (src/99) is not extended, refactored or split**, and
   its size is not a finding.
 

@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); stage 1, the embedded flag that turns the page-wide behaviours off, stays open until there is real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag exists and hands the URL to the host (a Fiori elements custom section needed it), the other page-wide behaviours - title, favicon, busy indicator, sap.m.App root - wait for real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -14,7 +14,9 @@ evidence:
 # Embed abap2UI5 in other UI5 apps as a reuse component
 
 **Status: stage 2 done (2026-09-23, maintainer decision to build it after
-all), the custom control exists, stage 1 open.** abap2UI5 is built for the
+all), the custom control exists, stage 1 in part: the embedded flag and the
+URL (2026-09-28, for the Fiori elements example of abap2UI5/embed-control),
+the rest open.** abap2UI5 is built for the
 whole page: a stateful roundtrip per event, and the backend drives routing,
 popups, title and favicon. Embedding it as one area of a host app (a
 freestyle view, a Fiori elements V4 custom section or V2 reuse component)
@@ -55,7 +57,23 @@ needs it; a custom control is a thin wrapper on top of it.
 
 A host would write
 `<core:ComponentContainer name="z2ui5" async="true" settings="{componentData: {embedded: true, startupParameters: {app_start: ['ZCL_MY_APP']}}}"/>`.
-What that needs:
+
+**Done 2026-09-28 - the flag and the URL.** `componentData.embedded`
+lands in `state.embedded` (`Component.init`, read on the top level only,
+never from the launchpad's startup parameters), and the z2ui5/embed module
+of `?z2ui5-bundle` passes it, so every page that loads the frontend that
+way embeds it. An embedded component leaves the URL to its host:
+`core/Router.js` neither listens to the hash nor writes it - above all not
+the `replaceHash("")` that ended every roundtrip and took a Fiori elements
+object page's route away - and `core/Server.js` sends no `HASH`, whose
+`#/app/<CLASS>` route would win over the host's `app_start`. What drove it:
+the Fiori elements example of abap2UI5/embed-control (an object page custom
+section), which the cleanup sent back to its list after every click.
+Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
+(both still act on the host's history, as asked), and `PATHNAME`/`SEARCH`
+on the wire.
+
+What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs
    to the page, not to an area of it:
@@ -127,9 +145,9 @@ npm package `@abap2ui5/embed-control`, with `app`, `endpoint` and `params`
 properties. It ships no frontend - it loads the bundle above from the
 backend it talks to, so it needs abap2UI5 1.145.0 or later - and it is what
 asked for `componentData.endpoint` and the bundle. The stage 1 items above
-are still what it lacks: until the embedded flag exists, an embedded app
-shows the global busy indicator, may set the title and the favicon, takes
-part in hash routing and renders its root as `sap.m.App`.
+are still what it lacks, the URL aside (done 2026-09-28): an embedded app
+shows the global busy indicator, may set the title and the favicon, and
+renders its root as `sap.m.App`.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and
 its own namespace `z2ui5.embed` sits below it, mapped to the host app's

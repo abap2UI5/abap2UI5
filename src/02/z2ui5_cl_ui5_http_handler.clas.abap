@@ -870,11 +870,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " GET <node>?z2ui5-bundle - the frontend of THIS installation as a script
     " of its own, for a UI5 app that embeds the z2ui5 component instead of
-    " opening the page: z2ui5.reuse.Container (abap2UI5/reuse-custom-control)
-    " loads it with a <script> and then creates the component. The frontend
-    " then always has the version of the backend it talks to, and the host
-    " ships none. Everything else about the node stays as it is - without
-    " the parameter a GET is the page, a POST the roundtrip.
+    " opening the page: z2ui5.embed.Container (abap2UI5/embed-control) loads
+    " it with a <script> and then creates the component. The frontend then
+    " always has the version of the backend it talks to, and the host ships
+    " none. Everything else about the node stays as it is - without the
+    " parameter a GET is the page, a POST the roundtrip.
     "
     " The script is the page's own preload, taken from the same generated
     " entries (z2ui5_cl_ui5f_preload=>get_bundle): every module registered
@@ -889,7 +889,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the paths of the sibling BSPs, which the page passes as component data
     " as well (see _http_get) - and a page tells the bundle from anything else
     " by it: a logon page or an older abap2UI5 answering with its shell
-    " defines no such module.
+    " defines no such module. Its embedded flag is the one setting the page
+    " does not pass: a page that loads the frontend this way runs it in a
+    " page of its own, whose URL the component leaves alone (Component.init,
+    " core/Router.js) - a Fiori elements host routes by its hash.
     DATA(lv_etag) = _get_etag( c_bundle_param ).
 
     " consumed once - see sv_if_none_match
@@ -907,6 +910,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |  "use strict";\n| &&
                   |  return \{\n| &&
                   |    componentData: \{\n| &&
+                  |      embedded: true,\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&
                   |    \}\n| &&

@@ -30,6 +30,12 @@
 //                     (Component.init)
 //   cccResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5_ccc/") (Component.init)
+//   embedded          true when the component runs inside a page it does not
+//                     own - the z2ui5/embed module of ?z2ui5-bundle passes
+//                     it as component data, a host with a ComponentContainer
+//                     may pass it itself. The URL is the host's then: the
+//                     router neither listens to nor writes the hash, and no
+//                     request reports it (Component.init)
 //
 // Views / controllers / UI5 objects
 //   oApp              sap.m.App hosting the main view (App.controller)
@@ -151,6 +157,7 @@ sap.ui.define([], () => {
       oConfig: {},
       ccResourceRoot: null,
       cccResourceRoot: null,
+      embedded: false,
 
       // Views / controllers / UI5 objects
       oApp: null,
