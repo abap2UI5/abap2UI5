@@ -113,6 +113,16 @@ function — is an ordinary Node project and already has `npm i`. Both ride
 `backend-prebuilt.yaml` rather than `release.yaml` because the downport and
 the transpile have already run there.
 
+**A second package rides the same workflow: `@abap2ui5/bsp`** (`tools/bsp/`),
+a UI5 app as an abapGit BSP and back — the code `frontend:build` writes the
+BSP `Z2UI5` with, published so any other UI5 app can take the same way into a
+system. Its job `bsp` in `backend-prebuilt.yaml` needs none of the transpile:
+it tests the package (`npm run test:bsp`), packs it with the framework's
+version and proves the tarball by installing it (`npm run pack:bsp -- --check`),
+uploads it as an artefact and hands it to the same `npm-publish.mjs`, with the
+same bootstrap — the first version by hand, then trusted publishing for
+`backend-prebuilt.yaml` (RELEASING.md).
+
 What the package promises is only what `host.mjs` and `output/init.mjs`
 promise: everything else in `output/` is transpiler output, and its shape —
 the static `ATTRIBUTES`/`METHODS` maps, `constructor_( )`, `~` becoming `$` —

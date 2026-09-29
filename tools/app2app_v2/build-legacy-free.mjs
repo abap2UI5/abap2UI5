@@ -3,7 +3,7 @@
 // Produces the legacy-free (UI5 2.0) BSP state 1:1 from the classic abap2UI5
 // frontend (app/webapp) + a minimal bootstrap patch.
 //
-//   app/webapp -> [bootstrap patch] -> app2bsp/preload.js -> app2bsp/run.js [-> bsp_rename(--name)]
+//   app/webapp -> [bootstrap patch] -> app2bsp/preload.js -> @abap2ui5/bsp [-> bsp_rename(--name)]
 //
 // Only index.html + manifest.json are adjusted (everything else stays 1:1).
 // The result has the same package structure as the standard branch:
@@ -26,6 +26,8 @@ import { patchIndexHtml, patchManifest } from "./patch-v2.mjs";
 // The name rules of the rename step itself, so the paths computed here cannot
 // disagree with the files it writes.
 import { deriveNames, toFileName } from "../bsp_rename/rename-bsp.mjs";
+// The BSP itself is written by @abap2ui5/bsp, as for the standard branch.
+import { writeFrontendBsp } from "../app2bsp/frontend-bsp.mjs";
 
 const [repoRoot, cloudWebapp, outDir] = process.argv.slice(2);
 if (!repoRoot || !cloudWebapp || !outDir || [repoRoot, cloudWebapp, outDir].some((a) => a.startsWith("--"))) {
@@ -88,7 +90,7 @@ function runQuiet(args, cwd = work) {
   }
 }
 execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-runQuiet([".github/app2bsp/run.js"]);
+writeFrontendBsp(wa, join(work, "src/02"));
 if (renamed) {
   runQuiet([".github/bsp_rename/rename-bsp.mjs", bspName, "--dir", "src/02", "--yes"]);
 }

@@ -4,7 +4,9 @@ name: backend-prebuilt
 #
 # And publishes the npm package @abap2ui5/node-runtime from the same tag,
 # after the transpile it already runs, through .github/scripts/npm-publish.mjs;
-# RELEASING.md has the one-time setup that trusted publishing needs.
+# RELEASING.md has the one-time setup that trusted publishing needs. The job
+# `bsp` publishes @abap2ui5/bsp (tools/bsp) from the same tag the same way -
+# no transpile, so a job of its own that is done in a minute.
 #
 # Why this exists: abap2UI5/mcp-server boots every app against a transpiled
 # Node backend (its lib/runtime.mjs, `buildBackend`), and its first "full"
@@ -174,3 +176,51 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-node-runtime-*.tgz
+
+  # @abap2ui5/bsp - a UI5 app as an abapGit BSP, and back (tools/bsp). The
+  # same tag, the same version and the same trusted publishing as the
+  # package above, but none of the transpile: the package is tools/bsp as it
+  # is. It rides here because this is the workflow release.yaml dispatches
+  # for a release, and trusted publishing names the workflow file.
+  bsp:
+    if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout the release tag
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag }}
+        persist-credentials: false
+
+    - uses: ./.github/actions/setup
+
+    - name: Test @abap2ui5/bsp
+      run: npm run test:bsp
+
+    # --check installs the tarball into a scratch project and runs its three
+    # commands through the bin - a tarball that fails its own install is not
+    # uploaded, let alone published
+    - name: Pack @abap2ui5/bsp and prove the tarball installs
+      id: pack_bsp
+      run: |
+        npm run pack:bsp -- --check --out npm-package
+        echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: abap2ui5-bsp-${{ steps.pack_bsp.outputs.version }}
+        path: npm-package/*.tgz
+        if-no-files-found: error
+
+    # the same pin as the publish step of the job above - raise them together
+    - name: Use an npm that can publish via OIDC
+      run: npm install -g npm@12.0.2
+
+    - name: Publish @abap2ui5/bsp
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-bsp-*.tgz
