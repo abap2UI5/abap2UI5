@@ -33,7 +33,8 @@ UI5 itself comes from the CDN.
 | `serve({ port, host })` | Boot the framework and listen. Resolves with the `http.Server` once it can answer. `host` unset binds every interface, `"127.0.0.1"` loopback only |
 | `createApp()` | The express app `serve()` listens with: the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front |
 | `createHandler()` | The request handler alone, `(req, res) => Promise<void>` - for a server that is not express (see below) |
-| `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework. Once per process; every call returns the first call's promise |
+| `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
+| `accelerate()` | Install the runtime's fast paths for large tables (see [Performance](#performance)). `initialize()` calls it; a host that boots through `output/init.mjs` itself calls it after the boot - also importable alone, as `@abap2ui5/node-runtime/accelerate`. Returns `true` when they are installed |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
 `express` is an optional peer dependency, version 4 (from 4.21) or 5:
@@ -148,6 +149,42 @@ of your class files is imported on its own. A deployment has to carry the
 files you import, so keep them inside the tree it ships - a CAP project's
 `cds build`, for one, copies `srv/` but not a top-level `output/`.
 
+## Performance
+
+### Large tables
+
+A roundtrip is linear in the size of its model - on an SAP system. The
+transpiled framework runs on `@abaplint/runtime`, and two of its functions
+made a roundtrip with one large table quadratic: a `LOOP AT ... WHERE` over
+the primary key of a sorted table scans every row (the JSON serializer runs
+one per node), and `CP` builds a regular expression per call that walks the
+whole string behind a trailing `*` (the XML parser asks one per token, of the
+rest of the draft). `accelerate()` replaces both with fast paths that answer
+exactly what the runtime's own functions answer - binary search into the
+sorted key and an early stop; the trailing wildcard dropped and the compiled
+pattern cached - and hands every other case to the runtime's own code.
+`initialize()`, and with it `serve()`, `createApp()` and `createHandler()`,
+installs them. A host that boots through `output/init.mjs` itself adds one
+line after its boot:
+
+```js
+import { initializeABAP } from "@abap2ui5/node-runtime/output/init.mjs";
+import { accelerate } from "@abap2ui5/node-runtime/accelerate";
+
+await initializeABAP();
+accelerate();
+```
+
+In a CAP project (@cap2ui5/cds-plugin), the event roundtrip of an app whose
+one table is bound to a `sap.m.Table` took 6.2 s for 1000 rows and 22.6 s
+for 2000 - quadratic. With the fast paths 2000 rows take 1.8 s, 4000 rows
+2.6 s and 8000 rows 4.4 s.
+
+The fast paths are validated for the one `@abaplint/runtime` version this
+package pins (`RUNTIME_VERSION`, exported next to `accelerate`). On any other
+version - an `overrides` entry in the host's `package.json`, say -
+`accelerate()` leaves the runtime alone, returns `false` and warns once.
+
 ## Persistence
 
 The framework keeps the state of every app between roundtrips in a draft
@@ -165,6 +202,7 @@ drafts are a CDS entity.
 | Path | |
 |---|---|
 | `srv/host.mjs` | The entry point - everything above |
+| `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it imports nothing from `output/` |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object, `index.mjs` the generated unit-test runner (`node node_modules/@abap2ui5/node-runtime/output/index.mjs` runs the framework's own suite). The UI5 frontend is in here too, as the constants the GET page is built from |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled against |

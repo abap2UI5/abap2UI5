@@ -8,8 +8,9 @@
  *
  *   initialize()     boots the ABAP runtime once - the SQLite database and
  *                    the schema (setup/setup.mjs), then the framework's
- *                    class constructors. Idempotent: every call returns the
- *                    first call's promise.
+ *                    class constructors - and installs accelerate()'s fast
+ *                    paths on it. Idempotent: every call returns the first
+ *                    call's promise.
  *   createHandler()  the HTTP handler, (req, res) => Promise<void>. It hands
  *                    the request to ZCL_SICF (node/srv/zcl_sicf.clas.abap,
  *                    transpiled with the framework), the same class an ICF
@@ -23,6 +24,15 @@
  *                    the handler on every path - what the dev server has
  *                    always been.
  *   serve()          createApp() listening. Resolves with the http.Server.
+ *
+ * accelerate() (srv/accelerate.mjs, re-exported here) replaces the two
+ * functions of @abaplint/runtime that made a roundtrip with a large table
+ * quadratic - LOOP ... WHERE over a sorted primary key, and CP - with fast
+ * paths that answer exactly what they answer; its header says why and how
+ * that is held. initialize() calls it, so every host that boots through this
+ * module runs on them. A host that boots through output/init.mjs itself
+ * (@cap2ui5/cds-plugin) imports "@abap2ui5/node-runtime/accelerate" and calls
+ * it after its boot.
  *
  * `express` is imported lazily and only by createApp/serve: it is an
  * optional peer of the package, so a host that mounts createHandler() on a
@@ -44,6 +54,9 @@
 import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
+import { accelerate } from "./accelerate.mjs";
+
+export { accelerate, RUNTIME_VERSION } from "./accelerate.mjs";
 
 /** The ICF handler class every request goes to - node/srv/zcl_sicf.clas.abap. */
 export const HANDLER_CLASS = "ZCL_SICF";
@@ -51,12 +64,16 @@ export const HANDLER_CLASS = "ZCL_SICF";
 let booted;
 
 /**
- * Boot the ABAP runtime: the database, its schema and the framework. Once
- * per process; later calls return the same promise.
+ * Boot the ABAP runtime: the database, its schema and the framework, then
+ * the fast paths of accelerate() - right after the boot, before the first
+ * request can run a LOOP or a CP. Once per process; later calls return the
+ * same promise.
  * @returns {Promise<void>}
  */
 export function initialize() {
-  booted ??= initializeABAP();
+  booted ??= initializeABAP().then(() => {
+    accelerate();
+  });
   return booted;
 }
 

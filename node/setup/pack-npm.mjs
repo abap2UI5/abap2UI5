@@ -28,6 +28,9 @@
  *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
  *                     Same neighbours as in the checkout, so its relative
  *                     imports need no rewriting - see its header
+ *   srv/accelerate.mjs  node/srv/accelerate.mjs - the runtime fast paths
+ *                     host.mjs installs, also `exports["./accelerate"]` for a
+ *                     host that boots through output/init.mjs itself
  *   downport/         node/downport - the 7.02-downported ABAP the transpile
  *                     read, so a host can transpile ITS OWN app classes with
  *                     the framework as a library (README, "Your own apps"),
@@ -220,6 +223,7 @@ const COPIES = [
   ["node/output", "output", isFixtureFile],
   ["node/setup/setup.mjs", "setup/setup.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
+  ["node/srv/accelerate.mjs", "srv/accelerate.mjs"],
   ["node/downport", "downport", isFixtureFile],
   ["node/setup/npm.README.md", "README.md"],
   ["LICENSE", "LICENSE"],
@@ -254,7 +258,7 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
+    "srv/host.mjs", "srv/accelerate.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
@@ -314,6 +318,9 @@ if (!check) process.exit(0);
  *      the recorded commit registers in the running runtime and starts - the
  *      "Your own apps" recipe, executed literally
  *   5. serve() rejects on a port that is taken instead of resolving
+ *   6. the runtime the package pins is the one accelerate() was validated
+ *      for: serve() installed the fast paths, and the "./accelerate" subpath
+ *      a host that boots itself imports finds them installed
  * All of it once per range of the express peer: a host brings its own
  * express, and the range is a promise about each major it names.
  */
@@ -437,6 +444,12 @@ try {
     fail("the host's own app does not start: " + own.text.slice(0, 400));
   }
   ok("a class transpiled by the host against downport/ registers in the running runtime and starts");
+
+  const { accelerate: viaSubpath, RUNTIME_VERSION } = await import("@abap2ui5/node-runtime/accelerate");
+  const loop = globalThis.abap.statements.loop;
+  if (!viaSubpath()) fail("accelerate() installs nothing on the runtime the package pins - it is validated for " + RUNTIME_VERSION);
+  if (globalThis.abap.statements.loop !== loop) fail("serve() did not install the fast paths - accelerate() installed them afterwards");
+  ok("serve() runs on the fast paths of accelerate() (@abaplint/runtime " + RUNTIME_VERSION + "), and the ./accelerate subpath finds them installed");
 
   const taken = await serve({ port, host: "127.0.0.1" }).then((s) => { s.close(); return null; }, (e) => e);
   if (!taken) fail("serve() on a port in use resolved instead of rejecting");

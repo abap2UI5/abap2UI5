@@ -47,10 +47,12 @@
     "output",
     "setup/setup.mjs",
     "srv/host.mjs",
+    "srv/accelerate.mjs",
     "downport"
   ],
   "exports": {
     ".": "./srv/host.mjs",
+    "./accelerate": "./srv/accelerate.mjs",
     "./package.json": "./package.json",
     "./output/*": "./output/*",
     "./setup/*": "./setup/*",
