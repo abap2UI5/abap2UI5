@@ -10,7 +10,7 @@
 import http from "node:http";
 import zlib from "node:zlib";
 import express from "express";
-import { serve, createApp } from "../../srv/host.mjs";
+import { serve, createApp, compress } from "../../srv/host.mjs";
 
 /** One raw request - node:http, so nothing decodes or adds a header on its own. */
 function request(base, pathname, { method = "GET", headers = {}, body } = {}) {
@@ -85,6 +85,26 @@ try {
   out.mounted = await observe(`http://127.0.0.1:${mounted.address().port}`, "/sap/bc/z2ui5/");
 } finally {
   mounted.close();
+}
+
+// a host that mounts compress() in front of createApp(), which has its own
+const twice = express();
+twice.use(compress());
+twice.use(await createApp());
+const doubled = await new Promise((resolve, reject) => {
+  const s = twice.listen(0, "127.0.0.1", () => resolve(s)).on("error", reject);
+});
+try {
+  const base = `http://127.0.0.1:${doubled.address().port}`;
+  const plain = await request(base, "/");
+  const gzip = await request(base, "/", { headers: { "accept-encoding": "gzip" } });
+  const revalidated = await request(base, "/", { headers: { "accept-encoding": "gzip", "if-none-match": gzip.etag } });
+  out.doubled = {
+    gzip: { ...gzip, text: undefined, samePage: gzip.text === plain.text },
+    revalidated: { ...revalidated, text: undefined },
+  };
+} finally {
+  doubled.close();
 }
 
 const bare = express();

@@ -38,8 +38,18 @@
  * The GET page is compressed once per ETag: a strong tag names one
  * representation, so the compressed page is cached under it (bounded,
  * oldest out first) and a reload that does not revalidate costs no gzip.
+ *
+ * TWICE IS ONCE. A host may mount compress() in front of createApp(), which
+ * has one of its own (abap2UI5/mcp-server's npm host does, for releases that
+ * export it). The first instance a response passes marks it and does the
+ * work, every later one passes it through untouched - through a mark under
+ * Symbol.for, so two copies of this module agree as well. A tag never gets
+ * the -gzip suffix twice either.
  */
 import zlib from "node:zlib";
+
+/** On a response a compress() instance has taken: the others let it pass. */
+const TAKEN = Symbol.for("@abap2ui5/node-runtime/compress");
 
 const COMPRESSIBLE = /^(?:text\/|application\/(?:json|javascript|ecmascript|xml|[\w.+-]*\+(?:json|xml))\b)/i;
 
@@ -76,9 +86,9 @@ function addVary(res) {
   res.setHeader("Vary", list.trim() === "" ? "Accept-Encoding" : `${list}, Accept-Encoding`);
 }
 
-/** "tag" -> "tag-gzip"; a weak or malformed tag stays as it is. */
+/** "tag" -> "tag-gzip"; a weak, malformed or already -gzip tag stays as it is. */
 function gzipTag(etag) {
-  return typeof etag === "string" && /^"[^"]*"$/.test(etag) ? `${etag.slice(0, -1)}-gzip"` : etag;
+  return typeof etag === "string" && /^"[^"]*"$/.test(etag) && !etag.endsWith("-gzip\"") ? `${etag.slice(0, -1)}-gzip"` : etag;
 }
 
 /**
@@ -113,10 +123,11 @@ export function compress({ threshold = 1024, level = 6, pages = 16 } = {}) {
   }
 
   return function compressResponse(req, res, next) {
-    if (req.method === "HEAD") {
+    if (req.method === "HEAD" || res[TAKEN]) {
       next();
       return;
     }
+    res[TAKEN] = true;
     const accepted = acceptsGzip(req.headers["accept-encoding"]);
     const { write, end } = res;
     const chunks = [];

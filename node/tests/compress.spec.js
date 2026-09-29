@@ -136,6 +136,25 @@ test.describe("the middleware", () => {
     expect(res.headers.vary).toBe("Origin, Accept-Encoding");
   });
 
+  test("mounted twice - a host's in front of createApp()'s - compresses once, and tags once", async () => {
+    const { compress } = await load();
+    // roundtrip() puts one instance in front; the handler runs a second one
+    const second = compress();
+    for (const [status, headers, body] of [[200, undefined, PAGE], [304, { etag: "\"v1-abc\"" }, ""]]) {
+      const res = await roundtrip((req, r) => second(req, r, () => page(status, headers, body)(req, r)), {
+        headers: { "accept-encoding": "gzip" },
+      });
+      expect(res.status).toBe(status);
+      expect(res.headers.etag).toBe("\"v1-abc-gzip\"");
+      expect(res.headers.vary).toBe("Accept-Encoding");
+      if (status === 200) {
+        expect(res.headers["content-encoding"]).toBe("gzip");
+        // one layer: a second gzip would not decode to the page
+        expect(res.body).toBe(PAGE);
+      }
+    }
+  });
+
   test("collects a body written in pieces", async () => {
     const res = await roundtrip((req, res) => {
       res.setHeader("content-type", "application/json");
@@ -214,6 +233,16 @@ test.describe("in front of the framework", () => {
       expect(rt.rawLength).toBeLessThan(rt.plainLength);
     });
   }
+
+  test("compress() of a host in front of createApp() - which has one - is harmless", () => {
+    const { doubled } = framework();
+    expect(doubled.gzip.encoding).toBe("gzip");
+    expect(doubled.gzip.samePage).toBe(true);
+    expect(doubled.gzip.etag).toMatch(/[^-]-gzip"$/);
+    expect(doubled.gzip.etag).not.toMatch(/-gzip-gzip"$/);
+    expect(doubled.revalidated.status).toBe(304);
+    expect(doubled.revalidated.etag).toBe(doubled.gzip.etag);
+  });
 
   test("createApp({ compression: false }) leaves the responses as they are", () => {
     const { off } = framework();
