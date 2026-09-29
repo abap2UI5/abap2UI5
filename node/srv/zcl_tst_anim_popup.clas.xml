@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UI5_APP_ANIM_POP</CLSNAME>
+    <CLSNAME>ZCL_TST_ANIM_POPUP</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - page transitions demo: popup app</DESCRIPT>
+    <DESCRIPT>demo - page transitions: popup app</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

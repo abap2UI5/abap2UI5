@@ -1,6 +1,5 @@
-" The page z2ui5_cl_ui5_app_anim_hub opens. It arrives with the transition
-" it was opened with, and every way of leaving it shows what the framework
-" plays:
+" The page zcl_tst_anim_hub opens. It arrives with the transition it was
+" opened with, and every way of leaving it shows what the framework plays:
 "  Back, the header's nav button  nav_app_leave( ): the arrival reversed
 "  Deeper                         nav_app_call( ) of the next level: the
 "                                 same transition, forward
@@ -11,7 +10,7 @@
 "                                 forward move that takes this page's place
 "  Popup app                      nav_app_call( ) of an app that shows a
 "                                 dialog only - its return moves nothing
-CLASS z2ui5_cl_ui5_app_anim_pg DEFINITION PUBLIC FINAL.
+CLASS zcl_tst_anim_page DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -21,7 +20,7 @@ CLASS z2ui5_cl_ui5_app_anim_pg DEFINITION PUBLIC FINAL.
         transition    TYPE string
         level         TYPE i
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_anim_pg.
+        VALUE(result) TYPE REF TO zcl_tst_anim_page.
 
   PROTECTED SECTION.
     DATA client     TYPE REF TO z2ui5_if_client.
@@ -37,7 +36,7 @@ CLASS z2ui5_cl_ui5_app_anim_pg DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app_anim_pg IMPLEMENTATION.
+CLASS zcl_tst_anim_page IMPLEMENTATION.
 
   METHOD factory.
 
@@ -46,6 +45,7 @@ CLASS z2ui5_cl_ui5_app_anim_pg IMPLEMENTATION.
     result->level      = level.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 
@@ -71,11 +71,12 @@ CLASS z2ui5_cl_ui5_app_anim_pg IMPLEMENTATION.
           client->nav_app_leave( factory( transition = transition
                                           level      = level ) ).
         WHEN `POPUP`.
-          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_pop( ) ).
+          client->nav_app_call( NEW zcl_tst_anim_popup( ) ).
       ENDCASE.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
