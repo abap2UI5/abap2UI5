@@ -67,8 +67,21 @@ starts its web server with, and all four browser projects fail to boot. The
 version is the framework's, set at pack time (the committed
 `0.0.0-set-at-pack` is deliberate); the two `@abaplint` dependencies are
 pinned to the **exact** versions in `package-lock.json`, because transpiler
-output is tied to its runtime; the transpiler version, the commit and the
-build time go into the manifest's `abap2ui5` field.
+output is tied to its runtime; the transpiler version, the commit, the build
+time and the open-abap-core commit the transpile read (`node/deps`, at its
+`fetch-deps.mjs` pin) go into the manifest's `abap2ui5` field - the last so a
+host type-checks its own apps against the same standard library.
+
+**It carries no browser-test fixture.** `prepare-transpile` folds every
+ABAP class of `node/srv` into the transpile, so `node/output` holds the
+`zcl_tst_*` apps the Playwright projects drive and `output/init.mjs` loads
+them at boot - packed as they were in 1.145.0, every host started them on
+`?app_start=`. `pack-npm.mjs` leaves out every `node/srv` object but
+`zcl_sicf` (derived from the folder, not from a prefix), strips their imports
+and TADIR rows from `init.mjs` / `_init.mjs`, and refuses to pack when any
+fixture name is still in a file name or a file of the tarball. The checkout
+keeps them: `npm run express` and the browser projects run the unstripped
+tree.
 
 **It carries no `webapp/`, on purpose.** The GET page the framework serves
 embeds the whole component - every module, view and stylesheet - from the
@@ -84,11 +97,18 @@ One code path for the dev server and the package, so what CI drives in the
 browser projects is what a host installs. It is packed as `srv/host.mjs` next
 to `output/` and `setup/` — the same neighbours it has in the checkout — so its
 relative imports need no rewriting. `express` is an optional peer, imported
-lazily by `createApp()`/`serve()` only. `--check` installs the tarball into a
-scratch project with `express` and the pinned `@abaplint/transpiler-cli`:
-`serve()` has to answer GET / with the component embedded, and a class the
-scratch project transpiles against `downport/` has to register in the running
-runtime.
+lazily by `createApp()`/`serve()` only, and its range is **`^4.21.0 ||
+^5.0.0`**: `@sap/cds` and `@cap2ui5/cds-plugin` accept express 4, and a peer
+range without the host's major makes npm nest a second express (and some
+eighteen dependencies) just for this package. So `host.mjs` uses nothing one
+major lacks - `app.use(handler)`, not express 5's `/{*path}` route syntax -
+and its header says what else. `--check` installs the tarball into a scratch
+project with the pinned `@abaplint/transpiler-cli` and, **once per range of
+the express peer**, drives it: `serve()` answers GET / with the component
+embedded and a POST roundtrip, `createApp()` does the same mounted under
+`/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, a class the scratch project
+transpiles against `downport/` and open-abap-core at the recorded commit
+registers and starts, and `serve()` rejects on a port that is taken.
 
 **Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds
 `id-token: write`, pins the npm that can publish that way, and hands the

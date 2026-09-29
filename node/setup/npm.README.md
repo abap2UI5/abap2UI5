@@ -70,12 +70,15 @@ in front provides them out of the box.
 ## Your own apps
 
 The framework alone runs its own apps - `Z2UI5_CL_UI5_APP_HI_WORLD` and the
-other classes under abap2UI5's `src/`. Your apps are ABAP classes too, and
+other classes under abap2UI5's `src/`. The test apps abap2UI5's own browser
+tests drive (`ZCL_TST_*`) are not in the package: nothing but the framework
+and its handler `ZCL_SICF` can be started by `?app_start=`. Your apps are ABAP classes too, and
 they have to be transpiled with the framework as a library. The package
-carries the framework's sources for exactly that in `downport/`, and the
-transpiler version that wrote `output/` in its `package.json`
-(`abap2ui5.transpiler`) - use that one, so your output runs on the runtime
-the package pins:
+carries the framework's sources for exactly that in `downport/`, and in its
+`package.json` the two versions `output/` was built with: the transpiler
+(`abap2ui5.transpiler`) and the commit of open-abap-core
+(`abap2ui5.openAbapCore`). Use the same transpiler, so your output runs on
+the runtime the package pins:
 
 ```bash
 npm install --save-dev --save-exact @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.transpiler")
@@ -101,7 +104,12 @@ the runtime this package pins.
 ```
 
 ```bash
-git clone --depth 1 https://github.com/open-abap/open-abap-core deps/open-abap-core   # once
+# once: open-abap-core at the commit output/ was built against
+CORE=$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.openAbapCore")
+git init -q deps/open-abap-core
+git -C deps/open-abap-core fetch -q --depth 1 https://github.com/open-abap/open-abap-core "$CORE"
+git -C deps/open-abap-core checkout -q FETCH_HEAD
+
 npx abap_transpile abap_transpile.json      # abap/*.abap -> output/*.mjs
 ```
 
@@ -123,8 +131,14 @@ rather than at runtime. `files` is needed because the transpiler reads a
 library below `/src/**` by default and `downport/` is flat. `open-abap-core`
 is what stands in for the ABAP standard library: the transpiler reads it from
 `deps/open-abap-core` when that folder exists, and otherwise clones the `url`
-into a temporary folder on every run - hence the clone above. Both libraries
-are there for the type check; at runtime the package provides them.
+into a temporary folder on every run - at whatever its HEAD is that day,
+because the `url` takes no commit. Hence the checkout above, at the commit
+the package records: your classes are type-checked against the same
+standard library the framework was. Both libraries are there for the type
+check; at runtime the package provides them. (1.145.0, the one version
+published without `abap2ui5.openAbapCore`, was built against open-abap-core
+`b2d219df61f8c077df7a038bc43d168f9f280fbf` - the pin in abap2UI5's
+`node/setup/fetch-deps.mjs` at that tag.)
 
 Import your own classes and nothing else from `output/`. The transpile writes
 every object it read there, the libraries included - a second copy of the
