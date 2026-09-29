@@ -35,6 +35,20 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (BaseController, Controller, Server, Context, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    function holdFirstAutoFocus(oApp) {` && |\n| &&
+             `      if (!oApp?.getAutoFocus?.()) return;` && |\n| &&
+             `      oApp.setAutoFocus(false);` && |\n| &&
+             `      const delegate = {` && |\n| &&
+             `        onAfterRendering() {` && |\n| &&
+             `          if (!oApp.getCurrentPage()) return;` && |\n| &&
+             `          oApp.removeEventDelegate(delegate);` && |\n| &&
+             `          oApp.setProperty("autoFocus", true, true);` && |\n| &&
+             `        },` && |\n| &&
+             `      };` && |\n| &&
+             `      oApp.addEventDelegate(delegate);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
              `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
@@ -52,6 +66,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `          state[slot.controllerProp] = oController;` && |\n| &&
              `        }` && |\n| &&
              `        state.oApp = this.getView().byId("app");` && |\n| &&
+             `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&

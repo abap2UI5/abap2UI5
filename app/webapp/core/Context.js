@@ -81,6 +81,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       variants: { activeInits: new Set() },
       // core/ScrollFocus.js - the per-element resolution cache
       scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
+      // core/ScrollFocus.js - the focus guard of an embedded component:
+      // whether the user's last focus or click went into it, and the
+      // document listener that records it (watchFocus)
+      focus: { userInside: false, listener: null },
       // core/ErrorView.js - the last dialog's inputs and the open dialog
       errorView: { title: "", details: "", options: {}, dialog: null },
       // devtools/DevTools.js - the tools instance and its listeners

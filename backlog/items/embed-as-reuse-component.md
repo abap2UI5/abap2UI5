@@ -73,6 +73,14 @@ Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
 (both still act on the host's history, as asked), and `PATHNAME`/`SEARCH`
 on the wire.
 
+**Done 2026-09-29 - the focus.** An embedded app no longer takes the focus
+from the host page: `sap.m.App` holds its autofocus off until its first page
+has rendered (`controller/App.controller.js`), and SET_FOCUS, a CONTROL_BY_ID
+`focus( )` and `cc/Focus` ask the guard in `core/ScrollFocus.js` first - yes
+while the focus is in the app, or nowhere after the user's last focus or
+click went there. Found by the review of abap2UI5/embed-control, pinned by
+`node/tests/e2e/embedded.spec.js`.
+
 What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs

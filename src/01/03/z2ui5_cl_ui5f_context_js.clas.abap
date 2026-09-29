@@ -62,6 +62,8 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      scroll: { target: undefined, ui5El: undefined, slotKey: undefined },` && |\n| &&
              `` && |\n| &&
+             `      focus: { userInside: false, listener: null },` && |\n| &&
+             `` && |\n| &&
              `      errorView: { title: "", details: "", options: {}, dialog: null },` && |\n| &&
              `` && |\n| &&
              `      devtools: {},` && |\n| &&

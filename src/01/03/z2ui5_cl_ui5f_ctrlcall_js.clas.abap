@@ -34,6 +34,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/actions/Slots",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -44,6 +45,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    Env,` && |\n| &&
              `    ViewSlots,` && |\n| &&
+             `    ScrollFocus,` && |\n| &&
              `    Slots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function castArgAuto(raw) {` && |\n| &&
-             `      if (raw === "X" || raw === "true") return true;` && |\n| &&
-             `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
-             `      return raw;` && |\n|.
+             `      if (raw === "X" || raw === "true") return true;` && |\n|.
     result = result &&
+             `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
+             `      return raw;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function setsStringProperty(control, method) {` && |\n| &&
@@ -638,6 +640,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      const ctx = oController?.ctx;` && |\n| &&
+             `` && |\n| &&
+             `      if (method === "focus" && !ScrollFocus.mayMoveFocus(ctx)) return;` && |\n| &&
              `      const control = resolveControl(id, view, ctx);` && |\n| &&
              `      const pseudo = PSEUDO_METHODS[method];` && |\n| &&
              `      if (pseudo) {` && |\n| &&

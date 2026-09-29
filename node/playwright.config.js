@@ -100,10 +100,14 @@ module.exports = defineConfig(
     /* page-transition runs here too: the NavContainer calls it drives
        (to, insertPreviousPage, backToPage, the afterNavigate report) are
        the 1.71 API, and the demo views it opens are held to 1.71 by the
-       linter - so the oldest release is where a regression would show. */
+       linter - so the oldest release is where a regression would show.
+       So does embedded: a host page that boots the pinned build itself and
+       loads the frontend through ?z2ui5-bundle - a starting app took the
+       host's focus on 1.71 as on the current release, through sap.m.App's
+       first rendering and through its own SET_FOCUS. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */

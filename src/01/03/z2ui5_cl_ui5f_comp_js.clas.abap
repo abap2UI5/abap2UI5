@@ -133,6 +133,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          capture: true,` && |\n| &&
              `          passive: true,` && |\n| &&
              `        });` && |\n| &&
+             `` && |\n| &&
+             `        ScrollFocus.watchFocus(ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installRouterListener() {` && |\n| &&
@@ -204,6 +206,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
+             `        ScrollFocus.unwatchFocus(ctx);` && |\n| &&
              `        Router.exit(ctx);` && |\n| &&
              `` && |\n| &&
              `        DevTools.exit(ctx);` && |\n| &&

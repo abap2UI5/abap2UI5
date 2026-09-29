@@ -36,6 +36,7 @@ function specContext(seed = {}) {
     shortcuts: { listener: null },
     variants: { activeInits: new Set() },
     scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
+    focus: { userInside: false, listener: null },
     errorView: { title: "", details: "", options: {}, dialog: null },
     devtools: {},
   };

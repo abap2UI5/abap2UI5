@@ -11,6 +11,31 @@ sap.ui.define(
   ],
   (BaseController, Controller, Server, Context, ViewSlots) => {
     "use strict";
+
+    // An EMBEDDED component's sap.m.App must not focus the first input of
+    // the first page it renders (sap.m.NavContainer autoFocus): the page is
+    // the host's, and on 1.136 every app - hello world included - took the
+    // focus out of the host field the user was typing in. The property is
+    // off until that first page has rendered and back on from there: the
+    // App then moves the focus only on a page change, and only when it was
+    // in the page being left (NavContainer._applyAutoFocus) - which keeps a
+    // page transition (view_display( transition )) usable from the
+    // keyboard. Set back without an invalidation: the property is read at
+    // run time and renders nothing. The app's own focus actions have a
+    // guard of their own (core/ScrollFocus.js, mayMoveFocus).
+    function holdFirstAutoFocus(oApp) {
+      if (!oApp?.getAutoFocus?.()) return;
+      oApp.setAutoFocus(false);
+      const delegate = {
+        onAfterRendering() {
+          if (!oApp.getCurrentPage()) return;
+          oApp.removeEventDelegate(delegate);
+          oApp.setProperty("autoFocus", true, true);
+        },
+      };
+      oApp.addEventDelegate(delegate);
+    }
+
     return BaseController.extend("z2ui5.controller.App", {
       onInit() {
         // the owner component's context - Component.init created it
@@ -43,6 +68,7 @@ sap.ui.define(
           state[slot.controllerProp] = oController;
         }
         state.oApp = this.getView().byId("app");
+        if (state.embedded) holdFirstAutoFocus(state.oApp);
 
         // Kick off the initial roundtrip. Historically a stopped router's
         // initial routeMatched event triggered this; the manifest carries no

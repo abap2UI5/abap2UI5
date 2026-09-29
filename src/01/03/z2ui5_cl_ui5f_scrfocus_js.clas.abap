@@ -31,8 +31,9 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Element, Lib, Env, ViewSlots) => {` && |\n| &&
+             `  (Element, Lib, Env, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function closestUi5Element(dom) {` && |\n| &&
@@ -71,6 +72,10 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `        if (!active) return undefined;` && |\n| &&
              `        const ui5El = closestUi5Element(active);` && |\n| &&
              `        if (!ui5El) return undefined;` && |\n| &&
+             `` && |\n| &&
+             `        if (ctx?.state?.embedded && !isInComponent(ctx, active)) {` && |\n| &&
+             `          return undefined;` && |\n| &&
+             `        }` && |\n| &&
              `        const fullId = ui5El.getId();` && |\n| &&
              `        let id = fullId;` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
@@ -92,6 +97,46 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `        Lib.logError("getFocusInfo: focus capture failed", e);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isInComponent(ctx, node) {` && |\n| &&
+             `      if (!ctx || !node || node.nodeType !== 1) return false;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const root = ctx.component?.getRootControl?.()?.getDomRef?.();` && |\n| &&
+             `        if (root?.contains?.(node)) return true;` && |\n| &&
+             `        const ui5El = closestUi5Element(node);` && |\n| &&
+             `        return Boolean(ui5El) && Context.of(ui5El) === ctx;` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("isInComponent: resolving the node failed", e);` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function mayMoveFocus(ctx) {` && |\n| &&
+             `      if (!ctx?.state?.embedded) return true;` && |\n| &&
+             `      const active = document.activeElement;` && |\n| &&
+             `      if (!active || active === document.body) {` && |\n| &&
+             `        return ctx.focus.userInside;` && |\n| &&
+             `      }` && |\n| &&
+             `      return isInComponent(ctx, active);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function watchFocus(ctx) {` && |\n| &&
+             `      if (!ctx?.state?.embedded || ctx.focus.listener) return;` && |\n| &&
+             `      const listener = (event) => {` && |\n| &&
+             `        ctx.focus.userInside = isInComponent(ctx, event.target);` && |\n| &&
+             `      };` && |\n| &&
+             `      ctx.focus.listener = listener;` && |\n| &&
+             `      document.addEventListener("focusin", listener, true);` && |\n| &&
+             `      document.addEventListener("pointerdown", listener, true);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function unwatchFocus(ctx) {` && |\n| &&
+             `      const listener = ctx?.focus?.listener;` && |\n| &&
+             `      if (!listener) return;` && |\n| &&
+             `      document.removeEventListener("focusin", listener, true);` && |\n| &&
+             `      document.removeEventListener("pointerdown", listener, true);` && |\n| &&
+             `      ctx.focus.listener = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function clearScrollCache(ctx) {` && |\n| &&
@@ -161,6 +206,10 @@ CLASS z2ui5_cl_ui5f_scrfocus_js IMPLEMENTATION.
              `      onScrollCapture,` && |\n| &&
              `      closestUi5Element,` && |\n| &&
              `      focusTextInput,` && |\n| &&
+             `      isInComponent,` && |\n| &&
+             `      mayMoveFocus,` && |\n| &&
+             `      watchFocus,` && |\n| &&
+             `      unwatchFocus,` && |\n| &&
              `      reset,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

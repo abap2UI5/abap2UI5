@@ -89,7 +89,11 @@ function loadForExit(
       },
       "z2ui5/core/Context": fakeContext.Context,
       "z2ui5/core/Router": { exit: noop },
-      "z2ui5/core/ScrollFocus": { reset: noop },
+      "z2ui5/core/ScrollFocus": {
+        reset: noop,
+        watchFocus: noop,
+        unwatchFocus: noop,
+      },
       "z2ui5/core/ViewSlots": {
         destroy: (_ctx, key) => destroyedSlots.push(key),
       },

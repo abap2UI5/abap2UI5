@@ -7,6 +7,7 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/ScrollFocus",
     "z2ui5/core/actions/Slots",
   ],
   (
@@ -17,6 +18,7 @@ sap.ui.define(
     Lib,
     Env,
     ViewSlots,
+    ScrollFocus,
     Slots,
   ) => {
     "use strict";
@@ -1089,6 +1091,9 @@ sap.ui.define(
       // getControlIds()) resolved fine as an argument and reported "not
       // callable" as the target of the very same call.
       const ctx = oController?.ctx;
+      // focus( ) is a focus move like SET_FOCUS: an embedded app makes it
+      // only while the user works in it (ScrollFocus.mayMoveFocus)
+      if (method === "focus" && !ScrollFocus.mayMoveFocus(ctx)) return;
       const control = resolveControl(id, view, ctx);
       const pseudo = PSEUDO_METHODS[method];
       if (pseudo) {

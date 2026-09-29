@@ -191,6 +191,10 @@ sap.ui.define(
           capture: true,
           passive: true,
         });
+        // Embedded, the focus is the host's until the user works in the app
+        // - the guard in core/ScrollFocus.js records where they go. A no-op
+        // on a page of the app's own.
+        ScrollFocus.watchFocus(ctx);
       },
 
       _installRouterListener() {
@@ -293,6 +297,7 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
+        ScrollFocus.unwatchFocus(ctx);
         Router.exit(ctx);
 
         // Drops the shortcut, the dialog instance and the recorded history

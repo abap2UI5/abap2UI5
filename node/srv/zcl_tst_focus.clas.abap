@@ -29,6 +29,15 @@ CLASS zcl_tst_focus IMPLEMENTATION.
       enabled = abap_true.
       value   = `86801398`.
       view_display( ).
+      " e2e fixture for the focus guard of an embedded component (embedded
+      " spec): started with the parameter focus_on_start, the app asks for
+      " the focus in its FIRST response - the way an app puts the cursor into
+      " its first field - which must not take it from the host page.
+      DATA(lt_params) = client->get( )-t_comp_params.
+      IF line_exists( lt_params[ n = `focus_on_start` ] ).
+        client->follow_up_action( val   = client->cs_event-set_focus
+                                  t_arg = VALUE #( ( `inpDocNum` ) ) ).
+      ENDIF.
 
     ELSEIF client->check_on_navigated( ).
       view_display( ).
