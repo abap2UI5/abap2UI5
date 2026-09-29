@@ -415,8 +415,8 @@ sap.ui.define(
       },
 
       // The Error view's actions mirror the ErrorView overlay: re-run the
-      // captured request, hard-reload, or log out (reusing ErrorView's own
-      // logout so the launchpad/fallback logic stays in one place).
+      // captured request, restart, or log out (reusing ErrorView's own
+      // restart and logout so that logic stays in one place).
       onErrorRetry() {
         const onRetry = this.ctx.state.lastError?.onRetry;
         // Retrying re-runs the request, so don't bounce back to the error
@@ -425,8 +425,11 @@ sap.ui.define(
         this.close();
         if (typeof onRetry === "function") onRetry();
       },
+      // ErrorView's restart: a reload, or in place for an embedded app
       onErrorRestart() {
-        window.location.reload();
+        this.reopenErrorOnClose = false;
+        this.close();
+        ErrorView.restart(this.ctx);
       },
       onErrorLogout() {
         ErrorView.handleLogout(this.ctx);

@@ -277,3 +277,49 @@ test("exit() works when no custom control with module state was loaded", () => {
   expect(() => runExit(appState)).not.toThrow();
   expect(appState.resets).toBe(1);
 });
+
+// The Restart of an EMBEDDED component's fatal-error overlay (ctx.restart,
+// core/ErrorView.js): the host's page stays, and the app restarts in place.
+// The app that ran ends the way exit( ) ends it - session, requests,
+// popups, timers - MAIN goes with it, the app's fields go back to their
+// defaults, and the App controller starts over (new controllers, the first
+// roundtrip); the context stays alive and the component keeps its launchpad
+// and device model.
+test("an embedded app restarts in place: the app ends, the component stays", () => {
+  const appState = fakeAppState({ oDeviceModel: { destroy() {} } });
+  const resetApps = [];
+  appState.Context.resetApp = (c) => resetApps.push(c);
+  const sessionResets = [];
+  const destroyedSlots = [];
+  const shortcutResets = [];
+  const { module: def, sandbox } = loadForExit(appState, {
+    destroyedSlots,
+    shortcutResets,
+    sessionResets,
+  });
+  sandbox.clearTimeout = () => {};
+  const starts = [];
+  const inst = Object.create(def);
+  inst.ctx = appState.ctx;
+  inst._launchpad = { keep: true };
+  inst.getRootControl = () => ({
+    getController: () => ({ startApp: () => starts.push(true) }),
+  });
+
+  inst._restartApp();
+
+  expect(destroyedSlots).toEqual(["POPUP", "POPOVER", "MAIN"]);
+  expect(shortcutResets).toEqual([true]);
+  expect(sessionResets).toEqual([true]);
+  expect(resetApps).toEqual([appState.ctx]);
+  expect(starts).toEqual([true]);
+  // the component itself lives on
+  expect(appState.ctx.alive).toBe(true);
+  expect(appState.resets).toBe(0);
+  expect(inst._launchpad).toEqual({ keep: true });
+
+  // a context that is gone restarts nothing
+  appState.ctx.alive = false;
+  inst._restartApp();
+  expect(starts).toEqual([true]);
+});

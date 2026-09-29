@@ -228,3 +228,21 @@ test("on a page of the app's own, the App keeps its autofocus", () => {
   expect(delegates).toEqual([]);
   expect(app.invalidations).toBe(0);
 });
+
+// The restart of an embedded app in place (Component._restartApp) runs
+// startApp again: NEW controllers - whatever the app before them left
+// waiting asks Lib.isControllerAlive, and its controller is none of these -
+// and the first roundtrip once more.
+test("startApp again makes new controllers and one more first roundtrip", () => {
+  const { inst, state, roundtrips, slots } = load({ manifest: MANIFEST });
+  inst.onInit();
+  const before = slots.map((slot) => state[slot.controllerProp]);
+
+  inst.startApp();
+
+  slots.forEach((slot, i) => {
+    expect(state[slot.controllerProp]).not.toBe(before[i]);
+    expect(state[slot.controllerProp].ctx).toBe(before[i].ctx);
+  });
+  expect(roundtrips).toHaveLength(2);
+});

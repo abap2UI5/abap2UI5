@@ -87,6 +87,12 @@ page. Every class module hands its class to `Env.ownClass`, and an embedded
 component takes the exports off (`Env.dropClassGlobals`); a page of the
 app's own keeps them for 1.71 (`docs/removal-plan.md` §3).
 
+**Done 2026-09-29 - the Restart.** The fatal-error overlay's Restart
+reloaded the host's page. An embedded component restarts the app in place
+instead (`ctx.restart` -> `Component._restartApp`, `ErrorView.restart`):
+the app ends as on exit, the App controller starts it again with new
+controllers and a new backend session.
+
 What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs

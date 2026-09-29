@@ -300,8 +300,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.close();` && |\n| &&
              `        if (typeof onRetry === "function") onRetry();` && |\n| &&
              `      },` && |\n| &&
+             `` && |\n| &&
              `      onErrorRestart() {` && |\n| &&
-             `        window.location.reload();` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
+             `        this.close();` && |\n| &&
+             `        ErrorView.restart(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `      onErrorLogout() {` && |\n| &&
              `        ErrorView.handleLogout(this.ctx);` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
-             `              id: this.fragmentId(),` && |\n| &&
+             `              id: this.fragmentId(),` && |\n|.
+    result = result &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `          if (Lib.isDestroyed(this)) {` && |\n| &&
              `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&

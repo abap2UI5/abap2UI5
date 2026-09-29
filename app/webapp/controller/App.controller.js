@@ -55,21 +55,34 @@ sap.ui.define(
         state.url =
           state.endpoint || (state.checkLocal ? window.location.href : uri);
 
-        // Wire up the controller instances and the app container. One
-        // controller per view slot, driven by the slot table in
+        state.oApp = this.getView().byId("app");
+        if (state.embedded) holdFirstAutoFocus(state.oApp);
+
+        this.startApp();
+      },
+
+      // The controllers of the app and its first roundtrip - when the
+      // component starts, and again when an embedded app restarts in place
+      // (Component._restartApp, the Restart of the fatal-error overlay).
+      startApp() {
+        const ctx = Context.of(this.getOwnerComponent());
+        const state = ctx.state;
+
+        // One controller per view slot, driven by the slot table in
         // core/ViewSlots - the single place that knows which slots exist, so
         // adding one there does not need a matching line here. Each carries
         // the context: it is how every event handler and action reaches the
         // state (View1.controller). All other state (callback arrays,
         // roundtrip flags, ...) starts from the defaults Context.create gave
-        // it during Component.init.
+        // it during Component.init. NEW instances on a restart as well:
+        // whatever the app before them left waiting - a timer, a deferred
+        // focus - asks Lib.isControllerAlive, and its controller is not one
+        // of these.
         for (const slot of ViewSlots.slots) {
           const oController = new Controller();
           oController.ctx = ctx;
           state[slot.controllerProp] = oController;
         }
-        state.oApp = this.getView().byId("app");
-        if (state.embedded) holdFirstAutoFocus(state.oApp);
 
         // Kick off the initial roundtrip. Historically a stopped router's
         // initial routeMatched event triggered this; the manifest carries no

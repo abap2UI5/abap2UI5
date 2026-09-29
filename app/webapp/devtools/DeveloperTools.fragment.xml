@@ -133,7 +133,7 @@
                 />
                 <Button
                     text="Restart"
-                    tooltip="Reload the page"
+                    tooltip="Restart the app"
                     press=".onErrorRestart"
                     visible="{/isErrorView}"
                 />

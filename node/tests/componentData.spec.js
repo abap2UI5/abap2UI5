@@ -9,7 +9,11 @@ const { loadModule } = require("./loadModule");
 // backend with the rest of the component data (oConfig.ComponentData).
 // Everything else init() does is stubbed away - its listeners and services
 // have specs of their own.
-function init(componentData, { globalsDropped = [] } = {}) {
+function init(componentData, options) {
+  return initContext(componentData, options).state;
+}
+
+function initContext(componentData, { globalsDropped = [] } = {}) {
   const noop = () => {};
   const state = { oConfig: {} };
   const ctx = { state };
@@ -48,7 +52,7 @@ function init(componentData, { globalsDropped = [] } = {}) {
   inst._installScrollListener = noop;
   inst._installRouterListener = noop;
   inst.init();
-  return state;
+  return ctx;
 }
 
 test("a host's endpoint lands in the state, not in the data sent to the backend", () => {
@@ -139,6 +143,15 @@ test("only a boolean true embeds - the page and the launchpad do not", () => {
 // page, whose window is not the frontend's: its init takes them off. A page
 // of the app's own keeps them - 1.71 looks a base class up by that name when
 // something extends one of ours.
+// ... and its Restart restarts the app in place instead of reloading the
+// host's page (core/ErrorView.js restart, Component._restartApp)
+test("only an embedded component offers the in-place restart", () => {
+  const embedded = initContext({ embedded: true });
+  expect(typeof embedded.restart).toBe("function");
+  expect(initContext({}).restart ?? null).toBe(null);
+  expect(initContext({ checkLocal: true }).restart ?? null).toBe(null);
+});
+
 test("an embedded component takes the frontend's class globals off", () => {
   const embedded = [];
   init({ embedded: true }, { globalsDropped: embedded });

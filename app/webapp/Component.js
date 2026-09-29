@@ -78,6 +78,9 @@ sap.ui.define(
         // ... and so is its window: the frontend's classes keep no global
         // on it (UI5 1.x exports every class it creates - Env.ownClass)
         if (state.embedded) Env.dropClassGlobals();
+        // ... and so is a restart: the app restarts in place instead of
+        // reloading the page (core/ErrorView.js restart)
+        if (state.embedded) this.ctx.restart = () => this._restartApp();
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:
@@ -307,10 +310,58 @@ sap.ui.define(
         // of this context's developer tools.
         DevTools.exit(ctx);
 
-        // The same for the APP's keyboard shortcuts, which are a different
-        // module: the registry is app-scoped and the state rebuild below
-        // empties it, but the `document` keydown listener behind it has to
-        // come off explicitly - see core/actions/Shortcuts.reset.
+        // Everything of the app that ran - its session, its requests, its
+        // popups, its timers (see there; the in-place restart of an embedded
+        // app runs the same)
+        this._endApp();
+
+        // What would outlive the component (FLP keeps the page alive): a
+        // device model keeps its handlers on the Device singleton unless it
+        // is destroyed. Everything that is only a plain state field is back
+        // at its default by itself once Context.destroy( ) below rebuilds
+        // the state.
+        if (ctx.state.oDeviceModel) {
+          ctx.state.oDeviceModel.destroy();
+        }
+
+        // Robust launchpad teardown:
+        //  1. Clear the FLP dirty flag so it does not carry over into the
+        //     next app the user opens.
+        //  2. Drop this component's own reference to the shared launchpad
+        //     object, which is what turns every still-pending init Promise
+        //     into a no-op (setIfAlive compares against it). The state's
+        //     field is not nulled here - Context.destroy( ) below rebuilds
+        //     the state and with it that field.
+        try {
+          this._launchpad?.Container?.setDirtyFlag?.(false);
+        } catch (e) {
+          Lib.logError("Component: clearing FLP dirty flag failed", e);
+        }
+        this._launchpad = null;
+
+        // Last: the context itself. Context.destroy( ) is what
+        // Lib.isControllerAlive documents as the end of a controller's life:
+        // the context reads dead and its state is rebuilt with the slot
+        // fields null, so every guard on it (timers, shortcuts, variant
+        // polls, the hash dispatcher) answers "dead" from here on - instead
+        // of the state holding the five views, their controllers and the
+        // last response's model for as long as something still referenced
+        // it.
+        Context.destroy(ctx);
+
+        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);
+      },
+
+      // The end of the app that ran in this component, shared by exit( )
+      // and the in-place restart below: what a rebuilt or reset state
+      // cannot release by itself.
+      _endApp() {
+        const ctx = this.ctx;
+
+        // The APP's keyboard shortcuts: the registry is app-scoped and the
+        // state rebuild empties it, but the `document` keydown listener
+        // behind it has to come off explicitly - see
+        // core/actions/Shortcuts.reset.
         Shortcuts.reset(ctx);
 
         Server.endSession(ctx);
@@ -337,17 +388,9 @@ sap.ui.define(
         ViewSlots.destroy(ctx, "POPUP");
         ViewSlots.destroy(ctx, "POPOVER");
 
-        // What would outlive the component (FLP keeps the page alive). Only
-        // what Context.destroy( ) at the end of this method cannot do is
-        // done here: destroy REBUILDS the state object, so every plain
-        // field (the timer handles, the shortcut registry, the model
-        // reference) is back at its default by itself - but a pending
-        // timeout keeps firing and a device model keeps its handlers on the
-        // Device singleton unless they are cancelled and destroyed first.
+        // A pending timeout keeps firing unless it is cancelled - a state
+        // rebuild only drops the handle.
         Lib.cancelPendingTimers(ctx);
-        if (ctx.state.oDeviceModel) {
-          ctx.state.oDeviceModel.destroy();
-        }
 
         // The unsaved-changes guard of cc/Dirty is MODULE state (one page
         // prompt, one FLP dirty flag, so the control has to know about every
@@ -361,11 +404,11 @@ sap.ui.define(
 
         // The OData clients the framework created for MAIN (the inventory
         // AppState.state.odataClients documents): a model is no aggregation,
-        // so neither the view's destroy nor AppState.reset( ) below releases
-        // one - reset only drops the inventory - and an FLP re-launch kept
-        // every client that was open alive, $metadata request, caches and
-        // queues included. Each destroy on its own: one that throws must not
-        // stop the rest of this teardown.
+        // so neither the view's destroy nor a state reset releases one - a
+        // reset only drops the inventory - and an FLP re-launch kept every
+        // client that was open alive, $metadata request, caches and queues
+        // included. Each destroy on its own: one that throws must not stop
+        // the rest of this teardown.
         for (const oClient of ctx.state.odataClients) {
           try {
             oClient.destroy();
@@ -374,35 +417,28 @@ sap.ui.define(
           }
         }
 
-        // Robust launchpad teardown:
-        //  1. Clear the FLP dirty flag so it does not carry over into the
-        //     next app the user opens.
-        //  2. Drop this component's own reference to the shared launchpad
-        //     object, which is what turns every still-pending init Promise
-        //     into a no-op (setIfAlive compares against it). The state's
-        //     field is not nulled here - Context.destroy( ) below rebuilds
-        //     the state and with it that field.
-        try {
-          this._launchpad?.Container?.setDirtyFlag?.(false);
-        } catch (e) {
-          Lib.logError("Component: clearing FLP dirty flag failed", e);
-        }
-        this._launchpad = null;
-
-        // Last: the scroll cache and the context itself. ScrollFocus keeps
-        // the DOM node and the control of the last scroll gesture until the
-        // NEXT roundtrip releases them, and there is no next roundtrip after
-        // an exit. Context.destroy( ) is what Lib.isControllerAlive documents
-        // as the end of a controller's life: the context reads dead and its
-        // state is rebuilt with the slot fields null, so every guard on it
-        // (timers, shortcuts, variant polls, the hash dispatcher) answers
-        // "dead" from here on - instead of the state holding the five views,
-        // their controllers and the last response's model for as long as
-        // something still referenced it.
+        // The scroll cache: ScrollFocus keeps the DOM node and the control
+        // of the last scroll gesture until the NEXT roundtrip releases them,
+        // and there is none after an exit.
         ScrollFocus.reset(ctx);
-        Context.destroy(ctx);
+      },
 
-        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);
+      // Restart the app in place - the Restart of the fatal-error overlay of
+      // an EMBEDDED component (ctx.restart, core/ErrorView.js). A page
+      // reload is the restart on a page of the app's own; on a host's page
+      // it reloaded the host, and took everything the user had there with
+      // it. The app that ran ends as it does on exit( ), MAIN goes with it,
+      // every field of the app is back at its default (Context.resetApp),
+      // and the App controller starts over: new View1 controllers and the
+      // first roundtrip, with the component data the component was created
+      // with - the app it names starts fresh, in a new backend session.
+      _restartApp() {
+        const ctx = this.ctx;
+        if (!ctx?.alive) return;
+        this._endApp();
+        ViewSlots.destroy(ctx, "MAIN");
+        Context.resetApp(ctx);
+        this.getRootControl()?.getController?.()?.startApp();
       },
     });
     return Env.ownClass(Component);

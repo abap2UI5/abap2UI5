@@ -61,13 +61,21 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        state.url =` && |\n| &&
              `          state.endpoint || (state.checkLocal ? window.location.href : uri);` && |\n| &&
              `` && |\n| &&
+             `        state.oApp = this.getView().byId("app");` && |\n| &&
+             `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&
+             `` && |\n| &&
+             `        this.startApp();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      startApp() {` && |\n| &&
+             `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
+             `` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const oController = new Controller();` && |\n| &&
              `          oController.ctx = ctx;` && |\n| &&
              `          state[slot.controllerProp] = oController;` && |\n| &&
              `        }` && |\n| &&
-             `        state.oApp = this.getView().byId("app");` && |\n| &&
-             `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&
