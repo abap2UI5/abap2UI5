@@ -36,8 +36,10 @@ UI5 itself comes from the CDN.
 | `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework. Once per process; every call returns the first call's promise |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
-`express` is an optional peer dependency: only `createApp()` and `serve()`
-load it.
+`express` is an optional peer dependency, version 4 (from 4.21) or 5:
+only `createApp()` and `serve()` load it, and they take whichever the host
+has installed - a project that is on express 4 already (a CAP project, for
+one) keeps its single copy.
 
 ### In an express app of your own
 
@@ -48,7 +50,12 @@ import { createApp } from "@abap2ui5/node-runtime";
 const app = express();
 app.use("/sap/bc/z2ui5", await createApp());
 app.listen(3000);
+// http://localhost:3000/sap/bc/z2ui5/?app_start=Z2UI5_CL_UI5_APP_HI_WORLD
 ```
+
+The framework's app answers every method and path below the mount, the
+same under express 4 and 5; routes of your own app next to the mount are
+untouched.
 
 ### On another server
 
