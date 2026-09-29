@@ -101,7 +101,7 @@ the runtime this package pins.
     { "url": "https://github.com/open-abap/open-abap-core", "folder": "/deps/open-abap-core" }
   ],
   "write_unit_tests": false,
-  "options": { "ignoreSyntaxCheck": false, "addFilenames": true, "unknownTypes": "runtimeError" }
+  "options": { "ignoreSyntaxCheck": false, "addFilenames": true, "addCommonJS": true, "unknownTypes": "runtimeError" }
 }
 ```
 
@@ -112,20 +112,38 @@ git init -q deps/open-abap-core
 git -C deps/open-abap-core fetch -q --depth 1 https://github.com/open-abap/open-abap-core "$CORE"
 git -C deps/open-abap-core checkout -q FETCH_HEAD
 
-npx abap_transpile abap_transpile.json      # abap/*.abap -> output/*.mjs
+npx abap_transpile abap_transpile.json      # abap/*.abap -> output/: yours, and every library object
+npx abap2ui5-own-apps output apps           # output/ -> apps/: yours alone, on the package's classes
 ```
 
-Then load the result **after** the framework has booted - the transpiled
-class registers itself in the running runtime:
+Then load `apps/` **after** the framework has booted - each class registers
+itself in the running runtime:
 
 ```js
 import { initialize, serve } from "@abap2ui5/node-runtime";
 
 await initialize();
-await import("./output/zcl_my_app.clas.mjs");
+await import("./apps/index.mjs");
 await serve({ port: 3000 });
 // http://localhost:3000/?app_start=ZCL_MY_APP
 ```
+
+`abap2ui5-own-apps` (a bin of this package, `setup/own-apps.mjs`) is not
+optional. The transpile writes every object it read into `output/` - a second
+copy of the framework and of open-abap-core next to your classes, and the
+transpiler has no option to leave them out - and with `addCommonJS` a class
+imports what it extends by a relative path: your exception class,
+`INHERITING FROM cx_static_check`, loads `output/cx_static_check.clas.mjs`
+and with it a second `CX_ROOT`, which replaces the package's in the running
+runtime. From then on the framework's `CATCH cx_root` compares against a
+class its own exceptions do not extend, and every request fails. Without
+`addCommonJS` there are no imports at all, and a class that extends anything
+does not load. So `abap2ui5-own-apps` keeps the files that are not the
+package's, points their imports of everything else at
+`@abap2ui5/node-runtime/output/` - the modules the package already booted -
+and writes `apps/index.mjs`, which imports your classes in the order the
+transpile does. An import it cannot rewrite stops it, with the file and the
+line.
 
 The transpile type-checks your class against the framework (`ignoreSyntaxCheck`
 is off), so a method that does not exist on `z2ui5_if_client` fails there
@@ -142,13 +160,13 @@ published without `abap2ui5.openAbapCore`, was built against open-abap-core
 `b2d219df61f8c077df7a038bc43d168f9f280fbf` - the pin in abap2UI5's
 `node/setup/fetch-deps.mjs` at that tag.)
 
-Import your own classes and nothing else from `output/`. The transpile writes
-every object it read there, the libraries included - a second copy of the
-framework and of open-abap-core, several hundred files - and your classes
-need none of it: they resolve everything through the running runtime, so each
-of your class files is imported on its own. A deployment has to carry the
-files you import, so keep them inside the tree it ships - a CAP project's
-`cds build`, for one, copies `srv/` but not a top-level `output/`.
+Ship `apps/`, not `output/`: a deployment has to carry the files you import,
+so keep them inside the tree it ships - a CAP project's `cds build`, for one,
+copies `srv/` but not a top-level folder (`npx abap2ui5-own-apps output
+srv/apps`, and `await import("./apps/index.mjs")` from a module in `srv/`).
+Tables, data elements and the like of your own are kept too; their database
+tables are not created in the package's SQLite - that is the host's
+persistence (below).
 
 ## Performance
 
@@ -268,6 +286,7 @@ drafts are a CDS entity.
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object, `index.mjs` the generated unit-test runner (`node node_modules/@abap2ui5/node-runtime/output/index.mjs` runs the framework's own suite). The UI5 frontend is in here too, as the constants the GET page is built from |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
+| `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
 | `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled against |
 
 The shape of `output/` - the class constructors, the static `ATTRIBUTES` and

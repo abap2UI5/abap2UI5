@@ -25,6 +25,9 @@
  *                     WITHOUT the browser-test fixtures (below)
  *   setup/setup.mjs   node/setup/setup.mjs - the database hook output/init.mjs
  *                     imports by the relative path abap_transpile.json fixes
+ *   setup/own-apps.mjs  node/setup/own-apps.mjs - the bin abap2ui5-own-apps:
+ *                     a host's own transpiled classes, their imports pointed
+ *                     at output/ (README, "Your own apps")
  *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
  *                     Same neighbours as in the checkout, so its relative
  *                     imports need no rewriting - see its header
@@ -224,6 +227,7 @@ function stripFixtures(file) {
 const COPIES = [
   ["node/output", "output", isFixtureFile],
   ["node/setup/setup.mjs", "setup/setup.mjs"],
+  ["node/setup/own-apps.mjs", "setup/own-apps.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
   ["node/srv/accelerate.mjs", "srv/accelerate.mjs"],
   ["node/srv/compress.mjs", "srv/compress.mjs"],
@@ -261,7 +265,7 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
+    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "setup/own-apps.mjs", "output/init.mjs", "output/index.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
@@ -320,7 +324,11 @@ if (!check) process.exit(0);
  *   3. no browser-test fixture is registered or starts
  *   4. a class transpiled BY THE HOST against downport/ and open-abap-core at
  *      the recorded commit registers in the running runtime and starts - the
- *      "Your own apps" recipe, executed literally
+ *      "Your own apps" recipe, executed literally: with an exception class
+ *      of the host's own (INHERITING FROM cx_static_check, so its module
+ *      imports what it extends), through abap2ui5-own-apps, and the package's
+ *      CX_ROOT still the one in the runtime - the framework catches what the
+ *      host's app raises
  *   5. serve() rejects on a port that is taken instead of resolving
  *   6. the runtime the package pins is the one accelerate() was validated
  *      for: serve() installed the fast paths, and the "./accelerate" subpath
@@ -360,7 +368,24 @@ try {
     "                )->tag( `Text`",
     "                    )->a( n = `text` v = `Transpiled by the host, not by abap2UI5` ).",
     "    client->view_display( view->stringify( ) ).",
+    "    IF client->check_on_event( `RAISE` ).",
+    "      RAISE EXCEPTION TYPE zcx_host_error.",
+    "    ENDIF.",
     "  ENDMETHOD.",
+    "ENDCLASS.",
+    "",
+  ].join("\n"));
+  /* the host's own exception class: a module that imports what it extends,
+   * relatively, from the transpile's output/ - which abap2ui5-own-apps has
+   * to point at the package's classes */
+  fs.writeFileSync(path.join(scratch, "abap/zcx_host_error.clas.abap"), [
+    "CLASS zcx_host_error DEFINITION PUBLIC INHERITING FROM cx_static_check CREATE PUBLIC.",
+    "  PUBLIC SECTION.",
+    "  PROTECTED SECTION.",
+    "  PRIVATE SECTION.",
+    "ENDCLASS.",
+    "",
+    "CLASS zcx_host_error IMPLEMENTATION.",
     "ENDCLASS.",
     "",
   ].join("\n"));
@@ -372,7 +397,7 @@ try {
       { url: "https://github.com/open-abap/open-abap-core", folder: "/deps/open-abap-core" },
     ],
     write_unit_tests: false,
-    options: { ignoreSyntaxCheck: false, addFilenames: true, unknownTypes: "runtimeError" },
+    options: { ignoreSyntaxCheck: false, addFilenames: true, addCommonJS: true, unknownTypes: "runtimeError" },
   }, null, 2)}\n`);
   /* open-abap-core at the commit the package records, the README's
    * three-line checkout - without one the transpiler clones the url's HEAD */
@@ -384,6 +409,7 @@ try {
     run("git", ["checkout", "--quiet", "FETCH_HEAD"], { cwd: core });
   }
   run(WIN ? "npx.cmd" : "npx", ["abap_transpile", "abap_transpile.json"]);
+  run(WIN ? "npx.cmd" : "npx", ["abap2ui5-own-apps", "output", "apps"]);
 
   fs.writeFileSync(path.join(scratch, "check.mjs"), `
 import { createRequire } from "node:module";
@@ -449,13 +475,20 @@ try {
   ok("no browser-test fixture is registered, and ?app_start=ZCL_TST_HOST starts nothing");
 
   await initialize();
-  await import("./output/zcl_host_app.clas.mjs");
+  await import("./apps/index.mjs");
   if (!globalThis.abap?.Classes?.ZCL_HOST_APP) fail("ZCL_HOST_APP did not register in the runtime");
+  const { cx_root } = await import("@abap2ui5/node-runtime/output/cx_root.clas.mjs");
+  if (globalThis.abap.Classes.CX_ROOT !== cx_root) fail("the host's classes brought a second CX_ROOT into the runtime");
   const own = await post(base, "/", { SEARCH: "?app_start=zcl_host_app" });
   if (own.json?.S_FRONT?.APP !== "ZCL_HOST_APP" || !own.text.includes("Hello from the host")) {
     fail("the host's own app does not start: " + own.text.slice(0, 400));
   }
-  ok("a class transpiled by the host against downport/ registers in the running runtime and starts");
+  const raised = await post(base, "/", { ID: own.json.S_FRONT.ID, EVENT: "RAISE" });
+  if (raised.status !== 500 || !raised.text.includes("ZCX_HOST_ERROR")) {
+    fail("the framework did not catch the host's own exception: " + raised.status + " " + raised.text.slice(0, 400));
+  }
+  ok("classes transpiled by the host against downport/ - an exception class of its own among them - load through"
+    + " abap2ui5-own-apps on the package's classes, start, and what they raise the framework catches");
 
   const { accelerate: viaSubpath, RUNTIME_VERSION } = await import("@abap2ui5/node-runtime/accelerate");
   const loop = globalThis.abap.statements.loop;

@@ -55,7 +55,11 @@ first; `npm run pack:node-runtime` (`node/setup/pack-npm.mjs`) at the end of the
 same job is the second: the npm package **`@abap2ui5/node-runtime`**,
 assembled in a staging directory outside the checkout from `node/output`,
 `node/setup/setup.mjs` (the hook `output/init.mjs` imports by the relative
-path fixed in `node/setup/abap_transpile.json`), **`node/srv/host.mjs`** (the
+path fixed in `node/setup/abap_transpile.json`), `node/setup/own-apps.mjs`
+(the bin `abap2ui5-own-apps`: a host's own transpiled classes out of a
+transpile's output, their imports pointed at the package's `output/` - the
+transpile writes a second copy of every library object next to them, and
+importing that copy replaced the package's `CX_ROOT`), **`node/srv/host.mjs`** (the
 entry point, below), `node/srv/accelerate.mjs` (the runtime fast paths
 `host.mjs` installs, and the `./accelerate` subpath for a host that boots
 itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
@@ -120,9 +124,11 @@ project with the pinned `@abaplint/transpiler-cli` and, **once per range of
 the express peer**, drives it: `serve()` answers GET / with the component
 embedded - gzipped, and revalidated to a 304 by its `-gzip` tag - and a POST
 roundtrip, `createApp()` does the same mounted under
-`/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, a class the scratch project
-transpiles against `downport/` and open-abap-core at the recorded commit
-registers and starts, `serve()` runs on the fast paths of `accelerate()`
+`/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, the classes the scratch
+project transpiles against `downport/` and open-abap-core at the recorded
+commit - an exception class of its own among them - load through
+`abap2ui5-own-apps` with the package's `CX_ROOT` still in place, start, and
+what they raise the framework catches, `serve()` runs on the fast paths of `accelerate()`
 (the runtime the package pins is the one they are validated for), and
 `serve()` rejects on a port that is taken.
 

@@ -46,11 +46,15 @@
     "LICENSE",
     "output",
     "setup/setup.mjs",
+    "setup/own-apps.mjs",
     "srv/host.mjs",
     "srv/accelerate.mjs",
     "srv/compress.mjs",
     "downport"
   ],
+  "bin": {
+    "abap2ui5-own-apps": "setup/own-apps.mjs"
+  },
   "exports": {
     ".": "./srv/host.mjs",
     "./accelerate": "./srv/accelerate.mjs",
