@@ -96,7 +96,14 @@ look first.
   `core:require` is still fetched synchronously and eval'd there — an
   installation that hits it switches `unsafe-eval` on in its exit
   (the one-line `REPLACE` documented on
-  `z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy`). An exit
+  `z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy`). The
+  default `script-src` does carry `'wasm-unsafe-eval'`, which is not
+  `unsafe-eval` under another name: it lets a script the page already runs
+  compile WebAssembly, while a string still never becomes code (`eval`,
+  `new Function` and a string `setTimeout` stay blocked). The camera scanner
+  of SAPUI5 (`sap.ndc.BarcodeScannerButton`) and the BarcodeScanner of the
+  custom controls decode with ZXing-C++ compiled to WebAssembly and fail
+  without it. An exit
   can also replace the whole policy, including switching to a real
   `Content-Security-Policy` response header via `t_security_header` (the
   hash is added there too). `data:`/`blob:` sources are confined to the
