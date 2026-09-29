@@ -13,7 +13,7 @@ Legend
 unreleased
 ----------
 + Embedded mode: a component that runs inside a page of its own - loaded through ?z2ui5-bundle (z2ui5.embed.Container of abap2UI5/embed-control), or given componentData.embedded = true by a host's ComponentContainer - leaves the URL to its host: it neither listens to nor writes the hash, and no request sends it. Before, every roundtrip ended with a replaceHash("") that took a Fiori elements object page's route away and sent the host back to its list, and a host route reading like #/app/<CLASS> started that class instead of the app the host asked for. The z2ui5/embed module of the bundle passes the flag; the page, the BSP and the launchpad run as before
-+ Page transitions: view_display( transition = ... ) animates the new main view (slide, baseSlide, fade, flip, show); nav_app_leave( ), the browser Back button under hash routing and transition_back = abap_true play it reversed
++ Page transitions: view_display( transition = ... ) animates the new main view (slide, baseSlide, fade, flip, show); nav_app_leave( ), the browser Back button under hash routing and transition_back = abap_true play it reversed. Try them all with the demo app z2ui5_cl_ui5_app_anim_hub (?app_start=z2ui5_cl_ui5_app_anim_hub)
 
 
 2026-09-26 v1.145.0

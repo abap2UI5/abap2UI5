@@ -1,11 +1,12 @@
-" The page-transition demo, view_display( transition = ... ) - the hub it
-" starts on. Every transition button opens zcl_tst_anim_page with that
-" transition; the page's way back plays it reversed, the sap.m.NavContainer
-" rule: the page being left runs the way it ARRIVED backwards. Two more
-" entries show the cases the framework cannot tell by itself or tells
-" without being asked: an app with screens of its own (zcl_tst_anim_wizard,
-" transition_back), and the browser Back/Forward buttons under hash routing.
-CLASS zcl_tst_anim_hub DEFINITION PUBLIC FINAL CREATE PUBLIC.
+" The page-transition demo of view_display( transition = ... ) - start it
+" with ?app_start=z2ui5_cl_ui5_app_anim_hub. Every transition button opens
+" z2ui5_cl_ui5_app_anim_page with that transition; the page's way back plays
+" it reversed, the sap.m.NavContainer rule: the page being left runs the way
+" it ARRIVED backwards. Two more entries show the cases the framework cannot
+" tell by itself or tells without being asked: an app with screens of its
+" own (z2ui5_cl_ui5_app_anim_wizard, transition_back), and the browser Back
+" and Forward buttons under hash routing.
+CLASS z2ui5_cl_ui5_app_anim_hub DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -23,7 +24,7 @@ CLASS zcl_tst_anim_hub DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS zcl_tst_anim_hub IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_anim_hub IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
@@ -37,21 +38,21 @@ CLASS zcl_tst_anim_hub IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       CASE client->get_event( ).
         WHEN `GO`.
-          client->nav_app_call( zcl_tst_anim_page=>factory( transition = client->get_event_arg( )
-                                                            level      = 1 ) ).
+          client->nav_app_call( z2ui5_cl_ui5_app_anim_page=>factory( transition = client->get_event_arg( )
+                                                                     level      = 1 ) ).
         WHEN `WIZARD`.
-          client->nav_app_call( NEW zcl_tst_anim_wizard( ) ).
+          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_wizard( ) ).
         WHEN `ROUTING`.
           " the Switch wrote the new state before main( ) ran
+          DATA(lv_mode) = COND string( WHEN routing = abap_true
+                                       THEN client->cs_nav_mode-keep
+                                       ELSE client->cs_nav_mode-default ).
           client->follow_up_action( val   = client->cs_event-hash_routing
-                                    t_arg = VALUE #( ( COND #( WHEN routing = abap_true
-                                                               THEN client->cs_nav_mode-keep
-                                                               ELSE client->cs_nav_mode-default ) ) ) ).
+                                    t_arg = VALUE #( ( lv_mode ) ) ).
       ENDCASE.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD view_display.
 
@@ -86,18 +87,18 @@ CLASS zcl_tst_anim_hub IMPLEMENTATION.
         )->a( n = `wrap`  v = `Wrap`
         )->a( n = `class` v = `sapUiSmallMarginTop` ).
     " the five cs_transition names, the undocumented door, and none at all
-    LOOP AT VALUE string_table( ( client->cs_transition-slide )
-                                ( client->cs_transition-base_slide )
-                                ( client->cs_transition-fade )
-                                ( client->cs_transition-flip )
-                                ( client->cs_transition-show )
-                                ( `door` )
-                                ( `` ) ) INTO DATA(lv_transition).
+    DATA(lt_transition) = VALUE string_table( ( client->cs_transition-slide )
+                                              ( client->cs_transition-base_slide )
+                                              ( client->cs_transition-fade )
+                                              ( client->cs_transition-flip )
+                                              ( client->cs_transition-show )
+                                              ( `door` )
+                                              ( `` ) ).
+    LOOP AT lt_transition INTO DATA(lv_transition).
+      DATA(lv_name) = COND string( WHEN lv_transition IS INITIAL THEN `none` ELSE lv_transition ).
       buttons->tag( `Button`
-          )->a( n = `id`    t = |go-{ COND string( WHEN lv_transition IS INITIAL THEN `none` ELSE lv_transition ) }|
-          )->a( n = `text`  t = COND #( WHEN lv_transition IS INITIAL THEN `none`
-                                        WHEN lv_transition = `door` THEN `door (undocumented)`
-                                        ELSE lv_transition )
+          )->a( n = `id`    t = |go-{ lv_name }|
+          )->a( n = `text`  t = COND string( WHEN lv_transition = `door` THEN `door (undocumented)` ELSE lv_name )
           )->a( n = `icon`  v = `sap-icon://navigation-right-arrow`
           )->a( n = `class` v = `sapUiTinyMarginEnd sapUiTinyMarginBottom`
           )->a( n = `press` v = client->_event( val = `GO`

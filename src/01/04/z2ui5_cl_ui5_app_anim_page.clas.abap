@@ -1,5 +1,6 @@
-" The page zcl_tst_anim_hub opens. It arrives with the transition it was
-" opened with, and every way of leaving it shows what the framework plays:
+" The page z2ui5_cl_ui5_app_anim_hub opens. It arrives with the transition
+" it was opened with, and every way of leaving it shows what the framework
+" plays:
 "  Back, the header's nav button  nav_app_leave( ): the arrival reversed
 "  Deeper                         nav_app_call( ) of the next level: the
 "                                 same transition, forward
@@ -10,7 +11,7 @@
 "                                 forward move that takes this page's place
 "  Popup app                      nav_app_call( ) of an app that shows a
 "                                 dialog only - its return moves nothing
-CLASS zcl_tst_anim_page DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_ui5_app_anim_page DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -20,7 +21,7 @@ CLASS zcl_tst_anim_page DEFINITION PUBLIC FINAL CREATE PUBLIC.
         transition    TYPE string
         level         TYPE i
       RETURNING
-        VALUE(result) TYPE REF TO zcl_tst_anim_page.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_anim_page.
 
   PROTECTED SECTION.
     DATA client     TYPE REF TO z2ui5_if_client.
@@ -36,7 +37,7 @@ CLASS zcl_tst_anim_page DEFINITION PUBLIC FINAL CREATE PUBLIC.
 ENDCLASS.
 
 
-CLASS zcl_tst_anim_page IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_anim_page IMPLEMENTATION.
 
   METHOD factory.
 
@@ -45,7 +46,6 @@ CLASS zcl_tst_anim_page IMPLEMENTATION.
     result->level      = level.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 
@@ -71,12 +71,11 @@ CLASS zcl_tst_anim_page IMPLEMENTATION.
           client->nav_app_leave( factory( transition = transition
                                           level      = level ) ).
         WHEN `POPUP`.
-          client->nav_app_call( NEW zcl_tst_anim_popup( ) ).
+          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_popup( ) ).
       ENDCASE.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD view_display.
 
