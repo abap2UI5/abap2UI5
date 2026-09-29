@@ -8,8 +8,9 @@ sap.ui.define(
     "z2ui5/core/Server",
     "z2ui5/core/Context",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
   ],
-  (BaseController, Controller, Server, Context, ViewSlots) => {
+  (BaseController, Controller, Server, Context, ViewSlots, Env) => {
     "use strict";
 
     // An EMBEDDED component's sap.m.App must not focus the first input of
@@ -36,7 +37,7 @@ sap.ui.define(
       oApp.addEventDelegate(delegate);
     }
 
-    return BaseController.extend("z2ui5.controller.App", {
+    const AppController = BaseController.extend("z2ui5.controller.App", {
       onInit() {
         // the owner component's context - Component.init created it
         const ctx = Context.of(this.getOwnerComponent());
@@ -79,5 +80,6 @@ sap.ui.define(
         Server.roundtrip(ctx);
       },
     });
+    return Env.ownClass(AppController);
   },
 );

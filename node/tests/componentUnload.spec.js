@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // Component.js unload wiring: the teardown must hang off "pagehide", never
 // "beforeunload" - destroying the app mid-beforeunload removed the cc/Dirty
@@ -9,6 +10,7 @@ const { loadModule } = require("./loadModule");
 function load() {
   return loadModule("Component.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/UIComponent": { extend: (_name, def) => def },
       "z2ui5/core/ViewSlots": { destroy: () => {} },
       "z2ui5/core/Context": {},
@@ -75,6 +77,7 @@ function loadForExit(
   };
   const loaded = loadModule("Component.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/UIComponent": { extend: (_name, def) => def, prototype: {} },
       "sap/ui/VersionInfo": {},
       "z2ui5/model/models": {},

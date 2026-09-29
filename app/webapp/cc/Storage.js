@@ -3,8 +3,13 @@
 // and fires `finished` when the stored value differs from the current
 // one. The write side is handled by the STORE_DATA frontend action.
 sap.ui.define(
-  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],
-  (Control, Storage, Lib) => {
+  [
+    "sap/ui/core/Control",
+    "sap/ui/util/Storage",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Env",
+  ],
+  (Control, Storage, Lib, Env) => {
     "use strict";
 
     // Value equality for the stored payload. `value` is typed `any`: a plain
@@ -34,7 +39,7 @@ sap.ui.define(
       );
     }
 
-    return Control.extend("z2ui5.cc.Storage", {
+    const StorageControl = Control.extend("z2ui5.cc.Storage", {
       metadata: {
         properties: {
           type: {
@@ -138,5 +143,6 @@ sap.ui.define(
         },
       },
     });
+    return Env.ownClass(StorageControl);
   },
 );

@@ -42,6 +42,7 @@ sap.ui.define(
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/Report",
     "z2ui5/devtools/Tabs",
+    "z2ui5/core/Env",
   ],
   (
     Control,
@@ -58,6 +59,7 @@ sap.ui.define(
     Recorder,
     Report,
     Tabs,
+    Env,
   ) => {
     "use strict";
 
@@ -727,6 +729,6 @@ sap.ui.define(
     // shortcut, auto open and teardown - belongs to
     // devtools/DevTools.js, which is the single entry point the framework
     // calls. This module is only the dialog.
-    return DeveloperTools;
+    return Env.ownClass(DeveloperTools);
   },
 );

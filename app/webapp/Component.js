@@ -31,7 +31,7 @@ sap.ui.define(
   ) => {
     "use strict";
 
-    return UIComponent.extend("z2ui5.Component", {
+    const Component = UIComponent.extend("z2ui5.Component", {
       metadata: {
         manifest: "json",
         interfaces: ["sap.ui.core.IAsyncContentCreation"],
@@ -75,6 +75,9 @@ sap.ui.define(
         // its own may pass it itself; like the endpoint, it is read on the
         // TOP level only.
         state.embedded = embedded === true;
+        // ... and so is its window: the frontend's classes keep no global
+        // on it (UI5 1.x exports every class it creates - Env.ownClass)
+        if (state.embedded) Env.dropClassGlobals();
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:
@@ -402,5 +405,6 @@ sap.ui.define(
         if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);
       },
     });
+    return Env.ownClass(Component);
   },
 );

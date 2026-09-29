@@ -25,132 +25,137 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
+             `  (Control, Lib, Env) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  const _GEO_PROPS = [` && |\n| &&
-             `    "longitude",` && |\n| &&
-             `    "latitude",` && |\n| &&
-             `    "altitude",` && |\n| &&
-             `    "accuracy",` && |\n| &&
-             `    "altitudeAccuracy",` && |\n| &&
-             `    "speed",` && |\n| &&
-             `    "heading",` && |\n| &&
-             `  ];` && |\n| &&
+             `    const _GEO_PROPS = [` && |\n| &&
+             `      "longitude",` && |\n| &&
+             `      "latitude",` && |\n| &&
+             `      "altitude",` && |\n| &&
+             `      "accuracy",` && |\n| &&
+             `      "altitudeAccuracy",` && |\n| &&
+             `      "speed",` && |\n| &&
+             `      "heading",` && |\n| &&
+             `    ];` && |\n| &&
              `` && |\n| &&
-             `  const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
+             `    const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        longitude: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
+             `    const Geolocation = Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          longitude: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          latitude: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          altitude: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          accuracy: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          altitudeAccuracy: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          speed: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          heading: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          enableHighAccuracy: {` && |\n| &&
+             `            type: "boolean",` && |\n| &&
+             `            defaultValue: false,` && |\n| &&
+             `          },` && |\n| &&
+             `          timeout: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: String(_DEFAULT_TIMEOUT_MS),` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
-             `        latitude: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        altitude: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        accuracy: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        altitudeAccuracy: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        speed: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        heading: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: "",` && |\n| &&
-             `        },` && |\n| &&
-             `        enableHighAccuracy: {` && |\n| &&
-             `          type: "boolean",` && |\n| &&
-             `          defaultValue: false,` && |\n| &&
-             `        },` && |\n| &&
-             `        timeout: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: String(_DEFAULT_TIMEOUT_MS),` && |\n| &&
-             `        },` && |\n| &&
-             `      },` && |\n| &&
-             `      events: {` && |\n| &&
-             `        finished: {` && |\n| &&
-             `          allowPreventDefault: true,` && |\n| &&
-             `          parameters: {},` && |\n| &&
-             `        },` && |\n| &&
+             `        events: {` && |\n| &&
+             `          finished: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
              `` && |\n| &&
-             `        error: {` && |\n| &&
-             `          parameters: {` && |\n| &&
-             `            code: { type: "string" },` && |\n| &&
-             `            message: { type: "string" },` && |\n| &&
+             `          error: {` && |\n| &&
+             `            parameters: {` && |\n| &&
+             `              code: { type: "string" },` && |\n| &&
+             `              message: { type: "string" },` && |\n| &&
+             `            },` && |\n| &&
              `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
              `` && |\n| &&
-             `    callbackPosition({ coords }) {` && |\n| &&
-             `      if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `      for (const prop of _GEO_PROPS) {` && |\n| &&
-             `        this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
-             `      }` && |\n| &&
-             `      this.fireFinished();` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    callbackError(error) {` && |\n| &&
-             `      if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `      Lib.logError(``Geolocation error (${error.code}): ${error.message}``);` && |\n| &&
-             `      this.fireError({` && |\n| &&
-             `        code: String(error.code),` && |\n| &&
-             `        message: error.message,` && |\n| &&
-             `      });` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    init() {` && |\n| &&
-             `      this._pendingGeolocate = true;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    exit() {` && |\n| &&
-             `      this._pendingGeolocate = false;` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    onAfterRendering() {` && |\n| &&
-             `      if (!this._pendingGeolocate) return;` && |\n| &&
-             `      this._pendingGeolocate = false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (!navigator.geolocation) {` && |\n| &&
-             `          this.callbackError({` && |\n| &&
-             `            code: 0,` && |\n| &&
-             `            message: "Geolocation API not available",` && |\n| &&
-             `          });` && |\n| &&
-             `          return;` && |\n| &&
+             `      callbackPosition({ coords }) {` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        for (const prop of _GEO_PROPS) {` && |\n| &&
+             `          this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
              `        }` && |\n| &&
-             `        navigator.geolocation.getCurrentPosition(` && |\n| &&
-             `          this.callbackPosition.bind(this),` && |\n| &&
-             `          this.callbackError.bind(this),` && |\n| &&
-             `          {` && |\n| &&
-             `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
+             `        this.fireFinished();` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `            timeout: Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          "Geolocation.onAfterRendering: getCurrentPosition failed",` && |\n| &&
-             `          e,` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    },` && |\n| &&
+             `      callbackError(error) {` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        Lib.logError(``Geolocation error (${error.code}): ${error.message}``);` && |\n| &&
+             `        this.fireError({` && |\n| &&
+             `          code: String(error.code),` && |\n| &&
+             `          message: error.message,` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `    renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `      init() {` && |\n| &&
+             `        this._pendingGeolocate = true;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        this._pendingGeolocate = false;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onAfterRendering() {` && |\n| &&
+             `        if (!this._pendingGeolocate) return;` && |\n| &&
+             `        this._pendingGeolocate = false;` && |\n| &&
+             `        try {` && |\n| &&
+             `          if (!navigator.geolocation) {` && |\n| &&
+             `            this.callbackError({` && |\n| &&
+             `              code: 0,` && |\n| &&
+             `              message: "Geolocation API not available",` && |\n| &&
+             `            });` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          navigator.geolocation.getCurrentPosition(` && |\n| &&
+             `            this.callbackPosition.bind(this),` && |\n| &&
+             `            this.callbackError.bind(this),` && |\n| &&
+             `            {` && |\n| &&
+             `              enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
+             `` && |\n| &&
+             `              timeout:` && |\n| &&
+             `                Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,` && |\n| &&
+             `            },` && |\n| &&
+             `          );` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "Geolocation.onAfterRendering: getCurrentPosition failed",` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
+             `    });` && |\n| &&
+             `    return Env.ownClass(Geolocation);` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

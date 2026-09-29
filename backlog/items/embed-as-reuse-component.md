@@ -81,6 +81,12 @@ while the focus is in the app, or nowhere after the user's last focus or
 click went there. Found by the review of abap2UI5/embed-control, pinned by
 `node/tests/e2e/embedded.spec.js`.
 
+**Done 2026-09-29 - the window.** UI5 1.x exports every class it creates as
+a global, so the frontend's classes rebuilt a `window.z2ui5` on the host's
+page. Every class module hands its class to `Env.ownClass`, and an embedded
+component takes the exports off (`Env.dropClassGlobals`); a page of the
+app's own keeps them for 1.71 (`docs/removal-plan.md` §3).
+
 What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs

@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
+             `    const Component = UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        manifest: "json",` && |\n| &&
              `        interfaces: ["sap.ui.core.IAsyncContentCreation"],` && |\n| &&
@@ -81,6 +81,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&
              `        state.embedded = embedded === true;` && |\n| &&
+             `` && |\n| &&
+             `        if (state.embedded) Env.dropClassGlobals();` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
@@ -250,6 +252,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Component);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

@@ -32,8 +32,9 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, Context, ViewSlots) => {` && |\n| &&
+             `  (BaseController, Controller, Server, Context, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function holdFirstAutoFocus(oApp) {` && |\n| &&
@@ -49,7 +50,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `      oApp.addEventDelegate(delegate);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
+             `    const AppController = BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
              `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
              `        const state = ctx.state;` && |\n| &&
@@ -71,6 +72,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(AppController);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

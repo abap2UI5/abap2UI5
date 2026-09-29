@@ -20,7 +20,7 @@ sap.ui.define(
       EndsWith: (v) => `${v ?? ""}$`,
     };
 
-    return Control.extend("z2ui5.cc.UITableExt", {
+    const UITableExt = Control.extend("z2ui5.cc.UITableExt", {
       metadata: {
         properties: {
           tableId: {
@@ -236,5 +236,6 @@ sap.ui.define(
 
       renderer: Lib.EMPTY_RENDERER,
     });
+    return Env.ownClass(UITableExt);
   },
 );

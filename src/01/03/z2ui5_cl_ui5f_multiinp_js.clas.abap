@@ -31,11 +31,12 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `    "sap/m/Token",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Token, Lib, ViewSlots) => {` && |\n| &&
+             `  (Control, Token, Lib, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
+             `    const MultiInputExt = Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          MultiInputId: {` && |\n| &&
@@ -172,6 +173,7 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(MultiInputExt);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

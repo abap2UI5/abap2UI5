@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
-             `  (Control, Lib, Context) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, Context, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const dirtyControls = new Set();` && |\n| &&
@@ -108,7 +113,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      applyDirtyState(launchpad);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Dirty;` && |\n| &&
+             `    return Env.ownClass(Dirty);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

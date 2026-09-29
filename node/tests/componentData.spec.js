@@ -9,7 +9,7 @@ const { loadModule } = require("./loadModule");
 // backend with the rest of the component data (oConfig.ComponentData).
 // Everything else init() does is stubbed away - its listeners and services
 // have specs of their own.
-function init(componentData) {
+function init(componentData, { globalsDropped = [] } = {}) {
   const noop = () => {};
   const state = { oConfig: {} };
   const ctx = { state };
@@ -25,7 +25,11 @@ function init(componentData) {
       "sap/ui/VersionInfo": {},
       "z2ui5/devtools/DevTools": { install: noop },
       "z2ui5/core/Lib": {},
-      "z2ui5/core/Env": { hasMessagingModule: () => false },
+      "z2ui5/core/Env": {
+        hasMessagingModule: () => false,
+        ownClass: (Class) => Class,
+        dropClassGlobals: () => globalsDropped.push(true),
+      },
       "z2ui5/core/Context": { create: () => ctx },
       "z2ui5/core/Router": {},
       "z2ui5/core/ScrollFocus": {},
@@ -128,4 +132,20 @@ test("only a boolean true embeds - the page and the launchpad do not", () => {
   expect(state.oConfig.ComponentData).toEqual({
     startupParameters: { embedded: ["true"] },
   });
+});
+
+// UI5 1.x exports every class it creates as a global - window.z2ui5.Component
+// and the rest (core/Env.js ownClass). An embedded component runs on a HOST's
+// page, whose window is not the frontend's: its init takes them off. A page
+// of the app's own keeps them - 1.71 looks a base class up by that name when
+// something extends one of ours.
+test("an embedded component takes the frontend's class globals off", () => {
+  const embedded = [];
+  init({ embedded: true }, { globalsDropped: embedded });
+  expect(embedded).toEqual([true]);
+
+  const own = [];
+  init({ checkLocal: true }, { globalsDropped: own });
+  init({}, { globalsDropped: own });
+  expect(own).toEqual([]);
 });

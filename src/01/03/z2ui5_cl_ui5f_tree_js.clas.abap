@@ -31,11 +31,12 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, Context) => {` && |\n| &&
+             `  (Control, Lib, ViewSlots, Context, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Tree", {` && |\n| &&
+             `    const Tree = Control.extend("z2ui5.cc.Tree", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          tree_id: {` && |\n| &&
@@ -119,6 +120,7 @@ CLASS z2ui5_cl_ui5f_tree_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Tree);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

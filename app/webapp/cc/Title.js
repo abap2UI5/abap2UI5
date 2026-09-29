@@ -1,14 +1,19 @@
 // Invisible control that sets the browser tab title from its bound
 // `title` property.
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/actions/Browser"],
-  (Control, Lib, Browser) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/actions/Browser",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, Browser, Env) => {
     "use strict";
     // OBSOLETE: replaced by the frontend event cs_event-set_title - kept for backward compatibility.
     // The setter IS that event - the SET_TITLE action handler of
     // core/actions/Browser.js, which normalizes the value (an unbound
     // property becomes "", never "undefined") and logs instead of throwing.
-    return Control.extend("z2ui5.cc.Title", {
+    const Title = Control.extend("z2ui5.cc.Title", {
       metadata: {
         properties: {
           title: {
@@ -24,5 +29,6 @@ sap.ui.define(
       },
       renderer: Lib.EMPTY_RENDERER,
     });
+    return Env.ownClass(Title);
   },
 );

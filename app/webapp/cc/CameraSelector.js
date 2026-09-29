@@ -4,12 +4,13 @@ sap.ui.define(
     "sap/ui/core/Item",
     "sap/m/ComboBoxRenderer",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
   ],
-  (ComboBox, Item, ComboBoxRenderer, Lib) => {
+  (ComboBox, Item, ComboBoxRenderer, Lib, Env) => {
     "use strict";
     // ComboBox pre-filled with the device's cameras (video inputs) so the
     // user can pick which one the CameraPicture control should use.
-    return ComboBox.extend("z2ui5.cc.CameraSelector", {
+    const CameraSelector = ComboBox.extend("z2ui5.cc.CameraSelector", {
       // init() is a UI5 lifecycle listener and must not return a value, so it
       // cannot be async - kick off the (async) device enumeration separately.
       init() {
@@ -38,5 +39,6 @@ sap.ui.define(
 
       renderer: ComboBoxRenderer,
     });
+    return Env.ownClass(CameraSelector);
   },
 );

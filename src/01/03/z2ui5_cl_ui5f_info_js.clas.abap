@@ -26,11 +26,16 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],` && |\n| &&
-             `  (Control, Lib, Context) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, Context, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
+             `    const Info = Control.extend("z2ui5.cc.Info", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          ui5_version: {` && |\n| &&
@@ -132,6 +137,7 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Info);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

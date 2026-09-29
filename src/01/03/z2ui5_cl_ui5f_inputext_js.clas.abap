@@ -26,8 +26,8 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/m/Input", "sap/m/InputRenderer", "z2ui5/core/Lib"],` && |\n| &&
-             `  (Input, InputRenderer, Lib) => {` && |\n| &&
+             `  ["sap/m/Input", "sap/m/InputRenderer", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
+             `  (Input, InputRenderer, Lib, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const HTML_MODES = new Set([` && |\n| &&
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `      "url",` && |\n| &&
              `    ]);` && |\n| &&
              `` && |\n| &&
-             `    return Input.extend("z2ui5.cc.InputExt", {` && |\n| &&
+             `    const InputExt = Input.extend("z2ui5.cc.InputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          inputMode: {` && |\n| &&
@@ -97,6 +97,7 @@ CLASS z2ui5_cl_ui5f_inputext_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: InputRenderer,` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(InputExt);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

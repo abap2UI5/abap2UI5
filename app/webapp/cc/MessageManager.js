@@ -48,7 +48,7 @@ sap.ui.define(
     // framework auto-collects from binding-type/constraint validation stay in
     // the message> model untouched; a MessagePopover bound to {message>/}
     // shows both. Mirrors the MultiInputExt companion-control pattern.
-    return Control.extend("z2ui5.cc.MessageManager", {
+    const MessageManager = Control.extend("z2ui5.cc.MessageManager", {
       metadata: {
         properties: {
           items: { type: "object" },
@@ -157,5 +157,6 @@ sap.ui.define(
         if (changed) this.fireChange();
       },
     });
+    return Env.ownClass(MessageManager);
   },
 );

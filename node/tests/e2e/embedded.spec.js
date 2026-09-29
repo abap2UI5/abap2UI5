@@ -190,3 +190,41 @@ test.describe("an embedded app and the focus", () => {
     await expect(inner).toBeFocused();
   });
 });
+
+// UI5 1.x exports every class it creates as a global - the frontend's own
+// built a window.z2ui5 (Component, controller, devtools, a cc.* per custom
+// control) on every page it ran on, the global abap2UI5 removed on purpose.
+// A host's window is not the frontend's: an embedded component takes them
+// off again (core/Env.js ownClass).
+test.describe("an embedded app and the host's window", () => {
+  test("the frontend leaves no z2ui5 global on the host's page", async ({
+    page,
+    ui5Src,
+    ui5Theme,
+  }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+    await openHost(page, ui5Src, ui5Theme);
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world");
+    await waitForApp(page, id);
+    expect(await page.evaluate(() => typeof window["z2ui5"])).toBe(
+      "undefined",
+    );
+  });
+
+  test("a z2ui5 object of the host's own keeps what it held, and only that", async ({
+    page,
+    ui5Src,
+    ui5Theme,
+  }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+    await page.addInitScript(() => {
+      window["z2ui5"] = { hostData: 1 };
+    });
+    await openHost(page, ui5Src, ui5Theme);
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world");
+    await waitForApp(page, id);
+    expect(await page.evaluate(() => JSON.stringify(window["z2ui5"]))).toBe(
+      '{"hostData":1}',
+    );
+  });
+});

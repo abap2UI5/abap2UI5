@@ -33,8 +33,9 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `    "sap/m/Text",` && |\n| &&
              `    "sap/ui/core/HTML",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Dialog, Button, Text, HTML, Lib) => {` && |\n| &&
+             `  (Control, Dialog, Button, Text, HTML, Lib, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
@@ -42,7 +43,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `` && |\n| &&
              `    const PX_NUMBER = /^\d+$/;` && |\n| &&
              `    const toCssSize = (val) => (PX_NUMBER.test(val) ? ``${val}px`` : val);` && |\n| &&
-             `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
+             `    const CameraPicture = Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          value: { type: "string" },` && |\n| &&
@@ -265,6 +266,7 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(CameraPicture);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

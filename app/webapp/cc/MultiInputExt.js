@@ -4,8 +4,9 @@ sap.ui.define(
     "sap/m/Token",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
   ],
-  (Control, Token, Lib, ViewSlots) => {
+  (Control, Token, Lib, ViewSlots, Env) => {
     "use strict";
 
     // Invisible companion control for a sap.m.MultiInput (referenced via
@@ -16,7 +17,7 @@ sap.ui.define(
     // and a picked suggestion ROW becomes one too once TokenKeyCell /
     // TokenTextCells say which cells to build it from (tabular suggestions
     // have no default token at all).
-    return Control.extend("z2ui5.cc.MultiInputExt", {
+    const MultiInputExt = Control.extend("z2ui5.cc.MultiInputExt", {
       metadata: {
         properties: {
           MultiInputId: {
@@ -182,5 +183,6 @@ sap.ui.define(
         }
       },
     });
+    return Env.ownClass(MultiInputExt);
   },
 );

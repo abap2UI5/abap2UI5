@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // Tests the real app/webapp/cc/Focus.js caret restore. After a roundtrip the
 // Focus control re-applies the caret position captured before the request.
@@ -41,6 +41,7 @@ function load({ target, activeElement, mayMoveFocus = true } = {}) {
   const ctx = { state: { embedded: !mayMoveFocus } };
   const { module: Focus } = loadModule("cc/Focus.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": controlStub(),
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,

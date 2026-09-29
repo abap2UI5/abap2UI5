@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/FileUploader.js: wraps sap.ui.unified.FileUploader plus an optional
 // Upload button; the chosen file is read as a base64 data URL into `value`
@@ -102,6 +102,7 @@ function load() {
 
   const { module: FileUploaderDef } = loadModule("cc/FileUploader.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "sap/m/Button": Button,
       "sap/ui/unified/FileUploader": InnerUploader,

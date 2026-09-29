@@ -56,6 +56,15 @@ function contextStub(ctx) {
   };
 }
 
+// The Env of a module that DEFINES a class: every one hands its class to
+// Env.ownClass (core/Env.js), which takes UI5's global export of it off on
+// a host's page. The specs run on no host's page, where the class goes
+// back unchanged - so does it here.
+const classEnv = {
+  ownClass: (Class) => Class,
+  dropClassGlobals: () => {},
+};
+
 function loadLib(overrides = {}) {
   const { state: seed = {}, ctx: given, ...rest } = overrides;
   const ctx = given || specContext(seed);
@@ -144,4 +153,5 @@ module.exports = {
   contextStub,
   bindContext,
   withSpecController,
+  classEnv,
 };

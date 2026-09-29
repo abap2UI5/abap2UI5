@@ -5,14 +5,15 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Context",
     "z2ui5/core/ScrollFocus",
+    "z2ui5/core/Env",
   ],
-  (Control, Lib, ViewSlots, Context, ScrollFocus) => {
+  (Control, Lib, ViewSlots, Context, ScrollFocus, Env) => {
     "use strict";
     // Invisible control that restores the keyboard focus (and the cursor
     // selection range) to the control given by focusId after a rerender -
     // the backend uses it to keep the focus stable across roundtrips.
     // OBSOLETE: replaced by the frontend event cs_event-set_focus - kept for backward compatibility.
-    return Control.extend("z2ui5.cc.Focus", {
+    const Focus = Control.extend("z2ui5.cc.Focus", {
       metadata: {
         properties: {
           setUpdate: {
@@ -144,5 +145,6 @@ sap.ui.define(
         },
       },
     });
+    return Env.ownClass(Focus);
   },
 );

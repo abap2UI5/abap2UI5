@@ -32,11 +32,12 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, Context, ScrollFocus) => {` && |\n| &&
+             `  (Control, Lib, ViewSlots, Context, ScrollFocus, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Focus", {` && |\n| &&
+             `    const Focus = Control.extend("z2ui5.cc.Focus", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          setUpdate: {` && |\n| &&
@@ -137,6 +138,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Focus);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

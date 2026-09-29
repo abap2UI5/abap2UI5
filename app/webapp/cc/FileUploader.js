@@ -5,8 +5,9 @@ sap.ui.define(
     "sap/ui/unified/FileUploader",
     "sap/m/HBox",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
   ],
-  (Control, Button, FileUploader, HBox, Lib) => {
+  (Control, Button, FileUploader, HBox, Lib, Env) => {
     "use strict";
 
     // File picker: wraps sap.ui.unified.FileUploader plus an optional
@@ -14,7 +15,7 @@ sap.ui.define(
     // `value` and handed to the backend via the `upload` event - either
     // when the button is pressed or, with checkDirectUpload, right after
     // the file was selected.
-    return Control.extend("z2ui5.cc.FileUploader", {
+    const FileUploaderControl = Control.extend("z2ui5.cc.FileUploader", {
       metadata: {
         properties: {
           value: {
@@ -215,5 +216,6 @@ sap.ui.define(
         },
       },
     });
+    return Env.ownClass(FileUploaderControl);
   },
 );

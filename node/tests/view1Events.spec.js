@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib, specContext, contextStub } = require("./loadLibModule");
+const { loadLib, specContext, contextStub, classEnv } = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -23,6 +23,7 @@ function loadController(extraDeps) {
   const { Lib, ctx } = loadLib();
   const { module: ctrl } = loadModule("controller/View1.controller.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
       "z2ui5/core/Lib": Lib,
@@ -45,6 +46,7 @@ function withSlotStub(byId, resolveById) {
   Lib.logError = (...args) => errors.push(args[0]);
   const { module: controller } = loadModule("controller/View1.controller.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
       "sap/ui/core/routing/HashChanger": { getInstance: () => ({}) },
       "z2ui5/core/Lib": Lib,
@@ -120,6 +122,7 @@ function withSlots(
   const ctx = specContext({ oResponse });
   const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
         // no view in these specs uses XML templating (Slots.templatePreprocessors)
@@ -421,6 +424,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const app = { alive: true };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
+        "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
         "sap/ui/core/BusyIndicator": { hide: () => busy.push("hide") },
         "sap/m/MessageBox": {},
@@ -823,6 +827,7 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     const bodies = [];
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
+        "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
         "sap/ui/core/BusyIndicator": { show: () => {}, hide: () => {} },
         "sap/m/MessageBox": { alert: () => {} },
@@ -920,6 +925,7 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     ctx.server.requestSeq = requestSeq;
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/XMLView": { create: async () => oView },
         "sap/ui/model/json/JSONModel": JSONModel,
         "z2ui5/core/Context": contextStub(ctx),
@@ -1062,6 +1068,7 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
     };
     const { module: SlotsModule } = loadModule("core/actions/Slots.js", {
       deps: {
+        "z2ui5/core/Env": classEnv,
         ...shared,
         "sap/ui/core/mvc/XMLView": {
           // as UI5 does it: the `models` config lands as the DEFAULT model
@@ -1171,6 +1178,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     const app = { alive: true };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
+        "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/Controller": { extend: (name, methods) => methods },
         "sap/ui/core/BusyIndicator": {
           show: (delay) => busy.push(delay === 0 ? "show(0)" : "show"),

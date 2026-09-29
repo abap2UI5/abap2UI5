@@ -6,8 +6,9 @@ sap.ui.define(
     "sap/m/Text",
     "sap/ui/core/HTML",
     "z2ui5/core/Lib",
+    "z2ui5/core/Env",
   ],
-  (Control, Dialog, Button, Text, HTML, Lib) => {
+  (Control, Dialog, Button, Text, HTML, Lib, Env) => {
     "use strict";
     // Camera button: opens a dialog with the live camera stream, captures
     // a photo on demand and hands it to the backend as a base64 JPEG in
@@ -18,7 +19,7 @@ sap.ui.define(
     // width/height size the trigger button; a bare number is treated as px.
     const PX_NUMBER = /^\d+$/;
     const toCssSize = (val) => (PX_NUMBER.test(val) ? `${val}px` : val);
-    return Control.extend("z2ui5.cc.CameraPicture", {
+    const CameraPicture = Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
           value: { type: "string" },
@@ -280,5 +281,6 @@ sap.ui.define(
         },
       },
     });
+    return Env.ownClass(CameraPicture);
   },
 );

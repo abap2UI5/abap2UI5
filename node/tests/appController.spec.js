@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // controller/App.controller.js: the shell controller's one-time startup
 // wiring. Under test: the backend-URL decision (a host's endpoint vs. the
@@ -28,6 +29,7 @@ function load({
 
   const { module: AppController } = loadModule("controller/App.controller.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
       "z2ui5/controller/View1.controller": View1Controller,
       "z2ui5/core/Server": { roundtrip: (c) => roundtrips.push(c) },

@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/MultiInputExt.js: invisible companion of a sap.m.MultiInput that
 // mirrors token updates into bindable properties (via the real
@@ -25,6 +25,7 @@ function load({ input } = {}) {
 
   const { module: MultiInputExtDef } = loadModule("cc/MultiInputExt.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "sap/m/Token": Token,
       "z2ui5/core/Lib": Lib,

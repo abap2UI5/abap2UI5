@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // cc/Timer.js (obsolete, replaced by cs_event-start_timer): fires `finished`
 // `delayMS` after rendering, so the backend can drive a time-based roundtrip.
@@ -36,6 +37,7 @@ function load() {
 
   const { module: TimerDef } = loadModule("cc/Timer.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": {
         isDestroyed: (o) => o._destroyed === true,

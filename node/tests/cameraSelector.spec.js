@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/CameraSelector.js: a ComboBox pre-filled with the device's cameras.
 // The contract under test:
@@ -37,6 +37,7 @@ function load({ mediaDevices } = {}) {
 
   const { module: CameraSelector } = loadModule("cc/CameraSelector.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/m/ComboBox": ComboBoxBase,
       "sap/ui/core/Item": Item,
       "sap/m/ComboBoxRenderer": {},

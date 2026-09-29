@@ -41,6 +41,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `    "z2ui5/devtools/Report",` && |\n| &&
              `    "z2ui5/devtools/Tabs",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Control,` && |\n| &&
@@ -57,6 +58,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    Recorder,` && |\n| &&
              `    Report,` && |\n| &&
              `    Tabs,` && |\n| &&
+             `    Env,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `              id: this.fragmentId(),` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (Lib.isDestroyed(this)) {` && |\n| &&
-             `            if (this.oDialog) this.oDialog.destroy();` && |\n|.
+             `` && |\n|.
     result = result &&
+             `          if (Lib.isDestroyed(this)) {` && |\n| &&
+             `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -521,7 +523,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
-             `    return DeveloperTools;` && |\n| &&
+             `    return Env.ownClass(DeveloperTools);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
