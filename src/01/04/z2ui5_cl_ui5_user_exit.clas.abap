@@ -225,6 +225,17 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " installation switches 'unsafe-eval' back on in its exit (see
       " z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy).
       "
+      " 'wasm-unsafe-eval' IS in script-src, and it is not 'unsafe-eval' by
+      " another name: it lets a script the page already runs compile
+      " WebAssembly, and nothing else - a string still never becomes code
+      " (eval, new Function and setTimeout with a string stay blocked). The
+      " barcode scanners need it: the camera scanner of SAPUI5
+      " (sap.ndc.BarcodeScannerButton) decodes with ZXing-C++ compiled to
+      " WebAssembly, and so does the BarcodeScanner of
+      " abap2UI5-addons/custom-controls. Without the keyword both fail on this
+      " page with a CompileError ("... because 'unsafe-eval' is not an allowed
+      " source of script") the moment the camera opens - nothing earlier says so.
+      "
       " NO 'unsafe-inline' for scripts either. The page's one inline script -
       " onInitComponent with the embedded preload - is fixed per build, and
       " z2ui5_cl_ui5_http_handler=>_http_get adds its SHA-256 to script-src
@@ -245,7 +256,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       gv_csp_default =
         |<meta http-equiv="Content-Security-Policy" | &&
         |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
-        |script-src 'self' { lv_ui5_hosts }; | &&
+        |script-src 'self' 'wasm-unsafe-eval' { lv_ui5_hosts }; | &&
         |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
         " img-src and media-src are EXPLICIT too, with what default-src
         " carries for them ('self', data:, blob:, the UI5 hosts - the two

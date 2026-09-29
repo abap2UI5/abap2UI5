@@ -360,6 +360,17 @@ Not about names or layout — these only show up when the app runs.
   itself. **Linter:** a rule would flag `on*=` attributes and `<script` in a
   `core:HTML` `content`, and `javascript:` in any URL-typed property of the
   rendered view.
+- **WebAssembly needs `'wasm-unsafe-eval'` in the script-src.** The camera
+  scanner of `sap.ndc.BarcodeScannerButton` decodes with ZXing-C++ compiled
+  to WebAssembly (`sap/ndc/thirdparty/zxingcpp/zxing_reader.wasm`, read in
+  the `@sapui5/sap.ndc` npm sources 1.108 to 1.152), and so does the
+  BarcodeScanner of abap2UI5-addons/custom-controls. Under a script-src
+  with neither `'wasm-unsafe-eval'` nor `'unsafe-eval'` the compile fails
+  with a `CompileError` ("... because 'unsafe-eval' is not an allowed source
+  of script"). Measured 2026-09-28 in Chromium, with a minimal module and
+  with the custom-controls scanner. The default policy carries the keyword;
+  a policy an exit writes itself has to keep it. **Linter:** not decidable
+  from the view - the policy belongs to the installation.
 - **Keep `"async": true` on the manifest's `rootView`.** 1.71 does not know
   `IAsyncContentCreation` (since 1.89), so a rootView without the flag is
   built synchronously: the App controller's dependencies (`sap/m/MessageBox`)

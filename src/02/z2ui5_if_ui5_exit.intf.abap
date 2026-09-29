@@ -40,6 +40,10 @@ INTERFACE z2ui5_if_ui5_exit
       "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
       "           WITH `script-src 'self' 'unsafe-eval'`.
       " - or the exit replaces the whole tag.
+      " It does carry 'wasm-unsafe-eval' in script-src, which lets a script
+      " compile WebAssembly and nothing else: the camera scanner of sap.ndc and
+      " the BarcodeScanner of the custom controls need it. A tag an exit
+      " writes itself keeps it for them.
       " Its script-src carries no 'unsafe-inline' either: after the exit ran,
       " the framework appends the hash of the page's one inline script to
       " every script-src (and script-src-elem) - here and in a policy sent
