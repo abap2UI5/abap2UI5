@@ -175,6 +175,11 @@ jobs:
           exit 1
         fi
         echo "Server started successfully (HTTP $HTTP_CODE, $BODY_LENGTH bytes)"
+    # The half of compress.spec.js that needs the transpiled framework - the
+    # conditional GET closes only with the framework's own ETag check - skips
+    # in test_unit_js, which has no tree; this job has one.
+    - name: gzip in front of the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js compress
 
   browser:
     needs: transpile

@@ -31,10 +31,11 @@ UI5 itself comes from the CDN.
 | Export | |
 |---|---|
 | `serve({ port, host })` | Boot the framework and listen. Resolves with the `http.Server` once it can answer. `host` unset binds every interface, `"127.0.0.1"` loopback only |
-| `createApp()` | The express app `serve()` listens with: the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front |
+| `createApp()` | The express app `serve()` listens with: `compress()`, the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front. `createApp({ compression: false })` leaves out the gzip (a proxy in front compresses anyway) |
 | `createHandler()` | The request handler alone, `(req, res) => Promise<void>` - for a server that is not express (see below) |
 | `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
 | `accelerate()` | Install the runtime's fast paths for large tables (see [Performance](#performance)). `initialize()` calls it; a host that boots through `output/init.mjs` itself calls it after the boot - also importable alone, as `@abap2ui5/node-runtime/accelerate`. Returns `true` when they are installed |
+| `compress()` | The gzip middleware `createApp()` puts in front, `(req, res, next)` - for an express app of your own that mounts `createHandler()` (see [Compression](#compression)); also importable alone, as `@abap2ui5/node-runtime/compress` |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
 `express` is an optional peer dependency, version 4 (from 4.21) or 5:
@@ -185,6 +186,33 @@ package pins (`RUNTIME_VERSION`, exported next to `accelerate`). On any other
 version - an `overrides` entry in the host's `package.json`, say -
 `accelerate()` leaves the runtime alone, returns `false` and warns once.
 
+### Compression
+
+On an SAP system the framework asks the ICF to gzip every response, and the
+page it answers a GET with - about 360 KB, the whole UI5 frontend embedded -
+travels as about 85 KB. The express shim of a Node host has no such switch,
+so `createApp()` puts `compress()` in front of the handler: gzip for every
+text, JSON or JavaScript body of 1 KB or more, when the request's
+`Accept-Encoding` allows it (`q=0` refuses), never for a `HEAD`, a 204 or a
+304, nor for a body something else encoded already. Gzip only, because of the
+page's `ETag`: the compressed page goes out as `"<tag>-gzip"` - Apache
+mod_deflate's form, which the framework reads back - so the next load's
+`If-None-Match` is answered with a 304, and the compressed page is kept per
+tag instead of being compressed again. A roundtrip's JSON is compressed on
+the thread pool, so no request waits on another's compression.
+
+In an express app of your own that mounts `createHandler()`:
+
+```js
+import express from "express";
+import { compress, createHandler } from "@abap2ui5/node-runtime";
+
+const handle = createHandler();
+const app = express();
+app.use("/sap/bc/z2ui5", compress(), express.raw({ type: "*/*", limit: "10mb" }),
+  (req, res, next) => { handle(req, res).catch(next); });
+```
+
 ## Persistence
 
 The framework keeps the state of every app between roundtrips in a draft
@@ -203,6 +231,7 @@ drafts are a CDS entity.
 |---|---|
 | `srv/host.mjs` | The entry point - everything above |
 | `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it imports nothing from `output/` |
+| `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object, `index.mjs` the generated unit-test runner (`node node_modules/@abap2ui5/node-runtime/output/index.mjs` runs the framework's own suite). The UI5 frontend is in here too, as the constants the GET page is built from |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled against |

@@ -20,9 +20,10 @@
  *                    as a Buffer; res.append(name, value) and
  *                    res.status(code).send(buffer). Express gives all of that
  *                    with express.raw() in front; another server adapts.
- *   createApp()      an express app (4 or 5) with the raw body parser and
- *                    the handler on every path - what the dev server has
- *                    always been.
+ *   createApp()      an express app (4 or 5) with compress() (gzip - the
+ *                    compression the framework asks the ICF for), the raw
+ *                    body parser and the handler on every path - what the
+ *                    dev server has always been.
  *   serve()          createApp() listening. Resolves with the http.Server.
  *
  * accelerate() (srv/accelerate.mjs, re-exported here) replaces the two
@@ -55,8 +56,10 @@ import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
 import { accelerate } from "./accelerate.mjs";
+import { compress } from "./compress.mjs";
 
 export { accelerate, RUNTIME_VERSION } from "./accelerate.mjs";
+export { compress } from "./compress.mjs";
 
 /** The ICF handler class every request goes to - node/srv/zcl_sicf.clas.abap. */
 export const HANDLER_CLASS = "ZCL_SICF";
@@ -109,14 +112,19 @@ export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
  *   - the rejection goes to next() by hand: express 5 forwards a rejected
  *     handler promise to its error handling, express 4 ignores it and the
  *     request hangs with an unhandled rejection.
- * @param {{ handlerClass?: string, bodyLimit?: string }} [options]
+ * compress() first: z2ui5_cl_ui5_http_handler asks the ICF to gzip every
+ * response and the shim cannot, so without it the ~360 KB page and every
+ * roundtrip went out uncompressed. `compression: false` leaves it out (a
+ * proxy in front that compresses anyway); an object is compress()'s options.
+ * @param {{ handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
  * @returns {Promise<import("express").Express>}
  */
-export async function createApp({ bodyLimit = "10mb", ...options } = {}) {
+export async function createApp({ bodyLimit = "10mb", compression = true, ...options } = {}) {
   const { default: express } = await import("express");
   const app = express();
   app.disable("x-powered-by");
   app.set("etag", false);
+  if (compression) app.use(compress(compression === true ? {} : compression));
   app.use(express.raw({ type: "*/*", limit: bodyLimit }));
   const handle = createHandler(options);
   app.use((req, res, next) => {
@@ -133,7 +141,7 @@ export async function createApp({ bodyLimit = "10mb", ...options } = {}) {
  * callback with the ERROR (a port in use), which read as "listening" and
  * resolved with a server that never bound; express 4 does not. Listening on
  * a plain http.Server behaves the same under both.
- * @param {{ port?: number | string, host?: string, handlerClass?: string, bodyLimit?: string }} [options]
+ * @param {{ port?: number | string, host?: string, handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
  *   `host` unset binds every interface; "127.0.0.1" binds loopback only
  * @returns {Promise<import("node:http").Server>}
  */

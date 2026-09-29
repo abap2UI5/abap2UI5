@@ -31,6 +31,8 @@
  *   srv/accelerate.mjs  node/srv/accelerate.mjs - the runtime fast paths
  *                     host.mjs installs, also `exports["./accelerate"]` for a
  *                     host that boots through output/init.mjs itself
+ *   srv/compress.mjs  node/srv/compress.mjs - the gzip middleware createApp()
+ *                     puts in front, also `exports["./compress"]`
  *   downport/         node/downport - the 7.02-downported ABAP the transpile
  *                     read, so a host can transpile ITS OWN app classes with
  *                     the framework as a library (README, "Your own apps"),
@@ -224,6 +226,7 @@ const COPIES = [
   ["node/setup/setup.mjs", "setup/setup.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
   ["node/srv/accelerate.mjs", "srv/accelerate.mjs"],
+  ["node/srv/compress.mjs", "srv/compress.mjs"],
   ["node/downport", "downport", isFixtureFile],
   ["node/setup/npm.README.md", "README.md"],
   ["LICENSE", "LICENSE"],
@@ -258,7 +261,7 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "srv/accelerate.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
+    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "output/init.mjs", "output/index.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
@@ -310,7 +313,8 @@ if (!check) process.exit(0);
  *   1. serve() answers GET / with the framework's page and the UI5 component
  *      embedded in it (the handler, the shim, ZCL_SICF and the database hook
  *      all came along and boot, and the frontend needs no files of its own),
- *      and a POST starts an app and chains its draft
+ *      gzipped under the tag "<tag>-gzip" that the framework revalidates to
+ *      a 304, and a POST starts an app and chains its draft
  *   2. createApp() mounted under /sap/bc/z2ui5 of the host's own express app
  *      does the same there - the README's "In an express app of your own"
  *   3. no browser-test fixture is registered or starts
@@ -411,6 +415,14 @@ const roundtrip = async (base, pathname, what) => {
   if (!page.includes('"z2ui5/Component.js"')) {
     fail(what + ": the page does not carry the UI5 component - the frontend is not embedded");
   }
+  // fetch asked for gzip (and decoded it): compress() answered, and the
+  // framework reads the tag it sent back
+  const etag = res.headers.get("etag") ?? "";
+  if (res.headers.get("content-encoding") !== "gzip" || !etag.endsWith('-gzip"')) {
+    fail(what + ": GET " + pathname + " is not gzipped under a -gzip tag (" + res.headers.get("content-encoding") + ", " + etag + ")");
+  }
+  const again = await fetch(base + pathname, { headers: { "if-none-match": etag } });
+  if (again.status !== 304) fail(what + ": If-None-Match " + etag + " answered " + again.status + ", not 304");
   const first = await post(base, pathname, { SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" });
   if (first.status !== 200 || first.json?.S_FRONT?.APP !== "Z2UI5_CL_UI5_APP_HI_WORLD") {
     fail(what + ": POST app_start answered " + first.status + ": " + first.text.slice(0, 400));
@@ -419,7 +431,7 @@ const roundtrip = async (base, pathname, what) => {
   if (second.json?.S_FRONT?.APP !== "Z2UI5_CL_UI5_APP_HI_WORLD" || second.json.S_FRONT.ID === first.json.S_FRONT.ID) {
     fail(what + ": the follow-up POST did not restore the draft: " + second.text.slice(0, 400));
   }
-  ok(what + ": GET " + pathname + " is the page with the component embedded (" + page.length + " bytes), POST starts an app and chains its draft");
+  ok(what + ": GET " + pathname + " is the page with the component embedded (" + page.length + " bytes, gzipped, revalidates to a 304), POST starts an app and chains its draft");
 };
 
 const server = await serve({ port: 0, host: "127.0.0.1" });

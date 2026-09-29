@@ -58,7 +58,9 @@ assembled in a staging directory outside the checkout from `node/output`,
 path fixed in `node/setup/abap_transpile.json`), **`node/srv/host.mjs`** (the
 entry point, below), `node/srv/accelerate.mjs` (the runtime fast paths
 `host.mjs` installs, and the `./accelerate` subpath for a host that boots
-itself), `node/downport` (so a host can transpile its own app
+itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
+front, and the `./compress` subpath), `node/downport` (so a host can
+transpile its own app
 classes with the framework as a library - the README's "Your own apps") and
 `node/setup/npm.README.md`. `node/setup/npm.package.json` is its manifest.
 **It is deliberately not `node/package.json`:** a `package.json` inside
@@ -93,12 +95,16 @@ needs no frontend files.
 
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
 it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
-`accelerate()` and `HANDLER_CLASS`; `initialize()` installs `accelerate()`'s
+`accelerate()`, `compress()` and `HANDLER_CLASS`; `initialize()` installs `accelerate()`'s
 fast paths (LOOP ... WHERE over a sorted primary key, CP) right after the
 boot, so the dev server, the browser projects and every host run on them -
 validated for the one `@abaplint/runtime` version the package pins, and held
 to the runtime's own functions by `node/tests/accelerate.spec.js` and
-`npm run unit:accelerated` (the file's header has the rest); `express.mjs` is the lines that call `serve()` with
+`npm run unit:accelerated` (the file's header has the rest); `createApp()`
+puts `compress()` in front, the gzip the framework asks the ICF for and the
+express shim cannot give it, under an Apache-style `"<tag>-gzip"` ETag the
+framework's own `_check_etag_match` answers with a 304
+(`node/tests/compress.spec.js`, whose framework half `test_node` runs); `express.mjs` is the lines that call `serve()` with
 `PORT`/`HOST` and print the log line `mcp-server` waits for ("Listening on").
 One code path for the dev server and the package, so what CI drives in the
 browser projects is what a host installs. It is packed as `srv/host.mjs` next
@@ -112,7 +118,8 @@ major lacks - `app.use(handler)`, not express 5's `/{*path}` route syntax -
 and its header says what else. `--check` installs the tarball into a scratch
 project with the pinned `@abaplint/transpiler-cli` and, **once per range of
 the express peer**, drives it: `serve()` answers GET / with the component
-embedded and a POST roundtrip, `createApp()` does the same mounted under
+embedded - gzipped, and revalidated to a 304 by its `-gzip` tag - and a POST
+roundtrip, `createApp()` does the same mounted under
 `/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, a class the scratch project
 transpiles against `downport/` and open-abap-core at the recorded commit
 registers and starts, `serve()` runs on the fast paths of `accelerate()`
