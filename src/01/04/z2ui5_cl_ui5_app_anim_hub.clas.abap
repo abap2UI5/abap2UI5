@@ -1,10 +1,10 @@
 " The page-transition demo of view_display( transition = ... ) - start it
 " with ?app_start=z2ui5_cl_ui5_app_anim_hub. Every transition button opens
-" z2ui5_cl_ui5_app_anim_page with that transition; the page's way back plays
+" z2ui5_cl_ui5_app_anim_pg with that transition; the page's way back plays
 " it reversed, the sap.m.NavContainer rule: the page being left runs the way
 " it ARRIVED backwards. Two more entries show the cases the framework cannot
 " tell by itself or tells without being asked: an app with screens of its
-" own (z2ui5_cl_ui5_app_anim_wizard, transition_back), and the browser Back
+" own (z2ui5_cl_ui5_app_anim_wiz, transition_back), and the browser Back
 " and Forward buttons under hash routing.
 CLASS z2ui5_cl_ui5_app_anim_hub DEFINITION PUBLIC FINAL.
 
@@ -38,10 +38,10 @@ CLASS z2ui5_cl_ui5_app_anim_hub IMPLEMENTATION.
     ELSEIF client->check_on_event( ).
       CASE client->get_event( ).
         WHEN `GO`.
-          client->nav_app_call( z2ui5_cl_ui5_app_anim_page=>factory( transition = client->get_event_arg( )
-                                                                     level      = 1 ) ).
+          client->nav_app_call( z2ui5_cl_ui5_app_anim_pg=>factory( transition = client->get_event_arg( )
+                                                                   level      = 1 ) ).
         WHEN `WIZARD`.
-          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_wizard( ) ).
+          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_wiz( ) ).
         WHEN `ROUTING`.
           " the Switch wrote the new state before main( ) ran
           DATA(lv_mode) = COND string( WHEN routing = abap_true

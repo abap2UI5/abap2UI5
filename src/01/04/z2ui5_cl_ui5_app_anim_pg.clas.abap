@@ -11,7 +11,7 @@
 "                                 forward move that takes this page's place
 "  Popup app                      nav_app_call( ) of an app that shows a
 "                                 dialog only - its return moves nothing
-CLASS z2ui5_cl_ui5_app_anim_page DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_app_anim_pg DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -21,7 +21,7 @@ CLASS z2ui5_cl_ui5_app_anim_page DEFINITION PUBLIC FINAL.
         transition    TYPE string
         level         TYPE i
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_anim_page.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_anim_pg.
 
   PROTECTED SECTION.
     DATA client     TYPE REF TO z2ui5_if_client.
@@ -37,7 +37,7 @@ CLASS z2ui5_cl_ui5_app_anim_page DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app_anim_page IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_anim_pg IMPLEMENTATION.
 
   METHOD factory.
 
@@ -71,7 +71,7 @@ CLASS z2ui5_cl_ui5_app_anim_page IMPLEMENTATION.
           client->nav_app_leave( factory( transition = transition
                                           level      = level ) ).
         WHEN `POPUP`.
-          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_popup( ) ).
+          client->nav_app_call( NEW z2ui5_cl_ui5_app_anim_pop( ) ).
       ENDCASE.
     ENDIF.
 

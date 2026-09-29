@@ -163,7 +163,7 @@ test("the browser buttons under hash routing: Back reverses, Forward repeats", a
 
   await page.locator('[id$="--go-fade"]').click();
   await expect(page.locator('[id$="--arrival"]')).toContainText("fade");
-  await expect(page).toHaveURL(/#\/app\/Z2UI5_CL_UI5_APP_ANIM_PAGE\//);
+  await expect(page).toHaveURL(/#\/app\/Z2UI5_CL_UI5_APP_ANIM_PG\//);
   await settled(page);
 
   await page.goBack();

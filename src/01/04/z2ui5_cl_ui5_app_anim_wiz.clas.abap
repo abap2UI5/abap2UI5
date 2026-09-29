@@ -3,7 +3,7 @@
 " screen moves. Next is forward by default; Previous says it with
 " transition_back = abap_true, and plays the step being left out in reverse.
 " Done leaves the app with nav_app_leave( ) - back to the hub, reversed too.
-CLASS z2ui5_cl_ui5_app_anim_wizard DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_app_anim_wiz DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -22,7 +22,7 @@ CLASS z2ui5_cl_ui5_app_anim_wizard DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app_anim_wizard IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_app_anim_wiz IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
