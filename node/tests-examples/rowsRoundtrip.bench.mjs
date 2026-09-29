@@ -12,6 +12,8 @@
  *   node node/tests-examples/rowsRoundtrip.bench.mjs              1000 2000 4000 rows
  *   node node/tests-examples/rowsRoundtrip.bench.mjs 500 8000     rows of your own
  *   node node/tests-examples/rowsRoundtrip.bench.mjs --fast 16000 the fast paths only
+ *   node node/tests-examples/rowsRoundtrip.bench.mjs --delta 2000 the event carries one edited
+ *        cell (MODEL: { MT_ROWS: { __delta: ... } }), as the frontend sends it
  *   node node/tests-examples/rowsRoundtrip.bench.mjs --als 2000   inside an AsyncLocalStorage
  *        context, as CAP runs a request; node flags go along to the measured
  *        process (node --experimental-async-context-frame <this file> --als)
@@ -103,8 +105,8 @@ if (process.argv[2] === "--child") {
   const als = process.env.BENCH_ALS === "1" ? new (await import("node:async_hooks")).AsyncLocalStorage() : null;
 
   // one POST through the shim, express-shaped as host.mjs's handler hands it on
-  const post = async (front) => {
-    const body = Buffer.from(JSON.stringify({ value: { S_FRONT: { ORIGIN: "http://localhost", PATHNAME: "/", SEARCH: search, ...front } } }));
+  const post = async (front, model) => {
+    const body = Buffer.from(JSON.stringify({ value: { ...(model && { MODEL: model }), S_FRONT: { ORIGIN: "http://localhost", PATHNAME: "/", SEARCH: search, ...front } } }));
     const out = { status: 0, body: Buffer.alloc(0) };
     const res = {
       append() {},
@@ -123,7 +125,10 @@ if (process.argv[2] === "--child") {
 
   const start = await post({});
   if (start.json.S_FRONT?.APP !== "ZCL_BENCH_ROWS") throw new Error(`the app did not start: ${JSON.stringify(start.json).slice(0, 400)}`);
-  const event = await post({ ID: start.json.S_FRONT.ID, EVENT: "BENCH" });
+  // --delta: the event carries one edited cell, as the frontend sends it
+  // (Lib.buildDeltaFromPaths) - the row delta the backend merges
+  const delta = process.env.BENCH_DELTA === "1" ? { MT_ROWS: { __delta: { [String(Math.floor(Number(rowsArg) / 2))]: { NAME: "edited" } } } } : undefined;
+  const event = await post({ ID: start.json.S_FRONT.ID, EVENT: "BENCH" }, delta);
   process.stdout.write(JSON.stringify({ start: start.ms, event: event.ms, startCpu: start.cpu, eventCpu: event.cpu,
     bytes: start.bytes, gzip: start.gzip, heap: process.memoryUsage().heapUsed }));
   process.exit(0);
@@ -133,6 +138,7 @@ if (process.argv[2] === "--child") {
 const args = process.argv.slice(2);
 const fastOnly = args.includes("--fast");
 const withAls = args.includes("--als");
+const withDelta = args.includes("--delta");
 const counts = args.filter((a) => /^\d+$/.test(a)).map(Number);
 const ROWS = counts.length ? counts : [1000, 2000, 4000];
 
@@ -183,13 +189,13 @@ const modes = fastOnly ? ["fast"] : ["plain", "fast"];
 const results = [];
 const s = (ms) => (ms / 1000).toFixed(2).padStart(7) + " s";
 console.log(`node ${process.version}, @abaplint/runtime ${JSON.parse(fs.readFileSync(path.join(ROOT, "node_modules/@abaplint/runtime/package.json"), "utf8")).version}`);
-console.log(`${withAls ? "inside an AsyncLocalStorage context, " : ""}wall time (CPU time) of one roundtrip`);
+console.log(`${withAls ? "inside an AsyncLocalStorage context, " : ""}${withDelta ? "the event with one edited cell, " : ""}wall time (CPU time) of one roundtrip`);
 console.log("  rows  mode        start roundtrip         event roundtrip  response  gzipped");
 for (const rows of ROWS) {
   for (const mode of modes) {
     // the parent's node flags go along (--experimental-async-context-frame, say)
     const run = spawnSync(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), "--child", mode, String(rows), app],
-      { cwd: ROOT, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, env: { ...process.env, BENCH_ALS: withAls ? "1" : "" } });
+      { cwd: ROOT, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, env: { ...process.env, BENCH_ALS: withAls ? "1" : "", BENCH_DELTA: withDelta ? "1" : "" } });
     if (run.status !== 0) {
       console.error(`rows ${rows}, ${mode}: failed\n${run.stderr || run.stdout}`);
       process.exit(1);
