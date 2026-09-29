@@ -176,15 +176,49 @@ await initializeABAP();
 accelerate();
 ```
 
-In a CAP project (@cap2ui5/cds-plugin), the event roundtrip of an app whose
-one table is bound to a `sap.m.Table` took 6.2 s for 1000 rows and 22.6 s
-for 2000 - quadratic. With the fast paths 2000 rows take 1.8 s, 4000 rows
-2.6 s and 8000 rows 4.4 s.
+What one table of n rows bound to a `sap.m.Table` costs a roundtrip - the
+app fills the rows when it starts and shows them again on every event:
+
+| Rows | Start, before | Start, with `accelerate()` | Event, before | Event, with `accelerate()` |
+|---:|---:|---:|---:|---:|
+| 1000 | 2.3 s | 0.9 s | 3.3 s | 1.4 s |
+| 2000 | 5.4 s | 1.4 s | 8.8 s | 2.1 s |
+| 4000 | 19.8 s | 1.7 s | 31.3 s | 3.2 s |
+
+CPU time of one roundtrip on Node 22, each in a fresh process, measured with
+[`node/tests-examples/rowsRoundtrip.bench.mjs`](https://github.com/abap2UI5/abap2UI5/blob/main/node/tests-examples/rowsRoundtrip.bench.mjs)
+of abap2UI5. With the fast paths it stays linear further up: 4.5 s for the
+event roundtrip of 8000 rows, 9.5 s for 16000. In a CAP project (@cap2ui5/cds-plugin), the event roundtrip took
+6.2 s for 1000 rows and 22.6 s for 2000 before; with the fast paths 2000 rows
+take 1.8 s, 4000 rows 2.6 s and 8000 rows 4.4 s.
 
 The fast paths are validated for the one `@abaplint/runtime` version this
 package pins (`RUNTIME_VERSION`, exported next to `accelerate`). On any other
 version - an `overrides` entry in the host's `package.json`, say -
 `accelerate()` leaves the runtime alone, returns `false` and warns once.
+
+### Node 24
+
+Node 22 is the floor, Node 24 the recommendation. The transpiled framework is
+asynchronous through and through - every ABAP method is an async function -
+and Node 24 runs it faster: in one run of the benchmark above, the event
+roundtrip of 2000 rows took 1.4 s of CPU on Node 24 against 1.8 s on Node 22
+(5.9 s against 8.1 s without the fast paths). The gap widens behind a host
+that runs each request inside an `AsyncLocalStorage` context, as CAP does for
+`cds.context`, because before Node 24 such a context costs something on every
+promise: inside one (`--als` of the benchmark) the same roundtrip without the
+fast paths took 11.9 s instead of 8.1 s on Node 22, and 5.5 s on Node 24. In
+a CAP project the 2000 rows took 22.6 s on Node 22 and 11.0 s with nothing
+but `NODE_OPTIONS=--experimental-async-context-frame` (Node 22.7 and later) -
+the implementation Node 24 uses by default.
+
+### Restarts
+
+Importing `output/` - about 800 modules - and booting the runtime takes about
+a second. `NODE_COMPILE_CACHE=<dir>` (Node 22.1 and later) keeps V8's compiled
+code between restarts: with a warm cache the boot took a fifth less CPU here,
+and 35 % less in a CAP project. The directory has to outlive the process - a
+volume, in a container.
 
 ### Compression
 
@@ -247,7 +281,7 @@ say so in a test of its own.
 - The package version is the framework version (`z2ui5_if_app=>version`).
 - `@abaplint/runtime` and `@abaplint/database-sqlite` are pinned to the exact
   versions the transpile ran with. Transpiler output is tied to its runtime.
-- Node 22 or later.
+- Node 22 or later; Node 24 recommended (see [Node 24](#node-24)).
 
 ## Related
 
