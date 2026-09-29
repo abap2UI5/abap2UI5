@@ -50,6 +50,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_lookup_fail_no_latch FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_wasm_unsafe_eval FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_inline FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -109,13 +110,33 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `unsafe-eval` ) ).
+    " with its quotes: 'wasm-unsafe-eval' contains the bare word, and is not
+    " the keyword this test is about (see test_csp_wasm_unsafe_eval)
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_config-content_security_policy CS `'unsafe-eval'` ) ).
 
     REPLACE `script-src 'self'` IN ls_config-content_security_policy
             WITH `script-src 'self' 'unsafe-eval'`.
 
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' ui5.sap.com` ) ).
+        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' ui5.sap.com` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_wasm_unsafe_eval.
+
+    " the default script-src lets a script compile WebAssembly - the camera
+    " scanner of sap.ndc and the BarcodeScanner of the custom controls do -
+    " and no other directive carries the keyword
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_config-content_security_policy CS `script-src 'self' 'wasm-unsafe-eval' ui5.sap.com` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count( val = ls_config-content_security_policy
+                                                     sub = `wasm-unsafe-eval` ) ).
 
   ENDMETHOD.
 
