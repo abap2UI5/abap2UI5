@@ -1,4 +1,4 @@
-From 2c470d364819ce7c4be4d09800e6243726e552fe Mon Sep 17 00:00:00 2001
+From c5b6d3ee2e8ae195a92dc649102739bef93e99ce Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
 Date: Mon, 14 Sep 2026 08:22:31 +0000
 Subject: [PATCH] Three rules: subrc_after_assign, preferred_parameter_ignored,
@@ -75,7 +75,7 @@ Claude-Session: https://claude.ai/code/session_01WNnsZnJAf6zEg8phCFVoB5
  create mode 100644 packages/core/test/rules/subrc_after_assign.ts
 
 diff --git a/packages/core/scripts/schema.json b/packages/core/scripts/schema.json
-index 46b3911..44a9d6e 100644
+index 05c6248..b1c1a26 100644
 --- a/packages/core/scripts/schema.json
 +++ b/packages/core/scripts/schema.json
 @@ -1210,6 +1210,23 @@
@@ -115,12 +115,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own cursor is what sy-tabix holds, so deleting by it shortens the table under the walk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
++              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own\ncursor is what sy-tabix holds, so deleting by it shortens the table under the\nwalk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
 +            },
              "description_empty": {
                "anyOf": [
                  {
-@@ -3335,6 +3363,17 @@
+@@ -3379,6 +3407,17 @@
                ],
                "description": "Configure undesired operator variants\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_compare_operator"
              },
@@ -133,12 +133,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory parameter. The addition names the parameter a positional call fills, which only means something when every parameter may be left out - so with a mandatory one present it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
++              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory\nparameter. The addition names the parameter a positional call fills, which only\nmeans something when every parameter may be left out - so with a mandatory one\npresent it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
 +            },
              "prefix_is_current_class": {
                "anyOf": [
                  {
-@@ -3599,6 +3638,17 @@
+@@ -3643,6 +3682,17 @@
                ],
                "description": "Strict SQL\nTags: Upport, Quickfix\nhttps://rules.abaplint.org/strict_sql"
              },
@@ -151,12 +151,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain ASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test reads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
++              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain\nASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test\nreads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
 +            },
              "superclass_final": {
                "anyOf": [
                  {
-@@ -4446,6 +4496,17 @@
+@@ -4512,6 +4562,17 @@
                ],
                "description": "Checks that definitions are placed at the beginning of METHODs, FORMs and FUNCTIONs.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/definitions_top"
              },
@@ -169,12 +169,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own cursor is what sy-tabix holds, so deleting by it shortens the table under the walk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
++              "description": "DELETE itab INDEX sy-tabix inside a LOOP AT that same table. The loop's own\ncursor is what sy-tabix holds, so deleting by it shortens the table under the\nwalk: the following row is skipped, and the last round runs off the end.\nTags: SingleFile\nhttps://rules.abaplint.org/delete_index_in_loop"
 +            },
              "description_empty": {
                "anyOf": [
                  {
-@@ -5458,6 +5519,17 @@
+@@ -5568,6 +5629,17 @@
                ],
                "description": "Configure undesired operator variants\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_compare_operator"
              },
@@ -187,12 +187,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory parameter. The addition names the parameter a positional call fills, which only means something when every parameter may be left out - so with a mandatory one present it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
++              "description": "PREFERRED PARAMETER on an IMPORTING clause that still has a mandatory\nparameter. The addition names the parameter a positional call fills, which only\nmeans something when every parameter may be left out - so with a mandatory one\npresent it does nothing.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/preferred_parameter_ignored"
 +            },
              "prefix_is_current_class": {
                "anyOf": [
                  {
-@@ -5722,6 +5794,17 @@
+@@ -5832,6 +5904,17 @@
                ],
                "description": "Strict SQL\nTags: Upport, Quickfix\nhttps://rules.abaplint.org/strict_sql"
              },
@@ -205,12 +205,12 @@ index 46b3911..44a9d6e 100644
 +                  "type": "boolean"
 +                }
 +              ],
-+              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain ASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test reads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
++              "description": "A sy-subrc test whose nearest preceding sy-subrc-setting statement is a plain\nASSIGN. On 7.40 SP7 a successful ASSIGN does not reset sy-subrc, so the test\nreads a value an earlier statement left behind.\nTags: SingleFile, Quickfix\nhttps://rules.abaplint.org/subrc_after_assign"
 +            },
              "superclass_final": {
                "anyOf": [
                  {
-@@ -8268,6 +8351,23 @@
+@@ -8468,6 +8551,23 @@
        ],
        "type": "object"
      },
@@ -234,7 +234,7 @@ index 46b3911..44a9d6e 100644
      "PrefixIsCurrentClassConf": {
        "additionalProperties": false,
        "properties": {
-@@ -8920,6 +9020,30 @@
+@@ -9120,6 +9220,30 @@
        },
        "type": "object"
      },
@@ -266,7 +266,7 @@ index 46b3911..44a9d6e 100644
        "additionalProperties": false,
        "properties": {
 diff --git a/packages/core/scripts/schema.ts b/packages/core/scripts/schema.ts
-index 53ee9ba..c433836 100644
+index 5333af8..8b86a9c 100644
 --- a/packages/core/scripts/schema.ts
 +++ b/packages/core/scripts/schema.ts
 @@ -46,6 +46,7 @@ import {CyclomaticComplexityConf} from "../src/rules/cyclomatic_complexity";
@@ -277,15 +277,15 @@ index 53ee9ba..c433836 100644
  import {DescriptionEmptyConf} from "../src/rules/description_empty";
  import {DoubleSpaceConf} from "../src/rules/double_space";
  import {DownportConf} from "../src/rules/downport";
-@@ -138,6 +139,7 @@ import {PreferRaiseExceptionNewConf} from "../src/rules/prefer_raise_exception_n
- import {PreferReturningToExportingConf} from "../src/rules/prefer_returning_to_exporting";
+@@ -142,6 +143,7 @@ import {PreferReturningToExportingConf} from "../src/rules/prefer_returning_to_e
+ import {PreferStringTemplateConf} from "../src/rules/prefer_string_template";
  import {PreferXsdboolConf} from "../src/rules/prefer_xsdbool";
  import {PreferredCompareOperatorConf} from "../src/rules/preferred_compare_operator";
 +import {PreferredParameterIgnoredConf} from "../src/rules/preferred_parameter_ignored";
  import {PrefixIsCurrentClassConf} from "../src/rules/prefix_is_current_class";
  import {ReduceProceduralCodeConf} from "../src/rules/reduce_procedural_code";
  import {ReduceStringTemplatesConf} from "../src/rules/reduce_string_templates";
-@@ -162,6 +164,7 @@ import {SQLValueConversionConf} from "../src/rules/sql_value_conversion";
+@@ -166,6 +168,7 @@ import {SQLValueConversionConf} from "../src/rules/sql_value_conversion";
  import {StartAtTabConf} from "../src/rules/start_at_tab";
  import {StaticCallViaInstanceConf} from "../src/rules/static_call_via_instance";
  import {StrictSQLConf} from "../src/rules/strict_sql";
@@ -293,7 +293,7 @@ index 53ee9ba..c433836 100644
  import {SuperclassFinalConf} from "../src/rules/superclass_final";
  import {SuperfluousValueConf} from "../src/rules/superfluous_value";
  import {SyModificationConf} from "../src/rules/sy_modification";
-@@ -252,6 +255,7 @@ export interface IConfig {
+@@ -258,6 +261,7 @@ export interface IConfig {
      "dangerous_statement"?: DangerousStatementConf | boolean,
      "db_operation_in_loop"?: DbOperationInLoopConf | boolean,
      "definitions_top"?: DefinitionsTopConf | boolean,
@@ -301,15 +301,15 @@ index 53ee9ba..c433836 100644
      "description_empty"?: DescriptionEmptyConf | boolean,
      "double_space"?: DoubleSpaceConf | boolean,
      "downport"?: DownportConf | boolean,
-@@ -344,6 +348,7 @@ export interface IConfig {
-     "prefer_returning_to_exporting"?: PreferReturningToExportingConf | boolean,
+@@ -354,6 +358,7 @@ export interface IConfig {
+     "prefer_string_template"?: PreferStringTemplateConf | boolean,
      "prefer_xsdbool"?: PreferXsdboolConf | boolean,
      "preferred_compare_operator"?: PreferredCompareOperatorConf | boolean,
 +    "preferred_parameter_ignored"?: PreferredParameterIgnoredConf | boolean,
      "prefix_is_current_class"?: PrefixIsCurrentClassConf | boolean,
      "reduce_procedural_code"?: ReduceProceduralCodeConf | boolean,
      "reduce_string_templates"?: ReduceStringTemplatesConf | boolean,
-@@ -368,6 +373,7 @@ export interface IConfig {
+@@ -378,6 +383,7 @@ export interface IConfig {
      "start_at_tab"?: StartAtTabConf | boolean,
      "static_call_via_instance"?: StaticCallViaInstanceConf | boolean,
      "strict_sql"?: StrictSQLConf | boolean,
@@ -317,7 +317,7 @@ index 53ee9ba..c433836 100644
      "superclass_final"?: SuperclassFinalConf | boolean,
      "superfluous_value"?: SuperfluousValueConf | boolean,
      "sy_modification"?: SyModificationConf | boolean,
-@@ -447,6 +453,7 @@ export interface IConfig {
+@@ -459,6 +465,7 @@ export interface IConfig {
      "dangerous_statement"?: DangerousStatementConf | boolean,
      "db_operation_in_loop"?: DbOperationInLoopConf | boolean,
      "definitions_top"?: DefinitionsTopConf | boolean,
@@ -325,15 +325,15 @@ index 53ee9ba..c433836 100644
      "description_empty"?: DescriptionEmptyConf | boolean,
      "double_space"?: DoubleSpaceConf | boolean,
      "downport"?: DownportConf | boolean,
-@@ -539,6 +546,7 @@ export interface IConfig {
-     "prefer_returning_to_exporting"?: PreferReturningToExportingConf | boolean,
+@@ -555,6 +562,7 @@ export interface IConfig {
+     "prefer_string_template"?: PreferStringTemplateConf | boolean,
      "prefer_xsdbool"?: PreferXsdboolConf | boolean,
      "preferred_compare_operator"?: PreferredCompareOperatorConf | boolean,
 +    "preferred_parameter_ignored"?: PreferredParameterIgnoredConf | boolean,
      "prefix_is_current_class"?: PrefixIsCurrentClassConf | boolean,
      "reduce_procedural_code"?: ReduceProceduralCodeConf | boolean,
      "reduce_string_templates"?: ReduceStringTemplatesConf | boolean,
-@@ -563,6 +571,7 @@ export interface IConfig {
+@@ -579,6 +587,7 @@ export interface IConfig {
      "start_at_tab"?: StartAtTabConf | boolean,
      "static_call_via_instance"?: StaticCallViaInstanceConf | boolean,
      "strict_sql"?: StrictSQLConf | boolean,
@@ -505,7 +505,7 @@ index 0000000..c8e03f5
 +
 +}
 diff --git a/packages/core/src/rules/index.ts b/packages/core/src/rules/index.ts
-index c118ffa..f689c93 100644
+index b8c53ce..8d3dcb2 100644
 --- a/packages/core/src/rules/index.ts
 +++ b/packages/core/src/rules/index.ts
 @@ -27,6 +27,9 @@ export * from "./check_comments";
