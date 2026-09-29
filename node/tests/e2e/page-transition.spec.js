@@ -2,10 +2,11 @@
 // Page transitions of the MAIN view, view_display( transition = ... ),
 // against the transpiled backend and a real sap.m.App - on the pinned
 // current release and, through the ui5-1.71 project, on OpenUI5 1.71.
-// The demo apps are the shipped z2ui5_cl_ui5_app_anim_* classes of
-// src/01/04: a hub with one button per transition, the page it opens (Back,
-// Deeper, Re-render, Replace, a popup-as-app), an app with screens of its
-// own, and the switch that turns hash routing on for the browser buttons.
+// The test apps are node/srv/zcl_tst_anim_*.clas.abap: a hub with one
+// button per transition, the page it opens (Back, Deeper, Re-render,
+// Replace, a popup-as-app), an app with screens of its own, and the switch
+// that turns hash routing on for the browser buttons. The same demo ships as
+// the sample Z2UI5_CL_SMP_APP_531 of abap2UI5/samples.
 //
 // What is asserted is what the root NavContainer was asked to do - its
 // to( ), insertPreviousPage( ) and backToPage( ) calls, spied on the
@@ -14,7 +15,7 @@
 // framework asks for the right move, in the right direction, is this one's.
 const { test, expect } = require("./fixtures");
 
-const HUB = "z2ui5_cl_ui5_app_anim_hub";
+const HUB = "zcl_tst_anim_hub";
 
 async function start(page) {
   await page.goto(`/?app_start=${HUB}`);
@@ -159,11 +160,11 @@ test("the browser buttons under hash routing: Back reverses, Forward repeats", a
 }) => {
   await start(page);
   await page.locator('[id$="--routing"]').click();
-  await expect(page).toHaveURL(/#\/app\/Z2UI5_CL_UI5_APP_ANIM_HUB\//);
+  await expect(page).toHaveURL(/#\/app\/ZCL_TST_ANIM_HUB\//);
 
   await page.locator('[id$="--go-fade"]').click();
   await expect(page.locator('[id$="--arrival"]')).toContainText("fade");
-  await expect(page).toHaveURL(/#\/app\/Z2UI5_CL_UI5_APP_ANIM_PG\//);
+  await expect(page).toHaveURL(/#\/app\/ZCL_TST_ANIM_PAGE\//);
   await settled(page);
 
   await page.goBack();

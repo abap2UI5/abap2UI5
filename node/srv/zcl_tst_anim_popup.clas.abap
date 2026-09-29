@@ -3,7 +3,7 @@
 " stays on screen. Closing hands back with nav_app_leave( ), the caller
 " re-displays - and the page does NOT move: the display carries the app
 " instance, and the frontend sees that the page on screen belongs to it.
-CLASS z2ui5_cl_ui5_app_anim_pop DEFINITION PUBLIC FINAL.
+CLASS zcl_tst_anim_popup DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -13,7 +13,7 @@ CLASS z2ui5_cl_ui5_app_anim_pop DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5_app_anim_pop IMPLEMENTATION.
+CLASS zcl_tst_anim_popup IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
