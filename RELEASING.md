@@ -76,6 +76,12 @@ The artefact of that run IS the bootstrap — nothing has to be built locally:
 From the next release on, the workflow publishes with no token. An
 `NPM_TOKEN` organisation secret is the fallback, not the plan.
 
+**`@abap2ui5/bsp`** (`tools/bsp/`, a UI5 app as an abapGit BSP and back) is
+published by the job `bsp` of the same workflow and needs the same one-time
+setup: the artefact is `abap2ui5-bsp-<version>` (`npm publish
+./abap2ui5-bsp-<version>.tgz --access public`), and its Trusted Publisher
+entry names the same workflow file, `backend-prebuilt.yaml`.
+
 ## Cutting a release
 
 1. **`changelog.txt`** — move the `unreleased` entries under a heading:

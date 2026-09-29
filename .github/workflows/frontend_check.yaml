@@ -66,6 +66,13 @@ jobs:
     - name: Lint frontend/abap
       run: npm run frontend:lint
 
+    # @abap2ui5/bsp (tools/bsp) writes the BSP of every tree below, and is
+    # published for any other UI5 app to become a BSP: its page format, its
+    # refusals, and abap2UI5's own webapp through app2bsp, check and bsp2app
+    # and back, byte for byte
+    - name: Test @abap2ui5/bsp
+      run: npm run test:bsp
+
     # The renamed variant is built on demand by frontend_deploy; it is built
     # here too because the rename rewrites the generated page and has its own
     # way of going wrong. It builds its own base tree into its own directory,

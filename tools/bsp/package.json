@@ -1,0 +1,42 @@
+{
+  "name": "@abap2ui5/bsp",
+  "version": "0.0.0-set-at-pack",
+  "description": "A UI5 app as an abapGit BSP, and back: app2bsp, bsp2app and the page rules, no dependencies.",
+  "keywords": [
+    "abap2ui5",
+    "abapgit",
+    "bsp",
+    "ui5",
+    "openui5",
+    "sapui5",
+    "abap"
+  ],
+  "homepage": "https://github.com/abap2UI5/abap2UI5/tree/main/tools/bsp#readme",
+  "bugs": {
+    "url": "https://github.com/abap2UI5/abap2UI5/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abap2UI5/abap2UI5.git",
+    "directory": "tools/bsp"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "abap2ui5-bsp": "cli.mjs"
+  },
+  "exports": {
+    ".": "./index.mjs",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "cli.mjs",
+    "index.mjs",
+    "lib"
+  ]
+}

@@ -61,6 +61,9 @@ import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
 // The banner without the provenance line; branch-stamp.mjs stamps the commit
 // in at deploy time, because it does not exist yet here.
 import { banner } from "./branch-stamp.mjs";
+// The BSP itself is written by @abap2ui5/bsp (tools/bsp) - the same package
+// an app of any other project takes to become a BSP.
+import { writeFrontendBsp } from "./app2bsp/frontend-bsp.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const core = join(here, "..");
@@ -137,19 +140,6 @@ const posix = (p) => p.split(sep).join("/");
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(posix(relative(core, src)));
 
-// Quiet on success, never on failure: the discarded log is the only thing
-// that says WHY a step failed (same pattern as runUi5Build in
-// app2bsp/preload.js).
-function runQuiet(args, cwd) {
-  try {
-    execFileSync("node", args, { cwd, stdio: ["ignore", "pipe", "pipe"] });
-  } catch (error) {
-    process.stderr.write(String(error.stdout ?? ""));
-    process.stderr.write(String(error.stderr ?? ""));
-    throw error;
-  }
-}
-
 // The cloud branches ship the Fiori project from app/ - the same one this
 // repository is developed with, so the two cannot drift apart. What they do
 // NOT ship is the tooling that project is developed WITH: the linter and
@@ -221,7 +211,7 @@ function buildCloudVariant(branch) {
   }
 }
 
-// Classic BSP via app2bsp + ICF handler
+// Classic BSP via app2bsp/preload.js + @abap2ui5/bsp + ICF handler
 function buildStandard(branch = "standard") {
   const dir = initBranch(branch, ABAPGIT_STANDARD);
   const work = join(scratch, "_work_standard");
@@ -232,7 +222,7 @@ function buildStandard(branch = "standard") {
   cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
   cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
   execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-  runQuiet([".github/app2bsp/run.js"], work);
+  writeFrontendBsp(join(work, "frontend/app/webapp"), join(work, "src/02"));
   cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
   cpSync(join(work, "src/02"), join(dir, "src/02"), { recursive: true });
   rmSync(work, { recursive: true, force: true });
