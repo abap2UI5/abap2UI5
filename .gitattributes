@@ -16,3 +16,7 @@
 *.js text eol=lf
 *.yaml text eol=lf
 *.yml text eol=lf
+# A patch is a byte-exact artifact to be applied elsewhere: the CRLF of a
+# CRLF file it changes is part of its content, and normalizing it to LF
+# makes `git am --keep-cr` fail on exactly those hunks
+backlog/patches/*.patch -text

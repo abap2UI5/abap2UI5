@@ -1,0 +1,68 @@
+From 635284bbf765fb39cbd87034e7b275d3aa2d146b Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 29 Sep 2026 21:02:36 +0000
+Subject: [PATCH] LOOP ... WHERE with an OR: no topEquals, so a key does not
+ narrow by it
+
+The transpiler handed the runtime every `=` of a LOOP's WHERE as a
+condition all rows have to meet (topEquals), also the ones on either side
+of an OR - ComponentCond is cnd (AND|OR cnd)*, and findDirectExpressions
+collects the compares without looking at the operators between them. The
+runtime narrows a secondary key by topEquals, so
+
+  LOOP AT t INTO r USING KEY k WHERE a = 1 OR b = 2.
+
+(k over a) binary-searched a = 1 and never visited the rows only b = 2
+accepts: 1/0 1/2 instead of 1/0 1/2 2/2. topEquals is now emitted only
+for a pure conjunction; a = 1 AND ( b = 2 OR b = 3 ) keeps {a}.
+---
+ packages/transpiler/src/statements/loop.ts |  6 +++++-
+ test/statements/loop.ts                    | 16 ++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/packages/transpiler/src/statements/loop.ts b/packages/transpiler/src/statements/loop.ts
+index 3a99c81..7b81779 100644
+--- a/packages/transpiler/src/statements/loop.ts
++++ b/packages/transpiler/src/statements/loop.ts
+@@ -122,7 +122,11 @@ export class LoopTranspiler implements IStatementTranspiler {
+     }
+ 
+     const topEquals: {[key: string]: string} = {};
+-    for (const compare of whereNode?.findDirectExpressions(abaplint.Expressions.ComponentCompare) || []) {
++    // only a pure conjunction makes each top-level `=` a condition every row
++    // has to meet: `a = 1 OR b = 2` narrows by neither
++    const onlyAnd = whereNode?.getChildren().every(
++      c => !(c instanceof abaplint.Nodes.TokenNode) || c.concatTokens().toUpperCase() !== "OR") ?? true;
++    for (const compare of onlyAnd ? whereNode?.findDirectExpressions(abaplint.Expressions.ComponentCompare) || [] : []) {
+       const op = compare.findDirectExpression(abaplint.Expressions.CompareOperator)?.concatTokens().toUpperCase();
+       if (op !== "=" && op !== "EQ") {
+         continue;
+diff --git a/test/statements/loop.ts b/test/statements/loop.ts
+index e5c7655..1127e1d 100644
+--- a/test/statements/loop.ts
++++ b/test/statements/loop.ts
+@@ -1315,4 +1315,20 @@ ENDLOOP.`;
+     */
+   });
+ 
++
++  it("LOOP USING KEY WHERE with OR, the OR side outside the key is not dropped", async () => {
++    const code = `
++TYPES: BEGIN OF ty, a TYPE i, b TYPE i, END OF ty.
++DATA t TYPE STANDARD TABLE OF ty WITH NON-UNIQUE KEY a b
++       WITH NON-UNIQUE SORTED KEY k COMPONENTS a.
++DATA r TYPE ty.
++t = VALUE #( ( a = 1 b = 0 ) ( a = 2 b = 2 ) ( a = 3 b = 0 ) ( a = 1 b = 2 ) ).
++LOOP AT t INTO r USING KEY k WHERE a = 1 OR b = 2.
++  WRITE / |{ r-a }/{ r-b }|.
++ENDLOOP.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("1/0\n1/2\n2/2");
++  });
+ });
+\ No newline at end of file
+-- 
+2.43.0
+

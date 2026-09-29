@@ -1,0 +1,150 @@
+From b9b349be5e04753646038b8d2826bee26a1f0ac7 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 29 Sep 2026 21:13:10 +0000
+Subject: [PATCH] CP: compile a pattern once, and let a trailing * end the
+ match
+
+cp( ) built new RegExp("^" + pattern + "$", "iu") on every call, and a
+trailing * became [\s\S]*$, which makes the engine walk the whole rest of
+the string to confirm what the characters before the * already decided.
+open-abap's XML parser (cl_ixml, if_ixml_parser~parse) asks lv_xml CP
+'<*' (and '<?*', '<!--*', '</*', ...) once per token with lv_xml the REST
+of the document, so reading a document cost the square of its length -
+abap2UI5's draft of a large table is one such document.
+
+^X[\s\S]*$ matches exactly the strings ^X matches, so a trailing run of *
+and the $ go. The compiled pattern is kept per pattern string (at most
+1000). np( ) and a range row with option CP get it through cp( ).
+Verified against the old function with 30 000 seeded cases per run
+(Unicode incl. astral and lone surrogates, Kelvin sign and long s under
+iu, trailing blanks of c operands, # escapes incl. #*, ## and a trailing
+#, +, runs of *); the new test pins the same answers.
+---
+ packages/runtime/src/compare/cp.ts | 67 ++++++++++++++++++------------
+ test/operators/cp.ts               | 25 +++++++++++
+ 2 files changed, 66 insertions(+), 26 deletions(-)
+
+diff --git a/packages/runtime/src/compare/cp.ts b/packages/runtime/src/compare/cp.ts
+index 9fcbd17..bd3e42d 100644
+--- a/packages/runtime/src/compare/cp.ts
++++ b/packages/runtime/src/compare/cp.ts
+@@ -6,6 +6,40 @@ function escapeRegExpCharacter(input: string): string {
+   return input.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
+ }
+ 
++const CACHE_SIZE = 1000;
++const cache = new Map<string, RegExp>();
++
++/** `end` is the pattern's length after the last token that is not a `*`: what
++ *  follows is a run of trailing `[\s\S]*`, which matches any rest of the
++ *  string - so it goes, and so does the `$` that made the engine walk there */
++function compile(r: string): RegExp {
++  let pattern = "";
++  let end = 0;
++  for (let i = 0; i < r.length; i++) {
++    const current = r[i];
++    if (current === "*") {
++      pattern += "[\\s\\S]*";
++      continue;
++    }
++    if (current === "#") {
++      if (i + 1 < r.length) {
++        const next = r[i + 1];
++        pattern += next === "#" ? "#" : escapeRegExpCharacter(next);
++        i++;
++      } else {
++        pattern += "#";
++      }
++    } else if (current === "+") {
++      pattern += "[\\s\\S]";
++    } else {
++      pattern += escapeRegExpCharacter(current);
++    }
++    end = pattern.length;
++  }
++  const open = end < pattern.length;
++  return new RegExp("^" + pattern.slice(0, end) + (open ? "" : "$"), "iu");
++}
++
+ export function cp(left: number | string | ICharacter | INumeric | Structure, right: string | ICharacter): boolean {
+   let l = "";
+   if (typeof left === "number" || typeof left === "string") {
+@@ -32,32 +66,13 @@ export function cp(left: number | string | ICharacter | INumeric | Structure, ri
+     r = right.get().toString().trimEnd();
+   }
+ 
+-  let pattern = "";
+-  for (let i = 0; i < r.length; i++) {
+-    const current = r[i];
+-    if (current === "#") {
+-      if (i + 1 < r.length) {
+-        const next = r[i + 1];
+-        if (next === "#") {
+-          pattern += "#";
+-          i++;
+-        } else {
+-          pattern += escapeRegExpCharacter(next);
+-          i++;
+-        }
+-      } else {
+-        pattern += "#";
+-      }
+-    } else if (current === "*") {
+-      pattern += "[\\s\\S]*";
+-    } else if (current === "+") {
+-      pattern += "[\\s\\S]";
+-    } else {
+-      pattern += escapeRegExpCharacter(current);
++  let reg = cache.get(r);
++  if (reg === undefined) {
++    reg = compile(r);
++    if (cache.size >= CACHE_SIZE) {
++      cache.delete(cache.keys().next().value!);
+     }
++    cache.set(r, reg);
+   }
+-
+-  const reg = new RegExp("^" + pattern + "$", "iu");
+-
+-  return l.match(reg) !== null;
++  return reg.test(l);
+ }
+\ No newline at end of file
+diff --git a/test/operators/cp.ts b/test/operators/cp.ts
+index 4653b42..7fb2913 100644
+--- a/test/operators/cp.ts
++++ b/test/operators/cp.ts
+@@ -221,4 +221,29 @@ ENDLOOP.`;
+     await f(abap);
+   });
+ 
++  it("CP with a trailing wildcard, escapes and case, the same pattern twice", async () => {
++    const code = `
++DATA text TYPE string.
++DEFINE _cp.
++  IF &1 CP &2. WRITE / 'X'. ELSE. WRITE / '-'. ENDIF.
++END-OF-DEFINITION.
++text = |<?xml version="1.0"?>\\n<root/>|.
++_cp text '<?*'.
++_cp text '<!--*'.
++_cp text '<*'.
++_cp 'abc' 'abc*'.
++_cp 'ab' 'abc*'.
++_cp 'ABC' 'a*'.
++_cp 'x*y' 'x#*y'.
++_cp 'xzy' 'x#*y'.
++_cp 'x*y' 'x#**'.
++_cp 'a#' 'a#'.
++_cp 'a' 'a**'.
++_cp '' '*'.
++_cp 'abc' 'abc*'.`;
++    const js = await run(code);
++    const f = new AsyncFunction("abap", js);
++    await f(abap);
++    expect(abap.console.get()).to.equal("X\n-\nX\nX\n-\nX\nX\n-\nX\nX\nX\nX\nX");
++  });
+ });
+\ No newline at end of file
+-- 
+2.43.0
+

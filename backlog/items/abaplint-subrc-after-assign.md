@@ -131,7 +131,7 @@ distinction between this and a defect that is wrong everywhere.
 
 All three rules are written, tested and measured. The change is attached as
 [`backlog/patches/abaplint-three-rules.patch`](../patches/abaplint-three-rules.patch)
-(`git am` against `abaplint/abaplint`) - one commit carrying all three, because
+(`git am` against `abaplint/abaplint` f09171a) - one commit carrying all three, because
 they were written and measured in one pass:
 
 | rule | findings on abap2UI5 / samples / samples-controls / samples-stack |
@@ -142,6 +142,11 @@ they were written and measured in one pass:
 
 `npm test` in `packages/core`: **11020 passing**, eslint clean,
 `scripts/schema.json` regenerated.
+
+Refreshed 2026-09-29 onto f09171a, where the old patch applied only with
+`git am -3`. It now carries the `scripts/schema.json` that `npm run schema`
+writes from the rule sources. `npm test` in `packages/core`: 11 189 passing
+(32 pending), eslint and api-extractor clean.
 
 It is not open as a pull request because this session has no write access to
 `abaplint/abaplint` (the Claude GitHub App is not installed on the `abaplint`
