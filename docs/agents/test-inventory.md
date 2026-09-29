@@ -57,7 +57,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `devtools/Format.js` | `devtoolsFormat.spec.js` | — |
 | `devtools/Report.js` | `devtoolsReport.spec.js` | — |
 | `devtools/AbapSource.js` | `devtoolsAbapSource.spec.js` | — |
-| `devtools/DevTools.js` | `devtoolsFacade.spec.js` | — |
+| `devtools/DevTools.js` | `devtoolsFacade.spec.js` | incl. an embedded component installing its tools without the page-wide console capture - the host's page, console and errors are not the app's |
 | `devtools/Recorder.js` | `devtoolsRecorder.spec.js` | — |
 | `devtools/Console.js` | `devtoolsConsole.spec.js` | — |
 | `devtools/Inspect.js` | `devtoolsInspect.spec.js` | the Overview, Environment, Registry, Actions and Error reports, and that the inspectors of their own module (below) answer through `Inspect` as well |

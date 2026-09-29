@@ -179,18 +179,29 @@ sap.ui.define(
       // it was captured BEFORE the problem, so this cannot wait for the
       // first Ctrl+F12 either. Bounded ring of short strings, page-wide
       // and use-counted (see the module header).
-      Console.install();
-      record.console = true;
+      //
+      // Not for an EMBEDDED component (state.embedded): the capture wraps
+      // the page's console and listens to the page's window, and that page
+      // is a HOST's - a console line names no component, so what the tools
+      // caught there was the host's own output and the host's uncaught
+      // errors (secrets in a message included). They filled this app's Log
+      // tab and bug report, and with "open on error" a host error opened
+      // this app's tools over the host. Embedded, the Log tab has the
+      // framework's own error log and the backend messages.
+      if (!ctx.state?.embedded) {
+        Console.install();
+        record.console = true;
 
-      // Console only announces an error when its "open on error" option
-      // is on (it owns that setting), so this handler is unconditional -
-      // except for the one guard that matters: never fight the user for
-      // the dialog when it is already open.
-      record.onConsoleError = () => {
-        if (record.tools?.oDialog?.isOpen?.()) return;
-        show(ctx, "LOG");
-      };
-      Console.addOnError(record.onConsoleError);
+        // Console only announces an error when its "open on error" option
+        // is on (it owns that setting), so this handler is unconditional -
+        // except for the one guard that matters: never fight the user for
+        // the dialog when it is already open.
+        record.onConsoleError = () => {
+          if (record.tools?.oDialog?.isOpen?.()) return;
+          show(ctx, "LOG");
+        };
+        Console.addOnError(record.onConsoleError);
+      }
 
       record.errorDetailsHook = () => onErrorDetails(ctx);
       Lib.registerCallback(ctx, "onErrorDetails", record.errorDetailsHook);

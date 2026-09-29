@@ -93,6 +93,11 @@ instead (`ctx.restart` -> `Component._restartApp`, `ErrorView.restart`):
 the app ends as on exit, the App controller starts it again with new
 controllers and a new backend session.
 
+**Done 2026-09-29 - the console.** The developer tools' page-wide capture
+(`devtools/Console.js`: the console methods, `error`/`unhandledrejection`,
+the UI5 log) took in the host's output and errors on a host's page. An
+embedded component installs its tools without it (`devtools/DevTools.js`).
+
 What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs

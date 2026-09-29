@@ -93,14 +93,16 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      Recorder.install(ctx);` && |\n| &&
              `` && |\n| &&
-             `      Console.install();` && |\n| &&
-             `      record.console = true;` && |\n| &&
+             `      if (!ctx.state?.embedded) {` && |\n| &&
+             `        Console.install();` && |\n| &&
+             `        record.console = true;` && |\n| &&
              `` && |\n| &&
-             `      record.onConsoleError = () => {` && |\n| &&
-             `        if (record.tools?.oDialog?.isOpen?.()) return;` && |\n| &&
-             `        show(ctx, "LOG");` && |\n| &&
-             `      };` && |\n| &&
-             `      Console.addOnError(record.onConsoleError);` && |\n| &&
+             `        record.onConsoleError = () => {` && |\n| &&
+             `          if (record.tools?.oDialog?.isOpen?.()) return;` && |\n| &&
+             `          show(ctx, "LOG");` && |\n| &&
+             `        };` && |\n| &&
+             `        Console.addOnError(record.onConsoleError);` && |\n| &&
+             `      }` && |\n| &&
              `` && |\n| &&
              `      record.errorDetailsHook = () => onErrorDetails(ctx);` && |\n| &&
              `      Lib.registerCallback(ctx, "onErrorDetails", record.errorDetailsHook);` && |\n| &&
