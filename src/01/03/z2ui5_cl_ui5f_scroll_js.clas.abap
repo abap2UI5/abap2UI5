@@ -26,11 +26,16 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Scrolling", {` && |\n| &&
+             `    const Scrolling = Control.extend("z2ui5.cc.Scrolling", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          setUpdate: {` && |\n| &&
@@ -157,6 +162,7 @@ CLASS z2ui5_cl_ui5f_scroll_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Scrolling);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

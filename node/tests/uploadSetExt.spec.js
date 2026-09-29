@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/UploadSetExt.js: invisible companion of a sap.m.upload.UploadSet that
 // reads every added file as a base64 data URL into bindable properties.
@@ -41,6 +41,7 @@ function load({ uploadSet } = {}) {
 
   const { module: UploadSetExtDef } = loadModule("cc/UploadSetExt.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": { byIdOfOwner: () => uploadSet ?? null },

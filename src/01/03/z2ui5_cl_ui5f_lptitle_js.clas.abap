@@ -31,8 +31,9 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/actions/Launchpad",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, Context, Launchpad) => {` && |\n| &&
+             `  (Control, Lib, Context, Launchpad, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function contextOf(control, where) {` && |\n| &&
@@ -44,7 +45,7 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `      return ctx;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
+             `    const LPTitle = Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          title: {` && |\n| &&
@@ -81,6 +82,7 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(LPTitle);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/LPTitle.js (obsolete, kept for backward compatibility): sets the FLP
 // shell title / full-width mode when running inside the Launchpad, does
@@ -22,6 +22,7 @@ function load({ oLaunchpad = null, context = true } = {}) {
 
   const { module: Launchpad } = loadModule("core/actions/Launchpad.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/m/library": { URLHelper: {} },
       "z2ui5/core/Lib": Lib,
     },
@@ -29,6 +30,7 @@ function load({ oLaunchpad = null, context = true } = {}) {
 
   const { module: LPTitleDef } = loadModule("cc/LPTitle.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },

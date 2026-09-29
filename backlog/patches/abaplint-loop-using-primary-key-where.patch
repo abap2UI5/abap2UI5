@@ -1,0 +1,84 @@
+From 38694a700e33fc66d05f49e1e2be1928811c02f2 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Tue, 29 Sep 2026 20:54:47 +0000
+Subject: [PATCH] LOOP ... USING KEY primary_key WHERE: primary_key is the
+ primary key
+
+check_syntax looked the key of a LOOP with USING KEY and a WHERE up among
+the table's secondary keys only, so the predefined name of the primary key
+was reported as "Key primary_key not found in table type" - for every
+table kind, with INTO and ASSIGNING alike. Without a WHERE, and in DELETE
+... USING KEY primary_key WHERE, the same name passed.
+
+primary_key is now accepted as the key every table has. The 7.40 SP02
+check of IS INITIAL on key fields stays as it was, for secondary keys; a
+key name the table does not have is still reported.
+---
+ .../core/src/abap/5_syntax/statements/loop.ts |  8 +++--
+ packages/core/test/abap/syntax/syntax.ts      | 31 +++++++++++++++++++
+ 2 files changed, 36 insertions(+), 3 deletions(-)
+
+diff --git a/packages/core/src/abap/5_syntax/statements/loop.ts b/packages/core/src/abap/5_syntax/statements/loop.ts
+index 680db85..0347058 100644
+--- a/packages/core/src/abap/5_syntax/statements/loop.ts
++++ b/packages/core/src/abap/5_syntax/statements/loop.ts
+@@ -105,9 +105,11 @@ export class Loop implements StatementSyntax {
+       // https://github.com/abap2xlsx/abap2xlsx/issues/1341
+       const keyName = node.findExpressionAfterToken("KEY");
+       let key: ITableKey | undefined = undefined;
+-      if (keyName?.get() instanceof Expressions.SimpleName) {
+-        // it might be dynamic, in that case we cannot check anything
+-        key = topType.getOptions().secondary?.find(k => k.name.toUpperCase() === keyName.getFirstToken().getStr().toUpperCase());
++      const name = keyName?.get() instanceof Expressions.SimpleName ? keyName.getFirstToken().getStr().toUpperCase() : undefined;
++      // it might be dynamic, in that case we cannot check anything; and
++      // primary_key is the predefined name of the primary key every table has
++      if (name !== undefined && name !== "PRIMARY_KEY") {
++        key = topType.getOptions().secondary?.find(k => k.name.toUpperCase() === name);
+         if (key === undefined) {
+           const message = "Key " + keyName?.concatTokens() + " not found in table type";
+           input.issues.push(syntaxIssue(input, node.getFirstToken(), message));
+diff --git a/packages/core/test/abap/syntax/syntax.ts b/packages/core/test/abap/syntax/syntax.ts
+index bafe123..88787e5 100644
+--- a/packages/core/test/abap/syntax/syntax.ts
++++ b/packages/core/test/abap/syntax/syntax.ts
+@@ -8379,6 +8379,37 @@ ENDLOOP.`;
+     expect(issues[0]?.getMessage()).to.equal(undefined);
+   });
+ 
++  it("loop USING KEY primary_key WHERE, sorted table", () => {
++    const abap = `
++TYPES: BEGIN OF ty, a TYPE i, b TYPE i, END OF ty.
++DATA tab TYPE SORTED TABLE OF ty WITH NON-UNIQUE KEY a
++         WITH NON-UNIQUE SORTED KEY sec COMPONENTS b.
++LOOP AT tab INTO DATA(row) USING KEY primary_key WHERE a = 1.
++ENDLOOP.`;
++    const issues = runProgram(abap);
++    expect(issues[0]?.getMessage()).to.equal(undefined);
++  });
++
++  it("loop USING KEY primary_key WHERE, standard table, field symbol", () => {
++    const abap = `
++TYPES: BEGIN OF ty, a TYPE i, b TYPE i, END OF ty.
++DATA tab TYPE STANDARD TABLE OF ty WITH EMPTY KEY.
++LOOP AT tab ASSIGNING FIELD-SYMBOL(<row>) USING KEY primary_key WHERE a = 1.
++ENDLOOP.`;
++    const issues = runProgram(abap);
++    expect(issues[0]?.getMessage()).to.equal(undefined);
++  });
++
++  it("loop USING KEY with WHERE, a key the table does not have", () => {
++    const abap = `
++TYPES: BEGIN OF ty, a TYPE i, b TYPE i, END OF ty.
++DATA tab TYPE SORTED TABLE OF ty WITH NON-UNIQUE KEY a.
++LOOP AT tab INTO DATA(row) USING KEY nope WHERE a = 1.
++ENDLOOP.`;
++    const issues = runProgram(abap);
++    expect(issues[0]?.getMessage()).to.equal("Key nope not found in table type");
++  });
++
+   it("classic delete FROM database table", () => {
+     const abap = `
+ DATA row TYPE zrst.
+-- 
+2.43.0
+

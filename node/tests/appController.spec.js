@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // controller/App.controller.js: the shell controller's one-time startup
 // wiring. Under test: the backend-URL decision (a host's endpoint vs. the
@@ -11,10 +12,12 @@ function load({
   manifest,
   checkLocal = false,
   endpoint = null,
+  embedded = false,
+  app = { id: "app" },
   href = "http://localhost:3000/",
 } = {}) {
   // the controller reads the owner component's context (Context.of)
-  const state = { checkLocal, endpoint };
+  const state = { checkLocal, endpoint, embedded };
   const ctx = { state, alive: true };
   const roundtrips = [];
   class View1Controller {}
@@ -26,6 +29,7 @@ function load({
 
   const { module: AppController } = loadModule("controller/App.controller.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
       "z2ui5/controller/View1.controller": View1Controller,
       "z2ui5/core/Server": { roundtrip: (c) => roundtrips.push(c) },
@@ -40,7 +44,7 @@ function load({
   const view = {
     byId: (id) => {
       byIdCalls.push(id);
-      return { id };
+      return app;
     },
   };
   const inst = Object.create(AppController);
@@ -155,4 +159,90 @@ test("the controllers carry the component's context, and the roundtrip gets it",
 
   for (const slot of slots) expect(state[slot.controllerProp].ctx).toBe(ctx);
   expect(roundtrips).toEqual([ctx]);
+});
+
+// An EMBEDDED component's sap.m.App must not focus the first input of the
+// first page it renders (NavContainer autoFocus): the page is the host's, and
+// on 1.136 every app took the focus out of the host field the user was typing
+// in. Off until that first page has rendered, back on from there - without an
+// invalidation, the property renders nothing - so a page transition later
+// still hands the focus on (only when it was in the page being left).
+function appStub() {
+  const delegates = [];
+  const app = {
+    autoFocus: true,
+    page: null,
+    invalidations: 0,
+    getAutoFocus() {
+      return this.autoFocus;
+    },
+    setAutoFocus(value) {
+      this.autoFocus = value;
+      this.invalidations += 1;
+    },
+    setProperty(name, value, suppressInvalidate) {
+      this[name] = value;
+      if (!suppressInvalidate) this.invalidations += 1;
+    },
+    getCurrentPage() {
+      return this.page;
+    },
+    addEventDelegate: (d) => delegates.push(d),
+    removeEventDelegate: (d) => delegates.splice(delegates.indexOf(d), 1),
+  };
+  const render = () => {
+    for (const d of delegates.slice()) d.onAfterRendering?.();
+  };
+  return { app, delegates, render };
+}
+
+test("embedded, the App does not focus the first page it renders", () => {
+  const { app, delegates, render } = appStub();
+  const { inst } = load({ manifest: MANIFEST, embedded: true, app });
+
+  inst.onInit();
+  expect(app.autoFocus).toBe(false);
+
+  // the App renders before the first roundtrip answered: no page yet
+  render();
+  expect(app.autoFocus).toBe(false);
+  expect(delegates).toHaveLength(1);
+
+  // the first page has rendered (and was not focused) - on again, for the
+  // page changes to come
+  app.page = { id: "mainView" };
+  render();
+  expect(app.autoFocus).toBe(true);
+  expect(delegates).toEqual([]);
+  // the one invalidation is the switch-off before the first rendering
+  expect(app.invalidations).toBe(1);
+});
+
+test("on a page of the app's own, the App keeps its autofocus", () => {
+  const { app, delegates } = appStub();
+  const { inst } = load({ manifest: MANIFEST, app });
+
+  inst.onInit();
+
+  expect(app.autoFocus).toBe(true);
+  expect(delegates).toEqual([]);
+  expect(app.invalidations).toBe(0);
+});
+
+// The restart of an embedded app in place (Component._restartApp) runs
+// startApp again: NEW controllers - whatever the app before them left
+// waiting asks Lib.isControllerAlive, and its controller is none of these -
+// and the first roundtrip once more.
+test("startApp again makes new controllers and one more first roundtrip", () => {
+  const { inst, state, roundtrips, slots } = load({ manifest: MANIFEST });
+  inst.onInit();
+  const before = slots.map((slot) => state[slot.controllerProp]);
+
+  inst.startApp();
+
+  slots.forEach((slot, i) => {
+    expect(state[slot.controllerProp]).not.toBe(before[i]);
+    expect(state[slot.controllerProp].ctx).toBe(before[i].ctx);
+  });
+  expect(roundtrips).toHaveLength(2);
 });

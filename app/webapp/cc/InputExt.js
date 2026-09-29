@@ -1,6 +1,6 @@
 sap.ui.define(
-  ["sap/m/Input", "sap/m/InputRenderer", "z2ui5/core/Lib"],
-  (Input, InputRenderer, Lib) => {
+  ["sap/m/Input", "sap/m/InputRenderer", "z2ui5/core/Lib", "z2ui5/core/Env"],
+  (Input, InputRenderer, Lib, Env) => {
     "use strict";
 
     // A sap.m.Input that carries the HTML `inputmode` of its inner <input> as
@@ -34,7 +34,7 @@ sap.ui.define(
       "url",
     ]);
 
-    return Input.extend("z2ui5.cc.InputExt", {
+    const InputExt = Input.extend("z2ui5.cc.InputExt", {
       metadata: {
         properties: {
           // The HTML inputmode: "none" hides the soft keyboard, "numeric",
@@ -112,5 +112,6 @@ sap.ui.define(
 
       renderer: InputRenderer,
     });
+    return Env.ownClass(InputExt);
   },
 );

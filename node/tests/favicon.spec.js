@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Favicon.js (obsolete, replaced by cs_event-set_favicon): sets the
 // browser tab icon from its bound `favicon` URL. The whole control is one
@@ -49,6 +49,7 @@ function load({ head = [] } = {}) {
   // dependencies are inert here
   const { module: Browser } = loadModule("core/actions/Browser.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/m/MessageBox": {},
       "sap/m/library": { URLHelper: {} },
       "sap/ui/util/Storage": function () {},
@@ -61,6 +62,7 @@ function load({ head = [] } = {}) {
 
   const { module: FaviconDef } = loadModule("cc/Favicon.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/actions/Browser": Browser,

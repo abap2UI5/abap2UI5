@@ -153,6 +153,66 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `    });` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  const ownClasses = [];` && |\n| &&
+             `  let hostPage = false;` && |\n| &&
+             `` && |\n| &&
+             `  const hostNamespaces = new WeakSet();` && |\n| &&
+             `  function collectHostNamespaces(object, depth) {` && |\n| &&
+             `    if (!object || typeof object !== "object" || depth > 3) return;` && |\n| &&
+             `    hostNamespaces.add(object);` && |\n| &&
+             `    for (const key of Object.keys(object)) {` && |\n| &&
+             `      collectHostNamespaces(object[key], depth + 1);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  collectHostNamespaces(window.z2ui5, 0);` && |\n| &&
+             `` && |\n| &&
+             `  function removeGlobal(name, value) {` && |\n| &&
+             `    if (!name || value === undefined) return;` && |\n| &&
+             `    const keys = String(name).split(".");` && |\n| &&
+             `    const leaf = keys.pop();` && |\n| &&
+             `    const chain = [window];` && |\n| &&
+             `    for (const key of keys) {` && |\n| &&
+             `      const next = chain[chain.length - 1][key];` && |\n| &&
+             `      if (!next || typeof next !== "object") return;` && |\n| &&
+             `      chain.push(next);` && |\n| &&
+             `    }` && |\n| &&
+             `    const holder = chain[chain.length - 1];` && |\n| &&
+             `    if (holder[leaf] !== value) return;` && |\n| &&
+             `    delete holder[leaf];` && |\n| &&
+             `    for (let i = keys.length - 1; i >= 0; i--) {` && |\n| &&
+             `      const namespace = chain[i + 1];` && |\n| &&
+             `      if (hostNamespaces.has(namespace) || Object.keys(namespace).length) {` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      delete chain[i][keys[i]];` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function removeClassGlobals(Class) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const metadata = Class.getMetadata();` && |\n| &&
+             `      removeGlobal(metadata.getName(), Class);` && |\n| &&
+             `` && |\n| &&
+             `      if (typeof metadata.getRendererName === "function") {` && |\n| &&
+             `        removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      Lib.logError("Env: removing a class's global export failed", e);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function ownClass(Class) {` && |\n| &&
+             `    ownClasses.push(Class);` && |\n| &&
+             `    if (hostPage) removeClassGlobals(Class);` && |\n| &&
+             `    return Class;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function dropClassGlobals() {` && |\n| &&
+             `    hostPage = true;` && |\n| &&
+             `    for (const Class of ownClasses) removeClassGlobals(Class);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function controlFilters(binding) {` && |\n| &&
              `    if (!binding) return undefined;` && |\n| &&
              `    if (typeof binding.getFilters === "function") {` && |\n| &&
@@ -172,6 +232,8 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `    fragmentLoadsSync,` && |\n| &&
              `    fragmentControlModules,` && |\n| &&
              `    preloadFragmentModules,` && |\n| &&
+             `    ownClass,` && |\n| &&
+             `    dropClassGlobals,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

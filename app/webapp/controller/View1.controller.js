@@ -18,6 +18,7 @@ sap.ui.define(
     "z2ui5/core/actions/Slots",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Router",
+    "z2ui5/core/Env",
   ],
   (
     Controller,
@@ -29,10 +30,11 @@ sap.ui.define(
     Slots,
     ViewSlots,
     Router,
+    Env,
   ) => {
     "use strict";
 
-    return Controller.extend("z2ui5.controller.View1", {
+    const View1Controller = Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
         // _processAfterRendering re-checks _processed itself - only the
         // null check is load-bearing here
@@ -663,5 +665,6 @@ sap.ui.define(
         return oView.getModel();
       },
     });
+    return Env.ownClass(View1Controller);
   },
 );

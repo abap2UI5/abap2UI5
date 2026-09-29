@@ -160,7 +160,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                />` &&
              `                <Button` &&
              `                    text="Restart"` &&
-             `                    tooltip="Reload the page"` &&
+             `                    tooltip="Restart the app"` &&
              `                    press=".onErrorRestart"` &&
              `                    visible="{/isErrorView}"` &&
              `                />` &&

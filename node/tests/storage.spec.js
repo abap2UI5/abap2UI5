@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Storage.js: reads a value out of browser storage into its `value`
 // property and fires `finished` only when the stored value actually differs.
@@ -18,6 +18,7 @@ function load({ stored = null, value = "", type = "local" } = {}) {
   const { Lib, state: libState } = loadLib();
   const { module: StorageControl } = loadModule("cc/Storage.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "sap/ui/util/Storage": class {
         constructor(storageType, prefix) {

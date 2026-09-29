@@ -41,6 +41,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `    "z2ui5/devtools/Report",` && |\n| &&
              `    "z2ui5/devtools/Tabs",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Control,` && |\n| &&
@@ -57,6 +58,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    Recorder,` && |\n| &&
              `    Report,` && |\n| &&
              `    Tabs,` && |\n| &&
+             `    Env,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -298,8 +300,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.close();` && |\n| &&
              `        if (typeof onRetry === "function") onRetry();` && |\n| &&
              `      },` && |\n| &&
+             `` && |\n| &&
              `      onErrorRestart() {` && |\n| &&
-             `        window.location.reload();` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
+             `        this.close();` && |\n| &&
+             `        ErrorView.restart(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `      onErrorLogout() {` && |\n| &&
              `        ErrorView.handleLogout(this.ctx);` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
-             `              id: this.fragmentId(),` && |\n| &&
+             `              id: this.fragmentId(),` && |\n|.
+    result = result &&
              `            });` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (Lib.isDestroyed(this)) {` && |\n| &&
-             `            if (this.oDialog) this.oDialog.destroy();` && |\n|.
-    result = result &&
+             `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -521,7 +526,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
-             `    return DeveloperTools;` && |\n| &&
+             `    return Env.ownClass(DeveloperTools);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/CameraPicture.js: camera button that opens a dialog with the live
 // stream and captures a photo into `value`/`thumbnail`. The contract under
@@ -90,6 +90,7 @@ function load({ documentElements = {}, mediaDevices } = {}) {
 
   const { module: CameraPicture } = loadModule("cc/CameraPicture.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": {
         extend(_name, def) {
           function Ctrl() {}

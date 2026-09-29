@@ -32,11 +32,12 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `    "sap/ui/unified/FileUploader",` && |\n| &&
              `    "sap/m/HBox",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Button, FileUploader, HBox, Lib) => {` && |\n| &&
+             `  (Control, Button, FileUploader, HBox, Lib, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
+             `    const FileUploaderControl = Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          value: {` && |\n| &&
@@ -201,6 +202,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(FileUploaderControl);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

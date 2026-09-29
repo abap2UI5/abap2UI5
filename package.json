@@ -82,6 +82,7 @@
     "rename": "abaplint .github/abaplint/rename.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
+    "unit:accelerated": "node node/setup/require-transpiled.mjs && node node/setup/unit-accelerated.mjs",
     "pack:backend": "node node/setup/pack-backend.mjs",
     "pack:node-runtime": "node node/setup/pack-npm.mjs",
     "bsp": "node tools/bsp/cli.mjs",

@@ -1,13 +1,18 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, ViewSlots, Env) => {
     "use strict";
 
     // Invisible control that saves the scroll positions of the controls
     // listed in `items` into the model before each roundtrip and restores
     // them after the next rendering.
     // OBSOLETE: replaced by cs_event-scroll_to / cs_event-scroll_into_view - kept for backward compatibility.
-    return Control.extend("z2ui5.cc.Scrolling", {
+    const Scrolling = Control.extend("z2ui5.cc.Scrolling", {
       metadata: {
         properties: {
           setUpdate: {
@@ -161,5 +166,6 @@ sap.ui.define(
         },
       },
     });
+    return Env.ownClass(Scrolling);
   },
 );

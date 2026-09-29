@@ -26,11 +26,18 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, Context, ScrollFocus, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Focus", {` && |\n| &&
+             `    const Focus = Control.extend("z2ui5.cc.Focus", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          setUpdate: {` && |\n| &&
@@ -54,7 +61,10 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          this.setProperty("focusId", val, true);` && |\n| &&
              `          const oElement = ViewSlots.byIdOfOwner(this, val);` && |\n| &&
-             `          if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());` && |\n| &&
+             `` && |\n| &&
+             `          if (oElement && ScrollFocus.mayMoveFocus(Context.of(this))) {` && |\n| &&
+             `            oElement.applyFocusInfo(oElement.getFocusInfo());` && |\n| &&
+             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Focus.setFocusId failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -71,7 +81,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `          this,` && |\n| &&
              `          this.getProperty("focusId"),` && |\n| &&
              `        );` && |\n| &&
-             `        if (!oElement) return;` && |\n| &&
+             `        if (!oElement || !ScrollFocus.mayMoveFocus(Context.of(this))) return;` && |\n| &&
              `        try {` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
              `          let start = Number(this.getProperty("selectionStart"));` && |\n| &&
@@ -128,6 +138,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Focus);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

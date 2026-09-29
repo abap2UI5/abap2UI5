@@ -58,7 +58,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
+             `    const Component = UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        manifest: "json",` && |\n| &&
              `        interfaces: ["sap.ui.core.IAsyncContentCreation"],` && |\n| &&
@@ -81,6 +81,10 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&
              `        state.embedded = embedded === true;` && |\n| &&
+             `` && |\n| &&
+             `        if (state.embedded) Env.dropClassGlobals();` && |\n| &&
+             `` && |\n| &&
+             `        if (state.embedded) this.ctx.restart = () => this._restartApp();` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
@@ -133,6 +137,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          capture: true,` && |\n| &&
              `          passive: true,` && |\n| &&
              `        });` && |\n| &&
+             `` && |\n| &&
+             `        ScrollFocus.watchFocus(ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _installRouterListener() {` && |\n| &&
@@ -204,9 +210,31 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
+             `        ScrollFocus.unwatchFocus(ctx);` && |\n| &&
              `        Router.exit(ctx);` && |\n| &&
              `` && |\n| &&
              `        DevTools.exit(ctx);` && |\n| &&
+             `` && |\n| &&
+             `        this._endApp();` && |\n| &&
+             `` && |\n| &&
+             `        if (ctx.state.oDeviceModel) {` && |\n| &&
+             `          ctx.state.oDeviceModel.destroy();` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        try {` && |\n| &&
+             `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `        this._launchpad = null;` && |\n| &&
+             `` && |\n| &&
+             `        Context.destroy(ctx);` && |\n| &&
+             `` && |\n| &&
+             `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _endApp() {` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
              `` && |\n| &&
              `        Shortcuts.reset(ctx);` && |\n| &&
              `` && |\n| &&
@@ -220,9 +248,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(ctx);` && |\n| &&
-             `        if (ctx.state.oDeviceModel) {` && |\n| &&
-             `          ctx.state.oDeviceModel.destroy();` && |\n| &&
-             `        }` && |\n| &&
              `` && |\n| &&
              `        sap.ui.require("z2ui5/cc/Dirty")?.reset?.(ctx);` && |\n| &&
              `` && |\n| &&
@@ -234,19 +259,19 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        try {` && |\n| &&
-             `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._launchpad = null;` && |\n| &&
-             `` && |\n| &&
              `        ScrollFocus.reset(ctx);` && |\n| &&
-             `        Context.destroy(ctx);` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
+             `      _restartApp() {` && |\n| &&
+             `        const ctx = this.ctx;` && |\n| &&
+             `        if (!ctx?.alive) return;` && |\n| &&
+             `        this._endApp();` && |\n| &&
+             `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
+             `        Context.resetApp(ctx);` && |\n| &&
+             `        this.getRootControl()?.getController?.()?.startApp();` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Component);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

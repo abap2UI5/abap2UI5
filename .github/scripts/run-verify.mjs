@@ -80,6 +80,8 @@ const BUILD = [
   "downport",
   "auto_transpile",
   "unit",
+  // the same suite on the fast paths host.mjs installs (node/srv/accelerate.mjs)
+  "unit:accelerated",
   "check:js",
   "check:app2abap",
   "check:frontend",

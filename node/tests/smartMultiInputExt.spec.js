@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/SmartMultiInputExt.js: invisible companion of a SmartMultiInput that
 // mirrors token updates plus the select-option style range data. Under test:
@@ -16,6 +16,7 @@ function load({ input } = {}) {
 
   const { module: SmartDef } = loadModule("cc/SmartMultiInputExt.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": { byIdOfOwner: () => input ?? null },

@@ -32,10 +32,25 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, Context, ViewSlots) => {` && |\n| &&
+             `  (BaseController, Controller, Server, Context, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
+             `` && |\n| &&
+             `    function holdFirstAutoFocus(oApp) {` && |\n| &&
+             `      if (!oApp?.getAutoFocus?.()) return;` && |\n| &&
+             `      oApp.setAutoFocus(false);` && |\n| &&
+             `      const delegate = {` && |\n| &&
+             `        onAfterRendering() {` && |\n| &&
+             `          if (!oApp.getCurrentPage()) return;` && |\n| &&
+             `          oApp.removeEventDelegate(delegate);` && |\n| &&
+             `          oApp.setProperty("autoFocus", true, true);` && |\n| &&
+             `        },` && |\n| &&
+             `      };` && |\n| &&
+             `      oApp.addEventDelegate(delegate);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const AppController = BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
              `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
              `        const state = ctx.state;` && |\n| &&
@@ -46,16 +61,26 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        state.url =` && |\n| &&
              `          state.endpoint || (state.checkLocal ? window.location.href : uri);` && |\n| &&
              `` && |\n| &&
+             `        state.oApp = this.getView().byId("app");` && |\n| &&
+             `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&
+             `` && |\n| &&
+             `        this.startApp();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      startApp() {` && |\n| &&
+             `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
+             `        const state = ctx.state;` && |\n| &&
+             `` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const oController = new Controller();` && |\n| &&
              `          oController.ctx = ctx;` && |\n| &&
              `          state[slot.controllerProp] = oController;` && |\n| &&
              `        }` && |\n| &&
-             `        state.oApp = this.getView().byId("app");` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(AppController);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

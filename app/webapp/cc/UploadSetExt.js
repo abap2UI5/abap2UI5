@@ -1,13 +1,18 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, ViewSlots, Env) => {
     "use strict";
 
     // Invisible companion control for a sap.m.upload.UploadSet (referenced
     // via uploadSetId): reads every added file as a base64 data URL into
     // the bindable fileData/fileName/... properties and reports removals,
     // so the backend receives the file content without an upload endpoint.
-    return Control.extend("z2ui5.cc.UploadSetExt", {
+    const UploadSetExt = Control.extend("z2ui5.cc.UploadSetExt", {
       metadata: {
         properties: {
           uploadSetId: {
@@ -148,5 +153,6 @@ sap.ui.define(
         }
       },
     });
+    return Env.ownClass(UploadSetExt);
   },
 );

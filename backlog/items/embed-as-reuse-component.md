@@ -73,6 +73,31 @@ Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
 (both still act on the host's history, as asked), and `PATHNAME`/`SEARCH`
 on the wire.
 
+**Done 2026-09-29 - the focus.** An embedded app no longer takes the focus
+from the host page: `sap.m.App` holds its autofocus off until its first page
+has rendered (`controller/App.controller.js`), and SET_FOCUS, a CONTROL_BY_ID
+`focus( )` and `cc/Focus` ask the guard in `core/ScrollFocus.js` first - yes
+while the focus is in the app, or nowhere after the user's last focus or
+click went there. Found by the review of abap2UI5/embed-control, pinned by
+`node/tests/e2e/embedded.spec.js`.
+
+**Done 2026-09-29 - the window.** UI5 1.x exports every class it creates as
+a global, so the frontend's classes rebuilt a `window.z2ui5` on the host's
+page. Every class module hands its class to `Env.ownClass`, and an embedded
+component takes the exports off (`Env.dropClassGlobals`); a page of the
+app's own keeps them for 1.71 (`docs/removal-plan.md` §3).
+
+**Done 2026-09-29 - the Restart.** The fatal-error overlay's Restart
+reloaded the host's page. An embedded component restarts the app in place
+instead (`ctx.restart` -> `Component._restartApp`, `ErrorView.restart`):
+the app ends as on exit, the App controller starts it again with new
+controllers and a new backend session.
+
+**Done 2026-09-29 - the console.** The developer tools' page-wide capture
+(`devtools/Console.js`: the console methods, `error`/`unhandledrejection`,
+the UI5 log) took in the host's output and errors on a host's page. An
+embedded component installs its tools without it (`devtools/DevTools.js`).
+
 What else stage 1 needs:
 
 1. **An `embedded` flag in `componentData`** that switches off what belongs

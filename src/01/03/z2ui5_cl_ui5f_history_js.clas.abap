@@ -25,41 +25,45 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
+             `  (Control, Lib, Env) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.cc.History", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        search: {` && |\n| &&
-             `          type: "string",` && |\n| &&
+             `    const History = Control.extend("z2ui5.cc.History", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          search: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
-             `    setSearch(val) {` && |\n| &&
-             `      this.setProperty("search", val, true);` && |\n| &&
-             `      try {` && |\n| &&
-             `        const search = Lib.toText(val);` && |\n| &&
+             `      setSearch(val) {` && |\n| &&
+             `        this.setProperty("search", val, true);` && |\n| &&
+             `        try {` && |\n| &&
+             `          const search = Lib.toText(val);` && |\n| &&
              `` && |\n| &&
-             `        if (search && !search.startsWith("?")) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``History.setSearch: '${search}' is no query string - it has to start with "?"``,` && |\n| &&
+             `          if (search && !search.startsWith("?")) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``History.setSearch: '${search}' is no query string - it has to start with "?"``,` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          history.replaceState(` && |\n| &&
+             `            history.state,` && |\n| &&
+             `            "",` && |\n| &&
+             `            ``${window.location.pathname}${search}${window.location.hash}``,` && |\n| &&
              `          );` && |\n| &&
-             `          return;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("History.setSearch: replaceState failed", e);` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n| &&
-             `        history.replaceState(` && |\n| &&
-             `          history.state,` && |\n| &&
-             `          "",` && |\n| &&
-             `          ``${window.location.pathname}${search}${window.location.hash}``,` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("History.setSearch: replaceState failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer: Lib.EMPTY_RENDERER,` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `      },` && |\n| &&
+             `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
+             `    });` && |\n| &&
+             `    return Env.ownClass(History);` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

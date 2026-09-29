@@ -42,6 +42,7 @@ sap.ui.define(
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/Report",
     "z2ui5/devtools/Tabs",
+    "z2ui5/core/Env",
   ],
   (
     Control,
@@ -58,6 +59,7 @@ sap.ui.define(
     Recorder,
     Report,
     Tabs,
+    Env,
   ) => {
     "use strict";
 
@@ -413,8 +415,8 @@ sap.ui.define(
       },
 
       // The Error view's actions mirror the ErrorView overlay: re-run the
-      // captured request, hard-reload, or log out (reusing ErrorView's own
-      // logout so the launchpad/fallback logic stays in one place).
+      // captured request, restart, or log out (reusing ErrorView's own
+      // restart and logout so that logic stays in one place).
       onErrorRetry() {
         const onRetry = this.ctx.state.lastError?.onRetry;
         // Retrying re-runs the request, so don't bounce back to the error
@@ -423,8 +425,11 @@ sap.ui.define(
         this.close();
         if (typeof onRetry === "function") onRetry();
       },
+      // ErrorView's restart: a reload, or in place for an embedded app
       onErrorRestart() {
-        window.location.reload();
+        this.reopenErrorOnClose = false;
+        this.close();
+        ErrorView.restart(this.ctx);
       },
       onErrorLogout() {
         ErrorView.handleLogout(this.ctx);
@@ -727,6 +732,6 @@ sap.ui.define(
     // shortcut, auto open and teardown - belongs to
     // devtools/DevTools.js, which is the single entry point the framework
     // calls. This module is only the dialog.
-    return DeveloperTools;
+    return Env.ownClass(DeveloperTools);
   },
 );

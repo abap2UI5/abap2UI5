@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext, contextStub } = require("./loadLibModule");
+const { specContext, contextStub, classEnv } = require("./loadLibModule");
 
 // cc/Dirty.js: the FLP dirty flag and the browser's beforeunload prompt are
 // single global slots shared by every instance - the guard must reflect
@@ -25,6 +25,7 @@ function load({ oLaunchpad = null } = {}) {
   };
   const { module: Dirty, sandbox } = loadModule("cc/Dirty.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": { logError() {} },
       "z2ui5/core/Context": Context,

@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Websocket.js: keeps a WebSocket to an ABAP push channel open and hands
 // every inbound message to the backend. The contract under test:
@@ -64,6 +64,7 @@ function load({
   };
   const { module: Websocket } = loadModule("cc/Websocket.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": {
         extend(_name, def) {
           function Ctrl() {}

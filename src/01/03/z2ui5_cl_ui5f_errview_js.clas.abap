@@ -227,6 +227,14 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function restart(ctx) {` && |\n| &&
+             `    if (typeof ctx?.restart === "function") {` && |\n| &&
+             `      ctx.restart();` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    window.location.reload();` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function showFriendlyDialog(ctx, title, details, options = {}) {` && |\n| &&
              `    try {` && |\n| &&
              `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
@@ -269,7 +277,10 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      const restartButton = new Button({` && |\n| &&
              `        text: "Restart",` && |\n| &&
              `        type: "Emphasized",` && |\n| &&
-             `        press: () => window.location.reload(),` && |\n| &&
+             `        press: () => {` && |\n| &&
+             `          dialog.close();` && |\n| &&
+             `          restart(ctx);` && |\n| &&
+             `        },` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
              `      const copyText = ``${title || DEFAULT_TITLE}\n\n${details}``;` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `` && |\n| &&
              `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
              `    errorContainer.setAttribute("aria-modal", "true");` && |\n| &&
-             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n| &&
+             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    h3.textContent = title || DEFAULT_TITLE;` && |\n| &&
              `    h3.style.cssText = "margin: 0; font-size: 1rem; font-weight: bold;";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    const btnStyle =` && |\n| &&
              `      "padding: 0.375rem 0.875rem; background: white; color: #bb0000; border: 1px solid white; border-radius: 0; cursor: pointer; font: inherit; font-weight: bold; white-space: nowrap;";` && |\n| &&
              `` && |\n| &&
@@ -447,7 +458,10 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `        options.onRetry();` && |\n| &&
              `      });` && |\n| &&
              `    }` && |\n| &&
-             `    addAction("Refresh", () => window.location.reload());` && |\n| &&
+             `    addAction("Refresh", () => {` && |\n| &&
+             `      errorContainer.remove();` && |\n| &&
+             `      restart(ctx);` && |\n| &&
+             `    });` && |\n| &&
              `    addAction("Logout", () => handleLogout(ctx));` && |\n| &&
              `` && |\n| &&
              `    headerDiv.appendChild(actionsDiv);` && |\n| &&
@@ -492,7 +506,7 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    if (firstTrap) firstTrap.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { show, handleLogout, reopenErrorDialog, reset };` && |\n| &&
+             `  return { show, restart, handleLogout, reopenErrorDialog, reset };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

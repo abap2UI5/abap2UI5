@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Geolocation.js: reads the device position once after rendering into its
 // bindable properties and fires `finished`. The contract under test:
@@ -18,6 +18,7 @@ function load({ navigator } = {}) {
   const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
   const { module: Geolocation } = loadModule("cc/Geolocation.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": {
         extend(_name, def) {
           function Ctrl() {}

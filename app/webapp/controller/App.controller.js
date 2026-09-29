@@ -8,10 +8,36 @@ sap.ui.define(
     "z2ui5/core/Server",
     "z2ui5/core/Context",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
   ],
-  (BaseController, Controller, Server, Context, ViewSlots) => {
+  (BaseController, Controller, Server, Context, ViewSlots, Env) => {
     "use strict";
-    return BaseController.extend("z2ui5.controller.App", {
+
+    // An EMBEDDED component's sap.m.App must not focus the first input of
+    // the first page it renders (sap.m.NavContainer autoFocus): the page is
+    // the host's, and on 1.136 every app - hello world included - took the
+    // focus out of the host field the user was typing in. The property is
+    // off until that first page has rendered and back on from there: the
+    // App then moves the focus only on a page change, and only when it was
+    // in the page being left (NavContainer._applyAutoFocus) - which keeps a
+    // page transition (view_display( transition )) usable from the
+    // keyboard. Set back without an invalidation: the property is read at
+    // run time and renders nothing. The app's own focus actions have a
+    // guard of their own (core/ScrollFocus.js, mayMoveFocus).
+    function holdFirstAutoFocus(oApp) {
+      if (!oApp?.getAutoFocus?.()) return;
+      oApp.setAutoFocus(false);
+      const delegate = {
+        onAfterRendering() {
+          if (!oApp.getCurrentPage()) return;
+          oApp.removeEventDelegate(delegate);
+          oApp.setProperty("autoFocus", true, true);
+        },
+      };
+      oApp.addEventDelegate(delegate);
+    }
+
+    const AppController = BaseController.extend("z2ui5.controller.App", {
       onInit() {
         // the owner component's context - Component.init created it
         const ctx = Context.of(this.getOwnerComponent());
@@ -29,20 +55,34 @@ sap.ui.define(
         state.url =
           state.endpoint || (state.checkLocal ? window.location.href : uri);
 
-        // Wire up the controller instances and the app container. One
-        // controller per view slot, driven by the slot table in
+        state.oApp = this.getView().byId("app");
+        if (state.embedded) holdFirstAutoFocus(state.oApp);
+
+        this.startApp();
+      },
+
+      // The controllers of the app and its first roundtrip - when the
+      // component starts, and again when an embedded app restarts in place
+      // (Component._restartApp, the Restart of the fatal-error overlay).
+      startApp() {
+        const ctx = Context.of(this.getOwnerComponent());
+        const state = ctx.state;
+
+        // One controller per view slot, driven by the slot table in
         // core/ViewSlots - the single place that knows which slots exist, so
         // adding one there does not need a matching line here. Each carries
         // the context: it is how every event handler and action reaches the
         // state (View1.controller). All other state (callback arrays,
         // roundtrip flags, ...) starts from the defaults Context.create gave
-        // it during Component.init.
+        // it during Component.init. NEW instances on a restart as well:
+        // whatever the app before them left waiting - a timer, a deferred
+        // focus - asks Lib.isControllerAlive, and its controller is not one
+        // of these.
         for (const slot of ViewSlots.slots) {
           const oController = new Controller();
           oController.ctx = ctx;
           state[slot.controllerProp] = oController;
         }
-        state.oApp = this.getView().byId("app");
 
         // Kick off the initial roundtrip. Historically a stopped router's
         // initial routeMatched event triggered this; the manifest carries no
@@ -53,5 +93,6 @@ sap.ui.define(
         Server.roundtrip(ctx);
       },
     });
+    return Env.ownClass(AppController);
   },
 );

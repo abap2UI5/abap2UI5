@@ -220,6 +220,105 @@ sap.ui.define(["sap/ui/core/Element", "z2ui5/core/Lib"], (Element, Lib) => {
     });
   }
 
+  // ------------------------------------------------------------------
+  // The global export of the frontend's own classes. UI5 1.x exports every
+  // class it creates as a global as well - sap/ui/base/Metadata.createClass
+  // writes it to window under its dotted name, and ElementMetadata a
+  // control's renderer next to it - so the frontend's classes built a
+  // window.z2ui5 on every page it ran on: z2ui5.Component,
+  // z2ui5.controller.App and View1, z2ui5.devtools.DeveloperTools, a
+  // z2ui5.cc.* per custom control an app used. The global the frontend
+  // itself wrote was removed on purpose (#2777); nothing reads these
+  // either - every module returns its class, and XML views, controllers
+  // and Component.create take it from there. UI5 2.x exports nothing.
+  //
+  // They are taken off again on a page an EMBEDDED component runs on: that
+  // page, and its window, belong to a host. Not on a page of the app's
+  // own: there 1.71 still looks a BASE class up by that global name when
+  // something extends one of ours (Metadata.applySettings,
+  // ObjectPath.get( baseType )) - a launchpad extension project extending
+  // z2ui5.Component, a customer control extending a cc/ one - and the
+  // extend would fail without it.
+  //
+  // Every module that defines a class hands it to ownClass right after its
+  // extend( ); Component.init of an embedded component calls
+  // dropClassGlobals. The classes are defined once per page, whichever
+  // component comes first, so both orders end without a global.
+  // ------------------------------------------------------------------
+
+  const ownClasses = [];
+  let hostPage = false;
+
+  // The namespace objects a host page had under window.z2ui5 before the
+  // frontend defined anything - Env loads before every class module, which
+  // all depend on it. Emptied of our classes, they stay: they are the
+  // host's.
+  const hostNamespaces = new WeakSet();
+  function collectHostNamespaces(object, depth) {
+    if (!object || typeof object !== "object" || depth > 3) return;
+    hostNamespaces.add(object);
+    for (const key of Object.keys(object)) {
+      collectHostNamespaces(object[key], depth + 1);
+    }
+  }
+  /* ui5lint-disable no-project-globals --
+     read, never written: what the HOST had under the name before the
+     frontend defined anything, so dropClassGlobals leaves it standing. */
+  collectHostNamespaces(/** @type {any} */ (window).z2ui5, 0);
+  /* ui5lint-enable no-project-globals */
+
+  // Delete window.<name> when it holds `value` - never a value someone
+  // else put under the same name - and every namespace object on the way
+  // that is empty then and was not the host's.
+  function removeGlobal(name, value) {
+    if (!name || value === undefined) return;
+    const keys = String(name).split(".");
+    const leaf = keys.pop();
+    const chain = [window];
+    for (const key of keys) {
+      const next = chain[chain.length - 1][key];
+      if (!next || typeof next !== "object") return;
+      chain.push(next);
+    }
+    const holder = chain[chain.length - 1];
+    if (holder[leaf] !== value) return;
+    delete holder[leaf];
+    for (let i = keys.length - 1; i >= 0; i--) {
+      const namespace = chain[i + 1];
+      if (hostNamespaces.has(namespace) || Object.keys(namespace).length) {
+        return;
+      }
+      delete chain[i][keys[i]];
+    }
+  }
+
+  function removeClassGlobals(Class) {
+    try {
+      const metadata = Class.getMetadata();
+      removeGlobal(metadata.getName(), Class);
+      // a control's renderer, exported next to it (a control class only)
+      if (typeof metadata.getRendererName === "function") {
+        removeGlobal(metadata.getRendererName(), metadata.getRenderer());
+      }
+    } catch (e) {
+      Lib.logError("Env: removing a class's global export failed", e);
+    }
+  }
+
+  // A class the frontend defined - see above. Returns it.
+  function ownClass(Class) {
+    ownClasses.push(Class);
+    if (hostPage) removeClassGlobals(Class);
+    return Class;
+  }
+
+  // The page is a host's: the classes defined so far leave their global,
+  // and the ones defined from here on do not keep one.
+  function dropClassGlobals() {
+    hostPage = true;
+    for (const Class of ownClasses) removeClassGlobals(Class);
+  }
+
   // The CONTROL filters of a list binding - the ones a sap.ui.table column
   // filter row applies (Column.filter( ) uses FilterType.Control on 1.71
   // and 1.120 alike). ListBinding.getFilters(sFilterType) arrived in 1.96;
@@ -247,5 +346,7 @@ sap.ui.define(["sap/ui/core/Element", "z2ui5/core/Lib"], (Element, Lib) => {
     fragmentLoadsSync,
     fragmentControlModules,
     preloadFragmentModules,
+    ownClass,
+    dropClassGlobals,
   };
 });

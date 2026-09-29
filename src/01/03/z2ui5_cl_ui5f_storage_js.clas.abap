@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],` && |\n| &&
-             `  (Control, Storage, Lib) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "sap/ui/util/Storage",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Storage, Lib, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function isSameValue(a, b) {` && |\n| &&
@@ -46,7 +51,7 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Storage", {` && |\n| &&
+             `    const StorageControl = Control.extend("z2ui5.cc.Storage", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          type: {` && |\n| &&
@@ -131,6 +136,7 @@ CLASS z2ui5_cl_ui5f_storage_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(StorageControl);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

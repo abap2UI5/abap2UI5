@@ -55,8 +55,16 @@ first; `npm run pack:node-runtime` (`node/setup/pack-npm.mjs`) at the end of the
 same job is the second: the npm package **`@abap2ui5/node-runtime`**,
 assembled in a staging directory outside the checkout from `node/output`,
 `node/setup/setup.mjs` (the hook `output/init.mjs` imports by the relative
-path fixed in `node/setup/abap_transpile.json`), **`node/srv/host.mjs`** (the
-entry point, below), `node/downport` (so a host can transpile its own app
+path fixed in `node/setup/abap_transpile.json`), `node/setup/own-apps.mjs`
+(the bin `abap2ui5-own-apps`: a host's own transpiled classes out of a
+transpile's output, their imports pointed at the package's `output/` - the
+transpile writes a second copy of every library object next to them, and
+importing that copy replaced the package's `CX_ROOT`), **`node/srv/host.mjs`** (the
+entry point, below), `node/srv/accelerate.mjs` (the runtime fast paths
+`host.mjs` installs, and the `./accelerate` subpath for a host that boots
+itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
+front, and the `./compress` subpath), `node/downport` (so a host can
+transpile its own app
 classes with the framework as a library - the README's "Your own apps") and
 `node/setup/npm.README.md`. `node/setup/npm.package.json` is its manifest.
 **It is deliberately not `node/package.json`:** a `package.json` inside
@@ -67,8 +75,21 @@ starts its web server with, and all four browser projects fail to boot. The
 version is the framework's, set at pack time (the committed
 `0.0.0-set-at-pack` is deliberate); the two `@abaplint` dependencies are
 pinned to the **exact** versions in `package-lock.json`, because transpiler
-output is tied to its runtime; the transpiler version, the commit and the
-build time go into the manifest's `abap2ui5` field.
+output is tied to its runtime; the transpiler version, the commit, the build
+time and the open-abap-core commit the transpile read (`node/deps`, at its
+`fetch-deps.mjs` pin) go into the manifest's `abap2ui5` field - the last so a
+host type-checks its own apps against the same standard library.
+
+**It carries no browser-test fixture.** `prepare-transpile` folds every
+ABAP class of `node/srv` into the transpile, so `node/output` holds the
+`zcl_tst_*` apps the Playwright projects drive and `output/init.mjs` loads
+them at boot - packed as they were in 1.145.0, every host started them on
+`?app_start=`. `pack-npm.mjs` leaves out every `node/srv` object but
+`zcl_sicf` (derived from the folder, not from a prefix), strips their imports
+and TADIR rows from `init.mjs` / `_init.mjs`, and refuses to pack when any
+fixture name is still in a file name or a file of the tarball. The checkout
+keeps them: `npm run express` and the browser projects run the unstripped
+tree.
 
 **It carries no `webapp/`, on purpose.** The GET page the framework serves
 embeds the whole component - every module, view and stylesheet - from the
@@ -77,18 +98,39 @@ page and the roundtrips come from one commit by construction and a Node host
 needs no frontend files.
 
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
-it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`
-and `HANDLER_CLASS`; `express.mjs` is the lines that call `serve()` with
+it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
+`accelerate()`, `compress()` and `HANDLER_CLASS`; `initialize()` installs `accelerate()`'s
+fast paths (LOOP ... WHERE over a sorted primary key, CP) right after the
+boot, so the dev server, the browser projects and every host run on them -
+validated for the one `@abaplint/runtime` version the package pins, and held
+to the runtime's own functions by `node/tests/accelerate.spec.js` and
+`npm run unit:accelerated` (the file's header has the rest); `createApp()`
+puts `compress()` in front, the gzip the framework asks the ICF for and the
+express shim cannot give it, under an Apache-style `"<tag>-gzip"` ETag the
+framework's own `_check_etag_match` answers with a 304
+(`node/tests/compress.spec.js`, whose framework half `test_node` runs); `express.mjs` is the lines that call `serve()` with
 `PORT`/`HOST` and print the log line `mcp-server` waits for ("Listening on").
 One code path for the dev server and the package, so what CI drives in the
 browser projects is what a host installs. It is packed as `srv/host.mjs` next
 to `output/` and `setup/` — the same neighbours it has in the checkout — so its
 relative imports need no rewriting. `express` is an optional peer, imported
-lazily by `createApp()`/`serve()` only. `--check` installs the tarball into a
-scratch project with `express` and the pinned `@abaplint/transpiler-cli`:
-`serve()` has to answer GET / with the component embedded, and a class the
-scratch project transpiles against `downport/` has to register in the running
-runtime.
+lazily by `createApp()`/`serve()` only, and its range is **`^4.21.0 ||
+^5.0.0`**: `@sap/cds` and `@cap2ui5/cds-plugin` accept express 4, and a peer
+range without the host's major makes npm nest a second express (and some
+eighteen dependencies) just for this package. So `host.mjs` uses nothing one
+major lacks - `app.use(handler)`, not express 5's `/{*path}` route syntax -
+and its header says what else. `--check` installs the tarball into a scratch
+project with the pinned `@abaplint/transpiler-cli` and, **once per range of
+the express peer**, drives it: `serve()` answers GET / with the component
+embedded - gzipped, and revalidated to a 304 by its `-gzip` tag - and a POST
+roundtrip, `createApp()` does the same mounted under
+`/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, the classes the scratch
+project transpiles against `downport/` and open-abap-core at the recorded
+commit - an exception class of its own among them - load through
+`abap2ui5-own-apps` with the package's `CX_ROOT` still in place, start, and
+what they raise the framework catches, `serve()` runs on the fast paths of `accelerate()`
+(the runtime the package pins is the one they are validated for), and
+`serve()` rejects on a port that is taken.
 
 **Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds
 `id-token: write`, pins the npm that can publish that way, and hands the

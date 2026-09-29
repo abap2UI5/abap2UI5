@@ -62,7 +62,11 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      scroll: { target: undefined, ui5El: undefined, slotKey: undefined },` && |\n| &&
              `` && |\n| &&
+             `      focus: { userInside: false, listener: null },` && |\n| &&
+             `` && |\n| &&
              `      errorView: { title: "", details: "", options: {}, dialog: null },` && |\n| &&
+             `` && |\n| &&
+             `      restart: null,` && |\n| &&
              `` && |\n| &&
              `      devtools: {},` && |\n| &&
              `    };` && |\n| &&
@@ -75,6 +79,10 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `    ctx.alive = false;` && |\n| &&
              `    ctx.state = AppState.createState();` && |\n| &&
              `    if (ctx.component) byComponent.delete(ctx.component);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function resetApp(ctx) {` && |\n| &&
+             `    if (ctx?.state) AppState.resetApp(ctx.state);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function registerView(ctx, view) {` && |\n| &&
@@ -113,7 +121,7 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `    return null;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { create, destroy, registerView, runAsOwner, of };` && |\n| &&
+             `  return { create, destroy, resetApp, registerView, runAsOwner, of };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.
