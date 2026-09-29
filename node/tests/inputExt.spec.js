@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // cc/InputExt.js: a sap.m.Input whose inner <input> carries a bindable HTML
 // `inputmode`. The contract under test:
@@ -31,6 +32,7 @@ function load() {
 
   const { module: InputExt } = loadModule("cc/InputExt.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/m/Input": InputBase,
       "sap/m/InputRenderer": {},
       "z2ui5/core/Lib": { logError: (m) => errors.push(m) },

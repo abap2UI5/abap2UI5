@@ -36,6 +36,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `    "z2ui5/core/actions/Slots",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Router",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -47,10 +48,11 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `    Slots,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    Router,` && |\n| &&
+             `    Env,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
+             `    const View1Controller = Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (this.ctx.state.oResponse) this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
@@ -335,6 +337,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        return oView.getModel();` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(View1Controller);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

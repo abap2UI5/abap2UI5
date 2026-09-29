@@ -126,7 +126,7 @@ SAP system. If something is not covered by those files, say so instead of
 inventing it.
 ```
 
-Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx --yes @abap2ui5/mcp-server`. The full setup is described in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx -y -p @abap2ui5/mcp-server abap2ui5-mcp`. The full setup is described in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 ## References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)

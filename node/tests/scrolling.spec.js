@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Scrolling.js (obsolete, kept for backward compatibility): saves the
 // scroll positions of the listed controls into the model before each
@@ -16,6 +16,7 @@ function load({ controls = {}, domElements = {} } = {}) {
 
   const { module: ScrollingDef } = loadModule("cc/Scrolling.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": {

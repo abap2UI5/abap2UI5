@@ -4,8 +4,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Context",
   ],
-  (Element, Lib, Env, ViewSlots) => {
+  (Element, Lib, Env, ViewSlots, Context) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -19,6 +20,9 @@ sap.ui.define(
     // lastScrolled`, `ctx.scroll`), and the document-level scroll listener
     // Component.init installs per context records only elements inside
     // that context's slots.
+    //
+    // And the other direction, for an EMBEDDED component (state.embedded):
+    // whether the framework may MOVE the focus at all - see mayMoveFocus.
     // ------------------------------------------------------------------
 
     // Resolve the UI5 element owning a DOM node. Element.closestTo exists
@@ -86,6 +90,12 @@ sap.ui.define(
         if (!active) return undefined;
         const ui5El = closestUi5Element(active);
         if (!ui5El) return undefined;
+        // Embedded, a focus outside this component is the HOST's: the id of
+        // a host control is none of the app's business, and an app that
+        // echoes S_FOCUS back as SET_FOCUS would name the host's field
+        if (ctx?.state?.embedded && !isInComponent(ctx, active)) {
+          return undefined;
+        }
         const fullId = ui5El.getId();
         let id = fullId;
         for (const slot of ViewSlots.slots) {
@@ -112,6 +122,73 @@ sap.ui.define(
         Lib.logError("getFocusInfo: focus capture failed", e);
         return undefined;
       }
+    }
+
+    // ------------------------------------------------------------------
+    // The focus guard of an EMBEDDED component. The page is the host's, and
+    // so is the keyboard focus on it: a starting app used to take it out of
+    // the host field the user was typing in - sap.m.App's first rendering
+    // (see App.controller) and the app's own SET_FOCUS alike. The framework
+    // moves the focus in three places - SET_FOCUS (actions/ViewOps), a
+    // CONTROL_BY_ID focus( ) (actions/ControlCall) and the obsolete
+    // cc/Focus control - and each asks mayMoveFocus( ) right before it does.
+    // Embedded, the answer is yes while the focus is IN this component, and
+    // while it is nowhere (the body: a rebuild took the focused field away)
+    // after the user's last focus or click went into it; a user in the
+    // host's page keeps the focus, one working in the app gets every focus
+    // action as on the app's own page. Not embedded, the answer is always
+    // yes: the page is the app's.
+    // ------------------------------------------------------------------
+
+    // Is `node` part of this component: inside its own DOM (the root
+    // control's), or inside something UI5 renders into its static area FOR
+    // it - the popup and popover slots, the list of a Select, the calendar of
+    // a DatePicker - which the control it belongs to answers (Context.of).
+    // Never throws: a node nothing resolves is not the component's.
+    function isInComponent(ctx, node) {
+      if (!ctx || !node || node.nodeType !== 1) return false;
+      try {
+        const root = ctx.component?.getRootControl?.()?.getDomRef?.();
+        if (root?.contains?.(node)) return true;
+        const ui5El = closestUi5Element(node);
+        return Boolean(ui5El) && Context.of(ui5El) === ctx;
+      } catch (e) {
+        Lib.logError("isInComponent: resolving the node failed", e);
+        return false;
+      }
+    }
+
+    function mayMoveFocus(ctx) {
+      if (!ctx?.state?.embedded) return true;
+      const active = document.activeElement;
+      if (!active || active === document.body) {
+        return ctx.focus.userInside;
+      }
+      return isInComponent(ctx, active);
+    }
+
+    // Record where the user's focus and clicks go, for the "nowhere" case
+    // of mayMoveFocus: a focusin or a pointerdown inside the component
+    // (keyboard and pointer alike) says the user works in it, one anywhere
+    // else says they left it. Capture phase, so a host handler that stops
+    // the event cannot hide it. Only embedded; Component.init installs it,
+    // unwatchFocus (Component.exit) takes it off again.
+    function watchFocus(ctx) {
+      if (!ctx?.state?.embedded || ctx.focus.listener) return;
+      const listener = (event) => {
+        ctx.focus.userInside = isInComponent(ctx, event.target);
+      };
+      ctx.focus.listener = listener;
+      document.addEventListener("focusin", listener, true);
+      document.addEventListener("pointerdown", listener, true);
+    }
+
+    function unwatchFocus(ctx) {
+      const listener = ctx?.focus?.listener;
+      if (!listener) return;
+      document.removeEventListener("focusin", listener, true);
+      document.removeEventListener("pointerdown", listener, true);
+      ctx.focus.listener = null;
     }
 
     // The per-element resolution cache of onScrollCapture (see there) is
@@ -217,6 +294,10 @@ sap.ui.define(
       onScrollCapture,
       closestUi5Element,
       focusTextInput,
+      isInComponent,
+      mayMoveFocus,
+      watchFocus,
+      unwatchFocus,
       reset,
     };
   },

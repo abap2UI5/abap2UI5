@@ -8,8 +8,9 @@
  *
  *   initialize()     boots the ABAP runtime once - the SQLite database and
  *                    the schema (setup/setup.mjs), then the framework's
- *                    class constructors. Idempotent: every call returns the
- *                    first call's promise.
+ *                    class constructors - and installs accelerate()'s fast
+ *                    paths on it. Idempotent: every call returns the first
+ *                    call's promise.
  *   createHandler()  the HTTP handler, (req, res) => Promise<void>. It hands
  *                    the request to ZCL_SICF (node/srv/zcl_sicf.clas.abap,
  *                    transpiled with the framework), the same class an ICF
@@ -19,9 +20,20 @@
  *                    as a Buffer; res.append(name, value) and
  *                    res.status(code).send(buffer). Express gives all of that
  *                    with express.raw() in front; another server adapts.
- *   createApp()      an express app with the raw body parser and the handler
- *                    on every path - what the dev server has always been.
+ *   createApp()      an express app (4 or 5) with compress() (gzip - the
+ *                    compression the framework asks the ICF for), the raw
+ *                    body parser and the handler on every path - what the
+ *                    dev server has always been.
  *   serve()          createApp() listening. Resolves with the http.Server.
+ *
+ * accelerate() (srv/accelerate.mjs, re-exported here) replaces the two
+ * functions of @abaplint/runtime that made a roundtrip with a large table
+ * quadratic - LOOP ... WHERE over a sorted primary key, and CP - with fast
+ * paths that answer exactly what they answer; its header says why and how
+ * that is held. initialize() calls it, so every host that boots through this
+ * module runs on them. A host that boots through output/init.mjs itself
+ * (@cap2ui5/cds-plugin) imports "@abap2ui5/node-runtime/accelerate" and calls
+ * it after its boot.
  *
  * `express` is imported lazily and only by createApp/serve: it is an
  * optional peer of the package, so a host that mounts createHandler() on a
@@ -40,8 +52,14 @@
  * construction, and the package carries no frontend files of its own. A
  * first cut shipped app/webapp as well; nothing in a Node host read it.
  */
+import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
+import { accelerate } from "./accelerate.mjs";
+import { compress } from "./compress.mjs";
+
+export { accelerate, RUNTIME_VERSION } from "./accelerate.mjs";
+export { compress } from "./compress.mjs";
 
 /** The ICF handler class every request goes to - node/srv/zcl_sicf.clas.abap. */
 export const HANDLER_CLASS = "ZCL_SICF";
@@ -49,12 +67,16 @@ export const HANDLER_CLASS = "ZCL_SICF";
 let booted;
 
 /**
- * Boot the ABAP runtime: the database, its schema and the framework. Once
- * per process; later calls return the same promise.
+ * Boot the ABAP runtime: the database, its schema and the framework, then
+ * the fast paths of accelerate() - right after the boot, before the first
+ * request can run a LOOP or a CP. Once per process; later calls return the
+ * same promise.
  * @returns {Promise<void>}
  */
 export function initialize() {
-  booted ??= initializeABAP();
+  booted ??= initializeABAP().then(() => {
+    accelerate();
+  });
   return booted;
 }
 
@@ -77,23 +99,49 @@ export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
 
 /**
  * An express app that serves the framework on every path.
- * @param {{ handlerClass?: string, bodyLimit?: string }} [options]
+ *
+ * Express 4 AND 5 - the peer range says both, because a host picks its own
+ * express (@sap/cds and cap2UI5 accept `^4 || ^5`), and a peer range that
+ * excludes the host's major makes npm install a second express just for
+ * this package. So nothing here may be one major's syntax only:
+ *   - app.use(handler), not app.all("/{*path}", ...): the named wildcard is
+ *     express 5's path syntax, and express 4 reads it as a literal path that
+ *     no request matches. use() without a path matches every method and
+ *     path in both, and inside a mounted sub-app it sees the same stripped
+ *     req.url / req.path the route did.
+ *   - the rejection goes to next() by hand: express 5 forwards a rejected
+ *     handler promise to its error handling, express 4 ignores it and the
+ *     request hangs with an unhandled rejection.
+ * compress() first: z2ui5_cl_ui5_http_handler asks the ICF to gzip every
+ * response and the shim cannot, so without it the ~360 KB page and every
+ * roundtrip went out uncompressed. `compression: false` leaves it out (a
+ * proxy in front that compresses anyway); an object is compress()'s options.
+ * @param {{ handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
  * @returns {Promise<import("express").Express>}
  */
-export async function createApp({ bodyLimit = "10mb", ...options } = {}) {
+export async function createApp({ bodyLimit = "10mb", compression = true, ...options } = {}) {
   const { default: express } = await import("express");
   const app = express();
   app.disable("x-powered-by");
   app.set("etag", false);
+  if (compression) app.use(compress(compression === true ? {} : compression));
   app.use(express.raw({ type: "*/*", limit: bodyLimit }));
-  app.all("/{*path}", createHandler(options));
+  const handle = createHandler(options);
+  app.use((req, res, next) => {
+    handle(req, res).catch(next);
+  });
   return app;
 }
 
 /**
  * Boot the runtime, then listen. The server is only announced once the
  * framework can answer, so "listening" means ready.
- * @param {{ port?: number | string, host?: string, handlerClass?: string, bodyLimit?: string }} [options]
+ *
+ * node:http rather than app.listen(): express 5 also calls the listen
+ * callback with the ERROR (a port in use), which read as "listening" and
+ * resolved with a server that never bound; express 4 does not. Listening on
+ * a plain http.Server behaves the same under both.
+ * @param {{ port?: number | string, host?: string, handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
  *   `host` unset binds every interface; "127.0.0.1" binds loopback only
  * @returns {Promise<import("node:http").Server>}
  */
@@ -101,7 +149,11 @@ export async function serve({ port = 3000, host, ...options } = {}) {
   const app = await createApp(options);
   await initialize();
   return new Promise((resolve, reject) => {
-    const server = app.listen(port, host, () => resolve(server));
-    server.on("error", reject);
+    const server = http.createServer(app);
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      server.off("error", reject);
+      resolve(server);
+    });
   });
 }

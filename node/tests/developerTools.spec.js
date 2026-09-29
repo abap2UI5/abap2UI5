@@ -48,6 +48,7 @@ function loadDeveloperTools({
   errors,
   lastError = null,
   logoutCalls,
+  restartCalls,
   reopenCalls,
   fragment,
   windowStub,
@@ -82,6 +83,7 @@ function loadDeveloperTools({
   // can pin that the dialog hands its own over
   const ErrorView = {
     handleLogout: (c) => logoutCalls?.push(c),
+    restart: (c) => restartCalls?.push(c),
     reopenErrorDialog: (c) => reopenCalls?.push(c),
   };
   // The roundtrip recorder owns the History / diff views; the registry
@@ -496,6 +498,24 @@ test.describe("Error view", () => {
     });
     DeveloperTools.onErrorLogout();
     expect(logoutCalls).toEqual([ctx]);
+  });
+
+  // ErrorView decides what a restart is - a reload, or in place for an
+  // embedded app, whose page is the host's
+  test("onErrorRestart closes the tools and delegates to ErrorView.restart", () => {
+    const restartCalls = [];
+    const { DeveloperTools, ctx } = loadDeveloperTools({
+      lastError: { title: "x", text: "y", onRetry: null },
+      restartCalls,
+    });
+    let closed = 0;
+    DeveloperTools.close = () => (closed += 1);
+    DeveloperTools.reopenErrorOnClose = true;
+    DeveloperTools.onErrorRestart();
+    expect(restartCalls).toEqual([ctx]);
+    expect(closed).toBe(1);
+    // no bounce back to the error popup of the app that is restarting
+    expect(DeveloperTools.reopenErrorOnClose).toBe(false);
   });
 });
 

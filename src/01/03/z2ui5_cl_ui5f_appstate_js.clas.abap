@@ -98,7 +98,33 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    };` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { createState };` && |\n| &&
+             `  const COMPONENT_FIELDS = new Set([` && |\n| &&
+             `    "checkLocal",` && |\n| &&
+             `    "endpoint",` && |\n| &&
+             `    "url",` && |\n| &&
+             `    "oConfig",` && |\n| &&
+             `    "ccResourceRoot",` && |\n| &&
+             `    "cccResourceRoot",` && |\n| &&
+             `    "embedded",` && |\n| &&
+             `    "oApp",` && |\n| &&
+             `    "oOwnerComponent",` && |\n| &&
+             `    "oDeviceModel",` && |\n| &&
+             `    "oLaunchpad",` && |\n| &&
+             `    "onBeforeRoundtrip",` && |\n| &&
+             `    "onAfterRoundtrip",` && |\n| &&
+             `    "onAfterRendering",` && |\n| &&
+             `    "onBeforeEventFrontend",` && |\n| &&
+             `    "onErrorDetails",` && |\n| &&
+             `  ]);` && |\n| &&
+             `` && |\n| &&
+             `  function resetApp(state) {` && |\n| &&
+             `    const fresh = createState();` && |\n| &&
+             `    for (const key of Object.keys(fresh)) {` && |\n| &&
+             `      if (!COMPONENT_FIELDS.has(key)) state[key] = fresh[key];` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return { createState, resetApp, COMPONENT_FIELDS };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

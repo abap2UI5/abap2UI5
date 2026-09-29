@@ -124,6 +124,30 @@ test.describe("install", () => {
     expect(h.ctx.devtools.console).toBe(true);
   });
 
+  // An EMBEDDED component runs on a HOST's page: the page-wide capture
+  // would take in the host's console output and uncaught errors - measured
+  // with the embed-control's host: a host console.error and a host throw
+  // landed in the app's capture, and "open on error" opened the app's tools
+  // for them. Embedded, the tools install without it.
+  test("an embedded component leaves the page's console and errors alone", () => {
+    const h = loadDevTools();
+    h.ctx.state.embedded = true;
+    h.DevTools.install(h.ctx);
+    expect(h.recorderCalls).toEqual(["install:own"]);
+    expect(h.consoleUsers.count).toBe(0);
+    expect(h.ctx.devtools.console).toBeFalsy();
+    // a host error the capture would have announced opens nothing
+    h.raiseError();
+    expect(h.instances).toEqual([]);
+    // the rest of the tools are there as on any page
+    expect(h.hooks().length).toBe(1);
+    expect(h.listeners.filter((l) => l.type === "keydown").length).toBe(1);
+    // and the exit gives back nothing it did not take
+    h.DevTools.exit(h.ctx);
+    expect(h.consoleUsers.count).toBe(0);
+    expect(h.recorderCalls).not.toContain("console:uninstall");
+  });
+
   test("is idempotent", () => {
     const h = loadDevTools();
     h.DevTools.install(h.ctx);

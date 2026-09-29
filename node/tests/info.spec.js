@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/Info.js (obsolete, replaced by client.get().s_device / s_ui5): reports
 // the UI5 version/theme and the device info back to the backend once, via
@@ -38,6 +38,7 @@ function load({ deviceData = DEVICE_DATA, oConfig, context = true } = {}) {
 
   const { module: InfoDef } = loadModule("cc/Info.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/Context": context ? Context : { ...Context, of: () => null },

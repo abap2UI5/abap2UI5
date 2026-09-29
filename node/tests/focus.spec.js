@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib } = require("./loadLibModule");
+const { loadLib, classEnv } = require("./loadLibModule");
 
 // Tests the real app/webapp/cc/Focus.js caret restore. After a roundtrip the
 // Focus control re-applies the caret position captured before the request.
@@ -27,21 +27,35 @@ function controlStub() {
 }
 
 // Build a Focus instance wired to a target element and a stubbed document.
-function load({ target, activeElement } = {}) {
+// `mayMoveFocus` is the answer of the embedded focus guard
+// (core/ScrollFocus.js, specced in focusGuard.spec.js) - yes by default,
+// as on a page of the app's own; `guardAsked` records the context it was
+// asked for.
+function load({ target, activeElement, mayMoveFocus = true } = {}) {
   const errors = [];
+  const guardAsked = [];
   // The real Lib, so the caret capture exercises the shipped readCaret
   // instead of a copy; only logError is replaced to capture the messages.
   const Lib = { ...loadLib().Lib, logError: (m) => errors.push(m) };
   const ViewSlots = { byIdOfOwner: () => target };
+  const ctx = { state: { embedded: !mayMoveFocus } };
   const { module: Focus } = loadModule("cc/Focus.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": controlStub(),
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
+      "z2ui5/core/Context": { of: () => ctx },
+      "z2ui5/core/ScrollFocus": {
+        mayMoveFocus: (asked) => {
+          guardAsked.push(asked);
+          return mayMoveFocus;
+        },
+      },
     },
     sandbox: { document: { activeElement } },
   });
-  return { Focus, errors };
+  return { Focus, errors, guardAsked, ctx };
 }
 
 // A text input DOM stub with a live caret.
@@ -178,4 +192,33 @@ test("applies the raw selection for controls without a text field", () => {
 
   expect(target.applied).toHaveLength(1);
   expect(target.applied[0].selectionStart).toBe(0);
+});
+
+// The control moves the focus like SET_FOCUS, which replaces it, and asks
+// the same guard first: an EMBEDDED app moves it only while the user works
+// in it (core/ScrollFocus.js mayMoveFocus) - never out of the host's field.
+test("an embedded app's Focus control leaves a focus the guard refuses", () => {
+  const dom = inputDom({ value: "12345678" });
+  const target = targetWithInput(dom);
+  const { Focus, guardAsked, ctx } = load({ target, mayMoveFocus: false });
+  run(Focus, { selectionStart: "0", selectionEnd: "4" });
+  expect(target.applied).toEqual([]);
+  expect(guardAsked).toEqual([ctx]);
+
+  // the setter path asks the same guard
+  const inst = new Focus();
+  inst.setProperty = () => {};
+  inst.setFocusId("field");
+  expect(target.applied).toEqual([]);
+  expect(guardAsked).toEqual([ctx, ctx]);
+});
+
+test("the setter restores the focus when the guard allows it", () => {
+  const dom = inputDom({ value: "abc" });
+  const target = targetWithInput(dom);
+  const { Focus } = load({ target });
+  const inst = new Focus();
+  inst.setProperty = () => {};
+  inst.setFocusId("field");
+  expect(target.applied).toEqual([{ id: "field" }]);
 });

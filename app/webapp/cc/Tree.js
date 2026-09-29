@@ -4,14 +4,15 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Context",
+    "z2ui5/core/Env",
   ],
-  (Control, Lib, ViewSlots, Context) => {
+  (Control, Lib, ViewSlots, Context, Env) => {
     "use strict";
 
     // Invisible control that preserves the expand/collapse state of a
     // sap.m.Tree (referenced via tree_id) across roundtrips - a rebuilt
     // binding would otherwise start fully collapsed.
-    return Control.extend("z2ui5.cc.Tree", {
+    const Tree = Control.extend("z2ui5.cc.Tree", {
       metadata: {
         properties: {
           tree_id: {
@@ -126,5 +127,6 @@ sap.ui.define(
 
       renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
     });
+    return Env.ownClass(Tree);
   },
 );

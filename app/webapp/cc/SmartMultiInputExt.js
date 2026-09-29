@@ -1,13 +1,18 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, ViewSlots, Env) => {
     "use strict";
 
     // Invisible companion control for a SmartMultiInput (referenced via
     // multiInputId): mirrors token updates and the select-option style
     // range data into bindable properties so the backend can read and
     // restore the input's state across roundtrips.
-    return Control.extend("z2ui5.cc.SmartMultiInputExt", {
+    const SmartMultiInputExt = Control.extend("z2ui5.cc.SmartMultiInputExt", {
       metadata: {
         properties: {
           multiInputId: {
@@ -184,5 +189,6 @@ sap.ui.define(
         this._aPendingInnerControlsCreated = [];
       },
     });
+    return Env.ownClass(SmartMultiInputExt);
   },
 );

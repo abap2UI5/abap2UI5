@@ -5,8 +5,13 @@
 // Sending is deliberately NOT part of the control - an app publishes to the
 // AMC channel from ABAP, so consuming a push channel needs no app JavaScript.
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
-  (Control, Lib, Context) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Context",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, Context, Env) => {
     "use strict";
 
     // A roundtrip already in flight makes View1.eB DROP the event (its
@@ -57,7 +62,7 @@ sap.ui.define(
     const WS_URL = /^wss?:\/\//i;
     const HTTP_SCHEME = /^http/i;
 
-    return Control.extend("z2ui5.cc.Websocket", {
+    const Websocket = Control.extend("z2ui5.cc.Websocket", {
       metadata: {
         properties: {
           // APC path ("/sap/bc/apc/sap/z2ui5_apc_smp_2"), resolved against
@@ -362,5 +367,6 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
     });
+    return Env.ownClass(Websocket);
   },
 );

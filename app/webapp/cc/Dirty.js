@@ -2,8 +2,13 @@
 // inside the Launchpad via the FLP dirty flag, standalone via the
 // browser's "leave page?" confirmation prompt (a beforeunload listener).
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
-  (Control, Lib, Context) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Context",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, Context, Env) => {
     "use strict";
 
     // Every live Dirty instance that is currently dirty. The FLP dirty flag
@@ -129,6 +134,6 @@ sap.ui.define(
       applyDirtyState(launchpad);
     };
 
-    return Dirty;
+    return Env.ownClass(Dirty);
   },
 );

@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
+const { classEnv } = require("./loadLibModule");
 
 // cc/History.js (obsolete, replaced by the framework's hash_set):
 // rewrites the query string of the current URL via history.replaceState.
@@ -24,6 +25,7 @@ function load({
 
   const { module: HistoryDef } = loadModule("cc/History.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": {
         toText: (v) => (v == null ? "" : String(v)),

@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext, contextStub } = require("./loadLibModule");
+const { specContext, contextStub, classEnv } = require("./loadLibModule");
 
 // cc/Tree.js: keeps a sap.m.Tree's expand/collapse state across roundtrips.
 // A rebuilt binding starts fully collapsed, so the companion snapshots the
@@ -37,6 +37,7 @@ function load({ trees = {}, treeStates = {}, context = true } = {}) {
 
   const { module: TreeDef } = loadModule("cc/Tree.js", {
     deps: {
+      "z2ui5/core/Env": classEnv,
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": {
         logError: (m, e) => errors.push([m, e]),

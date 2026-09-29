@@ -42,7 +42,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `      EndsWith: (v) => ``${v ?? ""}$``,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.UITableExt", {` && |\n| &&
+             `    const UITableExt = Control.extend("z2ui5.cc.UITableExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          tableId: {` && |\n| &&
@@ -204,6 +204,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(UITableExt);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

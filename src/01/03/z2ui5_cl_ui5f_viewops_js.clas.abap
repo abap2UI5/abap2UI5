@@ -26,8 +26,13 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/actions/ControlCall"],` && |\n| &&
-             `  (Lib, ViewSlots, ControlCall) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/ScrollFocus",` && |\n| &&
+             `    "z2ui5/core/actions/ControlCall",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Lib, ViewSlots, ScrollFocus, ControlCall) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
@@ -173,6 +178,8 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `        oController,` && |\n| &&
              `        () => {` && |\n| &&
              `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `` && |\n| &&
+             `          if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;` && |\n| &&
              `          applyFocus();` && |\n| &&
              `          const dom = oElement.getDomRef();` && |\n| &&
              `          if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
@@ -192,6 +199,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `                if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
              `` && |\n| &&
              `                if (!samePlace(document.activeElement)) return;` && |\n| &&
+             `                if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;` && |\n| &&
              `                applyFocus();` && |\n| &&
              `              }, 0);` && |\n| &&
              `            },` && |\n| &&

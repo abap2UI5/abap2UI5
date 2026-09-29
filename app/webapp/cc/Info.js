@@ -1,13 +1,18 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Context"],
-  (Control, Lib, Context) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/Context",
+    "z2ui5/core/Env",
+  ],
+  (Control, Lib, Context, Env) => {
     "use strict";
 
     // Invisible control that reports the UI5 version/theme and the device
     // info (system type, screen size, OS, browser) back to the backend via
     // its bindable properties, then fires `finished`.
     // OBSOLETE: replaced by client.get().s_device / s_ui5 - kept for backward compatibility.
-    return Control.extend("z2ui5.cc.Info", {
+    const Info = Control.extend("z2ui5.cc.Info", {
       metadata: {
         properties: {
           ui5_version: {
@@ -132,5 +137,6 @@ sap.ui.define(
 
       renderer: { apiVersion: 2, render: Lib.renderInvisibleSpan },
     });
+    return Env.ownClass(Info);
   },
 );

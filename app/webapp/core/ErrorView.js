@@ -303,9 +303,22 @@ sap.ui.define([], () => {
     }
   }
 
+  // The Restart of every error surface - the friendly dialog, the raw
+  // overlay, the developer tools' Error view. A page reload on a page of the
+  // app's own. An EMBEDDED component runs on a HOST's page, and reloading it
+  // took everything the user had there with it: the component restarts the
+  // app in place instead (ctx.restart, set by Component.init).
+  function restart(ctx) {
+    if (typeof ctx?.restart === "function") {
+      ctx.restart();
+      return;
+    }
+    window.location.reload();
+  }
+
   // The friendly UI5 error dialog shown first: the extracted error text so the
   // cause is visible at a glance, with a Details action (handed to whatever
-  // registered as a details provider) and a Restart action (reload). Returns
+  // registered as a details provider) and a Restart action (see restart). Returns
   // true when it was shown, false when UI5 could not render it so the caller
   // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required
   // lazily so ErrorView never hard-depends on a renderable core.
@@ -365,10 +378,15 @@ sap.ui.define([], () => {
         );
       }
       // Restart is the primary action, so it also gets the initial focus.
+      // The dialog closes first: an embedded app restarts in place, and
+      // the page - with this dialog - stays.
       const restartButton = new Button({
         text: "Restart",
         type: "Emphasized",
-        press: () => window.location.reload(),
+        press: () => {
+          dialog.close();
+          restart(ctx);
+        },
       });
       // Copy the full error text (not just the shown preview) to the clipboard
       // so the user can paste it into a ticket or chat. What lands on the
@@ -628,7 +646,10 @@ sap.ui.define([], () => {
         options.onRetry();
       });
     }
-    addAction("Refresh", () => window.location.reload());
+    addAction("Refresh", () => {
+      errorContainer.remove();
+      restart(ctx);
+    });
     addAction("Logout", () => handleLogout(ctx));
 
     headerDiv.appendChild(actionsDiv);
@@ -687,5 +708,5 @@ sap.ui.define([], () => {
     if (firstTrap) firstTrap.focus();
   }
 
-  return { show, handleLogout, reopenErrorDialog, reset };
+  return { show, restart, handleLogout, reopenErrorDialog, reset };
 });

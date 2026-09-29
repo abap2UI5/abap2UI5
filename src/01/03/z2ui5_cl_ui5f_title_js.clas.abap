@@ -26,11 +26,16 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/actions/Browser"],` && |\n| &&
-             `  (Control, Lib, Browser) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/actions/Browser",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, Browser, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.Title", {` && |\n| &&
+             `    const Title = Control.extend("z2ui5.cc.Title", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          title: {` && |\n| &&
@@ -44,6 +49,7 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(Title);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

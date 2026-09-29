@@ -7,8 +7,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Context",
     "z2ui5/core/actions/Launchpad",
+    "z2ui5/core/Env",
   ],
-  (Control, Lib, Context, Launchpad) => {
+  (Control, Lib, Context, Launchpad, Env) => {
     "use strict";
 
     // The context of the control's component (core/Context.js), whose
@@ -27,7 +28,7 @@ sap.ui.define(
     }
 
     // OBSOLETE: replaced by the frontend event cs_event-set_title_launchpad - kept for backward compatibility.
-    return Control.extend("z2ui5.cc.LPTitle", {
+    const LPTitle = Control.extend("z2ui5.cc.LPTitle", {
       metadata: {
         properties: {
           title: {
@@ -70,5 +71,6 @@ sap.ui.define(
 
       renderer: Lib.EMPTY_RENDERER,
     });
+    return Env.ownClass(LPTitle);
   },
 );

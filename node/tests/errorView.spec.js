@@ -140,6 +140,7 @@ function load({ ui5 = true } = {}) {
   };
   const ErrorView = bindContext(module, ctx, [
     "show",
+    "restart",
     "reset",
     "reopenErrorDialog",
     "handleLogout",
@@ -428,6 +429,38 @@ test.describe("ErrorView friendly dialog", () => {
     ErrorView.show("dump");
     created.dialogs[0].settings.buttons[2].settings.press(); // Restart
     expect(reloads).toEqual([true]);
+  });
+
+  // An EMBEDDED component runs on a HOST's page: a reload took everything
+  // the user had there with it. The component restarts the app in place
+  // (ctx.restart, Component._restartApp) - the dialog closes, the page stays.
+  test("an embedded app's Restart restarts it in place, the page stays", () => {
+    const { ErrorView, ctx, reloads, created } = load();
+    const restarts = [];
+    ctx.restart = () => restarts.push(true);
+    ErrorView.show("dump");
+    const dialog = created.dialogs[0];
+    dialog.open();
+    dialog.settings.buttons[2].settings.press(); // Restart
+    expect(restarts).toEqual([true]);
+    expect(reloads).toEqual([]);
+    expect(dialog.open_called).toBe(false);
+    expect(dialog.destroyed).toBe(true);
+  });
+
+  // the same decision for every error surface - the developer tools' Error
+  // view calls it as well
+  test("restart( ) reloads only where no in-place restart is offered", () => {
+    const standalone = load();
+    standalone.ErrorView.restart();
+    expect(standalone.reloads).toEqual([true]);
+
+    const embedded = load();
+    const restarts = [];
+    embedded.ctx.restart = () => restarts.push(true);
+    embedded.ErrorView.restart();
+    expect(restarts).toEqual([true]);
+    expect(embedded.reloads).toEqual([]);
   });
 
   test("reopenErrorDialog re-shows the popup with the last error", () => {

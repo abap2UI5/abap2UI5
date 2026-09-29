@@ -31,11 +31,12 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `    "sap/ui/core/Item",` && |\n| &&
              `    "sap/m/ComboBoxRenderer",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (ComboBox, Item, ComboBoxRenderer, Lib) => {` && |\n| &&
+             `  (ComboBox, Item, ComboBoxRenderer, Lib, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
+             `    const CameraSelector = ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
              `      init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
              `        this._loadCameras();` && |\n| &&
@@ -61,6 +62,7 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: ComboBoxRenderer,` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(CameraSelector);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

@@ -81,8 +81,18 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       variants: { activeInits: new Set() },
       // core/ScrollFocus.js - the per-element resolution cache
       scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
+      // core/ScrollFocus.js - the focus guard of an embedded component:
+      // whether the user's last focus or click went into it, and the
+      // document listener that records it (watchFocus)
+      focus: { userInside: false, listener: null },
       // core/ErrorView.js - the last dialog's inputs and the open dialog
       errorView: { title: "", details: "", options: {}, dialog: null },
+      // The restart of the app in place, set by Component.init for an
+      // EMBEDDED component (Component._restartApp): the Restart of the
+      // fatal-error overlay (core/ErrorView.js) calls it instead of
+      // reloading the page, which is the host's. null on a page of the
+      // app's own - a reload is the restart there.
+      restart: null,
       // devtools/DevTools.js - the tools instance and its listeners
       devtools: {},
     };
@@ -99,6 +109,14 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     ctx.alive = false;
     ctx.state = AppState.createState();
     if (ctx.component) byComponent.delete(ctx.component);
+  }
+
+  // The end of the APP, not of the context - the restart of an embedded
+  // app in place (Component._restartApp): the context stays alive and its
+  // state object the same, with every field of the app back at its default
+  // (AppState.resetApp says which fields are the component's).
+  function resetApp(ctx) {
+    if (ctx?.state) AppState.resetApp(ctx.state);
   }
 
   function registerView(ctx, view) {
@@ -147,5 +165,5 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return null;
   }
 
-  return { create, destroy, registerView, runAsOwner, of };
+  return { create, destroy, resetApp, registerView, runAsOwner, of };
 });

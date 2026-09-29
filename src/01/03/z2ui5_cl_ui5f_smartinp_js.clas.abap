@@ -26,11 +26,16 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Env",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
+             `    const SmartMultiInputExt = Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          multiInputId: {` && |\n| &&
@@ -176,6 +181,7 @@ CLASS z2ui5_cl_ui5f_smartinp_js IMPLEMENTATION.
              `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(SmartMultiInputExt);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

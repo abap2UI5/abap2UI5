@@ -49,7 +49,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        o.CODE,` && |\n| &&
              `      ].join(KEY_SEP);` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.MessageManager", {` && |\n| &&
+             `    const MessageManager = Control.extend("z2ui5.cc.MessageManager", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          items: { type: "object" },` && |\n| &&
@@ -137,6 +137,7 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `        if (changed) this.fireChange();` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
+             `    return Env.ownClass(MessageManager);` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

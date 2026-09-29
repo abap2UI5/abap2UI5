@@ -280,5 +280,42 @@ sap.ui.define([], () => {
     };
   }
 
-  return { createState };
+  // The fields that describe the COMPONENT rather than the app running in
+  // it: its configuration, the shell's UI5 objects, the launchpad services
+  // and the callback arrays other modules registered into (the developer
+  // tools among them). Everything else belongs to the app - including the
+  // five View1 controllers, which a restart replaces so that whatever the
+  // app before them left waiting reads its controller as gone
+  // (Lib.isControllerAlive).
+  const COMPONENT_FIELDS = new Set([
+    "checkLocal",
+    "endpoint",
+    "url",
+    "oConfig",
+    "ccResourceRoot",
+    "cccResourceRoot",
+    "embedded",
+    "oApp",
+    "oOwnerComponent",
+    "oDeviceModel",
+    "oLaunchpad",
+    "onBeforeRoundtrip",
+    "onAfterRoundtrip",
+    "onAfterRendering",
+    "onBeforeEventFrontend",
+    "onErrorDetails",
+  ]);
+
+  // Every field of the app back to its default, IN PLACE - the state object
+  // stays the one every module holds - for the restart of an embedded app
+  // (Context.resetApp). A field added to createState( ) above starts over
+  // with the app unless COMPONENT_FIELDS names it.
+  function resetApp(state) {
+    const fresh = createState();
+    for (const key of Object.keys(fresh)) {
+      if (!COMPONENT_FIELDS.has(key)) state[key] = fresh[key];
+    }
+  }
+
+  return { createState, resetApp, COMPONENT_FIELDS };
 });

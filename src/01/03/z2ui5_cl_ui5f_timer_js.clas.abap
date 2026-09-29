@@ -25,78 +25,82 @@ CLASS z2ui5_cl_ui5f_timer_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],` && |\n| &&
+             `  (Control, Lib, Env) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.cc.Timer", {` && |\n| &&
-             `    metadata: {` && |\n| &&
-             `      properties: {` && |\n| &&
-             `        delayMS: {` && |\n| &&
-             `          type: "int",` && |\n| &&
-             `          defaultValue: 0,` && |\n| &&
+             `    const Timer = Control.extend("z2ui5.cc.Timer", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          delayMS: {` && |\n| &&
+             `            type: "int",` && |\n| &&
+             `            defaultValue: 0,` && |\n| &&
+             `          },` && |\n| &&
+             `          checkActive: {` && |\n| &&
+             `            type: "boolean",` && |\n| &&
+             `            defaultValue: true,` && |\n| &&
+             `          },` && |\n| &&
+             `          checkRepeat: {` && |\n| &&
+             `            type: "boolean",` && |\n| &&
+             `            defaultValue: false,` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
-             `        checkActive: {` && |\n| &&
-             `          type: "boolean",` && |\n| &&
-             `          defaultValue: true,` && |\n| &&
-             `        },` && |\n| &&
-             `        checkRepeat: {` && |\n| &&
-             `          type: "boolean",` && |\n| &&
-             `          defaultValue: false,` && |\n| &&
+             `        events: {` && |\n| &&
+             `          finished: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `      events: {` && |\n| &&
-             `        finished: {` && |\n| &&
-             `          allowPreventDefault: true,` && |\n| &&
-             `          parameters: {},` && |\n| &&
-             `        },` && |\n| &&
+             `      onAfterRendering() {` && |\n| &&
+             `        if (!this._pendingTimer) return;` && |\n| &&
+             `        this._pendingTimer = false;` && |\n| &&
+             `        this.delayedCall();` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
-             `    onAfterRendering() {` && |\n| &&
-             `      if (!this._pendingTimer) return;` && |\n| &&
-             `      this._pendingTimer = false;` && |\n| &&
-             `      this.delayedCall();` && |\n| &&
-             `    },` && |\n| &&
-             `    exit() {` && |\n| &&
-             `      clearTimeout(this._timerId);` && |\n| &&
-             `    },` && |\n| &&
-             `    delayedCall() {` && |\n| &&
-             `      if (!this.getProperty("checkActive")) return;` && |\n| &&
-             `      clearTimeout(this._timerId);` && |\n| &&
-             `      let repeat = this.getProperty("checkRepeat");` && |\n| &&
-             `      const delay = Math.max(0, Number(this.getProperty("delayMS")) || 0);` && |\n| &&
-             `` && |\n| &&
-             `      if (repeat && delay === 0) {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          "Timer: checkRepeat with delayMS 0 fires once - a repeating timer needs a delay",` && |\n| &&
-             `        );` && |\n| &&
-             `        repeat = false;` && |\n| &&
-             `      }` && |\n| &&
-             `      this._timerId = setTimeout(() => {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        clearTimeout(this._timerId);` && |\n| &&
+             `      },` && |\n| &&
+             `      delayedCall() {` && |\n| &&
              `        if (!this.getProperty("checkActive")) return;` && |\n| &&
-             `        if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&
-             `        this.fireFinished();` && |\n| &&
+             `        clearTimeout(this._timerId);` && |\n| &&
+             `        let repeat = this.getProperty("checkRepeat");` && |\n| &&
+             `        const delay = Math.max(0, Number(this.getProperty("delayMS")) || 0);` && |\n| &&
              `` && |\n| &&
-             `        if (repeat && !Lib.isDestroyed(this)) {` && |\n| &&
-             `          this.delayedCall();` && |\n| &&
+             `        if (repeat && delay === 0) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "Timer: checkRepeat with delayMS 0 fires once - a repeating timer needs a delay",` && |\n| &&
+             `          );` && |\n| &&
+             `          repeat = false;` && |\n| &&
              `        }` && |\n| &&
-             `      }, delay);` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer: {` && |\n| &&
-             `      apiVersion: 2,` && |\n| &&
-             `      render(oRm, oControl) {` && |\n| &&
-             `        Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
-             `        oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
+             `        this._timerId = setTimeout(() => {` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `` && |\n| &&
-             `        if (!oControl._pendingTimer) {` && |\n| &&
-             `          clearTimeout(oControl._timerId);` && |\n| &&
-             `          oControl._timerId = null;` && |\n| &&
-             `        }` && |\n| &&
+             `          if (!this.getProperty("checkActive")) return;` && |\n| &&
+             `          if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&
+             `          this.fireFinished();` && |\n| &&
+             `` && |\n| &&
+             `          if (repeat && !Lib.isDestroyed(this)) {` && |\n| &&
+             `            this.delayedCall();` && |\n| &&
+             `          }` && |\n| &&
+             `        }, delay);` && |\n| &&
              `      },` && |\n| &&
-             `    },` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `      renderer: {` && |\n| &&
+             `        apiVersion: 2,` && |\n| &&
+             `        render(oRm, oControl) {` && |\n| &&
+             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
+             `          oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
+             `` && |\n| &&
+             `          if (!oControl._pendingTimer) {` && |\n| &&
+             `            clearTimeout(oControl._timerId);` && |\n| &&
+             `            oControl._timerId = null;` && |\n| &&
+             `          }` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `    });` && |\n| &&
+             `    return Env.ownClass(Timer);` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

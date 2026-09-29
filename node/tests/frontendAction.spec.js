@@ -11,8 +11,9 @@ const { specContext, withSpecController } = require("./loadLibModule");
 
 // `requires` seeds the sap.ui.require stub for targets that resolve their
 // global LAZILY by module id (ICON_POOL, THEMING), which the array form below
-// does not cover.
-function load({ sandbox, requires = {} } = {}) {
+// does not cover. `deps` replaces a dependency the composition would
+// otherwise load for real (the focus guard of core/ScrollFocus.js, say).
+function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
   const calls = [];
   const errors = [];
   const rec =
@@ -163,6 +164,7 @@ function load({ sandbox, requires = {} } = {}) {
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/actions/Slots": Slots,
+      ...extraDeps,
     },
   });
   const { carrying } = withSpecController({}, specCtx);
@@ -3170,6 +3172,7 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
           onNextRendering: () => {},
         },
         "z2ui5/core/ViewSlots": { resolveById: () => fx.control },
+        "z2ui5/core/ScrollFocus": { mayMoveFocus: () => true },
       },
     });
 
@@ -3187,6 +3190,115 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     ViewOps.handlers.SET_FOCUS(oController, ["SET_FOCUS", "inp", "0", "4"]);
     pending[1]();
     expect(fx.applied).toEqual([{ selectionStart: 0, selectionEnd: 4 }]);
+  });
+});
+
+// An EMBEDDED app moves the focus only while the user works in it: the page
+// and its focus are the host's (core/ScrollFocus.js mayMoveFocus, whose
+// decision focusGuard.spec.js pins). The two focus actions ask the guard
+// right before the focus would move - SET_FOCUS when its control has
+// rendered, not when the action arrived - and a refused move is no error.
+test.describe("the focus actions ask the embedded focus guard", () => {
+  function guard(answer) {
+    const asked = [];
+    return {
+      asked,
+      ScrollFocus: {
+        mayMoveFocus: (ctx) => {
+          asked.push(ctx);
+          return answer();
+        },
+      },
+    };
+  }
+
+  test("SET_FOCUS moves nothing while the guard refuses", () => {
+    const body = {};
+    const doc = { body, activeElement: body };
+    const applied = [];
+    const delegates = [];
+    const control = {
+      getDomRef: () => ({ contains: () => false }),
+      getFocusInfo: () => ({}),
+      applyFocusInfo: (info) => applied.push(info),
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: () => {},
+    };
+    let allow = false;
+    const { asked, ScrollFocus } = guard(() => allow);
+    const { FrontendAction, controls, errors, specCtx } = load({
+      sandbox: { document: doc },
+      deps: { "z2ui5/core/ScrollFocus": ScrollFocus },
+    });
+    controls.inp = control;
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(applied).toEqual([]);
+    // no retry waits for a re-render either - there is nothing to retry
+    expect(delegates).toEqual([]);
+    expect(errors).toEqual([]);
+    expect(asked).toEqual([specCtx]);
+
+    // the same action once the user works in the app
+    allow = true;
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "0", "4"]);
+    expect(applied).toEqual([{ selectionStart: 0, selectionEnd: 4 }]);
+  });
+
+  test("the retry after a re-render asks the guard again", async () => {
+    const body = {};
+    const doc = { body, activeElement: body };
+    const applied = [];
+    const delegates = [];
+    const control = {
+      getDomRef: () => ({ contains: () => false }),
+      getFocusInfo: () => ({}),
+      applyFocusInfo: (info) => applied.push(info),
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: (d) => delegates.splice(delegates.indexOf(d), 1),
+    };
+    let allow = true;
+    const { ScrollFocus } = guard(() => allow);
+    const { FrontendAction, controls } = load({
+      sandbox: { document: doc },
+      deps: { "z2ui5/core/ScrollFocus": ScrollFocus },
+    });
+    controls.inp = control;
+    FrontendAction.execute(null, ["SET_FOCUS", "inp"]);
+    // the DOM refused the first attempt: a retry waits for the re-render
+    expect(applied).toHaveLength(1);
+    expect(delegates).toHaveLength(1);
+    // ... by which time the user is in the host's page
+    allow = false;
+    delegates[0].onAfterRendering();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(applied).toHaveLength(1);
+  });
+
+  test("CONTROL_BY_ID focus( ) is refused like SET_FOCUS", () => {
+    let allow = false;
+    const { asked, ScrollFocus } = guard(() => allow);
+    const { FrontendAction, calls, controls, errors, specCtx } = load({
+      deps: { "z2ui5/core/ScrollFocus": ScrollFocus },
+    });
+    controls.inp = { focus: () => calls.push(["focus"]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "inp", "", "focus"]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([]);
+    expect(asked).toEqual([specCtx]);
+    allow = true;
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "inp", "", "focus"]);
+    expect(calls).toEqual([["focus"]]);
+  });
+
+  test("any other CONTROL_BY_ID method does not ask it", () => {
+    const { asked, ScrollFocus } = guard(() => false);
+    const { FrontendAction, calls, controls } = load({
+      deps: { "z2ui5/core/ScrollFocus": ScrollFocus },
+    });
+    controls.dlg = { close: () => calls.push(["close"]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "close"]);
+    expect(calls).toEqual([["close"]]);
+    expect(asked).toEqual([]);
   });
 });
 

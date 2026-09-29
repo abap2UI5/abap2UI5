@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["z2ui5/core/Lib", "z2ui5/core/ViewSlots", "z2ui5/core/actions/ControlCall"],
-  (Lib, ViewSlots, ControlCall) => {
+  [
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/ScrollFocus",
+    "z2ui5/core/actions/ControlCall",
+  ],
+  (Lib, ViewSlots, ScrollFocus, ControlCall) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -250,6 +255,11 @@ sap.ui.define(
           // once the app that asked for it is gone, the way the retry below
           // and the anchor wait in ControlCall already ask
           if (!Lib.isControllerAlive(oController)) return;
+          // An embedded app moves the focus only while the user works in it
+          // (ScrollFocus.mayMoveFocus) - asked HERE, when the focus would
+          // move, not when the action arrived: the control may render a
+          // while later, and the user may have gone to the host by then
+          if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;
           applyFocus();
           const dom = oElement.getDomRef();
           if (dom && dom.contains(document.activeElement)) return;
@@ -284,6 +294,7 @@ sap.ui.define(
                 // between - a re-render at some arbitrary later point must
                 // never steal the user's focus.
                 if (!samePlace(document.activeElement)) return;
+                if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;
                 applyFocus();
               }, 0);
             },
