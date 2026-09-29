@@ -47,28 +47,43 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_get_html.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<html` ) ).
+    temp1 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `</html>` ) ).
+
+    temp2 = boolc( ls_result-body CS `<html` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
+
+
+    temp3 = boolc( ls_result-body CS `</html>` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_http_get_ui5_boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `sap-ui-bootstrap` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `z2ui5` ) ).
+    temp4 = boolc( ls_result-body CS `sap-ui-bootstrap` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
+
+
+    temp5 = boolc( ls_result-body CS `z2ui5` ).
+    cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
 
@@ -81,10 +96,13 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " an empty one would leave the URL in the tab during the UI5 boot.
 
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp6 TYPE xsdboolean.
 
     ls_result = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<title>abap2UI5</title>` ) ).
+
+    temp6 = boolc( ls_result-body CS `<title>abap2UI5</title>` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
 
   ENDMETHOD.
 
@@ -92,6 +110,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp7 TYPE xsdboolean.
 
     ls_req-method = `POST`.
     ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
@@ -101,7 +120,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `S_FRONT` ) ).
+
+    temp7 = boolc( ls_result-body CS `S_FRONT` ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
 
@@ -219,6 +240,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp8 TYPE xsdboolean.
 
     ls_req-method = `GET`.
 
@@ -227,7 +249,9 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
+
+    temp8 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
 
   ENDMETHOD.
 
@@ -249,7 +273,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_inactive.
 
     " opt-out: with csrf disabled even a cross-origin request is allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_false
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -262,7 +287,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_same_origin.
 
     " same host authority (scheme/case ignored) -> allowed
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://App.Corp:44300`
                             referer = ``
@@ -275,7 +301,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_cross_origin.
 
     " different host authority -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = `https://evil.example.com`
                             referer = ``
@@ -288,7 +315,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_no_headers.
 
     " lenient: no Origin and no Referer -> allowed (proxies / old clients)
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = ``
@@ -301,7 +329,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_csrf_referer.
 
     " Origin absent -> fall back to Referer (with a path), cross-site -> rejected
-    DATA(lv_rejected) = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
+    DATA lv_rejected TYPE abap_bool.
+    lv_rejected = z2ui5_cl_ui5_http_handler=>_check_csrf_rejected(
                             active  = abap_true
                             origin  = ``
                             referer = `https://evil.example.com/attack?x=1`
@@ -367,11 +396,14 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( ).
+    DATA lv_preload TYPE string.
+    DATA lv_line LIKE LINE OF lt_lines.
+    lv_preload = z2ui5_cl_ui5f_preload=>get( ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
-    LOOP AT lt_lines INTO DATA(lv_line).
+
+    LOOP AT lt_lines INTO lv_line.
 
       IF lv_line NP `      "z2ui5/*": '*',`.
         CONTINUE.
@@ -401,33 +433,70 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_main_get_bundle.
 
-    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
-        method   = `GET`
-        t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
+    DATA temp1 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp2 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp3 LIKE LINE OF temp2.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp9 TYPE xsdboolean.
+    DATA temp10 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
+    DATA temp12 TYPE xsdboolean.
+    DATA temp13 TYPE xsdboolean.
+    DATA temp14 TYPE xsdboolean.
+    DATA temp15 TYPE xsdboolean.
+    DATA temp16 TYPE xsdboolean.
+    DATA temp17 TYPE xsdboolean.
+    CLEAR temp1.
+    temp1-method = `GET`.
+
+    CLEAR temp2.
+
+    temp3-n = `z2ui5-bundle`.
+    INSERT temp3 INTO TABLE temp2.
+    temp1-t_params = temp2.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( temp1 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
     " the page's preload registration and nothing of the page around it
+
+    temp9 = boolc( find( val = ls_result-body sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( find( val = ls_result-body
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+        temp9 ).
+
+    temp10 = boolc( ls_result-body CS `"z2ui5/Component.js": function()` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `onInitComponent` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `ComponentSupport` ) ).
+        temp10 ).
+
+    temp11 = boolc( ls_result-body CS `<!DOCTYPE` ).
+    cl_abap_unit_assert=>assert_false( temp11 ).
+
+    temp12 = boolc( ls_result-body CS `onInitComponent` ).
+    cl_abap_unit_assert=>assert_false( temp12 ).
+
+    temp13 = boolc( ls_result-body CS `ComponentSupport` ).
+    cl_abap_unit_assert=>assert_false( temp13 ).
     " ...and the module the embedding page recognises it by, with the
     " sibling BSPs the page itself hands the component as well
+
+    temp14 = boolc( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed", function () {` ) ).
+        temp14 ).
+
+    temp15 = boolc( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
+        temp15 ).
+
+    temp16 = boolc( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
+        temp16 ).
     " ...and that the page is the embedding page's, not the component's: the
     " router leaves its hash alone (a Fiori elements host routes by it)
+
+    temp17 = boolc( ls_result-body CS `embedded: true,` ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `embedded: true,` ) ).
+        temp17 ).
 
   ENDMETHOD.
 
@@ -435,15 +504,32 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     " any other parameter - an app_start above all - keeps the page: the node
     " stays the direct way into abap2UI5
-    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
-        method   = `GET`
-        t_params = VALUE #( ( n = `app_start`
-                              v = `z2ui5_cl_ui5_app_hi_world` ) ) ) ).
+    DATA temp2 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
+    DATA temp4 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp5 LIKE LINE OF temp4.
+    DATA ls_result TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp18 TYPE xsdboolean.
+    DATA temp19 TYPE xsdboolean.
+    CLEAR temp2.
+    temp2-method = `GET`.
+
+    CLEAR temp4.
+
+    temp5-n = `app_start`.
+    temp5-v = `z2ui5_cl_ui5_app_hi_world`.
+    INSERT temp5 INTO TABLE temp4.
+    temp2-t_params = temp4.
+
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( temp2 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `z2ui5/embed` ) ).
+
+    temp18 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp18 ).
+
+    temp19 = boolc( ls_result-body CS `z2ui5/embed` ).
+    cl_abap_unit_assert=>assert_false( temp19 ).
 
   ENDMETHOD.
 
@@ -493,8 +579,11 @@ CLASS ltcl_http_mock IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_field.
-    DATA(lv_name) = to_lower( val ).
-    READ TABLE mt_req_header INTO DATA(ls_header) WITH KEY n = lv_name.
+    DATA lv_name TYPE string.
+    DATA ls_header TYPE z2ui5_if_client=>ty_s_name_value.
+    lv_name = to_lower( val ).
+
+    READ TABLE mt_req_header INTO ls_header WITH KEY n = lv_name.
     IF sy-subrc = 0.
       result = ls_header-v.
     ENDIF.
@@ -502,10 +591,15 @@ CLASS ltcl_http_mock IMPLEMENTATION.
 
   METHOD set_header_field.
     " last write wins, like the real stack - replace an existing entry
-    DATA(lv_name) = to_lower( n ).
+    DATA lv_name TYPE string.
+    DATA temp3 TYPE z2ui5_if_client=>ty_s_name_value.
+    lv_name = to_lower( n ).
     DELETE mt_res_header WHERE n = lv_name.
-    INSERT VALUE #( n = lv_name
-                    v = v ) INTO TABLE mt_res_header.
+
+    CLEAR temp3.
+    temp3-n = lv_name.
+    temp3-v = v.
+    INSERT temp3 INTO TABLE mt_res_header.
   ENDMETHOD.
 
   METHOD set_cdata.
@@ -709,22 +803,25 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handler_create.
-    mo_handler = NEW #( ).
-    mo_mock    = NEW #( ).
+    CREATE OBJECT mo_handler.
+    CREATE OBJECT mo_mock.
     mo_handler->mo_server = mo_mock.
   ENDMETHOD.
 
   METHOD header_value.
-    READ TABLE mo_mock->mt_res_header INTO DATA(ls_header) WITH KEY n = name.
+    DATA ls_header TYPE z2ui5_if_client=>ty_s_name_value.
+    READ TABLE mo_mock->mt_res_header INTO ls_header WITH KEY n = name.
     IF sy-subrc = 0.
       result = ls_header-v.
     ENDIF.
   ENDMETHOD.
 
   METHOD shell_for_config.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = is_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
     result = ls_res-body.
   ENDMETHOD.
 
@@ -733,18 +830,32 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " every input the shell body is built from must be part of the cache
     " key: a changed input that leaves the key unchanged would serve the
     " previous page to the whole work process
-    DATA(ls_base) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme                   = `sap_horizon`
-        src                     = `https://sdk.example/sap-ui-core.js`
-        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'"/>` ).
+    DATA temp4 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_base LIKE temp4.
+    DATA lv_body_base TYPE string.
+    DATA lv_key_base LIKE z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    DATA ls_config LIKE ls_base.
+    DATA lv_body TYPE string.
+    DATA temp5 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp6 LIKE LINE OF temp5.
+    CLEAR temp4.
+    temp4-theme = `sap_horizon`.
+    temp4-src = `https://sdk.example/sap-ui-core.js`.
+    temp4-content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self'"/>`.
 
-    DATA(lv_body_base) = shell_for_config( ls_base ).
-    DATA(lv_key_base)  = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    ls_base = temp4.
+
+
+    lv_body_base = shell_for_config( ls_base ).
+
+    lv_key_base = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
     cl_abap_unit_assert=>assert_not_initial( lv_key_base ).
 
-    DATA(ls_config) = ls_base.
+
+    ls_config = ls_base.
     ls_config-theme = `sap_fiori_3`.
-    DATA(lv_body) = shell_for_config( ls_config ).
+
+    lv_body = shell_for_config( ls_config ).
     cl_abap_unit_assert=>assert_differs( exp = lv_key_base
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
     cl_abap_unit_assert=>assert_differs( exp = lv_body_base
@@ -775,8 +886,13 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                          act = lv_body ).
 
     ls_config = ls_base.
-    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-language`
-                                        v = `EN` ) ).
+
+    CLEAR temp5.
+
+    temp6-n = `data-sap-ui-language`.
+    temp6-v = `EN`.
+    INSERT temp6 INTO TABLE temp5.
+    ls_config-t_add_config = temp5.
     lv_body = shell_for_config( ls_config ).
     cl_abap_unit_assert=>assert_differs( exp = lv_key_base
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
@@ -787,16 +903,22 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_cache_hit_same_config.
 
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp7 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp7.
+    DATA lv_body TYPE string.
+    CLEAR temp7.
+    temp7-theme = `sap_horizon`.
+    temp7-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp7.
 
     shell_for_config( ls_config ).
 
     " prove the second call is answered from the cache, not rebuilt: plant a
     " sentinel as the cached body - an unchanged key must hand it back
     z2ui5_cl_ui5_http_handler=>sv_get_cache_body = `CACHED_SENTINEL`.
-    DATA(lv_body) = shell_for_config( ls_config ).
+
+    lv_body = shell_for_config( ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = `CACHED_SENTINEL`
                                         act = lv_body ).
@@ -804,15 +926,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_on_if_none_match.
+    DATA temp8 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp8.
+    temp8-n = `if-none-match`.
+    temp8-v = `"1.0-11-22-33"`.
+    INSERT temp8 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -828,17 +955,22 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_weak_tag.
+    DATA temp9 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " the validator as a recompressing proxy hands it back: weak-marked, in
     " a list, with whitespace - still the bodyless 304 of an exact match
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-00-00-00", W/"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp9.
+    temp9-n = `if-none-match`.
+    temp9-v = `"1.0-00-00-00", W/"1.0-11-22-33"`.
+    INSERT temp9 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -852,7 +984,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_etag_match_rules.
 
-    DATA(lv_tag) = `"1.0-11-22-33"`.
+    DATA lv_tag TYPE string.
+    lv_tag = `"1.0-11-22-33"`.
 
     " exact, weak, listed, any, the Apache suffix - all a match
     cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
@@ -888,15 +1021,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_no_304_on_stale_tag.
+    DATA temp10 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html>shell</html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html>shell</html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-99-99-99"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp10.
+    temp10-n = `if-none-match`.
+    temp10-v = `"1.0-99-99-99"`.
+    INSERT temp10 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -916,9 +1054,10 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     handler_create( ).
     mo_handler->ms_req-method = `POST`.
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     " even with a shell tag cached, a POST reply must never carry it
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
 
@@ -937,15 +1076,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_cache_control_error.
+    DATA temp11 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `Internal Server Error`
-                                  status_code   = 500
-                                  status_reason = `Internal Server Error` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `Internal Server Error`.
+    mo_handler->ms_res-status_code = 500.
+    mo_handler->ms_res-status_reason = `Internal Server Error`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp11.
+    temp11-n = `if-none-match`.
+    temp11-v = `"1.0-11-22-33"`.
+    INSERT temp11 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -960,16 +1104,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_cache_control_head.
+    DATA temp12 TYPE z2ui5_if_client=>ty_s_name_value.
 
     handler_create( ).
     " HEAD is the session-terminate ping, deliberately answered no-store and
     " never through the ETag/304 path - see the HEAD branch in main( )
     mo_handler->ms_req-method = `HEAD`.
-    mo_handler->ms_res = VALUE #( status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
     z2ui5_cl_ui5_http_handler=>sv_get_etag = `"1.0-11-22-33"`.
-    INSERT VALUE #( n = `if-none-match`
-                    v = `"1.0-11-22-33"` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp12.
+    temp12-n = `if-none-match`.
+    temp12-v = `"1.0-11-22-33"`.
+    INSERT temp12 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -982,13 +1131,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_head_terminate_ping.
+    DATA temp13 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp14 LIKE LINE OF temp13.
 
     " core/Server.js endSession: the ping carries `sap-terminate: session`
     " and ends the stateful session, answered with an empty 200
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `HEAD` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `sap-terminate`
-                                        v = `session` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `HEAD`.
+
+    CLEAR temp13.
+
+    temp14-n = `sap-terminate`.
+    temp14-v = `session`.
+    INSERT temp14 INTO TABLE temp13.
+    mo_mock->mt_req_header = temp13.
 
     mo_handler->main( ).
 
@@ -1002,15 +1159,23 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_head_token_fetch_keeps.
+    DATA temp15 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp16 LIKE LINE OF temp15.
 
     " the X-CSRF-Token fetch of core/Server.js, which a token layer in front
     " (an SAP approuter) answers and then forwards here: an empty 200, and
     " the stateful session is not touched - ending it would drop a stateful
     " app's session in the middle of the handshake
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `HEAD` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `x-csrf-token`
-                                        v = `Fetch` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `HEAD`.
+
+    CLEAR temp15.
+
+    temp16-n = `x-csrf-token`.
+    temp16-v = `Fetch`.
+    INSERT temp16 INTO TABLE temp15.
+    mo_mock->mt_req_header = temp15.
 
     mo_handler->main( ).
 
@@ -1021,6 +1186,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_ctxid_cookie_to_header.
+    DATA temp17 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " The stateful handover. ICF answers a stateful switch with a
     " `sap-contextid` COOKIE, and the framework's own frontend cannot read
@@ -1032,14 +1198,19 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " halves matter: leaving the cookie on would hand the browser a second,
     " competing carrier of the same session id
     handler_create( ).
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK`
-                                  s_stateful    = VALUE #( active   = 1
-                                                           switched = abap_true ) ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
+    CLEAR mo_handler->ms_res-s_stateful.
+    mo_handler->ms_res-s_stateful-active = 1.
+    mo_handler->ms_res-s_stateful-switched = abap_true.
     mo_mock->mv_res_cookie = `SID:ANON:srv_A4H_00_abcdef`.
-    INSERT VALUE #( n = `sap-contextid-accept`
-                    v = `header` ) INTO TABLE mo_mock->mt_req_header.
+
+    CLEAR temp17.
+    temp17-n = `sap-contextid-accept`.
+    temp17-v = `header`.
+    INSERT temp17 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -1058,11 +1229,13 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " ordinary browser navigation to the BSP path carries it back by itself,
     " and deleting it there would end the session on the next request
     handler_create( ).
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK`
-                                  s_stateful    = VALUE #( active   = 1
-                                                           switched = abap_true ) ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
+    CLEAR mo_handler->ms_res-s_stateful.
+    mo_handler->ms_res-s_stateful-active = 1.
+    mo_handler->ms_res-s_stateful-switched = abap_true.
     mo_mock->mv_res_cookie = `SID:ANON:srv_A4H_00_abcdef`.
 
     mo_handler->set_response( ).
@@ -1075,16 +1248,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_ctxid_echoed.
+    DATA temp18 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " no switch on THIS response: the session id the request carried is
     " echoed so the frontend can keep sending it. Nothing else does that -
     " the cookie branch above only runs on the roundtrip that switched
     handler_create( ).
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
-    INSERT VALUE #( n = `sap-contextid`
-                    v = `SID:ANON:srv_A4H_00_abcdef` ) INTO TABLE mo_mock->mt_req_header.
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
+
+    CLEAR temp18.
+    temp18-n = `sap-contextid`.
+    temp18-v = `SID:ANON:srv_A4H_00_abcdef`.
+    INSERT temp18 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->set_response( ).
 
@@ -1102,9 +1280,10 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " next request (isValidContextId refuses `` and `undefined` for exactly
     " that reason) and asked ICF to resume a session that does not exist
     handler_create( ).
-    mo_handler->ms_res = VALUE #( body          = `{}`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `{}`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
 
     mo_handler->set_response( ).
 
@@ -1117,19 +1296,30 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " default posture: behind a proxy the external authority arrives in
     " X-Forwarded-Host (first entry), and comparing Origin against it lets
     " the legitimate request through although Host names the internal server
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    DATA temp19 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp20 LIKE LINE OF temp19.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_trust_forwarded = abap_true.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `POST`
-                                    body   = `{"value":{}}` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `origin`
-                                        v = `https://portal.corp` )
-                                      ( n = `host`
-                                        v = `internal.host:8000` )
-                                      ( n = `x-forwarded-host`
-                                        v = `portal.corp, internal.host:8000` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `POST`.
+    mo_mock->ms_req_info-body = `{"value":{}}`.
+
+    CLEAR temp19.
+
+    temp20-n = `origin`.
+    temp20-v = `https://portal.corp`.
+    INSERT temp20 INTO TABLE temp19.
+    temp20-n = `host`.
+    temp20-v = `internal.host:8000`.
+    INSERT temp20 INTO TABLE temp19.
+    temp20-n = `x-forwarded-host`.
+    temp20-v = `portal.corp, internal.host:8000`.
+    INSERT temp20 INTO TABLE temp19.
+    mo_mock->mt_req_header = temp19.
 
     mo_handler->main( ).
 
@@ -1143,19 +1333,30 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " hardened posture: an installation without a proxy stops trusting the
     " client-suppliable X-Forwarded-Host via the exit - the same request is
     " then compared against the transport-level Host and rejected
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    DATA temp21 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp22 LIKE LINE OF temp21.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_trust_forwarded = abap_false.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `POST`
-                                    body   = `{"value":{}}` ).
-    mo_mock->mt_req_header = VALUE #( ( n = `origin`
-                                        v = `https://portal.corp` )
-                                      ( n = `host`
-                                        v = `internal.host:8000` )
-                                      ( n = `x-forwarded-host`
-                                        v = `portal.corp, internal.host:8000` ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `POST`.
+    mo_mock->ms_req_info-body = `{"value":{}}`.
+
+    CLEAR temp21.
+
+    temp22-n = `origin`.
+    temp22-v = `https://portal.corp`.
+    INSERT temp22 INTO TABLE temp21.
+    temp22-n = `host`.
+    temp22-v = `internal.host:8000`.
+    INSERT temp22 INTO TABLE temp21.
+    temp22-n = `x-forwarded-host`.
+    temp22-v = `portal.corp, internal.host:8000`.
+    INSERT temp22 INTO TABLE temp21.
+    mo_mock->mt_req_header = temp21.
 
     mo_handler->main( ).
 
@@ -1172,8 +1373,11 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " count, and all three are EQUAL for two exit configs of the same length
     " - so the accumulators alone must separate two different keys of equal
     " length, or a changed config 304s the browser into keeping the old shell
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content B</html>` ).
+    DATA lv_tag_a TYPE string.
+    DATA lv_tag_b TYPE string.
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content A</html>` ).
+
+    lv_tag_b = z2ui5_cl_ui5_http_handler=>_get_etag( `<html>shell content B</html>` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag_b ).
@@ -1192,8 +1396,11 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " same bytes, different order, equal length - a sum-style validator
     " cannot tell them apart, the position-weighted accumulator must
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>_get_etag( `abcdefgh` ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>_get_etag( `hgfedcba` ).
+    DATA lv_tag_a TYPE string.
+    DATA lv_tag_b TYPE string.
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>_get_etag( `abcdefgh` ).
+
+    lv_tag_b = z2ui5_cl_ui5_http_handler=>_get_etag( `hgfedcba` ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
@@ -1206,17 +1413,25 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the tag is derived from the cache key and the build hash, not from
     " the assembled body: it changes with the config, comes back for the
     " same config, and names the embedded frontend's build
-    DATA(ls_config_a) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp23 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config_a LIKE temp23.
+    DATA lv_tag_a LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA ls_config_b LIKE ls_config_a.
+    CLEAR temp23.
+    temp23-theme = `sap_horizon`.
+    temp23-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config_a = temp23.
     shell_for_config( ls_config_a ).
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>sv_get_etag.
 
     cl_abap_unit_assert=>assert_not_initial( lv_tag_a ).
     cl_abap_unit_assert=>assert_char_cp( act = lv_tag_a
                                          exp = |*-{ z2ui5_cl_ui5f_preload=>build_hash }-*| ).
 
-    DATA(ls_config_b) = ls_config_a.
+
+    ls_config_b = ls_config_a.
     ls_config_b-theme = `sap_fiori_3`.
     shell_for_config( ls_config_b ).
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
@@ -1237,16 +1452,31 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " right page - and a browser that stores a page under another page's
     " tag is 304'd into keeping it once that other config is current, which
     " is the stale shell the tag exists to prevent.
-    DATA(ls_config_a) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
-    DATA(ls_config_b) = ls_config_a.
+    DATA temp24 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config_a LIKE temp24.
+    DATA ls_config_b LIKE ls_config_a.
+    DATA lv_tag_a LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA lv_body_b TYPE string.
+    DATA lv_tag_b LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA ls_res_304 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA temp25 TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    DATA ls_res_b LIKE temp25.
+    CLEAR temp24.
+    temp24-theme = `sap_horizon`.
+    temp24-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config_a = temp24.
+
+    ls_config_b = ls_config_a.
     ls_config_b-theme = `sap_fiori_3`.
 
     shell_for_config( ls_config_a ).
-    DATA(lv_tag_a) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
-    DATA(lv_body_b) = shell_for_config( ls_config_b ).
-    DATA(lv_tag_b) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_tag_a = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_body_b = shell_for_config( ls_config_b ).
+
+    lv_tag_b = z2ui5_cl_ui5_http_handler=>sv_get_etag.
     cl_abap_unit_assert=>assert_differs( exp = lv_tag_a
                                          act = lv_tag_b ).
 
@@ -1255,13 +1485,17 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     z2ui5_cl_ui5_http_handler=>sv_if_none_match       = lv_tag_a.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config_a.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
-    DATA(ls_res_304) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res_304 = z2ui5_cl_ui5_http_handler=>_http_get( ).
     cl_abap_unit_assert=>assert_equals( exp = 304
                                         act = ls_res_304-status_code ).
 
     " ...and now config B again, unconditional: the cached body comes back
     " and it has to carry B's tag, not the one the 304 left behind
-    DATA(ls_res_b) = VALUE z2ui5_cl_ui5_http_handler=>ty_s_http_res( ).
+
+    CLEAR temp25.
+
+    ls_res_b = temp25.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config_b.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
     ls_res_b = z2ui5_cl_ui5_http_handler=>_http_get( ).
@@ -1283,11 +1517,18 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " is a function of the config, the version and the build hash, so a
     " fresh work process (no cached body, the cache cleared below) computes
     " the same tag the previous one sent
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp26 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp26.
+    DATA lv_tag LIKE z2ui5_cl_ui5_http_handler=>sv_get_etag.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    CLEAR temp26.
+    temp26-theme = `sap_horizon`.
+    temp26-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp26.
     shell_for_config( ls_config ).
-    DATA(lv_tag) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    lv_tag = z2ui5_cl_ui5_http_handler=>sv_get_etag.
     cl_abap_unit_assert=>assert_not_initial( lv_tag ).
 
     caches_clear( ).
@@ -1295,7 +1536,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
 
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 304
                                         act = ls_res-status_code ).
@@ -1317,14 +1559,20 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " a validator of another shell: the full page is built and travels,
     " and the body cache is filled by it
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
-        theme = `sap_horizon`
-        src   = `https://sdk.example/sap-ui-core.js` ).
+    DATA temp27 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp27.
+    DATA ls_res TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_res.
+    CLEAR temp27.
+    temp27-theme = `sap_horizon`.
+    temp27-src = `https://sdk.example/sap-ui-core.js`.
+
+    ls_config = temp27.
     z2ui5_cl_ui5_http_handler=>sv_if_none_match       = `"1.0-stale-tag"`.
     z2ui5_cl_ui5_http_handler=>ss_config_http_get     = ls_config.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
 
-    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
+
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_res-status_code ).
@@ -1336,6 +1584,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_get_304_end_to_end.
+    DATA lv_tag TYPE string.
+    DATA temp28 TYPE z2ui5_if_client=>ty_s_name_value.
 
     " the two requests of a reload as the stack sees them: the first GET
     " answers 200 with a tag, the second - in a NEW work process, so the
@@ -1343,21 +1593,27 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " bodyless 304 with the tag and the revalidation policy, without the
     " shell ever having been assembled
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
 
     mo_handler->main( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_not_initial( mo_mock->mv_cdata ).
-    DATA(lv_tag) = header_value( `etag` ).
+
+    lv_tag = header_value( `etag` ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag ).
 
     caches_clear( ).
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
-    INSERT VALUE #( n = `if-none-match`
-                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp28.
+    temp28-n = `if-none-match`.
+    temp28-v = lv_tag.
+    INSERT temp28 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->main( ).
 
@@ -1378,12 +1634,14 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " WITH a status and a body. It used to raise a second time out of
     " set_response( ) - after the outer catch had already produced the 500 -
     " and left the ICF stack to dump with neither.
-    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    DATA lo_exit TYPE REF TO ltcl_exit_stub.
+    CREATE OBJECT lo_exit TYPE ltcl_exit_stub.
     lo_exit->mv_raise_get = abap_true.
     ltcl_exit_injector=>inject( lo_exit ).
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
 
     mo_handler->main( ).
 
@@ -1402,35 +1660,57 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " would switch 'unsafe-inline' off for them
     DATA lt_directive TYPE string_table.
     DATA lv_checked TYPE i.
-    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config( ).
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA temp29 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_config LIKE temp29.
+    DATA lv_source TYPE string.
+    DATA lv_policy TYPE string.
+    DATA lv_directive LIKE LINE OF lt_directive.
+        DATA temp20 TYPE xsdboolean.
+        DATA temp21 TYPE xsdboolean.
+    DATA temp22 TYPE xsdboolean.
+    CLEAR temp29.
 
-    DATA(lv_policy) = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( ls_config-content_security_policy ).
+    ls_config = temp29.
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+
+    lv_policy = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( ls_config-content_security_policy ).
 
     SPLIT lv_policy AT `;` INTO TABLE lt_directive.
-    LOOP AT lt_directive INTO DATA(lv_directive).
+
+    LOOP AT lt_directive INTO lv_directive.
       IF lv_directive CS `script-src`.
-        cl_abap_unit_assert=>assert_true( xsdbool( lv_directive CS lv_source ) ).
+
+        temp20 = boolc( lv_directive CS lv_source ).
+        cl_abap_unit_assert=>assert_true( temp20 ).
         lv_checked = lv_checked + 1.
       ELSE.
-        cl_abap_unit_assert=>assert_false( xsdbool( lv_directive CS lv_source ) ).
+
+        temp21 = boolc( lv_directive CS lv_source ).
+        cl_abap_unit_assert=>assert_false( temp21 ).
       ENDIF.
     ENDLOOP.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lv_checked ).
     " the tag around the policy is untouched
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_policy CP `<meta http-equiv="Content-Security-Policy" content="*"/>` ) ).
+
+    temp22 = boolc( lv_policy CP `<meta http-equiv="Content-Security-Policy" content="*"/>` ).
+    cl_abap_unit_assert=>assert_true( temp22 ).
 
   ENDMETHOD.
 
   METHOD test_csp_hash_unsafe_inline.
 
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA lv_source TYPE string.
+    DATA lv_policy TYPE string.
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
 
     " a script-src that says 'unsafe-inline' is the exit's decision that
     " inline script runs - a hash next to it would take that back
-    DATA(lv_policy) = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'`.
+
+    lv_policy = `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self'`.
     cl_abap_unit_assert=>assert_equals( exp = lv_policy
                                         act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( lv_policy ) ).
 
@@ -1445,7 +1725,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_csp_hash_directives.
 
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA lv_source TYPE string.
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
 
     " script-src-elem governs <script> elements too and gets the hash;
     " script-src-attr governs handler attributes, which no hash allows
@@ -1478,7 +1759,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
   METHOD test_csp_hash_header_value.
 
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA lv_source TYPE string.
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
 
     " a header value ends without a quote or a semicolon
     cl_abap_unit_assert=>assert_equals(
@@ -1496,7 +1778,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   METHOD test_csp_hash_once.
 
     " an exit that listed the hash itself gets no second copy
-    DATA(lv_policy) = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA lv_policy TYPE string.
+    lv_policy = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'|.
     cl_abap_unit_assert=>assert_equals( exp = lv_policy
                                         act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( lv_policy ) ).
 
@@ -1506,17 +1789,33 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " a policy the exit sends as a response header needs the hash as much as
     " the meta tag - the enforcing header and the report-only one alike
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    DATA lv_source TYPE string.
+    DATA temp30 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA temp6 TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA temp7 LIKE LINE OF temp6.
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
     handler_create( ).
     mo_handler->ms_req-method = `GET`.
-    mo_handler->ms_res = VALUE #( body          = `<html></html>`
-                                  status_code   = 200
-                                  status_reason = `OK` ).
-    z2ui5_cl_ui5_http_handler=>ss_config_http_get = VALUE #(
-        t_security_header = VALUE #(
-            ( n = `Content-Security-Policy`             v = `script-src 'self'` )
-            ( n = `Content-Security-Policy-Report-Only` v = `script-src 'none'` )
-            ( n = `X-Frame-Options`                     v = `SAMEORIGIN` ) ) ).
+    CLEAR mo_handler->ms_res.
+    mo_handler->ms_res-body = `<html></html>`.
+    mo_handler->ms_res-status_code = 200.
+    mo_handler->ms_res-status_reason = `OK`.
+
+    CLEAR temp30.
+
+    CLEAR temp6.
+
+    temp7-n = `Content-Security-Policy`.
+    temp7-v = `script-src 'self'`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `Content-Security-Policy-Report-Only`.
+    temp7-v = `script-src 'none'`.
+    INSERT temp7 INTO TABLE temp6.
+    temp7-n = `X-Frame-Options`.
+    temp7-v = `SAMEORIGIN`.
+    INSERT temp7 INTO TABLE temp6.
+    temp30-t_security_header = temp6.
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get = temp30.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
 
     mo_handler->set_response( ).
@@ -1534,24 +1833,38 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     " the page's one inline script is exactly the generated text its hash was
     " taken over - one character between the tags and the browser refuses it
-    DATA(lv_body) = shell_for_config( VALUE #(
-        theme                   = `sap_horizon`
-        src                     = `https://sdk.example/sap-ui-core.js`
-        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ) ).
+    DATA temp31 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lv_body TYPE string.
+    DATA temp23 TYPE xsdboolean.
+    DATA temp24 TYPE xsdboolean.
+    DATA lv_rest TYPE string.
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_part TYPE temp1.
+    CLEAR temp31.
+    temp31-theme = `sap_horizon`.
+    temp31-src = `https://sdk.example/sap-ui-core.js`.
+    temp31-content_security_policy = `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>`.
 
+    lv_body = shell_for_config( temp31 ).
+
+
+    temp23 = boolc( find( val = lv_body sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( find( val = lv_body
-                       sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ) ).
+        temp23 ).
+
+    temp24 = boolc( find( val = lv_body sub = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'"| ) >= 0 ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( find( val = lv_body
-                       sub = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'"| ) >= 0 ) ).
+        temp24 ).
     " and it is the only inline script: the other tag is the bootstrap,
     " which loads UI5 by src (the preload itself is taken out first - an
     " embedded .js file may well spell <script in a string)
-    DATA(lv_rest) = replace( val  = lv_body
+
+    lv_rest = replace( val  = lv_body
                              sub  = z2ui5_cl_ui5f_preload=>get( )
                              with = `` ).
-    SPLIT lv_rest AT `<script` INTO TABLE DATA(lt_part).
+
+
+    SPLIT lv_rest AT `<script` INTO TABLE lt_part.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_part ) ).
 
@@ -1562,39 +1875,65 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the exit's styles_css is a <style> element of its own - outside the
     " hashed script, so the hash stays fixed - and a < in it cannot end the
     " element: it becomes the CSS escape \3c
-    DATA(lv_body) = shell_for_config( VALUE #(
-        theme      = `sap_horizon`
-        src        = `https://sdk.example/sap-ui-core.js`
-        styles_css = `.a::after { content: '</style><script>x()</script>'; }` ) ).
+    DATA temp32 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lv_body TYPE string.
+    DATA temp25 TYPE xsdboolean.
+    DATA temp26 TYPE xsdboolean.
+    DATA temp33 TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_part TYPE temp2.
+    CLEAR temp32.
+    temp32-theme = `sap_horizon`.
+    temp32-src = `https://sdk.example/sap-ui-core.js`.
+    temp32-styles_css = `.a::after { content: '</style><script>x()</script>'; }`.
 
+    lv_body = shell_for_config( temp32 ).
+
+
+    temp25 = boolc( find( val = lv_body sub = `<style>.a::after { content: '\3c /style>\3c script>x()\3c /script>'; }</style>` ) >= 0 ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( find( val = lv_body
-                       sub = `<style>.a::after { content: '\3c /style>\3c script>x()\3c /script>'; }</style>` ) >= 0 ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( find( val = lv_body
-                                                      sub = `x()</script>` ) >= 0 ) ).
+        temp25 ).
+
+    temp26 = boolc( find( val = lv_body sub = `x()</script>` ) >= 0 ).
+    cl_abap_unit_assert=>assert_false( temp26 ).
 
     " no styles_css, no element: the page's own <style> is the only one
-    lv_body = shell_for_config( VALUE #( theme = `sap_horizon`
-                                         src   = `https://sdk.example/sap-ui-core.js` ) ).
-    SPLIT lv_body AT `<style>` INTO TABLE DATA(lt_part).
+
+    CLEAR temp33.
+    temp33-theme = `sap_horizon`.
+    temp33-src = `https://sdk.example/sap-ui-core.js`.
+    lv_body = shell_for_config( temp33 ).
+
+
+    SPLIT lv_body AT `<style>` INTO TABLE lt_part.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_part ) ).
 
   ENDMETHOD.
 
   METHOD test_bundle_response.
+    DATA temp8 TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    DATA temp9 LIKE LINE OF temp8.
+    DATA temp27 TYPE xsdboolean.
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method   = `GET`
-                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp8.
+
+    temp9-n = `z2ui5-bundle`.
+    INSERT temp9 INTO TABLE temp8.
+    mo_mock->ms_req_info-t_params = temp8.
 
     mo_handler->main( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
+
+    temp27 = boolc( find( val = mo_mock->mv_cdata sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( find( val = mo_mock->mv_cdata
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+        temp27 ).
     cl_abap_unit_assert=>assert_equals( exp = `application/javascript; charset=UTF-8`
                                         act = header_value( `content-type` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `nosniff`
@@ -1610,21 +1949,45 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bundle_304.
+    DATA temp10 TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    DATA temp11 LIKE LINE OF temp10.
+    DATA lv_tag TYPE string.
+    DATA temp12 TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+    DATA temp13 LIKE LINE OF temp12.
+    DATA temp34 TYPE z2ui5_if_client=>ty_s_name_value.
+    DATA temp35 TYPE z2ui5_if_client=>ty_s_name_value.
+    DATA temp28 TYPE xsdboolean.
 
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method   = `GET`
-                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp10.
+
+    temp11-n = `z2ui5-bundle`.
+    INSERT temp11 INTO TABLE temp10.
+    mo_mock->ms_req_info-t_params = temp10.
     mo_handler->main( ).
-    DATA(lv_tag) = header_value( `etag` ).
+
+    lv_tag = header_value( `etag` ).
     cl_abap_unit_assert=>assert_not_initial( lv_tag ).
 
     " the reload, in a new work process: the tag comes back, the script not
     caches_clear( ).
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method   = `GET`
-                                    t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ).
-    INSERT VALUE #( n = `if-none-match`
-                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp12.
+
+    temp13-n = `z2ui5-bundle`.
+    INSERT temp13 INTO TABLE temp12.
+    mo_mock->ms_req_info-t_params = temp12.
+
+    CLEAR temp34.
+    temp34-n = `if-none-match`.
+    temp34-v = lv_tag.
+    INSERT temp34 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->main( ).
 
@@ -1637,15 +2000,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the page's tag is another one - it does not 304 the page
     caches_clear( ).
     handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET` ).
-    INSERT VALUE #( n = `if-none-match`
-                    v = lv_tag ) INTO TABLE mo_mock->mt_req_header.
+    CLEAR mo_mock->ms_req_info.
+    mo_mock->ms_req_info-method = `GET`.
+
+    CLEAR temp35.
+    temp35-n = `if-none-match`.
+    temp35-v = lv_tag.
+    INSERT temp35 INTO TABLE mo_mock->mt_req_header.
 
     mo_handler->main( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `<!DOCTYPE html>` ) ).
+
+    temp28 = boolc( mo_mock->mv_cdata CS `<!DOCTYPE html>` ).
+    cl_abap_unit_assert=>assert_true( temp28 ).
 
   ENDMETHOD.
 

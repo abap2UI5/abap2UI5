@@ -14,29 +14,41 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
+        DATA lv_val TYPE i.
+        DATA lx TYPE REF TO cx_root.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
 
     TRY.
-        DATA(lv_val) = 1 / 0 ##NEEDED.
-      CATCH cx_root INTO DATA(lx).
+
+        lv_val = 1 / 0 ##NEEDED.
+
+      CATCH cx_root INTO lx.
     ENDTRY.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( lx ).
+
+    lo_pop = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_util_error.
 
-    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `test error` ).
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( lx ).
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
+    CREATE OBJECT lx TYPE z2ui5_cx_ui5_util_error EXPORTING val = `test error`.
+
+    lo_pop = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_custom.
 
-    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `custom error` ).
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory(
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
+    CREATE OBJECT lx TYPE z2ui5_cx_ui5_util_error EXPORTING val = `custom error`.
+
+    lo_pop = z2ui5_cl_pop_error=>factory(
       x_root  = lx
       i_title = `My Error Title` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
@@ -80,27 +92,39 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD popup_displayed_xml.
 
-    result = VALUE #( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+    DATA temp1 TYPE string.
+    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+    CLEAR temp1.
+
+    READ TABLE mo_action->ms_next-t_action_front INTO temp2 WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-display.
+    IF sy-subrc = 0.
+      temp1 = temp2-xml.
+    ENDIF.
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD popup_destroy_queued.
 
-    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+    DATA temp3 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-destroy TRANSPORTING NO FIELDS.
+    temp3 = sy-subrc.
+
+    temp1 = boolc( temp3 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_handler.
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp1.
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -115,20 +139,34 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_error.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_ui5_util_error( `MY_ERROR_TEXT` ) ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
+    DATA temp2 TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA lv_xml TYPE string.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+    CREATE OBJECT temp2 TYPE z2ui5_cx_ui5_util_error EXPORTING VAL = `MY_ERROR_TEXT`.
+    lo_pop = z2ui5_cl_pop_error=>factory( temp2 ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = popup_displayed_xml( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MY_ERROR_TEXT` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Error` ) ).
+
+    lv_xml = popup_displayed_xml( ).
+
+    temp3 = boolc( lv_xml CS `MY_ERROR_TEXT` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
+
+    temp4 = boolc( lv_xml CS `Error` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_ui5_util_error( `MY_ERROR_TEXT` ) ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
+    DATA temp3 TYPE REF TO z2ui5_cx_ui5_util_error.
+    CREATE OBJECT temp3 TYPE z2ui5_cx_ui5_util_error EXPORTING VAL = `MY_ERROR_TEXT`.
+    lo_pop = z2ui5_cl_pop_error=>factory( temp3 ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 
