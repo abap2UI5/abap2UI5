@@ -99,7 +99,10 @@ when nothing registered, so deleting `devtools/` degrades the framework
 gracefully instead of breaking it; `model/models.js` holds the device model
 setup and `model/formatter.js` is the curated app-level formatter module
 (`core:require` of `z2ui5/model/formatter`) that owns the date helpers and
-value formatters.
+value formatters; `model/clipboard.js` is its sibling for the synchronous
+control callbacks no roundtrip can answer (`core:require` of
+`z2ui5/model/clipboard` - today `CopyProvider.extractData`), held to the same
+admission criteria by the same gate.
 
 ## Where the rest is
 

@@ -282,6 +282,7 @@ const CLASS_NAME_STEMS = {
     'core/actions/Launchpad.js': 'launchpd_js',
     'core/actions/Shortcuts.js': 'shortcut_js',
     'manifest.json': 'manifest',
+    'model/clipboard.js': 'clipbrd_js',
     'model/formatter.js': 'format_js',
 };
 

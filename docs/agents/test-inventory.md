@@ -95,6 +95,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/ScrollFocus.js` UI5-element resolution | `scrollFocus.spec.js` | incl. the pre-1.106 fallback for scroll/focus capture |
 | `core/ScrollFocus.js` focus guard of an embedded component | `focusGuard.spec.js`, `embedded` e2e | `mayMoveFocus` - always yes on a page of the app's own; embedded, yes for a focus in the app (its DOM, or a popup its controls own) and no for one in the host's page, and for a focus on the body what the user's last focus or click says (`watchFocus`, capture-phase, embedded only); `S_FOCUS` leaving out a focus in the host's page |
 | `model/formatter.js` | `formatter.spec.js` | — |
+| `model/clipboard.js` | `clipboard.spec.js` | — |
 | `model/models.js` device-model wiring | `deviceModel.spec.js` | — |
 | `core/Lib.js` event-argument normalization | `eventArgs.spec.js` | — |
 | `cc/Storage.js` | `storage.spec.js` | — |

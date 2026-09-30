@@ -53,6 +53,7 @@ const FLOOR = '1.71';
  * `sap.ui.require("…")` at the point of use with an `undefined` branch —
  * see `Component.js` and `sap/ui/core/Theming` (@since 1.118). */
 const ALLOWED = new Set([
+  'sap/base/strings/formatMessage', // @since 1.58 - model/clipboard.js
   'sap/m/Button',
   'sap/m/ComboBox',
   'sap/m/ComboBoxRenderer',
