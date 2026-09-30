@@ -65,6 +65,7 @@ sap.ui.define(
           dirtyControls.delete(this);
         }
         this._applyDirtyState();
+        return this;
       },
 
       // Apply the AGGREGATE dirty state (any instance dirty) to whichever

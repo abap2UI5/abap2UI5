@@ -44,7 +44,7 @@ sap.ui.define(
         // (setting the shell title) is what actually matters.
         this.setProperty("title", val, true);
         const ctx = contextOf(this, "setTitle");
-        if (!ctx) return;
+        if (!ctx) return this;
         // The setter IS the SET_TITLE_LAUNCHPAD event: the action handler
         // (core/actions/Launchpad.js) reads the shell service off the
         // context, normalizes the title (never undefined/null to the shell)
@@ -54,6 +54,7 @@ sap.ui.define(
           "SET_TITLE_LAUNCHPAD",
           val,
         ]);
+        return this;
       },
 
       setApplicationFullWidth(val) {
@@ -67,6 +68,7 @@ sap.ui.define(
         } catch (e) {
           Lib.logError("LPTitle: setApplicationFullWidth failed", e);
         }
+        return this;
       },
 
       renderer: Lib.EMPTY_RENDERER,

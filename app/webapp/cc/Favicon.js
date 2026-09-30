@@ -32,6 +32,7 @@ sap.ui.define(
         // (updating the <link> tag) is what actually matters.
         this.setProperty("favicon", val, true);
         Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);
+        return this;
       },
       renderer: Lib.EMPTY_RENDERER,
     });

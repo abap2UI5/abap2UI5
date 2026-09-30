@@ -46,6 +46,7 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `      setTitle(val) {` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
              `        Browser.handlers.SET_TITLE(null, ["SET_TITLE", val]);` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&

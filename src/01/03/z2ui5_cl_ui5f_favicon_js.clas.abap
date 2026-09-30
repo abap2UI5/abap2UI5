@@ -46,6 +46,7 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `      setFavicon(val) {` && |\n| &&
              `        this.setProperty("favicon", val, true);` && |\n| &&
              `        Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&

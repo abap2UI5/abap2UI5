@@ -26,6 +26,7 @@ sap.ui.define(
         // (setting the tab title) is what actually matters.
         this.setProperty("title", val, true);
         Browser.handlers.SET_TITLE(null, ["SET_TITLE", val]);
+        return this;
       },
       renderer: Lib.EMPTY_RENDERER,
     });
