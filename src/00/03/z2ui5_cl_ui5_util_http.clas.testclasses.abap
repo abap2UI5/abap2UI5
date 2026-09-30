@@ -154,6 +154,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_delete_resp_cookie   FOR TESTING RAISING cx_static_check.
     METHODS test_set_session_stateful FOR TESTING RAISING cx_static_check.
     METHODS test_request_cached       FOR TESTING RAISING cx_static_check.
+    METHODS test_get_query            FOR TESTING RAISING cx_static_check.
+    METHODS test_get_query_none       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -267,6 +269,28 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `first`
                                         act = mo_cut->get_cdata( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_get_query.
+
+    " cut at the FIRST `?` and left encoded - a later `?` is part of a value,
+    " and sap-startup-params keeps its %26 / %3D exactly as they came
+    INSERT VALUE #( n = `~request_uri`
+                    v = `/sap/bc/z2ui5?app_start=z&title=why?&sap-startup-params=a%3D1%26b%3D2` )
+           INTO TABLE mo_server->request->mt_header.
+
+    cl_abap_unit_assert=>assert_equals( exp = `app_start=z&title=why?&sap-startup-params=a%3D1%26b%3D2`
+                                        act = mo_cut->get_query( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_get_query_none.
+
+    INSERT VALUE #( n = `~request_uri`
+                    v = `/sap/bc/z2ui5` ) INTO TABLE mo_server->request->mt_header.
+
+    cl_abap_unit_assert=>assert_initial( mo_cut->get_query( ) ).
 
   ENDMETHOD.
 

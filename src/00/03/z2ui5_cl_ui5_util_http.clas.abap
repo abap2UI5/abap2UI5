@@ -8,6 +8,8 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         body     TYPE string,
         path     TYPE string,
         t_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value,
+        " the raw query string t_params was parsed from, see get_query
+        query    TYPE string,
       END OF ty_s_http_req.
 
     TYPES:
@@ -19,8 +21,10 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
 
     " NO caller in this repository (client_call included) - this pair is
     " outbound-HTTP utility surface vendored from abap-util for APP code and
-    " kept in the catalog sync. If a revision of the vendored copy drops
-    " unused methods, these two go together
+    " kept in the catalog sync. It does have a caller outside: the consumer
+    " side of abap2UI5-addons/http-connector forwards every request through
+    " client_call, which is also why client_call takes a query. Dropping or
+    " narrowing either of the two breaks that addon
     CLASS-METHODS client_create
       IMPORTING
         !destination  TYPE clike OPTIONAL
@@ -34,6 +38,7 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         body          TYPE clike OPTIONAL
         !destination  TYPE clike OPTIONAL
         url           TYPE clike OPTIONAL
+        !query        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -53,6 +58,14 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
     METHODS get_req_info
       RETURNING
         VALUE(result) TYPE ty_s_http_req.
+
+    " the query string of the request, raw - everything after the FIRST `?`
+    " of its URI, not decoded. What a proxy forwards: parsing it into
+    " t_params and encoding it again is not guaranteed to give the same
+    " string back (sap-startup-params, see url_param_get_tab)
+    METHODS get_query
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS get_header_field
       IMPORTING
@@ -103,6 +116,21 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_client_target,
+        url         TYPE string,
+        request_uri TYPE string,
+      END OF ty_s_client_target.
+
+    " where client_call puts its query - see the method
+    CLASS-METHODS client_target
+      IMPORTING
+        !destination  TYPE clike
+        url           TYPE clike
+        !query        TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_s_client_target.
 
     " resolved once per instance - every accessor would otherwise repeat
     " the dynamic ASSIGN on the server object
@@ -186,8 +214,12 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     DATA lv_message  TYPE string.
     FIELD-SYMBOLS <any> TYPE any.
 
+    DATA(ls_target) = client_target( destination = destination
+                                     url         = url
+                                     query       = query ).
+
     DATA(lo_client) = client_create( destination = destination
-                                     url         = url ).
+                                     url         = ls_target-url ).
 
     TRY.
 
@@ -204,6 +236,13 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
             EXPORTING val = `HTTP_CLIENT_REQUEST_NOT_FOUND - the http client has no REQUEST attribute`.
         ENDIF.
         lo_request = <any>.
+
+        IF ls_target-request_uri IS NOT INITIAL.
+          CALL METHOD lo_request->(`SET_HEADER_FIELD`)
+            EXPORTING
+              name  = `~request_uri`
+              value = ls_target-request_uri.
+        ENDIF.
 
         DATA(lv_method) = CONV string( method ).
         CALL METHOD lo_request->(`SET_METHOD`)
@@ -281,6 +320,33 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD client_target.
+
+    " The query travels as it came, never parsed and encoded again (see
+    " get_query). By URL it becomes part of the URL. By destination it is the
+    " request URI, which the ICF client appends to the destination's path
+    " prefix - so the path stays the one maintained in SM59. The destination
+    " test is client_create's, which decides between the two
+    DATA lv_destination TYPE c LENGTH 32.
+    lv_destination = destination.
+
+    result-url = url.
+    DATA(lv_query) = CONV string( query ).
+    SHIFT lv_query LEFT DELETING LEADING `?`.
+    IF lv_query IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF lv_destination IS NOT INITIAL AND lv_destination <> `NONE`.
+      result-request_uri = |?{ lv_query }|.
+    ELSEIF result-url CS `?`.
+      result-url = |{ result-url }&{ lv_query }|.
+    ELSE.
+      result-url = |{ result-url }?{ lv_query }|.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -563,6 +629,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
     result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
+    result-query    = get_query( ).
+
+  ENDMETHOD.
+
+  METHOD get_query.
+
+    DATA(lv_uri) = get_header_field( `~request_uri` ).
+    IF lv_uri CS `?`.
+      result = substring_after( val = lv_uri
+                                sub = `?` ).
+    ENDIF.
 
   ENDMETHOD.
 
