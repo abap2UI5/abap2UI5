@@ -3,8 +3,9 @@ target: open-abap
 title: 'CP compiles its pattern on every call, and a trailing * makes it walk the rest of the string - the open-abap XML parser pays that per token'
 summary: cp( ) builds a new RegExp per call and turns a trailing * into [\s\S]*$, so `lv_xml CP '<*'` walks the whole rest of the string; open-abap's cl_ixml parser asks that once per token with the rest of the document, and reading a document costs the square of its length. Dropping the trailing run of * and caching the compiled pattern changes no answer. @abap2ui5/node-runtime ships it as a runtime patch meanwhile; the upstream change is attached as a patch
 priority: low
-state: open
+state: filed
 first_seen: 2026-09-29
+filed: https://github.com/abaplint/transpiler/pull/1933
 patch: backlog/patches/transpiler-cp-compile-once.patch
 upstream: abaplint/transpiler
 evidence:

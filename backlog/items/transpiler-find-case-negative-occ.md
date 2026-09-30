@@ -3,9 +3,10 @@ target: open-abap
 title: 'Built-in find( ): `case` ignored for `sub`, and negative `occ` fails for a multi-character `sub`'
 summary: the transpiled find( ) searches case-sensitively whatever `case` says when it searches for `sub`, and answers -1 for a negative `occ` with a `sub` of two or more characters - correct ABAP finds nothing in the one place it runs without a system. Fix and tests are written and attached as a patch; filing is blocked only on write access to abaplint/transpiler
 priority: medium
-state: open
+state: filed
 first_seen: 2026-09-23
 checked_upstream: 2026-09-23
+filed: https://github.com/abaplint/transpiler/pull/1932
 patch: backlog/patches/transpiler-find-case-negative-occ.patch
 upstream: abaplint/transpiler
 evidence:
