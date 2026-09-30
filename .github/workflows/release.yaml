@@ -31,7 +31,9 @@ name: release
 #      `<YYYY-MM-DD> vX.Y.Z` heading
 #   2. bump package.json AND src/02/z2ui5_if_app.intf.abap
 #   3. npm run check:release          (the same gate this job runs)
-#   4. commit, then: git tag X.Y.Z && git push --follow-tags
+#   4. commit, then: git tag X.Y.Z && git push origin main X.Y.Z
+#      (by name: --follow-tags skips the lightweight tag `git tag` makes)
+#   5. once this job is green: the section on the docs changelog page
 #
 # RELEASING.md is the longer version, including what is not automated.
 #
@@ -83,7 +85,13 @@ jobs:
     # On the exact commit being released. `verify` is the whole thing: abaplint
     # for standard and cloud, every gate, the downport, the transpiled unit
     # suite, the JS specs and the two generated trees.
-    - run: npm run verify
+    #
+    # ABAP2UI5_RELEASING names the version for changelog-gate: its section on
+    # the docs changelog page can only be written after this job has created
+    # the release (the docs site's own gate waits for it), so that one version
+    # may be missing there - on a tag and on the rehearsal alike.
+    - name: npm run verify
+      run: ABAP2UI5_RELEASING="$(node -p "require('./package.json').version")" npm run verify
 
     # The changelog section for this version, as the release body. Written from
     # the file rather than by hand, so the release notes and the changelog can

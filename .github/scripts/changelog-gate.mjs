@@ -127,8 +127,23 @@ const cmp = (a, b) => {
 };
 const floor = [...theirs.keys()].sort(cmp)[0];
 
+/* The version release.yaml is releasing - ABAP2UI5_RELEASING, set by that job
+ * and by RELEASING.md's local run of `verify`, never by a pull request. The
+ * docs page can only get its section AFTER the release: the site's own gate
+ * (check:version in abap2UI5/docs) accepts a version only once its GitHub
+ * release exists, and this job is what creates it. For 1.146.0 the two gates
+ * each waited for the other - the release job failed here until the docs
+ * section was merged, that merge was red there, and the site went on naming
+ * 1.145.0 for ten hours. So this one version - and only while it is the
+ * newest in changelog.txt - may be missing on the page; a wrong date and
+ * every other disagreement still fail. */
+const releasing = (process.env.ABAP2UI5_RELEASING ?? '').trim();
+const newest = [...ours.keys()].sort(cmp).at(-1);
+const releaseLag = releasing !== '' && releasing === newest && !theirs.has(releasing);
+
 for (const [version, date] of ours) {
   if (cmp(version, floor) < 0) continue;
+  if (version === releasing && releaseLag) continue;
   if (!theirs.has(version)) {
     problems.push(
       `${version} is in changelog.txt but not on ${DOCS_REPO}/${DOCS_FILE}\n`
@@ -160,4 +175,7 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
+if (releaseLag) {
+  console.log(`changelog-gate: ${releasing} is being released - its section on ${DOCS_REPO}/${DOCS_FILE} follows the release (RELEASING.md, step 5)`);
+}
 console.log(`changelog-gate: ${ours.size} release(s) here, ${theirs.size} documented (read from ${from}) - versions and dates agree - OK`);

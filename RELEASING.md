@@ -105,23 +105,39 @@ entry names the same workflow file, `backend-prebuilt.yaml`.
 3. **Check, then tag:**
 
    ```sh
-   npm run check:release        # tag, both versions and the changelog agree
-   npm run verify               # what the release job runs, in full
+   npm run check:release                        # tag, both versions and the changelog agree
+   ABAP2UI5_RELEASING=1.143.0 npm run verify    # what the release job runs, in full
    git commit -am "Release 1.143.0"
-   git tag 1.143.0 && git push --follow-tags
+   git tag 1.143.0
+   git push origin main 1.143.0
    ```
+
+   The tag is pushed by name: `git push --follow-tags` pushes annotated tags
+   only, `git tag` without `-a` makes a lightweight one, and the push then
+   reports `main -> main` while no tag arrives and no release runs.
+   `ABAP2UI5_RELEASING` lets `check:changelog` accept that the docs page has no
+   section for this version yet - it gets one in step 5.
 
 4. **Watch the run.** It re-checks everything on the tagged commit, prints the
    release notes before publishing them, then creates both releases.
 
-5. **Open the matching section on the docs changelog page** —
+5. **Once the run is green, open the matching section on the docs changelog page** —
    `docs/resources/changelog.md` in [abap2UI5/docs](https://github.com/abap2UI5/docs)
    needs a `## X.Y.Z` heading carrying the **same date** as the section you
-   wrote in step 1. This is not a courtesy: `npm run check:changelog` compares
-   the two and is part of `verify`, so until that page catches up **every pull
-   request in this repository fails**, including ones that have nothing to do
-   with the release. The two documents are deliberately different in what they
-   say; they may not differ about which releases exist or when they shipped.
+   wrote in step 1, and the site's navigation bar and deprecations page name
+   the new version. After the release, not before: the docs site's own gate
+   (`check:version`) accepts a version only once its GitHub release exists,
+   and the release job's `check:changelog` lets exactly the version it
+   releases be missing there. 1.146.0 went the other way round - the release
+   waited for the docs section, that section was merged red, and the site
+   named 1.145.0 until its next scheduled deploy ten hours later.
+
+   Right after the release, though, not days later: `npm run check:changelog`
+   compares the two and is part of `verify`, so until that page catches up
+   **every pull request in this repository fails**, including ones that have
+   nothing to do with the release. The two documents are deliberately
+   different in what they say; they may not differ about which releases exist
+   or when they shipped.
 
 To rehearse without publishing, dispatch the workflow by hand from the Actions
 tab: same gates, same notes, no tag and no release.
