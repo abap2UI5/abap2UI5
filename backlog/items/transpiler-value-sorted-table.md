@@ -3,8 +3,9 @@ target: open-abap
 title: 'VALUE #( ) of a SORTED table type is in insertion order until it is assigned - handed straight to a method, LOOP runs unsorted and READ TABLE misses'
 summary: the transpiler builds a VALUE #( ) row by row with appendThis( ), which pushes; only an assignment sorts the result. A sorted-table VALUE handed straight to a method parameter or looped over is a SORTED table in insertion order - LOOP yields 5 4 3 2 1 and READ TABLE ... WITH TABLE KEY answers sy-subrc 8 for a row that is there. Fix and test are attached as a patch
 priority: high
-state: open
+state: filed
 first_seen: 2026-09-29
+filed: https://github.com/abaplint/transpiler/pull/1931
 patch: backlog/patches/transpiler-value-sorted-table.patch
 upstream: abaplint/transpiler
 evidence:

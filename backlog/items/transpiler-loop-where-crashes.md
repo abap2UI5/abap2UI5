@@ -3,8 +3,9 @@ target: open-abap
 title: 'LOOP reads a row that is not there: index -1 on a secondary key the WHERE does not name, and past the end after a DELETE under USING KEY primary_key'
 summary: `LOOP AT t USING KEY k WHERE b = 2` (k over a) starts at row index -1 and throws "Cannot read properties of undefined (reading 'get')"; a LOOP USING KEY primary_key whose body deletes a row reads array[array.length] - with a WHERE the same TypeError, without one the last row twice. ABAP runs both. Two one-line fixes and tests are attached as a patch
 priority: medium
-state: open
+state: filed
 first_seen: 2026-09-29
+filed: https://github.com/abaplint/transpiler/pull/1930
 patch: backlog/patches/transpiler-loop-where-crashes.patch
 upstream: abaplint/transpiler
 evidence:

@@ -3,8 +3,9 @@ target: open-abap
 title: 'LOOP ... USING KEY ... WHERE with an OR drops the rows only the other side of the OR accepts'
 summary: the transpiler hands the runtime every `=` of a LOOP's WHERE as a condition all rows must meet (`topEquals`), also the ones inside an OR, and the runtime narrows a secondary key by it - `LOOP AT t USING KEY k WHERE a = 1 OR b = 2` never visits the rows only `b = 2` accepts. Silently wrong rows, no error. Fix and test are written and attached as a patch
 priority: high
-state: open
+state: filed
 first_seen: 2026-09-29
+filed: https://github.com/abaplint/transpiler/pull/1929
 patch: backlog/patches/transpiler-loop-where-or-narrowing.patch
 upstream: abaplint/transpiler
 evidence:
