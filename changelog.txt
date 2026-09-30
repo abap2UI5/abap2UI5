@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
++ Tables: copy to the clipboard with sap.m.plugins.CopyProvider (UI5 >= 1.110). Its mandatory extractData callback is now shipped as z2ui5/model/clipboard: core:require="{Clipboard: 'z2ui5/model/clipboard'}" and extractData="Clipboard.extractData" on the plugin, and each column says what it copies with the demo kit's CustomData - app:bindings (comma-separated paths, one clipboard cell each) and app:template (the text/html variant, optional). Until now the plugin threw on creation and took the view with it. Its copy button is your own Button wired with client->_event_client( cs_event-control_by_id ) to copySelectionData, which runs in the click and so keeps the browser's clipboard permission; Ctrl+C needs nothing
 
 
 2026-09-29 v1.146.0
