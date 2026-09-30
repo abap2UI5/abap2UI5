@@ -47,7 +47,7 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
              `            Lib.logError(` && |\n| &&
              `              ``History.setSearch: '${search}' is no query string - it has to start with "?"``,` && |\n| &&
              `            );` && |\n| &&
-             `            return;` && |\n| &&
+             `            return this;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          history.replaceState(` && |\n| &&
@@ -58,6 +58,7 @@ CLASS z2ui5_cl_ui5f_history_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("History.setSearch: replaceState failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
              `    });` && |\n| &&

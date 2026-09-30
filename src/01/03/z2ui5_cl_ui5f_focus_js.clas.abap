@@ -68,6 +68,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Focus.setFocusId failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      onBeforeRendering() {` && |\n| &&
              `        this._liveCaret = Lib.readCaret(document.activeElement);` && |\n| &&

@@ -30,7 +30,7 @@ sap.ui.define(
             Lib.logError(
               `History.setSearch: '${search}' is no query string - it has to start with "?"`,
             );
-            return;
+            return this;
           }
           // Pass the existing state object along instead of null so we do
           // not clobber state someone else stored on the history entry.
@@ -47,6 +47,7 @@ sap.ui.define(
         } catch (e) {
           Lib.logError("History.setSearch: replaceState failed", e);
         }
+        return this;
       },
       renderer: Lib.EMPTY_RENDERER,
     });

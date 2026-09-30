@@ -46,6 +46,7 @@ sap.ui.define(
         } catch (e) {
           Lib.logError("Focus.setFocusId failed", e);
         }
+        return this;
       },
       onBeforeRendering() {
         // Snapshot the caret of whatever text field currently holds focus,

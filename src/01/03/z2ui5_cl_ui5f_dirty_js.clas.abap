@@ -71,6 +71,7 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `          dirtyControls.delete(this);` && |\n| &&
              `        }` && |\n| &&
              `        this._applyDirtyState();` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _applyDirtyState() {` && |\n| &&

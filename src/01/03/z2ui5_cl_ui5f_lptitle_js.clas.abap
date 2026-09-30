@@ -59,12 +59,13 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `      setTitle(val) {` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
              `        const ctx = contextOf(this, "setTitle");` && |\n| &&
-             `        if (!ctx) return;` && |\n| &&
+             `        if (!ctx) return this;` && |\n| &&
              `` && |\n| &&
              `        Launchpad.handlers.SET_TITLE_LAUNCHPAD({ ctx }, [` && |\n| &&
              `          "SET_TITLE_LAUNCHPAD",` && |\n| &&
              `          val,` && |\n| &&
              `        ]);` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      setApplicationFullWidth(val) {` && |\n| &&
@@ -78,6 +79,7 @@ CLASS z2ui5_cl_ui5f_lptitle_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("LPTitle: setApplicationFullWidth failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `        return this;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&
