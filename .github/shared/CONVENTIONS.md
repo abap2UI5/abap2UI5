@@ -244,8 +244,9 @@ pin, it removes it, because abaplint then clones the default branch.
 
 So such a repository resolves the framework more than once, on purpose, and
 says which reference answers which question. `samples-controls` is the worked
-example: `A2UI5_PIN` (a SHA) for the transpiled backend and the e2e smoke, a
-release tag in the abaplint configs for whether the corpus compiles against the
-framework its readers installed, and `main` tip in the nightly e2e as the
-upstream canary. Three references is fine; three references where two are
+example: `A2UI5_PIN` (a SHA) for the transpiled backend and the e2e smoke,
+`"branch": "main"` - declared, not left off - in the abaplint configs for whether
+the corpus compiles (a release tag would lag the pin the corpus is built
+against, so it names the branch the pin is on), and `main` tip in the nightly
+e2e as the upstream canary. Three references is fine; three references where two are
 undeclared is not.

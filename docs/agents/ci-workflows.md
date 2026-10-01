@@ -59,8 +59,17 @@ path fixed in `node/setup/abap_transpile.json`), `node/setup/own-apps.mjs`
 (the bin `abap2ui5-own-apps`: a host's own transpiled classes out of a
 transpile's output, their imports pointed at the package's `output/` - the
 transpile writes a second copy of every library object next to them, and
-importing that copy replaced the package's `CX_ROOT`), **`node/srv/host.mjs`** (the
-entry point, below), `node/srv/accelerate.mjs` (the runtime fast paths
+importing that copy replaced the package's `CX_ROOT`), `node/setup/transpile.mjs`
+(the bin `abap2ui5-transpile`: the README's whole "Your own apps" recipe as one
+command - the transpiler at the recorded version, open-abap-core at the
+recorded commit, the config, the transpile, `own-apps` - so that mcp-server,
+cap2UI5 and cap2UI5/samples stop carrying their own copy of it; `--check`
+runs the host's classes through it), **`node/srv/host.mjs`** (the
+entry point, below), `node/srv/*.d.ts` (hand-written TypeScript declarations
+for the three entry points, named by `types` in the manifest and on every
+`exports` entry; `pack-npm.mjs` copies an explicit list of files, so it also
+checks that every file the manifest points at - a bin, `types`, an export
+target - is in the tarball), `node/srv/accelerate.mjs` (the runtime fast paths
 `host.mjs` installs, and the `./accelerate` subpath for a host that boots
 itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
 front, and the `./compress` subpath), `node/downport` (so a host can
@@ -90,6 +99,15 @@ and TADIR rows from `init.mjs` / `_init.mjs`, and refuses to pack when any
 fixture name is still in a file name or a file of the tarball. The checkout
 keeps them: `npm run express` and the browser projects run the unstripped
 tree.
+
+**It carries no unit tests and no source maps.** The manifest's `files`
+leaves out `output/*.testclasses.mjs`, the generated runners `output/index.mjs`
+and `output/_unit_open.mjs`, every `output/*.map` and
+`downport/**/*.testclasses.abap`: the framework's own suite runs here
+(`npm run unit`), nothing a host loads or transpiles against was in those
+files, and they were a third of the 21 MB every CAP project and every MCP user
+installed per release (1.146.0). `pack-npm.mjs` refuses a tarball that carries
+any of them, as it refuses one missing a file a host expects.
 
 **It carries no `webapp/`, on purpose.** The GET page the framework serves
 embeds the whole component - every module, view and stylesheet - from the
