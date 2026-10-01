@@ -196,10 +196,22 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " the frontend as a script of its own - see the method
+    " the frontend as a script of its own - see the method. iv_path is the
+    " path of THIS request as the system saw it (ty_s_http_req-path), which
+    " the module at the end of the script tells the embedding page
     CLASS-METHODS _http_get_bundle
+      IMPORTING
+        iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
+
+    " a value for inside a double-quoted JavaScript string literal of the
+    " bundle - the request path it carries (see the method)
+    CLASS-METHODS _js_string_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
     " a cache validator, not a cryptographic hash - see the method
     CLASS-METHODS _get_etag
@@ -893,6 +905,22 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " does not pass: a page that loads the frontend this way runs it in a
     " page of its own, whose URL the component leaves alone (Component.init,
     " core/Router.js) - a Fiori elements host routes by its hash.
+    "
+    " Its nodePath is the path of this request as the SYSTEM saw it - the
+    " ICF node, /sap/bc/z2ui5 - and it exists for the one thing the page
+    " knows and the backend does not: how the page reached the node. A proxy
+    " that puts the system under a path prefix of its own (the destination
+    " proxy of SAP Build Work Zone, an approuter route) serves the bundle at
+    " <prefix>/sap/bc/z2ui5, and the two BSP roots above, absolute on the
+    " system, are not found on the page's origin until that prefix is in
+    " front of them. Component.init compares the endpoint the embedding page
+    " passes with nodePath and rebases the roots when the endpoint ends in
+    " it; behind a proxy that rewrites the path it does not, and the roots
+    " stay as they are. The path is what the stack reports (~path), so it
+    " goes into the literal escaped - an ICF node matches on its prefix.
+    " Caching needs nothing extra: a browser caches per URL, so the bundle
+    " of one node path never answers for another, and the tag stays the
+    " bundle's own.
     DATA(lv_etag) = _get_etag( c_bundle_param ).
 
     " consumed once - see sv_if_none_match
@@ -911,6 +939,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |  return \{\n| &&
                   |    componentData: \{\n| &&
                   |      embedded: true,\n| &&
+                  |      nodePath: "{ _js_string_escape( iv_path ) }",\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&
                   |    \}\n| &&
@@ -918,6 +947,33 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |\});\n|.
     result-status_code   = 200.
     result-status_reason = `OK`.
+
+  ENDMETHOD.
+
+  METHOD _js_string_escape.
+
+    " The path goes into a double-quoted string literal of a script the
+    " browser runs on the host's page, and it is what the stack reports of
+    " the request URL - an ICF node matches on its prefix, so anything may
+    " follow it. Backslash and quote are what can end the literal; </ is
+    " escaped so the text stays harmless should it ever end up inline. The
+    " common value carries none of these - skip the copies then
+    result = val.
+    IF result NA `\"<`.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `\"`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `</`
+                      with = `<\/`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
@@ -1231,7 +1287,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         CASE is_req-method.
           WHEN `GET`.
             IF _is_bundle_request( is_req-t_params ) = abap_true.
-              result = _http_get_bundle( ).
+              result = _http_get_bundle( is_req-path ).
             ELSE.
               result = _http_get( ).
             ENDIF.
