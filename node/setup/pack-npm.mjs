@@ -21,8 +21,12 @@
  *   README.md         node/setup/npm.README.md - the consumer documentation
  *   LICENSE           the repository's
  *   output/           node/output - the transpiled framework (init.mjs, the
- *                     classes, the generated unit-test runner index.mjs),
- *                     WITHOUT the browser-test fixtures (below)
+ *                     classes), WITHOUT the browser-test fixtures (below)
+ *                     and WITHOUT the framework's own unit tests: the
+ *                     manifest's `files` leaves out *.testclasses.mjs, the
+ *                     generated runners index.mjs and _unit_open.mjs and the
+ *                     source maps - nothing a host loads, a third of the
+ *                     tarball (the suite runs here, `npm run unit`)
  *   setup/setup.mjs   node/setup/setup.mjs - the database hook output/init.mjs
  *                     imports by the relative path abap_transpile.json fixes
  *   setup/own-apps.mjs  node/setup/own-apps.mjs - the bin abap2ui5-own-apps:
@@ -277,7 +281,7 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "setup/own-apps.mjs", "output/init.mjs", "output/index.mjs",
+    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "setup/own-apps.mjs", "output/init.mjs",
     "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "setup/transpile.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
@@ -293,7 +297,8 @@ try {
     ...Object.values(template.exports ?? {}).flatMap((e) => (typeof e === "string" ? [e] : Object.values(e))),
   ].map((p) => p.replace(/^\.\//, "")).filter((p) => !p.includes("*"));
   const problems = [...new Set([...MUST, ...pointed])].filter((f) => !files.has(f)).map((f) => `${f} is not in the tarball`);
-  const stray = [...files].filter((f) => f.split("/").includes(".git") || f.startsWith("node_modules/") || f.startsWith("webapp/"));
+  const stray = [...files].filter((f) => f.split("/").includes(".git") || f.startsWith("node_modules/") || f.startsWith("webapp/")
+    || /\.testclasses\.(mjs|abap)$/.test(f) || f.endsWith(".map") || f === "output/index.mjs" || f === "output/_unit_open.mjs");
   if (stray.length) problems.push(`${stray.length} stray entr${stray.length === 1 ? "y" : "ies"} (first: ${stray[0]})`);
   /* No fixture by file name, and none by content: every packed file of the
    * code trees is read back from the stage (what npm packed is what is

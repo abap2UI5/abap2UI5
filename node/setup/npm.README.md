@@ -309,7 +309,7 @@ drafts are a CDS entity.
 | `srv/host.mjs` | The entry point - everything above |
 | `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it imports nothing from `output/` |
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
-| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object, `index.mjs` the generated unit-test runner (`node node_modules/@abap2ui5/node-runtime/output/index.mjs` runs the framework's own suite). The UI5 frontend is in here too, as the constants the GET page is built from. The source maps are not in the package |
+| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object. The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
 | `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core at the recorded commit, the config, the transpile, `own-apps` |

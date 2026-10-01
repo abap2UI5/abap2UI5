@@ -100,13 +100,14 @@ fixture name is still in a file name or a file of the tarball. The checkout
 keeps them: `npm run express` and the browser projects run the unstripped
 tree.
 
-**It carries no source maps and no ABAP test classes.** The manifest's
-`files` leaves out every `output/*.map` and `downport/**/*.testclasses.abap`:
-nothing a host loads or transpiles against was in them. The transpiled unit
-tests (`output/*.testclasses.mjs`) and their runner `output/index.mjs` stay -
-dropping them together with their runner `output/index.mjs` (5.6 MB) is the
-open follow-up: the runner is on `pack-npm.mjs`'s list of files a host
-expects, and a runner without its tests would be worse.
+**It carries no unit tests and no source maps.** The manifest's `files`
+leaves out `output/*.testclasses.mjs`, the generated runners `output/index.mjs`
+and `output/_unit_open.mjs`, every `output/*.map` and
+`downport/**/*.testclasses.abap`: the framework's own suite runs here
+(`npm run unit`), nothing a host loads or transpiles against was in those
+files, and they were a third of the 21 MB every CAP project and every MCP user
+installed per release (1.146.0). `pack-npm.mjs` refuses a tarball that carries
+any of them, as it refuses one missing a file a host expects.
 
 **It carries no `webapp/`, on purpose.** The GET page the framework serves
 embeds the whole component - every module, view and stylesheet - from the
