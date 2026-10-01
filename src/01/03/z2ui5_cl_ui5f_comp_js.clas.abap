@@ -58,6 +58,27 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    function endpointPath(endpoint) {` && |\n| &&
+             `      return endpoint` && |\n| &&
+             `        .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*/i, "")` && |\n| &&
+             `        .replace(/[?#].*$/, "")` && |\n| &&
+             `        .replace(/\/+$/, "");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function proxyPrefix(endpoint, nodePath) {` && |\n| &&
+             `      if (!endpoint || typeof nodePath !== "string") return "";` && |\n| &&
+             `      const node = nodePath.replace(/\/+$/, "");` && |\n| &&
+             `      if (!node.startsWith("/")) return "";` && |\n| &&
+             `      const path = endpointPath(endpoint);` && |\n| &&
+             `      if (!path.endsWith(node)) return "";` && |\n| &&
+             `      return path.slice(0, path.length - node.length);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function withPrefix(prefix, root) {` && |\n| &&
+             `      if (!root) return null;` && |\n| &&
+             `      return prefix && root.startsWith("/") ? prefix + root : root;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const Component = UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        manifest: "json",` && |\n| &&
@@ -72,13 +93,12 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          checkLocal,` && |\n| &&
              `          ccResourceRoot,` && |\n| &&
              `          cccResourceRoot,` && |\n| &&
+             `          nodePath,` && |\n| &&
              `          endpoint,` && |\n| &&
              `          embedded,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
              `        state.checkLocal = checkLocal === true;` && |\n| &&
-             `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
-             `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&
              `        state.embedded = embedded === true;` && |\n| &&
              `` && |\n| &&
@@ -90,6 +110,10 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
              `            ? endpoint.trim()` && |\n| &&
              `            : null;` && |\n| &&
+             `` && |\n| &&
+             `        const prefix = proxyPrefix(state.endpoint, nodePath);` && |\n| &&
+             `        state.ccResourceRoot = withPrefix(prefix, ccResourceRoot);` && |\n| &&
+             `        state.cccResourceRoot = withPrefix(prefix, cccResourceRoot);` && |\n| &&
              `` && |\n| &&
              `        const paths = {};` && |\n| &&
              `        if (state.ccResourceRoot) paths.z2ui5_cci = state.ccResourceRoot;` && |\n| &&

@@ -196,8 +196,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " the frontend as a script of its own - see the method
+    " the frontend as a script of its own - see the method. iv_path is the
+    " path the bundle was requested under (ty_s_http_req-path, ~path on the
+    " ICF): the node as the system has it
     CLASS-METHODS _http_get_bundle
+      IMPORTING
+        iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -893,6 +897,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " does not pass: a page that loads the frontend this way runs it in a
     " page of its own, whose URL the component leaves alone (Component.init,
     " core/Router.js) - a Fiori elements host routes by its hash.
+    "
+    " nodePath is the path this bundle was requested under - the node as
+    " THIS system has it (~path, see ty_s_http_req). The sibling BSP roots
+    " are paths on this system as well, and a host page may reach the system
+    " through a proxy that puts it under a prefix of its own (SAP Build Work
+    " Zone's destination proxy, an approuter route with a prefix): its
+    " endpoint ends with the node then, what comes before it is the prefix,
+    " and Component.init puts that prefix in front of the roots. The two
+    " characters JSON needs escaped in a string are escaped; a path carries
+    " neither, but the text is code on the host's page. Not for the page
+    " (_http_get): its roots are reached from the system itself.
     DATA(lv_etag) = _get_etag( c_bundle_param ).
 
     " consumed once - see sv_if_none_match
@@ -905,12 +920,21 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    DATA(lv_node_path) = replace( val  = iv_path
+                                  sub  = `\`
+                                  with = `\\`
+                                  occ  = 0 ).
+    lv_node_path = replace( val  = lv_node_path
+                            sub  = `"`
+                            with = `\"`
+                            occ  = 0 ).
     result-body = z2ui5_cl_ui5f_preload=>get_bundle( ) &&
                   |sap.ui.define("z2ui5/embed", function () \{\n| &&
                   |  "use strict";\n| &&
                   |  return \{\n| &&
                   |    componentData: \{\n| &&
                   |      embedded: true,\n| &&
+                  |      nodePath: "{ lv_node_path }",\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&
                   |    \}\n| &&
@@ -1231,7 +1255,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         CASE is_req-method.
           WHEN `GET`.
             IF _is_bundle_request( is_req-t_params ) = abap_true.
-              result = _http_get_bundle( ).
+              result = _http_get_bundle( is_req-path ).
             ELSE.
               result = _http_get( ).
             ENDIF.

@@ -24,6 +24,8 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_preload_literals  FOR TESTING RAISING cx_static_check.
     " GET ?z2ui5-bundle is the frontend as a script, every other GET the page
     METHODS test_main_get_bundle   FOR TESTING RAISING cx_static_check.
+    " ...and names the node it was requested under, escaped for the script
+    METHODS test_bundle_node_path  FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_no_bundle FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -403,6 +405,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
         method   = `GET`
+        path     = `/sap/bc/z2ui5`
         t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 200
@@ -428,6 +431,31 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " router leaves its hash alone (a Fiori elements host routes by it)
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `embedded: true,` ) ).
+    " ...and the node the bundle was requested under, as this system has it -
+    " a host behind a prefixing proxy puts its prefix in front of the roots
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2ui5",` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_node_path.
+
+    " no path known (a direct call, a runtime without ~path): an empty string,
+    " which Component.init reads as "no prefix to take"
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `nodePath: "",` ) ).
+
+    " the text is code on the host's page: a quote or a backslash in the
+    " path - no ICF node has one - cannot end the string
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2"ui5\x`
+        t_params = VALUE #( ( n = `z2ui5-bundle` ) ) ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `nodePath: "/sap/bc/z2\"ui5\\x",` ) ).
 
   ENDMETHOD.
 

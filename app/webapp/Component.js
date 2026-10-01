@@ -31,6 +31,35 @@ sap.ui.define(
   ) => {
     "use strict";
 
+    // The path of an endpoint - a URL, or a path on the page's server - with
+    // neither scheme and host nor query, fragment or trailing slashes: what
+    // is compared with the node path the bundle names (init below).
+    function endpointPath(endpoint) {
+      return endpoint
+        .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*/i, "")
+        .replace(/[?#].*$/, "")
+        .replace(/\/+$/, "");
+    }
+
+    // What a host's endpoint has in front of the node the bundle was
+    // requested under - the prefix of a proxy that puts the system under a
+    // path of its own - or "" when there is none, or nothing to compare.
+    function proxyPrefix(endpoint, nodePath) {
+      if (!endpoint || typeof nodePath !== "string") return "";
+      const node = nodePath.replace(/\/+$/, "");
+      if (!node.startsWith("/")) return "";
+      const path = endpointPath(endpoint);
+      if (!path.endsWith(node)) return "";
+      return path.slice(0, path.length - node.length);
+    }
+
+    // A sibling BSP root as the page reaches it: an absolute path of the
+    // system behind the prefix, anything else as it is; null when absent.
+    function withPrefix(prefix, root) {
+      if (!root) return null;
+      return prefix && root.startsWith("/") ? prefix + root : root;
+    }
+
     const Component = UIComponent.extend("z2ui5.Component", {
       metadata: {
         manifest: "json",
@@ -50,8 +79,9 @@ sap.ui.define(
         const state = this.ctx.state;
 
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
-        // its settings as component data, and so does a host app that
-        // embeds this component (endpoint, see below); they configure the
+        // its settings as component data, and so do the z2ui5/embed module
+        // of ?z2ui5-bundle (nodePath, embedded) and a host app that embeds
+        // this component (endpoint, see below); they configure the
         // frontend and are not app data, so they are split off here and
         // never travel to the backend with the rest of the component data.
         // In BSP and Launchpad mode none of them is present.
@@ -59,13 +89,12 @@ sap.ui.define(
           checkLocal,
           ccResourceRoot,
           cccResourceRoot,
+          nodePath,
           endpoint,
           embedded,
           ...componentData
         } = this.getComponentData() || {};
         state.checkLocal = checkLocal === true;
-        state.ccResourceRoot = ccResourceRoot || null;
-        state.cccResourceRoot = cccResourceRoot || null;
 
         // A component inside a page it does not own - a host app that
         // embeds it, a Fiori elements custom section. The URL is the host's
@@ -94,6 +123,20 @@ sap.ui.define(
           typeof endpoint === "string" && endpoint.trim()
             ? endpoint.trim()
             : null;
+
+        // The sibling BSPs as THIS page reaches them. The bundle names them
+        // as the system has them (absolute paths, below) and the node it
+        // was requested under (nodePath, z2ui5_cl_ui5_http_handler=>
+        // _http_get_bundle). A host whose endpoint reaches the system under
+        // a prefix of its own - SAP Build Work Zone's destination proxy, an
+        // approuter route with a prefix - has that prefix in front of the
+        // node, and the roots take it as well: a custom control from
+        // z2ui5_cci is requested where the host's origin reaches it. An
+        // endpoint that does not end with the node (a rewriting proxy), or
+        // none at all (the page, the launchpad), leaves them as they are.
+        const prefix = proxyPrefix(state.endpoint, nodePath);
+        state.ccResourceRoot = withPrefix(prefix, ccResourceRoot);
+        state.cccResourceRoot = withPrefix(prefix, cccResourceRoot);
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
         // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc

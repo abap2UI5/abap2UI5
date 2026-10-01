@@ -25,9 +25,12 @@
 //   url               backend endpoint for roundtrips (App.controller)
 //   oConfig           { S_UI5: version info, ComponentData } (Component)
 //   ccResourceRoot    absolute path of the custom-control BSP, passed as
-//                     component data by the backend GET page when there is
-//                     no sibling BSP to resolve "../z2ui5_cci/" against
-//                     (Component.init)
+//                     component data by the backend GET page and by the
+//                     z2ui5/embed module of ?z2ui5-bundle when there is
+//                     no sibling BSP to resolve "../z2ui5_cci/" against;
+//                     embedded, with the prefix a host's endpoint has in
+//                     front of the node the bundle names (Component.init,
+//                     proxyPrefix)
 //   cccResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5_ccc/") (Component.init)
 //   embedded          true when the component runs inside a page it does not

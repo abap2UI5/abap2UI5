@@ -162,3 +162,83 @@ test("an embedded component takes the frontend's class globals off", () => {
   init({}, { globalsDropped: own });
   expect(own).toEqual([]);
 });
+
+// The z2ui5/embed module of ?z2ui5-bundle names the sibling BSPs as the
+// system has them and the node the bundle was requested under (nodePath). A
+// host that reaches the system through a proxy with a prefix of its own -
+// SAP Build Work Zone's destination proxy, an approuter route with a prefix
+// - has that prefix in front of the node in its endpoint: the roots take
+// it, so a custom control from z2ui5_cci is requested where the host's
+// origin reaches it.
+test("a host's prefix in front of the node goes in front of the sibling BSP roots", () => {
+  const state = init({
+    embedded: true,
+    nodePath: "/sap/bc/z2ui5",
+    ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",
+    cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc",
+    endpoint: "https://host.example/dynamic_dest/ABAP2UI5/sap/bc/z2ui5",
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+
+  expect(state.ccResourceRoot).toBe(
+    "/dynamic_dest/ABAP2UI5/sap/bc/ui5_ui5/sap/z2ui5_cci",
+  );
+  expect(state.cccResourceRoot).toBe(
+    "/dynamic_dest/ABAP2UI5/sap/bc/ui5_ui5/sap/z2ui5_ccc",
+  );
+  // a setting of the frontend, never app data
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+});
+
+test("an endpoint on the node itself, in any spelling, adds no prefix", () => {
+  for (const endpoint of [
+    "/sap/bc/z2ui5",
+    "/sap/bc/z2ui5/",
+    "https://host.example/sap/bc/z2ui5?sap-client=100",
+    "https://host.example:44300/sap/bc/z2ui5#top",
+  ]) {
+    const state = init({
+      nodePath: "/sap/bc/z2ui5/",
+      ccResourceRoot: "/cci",
+      endpoint,
+    });
+    expect(state.ccResourceRoot, endpoint).toBe("/cci");
+  }
+});
+
+// a rewriting proxy, a node of another name: nothing to go by
+test("an endpoint that does not end with the node leaves the roots as they are", () => {
+  for (const endpoint of ["/backend/z2ui5", "/sap/bc/z2ui5_other", "/xsap/bc/z2ui5"]) {
+    const state = init({
+      nodePath: "/sap/bc/z2ui5",
+      ccResourceRoot: "/cci",
+      endpoint,
+    });
+    expect(state.ccResourceRoot, endpoint).toBe("/cci");
+  }
+});
+
+test("without an endpoint, a node or a root there is nothing to prefix", () => {
+  const root = (data) => init(data).ccResourceRoot;
+  const prefixed = { endpoint: "/x/sap/bc/z2ui5", nodePath: "/sap/bc/z2ui5" };
+  // the page passes the roots and no node; a bundle without a path says ""
+  expect(root({ nodePath: "/sap/bc/z2ui5", ccResourceRoot: "/cci" })).toBe("/cci");
+  expect(root({ endpoint: "/x/sap/bc/z2ui5", ccResourceRoot: "/cci" })).toBe("/cci");
+  expect(root({ ...prefixed, nodePath: "", ccResourceRoot: "/cci" })).toBe("/cci");
+  expect(root({ ...prefixed, nodePath: 42, ccResourceRoot: "/cci" })).toBe("/cci");
+  expect(root(prefixed)).toBeNull();
+  // a root that is no absolute path is not the system's: left alone
+  expect(root({ ...prefixed, ccResourceRoot: "../z2ui5_cci/" })).toBe("../z2ui5_cci/");
+  // a node among the launchpad's startup parameters is app data, no node
+  const state = init({
+    endpoint: "/x/sap/bc/z2ui5",
+    ccResourceRoot: "/cci",
+    startupParameters: { nodePath: ["/sap/bc/z2ui5"] },
+  });
+  expect(state.ccResourceRoot).toBe("/cci");
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { nodePath: ["/sap/bc/z2ui5"] },
+  });
+});
