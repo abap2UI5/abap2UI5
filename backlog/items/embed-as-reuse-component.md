@@ -93,6 +93,19 @@ instead (`ctx.restart` -> `Component._restartApp`, `ErrorView.restart`):
 the app ends as on exit, the App controller starts it again with new
 controllers and a new backend session.
 
+**Done 2026-10-01 - the page's mobile setup.** `sap.m.App`, the root of
+`view/App.view.xml`, runs `sap/ui/util/Mobile.init` when it is created -
+once per page, with the settings of whoever calls first - and on a host's
+page without a `sap.m.App` of its own that put `height: 100%` on `<html>`,
+a viewport meta tag that disables zooming and a format-detection meta tag
+there, and on iOS took the host's scrolling (`position: fixed` on `<html>`).
+An embedded component makes the call first, with everything off
+(`Component.init`); a host that has a `sap.m.App` has made it already. What
+stays is the web-app-capable meta tag `sap.m.App` sets on every rendering
+on a phone or tablet - item 2 below (a root other than `sap.m.App`) ends
+that. Found by the review of abap2UI5/embed-control, pinned by
+`node/tests/componentData.spec.js` and `node/tests/e2e/embedded.spec.js`.
+
 **Done 2026-09-29 - the console.** The developer tools' page-wide capture
 (`devtools/Console.js`: the console methods, `error`/`unhandledrejection`,
 the UI5 log) took in the host's output and errors on a host's page. An

@@ -40,6 +40,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
+             `    "sap/ui/util/Mobile",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -55,6 +56,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    Shortcuts,` && |\n| &&
+             `    Mobile,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -106,6 +108,16 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        if (state.embedded) Env.dropClassGlobals();` && |\n| &&
              `` && |\n| &&
              `        if (state.embedded) this.ctx.restart = () => this._restartApp();` && |\n| &&
+             `` && |\n| &&
+             `        if (state.embedded) {` && |\n| &&
+             `          Mobile.init({` && |\n| &&
+             `            viewport: false,` && |\n| &&
+             `            hideBrowser: false,` && |\n| &&
+             `            preventScroll: false,` && |\n| &&
+             `            preventPhoneNumberDetection: false,` && |\n| &&
+             `            useFullScreenHeight: false,` && |\n| &&
+             `          });` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
