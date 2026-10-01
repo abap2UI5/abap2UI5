@@ -13,7 +13,15 @@ const { test, expect } = require("./fixtures");
 // two-components.spec.js).
 
 const HOST_PATH = "/z2ui5-embed-host.html";
+// the service node as the SYSTEM has it - what the dev server answers on
 const ENDPOINT = "/sap/bc/z2ui5";
+// A proxy that puts the system under a path prefix of its own - the
+// destination proxy of SAP Build Work Zone (/dynamic_dest/<name>/...), an
+// approuter route: the page reaches the node as <prefix>/sap/bc/z2ui5, the
+// system sees /sap/bc/z2ui5. Played by proxyWithPrefix below.
+const PROXY_PREFIX = "/dynamic_dest/ABAP2UI5";
+const CCI_ROOT = "/sap/bc/ui5_ui5/sap/z2ui5_cci";
+const CCC_ROOT = "/sap/bc/ui5_ui5/sap/z2ui5_ccc";
 
 // The host: UI5 from the build the project pins (the fixture routes it to a
 // local tree where there is no CDN), one input of its own, and an area for
@@ -35,8 +43,23 @@ function hostHtml(ui5Src, theme) {
 </html>`;
 }
 
-// The host page with UI5 booted and the frontend loaded from the backend.
-async function openHost(page, ui5Src, ui5Theme) {
+// The prefixing proxy: every request under the prefix - the bundle, the
+// roundtrips, a module of a sibling BSP - reaches the dev server without it,
+// the way the proxy forwards it to the system.
+async function proxyWithPrefix(page) {
+  await page.route(
+    (url) => url.pathname.startsWith(`${PROXY_PREFIX}/`),
+    (route) => {
+      const url = new URL(route.request().url());
+      url.pathname = url.pathname.slice(PROXY_PREFIX.length);
+      return route.continue({ url: url.href });
+    },
+  );
+}
+
+// The host page with UI5 booted and the frontend loaded from the backend -
+// from `endpoint`, the node as the PAGE reaches it.
+async function openHost(page, ui5Src, ui5Theme, endpoint = ENDPOINT) {
   await page.route(
     (url) => url.pathname === HOST_PATH,
     (route) =>
@@ -63,7 +86,7 @@ async function openHost(page, ui5Src, ui5Theme) {
         script.onerror = () => reject(new Error("no bundle"));
         document.head.appendChild(script);
       }),
-    ENDPOINT,
+    endpoint,
   );
   await page.waitForFunction(() =>
     Boolean(window.sap.ui.require("z2ui5/embed")),
@@ -72,8 +95,9 @@ async function openHost(page, ui5Src, ui5Theme) {
 
 // Create the component the way the control does and place it in #host1.
 // Resolves with the component id once Component.create has resolved.
-// `params` are further startup parameters of the app, one value each.
-function startApp(page, app, params = {}) {
+// `params` are further startup parameters of the app, one value each;
+// `endpoint` is what the control passes as the backend URL.
+function startApp(page, app, params = {}, endpoint = ENDPOINT) {
   return page.evaluate(
     ([appName, extra, endpoint]) =>
       new Promise((resolve, reject) => {
@@ -105,8 +129,22 @@ function startApp(page, app, params = {}) {
           reject,
         );
       }),
-    [app, params, ENDPOINT],
+    [app, params, endpoint],
   );
+}
+
+// Where the loader would fetch a module of each sibling BSP from - the
+// path on the page's origin, as the page resolves it.
+function resourceRootPaths(page) {
+  return page.evaluate(() => {
+    const path = (name) =>
+      new URL(window.sap.ui.require.toUrl(name), window.location.href)
+        .pathname;
+    return {
+      cci: path("z2ui5_cci/Control.js"),
+      ccc: path("z2ui5_ccc/Control.js"),
+    };
+  });
 }
 
 // The component by id on every supported release: getComponentById since
@@ -226,5 +264,57 @@ test.describe("an embedded app and the host's window", () => {
     expect(await page.evaluate(() => JSON.stringify(window["z2ui5"]))).toBe(
       '{"hostData":1}',
     );
+  });
+});
+
+// The custom controls (z2ui5_cci) and the customer's own frontend artefacts
+// (z2ui5_ccc) live in BSPs next to the frontend, and the bundle hands their
+// roots over as the SYSTEM's absolute paths. A page that reaches the node
+// through a proxy with a path prefix of its own requested them on its own
+// origin, where nothing is - an embedded app naming a control of either BSP
+// failed to load it. The bundle now says which path the node has on the
+// system (nodePath), and Component.init puts what the endpoint has in front
+// of it - the proxy's prefix - in front of both roots.
+test.describe("an embedded app and the sibling BSPs", () => {
+  test.beforeEach(({ ui5Src }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+  });
+
+  test("behind a prefixing proxy the roots carry the proxy's prefix", async ({
+    page,
+    ui5Src,
+    ui5Theme,
+  }) => {
+    await proxyWithPrefix(page);
+    const endpoint = `${PROXY_PREFIX}${ENDPOINT}`;
+    await openHost(page, ui5Src, ui5Theme, endpoint);
+    // the bundle came through the proxy and names the node's own path
+    expect(
+      await page.evaluate(
+        () => window.sap.ui.require("z2ui5/embed").componentData.nodePath,
+      ),
+    ).toBe(ENDPOINT);
+    // ... and the app runs through the proxy: its roundtrips go to the
+    // prefixed endpoint
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world", {}, endpoint);
+    await waitForApp(page, id);
+    expect(await resourceRootPaths(page)).toEqual({
+      cci: `${PROXY_PREFIX}${CCI_ROOT}/Control.js`,
+      ccc: `${PROXY_PREFIX}${CCC_ROOT}/Control.js`,
+    });
+  });
+
+  test("on the node's own path the roots are the system's, as before", async ({
+    page,
+    ui5Src,
+    ui5Theme,
+  }) => {
+    await openHost(page, ui5Src, ui5Theme);
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world");
+    await waitForApp(page, id);
+    expect(await resourceRootPaths(page)).toEqual({
+      cci: `${CCI_ROOT}/Control.js`,
+      ccc: `${CCC_ROOT}/Control.js`,
+    });
   });
 });

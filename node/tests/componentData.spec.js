@@ -3,17 +3,24 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Component.init splits the frontend settings off the component data: what
-// the backend GET page passes (checkLocal, ccResourceRoot, cccResourceRoot)
+// the backend GET page passes (checkLocal, ccResourceRoot, cccResourceRoot),
+// what the z2ui5/embed module of ?z2ui5-bundle passes (embedded, nodePath)
 // and what a host app embedding the component passes (endpoint). They
 // configure the frontend, so they land in the state and never travel to the
 // backend with the rest of the component data (oConfig.ComponentData).
 // Everything else init() does is stubbed away - its listeners and services
 // have specs of their own.
+//  - `location`     the page's window.location (href and origin) - what a
+//                   relative endpoint resolves against
+//  - `loaderPaths`  collects every `paths` handed to sap.ui.loader.config
 function init(componentData, options) {
   return initContext(componentData, options).state;
 }
 
-function initContext(componentData, { globalsDropped = [] } = {}) {
+function initContext(
+  componentData,
+  { globalsDropped = [], location, loaderPaths = [] } = {},
+) {
   const noop = () => {};
   const state = { oConfig: {} };
   const ctx = { state };
@@ -40,7 +47,12 @@ function initContext(componentData, { globalsDropped = [] } = {}) {
       "z2ui5/core/ViewSlots": {},
       "z2ui5/core/actions/Shortcuts": {},
     },
-    sandbox: { sap: { ui: { loader: { config: noop } } } },
+    sandbox: {
+      sap: {
+        ui: { loader: { config: (cfg) => loaderPaths.push(cfg.paths) } },
+      },
+      ...(location ? { window: { location } } : {}),
+    },
   });
 
   const inst = Object.create(def);
@@ -161,4 +173,200 @@ test("an embedded component takes the frontend's class globals off", () => {
   init({ checkLocal: true }, { globalsDropped: own });
   init({}, { globalsDropped: own });
   expect(own).toEqual([]);
+});
+
+// The two roots are absolute paths on the SYSTEM. A page that reaches the
+// node through a proxy with a path prefix of its own - the destination proxy
+// of SAP Build Work Zone, an approuter route - loads the bundle from the
+// prefixed URL, and there the system's path finds nothing. The bundle's
+// z2ui5/embed module reports the path the node has on the system (nodePath,
+// z2ui5_cl_ui5_http_handler=>_http_get_bundle); when the host's endpoint
+// ends in it, what stands before it is the proxy's prefix, and the roots
+// get it before they reach the loader.
+test.describe("the sibling BSP roots behind a proxy", () => {
+  const CCI = "/sap/bc/ui5_ui5/sap/z2ui5_cci";
+  const CCC = "/sap/bc/ui5_ui5/sap/z2ui5_ccc";
+  const roots = { ccResourceRoot: CCI, cccResourceRoot: CCC };
+  const bundle = { embedded: true, nodePath: "/sap/bc/z2ui5", ...roots };
+  const location = {
+    href: "https://workzone.example/site/launchpad",
+    origin: "https://workzone.example",
+  };
+
+  test("a prefixing proxy's prefix goes in front of both roots", () => {
+    const loaderPaths = [];
+    const state = init(
+      {
+        ...bundle,
+        endpoint: "https://workzone.example/dynamic_dest/ABAP2UI5/sap/bc/z2ui5",
+        startupParameters: { app_start: ["ZCL_APP"] },
+      },
+      { location, loaderPaths },
+    );
+
+    expect(state.ccResourceRoot).toBe(`/dynamic_dest/ABAP2UI5${CCI}`);
+    expect(state.cccResourceRoot).toBe(`/dynamic_dest/ABAP2UI5${CCC}`);
+    expect(state.nodePath).toBe("/sap/bc/z2ui5");
+    // what the loader is told is the rebased root, in the one call
+    expect(loaderPaths).toEqual([
+      {
+        z2ui5_cci: `/dynamic_dest/ABAP2UI5${CCI}`,
+        z2ui5_ccc: `/dynamic_dest/ABAP2UI5${CCC}`,
+      },
+    ]);
+    // nodePath is a setting like the rest - never app data
+    expect(state.oConfig.ComponentData).toEqual({
+      startupParameters: { app_start: ["ZCL_APP"] },
+    });
+  });
+
+  test("a relative endpoint resolves against the page", () => {
+    const state = init(
+      { ...bundle, endpoint: "/dynamic_dest/ABAP2UI5/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(state.ccResourceRoot).toBe(`/dynamic_dest/ABAP2UI5${CCI}`);
+    expect(state.cccResourceRoot).toBe(`/dynamic_dest/ABAP2UI5${CCC}`);
+  });
+
+  test("the node's own path on the page's origin leaves them as they are", () => {
+    const loaderPaths = [];
+    for (const endpoint of [
+      "/sap/bc/z2ui5",
+      "https://workzone.example/sap/bc/z2ui5",
+      "/sap/bc/z2ui5?sap-client=100",
+    ]) {
+      const state = init({ ...bundle, endpoint }, { location, loaderPaths });
+      expect(state.ccResourceRoot).toBe(CCI);
+      expect(state.cccResourceRoot).toBe(CCC);
+    }
+    expect(loaderPaths).toEqual([
+      { z2ui5_cci: CCI, z2ui5_ccc: CCC },
+      { z2ui5_cci: CCI, z2ui5_ccc: CCC },
+      { z2ui5_cci: CCI, z2ui5_ccc: CCC },
+    ]);
+  });
+
+  test("a trailing slash on either side is the same node", () => {
+    expect(
+      init(
+        { ...bundle, endpoint: "https://workzone.example/gw/sap/bc/z2ui5/" },
+        { location },
+      ).ccResourceRoot,
+    ).toBe(`/gw${CCI}`);
+    expect(
+      init(
+        { ...bundle, nodePath: "/sap/bc/z2ui5/", endpoint: "/gw/sap/bc/z2ui5" },
+        { location },
+      ).ccResourceRoot,
+    ).toBe(`/gw${CCI}`);
+  });
+
+  // a proxy that rewrites the path: nothing says where the BSPs are, so
+  // today's behaviour stands
+  test("an endpoint that does not end in the node path leaves them as they are", () => {
+    for (const endpoint of [
+      "https://gateway.example/abap2ui5",
+      "/dynamic_dest/ABAP2UI5/z2ui5",
+      "/sap/bc/z2ui5_other",
+      "/sap/bc/xz2ui5",
+    ]) {
+      const state = init({ ...bundle, endpoint }, { location });
+      expect(state.ccResourceRoot).toBe(CCI);
+      expect(state.cccResourceRoot).toBe(CCC);
+    }
+  });
+
+  test("an endpoint on another origin puts that origin in front", () => {
+    const state = init(
+      { ...bundle, endpoint: "https://backend.example:44300/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(state.ccResourceRoot).toBe(`https://backend.example:44300${CCI}`);
+    expect(state.cccResourceRoot).toBe(`https://backend.example:44300${CCC}`);
+
+    const prefixed = init(
+      { ...bundle, endpoint: "https://backend.example/gw/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(prefixed.ccResourceRoot).toBe(`https://backend.example/gw${CCI}`);
+  });
+
+  // the GET page passes no endpoint and no node path, a host of its own
+  // ComponentContainer an endpoint but no node path, and a stack that
+  // reported no path an empty one
+  test("without an endpoint or a node path nothing moves", () => {
+    const page = init({ checkLocal: true, ...roots }, { location });
+    expect(page.ccResourceRoot).toBe(CCI);
+    expect(page.cccResourceRoot).toBe(CCC);
+    expect(page.nodePath).toBeNull();
+
+    const host = init(
+      { ...roots, embedded: true, endpoint: "/gw/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(host.ccResourceRoot).toBe(CCI);
+    expect(host.nodePath).toBeNull();
+
+    const blank = init(
+      { ...bundle, nodePath: "", endpoint: "/gw/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(blank.ccResourceRoot).toBe(CCI);
+    expect(blank.nodePath).toBeNull();
+
+    // ... and a page without roots gets none
+    const none = init(
+      {
+        embedded: true,
+        nodePath: "/sap/bc/z2ui5",
+        endpoint: "/gw/sap/bc/z2ui5",
+      },
+      { location },
+    );
+    expect(none.ccResourceRoot).toBeNull();
+    expect(none.cccResourceRoot).toBeNull();
+  });
+
+  // the backend hands absolute paths over; a host that passes a URL of its
+  // own for a root knows better than the prefix does
+  test("a root that is not an absolute path is left alone", () => {
+    const state = init(
+      {
+        ...bundle,
+        ccResourceRoot: "https://cdn.example/cci/",
+        endpoint: "/gw/sap/bc/z2ui5",
+      },
+      { location },
+    );
+    expect(state.ccResourceRoot).toBe("https://cdn.example/cci/");
+    expect(state.cccResourceRoot).toBe(`/gw${CCC}`);
+  });
+
+  // an endpoint that does not parse says nothing, and neither does the top
+  // level of the component data being the only place a node path is read -
+  // the launchpad's startup parameters are app data
+  test("a node path among the launchpad startup parameters is not taken", () => {
+    const state = init(
+      {
+        ...roots,
+        endpoint: "/gw/sap/bc/z2ui5",
+        startupParameters: { nodePath: ["/sap/bc/z2ui5"] },
+      },
+      { location },
+    );
+    expect(state.nodePath).toBeNull();
+    expect(state.ccResourceRoot).toBe(CCI);
+    expect(state.oConfig.ComponentData).toEqual({
+      startupParameters: { nodePath: ["/sap/bc/z2ui5"] },
+    });
+  });
+
+  test("an endpoint that does not parse leaves them as they are", () => {
+    const state = init(
+      { ...bundle, endpoint: "http://[not a host]/sap/bc/z2ui5" },
+      { location },
+    );
+    expect(state.ccResourceRoot).toBe(CCI);
+  });
 });

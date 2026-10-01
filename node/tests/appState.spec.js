@@ -25,6 +25,7 @@ test.describe("createState", () => {
     expect(state.oConfig).toEqual({});
     expect(state.ccResourceRoot).toBeNull();
     expect(state.cccResourceRoot).toBeNull();
+    expect(state.nodePath).toBeNull();
     expect(state.isBusy).toBe(false);
     expect(state.oView).toBeNull();
     expect(state.timers).toEqual({});
