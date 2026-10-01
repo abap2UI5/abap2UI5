@@ -161,6 +161,22 @@ instance.
   host, and always the frontend of the backend it talks to. Without the
   parameter the node answers with the page as before.
 
+- **Done 2026-10-01:** the sibling BSP roots behind a prefixing proxy. The
+  bundle handed the roots over as the system's absolute paths, so a page
+  that reaches the node through SAP Build Work Zone's destination proxy or
+  an approuter route (`https://<site>/dynamic_dest/<name>/sap/bc/z2ui5`)
+  requested them on its own origin, where nothing is - the known limitation
+  of the control's README. The `z2ui5/embed` module now also reports the
+  path the node has on the system (`nodePath`, from `ty_s_http_req-path`,
+  `~path` on the ICF and `req.path` in the Node shim), and `Component.init`
+  puts what the host's endpoint has in front of that path - the proxy's
+  prefix, and the endpoint's origin when it is not the page's - in front of
+  both roots before `sap.ui.loader.config`. An endpoint that does not end in
+  the node path (a rewriting proxy) leaves them as they are. Pinned by
+  `test_main_get_bundle` / `test_main_get_bundle_path`,
+  `node/tests/componentData.spec.js` and the proxy case of
+  `node/tests/e2e/embedded.spec.js`; the control needs no change.
+
 ## A custom control (exists)
 
 The wrapper around the `ComponentContainer` came before stage 1 after all:

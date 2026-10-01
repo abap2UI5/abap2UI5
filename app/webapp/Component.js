@@ -31,33 +31,37 @@ sap.ui.define(
   ) => {
     "use strict";
 
-    // The path of an endpoint - a URL, or a path on the page's server - with
-    // neither scheme and host nor query, fragment or trailing slashes: what
-    // is compared with the node path the bundle names (init below).
-    function endpointPath(endpoint) {
-      return endpoint
-        .replace(/^[a-z][a-z0-9+.-]*:\/\/[^/?#]*/i, "")
-        .replace(/[?#].*$/, "")
-        .replace(/\/+$/, "");
-    }
-
-    // What a host's endpoint has in front of the node the bundle was
-    // requested under - the prefix of a proxy that puts the system under a
-    // path of its own - or "" when there is none, or nothing to compare.
-    function proxyPrefix(endpoint, nodePath) {
-      if (!endpoint || typeof nodePath !== "string") return "";
+    // Where the two sibling BSP roots of init() move from the system to the
+    // page: what the page's endpoint puts in front of the path the node has
+    // on the system - the prefix of a proxy, and the endpoint's origin when
+    // it is not the page's. "" when the endpoint is the node's own path on
+    // the page's origin, null when nothing can be said: no endpoint, no node
+    // path, or an endpoint that does not end in the node path (a proxy that
+    // rewrites the path). A trailing slash on either side does not count -
+    // /sap/bc/z2ui5/ is the same node. Only the top level of the component
+    // data feeds this (init), and an endpoint that does not parse says
+    // nothing either.
+    function resourceRootPrefix(endpoint, nodePath) {
+      if (!endpoint || !nodePath) return null;
+      let url;
+      try {
+        url = new URL(endpoint, window.location.href);
+      } catch {
+        return null;
+      }
+      const path = url.pathname.replace(/\/+$/, "");
       const node = nodePath.replace(/\/+$/, "");
-      if (!node.startsWith("/")) return "";
-      const path = endpointPath(endpoint);
-      if (!path.endsWith(node)) return "";
-      return path.slice(0, path.length - node.length);
+      if (!node.startsWith("/") || !path.endsWith(node)) return null;
+      const prefix = path.slice(0, path.length - node.length);
+      return (url.origin === window.location.origin ? "" : url.origin) + prefix;
     }
 
-    // A sibling BSP root as the page reaches it: an absolute path of the
-    // system behind the prefix, anything else as it is; null when absent.
-    function withPrefix(prefix, root) {
-      if (!root) return null;
-      return prefix && root.startsWith("/") ? prefix + root : root;
+    // A root with that prefix in front - an absolute path only, which is
+    // what the backend hands over; a root a host passed as a URL of its own
+    // is left alone, and so is a missing one.
+    function rebaseResourceRoot(root, prefix) {
+      if (!root || !prefix || !root.startsWith("/")) return root;
+      return prefix + root;
     }
 
     const Component = UIComponent.extend("z2ui5.Component", {
@@ -80,21 +84,23 @@ sap.ui.define(
 
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
         // its settings as component data, and so do the z2ui5/embed module
-        // of ?z2ui5-bundle (nodePath, embedded) and a host app that embeds
-        // this component (endpoint, see below); they configure the
-        // frontend and are not app data, so they are split off here and
-        // never travel to the backend with the rest of the component data.
-        // In BSP and Launchpad mode none of them is present.
+        // of ?z2ui5-bundle (embedded, nodePath) and a host app that embeds
+        // this component (endpoint, see below); they configure the frontend
+        // and are not app data, so they are split off here and never travel
+        // to the backend with the rest of the component data. In BSP and
+        // Launchpad mode none of them is present.
         const {
           checkLocal,
           ccResourceRoot,
           cccResourceRoot,
-          nodePath,
           endpoint,
           embedded,
+          nodePath,
           ...componentData
         } = this.getComponentData() || {};
         state.checkLocal = checkLocal === true;
+        state.ccResourceRoot = ccResourceRoot || null;
+        state.cccResourceRoot = cccResourceRoot || null;
 
         // A component inside a page it does not own - a host app that
         // embeds it, a Fiori elements custom section. The URL is the host's
@@ -124,19 +130,17 @@ sap.ui.define(
             ? endpoint.trim()
             : null;
 
-        // The sibling BSPs as THIS page reaches them. The bundle names them
-        // as the system has them (absolute paths, below) and the node it
-        // was requested under (nodePath, z2ui5_cl_ui5_http_handler=>
-        // _http_get_bundle). A host whose endpoint reaches the system under
-        // a prefix of its own - SAP Build Work Zone's destination proxy, an
-        // approuter route with a prefix - has that prefix in front of the
-        // node, and the roots take it as well: a custom control from
-        // z2ui5_cci is requested where the host's origin reaches it. An
-        // endpoint that does not end with the node (a rewriting proxy), or
-        // none at all (the page, the launchpad), leaves them as they are.
-        const prefix = proxyPrefix(state.endpoint, nodePath);
-        state.ccResourceRoot = withPrefix(prefix, ccResourceRoot);
-        state.cccResourceRoot = withPrefix(prefix, cccResourceRoot);
+        // The path the service node has on the SYSTEM - /sap/bc/z2ui5 - as
+        // the z2ui5/embed module of ?z2ui5-bundle reports it
+        // (z2ui5_cl_ui5_http_handler=>_http_get_bundle): the one thing that
+        // says how the endpoint above relates to the system's own paths,
+        // see the resource roots below. Read like the endpoint, on the TOP
+        // level only, and an empty one (a stack that reported no path) is
+        // none.
+        state.nodePath =
+          typeof nodePath === "string" && nodePath.trim()
+            ? nodePath.trim()
+            : null;
 
         // Two sibling BSPs carry frontend artefacts the framework itself does
         // not ship: z2ui5_cci (abap2UI5-addons/custom-controls) and z2ui5_ccc
@@ -159,6 +163,30 @@ sap.ui.define(
         // right. Neither BSP is loaded from here - nothing is requested until
         // a view actually names the namespace - so a system that has only one
         // of them installed (or neither) never pays for the other.
+        //
+        // The roots the backend hands over are the SYSTEM's: absolute paths,
+        // right on the node's own origin and behind a proxy that passes the
+        // path through. A page that reaches the node through a proxy with a
+        // path prefix of its own - the destination proxy of SAP Build Work
+        // Zone (/dynamic_dest/<name>/sap/bc/z2ui5), an approuter route -
+        // loads the bundle from that prefixed URL, and there the system's
+        // absolute path finds nothing: an embedded app naming a control of
+        // z2ui5_cci failed to load it. The bundle says which path the node
+        // has on the system (nodePath above), the host's endpoint says how
+        // the page reaches it: when the endpoint ends in the node path,
+        // what stands before it is the proxy's prefix, and both roots get
+        // it (and the endpoint's origin when that is not the page's). An
+        // endpoint that does not end in it is a proxy that rewrites the
+        // path - nothing is known about the roots then, and they stay as
+        // they are, as before. The GET page passes no endpoint and no node
+        // path, the BSP and the launchpad none of the three, so nothing
+        // moves there.
+        const prefix = resourceRootPrefix(state.endpoint, state.nodePath);
+        state.ccResourceRoot = rebaseResourceRoot(state.ccResourceRoot, prefix);
+        state.cccResourceRoot = rebaseResourceRoot(
+          state.cccResourceRoot,
+          prefix,
+        );
         // one loader.config( ) for both roots - each call re-runs the
         // loader's whole configuration merge
         const paths = {};

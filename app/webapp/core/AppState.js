@@ -24,15 +24,22 @@
 //                     (Component.init)
 //   url               backend endpoint for roundtrips (App.controller)
 //   oConfig           { S_UI5: version info, ComponentData } (Component)
-//   ccResourceRoot    absolute path of the custom-control BSP, passed as
-//                     component data by the backend GET page and by the
-//                     z2ui5/embed module of ?z2ui5-bundle when there is
-//                     no sibling BSP to resolve "../z2ui5_cci/" against;
-//                     embedded, with the prefix a host's endpoint has in
-//                     front of the node the bundle names (Component.init,
-//                     proxyPrefix)
+//   ccResourceRoot    path of the custom-control BSP as THIS PAGE reaches
+//                     it, passed as component data by the backend GET page
+//                     and by the z2ui5/embed module of ?z2ui5-bundle when
+//                     there is no sibling BSP to resolve "../z2ui5_cci/"
+//                     against: the system's absolute path, with the origin
+//                     and the path prefix a proxy puts in front of the node
+//                     when the endpoint says there is one (nodePath below)
+//                     (Component.init)
 //   cccResourceRoot   same for the customer frontend-extension BSP
 //                     ("../z2ui5_ccc/") (Component.init)
+//   nodePath          the path the service node has on the SYSTEM
+//                     (/sap/bc/z2ui5), as the z2ui5/embed module of
+//                     ?z2ui5-bundle reports it, else null. Compared with the
+//                     endpoint it says what a proxy put in front of the
+//                     node, which is what the two roots above get
+//                     (Component.init)
 //   embedded          true when the component runs inside a page it does not
 //                     own - the z2ui5/embed module of ?z2ui5-bundle passes
 //                     it as component data, a host with a ComponentContainer
@@ -160,6 +167,7 @@ sap.ui.define([], () => {
       oConfig: {},
       ccResourceRoot: null,
       cccResourceRoot: null,
+      nodePath: null,
       embedded: false,
 
       // Views / controllers / UI5 objects
@@ -297,6 +305,7 @@ sap.ui.define([], () => {
     "oConfig",
     "ccResourceRoot",
     "cccResourceRoot",
+    "nodePath",
     "embedded",
     "oApp",
     "oOwnerComponent",
