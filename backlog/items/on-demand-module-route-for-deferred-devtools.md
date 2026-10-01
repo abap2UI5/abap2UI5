@@ -5,6 +5,7 @@ summary: 'The handler answers every GET with the shell, so a module dropped from
 priority: low
 state: open
 first_seen: 2026-09-01
+checked_upstream: 2026-10-01
 evidence:
   - 'app/webapp/devtools/DevTools.js:23-52 documents the blocker: on an ABAP system every frontend file arrives in ONE sap.ui.require.preload block, the bootstrap resource root is the ICF node, and the node answers every GET with the shell page - a module not in the block is fetched as text/html and never defines'
   - 'measured 2026-08-28 (same header): devtools/ is 32.7% of the preload bytes, at most 23.2% deferrable - Console, Recorder and DevTools.js itself must stay eager because a history collected after the problem is worth nothing'
