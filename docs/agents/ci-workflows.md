@@ -59,14 +59,8 @@ path fixed in `node/setup/abap_transpile.json`), `node/setup/own-apps.mjs`
 (the bin `abap2ui5-own-apps`: a host's own transpiled classes out of a
 transpile's output, their imports pointed at the package's `output/` - the
 transpile writes a second copy of every library object next to them, and
-importing that copy replaced the package's `CX_ROOT`), `node/setup/transpile.mjs`
-(the bin `abap2ui5-transpile`: the README's whole "Your own apps" recipe as one
-command - the transpiler at the recorded version, open-abap-core at the
-recorded commit, the config, the transpile, `own-apps` - so that mcp-server,
-cap2UI5 and cap2UI5/samples stop carrying their own copy of it), **`node/srv/host.mjs`** (the
-entry point, below), `node/srv/*.d.ts` (hand-written TypeScript declarations
-for the three entry points, named by `types` in the manifest and on every
-`exports` entry), `node/srv/accelerate.mjs` (the runtime fast paths
+importing that copy replaced the package's `CX_ROOT`), **`node/srv/host.mjs`** (the
+entry point, below), `node/srv/accelerate.mjs` (the runtime fast paths
 `host.mjs` installs, and the `./accelerate` subpath for a host that boots
 itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
 front, and the `./compress` subpath), `node/downport` (so a host can
@@ -96,6 +90,19 @@ and TADIR rows from `init.mjs` / `_init.mjs`, and refuses to pack when any
 fixture name is still in a file name or a file of the tarball. The checkout
 keeps them: `npm run express` and the browser projects run the unstripped
 tree.
+
+**Two files are written and tested but not yet packed:** `node/setup/transpile.mjs`
+(the bin `abap2ui5-transpile`, the README's whole "Your own apps" recipe as one
+command - the transpiler at the recorded version, open-abap-core at the
+recorded commit, the config, the transpile, `own-apps`; `node/tests/transpile.spec.js`
+holds it) and `node/srv/*.d.ts` (TypeScript declarations for the three entry
+points). `pack-npm.mjs` copies an explicit list of files into the staging
+directory, not the manifest's `files`, so naming them in the manifest alone
+ships a dangling `bin` and a `types` that points at nothing - the first cut
+did exactly that and `--check` did not notice. Shipping them means: add them
+to that copy list, then `bin.abap2ui5-transpile`, `types: ./srv/host.d.ts` and
+a `types` condition on each `exports` entry in `npm.package.json`, the README's
+"Your own apps" leading with the command, and a changelog line.
 
 **It carries no source maps and no ABAP test classes.** The manifest's
 `files` leaves out every `output/*.map` and `downport/**/*.testclasses.abap`:

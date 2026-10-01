@@ -131,9 +131,14 @@ test.describe("the bin", () => {
     expect(r.stderr).toMatch(/no-such-folder does not exist/);
   });
 
-  test("is listed as a bin of the package, next to own-apps", () => {
+  test("the manifest names it as a bin only once pack-npm packs it", () => {
+    // pack-npm.mjs copies an explicit list of files, not the manifest's `files`;
+    // a bin named in the manifest but not in that list is a dangling link in
+    // every install (docs/agents/ci-workflows.md, "not yet packed"). So: either
+    // both, or neither.
     const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE_DIR, "setup", "npm.package.json"), "utf8"));
-    expect(manifest.bin["abap2ui5-transpile"]).toBe("setup/transpile.mjs");
-    expect(manifest.files).toContain("setup/transpile.mjs");
+    const named = manifest.bin["abap2ui5-transpile"] === "setup/transpile.mjs";
+    const packed = fs.readFileSync(path.join(PACKAGE_DIR, "setup", "pack-npm.mjs"), "utf8").includes("transpile.mjs");
+    expect(named).toBe(packed);
   });
 });

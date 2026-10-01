@@ -79,42 +79,7 @@ they have to be transpiled with the framework as a library. The package
 carries the framework's sources for exactly that in `downport/`, and in its
 `package.json` the two versions `output/` was built with: the transpiler
 (`abap2ui5.transpiler`) and the commit of open-abap-core
-(`abap2ui5.openAbapCore`).
-
-`abap2ui5-transpile`, a bin of this package, does the rest. With your classes
-in `abap/`:
-
-```bash
-npm install --save-dev --save-exact @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.transpiler")
-npx abap2ui5-transpile abap apps        # abap/*.abap -> apps/: yours alone, on the package's classes
-```
-
-It checks out open-abap-core at the recorded commit - once, into
-`node_modules/.cache/abap2ui5-node-runtime/` - writes the transpile config
-below, runs the transpiler the package names (the installed one; through
-`npx` at that version when the project has none; another version installed
-is refused, with the install command that fixes it) and runs
-`abap2ui5-own-apps` over the output. `--config abap_transpile.json` runs a
-config of your own instead, `--core <dir>` uses an open-abap-core checkout of
-your own (also `ABAP2UI5_OPEN_ABAP_CORE`), `--keep` leaves the transpiler's
-output folder in place.
-
-Then load `apps/` **after** the framework has booted - each class registers
-itself in the running runtime:
-
-```js
-import { initialize, serve } from "@abap2ui5/node-runtime";
-
-await initialize();
-await import("./apps/index.mjs");
-await serve({ port: 3000 });
-// http://localhost:3000/?app_start=ZCL_MY_APP
-```
-
-### By hand
-
-What the command does, step by step - for a build that cannot run it, or to
-see what it decides. Use the same transpiler, so your output runs on
+(`abap2ui5.openAbapCore`). Use the same transpiler, so your output runs on
 the runtime the package pins:
 
 ```bash
@@ -151,7 +116,17 @@ npx abap_transpile abap_transpile.json      # abap/*.abap -> output/: yours, and
 npx abap2ui5-own-apps output apps           # output/ -> apps/: yours alone, on the package's classes
 ```
 
-Then `apps/` is loaded as above.
+Then load `apps/` **after** the framework has booted - each class registers
+itself in the running runtime:
+
+```js
+import { initialize, serve } from "@abap2ui5/node-runtime";
+
+await initialize();
+await import("./apps/index.mjs");
+await serve({ port: 3000 });
+// http://localhost:3000/?app_start=ZCL_MY_APP
+```
 
 `abap2ui5-own-apps` (a bin of this package, `setup/own-apps.mjs`) is not
 optional. The transpile writes every object it read into `output/` - a second
@@ -187,7 +162,7 @@ published without `abap2ui5.openAbapCore`, was built against open-abap-core
 
 Ship `apps/`, not `output/`: a deployment has to carry the files you import,
 so keep them inside the tree it ships - a CAP project's `cds build`, for one,
-copies `srv/` but not a top-level folder (`npx abap2ui5-transpile abap
+copies `srv/` but not a top-level folder (`npx abap2ui5-own-apps output
 srv/apps`, and `await import("./apps/index.mjs")` from a module in `srv/`).
 Tables, data elements and the like of your own are kept too; their database
 tables are not created in the package's SQLite - that is the host's
@@ -312,8 +287,6 @@ drafts are a CDS entity.
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object, `index.mjs` the generated unit-test runner (`node node_modules/@abap2ui5/node-runtime/output/index.mjs` runs the framework's own suite). The UI5 frontend is in here too, as the constants the GET page is built from. The source maps are not in the package |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
-| `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core at the recorded commit, the config, the transpile, `own-apps` |
-| `srv/*.d.ts` | TypeScript declarations for the three entry points - `types` in `package.json` and on every export, nothing to install |
 | `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled against (without its local test classes) |
 
 The shape of `output/` - the class constructors, the static `ATTRIBUTES` and

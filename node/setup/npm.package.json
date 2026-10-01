@@ -38,7 +38,6 @@
     "directory": "node"
   },
   "type": "module",
-  "types": "./srv/host.d.ts",
   "engines": {
     "node": ">=22"
   },
@@ -49,33 +48,19 @@
     "!output/*.map",
     "setup/setup.mjs",
     "setup/own-apps.mjs",
-    "setup/transpile.mjs",
     "srv/host.mjs",
-    "srv/host.d.ts",
     "srv/accelerate.mjs",
-    "srv/accelerate.d.ts",
     "srv/compress.mjs",
-    "srv/compress.d.ts",
     "downport",
     "!downport/**/*.testclasses.abap"
   ],
   "bin": {
-    "abap2ui5-own-apps": "setup/own-apps.mjs",
-    "abap2ui5-transpile": "setup/transpile.mjs"
+    "abap2ui5-own-apps": "setup/own-apps.mjs"
   },
   "exports": {
-    ".": {
-      "types": "./srv/host.d.ts",
-      "default": "./srv/host.mjs"
-    },
-    "./accelerate": {
-      "types": "./srv/accelerate.d.ts",
-      "default": "./srv/accelerate.mjs"
-    },
-    "./compress": {
-      "types": "./srv/compress.d.ts",
-      "default": "./srv/compress.mjs"
-    },
+    ".": "./srv/host.mjs",
+    "./accelerate": "./srv/accelerate.mjs",
+    "./compress": "./srv/compress.mjs",
     "./package.json": "./package.json",
     "./output/*": "./output/*",
     "./setup/*": "./setup/*",
