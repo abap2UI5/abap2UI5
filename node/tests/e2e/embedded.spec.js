@@ -138,8 +138,7 @@ function startApp(page, app, params = {}, endpoint = ENDPOINT) {
 function resourceRootPaths(page) {
   return page.evaluate(() => {
     const path = (name) =>
-      new URL(window.sap.ui.require.toUrl(name), window.location.href)
-        .pathname;
+      new URL(window.sap.ui.require.toUrl(name), window.location.href).pathname;
     return {
       cci: path("z2ui5_cci/Control.js"),
       ccc: path("z2ui5_ccc/Control.js"),
@@ -244,9 +243,7 @@ test.describe("an embedded app and the host's window", () => {
     await openHost(page, ui5Src, ui5Theme);
     const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world");
     await waitForApp(page, id);
-    expect(await page.evaluate(() => typeof window["z2ui5"])).toBe(
-      "undefined",
-    );
+    expect(await page.evaluate(() => typeof window["z2ui5"])).toBe("undefined");
   });
 
   test("a z2ui5 object of the host's own keeps what it held, and only that", async ({
@@ -316,5 +313,40 @@ test.describe("an embedded app and the sibling BSPs", () => {
       cci: `${CCI_ROOT}/Control.js`,
       ccc: `${CCC_ROOT}/Control.js`,
     });
+  });
+});
+
+// sap.m.App - the frontend's root - runs sap/ui/util/Mobile.init( ) when it
+// is created, once per page with the settings of whoever calls first. On a
+// host's page without a sap.m.App of its own that put height: 100% on
+// <html>, a viewport meta tag that disables zooming and a format-detection
+// meta tag there - and on iOS took the host's scrolling. An embedded
+// component makes the call first, with everything off (Component.init).
+test.describe("an embedded app and the host's page", () => {
+  test("the frontend leaves <html> and the host's meta tags as they are", async ({
+    page,
+    ui5Src,
+    ui5Theme,
+  }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+    await openHost(page, ui5Src, ui5Theme);
+    const pageSetup = () =>
+      page.evaluate(() => ({
+        htmlStyle: document.documentElement.getAttribute("style"),
+        viewport: document.querySelectorAll("meta[name='viewport']").length,
+        formatDetection: document.querySelectorAll(
+          "meta[name='format-detection']",
+        ).length,
+      }));
+    const before = await pageSetup();
+    expect(before).toEqual({
+      htmlStyle: null,
+      viewport: 0,
+      formatDetection: 0,
+    });
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world");
+    await waitForApp(page, id);
+    await expect(page.locator('input[id$="-inner"]').first()).toBeVisible();
+    expect(await pageSetup()).toEqual(before);
   });
 });

@@ -85,6 +85,7 @@ const ALLOWED = new Set([
   'sap/ui/model/Sorter',
   'sap/ui/model/json/JSONModel',
   'sap/ui/unified/FileUploader',
+  'sap/ui/util/Mobile', // @since 1.58 - Component.js, the embedded page's mobile setup
   'sap/ui/util/Storage',
 ]);
 
