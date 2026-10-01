@@ -28,9 +28,17 @@
  *   setup/own-apps.mjs  node/setup/own-apps.mjs - the bin abap2ui5-own-apps:
  *                     a host's own transpiled classes, their imports pointed
  *                     at output/ (README, "Your own apps")
+ *   setup/transpile.mjs  node/setup/transpile.mjs - the bin abap2ui5-transpile:
+ *                     the whole "Your own apps" recipe as one command (the
+ *                     transpiler at the recorded version, open-abap-core at
+ *                     the recorded commit, the config, the transpile,
+ *                     own-apps)
  *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
  *                     Same neighbours as in the checkout, so its relative
  *                     imports need no rewriting - see its header
+ *   srv/*.d.ts        node/srv/host.d.ts, accelerate.d.ts, compress.d.ts -
+ *                     the TypeScript declarations `types` and the `types`
+ *                     condition of each export name
  *   srv/accelerate.mjs  node/srv/accelerate.mjs - the runtime fast paths
  *                     host.mjs installs, also `exports["./accelerate"]` for a
  *                     host that boots through output/init.mjs itself
@@ -228,9 +236,13 @@ const COPIES = [
   ["node/output", "output", isFixtureFile],
   ["node/setup/setup.mjs", "setup/setup.mjs"],
   ["node/setup/own-apps.mjs", "setup/own-apps.mjs"],
+  ["node/setup/transpile.mjs", "setup/transpile.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
+  ["node/srv/host.d.ts", "srv/host.d.ts"],
   ["node/srv/accelerate.mjs", "srv/accelerate.mjs"],
+  ["node/srv/accelerate.d.ts", "srv/accelerate.d.ts"],
   ["node/srv/compress.mjs", "srv/compress.mjs"],
+  ["node/srv/compress.d.ts", "srv/compress.d.ts"],
   ["node/downport", "downport", isFixtureFile],
   ["node/setup/npm.README.md", "README.md"],
   ["LICENSE", "LICENSE"],
@@ -266,10 +278,21 @@ try {
   const MUST = [
     "package.json", "README.md", "LICENSE",
     "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "setup/own-apps.mjs", "output/init.mjs", "output/index.mjs",
+    "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "setup/transpile.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
-  const problems = MUST.filter((f) => !files.has(f)).map((f) => `${f} is not in the tarball`);
+  /* And every file the manifest itself points at: a bin, `types`, the target
+   * of each export condition. COPIES is a list of its own, so a file named in
+   * the manifest and forgotten here would be a dangling bin link or a `types`
+   * pointing at nothing in every install - which --check's host never
+   * notices, because it imports and runs, it does not type-check. */
+  const pointed = [
+    ...Object.values(template.bin ?? {}),
+    ...(template.types ? [template.types] : []),
+    ...Object.values(template.exports ?? {}).flatMap((e) => (typeof e === "string" ? [e] : Object.values(e))),
+  ].map((p) => p.replace(/^\.\//, "")).filter((p) => !p.includes("*"));
+  const problems = [...new Set([...MUST, ...pointed])].filter((f) => !files.has(f)).map((f) => `${f} is not in the tarball`);
   const stray = [...files].filter((f) => f.split("/").includes(".git") || f.startsWith("node_modules/") || f.startsWith("webapp/"));
   if (stray.length) problems.push(`${stray.length} stray entr${stray.length === 1 ? "y" : "ies"} (first: ${stray[0]})`);
   /* No fixture by file name, and none by content: every packed file of the
@@ -326,7 +349,9 @@ if (!check) process.exit(0);
  *      the recorded commit registers in the running runtime and starts - the
  *      "Your own apps" recipe, executed literally: with an exception class
  *      of the host's own (INHERITING FROM cx_static_check, so its module
- *      imports what it extends), through abap2ui5-own-apps, and the package's
+ *      imports what it extends), through the bin abap2ui5-transpile (which
+ *      runs the transpiler the package names, fetches open-abap-core at the
+ *      recorded commit and runs abap2ui5-own-apps), and the package's
  *      CX_ROOT still the one in the runtime - the framework catches what the
  *      host's app raises
  *   5. serve() rejects on a port that is taken instead of resolving
@@ -389,27 +414,20 @@ try {
     "ENDCLASS.",
     "",
   ].join("\n"));
-  fs.writeFileSync(path.join(scratch, "abap_transpile.json"), `${JSON.stringify({
-    input_folder: "abap",
-    output_folder: "output",
-    libs: [
-      { folder: "/node_modules/@abap2ui5/node-runtime/downport", files: "/**/*.*" },
-      { url: "https://github.com/open-abap/open-abap-core", folder: "/deps/open-abap-core" },
-    ],
-    write_unit_tests: false,
-    options: { ignoreSyntaxCheck: false, addFilenames: true, addCommonJS: true, unknownTypes: "runtimeError" },
-  }, null, 2)}\n`);
-  /* open-abap-core at the commit the package records, the README's
-   * three-line checkout - without one the transpiler clones the url's HEAD */
-  if (openAbapCore) {
+  /* The README's one command: abap2ui5-transpile finds the transpiler the
+   * scratch project installed (the version the package names - another one
+   * is refused), fetches open-abap-core at the commit the package records
+   * into node_modules/.cache, writes the config, transpiles and runs
+   * own-apps. A build without node/deps records no commit; then the HEAD
+   * clone the transpiler would make itself is made here and handed over,
+   * so the check still runs (and the pack warned about it above). */
+  const transpileArgs = ["abap2ui5-transpile", "abap", "apps"];
+  if (!openAbapCore) {
     const core = path.join(scratch, "deps/open-abap-core");
-    fs.mkdirSync(core, { recursive: true });
-    run("git", ["init", "--quiet"], { cwd: core });
-    run("git", ["fetch", "--quiet", "--depth", "1", "https://github.com/open-abap/open-abap-core", openAbapCore], { cwd: core });
-    run("git", ["checkout", "--quiet", "FETCH_HEAD"], { cwd: core });
+    run("git", ["clone", "--quiet", "--depth", "1", "https://github.com/open-abap/open-abap-core", core]);
+    transpileArgs.push("--core", "deps/open-abap-core");
   }
-  run(WIN ? "npx.cmd" : "npx", ["abap_transpile", "abap_transpile.json"]);
-  run(WIN ? "npx.cmd" : "npx", ["abap2ui5-own-apps", "output", "apps"]);
+  run(WIN ? "npx.cmd" : "npx", transpileArgs);
 
   fs.writeFileSync(path.join(scratch, "check.mjs"), `
 import { createRequire } from "node:module";
@@ -487,8 +505,8 @@ try {
   if (raised.status !== 500 || !raised.text.includes("ZCX_HOST_ERROR")) {
     fail("the framework did not catch the host's own exception: " + raised.status + " " + raised.text.slice(0, 400));
   }
-  ok("classes transpiled by the host against downport/ - an exception class of its own among them - load through"
-    + " abap2ui5-own-apps on the package's classes, start, and what they raise the framework catches");
+  ok("classes transpiled by the host with abap2ui5-transpile against downport/ - an exception class of its own among them -"
+    + " load on the package's classes, start, and what they raise the framework catches");
 
   const { accelerate: viaSubpath, RUNTIME_VERSION } = await import("@abap2ui5/node-runtime/accelerate");
   const loop = globalThis.abap.statements.loop;
