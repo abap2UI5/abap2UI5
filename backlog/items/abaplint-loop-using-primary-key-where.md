@@ -3,7 +3,8 @@ target: abaplint
 title: 'check_syntax: `LOOP ... USING KEY primary_key WHERE ...` is "Key primary_key not found in table type"'
 summary: a LOOP with USING KEY and a WHERE has its key looked up among the secondary keys only, so the predefined name of the primary key is a syntax error - for every table kind, INTO and ASSIGNING alike - while the same LOOP without a WHERE, and DELETE ... USING KEY primary_key WHERE, pass. Fix and tests are attached as a patch
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4352
 first_seen: 2026-09-29
 patch: backlog/patches/abaplint-loop-using-primary-key-where.patch
 upstream: abaplint/abaplint
@@ -12,6 +13,7 @@ evidence:
   - measured 2026-09-29 on abaplint 2.120.60, the latest release - reported for a SORTED table (declared with DATA and through TYPES), a STANDARD table WITH EMPTY KEY, INTO a variable and ASSIGNING an inline field symbol, and for a table that names its primary key explicitly (`WITH NON-UNIQUE KEY primary_key COMPONENTS a`); not reported for the same LOOP without a WHERE, for `DELETE s USING KEY primary_key WHERE a = 1`, for `READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS` and for `USING KEY <secondary> WHERE`
   - unchanged at abaplint main f09171a (2026-09-28) - `packages/core/src/abap/5_syntax/statements/loop.ts` looks the name up in `topType.getOptions().secondary` only; the existing test `loop USING KEY primary_key` has no WHERE
   - the attached patch, on f09171a - two new tests fail before and pass after, a third pins that an unknown key is still reported; all 11 151 tests of packages/core pass (32 pending, as before), eslint clean
+  - filed 2026-10-02 as abaplint/abaplint#4352 - the patch applied cleanly on abaplint main ede0df7, where `loop.ts` still looks the key up among the secondary keys only; the two new tests fail before and pass after, all 11 193 tests of packages/core pass (32 pending), eslint clean
 ---
 
 # check_syntax: `LOOP ... USING KEY primary_key WHERE ...`
