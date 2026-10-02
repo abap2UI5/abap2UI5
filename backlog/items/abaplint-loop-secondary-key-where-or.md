@@ -3,7 +3,8 @@ target: abaplint
 title: 'check_syntax: `LOOP ... USING KEY <secondary> WHERE a = 1 OR b = 2` passes, a real system refuses it'
 summary: a LOOP over a secondary key wants a WHERE the key can optimize - its key components compared with `=` and joined to the rest by AND; a top-level OR is a syntax error on a system, and abaplint reports nothing. A test written against abaplint alone shipped such a LOOP into abaplint/transpiler#1929 and drew "this gives a syntax error in a real system" twice
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4353
 first_seen: 2026-10-02
 upstream: abaplint/abaplint
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - measured 2026-10-01 on a real system (S/4HANA, ADT console) - with the key name dynamic, `USING KEY (name)` holding `'K'`, the same LOOP runs and loops every row matching either side; `USING KEY k WHERE a = 1 AND ( b = 2 OR b = 0 )` runs as well; `USING KEY k WHERE (cond)` with cond = `a = 1 OR b = 2` is a runtime error no `CATCH cx_root` catches
   - measured 2026-10-02 on abaplint 2.120.64, the latest release, `check_syntax` on, syntax version 7.58 - no finding for `USING KEY k WHERE a = 1 OR b = 2`; the control `USING KEY nokey WHERE a = 1` is reported ("Key nokey not found in table type"), so the check runs
   - `packages/core/src/abap/5_syntax/statements/loop.ts` (2.120.64) - the `USING KEY ... WHERE` block resolves the key and checks `IS INITIAL` before 7.40 SP02 (abap2xlsx#1341); nothing reads how the condition combines the key components
+  - filed 2026-10-02 as abaplint/abaplint#4353 - a direct `OR` token of the WHERE's `ComponentCond` is reported once a statically named secondary key is found; an OR in parentheses, a dynamic key name, `primary_key` (after #4352) and no USING KEY stay unreported, one test each; all 11 198 tests of packages/core pass (32 pending), eslint clean
 ---
 
 # check_syntax: `LOOP ... USING KEY <secondary> WHERE a = 1 OR b = 2`
