@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib, classEnv } = require("./loadLibModule");
 
 // cc/NativeBridgeScan.js: scan button for the native mobile shell, which
-// injects window.abap2ui5Native (abap2UI5/test-mobile, bridge contract v1).
+// injects window.abap2ui5Native (abap2UI5/mobile-shell, bridge contract v1).
 // The contract under test:
 //   - "delegate, never decide" (AGENTS.md rule 10): a scanned value lands in
 //     `value` and fires OnScan; a failure or a cancelled scan fires OnError

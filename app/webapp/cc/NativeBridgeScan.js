@@ -1,5 +1,5 @@
 // Scan button for an app running inside the abap2UI5 native mobile shell
-// (abap2UI5/test-mobile). The shell injects `window.abap2ui5Native` (bridge
+// (abap2UI5/mobile-shell). The shell injects `window.abap2ui5Native` (bridge
 // contract v1, documented in that repository's bridge/README.md); pressing
 // the button calls its scanBarcode( ), writes the result into `value` and
 // fires OnScan, so the backend reads the scanned code as an ordinary event
