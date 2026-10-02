@@ -3,13 +3,15 @@ target: abaplint
 title: 'Report a method call as the operand of `CREATE DATA … TYPE HANDLE`'
 summary: '`CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( comps )` is "No method can be specified in the current position" on a system — the operand has to be a variable holding the descriptor; abaplint parses the call as an expression and says nothing'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4356
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5, 2026-09-02 — `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model` shipped `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp )` through abaplint and the transpiled unit run, and a user's system reported the syntax error on activation
   - gated in abap2UI5 since then by `npm run check:atc` (`handle_call`, `.github/scripts/extended-check-gate.mjs`) — a repository-local regex, which is the shape this backlog exists to replace
   - measured 2026-09-19 on abaplint 2.120.52, `check_syntax` on, v750 and Cloud — no finding on an isolated class carrying the statement, while control probes in the same file are reported
+  - filed 2026-10-02 as abaplint/abaplint#4356, on abaplint main 91efb82 - `CREATE DATA ... TYPE HANDLE <method call>` is reported in check_syntax; a variable, a field symbol, a structure component, a dereferenced reference and the dynamic TYPE (name) stay unreported, one test each; constructor expressions and CREATE OBJECT ... TYPE HANDLE are left out as not measured; all 11 204 tests of packages/core pass (32 pending), eslint clean
 ---
 
 # Report a method call as the operand of `CREATE DATA … TYPE HANDLE`

@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report a `PREFERRED PARAMETER` the compiler ignores, and stop treating it as OPTIONAL'
 summary: the addition does nothing unless every IMPORTING parameter is optional — ABAP warns and abaplint says nothing, while its syntax check goes the other way and accepts a call that omits the mandatory parameter
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4357
 first_seen: 2026-09-05
 checked_upstream: 2026-09-05
 upstream: abaplint/abaplint
@@ -11,6 +12,7 @@ evidence:
   - abap2UI5 `z2ui5_cl_ui5_util_context=>msg_get_internal` — a user's system reported the warning on 2026-09-05, hours after #2719 added the addition that morning to a signature whose first parameter is mandatory; `npx abaplint` was green over that file (0 issues, 264 files, 2.120.38, `check_syntax` on)
   - abaplint#2841 ("Syntax issue using PREFERRED PARAMETER") shows the misunderstanding the rule would end — the reporter took the addition to make a parameter optional, which is what it does only when every input parameter already is
   - measured 2026-09-05 on 2.120.38, isolated two-file project: the declaration with the ignored addition plus a call that omits the mandatory parameter is accepted; deleting the addition alone turns the same call into `method parameter "VAL" must be supplied`
+  - filed 2026-10-02 as abaplint/abaplint#4357 - the rule `preferred_parameter_ignored` alone, taken out of `abaplint-three-rules.patch` onto abaplint main 91efb82 (index, schema.ts by hand, schema.json regenerated); 9 tests and a quick-fix test; all 11 207 tests of packages/core pass (32 pending), eslint and api-extractor clean. The call-side half below is not part of it: abaplint's own test `PREFERRED PARAMETER is optional` (from #2841) expects the call to pass, so it waits for a measurement on a system
 ---
 
 # Report a `PREFERRED PARAMETER` the compiler ignores
@@ -74,11 +76,13 @@ the parameter list and the preferred field are siblings in
 Message, close to the compiler's: *"PREFERRED PARAMETER is ignored while VAL is
 not optional"*.
 
-**A quick fix should remove the addition, not add `OPTIONAL`.** The compiler's
-own wording suggests the opposite, and that is the more dangerous of the two:
-making a mandatory parameter optional widens the contract, so a call that
-forgets it compiles and the method runs on an unfilled parameter. Removing the
-ignored addition changes nothing at all.
+**The quick fix declares the mandatory parameters `OPTIONAL`, as the compiler
+asks.** Measured on a system (2026-10-02): the compiler ignores the addition
+for the positional binding, yet still lets a call leave the preferred parameter
+out (see "The other half" below). Removing the addition would turn those calls
+into syntax errors; declaring `OPTIONAL` keeps every call that compiles today
+compiling. An earlier draft of this item argued for removing the addition, and
+the measurement disproved it.
 
 ## What it must NOT report
 
@@ -91,42 +95,30 @@ ignored addition changes nothing at all.
   this repository ships (`check:atc`, rule `preferred_param`) stays there for
   the same reason.
 
-## The other half: `check_syntax` accepts a call a system rejects
+## The other half: `check_syntax` is right about the call
 
-Measured on 2.120.38, `check_syntax` on, `syntax.version` v750, in a two-file
-project with nothing else in it:
+abaplint lets a call leave a mandatory `PREFERRED PARAMETER` out (the
+leniency #2841 asked for and #2843 landed). An earlier draft of this item
+claimed a system rejects that call; measured on a system (S/4HANA, ADT syntax
+check, 2026-10-02), it does not:
 
 ```abap
-CLASS-METHODS meth
+CLASS-METHODS with_pref
   IMPORTING
-    val           TYPE string
-    other         TYPE i DEFAULT 1
-      PREFERRED PARAMETER val
-  RETURNING
-    VALUE(result) TYPE i.
-...
-DATA(lv2) = meth( other = 2 ).      " val not supplied
+    val   TYPE string
+    other TYPE i DEFAULT 1
+      PREFERRED PARAMETER val.
 ```
 
-| | abaplint |
-|---|---|
-| as written above | **0 issues** |
-| the same file with the `PREFERRED PARAMETER` line deleted | `method parameter "VAL" must be supplied` |
+| call | system | abaplint |
+|---|---|---|
+| `with_pref( other = 2 )` - val left out | ok (only the declaration warning) | ok |
+| ``with_pref( `x` )`` - positional | ok | ok |
+| the same signature without the addition, `( other = 2 )` | "No value was passed to the mandatory parameter VAL" | `must be supplied` |
+| #2841's `replaceit( iv_new = 2 )` | ok | ok |
 
-So the addition makes the parameter optional *for abaplint* — which is what
-#2841 asked for and #2843 landed. It is right for the case that issue was
-about, where the parameter is declared `OPTIONAL` anyway, and it is inverted
-for this one: the only time the leniency is ever exercised is when the addition
-is ignored, and there the parameter is still mandatory. A call omitting it is
-green here and a syntax error on a system.
-
-If the rule above lands, this half follows from it: the addition may only make
-a parameter optional when every importing parameter of the method already is.
-
-**Not verified from here:** the system-side rejection of that call. What was
-measured is the warning on the declaration (a user's system, 2026-09-05) and
-the compiler's own statement that the addition *is ignored*, from which the
-parameter's mandatory-ness follows.
+So nothing is filed for the call side, and abaplint's test `PREFERRED PARAMETER
+is optional` describes the system correctly.
 
 ## The change
 
