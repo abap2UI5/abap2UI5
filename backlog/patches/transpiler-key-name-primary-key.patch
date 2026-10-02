@@ -1,56 +1,61 @@
-From b1df3131d177e960d9aa860fbb22c7f7c70bea56 Mon Sep 17 00:00:00 2001
+From 85cfe7580717520f2f30e3821c9ea4479af08524 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Tue, 29 Sep 2026 21:06:53 +0000
-Subject: [PATCH] Read a table key name as ABAP does: primary_key in any case,
- no padding
+Date: Fri, 2 Oct 2026 00:46:33 +0000
+Subject: [PATCH 2/2] Key names: primary_key in READ TABLE, and a dynamic name
+ padded by its c field
 
-The runtime compared key names verbatim, so every name ABAP accepts for
-the primary key other than lower-case "primary_key" was taken for a
-secondary key and threw "Table, secondary key ... not found":
+ABAP names the primary key primary_key in any case, and reads a dynamic
+key name without the blanks a c field pads it with. The runtime knew the
+first only in LOOP, and the second nowhere:
 
-- LOOP AT t USING KEY PRIMARY_KEY - the name as written in upper case,
-  and a dynamic USING KEY ( name ) holding PRIMARY_KEY
-- READ TABLE t WITH [TABLE] KEY primary_key COMPONENTS ..., which the
-  transpiler hands over as keyName: "primary_key" and readTable looked up
-  among the secondary keys
-- a dynamic name in a c field, which comes with the field's padding
-  ("K                   "), for the primary and the secondary keys alike
+- READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS looked the name
+  up among the secondary keys and threw "Table, secondary key
+  "primary_key" not found" - as a plain string no CATCH catches. ABAP
+  reads the row through the primary key.
+- LOOP AT t USING KEY (name) with name TYPE c LENGTH 20 VALUE 'K' threw
+  "secondary key "K                   " not found".
+- LOOP AT t USING KEY primary_key did not visit a row the body appends,
+  where the same LOOP without USING KEY does.
 
-secondaryKeyName( ) now reads a name the way ABAP does - trailing blanks
-dropped, primary_key in any case (or an initial name) meaning the primary
-key - and LOOP, READ TABLE and the secondary-key lookups use it. A LOOP
-USING KEY primary_key is then the same loop as one without USING KEY,
-also in visiting the rows its body appends, which it did not before.
+secondaryKeyName( ) reads a key name the way ABAP does - trimmed, and
+undefined for the primary key however it is spelled, or for an initial
+name. LOOP and READ TABLE go through it, and getKeyByName and
+getSecondaryIndex trim the name they are handed.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018JKvhWuxvFH6mJyTEk5Lsc
 ---
- packages/runtime/src/statements/loop.ts       | 18 +++---
+ packages/runtime/src/statements/loop.ts       | 19 +++---
  packages/runtime/src/statements/read_table.ts |  8 ++-
- packages/runtime/src/types/table.ts           | 26 +++++---
+ packages/runtime/src/types/table.ts           | 25 +++++---
  test/statements/loop.ts                       | 59 +++++++++++++++++++
- test/statements/read_table.ts                 | 16 +++++
- 5 files changed, 110 insertions(+), 17 deletions(-)
+ test/statements/read_table.ts                 | 17 ++++++
+ 5 files changed, 109 insertions(+), 19 deletions(-)
 
 diff --git a/packages/runtime/src/statements/loop.ts b/packages/runtime/src/statements/loop.ts
-index 745389d..894bc5c 100644
+index b44abd6..cac99bc 100644
 --- a/packages/runtime/src/statements/loop.ts
 +++ b/packages/runtime/src/statements/loop.ts
-@@ -1,5 +1,5 @@
+@@ -1,7 +1,7 @@
  import {binarySearchFrom, binarySearchTo} from "../binary_search";
--import {FieldSymbol, HashedTable, Integer, ITableKey, Structure, Table, TableAccessType} from "../types";
-+import {FieldSymbol, HashedTable, Integer, ITableKey, secondaryKeyName, Structure, Table, TableAccessType} from "../types";
+ import {eq, lt} from "../compare";
+ import {Character, FieldSymbol, HashedTable, Hex, Integer, ITableKey, Numc, String as AString,
+-  Structure, Table, TableAccessType} from "../types";
++  secondaryKeyName, Structure, Table, TableAccessType} from "../types";
  import {ICharacter} from "../types/_character";
  import {INumeric} from "../types/_numeric";
  import {ABAP} from "..";
-@@ -130,11 +130,15 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
-   let loopFrom = options?.from && options?.from.get() > 0 ? options.from.get() - 1 : 0;
-   let loopTo = options?.to && options.to.get() < length ? options.to.get() : length;
+@@ -187,12 +187,13 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
  
+   let array: any[] = [];
+   let block: ((row: any) => number) | undefined = undefined;
+-  // a dynamic key name may come in any case, USING KEY ('PRIMARY_KEY') is the primary key too
+-  const isPrimaryKey = options?.usingKey === undefined || options.usingKey.toLowerCase() === "primary_key";
+-  if (options?.usingKey && isPrimaryKey === false) {
+-    array = table.getSecondaryIndex(options.usingKey);
 +  // the secondary key the loop runs over; undefined is the primary key, also
 +  // when it is named - USING KEY PRIMARY_KEY, or a dynamic name holding it
 +  const usingKey = secondaryKeyName(options?.usingKey);
-+
-   let array: any[] = [];
--  if (options?.usingKey && options.usingKey !== undefined && options.usingKey !== "primary_key") {
--    array = table.getSecondaryIndex(options.usingKey);
 +  if (usingKey !== undefined) {
 +    array = table.getSecondaryIndex(usingKey);
  
@@ -59,18 +64,18 @@ index 745389d..894bc5c 100644
      loopFrom = Math.max(loopFrom, from) - 1;
      loopTo = Math.min(loopTo, to);
    } else {
-@@ -157,9 +161,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
+@@ -232,9 +233,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
    // The same goes for a loop that reads an index table through a hash
    // secondary key. Handing out 1, 2, 3 there looks helpful and is a lie the
    // caller cannot tell from the truth.
--  const usedKey = options?.usingKey === undefined || options.usingKey === "primary_key"
+-  const usedKey = options?.usingKey === undefined || isPrimaryKey
 -    ? undefined
 -    : table.getKeyByName(options.usingKey);
 +  const usedKey = usingKey === undefined ? undefined : table.getKeyByName(usingKey);
    const hasRowNumber = usedKey !== undefined
      ? usedKey.type !== TableAccessType.hashed
      : !(table instanceof HashedTable);
-@@ -190,7 +192,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
+@@ -272,7 +271,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
  
        loopController.index++;
  
@@ -106,14 +111,13 @@ index e6406e0..c90803f 100644
    if (options?.withTableKey === undefined
        && options?.withKeySimple
 diff --git a/packages/runtime/src/types/table.ts b/packages/runtime/src/types/table.ts
-index 1b8cfa6..26541ee 100644
+index 1aef733..c768375 100644
 --- a/packages/runtime/src/types/table.ts
 +++ b/packages/runtime/src/types/table.ts
-@@ -30,6 +30,16 @@ export enum TableKeyType {
-   empty = "EMPTY",
+@@ -107,6 +107,15 @@ export class SortedTable {
  }
+ */
  
-+
 +/** The secondary key a key name selects, as ABAP reads the name: without the
 + *  blanks a c field pads it with, in any case - and undefined for the primary
 + *  key, which primary_key names however it is written, and so does an initial
@@ -123,10 +127,10 @@ index 1b8cfa6..26541ee 100644
 +  return trimmed === undefined || trimmed === "" || trimmed.toLowerCase() === "primary_key" ? undefined : trimmed;
 +}
 +
- export class LoopController {
-   public index: number;
-   public loopTo: number;
-@@ -135,12 +145,12 @@ export class HashedTable implements ITable {
+ export class HashedTable implements ITable {
+   private value: {[hash: string]: TableRowType};
+   private readonly header: TableRowType | undefined;
+@@ -145,12 +154,12 @@ export class HashedTable implements ITable {
    }
  
    public getKeyByName(name: string) {
@@ -142,8 +146,8 @@ index 1b8cfa6..26541ee 100644
      }
  
      const secondary = this.getKeyByName(name);
-@@ -151,7 +161,7 @@ export class HashedTable implements ITable {
-     const copy = this.array();
+@@ -161,7 +170,7 @@ export class HashedTable implements ITable {
+     const copy = secondaryDuplicatesFirst(this.array(), secondary);
      sort(copy as any, {by: secondary.keyFields.map(k => {return {component: k.toLowerCase()};})});
  
 -    this.secondaryIndexes[name.toUpperCase()] = copy;
@@ -151,7 +155,7 @@ index 1b8cfa6..26541ee 100644
      return copy;
    }
  
-@@ -411,12 +421,12 @@ export class Table implements ITable {
+@@ -421,12 +430,12 @@ export class Table implements ITable {
    }
  
    public getKeyByName(name: string) {
@@ -167,8 +171,8 @@ index 1b8cfa6..26541ee 100644
      }
  
      const secondary = this.getKeyByName(name);
-@@ -426,7 +436,7 @@ export class Table implements ITable {
-     const copy = [...this.value];
+@@ -436,7 +445,7 @@ export class Table implements ITable {
+     const copy = secondaryDuplicatesFirst([...this.value], secondary);
      sort(copy as any, {by: secondary.keyFields.map(k => {return {component: k.toLowerCase()};}), skipSortedCheck: true});
  
 -    this.secondaryIndexes[name.toUpperCase()] = copy;
@@ -177,14 +181,13 @@ index 1b8cfa6..26541ee 100644
    }
  
 diff --git a/test/statements/loop.ts b/test/statements/loop.ts
-index e5c7655..70712f4 100644
+index a72c959..461d616 100644
 --- a/test/statements/loop.ts
 +++ b/test/statements/loop.ts
-@@ -1315,4 +1315,63 @@ ENDLOOP.`;
-     */
+@@ -1523,4 +1523,63 @@ ENDLOOP.`;
+     expect(abap.console.get()).to.equal("b1\nb2\nb4");
    });
  
-+
 +  it("LOOP USING KEY PRIMARY_KEY, the name in upper case", async () => {
 +    const code = `
 +TYPES: BEGIN OF ty, a TYPE i, b TYPE i, END OF ty.
@@ -243,13 +246,14 @@ index e5c7655..70712f4 100644
 +    await f(abap);
 +    expect(abap.console.get()).to.equal("1\n2\n3");
 +  });
++
  });
 \ No newline at end of file
 diff --git a/test/statements/read_table.ts b/test/statements/read_table.ts
-index 8136907..09a2ba8 100644
+index 8136907..cf106c1 100644
 --- a/test/statements/read_table.ts
 +++ b/test/statements/read_table.ts
-@@ -1910,4 +1910,20 @@ ENDIF.`;
+@@ -1910,4 +1910,21 @@ ENDIF.`;
      expect(abap.console.get()).to.equal("0\n1\nequal\nequal");
    });
  
@@ -269,6 +273,7 @@ index 8136907..09a2ba8 100644
 +    await f(abap);
 +    expect(abap.console.get()).to.equal("0 2/2\n0 2/2");
 +  });
++
  });
 -- 
 2.43.0
