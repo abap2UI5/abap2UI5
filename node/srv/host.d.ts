@@ -54,8 +54,8 @@ export interface CompressOptions {
 
 /**
  * Boot the ABAP runtime once - the SQLite database, the schema, the
- * framework - and install `accelerate()`'s fast paths. Every call returns the
- * first call's promise.
+ * framework - then call `accelerate()`, which warns once on a runtime older
+ * than the package names. Every call returns the first call's promise.
  */
 export function initialize(): Promise<void>;
 

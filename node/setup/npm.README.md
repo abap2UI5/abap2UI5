@@ -34,7 +34,7 @@ UI5 itself comes from the CDN.
 | `createApp()` | The express app `serve()` listens with: `compress()`, the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front. `createApp({ compression: false })` leaves out the gzip (a proxy in front compresses anyway) |
 | `createHandler()` | The request handler alone, `(req, res) => Promise<void>` - for a server that is not express (see below) |
 | `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
-| `accelerate()` | Install the runtime's fast paths for large tables (see [Performance](#performance)). `initialize()` calls it; a host that boots through `output/init.mjs` itself calls it after the boot - also importable alone, as `@abap2ui5/node-runtime/accelerate`. Returns `true` when they are installed |
+| `accelerate()` | Installs nothing since `@abaplint/runtime` 2.13.96, which is linear on large tables by itself (see [Performance](#performance)); kept for the hosts that call it, also importable alone as `@abap2ui5/node-runtime/accelerate`. Returns `true` on a runtime from `RUNTIME_VERSION` on, `false` and a warning once on an older one |
 | `compress()` | The gzip middleware `createApp()` puts in front, `(req, res, next)` - for an express app of your own that mounts `createHandler()` (see [Compression](#compression)); also importable alone, as `@abap2ui5/node-runtime/compress` |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
@@ -197,48 +197,35 @@ persistence (below).
 
 ### Large tables
 
-A roundtrip is linear in the size of its model - on an SAP system. The
-transpiled framework runs on `@abaplint/runtime`, and two of its functions
-made a roundtrip with one large table quadratic: a `LOOP AT ... WHERE` over
-the primary key of a sorted table scans every row (the JSON serializer runs
-one per node), and `CP` builds a regular expression per call that walks the
-whole string behind a trailing `*` (the XML parser asks one per token, of the
-rest of the draft). `accelerate()` replaces both with fast paths that answer
-exactly what the runtime's own functions answer - binary search into the
-sorted key and an early stop; the trailing wildcard dropped and the compiled
-pattern cached - and hands every other case to the runtime's own code.
-`initialize()`, and with it `serve()`, `createApp()` and `createHandler()`,
-installs them. A host that boots through `output/init.mjs` itself adds one
-line after its boot:
-
-```js
-import { initializeABAP } from "@abap2ui5/node-runtime/output/init.mjs";
-import { accelerate } from "@abap2ui5/node-runtime/accelerate";
-
-await initializeABAP();
-accelerate();
-```
+A roundtrip is linear in the size of its model, as it is on an SAP system.
+Until `@abaplint/runtime` 2.13.96 it was not: two functions of the runtime the
+transpiled framework runs on made a roundtrip with one large table quadratic.
+A `LOOP AT ... WHERE` over the primary key of a sorted table scanned every row,
+and the JSON serializer runs one per node. `CP` built a regular expression per
+call that walked the whole string behind a trailing `*`, and the XML parser
+asks one per token of the rest of the draft. Both are fixed upstream
+(abaplint/transpiler#1950 and #1933), and this package pins a runtime from
+2.13.96 on.
 
 What one table of n rows bound to a `sap.m.Table` costs a roundtrip - the
 app fills the rows when it starts and shows them again on every event:
 
-| Rows | Start, before | Start, with `accelerate()` | Event, before | Event, with `accelerate()` |
+| Rows | Start, runtime 2.13.93 | Start, 2.13.96 | Event, 2.13.93 | Event, 2.13.96 |
 |---:|---:|---:|---:|---:|
-| 1000 | 2.3 s | 0.9 s | 3.3 s | 1.4 s |
-| 2000 | 5.4 s | 1.4 s | 8.8 s | 2.1 s |
-| 4000 | 19.8 s | 1.7 s | 31.3 s | 3.2 s |
+| 1000 | 1.9 s | 0.9 s | 2.7 s | 1.2 s |
+| 2000 | 5.5 s | 1.3 s | 8.8 s | 1.8 s |
+| 4000 | 16.7 s | 2.0 s | 29.3 s | 3.1 s |
 
 CPU time of one roundtrip on Node 22, each in a fresh process, measured with
 [`node/tests-examples/rowsRoundtrip.bench.mjs`](https://github.com/abap2UI5/abap2UI5/blob/main/node/tests-examples/rowsRoundtrip.bench.mjs)
-of abap2UI5. With the fast paths it stays linear further up: 4.5 s for the
-event roundtrip of 8000 rows, 9.5 s for 16000. In a CAP project (@cap2ui5/cds-plugin), the event roundtrip took
-6.2 s for 1000 rows and 22.6 s for 2000 before; with the fast paths 2000 rows
-take 1.8 s, 4000 rows 2.6 s and 8000 rows 4.4 s.
+of abap2UI5. In a CAP project (@cap2ui5/cds-plugin) the event roundtrip of
+2000 rows took 22.6 s on the old runtime.
 
-The fast paths are validated for the one `@abaplint/runtime` version this
-package pins (`RUNTIME_VERSION`, exported next to `accelerate`). On any other
-version - an `overrides` entry in the host's `package.json`, say -
-`accelerate()` leaves the runtime alone, returns `false` and warns once.
+Earlier releases of this package installed fast paths for both functions
+themselves, through `accelerate()`. It installs nothing now, and stays
+exported for the hosts that call it: it returns `true` on a runtime from
+`RUNTIME_VERSION` (2.13.96) on. On an older one - an `overrides` entry in the
+host's `package.json`, say - it returns `false` and warns once.
 
 ### Node 24
 
@@ -246,11 +233,11 @@ Node 22 is the floor, Node 24 the recommendation. The transpiled framework is
 asynchronous through and through - every ABAP method is an async function -
 and Node 24 runs it faster: in one run of the benchmark above, the event
 roundtrip of 2000 rows took 1.4 s of CPU on Node 24 against 1.8 s on Node 22
-(5.9 s against 8.1 s without the fast paths). The gap widens behind a host
+(5.9 s against 8.1 s on runtime 2.13.93, the quadratic one). The gap widens behind a host
 that runs each request inside an `AsyncLocalStorage` context, as CAP does for
 `cds.context`, because before Node 24 such a context costs something on every
-promise: inside one (`--als` of the benchmark) the same roundtrip without the
-fast paths took 11.9 s instead of 8.1 s on Node 22, and 5.5 s on Node 24. In
+promise: inside one (`--als` of the benchmark) the same roundtrip on runtime
+2.13.93 took 11.9 s instead of 8.1 s on Node 22, and 5.5 s on Node 24. In
 a CAP project the 2000 rows took 22.6 s on Node 22 and 11.0 s with nothing
 but `NODE_OPTIONS=--experimental-async-context-frame` (Node 22.7 and later) -
 the implementation Node 24 uses by default.
@@ -307,7 +294,7 @@ drafts are a CDS entity.
 | Path | |
 |---|---|
 | `srv/host.mjs` | The entry point - everything above |
-| `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it imports nothing from `output/` |
+| `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it installs nothing and imports nothing from `output/` |
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object. The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |

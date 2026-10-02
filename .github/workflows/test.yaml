@@ -128,11 +128,6 @@ jobs:
         name: transpiled
     - run: tar -xzf transpiled.tar.gz -C node
     - run: npm run unit
-    # The same suite on the fast paths node/srv/accelerate.mjs installs on
-    # @abaplint/runtime - what every host runs, since host.mjs's initialize()
-    # installs them. Their case-by-case comparison with the runtime's own
-    # functions is node/tests/accelerate.spec.js (test_unit_js).
-    - run: npm run unit:accelerated
 
   test_node:
     needs: transpile

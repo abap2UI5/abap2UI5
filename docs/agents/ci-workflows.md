@@ -69,9 +69,10 @@ entry point, below), `node/srv/*.d.ts` (hand-written TypeScript declarations
 for the three entry points, named by `types` in the manifest and on every
 `exports` entry; `pack-npm.mjs` copies an explicit list of files, so it also
 checks that every file the manifest points at - a bin, `types`, an export
-target - is in the tarball), `node/srv/accelerate.mjs` (the runtime fast paths
-`host.mjs` installs, and the `./accelerate` subpath for a host that boots
-itself), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
+target - is in the tarball), `node/srv/accelerate.mjs` (`accelerate()`, which
+installs nothing since `@abaplint/runtime` 2.13.96 and says whether the runtime
+is linear on large tables - kept as the `./accelerate` subpath for the hosts
+that call it), `node/srv/compress.mjs` (the gzip middleware `createApp()` puts in
 front, and the `./compress` subpath), `node/downport` (so a host can
 transpile its own app
 classes with the framework as a library - the README's "Your own apps") and
@@ -117,12 +118,11 @@ needs no frontend files.
 
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
 it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
-`accelerate()`, `compress()` and `HANDLER_CLASS`; `initialize()` installs `accelerate()`'s
-fast paths (LOOP ... WHERE over a sorted primary key, CP) right after the
-boot, so the dev server, the browser projects and every host run on them -
-validated for the one `@abaplint/runtime` version the package pins, and held
-to the runtime's own functions by `node/tests/accelerate.spec.js` and
-`npm run unit:accelerated` (the file's header has the rest); `createApp()`
+`accelerate()`, `compress()` and `HANDLER_CLASS`; `initialize()` calls
+`accelerate()`, which installs nothing - `@abaplint/runtime` from 2.13.96 on
+has the linear LOOP ... WHERE over a sorted primary key and CP itself - and
+warns once on an older runtime (`node/tests/accelerate.spec.js`; the file's
+header has the rest); `createApp()`
 puts `compress()` in front, the gzip the framework asks the ICF for and the
 express shim cannot give it, under an Apache-style `"<tag>-gzip"` ETag the
 framework's own `_check_etag_match` answers with a 304
@@ -146,8 +146,8 @@ roundtrip, `createApp()` does the same mounted under
 project transpiles against `downport/` and open-abap-core at the recorded
 commit - an exception class of its own among them - load through
 `abap2ui5-own-apps` with the package's `CX_ROOT` still in place, start, and
-what they raise the framework catches, `serve()` runs on the fast paths of `accelerate()`
-(the runtime the package pins is the one they are validated for), and
+what they raise the framework catches, the runtime the package pins is linear on
+large tables (`accelerate()` says so and changes nothing), and
 `serve()` rejects on a port that is taken.
 
 **Publishing is trusted publishing (OIDC), with a bootstrap.** The job holds

@@ -43,8 +43,9 @@
  *   srv/*.d.ts        node/srv/host.d.ts, accelerate.d.ts, compress.d.ts -
  *                     the TypeScript declarations `types` and the `types`
  *                     condition of each export name
- *   srv/accelerate.mjs  node/srv/accelerate.mjs - the runtime fast paths
- *                     host.mjs installs, also `exports["./accelerate"]` for a
+ *   srv/accelerate.mjs  node/srv/accelerate.mjs - accelerate(), which installs
+ *                     nothing since @abaplint/runtime 2.13.96 and says whether
+ *                     the runtime is linear; `exports["./accelerate"]` for a
  *                     host that boots through output/init.mjs itself
  *   srv/compress.mjs  node/srv/compress.mjs - the gzip middleware createApp()
  *                     puts in front, also `exports["./compress"]`
@@ -360,9 +361,9 @@ if (!check) process.exit(0);
  *      CX_ROOT still the one in the runtime - the framework catches what the
  *      host's app raises
  *   5. serve() rejects on a port that is taken instead of resolving
- *   6. the runtime the package pins is the one accelerate() was validated
- *      for: serve() installed the fast paths, and the "./accelerate" subpath
- *      a host that boots itself imports finds them installed
+ *   6. the runtime the package pins is linear on large tables: the
+ *      "./accelerate" subpath a host that boots itself imports says so, and
+ *      changes nothing on the runtime serve() booted
  * All of it once per range of the express peer: a host brings its own
  * express, and the range is a promise about each major it names.
  */
@@ -515,9 +516,10 @@ try {
 
   const { accelerate: viaSubpath, RUNTIME_VERSION } = await import("@abap2ui5/node-runtime/accelerate");
   const loop = globalThis.abap.statements.loop;
-  if (!viaSubpath()) fail("accelerate() installs nothing on the runtime the package pins - it is validated for " + RUNTIME_VERSION);
-  if (globalThis.abap.statements.loop !== loop) fail("serve() did not install the fast paths - accelerate() installed them afterwards");
-  ok("serve() runs on the fast paths of accelerate() (@abaplint/runtime " + RUNTIME_VERSION + "), and the ./accelerate subpath finds them installed");
+  const compare = globalThis.abap.compare;
+  if (!viaSubpath()) fail("the runtime the package pins is older than " + RUNTIME_VERSION + " - LOOP ... WHERE and CP are quadratic on it");
+  if (globalThis.abap.statements.loop !== loop || globalThis.abap.compare !== compare) fail("accelerate() changed the runtime - it must install nothing");
+  ok("the runtime the package pins is linear on large tables (@abaplint/runtime " + RUNTIME_VERSION + " or newer), and the ./accelerate subpath changes nothing");
 
   const taken = await serve({ port, host: "127.0.0.1" }).then((s) => { s.close(); return null; }, (e) => e);
   if (!taken) fail("serve() on a port in use resolved instead of rejecting");

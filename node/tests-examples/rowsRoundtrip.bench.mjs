@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 /*
  * rowsRoundtrip.bench.mjs - what one table of n rows costs a roundtrip of
- * the transpiled framework, on @abaplint/runtime's own functions and on the
- * fast paths of accelerate() (node/srv/accelerate.mjs).
+ * the transpiled framework on @abaplint/runtime.
  *
  * Reference material, not a gate: the numbers are the machine's. It exists
  * because the cost was invisible until a CAP project bound 2000 rows and
  * waited 22 seconds, and "is it still linear?" deserves an answer anybody
- * can reproduce in one command.
+ * can reproduce in one command. Until @abaplint/runtime 2.13.96 it was not:
+ * on 2.13.93 the event roundtrip of 4000 rows took 28.4 s, and abap2UI5
+ * installed fast paths of its own (node/srv/accelerate.mjs, now a no-op).
+ * 2.13.96 is linear by itself - 2.0 s for the same roundtrip.
  *
  *   node node/tests-examples/rowsRoundtrip.bench.mjs              1000 2000 4000 rows
  *   node node/tests-examples/rowsRoundtrip.bench.mjs 500 8000     rows of your own
- *   node node/tests-examples/rowsRoundtrip.bench.mjs --fast 16000 the fast paths only
  *   node node/tests-examples/rowsRoundtrip.bench.mjs --delta 2000 the event carries one edited
  *        cell (MODEL: { MT_ROWS: { __delta: ... } }), as the frontend sends it
  *   node node/tests-examples/rowsRoundtrip.bench.mjs --als 2000   inside an AsyncLocalStorage
@@ -26,9 +27,9 @@
  * into a folder under os.tmpdir() that is reused while the source and the
  * transpiler stay the same.
  *
- * Every row count runs in a process of its own, once per mode: the ABAP
- * runtime is a global, and a second measurement in the same process would
- * start from the first one's JIT. The roundtrips go through the express shim
+ * Every row count runs in a process of its own: the ABAP runtime is a
+ * global, and a second measurement in the same process would start from the
+ * first one's JIT. The roundtrips go through the express shim
  * as a host's would - the draft saved and restored, the model serialized -
  * but without an HTTP server, so the numbers are the framework's own:
  *   start   the first POST, ?app_start=...: the app fills its rows, the view
@@ -88,15 +89,11 @@ CLASS zcl_bench_rows IMPLEMENTATION.
 ENDCLASS.
 `;
 
-// --- the child: one process, one mode, one row count -----------------------
+// --- the child: one process, one row count -------------------------------
 if (process.argv[2] === "--child") {
-  const [, , , mode, rowsArg, appModule] = process.argv;
+  const [, , , rowsArg, appModule] = process.argv;
   const { initializeABAP } = await import(pathToFileURL(path.join(OUT, "init.mjs")).href);
   await initializeABAP();
-  if (mode === "fast") {
-    const { accelerate } = await import(pathToFileURL(path.join(ROOT, "node", "srv", "accelerate.mjs")).href);
-    if (!accelerate()) throw new Error("accelerate() installed nothing - see its warning");
-  }
   await import(pathToFileURL(appModule).href);
   const { cl_express_icf_shim } = await import(pathToFileURL(path.join(OUT, "cl_express_icf_shim.clas.mjs")).href);
   const search = `?app_start=zcl_bench_rows&rows=${rowsArg}`;
@@ -136,7 +133,6 @@ if (process.argv[2] === "--child") {
 
 // --- the parent -------------------------------------------------------------
 const args = process.argv.slice(2);
-const fastOnly = args.includes("--fast");
 const withAls = args.includes("--als");
 const withDelta = args.includes("--delta");
 const counts = args.filter((a) => /^\d+$/.test(a)).map(Number);
@@ -185,24 +181,21 @@ function transpiledApp() {
 }
 
 const app = transpiledApp();
-const modes = fastOnly ? ["fast"] : ["plain", "fast"];
 const results = [];
 const s = (ms) => (ms / 1000).toFixed(2).padStart(7) + " s";
 console.log(`node ${process.version}, @abaplint/runtime ${JSON.parse(fs.readFileSync(path.join(ROOT, "node_modules/@abaplint/runtime/package.json"), "utf8")).version}`);
 console.log(`${withAls ? "inside an AsyncLocalStorage context, " : ""}${withDelta ? "the event with one edited cell, " : ""}wall time (CPU time) of one roundtrip`);
-console.log("  rows  mode        start roundtrip         event roundtrip  response  gzipped");
+console.log("  rows        start roundtrip         event roundtrip  response  gzipped");
 for (const rows of ROWS) {
-  for (const mode of modes) {
-    // the parent's node flags go along (--experimental-async-context-frame, say)
-    const run = spawnSync(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), "--child", mode, String(rows), app],
-      { cwd: ROOT, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, env: { ...process.env, BENCH_ALS: withAls ? "1" : "", BENCH_DELTA: withDelta ? "1" : "" } });
-    if (run.status !== 0) {
-      console.error(`rows ${rows}, ${mode}: failed\n${run.stderr || run.stdout}`);
-      process.exit(1);
-    }
-    const r = JSON.parse(run.stdout);
-    results.push({ rows, mode, ...r });
-    console.log(`${String(rows).padStart(6)}  ${mode.padEnd(5)}  ${s(r.start)} (${s(r.startCpu).trim()})  ${s(r.event)} (${s(r.eventCpu).trim()})`
-      + `  ${(r.bytes / 1024).toFixed(0).padStart(5)} KB  ${(r.gzip / 1024).toFixed(0).padStart(4)} KB`);
+  // the parent's node flags go along (--experimental-async-context-frame, say)
+  const run = spawnSync(process.execPath, [...process.execArgv, fileURLToPath(import.meta.url), "--child", String(rows), app],
+    { cwd: ROOT, encoding: "utf8", maxBuffer: 16 * 1024 * 1024, env: { ...process.env, BENCH_ALS: withAls ? "1" : "", BENCH_DELTA: withDelta ? "1" : "" } });
+  if (run.status !== 0) {
+    console.error(`rows ${rows}: failed\n${run.stderr || run.stdout}`);
+    process.exit(1);
   }
+  const r = JSON.parse(run.stdout);
+  results.push({ rows, ...r });
+  console.log(`${String(rows).padStart(6)}  ${s(r.start)} (${s(r.startCpu).trim()})  ${s(r.event)} (${s(r.eventCpu).trim()})`
+    + `  ${(r.bytes / 1024).toFixed(0).padStart(5)} KB  ${(r.gzip / 1024).toFixed(0).padStart(4)} KB`);
 }
