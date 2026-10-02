@@ -730,6 +730,9 @@ and points here, so a new trap is added here and nowhere else.
   variable and pass that; a plain assignment is a conversion and always
   allowed, and a symbol inside a string template needs nothing, an embedded
   expression being a general expression position. Gated by `check:atc`.
+
+**Backlog:** abaplint · abaplint-text-symbol-to-string-param
+
 - **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
   every value in a WHERE comparison is escaped, a literal included — bare
   `WHERE id = \`TEST_COUNT_FOREIGN\`` becomes

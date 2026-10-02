@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report a `PREFERRED PARAMETER` the compiler ignores, and stop treating it as OPTIONAL'
 summary: the addition does nothing unless every IMPORTING parameter is optional — ABAP warns and abaplint says nothing, while its syntax check goes the other way and accepts a call that omits the mandatory parameter
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4357
 first_seen: 2026-09-05
 checked_upstream: 2026-09-05
 upstream: abaplint/abaplint
@@ -11,6 +12,7 @@ evidence:
   - abap2UI5 `z2ui5_cl_ui5_util_context=>msg_get_internal` — a user's system reported the warning on 2026-09-05, hours after #2719 added the addition that morning to a signature whose first parameter is mandatory; `npx abaplint` was green over that file (0 issues, 264 files, 2.120.38, `check_syntax` on)
   - abaplint#2841 ("Syntax issue using PREFERRED PARAMETER") shows the misunderstanding the rule would end — the reporter took the addition to make a parameter optional, which is what it does only when every input parameter already is
   - measured 2026-09-05 on 2.120.38, isolated two-file project: the declaration with the ignored addition plus a call that omits the mandatory parameter is accepted; deleting the addition alone turns the same call into `method parameter "VAL" must be supplied`
+  - filed 2026-10-02 as abaplint/abaplint#4357 - the rule `preferred_parameter_ignored` alone, taken out of `abaplint-three-rules.patch` onto abaplint main 91efb82 (index, schema.ts by hand, schema.json regenerated); 9 tests and a quick-fix test; all 11 207 tests of packages/core pass (32 pending), eslint and api-extractor clean. The call-side half below is not part of it: abaplint's own test `PREFERRED PARAMETER is optional` (from #2841) expects the call to pass, so it waits for a measurement on a system
 ---
 
 # Report a `PREFERRED PARAMETER` the compiler ignores
