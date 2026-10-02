@@ -412,9 +412,10 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   (`check_syntax` on, control `USING KEY nokey` fired): its LOOP syntax
   resolves the key and checks `IS INITIAL` before 7.40 SP02, and does not read
   how the condition combines the key components. Not abap2UI5-specific, so it
-  goes upstream.
-
-**Backlog:** abaplint · abaplint-loop-secondary-key-where-or
+  went upstream: abaplint/abaplint#4353 (merged 2026-10-02) reports a
+  top-level OR under a statically named secondary key in `check_syntax`, from
+  the release after 2.120.64 on. An OR in parentheses, a dynamic key name and
+  `primary_key` stay unreported there, as measured.
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
