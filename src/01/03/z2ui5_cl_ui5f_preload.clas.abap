@@ -15,14 +15,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '5294fe9e0075a10d'.
+    CONSTANTS build_hash TYPE string VALUE '391acfbaac1ffc39'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-UpT+ngB1oQ1rYdP7sXBi3oASoBMzHWXKXSTkjzklhkI='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-ORrPuqwf/DmVMdHsXtvHTHkcGrQguCHJSd3xX3kLgAA='.
 
     CLASS-METHODS get
       RETURNING
@@ -92,6 +92,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/cc/LPTitle.js": function()\{{ z2ui5_cl_ui5f_lptitle_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MessageManager.js": function()\{{ z2ui5_cl_ui5f_msgmgr_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MultiInputExt.js": function()\{{ z2ui5_cl_ui5f_multiinp_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/NativeBridgeScan.js": function()\{{ z2ui5_cl_ui5f_natscan_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Scrolling.js": function()\{{ z2ui5_cl_ui5f_scroll_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/SmartMultiInputExt.js": function()\{{ z2ui5_cl_ui5f_smartinp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Storage.js": function()\{{ z2ui5_cl_ui5f_storage_js=>get( ) }\},| && |\n| &&
