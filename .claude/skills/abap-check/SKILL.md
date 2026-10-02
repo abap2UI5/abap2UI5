@@ -396,6 +396,26 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   issue's own exclusion list: ``` `x`&&`y` ``` IS reported, rightly — ABAP wants
   blanks around `&&` just as it does around `=`.
 
+### A LOOP over a secondary key wants a WHERE the key can optimize
+
+- **`USING KEY <secondary> WHERE a = 1 OR b = 2` is a syntax error.** A LOOP
+  that names a secondary key reads through it, so the key components have to
+  be compared with `=` and joined to the rest by AND; an OR at the top of the
+  condition leaves nothing every row must meet. Found in review of
+  abaplint/transpiler#1929 (2026-09-30): the PR's unit test carried exactly
+  this LOOP, passed every check the transpiler runs, and the maintainer's
+  real system refused it, twice. Measured on a system (2026-10-01):
+  `a = 1 AND ( b = 2 OR b = 0 )` runs. A dynamic key name, `USING KEY (name)`,
+  runs with the OR and loops every matching row, which is what the test now
+  uses. A dynamic `WHERE (cond)` with the OR is a runtime error that no
+  `CATCH cx_root` catches. **abaplint 2.120.64 accepts the static form**
+  (`check_syntax` on, control `USING KEY nokey` fired): its LOOP syntax
+  resolves the key and checks `IS INITIAL` before 7.40 SP02, and does not read
+  how the condition combines the key components. Not abap2UI5-specific, so it
+  goes upstream.
+
+**Backlog:** abaplint · abaplint-loop-secondary-key-where-or
+
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
 - **`INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` is 7.55 syntax.** Below that
