@@ -3,7 +3,8 @@ target: open-abap
 title: 'The runtime knows the primary key only as lower-case `primary_key`: READ TABLE ... WITH KEY primary_key COMPONENTS, USING KEY PRIMARY_KEY and a key name in a c field all throw "secondary key not found"'
 summary: every spelling ABAP accepts for the primary key other than lower-case `primary_key`, and every dynamic key name held in a c field (it comes with its padding), is looked up among the secondary keys and throws "Table, secondary key ... not found" - as a plain string no CATCH catches. READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS fails even in lower case. Fix and tests are attached as a patch
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1951
 first_seen: 2026-09-29
 checked_upstream: 2026-10-02
 patch: backlog/patches/transpiler-key-name-primary-key.patch
@@ -14,7 +15,8 @@ evidence:
   - the thrown value is a string, not an exception object - `TRY ... CATCH cx_root` around the LOOP does not catch it
   - unchanged at abaplint/transpiler main 916d00f (2026-09-29) - `loop.ts` compares `options.usingKey !== "primary_key"`, `readTable` looks `keyName` up with `getSecondaryIndex`, and `getKeyByName` / `getSecondaryIndex` compare the untrimmed name
   - partly fixed upstream since - abaplint/transpiler#1930 (2026-10-01) taught `loop.ts` the primary key in any case, so `USING KEY PRIMARY_KEY` and a dynamic `PRIMARY_KEY` in a string run on main 1181ca6; READ TABLE ... primary_key COMPONENTS, a name padded by its c field and the end refresh under USING KEY primary_key still fail there (three of the four tests red)
-  - the attached patch, rebased 2026-10-02 on main 1181ca6 after [transpiler-loop-sorted-primary-key](transpiler-loop-sorted-primary-key.md) (both touch `loop.ts`) - three of its four tests fail before and all pass after; the non-database test sets (2319 tests) pass; eslint clean
+  - the attached patch, rebased 2026-10-02 on main 1181ca6 after abaplint/transpiler#1950, the LOOP over a sorted primary key (both touch `loop.ts`) - three of its four tests fail before and all pass after; the non-database test sets (2319 tests) pass; eslint clean
+  - filed 2026-10-02 as abaplint/transpiler#1951; merged with main 5d4ed48 the same day, after #1950 had landed as b62b532 - the two conflicts in `loop.ts` were #1950 arriving twice, the PR's side kept; the non-database test sets pass
 ---
 
 # The runtime knows the primary key only as lower-case `primary_key`
@@ -82,8 +84,8 @@ export function secondaryKeyName(name: string | undefined): string | undefined {
 Written and tested; attached as
 [`backlog/patches/transpiler-key-name-primary-key.patch`](../patches/transpiler-key-name-primary-key.patch)
 (`git am --keep-cr` on main 1181ca6, after the patch of
-[transpiler-loop-sorted-primary-key](transpiler-loop-sorted-primary-key.md) -
-both touch `loop.ts`). It adds four tests:
+abaplint/transpiler#1950, the LOOP over a sorted primary key - both touch
+`loop.ts`). It adds four tests:
 - upper case, static and dynamic
 - names in a `c` field
 - a row appended under USING KEY primary_key is visited

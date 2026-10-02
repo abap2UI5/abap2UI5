@@ -22,8 +22,16 @@ _nothing exists upstream yet — this is the stock_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`transpiler-cli-library-second-copy`](items/transpiler-cli-library-second-copy.md) | every object the transpile reads - the libraries under `libs` included - is written to the output folder, and a transpiled class imports what it extends by a relative path. A host that transpiles its own classes against an already transpiled library (an npm package) loads a second copy of that library; the second CX_ROOT replaces the first in abap.Classes and exceptions fly through every CATCH. A lib option that type-checks against the library and imports it from a module specifier instead of emitting it would end the workarounds | medium | 2026-09-29 | abaplint/transpiler |
-| [`transpiler-key-name-primary-key`](items/transpiler-key-name-primary-key.md) | every spelling ABAP accepts for the primary key other than lower-case `primary_key`, and every dynamic key name held in a c field (it comes with its padding), is looked up among the secondary keys and throws "Table, secondary key ... not found" - as a plain string no CATCH catches. READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS fails even in lower case. Fix and tests are attached as a patch | medium | 2026-09-29 | abaplint/transpiler |
-| [`transpiler-loop-sorted-primary-key`](items/transpiler-loop-sorted-primary-key.md) | the runtime narrows a LOOP ... WHERE by binary search only on a secondary key; over a sorted primary key it evaluates the WHERE on every row, and abap2UI5's JSON serializer (a fork of abapGit's ajson) runs such a LOOP once per node - the event roundtrip of a 2000-row table took 22.6 s in a CAP project, 1.8 s with this and the CP change. @abap2ui5/node-runtime ships both as a runtime patch meanwhile; the upstream change is attached as a patch | medium | 2026-09-29 | abaplint/transpiler |
+
+---
+
+## Filed upstream
+
+_an issue or PR exists; the item goes when it merges_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`transpiler-key-name-primary-key`](items/transpiler-key-name-primary-key.md) | every spelling ABAP accepts for the primary key other than lower-case `primary_key`, and every dynamic key name held in a c field (it comes with its padding), is looked up among the secondary keys and throws "Table, secondary key ... not found" - as a plain string no CATCH catches. READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS fails even in lower case. Fix and tests are attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1951</sub> | medium | 2026-09-29 | abaplint/transpiler |
 
 ---
 
