@@ -38,6 +38,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/CameraSelector.js` | `cameraSelector.spec.js` | — |
 | `cc/CameraPicture.js` | `cameraPicture.spec.js` | — |
 | `cc/FileUploader.js` | `fileUploader.spec.js` | — |
+| `cc/NativeBridgeScan.js` | `nativeBridgeScan.spec.js` | the scan through the shell bridge into `value` and OnScan, a cancel or failure as OnError (a cancel without a log line), the invisible placeholder outside the shell and the second render once the shim announces itself, the destroyed-guard |
 | `cc/UploadSetExt.js` | `uploadSetExt.spec.js` | — |
 | `cc/MultiInputExt.js` | `multiInputExt.spec.js` | — |
 | `cc/SmartMultiInputExt.js` | `smartMultiInputExt.spec.js` | — |
