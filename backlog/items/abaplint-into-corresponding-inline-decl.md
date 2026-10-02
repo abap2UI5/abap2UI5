@@ -3,12 +3,14 @@ target: abaplint
 title: 'Version-gate `INTO CORRESPONDING FIELDS OF TABLE @DATA( )` — it is 7.55 syntax'
 summary: 'below 7.55 the system refuses the class with "Inline data declarations cannot be used together with INTO CORRESPONDING additions"; abaplint`s SELECT grammar puts no version gate on the inline declaration, so a v750 project is green with it'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4354
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5/samples, 2026-08-17 — a user pulling main found `z2ui5_cl_smp_app_348` carrying it in both of its SELECTs; the class did not activate. Fixed in samples `0d082a3` by declaring the tables `TYPE STANDARD TABLE OF … WITH EMPTY KEY` and selecting into them
   - measured on abaplint 2.120.24 with `check_syntax` and `downport` on at `syntax.version` v750 — zero findings, control probe fired (abap-check §2); measured again 2026-09-19 on 2.120.52, same result
+  - filed 2026-10-02 as abaplint/abaplint#4354, on abaplint main 91efb82 - `INTO CORRESPONDING FIELDS OF TABLE @DATA( )` is reported below 7.55 in `check_syntax` (the SELECT's handleInto); INTO TABLE @DATA( ), a declared target, 7.55, no version and Cloud stay unreported, one test each; APPENDING and the single-row INTO CORRESPONDING FIELDS OF @DATA( ) are left out as not measured; all 11 204 tests of packages/core pass (32 pending), eslint clean
   - the abap2UI5-linter carries the rule since 2026-08-30 (`into-corresponding-inline-decl`) for consumers whose only gate it is; this item is its upstream generalization — the linter reads app classes, abaplint reads every ABAP object
 ---
 
