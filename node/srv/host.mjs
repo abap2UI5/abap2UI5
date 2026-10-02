@@ -26,14 +26,13 @@
  *                    dev server has always been.
  *   serve()          createApp() listening. Resolves with the http.Server.
  *
- * accelerate() (srv/accelerate.mjs, re-exported here) replaces the two
- * functions of @abaplint/runtime that made a roundtrip with a large table
- * quadratic - LOOP ... WHERE over a sorted primary key, and CP - with fast
- * paths that answer exactly what they answer; its header says why and how
- * that is held. initialize() calls it, so every host that boots through this
- * module runs on them. A host that boots through output/init.mjs itself
- * (@cap2ui5/cds-plugin) imports "@abap2ui5/node-runtime/accelerate" and calls
- * it after its boot.
+ * accelerate() (srv/accelerate.mjs, re-exported here) installs nothing any
+ * more: @abaplint/runtime from 2.13.96 on is linear on large tables itself
+ * (LOOP ... WHERE over a sorted primary key, CP), where it used to install
+ * fast paths for both. It stays exported for the hosts that call it -
+ * @cap2ui5/cds-plugin after booting through output/init.mjs itself - and
+ * initialize() still calls it, so a host that forces an older runtime in
+ * hears about it once.
  *
  * `express` is imported lazily and only by createApp/serve: it is an
  * optional peer of the package, so a host that mounts createHandler() on a
@@ -68,9 +67,8 @@ let booted;
 
 /**
  * Boot the ABAP runtime: the database, its schema and the framework, then
- * the fast paths of accelerate() - right after the boot, before the first
- * request can run a LOOP or a CP. Once per process; later calls return the
- * same promise.
+ * accelerate(), which warns once when the runtime is older than the one the
+ * package names. Once per process; later calls return the same promise.
  * @returns {Promise<void>}
  */
 export function initialize() {
