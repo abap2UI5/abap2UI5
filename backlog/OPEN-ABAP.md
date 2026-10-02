@@ -25,15 +25,5 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`transpiler-key-name-primary-key`](items/transpiler-key-name-primary-key.md) | every spelling ABAP accepts for the primary key other than lower-case `primary_key`, and every dynamic key name held in a c field (it comes with its padding), is looked up among the secondary keys and throws "Table, secondary key ... not found" - as a plain string no CATCH catches. READ TABLE ... WITH [TABLE] KEY primary_key COMPONENTS fails even in lower case. Fix and tests are attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1951</sub> | medium | 2026-09-29 | abaplint/transpiler |
-
----
-
 _Generated from `backlog/items/*.md` and the `**Backlog:**` lines in
 `.claude/skills/` — `npm run backlog`._
