@@ -3,13 +3,15 @@ target: abaplint
 title: 'Report `REF #( )` assigned to a generically typed target'
 summary: '`<fs> = REF #( x )` where `<fs>` is `TYPE any` (or `data`, or a field symbol bound by a dynamic ASSIGN) is "Unexpected operator REF" on a system — `#` infers the reference type from the target, and a generic target has none; abaplint 2.120.52 accepts it under every syntax version'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4355
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5, 2026-09 — three `GET REFERENCE OF` in `z2ui5_cl_ui5_srv_model` (`attri_get_val_ref`, the alias re-wiring on the load) were rewritten to `REF #( )`; two of them came back from a user's system the same day as "Unexpected operator REF", because the left side is a field symbol `TYPE any` after a dynamic `ASSIGN`
   - both were repaired as `REF data( … )`; abap-check §3 carries the case
   - measured 2026-09-19 on abaplint 2.120.52 with `check_syntax` on, at `syntax.version` v750 and again under Cloud — an isolated class carrying `<any> = REF #( lv )` after `ASSIGN lr->* TO <any>` produces no finding while the same run reports the control probes in the same file
+  - filed 2026-10-02 as abaplint/abaplint#4355, on abaplint main 91efb82 - in the Move statement, `<fs> = REF #( ... )` with a single bare field symbol typed `any` or `data` is reported; a typed target, REF data( ) / REF ty( ), parameters, VALUE / NEW components, inline DATA( ) / FINAL( ), a field symbol TYPE REF TO data and REF # nested in CAST / COND stay unreported, one test each; the other generic types, ?=, MOVE ... TO and chained assignments are left out as not measured; all 11 210 tests of packages/core pass (32 pending), eslint clean
 ---
 
 # Report `REF #( )` assigned to a generically typed target
