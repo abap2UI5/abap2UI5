@@ -5,14 +5,15 @@ summary: the runtime narrows a LOOP ... WHERE by binary search only on a seconda
 priority: medium
 state: open
 first_seen: 2026-09-29
+checked_upstream: 2026-10-02
 patch: backlog/patches/transpiler-loop-sorted-primary-key.patch
 upstream: abaplint/transpiler
 evidence:
-  - measured 2026-09-29 in a CAP project (@cap2ui5/cds-plugin on @abap2ui5/node-runtime 1.145.0, Node 22) - one table of n rows bound to a sap.m.Table, the event roundtrip took 6.2 s at 1000 rows and 22.6 s at 2000; CPU profiles put the time in `statements/loop.ts` (this item) and `compare/cp.ts` ([transpiler-cp-compile-once](transpiler-cp-compile-once.md))
+  - measured 2026-09-29 in a CAP project (@cap2ui5/cds-plugin on @abap2ui5/node-runtime 1.145.0, Node 22) - one table of n rows bound to a sap.m.Table, the event roundtrip took 6.2 s at 1000 rows and 22.6 s at 2000; CPU profiles put the time in `statements/loop.ts` (this item) and `compare/cp.ts` (the CP change, abaplint/transpiler#1933)
   - with both changes installed on the running runtime (`accelerate()` of @abap2ui5/node-runtime, `node/srv/accelerate.mjs`, abap2UI5#2813) - 1.8 s at 2000 rows, 2.6 s at 4000, 4.4 s at 8000; the plain package without CAP (`node/tests-examples/rowsRoundtrip.bench.mjs`) 8.8 s -> 2.1 s CPU for the event at 2000 rows; abap2UI5's unit suite 18.0 s -> 12.6 s
-  - the runtime patch is held to the original function by a differential, seeded property test (`node/tests/accelerate.spec.js`) - about 51 000 generated LOOP scenarios per run, identical traces everywhere except where the original crashes (see [transpiler-loop-where-crashes](transpiler-loop-where-crashes.md))
+  - the runtime patch is held to the original function by a differential, seeded property test (`node/tests/accelerate.spec.js`) - about 51 000 generated LOOP scenarios per run, identical traces everywhere except where the original crashes (fixed upstream with abaplint/transpiler#1930)
   - unchanged at abaplint/transpiler main 916d00f (2026-09-29); @abaplint/runtime 2.13.93 is the latest release
-  - the attached patch, on 916d00f after [transpiler-loop-where-or-narrowing](transpiler-loop-where-or-narrowing.md) - the non-database test sets (2288 tests, two new ones for the block, sy-tabix, AND, OR and inserts into the block) pass; eslint clean
+  - the attached patch, rebased 2026-10-02 on abaplint/transpiler main 1181ca6 (after #1929-#1933 merged) - the non-database test sets (2315 tests, two new ones for the block, sy-tabix, AND, OR and inserts into the block) pass; eslint clean. A LOOP WHERE over 4000 rows of a sorted table, 2000 times, took 1664 ms before and 70 ms after, the same rows found
 ---
 
 # LOOP ... WHERE over a sorted primary key: binary-search the block
@@ -60,8 +61,7 @@ Three things it has to get right:
 
 - **`topEquals` must be a conjunction.** A narrowing by one side of an OR loses
   the other side's rows. The transpiler emits it for a pure conjunction only
-  since [transpiler-loop-where-or-narrowing](transpiler-loop-where-or-narrowing.md),
-  which this patch is based on.
+  since abaplint/transpiler#1929, which this patch is based on.
 - **The operand has to order like the sort.** The sort compares key fields
   with `lt`/`eq`, and the binary search compares a key field with the WHERE
   operand. Mixed types can disagree: for a `c(10)` key and a `c(3)` operand,
@@ -82,14 +82,14 @@ row and its restore, and sy-subrc.
 
 The patch
 [`backlog/patches/transpiler-loop-sorted-primary-key.patch`](../patches/transpiler-loop-sorted-primary-key.patch)
-applies with `git am --keep-cr` on 916d00f after the OR patch. It adds two
+applies with `git am --keep-cr` on abaplint/transpiler main 1181ca6. It adds two
 tests to `test/statements/loop.ts`:
 - the block and its sy-tabix, a miss with sy-subrc 4, AND and OR
 - a row the body inserts into the block is visited, one it inserts before the block is not
 
-It carries the two one-liners of
-[transpiler-loop-where-crashes](transpiler-loop-where-crashes.md), which the
-narrowing runs into. Whichever lands second drops them.
+The two one-liners the narrowing runs into (the loop starting at index -1,
+and reading `array[array.length]` after a DELETE) landed upstream with
+abaplint/transpiler#1930, so the rebased patch no longer carries them.
 
 ## Also seen
 
@@ -104,7 +104,6 @@ narrowing runs into. Whichever lands second drops them.
 
 ## How to file
 
-1. File [transpiler-loop-where-or-narrowing](transpiler-loop-where-or-narrowing.md) first. This change relies on it.
-2. Search the abaplint/transpiler tracker and record the date in `checked_upstream:`.
-3. Open a PR with the patch and this body. Link the CP item, since the measurements are for both.
-4. Set `state: filed` and `filed: <url>` here, run `npm run backlog`, commit.
+1. Search the abaplint/transpiler tracker and record the date in `checked_upstream:`.
+2. Open a PR with the patch and this body. Link abaplint/transpiler#1933 (CP), since the measurements are for both.
+3. Set `state: filed` and `filed: <url>` here, run `npm run backlog`, commit.

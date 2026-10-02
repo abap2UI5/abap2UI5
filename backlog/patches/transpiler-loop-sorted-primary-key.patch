@@ -1,8 +1,8 @@
-From dedb610380a3763130f154832148de8640adcfb1 Mon Sep 17 00:00:00 2001
+From f12d153d3c4c0ebbaf7252177c8b560da16c8f57 Mon Sep 17 00:00:00 2001
 From: Claude <noreply@anthropic.com>
-Date: Tue, 29 Sep 2026 21:11:47 +0000
-Subject: [PATCH] LOOP ... WHERE over a sorted primary key: binary-search the
- block
+Date: Fri, 2 Oct 2026 00:44:56 +0000
+Subject: [PATCH 1/2] LOOP ... WHERE over a sorted primary key: binary-search
+ the block
 
 A LOOP AT itab WHERE narrowed by binary search only on a secondary key.
 Over a SORTED primary key it evaluated the WHERE on every row, also when
@@ -11,29 +11,27 @@ the WHERE can accept are one contiguous block. abap2UI5's JSON serializer
 (z2ui5_cl_ajson, a fork of abapGit's ajson) does such a LOOP once per
 node over its node table, so a model of n nodes cost n^2: the event
 roundtrip of a 2000-row table took 22.6 s in a CAP project, 1.8 s with
-this change (and the CP change beside it).
+this change and the CP change of #1933.
 
 The loop now binary-searches the first row that does not sort before the
 value and stops at the first row that sorts after it - not at the first
-row that is merely unequal, because INSERT LINES OF into the table in the
-body re-sorts it without moving the loop index. Only for operands whose
-order agrees with the table's sort: the key field's own type (and length
-for c, n, x), or a c operand against a string field. Everything else
-scans as before. Relies on topEquals holding only conditions every row
-has to meet, which the transpiler emits for a pure conjunction since the
-previous commit.
+row that is merely unequal, because INSERT ... INTO TABLE in the body
+re-sorts the table without moving the loop index. Only for operands
+whose order agrees with the table's sort: the key field's own type (and
+length for c, n, x), or a c operand against a string field. Everything
+else scans as before. Relies on topEquals holding only conditions every
+row has to meet, which the transpiler emits for a pure conjunction since
+#1929.
 
-Also carries two fixes the narrowing runs into: determineFromTo starts
-1-based when topEquals lacks the key's field (the loop started at index
--1), and the loop never reads array[array.length] after a DELETE in the
-body.
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_018JKvhWuxvFH6mJyTEk5Lsc
 ---
- packages/runtime/src/statements/loop.ts | 82 +++++++++++++++++++++++--
- test/statements/loop.ts                 | 45 ++++++++++++++
- 2 files changed, 123 insertions(+), 4 deletions(-)
+ packages/runtime/src/statements/loop.ts | 76 ++++++++++++++++++++++++-
+ test/statements/loop.ts                 | 45 +++++++++++++++
+ 2 files changed, 120 insertions(+), 1 deletion(-)
 
 diff --git a/packages/runtime/src/statements/loop.ts b/packages/runtime/src/statements/loop.ts
-index 745389d..d7f36a8 100644
+index cd42172..b44abd6 100644
 --- a/packages/runtime/src/statements/loop.ts
 +++ b/packages/runtime/src/statements/loop.ts
 @@ -1,5 +1,7 @@
@@ -45,24 +43,7 @@ index 745389d..d7f36a8 100644
  import {ICharacter} from "../types/_character";
  import {INumeric} from "../types/_numeric";
  import {ABAP} from "..";
-@@ -24,14 +26,14 @@ function determineFromTo(array: readonly any[], topEquals: topType | undefined,
-     return {from: 1, to: array.length};
-   }
- 
--  let from = 0;
-+  let from = 1;
-   let to = array.length;
- 
- // todo: multi field
-   const keyField = key.keyFields[0].toLowerCase();
-   const keyValue = topEquals[keyField];
-   if (keyField && keyValue) {
--    from = binarySearchFrom(array, from, to, keyField, keyValue);
-+    from = binarySearchFrom(array, 0, to, keyField, keyValue);
-     to = binarySearchTo(array, from, to, keyField, keyValue);
- //    console.dir("from: " + from + ", to: " + to);
-   }
-@@ -42,6 +44,55 @@ function determineFromTo(array: readonly any[], topEquals: topType | undefined,
+@@ -46,6 +48,55 @@ function determineFromTo(array: readonly any[], topEquals: topType | undefined,
    };
  }
  
@@ -118,15 +99,15 @@ index 745389d..d7f36a8 100644
  // todo: rewrite, this is a mess & hack & slow
  function dynamicToWhere(condition: string, evaluate: (name: string) => FieldSymbol | undefined): (placeholder: any) => Promise<boolean> {
  //  console.dir(condition);
-@@ -131,6 +182,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
+@@ -135,6 +186,7 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
    let loopTo = options?.to && options.to.get() < length ? options.to.get() : length;
  
    let array: any[] = [];
 +  let block: ((row: any) => number) | undefined = undefined;
-   if (options?.usingKey && options.usingKey !== undefined && options.usingKey !== "primary_key") {
-     array = table.getSecondaryIndex(options.usingKey);
- 
-@@ -139,6 +191,23 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
+   // a dynamic key name may come in any case, USING KEY ('PRIMARY_KEY') is the primary key too
+   const isPrimaryKey = options?.usingKey === undefined || options.usingKey.toLowerCase() === "primary_key";
+   if (options?.usingKey && isPrimaryKey === false) {
+@@ -145,6 +197,23 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
      loopTo = Math.min(loopTo, to);
    } else {
      array = table.array();
@@ -150,13 +131,7 @@ index 745389d..d7f36a8 100644
    }
  
    const loopController = table.startLoop(loopFrom, loopTo, array);
-@@ -168,11 +237,16 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
-     const isStructured = array[0] instanceof Structure;
- 
-     while (loopController.index < loopController.loopTo) {
--      if (loopController.index > array.length) {
-+      if (loopController.index >= array.length) {
-         break;
+@@ -181,6 +250,11 @@ export async function* loop(table: Table | HashedTable | FieldSymbol | undefined
        }
        const current = array[loopController.index];
  
@@ -169,14 +144,13 @@ index 745389d..d7f36a8 100644
          const row = isStructured ? current.get() : {table_line: current};
          if (await options.where(row) === false) {
 diff --git a/test/statements/loop.ts b/test/statements/loop.ts
-index 1127e1d..8b25501 100644
+index cd36bf1..a72c959 100644
 --- a/test/statements/loop.ts
 +++ b/test/statements/loop.ts
-@@ -1331,4 +1331,49 @@ ENDLOOP.`;
-     await f(abap);
-     expect(abap.console.get()).to.equal("1/0\n1/2\n2/2");
+@@ -1478,4 +1478,49 @@ ENDLOOP.`;
+     expect(abap.console.get()).to.equal("1\n2\n6\n2");
    });
-+
+ 
 +  it("LOOP WHERE on the first field of a sorted primary key: the block, sy-tabix, and the rows around it", async () => {
 +    const code = `
 +TYPES: BEGIN OF ty, path TYPE string, name TYPE string, n TYPE i, END OF ty.
@@ -221,6 +195,7 @@ index 1127e1d..8b25501 100644
 +    await f(abap);
 +    expect(abap.console.get()).to.equal("b1\nb2\nb4");
 +  });
++
  });
 \ No newline at end of file
 -- 

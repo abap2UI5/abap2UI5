@@ -27,19 +27,5 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`transpiler-loop-where-or-narrowing`](items/transpiler-loop-where-or-narrowing.md) | the transpiler hands the runtime every `=` of a LOOP's WHERE as a condition all rows must meet (`topEquals`), also the ones inside an OR, and the runtime narrows a secondary key by it - `LOOP AT t USING KEY k WHERE a = 1 OR b = 2` never visits the rows only `b = 2` accepts. Silently wrong rows, no error. Fix and test are written and attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1929</sub> | high | 2026-09-29 | abaplint/transpiler |
-| [`transpiler-value-sorted-table`](items/transpiler-value-sorted-table.md) | the transpiler builds a VALUE #( ) row by row with appendThis( ), which pushes; only an assignment sorts the result. A sorted-table VALUE handed straight to a method parameter or looped over is a SORTED table in insertion order - LOOP yields 5 4 3 2 1 and READ TABLE ... WITH TABLE KEY answers sy-subrc 8 for a row that is there. Fix and test are attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1931</sub> | high | 2026-09-29 | abaplint/transpiler |
-| [`transpiler-find-case-negative-occ`](items/transpiler-find-case-negative-occ.md) | the transpiled find( ) searches case-sensitively whatever `case` says when it searches for `sub`, and answers -1 for a negative `occ` with a `sub` of two or more characters - correct ABAP finds nothing in the one place it runs without a system. Fix and tests are written and attached as a patch; filing is blocked only on write access to abaplint/transpiler<br><sub>https://github.com/abaplint/transpiler/pull/1932</sub> | medium | 2026-09-23 | abaplint/transpiler |
-| [`transpiler-loop-where-crashes`](items/transpiler-loop-where-crashes.md) | `LOOP AT t USING KEY k WHERE b = 2` (k over a) starts at row index -1 and throws "Cannot read properties of undefined (reading 'get')"; a LOOP USING KEY primary_key whose body deletes a row reads array[array.length] - with a WHERE the same TypeError, without one the last row twice. ABAP runs both. Two one-line fixes and tests are attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1930</sub> | medium | 2026-09-29 | abaplint/transpiler |
-| [`transpiler-cp-compile-once`](items/transpiler-cp-compile-once.md) | cp( ) builds a new RegExp per call and turns a trailing * into [\\s\\S]*$, so `lv_xml CP '<*'` walks the whole rest of the string; open-abap's cl_ixml parser asks that once per token with the rest of the document, and reading a document costs the square of its length. Dropping the trailing run of * and caching the compiled pattern changes no answer. @abap2ui5/node-runtime ships it as a runtime patch meanwhile; the upstream change is attached as a patch<br><sub>https://github.com/abaplint/transpiler/pull/1933</sub> | low | 2026-09-29 | abaplint/transpiler |
-
----
-
 _Generated from `backlog/items/*.md` and the `**Backlog:**` lines in
 `.claude/skills/` — `npm run backlog`._
