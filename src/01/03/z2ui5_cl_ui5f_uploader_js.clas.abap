@@ -39,6 +39,13 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `` && |\n| &&
              `    const FileUploaderControl = Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
              `      metadata: {` && |\n| &&
+             `        aggregations: {` && |\n| &&
+             `          _content: {` && |\n| &&
+             `            type: "sap.m.HBox",` && |\n| &&
+             `            multiple: false,` && |\n| &&
+             `            visibility: "hidden",` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
              `        properties: {` && |\n| &&
              `          value: {` && |\n| &&
              `            type: "string",` && |\n| &&
@@ -170,6 +177,8 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `        if (this.oUploadButton) {` && |\n| &&
              `          this._oHBox.addItem(this.oUploadButton);` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        this.setAggregation("_content", this._oHBox, true);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _syncControls() {` && |\n| &&
@@ -198,7 +207,11 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `        render(oRm, oControl) {` && |\n| &&
              `          oControl._ensureControls(oControl.getProperty("checkDirectUpload"));` && |\n| &&
              `          oControl._syncControls();` && |\n| &&
+             `` && |\n| &&
+             `          oRm.openStart("div", oControl);` && |\n| &&
+             `          oRm.openEnd();` && |\n| &&
              `          oRm.renderControl(oControl._oHBox);` && |\n| &&
+             `          oRm.close("div");` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

@@ -17,6 +17,13 @@ sap.ui.define(
     // the file was selected.
     const FileUploaderControl = Control.extend("z2ui5.cc.FileUploader", {
       metadata: {
+        aggregations: {
+          _content: {
+            type: "sap.m.HBox",
+            multiple: false,
+            visibility: "hidden",
+          },
+        },
         properties: {
           value: {
             type: "string",
@@ -180,6 +187,10 @@ sap.ui.define(
         if (this.oUploadButton) {
           this._oHBox.addItem(this.oUploadButton);
         }
+        // The children need a parent to inherit the model and propagate
+        // invalidation. Merely rendering an unowned HBox leaves Upload
+        // visibly disabled after a selection even though its property changed.
+        this.setAggregation("_content", this._oHBox, true);
       },
 
       // Push the current property values into the inner controls - cheap,
@@ -212,7 +223,11 @@ sap.ui.define(
         render(oRm, oControl) {
           oControl._ensureControls(oControl.getProperty("checkDirectUpload"));
           oControl._syncControls();
+          // UI5 rerenders this control by its own DOM id when path changes.
+          oRm.openStart("div", oControl);
+          oRm.openEnd();
           oRm.renderControl(oControl._oHBox);
+          oRm.close("div");
         },
       },
     });

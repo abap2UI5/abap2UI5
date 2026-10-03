@@ -132,6 +132,10 @@ function load() {
     };
     inst.getProperty = (k) => inst._props[k];
     inst.setProperty = (k, v) => (inst._props[k] = v);
+    inst.setAggregation = (k, v) => {
+      inst[k] = v;
+      v.parent = inst;
+    };
     // the tooltip is NOT a property of this control: it is the aggregation
     // every Element carries, read through the inherited string accessor
     inst._tooltip = props.tooltip ?? "";
@@ -144,7 +148,7 @@ function load() {
   }
 
   const render = (inst) =>
-    FileUploaderDef.renderer.render({ renderControl() {} }, inst);
+    FileUploaderDef.renderer.render({ openStart() {}, openEnd() {}, renderControl() {}, close() {} }, inst);
 
   // A change/uploadComplete event as the inner FileUploader fires it.
   const changeEvent = (uploader, file) => ({
@@ -153,6 +157,7 @@ function load() {
   });
 
   return {
+    FileUploaderDef,
     makeInstance,
     render,
     changeEvent,
@@ -168,8 +173,28 @@ test("button mode renders uploader + Upload button, disabled while no file", () 
   render(inst);
 
   expect(inst._oHBox.items).toEqual([inst.oFileUploader, inst.oUploadButton]);
+  expect(inst._content).toBe(inst._oHBox);
+  expect(inst._oHBox.parent).toBe(inst);
   expect(inst.oFileUploader.settings.uploadOnChange).toBe(false);
   expect(inst.oUploadButton.enabled).toBe(false);
+});
+
+test("renderer supplies its own DOM root for property invalidation", () => {
+  const { makeInstance, FileUploaderDef } = load();
+  const inst = makeInstance();
+  const calls = [];
+  FileUploaderDef.renderer.render({
+    openStart: (tag, control) => calls.push(["openStart", tag, control]),
+    openEnd: () => calls.push(["openEnd"]),
+    renderControl: (control) => calls.push(["renderControl", control]),
+    close: (tag) => calls.push(["close", tag]),
+  }, inst);
+  expect(calls).toEqual([
+    ["openStart", "div", inst],
+    ["openEnd"],
+    ["renderControl", inst._content],
+    ["close", "div"],
+  ]);
 });
 
 test("selecting a file stores the path and enables the Upload button", () => {
