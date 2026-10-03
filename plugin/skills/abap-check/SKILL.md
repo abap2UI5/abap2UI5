@@ -622,7 +622,8 @@ and points here, so a new trap is added here and nowhere else.
   2.120.65 on (abaplint/abaplint#4357): the rule `preferred_parameter_ignored`
   reports the declaration, and its quick fix declares the mandatory importing
   parameters `OPTIONAL`. It is a rule, so it reports only where a project
-  switches it on.
+  switches it on - here it is on in `abaplint.jsonc`, which leaves `src/99`
+  out, so `check:atc` keeps reading all of `src`.
 
 **Not gated — a script cannot decide these:**
 
