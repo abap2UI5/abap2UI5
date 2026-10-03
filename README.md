@@ -24,7 +24,7 @@
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/playground/samples/">Samples</a> •
-  <a href="#ai-assistants">AI Assistants</a> •
+  <a href="#build-with-ai">Build with AI</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
@@ -58,6 +58,23 @@ ENDCLASS.
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 Next stop: the [sample catalogue](https://abap2ui5.github.io/playground/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration, searchable by control and by the UI5 release your system runs, and most of them one click from running in the browser – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
+
+## Build with AI
+
+Working with Claude Code? Two commands install the abap2UI5 plugin – the agent skills for writing an app (template, view builder, and the ABAP and UI5 traps a green lint misses) plus the [MCP server](https://github.com/abap2UI5/mcp-server), which validates, deploys, runs and screenshots apps without an SAP system:
+
+```
+/plugin marketplace add abap2UI5/abap2UI5
+/plugin install abap2ui5@abap2ui5
+```
+
+Only the MCP server, without the skills:
+
+```bash
+claude mcp add abap2ui5 -- npx --yes -p @abap2ui5/mcp-server abap2ui5-mcp
+```
+
+Everything else – other assistants, editors and the full setup – is in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html), and [AI Assistants](#ai-assistants) below has a prompt to paste into any of them.
 
 ## How It Works
 
@@ -126,7 +143,7 @@ SAP system. If something is not covered by those files, say so instead of
 inventing it.
 ```
 
-Claude Code users can add the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — with one line: `claude mcp add abap2ui5 -- npx -y -p @abap2ui5/mcp-server abap2ui5-mcp`. The full setup is described in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
+Claude Code users get the skills and the [mcp-server](https://github.com/abap2UI5/mcp-server) — validate, deploy, and screenshot apps without an SAP system — as one plugin: see [Build with AI](#build-with-ai). The full setup is described in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
 ## References
 * Field Service Management Mobile Logging using abap2UI5 [(Decabase Blog - 22.08.2026)](https://blog.decabase.com/field-service-management-mobile-logging-using-abap2ui5-2c18e4ed455d)

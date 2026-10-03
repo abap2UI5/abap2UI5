@@ -1,0 +1,19 @@
+{
+  "name": "abap2ui5",
+  "displayName": "abap2UI5",
+  "description": "Build abap2UI5 apps with an agent: the build-an-app, view-chain-layout, abap-check and ui5-check skills, plus the abap2UI5 MCP server (sample search, view validation, deploy, headless run and screenshot - no SAP system needed).",
+  "author": {
+    "name": "abap2UI5",
+    "url": "https://github.com/abap2UI5"
+  },
+  "homepage": "https://abap2ui5.github.io/docs/get_started/ai.html",
+  "repository": "https://github.com/abap2UI5/abap2UI5",
+  "license": "MIT",
+  "keywords": ["abap", "sap", "ui5", "abap2ui5", "mcp"],
+  "mcpServers": {
+    "abap2ui5": {
+      "command": "npx",
+      "args": ["--yes", "-p", "@abap2ui5/mcp-server", "abap2ui5-mcp"]
+    }
+  }
+}
