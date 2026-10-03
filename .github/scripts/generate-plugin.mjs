@@ -180,7 +180,15 @@ for (const rel of HAND_WRITTEN) {
 const stale = [];
 for (const [rel, text] of expected) {
   const file = path.join(ROOT, rel);
-  const current = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+  // Read and catch rather than existsSync-then-read: the check-then-use pair
+  // is a file system race (CodeQL js/file-system-race), and a missing file
+  // is simply "stale".
+  let current = null;
+  try {
+    current = fs.readFileSync(file, 'utf8');
+  } catch (e) {
+    if (e.code !== 'ENOENT') throw e;
+  }
   if (current === text) continue;
   if (CHECK) {
     stale.push(rel);
