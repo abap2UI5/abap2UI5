@@ -60,10 +60,21 @@ export interface CompressOptions {
 export function initialize(): Promise<void>;
 
 /**
+ * Run `fn` once no other request of this process is in the framework, and
+ * hold the next one back until it has settled. The framework keeps per-request
+ * state in class-data - one roll area per request on an SAP system, one per
+ * process here - so the requests queue. `createHandler()` runs every request
+ * through it; a host that calls `cl_express_icf_shim.run()` itself wraps that
+ * call in it. A rejection goes to the caller and does not stop the queue.
+ */
+export function exclusive<T>(fn: () => T | Promise<T>): Promise<T>;
+
+/**
  * The HTTP handler alone, for a server that is not express. It reads an
  * express-shaped request (`method`, `url`, `path`, `headers`, `body` as a
- * Buffer) and response (`append()`, `status().send()`), and boots the
- * runtime on the first request when nothing called `initialize()` before.
+ * Buffer) and response (`append()`, `status().send()`), boots the
+ * runtime on the first request when nothing called `initialize()` before,
+ * and queues the requests (`exclusive()`).
  */
 export function createHandler(options?: HandlerOptions): Handler;
 

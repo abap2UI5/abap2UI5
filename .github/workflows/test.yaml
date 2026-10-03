@@ -103,9 +103,11 @@ jobs:
     - run: npm run auto_transpile
     # A tar, not the directory: the transpiler writes thousands of small
     # files and the artifact API charges per file, which turned the upload
-    # into the slowest step of the job.
+    # into the slowest step of the job. node/downport rides along for
+    # conformance_backend, which packs @abap2ui5/node-runtime (the package
+    # carries the downported sources) and would otherwise downport again
     - name: Pack the transpiled output
-      run: tar -czf transpiled.tar.gz -C node output
+      run: tar -czf transpiled.tar.gz -C node output downport
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: transpiled
@@ -175,6 +177,11 @@ jobs:
     # in test_unit_js, which has no tree; this job has one.
     - name: gzip in front of the transpiled framework
       run: npx playwright test -c node/playwright-unit.config.js compress
+    # concurrency.spec.js skips in test_unit_js for the same reason: several
+    # clients against one transpiled framework, one of them with a request
+    # that waits - the host queues them (host.mjs, ONE REQUEST AT A TIME)
+    - name: one request at a time in the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js concurrency
 
   browser:
     needs: transpile
@@ -270,6 +277,101 @@ jobs:
           exit 1
         fi
         echo "all browser legs passed"
+
+  # The conformance suites of the abap2UI5 protocol (abap2UI5/protocol)
+  # against THIS checkout - the backend suite against the npm package this
+  # commit packs, the frontend suite against its app/webapp. The protocol
+  # is checked out at a pinned commit of its main and drives everything
+  # through its own scripts, so nothing of it is copied here: its
+  # conformance/hosts/node-runtime builds the conformance apps
+  # (Z2UI5_CL_CONF_*) against whatever @abap2ui5/node-runtime is installed,
+  # and that is the tarball packed here, installed over its pinned release.
+  # Bump the ref deliberately - a new protocol revision can add checks.
+  # A MUST failure fails the job (a SHOULD is reported and passes).
+  conformance_backend:
+    needs: transpile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - uses: ./.github/actions/setup
+      with:
+        npm-ci: "true"
+        # open-abap-core at the commit the package records - pack-npm
+        # reads it off node/deps, and the protocol's build transpiles the
+        # conformance apps against the same checkout (OPEN_ABAP_CORE_DIR)
+        deps: "true"
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: transpiled
+    - run: tar -xzf transpiled.tar.gz -C node
+    - name: Pack @abap2ui5/node-runtime from this checkout
+      run: npm run pack:node-runtime -- --out npm-package
+    - name: abap2UI5/protocol at a pinned commit of its main
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: abap2UI5/protocol
+        ref: 604d26769a9b7dcaa1f985f1297ff9c0a59b012e   # main, spec revision 0.3
+        path: protocol
+        persist-credentials: false
+    - name: The protocol package, with the runtime packed here
+      working-directory: protocol
+      run: |
+        npm ci --no-audit --no-fund
+        npm install --no-save --no-audit --no-fund ../npm-package/abap2ui5-node-runtime-*.tgz
+        node -p "'@abap2ui5/node-runtime ' + JSON.stringify(require('@abap2ui5/node-runtime/package.json').abap2ui5)"
+    - name: Backend suite against @abap2ui5/node-runtime
+      working-directory: protocol
+      env:
+        OPEN_ABAP_CORE_DIR: ${{ github.workspace }}/node/deps/open-abap-core
+      run: node scripts/run-conformance.mjs node-runtime --json report-backend-node-runtime.json
+    - name: Upload the report
+      if: failure()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: conformance-backend
+        path: protocol/report-*.json
+        retention-days: 7
+        if-no-files-found: ignore
+
+  conformance_frontend:
+    # the frontend suite with the protocol's ui5 adapter: this checkout's
+    # app/webapp in Chromium, booted against the suite's mock backend with
+    # OpenUI5 from the protocol's npm packages - no transpile needed, so it
+    # does not wait for one. About two minutes for the suite itself
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - name: abap2UI5/protocol at a pinned commit of its main
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: abap2UI5/protocol
+        ref: 604d26769a9b7dcaa1f985f1297ff9c0a59b012e   # main, spec revision 0.3 - keep equal to conformance_backend
+        path: protocol
+        persist-credentials: false
+    - uses: ./.github/actions/setup
+      with:
+        # the protocol's lockfile, not this repository's, is what installs
+        cache: "false"
+    - name: The protocol package and a Chromium for its playwright-core
+      working-directory: protocol
+      run: |
+        npm ci --no-audit --no-fund
+        npx playwright-core install --with-deps chromium
+    - name: Frontend suite against app/webapp (ui5 adapter)
+      working-directory: protocol
+      env:
+        ABAP2UI5_HOME: ${{ github.workspace }}
+      # one line per check in the log - a failing check names what the
+      # frontend did and the spec section it breaks
+      run: node conformance/backend/bin/abap2ui5-conformance.mjs frontend --adapter ui5
 
   test_unit_js:
     # The frontend unit specs run against app/webapp directly - no ABAP, so
