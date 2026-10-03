@@ -15,7 +15,7 @@ It brings:
   for a `z2ui5_cl_ui5_view_builder` chain), `abap-check` and `ui5-check` (the
   ABAP and UI5 problems a green lint does not catch). Claude Code lists them
   as `abap2ui5:build-an-app` and so on.
-- **Four slash commands** -
+- **Five slash commands** -
   - `/abap2ui5:new-app <what it should do>` - checks the sample catalogues,
     writes one class implementing `z2ui5_if_app` plus its `.clas.xml`,
     validates it, looks at a screenshot of the view, iterates, and ends
@@ -23,6 +23,15 @@ It brings:
   - `/abap2ui5:check [path]` - abaplint and the abap2UI5 linter over the
     changed classes (`npm run check` in an app-template project), every
     finding explained, the mechanical ones fixed;
+  - `/abap2ui5:add-ai [chat | summarize] <app class>` - adds a chat or a
+    summarize-this-data panel to an existing app, the way the samples
+    `Z2UI5_CL_SMP_APP_540` / `541` (local provider) and samples-stack
+    package 10 (`Z2UI5_CL_SMPS_APP_014` / `015`, a real model) do it: a
+    provider interface with a local stub first, so it runs on every system;
+    the answer in a second roundtrip behind a busy state; the data sent
+    capped and cleaned; then the switch to the samples-stack LLM classes,
+    with endpoint and key in a destination or the settings table, never in
+    the code;
   - `/abap2ui5:find-sample <topic>` - the best three matches across the
     three sample catalogues, with class, what it shows and a link;
   - `/abap2ui5:explain <class>` - lifecycle, events, bindings and the view
@@ -36,6 +45,18 @@ It brings:
   state pitfalls, chain layout, abapGit sidecar format) with read-only
   tools and reports findings as `file:line`. Ask for it by name ("have the
   abap2ui5-reviewer look at zcl_my_app") or pick it under `/agents`.
+- **A lint-on-edit hook** - after the agent edits or writes a `*.clas.abap`
+  file, the abap2UI5 linter's static check (the property gate, no headless
+  browser - well under a second) runs on that file, and its errors and
+  warnings go straight back to the agent, rule id and `file:line`, so it
+  fixes a typo'd control or a property UI5 1.71 does not have in the next
+  step. The project's `abap2ui5lint.jsonc` applies. It only runs where the
+  project already has the linter installed - `@abap2ui5/linter` in
+  `node_modules` above the file, as in an app-template project - and is
+  silent everywhere else: no download, no message, no delay. To switch it
+  off, set `"env": { "ABAP2UI5_LINT_HOOK": "off" }` in `.claude/settings.json`
+  (one project) or `~/.claude/settings.json` (everywhere); `"disableAllHooks":
+  true` turns off every hook, `/plugin` disables the whole plugin.
 - **The [MCP server](https://github.com/abap2UI5/mcp-server)** - search the
   sample catalogues, validate and fix a view, deploy, run headless and take a
   screenshot, no SAP system needed. It starts through
@@ -65,10 +86,13 @@ The full setup, including the other assistants, is
 `.claude/skills/` and `docs/agents/building-apps.md`, and
 `npm run check:plugin` fails a pull request whose copy is stale. Edit the
 source, never the copy, and run `npm run plugin`. Written by hand:
-`.claude-plugin/plugin.json`, this README, `commands/*.md` and
-`agents/abap2ui5-reviewer.md` - each one is named in the generator's
+`.claude-plugin/plugin.json`, this README, `commands/*.md`,
+`agents/abap2ui5-reviewer.md` and `hooks/` (`hooks.json` and the Node
+script it runs, no dependencies) - each one is named in the generator's
 `HAND_WRITTEN` set, and any other file under `plugin/` fails the check, so a
-new command or agent is added there too. The commands reach the MCP tools as
+new command, agent or hook script is added there too. The hook script is
+tested with hook payloads by `.github/scripts/plugin-hook.test.mjs`
+(`npm run check:plugin-hook`, part of `npm run gates` and `check_gates.yaml`). The commands reach the MCP tools as
 `mcp__plugin_abap2ui5_abap2ui5__<tool>`, the name Claude Code gives a tool of
 a plugin's own server; `claude plugin validate ./plugin` checks the lot.
 

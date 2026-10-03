@@ -33,6 +33,7 @@
     "check:backlog": "node .github/scripts/generate-backlog.mjs --check",
     "plugin": "node .github/scripts/generate-plugin.mjs",
     "check:plugin": "node .github/scripts/generate-plugin.mjs --check",
+    "check:plugin-hook": "node .github/scripts/plugin-hook.test.mjs",
     "check:version": "node .github/scripts/version-sync-gate.mjs",
     "check:icons": "node .github/scripts/ui5-icon-gate.mjs",
     "check:modules": "node .github/scripts/frontend-module-gate.mjs",

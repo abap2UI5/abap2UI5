@@ -9,7 +9,7 @@
     {
       "name": "abap2ui5",
       "source": "./plugin",
-      "description": "Build abap2UI5 apps with an agent: the build-an-app, view-chain-layout, abap-check and ui5-check skills, the /abap2ui5:new-app, check, find-sample and explain commands, an abap2ui5-reviewer subagent, plus the abap2UI5 MCP server (sample search, view validation, deploy, headless run and screenshot - no SAP system needed).",
+      "description": "Build abap2UI5 apps with an agent: the build-an-app, view-chain-layout, abap-check and ui5-check skills, the /abap2ui5:new-app, check, add-ai, find-sample and explain commands, an abap2ui5-reviewer subagent, a hook that runs the abap2UI5 linter on every edited class (where the project has it installed), plus the abap2UI5 MCP server (sample search, view validation, deploy, headless run and screenshot - no SAP system needed).",
       "category": "development",
       "tags": ["abap", "sap", "ui5", "abap2ui5"]
     }
