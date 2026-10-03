@@ -18,8 +18,9 @@ The three catalogues:
 
 ## Search
 
-- **MCP server available**: `examples { query: "..." }`, then again with
-  synonyms or the UI5 control name; `repo: "samples-controls"` when the
+- **MCP server available**: `examples { query: "..." }` - every word of a
+  query has to match, so one or two words each - then again with synonyms
+  or the UI5 control name; `repo: "samples-controls"` when the
   request names a control. If nothing fits a control question,
   `capabilities` says whether abap2UI5 can express it at all.
 - **Without MCP**: fetch https://abap2ui5.github.io/playground/samples/apps.json
@@ -41,8 +42,10 @@ The best three, each as:
 - **`CLASS_NAME`** (repository) - what it shows, in one sentence; what it
   needs from the system when that is more than abap2UI5.
   Source: `https://github.com/abap2UI5/<repo>/blob/main/<file>`; running
-  version: `https://abap2ui5.github.io/playground/samples/<class in lower case>/` when the
-  catalogue lists it.
+  version: `https://abap2ui5.github.io/playground/samples/<class in lower case>/`
+  only when you fetched `apps.json` and it lists the class - the MCP
+  `examples` entries do not say, so leave the line out rather than writing
+  that it is not listed.
 
 Then one line on which to read first and why. Fewer than three good matches:
 show what there is and say so - never pad with weak hits, never invent a

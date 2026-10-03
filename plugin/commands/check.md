@@ -1,7 +1,7 @@
 ---
 description: Run the abap2UI5 gates (abaplint and the abap2UI5 linter) over the project or the changed classes, explain every finding and fix the ones that are clearly safe.
 argument-hint: "[file or folder - default: the classes changed in git, else src/]"
-allowed-tools: Read, Grep, Glob, Bash(git status *), Bash(git diff *), Bash(npm run check), Bash(npm run check:abap), Bash(npm run check:abap2ui5), Bash(npm run check:abap2ui5:fast), mcp__plugin_abap2ui5_abap2ui5__validate_view, mcp__plugin_abap2ui5_abap2ui5__fix_view, mcp__plugin_abap2ui5_abap2ui5__pitfalls
+allowed-tools: Read, Grep, Glob, Edit, Bash(git status *), Bash(git diff *), Bash(npm run check), Bash(npm run check:abap), Bash(npm run check:abap2ui5), Bash(npm run check:abap2ui5:fast), Bash(npm run fix), mcp__plugin_abap2ui5_abap2ui5__validate_view, mcp__plugin_abap2ui5_abap2ui5__fix_view, mcp__plugin_abap2ui5_abap2ui5__pitfalls
 ---
 
 Run the abap2UI5 gates on: **$ARGUMENTS**
@@ -18,9 +18,12 @@ Run the abap2UI5 gates on: **$ARGUMENTS**
 Pick the first that applies:
 
 1. **The project has app-template's scripts** (`package.json` has a `check`
-   script that runs `abaplint` and `abap2ui5lint`): `npm run check`. It lints
-   the whole project; report the findings in scope first. Without
-   `node_modules`, run `npm ci` first (ask before installing).
+   script that runs `abaplint` and `abap2ui5lint`): `npm run check:abap`
+   and `npm run check:abap2ui5`, as two commands - `npm run check` chains
+   them with `&&`, so an abaplint finding (a missing BOM is one) hides every
+   linter finding until it is fixed. Both lint the whole project; report the
+   findings in scope first. Without `node_modules`, run `npm ci` first (ask
+   before installing).
 2. **Otherwise**, two commands:
    - abaplint, when the project has an `abaplint.json` / `abaplint.jsonc`:
      `npx --yes @abaplint/cli <that file>`. Without one, skip it and say so -
@@ -56,7 +59,8 @@ Safe means mechanical and behaviour-preserving:
   source; write it back yourself);
 - chain layout per the `abap2ui5:view-chain-layout` skill;
 - sidecar format (BOM, line endings, final newline, `<CLSNAME>` case,
-  `<WITH_UNIT_TESTS>` matching the test include);
+  `<WITH_UNIT_TESTS>` matching the test include) - with the Edit tool; a
+  missing BOM is a U+FEFF put in front of `<?xml`, no `sed` or `printf`;
 - an obsolete call the linter names a direct replacement for
   (`_bind_edit` -> `_bind`, a leftover `view_model_update( )` deleted).
 
