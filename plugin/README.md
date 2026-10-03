@@ -43,7 +43,11 @@ It brings:
   npm on the PATH; the first start downloads it. Claude Code names it
   `plugin:abap2ui5:abap2ui5`, so a copy registered earlier with
   `claude mcp add abap2ui5` does not clash - but the agent then sees every
-  tool twice; `claude mcp remove abap2ui5` drops the old one.
+  tool twice; `claude mcp remove abap2ui5` drops the old one. The same goes
+  for a project's own `.mcp.json` that registers the server - app-template
+  ships one, and `npm create abap2ui5-app -- --agent-setup` writes one: in
+  such a project either keep the plugin's server and decline the project's
+  when Claude Code asks, or use the project's and disable the plugin there.
 
 The plugin carries no version number of its own, so every commit here is a
 new version. To pick one up: `claude plugin marketplace update abap2ui5`,
