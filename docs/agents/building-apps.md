@@ -22,7 +22,7 @@ app dispatches on why it was called: it has to put its view on screen
 app), or the user interacted with it (`check_on_event`), or it is running for
 the very first time and has one-time setup to do (`check_on_init`). The first
 two are the dispatcher; the third is a branch an app only carries when it has
-something to seed once.
+something to seed once. All three are arms of ONE `IF`/`ELSEIF` chain (§2).
 The app builds a UI5 XML view as a string, binds ABAP attributes into it,
 and registers named events. Between roundtrips the framework
 serializes the app object into a draft table and restores it — **every PUBLIC
@@ -136,16 +136,19 @@ navigating away (`nav_app_call`) and back leaves the app blank — the
 framework fires `check_on_navigated`, nothing re-displays. Always re-run
 `view_display( )` there.
 
-**And it is the ONLY display branch — `check_on_init( )` is for one-time setup,
-never for displaying.** `check_on_init( )` being true implies
-`check_on_navigated( )` is true: all four ways an instance reaches its first
-`main( )` set the flag (`factory_first_start` for a fresh start and for a draft
-restore, `factory_system_startup`, and `prepare_app_stack` for both
-`nav_app_call` and `nav_app_leave`). So an `IF check_on_init( ). view_display( ).
-ELSEIF check_on_navigated( ). view_display( ).` fork decides nothing — both arms
-do the same thing — and `IF check_on_init( ) OR check_on_navigated( ).` is the
-same redundancy spelled differently. An app with nothing to seed carries no
-`check_on_init( )` branch at all:
+**The dispatcher is ONE `IF`/`ELSEIF` chain, so exactly one arm runs per
+roundtrip — which is why the `check_on_init( )` arm displays too.**
+`check_on_init( )` being true implies `check_on_navigated( )` is true: all
+four ways an instance reaches its first `main( )` set the flag
+(`factory_first_start` for a fresh start and for a draft restore,
+`factory_system_startup`, and `prepare_app_stack` for both `nav_app_call` and
+`nav_app_leave`). On that first roundtrip the init arm wins and the `ELSEIF
+check_on_navigated( )` arm is skipped, so the init arm seeds AND displays, as
+in the template above. What decides nothing is an init arm that ONLY displays:
+`IF check_on_init( ). view_display( ). ELSEIF check_on_navigated( ).
+view_display( ).` has two identical arms (the linter's `redundant-init-display`),
+and `IF check_on_init( ) OR check_on_navigated( ).` is the same redundancy
+spelled differently. An app with nothing to seed drops the init arm:
 
 ```abap
     me->client = client.
@@ -156,9 +159,23 @@ same redundancy spelled differently. An app with nothing to seed carries no
     ENDIF.
 ```
 
-Keep `check_on_init( )` where it earns its place — a `model_init( )` call, or
-the one or two control-state flags an app seeds inline — and let
-`check_on_navigated( )` fall through to the display.
+Keep the `check_on_init( )` arm where it earns its place — a `model_init( )`
+call, or the one or two control-state flags an app seeds inline — followed by
+the same `view_display( )` the navigated arm makes.
+
+- **Do:** one chain — `IF client->check_on_init( ).` (seed, then display),
+  `ELSEIF client->check_on_navigated( ).` (display), `ELSEIF
+  client->check_on_event( ).` (dispatch), as in the template.
+- **Don't:** seed in an `IF client->check_on_init( ). … ENDIF.` block of its own
+  and display in a second `IF client->check_on_navigated( ).` block, or nest one
+  lifecycle `IF` inside another arm. The flags overlap — init implies
+  navigated, and an app handed control back can arrive with an event too — so
+  separate blocks run more than one of them on one roundtrip, and the order
+  they happen to sit in becomes the behaviour. The linter reports every such
+  pair as `separate-lifecycle-ifs`, without an automatic fix for the
+  seed-then-display pair: folding it into an `ELSEIF` as it stands would leave
+  the first screen empty. The one exempt shape is a guard block that leaves
+  the method (`… RETURN. ENDIF.`).
 
 Two more conventions, both about reading the source rather than running it:
 
