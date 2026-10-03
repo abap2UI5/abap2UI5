@@ -69,6 +69,10 @@ const REPOS = [
   { org: 'abap2UI5-addons', repo: 'custom-controls' },
   { org: 'abap2UI5-addons', repo: 'rap-ext' },
   { org: 'abap2UI5-addons', repo: 'fork-abapToC' },
+  /* Added 2026-10-03, the day it got the package.json the rule asks for
+   * (abap2UI5-addons/config-management#6). Before that it had no package.json
+   * at all, so listing it would have been a finding nobody could act on. */
+  { org: 'abap2UI5-addons', repo: 'config-management' },
 ].map((e) => (typeof e === 'string' ? { org: 'abap2UI5', repo: e } : e));
 
 const raw = ({ org, repo }, file) => `https://raw.githubusercontent.com/${org}/${repo}/main/${file}`;
