@@ -405,6 +405,17 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE timestampl.
 
+    "! Milliseconds from time_from to time_to - two time_get_timestampl( )
+    "! readings - negative when time_to lies before time_from, 0 when either
+    "! is initial. Meant for intervals: one beyond the integer range (about
+    "! 24 days) raises a conversion overflow.
+    CLASS-METHODS time_diff_milliseconds
+      IMPORTING
+        time_from     TYPE timestampl
+        time_to       TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE i.
+
     CLASS-METHODS c_trim
       IMPORTING
         val           TYPE any
@@ -684,6 +695,15 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         classname     TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+    TYPES ty_p_seconds TYPE p LENGTH 16 DECIMALS 7.
+
+    " a timestamp as seconds since 1970-01-01 - see time_diff_milliseconds
+    CLASS-METHODS time_get_seconds
+      IMPORTING
+        !time         TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE ty_p_seconds.
 
     TYPES:
       BEGIN OF ty_s_bool_cache,
@@ -1522,6 +1542,68 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
+
+  ENDMETHOD.
+
+  METHOD time_diff_milliseconds.
+
+    " Plain arithmetic on the digits, and deliberately neither of the two
+    " obvious candidates. cl_abap_tstmp=>subtract answers whole seconds in
+    " open-abap - the runtime of the transpiled backend (npm run unit, the
+    " node runtime) - so every interval under a second read 0 there. GET RUN
+    " TIME counts microseconds since the first call of the internal session
+    " on a system, but milliseconds since the PREVIOUS call in the transpiled
+    " runtime, so the difference of two readings means something else there.
+    " GET TIME STAMP plus the arithmetic below means the same everywhere -
+    " standard ABAP, ABAP Cloud, 7.02 and the transpiled runtime, at whatever
+    " precision the platform's clock has (milliseconds in the last one).
+    IF time_from IS INITIAL OR time_to IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    result = ( time_get_seconds( time_to ) - time_get_seconds( time_from ) ) * 1000.
+
+  ENDMETHOD.
+
+  METHOD time_get_seconds.
+
+    CONSTANTS lc_epoch TYPE d VALUE '19700101'.
+    DATA lv_text TYPE string.
+    DATA lv_frac TYPE string.
+    DATA lv_date TYPE d.
+    DATA lv_hour TYPE i.
+    DATA lv_min  TYPE i.
+    DATA lv_sec  TYPE i.
+
+    " Read off the digits of YYYYMMDDhhmmss.fffffff, not computed with DIV
+    " and MOD on the number: the transpiled runtime holds a packed value as
+    " a JavaScript double, and fourteen integer digits leave it a resolution
+    " of about 4 ms - 20261003101500.35 is 20261003101500.34765625 there -
+    " while its string conversion renders the declared decimals exactly. A
+    " system computes exactly either way. The date goes through the date
+    " type, which then counts days - a NUMBER assigned to a date would be
+    " read as days since 0001-01-01, not as YYYYMMDD
+    lv_text = |{ time }|.
+    SPLIT lv_text AT `.` INTO lv_text lv_frac.
+    IF strlen( lv_text ) <> 14.
+      RETURN.
+    ENDIF.
+
+    lv_date = lv_text.
+    lv_hour = substring( val = lv_text
+                         off = 8
+                         len = 2 ).
+    lv_min  = substring( val = lv_text
+                         off = 10
+                         len = 2 ).
+    lv_sec  = substring( val = lv_text
+                         off = 12
+                         len = 2 ).
+    lv_frac = substring( val = lv_frac && `0000000`
+                         len = 7 ).
+
+    result = ( lv_date - lc_epoch ) * 86400 + lv_hour * 3600 + lv_min * 60 + lv_sec.
+    result = result + lv_frac / 10000000.
 
   ENDMETHOD.
 

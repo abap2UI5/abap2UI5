@@ -424,3 +424,20 @@ test.describe("the X-CSRF-Token handshake", () => {
     expect(env.successes.map((s) => s.ID)).toEqual(["n"]);
   });
 });
+
+// The browser-side duration of a roundtrip - POST to parsed response - is
+// kept for the NEXT request, which carries it to the backend's roundtrip
+// monitor as MS_CLIENT_PREV (serverLocation.spec.js pins that half).
+test.describe("the roundtrip's own duration", () => {
+  test("a good response records it, a failed one does not", async () => {
+    const env = load();
+    await answer(env, response({ json: { S_FRONT: { ID: "X" } } }));
+
+    expect(typeof env.ctx.state.lastRoundtripMs).toBe("number");
+    expect(env.ctx.state.lastRoundtripMs).toBeGreaterThanOrEqual(0);
+
+    const failed = load();
+    await answer(failed, response({ ok: false, status: 500, text: "dump" }));
+    expect(failed.ctx.state.lastRoundtripMs).toBeFalsy();
+  });
+});

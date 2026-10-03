@@ -177,6 +177,54 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
+    " The roundtrip monitor of THIS request (z2ui5_cl_ui5_srv_monitor), asked
+    " once at the start of main( ), and the instants the roundtrip is measured
+    " at. Unbound and initial while no monitor is installed - a system without
+    " one pays the latched lookup and nothing else: no clock reading, no
+    " error text, no structure
+    TYPES:
+      BEGIN OF ty_s_monitor_time,
+        start        TYPE timestampl,
+        loaded       TYPE timestampl,
+        render_start TYPE timestampl,
+        render_end   TYPE timestampl,
+      END OF ty_s_monitor_time.
+    DATA mi_monitor      TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA ms_monitor_time TYPE ty_s_monitor_time.
+
+    "! Hand this roundtrip to the monitor, if one is installed - ix_error is
+    "! the exception the 500 body will render, unbound on success. Never
+    "! raises: it also runs inside the CATCH block of main( )
+    METHODS monitor_notify
+      IMPORTING
+        ix_error TYPE REF TO cx_root OPTIONAL.
+
+    "! What the monitor receives - see z2ui5_if_ui5_monitor=>ty_s_roundtrip
+    METHODS monitor_roundtrip
+      IMPORTING
+        ix_error      TYPE REF TO cx_root OPTIONAL
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
+
+    "! the fields of the roundtrip that come off the request and the app -
+    "! filled as far as the request got before it ended, on both paths
+    METHODS monitor_request_info
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
+
+    "! the four durations, measured up to iv_now - a phase the request never
+    "! reached stays 0, the phase it failed in ends at iv_now
+    METHODS monitor_durations
+      IMPORTING
+        iv_now       TYPE timestampl
+      CHANGING
+        cs_roundtrip TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
+
+    "! the clock for the monitor - initial while none is installed
+    METHODS monitor_clock
+      RETURNING
+        VALUE(result) TYPE timestampl.
+
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
     METHODS session_merge.
@@ -408,6 +456,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     result-s_front-search      = lo_ajson->get_string( lv_front && `/SEARCH` ).
     result-s_front-t_event_arg = request_parse_event_args( io_json  = lo_ajson
                                                            iv_front = lv_front ).
+
+    " a diagnostic the browser sends for the monitor - a value that does not
+    " read as a non-negative integer is dropped, never the request
+    TRY.
+        result-s_front-ms_client_prev = lo_ajson->get_integer( lv_front && `/MS_CLIENT_PREV` ).
+      CATCH cx_root.
+        CLEAR result-s_front-ms_client_prev.
+    ENDTRY.
+    IF result-s_front-ms_client_prev < 0.
+      CLEAR result-s_front-ms_client_prev.
+    ENDIF.
 
     DATA(lv_config) = lv_front && `/CONFIG`.
     IF lo_ajson->exists( lv_config ) = abap_true.
@@ -870,6 +929,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD main.
 
+    " the monitor first, so the roundtrip is measured from here on - a sticky
+    " handler answers several requests, so nothing of the previous one's
+    " instants may stand
+    mi_monitor = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    CLEAR ms_monitor_time.
+    ms_monitor_time-start = monitor_clock( ).
+
     " The exception itself only says WHAT went wrong. Which app, which event
     " and which draft it went wrong in is known here and nowhere above, so
     " annotate it on the way out - the top-level catch in
@@ -877,6 +943,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " included, into the 500 body.
     TRY.
         main_begin( ).
+        ms_monitor_time-loaded = monitor_clock( ).
         main_loop( ).
       CATCH cx_root INTO DATA(x).
         DATA lv_context TYPE string.
@@ -886,10 +953,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             lv_context = request_context_info( ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val      = lv_context
-            previous = x.
+        " built before it is raised so the monitor sees the very object the
+        " 500 body renders - the error id get_text_full stamps on it is then
+        " the same in the monitor's log and on the user's screen
+        DATA(lx_error) = NEW z2ui5_cx_ui5_util_error( val      = lv_context
+                                                      previous = x ).
+        monitor_notify( lx_error ).
+        RAISE EXCEPTION lx_error.
     ENDTRY.
 
     " `OK`, the reason phrase every other 200 of this handler carries
@@ -897,6 +967,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                       s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
                       status_reason = `OK` ).
+
+    " after the draft save (main_end_save) and its commit - see the LUW note
+    " on z2ui5_if_ui5_monitor
+    monitor_notify( ).
 
     " the handler may be sticky and answer the next request too - nothing of
     " this roundtrip's queues and intents may leak into it
@@ -1195,6 +1269,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD main_end.
 
+    ms_monitor_time-render_start = monitor_clock( ).
+
     " the URL intent first - see main_end_nav
     main_end_nav( ).
 
@@ -1257,6 +1333,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     mv_response = response_abap_to_json( ms_response ).
 
     main_end_save( ).
+
+    ms_monitor_time-render_end = monitor_clock( ).
 
   ENDMETHOD.
 
@@ -1364,6 +1442,145 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       main_end( ).
       check_go_client = abap_true.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD monitor_clock.
+
+    IF mi_monitor IS BOUND.
+      result = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD monitor_notify.
+
+    IF mi_monitor IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " Everything below is guarded, and the monitor's own call above all: this
+    " runs inside the CATCH block of main( ) too, where a raise would replace
+    " the error report, and a monitor must never break a roundtrip - it fails
+    " open, see z2ui5_cl_ui5_srv_monitor=>get_monitor
+    TRY.
+        DATA(ls_roundtrip) = monitor_roundtrip( ix_error ).
+
+        " A failed roundtrip of an app that is not sticky leaves the LUW as
+        " the failure left it: the db_rollback that follows the app's main( )
+        " in main_process never ran. Rolled back here, as the success path
+        " would have, so a monitor that commits its log entry commits nothing
+        " of the app. Only with a monitor installed - without one the request
+        " ends exactly as it always did - and never for a sticky app, whose
+        " LUW the framework does not touch on any path (main_process)
+        IF ls_roundtrip-check_error = abap_true AND ls_roundtrip-check_sticky = abap_false.
+          z2ui5_cl_ui5_util_context=>db_rollback( ).
+        ENDIF.
+
+        mi_monitor->on_roundtrip( ls_roundtrip ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD monitor_roundtrip.
+
+    DATA(lv_now) = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
+
+    result = monitor_request_info( ).
+    result-timestampl    = ms_monitor_time-start.
+    result-bytes_request = strlen( mv_request_json ).
+    monitor_durations( EXPORTING iv_now       = lv_now
+                       CHANGING  cs_roundtrip = result ).
+
+    IF ix_error IS NOT BOUND.
+      " the response of THIS request - on the error path a sticky handler
+      " still holds the previous one's, which is why nothing reads it there
+      result-app            = ms_response-s_front-app.
+      result-draft_id       = ms_response-s_front-id.
+      result-bytes_response = strlen( mv_response ).
+      IF ms_response-model IS NOT INITIAL AND ms_response-model <> `{}`.
+        result-bytes_model = strlen( ms_response-model ).
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    result-check_error = abap_true.
+    result-error_text  = z2ui5_cx_ui5_util_error=>get_text_full( ix_error ).
+
+    " the root cause is the innermost link - bounded like get_text_full's
+    " walk, so a chain that loops cannot hold the request
+    DATA(lx_root) = ix_error.
+    DO 50 TIMES.
+      IF lx_root->previous IS NOT BOUND.
+        EXIT.
+      ENDIF.
+      lx_root = lx_root->previous.
+    ENDDO.
+    result-error_class = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lx_root ).
+
+  ENDMETHOD.
+
+  METHOD monitor_request_info.
+
+    result-uname = sy-uname.
+
+    " the same guards as request_context_info: the request may have died
+    " before any of this existed, and before THIS body was parsed a sticky
+    " handler still holds the previous roundtrip's action. The client-
+    " controlled values are capped like there
+    IF mv_request_parsed = abap_true.
+      result-event          = context_info_cap( ms_request-s_front-event ).
+      result-draft_id_prev  = context_info_cap( ms_request-s_front-id ).
+      result-check_start    = xsdbool( ms_request-s_front-id IS INITIAL ).
+      result-ms_client_prev = ms_request-s_front-ms_client_prev.
+    ENDIF.
+
+    IF mo_action IS NOT BOUND.
+      RETURN.
+    ENDIF.
+    IF mo_action->mo_app IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " read before the parse check on purpose: on an unparsed body of a
+    " sticky session the app it holds still owns the LUW - which is what
+    " monitor_notify and the implementation decide by
+    result-check_sticky = mo_action->mo_app->mv_check_sticky.
+
+    IF mv_request_parsed = abap_true AND mo_action->mo_app->mo_app IS BOUND.
+      result-app = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD monitor_durations.
+
+    cs_roundtrip-ms_total = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-start
+                                                                              time_to    = iv_now ).
+
+    IF ms_monitor_time-loaded IS INITIAL.
+      cs_roundtrip-ms_load = cs_roundtrip-ms_total.
+      RETURN.
+    ENDIF.
+
+    cs_roundtrip-ms_load = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-start
+                                                                             time_to    = ms_monitor_time-loaded ).
+
+    IF ms_monitor_time-render_start IS INITIAL.
+      cs_roundtrip-ms_main = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-loaded
+                                                                               time_to    = iv_now ).
+      RETURN.
+    ENDIF.
+
+    cs_roundtrip-ms_main = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-loaded
+                                                                             time_to    = ms_monitor_time-render_start ).
+
+    DATA(lv_render_end) = COND #( WHEN ms_monitor_time-render_end IS INITIAL
+                                  THEN iv_now
+                                  ELSE ms_monitor_time-render_end ).
+    cs_roundtrip-ms_render = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-render_start
+                                                                               time_to    = lv_render_end ).
 
   ENDMETHOD.
 

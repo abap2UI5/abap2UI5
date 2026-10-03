@@ -102,6 +102,10 @@
 //                     JSON.stringify result's length, not the bytes on the
 //                     wire; the developer tools' recorder shows it as REQ
 //                     so the body is not serialized a second time for it
+//   lastRoundtripMs   the duration of the last successful roundtrip as the
+//                     browser saw it, POST to parsed response, in ms
+//                     (Server.readHttp) - the next request carries it to
+//                     the backend's roundtrip monitor as MS_CLIENT_PREV
 //   lastMainDisplayOptions  the options of the last MAIN display
 //                     (actions/Slots), so a re-display of the slot outside
 //                     a roundtrip (devtools LiveEdit) keeps the OData
@@ -203,6 +207,7 @@ sap.ui.define([], () => {
       oQueuedEvent: null,
       oSentModel: null,
       lastRequestBytes: null,
+      lastRoundtripMs: null,
       lastMainDisplayOptions: null,
 
       // Hash-based app routing (UI5 Router style, opt-in per app via

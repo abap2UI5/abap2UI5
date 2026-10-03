@@ -1607,3 +1607,76 @@ CLASS ltcl_data_box IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_time DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS test_diff_ms_fraction    FOR TESTING RAISING cx_static_check.
+    METHODS test_diff_ms_minute_wrap FOR TESTING RAISING cx_static_check.
+    METHODS test_diff_ms_midnight    FOR TESTING RAISING cx_static_check.
+    METHODS test_diff_ms_negative    FOR TESTING RAISING cx_static_check.
+    METHODS test_diff_ms_initial     FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_time IMPLEMENTATION.
+
+  METHOD test_diff_ms_fraction.
+
+    " below a second - what cl_abap_tstmp=>subtract loses in the transpiled
+    " runtime, which answers whole seconds there
+    cl_abap_unit_assert=>assert_equals(
+        exp = 250
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20261003101500.1000000`
+                                                                 time_to   = `20261003101500.3500000` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_diff_ms_minute_wrap.
+
+    " a timestamp is YYYYMMDDhhmmss, not a count - 10:15:59.9 to 10:16:00.1
+    " is 200 ms, while the digits differ by 40.2
+    cl_abap_unit_assert=>assert_equals(
+        exp = 200
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20261003101559.9000000`
+                                                                 time_to   = `20261003101600.1000000` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 3600000
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20261003095959.0000000`
+                                                                 time_to   = `20261003105959.0000000` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_diff_ms_midnight.
+
+    " across midnight and a year end
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1500
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20261231235959.5000000`
+                                                                 time_to   = `20270101000001.0000000` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_diff_ms_negative.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = -1000
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20261003101501.0000000`
+                                                                 time_to   = `20261003101500.0000000` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_diff_ms_initial.
+
+    DATA lv_initial TYPE timestampl.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = 0
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = lv_initial
+                                                                 time_to   = `20261003101500.0000000` ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.

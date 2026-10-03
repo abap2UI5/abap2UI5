@@ -59,8 +59,9 @@ Two audiences, two entry points:
 - [CI/CD workflows](docs/agents/ci-workflows.md): what every workflow does,
   grouped by purpose, and the two deliveries of the transpiled backend
 - [Architecture seams](docs/agents/architecture-seams.md): the swappable
-  draft store and serializer (for hosts that are not an SAP system) and the
-  codepage fallback a view render survives
+  draft store and serializer (for hosts that are not an SAP system), the
+  roundtrip monitor (z2ui5_if_ui5_monitor, for usage/performance/error
+  logging) and the codepage fallback a view render survives
 - [Design decisions](docs/agents/decisions.md): what was proposed, measured
   and declined - AGENTS.md keeps only the one-line prohibitions
 - [API-snapshot exceptions](docs/agents/api-snapshot-exceptions.md): the

@@ -164,3 +164,17 @@ test("the Back/Forward restore cancels the timers of the screen it leaves", () =
   expect(bodies).toHaveLength(1);
   expect(bodies[0].ID).toBeUndefined();
 });
+
+// The previous roundtrip's duration as the browser measured it
+// (Server.readHttp, serverReadHttp.spec.js) travels with the next request
+// for the backend's roundtrip monitor - and is left off until there is one.
+test("the previous roundtrip's duration travels as MS_CLIENT_PREV", () => {
+  const { Server, bodies } = loadServer();
+
+  Server.roundtrip({});
+  expect(bodies[0].S_FRONT.MS_CLIENT_PREV).toBeUndefined();
+
+  const measured = loadServer({ lastRoundtripMs: 312 });
+  measured.Server.roundtrip({ ID: "DRAFT1" });
+  expect(measured.bodies[0].S_FRONT.MS_CLIENT_PREV).toBe(312);
+});

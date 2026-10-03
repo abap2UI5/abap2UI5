@@ -112,6 +112,10 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          sFront.CONFIG = config;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        if (state.lastRoundtripMs) {` && |\n| &&
+             `          sFront.MS_CLIENT_PREV = state.lastRoundtripMs;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        Object.assign(sFront, Session.location(ctx, oBody.ID));` && |\n| &&
              `` && |\n| &&
              `        if (oBody.ARGUMENTS) oBody.ARGUMENTS.shift();` && |\n| &&
@@ -180,12 +184,15 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        const superseder = new AbortController();` && |\n| &&
              `        ctx.server.inflight.add(superseder);` && |\n| &&
              `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
+             `` && |\n| &&
+             `        let sentAt;` && |\n| &&
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
              `            const body = JSON.stringify({ value: oBody });` && |\n| &&
              `` && |\n| &&
              `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
+             `            sentAt = Date.now();` && |\n| &&
              `            response = await this._post(ctx, body, signal);` && |\n| &&
              `` && |\n| &&
              `            if (` && |\n| &&
@@ -273,6 +280,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          ctx.state.responseData = responseData;` && |\n| &&
              `` && |\n| &&
              `          Session.confirmSent(ctx, sessionCarried);` && |\n| &&
+             `` && |\n| &&
+             `          ctx.state.lastRoundtripMs = Date.now() - sentAt;` && |\n| &&
              `` && |\n| &&
              `          this._clearSentPaths(ctx.state.oSentModel);` && |\n| &&
              `          ctx.state.oSentModel = null;` && |\n| &&
@@ -415,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this.responseError(ctx, err);` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      responseError(ctx, response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
@@ -424,8 +434,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
-             `    };` && |\n|.
-    result = result &&
+             `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
