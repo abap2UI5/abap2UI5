@@ -70,11 +70,35 @@ export function initialize(): Promise<void>;
 export function exclusive<T>(fn: () => T | Promise<T>): Promise<T>;
 
 /**
+ * Run `fn` - one request through the shim - in the stateful session the
+ * request names (header or cookie `sap-contextid`), and put the id of the
+ * stateful session it leaves behind on the response: a header when the
+ * request sent `sap-contextid-accept: header`, else an HttpOnly cookie. The
+ * framework keeps a stateful app's handler in class-data, one per roll area
+ * on an SAP system, one per process here - so the host keeps it per session
+ * and swaps it in and out around each request. Call it inside `exclusive()`;
+ * `createHandler()` does both. `owner` binds a session to a host's user: a
+ * request of another user that names the id runs without it.
+ */
+export function withSession<T>(req: object, res: object, fn: () => T | Promise<T>, options?: { owner?: string }): Promise<T>;
+
+/**
+ * How long an idle stateful session is kept (`ttlMs`, default 30 minutes) and
+ * how many are kept at most (`max`, default 1000 - the least recently used
+ * goes first). Returns the limits in force.
+ */
+export function configureSessions(limits?: { ttlMs?: number; max?: number }): { ttlMs: number; max: number };
+
+/** The number of stateful sessions the process keeps right now. */
+export function sessionCount(): number;
+
+/**
  * The HTTP handler alone, for a server that is not express. It reads an
  * express-shaped request (`method`, `url`, `path`, `headers`, `body` as a
  * Buffer) and response (`append()`, `status().send()`), boots the
  * runtime on the first request when nothing called `initialize()` before,
- * and queues the requests (`exclusive()`).
+ * queues the requests (`exclusive()`) and keeps the stateful sessions
+ * (`withSession()`).
  */
 export function createHandler(options?: HandlerOptions): Handler;
 

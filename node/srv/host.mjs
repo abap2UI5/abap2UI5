@@ -29,6 +29,11 @@
  *                    the framework - what createHandler() puts around every
  *                    request (ONE REQUEST AT A TIME, below). For a host that
  *                    calls the shim itself.
+ *   withSession(req, res, fn)
+ *                    runs fn - one request - in the stateful session the
+ *                    request names, and hands the session id back on the
+ *                    response (STATEFUL SESSIONS, below). createHandler()
+ *                    puts it around every request; inside exclusive( ).
  *
  * accelerate() (srv/accelerate.mjs, re-exported here) installs nothing any
  * more: @abaplint/runtime from 2.13.96 on is linear on large tables itself
@@ -67,6 +72,44 @@
  * the queue. node/tests/concurrency.spec.js holds it, against flows of the
  * app stack with a request that waits in the middle.
  *
+ * STATEFUL SESSIONS. An app that calls client->set_session_stateful( ) is
+ * kept in memory between its requests: the framework holds its handler in
+ * z2ui5_cl_ui5_http_handler=>so_sticky_handler, and on an SAP system the ICF
+ * gives the browser a session (sap-contextid) whose roll area keeps that
+ * class-data - every other browser has a roll area, and a sticky handler, of
+ * its own. In this process there is one class-data for all of them, and the
+ * shim's set_session_stateful( ) is a no-op: the first app that went
+ * stateful answered every later request of every client (the framework
+ * takes the sticky handler whatever draft id a request names). The host is
+ * the session layer here, the way the ICF is on an SAP system:
+ *   - a stateful session is the sticky handler a response left behind. The
+ *     host keeps it under a session id of its own (random, never one a client
+ *     proposed) and sends that id back in the response header sap-contextid
+ *     when the request asked for it (sap-contextid-accept: header - the UI5
+ *     frontend always does), else as an HttpOnly cookie, the ICF's default;
+ *   - a request that names a session the host keeps gets its sticky handler
+ *     put back before the framework runs, any other request - no id, an id
+ *     the host never issued, an expired one - runs with none, as a request
+ *     in a new roll area would; after the request the class-data is cleared
+ *     again, so nothing of one session is ever seen by the next request;
+ *   - set_session_stateful( abap_false ) ends the session (the response
+ *     leaves no sticky handler), so does the frontend's terminate ping (HEAD
+ *     with sap-terminate: session) once the framework answered it, and a
+ *     session idle for longer than its ttl (30 minutes, as rdisp/plugin_auto
+ *     logout ends an ICF session); at most `max` sessions are kept, the least
+ *     recently used goes first (configureSessions( ));
+ *   - the framework never sees a session header: they are taken off the
+ *     request before the shim reads it. Its own contextid handling is the
+ *     ICF's cookie-to-header transform (set_response), which reads the
+ *     response cookie the ICF sets - a call open-abap's HTTP entity does not
+ *     implement, so a stateful app answered with a 500 here - and otherwise
+ *     echoed whatever sap-contextid the request carried, a forged one too.
+ * A host with users (cap2UI5) binds a session to its owner: withSession( )'s
+ * `owner` - a request of another user that names the id runs without it.
+ * Only the sticky handler is per session; the class-data of the apps
+ * themselves is the process's, as before. node/tests/sessions.spec.js holds
+ * it.
+ *
  * THE FRONTEND needs nothing here. The GET branch of
  * z2ui5_cl_ui5_http_handler answers with the page and the whole UI5 component
  * embedded in it - every module, view and stylesheet, carried as ABAP
@@ -75,9 +118,11 @@
  * construction, and the package carries no frontend files of its own. A
  * first cut shipped app/webapp as well; nothing in a Node host read it.
  */
+import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
+import { z2ui5_cl_ui5_http_handler } from "../output/z2ui5_cl_ui5_http_handler.clas.mjs";
 import { accelerate } from "./accelerate.mjs";
 import { compress } from "./compress.mjs";
 
@@ -126,9 +171,153 @@ export function exclusive(fn) {
   return run;
 }
 
+const SESSION_HEADER = "sap-contextid";
+// session id -> { handler, owner, last } - see STATEFUL SESSIONS above
+const sessions = new Map();
+const sessionLimits = { ttlMs: 30 * 60 * 1000, max: 1000 };
+
+/**
+ * Set how long an idle stateful session is kept (`ttlMs`, default 30
+ * minutes) and how many are kept at most (`max`, default 1000; the least
+ * recently used goes first). Returns the limits now in force.
+ * @param {{ ttlMs?: number, max?: number }} [limits]
+ * @returns {{ ttlMs: number, max: number }}
+ */
+export function configureSessions({ ttlMs, max } = {}) {
+  if (Number.isFinite(ttlMs) && ttlMs > 0) sessionLimits.ttlMs = ttlMs;
+  if (Number.isInteger(max) && max > 0) sessionLimits.max = max;
+  return { ...sessionLimits };
+}
+
+/** The number of stateful sessions this process keeps right now. */
+export function sessionCount() {
+  sweepSessions(Date.now());
+  return sessions.size;
+}
+
+function sweepSessions(now) {
+  for (const [id, s] of sessions) {
+    if (now - s.last > sessionLimits.ttlMs) sessions.delete(id);
+  }
+  // a Map iterates in insertion order and a used session is re-inserted, so
+  // the first entries are the least recently used
+  for (const id of sessions.keys()) {
+    if (sessions.size <= sessionLimits.max) break;
+    sessions.delete(id);
+  }
+}
+
+function headerOf(headers, name) {
+  const v = headers?.[name];
+  return Array.isArray(v) ? v[0] : v;
+}
+
+function cookieOf(header, name) {
+  for (const part of String(header ?? "").split(";")) {
+    const i = part.indexOf("=");
+    if (i > 0 && part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
+  }
+  return undefined;
+}
+
+/** The request's headers without the session layer's - what the framework sees. */
+function withoutSessionHeaders(headers) {
+  const out = { ...headers };
+  delete out[SESSION_HEADER];
+  delete out["sap-contextid-accept"];
+  if (out.cookie !== undefined) {
+    const rest = String(out.cookie)
+      .split(";")
+      .filter((part) => part.split("=")[0].trim() !== SESSION_HEADER)
+      .join(";")
+      .trim();
+    if (rest) out.cookie = rest;
+    else delete out.cookie;
+  }
+  return out;
+}
+
+/**
+ * Run `fn` - one request through the shim - in the stateful session the
+ * request names (header or cookie sap-contextid), and answer the session id
+ * of the stateful session the request leaves behind. See STATEFUL SESSIONS
+ * above. Call it inside exclusive( ): it swaps the framework's class-data,
+ * which only one request may hold at a time. createHandler() does both.
+ * @template T
+ * @param {object} req  the express-shaped request; its session headers are
+ *   taken off before `fn` runs
+ * @param {object} res  the express-shaped response; the session id goes on
+ *   it before the shim sends it
+ * @param {() => T | Promise<T>} fn
+ * @param {{ owner?: string }} [options] the user a session belongs to, for a
+ *   host with users - a request of another user runs without the session
+ * @returns {Promise<T>}
+ */
+export async function withSession(req, res, fn, { owner = "" } = {}) {
+  const sticky = z2ui5_cl_ui5_http_handler.so_sticky_handler;
+  const now = Date.now();
+  sweepSessions(now);
+
+  const headers = req.headers ?? {};
+  const named = headerOf(headers, SESSION_HEADER) || cookieOf(headerOf(headers, "cookie"), SESSION_HEADER);
+  const asHeader = String(headerOf(headers, "sap-contextid-accept") ?? "").toLowerCase() === "header";
+  const terminate =
+    String(req.method).toUpperCase() === "HEAD" &&
+    String(headerOf(headers, "sap-terminate") ?? "").toLowerCase() === "session";
+  const kept = named ? sessions.get(named) : undefined;
+  // an id is only ever one the host issued, for this owner
+  let id = kept && kept.owner === owner ? named : undefined;
+
+  req.headers = withoutSessionHeaders(headers);
+  if (id) sticky.set(kept.handler);
+  else sticky.clear();
+
+  let settled = false;
+  // what the request left behind decides the session - read when the shim
+  // sends the response (the handler has run by then), or after a request
+  // that failed before it got there
+  const settle = (answer) => {
+    if (settled) return;
+    settled = true;
+    const status = Number(res.statusCode ?? 200);
+    const handler = sticky.get();
+    if (terminate && status < 300) {
+      if (id) sessions.delete(id);
+      return;
+    }
+    if (handler === undefined) {
+      if (id) sessions.delete(id);
+      return;
+    }
+    if (!id) id = `SID:ANON:${randomUUID().replaceAll("-", "").toUpperCase()}`;
+    sessions.delete(id);
+    sessions.set(id, { handler, owner, last: Date.now() });
+    sweepSessions(Date.now());
+    if (!answer || !sessions.has(id)) return;
+    if (asHeader) res.append(SESSION_HEADER, id);
+    else res.append("Set-Cookie", `${SESSION_HEADER}=${id}; Path=/; HttpOnly; SameSite=Lax`);
+  };
+
+  const hadOwnSend = Object.prototype.hasOwnProperty.call(res, "send");
+  const send = res.send;
+  res.send = function sendInSession(...args) {
+    settle(true);
+    return send.apply(this, args);
+  };
+  try {
+    return await fn();
+  } finally {
+    settle(false);
+    sticky.clear();
+    if (hadOwnSend) res.send = send;
+    else delete res.send;
+  }
+}
+
 /**
  * The HTTP handler. Boots the runtime on the first request when nothing
- * called initialize() before, and queues the requests (exclusive()).
+ * called initialize() before, queues the requests (exclusive()) and keeps
+ * the stateful sessions (withSession()).
  * @param {{ handlerClass?: string }} [options] another if_http_extension
  *   class, transpiled into the same runtime, instead of ZCL_SICF
  * @returns {(req: object, res: object) => Promise<void>}
@@ -139,7 +328,7 @@ export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
     // express.raw() leaves req.body undefined on a request without one (every
     // GET); the shim reads it as a Buffer either way
     if (!req.body) req.body = Buffer.alloc(0);
-    await exclusive(() => cl_express_icf_shim.run({ req, res, class: handlerClass }));
+    await exclusive(() => withSession(req, res, () => cl_express_icf_shim.run({ req, res, class: handlerClass })));
   };
 }
 
