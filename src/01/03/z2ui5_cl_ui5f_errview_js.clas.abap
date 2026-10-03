@@ -481,6 +481,28 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
+             `    let lastFocused = firstTrap;` && |\n| &&
+             `    const containFocus = (event) => {` && |\n| &&
+             `      if (!errorContainer.isConnected) {` && |\n| &&
+             `        document.removeEventListener("focusin", containFocus, true);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const target = event.target;` && |\n| &&
+             `      if (errorContainer.contains(target)) {` && |\n| &&
+             `        lastFocused = target;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (` && |\n| &&
+             `        target?.closest?.(` && |\n| &&
+             `          '[role="dialog"], [role="alertdialog"], [aria-modal="true"]',` && |\n| &&
+             `        )` && |\n| &&
+             `      ) {` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      (lastFocused?.isConnected ? lastFocused : firstTrap)?.focus();` && |\n| &&
+             `    };` && |\n| &&
+             `    document.addEventListener("focusin", containFocus, true);` && |\n| &&
+             `` && |\n| &&
              `    const iframe = document.createElement("iframe");` && |\n| &&
              `    iframe.id = "errorIframe";` && |\n| &&
              `    iframe.style.cssText = "width: 100%; height: 100%; border: none; flex: 1;";` && |\n| &&
