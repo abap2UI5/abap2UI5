@@ -40,6 +40,7 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
 
   METHOD get_monitor.
+        DATA lv_class_name TYPE string.
 
     IF gv_known = abap_true.
       result = gi_monitor.
@@ -58,7 +59,8 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
     " request - and is not latched, so the next request asks again instead
     " of remembering the failure for the rest of a sticky session.
     TRY.
-        DATA(lv_class_name) = monitor_class_lookup( ).
+
+        lv_class_name = monitor_class_lookup( ).
       CATCH cx_root.
         RETURN.
     ENDTRY.
@@ -78,9 +80,12 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_monitor.
+    DATA temp1 TYPE xsdboolean.
 
     gi_monitor = monitor.
-    gv_known = xsdbool( monitor IS BOUND ).
+
+    temp1 = boolc( monitor IS BOUND ).
+    gv_known = temp1.
 
   ENDMETHOD.
 
@@ -90,7 +95,10 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
     " XCO on cloud), paid once per roll area like the exit's. A dynamic name
     " is not a reference the compiler checks - the literal is held by
     " .github/scripts/dynamic-name-gate.mjs
-    DATA(lt_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_MONITOR` ).
+    DATA lt_classes TYPE z2ui5_cl_ui5_util_context=>ty_t_classes.
+    DATA temp2 TYPE string.
+    DATA temp3 TYPE z2ui5_cl_ui5_util_context=>ty_s_class_descr.
+    lt_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_MONITOR` ).
 
     " only one monitor is called, so the pick must not depend on the order
     " the lookup happens to return - the same reasoning as the exit's: a
@@ -98,7 +106,14 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
     " one after a transport or a system copy
     SORT lt_classes BY classname.
 
-    result = VALUE #( lt_classes[ 1 ]-classname OPTIONAL ).
+
+    CLEAR temp2.
+
+    READ TABLE lt_classes INTO temp3 INDEX 1.
+    IF sy-subrc = 0.
+      temp2 = temp3-classname.
+    ENDIF.
+    result = temp2.
 
   ENDMETHOD.
 

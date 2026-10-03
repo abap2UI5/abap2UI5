@@ -41,14 +41,30 @@ CLASS ltcl_ser_app IMPLEMENTATION.
     " c LENGTH 1, not abap_bool - the NodeJS runtime cannot resolve a
     " type-pool type by its absolute name when S-RTTI rebuilds the line
     DATA lv_flag TYPE c LENGTH 1.
+    DATA temp1 TYPE REF TO cl_abap_structdescr.
+    DATA lo_line LIKE temp1.
+    DATA lt_comp TYPE abap_component_tab.
+    DATA temp2 TYPE abap_componentdescr.
+    DATA temp3 TYPE REF TO cl_abap_datadescr.
+    DATA lo_tab TYPE REF TO cl_abap_tabledescr.
 
     mv_text = `text`.
 
-    DATA(lo_line) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_data( ls_row ) ).
-    DATA(lt_comp) = lo_line->get_components( ).
-    APPEND VALUE #( name = `RUNTIME_ONLY`
-                    type = CAST #( cl_abap_datadescr=>describe_by_data( lv_flag ) ) ) TO lt_comp.
-    DATA(lo_tab) = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
+
+    temp1 ?= cl_abap_typedescr=>describe_by_data( ls_row ).
+
+    lo_line = temp1.
+
+    lt_comp = lo_line->get_components( ).
+
+    CLEAR temp2.
+    temp2-name = `RUNTIME_ONLY`.
+
+    temp3 ?= cl_abap_datadescr=>describe_by_data( lv_flag ).
+    temp2-type = temp3.
+    APPEND temp2 TO lt_comp.
+
+    lo_tab = cl_abap_tabledescr=>create( p_line_type  = cl_abap_structdescr=>create( lt_comp )
                                                p_table_kind = cl_abap_tabledescr=>tablekind_std ).
     CREATE DATA mr_tab TYPE HANDLE lo_tab.
     ASSIGN mr_tab->* TO <tab>.
@@ -113,7 +129,8 @@ CLASS ltcl_ser_double IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_serializer~parse.
 
-    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    CREATE OBJECT lo_cont TYPE z2ui5_cl_ui5_app_cont.
     lo_cont->ms_draft-id = val.
     result = lo_cont.
 
@@ -153,9 +170,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
     mo_app->fill( ).
-    mo_cont = NEW #( ).
+    CREATE OBJECT mo_cont.
     mo_cont->mo_app      = mo_app.
     mo_cont->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
@@ -172,13 +189,17 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD check_reattached.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA temp3 LIKE LINE OF mo_cont->mt_attri->*.
+    DATA lr_attri LIKE REF TO temp3.
 
     cl_abap_unit_assert=>assert_bound( act = mo_app->mr_tab
                                        msg = `the generic reference was not reattached` ).
     ASSIGN mo_app->mr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( <tab> ) ).
-    LOOP AT mo_cont->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+
+
+    LOOP AT mo_cont->mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL OR srtti_type IS NOT INITIAL.
       cl_abap_unit_assert=>fail( |a payload stayed on the live row { lr_attri->name }| ).
     ENDLOOP.
@@ -187,39 +208,70 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD roundtrip_default.
 
-    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+    DATA lo_serializer TYPE REF TO z2ui5_cl_ui5_serializer.
+    DATA lv_xml TYPE string.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp4 TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_parsed LIKE temp4.
+    DATA temp5 TYPE REF TO ltcl_ser_app.
+    CREATE OBJECT lo_serializer TYPE z2ui5_cl_ui5_serializer.
 
-    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( mo_cont ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<asx:abap` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text` ) ).
+    lv_xml = lo_serializer->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+
+
+    temp1 = boolc( lv_xml CS `<asx:abap` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
+
+    temp2 = boolc( lv_xml CS `text` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
     check_reattached( ).
 
-    DATA(lo_parsed) = CAST z2ui5_cl_ui5_app_cont( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ) ).
+
+    temp4 ?= lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ).
+
+    lo_parsed = temp4.
     cl_abap_unit_assert=>assert_equals( exp = mo_cont->ms_draft-id
                                         act = lo_parsed->ms_draft-id ).
+
+    temp5 ?= lo_parsed->mo_app.
     cl_abap_unit_assert=>assert_equals( exp = `text`
-                                        act = CAST ltcl_ser_app( lo_parsed->mo_app )->mv_text ).
+                                        act = temp5->mv_text ).
 
   ENDMETHOD.
 
   METHOD failure_chains_first_cause.
 
-    DATA(lo_failing) = NEW ltcl_ser_failing( ).
+    DATA lo_failing TYPE REF TO ltcl_ser_failing.
+        DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp3 TYPE xsdboolean.
+        DATA lv_cause TYPE string.
+        DATA temp4 TYPE xsdboolean.
+        DATA temp5 TYPE xsdboolean.
+    CREATE OBJECT lo_failing TYPE ltcl_ser_failing.
     lo_failing->mv_fail_count = 2.
 
     TRY.
         lo_failing->z2ui5_if_ui5_serializer~stringify( mo_cont ).
         cl_abap_unit_assert=>fail( `a container that cannot be serialized must raise` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text_own( ) CS `APP_SERIALIZATION_ERROR` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx.
+
+        temp3 = boolc( lx->get_text_own( ) CS `APP_SERIALIZATION_ERROR` ).
+        cl_abap_unit_assert=>assert_true( temp3 ).
         " the first attempt's failure names the cause; the retry's is the
         " follow-up of the same root and must not replace it
         cl_abap_unit_assert=>assert_bound( act = lx->previous
                                            msg = `the serialization failure was not chained` ).
-        DATA(lv_cause) = lx->previous->get_text( ).
-        cl_abap_unit_assert=>assert_true( xsdbool( lv_cause CS `TRANSFORMATION_FAILURE_1` ) ).
-        cl_abap_unit_assert=>assert_false( xsdbool( lv_cause CS `TRANSFORMATION_FAILURE_2` ) ).
+
+        lv_cause = lx->previous->get_text( ).
+
+        temp4 = boolc( lv_cause CS `TRANSFORMATION_FAILURE_1` ).
+        cl_abap_unit_assert=>assert_true( temp4 ).
+
+        temp5 = boolc( lv_cause CS `TRANSFORMATION_FAILURE_2` ).
+        cl_abap_unit_assert=>assert_false( temp5 ).
     ENDTRY.
 
     " both attempts ran - the retry rebuilt the rows and tried again
@@ -234,37 +286,51 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD retry_answers.
 
-    DATA(lo_failing) = NEW ltcl_ser_failing( ).
+    DATA lo_failing TYPE REF TO ltcl_ser_failing.
+    DATA lv_xml TYPE string.
+    DATA temp6 TYPE xsdboolean.
+    CREATE OBJECT lo_failing TYPE ltcl_ser_failing.
     lo_failing->mv_fail_count = 1.
 
-    DATA(lv_xml) = lo_failing->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+
+    lv_xml = lo_failing->z2ui5_if_ui5_serializer~stringify( mo_cont ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lo_failing->mv_calls ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<asx:abap` ) ).
+
+    temp6 = boolc( lv_xml CS `<asx:abap` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
     check_reattached( ).
 
   ENDMETHOD.
 
   METHOD set_serializer_honoured.
 
-    z2ui5_cl_ui5_app_cont=>set_serializer( NEW ltcl_ser_double( ) ).
+    DATA temp6 TYPE REF TO ltcl_ser_double.
+    DATA lo_parsed TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA li_none TYPE REF TO z2ui5_if_ui5_serializer.
+    DATA temp7 TYPE xsdboolean.
+    CREATE OBJECT temp6 TYPE ltcl_ser_double.
+    z2ui5_cl_ui5_app_cont=>set_serializer( temp6 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `DOUBLE`
                                         act = mo_cont->all_xml_stringify( ) ).
-    DATA(lo_parsed) = z2ui5_cl_ui5_app_cont=>all_xml_parse( `FROM_DOUBLE` ).
+
+    lo_parsed = z2ui5_cl_ui5_app_cont=>all_xml_parse( `FROM_DOUBLE` ).
     cl_abap_unit_assert=>assert_equals( exp = `FROM_DOUBLE`
                                         act = lo_parsed->ms_draft-id ).
     " the double did not touch the live instance
     cl_abap_unit_assert=>assert_bound( mo_app->mr_tab ).
 
     " an unbound reference restores the shipped serializer
-    DATA li_none TYPE REF TO z2ui5_if_ui5_serializer.
+
     z2ui5_cl_ui5_app_cont=>set_serializer( li_none ).
     cl_abap_unit_assert=>assert_equals(
         exp = `Z2UI5_CL_UI5_SERIALIZER`
         act = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( z2ui5_cl_ui5_app_cont=>get_serializer( ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_cont->all_xml_stringify( ) CS `<asx:abap` ) ).
+
+    temp7 = boolc( mo_cont->all_xml_stringify( ) CS `<asx:abap` ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
 

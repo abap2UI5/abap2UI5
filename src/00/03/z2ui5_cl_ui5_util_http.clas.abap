@@ -153,11 +153,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
   METHOD client_create.
 
     DATA lv_classname TYPE c LENGTH 14.
+    DATA lv_destination TYPE c LENGTH 32.
+    DATA temp12 TYPE string.
+    DATA lv_url LIKE temp12.
+        DATA x TYPE REF TO cx_root.
     lv_classname = `CL_HTTP_CLIENT`.
 
-    DATA lv_destination TYPE c LENGTH 32.
+
     lv_destination = destination.
-    DATA(lv_url) = CONV string( url ).
+
+    temp12 = url.
+
+    lv_url = temp12.
 
     TRY.
 
@@ -195,7 +202,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
           CLEAR result.
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
@@ -214,11 +222,19 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     DATA lv_message  TYPE string.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(ls_target) = client_target( destination = destination
+    DATA ls_target TYPE z2ui5_cl_ui5_util_http=>ty_s_client_target.
+    DATA lo_client TYPE REF TO object.
+        DATA temp13 TYPE string.
+        DATA lv_method LIKE temp13.
+        DATA temp14 TYPE string.
+        DATA lv_body LIKE temp14.
+        DATA x TYPE REF TO cx_root.
+    ls_target = client_target( destination = destination
                                      url         = url
                                      query       = query ).
 
-    DATA(lo_client) = client_create( destination = destination
+
+    lo_client = client_create( destination = destination
                                      url         = ls_target-url ).
 
     TRY.
@@ -244,12 +260,18 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
               value = ls_target-request_uri.
         ENDIF.
 
-        DATA(lv_method) = CONV string( method ).
+
+        temp13 = method.
+
+        lv_method = temp13.
         CALL METHOD lo_request->(`SET_METHOD`)
           EXPORTING
             method = lv_method.
 
-        DATA(lv_body) = CONV string( body ).
+
+        temp14 = body.
+
+        lv_body = temp14.
         CALL METHOD lo_request->(`SET_CDATA`)
           EXPORTING
             data = lv_body.
@@ -304,7 +326,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
           EXCEPTIONS
             OTHERS = 1.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         " CLOSE on the failure path too: every throw between client_create
         " and the success-path CLOSE above (a failing dynamic GET_CDATA /
         " GET_STATUS, the RESPONSE assign) used to leave the ICM connection
@@ -331,10 +354,15 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     " prefix - so the path stays the one maintained in SM59. The destination
     " test is client_create's, which decides between the two
     DATA lv_destination TYPE c LENGTH 32.
+    DATA temp15 TYPE string.
+    DATA lv_query LIKE temp15.
     lv_destination = destination.
 
     result-url = url.
-    DATA(lv_query) = CONV string( query ).
+
+    temp15 = query.
+
+    lv_query = temp15.
     SHIFT lv_query LEFT DELETING LEADING `?`.
     IF lv_query IS INITIAL.
       RETURN.
@@ -352,11 +380,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD delete_response_cookie.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp16 TYPE string.
+    DATA lv_val LIKE temp16.
+      DATA object TYPE REF TO object.
+    temp16 = val.
+
+    lv_val = temp16.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`DELETE_COOKIE`)
         EXPORTING
@@ -368,11 +402,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_response_cookie.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp17 TYPE string.
+    DATA lv_val LIKE temp17.
+      DATA object TYPE REF TO object.
+    temp17 = val.
+
+    lv_val = temp17.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`GET_COOKIE`)
         EXPORTING
@@ -386,11 +426,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_header_field.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp18 TYPE string.
+    DATA lv_val LIKE temp18.
+      DATA object TYPE REF TO object.
+    temp18 = val.
+
+    lv_val = temp18.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`GET_HEADER_FIELD`)
         EXPORTING
@@ -412,8 +458,22 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD set_header_field.
 
-    DATA(lv_n) = CONV string( n ).
-    DATA(lv_v) = CONV string( v ).
+    DATA temp19 TYPE string.
+    DATA lv_n LIKE temp19.
+    DATA temp20 TYPE string.
+    DATA lv_v LIKE temp20.
+      DATA temp21 TYPE string.
+      DATA lv_cr LIKE temp21.
+      DATA temp22 TYPE string.
+      DATA lv_lf LIKE temp22.
+      DATA object TYPE REF TO object.
+    temp19 = n.
+
+    lv_n = temp19.
+
+    temp20 = v.
+
+    lv_v = temp20.
 
     " strip CR/LF from both halves before they reach the stack: header names
     " and values are exit-suppliable (t_security_header), and an exit that
@@ -423,8 +483,14 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     " may reject embedded CRLF itself, but nothing here should depend on it
     IF lv_n CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
         OR lv_v CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
-      DATA(lv_cr) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1) ).
-      DATA(lv_lf) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf+1(1) ).
+
+      temp21 = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1).
+
+      lv_cr = temp21.
+
+      temp22 = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf+1(1).
+
+      lv_lf = temp22.
       REPLACE ALL OCCURRENCES OF lv_cr IN lv_n WITH ``.
       REPLACE ALL OCCURRENCES OF lv_lf IN lv_n WITH ``.
       REPLACE ALL OCCURRENCES OF lv_cr IN lv_v WITH ``.
@@ -433,7 +499,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`SET_HEADER_FIELD`)
         EXPORTING
@@ -453,24 +520,26 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_server_onprem = server.
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_request_cloud  = req.
     result->mo_response_cloud = res.
 
   ENDMETHOD.
 
   METHOD get_cdata.
+      DATA object TYPE REF TO object.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`GET_CDATA`)
         RECEIVING
@@ -487,10 +556,12 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_method.
+      DATA object TYPE REF TO object.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_request_onprem( ).
+
+      object = get_request_onprem( ).
 
       CALL METHOD object->(`IF_HTTP_REQUEST~GET_METHOD`)
         RECEIVING
@@ -514,11 +585,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     " call would have converted. Converted ONCE, above the branch: the cloud
     " half used to pass the generic value through, so a CHAR caller worked
     " on-prem and failed on cloud only
-    DATA(lv_data) = CONV string( val ).
+    DATA temp23 TYPE string.
+    DATA lv_data LIKE temp23.
+      DATA object TYPE REF TO object.
+    temp23 = val.
+
+    lv_data = temp23.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`SET_CDATA`)
         EXPORTING
@@ -536,11 +613,17 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD set_status.
 
-    DATA(lv_reason) = CONV string( reason ).
+    DATA temp24 TYPE string.
+    DATA lv_reason LIKE temp24.
+      DATA object TYPE REF TO object.
+    temp24 = reason.
+
+    lv_reason = temp24.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA(object) = get_response_onprem( ).
+
+      object = get_response_onprem( ).
 
       CALL METHOD object->(`IF_HTTP_RESPONSE~SET_STATUS`)
         EXPORTING
@@ -572,9 +655,10 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_request_onprem.
+      FIELD-SYMBOLS <any> TYPE any.
 
     IF mo_request_onprem IS NOT BOUND.
-      FIELD-SYMBOLS <any> TYPE any.
+
       " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT - see
       " the note at get_response_onprem below, which both share
       ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
@@ -590,9 +674,10 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_response_onprem.
+      FIELD-SYMBOLS <any> TYPE any.
 
     IF mo_response_onprem IS NOT BOUND.
-      FIELD-SYMBOLS <any> TYPE any.
+
       " Both halves of this guard changed together, and both matter on the
       " path every single request takes (get_cdata / get_method /
       " get_header_field all come through here):
@@ -635,7 +720,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_query.
 
-    DATA(lv_uri) = get_header_field( `~request_uri` ).
+    DATA lv_uri TYPE string.
+    lv_uri = get_header_field( `~request_uri` ).
     IF lv_uri CS `?`.
       result = substring_after( val = lv_uri
                                 sub = `?` ).

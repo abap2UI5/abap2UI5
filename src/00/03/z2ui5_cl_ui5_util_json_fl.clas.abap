@@ -61,7 +61,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
   METHOD create_no_empty_values.
 
     IF gi_no_empty_values IS NOT BOUND.
-      gi_no_empty_values = NEW z2ui5_cl_ui5_util_json_fl( ).
+      CREATE OBJECT gi_no_empty_values TYPE z2ui5_cl_ui5_util_json_fl.
     ENDIF.
     result = gi_no_empty_values.
 
@@ -78,11 +78,17 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
   METHOD check_number_initial.
 
-    result = xsdbool( val CO `0.-+Ee` ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( val CO `0.-+Ee` ).
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+            DATA temp2 TYPE xsdboolean.
+            DATA temp3 TYPE xsdboolean.
+            DATA temp4 TYPE xsdboolean.
+        DATA temp5 TYPE xsdboolean.
 
     rv_keep = abap_true.
 
@@ -92,15 +98,23 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            rv_keep = xsdbool( is_node-value <> `false` ).
+
+            temp2 = boolc( is_node-value <> `false` ).
+            rv_keep = temp2.
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            rv_keep = xsdbool( check_number_initial( is_node-value ) = abap_false ).
+
+            temp3 = boolc( check_number_initial( is_node-value ) = abap_false ).
+            rv_keep = temp3.
           WHEN z2ui5_if_ajson_types=>node_type-string.
-            rv_keep = xsdbool( is_node-value <> `` ).
+
+            temp4 = boolc( is_node-value <> `` ).
+            rv_keep = temp4.
         ENDCASE.
 
       WHEN z2ui5_if_ajson_filter=>visit_type-close.
-        rv_keep = xsdbool( is_node-children <> 0 ).
+
+        temp5 = boolc( is_node-children <> 0 ).
+        rv_keep = temp5.
 
     ENDCASE.
 

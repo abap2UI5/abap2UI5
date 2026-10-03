@@ -24,11 +24,14 @@ ENDCLASS.
 CLASS lcl_node_value IMPLEMENTATION.
 
   METHOD check_initial.
+      DATA temp1 TYPE xsdboolean.
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
       result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
     ELSE.
-      result = xsdbool( is_node-value IS INITIAL ).
+
+      temp1 = boolc( is_node-value IS INITIAL ).
+      result = temp1.
     ENDIF.
 
   ENDMETHOD.
@@ -68,6 +71,8 @@ ENDCLASS.
 CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+      DATA temp2 TYPE xsdboolean.
+      DATA temp3 TYPE xsdboolean.
 
     " ajson numbers array children 1-based in is_node-index and leaves 0 on
     " every object member (lcl_abap_to_json / lcl_filter_runner=>walk), so
@@ -80,11 +85,15 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
     " everything below mirrors the vendored lcl_empty_filter
     IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
-      rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+
+      temp2 = boolc( lcl_node_value=>check_initial( is_node ) = abap_false ).
+      rv_keep = temp2.
     ELSE.
       " children = 0 on open for initially empty nodes and on close for
       " fully filtered ones
-      rv_keep = xsdbool( is_node-children > 0 ).
+
+      temp3 = boolc( is_node-children > 0 ).
+      rv_keep = temp3.
     ENDIF.
 
   ENDMETHOD.
@@ -118,7 +127,8 @@ CLASS lcl_initial_paths_filter DEFINITION FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA mt_names TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+    TYPES temp1_65587aa3fe TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+DATA mt_names TYPE temp1_65587aa3fe.
 
 ENDCLASS.
 
@@ -127,16 +137,32 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
   METHOD constructor.
 
-    LOOP AT it_paths INTO DATA(lv_path).
-      DATA(lv_name) = to_upper( lv_path ).
+    DATA lv_path LIKE LINE OF it_paths.
+      DATA lv_name TYPE string.
+        TYPES temp2 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_parts TYPE temp2.
+        DATA temp130 TYPE string.
+        DATA temp131 TYPE string.
+    LOOP AT it_paths INTO lv_path.
+
+      lv_name = to_upper( lv_path ).
       " a caller may write the field with or without a leading slash - and
       " with a trailing one (`/ROWS/MAX/`), which used to make the last
       " segment empty and drop the path without a word: the empty segments
       " go, the last one left is the name
       IF lv_name CS `/`.
-        SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
+
+
+        SPLIT lv_name AT `/` INTO TABLE lt_parts.
         DELETE lt_parts WHERE table_line IS INITIAL.
-        lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
+
+        CLEAR temp130.
+
+        READ TABLE lt_parts INTO temp131 INDEX lines( lt_parts ).
+        IF sy-subrc = 0.
+          temp130 = temp131.
+        ENDIF.
+        lv_name = temp130.
       ENDIF.
       IF lv_name IS NOT INITIAL.
         INSERT lv_name INTO TABLE mt_names.
@@ -147,6 +173,9 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+    DATA lv_name TYPE string.
+    DATA temp132 LIKE sy-subrc.
+    DATA temp4 TYPE xsdboolean.
 
     rv_keep = abap_true.
 
@@ -163,12 +192,18 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
     " a method call and the whole class pool fails to compile with "method
     " TO_UPPER is unknown" (#2664). In a plain assignment the built-in is fine
     " on 7.02, so the variable is all it takes.
-    DATA(lv_name) = to_upper( is_node-name ).
-    IF NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
+
+    lv_name = to_upper( is_node-name ).
+
+    READ TABLE mt_names WITH KEY table_line = lv_name TRANSPORTING NO FIELDS.
+    temp132 = sy-subrc.
+    IF NOT temp132 = 0. "#EC CI_SORTSEQ
       RETURN.
     ENDIF.
 
-    rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+
+    temp4 = boolc( lcl_node_value=>check_initial( is_node ) = abap_false ).
+    rv_keep = temp4.
 
   ENDMETHOD.
 
