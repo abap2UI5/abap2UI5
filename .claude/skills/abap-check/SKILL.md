@@ -312,7 +312,7 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 | **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` does not check attribute visibility and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal |
 
-**Backlog:** abaplint · abaplint-deref-of-method-call
+**Backlog:** abaplint · abaplint-deref-of-method-call, abaplint-attribute-visibility
 
 ### Generic types on older releases — the recurring one
 
@@ -341,7 +341,7 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
-**Backlog:** abaplint · abaplint-generic-deref-old-releases
+**Backlog:** abaplint · abaplint-generic-deref-old-releases, abaplint-generic-deref-target
 
 ### VALUE constructor — a header default plus a per-row value is a syntax error
 
@@ -829,7 +829,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-like-ref-to-generic
 **Backlog:** open-abap · transpiler-value-let-without-for
 **Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
 
