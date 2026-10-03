@@ -142,6 +142,7 @@ without `CLEAR`. None of the existing expectations changed.
 | `npm test` in `packages/core` | 11 209 passing, 32 pending; eslint 0 errors (one pre-existing warning in `else_after_all_returns.ts`); `npm run schema` and api-extractor clean |
 | the 17-test repro, downported by the CLI built against the patched core, then transpiled (transpiler 2.13.96) | **17 / 17 pass** - 2.120.64: 1 / 17; the 7.40 source transpiled directly: 17 / 17 |
 | abap2UI5/samples at main 2e998ef, `abap_702.jsonc`, patched vs. released 2.120.64 | differs in exactly the 8 files the probe lists, by 162 added `CLEAR` lines and nothing else |
+| abap2UI5/samples-controls at b296a77, the 69 classes the probe names (its sites and its look-alikes; the 10 000-line overview `z2ui5_cl_smpc_app_000` left out - the full-tree run of both versions ran out of this session's memory), `abap_702.jsonc`, patched vs. released 2.120.64 | every one differs, by 1 286 added `CLEAR`s and 42 re-applied prefix assignments - no line removed or changed, 0 issues either way |
 | abap2UI5/samples after its mitigation (all 8 constructors spelled out), patched vs. released 2.120.64 | byte-identical |
 
 **One behavioural change.** A shared prefix with a side effect, such as a
@@ -218,8 +219,10 @@ is green.
 **Verified end to end** on abap2UI5/samples, which publishes its downport as
 a 702 branch: with this change the downport output differs from 2.120.64
 only by the added `CLEAR`s (162 lines), in exactly the 8 constructors whose
-rows differ in shape, and nowhere else. A 17-case repro that fails 16 times
-after the 2.120.64 downport passes completely.
+rows differ in shape, and nowhere else. On 69 classes of
+abap2UI5/samples-controls it adds 1 286 `CLEAR`s and 42 re-applied prefix
+assignments and removes or changes nothing. A 17-case repro that fails 16
+times after the 2.120.64 downport passes completely.
 ```
 
 ## How to file
