@@ -94,5 +94,61 @@
     "repos": [
       "abap2UI5"
     ]
+  },
+  "abaplint-downport-value-row-not-cleared": {
+    "describe": "a table VALUE constructor where a later row leaves out a component an earlier row assigned, with the constructors whose rows differ in shape but never leave one out as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 159,
+    "negatives": 47,
+    "repos": [
+      "abap2UI5",
+      "samples",
+      "samples-controls"
+    ]
+  },
+  "transpiler-value-let-without-for": {
+    "describe": "a VALUE without FOR, or a CONV, that binds a LET - the transpiler never declares the binding; the LETs in VALUE with FOR, COND, SWITCH and REDUCE as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
+  },
+  "runtime-rescale-not-implemented": {
+    "describe": "a call of `rescale( )` - no builtin in @abaplint/runtime; the `round( val = … )` calls as the negative, implemented with dec, prec and mode since 2.13.94",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
+  },
+  "transpiler-generic-packed-parameter": {
+    "describe": "a METHODS / CLASS-METHODS parameter typed `TYPE p` without LENGTH or DECIMALS - the transpiler emits `typeTodoPGenericType`; FORM parameters `TYPE p` and method parameters `TYPE numeric` as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
   }
 }

@@ -258,8 +258,9 @@ CLASS ltcl_01_request DEFINITION DEFERRED.
 CLASS ltcl_02_response DEFINITION DEFERRED.
 CLASS ltcl_03_dispatch DEFINITION DEFERRED.
 CLASS ltcl_04_nav DEFINITION DEFERRED.
+CLASS ltcl_05_monitor DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_handler DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_request ltcl_02_response
-                                                  ltcl_03_dispatch ltcl_04_nav.
+                                                  ltcl_03_dispatch ltcl_04_nav ltcl_05_monitor.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -2386,4 +2387,279 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( lv_system CS `navBack` ) ).
 
   ENDMETHOD.
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" 05 - the roundtrip monitor (z2ui5_if_ui5_monitor): called once per
+" roundtrip through main( ), on success and on failure, filled from the
+" request, the response and the exception - and never able to break the
+" roundtrip it watches
+" ---------------------------------------------------------------------------
+
+" a monitor that records every call - and raises on request, to prove that
+" a broken one fails open
+CLASS ltcl_monitor DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_monitor.
+    DATA mt_calls TYPE STANDARD TABLE OF z2ui5_if_ui5_monitor=>ty_s_roundtrip WITH EMPTY KEY.
+    DATA check_raise TYPE abap_bool.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_monitor IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_monitor~on_roundtrip.
+    APPEND is_roundtrip TO mt_calls.
+    IF check_raise = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING val = `MONITOR_BROKEN`.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+" an app that fails on the event BOOM - the root cause the monitor names
+CLASS ltcl_app_boom DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_boom IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->get( )-event = `BOOM`.
+      RAISE EXCEPTION TYPE cx_sy_zerodivide.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_05_monitor DEFINITION FINAL INHERITING FROM ltcl_00_base
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    " whatever monitor the SYSTEM has installed, parked for the test's
+    " duration like the user exit's tests park the installed exit - the
+    " double must be the one the handler finds
+    DATA mi_installed TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA mo_monitor   TYPE REF TO ltcl_monitor.
+
+    METHODS setup.
+    METHODS teardown.
+
+    METHODS start_and_event_reported FOR TESTING RAISING cx_static_check.
+    METHODS client_prev_read_safely FOR TESTING RAISING cx_static_check.
+    METHODS failure_reported FOR TESTING RAISING cx_static_check.
+    METHODS broken_monitor_fails_open FOR TESTING RAISING cx_static_check.
+    METHODS durations_per_phase FOR TESTING RAISING cx_static_check.
+    METHODS durations_failed_in_main FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_05_monitor IMPLEMENTATION.
+
+  METHOD setup.
+
+    mi_installed = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    mo_monitor = NEW #( ).
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( mo_monitor ).
+
+  ENDMETHOD.
+
+  METHOD teardown.
+
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( mi_installed ).
+
+  ENDMETHOD.
+
+  METHOD start_and_event_reported.
+
+    " roundtrip 1: an app start - no draft id in, the new one out
+    DATA(lv_payload) = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
+    DATA(lo_first) = NEW z2ui5_cl_ui5_handler( lv_payload ).
+    DATA(ls_res) = lo_first->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_monitor->mt_calls ) ).
+    DATA(ls_call) = mo_monitor->mt_calls[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                                        act = ls_call-app ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_call-check_start ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_call-check_error ).
+    cl_abap_unit_assert=>assert_initial( ls_call-event ).
+    cl_abap_unit_assert=>assert_initial( ls_call-draft_id_prev ).
+    cl_abap_unit_assert=>assert_initial( ls_call-error_text ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_first->ms_response-s_front-id
+                                        act = ls_call-draft_id ).
+    cl_abap_unit_assert=>assert_not_initial( ls_call-draft_id ).
+    cl_abap_unit_assert=>assert_equals( exp = sy-uname
+                                        act = ls_call-uname ).
+    cl_abap_unit_assert=>assert_not_initial( ls_call-timestampl ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_payload )
+                                        act = ls_call-bytes_request ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( ls_res-body )
+                                        act = ls_call-bytes_response ).
+    " the first render displays a view, so the model travels with it
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_call-bytes_model > 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_call-ms_total >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_call-ms_total >= ls_call-ms_load ) ).
+
+    " roundtrip 2: an event on the draft it wrote
+    DATA(lo_second) = NEW z2ui5_cl_ui5_handler(
+        `{"value":{"S_FRONT":{"ID":"` && ls_call-draft_id && `","EVENT":"BUTTON_POST","MS_CLIENT_PREV":312,` &&
+        `"ORIGIN":"O","PATHNAME":"/","SEARCH":""}}}` ).
+    lo_second->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( mo_monitor->mt_calls ) ).
+    ls_call = mo_monitor->mt_calls[ 2 ].
+    cl_abap_unit_assert=>assert_equals( exp = `BUTTON_POST`
+                                        act = ls_call-event ).
+    cl_abap_unit_assert=>assert_equals( exp = mo_monitor->mt_calls[ 1 ]-draft_id
+                                        act = ls_call-draft_id_prev ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_call-check_start ).
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UI5_APP_HI_WORLD`
+                                        act = ls_call-app ).
+    " the browser's duration of roundtrip 1, carried by roundtrip 2
+    cl_abap_unit_assert=>assert_equals( exp = 312
+                                        act = ls_call-ms_client_prev ).
+    cl_abap_unit_assert=>assert_initial( mo_monitor->mt_calls[ 1 ]-ms_client_prev ).
+
+  ENDMETHOD.
+
+  METHOD client_prev_read_safely.
+
+    " a diagnostic of the browser's - a value that is no non-negative
+    " integer reads as 0 and costs the request nothing
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler( `` ).
+
+    DATA(ls_request) = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"ID":"A","EVENT":"E","MS_CLIENT_PREV":"soon"}}}` ).
+    cl_abap_unit_assert=>assert_equals( exp = `E`
+                                        act = ls_request-s_front-event ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-ms_client_prev ).
+
+    ls_request = lo_handler->request_json_to_abap( `{"value":{"S_FRONT":{"ID":"A","MS_CLIENT_PREV":-5}}}` ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-ms_client_prev ).
+
+    ls_request = lo_handler->request_json_to_abap( `{"value":{"S_FRONT":{"ID":"A","MS_CLIENT_PREV":48}}}` ).
+    cl_abap_unit_assert=>assert_equals( exp = 48
+                                        act = ls_request-s_front-ms_client_prev ).
+
+  ENDMETHOD.
+
+  METHOD failure_reported.
+
+    DATA(lo_first) = started_with( NEW ltcl_app_boom( ) ).
+    DATA(lv_id) = lo_first->mo_action->mo_app->ms_draft-id.
+
+    DATA(lo_second) = NEW z2ui5_cl_ui5_handler(
+        `{"value":{"S_FRONT":{"ID":"` && lv_id && `","EVENT":"BOOM","ORIGIN":"O","PATHNAME":"/","SEARCH":""}}}` ).
+    TRY.
+        lo_second->main( ).
+        cl_abap_unit_assert=>fail( `the app raises on BOOM` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx) ##NO_HANDLER.
+    ENDTRY.
+
+    " reported once, on the way out - the exception still travels on to
+    " the top-level catch, which renders the same object into the 500 body
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_monitor->mt_calls ) ).
+    DATA(ls_call) = mo_monitor->mt_calls[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_call-check_error ).
+    cl_abap_unit_assert=>assert_equals( exp = `CX_SY_ZERODIVIDE`
+                                        act = ls_call-error_class ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_call-error_text CS `event BOOM` ) ).
+    " the error id the user sees is the one in the log
+    cl_abap_unit_assert=>assert_not_initial( lx->ms_error-uuid ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_call-error_text CS lx->ms_error-uuid ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_second->mo_action->mo_app->mo_app )
+        act = ls_call-app ).
+    cl_abap_unit_assert=>assert_not_initial( ls_call-app ).
+    cl_abap_unit_assert=>assert_equals( exp = `BOOM`
+                                        act = ls_call-event ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_id
+                                        act = ls_call-draft_id_prev ).
+    " no response was built - no new draft, no response sizes
+    cl_abap_unit_assert=>assert_initial( ls_call-draft_id ).
+    cl_abap_unit_assert=>assert_initial( ls_call-bytes_response ).
+    cl_abap_unit_assert=>assert_initial( ls_call-bytes_model ).
+    cl_abap_unit_assert=>assert_initial( ls_call-ms_render ).
+
+  ENDMETHOD.
+
+  METHOD broken_monitor_fails_open.
+
+    " a monitor that raises costs its log entry, never the roundtrip
+    mo_monitor->check_raise = abap_true.
+
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler(
+        `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}` ).
+    DATA(ls_res) = lo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_not_initial( ls_res-body ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_monitor->mt_calls ) ).
+
+  ENDMETHOD.
+
+  METHOD durations_per_phase.
+
+    DATA ls_roundtrip TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
+
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler( `` ).
+    lo_handler->ms_monitor_time = VALUE #( start        = `20261003101500.0000000`
+                                           loaded       = `20261003101500.1000000`
+                                           render_start = `20261003101501.0000000`
+                                           render_end   = `20261003101501.2500000` ).
+
+    lo_handler->monitor_durations( EXPORTING iv_now       = `20261003101501.3000000`
+                                   CHANGING  cs_roundtrip = ls_roundtrip ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1300
+                                        act = ls_roundtrip-ms_total ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = ls_roundtrip-ms_load ).
+    cl_abap_unit_assert=>assert_equals( exp = 900
+                                        act = ls_roundtrip-ms_main ).
+    cl_abap_unit_assert=>assert_equals( exp = 250
+                                        act = ls_roundtrip-ms_render ).
+
+  ENDMETHOD.
+
+  METHOD durations_failed_in_main.
+
+    " the phase the request failed in ends at the failure, the phases it
+    " never reached stay 0
+    DATA ls_roundtrip TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
+
+    DATA(lo_handler) = NEW z2ui5_cl_ui5_handler( `` ).
+    lo_handler->ms_monitor_time = VALUE #( start  = `20261003101500.0000000`
+                                           loaded = `20261003101500.0500000` ).
+
+    lo_handler->monitor_durations( EXPORTING iv_now       = `20261003101500.5500000`
+                                   CHANGING  cs_roundtrip = ls_roundtrip ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 550
+                                        act = ls_roundtrip-ms_total ).
+    cl_abap_unit_assert=>assert_equals( exp = 50
+                                        act = ls_roundtrip-ms_load ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = ls_roundtrip-ms_main ).
+    cl_abap_unit_assert=>assert_initial( ls_roundtrip-ms_render ).
+
+  ENDMETHOD.
+
 ENDCLASS.

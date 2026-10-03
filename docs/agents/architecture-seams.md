@@ -1,10 +1,11 @@
-# Architecture seams — the draft store, the serializer, the codepage fallback
+# Architecture seams — the draft store, the serializer, the roundtrip monitor, the codepage fallback
 
-> Extracted from `AGENTS.md`, which points here. The three sections below are
-> the places where the framework deliberately lets something be swapped or
-> degraded: the draft store and the serializer are interfaces a host that is
-> not an SAP system implements, and the codepage fallback is the one utility
-> failure a view render survives. AGENTS.md keeps the one-paragraph statement
+> Extracted from `AGENTS.md`, which points here. The sections below are
+> the places where the framework deliberately lets something be swapped,
+> watched or degraded: the draft store and the serializer are interfaces a
+> host that is not an SAP system implements, the roundtrip monitor is the
+> one an installation implements to log what its apps do, and the codepage
+> fallback is the one utility failure a view render survives. AGENTS.md keeps the one-paragraph statement
 > of each seam and the pointer; the contracts themselves live on the
 > interfaces (`z2ui5_if_ui5_draft_store`, `z2ui5_if_ui5_serializer`) and the
 > degradation at its two code sites. Every fact below was in AGENTS.md
@@ -79,6 +80,60 @@ build into.
 What an implementation has to keep is a round trip, not a format:
 `parse( stringify( container ) )` must answer a container the framework can go
 on with. The string in between is the implementation's business.
+
+## The roundtrip monitor (`z2ui5_if_ui5_monitor`)
+
+The one seam in the **released** API (`src/02`), because the party that
+implements it is an installation or an addon (abap2UI5-addons/admin-cockpit),
+not a host runtime. `z2ui5_cl_ui5_srv_monitor=>get_monitor( )` finds the
+implementation exactly the way `z2ui5_cl_ui5_user_exit` finds the exit — the
+classes implementing the interface, sorted by name, the first one wins, the
+answer latched per roll area (so a stateless request pays one repository read
+and a sticky session one in total) — and `set_monitor( )` installs one without
+the lookup, for a host without a class repository and for tests.
+
+`z2ui5_cl_ui5_handler=>main` asks for it first and calls it once at the very
+end: on success after the response is built and the draft saved, on failure
+inside its CATCH block with the exception it is about to raise — the same
+object `z2ui5_cl_ui5_http_handler=>_main` renders into the 500 body, so the
+error id `get_text_full` stamps on it is the one the user sees. Where each
+field comes from:
+
+| Field | Source |
+|---|---|
+| `app` | the class the response names (`ms_response-s_front-app`); on failure the class of the app that was running — empty before one was resolved |
+| `event`, `draft_id_prev`, `check_start` | the request's `S_FRONT` (`EVENT`, `ID`, no `ID`), only once THIS body was parsed, capped like the error context |
+| `draft_id` | the id the response carries; empty on failure |
+| `uname`, `check_sticky` | `sy-uname`; the app container's `mv_check_sticky` |
+| `timestampl`, `ms_*` | `GET TIME STAMP` at the start of `main( )`, after `main_begin( )` and around `main_end( )`; the phase a failure ends is closed at the failure, a phase never reached stays 0 |
+| `bytes_*` | `strlen` of the request body, of the response JSON and of the model it carries (0 for no model and on failure — the 500 body is built later, above the engine) |
+| `ms_client_prev` | `S_FRONT.MS_CLIENT_PREV`, the previous roundtrip as `core/Server.js` measured it (POST to parsed response); 0 when absent or unreadable |
+| `check_error`, `error_text`, `error_class` | the exception: `z2ui5_cx_ui5_util_error=>get_text_full( )` and the class of the innermost `previous` |
+
+Three decisions, each written at its code site as well:
+
+- **It fails open, where the exit fails closed.** The exit is a hardening
+  control, and an exit class that cannot be built must not leave every request
+  on the defaults unnoticed. A monitor only watches; failing closed would turn
+  a broken log class into a broken app for every user. A lookup that raises, a
+  class that cannot be instantiated and a call that raises are all ignored,
+  and only an answer that came back is latched.
+- **The clock is `GET TIME STAMP` plus arithmetic**
+  (`z2ui5_cl_ui5_util_context=>time_diff_milliseconds`), not
+  `cl_abap_tstmp=>subtract` and not `GET RUN TIME`: the first answers whole
+  seconds in open-abap, the second counts from the previous call rather than
+  the first there, so neither means the same in the transpiled runtime as on a
+  system.
+- **The LUW is clean when the monitor runs, unless the app is sticky.** On
+  success the draft save has committed; on failure `monitor_notify` rolls back
+  first — the rollback that follows the app's `main( )` in `main_process`
+  never ran — so a monitor's `COMMIT WORK` commits only its own entry. It does
+  so only while a monitor is installed (without one nothing changed) and never
+  for a sticky app, whose LUW the framework does not touch on any path; the
+  interface tells the implementation not to commit then.
+
+Not monitored: the page request (GET), HEAD, and a POST the CSRF gate
+rejects — none of them runs an app.
 
 ## A missing codepage class must not take down the view
 

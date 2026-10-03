@@ -1,0 +1,449 @@
+From 98deec15800b8b34bccb4d32474f1202b6543cbf Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Sat, 3 Oct 2026 04:53:31 +0000
+Subject: [PATCH] downport: clear the VALUE row work area between rows of
+ different shapes
+
+outlineValue builds every row of a table VALUE in one work area,
+DATA tempN LIKE LINE OF ..., and never clears it, so a component a row
+leaves out keeps what an earlier row put there instead of being initial:
+
+  tab = VALUE #( ( name = 'A' qty = 5 ) ( name = 'B' ) ).
+
+was downported to a second row with qty = 5. The same for an empty row
+( ) after a filled one, under BASE, with an inline DATA( ) target, and
+inside a LOOP/DO, where the FIRST row inherits the previous pass's last
+row, as the generated DATA does not reinitialize anything.
+
+Each row that is built in the work area now starts with
+CLEAR tempN, followed by the shared prefix assignments
+(VALUE #( sign = 'I' ( ... ) ( ... ) )), which are emitted at every row
+instead of once before the first, so the prefix still applies to every
+row. Rows that are a plain source, ( lv_line ), or LINES OF insert
+directly and are unchanged.
+
+The CLEAR is only emitted when a row can observe an earlier row: when
+the rows assign different sets of components, or the prefix changes
+between rows. Rows that all assign the same components, which covers
+every FOR and the existing multi-row tests, downport exactly as before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Kz1J78phfNKbqUaq3VcP4U
+---
+ packages/core/src/rules/downport.ts  |  54 +++++
+ packages/core/test/rules/downport.ts | 318 +++++++++++++++++++++++++++
+ 2 files changed, 372 insertions(+)
+
+diff --git a/packages/core/src/rules/downport.ts b/packages/core/src/rules/downport.ts
+index 0f5bb54..6122d93 100644
+--- a/packages/core/src/rules/downport.ts
++++ b/packages/core/src/rules/downport.ts
+@@ -2701,8 +2701,18 @@ ${indentation}    output = ${uniqueName}.\n`;
+         data = indentation + extra + `DATA ${structureName} LIKE LINE OF ${uniqueName}.\n`;
+       }
+ 
++      // all rows are built in the same work area, a component a row leaves out must be initial,
++      // not what an earlier row (or an earlier pass of a surrounding loop) put there
++      const clearRows = valueBody !== undefined && this.valueRowsNeedClear(valueBody);
++      const prefix: string[] = [];
++
+       for (const a of valueBody?.getChildren() || []) {
+         if (a.get() instanceof Expressions.FieldAssignment) {
++          if (clearRows === true) {
++            // the shared prefix applies to every following row, re-applied after each CLEAR
++            prefix.push(a.concatTokens());
++            continue;
++          }
+           if (added === false) {
+             body += data;
+             added = true;
+@@ -2723,6 +2733,16 @@ ${indentation}    output = ${uniqueName}.\n`;
+         }
+         if (a instanceof ExpressionNode && a.get() instanceof Expressions.ValueBodyLine) {
+           let skip = false;
++          if (clearRows === true && this.isStructuredValueRow(a)) {
++            if (added === false) {
++              body += data;
++              added = true;
++            }
++            body += indentation + `CLEAR ${structureName}.\n`;
++            for (const p of prefix) {
++              body += indentation + structureName + "-" + p + ".\n";
++            }
++          }
+           for (const b of a?.getChildren() || []) {
+             if (b.get() instanceof Expressions.FieldAssignment) {
+               if (added === false) {
+@@ -2805,6 +2825,40 @@ ${indentation}    output = ${uniqueName}.\n`;
+     return undefined;
+   }
+ 
++  /** a row that is built in the work area, ie. not "( source )" or "( LINES OF source )" */
++  private isStructuredValueRow(row: ExpressionNode): boolean {
++    return row.findDirectExpression(Expressions.Source) === undefined
++      && row.findDirectExpression(Expressions.ValueBodyLines) === undefined;
++  }
++
++  /** true if a row can observe a component that an earlier row, or an earlier pass of a surrounding loop,
++   * left in the shared work area. Not the case if all rows assign the same components, and the shared
++   * prefix is not changed between rows, eg. FOR rows or "( a = 1 b = 2 ) ( a = 3 b = 4 )" */
++  private valueRowsNeedClear(valueBody: ExpressionNode): boolean {
++    let shape: string | undefined = undefined;
++    let rowSeen = false;
++    for (const c of valueBody.getChildren()) {
++      if (c.get() instanceof Expressions.FieldAssignment) {
++        if (rowSeen === true) {
++          return true;
++        }
++      } else if (c instanceof ExpressionNode
++          && c.get() instanceof Expressions.ValueBodyLine
++          && this.isStructuredValueRow(c)) {
++        rowSeen = true;
++        const current = c.findDirectExpressions(Expressions.FieldAssignment)
++          .map(f => f.findDirectExpression(Expressions.FieldSub)?.concatTokens().toUpperCase().replace(/\s/g, ""))
++          .sort()
++          .join(",");
++        if (shape !== undefined && shape !== current) {
++          return true;
++        }
++        shape = current;
++      }
++    }
++    return false;
++  }
++
+   private outlineLet(node: ExpressionNode, indentation: string, highSyntax: ISyntaxResult, lowFile: ABAPFile): string {
+     let ret = "";
+     for (const f of node.findDirectExpressions(Expressions.InlineFieldDefinition)) {
+diff --git a/packages/core/test/rules/downport.ts b/packages/core/test/rules/downport.ts
+index 48a936e..dbe98c1 100644
+--- a/packages/core/test/rules/downport.ts
++++ b/packages/core/test/rules/downport.ts
+@@ -2237,6 +2237,324 @@ ENDFORM.`;
+     testFix(abap, expected);
+   });
+ 
++  it("VALUE, row leaves out a component an earlier row set, CLEAR the row", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    tab = VALUE #( ( name = 'A' qty = 5 ) ( name = 'B' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-qty = 5.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-name = 'B'.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, row leaves out a nested table", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name  TYPE string,
++             t_sub TYPE string_table,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    tab = VALUE #( ( name = 'A' t_sub = VALUE #( ( 'x' ) ) ) ( name = 'B' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name  TYPE string,
++             t_sub TYPE string_table,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-t_sub = VALUE #( ( 'x' ) ).
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-name = 'B'.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, row leaves out a sub-structure", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_sub,
++             a TYPE string,
++             b TYPE string,
++           END OF ty_sub.
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             sub  TYPE ty_sub,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    tab = VALUE #( ( name = 'A' sub-a = 'x' ) ( name = 'B' sub-b = 'y' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_sub,
++             a TYPE string,
++             b TYPE string,
++           END OF ty_sub.
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             sub  TYPE ty_sub,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-sub-a = 'x'.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-name = 'B'.
++    temp2-sub-b = 'y'.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, empty row after a filled row", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    tab = VALUE #( ( name = 'A' qty = 5 ) ( ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-qty = 5.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE with BASE, rows of different shapes", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA row TYPE ty_row.
++    tab = VALUE #( BASE tab ( name = 'A' qty = 5 ) ( row ) ( name = 'B' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA row TYPE ty_row.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    temp1 = tab.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-qty = 5.
++    INSERT temp2 INTO TABLE temp1.
++    INSERT row INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-name = 'B'.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, inline target, rows of different shapes", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    TYPES ty_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA(tab) = VALUE ty_tab( ( name = 'A' qty = 5 ) ( name = 'B' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    TYPES ty_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 TYPE ty_tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-name = 'A'.
++    temp2-qty = 5.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-name = 'B'.
++    INSERT temp2 INTO TABLE temp1.
++    DATA(tab) = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, shared prefix, row leaves out a component", async () => {
++    const abap = `
++    DATA range TYPE RANGE OF i.
++    range = VALUE #( sign = 'I' ( option = 'BT' low = 1 high = 5 ) ( option = 'EQ' low = 9 ) ).`;
++    const expected = `
++    DATA range TYPE RANGE OF i.
++    DATA temp1 LIKE range.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-sign = 'I'.
++    temp2-option = 'BT'.
++    temp2-low = 1.
++    temp2-high = 5.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-sign = 'I'.
++    temp2-option = 'EQ'.
++    temp2-low = 9.
++    INSERT temp2 INTO TABLE temp1.
++    range = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, shared prefix changed between rows", async () => {
++    const abap = `
++    DATA range TYPE RANGE OF i.
++    range = VALUE #( ( sign = 'E' option = 'EQ' low = 1 ) sign = 'I' option = 'EQ' ( low = 2 ) ).`;
++    const expected = `
++    DATA range TYPE RANGE OF i.
++    DATA temp1 LIKE range.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    CLEAR temp2.
++    temp2-sign = 'E'.
++    temp2-option = 'EQ'.
++    temp2-low = 1.
++    INSERT temp2 INTO TABLE temp1.
++    CLEAR temp2.
++    temp2-sign = 'I'.
++    temp2-option = 'EQ'.
++    temp2-low = 2.
++    INSERT temp2 INTO TABLE temp1.
++    range = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE inside a loop, rows of different shapes", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DO 2 TIMES.
++      tab = VALUE #( ( name = 'A' ) ( name = 'B' qty = 5 ) ).
++    ENDDO.`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DO 2 TIMES.
++      DATA temp1 LIKE tab.
++      CLEAR temp1.
++      DATA temp2 LIKE LINE OF temp1.
++      CLEAR temp2.
++      temp2-name = 'A'.
++      INSERT temp2 INTO TABLE temp1.
++      CLEAR temp2.
++      temp2-name = 'B'.
++      temp2-qty = 5.
++      INSERT temp2 INTO TABLE temp1.
++      tab = temp1.
++    ENDDO.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE with FOR, rows of different shapes", async () => {
++    const abap = `
++    DATA range TYPE RANGE OF i.
++    range = VALUE #( FOR i = 1 UNTIL i > 3 ( sign = 'I' option = 'BT' low = i high = 9 ) ( sign = 'I' option = 'EQ' low = i ) ).`;
++    const expected = `
++    DATA range TYPE RANGE OF i.
++    DATA temp1 LIKE range.
++    CLEAR temp1.
++    DATA i TYPE i.
++    i = 1.
++    DATA temp3 LIKE sy-index.
++    temp3 = sy-index.
++    WHILE NOT i > 3.
++      sy-index = temp3.
++      DATA temp2 LIKE LINE OF temp1.
++      CLEAR temp2.
++      temp2-sign = 'I'.
++      temp2-option = 'BT'.
++      temp2-low = i.
++      temp2-high = 9.
++      INSERT temp2 INTO TABLE temp1.
++      CLEAR temp2.
++      temp2-sign = 'I'.
++      temp2-option = 'EQ'.
++      temp2-low = i.
++      INSERT temp2 INTO TABLE temp1.
++      i = i + 1.
++    ENDWHILE.
++    range = temp1.`;
++    testFix(abap, expected);
++  });
++
++  it("VALUE, rows assign the same components in a different order, no CLEAR", async () => {
++    const abap = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    tab = VALUE #( ( name = 'A' qty = 5 ) ( qty = 6 name = 'B' ) ).`;
++    const expected = `
++    TYPES: BEGIN OF ty_row,
++             name TYPE string,
++             qty  TYPE i,
++           END OF ty_row.
++    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
++    DATA temp1 LIKE tab.
++    CLEAR temp1.
++    DATA temp2 LIKE LINE OF temp1.
++    temp2-name = 'A'.
++    temp2-qty = 5.
++    INSERT temp2 INTO TABLE temp1.
++    temp2-qty = 6.
++    temp2-name = 'B'.
++    INSERT temp2 INTO TABLE temp1.
++    tab = temp1.`;
++    testFix(abap, expected);
++  });
++
+   it("Another REDUCE testcase", async () => {
+     const abap = `
+     DATA int TYPE string.
+-- 
+2.43.0
+
