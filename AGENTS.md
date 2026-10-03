@@ -324,7 +324,8 @@ src/
 ### Additional Directories
 
 Everything outside `src/` — `app/` and its `webapp/` module inventory, `node/`,
-`docs/`, `.claude/skills/`, `backlog/`, `tools/`, `frontend/`,
+`docs/`, `.claude/skills/`, the Claude Code plugin (`.claude-plugin/`,
+`plugin/`), `backlog/`, `tools/`, `frontend/`,
 `.github/` and what each script and shared file in it is for — is
 **`docs/agents/repository-map.md`**. It is a lookup: an agent needs it once it
 knows it has to place a change, not before, and this file is loaded into every
