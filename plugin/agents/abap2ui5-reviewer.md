@@ -37,7 +37,12 @@ that the linter did not run and recommend `/abap2ui5:check`.
    branch - a called app or popup returning lands there), `check_on_event( )`
    and, only for one-time setup, `check_on_init( )`. Flag a missing
    navigated branch, `IF check_on_init( ) OR check_on_navigated( )`, and
-   `IS INITIAL` / `IS NOT INITIAL` on an `abap_bool`.
+   `IS INITIAL` / `IS NOT INITIAL` on an `abap_bool`. The lifecycle checks
+   belong in ONE `IF`/`ELSEIF` chain: the guide's template (`IF
+   check_on_init( ). model_init( ). view_display( ). ELSEIF
+   check_on_navigated( ). view_display( ). ...`) is correct - never propose
+   splitting it into separate `IF` blocks, the linter reports those
+   (`separate-lifecycle-ifs`).
 2. **State** - PUBLIC attributes are serialized every roundtrip and visible
    in the browser: bound data only, everything else PROTECTED/PRIVATE. Flag
    secrets or large unbound tables in PUBLIC, references and objects that
@@ -66,9 +71,10 @@ that the linter did not run and recommend `/abap2ui5:check`.
 8. **abapGit sidecar** (`.clas.xml`) - UTF-8 BOM, LF only, exactly one final
    newline, no tabs, `<CLSNAME>` = file name upper-cased, `<LANGU>` as the
    project's `.abapgit.xml` says (normally `E`), `<WITH_UNIT_TESTS>X` exactly
-   when a `.testclasses.abap` exists, `&apos;` in `<DESCRIPT>`. Check the
-   bytes (Read shows a leading BOM as an invisible first character - Grep
-   for `\r` and `\t`), not just the text.
+   when a `.testclasses.abap` exists, `&apos;` in `<DESCRIPT>`. Grep for
+   `\r` and `\t`. Read and Grep both drop a UTF-8 BOM, so you cannot see
+   whether it is there: list the BOM under what you could not check and name
+   abaplint's `xml_bom` rule (`/abap2ui5:check`), never report it as clean.
 
 ## Report
 
