@@ -182,6 +182,10 @@ jobs:
     # that waits - the host queues them (host.mjs, ONE REQUEST AT A TIME)
     - name: one request at a time in the transpiled framework
       run: npx playwright test -c node/playwright-unit.config.js concurrency
+    # sessions.spec.js the same: a stateful app and a client without its
+    # session against one transpiled framework (host.mjs, STATEFUL SESSIONS)
+    - name: stateful sessions in the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js sessions
 
   browser:
     needs: transpile
