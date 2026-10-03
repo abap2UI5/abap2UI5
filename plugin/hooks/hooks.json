@@ -1,0 +1,17 @@
+{
+  "description": "abap2UI5: after an edit of a *.clas.abap file, the abap2UI5 linter's static check on that file - only in a project that has @abap2ui5/linter installed, silent otherwise.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/lint-abap-class.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

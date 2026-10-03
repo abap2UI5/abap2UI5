@@ -235,6 +235,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/generate-plugin.mjs --check # npm run check:plugin
 
+      # the plugin's PostToolUse hook runs on every edit in every project the
+      # plugin is enabled in - silent without the linter, a finding fed back
+      # to the agent with it; the test drives it with hook payloads
+      - name: the Claude Code plugin's lint hook behaves
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/plugin-hook.test.mjs # npm run check:plugin-hook
+
       - name: the two version numbers agree
         if: ${{ !cancelled() }}
         run: node .github/scripts/version-sync-gate.mjs # npm run check:version
