@@ -826,6 +826,10 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
+**Backlog:** open-abap · transpiler-value-let-without-for
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
+
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
   user's system was not. `line_exists( mt_names[ table_line = to_upper( is_node-name ) ] )`
@@ -910,6 +914,51 @@ break one of those four.
   constructor.** `DATA(lt_in) = VALUE STANDARD TABLE OF …` is a `parser_error`
   in the `abap_cloud` and `abap_standard` configs. Declare with `DATA`, then
   assign (`78d4731f`, #2128).
+- **In a table `VALUE`, every row names every component an earlier row
+  named.** The downport builds all rows in one work area and never clears it,
+  so after `VALUE #( ( name = 'A' t_sub = lt_x ) ( name = 'B' ) )` row B
+  carries A's `T_SUB` - on the 702 branch, and in `npm run unit`, which
+  transpiles the downport output. Scalars, structures, an empty row `( )` and
+  `BASE` leak the same way; inside a loop even the first row inherits the
+  previous pass's last row. FOR rows and a shared prefix are fine. Found
+  2026-10-03 in abap2UI5/headless-frontend, whose transpiled run showed a
+  nested table in a row that had none, and pinned down with a 17-test repro:
+  green transpiled from `src/`, 16 red transpiled from the downport, so the
+  transpiler, open-abap and the draft roundtrip are all innocent. Every check
+  is green - the source is right, and abaplint up to 2.120.64 does not report
+  its own output. **Until the fix ships, write the omitted component out**
+  (`t_sub = VALUE #( )`, `qty = 0`) in every row, or keep every row the same
+  shape. Not gated: the item's probe counts 159 constructors across the
+  checkouts (abap2UI5's framework code has none, samples' app overview has
+  one that puts the first tile's intro on every tile at 702), and a gate
+  would fail the sample repositories on a bug that is not theirs. A fix with
+  its tests is ready as `backlog/patches/abaplint-downport-value-row-clear.patch`
+  (a `CLEAR` plus the shared prefix at each row, only where the rows differ in
+  shape); samples spells its eight constructors out meanwhile.
+- **A `LET` in a `VALUE` without `FOR`, or in a `CONV`, does not survive the
+  transpiler** when it reads 7.40 source: the binding is never declared and
+  the statement dies with `ReferenceError: s is not defined` at runtime, not
+  at transpile time. `VALUE` with `FOR`, `COND` and `REDUCE` are fine. This
+  tree never meets it - `npm run unit` transpiles the downport, which outlines
+  the `LET` first - but a host transpiling its own 7.40 classes against
+  `@abap2ui5/node-runtime` does. Outline the binding into a `DATA` there.
+- **A method parameter typed with the generic `TYPE p` breaks the class in
+  the transpiled runtime.** The transpiler has no type for it and emits
+  `new abap.types.typeTodoPGenericType()` - for a CHANGING parameter, an
+  optional IMPORTING one, an EXPORTING one nobody receives, and for the
+  class's METHODS metadata. Calling the method dies with `TypeError: …
+  is not a constructor`, and so does describing the class, which abap2UI5
+  does to every app (`rtti_get_t_attri_by_oref`); `CATCH cx_root` does not
+  see a JS `TypeError`. A FORM parameter `TYPE p` and a method parameter
+  `TYPE numeric` are fine. Found 2026-10-03 by report2cloud, whose FORMs
+  become methods; type the parameter `TYPE p LENGTH … DECIMALS …`, `LIKE`
+  the actual, or `TYPE numeric`. Nothing in the four checkouts has one.
+- **`rescale( )` is not in the runtime** - `abap.builtin.rescale is not a
+  function` at runtime, the transpile is green. `round( )` with `dec`,
+  `prec` and every `mode` is, from `@abaplint/runtime` 2.13.94 on (2.13.93
+  throws `round(), todo, handle decimals` for any `dec` other than 0 -
+  still the version the MCP server's Node backend installs). Use `round( )`
+  where the scale of the result does not matter.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a
