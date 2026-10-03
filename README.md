@@ -68,6 +68,8 @@ Working with Claude Code? Two commands install the abap2UI5 plugin – the agent
 /plugin install abap2ui5@abap2ui5
 ```
 
+It adds the commands `/abap2ui5:new-app` (describe an app, get a validated class), `/abap2ui5:check` (run the gates, fix the safe findings), `/abap2ui5:find-sample` and `/abap2ui5:explain`, plus an `abap2ui5-reviewer` subagent.
+
 Only the MCP server, without the skills:
 
 ```bash

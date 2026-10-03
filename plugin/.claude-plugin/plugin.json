@@ -1,7 +1,7 @@
 {
   "name": "abap2ui5",
   "displayName": "abap2UI5",
-  "description": "Build abap2UI5 apps with an agent: the build-an-app, view-chain-layout, abap-check and ui5-check skills, plus the abap2UI5 MCP server (sample search, view validation, deploy, headless run and screenshot - no SAP system needed).",
+  "description": "Build abap2UI5 apps with an agent: the build-an-app, view-chain-layout, abap-check and ui5-check skills, the /abap2ui5:new-app, check, find-sample and explain commands, an abap2ui5-reviewer subagent, plus the abap2UI5 MCP server (sample search, view validation, deploy, headless run and screenshot - no SAP system needed).",
   "author": {
     "name": "abap2UI5",
     "url": "https://github.com/abap2UI5"
