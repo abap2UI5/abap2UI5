@@ -3,13 +3,17 @@ target: abaplint
 title: 'Report `->*` applied to a method call or constructor expression'
 summary: '`result = row_ref( name )->*.` is a syntax error on 7.50 — the dereferencing operator takes a reference VARIABLE, not the result of a functional call; abaplint parses the chain at v750 and the transpiler runs it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4361
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 issue #2722 — a user on SAP_ABA 750 SP33 reported `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` (`result = row_ref( iv_name )->*.`), green through abaplint at `syntax.version` v750 and through the transpiled unit run
   - gated in abap2UI5 since then by `npm run check:atc` (`deref_call`) — a `)` directly in front of a `->*`
   - measured 2026-09-19 on abaplint 2.120.52, `check_syntax` on, v750 — no finding on an isolated class carrying `lv = row( )->*.`
+  - found 2026-10-03 on abaplint 2.120.65 - `Source` already gates `->*` after a method call chain at v756, but the dynamic chain behind it accepts a bare `->*` at every release, so the gate never applies
+  - measured 2026-10-03 on a real system (S/4HANA, release 758, ADT) - `get_ref( )->*` and `CAST i( get_ref( ) )->*` activate and run; `NEW i( 7 )->*` is a syntax error even there
+  - filed 2026-10-03 as abaplint/abaplint#4361 - the dynamic chain takes `->*` only after a dynamic component or attribute, so a call followed by `->*` parses from v756 on and is a parser error below; CAST keeps its dereference at every release, NEW does not; four statementVersion tests at v756, all 11 255 tests of packages/core pass (32 pending), eslint clean
 ---
 
 # Report `->*` applied to a method call or constructor expression
