@@ -51,7 +51,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/Timer.js` | `timer.spec.js` | the arm-from-the-renderer flag, the one-shot that disarms itself, the repeating re-arm and both destroy re-checks, over a stub clock |
 | `cc/Tree.js` | `tree.spec.js` | the per-`tree_id` snapshot, the guard that will not overwrite a valid one, and the restore-once-per-(snapshot, binding) rule that keeps a theme change from collapsing the user's expansions |
 | `controller/App.controller.js` startup wiring | `appController.spec.js` | the backend URL - a host's `endpoint` before the page URL of the GET page before the manifest's data source; an embedded component's `sap.m.App` holding its autofocus off until the first page has rendered; `startApp` making new controllers on a restart |
-| the message toast/box display hooks in `core/actions/ControlCall.js` | `messages.spec.js` | — |
+| the message toast/box display hooks in `core/actions/ControlCall.js` | `messages.spec.js`, `message-box-details` e2e | the unfolded box details in both MessageBox layouts - the text 1.71 sets at creation kept, the empty FormattedText of 1.120 and later filled, labelled and shown; the e2e asks for the details TEXT on screen on the pinned 1.144 and on the ui5-1.71 leg |
 | `core/actions/BindingCall.js` | `frontendAction.spec.js` (`BINDING_CALL`) | the filter/sorter whitelist through the real dispatch: single and compound filter groups, the operator whitelist, clearing on empty values, the sorter flags |
 | `devtools/DeveloperTools.js` | `developerTools.spec.js` | the dialog, composed with the REAL registry rather than a stub |
 | `devtools/Tabs.js` | `devtoolsTabs.spec.js` | — |

@@ -9,7 +9,11 @@ const { loadModule } = require("./loadModule");
 // names: the backend sends only what the app set, so anything absent here is
 // absent because the app left it alone.
 
-function loadControlCall(sandbox) {
+// `layout` picks which sap.m.MessageBox the stub plays: "1.71" puts the
+// details into the FormattedText when it builds the box, "1.120" (what 1.144
+// still does, _getDetailsLayout) builds it empty and only the "Show details"
+// link's press handler fills it.
+function loadControlCall(sandbox, layout = "1.120") {
   const boxCalls = [];
   const toastCalls = [];
   const errors = [];
@@ -19,7 +23,7 @@ function loadControlCall(sandbox) {
     // UI5 builds the dialog and its content synchronously inside show( ),
     // before the opening animation - which is what lets showBox reach the
     // details right after the call returns
-    if (params?.details) openDialog(params.id);
+    if (params?.details) openDialog(params.id, params.details);
   };
   const MessageBox = {
     show: boxFn("show"),
@@ -41,21 +45,34 @@ function loadControlCall(sandbox) {
   // against a real MessageBox - so the stub answers with the layout UI5
   // builds, [message, "Show details" link, FormattedText(hidden)].
   const dialogs = {};
-  const control = (type, visible) => ({
+  const control = (type, visible, htmlText = "") => ({
     type,
     visible,
+    htmlText,
     isA: (sType) => sType === type,
     setVisible(bVisible) {
       this.visible = bVisible;
     },
+    getHtmlText() {
+      return this.htmlText;
+    },
+    setHtmlText(sText) {
+      this.htmlText = sText;
+    },
   });
-  const openDialog = (sId) => {
+  const openDialog = (sId, sDetails) => {
     const items = [
       control("sap.m.Text", true),
       control("sap.m.Link", true),
-      control("sap.m.FormattedText", false),
+      control("sap.m.FormattedText", false, layout === "1.71" ? sDetails : ""),
     ];
-    dialogs[sId] = { items, getContent: () => [{ getItems: () => items }] };
+    const ariaLabelledBy = [];
+    dialogs[sId] = {
+      items,
+      ariaLabelledBy,
+      getContent: () => [{ getItems: () => items }],
+      addAriaLabelledBy: (oItem) => ariaLabelledBy.push(oItem),
+    };
     return dialogs[sId];
   };
   // A toast fades on its own and a box waits for a user, so both onClose
@@ -183,6 +200,30 @@ test.describe("message box options", () => {
     expect(items.find((i) => i.type === "sap.m.FormattedText").visible).toBe(true);
     // ... and the link that would have revealed them is gone with them
     expect(items.find((i) => i.type === "sap.m.Link").visible).toBe(false);
+  });
+
+  test("details a release builds empty are filled - 1.120 and later", () => {
+    // from 1.120 on MessageBox creates the FormattedText without its text and
+    // sets it in the link's press handler. Shown without the text, the box
+    // had an empty details area and no link left to fill it
+    // (portable.box-details of the protocol's frontend suite)
+    const { boxCalls, dialogs } = showBox("show", { details: "<p>x</p>" });
+    const dialog = dialogs[boxCalls[0].params.id];
+    const details = dialog.items.find((i) => i.type === "sap.m.FormattedText");
+    expect(details.htmlText).toBe("sanitized:<p>x</p>");
+    expect(details.visible).toBe(true);
+    // ... and labels the dialog, as the press handler would have
+    expect(dialog.ariaLabelledBy).toEqual([details]);
+  });
+
+  test("details a release built with their text keep it - 1.71", () => {
+    const env = loadControlCall(undefined, "1.71");
+    env.dispatch("MESSAGE_BOX", "show", "boom", { details: "<p>x</p>" });
+    const dialog = env.dialogs[env.boxCalls[0].params.id];
+    const details = dialog.items.find((i) => i.type === "sap.m.FormattedText");
+    expect(details.htmlText).toBe("sanitized:<p>x</p>");
+    expect(details.visible).toBe(true);
+    expect(dialog.items.find((i) => i.type === "sap.m.Link").visible).toBe(false);
   });
 
   test("a box without details is not given an id and opens untouched", () => {

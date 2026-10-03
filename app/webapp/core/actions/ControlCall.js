@@ -116,18 +116,38 @@ sap.ui.define(
     // table, a structure or a tree IS the message, and a rendering behind a
     // link the user has to find first is not shown at all.
     //
+    // The text is set here as well, not only the visibility. 1.71 put the
+    // details into the FormattedText when it built the box; from 1.120 on
+    // (_getDetailsLayout, still so in 1.144) the FormattedText is created
+    // EMPTY and the press handler is what fills it - so showing it without
+    // the text showed nothing, and hiding the link took away the one way to
+    // get at it (the protocol's frontend suite, portable.box-details, found
+    // it; the message-box-details e2e spec now holds it on both releases).
+    // The details travel as a string - sanitizeMessageDetails returns one -
+    // and MessageBox's own formatting of a string is the identity, so the
+    // text set here is the text the press handler would have set. Firing the
+    // press instead would also run its focus handling, against a dialog that
+    // is not rendered yet; the aria label it adds is added here.
+    //
     // Every call here is a public control API (getContent/getItems/setVisible
-    // /isA) over controls MessageBox built one statement earlier, and every
-    // step is guarded: a release that lays the box out differently leaves the
-    // details collapsed - the behaviour before this - rather than throwing.
-    function expandBoxDetails(sDialogId) {
+    // /isA/getHtmlText/setHtmlText/addAriaLabelledBy) over controls
+    // MessageBox built one statement earlier, and every step is guarded: a
+    // release that lays the box out differently leaves the details collapsed
+    // - the behaviour before this - rather than throwing.
+    function expandBoxDetails(sDialogId, sDetails) {
       const oDialog = Env.getElementById(sDialogId);
       const oLayout = oDialog?.getContent?.()[0];
       if (!oLayout?.getItems) return;
       for (const oItem of oLayout.getItems()) {
         if (!oItem?.isA) continue;
-        // the details themselves - shown
-        if (oItem.isA("sap.m.FormattedText")) oItem.setVisible(true);
+        // the details themselves - filled when the release left them empty,
+        // labelled and shown. The message is a sap.m.Text (showBox always
+        // passes a string), so the details are the one FormattedText here
+        if (oItem.isA("sap.m.FormattedText")) {
+          if (!oItem.getHtmlText()) oItem.setHtmlText(sDetails);
+          oDialog.addAriaLabelledBy?.(oItem);
+          oItem.setVisible(true);
+        }
         // ... and the link that would have revealed them has nothing left to
         // do, so it does not stand under the text as a dead "Show details"
         else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);
@@ -185,7 +205,7 @@ sap.ui.define(
       // after show( ): the dialog and its content exist from here on -
       // MessageBox builds both synchronously and only the opening animation
       // is deferred
-      if (o.details) expandBoxDetails(o.id);
+      if (o.details) expandBoxDetails(o.id, o.details);
     }
 
     // ------------------------------------------------------------------

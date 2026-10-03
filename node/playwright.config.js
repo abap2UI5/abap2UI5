@@ -104,10 +104,13 @@ module.exports = defineConfig(
        So does embedded: a host page that boots the pinned build itself and
        loads the frontend through ?z2ui5-bundle - a starting app took the
        host's focus on 1.71 as on the current release, through sap.m.App's
-       first rendering and through its own SET_FOCUS. */
+       first rendering and through its own SET_FOCUS.
+       And message-box-details: sap.m.MessageBox fills the details text at
+       creation on 1.71 and only on the link's press from 1.120 on, so the
+       unfolded details are asked for on both ends of the range. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */
