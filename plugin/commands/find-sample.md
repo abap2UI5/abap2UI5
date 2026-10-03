@@ -41,7 +41,7 @@ The best three, each as:
 - **`CLASS_NAME`** (repository) - what it shows, in one sentence; what it
   needs from the system when that is more than abap2UI5.
   Source: `https://github.com/abap2UI5/<repo>/blob/main/<file>`; running
-  version: `https://abap2ui5.github.io/playground/samples/<class>/` when the
+  version: `https://abap2ui5.github.io/playground/samples/<class in lower case>/` when the
   catalogue lists it.
 
 Then one line on which to read first and why. Fewer than three good matches:
