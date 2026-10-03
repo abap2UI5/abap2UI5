@@ -827,6 +827,7 @@ break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared
 **Backlog:** open-abap · transpiler-value-let-without-for
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -940,6 +941,23 @@ break one of those four.
   tree never meets it - `npm run unit` transpiles the downport, which outlines
   the `LET` first - but a host transpiling its own 7.40 classes against
   `@abap2ui5/node-runtime` does. Outline the binding into a `DATA` there.
+- **A method parameter typed with the generic `TYPE p` breaks the class in
+  the transpiled runtime.** The transpiler has no type for it and emits
+  `new abap.types.typeTodoPGenericType()` - for a CHANGING parameter, an
+  optional IMPORTING one, an EXPORTING one nobody receives, and for the
+  class's METHODS metadata. Calling the method dies with `TypeError: …
+  is not a constructor`, and so does describing the class, which abap2UI5
+  does to every app (`rtti_get_t_attri_by_oref`); `CATCH cx_root` does not
+  see a JS `TypeError`. A FORM parameter `TYPE p` and a method parameter
+  `TYPE numeric` are fine. Found 2026-10-03 by report2cloud, whose FORMs
+  become methods; type the parameter `TYPE p LENGTH … DECIMALS …`, `LIKE`
+  the actual, or `TYPE numeric`. Nothing in the four checkouts has one.
+- **`rescale( )` is not in the runtime** - `abap.builtin.rescale is not a
+  function` at runtime, the transpile is green. `round( )` with `dec`,
+  `prec` and every `mode` is, from `@abaplint/runtime` 2.13.94 on (2.13.93
+  throws `round(), todo, handle decimals` for any `dec` other than 0 -
+  still the version the MCP server's Node backend installs). Use `round( )`
+  where the scale of the result does not matter.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

@@ -154,5 +154,31 @@
     "sites": 0,
     "negatives": 1,
     "repos": []
+  },
+  "runtime-rescale-not-implemented": {
+    "describe": "a call of `rescale( )` - no builtin in @abaplint/runtime; the `round( val = … )` calls as the negative, implemented with dec, prec and mode since 2.13.94",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
+  },
+  "transpiler-generic-packed-parameter": {
+    "describe": "a METHODS / CLASS-METHODS parameter typed `TYPE p` without LENGTH or DECIMALS - the transpiler emits `typeTodoPGenericType`; FORM parameters `TYPE p` and method parameters `TYPE numeric` as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
   }
 }
