@@ -12,7 +12,10 @@ evidence:
   - the transpiler, the open-abap runtime and abap2UI5's draft roundtrip were each ruled out in the same run - the undownported VALUE, an asXML roundtrip of the table and of an object holding it (`CALL TRANSFORMATION id`, the draft's mechanism) all keep row 2 initial
   - the cause is in `packages/core/src/rules/downport.ts`, `outlineValue` (abaplint main 91efb82, 2026-10-02) - for each `ValueBodyLine` it emits the row's `FieldAssignment`s into `${structureName}` and `INSERT ${structureName} INTO TABLE ${uniqueName}` at the closing `)`, and nothing at the opening `(`; the multi-row tests in `packages/core/test/rules/downport.ts` ("VALUE appending to table", "… voided type") assign the same components in every row, which is why it never showed
   - `backlog:probe` counts 159 such constructors in the four checkouts, 8 of them in samples' production code (its app overview `z2ui5_cl_smp_app_000` leaves out `intro` in most rows, so on 702 every tile carries the first tile's intro text), 149 in samples-controls; abap2UI5's framework code has none - its 2 sites are test classes whose assertions happen not to read the inherited component (`HIGH` on `EQ`/`CP` range rows, `T_RANGE` of a popup factory call that only asserts the instance)
+  - a fix with tests, `backlog/patches/abaplint-downport-value-row-clear.patch` (one commit, `git am` onto abaplint/abaplint main 91efb82) - 11 new tests in `packages/core/test/rules/downport.ts`, none of the 298 existing ones changed; `npm test` in `packages/core` 11 209 passing (32 pending), eslint 0 errors, schema and api-extractor clean. the repro downported with it passes 17 of 17 transpiled (1 of 17 with 2.120.64)
+  - samples spells its eight constructors out (branch `claude/abap2ui5-project-brainstorm-nt7ifs`; the overview generator now writes `intro` and `keywords` on every tile) - downported with 2.120.64 and with the patched rule, its tree is then byte-identical
 checked_upstream: 2026-10-03
+patch: backlog/patches/abaplint-downport-value-row-clear.patch
 ---
 
 # downport: VALUE table rows inherit the components the previous row set
@@ -81,31 +84,143 @@ data at runtime.
 
 ## A fix
 
-In `outlineValue`, the `ValueBodyLine` branch: at a row's opening `(`, clear
-the work area and re-apply the shared prefix before the row's own
-assignments. Clearing alone would be wrong for the prefix form, whose
-assignments apply to every following row and are emitted once today:
+In `outlineValue`, at a row's opening `(`: clear the work area and re-apply
+the shared prefix before the row's own assignments. Clearing alone would be
+wrong for the prefix form, whose assignments apply to every following row and
+are emitted once today:
 
 ```abap
-temp2-sign = 'I'.            " the prefix, as today
+CLEAR temp2.                 " new: at every row, the first included
+temp2-sign = 'I'.            " the prefix, now per row instead of once
 temp2-option = 'BT'.
 temp2-low = 1.
 temp2-high = 5.
 INSERT temp2 INTO TABLE temp1.
-CLEAR temp2.                 " new: at the next row's "("
-temp2-sign = 'I'.            " new: the prefix again
+CLEAR temp2.
+temp2-sign = 'I'.
 temp2-option = 'EQ'.
 temp2-low = 9.
 INSERT temp2 INTO TABLE temp1.
 ```
 
-So: `CLEAR ${structureName}.` plus the prefix's assignments at **every**
-row, the first included - a constructor inside a loop reaches its first row
-with the work area of the previous pass, because the generated `DATA` is
-declarative and does not reinitialise anything. Rows that are a plain
-source, `( lv_line )`, and nested `ValueBodyLines` insert directly and need
-nothing. The existing multi-row test expectations gain the `CLEAR`, and a
-test with differently shaped rows pins it.
+The first row needs it too: a constructor inside a loop reaches its first
+row with the work area of the previous pass, because the generated `DATA` is
+declarative and does not reinitialise anything. Rows that are a plain source,
+`( lv_line )`, or `LINES OF` insert directly and need nothing.
+
+**Only where a row can see an earlier one.** When every row assigns the same
+set of components and the prefix does not change between rows, nothing can
+leak - every component a row writes is written by every row, in every pass.
+That covers every `FOR` and every existing multi-row test, so the patch
+emits the `CLEAR` only when the rows differ in shape (an empty row `( )`
+among filled ones included) or a prefix assignment follows a row. Output that
+is correct today stays byte-identical.
+
+## The patch
+
+[`backlog/patches/abaplint-downport-value-row-clear.patch`](../patches/abaplint-downport-value-row-clear.patch)
+is one commit, `git am` onto abaplint/abaplint main 91efb82 (checked in a
+fresh clone: applies cleanly, the tree equals the tested one). 54 lines in
+`packages/core/src/rules/downport.ts` (`valueRowsNeedClear`,
+`isStructuredValueRow`, the `CLEAR` and the per-row prefix in
+`outlineValue`), 318 lines of tests.
+
+**Tests**, in the style of `packages/core/test/rules/downport.ts`
+(`testFix`, input and expected output): a row that leaves out a scalar, a
+nested table, a sub-structure; an empty row after a filled one; `BASE` with
+a source row in between; an inline `DATA( )` target; a shared prefix with a
+row that leaves out a component; a prefix changed between rows; the
+constructor inside a `DO`; `FOR` with two rows of different shapes; and rows
+that assign the same components in a different order, which must stay
+without `CLEAR`. None of the existing expectations changed.
+
+**Evidence**, all 2026-10-03:
+
+| | |
+|---|---|
+| downport rule tests | 309 passing, 5 pending (298 before, plus the 11 new) |
+| `npm test` in `packages/core` | 11 209 passing, 32 pending; eslint 0 errors (one pre-existing warning in `else_after_all_returns.ts`); `npm run schema` and api-extractor clean |
+| the 17-test repro, downported by the CLI built against the patched core, then transpiled (transpiler 2.13.96) | **17 / 17 pass** - 2.120.64: 1 / 17; the 7.40 source transpiled directly: 17 / 17 |
+| abap2UI5/samples at main 2e998ef, `abap_702.jsonc`, patched vs. released 2.120.64 | differs in exactly the 8 files the probe lists, by 162 added `CLEAR` lines and nothing else |
+| abap2UI5/samples after its mitigation (all 8 constructors spelled out), patched vs. released 2.120.64 | byte-identical |
+
+**One behavioural change.** A shared prefix with a side effect, such as a
+method call, is now evaluated once per row instead of once per constructor -
+the price of re-applying it after the `CLEAR`. That only happens for
+constructors whose rows differ in shape, where the output was wrong before.
+An alternative that evaluates the prefix once is a second work area holding
+only the prefix and `temp2 = temp_prefix.` instead of `CLEAR` plus the
+assignments; it costs one more declaration per constructor.
+
+## Pull request
+
+Ready to paste. Title:
+
+```
+downport: clear the VALUE row work area between rows of different shapes
+```
+
+Body:
+
+```markdown
+`outlineValue` builds every row of a table `VALUE` in one work area
+(`DATA temp2 LIKE LINE OF temp1`) and never clears it, so a component a row
+leaves out keeps what an earlier row put there instead of being initial:
+
+    TYPES: BEGIN OF ty_row,
+             name TYPE string,
+             qty  TYPE i,
+           END OF ty_row.
+    DATA tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+    tab = VALUE #( ( name = 'A' qty = 5 ) ( name = 'B' ) ).
+
+downports to
+
+    DATA temp1 LIKE tab.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-name = 'A'.
+    temp2-qty = 5.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-name = 'B'.
+    INSERT temp2 INTO TABLE temp1.     " qty is still 5
+    tab = temp1.
+
+The code activates and nothing reports it. The same happens for an empty
+row `( )` after a filled one, under `BASE`, with an inline `DATA( )` target,
+for nested tables and sub-structures, and inside a `LOOP`/`DO`, where the
+*first* row inherits the previous pass's last row (the generated `DATA` does
+not reinitialize).
+
+**Change.** A row that is built in the work area now starts with
+`CLEAR temp2.` followed by the shared prefix assignments
+(`VALUE #( sign = 'I' ( ... ) ( ... ) )`), which are emitted at every row
+instead of once before the first, so the prefix still applies to every row.
+Source rows `( lv_line )` and `LINES OF` are unchanged.
+
+The `CLEAR` is only emitted when a row can observe an earlier one: when the
+rows assign different sets of components, or a prefix assignment follows a
+row. If all rows assign the same components, nothing can leak, so every
+`FOR` and all existing multi-row tests downport exactly as before - none of
+the existing expectations changed.
+
+One behavioural note: in the constructors that get the `CLEAR`, a shared
+prefix is evaluated per row instead of once. Happy to switch to a second work
+area holding the prefix (`temp2 = temp3.` instead of `CLEAR` + assignments)
+if you prefer that.
+
+**Tests.** 11 new `testFix` cases: omitted scalar, nested table,
+sub-structure, empty row, `BASE`, inline target, shared prefix, prefix
+changed between rows, inside `DO`, `FOR` with two row shapes, and same
+components in a different order (no `CLEAR`). `npm test` in `packages/core`
+is green.
+
+**Verified end to end** on abap2UI5/samples, which publishes its downport as
+a 702 branch: with this change the downport output differs from 2.120.64
+only by the added `CLEAR`s (162 lines), in exactly the 8 constructors whose
+rows differ in shape, and nowhere else. A 17-case repro that fails 16 times
+after the 2.120.64 downport passes completely.
+```
 
 ## How to file
 
@@ -117,7 +232,9 @@ ourselves - a PR with the fix and the test is the realistic way:
    "downport clear" were read through the web, not the API - nothing about
    row work areas; PR #2636 "downport add CLEAR" from 2022 is about clearing
    the target table, not the row).
-2. Open the issue or PR with this body.
+2. Open the pull request from the patch (`git am` onto main, push to a
+   fork) with the description under "Pull request" above; the repro and
+   the table of this item are the runtime evidence if a maintainer asks.
 3. Set `state: filed` and `filed: <url>` here, run `npm run backlog`, commit.
 4. When it ships, bump abaplint here and in the downported repositories -
    their `702` branches pick the fix up on the next rebuild - and delete

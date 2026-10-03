@@ -826,6 +826,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared
+**Backlog:** open-abap · transpiler-value-let-without-for
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -928,7 +929,17 @@ break one of those four.
   shape. Not gated: the item's probe counts 159 constructors across the
   checkouts (abap2UI5's framework code has none, samples' app overview has
   one that puts the first tile's intro on every tile at 702), and a gate
-  would fail the sample repositories on a bug that is not theirs.
+  would fail the sample repositories on a bug that is not theirs. A fix with
+  its tests is ready as `backlog/patches/abaplint-downport-value-row-clear.patch`
+  (a `CLEAR` plus the shared prefix at each row, only where the rows differ in
+  shape); samples spells its eight constructors out meanwhile.
+- **A `LET` in a `VALUE` without `FOR`, or in a `CONV`, does not survive the
+  transpiler** when it reads 7.40 source: the binding is never declared and
+  the statement dies with `ReferenceError: s is not defined` at runtime, not
+  at transpile time. `VALUE` with `FOR`, `COND` and `REDUCE` are fine. This
+  tree never meets it - `npm run unit` transpiles the downport, which outlines
+  the `LET` first - but a host transpiling its own 7.40 classes against
+  `@abap2ui5/node-runtime` does. Outline the binding into a `DATA` there.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

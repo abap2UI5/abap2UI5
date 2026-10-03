@@ -141,5 +141,18 @@
       "samples",
       "samples-controls"
     ]
+  },
+  "transpiler-value-let-without-for": {
+    "describe": "a VALUE without FOR, or a CONV, that binds a LET - the transpiler never declares the binding; the LETs in VALUE with FOR, COND, SWITCH and REDUCE as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 0,
+    "negatives": 1,
+    "repos": []
   }
 }
