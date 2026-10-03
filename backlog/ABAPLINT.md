@@ -32,20 +32,6 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`abaplint-into-corresponding-inline-decl`](items/abaplint-into-corresponding-inline-decl.md) | 'below 7.55 the system refuses the class with "Inline data declarations cannot be used together with INTO CORRESPONDING additions"; abaplint`s SELECT grammar puts no version gate on the inline declaration, so a v750 project is green with it'<br><sub>written up in [Release-gated ABAP SQL — the syntax version switch does not gate it](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>0</b> site(s), 8 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4354</sub> | high | 2026-09-19 | abaplint/abaplint |
-| [`abaplint-ref-into-generic-target`](items/abaplint-ref-into-generic-target.md) | '`<fs> = REF #( x )` where `<fs>` is `TYPE any` (or `data`, or a field symbol bound by a dynamic ASSIGN) is "Unexpected operator REF" on a system — `#` infers the reference type from the target, and a generic target has none; abaplint 2.120.52 accepts it under every syntax version'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>0</b> site(s), 39 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4355</sub> | high | 2026-09-19 | abaplint/abaplint |
-| [`abaplint-text-symbol-to-string-param`](items/abaplint-text-symbol-to-string-param.md) | a text symbol like `'Hallo'(001)` passed to a method parameter typed `string` is not type-compatible on a system - it is a character literal of type C and does not convert the way a plain literal does; abaplint treats it as a constant and reports nothing<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4358</sub> | high | 2026-10-02 | abaplint/abaplint |
-| [`abaplint-preferred-parameter-ignored`](items/abaplint-preferred-parameter-ignored.md) | the addition does nothing unless every IMPORTING parameter is optional — ABAP warns and abaplint says nothing, while its syntax check goes the other way and accepts a call that omits the mandatory parameter<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4357</sub> | medium | 2026-09-05 | abaplint/abaplint |
-| [`abaplint-type-handle-method-call`](items/abaplint-type-handle-method-call.md) | '`CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( comps )` is "No method can be specified in the current position" on a system — the operand has to be a variable holding the descriptor; abaplint parses the call as an expression and says nothing'<br><sub>written up in [The class pool](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>0</b> site(s), 46 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4356</sub> | medium | 2026-09-19 | abaplint/abaplint |
-
----
-
 ## Deferred
 
 _a decision was made not to do this now, and why_
