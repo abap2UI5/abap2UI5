@@ -825,6 +825,8 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
+
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
   user's system was not. `line_exists( mt_names[ table_line = to_upper( is_node-name ) ] )`
@@ -909,6 +911,24 @@ break one of those four.
   constructor.** `DATA(lt_in) = VALUE STANDARD TABLE OF …` is a `parser_error`
   in the `abap_cloud` and `abap_standard` configs. Declare with `DATA`, then
   assign (`78d4731f`, #2128).
+- **In a table `VALUE`, every row names every component an earlier row
+  named.** The downport builds all rows in one work area and never clears it,
+  so after `VALUE #( ( name = 'A' t_sub = lt_x ) ( name = 'B' ) )` row B
+  carries A's `T_SUB` - on the 702 branch, and in `npm run unit`, which
+  transpiles the downport output. Scalars, structures, an empty row `( )` and
+  `BASE` leak the same way; inside a loop even the first row inherits the
+  previous pass's last row. FOR rows and a shared prefix are fine. Found
+  2026-10-03 in abap2UI5/headless-frontend, whose transpiled run showed a
+  nested table in a row that had none, and pinned down with a 17-test repro:
+  green transpiled from `src/`, 16 red transpiled from the downport, so the
+  transpiler, open-abap and the draft roundtrip are all innocent. Every check
+  is green - the source is right, and abaplint up to 2.120.64 does not report
+  its own output. **Until the fix ships, write the omitted component out**
+  (`t_sub = VALUE #( )`, `qty = 0`) in every row, or keep every row the same
+  shape. Not gated: the item's probe counts 159 constructors across the
+  checkouts (abap2UI5's framework code has none, samples' app overview has
+  one that puts the first tile's intro on every tile at 702), and a gate
+  would fail the sample repositories on a bug that is not theirs.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

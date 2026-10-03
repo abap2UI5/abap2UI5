@@ -124,5 +124,22 @@
     "sites": 0,
     "negatives": 46,
     "repos": []
+  },
+  "abaplint-downport-value-row-not-cleared": {
+    "describe": "a table VALUE constructor where a later row leaves out a component an earlier row assigned, with the constructors whose rows differ in shape but never leave one out as the negative",
+    "ran": "2026-10-03",
+    "checkouts": [
+      "abap2UI5",
+      "samples",
+      "samples-controls",
+      "samples-stack"
+    ],
+    "sites": 159,
+    "negatives": 47,
+    "repos": [
+      "abap2UI5",
+      "samples",
+      "samples-controls"
+    ]
   }
 }
