@@ -130,3 +130,35 @@ test("keeps keyboard focus inside the overlay", async () => {
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Refresh" })).toBeFocused();
 });
+
+test("takes the focus back when the page behind moves it", async () => {
+  await showErrorView(false);
+
+  // The page behind the overlay keeps running: a starting app's first
+  // rendering (sap.m.App autoFocus) or its SET_FOCUS follow-up action moves
+  // the focus to a control of its own. When that landed after the overlay
+  // had opened - the start app boots while the cases above run - the focus
+  // assertions above failed in WebKit and Firefox; the overlay now sends such
+  // a focus back. Modelled here with a plain input, so the case does not
+  // depend on how far the start app's boot has got.
+  const focusBehind = () =>
+    page.evaluate(() => {
+      let input = document.getElementById("behindOverlay");
+      if (!input) {
+        input = document.createElement("input");
+        input.id = "behindOverlay";
+        document.body.appendChild(input);
+      }
+      input.focus();
+    });
+
+  await focusBehind();
+  await expect(page.getByRole("button", { name: "Refresh" })).toBeFocused();
+  // back to the element that held the focus last, not always the first one
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Logout" })).toBeFocused();
+  await focusBehind();
+  await expect(page.getByRole("button", { name: "Logout" })).toBeFocused();
+
+  await page.evaluate(() => document.getElementById("behindOverlay")?.remove());
+});

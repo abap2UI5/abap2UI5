@@ -673,6 +673,44 @@ sap.ui.define([], () => {
       }
     });
 
+    // ...and keep it there when something ELSE moves it. The trap above only
+    // sees the user's Tab, but the page behind the overlay keeps running and
+    // may move the focus on its own: sap.m.App focusing the first input of
+    // its first page (NavContainer autoFocus), a SET_FOCUS follow-up action
+    // of a response still being rendered (the start app sends one on init),
+    // a focus restore. That focus left the aria-modal overlay for good, so
+    // Enter or Space acted on the broken page behind it - and the focus
+    // assertions of node/tests/e2e/error-view.spec.js failed in WebKit and
+    // Firefox whenever the start app's first rendering landed after the
+    // overlay had opened. Same pattern as a modal sap.ui.core.Popup
+    // (onFocusEvent): a focus landing outside goes back to the element of
+    // the overlay that held it last. A focus landing in another dialog is
+    // left there, so two modal traps never bounce the focus between them.
+    // The listener drops itself on the first focus after the overlay is gone
+    // (Retry, Refresh, a newer overlay replacing it), so no removal path
+    // has to remember it.
+    let lastFocused = firstTrap;
+    const containFocus = (event) => {
+      if (!errorContainer.isConnected) {
+        document.removeEventListener("focusin", containFocus, true);
+        return;
+      }
+      const target = event.target;
+      if (errorContainer.contains(target)) {
+        lastFocused = target;
+        return;
+      }
+      if (
+        target?.closest?.(
+          '[role="dialog"], [role="alertdialog"], [aria-modal="true"]',
+        )
+      ) {
+        return;
+      }
+      (lastFocused?.isConnected ? lastFocused : firstTrap)?.focus();
+    };
+    document.addEventListener("focusin", containFocus, true);
+
     // The error text itself lives inside a sandboxed iframe so any HTML
     // in the backend response cannot execute or affect the main page.
     const iframe = document.createElement("iframe");
