@@ -25,6 +25,10 @@
  *                    body parser and the handler on every path - what the
  *                    dev server has always been.
  *   serve()          createApp() listening. Resolves with the http.Server.
+ *   exclusive(fn)    runs fn once no other request of this process is in
+ *                    the framework - what createHandler() puts around every
+ *                    request (ONE REQUEST AT A TIME, below). For a host that
+ *                    calls the shim itself.
  *
  * accelerate() (srv/accelerate.mjs, re-exported here) installs nothing any
  * more: @abaplint/runtime from 2.13.96 on is linear on large tables itself
@@ -42,6 +46,26 @@
  * output/ and setup/ - the same neighbours it has here (node/srv next to
  * node/output and node/setup), so `../output/init.mjs` resolves in both
  * places and nothing is rewritten at pack time.
+ *
+ * ONE REQUEST AT A TIME. On an SAP system every request runs in a roll area
+ * of its own: the class-data the framework keeps per request - the user
+ * exit's request context, the app-load buffer, the sticky handler - and sy
+ * are that request's alone. In this process there is one set of all of it,
+ * and the shim adds its own: cl_express_icf_shim keeps the ONE server object
+ * in a static and swaps its request and response entities at the start of
+ * every run. That holds while a request runs from start to end without
+ * handing the event loop back, and SQLite (sql.js) is synchronous behind its
+ * async API, so with nothing else in play it did. It stops holding the
+ * moment a request really waits - WAIT UP TO (a timer), an HTTP call, a
+ * draft store on an asynchronous database: the next request then runs in the
+ * middle of the waiting one, on the same server object, the same sy, the
+ * same open database transaction (WAIT commits it, a failed roundtrip rolls
+ * it back - another request's writes with it). So the handler queues: a
+ * request enters the framework when the one before it has left, the way a
+ * single work process takes them. A request that waits holds the others up
+ * for as long as it waits - which is the price of the shared state, not of
+ * the queue. node/tests/concurrency.spec.js holds it, against flows of the
+ * app stack with a request that waits in the middle.
  *
  * THE FRONTEND needs nothing here. The GET branch of
  * z2ui5_cl_ui5_http_handler answers with the page and the whole UI5 component
@@ -78,9 +102,33 @@ export function initialize() {
   return booted;
 }
 
+// the request in the framework, or the last one queued behind it - module
+// level, not per handler: every createHandler() of the process drives the
+// same statics, so they queue on one line
+let queue = Promise.resolve();
+
+/**
+ * Run `fn` once every request queued before it has left the framework, and
+ * hold the next one back until `fn` has settled - see ONE REQUEST AT A TIME
+ * above. A rejection is handed to the caller and does not stop the queue.
+ * createHandler() runs every request through it; a host that calls
+ * cl_express_icf_shim.run() itself (cap2UI5) wraps that call in it.
+ * @template T
+ * @param {() => T | Promise<T>} fn
+ * @returns {Promise<T>}
+ */
+export function exclusive(fn) {
+  const run = queue.then(() => fn());
+  queue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
 /**
  * The HTTP handler. Boots the runtime on the first request when nothing
- * called initialize() before.
+ * called initialize() before, and queues the requests (exclusive()).
  * @param {{ handlerClass?: string }} [options] another if_http_extension
  *   class, transpiled into the same runtime, instead of ZCL_SICF
  * @returns {(req: object, res: object) => Promise<void>}
@@ -91,7 +139,7 @@ export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
     // express.raw() leaves req.body undefined on a request without one (every
     // GET); the shim reads it as a Buffer either way
     if (!req.body) req.body = Buffer.alloc(0);
-    await cl_express_icf_shim.run({ req, res, class: handlerClass });
+    await exclusive(() => cl_express_icf_shim.run({ req, res, class: handlerClass }));
   };
 }
 

@@ -118,7 +118,11 @@ needs no frontend files.
 
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
 it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
-`accelerate()`, `compress()` and `HANDLER_CLASS`; `initialize()` calls
+`exclusive()`, `accelerate()`, `compress()` and `HANDLER_CLASS`; `createHandler()`
+queues the requests through `exclusive()` - one in the framework at a time,
+because its per-request class-data and the shim's static server object exist
+once per process here, not once per roll area (`node/tests/concurrency.spec.js`,
+which `test_node` runs; the header of `host.mjs`, "ONE REQUEST AT A TIME", has the rest); `initialize()` calls
 `accelerate()`, which installs nothing - `@abaplint/runtime` from 2.13.96 on
 has the linear LOOP ... WHERE over a sorted primary key and CP itself - and
 warns once on an older runtime (`node/tests/accelerate.spec.js`; the file's

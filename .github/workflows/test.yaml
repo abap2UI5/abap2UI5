@@ -175,6 +175,11 @@ jobs:
     # in test_unit_js, which has no tree; this job has one.
     - name: gzip in front of the transpiled framework
       run: npx playwright test -c node/playwright-unit.config.js compress
+    # concurrency.spec.js skips in test_unit_js for the same reason: several
+    # clients against one transpiled framework, one of them with a request
+    # that waits - the host queues them (host.mjs, ONE REQUEST AT A TIME)
+    - name: one request at a time in the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js concurrency
 
   browser:
     needs: transpile
