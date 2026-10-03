@@ -60,6 +60,10 @@ sap.ui.define(
     //         "EVENT": "SAVE",             // event name
     //         "T_EVENT_ARG": ["arg1"],     // further event arguments
     //         "HASH": "#...",              // live routing state, every request
+    //         "MS_CLIENT_PREV": 312,       // the previous roundtrip's duration
+    //                                      // as the browser saw it, in ms -
+    //                                      // for the backend's roundtrip
+    //                                      // monitor (readHttp measures it)
     //         "ORIGIN": "https://host", "PATHNAME": "/sap/...", "SEARCH": "?p=1",
     //                                      // session-constant location: only on
     //                                      // app-start-shaped requests and the
@@ -239,6 +243,13 @@ sap.ui.define(
           sFront.CONFIG = config;
         }
 
+        // The previous roundtrip's duration as this browser measured it
+        // (readHttp), for the backend's roundtrip monitor
+        // (z2ui5_if_ui5_monitor) - left off until one was measured.
+        if (state.lastRoundtripMs) {
+          sFront.MS_CLIENT_PREV = state.lastRoundtripMs;
+        }
+
         // The page location travels on its own session cadence - the latch
         // lives with the rest of the once-per-page-load state in
         // core/Session.js. An event roundtrip gets null, and Object.assign
@@ -348,6 +359,8 @@ sap.ui.define(
         const superseder = new AbortController();
         ctx.server.inflight.add(superseder);
         const signal = this._combineSignals(timeoutSignal, superseder.signal);
+        // when the body went out - see lastRoundtripMs below
+        let sentAt;
         try {
           // Step 1: send the request.
           let response;
@@ -357,6 +370,7 @@ sap.ui.define(
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time
             ctx.state.lastRequestBytes = body.length;
+            sentAt = Date.now();
             response = await this._post(ctx, body, signal);
             // A CSRF token layer in front of the backend - an SAP approuter
             // route with csrfProtection, a Gateway - refused the request for
@@ -479,6 +493,13 @@ sap.ui.define(
           // carried have reached the backend - only now do the send latches
           // advance (core/Session.js). A dropped request re-sends instead.
           Session.confirmSent(ctx, sessionCarried);
+          // The duration of this roundtrip as the browser saw it - from the
+          // POST to the parsed response: the network and the backend, not
+          // the rendering that follows. The NEXT request carries it to the
+          // backend (MS_CLIENT_PREV, see roundtrip), whose roundtrip monitor
+          // cannot measure what happens outside the server. A retried request
+          // is measured from its last attempt.
+          ctx.state.lastRoundtripMs = Date.now() - sentAt;
           // This request won (it passed the stale guard above), so the edits
           // it carried have reached the backend - clear exactly the model it
           // shipped. A stale response returns before this point and clears

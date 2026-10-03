@@ -275,19 +275,24 @@ INTERFACE z2ui5_if_ui5_types
       o_model    TYPE REF TO z2ui5_if_ajson,
       model_path TYPE string,
       BEGIN OF s_front,
-        id          TYPE string,
-        t_event_arg TYPE string_table,
-        event       TYPE string,
+        id             TYPE string,
+        t_event_arg    TYPE string_table,
+        event          TYPE string,
         " the launchpad ComponentData AS THE REQUEST CARRIED IT - bound on
         " the page load's first roundtrip only. On an event roundtrip it
         " stays unbound: the session keeps the data as a string
         " (ty_s_session-comp_data), and z2ui5_cl_ui5_client=>get( ) parses
         " that on demand instead of the handler parsing it per roundtrip
-        o_comp_data TYPE REF TO z2ui5_if_ajson,
-        origin      TYPE string,
-        pathname    TYPE string,
-        search      TYPE string,
-        hash        TYPE string,
+        o_comp_data    TYPE REF TO z2ui5_if_ajson,
+        origin         TYPE string,
+        pathname       TYPE string,
+        search         TYPE string,
+        hash           TYPE string,
+        " the previous roundtrip's duration as the browser measured it, in
+        " ms (core/Server.js, MS_CLIENT_PREV) - for the roundtrip monitor
+        " only (z2ui5_if_ui5_monitor=>ty_s_roundtrip-ms_client_prev); 0
+        " when the request carries none or an unreadable one
+        ms_client_prev TYPE i,
         BEGIN OF s_device,
           system      TYPE string,
           orientation TYPE string,
