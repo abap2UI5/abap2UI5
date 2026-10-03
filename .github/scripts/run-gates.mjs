@@ -65,6 +65,7 @@ const GATES = [
   { npm: "check:samples-md", script: "samples-md-gate.mjs" },
   { npm: "check:changelog", script: "changelog-gate.mjs" },
   { npm: "check:backlog", script: "generate-backlog.mjs", args: ["--check"] },
+  { npm: "check:plugin", script: "generate-plugin.mjs", args: ["--check"] },
   { npm: "check:version", script: "version-sync-gate.mjs" },
   { npm: "check:icons", script: "ui5-icon-gate.mjs" },
   { npm: "check:modules", script: "frontend-module-gate.mjs" },

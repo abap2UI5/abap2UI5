@@ -227,6 +227,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/generate-backlog.mjs --check # npm run check:backlog
 
+      # plugin/ is the Claude Code plugin this repository's marketplace
+      # installs, and its skills and app guide are copies - a plugin cannot
+      # reach outside its own folder - so a skill edited without
+      # `npm run plugin` would ship the old text to every plugin user
+      - name: the Claude Code plugin matches its sources
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/generate-plugin.mjs --check # npm run check:plugin
+
       - name: the two version numbers agree
         if: ${{ !cancelled() }}
         run: node .github/scripts/version-sync-gate.mjs # npm run check:version
