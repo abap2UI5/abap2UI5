@@ -68,7 +68,7 @@ Working with Claude Code? Two commands install the abap2UI5 plugin – the agent
 /plugin install abap2ui5@abap2ui5
 ```
 
-It adds the commands `/abap2ui5:new-app` (describe an app, get a validated class), `/abap2ui5:check` (run the gates, fix the safe findings), `/abap2ui5:find-sample` and `/abap2ui5:explain`, plus an `abap2ui5-reviewer` subagent.
+It adds the commands `/abap2ui5:new-app` (describe an app, get a validated class), `/abap2ui5:check` (run the gates, fix the safe findings), `/abap2ui5:add-ai` (a chat or a summarize-this-data panel in an existing app, local provider first, then a real model), `/abap2ui5:find-sample` and `/abap2ui5:explain`, plus an `abap2ui5-reviewer` subagent and a hook that runs the abap2UI5 linter on every class the agent edits, so it fixes what it broke right away (in projects that have the linter installed; silent everywhere else).
 
 Only the MCP server, without the skills:
 
