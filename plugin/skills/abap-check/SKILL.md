@@ -310,10 +310,12 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
 | **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it. Upstream from abaplint 2.120.65 on (abaplint/abaplint#4356): the operand is a plain data object in the `CREATE DATA` grammar, so a call there is a `parser_error` |
 | **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*`. Measured on a 7.58 system (2026-10-03): `get_ref( )->*` and `CAST ty( … )->*` are fine there, `NEW ty( … )->*` is a syntax error even there |
+| **`setup( )` / `teardown( )` cannot be called directly** | *The special method "TEARDOWN" cannot be called directly.* Two test classes in abap2UI5-addons/abap-cloud-gui had `setup( )` call `teardown( )` to clear their table rows first. A 7.58 SYNTAX_CHECK refused both (2026-10-04, fixed in abap2UI5-addons/abap-cloud-gui#9). The same holds for `class_setup` / `class_teardown`. Put the shared code into a method of its own and call that from both. abaplint and the transpiler accept the call. Not gated |
+| **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. abaplint accepts it. Not gated |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 | **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` does not check attribute visibility and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal |
 
-**Backlog:** abaplint · abaplint-deref-of-method-call, abaplint-attribute-visibility
+**Backlog:** abaplint · abaplint-deref-of-method-call, abaplint-attribute-visibility, abaplint-special-method-direct-call, abaplint-super-other-method
 
 ### Generic types on older releases — the recurring one
 
@@ -426,9 +428,14 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   system refuses it just as well (measured 2026-10-03), and a Code Inspector
   SYNTAX_CHECK found it in two more classes on that system (2026-10-04).
   abaplint accepts it at every syntax version. Compare instead:
-  `IF condense( lv ) = ``.`, `IF lines( lt ) = 0.`. Which other operands the
-  kernel refuses there (method call, constructor or table expression) is not
-  measured yet.
+  `IF condense( lv ) = ``.`, `IF lines( lt ) = 0.`. A **functional method
+  call** in the same position is fine: `IF upd_mode_text( ) IS NOT INITIAL`
+  and `IF session_command_text( lv_cmd ) IS NOT INITIAL` in
+  abap2UI5-addons/sapgui went through the same run without a finding, so
+  the restriction is about built-in functions. Constructor and table
+  expressions there are not measured yet. More sites from the same run,
+  since fixed: two in sapgui (abap2UI5-addons/sapgui#8) and one in rap-ext
+  (abap2UI5-addons/rap-ext#19).
 
 **Backlog:** abaplint · abaplint-is-initial-function-operand
 
@@ -508,7 +515,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation
+**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line, abaplint-abapdoc-leading-at, abaplint-redundant-conversion-function-result
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -600,6 +607,27 @@ and points here, so a new trap is added here and nowhere else.
   item.) `abap2UI5/samples-stack` still runs its own `check:abapdoc`: its
   abaplint pin has not moved yet, and that script goes the same way when it
   does.
+
+  Two more ways to detach a block, both found by a Code Inspector
+  SYNTAX_CHECK on a 7.58 system over the addons (2026-10-04):
+  - **A blank line, inside the block or between the block and its
+    declaration**, detaches it like a comment does. Found in
+    abap-cloud-gui (`z2ui5_cl_cgui_layout`, `z2ui5_cl_cgui_report`,
+    `z2ui5_if_cgui_variant_store`, fixed in
+    abap2UI5-addons/abap-cloud-gui#9). `check:atc` asserted the opposite
+    until that day; it reports the shape now. `wrong_abapdoc_position` does
+    not.
+  - **A `"!` line that begins with `@`** is read as a command:
+    `"! @UI.presentationVariant's sortOrder …` is *"A command was expected
+    after ABAP Doc symbol "@""*. Only `@parameter`, `@raising` and
+    `@exception` may start a line. Break the line one word earlier, so the
+    annotation sits mid-line, where it is plain text. Four sites in rap-ext,
+    fixed in abap2UI5-addons/rap-ext#19. Not gated.
+
+  And one the rule does decide, where the repository has it off: four blocks
+  in front of a chained `TYPES:` in rap-ext (same PR). That is
+  `wrong_abapdoc_position`'s first position, and it reports exactly those
+  four once switched on.
 
 - **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
   `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"
