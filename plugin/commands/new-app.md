@@ -12,8 +12,11 @@ If that is empty, ask what the app should do and stop.
 
 The abap2UI5 MCP server ships with this plugin (`plugin:abap2ui5:abap2ui5`;
 a copy added with `claude mcp add abap2ui5` exposes the same tools as
-`mcp__abap2ui5__*`). If its tools are available, use them where named below.
-If not, every step has a fallback - say once which path you are on.
+`mcp__abap2ui5__*`). When both are there, call the plugin's
+`mcp__plugin_abap2ui5_abap2ui5__*` ones - this command pre-approves those,
+the other copy asks for permission per tool. If its tools are available,
+use them where named below. If not, every step has a fallback - say once
+which path you are on.
 
 ## 1. Look before you write
 
@@ -21,8 +24,10 @@ A sample that already does it beats anything written from scratch: it is
 gated, rendered and downported.
 
 - MCP: `examples { query: "<keywords from the request>" }` - two or three
-  queries with different keywords; `repo: "samples-controls"` when the
-  request names a UI5 control. Read the best hit with `read_example { class }`.
+  queries with different keywords; every word of a query has to match, so
+  use one or two words each (`value help`, `toast`, `SearchField`), never
+  a sentence; `repo: "samples-controls"` when the request names a UI5
+  control. Read the best hit with `read_example { class }`.
   When the request needs a control you are unsure of,
   `capabilities` says whether abap2UI5 can express it at all.
 - Without MCP: fetch https://abap2ui5.github.io/playground/samples/apps.json
@@ -49,9 +54,13 @@ MCP `app_guide` serves the same text). Keep the
   lower case in the file name). Put it where the project keeps its classes
   (`src/` in a project made from abap2UI5/app-template); if that is unclear,
   ask.
-- `<name>.clas.abap` - one class, `INTERFACES z2ui5_if_app`, the dispatcher
-  on `check_on_navigated( )` / `check_on_event( )` (`check_on_init( )` only
-  for one-time setup), the view built with `z2ui5_cl_ui5_view_builder`
+- `<name>.clas.abap` - one class, `INTERFACES z2ui5_if_app`, and `main` as
+  ONE `IF`/`ELSEIF` chain, the guide's template:
+  `IF check_on_init( ). model_init( ). view_display( ). ELSEIF
+  check_on_navigated( ). view_display( ). ELSEIF check_on_event( ).
+  on_event( ). ENDIF.` - without data to seed, drop the first arm. Never
+  two separate lifecycle `IF` blocks (the linter's `separate-lifecycle-ifs`).
+  The view built with `z2ui5_cl_ui5_view_builder`
   (never the frozen `z2ui5_cl_xml_view`), `client->_bind( )` on PUBLIC
   attributes only, booleans through `a( n = ... b = ... )`, UI5 1.71 names
   only, no line over 255 characters.
@@ -61,6 +70,9 @@ MCP `app_guide` serves the same text). Keep the
   exists, `&apos;` instead of a raw apostrophe in `<DESCRIPT>`. Copy the shape
   of a sidecar the project already has; app-template's
   `src/zcl_app_001.clas.xml` is the reference.
+- Write both files with the Write tool - the BOM is a literal U+FEFF as the
+  first character of the content. `cat <<EOF >`, `sed` and `printf` need a
+  permission each and gain nothing.
 - No other objects (no DDIC, no second class) unless the user asks.
 
 ## 4. Validate and look - then iterate
@@ -73,10 +85,16 @@ Repeat until clean:
   "390x844"] }`, passing `model` with a few preview rows when a table or list
   would otherwise photograph empty.
 - Without MCP: `npx --yes @abap2ui5/linter <file>` (`npm run check:abap2ui5`
-  in an app-template project). For a picture,
-  `npx --yes -p @abap2ui5/linter -p @abap2ui5/linter-render abap2ui5lint --screenshot <file>`
-  writes a PNG (needs Chromium: `npx playwright install chromium`) - read
-  the PNG.
+  in an app-template project). For a picture:
+  `npx --yes -p @abap2ui5/linter -p @abap2ui5/linter-render abap2ui5lint <file> --screenshot <tmp>/<name>.png --screenshot-size 1280x900,390x844`.
+  The class file is the positional argument and `--screenshot` takes the
+  PNG to write, outside the project (the system temp folder), never `src/`;
+  without a positional file it photographs every class in the project. It
+  prints the PNG paths (one per size) - read them. A table or list
+  photographs empty unless you add `--screenshot-model <tmp>/model.json`
+  (written with Write) with a few rows, keyed by the attribute names in
+  upper case (`{ "T_ITEMS": [ { "NAME": "..." } ] }`). Needs Chromium
+  (`npx playwright install chromium`).
 
 **Look at the screenshot.** Compare it with the request: every field, button
 and column there, nothing in the wrong place, nothing collapsed or empty
