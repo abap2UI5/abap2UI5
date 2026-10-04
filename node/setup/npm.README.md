@@ -36,6 +36,8 @@ UI5 itself comes from the CDN.
 | `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
 | `accelerate()` | Installs nothing since `@abaplint/runtime` 2.13.96, which is linear on large tables by itself (see [Performance](#performance)); kept for the hosts that call it, also importable alone as `@abap2ui5/node-runtime/accelerate`. Returns `true` on a runtime from `RUNTIME_VERSION` on, `false` and a warning once on an older one |
 | `compress()` | The gzip middleware `createApp()` puts in front, `(req, res, next)` - for an express app of your own that mounts `createHandler()` (see [Compression](#compression)); also importable alone, as `@abap2ui5/node-runtime/compress` |
+| `exclusive(fn)`, `withSession(req, res, fn)` | What `createHandler()` puts around every request: one request in the framework at a time, in its stateful session (see [Stateful sessions](#stateful-sessions)) - for a host that calls the shim itself |
+| `configureSessions({ ttlMs, max })`, `sessionCount()` | How long an idle stateful session is kept (30 minutes) and how many at most (1000); how many there are |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
 `express` is an optional peer dependency, version 4 (from 4.21) or 5:
@@ -276,6 +278,23 @@ const app = express();
 app.use("/sap/bc/z2ui5", compress(), express.raw({ type: "*/*", limit: "10mb" }),
   (req, res, next) => { handle(req, res).catch(next); });
 ```
+
+## Stateful sessions
+
+An app that calls `client->set_session_stateful( )` stays in memory between
+its requests. On an SAP system the ICF gives the browser a session
+(`sap-contextid`) with a roll area of its own; in this package the host is
+that session layer: it keeps the app's handler under a session id it issues -
+in the `sap-contextid` response header when the request sends
+`sap-contextid-accept: header` (the UI5 frontend does), else as an HttpOnly
+cookie - and puts it back only for requests that name that id. Every other
+request runs without it. `set_session_stateful( abap_false )`, the frontend's
+terminate ping and 30 idle minutes end a session (`configureSessions()`).
+Sessions live in the process: a restart, or a second process behind a load
+balancer without sticky routing, loses them - a stateful app skips the draft
+save, so its draft id names nothing afterwards. A host with users of its own
+passes `withSession(req, res, fn, { owner })`, so a session only ever answers
+the user it belongs to.
 
 ## Persistence
 

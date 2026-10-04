@@ -408,6 +408,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_app_start_encoded_slash FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_normalize FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_capped FOR TESTING RAISING cx_static_check.
+    METHODS test_context_info_url_safe FOR TESTING RAISING cx_static_check.
     METHODS test_hash_app_part FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part FOR TESTING RAISING cx_static_check.
     METHODS test_app_get_url FOR TESTING RAISING cx_static_check.
@@ -1000,6 +1001,31 @@ CLASS ltcl_01_request IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( lv_info CS lv_long ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS |event { lv_long(300) }...| ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_info CS |draft { lv_long(300) }...| ) ).
+
+  ENDMETHOD.
+
+  METHOD test_context_info_url_safe.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " the url comes off the request and is quoted in the 500 body: markup
+    " and quotes a crafted request puts into it do not reach the body
+    " (protocol check error.no-reflection), a blank does not either
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-pathname = `/sap/bc/z2ui5`.
+    lo_handler->ms_request-s_front-search   = `?app_start=ZCL_X&p=<script>alert("x")</script><img src='y'> z`.
+
+    DATA(lv_info) = lo_handler->request_context_info( ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        act = lv_info
+        exp = `*url /sap/bc/z2ui5?app_start=ZCL_X&p=scriptalertx/scriptimgsrc=yz` ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_info CA `<>"'` ) ).
+
+    " what a browser sends - percent-encoded - passes unchanged
+    cl_abap_unit_assert=>assert_equals(
+        exp = `/sap/bc/z2ui5?app_start=ZCL_X&q=a%20b%3C+c.d_e-f~g:h`
+        act = z2ui5_cl_ui5_handler=>context_info_url_safe( `/sap/bc/z2ui5?app_start=ZCL_X&q=a%20b%3C+c.d_e-f~g:h` ) ).
 
   ENDMETHOD.
 
