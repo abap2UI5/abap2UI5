@@ -112,6 +112,15 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " the request url as it may be quoted in the error body - stripped to
+    " the characters a url is made of and that cannot be read as markup or
+    " close a quoted value (the reasoning is on the method)
+    CLASS-METHODS context_info_url_safe
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS main_begin.
 
     METHODS main_loop.
@@ -1005,9 +1014,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " the url comes from the client - capped like the event and the draft
-    " id above (context_info_cap)
-    DATA(lv_url) = context_info_cap( ms_request-s_front-pathname && ms_request-s_front-search ).
+    " the url comes from the client - stripped to safe characters like
+    " app_start below (context_info_url_safe), then capped like the event
+    " and the draft id above (context_info_cap)
+    DATA(lv_url) = context_info_cap( context_info_url_safe( ms_request-s_front-pathname && ms_request-s_front-search ) ).
 
     " app_start is client-controlled and is reflected into the error body:
     " the same class-name-safe strip as z2ui5_cl_ui5_action=>factory_first_start
@@ -1033,6 +1043,33 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       result = substring( val = result
                           len = 300 ) && `...`.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD context_info_url_safe.
+
+    " The url is client-controlled, and a crafted request - not a browser,
+    " which percent-encodes location.search - can put markup and quotes into
+    " it. The error body quotes it for diagnosis, and a body that is logged,
+    " mailed or pasted into a ticket leaves its text/plain and nosniff
+    " headers behind, so what it repeats from the request must not be
+    " readable as markup on its own (abap2UI5/protocol spec/errors.md, open
+    " question 3, decided as "a backend MUST NOT reflect request data it did
+    " not validate"). An allow-list, not an escape: the body is plain text,
+    " an escape would show &lt; to its reader, while a stripped url keeps a
+    " real typo readable. Kept: letters, digits and the url delimiters
+    " / ? & = . _ - ~ : % + - every percent-encoded character stays encoded,
+    " so a browser's url arrives unchanged. Dropped: everything else, among
+    " it < > " ' ` and blanks. A character loop like
+    " z2ui5_cl_ui5_action=>app_start_safe, the strip of the class name.
+    DATA(lv_len) = strlen( val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      IF val+lv_off(1) CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/?&=._-~:%+`.
+        result = result && val+lv_off(1).
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
 
   ENDMETHOD.
 
