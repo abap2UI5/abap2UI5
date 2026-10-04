@@ -267,37 +267,25 @@ sap.ui.define(
       };
     }
 
-    const PROPERTIES = {
-      rows: { type: "any", defaultValue: null },
-      columns: { type: "any", defaultValue: null },
-      numberFormats: { type: "any", defaultValue: null },
-      target: { type: "string", defaultValue: "A1" },
-      sheetName: { type: "string", defaultValue: "" },
-      asTable: { type: "boolean", defaultValue: true },
-      header: { type: "boolean", defaultValue: true },
-      maxCells: { type: "int", defaultValue: DEFAULT_MAX_CELLS },
-      selection: { type: "any", defaultValue: null },
-      selectionAddress: { type: "string", defaultValue: "" },
-      readText: { type: "boolean", defaultValue: false },
-      selectionChange: { type: "boolean", defaultValue: false },
-      available: { type: "boolean", defaultValue: false },
-    };
-
-    // The renderer draws none of the properties: every setter writes
-    // without invalidating (AGENTS.md rule 10). selectionChange applies its
-    // effect on top.
-    const quietSetters = {};
-    for (const name of Object.keys(PROPERTIES)) {
-      const setter = `set${name[0].toUpperCase()}${name.slice(1)}`;
-      quietSetters[setter] = function (val) {
-        this.setProperty(name, val, true);
-        return this;
-      };
-    }
-
-    const ExcelBridge = Control.extend("z2ui5.cc.ExcelBridge", {
+    const definition = {
       metadata: {
-        properties: PROPERTIES,
+        // a literal here, not a constant: the linter mirrors it from this
+        // source (check-upstream reads the metadata object literal)
+        properties: {
+          rows: { type: "any", defaultValue: null },
+          columns: { type: "any", defaultValue: null },
+          numberFormats: { type: "any", defaultValue: null },
+          target: { type: "string", defaultValue: "A1" },
+          sheetName: { type: "string", defaultValue: "" },
+          asTable: { type: "boolean", defaultValue: true },
+          header: { type: "boolean", defaultValue: true },
+          maxCells: { type: "int", defaultValue: 20000 },
+          selection: { type: "any", defaultValue: null },
+          selectionAddress: { type: "string", defaultValue: "" },
+          readText: { type: "boolean", defaultValue: false },
+          selectionChange: { type: "boolean", defaultValue: false },
+          available: { type: "boolean", defaultValue: false },
+        },
         events: {
           OnWritten: {
             parameters: {
@@ -326,8 +314,6 @@ sap.ui.define(
           },
         },
       },
-
-      ...quietSetters,
 
       init() {
         // one operation at a time, in the order the app asked for them
@@ -601,7 +587,21 @@ sap.ui.define(
           Lib.renderInvisibleSpan(oRm, oControl);
         },
       },
-    });
+    };
+
+    // The renderer draws none of the properties: every setter writes
+    // without invalidating (AGENTS.md rule 10). selectionChange keeps its
+    // own setter, which applies its effect on top.
+    for (const name of Object.keys(definition.metadata.properties)) {
+      const setter = `set${name[0].toUpperCase()}${name.slice(1)}`;
+      if (definition[setter]) continue;
+      definition[setter] = function (val) {
+        this.setProperty(name, val, true);
+        return this;
+      };
+    }
+
+    const ExcelBridge = Control.extend("z2ui5.cc.ExcelBridge", definition);
 
     // the pure helpers, for the spec
     ExcelBridge._buildMatrix = buildMatrix;

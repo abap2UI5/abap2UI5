@@ -230,34 +230,23 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const PROPERTIES = {` && |\n| &&
-             `      rows: { type: "any", defaultValue: null },` && |\n| &&
-             `      columns: { type: "any", defaultValue: null },` && |\n| &&
-             `      numberFormats: { type: "any", defaultValue: null },` && |\n| &&
-             `      target: { type: "string", defaultValue: "A1" },` && |\n| &&
-             `      sheetName: { type: "string", defaultValue: "" },` && |\n| &&
-             `      asTable: { type: "boolean", defaultValue: true },` && |\n| &&
-             `      header: { type: "boolean", defaultValue: true },` && |\n| &&
-             `      maxCells: { type: "int", defaultValue: DEFAULT_MAX_CELLS },` && |\n| &&
-             `      selection: { type: "any", defaultValue: null },` && |\n| &&
-             `      selectionAddress: { type: "string", defaultValue: "" },` && |\n| &&
-             `      readText: { type: "boolean", defaultValue: false },` && |\n| &&
-             `      selectionChange: { type: "boolean", defaultValue: false },` && |\n| &&
-             `      available: { type: "boolean", defaultValue: false },` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const quietSetters = {};` && |\n| &&
-             `    for (const name of Object.keys(PROPERTIES)) {` && |\n| &&
-             `      const setter = ``set${name[0].toUpperCase()}${name.slice(1)}``;` && |\n| &&
-             `      quietSetters[setter] = function (val) {` && |\n| &&
-             `        this.setProperty(name, val, true);` && |\n| &&
-             `        return this;` && |\n| &&
-             `      };` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    const ExcelBridge = Control.extend("z2ui5.cc.ExcelBridge", {` && |\n| &&
+             `    const definition = {` && |\n| &&
              `      metadata: {` && |\n| &&
-             `        properties: PROPERTIES,` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          rows: { type: "any", defaultValue: null },` && |\n| &&
+             `          columns: { type: "any", defaultValue: null },` && |\n| &&
+             `          numberFormats: { type: "any", defaultValue: null },` && |\n| &&
+             `          target: { type: "string", defaultValue: "A1" },` && |\n| &&
+             `          sheetName: { type: "string", defaultValue: "" },` && |\n| &&
+             `          asTable: { type: "boolean", defaultValue: true },` && |\n| &&
+             `          header: { type: "boolean", defaultValue: true },` && |\n| &&
+             `          maxCells: { type: "int", defaultValue: 20000 },` && |\n| &&
+             `          selection: { type: "any", defaultValue: null },` && |\n| &&
+             `          selectionAddress: { type: "string", defaultValue: "" },` && |\n| &&
+             `          readText: { type: "boolean", defaultValue: false },` && |\n| &&
+             `          selectionChange: { type: "boolean", defaultValue: false },` && |\n| &&
+             `          available: { type: "boolean", defaultValue: false },` && |\n| &&
+             `        },` && |\n| &&
              `        events: {` && |\n| &&
              `          OnWritten: {` && |\n| &&
              `            parameters: {` && |\n| &&
@@ -286,8 +275,6 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
-             `      ...quietSetters,` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
              `        this._queue = Promise.resolve();` && |\n| &&
@@ -424,8 +411,7 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `          });` && |\n| &&
              `        });` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      read() {` && |\n| &&
              `        const readText = Boolean(this.getProperty("readText"));` && |\n| &&
              `        const limit = this._limit();` && |\n| &&
@@ -438,7 +424,8 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&
              `              range = range.getUsedRangeOrNullObject(true);` && |\n| &&
              `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
-             `              await context.sync();` && |\n| &&
+             `              await context.sync();` && |\n|.
+    result = result &&
              `            }` && |\n| &&
              `            if (range.isNullObject) {` && |\n| &&
              `              this._deliver([], "", 0, 0);` && |\n| &&
@@ -551,7 +538,18 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
-             `    });` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    for (const name of Object.keys(definition.metadata.properties)) {` && |\n| &&
+             `      const setter = ``set${name[0].toUpperCase()}${name.slice(1)}``;` && |\n| &&
+             `      if (definition[setter]) continue;` && |\n| &&
+             `      definition[setter] = function (val) {` && |\n| &&
+             `        this.setProperty(name, val, true);` && |\n| &&
+             `        return this;` && |\n| &&
+             `      };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const ExcelBridge = Control.extend("z2ui5.cc.ExcelBridge", definition);` && |\n| &&
              `` && |\n| &&
              `    ExcelBridge._buildMatrix = buildMatrix;` && |\n| &&
              `    ExcelBridge._toRows = toRows;` && |\n| &&
