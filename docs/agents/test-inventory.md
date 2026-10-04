@@ -38,6 +38,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `cc/CameraSelector.js` | `cameraSelector.spec.js` | — |
 | `cc/CameraPicture.js` | `cameraPicture.spec.js` | — |
 | `cc/FileUploader.js` | `fileUploader.spec.js` | — |
+| `cc/ExcelBridge.js` | `excelBridge.spec.js` | write( ) of the bound rows against a stubbed Office.js (header, table or plain range, the three targets, strings as text, numbers, ISO dates, number formats), read( ) of the selection into COL rows (dates back as ISO, the used part of a whole column), the cell cap on both sides, an invalid target and a protected sheet as OnError, the queue, the invisible no-op without Office.js or in another host, the debounced selection subscription and its removal, the destroyed-guard |
 | `cc/NativeBridgeScan.js` | `nativeBridgeScan.spec.js` | the scan through the shell bridge into `value` and OnScan, a cancel or failure as OnError (a cancel without a log line), the invisible placeholder outside the shell and the second render once the shim announces itself, the destroyed-guard |
 | `cc/UploadSetExt.js` | `uploadSetExt.spec.js` | — |
 | `cc/MultiInputExt.js` | `multiInputExt.spec.js` | — |
