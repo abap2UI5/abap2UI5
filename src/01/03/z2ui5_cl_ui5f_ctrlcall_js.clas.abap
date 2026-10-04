@@ -87,15 +87,18 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `    let iBoxNo = 0;` && |\n| &&
              `` && |\n| &&
-             `    function expandBoxDetails(sDialogId) {` && |\n| &&
+             `    function expandBoxDetails(sDialogId, sDetails) {` && |\n| &&
              `      const oDialog = Env.getElementById(sDialogId);` && |\n| &&
              `      const oLayout = oDialog?.getContent?.()[0];` && |\n| &&
              `      if (!oLayout?.getItems) return;` && |\n| &&
              `      for (const oItem of oLayout.getItems()) {` && |\n| &&
              `        if (!oItem?.isA) continue;` && |\n| &&
              `` && |\n| &&
-             `        if (oItem.isA("sap.m.FormattedText")) oItem.setVisible(true);` && |\n| &&
-             `        else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);` && |\n| &&
+             `        if (oItem.isA("sap.m.FormattedText")) {` && |\n| &&
+             `          if (!oItem.getHtmlText()) oItem.setHtmlText(sDetails);` && |\n| &&
+             `          oDialog.addAriaLabelledBy?.(oItem);` && |\n| &&
+             `          oItem.setVisible(true);` && |\n| &&
+             `        } else if (oItem.isA("sap.m.Link")) oItem.setVisible(false);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -133,7 +136,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (Object.keys(o).length) showFn(sText, o);` && |\n| &&
              `      else showFn(sText);` && |\n| &&
              `` && |\n| &&
-             `      if (o.details) expandBoxDetails(o.id);` && |\n| &&
+             `      if (o.details) expandBoxDetails(o.id, o.details);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const CONTROL_METHODS = {` && |\n| &&
@@ -421,11 +424,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function castArgAuto(raw) {` && |\n| &&
-             `      if (raw === "X" || raw === "true") return true;` && |\n|.
-    result = result &&
+             `      if (raw === "X" || raw === "true") return true;` && |\n| &&
              `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
              `      return raw;` && |\n| &&
              `    }` && |\n| &&
