@@ -44,6 +44,9 @@ function load({ ui5 = true } = {}) {
     getElementById: () => null,
     createElement: () => el(),
     body: { appendChild() {} },
+    // the raw overlay's focus containment listens on the document
+    addEventListener() {},
+    removeEventListener() {},
   };
   const { module, sandbox } = loadModule("core/ErrorView.js", {
     deps: {},
