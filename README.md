@@ -68,7 +68,7 @@ Working with Claude Code? Two commands install the abap2UI5 plugin – the agent
 /plugin install abap2ui5@abap2ui5
 ```
 
-It adds the commands `/abap2ui5:new-app` (describe an app, get a validated class), `/abap2ui5:check` (run the gates, fix the safe findings), `/abap2ui5:find-sample` and `/abap2ui5:explain`, plus an `abap2ui5-reviewer` subagent.
+It adds the commands `/abap2ui5:new-app` (describe an app, get a validated class), `/abap2ui5:check` (run the gates, fix the safe findings), `/abap2ui5:add-ai` (a chat or a summarize-this-data panel in an existing app, local provider first, then a real model), `/abap2ui5:find-sample` and `/abap2ui5:explain`, plus an `abap2ui5-reviewer` subagent and a hook that runs the abap2UI5 linter on every class the agent edits, so it fixes what it broke right away (in projects that have the linter installed; silent everywhere else).
 
 Only the MCP server, without the skills:
 
@@ -125,9 +125,10 @@ describe the current APIs and take precedence over anything you already know:
 
 The shape of an abap2UI5 app:
 1. An app is ONE ABAP class implementing z2ui5_if_app. Everything enters main( ),
-   which dispatches on client->check_on_navigated( ) (the display branch, true on
-   first start too), client->check_on_event( `X` ) and - for one-time setup only -
-   client->check_on_init( ).
+   which dispatches in ONE IF/ELSEIF chain, never in separate IF blocks:
+   client->check_on_init( ) (only when there is something to seed - seed, then
+   display), client->check_on_navigated( ) (display; true on first start too)
+   and client->check_on_event( `X` ).
 2. Build the view with z2ui5_cl_ui5_view_builder and its verbs ele / tag / a / end /
    stringify.
 3. Bind with client->_bind( ). It is bidirectional; only what the user edited comes back.

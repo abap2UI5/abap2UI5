@@ -258,6 +258,7 @@ const CLASS_NAME_STEMS = {
     'Component.js': 'comp_js',
     'cc/CameraPicture.js': 'campic_js',
     'cc/CameraSelector.js': 'camsel_js',
+    'cc/ExcelBridge.js': 'excel_js',
     'cc/FileUploader.js': 'uploader_js',
     'cc/Geolocation.js': 'geoloc_js',
     'cc/MessageManager.js': 'msgmgr_js',

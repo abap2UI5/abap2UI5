@@ -39,17 +39,27 @@ Quick orientation while it loads:
   anywhere. Apps built without it work perfectly until the day someone calls
   them from a navigation — the linter's `missing-view-display-on-navigated`
   covers the branch that exists but never displays.
-- **…and it is the only DISPLAY branch.** `check_on_init( )` being true implies
-  `check_on_navigated( )` is true — every path to a first `main( )` sets the
-  flag (`factory_first_start`, fresh start and draft restore alike,
-  `factory_system_startup`, `prepare_app_stack` for call and leave). So
-  `IF check_on_init( ). view_display( ). ELSEIF check_on_navigated( ).
-  view_display( ).` is a fork whose two arms do the same thing, and
-  `IF check_on_init( ) OR check_on_navigated( ).` is the same redundancy in
-  another spelling. Carry a `check_on_init( )` branch only for what must happen
-  ONCE — `model_init( )`, or a couple of control-state flags seeded inline — and
-  let an app with nothing to seed dispatch on `check_on_navigated( )` /
-  `check_on_event( )` alone.
+- **…and all of it is ONE `IF`/`ELSEIF` chain, so exactly one arm runs per
+  roundtrip.** `check_on_init( )` being true implies `check_on_navigated( )` is
+  true — every path to a first `main( )` sets the flag (`factory_first_start`,
+  fresh start and draft restore alike, `factory_system_startup`,
+  `prepare_app_stack` for call and leave). On that first roundtrip the init arm
+  wins and the navigated arm is skipped, so the init arm seeds AND displays:
+  `IF check_on_init( ). model_init( ). view_display( ). ELSEIF
+  check_on_navigated( ). view_display( ). ELSEIF check_on_event( ). on_event( ).
+  ENDIF.` — the guide's template. Carry the init arm only for what must happen
+  ONCE — `model_init( )`, or a couple of control-state flags seeded inline;
+  an app with nothing to seed drops it and starts the chain at
+  `check_on_navigated( )`. An init arm that ONLY displays decides nothing
+  (`redundant-init-display`), and neither does
+  `IF check_on_init( ) OR check_on_navigated( ).`.
+- **Never split the chain.** No `IF check_on_init( ). … ENDIF.` block that seeds
+  followed by an `IF check_on_navigated( ).` block that displays, and no
+  lifecycle `IF` nested in another arm: the flags overlap (init implies
+  navigated, a returning app can bring an event), so separate blocks run more
+  than one arm per roundtrip, and the linter reports them as
+  `separate-lifecycle-ifs`. Only a guard block that leaves the method
+  (`… RETURN. ENDIF.`) is exempt.
 - **Ask the lifecycle with the call itself, never with `IS INITIAL`.** The
   three `check_on_*( )` methods return `abap_bool`, so the branch is
   `IF client->check_on_init( ).` — a predicative call, the way the sample corpus

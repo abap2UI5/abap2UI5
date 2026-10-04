@@ -60,10 +60,45 @@ export interface CompressOptions {
 export function initialize(): Promise<void>;
 
 /**
+ * Run `fn` once no other request of this process is in the framework, and
+ * hold the next one back until it has settled. The framework keeps per-request
+ * state in class-data - one roll area per request on an SAP system, one per
+ * process here - so the requests queue. `createHandler()` runs every request
+ * through it; a host that calls `cl_express_icf_shim.run()` itself wraps that
+ * call in it. A rejection goes to the caller and does not stop the queue.
+ */
+export function exclusive<T>(fn: () => T | Promise<T>): Promise<T>;
+
+/**
+ * Run `fn` - one request through the shim - in the stateful session the
+ * request names (header or cookie `sap-contextid`), and put the id of the
+ * stateful session it leaves behind on the response: a header when the
+ * request sent `sap-contextid-accept: header`, else an HttpOnly cookie. The
+ * framework keeps a stateful app's handler in class-data, one per roll area
+ * on an SAP system, one per process here - so the host keeps it per session
+ * and swaps it in and out around each request. Call it inside `exclusive()`;
+ * `createHandler()` does both. `owner` binds a session to a host's user: a
+ * request of another user that names the id runs without it.
+ */
+export function withSession<T>(req: object, res: object, fn: () => T | Promise<T>, options?: { owner?: string }): Promise<T>;
+
+/**
+ * How long an idle stateful session is kept (`ttlMs`, default 30 minutes) and
+ * how many are kept at most (`max`, default 1000 - the least recently used
+ * goes first). Returns the limits in force.
+ */
+export function configureSessions(limits?: { ttlMs?: number; max?: number }): { ttlMs: number; max: number };
+
+/** The number of stateful sessions the process keeps right now. */
+export function sessionCount(): number;
+
+/**
  * The HTTP handler alone, for a server that is not express. It reads an
  * express-shaped request (`method`, `url`, `path`, `headers`, `body` as a
- * Buffer) and response (`append()`, `status().send()`), and boots the
- * runtime on the first request when nothing called `initialize()` before.
+ * Buffer) and response (`append()`, `status().send()`), boots the
+ * runtime on the first request when nothing called `initialize()` before,
+ * queues the requests (`exclusive()`) and keeps the stateful sessions
+ * (`withSession()`).
  */
 export function createHandler(options?: HandlerOptions): Handler;
 
