@@ -417,6 +417,20 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   the release after 2.120.64 on. An OR in parentheses, a dynamic key name and
   `primary_key` stay unreported there, as measured.
 
+### A function call in front of IS INITIAL
+
+- **`IF condense( lv ) IS INITIAL.` is a syntax error, also on 7.58:**
+  *"Unexpected operator "IS"."* abap2UI5#2767 first met it on 7.02/7.31
+  through the downport, which made it look like an old-release limit. A 7.58
+  system refuses it just as well (measured 2026-10-03), and a Code Inspector
+  SYNTAX_CHECK found it in two more classes on that system (2026-10-04).
+  abaplint accepts it at every syntax version. Compare instead:
+  `IF condense( lv ) = ``.`, `IF lines( lt ) = 0.`. Which other operands the
+  kernel refuses there (method call, constructor or table expression) is not
+  measured yet.
+
+**Backlog:** abaplint · abaplint-is-initial-function-operand
+
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
 - **`INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` is 7.55 syntax.** Below that
@@ -471,6 +485,21 @@ API dependency — and is a **syntax error** in every system without SD.
 sample and framework code may only touch DDIC objects that exist in a bare
 system, or must fetch data dynamically.
 
+The same holds for classes. `abap2UI5/samples-stack`'s
+`z2ui5_cl_smps_llm_cloud`, the HTTP transport for ABAP Cloud, names
+`cl_http_destination_provider`, `if_a4c_cp_service` and the
+`cl_web_http_client_manager` family statically. Its own comment expected that
+only a 7.40 system would refuse it. A Code Inspector SYNTAX_CHECK on an S/4HANA
+**7.58** on-premise system (2026-10-04) refused it as well: *Type
+"CL_HTTP_DESTINATION_PROVIDER" is unknown*, then *Compilation was canceled*.
+The class does not activate there, even though the factory never instantiates
+it on that system. abaplint is green because samples-stack resolves against the
+`steampunk-2305-api` dependency, where every one of these types exists. A class
+that has to exist everywhere but use an API that is only on some releases must
+name that API dynamically (`CALL METHOD ('CL_…')=>(…)`, `TYPE REF TO object`,
+`CATCH cx_root`). Then the class activates everywhere and fails only when it is
+called on the wrong system.
+
 ## 3. Extended check (SLIN/ATC) — runs in real systems, not here
 
 **Gate: this repo**, partially — `npm run check:atc`
@@ -478,7 +507,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete
+**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -626,6 +655,20 @@ and points here, so a new trap is added here and nowhere else.
 
 **Not gated — a script cannot decide these:**
 
+- **`DATA( )` from a packed computation.** `DATA(margin) =
+  order-requireddate - order-shippeddate.` with both operands
+  `p LENGTH 8 DECIMALS 0` is a syntax-check warning: *"For the result of a
+  computation with type P, the type P(8,0) is used here implicitly because it
+  is not possible to determine …"*. The inline declaration cannot take length
+  and decimals from an arithmetic expression, so the system falls back to
+  P(8,0) and says so. That P(8,0) silently drops decimals when the operands
+  have any. Declare the variable with its type and assign it. A
+  `COND #( … THEN packed_field … )` takes its type from the operand and is
+  not this. Found by a Code Inspector SYNTAX_CHECK over a pulled
+  `abap2UI5/samples-controls` (2026-10-04, `z2ui5_cl_smpc_demo_002->row_json`,
+  fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
+  abap2UI5, samples-controls and samples-stack found no other instance.
+  Neither abaplint nor any gate here reports it.
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -830,7 +873,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-like-ref-to-generic
-**Backlog:** open-abap · transpiler-value-let-without-for
+**Backlog:** open-abap · transpiler-value-let-without-for, transpiler-sort-dynamic-component
 **Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
