@@ -43,8 +43,8 @@ Mark the statement as not available under `LanguageVersion.Cloud` as well
 Nothing changes for on-premise syntax versions.
 
 The quick fix `x = REF #( … )` is mechanical only when the target is
-concretely typed — see `abaplint-ref-into-generic-target` beside this item
-for the case where it is not; the message should say `REF #( )` for a typed
+concretely typed — abaplint/abaplint#4355 (in 2.120.65) reports the case
+where it is not, a field symbol typed `any` or `data`; the message should say `REF #( )` for a typed
 target and `REF data( )` for a generic one, or carry no fix.
 
 ## What it must NOT report

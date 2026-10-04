@@ -122,6 +122,14 @@ const BEFORE_END_OF = /^\s*end\s+of\b/i;
  * past it to the declaration and finds the block correctly placed. */
 const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
 
+/* ...and a THIRD, reported from a 7.58 system's SYNTAX_CHECK on 2026-10-04 over
+ * abap2UI5-addons/abap-cloud-gui: a blank line inside the block or between
+ * the block and its declaration detaches it just like a comment does - "ABAP
+ * Doc comment is in the wrong position" on z2ui5_cl_cgui_layout (a blank line
+ * in the middle of the class's block), z2ui5_cl_cgui_report and
+ * z2ui5_if_cgui_variant_store (one before the declaration). This gate used to
+ * assert the opposite. abaplint's wrong_abapdoc_position does not report it. */
+
 function abapdocFindings(file, source) {
   const out = [];
   const src = source.split("\n");
@@ -130,8 +138,21 @@ function abapdocFindings(file, source) {
     if (/^\s*"!/.test(src[i - 1] || "")) return; // only the block's first line
 
     let n = i + 1;
-    while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) n += 1;
+    let blank = false;
+    while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) {
+      if (!src[n].trim()) blank = true;
+      n += 1;
+    }
     const next = n < src.length ? src[n].trim() : "";
+
+    if (blank && n < src.length) {
+      out.push({
+        at: `${file}:${i + 1}`,
+        rule: "abapdoc",
+        message: `a blank line inside or after this "! block detaches it from the declaration below - a system reports "ABAP Doc comment is in the wrong position"; close the gap`,
+      });
+      return;
+    }
 
     if (BEFORE_END_OF.test(next)) {
       out.push({
@@ -198,9 +219,14 @@ const ABAPDOC_SELF_TEST = [
     expect: 0,
   },
   {
-    name: "a blank line between them is not a comment and detaches nothing",
+    name: "a blank line between them detaches it too - the 2026-10-04 case",
     source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n\n  METHODS run.\nENDINTERFACE.',
-    expect: 0,
+    expect: 1,
+  },
+  {
+    name: "a blank line inside the block - the same finding",
+    source: 'INTERFACE zif_x PUBLIC.\n  "! line one\n\n  "! line two\n  METHODS run.\nENDINTERFACE.',
+    expect: 1,
   },
   {
     name: "a `*` comment detaches it just as well",

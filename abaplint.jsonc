@@ -298,6 +298,12 @@
     "prefer_returning_to_exporting": true,
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
+    // PREFERRED PARAMETER is ignored unless every IMPORTING parameter is
+    // optional - SLIN warns, abaplint reports it since 2.120.65
+    // (abaplint/abaplint#4357). check:atc (`preferred_param`) stays, it also
+    // reads src/99. Measured on 2.120.65: 0 findings over src, control probe
+    // fired
+    "preferred_parameter_ignored": true,
     "prefix_is_current_class": {
       "severity": "Warning"
     },

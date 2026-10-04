@@ -158,6 +158,11 @@ they were written and measured in one pass:
 | `delete_index_in_loop` | **2** - the vendored ajson filter lib, and one port |
 | `preferred_parameter_ignored` | **0** - those code bases run an ATC gate for it already, so this rule has fixture evidence only |
 
+`preferred_parameter_ignored` has shipped on its own since: abaplint/abaplint#4357,
+merged 2026-10-03 and released in 2.120.65, with a quick fix that declares the
+mandatory parameters `OPTIONAL`. The patch still carries the older version of
+it, so drop that rule from the patch before it goes upstream.
+
 `npm test` in `packages/core`: **11020 passing**, eslint clean,
 `scripts/schema.json` regenerated.
 

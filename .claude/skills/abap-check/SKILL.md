@@ -307,12 +307,14 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | Trap | Rule |
 |---|---|
 | **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
-| **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it |
-| **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*` |
+| **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it. Upstream from abaplint 2.120.65 on (abaplint/abaplint#4356): the operand is a plain data object in the `CREATE DATA` grammar, so a call there is a `parser_error` |
+| **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*`. Measured on a 7.58 system (2026-10-03): `get_ref( )->*` and `CAST ty( … )->*` are fine there, `NEW ty( … )->*` is a syntax error even there |
+| **`setup( )` / `teardown( )` cannot be called directly** | *The special method "TEARDOWN" cannot be called directly.* Two test classes in abap2UI5-addons/abap-cloud-gui had `setup( )` call `teardown( )` to clear their table rows first. A 7.58 SYNTAX_CHECK refused both (2026-10-04, fixed in abap2UI5-addons/abap-cloud-gui#9). The same holds for `class_setup` / `class_teardown`. Put the shared code into a method of its own and call that from both. abaplint and the transpiler accept the call. Not gated |
+| **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. abaplint accepts it. Not gated |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 | **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` does not check attribute visibility and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal |
 
-**Backlog:** abaplint · abaplint-type-handle-method-call, abaplint-deref-of-method-call
+**Backlog:** abaplint · abaplint-deref-of-method-call, abaplint-attribute-visibility, abaplint-special-method-direct-call, abaplint-super-other-method
 
 ### Generic types on older releases — the recurring one
 
@@ -341,7 +343,7 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
-**Backlog:** abaplint · abaplint-generic-deref-old-releases
+**Backlog:** abaplint · abaplint-generic-deref-old-releases, abaplint-generic-deref-target
 
 ### VALUE constructor — a header default plus a per-row value is a syntax error
 
@@ -417,6 +419,25 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   the release after 2.120.64 on. An OR in parentheses, a dynamic key name and
   `primary_key` stay unreported there, as measured.
 
+### A function call in front of IS INITIAL
+
+- **`IF condense( lv ) IS INITIAL.` is a syntax error, also on 7.58:**
+  *"Unexpected operator "IS"."* abap2UI5#2767 first met it on 7.02/7.31
+  through the downport, which made it look like an old-release limit. A 7.58
+  system refuses it just as well (measured 2026-10-03), and a Code Inspector
+  SYNTAX_CHECK found it in two more classes on that system (2026-10-04).
+  abaplint accepts it at every syntax version. Compare instead:
+  `IF condense( lv ) = ``.`, `IF lines( lt ) = 0.`. A **functional method
+  call** in the same position is fine: `IF upd_mode_text( ) IS NOT INITIAL`
+  and `IF session_command_text( lv_cmd ) IS NOT INITIAL` in
+  abap2UI5-addons/sapgui went through the same run without a finding, so
+  the restriction is about built-in functions. Constructor and table
+  expressions there are not measured yet. More sites from the same run,
+  since fixed: two in sapgui (abap2UI5-addons/sapgui#8) and one in rap-ext
+  (abap2UI5-addons/rap-ext#19).
+
+**Backlog:** abaplint · abaplint-is-initial-function-operand
+
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
 - **`INTO CORRESPONDING FIELDS OF TABLE @DATA(…)` is 7.55 syntax.** Below that
@@ -433,12 +454,10 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `syntax.version` v750: zero findings, control probe fired. Plain
   `INTO TABLE @DATA(…)` is fine from 7.40 on; it is only the combination with
   `CORRESPONDING` that is late. **Gate: `abap2ui5lint`** —
-  `into-corresponding-inline-decl` (2026-08-30). Still worth having upstream in
-  the `downport` rule or the version model; the linter carries it meanwhile
-  because a systemless pipeline sees an activation error only when somebody
-  imports the transport.
-
-**Backlog:** abaplint · abaplint-into-corresponding-inline-decl
+  `into-corresponding-inline-decl` (2026-08-30). Upstream from abaplint
+  2.120.65 on (abaplint/abaplint#4354): `check_syntax` reports the inline
+  declaration below 7.55. The linter keeps its rule for projects that pin an
+  older abaplint.
 
 ### RAP and CDS (`abap2UI5/samples-stack`)
 
@@ -473,6 +492,21 @@ API dependency — and is a **syntax error** in every system without SD.
 sample and framework code may only touch DDIC objects that exist in a bare
 system, or must fetch data dynamically.
 
+The same holds for classes. `abap2UI5/samples-stack`'s
+`z2ui5_cl_smps_llm_cloud`, the HTTP transport for ABAP Cloud, names
+`cl_http_destination_provider`, `if_a4c_cp_service` and the
+`cl_web_http_client_manager` family statically. Its own comment expected that
+only a 7.40 system would refuse it. A Code Inspector SYNTAX_CHECK on an S/4HANA
+**7.58** on-premise system (2026-10-04) refused it as well: *Type
+"CL_HTTP_DESTINATION_PROVIDER" is unknown*, then *Compilation was canceled*.
+The class does not activate there, even though the factory never instantiates
+it on that system. abaplint is green because samples-stack resolves against the
+`steampunk-2305-api` dependency, where every one of these types exists. A class
+that has to exist everywhere but use an API that is only on some releases must
+name that API dynamically (`CALL METHOD ('CL_…')=>(…)`, `TYPE REF TO object`,
+`CATCH cx_root`). Then the class activates everywhere and fails only when it is
+called on the wrong system.
+
 ## 3. Extended check (SLIN/ATC) — runs in real systems, not here
 
 **Gate: this repo**, partially — `npm run check:atc`
@@ -480,7 +514,7 @@ system, or must fetch data dynamically.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-preferred-parameter-ignored, abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-ref-into-generic-target
+**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line, abaplint-abapdoc-leading-at, abaplint-redundant-conversion-function-result
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -573,6 +607,27 @@ and points here, so a new trap is added here and nowhere else.
   abaplint pin has not moved yet, and that script goes the same way when it
   does.
 
+  Two more ways to detach a block, both found by a Code Inspector
+  SYNTAX_CHECK on a 7.58 system over the addons (2026-10-04):
+  - **A blank line, inside the block or between the block and its
+    declaration**, detaches it like a comment does. Found in
+    abap-cloud-gui (`z2ui5_cl_cgui_layout`, `z2ui5_cl_cgui_report`,
+    `z2ui5_if_cgui_variant_store`, fixed in
+    abap2UI5-addons/abap-cloud-gui#9). `check:atc` asserted the opposite
+    until that day; it reports the shape now. `wrong_abapdoc_position` does
+    not.
+  - **A `"!` line that begins with `@`** is read as a command:
+    `"! @UI.presentationVariant's sortOrder …` is *"A command was expected
+    after ABAP Doc symbol "@""*. Only `@parameter`, `@raising` and
+    `@exception` may start a line. Break the line one word earlier, so the
+    annotation sits mid-line, where it is plain text. Four sites in rap-ext,
+    fixed in abap2UI5-addons/rap-ext#19. Not gated.
+
+  And one the rule does decide, where the repository has it off: four blocks
+  in front of a chained `TYPES:` in rap-ext (same PR). That is
+  `wrong_abapdoc_position`'s first position, and it reports exactly those
+  four once switched on.
+
 - **ABAP Doc is parsed as HTML.** A field symbol or a placeholder written as
   `<wa>`, `<row>`, `<CLASS>` inside a `"!` block is "HTML tag not supported"
   and "not closed" in a system, and the block renders wrong. Write
@@ -614,18 +669,34 @@ and points here, so a new trap is added here and nowhere else.
   inverting the rule - it reads all seven, the escaped `!previous` form
   included, and finds every parameter optional).
 
-  **abaplint does not merely miss it — it hides the consequence.** Since
-  abaplint#2843 the syntax check treats a preferred parameter as optional,
-  which is right where every importing parameter already is and inverted here:
-  with the addition ignored, `val` stays mandatory on a system. Measured in an
-  isolated two-file project on 2.120.38, `check_syntax` on: a call that omits
-  `val` is accepted while the addition is there, and deleting that one line
-  turns the same call into *"method parameter "VAL" must be supplied"*. So a
-  green abaplint over a declaration carrying an ignored addition says nothing
-  about its callers either. Backlog: abaplint-preferred-parameter-ignored.
+  **The callers are fine either way.** Since abaplint#2843 the syntax check
+  lets a call leave a mandatory preferred parameter out, and a system does the
+  same: measured on S/4HANA (ADT syntax check, 2026-10-02), `with_pref( other
+  = 2 )` with `val` mandatory and preferred is accepted with only the
+  declaration warning, while the same signature without the addition is *"No
+  value was passed to the mandatory parameter VAL"*. Upstream from abaplint
+  2.120.65 on (abaplint/abaplint#4357): the rule `preferred_parameter_ignored`
+  reports the declaration, and its quick fix declares the mandatory importing
+  parameters `OPTIONAL`. It is a rule, so it reports only where a project
+  switches it on - here it is on in `abaplint.jsonc`, which leaves `src/99`
+  out, so `check:atc` keeps reading all of `src`.
 
 **Not gated — a script cannot decide these:**
 
+- **`DATA( )` from a packed computation.** `DATA(margin) =
+  order-requireddate - order-shippeddate.` with both operands
+  `p LENGTH 8 DECIMALS 0` is a syntax-check warning: *"For the result of a
+  computation with type P, the type P(8,0) is used here implicitly because it
+  is not possible to determine …"*. The inline declaration cannot take length
+  and decimals from an arithmetic expression, so the system falls back to
+  P(8,0) and says so. That P(8,0) silently drops decimals when the operands
+  have any. Declare the variable with its type and assign it. A
+  `COND #( … THEN packed_field … )` takes its type from the operand and is
+  not this. Found by a Code Inspector SYNTAX_CHECK over a pulled
+  `abap2UI5/samples-controls` (2026-10-04, `z2ui5_cl_smpc_demo_002->row_json`,
+  fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
+  abap2UI5, samples-controls and samples-stack found no other instance.
+  Neither abaplint nor any gate here reports it.
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -730,8 +801,10 @@ and points here, so a new trap is added here and nowhere else.
   variable and pass that; a plain assignment is a conversion and always
   allowed, and a symbol inside a string template needs nothing, an embedded
   expression being a general expression position. Gated by `check:atc`.
-
-**Backlog:** abaplint · abaplint-text-symbol-to-string-param
+  Upstream from abaplint 2.120.65 on (abaplint/abaplint#4358): `check_syntax`
+  reports a text symbol bound to an importing method parameter typed
+  `string`, named and positional; `PERFORM … USING` and `CREATE OBJECT …
+  EXPORTING` are not checked there, as not measured.
 
 - **An Open SQL literal is a host expression: `@( … )`.** In strict Open SQL
   every value in a WHERE comparison is escaped, a literal included — bare
@@ -761,8 +834,10 @@ and points here, so a new trap is added here and nowhere else.
   infer from. Write `REF data( … )` (or the concrete `REF ty( … )`) whenever
   the left side is generic; `REF #( )` only into a typed variable or
   parameter. abaplint 2.120.38 accepts the generic form without a finding
-  (`check_syntax` on, default and cloud configs) - **Gate: open**. The last
-  one outside the upstream mirrors and the frozen package -
+  (`check_syntax` on, default and cloud configs). Upstream from abaplint
+  2.120.65 on (abaplint/abaplint#4355): `check_syntax` reports `REF #( )`
+  into a field symbol typed `any` or `data`. The last one outside the
+  upstream mirrors and the frozen package -
   `conv_get_as_data_ref` in `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` -
   was rewritten here (2026-09): the context class is not a read-only mirror,
   this copy leads and abap-util follows (AGENTS.md, "Utilities"), so nothing
@@ -825,8 +900,8 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
-**Backlog:** open-abap · transpiler-value-let-without-for
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-like-ref-to-generic
+**Backlog:** open-abap · transpiler-value-let-without-for, transpiler-sort-dynamic-component
 **Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is

@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler: a LET in a VALUE without FOR is dropped - the binding is never declared, `ReferenceError: s is not defined` at runtime'
 summary: `ValueBodyTranspiler` transpiles the LET of a VALUE body only for its FOR chain; without FOR it skips the Let child, so `VALUE #( LET s = … IN ( … s … ) )` and the structure form `VALUE #( LET s = … IN name = s )` reference a JS variable that was never declared - CONV with LET fails too (`SourceUnknown$InlineFieldDefinition`). Only hit when 7.40 source is transpiled directly - the abaplint downport outlines LET first, so the downported tree works
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1961
 first_seen: 2026-10-03
 upstream: abaplint/transpiler
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - minimal repro 2026-10-03 (class below; @abaplint/transpiler-cli and runtime 2.13.96 - the version abap2UI5's devDependencies pin and the latest on npm that day - against open-abap-core b2d219d) - 9 tests transpiled from the 7.40 source; 6 fail - LET + one row, LET + two rows, LET used only by the second row, LET in a structure VALUE, LET + shared prefix (all `ReferenceError: s is not defined`) and `CONV string( LET s = … IN s )` (`ReferenceError: SourceUnknown$InlineFieldDefinition is not defined`); LET + FOR, COND with LET and REDUCE with LET pass
   - the same five VALUE cases downported with @abaplint/cli 2.120.64 first and then transpiled all pass - the downport outlines LET into `DATA s TYPE string. s = …`, which is why abap2UI5's own unit run (`npm run downport` before `npm run auto_transpile`) never meets it
   - the cause, read in the 2.13.96 bundle and unchanged in `packages/transpiler/src/expressions/value_body.ts` at abaplint/transpiler main a9c6b9f (2026-10-02) - `ValueBodyTranspiler.transpile` computes `outerLetCode` from the body's `Let` child but passes it only to `buildForChain`; in the children loop the `Let` branch is `continue`, so a body without FOR never emits the `LetTranspiler` output. The transpiler's own VALUE tests (`test/expressions/value.ts`) cover LET only together with FOR ("VALUE LET FOR UNTIL with table expressions", "VALUE FOR LET IN")
+  - filed 2026-10-03 as abaplint/transpiler#1961 - VALUE without FOR and CONV declare the LET bindings in an async IIFE before the value is built; six runtime tests, all failing on main with the errors above
 checked_upstream: 2026-10-03
 ---
 
