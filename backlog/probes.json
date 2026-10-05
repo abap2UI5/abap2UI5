@@ -61,16 +61,6 @@
       "abap2UI5"
     ]
   },
-  "abaplint-deref-of-method-call": {
-    "describe": "`)->*` — a call or constructor expression dereferenced inline, with `var->*` as the negative",
-    "ran": "2026-09-19",
-    "checkouts": [
-      "abap2UI5"
-    ],
-    "sites": 0,
-    "negatives": 339,
-    "repos": []
-  },
   "abaplint-empty-catch-block": {
     "describe": "an empty CATCH block without ##NO_HANDLER, with the pragma-carrying one as the negative",
     "ran": "2026-09-19",
@@ -111,19 +101,6 @@
       "samples",
       "samples-controls"
     ]
-  },
-  "transpiler-value-let-without-for": {
-    "describe": "a VALUE without FOR, or a CONV, that binds a LET - the transpiler never declares the binding; the LETs in VALUE with FOR, COND, SWITCH and REDUCE as the negative",
-    "ran": "2026-10-03",
-    "checkouts": [
-      "abap2UI5",
-      "samples",
-      "samples-controls",
-      "samples-stack"
-    ],
-    "sites": 0,
-    "negatives": 1,
-    "repos": []
   },
   "runtime-rescale-not-implemented": {
     "describe": "a call of `rescale( )` - no builtin in @abaplint/runtime; the `round( val = … )` calls as the negative, implemented with dec, prec and mode since 2.13.94",

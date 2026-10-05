@@ -309,13 +309,11 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 |---|---|
 | **`class_constructor` must be in the PUBLIC SECTION** | ABAP requires it; the class pool does not activate otherwise. abaplint's `constructor_visibility_public` only looks at the instance `constructor` — verified: a `CLASS-METHODS class_constructor.` in a `PRIVATE SECTION` produces no finding. This is why `z2ui5_cl_ui5_frontend` fills `ct_box_type` lazily in `box_resolve( )` instead of in a static constructor (#2547) — see the comment on the attribute. Gated by `check:abapgit`, and by `abap2ui5lint`'s `class-constructor-visibility` |
 | **`CREATE DATA … TYPE HANDLE` takes a data object, not a method call** | `CREATE DATA lr TYPE HANDLE cl_abap_structdescr=>create( lt_comp ).` is "No method can be specified in the current position" on a system - the operand has to be a variable holding the descriptor. abaplint parses the call as an expression and the transpiler runs it, so a test class shipped this way through every gate and a user's system reported it (2026-09-02, `ltcl_app_shapes` in `z2ui5_cl_ui5_srv_model`). Gated by `check:atc` (`handle_call`): a `TYPE HANDLE` operand with a `(` in it. Upstream from abaplint 2.120.65 on (abaplint/abaplint#4356): the operand is a plain data object in the `CREATE DATA` grammar, so a call there is a `parser_error` |
-| **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*`. Measured on a 7.58 system (2026-10-03): `get_ref( )->*` and `CAST ty( … )->*` are fine there, `NEW ty( … )->*` is a syntax error even there |
-| **`setup( )` / `teardown( )` cannot be called directly** | *The special method "TEARDOWN" cannot be called directly.* Two test classes in abap2UI5-addons/abap-cloud-gui had `setup( )` call `teardown( )` to clear their table rows first. A 7.58 SYNTAX_CHECK refused both (2026-10-04, fixed in abap2UI5-addons/abap-cloud-gui#9). The same holds for `class_setup` / `class_teardown`. Put the shared code into a method of its own and call that from both. abaplint and the transpiler accept the call. Not gated |
-| **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. abaplint accepts it. Not gated |
+| **`->*` needs a data reference variable in front of it** | `result = row_ref( iv_name )->*.` is a syntax error on 7.50 - the dereferencing operator takes a reference variable, not the result of a functional method call or a constructor expression; hoist the reference into its own variable and dereference that. abaplint parses the chain at `syntax.version` v750 and the transpiler runs it, so the line was green through every gate here and a user on SAP_ABA 750 SP33 reported it (#2722, `ltcl_00_base~row` in `z2ui5_cl_ui5_srv_model` - the same test class `handle_call` came from). Gated by `check:atc` (`deref_call`): a `)` directly in front of a `->*`. Measured on a 7.58 system (2026-10-03): `get_ref( )->*` and `CAST ty( … )->*` are fine there, `NEW ty( … )->*` is a syntax error even there. Upstream from abaplint 2.120.66 on (abaplint/abaplint#4361): a `->*` directly after a method call is a `parser_error` below v756, and from 2.120.68 on (abaplint/abaplint#4371) `check_syntax` reports `NEW ty( … )->*` in every release |
+| **`setup( )` / `teardown( )` cannot be called directly** | *The special method "TEARDOWN" cannot be called directly.* Two test classes in abap2UI5-addons/abap-cloud-gui had `setup( )` call `teardown( )` to clear their table rows first. A 7.58 SYNTAX_CHECK refused both (2026-10-04, fixed in abap2UI5-addons/abap-cloud-gui#9). The same holds for `class_setup` / `class_teardown`. Put the shared code into a method of its own and call that from both. Upstream from abaplint 2.120.68 on (abaplint/abaplint#4372): `check_syntax` reports the call in a `FOR TESTING` class, with or without `me->`, through the class name and as `CALL METHOD` |
+| **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. Upstream from abaplint 2.120.68 on (abaplint/abaplint#4368): `check_syntax` reports it, also in a method that is no redefinition, while an alias of the same method stays allowed |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
-| **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` does not check attribute visibility and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal |
-
-**Backlog:** abaplint · abaplint-deref-of-method-call, abaplint-attribute-visibility, abaplint-special-method-direct-call, abaplint-super-other-method
+| **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` did not check attribute visibility then and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal. Upstream from abaplint 2.120.67 on (abaplint/abaplint#4362): `check_syntax` reports a PRIVATE/PROTECTED attribute or constant of another class as well |
 
 ### Generic types on older releases — the recurring one
 
@@ -335,6 +333,9 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
   ASSIGN COMPONENT lv_name OF STRUCTURE <val> TO FIELD-SYMBOL(<comp>).
   ```
+  abaplint reported this only as a source. From 2.120.67 on
+  (abaplint/abaplint#4364) `check_syntax` also reports it as a target
+  below v756: `CLEAR lr->*`, `IMPORTING ev = lr->*`, `lr->* = …`.
 - **The dynamic component selector needs a reference variable, not `TYPE any`.**
   `ASSIGN val->(lv_name) TO …` where `val` is `TYPE any` is rejected on NW 7.52
   and 7.02 with *"VAL is not a reference variable"* (#2409). Cast once —
@@ -344,7 +345,7 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
-**Backlog:** abaplint · abaplint-generic-deref-old-releases, abaplint-generic-deref-target
+**Backlog:** abaplint · abaplint-generic-deref-old-releases
 
 ### VALUE constructor — a header default plus a per-row value is a syntax error
 
@@ -901,8 +902,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-like-ref-to-generic
-**Backlog:** open-abap · transpiler-value-let-without-for, transpiler-sort-dynamic-component
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
 **Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
@@ -969,7 +969,9 @@ break one of those four.
   `z2ui5_cl_ui5_srv_bind` and `z2ui5_cl_ui5_srv_model` (2026-09-23). Every
   check was green: the source is valid, the transpiled suite runs v750, and
   abaplint's v702 `check_syntax` over the downported tree reports 0 issues
-  on that exact line (measured on 2.120.52). **Assign to a typed variable
+  on that exact line (measured on 2.120.52); from 2.120.66 on
+  (abaplint/abaplint#4363) it reports `LIKE REF TO` a generically typed
+  table, the shape a 7.58 system refuses as well. **Assign to a typed variable
   first** - `lr_tab = REF #( <tab> ).` with `lr_tab TYPE REF TO data`, then
   `bind( lr_tab )`; the downport turns that into a plain
   `GET REFERENCE OF <tab> INTO lr_tab`. A typed field symbol is fine - the
@@ -1010,13 +1012,18 @@ break one of those four.
   its tests is ready as `backlog/patches/abaplint-downport-value-row-clear.patch`
   (a `CLEAR` plus the shared prefix at each row, only where the rows differ in
   shape); samples spells its eight constructors out meanwhile.
-- **A `LET` in a `VALUE` without `FOR`, or in a `CONV`, does not survive the
-  transpiler** when it reads 7.40 source: the binding is never declared and
+- **A `LET` in a `VALUE` without `FOR`, or in a `CONV`, does not survive a
+  transpiler before 2.13.98** when it reads 7.40 source: the binding is never declared and
   the statement dies with `ReferenceError: s is not defined` at runtime, not
   at transpile time. `VALUE` with `FOR`, `COND` and `REDUCE` are fine. This
   tree never meets it - `npm run unit` transpiles the downport, which outlines
   the `LET` first - but a host transpiling its own 7.40 classes against
-  `@abap2ui5/node-runtime` does. Outline the binding into a `DATA` there.
+  `@abap2ui5/node-runtime` does. Outline the binding into a `DATA` there, or
+  transpile with 2.13.98 or later (abaplint/transpiler#1961). The same
+  release sorts `SORT itab BY (name)` by the named component
+  (abaplint/transpiler#1960); before it the dynamic component was dropped,
+  so the table was sorted by its primary key, or not at all with an empty
+  key.
 - **A method parameter typed with the generic `TYPE p` breaks the class in
   the transpiled runtime.** The transpiler has no type for it and emits
   `new abap.types.typeTodoPGenericType()` - for a CHANGING parameter, an
