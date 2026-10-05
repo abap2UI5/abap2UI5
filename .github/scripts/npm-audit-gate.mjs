@@ -68,6 +68,13 @@ const ACCEPTED = new Map([
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",
   }],
+  ["GHSA-vfj7-8cjw-p6xm", {
+    trees: ["", "app"],
+    reason: "braces: stack exhaustion on deeply nested patterns. Reached only through @ui5/cli -> "
+      + "@ui5/fs -> micromatch, which expands the glob patterns of the UI5 tooling's own build "
+      + "config, never user input. No fixed release exists (3.0.3 is the latest and affected); "
+      + "npm's only fix is @ui5/cli 2.x, a major downgrade",
+  }],
 ]);
 
 const problems = [];
