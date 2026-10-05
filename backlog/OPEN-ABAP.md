@@ -27,16 +27,5 @@ _nothing exists upstream yet — this is the stock_
 
 ---
 
-## Filed upstream
-
-_an issue or PR exists; the item goes when it merges_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`transpiler-sort-dynamic-component`](items/transpiler-sort-dynamic-component.md) | '`SORT lt BY (lv_name)` transpiles to `abap.statements.sort(lt,{})` - the dynamic component is dropped, a table with an empty key stays unsorted and nothing reports it'<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/transpiler/pull/1960</sub> | medium | 2026-10-03 | abaplint/transpiler |
-| [`transpiler-value-let-without-for`](items/transpiler-value-let-without-for.md) | `ValueBodyTranspiler` transpiles the LET of a VALUE body only for its FOR chain; without FOR it skips the Let child, so `VALUE #( LET s = … IN ( … s … ) )` and the structure form `VALUE #( LET s = … IN name = s )` reference a JS variable that was never declared - CONV with LET fails too (`SourceUnknown$InlineFieldDefinition`). Only hit when 7.40 source is transpiled directly - the abaplint downport outlines LET first, so the downported tree works<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-10-03: fires on <b>0</b> site(s), 1 correct look-alike(s)</sub><br><sub>https://github.com/abaplint/transpiler/pull/1961</sub> | low | 2026-10-03 | abaplint/transpiler |
-
----
-
 _Generated from `backlog/items/*.md` and the `**Backlog:**` lines in
 `.claude/skills/` — `npm run backlog`._
