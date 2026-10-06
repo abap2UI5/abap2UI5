@@ -3085,15 +3085,30 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA content      TYPE REF TO object.
     DATA exists       TYPE abap_bool.
     DATA lv_xco_cp_abap_dictionary TYPE string.
+    " A dynamic call checks its actual parameters against the formal ones at
+    " runtime and converts nothing, so both sides are typed exactly as XCO
+    " declares them. The name is sxco_ad_object_name (CHAR30), passed by
+    " reference - a string there raised CX_SY_DYN_CALL_ILLEGAL_TYPE. Each
+    " label is if_xco_dtel_content=>ts_field_label, a text (CHAR60) and its
+    " length (NUMC2) - received into a string, every one raised the same.
+    " Both ended in the CATCH below, so on ABAP Cloud every data element came
+    " back with empty texts (or its own name, as the caller's fallback). The
+    " shapes are written out because the XCO types exist on cloud only
+    DATA lv_name TYPE c LENGTH 30.
+    DATA: BEGIN OF ls_label,
+            text   TYPE c LENGTH 60,
+            length TYPE n LENGTH 2,
+          END OF ls_label.
 
     CLEAR texts.
     do_fallback = abap_false.
 
     TRY.
+        lv_name = name.
         lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
         CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
           EXPORTING
-            iv_name         = name
+            iv_name         = lv_name
           RECEIVING
             ro_data_element = data_element.
 
@@ -3111,19 +3126,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL`)
           RECEIVING
-            rs_heading_field_label = texts-header.
+            rs_heading_field_label = ls_label.
+        texts-header = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL`)
           RECEIVING
-            rs_short_field_label = texts-short.
+            rs_short_field_label = ls_label.
+        texts-short = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL`)
           RECEIVING
-            rs_medium_field_label = texts-medium.
+            rs_medium_field_label = ls_label.
+        texts-medium = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL`)
           RECEIVING
-            rs_long_field_label = texts-long.
+            rs_long_field_label = ls_label.
+        texts-long = ls_label-text.
 
         do_fallback = abap_true.
 
@@ -3177,8 +3196,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
         DATA obj          TYPE REF TO object.
         DATA content      TYPE REF TO object.
-        DATA lv_classname TYPE c LENGTH 30.
-        DATA xco_cp_abap  TYPE c LENGTH 11.
+        DATA lv_classname   TYPE c LENGTH 30.
+        DATA xco_cp_abap    TYPE c LENGTH 11.
+        DATA lv_description TYPE c LENGTH 60.
 
         lv_classname = classname.
 
@@ -3193,9 +3213,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RECEIVING
             ro_content = content.
 
+        " sxco_ar_short_description, CHAR60 - typed exactly, for the same
+        " reason as the labels in rtti_get_dtel_texts_by_xco
         CALL METHOD content->(`IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION`)
           RECEIVING
-            rv_short_description = result.
+            rv_short_description = lv_description.
+        result = lv_description.
 
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
