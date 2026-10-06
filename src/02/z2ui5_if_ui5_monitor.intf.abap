@@ -7,13 +7,21 @@
 "! success and on failure alike. Usage, performance and error logs hang off
 "! it (abap2UI5-addons/admin-cockpit); the framework itself persists nothing.
 "!
+"! Off until the installation switches it on: the user exit sets
+"! check_monitor_active in set_config_http_post (z2ui5_if_ui5_exit). Without
+"! that the class is not even looked up. A syntax error in a monitor, or in
+"! any class it uses, is a short dump no CATCH stops - so installing a
+"! monitor alone must not be able to break abap2UI5.
+"!
 "! Not called for the page request (GET), for HEAD, or for a POST the CSRF
 "! gate rejected - those run no app.
 "!
 "! The call is synchronous: whatever it costs, the user waits for. It must
 "! never raise - anything it raises is caught and ignored, and so is a class
-"! that cannot be instantiated. A broken monitor costs its log entries, never
-"! the app (the user exit fails closed instead: it is a hardening control).
+"! that cannot be instantiated. A monitor that raises costs its log entries,
+"! never the app (the user exit fails closed instead: it is a hardening
+"! control). A syntax error is not an exception and is not caught: switch
+"! the monitor on only once its package is active and checked.
 "!
 "! The database LUW when it runs, read off check_sticky:
 "! check_sticky = abap_false - the LUW is empty. On success the framework has

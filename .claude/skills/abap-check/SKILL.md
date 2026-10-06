@@ -227,6 +227,19 @@ exported from a real system.** Create the object once, let abapGit serialize
 it, and commit that. This is the same rule as "never hand-edit a `.clas.xml`"
 below, one step earlier.
 
+**The same rule, one field at a time: a TABL field's `INTTYPE`.**
+`abap2UI5-addons/admin-cockpit` wrote its table sidecars by hand and gave
+every `INT4` field `<INTTYPE>I</INTTYPE>`. The tables activated, but a
+user's pull (2026-10-06) listed every table with an `INT4` field as changed:
+the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
+4 tables, fixed in abap2UI5-addons/admin-cockpit#6. Real exports agree:
+`abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
+The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
+`INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
+of the same type rather than spelling it out. **Gate: open.** abaplint's
+`xml_consistency` reads `DATATYPE` and not `INTTYPE`.
+**Backlog:** abaplint · abaplint-tabl-inttype
+
 ### Two round-trip rules no gate can decide
 
 - **Never hand-edit a `.clas.xml` / `.intf.xml` to tidy it.** It is a
@@ -510,6 +523,35 @@ be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
 (pushed upstream on the abaplint branch `claude/laughing-ride-sl2osd`). Every
 other reserved word stays **open** until a system confirms it. Add it to that
 list when one does.
+
+### A database work area must be as long as the table line
+
+`z2ui5_cl_cockpit_setup` (abap2UI5-addons/admin-cockpit) wrote its settings
+table from a local type:
+
+```abap
+TYPES: BEGIN OF ty_s_row,
+         name  TYPE c LENGTH 30,
+         value TYPE c LENGTH 255,
+       END OF ty_s_row.
+DATA(ls_row) = VALUE ty_s_row( name = name value = value ).
+MODIFY z2ui5_t_ck_set FROM @ls_row.    " MANDT, NAME, VALUE
+```
+
+A user's pull (2026-10-06) did not activate the class: *"The work area
+"LS_ROW" is not long enough."*, twice. `INSERT`, `UPDATE` and `MODIFY dbtab
+FROM wa` take the work area as the table line. It must be at least as long,
+**client field included**, even though the client is filled in
+automatically. A structure with only the non-client columns is too short.
+Type the row as the table (`VALUE z2ui5_t_ck_set( … )`), fixed in
+abap2UI5-addons/admin-cockpit#6. abaplint 2.120.64 with `check_syntax` on
+is green on the broken class, and so is the transpiled unit run.
+
+This one took abap2UI5 down with it. The class was a dependency of the
+cockpit's roundtrip monitor, so every abap2UI5 request dumped with
+*"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
+
+**Gate: open.** **Backlog:** abaplint · abaplint-dbtab-work-area-too-short
 
 ### A parameter called `default` is read as an addition
 
@@ -1188,6 +1230,21 @@ precisely because no gate will catch it.
 
 **Backlog:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
 
+- **A syntax error is not an exception — `CATCH cx_root` does not stop it.**
+  A class with a syntax error that is loaded at run time ends the request with
+  the runtime error `SYNTAX_ERROR`, a short dump. No `TRY` around the call
+  catches it. abap2UI5's roundtrip monitor "failed open":
+  it caught everything a monitor raised and every class that could not be
+  instantiated. Then a half-activated pull of abap2UI5-addons/admin-cockpit
+  (2026-10-06) left `z2ui5_cl_cockpit_setup` with a syntax error (section 2,
+  the database work area), and every abap2UI5 app answered *"500 Internal
+  Server Error - Syntax error in program Z2UI5_CL_COCKPIT_SETUP"*. Nobody had
+  opened the cockpit. The monitor was called automatically once its class
+  existed. The fix is not a better `CATCH`. The framework no longer calls a
+  monitor unless the installation switches it on (`check_monitor_active` in
+  the user exit's `set_config_http_post`). Code that runs automatically
+  inside every request has to be opted into, never just installed. A
+  "never raises" promise covers exceptions, not syntax errors.
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
   from an earlier `READ TABLE` when `attri_get_val_ref` tested it: the dynamic
