@@ -237,8 +237,11 @@ the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
 `abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
 The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
 `INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
-of the same type rather than spelling it out. **Gate: open.** abaplint's
-`xml_consistency` reads `DATATYPE` and not `INTTYPE`.
+of the same type rather than spelling it out. **Gate: open** until
+abaplint/abaplint#4390 ships: `xml_consistency` then compares `INTTYPE` with
+`DATATYPE` for the confirmed pairs. Measured with that change, it finds
+exactly the 27 fields on the pre-fix cockpit and nothing in 114 exported
+tables.
 **Backlog:** abaplint · abaplint-tabl-inttype
 
 ### Two round-trip rules no gate can decide

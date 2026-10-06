@@ -3,7 +3,8 @@ target: abaplint
 title: 'xml_consistency: a TABL field whose INTTYPE does not match its DATATYPE'
 summary: 'an INT4 field serialized as `<INTTYPE>I</INTTYPE>` - abapGit writes `X` - shows a diff on every pull; abaplint reads DATATYPE only'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4390
 first_seen: 2026-10-06
 upstream: abaplint/abaplint
 evidence:

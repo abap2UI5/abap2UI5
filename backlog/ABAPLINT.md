@@ -36,7 +36,6 @@ _nothing exists upstream yet — this is the stock_
 | [`abaplint-empty-catch-block`](items/abaplint-empty-catch-block.md) | 'SLIN reports an empty exception handler on every real system; a systemless pipeline never sees it, and the pragma that says "deliberately empty" is the one sanctioned way to silence it — no abaplint rule reads the block'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>14</b> site(s) in abap2UI5, 104 correct look-alike(s)</sub> | low | 2026-09-19 | abaplint/abaplint |
 | [`abaplint-get-reference-obsolete`](items/abaplint-get-reference-obsolete.md) | 'the statement is not released for ABAP Cloud and has a released equivalent (`REF`), yet abaplint 2.120.52 under `syntax.version` Cloud accepts it without a finding — `check:cloud` in abap2UI5 is green with it in place'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>25</b> site(s) in abap2UI5, 118 correct look-alike(s)</sub> | low | 2026-09-19 | abaplint/abaplint |
 | [`abaplint-redundant-conversion-function-result`](items/abaplint-redundant-conversion-function-result.md) | '`CONV string( to_upper( x ) )` is "Redundant conversion for type STRING" on a system; redundant_conversion reports `CONV syuname( sy-uname )` but not the CONV around a built-in function result'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub> | low | 2026-10-04 | abaplint/abaplint |
-| [`abaplint-tabl-inttype`](items/abaplint-tabl-inttype.md) | 'an INT4 field serialized as `<INTTYPE>I</INTTYPE>` - abapGit writes `X` - shows a diff on every pull; abaplint reads DATATYPE only'<br><sub>written up in [Object types other than CLAS and INTF](../.claude/skills/abap-check/SKILL.md)</sub> | low | 2026-10-06 | abaplint/abaplint |
 
 ---
 
@@ -47,6 +46,7 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`abaplint-dbtab-work-area-too-short`](items/abaplint-dbtab-work-area-too-short.md) | '`MODIFY ztab FROM @ls` with a structure that lacks MANDT is "The work area LS is not long enough" on a system - the class does not compile; abaplint reports nothing'<br><sub>written up in [A database work area must be as long as the table line](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4389</sub> | high | 2026-10-06 | abaplint/abaplint |
+| [`abaplint-tabl-inttype`](items/abaplint-tabl-inttype.md) | 'an INT4 field serialized as `<INTTYPE>I</INTTYPE>` - abapGit writes `X` - shows a diff on every pull; abaplint reads DATATYPE only'<br><sub>written up in [Object types other than CLAS and INTF](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4390</sub> | low | 2026-10-06 | abaplint/abaplint |
 
 ---
 
