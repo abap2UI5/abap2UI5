@@ -9,6 +9,7 @@ upstream: abaplint/abaplint
 evidence:
   - abap2UI5/samples-controls, 2026-10-04 - Code Inspector SYNTAX_CHECK on S/4HANA 7.58, `z2ui5_cl_smpc_demo_002->row_json` line 9 - "For the result of a computation with type P, the type P(8,0) is used here implicitly because it is not possible to determine ..." for `DATA(margin) = order-requireddate - order-shippeddate.` (both `p LENGTH 8 DECIMALS 0`); fixed in abap2UI5/samples-controls#251
   - measured 2026-10-04 with an abaplint-based probe over abap2UI5, samples-controls and samples-stack - inline declarations whose source is a packed computation, one instance (the above); a `COND #( … ELSE packed * 1000 )` in app 377 takes its type from the THEN operand and is a different case
+  - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_stats->p95` line 20 - the same warning for `DATA(lv_target) = lv_total * 95 / 100.` with `lv_total TYPE p LENGTH 16 DECIMALS 0`, so `*` and `/` are covered and a P(16,0) operand still gives P(8,0); abaplint 2.120.70 reports nothing
   - abaplint main 506e7b9 infers `p LENGTH 8 DECIMALS 0` for the inline variable (the first operand's type) and reports nothing
 ---
 
@@ -42,6 +43,5 @@ declare `x` with the operands' type.
 - `DATA(x) = int1 - int2.`: calculation type I.
 - `DATA(x) = CONV ty_ms( a - b ).`: the type is named.
 
-To confirm on a system before it is filed: the same warning for `*` and `/`,
-and whether a packed operand with decimals (`p LENGTH 8 DECIMALS 3`) gets
+To confirm on a system before it is filed: whether a packed operand with decimals (`p LENGTH 8 DECIMALS 3`) gets
 P(8,0) or something else.

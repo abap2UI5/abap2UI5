@@ -85,11 +85,12 @@ const EXTERNAL_PATTERNS = [
     re: /^Z2UI5_(CL|CX|IF)_(DEMO|DMO|SMP|SMPC|SMPS)_/,
     why: "the sample repositories' own namespaces - not this repository's to ship",
   },
-  // The addons of abap2UI5-addons: `cgui` is abap-cloud-gui, `rap` is rap-ext.
+  // The addons of abap2UI5-addons: `cgui` is abap-cloud-gui, `rap` is rap-ext,
+  // `cockpit` is admin-cockpit.
   // abap-check and backlog/ cite their classes by name when a system run over
   // an addon finds a case for this catalogue.
   {
-    re: /^Z2UI5_(CL|CX|IF)_(CGUI|RAP)_/,
+    re: /^Z2UI5_(CL|CX|IF)_(CGUI|RAP|COCKPIT)_/,
     why: "the namespaces of the abap2UI5-addons repositories",
   },
 ];

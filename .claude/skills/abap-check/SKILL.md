@@ -511,6 +511,37 @@ be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
 other reserved word stays **open** until a system confirms it. Add it to that
 list when one does.
 
+### A parameter called `default` is read as an addition
+
+`abap2UI5-addons/admin-cockpit` shipped this private method in
+`z2ui5_cl_cockpit_setup`:
+
+```abap
+CLASS-METHODS to_int
+  IMPORTING
+    val           TYPE clike
+    default       TYPE i
+  RETURNING
+    VALUE(result) TYPE i.
+```
+
+A user's pull (2026-10-06) did not activate the class: *"Unable to interpret
+"RETURNING". Possible causes of error include incorrect spellings or comma
+errors."*, then *"Compilation was canceled"*. The system reads `default` as
+the `DEFAULT` addition of `val`, takes `TYPE` as its value, and then finds
+nothing it can make of `i` and `RETURNING`. abaplint parses the same
+declaration as two parameters. Measured on 2.120.70 with every default rule
+on and `check_syntax` live: no finding, while an undefined variable in the
+same class fired. The parameter is called `fallback` now.
+
+- **Do not name a parameter like an addition of the parameter list.**
+  `default` is the one a system has confirmed. `optional` is the obvious
+  sibling, not measured. A structure component may carry these names: a
+  `BEGIN OF … END OF` has no such additions.
+
+**Gate: open.** Nothing here reads parameter names against the additions.
+**Backlog:** abaplint · abaplint-parameter-named-default
+
 ### Do not depend on DDIC objects that are not everywhere
 
 A sample that selects from `VBAK` compiles here — abaplint resolves it from the
@@ -724,6 +755,28 @@ and points here, so a new trap is added here and nowhere else.
   fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
   abap2UI5, samples-controls and samples-stack found no other instance.
   Neither abaplint nor any gate here reports it.
+
+  **Second case, with `*` and `/` (2026-10-06).** A user's pull of
+  `abap2UI5-addons/admin-cockpit` reported the same warning for
+  `z2ui5_cl_cockpit_stats->p95`: `DATA(lv_target) = lv_total * 95 / 100.`
+  with `lv_total TYPE p LENGTH 16 DECIMALS 0`. So the length of the operand
+  does not carry over either: a P(16,0) operand still gives P(8,0). Fixed by
+  declaring `lv_target` with the operand's type. abaplint 2.120.70 still
+  reports nothing.
+- **`SORT` or `DELETE ADJACENT DUPLICATES` on a table with an empty key.**
+  `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.` on a
+  `STANDARD TABLE OF string WITH EMPTY KEY` give the warning *""RESULT" is a
+  table with an empty primary key. Check the semantics of the statement."*
+  Both statements fall back to the primary key when no `BY` or `COMPARING`
+  is given. With an empty key, `SORT` does nothing and `DELETE ADJACENT
+  DUPLICATES` compares nothing. Write `SORT result BY table_line.` and
+  `DELETE ADJACENT DUPLICATES FROM result COMPARING table_line.`, or the
+  components you mean. Found by a user's pull of
+  `abap2UI5-addons/admin-cockpit` (2026-10-06,
+  `z2ui5_cl_cockpit_inst->get_implementers`). abaplint 2.120.70 reports
+  nothing. Not gated: the key is in the table's type, which can be a
+  returning parameter typed in another class.
+  **Backlog:** abaplint · abaplint-sort-empty-key
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -820,6 +873,15 @@ and points here, so a new trap is added here and nowhere else.
   fix — as a floor, not as the gate for this finding. What would decide this
   one is `redundant-conv-i`'s shape generalized from `i` to any concrete type
   with a concretely-typed operand, and that is not written yet.
+
+  **The shape it does reach still reached a user, because a repository had
+  the rule off.** `abap2UI5-addons/admin-cockpit` shipped
+  `DATA(lv_app) = CONV ty_s_error-app( is_error-app ).`, the operand already
+  of the target type. A user's pull (2026-10-06) warned *"Redundant
+  conversion for type APP"*. `redundant_conversion` reports exactly this line
+  (measured on 2.120.64, the version the cockpit pins), but the cockpit's
+  `abaplint.jsonc` did not switch the rule on. It does now. Turn the rule on
+  in every repository that ships ABAP.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
