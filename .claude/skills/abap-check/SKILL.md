@@ -587,7 +587,11 @@ same class fired. The parameter is called `fallback` now.
   sibling, not measured. A structure component may carry these names: a
   `BEGIN OF … END OF` has no such additions.
 
-**Gate: open.** Nothing here reads parameter names against the additions.
+**Gate: open** until abaplint/abaplint#4391 ships: `check_syntax` then
+reports `default` after another parameter in `IMPORTING` and `CHANGING`.
+`EXPORTING` has no `DEFAULT` addition, so nothing is reported there. Measured
+with that change, it finds exactly the cockpit's `to_int` and nothing in
+abap2UI5, the addons or open-abap-core.
 **Backlog:** abaplint · abaplint-parameter-named-default
 
 ### Do not depend on DDIC objects that are not everywhere
