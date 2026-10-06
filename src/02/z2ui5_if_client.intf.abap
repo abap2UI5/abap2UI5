@@ -623,8 +623,10 @@ INTERFACE z2ui5_if_client
   "! roundtrip, so it is usually the last statement of a handler branch.
   "!
   "! @parameter app | the app to show next; not supplied, the app this one was
-  "!                  called from - with nothing to return to, the user lands
-  "!                  on the start page, so guard the call with
+  "!                  called from. With nothing to return to - a root app, or
+  "!                  a caller whose draft has expired (announced with a
+  "!                  toast) - the leave is dropped: the roundtrip ends on this
+  "!                  app, which keeps the screen. Guard the call with
   "!                  check_app_prev_stack( ).
   "! @parameter event | an event name the target finds in check_on_event( ) on
   "!                  arrival, so a return WITH a result can be told from a
