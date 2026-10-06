@@ -200,6 +200,11 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = ls_config-draft_exp_time_in_hours ).
 
+    " the roundtrip monitor is off until an exit switches it on - an
+    " installed monitor must not be able to break abap2UI5 by itself
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_config-check_monitor_active ).
+
   ENDMETHOD.
 
   METHOD test_expiry_clamped.

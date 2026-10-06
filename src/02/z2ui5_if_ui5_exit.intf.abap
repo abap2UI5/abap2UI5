@@ -97,6 +97,17 @@ INTERFACE z2ui5_if_ui5_exit
       " and a non-browser client is not a CSRF victim. Do not "fix" this by
       " taking the last entry; the switch above is the hardening.
       check_trust_forwarded_host TYPE abap_bool,
+      " the roundtrip monitor (z2ui5_if_ui5_monitor) is called only when this
+      " is abap_true - off by default, nothing seeds it. A monitor is code of
+      " another package running inside every roundtrip of every app, and a
+      " syntax error in it or in anything it uses is the runtime error
+      " SYNTAX_ERROR, which no CATCH stops: installing a monitor must not be
+      " able to break abap2UI5. An installation switches it on here, once the
+      " monitor's package is active and checked:
+      "   cs_config-check_monitor_active = abap_true.
+      " Read on every roundtrip, so switching it off again takes effect on
+      " the next one.
+      check_monitor_active       TYPE abap_bool,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get

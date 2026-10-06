@@ -4,17 +4,19 @@ CLASS z2ui5_cl_ui5_srv_monitor DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
     "! The roundtrip monitor the framework calls - the class implementing
     "! z2ui5_if_ui5_monitor, looked up and instantiated once per roll area
-    "! like the user exit - or unbound when there is none. Never raises: a
-    "! monitor is diagnostics, and a failing lookup or constructor costs its
-    "! log entries, never the request (see get_monitor).
+    "! like the user exit - or unbound when there is none, or when the user
+    "! exit has not switched it on (check_monitor_active, asked on every
+    "! call). Never raises: a monitor is diagnostics, and a failing lookup or
+    "! constructor costs its log entries, never the request (see get_monitor).
     CLASS-METHODS get_monitor
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_monitor.
 
     "! Install a monitor without the class lookup - for a host that is not an
-    "! SAP system (no class repository to look in) and for tests. Passing an
+    "! SAP system (no class repository to look in) and for tests. The host
+    "! chose it, so the user exit's switch is not asked for it. Passing an
     "! unbound reference restores the default: the next get_monitor( ) asks
-    "! the repository again.
+    "! the switch and the repository again.
     "! @parameter monitor | the implementation to use from now on
     CLASS-METHODS set_monitor
       IMPORTING
@@ -27,8 +29,16 @@ CLASS z2ui5_cl_ui5_srv_monitor DEFINITION PUBLIC FINAL CREATE PRIVATE.
     " alone cannot say it. Latched exactly like z2ui5_cl_ui5_user_exit
     " latches the exit class: only a lookup that came back is remembered, so
     " a repository read that raised is asked again on the next request
-    CLASS-DATA gi_monitor TYPE REF TO z2ui5_if_ui5_monitor.
-    CLASS-DATA gv_known   TYPE abap_bool.
+    CLASS-DATA gi_monitor   TYPE REF TO z2ui5_if_ui5_monitor.
+    CLASS-DATA gv_known     TYPE abap_bool.
+    " installed by set_monitor( ) - the host's choice, not the lookup's
+    CLASS-DATA gv_installed TYPE abap_bool.
+
+    " the user exit's check_monitor_active - abap_false when the exit says
+    " nothing, and when asking it raises
+    CLASS-METHODS check_switched_on
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " the repository lookup itself, raising whatever the repository raises
     CLASS-METHODS monitor_class_lookup
@@ -40,6 +50,24 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
 
   METHOD get_monitor.
+
+    IF gv_installed = abap_true.
+      result = gi_monitor.
+      RETURN.
+    ENDIF.
+
+    " OPT-IN, before anything else. A monitor is code of another package
+    " that runs inside every roundtrip of every app. The fail-open below
+    " catches what it raises, but not a syntax error in it or in any class it
+    " uses: that is the runtime error SYNTAX_ERROR, a short dump no CATCH
+    " stops - an addon pulled half-activated took abap2UI5 down with a 500 on
+    " every request (abap2UI5-addons/admin-cockpit, 2026-10-06). Only code
+    " that is never called cannot do that, so without the switch the
+    " repository is not even asked. Asked on every call, so switching it off
+    " takes effect on the next roundtrip of a running sticky session too.
+    IF check_switched_on( ) = abap_false.
+      RETURN.
+    ENDIF.
 
     IF gv_known = abap_true.
       result = gi_monitor.
@@ -80,7 +108,21 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
   METHOD set_monitor.
 
     gi_monitor = monitor.
-    gv_known = xsdbool( monitor IS BOUND ).
+    gv_installed = xsdbool( monitor IS BOUND ).
+    gv_known = gv_installed.
+
+  ENDMETHOD.
+
+  METHOD check_switched_on.
+
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+
+    TRY.
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+        result = ls_config-check_monitor_active.
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
 
   ENDMETHOD.
 

@@ -110,8 +110,19 @@ field comes from:
 | `ms_client_prev` | `S_FRONT.MS_CLIENT_PREV`, the previous roundtrip as `core/Server.js` measured it (POST to parsed response); 0 when absent or unreadable |
 | `check_error`, `error_text`, `error_class` | the exception: `z2ui5_cx_ui5_util_error=>get_text_full( )` and the class of the innermost `previous` |
 
-Three decisions, each written at its code site as well:
+Four decisions, each written at its code site as well:
 
+- **It is off until the installation switches it on.** `get_monitor( )` asks
+  the user exit first (`check_monitor_active` in `set_config_http_post`,
+  nothing seeds it) and without the switch does not even look the class up;
+  `set_monitor( )` is the host's own choice and is not asked. The reason is
+  what fail-open cannot cover: a syntax error in the monitor or in any class it
+  uses is the runtime error `SYNTAX_ERROR`, a short dump no `CATCH` stops. A
+  half-activated pull of abap2UI5-addons/admin-cockpit (2026-10-06) answered
+  every abap2UI5 request with *"Syntax error in program
+  Z2UI5_CL_COCKPIT_SETUP"* while nothing had switched the cockpit on. Only
+  code that is never called cannot break the framework. The switch is read on
+  every call, so turning it off takes effect on the next roundtrip.
 - **It fails open, where the exit fails closed.** The exit is a hardening
   control, and an exit class that cannot be built must not leave every request
   on the defaults unnoticed. A monitor only watches; failing closed would turn

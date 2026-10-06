@@ -1,6 +1,6 @@
 ---
 name: abap-check
-description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, trailing whitespace, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
+description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, trailing whitespace, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, reserved table field names, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
 ---
 
 # What a green CI does not prove
@@ -226,6 +226,19 @@ usually points somewhere else:
 exported from a real system.** Create the object once, let abapGit serialize
 it, and commit that. This is the same rule as "never hand-edit a `.clas.xml`"
 below, one step earlier.
+
+**The same rule, one field at a time: a TABL field's `INTTYPE`.**
+`abap2UI5-addons/admin-cockpit` wrote its table sidecars by hand and gave
+every `INT4` field `<INTTYPE>I</INTTYPE>`. The tables activated, but a
+user's pull (2026-10-06) listed every table with an `INT4` field as changed:
+the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
+4 tables, fixed in abap2UI5-addons/admin-cockpit#6. Real exports agree:
+`abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
+The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
+`INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
+of the same type rather than spelling it out. **Gate: open.** abaplint's
+`xml_consistency` reads `DATATYPE` and not `INTTYPE`.
+**Backlog:** abaplint · abaplint-tabl-inttype
 
 ### Two round-trip rules no gate can decide
 
@@ -485,6 +498,92 @@ all — it cannot even parse some of the syntax (section 6).
   position 2"*. `af1a928`. The draft-admin include additionally needs
   `<GROUPNAME>%ADMIN</GROUPNAME>` (`7459f39`).
 
+### A table field must not be an SQL reserved word
+
+`abap2UI5-addons/admin-cockpit` shipped three tables with a key field `DAY`,
+one of them with `HOUR` as well. A user's pull (2026-10-06) refused all
+three: *"DAY is a reserved word (choose another field name)"*, the same for
+`HOUR`, then *"Table Z2UI5_T_CK_AGG could not be activated"*, and the same for
+`Z2UI5_T_CK_LOG` and `Z2UI5_T_CK_USR`. Every class that reads them failed
+with them. The dictionary checks each field name against the DDIC table
+`TRESE` (the reserved words of every supported database). abaplint was green:
+its `xml_consistency` has a short list of *confirmed* names only (`ZONE`,
+`HANDLER`, `SECTION`, `PARAMETER`, abaplint/abaplint#4331). `TRESE` also holds
+names a system allows as fields (`TEXT`, `LENGTH`), so the list cannot simply
+be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
+
+- **Prefix a field that names a date part, a unit or an SQL keyword** —
+  `UTC_DAY`, not `DAY`. A prefixed name is never in `TRESE`.
+- **Rename the internal types that mirror the columns, too.** A `SELECT …
+  INTO CORRESPONDING FIELDS` into a structure that still says `day` stays
+  green in abaplint and in the transpiler and leaves the component empty.
+  An alias (`utc_day AS day`) would put the reserved word back into the SQL.
+
+**Gate: abaplint — `xml_consistency`**, once `DAY` and `HOUR` are in its list
+(pushed upstream on the abaplint branch `claude/laughing-ride-sl2osd`). Every
+other reserved word stays **open** until a system confirms it. Add it to that
+list when one does.
+
+### A database work area must be as long as the table line
+
+`z2ui5_cl_cockpit_setup` (abap2UI5-addons/admin-cockpit) wrote its settings
+table from a local type:
+
+```abap
+TYPES: BEGIN OF ty_s_row,
+         name  TYPE c LENGTH 30,
+         value TYPE c LENGTH 255,
+       END OF ty_s_row.
+DATA(ls_row) = VALUE ty_s_row( name = name value = value ).
+MODIFY z2ui5_t_ck_set FROM @ls_row.    " MANDT, NAME, VALUE
+```
+
+A user's pull (2026-10-06) did not activate the class: *"The work area
+"LS_ROW" is not long enough."*, twice. `INSERT`, `UPDATE` and `MODIFY dbtab
+FROM wa` take the work area as the table line. It must be at least as long,
+**client field included**, even though the client is filled in
+automatically. A structure with only the non-client columns is too short.
+Type the row as the table (`VALUE z2ui5_t_ck_set( … )`), fixed in
+abap2UI5-addons/admin-cockpit#6. abaplint 2.120.64 with `check_syntax` on
+is green on the broken class, and so is the transpiled unit run.
+
+This one took abap2UI5 down with it. The class was a dependency of the
+cockpit's roundtrip monitor, so every abap2UI5 request dumped with
+*"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
+
+**Gate: open.** **Backlog:** abaplint · abaplint-dbtab-work-area-too-short
+
+### A parameter called `default` is read as an addition
+
+`abap2UI5-addons/admin-cockpit` shipped this private method in
+`z2ui5_cl_cockpit_setup`:
+
+```abap
+CLASS-METHODS to_int
+  IMPORTING
+    val           TYPE clike
+    default       TYPE i
+  RETURNING
+    VALUE(result) TYPE i.
+```
+
+A user's pull (2026-10-06) did not activate the class: *"Unable to interpret
+"RETURNING". Possible causes of error include incorrect spellings or comma
+errors."*, then *"Compilation was canceled"*. The system reads `default` as
+the `DEFAULT` addition of `val`, takes `TYPE` as its value, and then finds
+nothing it can make of `i` and `RETURNING`. abaplint parses the same
+declaration as two parameters. Measured on 2.120.70 with every default rule
+on and `check_syntax` live: no finding, while an undefined variable in the
+same class fired. The parameter is called `fallback` now.
+
+- **Do not name a parameter like an addition of the parameter list.**
+  `default` is the one a system has confirmed. `optional` is the obvious
+  sibling, not measured. A structure component may carry these names: a
+  `BEGIN OF … END OF` has no such additions.
+
+**Gate: open.** Nothing here reads parameter names against the additions.
+**Backlog:** abaplint · abaplint-parameter-named-default
+
 ### Do not depend on DDIC objects that are not everywhere
 
 A sample that selects from `VBAK` compiles here — abaplint resolves it from the
@@ -698,6 +797,28 @@ and points here, so a new trap is added here and nowhere else.
   fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
   abap2UI5, samples-controls and samples-stack found no other instance.
   Neither abaplint nor any gate here reports it.
+
+  **Second case, with `*` and `/` (2026-10-06).** A user's pull of
+  `abap2UI5-addons/admin-cockpit` reported the same warning for
+  `z2ui5_cl_cockpit_stats->p95`: `DATA(lv_target) = lv_total * 95 / 100.`
+  with `lv_total TYPE p LENGTH 16 DECIMALS 0`. So the length of the operand
+  does not carry over either: a P(16,0) operand still gives P(8,0). Fixed by
+  declaring `lv_target` with the operand's type. abaplint 2.120.70 still
+  reports nothing.
+- **`SORT` or `DELETE ADJACENT DUPLICATES` on a table with an empty key.**
+  `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.` on a
+  `STANDARD TABLE OF string WITH EMPTY KEY` give the warning *""RESULT" is a
+  table with an empty primary key. Check the semantics of the statement."*
+  Both statements fall back to the primary key when no `BY` or `COMPARING`
+  is given. With an empty key, `SORT` does nothing and `DELETE ADJACENT
+  DUPLICATES` compares nothing. Write `SORT result BY table_line.` and
+  `DELETE ADJACENT DUPLICATES FROM result COMPARING table_line.`, or the
+  components you mean. Found by a user's pull of
+  `abap2UI5-addons/admin-cockpit` (2026-10-06,
+  `z2ui5_cl_cockpit_inst->get_implementers`). abaplint 2.120.70 reports
+  nothing. Not gated: the key is in the table's type, which can be a
+  returning parameter typed in another class.
+  **Backlog:** abaplint · abaplint-sort-empty-key
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -794,6 +915,15 @@ and points here, so a new trap is added here and nowhere else.
   fix — as a floor, not as the gate for this finding. What would decide this
   one is `redundant-conv-i`'s shape generalized from `i` to any concrete type
   with a concretely-typed operand, and that is not written yet.
+
+  **The shape it does reach still reached a user, because a repository had
+  the rule off.** `abap2UI5-addons/admin-cockpit` shipped
+  `DATA(lv_app) = CONV ty_s_error-app( is_error-app ).`, the operand already
+  of the target type. A user's pull (2026-10-06) warned *"Redundant
+  conversion for type APP"*. `redundant_conversion` reports exactly this line
+  (measured on 2.120.64, the version the cockpit pins), but the cockpit's
+  `abaplint.jsonc` did not switch the rule on. It does now. Turn the rule on
+  in every repository that ships ABAP.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
@@ -1100,6 +1230,21 @@ precisely because no gate will catch it.
 
 **Backlog:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
 
+- **A syntax error is not an exception — `CATCH cx_root` does not stop it.**
+  A class with a syntax error that is loaded at run time ends the request with
+  the runtime error `SYNTAX_ERROR`, a short dump. No `TRY` around the call
+  catches it. abap2UI5's roundtrip monitor "failed open":
+  it caught everything a monitor raised and every class that could not be
+  instantiated. Then a half-activated pull of abap2UI5-addons/admin-cockpit
+  (2026-10-06) left `z2ui5_cl_cockpit_setup` with a syntax error (section 2,
+  the database work area), and every abap2UI5 app answered *"500 Internal
+  Server Error - Syntax error in program Z2UI5_CL_COCKPIT_SETUP"*. Nobody had
+  opened the cockpit. The monitor was called automatically once its class
+  existed. The fix is not a better `CATCH`. The framework no longer calls a
+  monitor unless the installation switches it on (`check_monitor_active` in
+  the user exit's `set_config_http_post`). Code that runs automatically
+  inside every request has to be opted into, never just installed. A
+  "never raises" promise covers exceptions, not syntax errors.
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
   from an earlier `READ TABLE` when `attri_get_val_ref` tested it: the dynamic
