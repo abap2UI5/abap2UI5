@@ -348,6 +348,13 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return "desktop";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  const OS_NAMES = ["win", "mac", "linux", "ios", "android"];` && |\n| &&
+             `  function deriveOsName(name) {` && |\n| &&
+             `    const text = name == null ? "" : String(name);` && |\n| &&
+             `    const lower = text.toLowerCase();` && |\n| &&
+             `    return OS_NAMES.includes(lower) ? lower : text;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function parseUrl(url) {` && |\n| &&
              `    if (!url) return null;` && |\n| &&
              `    try {` && |\n| &&
@@ -417,15 +424,15 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `    const delta = {};` && |\n| &&
+             `    const delta = {};` && |\n|.
+    result = result &&
              `    for (const path of paths) {` && |\n| &&
              `      const parts = path.slice(1).split("/");` && |\n| &&
              `      const attr = parts[0];` && |\n| &&
              `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
              `      if (!steps) {` && |\n| &&
              `        delta[attr] = modelData[attr];` && |\n| &&
-             `        continue;` && |\n|.
-    result = result &&
+             `        continue;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
@@ -627,6 +634,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
              `    deriveSystemType,` && |\n| &&
+             `    deriveOsName,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&
              `    isSafeRedirectProtocol,` && |\n| &&
              `    isSafeDownloadURL,` && |\n| &&

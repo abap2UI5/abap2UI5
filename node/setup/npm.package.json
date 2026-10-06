@@ -59,6 +59,8 @@
     "srv/accelerate.d.ts",
     "srv/compress.mjs",
     "srv/compress.d.ts",
+    "srv/hostguard.mjs",
+    "srv/hostguard.d.ts",
     "downport",
     "!downport/**/*.testclasses.abap"
   ],

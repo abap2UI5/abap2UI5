@@ -123,7 +123,7 @@ CLASS z2ui5_cl_ui5f_info_js IMPLEMENTATION.
              `            ["ui5_theme", ui5Info?.THEME || ""],` && |\n| &&
              `            ["ui5_gav", ui5Info?.GAV || ""],` && |\n| &&
              `            ["device_systemtype", systemType],` && |\n| &&
-             `            ["device_os", os.name],` && |\n| &&
+             `            ["device_os", Lib.deriveOsName(os.name)],` && |\n| &&
              `            ["device_browser", browser.name],` && |\n| &&
              `          ];` && |\n| &&
              `          for (const [prop, val] of props) {` && |\n| &&

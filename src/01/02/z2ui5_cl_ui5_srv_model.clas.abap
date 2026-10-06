@@ -1258,8 +1258,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " which put 300 rows under CLIENT-> into every draft of the start page -
     " and one of them resolved to this very row table, which the save then
     " detached (main_attri_db_save_srtti) and wrote as an empty MT_ATTRI, so
-    " the next roundtrip of the start page found no rows to load
-    IF z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lr_ref ) = `Z2UI5_CL_UI5_CLIENT`.
+    " the next roundtrip of the start page found no rows to load.
+    " Asked through the client INTERFACE, named by a typed reference: the
+    " class name used to be a literal, which a namespace rename does not
+    " rewrite (rtti_get_ref_type_name), and a reference to the class itself
+    " would close a cycle (client -> srv_bind -> app_cont -> this class).
+    " The shipped client is the one implementation; a stand-in client an
+    " app holds has nothing bindable behind it either
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf(
+           class = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lr_ref )
+           intf  = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_client ) ) = abap_true.
       RETURN.
     ENDIF.
 

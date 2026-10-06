@@ -129,10 +129,14 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
   METHOD monitor_class_lookup.
 
     " One repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP,
-    " XCO on cloud), paid once per roll area like the exit's. A dynamic name
-    " is not a reference the compiler checks - the literal is held by
-    " .github/scripts/dynamic-name-gate.mjs
-    DATA(lt_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_MONITOR` ).
+    " XCO on cloud), paid once per roll area like the exit's. The interface
+    " is named through a typed reference, never a literal: a namespace
+    " rename rewrites the reference and left a literal behind, so a renamed
+    " installation looked up the original interface and found no monitor
+    " (.github/scripts/rename-literal-gate.mjs)
+    DATA li_monitor TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA(lv_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_monitor ).
+    DATA(lt_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
 
     " only one monitor is called, so the pick must not depend on the order
     " the lookup happens to return - the same reasoning as the exit's: a

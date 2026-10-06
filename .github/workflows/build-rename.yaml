@@ -69,6 +69,14 @@ jobs:
         sed "s/znamespace/$NS/g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
         npx abaplint .github/abaplint/rename_run.jsonc --rename
 
+    # abaplint --rename rewrites references, never string literals: a literal
+    # still naming an object by its original name makes the renamed
+    # installation look up the ORIGINAL object (every app start refused, no
+    # user exit found). check:rename keeps them out of the sources; this
+    # proves it on the tree that is about to be pushed
+    - name: No literal kept the original name
+      run: node .github/scripts/rename-literal-gate.mjs --renamed .github/abaplint/output
+
     # branch content: the renamed src tree plus the abapGit descriptor
     # (version constant turned to the renamed interface) and the license
     - name: Assemble branch content

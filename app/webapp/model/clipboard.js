@@ -2,7 +2,8 @@
 // model/formatter.js) - shipped by the framework and shared by every abap2UI5
 // app. It holds the callbacks a UI5 control calls SYNCHRONOUSLY in the
 // browser, which no roundtrip can answer. Wire it into an XML view via
-// core:require (UI5 >= 1.74) and name the function in the function-typed
+// core:require on the view root (UI5 1.69 and later, so every release
+// abap2UI5 supports) and name the function in the function-typed
 // property - UI5's XMLTemplateProcessor resolves the dotted name against the
 // core:require aliases (DataType "function" -> parseValue), so no string
 // ever becomes code:

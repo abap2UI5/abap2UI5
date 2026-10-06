@@ -1284,6 +1284,18 @@ precisely because no gate will catch it.
   in `EXTERNAL` with their reason. **After any rename, reread the string
   literals** — and when adding a dynamic lookup for something outside this
   repository, put it in `EXTERNAL` rather than silencing the gate.
+  **A literal naming an object this repository DOES ship is the other half of
+  the same trap.** The namespace rename (`npm run rename`, the build-rename
+  workflow, `abaplint --rename`) rewrites references and leaves literals as
+  they are, so in a `rename_<name>` installation `` `Z2UI5_IF_APP` `` still
+  named the original interface: every app start was refused with "does not
+  implement", no exit and no monitor was found. Name a shipped object through
+  a typed, unbound reference instead —
+  `DATA li_app TYPE REF TO z2ui5_if_app.` and
+  `z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app )` — which the
+  rename rewrites. Gated by `npm run check:rename`
+  (`.github/scripts/rename-literal-gate.mjs`, production code of
+  `src/00`–`src/02`), and `npm run rename` re-runs it over the renamed tree.
 - **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table passed
   to a classic function module.** The key is part of the table type; an
   incompatible one makes `CALL FUNCTION` fail at runtime, silently when it sits

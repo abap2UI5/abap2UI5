@@ -125,9 +125,11 @@ import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
 import { z2ui5_cl_ui5_http_handler } from "../output/z2ui5_cl_ui5_http_handler.clas.mjs";
 import { accelerate } from "./accelerate.mjs";
 import { compress } from "./compress.mjs";
+import { hostGuard } from "./hostguard.mjs";
 
 export { accelerate, RUNTIME_VERSION } from "./accelerate.mjs";
 export { compress } from "./compress.mjs";
+export { hostGuard } from "./hostguard.mjs";
 
 /** The ICF handler class every request goes to - node/srv/zcl_sicf.clas.abap. */
 export const HANDLER_CLASS = "ZCL_SICF";
@@ -376,15 +378,22 @@ export async function createApp({ bodyLimit = "10mb", compression = true, ...opt
  * callback with the ERROR (a port in use), which read as "listening" and
  * resolved with a server that never bound; express 4 does not. Listening on
  * a plain http.Server behaves the same under both.
- * @param {{ port?: number | string, host?: string, handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
+ *
+ * hostGuard() goes in front of everything: only a request addressed to
+ * 127.0.0.1, localhost, [::1], the bound address when it is a name, or a name
+ * in `allowedHosts` - and, with an Origin, coming from a page there - is
+ * answered; any other gets a 403 (srv/hostguard.mjs says why: DNS
+ * rebinding). `allowedHosts: "*"` answers every request, as before.
+ * @param {{ port?: number | string, host?: string, allowedHosts?: string | string[], handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
  *   `host` unset binds every interface; "127.0.0.1" binds loopback only
  * @returns {Promise<import("node:http").Server>}
  */
-export async function serve({ port = 3000, host, ...options } = {}) {
+export async function serve({ port = 3000, host, allowedHosts, ...options } = {}) {
   const app = await createApp(options);
+  const guard = hostGuard({ host, allowedHosts });
   await initialize();
   return new Promise((resolve, reject) => {
-    const server = http.createServer(app);
+    const server = http.createServer((req, res) => guard(req, res, () => app(req, res)));
     server.once("error", reject);
     server.listen(port, host, () => {
       server.off("error", reject);
