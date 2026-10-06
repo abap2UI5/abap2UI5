@@ -394,6 +394,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_model FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_model_no_wrap FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_config FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_device_os FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
@@ -615,6 +616,43 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-s_ui5-build_timestamp ).
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
                                         act = ls_request-s_front-s_ui5-theme ).
+
+  ENDMETHOD.
+
+  METHOD test_parse_device_os.
+
+    " UI5 reports sap.ui.Device.os.OS.IOS / .ANDROID as `iOS` / `Android`;
+    " an app compares with the lower-case constants of cs_device-os, which
+    " never matched. Mapped onto the constant; a name that is none of them
+    " (sap.ui.Device.os.OS.BLACKBERRY of 1.71) arrives as it was sent
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"S_DEVICE":{"OS":{"NAME":"iOS","VERSION":"17"}}}}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_device-os-ios
+                                        act = ls_request-s_front-s_device-os-name ).
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"S_DEVICE":{"OS":{"NAME":"Android","VERSION":"14"}}}}}}`.
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_device-os-android
+                                        act = ls_request-s_front-s_device-os-name ).
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"S_DEVICE":{"OS":{"NAME":"win","VERSION":"10"}}}}}}`.
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_device-os-windows
+                                        act = ls_request-s_front-s_device-os-name ).
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"S_DEVICE":{"OS":{"NAME":"bb","VERSION":"10"}}}}}}`.
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_equals( exp = `bb`
+                                        act = ls_request-s_front-s_device-os-name ).
 
   ENDMETHOD.
 

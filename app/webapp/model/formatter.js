@@ -1,7 +1,9 @@
 // The frontend app's formatter module in the standard UI5 app layout
 // (webapp/model/formatter.js, next to model/models.js) - shipped by the
 // framework and shared by every abap2UI5 app. Wire it into an XML view via
-// core:require (UI5 >= 1.74) and reference the functions by alias:
+// core:require on the view root - available on every release abap2UI5
+// supports (UI5 added it in 1.69; 1.71's XMLTemplateProcessor reads it) -
+// and reference the functions by alias:
 //
 //   <mvc:View xmlns:core="sap.ui.core"
 //             core:require="{Formatter: 'z2ui5/model/formatter'}">

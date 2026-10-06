@@ -123,7 +123,7 @@ sap.ui.define(
             ["ui5_theme", ui5Info?.THEME || ""],
             ["ui5_gav", ui5Info?.GAV || ""],
             ["device_systemtype", systemType],
-            ["device_os", os.name],
+            ["device_os", Lib.deriveOsName(os.name)],
             ["device_browser", browser.name],
           ];
           for (const [prop, val] of props) {

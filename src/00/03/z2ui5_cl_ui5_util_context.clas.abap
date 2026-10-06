@@ -319,6 +319,20 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the name of the class or interface an UNBOUND object reference
+    " variable is typed with, upper case: `DATA li TYPE REF TO zif_any.`
+    " answers `ZIF_ANY`. The way to hand an object name to a dynamic lookup
+    " without spelling it as a string literal - the declaration is a
+    " reference the compiler, abaplint and a namespace rename (`abaplint
+    " --rename`) all see and rewrite, a literal is none of the three. Pass
+    " the variable unbound: the transpiled runtime describes a bound one by
+    " the class of the object it points to
+    CLASS-METHODS rtti_get_ref_type_name
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS xml_parse
       IMPORTING
         !xml TYPE clike
@@ -1429,6 +1443,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_get_ref_type_name.
+
+    DATA lo_refdescr TYPE REF TO cl_abap_refdescr.
+
+    TRY.
+        " the relative name, not the absolute one: `\INTERFACE=ZIF_ANY` on a
+        " system, `\CLASS=ZIF_ANY` in the transpiled runtime - the relative
+        " name is `ZIF_ANY` on both
+        lo_refdescr ?= cl_abap_typedescr=>describe_by_data( val ).
+        result = lo_refdescr->get_referenced_type( )->get_relative_name( ).
+      CATCH cx_root INTO DATA(lx).
+        " not a reference variable - a programming error at the caller
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `RTTI_NOT_AN_OBJECT_REFERENCE`
+            previous = lx.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD rtti_get_type_kind.
 
     result = cl_abap_datadescr=>get_data_type_kind( val ).
@@ -1747,9 +1781,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD xml_srtti_descr.
 
+    " the shipped S-RTTI copy is named through a typed reference, not a
+    " literal, so a namespace rename carries it along (rtti_get_ref_type_name).
+    " ZCL_SRTTI_TYPEDESCR is the stand-alone S-RTTI project, installed
+    " separately or not at all - a name this repository does not own
+    DATA lo_shipped TYPE REF TO z2ui5_cl_srt_typedescr.
     DATA(lv_classname) = COND string( WHEN rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true
                                       THEN `ZCL_SRTTI_TYPEDESCR`
-                                      ELSE `Z2UI5_CL_SRT_TYPEDESCR` ).
+                                      ELSE rtti_get_ref_type_name( lo_shipped ) ).
     CALL METHOD (lv_classname)=>(`CREATE_BY_DATA_OBJECT`)
       EXPORTING
         data_object = data
@@ -3046,15 +3085,30 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA content      TYPE REF TO object.
     DATA exists       TYPE abap_bool.
     DATA lv_xco_cp_abap_dictionary TYPE string.
+    " A dynamic call checks its actual parameters against the formal ones at
+    " runtime and converts nothing, so both sides are typed exactly as XCO
+    " declares them. The name is sxco_ad_object_name (CHAR30), passed by
+    " reference - a string there raised CX_SY_DYN_CALL_ILLEGAL_TYPE. Each
+    " label is if_xco_dtel_content=>ts_field_label, a text (CHAR60) and its
+    " length (NUMC2) - received into a string, every one raised the same.
+    " Both ended in the CATCH below, so on ABAP Cloud every data element came
+    " back with empty texts (or its own name, as the caller's fallback). The
+    " shapes are written out because the XCO types exist on cloud only
+    DATA lv_name TYPE c LENGTH 30.
+    DATA: BEGIN OF ls_label,
+            text   TYPE c LENGTH 60,
+            length TYPE n LENGTH 2,
+          END OF ls_label.
 
     CLEAR texts.
     do_fallback = abap_false.
 
     TRY.
+        lv_name = name.
         lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
         CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
           EXPORTING
-            iv_name         = name
+            iv_name         = lv_name
           RECEIVING
             ro_data_element = data_element.
 
@@ -3072,19 +3126,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL`)
           RECEIVING
-            rs_heading_field_label = texts-header.
+            rs_heading_field_label = ls_label.
+        texts-header = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL`)
           RECEIVING
-            rs_short_field_label = texts-short.
+            rs_short_field_label = ls_label.
+        texts-short = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL`)
           RECEIVING
-            rs_medium_field_label = texts-medium.
+            rs_medium_field_label = ls_label.
+        texts-medium = ls_label-text.
 
         CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL`)
           RECEIVING
-            rs_long_field_label = texts-long.
+            rs_long_field_label = ls_label.
+        texts-long = ls_label-text.
 
         do_fallback = abap_true.
 
@@ -3138,8 +3196,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
         DATA obj          TYPE REF TO object.
         DATA content      TYPE REF TO object.
-        DATA lv_classname TYPE c LENGTH 30.
-        DATA xco_cp_abap  TYPE c LENGTH 11.
+        DATA lv_classname   TYPE c LENGTH 30.
+        DATA xco_cp_abap    TYPE c LENGTH 11.
+        DATA lv_description TYPE c LENGTH 60.
 
         lv_classname = classname.
 
@@ -3154,9 +3213,12 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RECEIVING
             ro_content = content.
 
+        " sxco_ar_short_description, CHAR60 - typed exactly, for the same
+        " reason as the labels in rtti_get_dtel_texts_by_xco
         CALL METHOD content->(`IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION`)
           RECEIVING
-            rv_short_description = result.
+            rv_short_description = lv_description.
+        result = lv_description.
 
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.

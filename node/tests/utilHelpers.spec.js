@@ -242,6 +242,26 @@ test.describe("deriveSystemType", () => {
   });
 });
 
+test.describe("deriveOsName", () => {
+  const { Lib } = loadLib();
+
+  test("maps UI5's mixed-case iOS and Android onto the cs_device-os constants", () => {
+    // sap.ui.Device.os.OS.IOS / .ANDROID - z2ui5_if_client=>cs_device-os-ios
+    // and -android are `ios` / `android`
+    expect(Lib.deriveOsName("iOS")).toBe("ios");
+    expect(Lib.deriveOsName("Android")).toBe("android");
+  });
+
+  test("keeps the names that already match and passes any other one unchanged", () => {
+    expect(Lib.deriveOsName("win")).toBe("win");
+    expect(Lib.deriveOsName("mac")).toBe("mac");
+    expect(Lib.deriveOsName("linux")).toBe("linux");
+    expect(Lib.deriveOsName("bb")).toBe("bb");
+    expect(Lib.deriveOsName("winphone")).toBe("winphone");
+    expect(Lib.deriveOsName(undefined)).toBe("");
+  });
+});
+
 test.describe("runCallbacks", () => {
   test("calls every callback with the given arguments", () => {
     const { Lib } = loadLib();

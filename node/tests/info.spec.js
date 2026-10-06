@@ -188,3 +188,21 @@ test("a throwing device model is logged, never thrown", () => {
   expect(() => inst.onAfterRendering()).not.toThrow();
   expect(errors().some((e) => e.message.includes("Info"))).toBe(true);
 });
+
+// UI5 reports Device.os.OS.IOS / .ANDROID as "iOS" / "Android", and the
+// constants an app compares device_os with (z2ui5_if_client=>cs_device-os)
+// are lower case - the control reports the constant's spelling
+test("device_os carries the cs_device-os spelling of iOS and Android", () => {
+  for (const [sent, reported] of [
+    ["iOS", "ios"],
+    ["Android", "android"],
+  ]) {
+    const { instance } = load({ deviceData: { ...DEVICE_DATA, os: { name: sent } } });
+    const inst = instance();
+    inst.init();
+
+    inst.onAfterRendering();
+
+    expect(inst._set.device_os.val).toBe(reported);
+  }
+});

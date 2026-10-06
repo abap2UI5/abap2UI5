@@ -40,7 +40,8 @@
  *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
  *                     Same neighbours as in the checkout, so its relative
  *                     imports need no rewriting - see its header
- *   srv/*.d.ts        node/srv/host.d.ts, accelerate.d.ts, compress.d.ts -
+ *   srv/*.d.ts        node/srv/host.d.ts, accelerate.d.ts, compress.d.ts,
+ *                     hostguard.d.ts -
  *                     the TypeScript declarations `types` and the `types`
  *                     condition of each export name
  *   srv/accelerate.mjs  node/srv/accelerate.mjs - accelerate(), which installs
@@ -49,6 +50,8 @@
  *                     host that boots through output/init.mjs itself
  *   srv/compress.mjs  node/srv/compress.mjs - the gzip middleware createApp()
  *                     puts in front, also `exports["./compress"]`
+ *   srv/hostguard.mjs node/srv/hostguard.mjs - the Host/Origin check serve()
+ *                     puts in front, re-exported by the entry point
  *   downport/         node/downport - the 7.02-downported ABAP the transpile
  *                     read, so a host can transpile ITS OWN app classes with
  *                     the framework as a library (README, "Your own apps"),
@@ -248,6 +251,8 @@ const COPIES = [
   ["node/srv/accelerate.d.ts", "srv/accelerate.d.ts"],
   ["node/srv/compress.mjs", "srv/compress.mjs"],
   ["node/srv/compress.d.ts", "srv/compress.d.ts"],
+  ["node/srv/hostguard.mjs", "srv/hostguard.mjs"],
+  ["node/srv/hostguard.d.ts", "srv/hostguard.d.ts"],
   ["node/downport", "downport", isFixtureFile],
   ["node/setup/npm.README.md", "README.md"],
   ["LICENSE", "LICENSE"],
@@ -282,8 +287,8 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "setup/setup.mjs", "setup/own-apps.mjs", "output/init.mjs",
-    "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "setup/transpile.mjs",
+    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "srv/hostguard.mjs", "setup/setup.mjs", "setup/own-apps.mjs",
+    "output/init.mjs", "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "srv/hostguard.d.ts", "setup/transpile.mjs",
     "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
