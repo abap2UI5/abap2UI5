@@ -234,8 +234,9 @@ support case.
         decision is recorded in AGENTS.md under "Layered Design"
       - `app/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
         globals. The date helpers stay in `z2ui5/model/formatter`, reached
-        via `core:require` (UI5 1.74 and later); a formatter string naming
-        the global resolves to nothing now
+        via `core:require` (UI5 1.69 and later, so every supported
+        release); a formatter string naming the global resolves to
+        nothing now
       - the `developerTools` mirror on the global
 
       All of it `- BREAKING:` under `unreleased` in `changelog.txt`. There
