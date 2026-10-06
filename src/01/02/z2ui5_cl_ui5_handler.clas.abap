@@ -274,6 +274,13 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! the OS name as z2ui5_if_client=>cs_device-os spells it
+    CLASS-METHODS device_os_name
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     "! one scroll position of S_SCROLL, iv_path naming its slot node
     METHODS scroll_pos_read
       IMPORTING
@@ -506,7 +513,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     cs_front-s_device-orientation     = io_json->get_string( lv_device && `/ORIENTATION` ).
     cs_front-s_device-browser-name    = io_json->get_string( lv_device && `/BROWSER/NAME` ).
     cs_front-s_device-browser-version = io_json->get_string( lv_device && `/BROWSER/VERSION` ).
-    cs_front-s_device-os-name         = io_json->get_string( lv_device && `/OS/NAME` ).
+    cs_front-s_device-os-name         = device_os_name( io_json->get_string( lv_device && `/OS/NAME` ) ).
     cs_front-s_device-os-version      = io_json->get_string( lv_device && `/OS/VERSION` ).
     cs_front-s_device-resize-width    = io_json->get_integer( lv_device && `/RESIZE/WIDTH` ).
     cs_front-s_device-resize-height   = io_json->get_integer( lv_device && `/RESIZE/HEIGHT` ).
@@ -536,6 +543,30 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     cs_front-s_ui5-build_timestamp = io_json->get_string( lv_ui5 && `/BUILDTIMESTAMP` ).
     cs_front-s_ui5-gav             = io_json->get_string( lv_ui5 && `/GAV` ).
     cs_front-s_ui5-theme           = io_json->get_string( lv_ui5 && `/THEME` ).
+
+  ENDMETHOD.
+
+  METHOD device_os_name.
+
+    " sap.ui.Device.os.name reports `iOS` and `Android` - mixed case, the
+    " values of sap.ui.Device.os.OS from 1.71 to today - while the constants
+    " z2ui5_if_client=>cs_device-os are lower case, so a comparison against
+    " cs_device-os-ios or -android never matched. The constants are the
+    " contract an app compares with and a released value, so the wire is
+    " mapped onto them: a name equal to one of them but for case becomes the
+    " constant (win, mac and linux arrive like that already), and anything
+    " else - bb, winphone, another shell's own name - passes unchanged
+    DATA(lv_lower) = to_lower( val ).
+
+    IF lv_lower = z2ui5_if_client=>cs_device-os-windows
+        OR lv_lower = z2ui5_if_client=>cs_device-os-macintosh
+        OR lv_lower = z2ui5_if_client=>cs_device-os-linux
+        OR lv_lower = z2ui5_if_client=>cs_device-os-ios
+        OR lv_lower = z2ui5_if_client=>cs_device-os-android.
+      result = lv_lower.
+    ELSE.
+      result = val.
+    ENDIF.
 
   ENDMETHOD.
 

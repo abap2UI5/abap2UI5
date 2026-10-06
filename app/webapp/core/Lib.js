@@ -559,6 +559,21 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return "desktop";
   }
 
+  // sap.ui.Device.os.name as abap2UI5's backend names it: the constants of
+  // z2ui5_if_client=>cs_device-os are lower case, while UI5 reports
+  // Device.os.OS.IOS / .ANDROID as "iOS" / "Android" (1.71 to today), so an
+  // app comparing the Info control's device_os with cs_device-os-ios never
+  // matched. A name equal to one of the constants but for case becomes the
+  // constant; any other name (bb, winphone of 1.71) passes unchanged. The
+  // request's S_DEVICE.OS.NAME is mapped the same way on the backend
+  // (z2ui5_cl_ui5_handler=>device_os_name), for every frontend.
+  const OS_NAMES = ["win", "mac", "linux", "ios", "android"];
+  function deriveOsName(name) {
+    const text = name == null ? "" : String(name);
+    const lower = text.toLowerCase();
+    return OS_NAMES.includes(lower) ? lower : text;
+  }
+
   // Shared first step of the URL validators below: resolve the URL against
   // the current origin, log and return null when it is empty or malformed.
   function parseUrl(url) {
@@ -991,6 +1006,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     copyToClipboard,
     toText,
     deriveSystemType,
+    deriveOsName,
     isValidRedirectURL,
     isSafeRedirectProtocol,
     isSafeDownloadURL,
