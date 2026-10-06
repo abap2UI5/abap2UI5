@@ -1252,6 +1252,24 @@ precisely because no gate will catch it.
   the user exit's `set_config_http_post`). Code that runs automatically
   inside every request has to be opted into, never just installed. A
   "never raises" promise covers exceptions, not syntax errors.
+- **`cl_abap_tstmp` raised on the system and ran under the transpiler.**
+  `z2ui5_cl_cockpit_setup=>now_minus_seconds` (abap2UI5-addons/admin-cockpit)
+  called `cl_abap_tstmp=>subtractsecs( tstmp = now( ) secs = seconds )`,
+  where `now( )` is a method returning `timestampl`. On a user's system
+  (2026-10-06) the first screen after the administrator claim failed with
+  *CX_PARAMETER_INVALID_TYPE - "Parameter TSTMP has invalid type"*. The
+  exception was not declared, so the request ended in a 500. open-abap's
+  `cl_abap_tstmp` takes the same call without complaint, so the transpiled
+  unit run and every lint stayed green. Why the system refused it is not
+  measured: the argument was a functional call, not a variable typed
+  `timestampl`. The fix leaves the class out. It converts with `CONVERT TIME
+  STAMP … INTO DATE … TIME …`, does the arithmetic on the date and time of
+  day, and converts back (`ts_minus_seconds`, with a test across midnight
+  and year end; abap2UI5-addons/admin-cockpit#8). Treat `cl_abap_tstmp` like
+  any API whose type checks only a system runs. If you call it, pass a
+  variable typed exactly `timestamp` or `timestampl`, and test on a system,
+  not only under the transpiler. **Gate: open.** A rule would need the
+  system's own type check of `cl_abap_tstmp`, which nobody has measured yet.
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
   from an earlier `READ TABLE` when `attri_get_val_ref` tested it: the dynamic
