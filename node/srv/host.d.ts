@@ -8,6 +8,7 @@ import type { Server } from "node:http";
 
 export { accelerate, RUNTIME_VERSION } from "./accelerate.js";
 export { compress } from "./compress.js";
+export { hostGuard } from "./hostguard.js";
 
 /**
  * An express application, 4 or 5 - typed loosely on purpose: `express` is an
@@ -43,6 +44,12 @@ export interface ServeOptions extends AppOptions {
   port?: number | string;
   /** The host to bind; unset binds every interface, `"127.0.0.1"` loopback only. */
   host?: string;
+  /**
+   * Host names answered besides 127.0.0.1, localhost, [::1] and `host`
+   * (comma-separated or a list) - every other Host, and an Origin not on one
+   * of them, gets a 403 (`hostGuard()`). `"*"` answers any.
+   */
+  allowedHosts?: string | string[];
 }
 
 /** `compress()`'s options - see compress.d.ts. */

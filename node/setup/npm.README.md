@@ -30,11 +30,12 @@ UI5 itself comes from the CDN.
 
 | Export | |
 |---|---|
-| `serve({ port, host })` | Boot the framework and listen. Resolves with the `http.Server` once it can answer. `host` unset binds every interface, `"127.0.0.1"` loopback only |
+| `serve({ port, host, allowedHosts })` | Boot the framework and listen. Resolves with the `http.Server` once it can answer. `host` unset binds every interface, `"127.0.0.1"` loopback only. Whatever the bind, it answers only requests addressed to `127.0.0.1`, `localhost`, `[::1]` or `host` itself (when that is a name, not `0.0.0.0`) and, when they carry an `Origin`, coming from a page there - anything else gets a 403, so a web page in the user's browser cannot drive the server through DNS rebinding. `allowedHosts` adds names (a container's service name, a LAN address), `"*"` answers any |
 | `createApp()` | The express app `serve()` listens with: `compress()`, the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front. `createApp({ compression: false })` leaves out the gzip (a proxy in front compresses anyway) |
 | `createHandler()` | The request handler alone, `(req, res) => Promise<void>` - for a server that is not express (see below) |
 | `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
 | `accelerate()` | Installs nothing since `@abaplint/runtime` 2.13.96, which is linear on large tables by itself (see [Performance](#performance)); kept for the hosts that call it, also importable alone as `@abap2ui5/node-runtime/accelerate`. Returns `true` on a runtime from `RUNTIME_VERSION` on, `false` and a warning once on an older one |
+| `hostGuard({ host, allowedHosts })` | That Host/Origin check as a middleware, `(req, res, next)` - `serve()` puts it in front; `createApp()` and `createHandler()` leave it to the host that mounts them |
 | `compress()` | The gzip middleware `createApp()` puts in front, `(req, res, next)` - for an express app of your own that mounts `createHandler()` (see [Compression](#compression)); also importable alone, as `@abap2ui5/node-runtime/compress` |
 | `exclusive(fn)`, `withSession(req, res, fn)` | What `createHandler()` puts around every request: one request in the framework at a time, in its stateful session (see [Stateful sessions](#stateful-sessions)) - for a host that calls the shim itself |
 | `configureSessions({ ttlMs, max })`, `sessionCount()` | How long an idle stateful session is kept (30 minutes) and how many at most (1000); how many there are |
