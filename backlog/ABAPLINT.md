@@ -21,7 +21,6 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
-| [`abaplint-dbtab-work-area-too-short`](items/abaplint-dbtab-work-area-too-short.md) | '`MODIFY ztab FROM @ls` with a structure that lacks MANDT is "The work area LS is not long enough" on a system - the class does not compile; abaplint reports nothing' | high | 2026-10-06 | abaplint/abaplint |
 | [`abaplint-downport-value-row-not-cleared`](items/abaplint-downport-value-row-not-cleared.md) | the `downport` rule builds all rows of `VALUE #( ( … ) ( … ) )` in one work area and never clears it between rows, so a component a later row leaves out keeps the earlier row's value instead of being initial - silently wrong data, no finding, on every downported 702 branch (abap2UI5, samples, samples-controls) and in the transpiled unit run; reproduced on 2.120.60 and 2.120.64<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-10-03: fires on <b>159</b> site(s) in abap2UI5, samples, samples-controls, 47 correct look-alike(s)</sub> | high | 2026-10-03 | abaplint/abaplint |
 | [`abaplint-generic-deref-old-releases`](items/abaplint-generic-deref-old-releases.md) | 'dereferencing a generic `REF TO data` inline (`lr->*` in an expression, `ASSIGN COMPONENT … OF STRUCTURE mr->*`), the dynamic component selector on a `TYPE any` operand (`val->(name)`) and `CORRESPONDING #( <generic> )` all activate here and fail on 7.50/7.52 systems — bitten three times, twice by users after a pull; abaplint already reports the first below v756 (`check_syntax`), and accepts the other two at every `syntax.version`'<br><sub>written up in [Generic types on older releases — the recurring one](../.claude/skills/abap-check/SKILL.md)</sub> | high | 2026-09-19 | abaplint/abaplint |
 | [`abaplint-is-initial-function-operand`](items/abaplint-is-initial-function-operand.md) | '`IF condense( lv ) IS INITIAL.` is "Unexpected operator IS" on a system - also on 7.58, not only on 7.02/7.31; abaplint accepts it at every syntax version'<br><sub>written up in [A function call in front of IS INITIAL](../.claude/skills/abap-check/SKILL.md)</sub> | high | 2026-10-04 | abaplint/abaplint |
@@ -38,6 +37,16 @@ _nothing exists upstream yet — this is the stock_
 | [`abaplint-get-reference-obsolete`](items/abaplint-get-reference-obsolete.md) | 'the statement is not released for ABAP Cloud and has a released equivalent (`REF`), yet abaplint 2.120.52 under `syntax.version` Cloud accepts it without a finding — `check:cloud` in abap2UI5 is green with it in place'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>measured 2026-09-19: fires on <b>25</b> site(s) in abap2UI5, 118 correct look-alike(s)</sub> | low | 2026-09-19 | abaplint/abaplint |
 | [`abaplint-redundant-conversion-function-result`](items/abaplint-redundant-conversion-function-result.md) | '`CONV string( to_upper( x ) )` is "Redundant conversion for type STRING" on a system; redundant_conversion reports `CONV syuname( sy-uname )` but not the CONV around a built-in function result'<br><sub>written up in [3. Extended check (SLIN/ATC) — runs in real systems, not here](../.claude/skills/abap-check/SKILL.md)</sub> | low | 2026-10-04 | abaplint/abaplint |
 | [`abaplint-tabl-inttype`](items/abaplint-tabl-inttype.md) | 'an INT4 field serialized as `<INTTYPE>I</INTTYPE>` - abapGit writes `X` - shows a diff on every pull; abaplint reads DATATYPE only'<br><sub>written up in [Object types other than CLAS and INTF](../.claude/skills/abap-check/SKILL.md)</sub> | low | 2026-10-06 | abaplint/abaplint |
+
+---
+
+## Filed upstream
+
+_an issue or PR exists; the item goes when it merges_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`abaplint-dbtab-work-area-too-short`](items/abaplint-dbtab-work-area-too-short.md) | '`MODIFY ztab FROM @ls` with a structure that lacks MANDT is "The work area LS is not long enough" on a system - the class does not compile; abaplint reports nothing'<br><sub>written up in [A database work area must be as long as the table line](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/abaplint/pull/4389</sub> | high | 2026-10-06 | abaplint/abaplint |
 
 ---
 

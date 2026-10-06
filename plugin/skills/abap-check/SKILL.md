@@ -521,7 +521,7 @@ be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
   An alias (`utc_day AS day`) would put the reserved word back into the SQL.
 
 **Gate: abaplint — `xml_consistency`**, once `DAY` and `HOUR` are in its list
-(pushed upstream on the abaplint branch `claude/laughing-ride-sl2osd`). Every
+(abaplint/abaplint#4388, open). Every
 other reserved word stays **open** until a system confirms it. Add it to that
 list when one does.
 
@@ -552,7 +552,10 @@ This one took abap2UI5 down with it. The class was a dependency of the
 cockpit's roundtrip monitor, so every abap2UI5 request dumped with
 *"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
 
-**Gate: open.** **Backlog:** abaplint · abaplint-dbtab-work-area-too-short
+**Gate: open** until abaplint/abaplint#4389 ships: `check_syntax` then
+reports it. Measured with that change on the pre-fix cockpit, it finds
+exactly the two statements the system named, and nothing in abap2UI5.
+**Backlog:** abaplint · abaplint-dbtab-work-area-too-short
 
 ### A parameter called `default` is read as an addition
 
