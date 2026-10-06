@@ -54,6 +54,7 @@ const GATES = [
   { npm: "check:members", script: "member-visibility-gate.mjs" },
   { npm: "check:naming", script: "object-naming-gate.mjs" },
   { npm: "check:dynamic", script: "dynamic-name-gate.mjs" },
+  { npm: "check:rename", script: "rename-literal-gate.mjs" },
   { npm: "check:prose", script: "prose-name-gate.mjs" },
   { npm: "check:skills", script: "skill-rule-gate.mjs" },
   { npm: "check:shared", script: "shared-file-gate.mjs" },

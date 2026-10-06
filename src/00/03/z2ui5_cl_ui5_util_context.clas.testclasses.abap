@@ -23,6 +23,10 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_impl_intf_no_app     FOR TESTING RAISING cx_static_check.
     METHODS test_impl_intf_no_class   FOR TESTING RAISING cx_static_check.
     METHODS test_impl_intf_interface  FOR TESTING RAISING cx_static_check.
+    METHODS test_ref_type_name_intf   FOR TESTING RAISING cx_static_check.
+    METHODS test_ref_type_name_class  FOR TESTING RAISING cx_static_check.
+    METHODS test_ref_type_name_lookup FOR TESTING RAISING cx_static_check.
+    METHODS test_ref_type_name_no_ref FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -69,6 +73,58 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false(
         z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = `Z2UI5_IF_APP`
                                                                intf  = `Z2UI5_IF_APP` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ref_type_name_intf.
+
+    " the name a dynamic lookup needs, taken from a declaration - which a
+    " namespace rename rewrites - instead of a literal, which it does not
+    DATA li_app TYPE REF TO z2ui5_if_app.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5_IF_APP`
+        act = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ref_type_name_class.
+
+    DATA lo_exit TYPE REF TO z2ui5_cl_ui5_user_exit.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `Z2UI5_CL_UI5_USER_EXIT`
+        act = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_exit ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ref_type_name_lookup.
+
+    " what the framework does with it: the app pre-check of
+    " z2ui5_cl_ui5_action=>app_create, with no name spelled out at all
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    DATA lo_app TYPE REF TO object.
+
+    lo_app = NEW z2ui5_cl_ui5_app_hi_world( ).
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf(
+            class = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_app )
+            intf  = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ref_type_name_no_ref.
+
+    " a value that is no reference is a programming error at the caller -
+    " it raises, it never answers with a name
+    DATA lv_text TYPE string.
+
+    TRY.
+        z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lv_text ).
+        cl_abap_unit_assert=>fail( `a string is no typed reference` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `RTTI_NOT_AN_OBJECT_REFERENCE` ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

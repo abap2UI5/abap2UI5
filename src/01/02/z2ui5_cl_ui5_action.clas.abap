@@ -190,13 +190,19 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " a class that exists but is no app used to be reported as "does not
     " exist in the system". Either way the raise goes as it is to the single
     " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which turns it
-    " into a 500 whose body carries the text for the frontend to display
+    " into a 500 whose body carries the text for the frontend to display.
+    " The interface is named through a typed reference, never a literal: a
+    " namespace rename rewrites the reference but left the literal behind,
+    " and a renamed installation then refused every app it was asked to
+    " start (.github/scripts/rename-literal-gate.mjs)
+    DATA li_app_type TYPE REF TO z2ui5_if_app.
+    DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_type ).
     IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = lv_app_start
-                                                              intf  = `Z2UI5_IF_APP` ) = abap_false.
+                                                              intf  = lv_app_intf ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = |The app '{ app_start_safe( lv_app_start ) }' | &&
-                |does not exist in the system or does not implement z2ui5_if_app.|.
+                |does not exist in the system or does not implement { to_lower( lv_app_intf ) }.|.
     ENDIF.
 
     TRY.

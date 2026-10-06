@@ -319,6 +319,20 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the name of the class or interface an UNBOUND object reference
+    " variable is typed with, upper case: `DATA li TYPE REF TO zif_any.`
+    " answers `ZIF_ANY`. The way to hand an object name to a dynamic lookup
+    " without spelling it as a string literal - the declaration is a
+    " reference the compiler, abaplint and a namespace rename (`abaplint
+    " --rename`) all see and rewrite, a literal is none of the three. Pass
+    " the variable unbound: the transpiled runtime describes a bound one by
+    " the class of the object it points to
+    CLASS-METHODS rtti_get_ref_type_name
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS xml_parse
       IMPORTING
         !xml TYPE clike
@@ -1429,6 +1443,26 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_get_ref_type_name.
+
+    DATA lo_refdescr TYPE REF TO cl_abap_refdescr.
+
+    TRY.
+        " the relative name, not the absolute one: `\INTERFACE=ZIF_ANY` on a
+        " system, `\CLASS=ZIF_ANY` in the transpiled runtime - the relative
+        " name is `ZIF_ANY` on both
+        lo_refdescr ?= cl_abap_typedescr=>describe_by_data( val ).
+        result = lo_refdescr->get_referenced_type( )->get_relative_name( ).
+      CATCH cx_root INTO DATA(lx).
+        " not a reference variable - a programming error at the caller
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `RTTI_NOT_AN_OBJECT_REFERENCE`
+            previous = lx.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD rtti_get_type_kind.
 
     result = cl_abap_datadescr=>get_data_type_kind( val ).
@@ -1747,9 +1781,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD xml_srtti_descr.
 
+    " the shipped S-RTTI copy is named through a typed reference, not a
+    " literal, so a namespace rename carries it along (rtti_get_ref_type_name).
+    " ZCL_SRTTI_TYPEDESCR is the stand-alone S-RTTI project, installed
+    " separately or not at all - a name this repository does not own
+    DATA lo_shipped TYPE REF TO z2ui5_cl_srt_typedescr.
     DATA(lv_classname) = COND string( WHEN rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true
                                       THEN `ZCL_SRTTI_TYPEDESCR`
-                                      ELSE `Z2UI5_CL_SRT_TYPEDESCR` ).
+                                      ELSE rtti_get_ref_type_name( lo_shipped ) ).
     CALL METHOD (lv_classname)=>(`CREATE_BY_DATA_OBJECT`)
       EXPORTING
         data_object = data

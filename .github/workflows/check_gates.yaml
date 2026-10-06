@@ -139,6 +139,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/dynamic-name-gate.mjs # npm run check:dynamic
 
+      # the other half: a literal naming an object this repository DOES ship
+      # survives a namespace rename unchanged (abaplint --rename rewrites
+      # references only), so a renamed installation looks it up under the
+      # original name. npm run rename re-runs it over the renamed output
+      - name: no literal names a shipped object (namespace rename)
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/rename-literal-gate.mjs # npm run check:rename
+
       - name: prose names objects that exist
         if: ${{ !cancelled() }}
         run: node .github/scripts/prose-name-gate.mjs # npm run check:prose

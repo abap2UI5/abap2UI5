@@ -156,13 +156,25 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
     " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
-    " z2ui5_cl_ui5_user_exit and carried the rename into this literal, which
-    " left the lookup asking for an interface that does not exist: no class
-    " implements it, so every user exit in every system silently stopped
-    " being found. A dynamic name is not a reference the compiler checks -
-    " .github/scripts/dynamic-name-gate.mjs does it instead
-    DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
-    DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+    " z2ui5_cl_ui5_user_exit and carried the rename into what was a literal
+    " here, which left the lookup asking for an interface that does not
+    " exist: no class implements it, so every user exit in every system
+    " silently stopped being found. A literal is not a reference the
+    " compiler checks, and a namespace rename (abaplint --rename) does not
+    " rewrite it either - a renamed installation looked up the ORIGINAL
+    " names and found no exit. So every name here comes from a typed,
+    " unbound reference (rtti_get_ref_type_name), which both the compiler
+    " and the rename see; .github/scripts/rename-literal-gate.mjs keeps it so
+    DATA li_exit       TYPE REF TO z2ui5_if_ui5_exit.
+    DATA li_exit_dep   TYPE REF TO z2ui5_if_exit.
+    DATA lo_shipped    TYPE REF TO z2ui5_cl_ui5_user_exit.
+    DATA lv_intf       TYPE string.
+    DATA lv_shipped    TYPE string.
+
+    lv_intf    = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_exit ).
+    lv_shipped = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped ).
+    DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
+    DELETE exit_classes WHERE classname = lv_shipped.
 
     " The superseded interface is looked up too, for as long as it ships -
     " but only when the current one names nothing. Each lookup is a
@@ -178,7 +190,8 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " no self-exclusion on this list: the shipped exit implements
     " z2ui5_if_ui5_exit only, so it is never in it
     IF lines( exit_classes ) = 0.
-      exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+      lv_intf = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_exit_dep ).
+      exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
     ENDIF.
 
     " only one user exit can be active, so the pick must not depend on the

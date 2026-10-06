@@ -273,14 +273,17 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     TRY.
         ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
         " the same pre-check the URL start does (z2ui5_cl_ui5_action=>
-        " factory_first_start, the reasoning is there): the name was typed
-        " in, so a class that is no app is refused from its descriptor,
-        " before anything of it is loaded or instantiated
+        " app_create, the reasoning is there): the name was typed in, so a
+        " class that is no app is refused from its descriptor, before
+        " anything of it is loaded or instantiated. The interface name comes
+        " from the still unbound li_app_test, never from a literal - a
+        " namespace rename rewrites the reference, not the literal
+        DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_test ).
         IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
-                                                                  intf  = `Z2UI5_IF_APP` ) = abap_false.
+                                                                  intf  = lv_app_intf ) = abap_false.
           RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
             EXPORTING
-              val = |Class { ms_home-classname } does not exist or does not implement z2ui5_if_app|.
+              val = |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }|.
         ENDIF.
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
