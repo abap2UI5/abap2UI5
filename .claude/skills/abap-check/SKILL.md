@@ -1,6 +1,6 @@
 ---
 name: abap-check
-description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, trailing whitespace, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
+description: The catalogue of ABAP problems a green CI does not catch - abapGit round-trip and import failures (BOM, line endings, trailing whitespace, EOF newline, 255-character lines, metadata sidecars for CLAS and for DDLS/BDEF/TABL), activation errors abaplint does not model (class_constructor visibility, LOCAL FRIENDS, generic types on older releases, reserved table field names, RAP and CDS), extended-check (SLIN/ATC) traps, downport and transpiler traps, and runtime breakage that only shows on a real system. Use before finishing any change under src/, after editing a .clas.xml or any other metadata sidecar, when a pull into a system produced unexpected diffs, an import error or an activation error - and add the case here whenever a new one is found.
 ---
 
 # What a green CI does not prove
@@ -484,6 +484,32 @@ all — it cannot even parse some of the syntax (section 6).
   field is an error, starting with *"must have a key field 'TRAVELUUID' in
   position 2"*. `af1a928`. The draft-admin include additionally needs
   `<GROUPNAME>%ADMIN</GROUPNAME>` (`7459f39`).
+
+### A table field must not be an SQL reserved word
+
+`abap2UI5-addons/admin-cockpit` shipped three tables with a key field `DAY`,
+one of them with `HOUR` as well. A user's pull (2026-10-06) refused all
+three: *"DAY is a reserved word (choose another field name)"*, the same for
+`HOUR`, then *"Table Z2UI5_T_CK_AGG could not be activated"*, and the same for
+`Z2UI5_T_CK_LOG` and `Z2UI5_T_CK_USR`. Every class that reads them failed
+with them. The dictionary checks each field name against the DDIC table
+`TRESE` (the reserved words of every supported database). abaplint was green:
+its `xml_consistency` has a short list of *confirmed* names only (`ZONE`,
+`HANDLER`, `SECTION`, `PARAMETER`, abaplint/abaplint#4331). `TRESE` also holds
+names a system allows as fields (`TEXT`, `LENGTH`), so the list cannot simply
+be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
+
+- **Prefix a field that names a date part, a unit or an SQL keyword** —
+  `UTC_DAY`, not `DAY`. A prefixed name is never in `TRESE`.
+- **Rename the internal types that mirror the columns, too.** A `SELECT …
+  INTO CORRESPONDING FIELDS` into a structure that still says `day` stays
+  green in abaplint and in the transpiler and leaves the component empty.
+  An alias (`utc_day AS day`) would put the reserved word back into the SQL.
+
+**Gate: abaplint — `xml_consistency`**, once `DAY` and `HOUR` are in its list
+(pushed upstream on the abaplint branch `claude/laughing-ride-sl2osd`). Every
+other reserved word stays **open** until a system confirms it. Add it to that
+list when one does.
 
 ### Do not depend on DDIC objects that are not everywhere
 
