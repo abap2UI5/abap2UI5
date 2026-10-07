@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* Fiori Launchpad: closing an abap2UI5 component no longer clears the launchpad's dirty flag. The component wrote false on every exit, after cc/Dirty had re-synced the flag from the unsaved changes that remain - a second component's unsaved changes lost their data-loss prompt, and an embedded component cleared the flag of the app hosting it
+* Fiori Launchpad: unsaved changes marked with z2ui5.cc.Dirty before the shell's UI service had loaded reach the launchpad's dirty flag once it is there. The mark armed the browser's own prompt only, and a navigation inside the launchpad lost the changes without asking
 * Model: an empty TIMESTAMP or TIMESTAMPL that the user never touched is no longer refused. ajson writes it as 0000-00-00T00:00:00Z, an edit of a sibling field sends the structure back whole, and read as an instant the value was nothing - so every roundtrip listed the untouched field in t_model_skipped, which an app that checks the list for a complete write-back reads as a failed save
 * Navigation: client->nav_app_call( ) with an app instance that is already on the app stack - nav_app_call( me ), or a called app calling its caller back instead of leaving - makes it a new stack entry. Its own draft was reused: the stack then pointed at itself or round in a circle, Back never reached the first app again and check_app_prev_stack( ) stayed abap_true
 * filter_get_token_t_by_range_t (z2ui5_cl_ui5_util_context): a range on a numeric field gives tokens with the number as it reads - =42 and -5...10, not =42 with a trailing blank and 5-...10
