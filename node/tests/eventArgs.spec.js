@@ -7,7 +7,8 @@ const { loadLib } = require("./loadLibModule");
 // controls (ViewSettingsDialog.confirm -> filterItems, Menu.itemSelected ->
 // item, SinglePlanningCalendar.selectedDatesChange -> DateRange list), and
 // JSON.stringify throws on a ManagedObject's circular parent/aggregation
-// graph. Everything that is not a control must pass through untouched.
+// graph. Everything that is neither a control nor a Date must pass through
+// untouched.
 
 const { Lib } = loadLib();
 
@@ -43,6 +44,17 @@ test("a Date property travels as its LOCAL day, not as a UTC instant", () => {
   const c = control("cal", { startDate: new Date(2018, 6, 9) });
   const [out] = Lib.normalizeEventArgs([c]);
   expect(out.startDate).toEqual("2018-07-09T00:00:00");
+});
+
+test("a bare Date argument travels as its LOCAL day too", () => {
+  // ${$parameters>/startDate} of SinglePlanningCalendar.cellPress, or the
+  // `from` of DateRangeSelection.change - a Date, not a control holding one
+  const [top, list] = Lib.normalizeEventArgs([
+    new Date(2018, 6, 9),
+    [new Date(2018, 6, 10, 8, 30)],
+  ]);
+  expect(top).toEqual("2018-07-09T00:00:00");
+  expect(list).toEqual(["2018-07-10T08:30:00"]);
 });
 
 test("the local time of day survives too", () => {

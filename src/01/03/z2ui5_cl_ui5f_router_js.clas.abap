@@ -182,6 +182,12 @@ CLASS z2ui5_cl_ui5f_router_js IMPLEMENTATION.
              `` && |\n| &&
              `      const direction = trailMove(ctx, sNewHash);` && |\n| &&
              `` && |\n| &&
+             `      if (direction === "back") {` && |\n| &&
+             `        state.hashPushCount = Math.max(0, state.hashPushCount - 1);` && |\n| &&
+             `      } else if (direction === "forward") {` && |\n| &&
+             `        state.hashPushCount += 1;` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
              `      if (!state.navRouting) {` && |\n| &&
              `        dispatchAppHashChange(ctx, sNewHash);` && |\n| &&
              `        return;` && |\n| &&

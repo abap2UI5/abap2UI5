@@ -1504,8 +1504,18 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT val REFERENCE INTO DATA(lr_comp).
       IF lr_comp->as_include = abap_true.
-        INSERT LINES OF rtti_get_t_attri_by_include( type  = lr_comp->type
-                                                     depth = depth + 1 ) INTO TABLE result.
+        " INCLUDE ... RENAMING WITH SUFFIX: the structure's components are
+        " named <component><suffix>, and every nested level adds its own -
+        " the bare include names do not exist on the structure, so a
+        " binding path or ASSIGN COMPONENT built from them fails
+        DATA(lt_include) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                        depth = depth + 1 ).
+        IF lr_comp->suffix IS NOT INITIAL.
+          LOOP AT lt_include REFERENCE INTO DATA(lr_include).
+            lr_include->name = lr_include->name && lr_comp->suffix.
+          ENDLOOP.
+        ENDIF.
+        INSERT LINES OF lt_include INTO TABLE result.
       ELSE.
         INSERT lr_comp->* INTO TABLE result.
       ENDIF.

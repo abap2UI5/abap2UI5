@@ -28,6 +28,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_instantiation      FOR TESTING RAISING cx_static_check.
     METHODS test_system_startup     FOR TESTING RAISING cx_static_check.
     METHODS test_first_start        FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_no_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_not_an_app FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
@@ -151,6 +152,35 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `["MESSAGE_TOAST","show","Bookmarked app state expired*`
         act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_first_start_no_app_start.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+
+    " an app-state bookmark whose URL carries no ?app_start= (the session
+    " reached its app by navigation) and whose draft is gone: the start
+    " page, with the toast - not an APP_START_ERROR for an empty name
+    lo_http = NEW #( val = `` ).
+    lo_http->ms_request-s_control-app_start_draft = `THIS_DRAFT_DOES_NOT_EXIST`.
+    lo_http->ms_request-s_control-check_app_state = abap_true.
+    lo_action = NEW #( val = lo_http ).
+
+    lo_result = lo_action->factory_first_start( ).
+
+    DATA lo_start TYPE REF TO z2ui5_cl_ui5_app_start.
+    TRY.
+        lo_start ?= lo_result->mo_app->mo_app.
+      CATCH cx_sy_move_cast_error.
+        cl_abap_unit_assert=>fail( `not the start page` ).
+    ENDTRY.
+    cl_abap_unit_assert=>assert_bound( lo_start ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 1
+        act = lines( lo_result->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 

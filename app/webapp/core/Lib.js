@@ -893,8 +893,11 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // backend receives it as the JSON string every object argument becomes in
   // T_EVENT_ARG and parses it with ajson.
   //
-  // Anything that is not a control is handed through untouched, so this is
-  // purely additive for every wire that works today.
+  // A Date - a control's property, or a bare event parameter such as
+  // `${$parameters>/startDate}` of SinglePlanningCalendar.cellPress - goes
+  // through projectValue below, for the reason given there. Anything else
+  // that is not a control is handed through untouched, so this is purely
+  // additive for every wire that works today.
   const MAX_ARG_DEPTH = 4;
 
   function isManagedObject(value) {
@@ -970,7 +973,10 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     if (Array.isArray(value)) {
       return value.map((entry) => normalizeEventArg(entry, level + 1));
     }
-    return value;
+    // a bare Date is the same calendar day as a Date property - projecting
+    // only the latter sent `${$parameters>/startDate}` as a UTC instant, a
+    // day early east of Greenwich
+    return projectValue(value);
   }
 
   // Always returns a fresh top-level array: Server.roundtrip shifts

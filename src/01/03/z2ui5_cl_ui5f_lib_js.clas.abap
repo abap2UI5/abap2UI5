@@ -601,7 +601,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    if (Array.isArray(value)) {` && |\n| &&
              `      return value.map((entry) => normalizeEventArg(entry, level + 1));` && |\n| &&
              `    }` && |\n| &&
-             `    return value;` && |\n| &&
+             `` && |\n| &&
+             `    return projectValue(value);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function normalizeEventArgs(args) {` && |\n| &&

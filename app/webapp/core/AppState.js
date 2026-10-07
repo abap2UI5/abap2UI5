@@ -265,9 +265,11 @@ sap.ui.define([], () => {
       appHash: "",
       pendingAppHash: null,
       // How many app hashes this PAGE LOAD has pushed (listener, legacy and
-      // KEEP-suffix pushes alike) - Router.navBack's stand-in for UI5's
-      // History.getPreviousHash(): zero means a cold deep link with no
-      // in-app history entry to consume, so a fallback replaces instead.
+      // KEEP-suffix pushes alike) and the browser still stands in front of -
+      // a Back lowers it, a Forward raises it again (Router.onHashChanged).
+      // Router.navBack's stand-in for UI5's History.getPreviousHash(): zero
+      // means no in-app history entry to consume (a cold deep link, or every
+      // pushed entry already stepped back over), so a fallback replaces.
       hashPushCount: 0,
 
       // Control / helper state. The records keyed by a value that comes off

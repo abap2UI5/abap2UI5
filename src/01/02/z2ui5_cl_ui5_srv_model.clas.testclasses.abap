@@ -3693,6 +3693,105 @@ CLASS ltcl_06_struct_alias IMPLEMENTATION.
 ENDCLASS.
 
 
+" a REFERENCE component below a struct alias: mr_alias points at ms_nested,
+" which holds r_val. The row `MR_ALIAS->R_VAL` inherits `MS_NESTED-R_VAL` as
+" name_ref for the binding search, and the restore followed it like an alias
+" of its own - once mr_alias was re-pointed at ms_nested, both paths named
+" the same variable and r_val came back pointing at itself (2026-10-07)
+" ---------------------------------------------------------------------------
+CLASS ltcl_app_alias_dref DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        id    TYPE string,
+        r_val TYPE REF TO data,
+      END OF ty_s_nested.
+
+    DATA ms_nested TYPE ty_s_nested.
+    DATA mr_alias  TYPE REF TO data.
+
+    METHODS fill.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_alias_dref IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+    FIELD-SYMBOLS <lv_val> TYPE string.
+    ms_nested-id = `n1`.
+    CREATE DATA ms_nested-r_val TYPE string.
+    ASSIGN ms_nested-r_val->* TO <lv_val>.
+    <lv_val> = `payload`.
+    mr_alias = REF #( ms_nested ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_07_alias_dref DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS dref_below_alias_kept FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_07_alias_dref IMPLEMENTATION.
+
+  METHOD dref_below_alias_kept.
+
+    FIELD-SYMBOLS <lv_val> TYPE string.
+    DATA lo_app   TYPE REF TO ltcl_app_alias_dref.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+
+    lo_app = NEW #( ).
+    lo_app->fill( ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " the first save of an app that bound nothing yet - the save's own
+    " dissolve creates the rows, so the inherited name_ref is still there
+    lo_model->main_attri_db_save_srtti( ).
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
+    CLEAR lo_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = lo_app ).
+    CREATE DATA lr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = lr_attri->* ).
+    lo_model = NEW #( attri = lr_attri
+                      app   = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    DATA(lr_self) = REF #( lo_app->ms_nested-r_val ).
+    cl_abap_unit_assert=>assert_bound( act = lo_app->ms_nested-r_val
+                                       msg = `r_val lost across the draft` ).
+    cl_abap_unit_assert=>assert_false( act = xsdbool( lo_app->ms_nested-r_val = lr_self )
+                                       msg = `r_val points at itself` ).
+    ASSIGN lo_app->ms_nested-r_val->* TO <lv_val>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = `payload`
+                                        act = <lv_val> ).
+    DATA(lr_struc) = REF #( lo_app->ms_nested ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_alias = lr_struc )
+                                      msg = `alias no longer points at ms_nested` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " the two-hop alias chain: two generic references at ONE typed table whose
 " name sorts BEFORE them (ma_tab < mr_a < mr_b). The pairing used to name the
 " last candidate, so MR_A->* aliased MR_B->* instead of the table, and the

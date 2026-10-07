@@ -167,7 +167,15 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
-    DATA(li_app) = app_create( ).
+    " a bookmark without ?app_start= whose draft is gone names no app to
+    " start fresh - it lands where a request without one lands, on the
+    " start page (factory_system_startup), with the toast above
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    IF mo_handler->ms_request-s_control-app_start IS INITIAL.
+      li_app = z2ui5_cl_ui5_app_start=>factory( ).
+    ELSE.
+      li_app = app_create( ).
+    ENDIF.
     result->mo_app->mo_app = li_app.
     li_app->id_draft = result->mo_app->ms_draft-id.
 

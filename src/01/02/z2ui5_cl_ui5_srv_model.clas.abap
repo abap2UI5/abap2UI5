@@ -848,6 +848,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_attri_db_load_dref.
 
+    " only a reference the alias pass paired ITSELF is followed. A reference
+    " row BELOW an alias - `<alias>->r_val` - carries `<owner>-r_val` as
+    " name_ref only because refs_below_set rewrites every row under the
+    " alias for the binding search; once the alias is re-pointed at its
+    " owner both paths name the SAME variable, and following the row made
+    " it point at itself, the payload lost on restore. The owner's own row
+    " restores that component whenever it is an alias of its own
+    READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
+         WITH TABLE KEY name = ir_attri->name_parent.
+    IF sy-subrc = 0 AND lr_attri_parent->name_ref IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
     " IS ASSIGNED, not sy-subrc - see main_attri_db_load_table
     DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
     ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).

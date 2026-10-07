@@ -541,7 +541,17 @@ CLASS ltcl_rtti DEFINITION FINAL
     TYPES zip TYPE string.
     TYPES END OF ty_s_with_incl.
 
+    " the same include renamed with a suffix. One level only: a suffix
+    " inside a suffixed include chains on a system, but the transpiled
+    " runtime's structdescr does not model the nesting
+    TYPES BEGIN OF ty_s_with_suffix.
+    TYPES id TYPE string.
+    INCLUDE TYPE ty_s_incl AS inner RENAMING WITH SUFFIX _in.
+    TYPES zip TYPE string.
+    TYPES END OF ty_s_with_suffix.
+
     METHODS test_attri_include    FOR TESTING RAISING cx_static_check.
+    METHODS test_attri_include_suffix FOR TESTING RAISING cx_static_check.
     METHODS test_check_clike     FOR TESTING RAISING cx_static_check.
     METHODS test_printable_decfloat FOR TESTING RAISING cx_static_check.
     METHODS test_srtti_pair_roundtrip FOR TESTING RAISING cx_static_check.
@@ -584,6 +594,35 @@ CLASS ltcl_rtti IMPLEMENTATION.
     " does not rewrite a line_exists( ) inside a method call argument)
     READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
     cl_abap_unit_assert=>assert_subrc( exp = 4 ).
+
+  ENDMETHOD.
+
+  METHOD test_attri_include_suffix.
+
+    " RENAMING WITH SUFFIX names the components <name><suffix> on the
+    " structure - the expansion used to report the bare include names, so
+    " every binding path built from them (srv_model diss_struc,
+    " srv_bind bind_tab_cell) named a component that does not exist
+    DATA ls_struc TYPE ty_s_with_suffix.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ID`
+                                        act = lt_comp[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME_IN`
+                                        act = lt_comp[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `CITY_IN`
+                                        act = lt_comp[ 3 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZIP`
+                                        act = lt_comp[ 4 ]-name ).
+
+    " every reported name is a component the structure really has
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE ls_struc TO FIELD-SYMBOL(<lv_field>) ##NEEDED.
+      cl_abap_unit_assert=>assert_subrc( exp = 0 ).
+    ENDLOOP.
 
   ENDMETHOD.
 
