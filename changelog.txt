@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* Navigation: a bound value the caller changed right before nav_app_call reaches the browser on the way back, also when the request that made the hop carried user input. That input cleared what the framework remembers of the browser's model, the hop saved the caller without it, and on the way back the caller's current state counted as what the browser shows - a caller that left its view standing and re-displayed nothing kept showing the old value
 * Model: an instant with a fraction of a second bound to a short TIMESTAMP is cut to its second. The assignment rounded it, and 12:30:59.6 became 20240115123060 - second 60, a value no timestamp has. A TIMESTAMPL keeps the fraction as before
 * client->get_app( client->get( )-s_draft-id ) answers the running app. That id is the one of the roundtrip in progress, whose draft is written only when it ends, so the call raised NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND for an id the interface documents
 ! z2ui5_if_client: the documentation of app_state_set_active and app_state_get_href says what a shared link does. A draft belongs to the user who created it and expires after a few hours, so the link restores the state for that user; another user, or a link whose draft is gone, starts fresh with a toast. It promised that a shared link restores the exact state for anyone

@@ -1465,6 +1465,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mv_model_before = mo_action->mo_app->mv_model_client.
     ELSE.
       mv_model_before = mo_action->mo_app->model_json_stringify( ).
+      " ... and kept on the app: it IS what the client holds now. Left
+      " empty, a nav_app_call in this main( ) saved the caller's draft
+      " without it (prepare_app_stack), and on the way back the caller's
+      " CURRENT state stood in for what the browser shows - a bound value
+      " the caller changed right before the hop was never pushed
+      mo_action->mo_app->mv_model_client = mv_model_before.
     ENDIF.
     mv_model_before_taken = abap_true.
 
