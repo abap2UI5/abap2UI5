@@ -42,6 +42,9 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     resolveById: (_ctx, id) => controls[id] || null,
     byId: (_ctx, _key, id) => controls[id] || null,
     getView: (_ctx, key) => views[key] || null,
+    // no slot controllers here: a slot-scoped shortcut then dispatches on
+    // the controller that registered it (shortcuts.spec.js holds the rest)
+    getController: () => undefined,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight

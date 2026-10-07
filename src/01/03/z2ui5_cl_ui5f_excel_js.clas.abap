@@ -36,7 +36,9 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `` && |\n| &&
              `    const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);` && |\n| &&
              `    const DAY_MS = 86400000;` && |\n| &&
-             `    const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2}))?/;` && |\n| &&
+             `` && |\n| &&
+             `    const ISO_DATE =` && |\n| &&
+             `      /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;` && |\n| &&
              `` && |\n| &&
              `    const CELL_ADDRESS = /^\$?[A-Za-z]{1,3}\$?[1-9][0-9]{0,6}$/;` && |\n| &&
              `` && |\n| &&
@@ -297,14 +299,14 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (!this._probed) {` && |\n| &&
-             `          this._probed = true;` && |\n| &&
-             `          this._probe();` && |\n| &&
-             `        }` && |\n| &&
+             `        if (!this._probed) this._probe();` && |\n| &&
              `        this._syncSubscription();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _probe() {` && |\n| &&
+             `        const w = window;` && |\n| &&
+             `        if (!w.Office) return;` && |\n| &&
+             `        this._probed = true;` && |\n| &&
              `        excel().then((Excel) => {` && |\n| &&
              `          if (!Excel || Lib.isDestroyed(this)) return;` && |\n| &&
              `          if (!this.getProperty("available")) {` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `            await context.sync();` && |\n| &&
              `` && |\n| &&
              `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&
-             `              range = range.getUsedRangeOrNullObject(true);` && |\n| &&
-             `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
-             `              await context.sync();` && |\n|.
+             `              range = range.getUsedRangeOrNullObject(true);` && |\n|.
     result = result &&
+             `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
+             `              await context.sync();` && |\n| &&
              `            }` && |\n| &&
              `            if (range.isNullObject) {` && |\n| &&
              `              this._deliver([], "", 0, 0);` && |\n| &&

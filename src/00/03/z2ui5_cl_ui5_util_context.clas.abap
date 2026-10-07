@@ -872,6 +872,12 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS check_msg_container
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS scan_flag_prefix
       IMPORTING
         val           TYPE any
@@ -2082,8 +2088,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD ui5_get_msg_type.
 
+    " A (abort) and X (exit) are the two SAP message types above E - a
+    " BAPIRET2 or SYMSG row of either is an error, never an information
     CASE val.
-      WHEN `E`.
+      WHEN `E` OR `A` OR `X`.
         result = cs_ui5_msg_type-e.
       WHEN `S`.
         result = cs_ui5_msg_type-s.
@@ -3271,7 +3279,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          IF ls_attri->name = `ITEM`.
+          " only an ITEM that can HOLD messages is the envelope's payload -
+          " a table, a structure or an object (the BALI item). A plain
+          " ITEM field (a position number) became the whole message and
+          " dropped the structure's other fields
+          IF ls_attri->name = `ITEM` AND check_msg_container( <comp> ) = abap_true.
             result = msg_get_internal( <comp> ).
             RETURN.
           ENDIF.
@@ -3307,6 +3319,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           INSERT VALUE #( text = val ) INTO TABLE result.
         ENDIF.
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD check_msg_container.
+
+    DATA(lv_kind) = rtti_get_type_kind( val ).
+    result = xsdbool( lv_kind = cl_abap_datadescr=>typekind_table
+                   OR lv_kind = cl_abap_datadescr=>typekind_struct1
+                   OR lv_kind = cl_abap_datadescr=>typekind_struct2
+                   OR lv_kind = cl_abap_datadescr=>typekind_oref ).
 
   ENDMETHOD.
 
@@ -3634,11 +3656,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD scan_flag_prefix.
 
-    DATA(lv_len) = strlen( prefix ).
+    DATA(lv_kind) = rtti_get_type_kind( val ).
+    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
+        AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+      RETURN.
+    ENDIF.
+
+    " a `-` in the prefix is a path, not part of a component name - no
+    " component name can contain one: %ELEMENT-<field> and
+    " %OP-%ACTION-<name> are components of the NESTED structures %ELEMENT
+    " and %OP-%ACTION. Compared against the row's own component names, the
+    " two RAP prefixes never matched, and no message ever carried its
+    " element or action
+    DATA(lv_prefix) = CONV string( prefix ).
+    FIND FIRST OCCURRENCE OF `-` IN lv_prefix MATCH OFFSET DATA(lv_off).
+    IF sy-subrc = 0.
+      ASSIGN COMPONENT lv_prefix(lv_off) OF STRUCTURE val TO FIELD-SYMBOL(<sub>).
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+      result = scan_flag_prefix( val    = <sub>
+                                 prefix = substring( val = lv_prefix
+                                                     off = lv_off + 1 ) ).
+      RETURN.
+    ENDIF.
+
+    DATA(lv_len) = strlen( lv_prefix ).
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       CHECK strlen( ls_attri->name ) > lv_len.
-      CHECK ls_attri->name(lv_len) = prefix.
+      CHECK lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix.
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
       CHECK sy-subrc = 0.
       CHECK <flag> IS NOT INITIAL.

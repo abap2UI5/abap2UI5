@@ -114,8 +114,17 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
       if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;
       if (scopeControlOpen(ctx, key)) return scopes[key];
     }
+    // A slot-scoped shortcut dispatches through THAT slot's controller: eB
+    // ships the model of the slot it runs on (ViewSlots.keyOfController),
+    // and the registration holds whichever controller ran the follow-up
+    // action - the MAIN one. A POPUP-scoped Ctrl+S sent the MAIN model,
+    // and what the user had typed into the dialog never reached the
+    // backend, where the dialog's own Save button would have sent it.
     for (const key of SHORTCUT_SLOTS) {
-      if (scopes[key] && ViewSlots.getView(ctx, key)) return scopes[key];
+      if (scopes[key] && ViewSlots.getView(ctx, key)) {
+        const own = ViewSlots.getController(ctx, key);
+        return own ? { ...scopes[key], controller: own } : scopes[key];
+      }
     }
     return scopes[SHORTCUT_GLOBAL];
   }

@@ -562,6 +562,7 @@ CLASS ltcl_rtti DEFINITION FINAL
     METHODS test_bound_not_init  FOR TESTING RAISING cx_static_check.
     METHODS test_struc_to_pairs  FOR TESTING RAISING cx_static_check.
     METHODS test_scan_flag       FOR TESTING RAISING cx_static_check.
+    METHODS test_scan_flag_nested FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -829,6 +830,57 @@ CLASS ltcl_rtti IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_scan_flag_nested.
+
+    " a `-` in the prefix walks into a nested structure, the shape of the
+    " RAP prefixes %ELEMENT- and %OP-%ACTION- (spelled without the %, which
+    " a TYPES statement here cannot declare): the component names never
+    " contain the `-`, so the flat compare found nothing
+    TYPES:
+      BEGIN OF ty_s_row,
+        pid TYPE string,
+        BEGIN OF element,
+          name TYPE abap_bool,
+          city TYPE abap_bool,
+        END OF element,
+        BEGIN OF op,
+          BEGIN OF action,
+            approve TYPE abap_bool,
+            reject  TYPE abap_bool,
+          END OF action,
+        END OF op,
+      END OF ty_s_row.
+
+    DATA ls_row TYPE ty_s_row.
+
+    ls_row-pid               = `1`.
+    ls_row-element-name      = abap_true.
+    ls_row-op-action-approve = abap_true.
+
+    DATA(lt_element) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val  = ls_row
+                                                                  prefix = `ELEMENT-` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_element ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = lt_element[ 1 ] ).
+
+    DATA(lt_action) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val  = ls_row
+                                                                 prefix = `OP-ACTION-` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_action ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `APPROVE`
+                                        act = lt_action[ 1 ] ).
+
+    " a path that does not exist, or ends in a non-structure, finds nothing
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_row
+                                                     prefix = `NOPE-` ) ).
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_row
+                                                     prefix = `PID-` ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -1030,6 +1082,7 @@ CLASS ltcl_msg DEFINITION FINAL
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_item_plain_field FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1053,6 +1106,26 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>msg_get_t( ls_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_item_plain_field.
+
+    " an ITEM that is a plain field (a position number) is no envelope:
+    " it used to become the whole message, text `0010`, and the structure
+    " was never handed to the data renderer
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+        item TYPE c LENGTH 4,
+      END OF ty_s_row.
+
+    DATA(ls_row) = VALUE ty_s_row( name = `Ada`
+                                   item = `0010` ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( ls_row ).
+
+    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 
@@ -1134,10 +1207,15 @@ CLASS ltcl_msg IMPLEMENTATION.
 
   METHOD test_msg_type_mapping.
 
-    " anything that is not E/S/W falls back to Information - the UI5
-    " MessageBox has no other state to render
+    " E and the two types above it (A abort, X exit) are errors; anything
+    " that is not E/A/X/S/W falls back to Information - the UI5 MessageBox
+    " has no other state to render
     cl_abap_unit_assert=>assert_equals( exp = `Error`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `E` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `A` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `X` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Success`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `S` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Warning`
@@ -1145,7 +1223,7 @@ CLASS ltcl_msg IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `Information`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `I` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
-                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `X` ) ).
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `Z` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `` ) ).
 

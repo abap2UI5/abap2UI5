@@ -98,8 +98,12 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      if (key === SHORTCUT_GLOBAL || SHORTCUT_SLOTS.includes(key)) continue;` && |\n| &&
              `      if (scopeControlOpen(ctx, key)) return scopes[key];` && |\n| &&
              `    }` && |\n| &&
+             `` && |\n| &&
              `    for (const key of SHORTCUT_SLOTS) {` && |\n| &&
-             `      if (scopes[key] && ViewSlots.getView(ctx, key)) return scopes[key];` && |\n| &&
+             `      if (scopes[key] && ViewSlots.getView(ctx, key)) {` && |\n| &&
+             `        const own = ViewSlots.getController(ctx, key);` && |\n| &&
+             `        return own ? { ...scopes[key], controller: own } : scopes[key];` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `    return scopes[SHORTCUT_GLOBAL];` && |\n| &&
              `  }` && |\n| &&

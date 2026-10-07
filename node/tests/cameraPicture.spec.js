@@ -298,6 +298,38 @@ test("a stream resolving after the dialog was closed is stopped, not leaked", as
   expect(inst._stream).toBeFalsy();
 });
 
+test("a stream of an earlier opening is stopped when the dialog was reopened", async () => {
+  const dom = captureDom();
+  const first = { stopped: 0, stop() { this.stopped++; } };
+  const second = { stopped: 0, stop() { this.stopped++; } };
+  const resolvers = [];
+  const { makeInstance } = load({
+    documentElements: dom,
+    mediaDevices: {
+      getUserMedia: () => new Promise((resolve) => resolvers.push(resolve)),
+    },
+  });
+  const inst = makeInstance();
+
+  // open, cancel while the consent prompt is pending, open again
+  inst.onPicture();
+  const pending1 = inst._oScanDialog.afterOpenHandler();
+  inst._oScanDialog.close();
+  inst.onPicture();
+  const pending2 = inst._oScanDialog.afterOpenHandler();
+
+  // consent granted - both requests resolve into the open dialog
+  resolvers[0]({ getTracks: () => [first] });
+  resolvers[1]({ getTracks: () => [second] });
+  await pending1;
+  await pending2;
+
+  expect(first.stopped).toBe(1);
+  expect(second.stopped).toBe(0);
+  inst._oScanDialog.close();
+  expect(second.stopped).toBe(1);
+});
+
 test("a live stream is wired to the video and playback started", async () => {
   const dom = captureDom();
   dom["cam-video"].play = function () {

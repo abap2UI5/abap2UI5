@@ -176,6 +176,10 @@ sap.ui.define(
 
         this._setStatus("Starting camera...");
 
+        // which opening of the dialog this is - a stream may only be kept
+        // by the opening that asked for it (see the guard after getUserMedia)
+        const openSeq = (this._openSeq = (this._openSeq || 0) + 1);
+
         this._oScanDialog.attachEventOnce("afterOpen", async () => {
           if (Lib.isDestroyed(this)) return;
           const video = /** @type {HTMLVideoElement | null} */ (
@@ -211,8 +215,16 @@ sap.ui.define(
             // been destroyed, or the user could have closed the dialog
             // (Cancel/afterClose). In both cases afterClose's _stopCamera()
             // has already run with no stream to stop, so release the camera
-            // here instead of leaving it active.
-            if (Lib.isDestroyed(this) || !this._oScanDialog?.isOpen()) {
+            // here instead of leaving it active. The same for a stream of an
+            // EARLIER opening: cancelled and reopened while the consent prompt
+            // was pending, both requests resolve into the open dialog, and
+            // the later one replaced this._stream - _stopCamera( ) then never
+            // reached the first stream, and the camera stayed on.
+            if (
+              Lib.isDestroyed(this) ||
+              !this._oScanDialog?.isOpen() ||
+              openSeq !== this._openSeq
+            ) {
               for (const t of stream.getTracks()) t.stop();
               return;
             }

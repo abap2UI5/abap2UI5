@@ -45,7 +45,7 @@ function docStub() {
 
 // `views` are the open slots (a key present means the slot is showing),
 // `controls` the resolvable control ids with their open/visible state.
-function load({ views = {}, controls = {} } = {}) {
+function load({ views = {}, controls = {}, slotControllers = {} } = {}) {
   const doc = docStub();
   const errors = [];
   const fired = [];
@@ -60,6 +60,7 @@ function load({ views = {}, controls = {} } = {}) {
       },
       "z2ui5/core/ViewSlots": {
         getView: (_ctx, key) => views[key] || null,
+        getController: (_ctx, key) => slotControllers[key],
         resolveById: (_ctx, id) => controls[id] || null,
       },
     },
@@ -176,6 +177,30 @@ test.describe("shortcutFromEvent (the spelling a keydown produces)", () => {
 });
 
 test.describe("scope precedence", () => {
+  test("a slot-scoped shortcut runs on that slot's controller", () => {
+    // registered by a follow-up action, i.e. on the MAIN controller - but
+    // eB ships the model of the controller it runs on, so a POPUP Ctrl+S
+    // has to run on the POPUP controller to send the dialog's edits
+    const popupFired = [];
+    const popup = { eB: (args) => popupFired.push(args) };
+    const views = { POPUP: {} };
+    const { register, press, fired } = load({
+      views,
+      slotControllers: { POPUP: popup },
+    });
+    register("Ctrl+S", "SAVE_POPUP", "POPUP");
+    register("Ctrl+S", "SAVE");
+
+    press("s", { ctrlKey: true });
+    expect(popupFired).toEqual([["SAVE_POPUP"]]);
+    expect(fired).toEqual([]);
+
+    // the dialog closed: the unscoped entry runs where it was registered
+    delete views.POPUP;
+    press("s", { ctrlKey: true });
+    expect(fired).toEqual([["SAVE"]]);
+  });
+
   test("a control scope wins over a slot scope while its control is open", () => {
     const controls = { myPopover: { isOpen: () => true } };
     const views = { POPOVER: {} };

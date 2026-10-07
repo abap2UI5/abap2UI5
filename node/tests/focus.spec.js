@@ -163,6 +163,23 @@ test("clamps the kept snapshot caret to the rebuilt value length", () => {
   expect(target.applied[0].selectionEnd).toBe(2);
 });
 
+test("the caret of the field just left is not applied to another field", () => {
+  // The user scanned into field A and pressed Enter; the backend moves the
+  // focus to field B and asks for a select-all. A's caret (10) is not B's.
+  const fieldB = inputDom({ value: "12", selectionStart: 0, selectionEnd: 0 });
+  fieldB.id = "B-inner";
+  const target = targetWithInput(fieldB);
+  const fieldA = inputDom({ value: "MAT-000123", selectionStart: 10, selectionEnd: 10 });
+  fieldA.id = "A-inner";
+  const { Focus } = load({ target, activeElement: fieldA });
+
+  run(Focus, { selectionStart: "0", selectionEnd: "2" });
+
+  expect(target.applied).toHaveLength(1);
+  expect(target.applied[0].selectionStart).toBe(0);
+  expect(target.applied[0].selectionEnd).toBe(2);
+});
+
 test("restores the clamped caret when the field is not focused", () => {
   const dom = inputDom({ value: "22", selectionStart: 0, selectionEnd: 0 });
   const target = targetWithInput(dom);

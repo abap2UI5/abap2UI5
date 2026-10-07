@@ -71,7 +71,9 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      onBeforeRendering() {` && |\n| &&
-             `        this._liveCaret = Lib.readCaret(document.activeElement);` && |\n| &&
+             `        const active = document.activeElement;` && |\n| &&
+             `        const caret = Lib.readCaret(active);` && |\n| &&
+             `        this._liveCaret = caret && { ...caret, id: active.id };` && |\n| &&
              `      },` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        const liveCaret = this._liveCaret;` && |\n| &&
@@ -100,7 +102,7 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `              if (input === document.activeElement) {` && |\n| &&
              `                liveStart = input.selectionStart;` && |\n| &&
              `                liveEnd = input.selectionEnd;` && |\n| &&
-             `              } else if (liveCaret) {` && |\n| &&
+             `              } else if (liveCaret && liveCaret.id === input.id) {` && |\n| &&
              `                liveStart = liveCaret.start;` && |\n| &&
              `                liveEnd = liveCaret.end;` && |\n| &&
              `              }` && |\n| &&
