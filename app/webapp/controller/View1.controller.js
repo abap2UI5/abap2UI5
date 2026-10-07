@@ -306,11 +306,20 @@ sap.ui.define(
       // it. An event whose controller is gone - the app torn down, the popup
       // it was typed into closed by the response - is dropped: its screen
       // is gone, and its model with it.
+      //
+      // "Gone" is asked of the VIEW, not only of the controller: the five
+      // slot controllers are created once per app start and outlive the
+      // popup they serve, so a popup the response closed still had a live
+      // controller - its keystroke went out with no model, an event for a
+      // screen the backend had just closed. The view the event was typed
+      // into has to be the one still showing in that slot.
       _dispatchQueuedEvent() {
         const queued = this.ctx.state.oQueuedEvent;
         if (!queued) return;
         this.ctx.state.oQueuedEvent = null;
         if (!Lib.isControllerAlive(queued.controller)) return;
+        const key = ViewSlots.keyOfController(queued.controller);
+        if (ViewSlots.getView(this.ctx, key) !== queued.view) return;
         queued.controller.eB(...queued.args);
       },
 
@@ -568,6 +577,11 @@ sap.ui.define(
           if (queueLast) {
             this.ctx.state.oQueuedEvent = {
               controller: this,
+              // the view the event was typed into - see _dispatchQueuedEvent
+              view: ViewSlots.getView(
+                this.ctx,
+                ViewSlots.keyOfController(this),
+              ),
               args: Lib.normalizeEventArgs(args),
             };
           }

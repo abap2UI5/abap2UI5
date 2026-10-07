@@ -2537,7 +2537,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " - the same trick get_comp_str( ) uses. A value the runtime refuses to
     " convert must not be the reason a box does not appear
     TRY.
-        result = val.
+        " a number through a string template: the assignment puts the sign
+        " BEHIND it - -5 came out as `5-`, a packed -12.50 as `12.50-`
+        CASE rtti_get_type_kind( val ).
+          WHEN cl_abap_datadescr=>typekind_int OR
+              cl_abap_datadescr=>typekind_int1 OR
+              cl_abap_datadescr=>typekind_int2 OR
+              cl_abap_datadescr=>typekind_packed OR
+              cl_abap_datadescr=>typekind_float OR
+              cl_abap_datadescr=>typekind_decfloat16 OR
+              cl_abap_datadescr=>typekind_decfloat34.
+            result = |{ val }|.
+          WHEN OTHERS.
+            result = val.
+        ENDCASE.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -3292,7 +3305,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                                msg  = ls_result ).
 
         ENDLOOP.
-        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+        " a T100 message is a class AND a number. A component called ID
+        " alone is the key column of any business row - built into a
+        " message, it gave `I:0001:` (a missing class still answers a text)
+        " and the data never reached the data renderer it was meant for
+        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL AND ls_result-no IS NOT INITIAL.
           ls_result-id = to_upper( ls_result-id ).
           MESSAGE ID ls_result-id TYPE `I` NUMBER ls_result-no
                   WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4

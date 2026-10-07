@@ -168,6 +168,8 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        if (!queued) return;` && |\n| &&
              `        this.ctx.state.oQueuedEvent = null;` && |\n| &&
              `        if (!Lib.isControllerAlive(queued.controller)) return;` && |\n| &&
+             `        const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
+             `        if (ViewSlots.getView(this.ctx, key) !== queued.view) return;` && |\n| &&
              `        queued.controller.eB(...queued.args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -281,6 +283,11 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          if (queueLast) {` && |\n| &&
              `            this.ctx.state.oQueuedEvent = {` && |\n| &&
              `              controller: this,` && |\n| &&
+             `` && |\n| &&
+             `              view: ViewSlots.getView(` && |\n| &&
+             `                this.ctx,` && |\n| &&
+             `                ViewSlots.keyOfController(this),` && |\n| &&
+             `              ),` && |\n| &&
              `              args: Lib.normalizeEventArgs(args),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&

@@ -305,23 +305,28 @@ sap.ui.define(
     }
 
     // Pull the user-visible backend messages out of a response's app action
-    // list. A message travels as a whitelisted global call
-    // ["CONTROL_GLOBAL", "MESSAGE_TOAST"|"MESSAGE_BOX", <method>, <text>, ...]
-    // (see core/actions/ControlCall.js); the legacy raw-string entries in
-    // T_CUSTOM carry no structured message and are skipped.
+    // list. message_toast_display / message_box_display write the call
+    // bare - ["MESSAGE_TOAST"|"MESSAGE_BOX", <method>, <text>, ...] - and a
+    // follow_up_action( control_global ) writes the same call behind a
+    // "CONTROL_GLOBAL" (see core/actions/ControlCall.js). Only the second
+    // form used to be read, so the messages of the two client methods
+    // every app uses never reached the Log tab or the history. The legacy
+    // raw-string entries in T_CUSTOM carry no structured message and are
+    // skipped.
     function extractMessages(response) {
       const custom = response?.S_FRONT?.S_ACTION?.T_CUSTOM;
       if (!Array.isArray(custom)) return [];
       const out = [];
       for (const item of custom) {
-        if (!Array.isArray(item) || item[0] !== "CONTROL_GLOBAL") continue;
-        const target = item[1];
+        if (!Array.isArray(item)) continue;
+        const call = item[0] === "CONTROL_GLOBAL" ? item.slice(1) : item;
+        const target = call[0];
         if (target !== "MESSAGE_TOAST" && target !== "MESSAGE_BOX") continue;
-        let text = typeof item[3] === "string" ? item[3] : "";
+        let text = typeof call[2] === "string" ? call[2] : "";
         if (text.length > MAX_MESSAGE_CHARS) {
           text = `${text.slice(0, MAX_MESSAGE_CHARS)}...`;
         }
-        out.push({ target, method: item[2] || "", text });
+        out.push({ target, method: call[1] || "", text });
       }
       return out;
     }
@@ -833,9 +838,15 @@ sap.ui.define(
     // Model diff between the two most recent recorded responses.
     // ------------------------------------------------------------------
 
-    // The two most recent records that actually carry a response payload.
+    // The two most recent records whose response carries a MODEL. A
+    // response without one changed nothing bound (the backend leaves the
+    // key off then), so it is no state to compare: counted in, the diff
+    // reported the whole previous model as removed after a roundtrip that
+    // changed nothing.
     function lastTwoResponses(ctx) {
-      const withPayload = getRecords(ctx).filter((record) => record.response);
+      const withPayload = getRecords(ctx).filter(
+        (record) => record.response?.MODEL !== undefined,
+      );
       if (withPayload.length < 2) return null;
       return withPayload.slice(-2);
     }

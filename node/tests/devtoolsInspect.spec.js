@@ -429,6 +429,24 @@ test.describe("Registry", () => {
     ]);
   });
 
+  // the backend writes eF WITHOUT an array: .eF('CONTROL_BY_ID', ...). The
+  // skip to an argument array used to run past its end to the next `[` in
+  // the view - the eF came out under the name of a later eB, and that eB
+  // and CONTROL_BY_ID were both missing
+  test("an eF without an array keeps its own name, and the eB after it", () => {
+    const { Inspect } = loadInspect();
+    const { scrapeEvents } = Inspect._internals;
+    const xml =
+      `<Button press=".eF(&apos;CONTROL_BY_ID&apos;,&apos;t1&apos;,&apos;setSticky&apos;,&apos;[&quot;ColumnHeaders&quot;]&apos;)"/>` +
+      `<Button press=".eB([&apos;SAVE&apos;])"/>` +
+      `<Item press=".eBP($event,true,[&apos;ITEM_PRESS&apos;])"/>`;
+    expect(scrapeEvents(xml)).toEqual([
+      "eB  SAVE",
+      "eBP  ITEM_PRESS",
+      "eF  CONTROL_BY_ID",
+    ]);
+  });
+
   test("lists the events of the filled slots", () => {
     const { Inspect, ctx } = loadInspect({
       views: { MAIN: fakeView({ xml: `<Button press="eB(['GO'])"/>` }) },

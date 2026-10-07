@@ -1083,6 +1083,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_plain_field FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_id_key_column FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1106,6 +1107,25 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>msg_get_t( ls_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_id_key_column.
+
+    " an ID column without a message NUMBER is a key, not a T100 message:
+    " a table of business rows is data, and the box falls back to the data
+    " renderer - it showed `2 Messages found` with I:0001: and I:0002:
+    TYPES:
+      BEGIN OF ty_s_row,
+        id   TYPE c LENGTH 4,
+        name TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA(lt_rows) = VALUE ty_t_row( ( id = `0001` name = `Ada` )
+                                    ( id = `0002` name = `Alan` ) ).
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_rows )-skip ).
 
   ENDMETHOD.
 
@@ -1685,6 +1705,16 @@ CLASS ltcl_data_box IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `42`
                                         act = ls_box-text ).
+
+    " ... with its sign in front: the assignment wrote `5-` and `12.50-`
+    lv_int = -5.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `-5`
+        act = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_int )-text ).
+    DATA lv_amount TYPE p LENGTH 8 DECIMALS 2 VALUE '-12.50'.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `-12.50`
+        act = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_amount )-text ).
 
   ENDMETHOD.
 

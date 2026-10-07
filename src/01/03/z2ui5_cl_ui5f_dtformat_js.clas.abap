@@ -161,7 +161,7 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  const FRAMEWORK_CALL =` && |\n| &&
-             `    /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
+             `    /\b(eB|eBP|eF)\s*\((?:[^[)"'&]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
              `    toJson,` && |\n| &&
