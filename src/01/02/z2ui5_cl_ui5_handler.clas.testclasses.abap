@@ -2231,6 +2231,36 @@ CLASS ltcl_app_hop_caller IMPLEMENTATION.
 ENDCLASS.
 
 
+" nav_app_call( me ): the app calls itself as a new screen and comes back
+" with Back - the hop_self_reaches_root case
+CLASS ltcl_app_call_self DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_text TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_call_self IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      client->view_display( `<mvc:View><Text text="` && client->_bind( mv_text ) && `"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `SELF` ).
+      client->nav_app_call( me ).
+    ELSEIF client->check_on_event( `BACK` ).
+      IF client->check_app_prev_stack( ).
+        client->nav_app_leave( ).
+      ELSE.
+        mv_text = `root`.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -2260,6 +2290,8 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     " the hop request carried a delta and the caller changed a bound value
     " before nav_app_call: the way back pushes it, as without a delta
     METHODS hop_after_delta_pushes FOR TESTING RAISING cx_static_check.
+    " nav_app_call( me ) is a new stack entry: one Back is back at the root
+    METHODS hop_self_reaches_root FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the popup caller's first render, saved as a draft
     METHODS caller_started
@@ -2326,6 +2358,30 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MT_TAB"` ) ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"edited"` )
                                       msg = `the caller could not read the popup app back` ).
+
+  ENDMETHOD.
+
+  METHOD hop_self_reaches_root.
+
+    " the instance's own draft id used to be reused for the call: the
+    " draft's stack pointed at itself, and Back went round forever without
+    " check_app_prev_stack( ) ever turning false
+    DATA(lo_start) = started_with( NEW ltcl_app_call_self( ) ).
+    DATA(lo_self) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `SELF` ).
+    cl_abap_unit_assert=>assert_differs( exp = lo_self->ms_response-s_front-id
+                                         act = lo_self->mo_action->mo_app->ms_draft-id_prev_app_stack
+                                         msg = `the called draft's stack points at itself` ).
+
+    DATA(lo_back) = event_on( iv_id    = lo_self->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    cl_abap_unit_assert=>assert_initial( act = lo_back->mo_action->mo_app->ms_draft-id_prev_app_stack
+                                         msg = `one Back is the root again` ).
+
+    DATA(lo_root) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_root->ms_response-model CS `"root"` )
+                                      msg = lo_root->ms_response-model ).
 
   ENDMETHOD.
 
