@@ -67,6 +67,18 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (!apply()) requestAnimationFrame(apply);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function dispatchWhenIdle(oController, args) {` && |\n| &&
+             `      const fire = () => {` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `        if (oController.ctx?.state?.isBusy) {` && |\n| &&
+             `          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oController.eB(...args);` && |\n| &&
+             `      };` && |\n| &&
+             `      fire();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function showToast(sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
              `      const sClass = o.class;` && |\n| &&
@@ -74,10 +86,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
-             `        o.onClose = () => {` && |\n| &&
-             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `          oController.eB([sEvent]);` && |\n| &&
-             `        };` && |\n| &&
+             `        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (Object.keys(o).length) MessageToast.show(sText, o);` && |\n| &&
@@ -123,10 +132,11 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
-             `        o.onClose = (sAction) => {` && |\n| &&
-             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `          oController.eB([sEvent], actionOf.get(sAction) ?? sAction);` && |\n| &&
-             `        };` && |\n| &&
+             `        o.onClose = (sAction) =>` && |\n| &&
+             `          dispatchWhenIdle(oController, [` && |\n| &&
+             `            [sEvent],` && |\n| &&
+             `            actionOf.get(sAction) ?? sAction,` && |\n| &&
+             `          ]);` && |\n| &&
              `      }` && |\n| &&
              `      if (o.details) {` && |\n| &&
              `        o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
              `          return Number(raw);` && |\n| &&
-             `        case "bool":` && |\n| &&
+             `        case "bool":` && |\n|.
+    result = result &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
              `          return resolveControl(raw, view, ctx);` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n| &&
-             `          );` && |\n|.
-    result = result &&
+             `          );` && |\n| &&
              `          return raw;` && |\n| &&
              `        }` && |\n| &&
              `        case "controlIdOrNull":` && |\n| &&

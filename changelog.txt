@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* Message box and toast: the onclose event of client->message_box_display( ) and message_toast_display( ) reaches the backend also when the user closes the box while another roundtrip is running - a timer poll, a click. It went into the busy guard and was dropped: the answer to "Delete?" never arrived. It now waits for that roundtrip and follows it
+* Nested views: a second nested view placed inside the first (nest2_view_display with a parent of the first nested view) is cleared with it when the first is displayed again. It stayed registered as a destroyed view, so its scoped keyboard shortcuts still fired and the developer tools still listed it
 * cs_event-clipboard_copy: a text that is valid JSON is copied as that JSON text. The backend embeds such an argument as an object, and the clipboard received "[object Object]" - an app's "copy as JSON" button copied that
 * Custom controls z2ui5.cc.NativeBridgeScan and z2ui5.cc.CameraPicture render a DOM root of their own around their button. Without one UI5 could not find them again to re-render: a later change of text, enabled, visible or width from the model never reached the screen, and a scan button bound to enabled = false still started a scan
 * Custom control z2ui5.cc.CameraSelector reads the cameras again when its dropdown opens and when the browser reports a device change. Read once at start - before the camera permission, when a browser lists each camera without id or label - it kept a single blank entry for good. A camera label is shown as written; one with braces lost them

@@ -73,6 +73,24 @@ sap.ui.define(
       if (!apply()) requestAnimationFrame(apply);
     }
 
+    // The close callback of a toast or a box fires when the USER is done -
+    // any time, also while another roundtrip is in flight (a timer poll, a
+    // click). A plain eB( ) then hit the busy guard and the event was
+    // dropped: the answer to "Delete?" never reached the backend. It waits
+    // for that roundtrip instead, the way a START_TIMER tick does
+    // (ViewOps.evStartTimer), and fires one macrotask after it.
+    function dispatchWhenIdle(oController, args) {
+      const fire = () => {
+        if (!Lib.isControllerAlive(oController)) return;
+        if (oController.ctx?.state?.isBusy) {
+          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
+          return;
+        }
+        oController.eB(...args);
+      };
+      fire();
+    }
+
     function showToast(sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
       const sClass = o.class;
@@ -84,10 +102,7 @@ sap.ui.define(
         // callback pointing at a dead controller, whose eB( ) would round-
         // trip the old session's event into the app that replaced it. Same
         // guard the timer tick and the SET_FOCUS retry carry.
-        o.onClose = () => {
-          if (!Lib.isControllerAlive(oController)) return;
-          oController.eB([sEvent]);
-        };
+        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);
       }
       // MessageToast is always resolved here: the only caller is the
       // MESSAGE_TOAST.display hook, and evControlCall refuses the call with
@@ -190,10 +205,11 @@ sap.ui.define(
         // ... and the same liveness guard showToast carries: a message box
         // waits for a user, so the app it belongs to may well be gone by the
         // time an action is pressed.
-        o.onClose = (sAction) => {
-          if (!Lib.isControllerAlive(oController)) return;
-          oController.eB([sEvent], actionOf.get(sAction) ?? sAction);
-        };
+        o.onClose = (sAction) =>
+          dispatchWhenIdle(oController, [
+            [sEvent],
+            actionOf.get(sAction) ?? sAction,
+          ]);
       }
       if (o.details) {
         o.details = Lib.sanitizeMessageDetails(o.details);

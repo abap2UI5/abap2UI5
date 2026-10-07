@@ -38,6 +38,10 @@ sap.ui.define(
       },
       {
         key: "NEST",
+        // NEST2 may be placed INSIDE this view (nest2_view_display with a
+        // parent of the first nested view): then it dies with it - see
+        // destroy( ). One placed in MAIN is left alone.
+        containedSlots: ["NEST2"],
         prop: "oViewNest",
         controllerProp: "oControllerNest",
       },
@@ -289,6 +293,13 @@ sap.ui.define(
       delete slotAppStore(ctx)[key];
       const view = ctx.state[slot.prop];
       if (!view) return;
+      // a slot that sits inside this view goes down with it - asked of the
+      // control tree, not declared like dependentSlots, because it may as
+      // well sit elsewhere. Left in its slot, the destroyed NEST2 still
+      // counted as open: its scoped shortcuts fired, the devtools listed it
+      for (const inner of slot.containedSlots ?? []) {
+        if (isInside(ctx.state[byKey(inner).prop], view)) destroy(ctx, inner);
+      }
       if (slot.fragmentId) {
         try {
           if (view.close) view.close();
@@ -312,6 +323,16 @@ sap.ui.define(
         Lib.logError(`ViewSlots.destroy: view.destroy() failed for ${key}`, e);
       }
       ctx.state[slot.prop] = null;
+    }
+
+    // whether `control` sits somewhere below `container` in the UI5 tree
+    function isInside(control, container) {
+      let node = control?.getParent?.();
+      for (let depth = 0; node && depth < 200; depth++) {
+        if (node === container) return true;
+        node = node.getParent?.();
+      }
+      return false;
     }
 
     // Empty a slot WITHOUT destroying what it holds, and hand the instance

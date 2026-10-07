@@ -330,6 +330,35 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
+  // the user answers a box while another roundtrip runs (a timer poll, a
+  // click): eB's busy guard dropped the answer - it waits for that roundtrip
+  test("a box answered during another roundtrip is sent once it lands", async () => {
+    const { FrontendAction, calls, AppState } = load();
+    AppState.state.onAfterRendering = [];
+    const ebCalls = [];
+    const oController = {
+      ctx: { state: AppState.state },
+      eB: (...a) => ebCalls.push(a),
+    };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "confirm",
+      "Delete?",
+      { onClose: "ANSWERED" },
+    ]);
+    const [, , opts] = calls[0];
+
+    AppState.state.isBusy = true;
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([]);
+
+    AppState.state.isBusy = false;
+    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
+  });
+
   test("ROUTER/sync hands the whole options object to the router", () => {
     // Router derives ONE outcome from all of it, so it gets the object as it
     // came - the id rides along because the route carries the draft
