@@ -3,7 +3,8 @@ target: abaplint
 title: 'check_syntax: INSERT / MODIFY / UPDATE dbtab FROM a work area shorter than the table line'
 summary: '`MODIFY ztab FROM @ls` with a structure that lacks MANDT is "The work area LS is not long enough" on a system - the class does not compile; abaplint reports nothing'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4389
 first_seen: 2026-10-06
 upstream: abaplint/abaplint
 evidence:
