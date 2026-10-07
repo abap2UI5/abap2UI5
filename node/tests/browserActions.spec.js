@@ -158,6 +158,7 @@ function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
       playResult = fn;
     },
     errors: () => (libState.errors || []).map((e) => e.message),
+    Lib,
   };
 }
 
@@ -682,4 +683,18 @@ test.describe("URLHELPER", () => {
     expect(urlHelperCalls).toHaveLength(0);
     expect(boxErrors).toHaveLength(0);
   });
+});
+
+// An argument that parses as JSON arrives as an object - copied as is,
+// writeText( ) put "[object Object]" on the clipboard
+test("CLIPBOARD_COPY of a JSON argument copies the JSON text", () => {
+  const { handlers, Lib } = load();
+  const copied = [];
+  Lib.copyToClipboard = (v) => copied.push(v);
+
+  handlers.CLIPBOARD_COPY(null, ["CLIPBOARD_COPY", { id: 1, name: "x" }]);
+  handlers.CLIPBOARD_COPY(null, ["CLIPBOARD_COPY", ["a", "b"]]);
+  handlers.CLIPBOARD_COPY(null, ["CLIPBOARD_COPY", "plain text"]);
+
+  expect(copied).toEqual(['{"id":1,"name":"x"}', '["a","b"]', "plain text"]);
 });

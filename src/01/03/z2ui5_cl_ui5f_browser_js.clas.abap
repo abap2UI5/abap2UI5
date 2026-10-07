@@ -40,7 +40,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
-             `      Lib.copyToClipboard(args[1]);` && |\n| &&
+             `      const value = args[1];` && |\n| &&
+             `      Lib.copyToClipboard(` && |\n| &&
+             `        value !== null && typeof value === "object"` && |\n| &&
+             `          ? JSON.stringify(value)` && |\n| &&
+             `          : value,` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evDownloadB64File(oController, args) {` && |\n| &&

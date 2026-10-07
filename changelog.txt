@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* cs_event-clipboard_copy: a text that is valid JSON is copied as that JSON text. The backend embeds such an argument as an object, and the clipboard received "[object Object]" - an app's "copy as JSON" button copied that
 * Custom controls z2ui5.cc.NativeBridgeScan and z2ui5.cc.CameraPicture render a DOM root of their own around their button. Without one UI5 could not find them again to re-render: a later change of text, enabled, visible or width from the model never reached the screen, and a scan button bound to enabled = false still started a scan
 * Custom control z2ui5.cc.CameraSelector reads the cameras again when its dropdown opens and when the browser reports a device change. Read once at start - before the camera permission, when a browser lists each camera without id or label - it kept a single blank entry for good. A camera label is shown as written; one with braces lost them
 * client->nest2_view_display( id = ... ) finds a control of the first nested view, as documented. The parent was looked up in the main view only, where the nested view's controls are not found - the display was discarded with "parent control not found"

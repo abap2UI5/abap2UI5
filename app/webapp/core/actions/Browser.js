@@ -25,8 +25,19 @@ sap.ui.define(
     // stays trivial; handlers that don't need the controller ignore it.
     // ------------------------------------------------------------------
 
+    // The text to copy is the app's - but an argument that parses as JSON
+    // reaches the frontend as an object (the backend embeds such
+    // arguments, srv_event get_event_client_ajson), and writeText( ) of an
+    // object put "[object Object]" on the clipboard: an app's "copy as
+    // JSON" button copied that. Written back as JSON text it is the data
+    // the app sent.
     function evClipboardCopy(oController, args) {
-      Lib.copyToClipboard(args[1]);
+      const value = args[1];
+      Lib.copyToClipboard(
+        value !== null && typeof value === "object"
+          ? JSON.stringify(value)
+          : value,
+      );
     }
 
     function evDownloadB64File(oController, args) {
