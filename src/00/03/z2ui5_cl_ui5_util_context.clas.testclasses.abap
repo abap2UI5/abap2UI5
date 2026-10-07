@@ -1077,6 +1077,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_exception_object FOR TESTING RAISING cx_static_check.
     METHODS test_box_plain_object     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
+    METHODS test_token_numeric_range FOR TESTING RAISING cx_static_check.
     METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
@@ -1417,6 +1418,31 @@ CLASS ltcl_msg IMPLEMENTATION.
     " and remove them
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-visible ).
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-editable ).
+
+  ENDMETHOD.
+
+  METHOD test_token_numeric_range.
+
+    " a select-option on an integer field: LOW and HIGH read as the numbers
+    " they are, sign in front and unpadded - not `=42 ` and `5-...10 `
+    TYPES:
+      BEGIN OF ty_s_int_range,
+        sign   TYPE c LENGTH 1,
+        option TYPE c LENGTH 2,
+        low    TYPE i,
+        high   TYPE i,
+      END OF ty_s_int_range.
+    TYPES ty_t_int_range TYPE STANDARD TABLE OF ty_s_int_range WITH EMPTY KEY.
+
+    DATA(lt_range) = VALUE ty_t_int_range( ( sign = `I` option = `EQ` low = 42 )
+                                           ( sign = `I` option = `BT` low = -5 high = 10 ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `=42`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `-5...10`
+                                        act = lt_token[ 2 ]-key ).
 
   ENDMETHOD.
 

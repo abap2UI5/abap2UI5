@@ -1248,6 +1248,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     itab_corresponding( EXPORTING val = val
                         CHANGING  tab = lt_tab ).
 
+    " LOW / HIGH again from the source row, through data_get_string: the
+    " move into the string fields above wrote a number the way a MOVE does
+    " - sign behind it and padded (`5- `), so a select-option on an integer
+    " field showed `=42 ` and `5-...10 `
+    " UNASSIGN + IS ASSIGNED, not sy-subrc, in the loop (#1937)
+    FIELD-SYMBOLS <lt_source> TYPE ANY TABLE.
+    FIELD-SYMBOLS <ls_range>  TYPE ty_s_range.
+    FIELD-SYMBOLS <lv_part>   TYPE any.
+    ASSIGN val TO <lt_source>.
+    IF <lt_source> IS ASSIGNED.
+      DATA(lv_index) = 0.
+      LOOP AT <lt_source> ASSIGNING FIELD-SYMBOL(<ls_source>).
+        lv_index = lv_index + 1.
+        READ TABLE lt_tab INDEX lv_index ASSIGNING <ls_range>.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        UNASSIGN <lv_part>.
+        ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_source> TO <lv_part>.
+        IF <lv_part> IS ASSIGNED.
+          <ls_range>-low = data_get_string( <lv_part> ).
+        ENDIF.
+        UNASSIGN <lv_part>.
+        ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_source> TO <lv_part>.
+        IF <lv_part> IS ASSIGNED.
+          <ls_range>-high = data_get_string( <lv_part> ).
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+
     LOOP AT lt_tab REFERENCE INTO DATA(lr_row).
 
       " an option the mapping does not know - initial (a row appended with

@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* filter_get_token_t_by_range_t (z2ui5_cl_ui5_util_context): a range on a numeric field gives tokens with the number as it reads - =42 and -5...10, not =42 with a trailing blank and 5-...10
 * _bind( val = ... json = abap_true ): a string that holds no JSON yet - initial, or cleared - travels as null. It was refused like a broken one, and since the model is serialized on every roundtrip, the app failed with "Json parsing error" on every request until the string was filled (a card manifest loaded later)
 * View builder: a NUL character (U+0000) in an attribute value is dropped with the other control characters XML 1.0 cannot carry. It stayed in the view, and the browser's XML parser refused the whole view
 * MessagePopover link policy RELATIVE_ONLY (CONTROL_BY_ID setAsyncURLHandler) asks the URL parser whether a link leaves the app. A pattern on the spelling let through what the browser reads as another host or scheme - /\evil.com, \\evil.com, a leading control character, a line break inside javascript: - and a message description could carry a working link off the site
