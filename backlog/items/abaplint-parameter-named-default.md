@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report a method parameter named DEFAULT - a system reads it as the DEFAULT addition of the parameter before it'
 summary: '`IMPORTING val TYPE clike default TYPE i RETURNING …` does not activate ("Unable to interpret RETURNING"); abaplint parses it as two parameters and reports nothing'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4391
 first_seen: 2026-10-06
 upstream: abaplint/abaplint
 evidence:

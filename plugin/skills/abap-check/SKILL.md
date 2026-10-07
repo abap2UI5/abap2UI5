@@ -237,8 +237,11 @@ the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
 `abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
 The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
 `INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
-of the same type rather than spelling it out. **Gate: open.** abaplint's
-`xml_consistency` reads `DATATYPE` and not `INTTYPE`.
+of the same type rather than spelling it out. **Gate: open** until
+abaplint/abaplint#4390 ships: `xml_consistency` then compares `INTTYPE` with
+`DATATYPE` for the confirmed pairs. Measured with that change, it finds
+exactly the 27 fields on the pre-fix cockpit and nothing in 114 exported
+tables.
 **Backlog:** abaplint · abaplint-tabl-inttype
 
 ### Two round-trip rules no gate can decide
@@ -521,7 +524,7 @@ be `TRESE`. The fix renamed the columns to `UTC_DAY` and `UTC_HOUR`.
   An alias (`utc_day AS day`) would put the reserved word back into the SQL.
 
 **Gate: abaplint — `xml_consistency`**, once `DAY` and `HOUR` are in its list
-(pushed upstream on the abaplint branch `claude/laughing-ride-sl2osd`). Every
+(abaplint/abaplint#4388, open). Every
 other reserved word stays **open** until a system confirms it. Add it to that
 list when one does.
 
@@ -552,7 +555,10 @@ This one took abap2UI5 down with it. The class was a dependency of the
 cockpit's roundtrip monitor, so every abap2UI5 request dumped with
 *"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
 
-**Gate: open.** **Backlog:** abaplint · abaplint-dbtab-work-area-too-short
+**Gate: open** until abaplint/abaplint#4389 ships: `check_syntax` then
+reports it. Measured with that change on the pre-fix cockpit, it finds
+exactly the two statements the system named, and nothing in abap2UI5.
+**Backlog:** abaplint · abaplint-dbtab-work-area-too-short
 
 ### A parameter called `default` is read as an addition
 
@@ -582,7 +588,11 @@ same class fired. The parameter is called `fallback` now.
   sibling, not measured. A structure component may carry these names: a
   `BEGIN OF … END OF` has no such additions.
 
-**Gate: open.** Nothing here reads parameter names against the additions.
+**Gate: open** until abaplint/abaplint#4391 ships: `check_syntax` then
+reports `default` after another parameter in `IMPORTING` and `CHANGING`.
+`EXPORTING` has no `DEFAULT` addition, so nothing is reported there. Measured
+with that change, it finds exactly the cockpit's `to_int` and nothing in
+abap2UI5, the addons or open-abap-core.
 **Backlog:** abaplint · abaplint-parameter-named-default
 
 ### Do not depend on DDIC objects that are not everywhere
@@ -1246,6 +1256,24 @@ precisely because no gate will catch it.
   the user exit's `set_config_http_post`). Code that runs automatically
   inside every request has to be opted into, never just installed. A
   "never raises" promise covers exceptions, not syntax errors.
+- **`cl_abap_tstmp` raised on the system and ran under the transpiler.**
+  `z2ui5_cl_cockpit_setup=>now_minus_seconds` (abap2UI5-addons/admin-cockpit)
+  called `cl_abap_tstmp=>subtractsecs( tstmp = now( ) secs = seconds )`,
+  where `now( )` is a method returning `timestampl`. On a user's system
+  (2026-10-06) the first screen after the administrator claim failed with
+  *CX_PARAMETER_INVALID_TYPE - "Parameter TSTMP has invalid type"*. The
+  exception was not declared, so the request ended in a 500. open-abap's
+  `cl_abap_tstmp` takes the same call without complaint, so the transpiled
+  unit run and every lint stayed green. Why the system refused it is not
+  measured: the argument was a functional call, not a variable typed
+  `timestampl`. The fix leaves the class out. It converts with `CONVERT TIME
+  STAMP … INTO DATE … TIME …`, does the arithmetic on the date and time of
+  day, and converts back (`ts_minus_seconds`, with a test across midnight
+  and year end; abap2UI5-addons/admin-cockpit#8). Treat `cl_abap_tstmp` like
+  any API whose type checks only a system runs. If you call it, pass a
+  variable typed exactly `timestamp` or `timestampl`, and test on a system,
+  not only under the transpiler. **Gate: open.** A rule would need the
+  system's own type check of `cl_abap_tstmp`, which nobody has measured yet.
 - **After `ASSIGN`, check `IS ASSIGNED` — not `sy-subrc`.** A 7.40 SP7 system
   ran every abap2UI5 app into an endless loop because `sy-subrc` was still `4`
   from an earlier `READ TABLE` when `attri_get_val_ref` tested it: the dynamic
