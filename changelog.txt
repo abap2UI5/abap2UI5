@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* Message box: a title or a button text with braces is shown as written. client->message_box_display( ) handed both to UI5 as settings, which it reads as binding syntax - "Total {net}" came out empty and "Price {net" threw, so the box never opened. The pressed action still goes back to the app as it was sent
+* User exit: a lookup of the exit class that failed - a transient repository error - is asked again on the next request, as its comment promised. The instance it left behind ended the lookup for the rest of a sticky session, which then ran on the shipped defaults instead of the installed exit's settings
 * Fiori Launchpad: closing an abap2UI5 component no longer clears the launchpad's dirty flag. The component wrote false on every exit, after cc/Dirty had re-synced the flag from the unsaved changes that remain - a second component's unsaved changes lost their data-loss prompt, and an embedded component cleared the flag of the app hosting it
 * Fiori Launchpad: unsaved changes marked with z2ui5.cc.Dirty before the shell's UI service had loaded reach the launchpad's dirty flag once it is there. The mark armed the browser's own prompt only, and a navigation inside the launchpad lost the changes without asking
 * Model: an empty TIMESTAMP or TIMESTAMPL that the user never touched is no longer refused. ajson writes it as 0000-00-00T00:00:00Z, an edit of a sibling field sends the structure back whole, and read as an instant the value was nothing - so every roundtrip listed the untouched field in t_model_skipped, which an app that checks the list for a complete write-back reads as a failed save

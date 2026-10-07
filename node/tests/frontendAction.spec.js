@@ -299,6 +299,37 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
+  // MessageBox hands title and action texts to its Dialog and Buttons as
+  // settings, which UI5 reads as binding syntax: braces are escaped for it,
+  // and the pressed action goes back to the backend as it was sent
+  test("a box title and action texts with braces are escaped, the action reported raw", () => {
+    const { FrontendAction, calls } = load();
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "show",
+      "Deleted",
+      {
+        title: "Price {net",
+        actions: ["Keep {all}", "OK"],
+        emphasizedAction: "Keep {all}",
+        onClose: "ANSWERED",
+      },
+    ]);
+    const [, , opts] = calls[0];
+    expect(opts.title).toBe("Price \\{net");
+    expect(opts.actions).toEqual(["Keep \\{all\\}", "OK"]);
+    expect(opts.emphasizedAction).toBe("Keep \\{all\\}");
+    opts.onClose("Keep \\{all\\}");
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([
+      [["ANSWERED"], "Keep {all}"],
+      [["ANSWERED"], "OK"],
+    ]);
+  });
+
   test("ROUTER/sync hands the whole options object to the router", () => {
     // Router derives ONE outcome from all of it, so it gets the object as it
     // came - the id rides along because the route carries the draft

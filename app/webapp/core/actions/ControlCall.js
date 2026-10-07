@@ -154,8 +154,32 @@ sap.ui.define(
       }
     }
 
+    // MessageBox hands the title and every action text to its Dialog and
+    // Buttons as SETTINGS, and a string setting is read as binding syntax
+    // (the page boots with bindingSyntax="complex"): "Total {net}" came out
+    // empty, "Price {net" threw and the box never opened. The text and the
+    // details go through setters and need nothing. Backslash first - the
+    // parser unescapes \\, \{ and \}.
+    const escapeSetting = (v) =>
+      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => `\\${c}`) : v;
+
     function showBox(sType, sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
+      if (o.title !== undefined) o.title = escapeSetting(o.title);
+      // the action a button reports back is the string it was given - so
+      // the escaped spelling is mapped back before it reaches the backend,
+      // which compares it to the action it sent
+      const actionOf = new Map();
+      if (Array.isArray(o.actions)) {
+        o.actions = o.actions.map((a) => {
+          const escaped = escapeSetting(a);
+          if (escaped !== a) actionOf.set(escaped, a);
+          return escaped;
+        });
+        for (const key of ["emphasizedAction", "initialFocus"]) {
+          if (typeof o[key] === "string") o[key] = escapeSetting(o[key]);
+        }
+      }
       if (o.onClose) {
         // the pressed action must ride OUTSIDE the event array: eB treats
         // args[0] as the event array (name + flags) and Server.roundtrip
@@ -168,7 +192,7 @@ sap.ui.define(
         // time an action is pressed.
         o.onClose = (sAction) => {
           if (!Lib.isControllerAlive(oController)) return;
-          oController.eB([sEvent], sAction);
+          oController.eB([sEvent], actionOf.get(sAction) ?? sAction);
         };
       }
       if (o.details) {

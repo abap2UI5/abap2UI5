@@ -102,14 +102,30 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const escapeSetting = (v) =>` && |\n| &&
+             `      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => ``\\${c}``) : v;` && |\n| &&
+             `` && |\n| &&
              `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
+             `      if (o.title !== undefined) o.title = escapeSetting(o.title);` && |\n| &&
+             `` && |\n| &&
+             `      const actionOf = new Map();` && |\n| &&
+             `      if (Array.isArray(o.actions)) {` && |\n| &&
+             `        o.actions = o.actions.map((a) => {` && |\n| &&
+             `          const escaped = escapeSetting(a);` && |\n| &&
+             `          if (escaped !== a) actionOf.set(escaped, a);` && |\n| &&
+             `          return escaped;` && |\n| &&
+             `        });` && |\n| &&
+             `        for (const key of ["emphasizedAction", "initialFocus"]) {` && |\n| &&
+             `          if (typeof o[key] === "string") o[key] = escapeSetting(o[key]);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
              `        o.onClose = (sAction) => {` && |\n| &&
              `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `          oController.eB([sEvent], sAction);` && |\n| &&
+             `          oController.eB([sEvent], actionOf.get(sAction) ?? sAction);` && |\n| &&
              `        };` && |\n| &&
              `      }` && |\n| &&
              `      if (o.details) {` && |\n| &&
@@ -408,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `          return raw;` && |\n| &&
              `        }` && |\n| &&
              `        case "controlIdOrNull":` && |\n| &&
@@ -424,8 +441,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          } catch {` && |\n| &&
              `            Lib.logError(``CONTROL_CALL: malformed object argument '${raw}'``);` && |\n| &&
              `            return {};` && |\n| &&
-             `          }` && |\n|.
-    result = result &&
+             `          }` && |\n| &&
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
