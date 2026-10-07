@@ -176,7 +176,9 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        methodInsert: METHOD_INSERT,` && |\n| &&
              `      } = mOptions;` && |\n| &&
              `` && |\n| &&
-             `      const oParent = ViewSlots.byId(ctx, "MAIN", ID);` && |\n| &&
+             `      const oParent =` && |\n| &&
+             `        ViewSlots.byId(ctx, "MAIN", ID) ??` && |\n| &&
+             `        (slotKey === "NEST2" ? ViewSlots.byId(ctx, "NEST", ID) : undefined);` && |\n| &&
              `      if (!oParent) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          (c, oView) =>` && |\n| &&
              `            navigatePage(c, oOld, oView, plan, mOptions, aOldClients),` && |\n| &&
              `          localId,` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        leavePage(ctx, oOld, aOldClients);` && |\n|.
+             `        );` && |\n|.
     result = result &&
+             `      } catch (e) {` && |\n| &&
+             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
              `        throw e;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
