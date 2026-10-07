@@ -52,6 +52,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " _bind( json = abap_true ): the string spliced in as a JSON node
+    METHODS json_bind_set
+      IMPORTING
+        io_result TYPE REF TO z2ui5_if_ajson
+        iv_path   TYPE string
+        iv_json   TYPE any
+      RAISING
+        z2ui5_cx_ajson_error.
+
 
     " how many REFERENCE hops (`->`) a dissolved name may carry - the bound
     " that ends a cyclic object graph (an attribute pointing back at its
@@ -545,8 +554,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " (an ajson value is copied node for node, the result's mapping does
           " not touch it)
           IF lr_attri->check_json = abap_true.
-            li_ajson_result->set( iv_path = lr_attri->name_client
-                               iv_val     = z2ui5_cl_ajson=>parse( <val> ) ).
+            json_bind_set( io_result = li_ajson_result
+                           iv_path   = lr_attri->name_client
+                           iv_json   = <val> ).
             CONTINUE.
           ENDIF.
 
@@ -611,6 +621,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           EXPORTING
             val = x.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD json_bind_set.
+
+    " a string with no JSON in it YET - initial, or cleared - is no JSON at
+    " all and travels as null: refused like a broken one, it failed every
+    " roundtrip of the app (the snapshot before main( ) included) until the
+    " app filled it, a card manifest loaded later
+    " assigned first, not tested inline: a built-in in an IS INITIAL
+    " operand does not compile after the 7.02 downport (#2664)
+    DATA(lv_json) = condense( CONV string( iv_json ) ).
+    IF lv_json IS INITIAL.
+      io_result->set_null( iv_path ).
+      RETURN.
+    ENDIF.
+    io_result->set( iv_path = iv_path
+                    iv_val  = z2ui5_cl_ajson=>parse( iv_json ) ).
+
   ENDMETHOD.
 
   METHOD main_attri_db_load.

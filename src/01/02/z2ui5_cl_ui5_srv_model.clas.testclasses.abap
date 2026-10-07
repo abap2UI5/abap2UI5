@@ -1611,6 +1611,8 @@ CLASS ltcl_03_model_out DEFINITION INHERITING FROM ltcl_00_base FINAL
     " _bind( json = abap_true ): the string IS JSON and becomes a node
     METHODS json_bind_spliced        FOR TESTING RAISING cx_static_check.
     METHODS json_bind_invalid_raises FOR TESTING RAISING cx_static_check.
+    " ... and one that holds no JSON yet is null, not a failed roundtrip
+    METHODS json_bind_initial_null   FOR TESTING RAISING cx_static_check.
     " a filter drops what it says (omit_initial)
     METHODS filter_applied           FOR TESTING RAISING cx_static_check.
     " a mapper renames what it says
@@ -1740,6 +1742,21 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
         cl_abap_unit_assert=>fail( `an unparseable json bind must raise` ).
       CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD json_bind_initial_null.
+
+    CLEAR mo_app->mv_string.
+    DATA(lr_attri) = bind( REF #( mo_app->mv_string ) ).
+    lr_attri->check_json = abap_true.
+
+    DATA(lv_json) = mo_model->main_json_stringify( ).
+    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    cl_abap_unit_assert=>assert_true( act = lo_result->exists( lr_attri->name_client )
+                                      msg = lv_json ).
+    cl_abap_unit_assert=>assert_equals( exp = `null`
+                                        act = lo_result->get_node_type( lr_attri->name_client ) ).
 
   ENDMETHOD.
 

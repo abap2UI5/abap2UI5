@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* _bind( val = ... json = abap_true ): a string that holds no JSON yet - initial, or cleared - travels as null. It was refused like a broken one, and since the model is serialized on every roundtrip, the app failed with "Json parsing error" on every request until the string was filled (a card manifest loaded later)
+* View builder: a NUL character (U+0000) in an attribute value is dropped with the other control characters XML 1.0 cannot carry. It stayed in the view, and the browser's XML parser refused the whole view
 * MessagePopover link policy RELATIVE_ONLY (CONTROL_BY_ID setAsyncURLHandler) asks the URL parser whether a link leaves the app. A pattern on the spelling let through what the browser reads as another host or scheme - /\evil.com, \\evil.com, a leading control character, a line break inside javascript: - and a message description could carry a working link off the site
 * URLHELPER REDIRECT with NEW_WINDOW opens the target with noopener,noreferrer. URLHelper.redirect opens it without on UI5 1.71 - 1.83, and since this redirect may leave the origin, the foreign page got window.opener and could navigate the app's tab
 * Error dialog: an error text with braces - a JSON snippet, a binding error - is shown as it is. Each line was handed to its Text as a setting, which UI5 reads as binding syntax: {...} vanished, {= } was evaluated, and an unbalanced { threw, so the user got the raw fallback overlay
