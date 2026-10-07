@@ -98,6 +98,11 @@ sap.ui.define(
             // here would hand the second app a registry with a prototype again
             state.shortcuts = Object.create(null);
             state.treeStates = Object.create(null);
+            // ... and the model size limits it set (cs_event-set_size_limit):
+            // every model a slot builds takes the stored limit
+            // (Slots.applyStoredSizeLimit), so the next app's tables were
+            // capped - or uncapped - by a limit it never asked for
+            state.viewSizeLimits = Object.create(null);
             // ... and so does the app-owned hash listener
             // (cs_event-hash_attach_changed): the backend keeps no record of
             // it and z2ui5_if_client promises it dies with the app switch,

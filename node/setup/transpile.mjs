@@ -231,7 +231,13 @@ export function transpile({ abap, apps, cwd = process.cwd(), config, core, outpu
   if (run.note) log(run.note);
   log(`abap2ui5-transpile: ${TRANSPILER} ${built.transpiler} on ${path.relative(cwd, configPath)}`);
   fs.rmSync(outputDir, { recursive: true, force: true });
-  execFileSync(run.command, [...run.args, configPath], { cwd, stdio: "inherit" });
+  // npx.cmd is a batch file, and Node refuses to spawn one without a shell
+  // since CVE-2024-27980 (spawnSync npx.cmd EINVAL on every Node >= 22) -
+  // pack-npm.mjs runs npm.cmd the same way. Through the shell the arguments
+  // are joined unquoted, so each one is quoted for a path with a blank
+  const viaShell = run.command === NPX && process.platform === "win32";
+  const args = [...run.args, configPath].map((a) => (viaShell ? `"${a}"` : a));
+  execFileSync(run.command, args, { cwd, stdio: "inherit", shell: viaShell });
 
   const result = ownApps({ output: outputDir, apps: appsDir });
   if (!keep && !config) fs.rmSync(outputDir, { recursive: true, force: true });

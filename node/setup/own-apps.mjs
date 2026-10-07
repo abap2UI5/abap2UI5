@@ -72,7 +72,11 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   if (!fs.existsSync(output)) throw new Error(`own-apps: ${output} does not exist - run the transpile first`);
   const packaged = new Set(fs.readdirSync(runtimeOutput));
   const produced = fs.readdirSync(output).filter((f) => /\.mjs(\.map)?$/.test(f));
-  const own = produced.filter((f) => !GENERATED(f) && !packaged.has(f)).sort();
+  // a source map belongs to the module it maps: the package ships its
+  // output/ WITHOUT maps, so asked by its own name, every library map of the
+  // host's transpile counted as the host's and was copied into apps/
+  const library = (f) => packaged.has(f) || packaged.has(f.replace(/\.map$/, ""));
+  const own = produced.filter((f) => !GENERATED(f) && !library(f)).sort();
   const local = new Set(own);
   if (!own.some((f) => f.endsWith(".mjs"))) {
     throw new Error(`own-apps: every file in ${output} is the package's own - which of them are yours? `

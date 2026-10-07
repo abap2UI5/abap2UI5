@@ -13,6 +13,7 @@ const { loadModule } = require("./loadModule");
 //  - `location`     the page's window.location (href and origin) - what a
 //                   relative endpoint resolves against
 //  - `loaderPaths`  collects every `paths` handed to sap.ui.loader.config
+//  - `installs`     the order of DevTools.install and the unload listener
 //  - `calls`        the order of sap/ui/util/Mobile.init (with its options)
 //                   and UIComponent.init
 function init(componentData, options) {
@@ -21,7 +22,13 @@ function init(componentData, options) {
 
 function initContext(
   componentData,
-  { globalsDropped = [], location, loaderPaths = [], calls = [] } = {},
+  {
+    globalsDropped = [],
+    location,
+    loaderPaths = [],
+    calls = [],
+    installs = [],
+  } = {},
 ) {
   const noop = () => {};
   const state = { oConfig: {} };
@@ -36,7 +43,9 @@ function initContext(
       "z2ui5/core/Server": {},
       "z2ui5/core/Session": {},
       "sap/ui/VersionInfo": {},
-      "z2ui5/devtools/DevTools": { install: noop },
+      "z2ui5/devtools/DevTools": {
+        install: () => installs.push("DevTools.install"),
+      },
       "z2ui5/core/Lib": {},
       "z2ui5/core/Env": {
         hasMessagingModule: () => false,
@@ -65,7 +74,7 @@ function initContext(
   inst.setModel = noop;
   inst._initLaunchpad = noop;
   inst._initVersionInfo = noop;
-  inst._installUnloadListener = noop;
+  inst._installUnloadListener = () => installs.push("unload listener");
   inst._installScrollListener = noop;
   inst._installRouterListener = noop;
   inst.init();
@@ -403,4 +412,15 @@ test("on a page of the app's own, Mobile.init( ) is left to sap.m.App", () => {
   const calls = [];
   initContext({}, { calls });
   expect(calls).toEqual(["UIComponent.init"]);
+});
+
+// The devtools persist their console and roundtrip history on "pagehide";
+// the component's own pagehide listener destroys the component, whose exit
+// uninstalls the devtools and takes their listeners off mid-dispatch - a
+// listener removed before it ran is skipped. Installed first, theirs run
+// first, and the history reaches the next page load.
+test("the devtools are installed before the unload listener", () => {
+  const installs = [];
+  initContext({}, { installs });
+  expect(installs).toEqual(["DevTools.install", "unload listener"]);
 });

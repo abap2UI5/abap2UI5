@@ -485,6 +485,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const { ctrl, state, destroys } = loadForAfterRendering();
     state.renderedApp = "Z2UI5_CL_APP_A";
     state.shortcuts = { "ctrl+s": {} };
+    state.viewSizeLimits = { MAIN: 20 };
     state.hashEvent = "NAV";
     state.appHash = "/page2";
     state.pendingAppHash = "/page3";
@@ -503,6 +504,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
     expect(state.renderedApp).toBe("Z2UI5_CL_APP_B");
     expect(state.shortcuts).toEqual({});
+    expect(state.viewSizeLimits).toEqual({});
     expect(state.hashEvent).toBe(null);
     expect(state.appHash).toBe("");
     expect(state.pendingAppHash).toBe(null);

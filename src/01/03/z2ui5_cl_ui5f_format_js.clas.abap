@@ -28,7 +28,8 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
     result = `sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  function parseYmd(d) {` && |\n| &&
+             `  function parseYmd(value) {` && |\n| &&
+             `    const d = abapDigits(value, ISO_DAY);` && |\n| &&
              `    return [` && |\n| &&
              `      Number(d.slice(0, 4)),` && |\n| &&
              `      Number(d.slice(4, 6)) - 1,` && |\n| &&
@@ -36,8 +37,15 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `    ];` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function abapDigits(value, pattern) {` && |\n| &&
+             `    const s = String(value ?? "");` && |\n| &&
+             `    return pattern.test(s) ? s.replace(/[-:]/g, "") : s;` && |\n| &&
+             `  }` && |\n| &&
+             `  const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;` && |\n| &&
+             `  const ISO_TIME = /^\d{2}:\d{2}:\d{2}$/;` && |\n| &&
+             `` && |\n| &&
              `  function isNoAbapDate(d) {` && |\n| &&
-             `    const s = String(d);` && |\n| &&
+             `    const s = abapDigits(d, ISO_DAY);` && |\n| &&
              `    if (!/^\d{8}$/.test(s)) return true;` && |\n| &&
              `` && |\n| &&
              `    return (` && |\n| &&
@@ -50,6 +58,7 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `  return {` && |\n| &&
              `    DateCreateObject(s) {` && |\n| &&
              `      if (!s) return null;` && |\n| &&
+             `      if (ISO_DAY.test(String(s))) return new Date(...parseYmd(s));` && |\n| &&
              `      return new Date(s);` && |\n| &&
              `    },` && |\n| &&
              `    DateAbapDateToDateObject(d) {` && |\n| &&
@@ -59,7 +68,7 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `` && |\n| &&
              `    DateAbapDateTimeToDateObject(d, t) {` && |\n| &&
              `      if (isNoAbapDate(d)) return null;` && |\n| &&
-             `      const time = t ? String(t) : "000000";` && |\n| &&
+             `      const time = t ? abapDigits(t, ISO_TIME) : "000000";` && |\n| &&
              `      return new Date(` && |\n| &&
              `        ...parseYmd(d),` && |\n| &&
              `        Number(time.slice(0, 2)),` && |\n| &&

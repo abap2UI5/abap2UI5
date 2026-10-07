@@ -54,7 +54,8 @@ test.describe("DateAbapDateToDateObject (ABAP date YYYYMMDD)", () => {
     // an empty / malformed value keeps yielding null rather than an
     // Invalid Date (which is truthy and only blows up inside a calendar)
     expect(Formatter.DateAbapDateToDateObject("")).toBeNull();
-    expect(Formatter.DateAbapDateToDateObject("2025-01-01")).toBeNull();
+    expect(Formatter.DateAbapDateToDateObject("2025-1-1")).toBeNull();
+    expect(Formatter.DateAbapDateToDateObject("0000-00-00")).toBeNull();
     expect(Formatter.DateAbapDateToDateObject(undefined)).toBeNull();
   });
 });
@@ -112,5 +113,29 @@ test.describe("DateCreateObject", () => {
     // Date constructor is not identical to the test runner's
     const d = Formatter.DateCreateObject("2026-07-02T13:45:01Z");
     expect(d.toISOString()).toBe("2026-07-02T13:45:01.000Z");
+  });
+});
+
+// A bound DATS / TIMS field reaches the model as "YYYY-MM-DD" / "HH:MM:SS"
+// (ajson format_datetime, pinned by srv_model values_per_form); the raw
+// digit forms come from CHAR / NUMC fields. Both mean the same value.
+test.describe("the model's own date and time spelling", () => {
+  test("a DATS field's YYYY-MM-DD is a date", () => {
+    const d = Formatter.DateAbapDateToDateObject("2024-01-15");
+    expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([2024, 0, 15]);
+  });
+
+  test("a TIMS field's HH:MM:SS is a time, with either date form", () => {
+    for (const day of ["20240115", "2024-01-15"]) {
+      const d = Formatter.DateAbapDateTimeToDateObject(day, "12:30:45");
+      expect([d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()])
+        .toEqual([15, 12, 30, 45]);
+    }
+  });
+
+  test("DateCreateObject reads a bare day as the LOCAL day", () => {
+    const d = Formatter.DateCreateObject("2024-01-15");
+    expect([d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()])
+      .toEqual([2024, 0, 15, 0]);
   });
 });

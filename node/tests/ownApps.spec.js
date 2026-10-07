@@ -39,6 +39,8 @@ test("keeps the host's files and points every other import at the package", asyn
     "cx_root.clas.mjs": "// a second copy",
     "cx_static_check.clas.mjs": "// a second copy",
     "#ui2#cl_json.clas.mjs": "// a second copy",
+    // a library's source map - the package ships none, still not the host's
+    "cx_root.clas.mjs.map": "{}",
     // its generated files - not the host's either
     "init.mjs": 'await import("./zcl_app.clas.mjs");\nawait import("./zcx_app_error.clas.mjs");\nawait import("./zcl_a_first.clas.mjs");\n',
     "_init.mjs": 'import "./zcl_app.clas.mjs";\n',

@@ -251,13 +251,21 @@ sap.ui.define(
         this._initLaunchpad();
         this._initVersionInfo();
 
-        this._installUnloadListener();
         // The developer tools own everything of their own: the Ctrl+F12
         // shortcut, the dialog instance, the roundtrip recorder and the
         // "?z2ui5-devtools=" auto open. This call and the exit() below are
         // the framework's ENTIRE coupling to devtools/ - keep it that
         // way (see the module header there).
+        //
+        // BEFORE the unload listener, on purpose: the console capture and
+        // the recorder persist their history on "pagehide", and the
+        // component's own pagehide listener destroys the component - whose
+        // exit( ) uninstalls both, taking their pagehide listeners off in
+        // the middle of the dispatch. A listener removed before it ran is
+        // skipped, so registered after the teardown, nothing was ever
+        // carried across a reload - the one case the history is kept for.
         DevTools.install(this.ctx);
+        this._installUnloadListener();
         this._installScrollListener();
         this._installRouterListener();
       },

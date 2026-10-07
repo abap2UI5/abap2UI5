@@ -12,6 +12,11 @@ Legend
 
 unreleased
 ----------
+* Developer tools: the console log and the roundtrip history are carried across a reload again. The component's own pagehide listener tore the component down first, and its exit took the tools' pagehide listeners off before they had run - only a page entering the back/forward cache ever kept them
+* Formatters: DateAbapDateToDateObject and DateAbapDateTimeToDateObject read a date bound straight from a DATS field - the model carries it as YYYY-MM-DD, and it always came out as no date - and a TIMS time as HH:MM:SS, which came out as an Invalid Date. DateCreateObject reads a bare YYYY-MM-DD as the local day; it was UTC midnight, the previous day anywhere west of Greenwich
+* Model size limits: a limit an app set with cs_event-set_size_limit no longer applies to the next app after a navigation - the new app's tables were capped by a limit it never asked for
+* @abap2ui5/node-runtime: abap2ui5-transpile runs the transpiler through npx on Windows. Without @abaplint/transpiler-cli in the project it stopped with spawnSync npx.cmd EINVAL - Node refuses to start a .cmd without a shell
+* @abap2ui5/node-runtime: abap2ui5-own-apps no longer copies the libraries' source maps into the host's apps folder. The package ships its output without maps, so every library map of the host's transpile was taken for the host's own - some 470 files
 * Keyboard shortcuts: a shortcut registered for the POPUP or POPOVER slot (follow_up_action( cs_event-keyboard_shortcut ) with that scope) sends the dialog's model. It ran on the MAIN controller that registered it and sent the MAIN view's edits only, so what the user had typed into the dialog did not reach the backend - the dialog's own Save button sent it
 * Messages: RAP rows carry their element and action again (t_meta element / action). %ELEMENT-<field> and %OP-%ACTION-<name> were looked up among the row's own component names, which never contain a `-` - they are components of the nested structures %ELEMENT and %OP-%ACTION - so neither was ever found
 * Messages: the types A (abort) and X (exit) are shown as errors, not as information

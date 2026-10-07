@@ -161,9 +161,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
-             `        this._installUnloadListener();` && |\n| &&
-             `` && |\n| &&
              `        DevTools.install(this.ctx);` && |\n| &&
+             `        this._installUnloadListener();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
              `      },` && |\n| &&
