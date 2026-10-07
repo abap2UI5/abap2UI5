@@ -90,6 +90,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      odataClients: new Set(),` && |\n| &&
              `      viewSizeLimits: Object.create(null),` && |\n| &&
              `      treeStates: Object.create(null),` && |\n| &&
+             `      tableStates: Object.create(null),` && |\n| &&
              `      lastError: null,` && |\n| &&
              `` && |\n| &&
              `      onBeforeRoundtrip: [],` && |\n| &&

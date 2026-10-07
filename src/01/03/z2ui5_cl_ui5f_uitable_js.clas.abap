@@ -31,8 +31,9 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, Env, ViewSlots) => {` && |\n| &&
+             `  (Control, Lib, Env, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
@@ -67,6 +68,16 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        const table = this._getTable();` && |\n| &&
              `        this.readFilter(table);` && |\n| &&
              `        this.readSort(table);` && |\n| &&
+             `` && |\n| &&
+             `        const kept = this._tableStates();` && |\n| &&
+             `        const id = this.getProperty("tableId");` && |\n| &&
+             `        if (kept && id) {` && |\n| &&
+             `          kept[id] = { filters: this.aFilters, sorters: this.aSorters };` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _tableStates() {` && |\n| &&
+             `        return Context.of(this)?.state.tableStates ?? null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      applyBackend() {` && |\n| &&
@@ -81,8 +92,19 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `            if (this._pendingTable !== oTable) return;` && |\n| &&
              `            this._applyPending = false;` && |\n| &&
              `            this._pendingTable = null;` && |\n| &&
-             `            this._applyGuarded(oTable, this.aFilters, "_applyFilters");` && |\n| &&
-             `            this._applyGuarded(oTable, this.aSorters, "_applySorters");` && |\n| &&
+             `` && |\n| &&
+             `            const kept =` && |\n| &&
+             `              this._tableStates()?.[this.getProperty("tableId")] ?? {};` && |\n| &&
+             `            this._applyGuarded(` && |\n| &&
+             `              oTable,` && |\n| &&
+             `              this.aFilters ?? kept.filters,` && |\n| &&
+             `              "_applyFilters",` && |\n| &&
+             `            );` && |\n| &&
+             `            this._applyGuarded(` && |\n| &&
+             `              oTable,` && |\n| &&
+             `              this.aSorters ?? kept.sorters,` && |\n| &&
+             `              "_applySorters",` && |\n| &&
+             `            );` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          this._applyPending = false;` && |\n| &&

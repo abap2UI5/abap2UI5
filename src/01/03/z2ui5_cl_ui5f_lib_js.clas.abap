@@ -122,6 +122,33 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    const queue = [];` && |\n| &&
              `    let reading = false;` && |\n| &&
              `    let cancelWait = null;` && |\n| &&
+             `    let deliverId = null;` && |\n| &&
+             `` && |\n| &&
+             `    const deliver = (file, result) => {` && |\n| &&
+             `      if (isDestroyed(owner)) {` && |\n| &&
+             `        reading = false;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (Context.of(owner)?.state.isBusy) {` && |\n| &&
+             `        cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
+             `          cancelWait = null;` && |\n| &&
+             `          deliverId = setTimeout(() => {` && |\n| &&
+             `            deliverId = null;` && |\n| &&
+             `            deliver(file, result);` && |\n| &&
+             `          }, 0);` && |\n| &&
+             `        });` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      onFile(file, result);` && |\n| &&
+             `      step();` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    const step = () => {` && |\n| &&
+             `      cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
+             `        cancelWait = null;` && |\n| &&
+             `        readNext();` && |\n| &&
+             `      });` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    const readNext = () => {` && |\n| &&
              `      const file = queue.shift();` && |\n| &&
@@ -130,19 +157,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      reading = true;` && |\n| &&
-             `      const step = () => {` && |\n| &&
-             `        cancelWait = afterRoundtrip(owner, () => {` && |\n| &&
-             `          cancelWait = null;` && |\n| &&
-             `          readNext();` && |\n| &&
-             `        });` && |\n| &&
-             `      };` && |\n| &&
              `      readFileAsDataURL(` && |\n| &&
              `        file,` && |\n| &&
              `        owner,` && |\n| &&
-             `        (result) => {` && |\n| &&
-             `          onFile(file, result);` && |\n| &&
-             `          step();` && |\n| &&
-             `        },` && |\n| &&
+             `        (result) => deliver(file, result),` && |\n| &&
              `        errorContext,` && |\n| &&
              `` && |\n| &&
              `        readNext,` && |\n| &&
@@ -161,6 +179,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        if (cancelWait) {` && |\n| &&
              `          cancelWait();` && |\n| &&
              `          cancelWait = null;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (deliverId !== null) {` && |\n| &&
+             `          clearTimeout(deliverId);` && |\n| &&
+             `          deliverId = null;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
@@ -402,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function parseDeltaSteps(segs) {` && |\n| &&
+             `  function parseDeltaSteps(segs) {` && |\n|.
+    result = result &&
              `    const steps = [];` && |\n| &&
              `    let i = 0;` && |\n| &&
              `    while (i < segs.length) {` && |\n| &&
@@ -424,8 +447,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
-             `    const delta = {};` && |\n|.
-    result = result &&
+             `    const delta = {};` && |\n| &&
              `    for (const path of paths) {` && |\n| &&
              `      const parts = path.slice(1).split("/");` && |\n| &&
              `      const attr = parts[0];` && |\n| &&

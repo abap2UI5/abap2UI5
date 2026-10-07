@@ -98,6 +98,7 @@ sap.ui.define(
             // here would hand the second app a registry with a prototype again
             state.shortcuts = Object.create(null);
             state.treeStates = Object.create(null);
+            state.tableStates = Object.create(null);
             // ... and the model size limits it set (cs_event-set_size_limit):
             // every model a slot builds takes the stored limit
             // (Slots.applyStoredSizeLimit), so the next app's tables were

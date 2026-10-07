@@ -36,6 +36,13 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `  (Control, Token, Lib, ViewSlots, Env) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    function plainToken(key, text) {` && |\n| &&
+             `      const token = new Token();` && |\n| &&
+             `      token.setKey(key);` && |\n| &&
+             `      token.setText(text);` && |\n| &&
+             `      return token;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const MultiInputExt = Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -130,10 +137,7 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `            return v;` && |\n| &&
              `          })` && |\n| &&
              `          .filter((v) => v !== undefined && v !== "");` && |\n| &&
-             `        return new Token({` && |\n| &&
-             `          key,` && |\n| &&
-             `          text: rest.length ? ``${key}(${rest.join(" ")})`` : key,` && |\n| &&
-             `        });` && |\n| &&
+             `        return plainToken(key, rest.length ? ``${key}(${rest.join(" ")})`` : key);` && |\n| &&
              `      },` && |\n| &&
              `      setControl() {` && |\n| &&
              `        if (this.getProperty("checkInit")) return;` && |\n| &&
@@ -154,16 +158,14 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            if (picked) {` && |\n| &&
              `              if (args.suggestedToken) return args.suggestedToken;` && |\n| &&
-             `              return new Token({` && |\n| &&
-             `                key:` && |\n| &&
-             `                  typeof picked.getKey === "function"` && |\n| &&
-             `                    ? picked.getKey()` && |\n| &&
-             `                    : args.text,` && |\n| &&
-             `                text:` && |\n| &&
-             `                  typeof picked.getText === "function"` && |\n| &&
-             `                    ? picked.getText()` && |\n| &&
-             `                    : args.text,` && |\n| &&
-             `              });` && |\n| &&
+             `              return plainToken(` && |\n| &&
+             `                typeof picked.getKey === "function"` && |\n| &&
+             `                  ? picked.getKey()` && |\n| &&
+             `                  : args.text,` && |\n| &&
+             `                typeof picked.getText === "function"` && |\n| &&
+             `                  ? picked.getText()` && |\n| &&
+             `                  : args.text,` && |\n| &&
+             `              );` && |\n| &&
              `            }` && |\n| &&
              `            return new Token({ key: args.text, text: args.text });` && |\n| &&
              `          };` && |\n| &&

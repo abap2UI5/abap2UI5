@@ -359,3 +359,32 @@ test("exit() detaches the item handlers from the upload set", () => {
   expect(uploadSet.added).toHaveLength(0);
   expect(uploadSet.removed).toHaveLength(0);
 });
+
+// A file that finishes reading while ANOTHER roundtrip is in flight (a click,
+// a timer tick) waits for it: its change event went straight into View1's
+// busy guard and was dropped, and the next file overwrote the properties -
+// three files picked, the middle one never reached the backend.
+test("a file read during another roundtrip is delivered once it lands", async () => {
+  const { makeInstance, readers, state } = load();
+  const inst = makeInstance();
+  inst.fireChange = () => {
+    inst.changes++;
+    state.isBusy = true;
+  };
+
+  inst.onItemAdded(
+    itemEvent({ getFileObject: () => ({ name: "b.pdf", type: "x", size: 1 }) }),
+  );
+  // an unrelated roundtrip is running when the reader finishes
+  state.isBusy = true;
+  readers[0].finish();
+  expect(inst.changes).toBe(0);
+
+  // it lands: View1 runs the hooks and clears the flag
+  for (const fn of [...state.onAfterRendering]) fn();
+  state.isBusy = false;
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  expect(inst.changes).toBe(1);
+  expect(inst._props.fileName).toBe("b.pdf");
+});

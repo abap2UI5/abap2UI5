@@ -146,6 +146,7 @@
 //                     view is ever in here, so nothing app-owned is touched
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
+//   tableStates       filters/sorters per tableId across rebuilds (UITableExt)
 //   lastError         the last fatal error shown by ErrorView (title/text/
 //                     onRetry), so a details view can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
@@ -287,6 +288,7 @@ sap.ui.define([], () => {
       odataClients: new Set(),
       viewSizeLimits: Object.create(null),
       treeStates: Object.create(null),
+      tableStates: Object.create(null),
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)

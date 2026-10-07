@@ -16,9 +16,18 @@ function load({ input } = {}) {
   const errors = [];
   Lib.logError = (m) => errors.push(m);
 
+  // the settings object of a real Token parses a string as binding syntax,
+  // the setters do not - `parsed` records which way a value came in
   class Token {
-    constructor({ key, text }) {
+    constructor(settings) {
+      this.key = settings?.key;
+      this.text = settings?.text;
+      this.parsed = settings !== undefined;
+    }
+    setKey(key) {
       this.key = key;
+    }
+    setText(text) {
       this.text = text;
     }
   }
@@ -367,4 +376,25 @@ test("exit() before setControl, or on a target without detach, is a no-op", () =
   inst.setControl();
   // the stub has no detachTokenUpdate/removeValidator
   expect(() => inst.exit()).not.toThrow();
+});
+
+// A cell's text is data, not binding syntax: through the Token's settings
+// object "Pump {X}" bound to path X, "A{1" threw out of the validator and a
+// backslash vanished. The token takes the text through its setters.
+test("a picked row's cell text with braces and backslashes is taken as is", () => {
+  const target = inputStub();
+  const { makeInstance } = load({ input: target });
+  const inst = makeInstance();
+  inst._props.TokenKeyCell = 0;
+  inst._props.TokenTextCells = "1";
+  inst.setControl();
+
+  const created = target.validators[0]({
+    text: "",
+    suggestionObject: suggestionRow("A{1", "Pump {X} C:\\data"),
+  });
+
+  expect(created.parsed).toBe(false);
+  expect(created.key).toBe("A{1");
+  expect(created.text).toBe("A{1(Pump {X} C:\\data)");
 });
