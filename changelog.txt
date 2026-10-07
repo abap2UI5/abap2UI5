@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+* Custom controls z2ui5.cc.NativeBridgeScan and z2ui5.cc.CameraPicture render a DOM root of their own around their button. Without one UI5 could not find them again to re-render: a later change of text, enabled, visible or width from the model never reached the screen, and a scan button bound to enabled = false still started a scan
+* Custom control z2ui5.cc.CameraSelector reads the cameras again when its dropdown opens and when the browser reports a device change. Read once at start - before the camera permission, when a browser lists each camera without id or label - it kept a single blank entry for good. A camera label is shown as written; one with braces lost them
 * client->nest2_view_display( id = ... ) finds a control of the first nested view, as documented. The parent was looked up in the main view only, where the nested view's controls are not found - the display was discarded with "parent control not found"
 ! z2ui5_if_client documentation: message_box_display( ) without actions shows UI5's default for the type (CLOSE for error, OK and CANCEL for confirm) - not OK alone; its details are shown unfolded, not behind a link; nest_view_display( method_destroy ) removes the control's other content - the previous nested view goes on every call anyway; and the hash and app-state cs_event constants are options of the response that do not run wired into a view
 * Message box: a title or a button text with braces is shown as written. client->message_box_display( ) handed both to UI5 as settings, which it reads as binding syntax - "Total {net}" came out empty and "Price {net" threw, so the box never opened. The pressed action still goes back to the app as it was sent

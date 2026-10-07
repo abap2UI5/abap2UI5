@@ -215,7 +215,8 @@ test("showInBrowser renders the button without a bridge", () => {
   const inst = makeInstance({ showInBrowser: true, text: "Scan Material" });
 
   const out = render(inst);
-  expect(out).toEqual([buttons[0]]);
+  // inside a root of its own, so UI5 finds the control to re-render it
+  expect(out).toEqual(["open:span", buttons[0], "close:span"]);
   expect(buttons[0].text).toBe("Scan Material");
 });
 

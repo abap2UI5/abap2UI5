@@ -289,7 +289,13 @@ sap.ui.define(
             });
           }
           oControl._oButton.setWidth(toCssSize(oControl.getWidth()));
+          // a DOM root of its own around the inner button - see
+          // cc/NativeBridgeScan: without one a model change of visible or
+          // width never re-rendered the control
+          oRm.openStart("span", oControl);
+          oRm.openEnd();
           oRm.renderControl(oControl._oButton);
+          oRm.close("span");
         },
       },
     });

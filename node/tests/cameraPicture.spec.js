@@ -160,9 +160,18 @@ test("the trigger fires press and opens the camera dialog", () => {
   const { makeInstance } = load();
   const inst = makeInstance();
   const rendered = [];
-  inst.renderer.render({ renderControl: (c) => rendered.push(c) }, inst);
+  inst.renderer.render(
+    {
+      openStart: (tag) => rendered.push(`open:${tag}`),
+      openEnd: () => {},
+      close: (tag) => rendered.push(`close:${tag}`),
+      renderControl: (c) => rendered.push(c),
+    },
+    inst,
+  );
 
-  expect(rendered).toEqual([inst._oButton]);
+  // the button inside a root of its own, so UI5 finds the control again
+  expect(rendered).toEqual(["open:span", inst._oButton, "close:span"]);
   inst._oButton.settings.press();
   expect(inst.pressed).toBe(1);
   expect(inst._oScanDialog.opened).toBe(true);
@@ -172,7 +181,10 @@ test("a vetoed press leaves the camera dialog closed", () => {
   const { makeInstance } = load();
   const inst = makeInstance();
   inst.pressVetoed = true;
-  inst.renderer.render({ renderControl: () => {} }, inst);
+  inst.renderer.render(
+    { openStart() {}, openEnd() {}, close() {}, renderControl() {} },
+    inst,
+  );
 
   inst._oButton.settings.press();
   // The backend was still told about the press; only the default action -

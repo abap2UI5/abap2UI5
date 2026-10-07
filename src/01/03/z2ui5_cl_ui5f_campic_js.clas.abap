@@ -268,7 +268,11 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `            });` && |\n| &&
              `          }` && |\n| &&
              `          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));` && |\n| &&
+             `` && |\n| &&
+             `          oRm.openStart("span", oControl);` && |\n| &&
+             `          oRm.openEnd();` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
+             `          oRm.close("span");` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

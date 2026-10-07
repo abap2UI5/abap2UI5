@@ -147,7 +147,15 @@ sap.ui.define(
           oControl._oButton.setText(oControl.getText());
           oControl._oButton.setIcon(oControl.getIcon());
           oControl._oButton.setEnabled(oControl.getEnabled());
+          // a DOM root of its own around the inner button (which is no
+          // aggregation): without one, UI5 could not find this control
+          // again to re-render it - a later text, enabled or visible
+          // change from the model never reached the screen, and a button
+          // bound to enabled = false still started a scan
+          oRm.openStart("span", oControl);
+          oRm.openEnd();
           oRm.renderControl(oControl._oButton);
+          oRm.close("span");
         },
       },
     });
