@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* Keyboard shortcuts (cs_event-keyboard_shortcut): the value still being typed in the focused field travels with the shortcut's event. A text field writes its value on change - blur or Enter - and a Ctrl+S or an F-key pressed while typing came first, so the save ran on the old value. The field is committed the way leaving it would; when its change is itself wired to the backend, the shortcut's event follows that roundtrip instead of being dropped
 * Message box and toast: the onclose event of client->message_box_display( ) and message_toast_display( ) reaches the backend also when the user closes the box while another roundtrip is running - a timer poll, a click. It went into the busy guard and was dropped: the answer to "Delete?" never arrived. It now waits for that roundtrip and follows it
 * Nested views: a second nested view placed inside the first (nest2_view_display with a parent of the first nested view) is cleared with it when the first is displayed again. It stayed registered as a destroyed view, so its scoped keyboard shortcuts still fired and the developer tools still listed it
 * cs_event-clipboard_copy: a text that is valid JSON is copied as that JSON text. The backend embeds such an argument as an object, and the clipboard received "[object Object]" - an app's "copy as JSON" button copied that
