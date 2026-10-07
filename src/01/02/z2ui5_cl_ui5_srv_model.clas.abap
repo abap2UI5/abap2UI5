@@ -1926,13 +1926,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " from a price. get_timestampl parses the spellings Z and +hh:mm.
         " A short TIMESTAMP carries no fraction, and the p-to-p assignment
         " ROUNDS it away - 12:30:59.6 became second 60, a value no timestamp
-        " has; truncated instead, as the instant's second it is. What it cannot read (a negative offset, -05:00,
+        " has; truncated instead, as the instant's second it is. What it
+        " cannot read (a negative offset, -05:00,
         " which a western-hemisphere browser writes) it answers as an
         " initial value WITHOUT raising - assigned unchecked, that zeroed
         " the target with no trace. A non-empty instant that parses to
         " nothing is a refusal like any other conversion failure: the old
         " value stands and t_model_skipped says so
         IF strlen( lv_value ) >= 19 AND lv_value+10(1) = `T`.
+          " the INITIAL timestamp, as ajson writes it - 0000-00-00T00:00:00Z.
+          " It comes back with every edit of a sibling field (an edit below
+          " an attribute sends the attribute whole), and read as an instant
+          " it is nothing: refused, an untouched empty timestamp put a
+          " refusal into t_model_skipped on every roundtrip
+          IF lv_value(10) = `0000-00-00`.
+            CLEAR <comp>.
+            RETURN.
+          ENDIF.
           DATA(lv_ts) = io_delta->get_timestampl( iv_path ).
           IF lv_ts IS INITIAL.
             RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error

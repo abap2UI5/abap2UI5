@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* Model: an empty TIMESTAMP or TIMESTAMPL that the user never touched is no longer refused. ajson writes it as 0000-00-00T00:00:00Z, an edit of a sibling field sends the structure back whole, and read as an instant the value was nothing - so every roundtrip listed the untouched field in t_model_skipped, which an app that checks the list for a complete write-back reads as a failed save
 * Navigation: client->nav_app_call( ) with an app instance that is already on the app stack - nav_app_call( me ), or a called app calling its caller back instead of leaving - makes it a new stack entry. Its own draft was reused: the stack then pointed at itself or round in a circle, Back never reached the first app again and check_app_prev_stack( ) stayed abap_true
 * filter_get_token_t_by_range_t (z2ui5_cl_ui5_util_context): a range on a numeric field gives tokens with the number as it reads - =42 and -5...10, not =42 with a trailing blank and 5-...10
 * _bind( val = ... json = abap_true ): a string that holds no JSON yet - initial, or cleared - travels as null. It was refused like a broken one, and since the model is serialized on every roundtrip, the app failed with "Json parsing error" on every request until the string was filled (a card manifest loaded later)

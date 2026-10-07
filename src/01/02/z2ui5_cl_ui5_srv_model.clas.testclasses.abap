@@ -2387,6 +2387,13 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = lines( lo_model->mt_skipped ) ).
     CLEAR lo_model->mt_skipped.
 
+    " the initial timestamp as ajson writes it is the initial value, not a
+    " refusal - it comes back untouched with every sibling edit
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"0000-00-00T00:00:00Z"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
     " a fraction a short TIMESTAMP cannot carry is cut off, not rounded:
     " rounded, .6 made second 60 - 20240115123060 is no timestamp at all
     lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:59.6Z"}}}` )
