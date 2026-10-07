@@ -404,9 +404,11 @@ INTERFACE z2ui5_if_client
 
   "! The app-state hash: while active, the URL carries the id of the CURRENT
   "! app state (`#/z2ui5-xapp-state=&lt;id&gt;`), advanced on every roundtrip - a
-  "! reload, a bookmark or a shared link restores the exact state (the draft
-  "! the framework persists anyway is the state container, nothing extra is
-  "! stored). abap_false switches the URL tracking off again. Mutually
+  "! reload or a bookmark restores the exact state (the draft the framework
+  "! persists anyway is the state container, nothing extra is stored). A
+  "! draft belongs to the user who created it and lives a few hours: opened
+  "! by another user, or once it expired, the link starts fresh with a toast
+  "! saying so. abap_false switches the URL tracking off again. Mutually
   "! exclusive with hash_routing and hash_attach_changed - each claims the
   "! whole app hash.
   "!
@@ -417,9 +419,10 @@ INTERFACE z2ui5_if_client
       val TYPE abap_bool DEFAULT abap_true.
 
   "! The absolute URL of the CURRENT app state - the link that restores
-  "! exactly this roundtrip's state, FLP-safe: the shell hash of the page
-  "! survives in the link, so the recipient lands in this app instead of on
-  "! the launchpad home page. Composed from the browser's own location
+  "! exactly this roundtrip's state for the same user while its draft lives
+  "! (see app_state_set_active - another user starts fresh), FLP-safe: the
+  "! shell hash of the page survives in the link, so it lands in this app
+  "! instead of on the launchpad home page. Composed from the browser's own location
   "! (origin/pathname/search ride with the requests) plus this response's
   "! draft id. The app owns the string: copy it with
   "! cs_event-clipboard_copy, show it in an Input, mail it, render it as a

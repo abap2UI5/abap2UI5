@@ -12,6 +12,9 @@ Legend
 
 unreleased
 ----------
+* Model: an instant with a fraction of a second bound to a short TIMESTAMP is cut to its second. The assignment rounded it, and 12:30:59.6 became 20240115123060 - second 60, a value no timestamp has. A TIMESTAMPL keeps the fraction as before
+* client->get_app( client->get( )-s_draft-id ) answers the running app. That id is the one of the roundtrip in progress, whose draft is written only when it ends, so the call raised NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND for an id the interface documents
+! z2ui5_if_client: the documentation of app_state_set_active and app_state_get_href says what a shared link does. A draft belongs to the user who created it and expires after a few hours, so the link restores the state for that user; another user, or a link whose draft is gone, starts fresh with a toast. It promised that a shared link restores the exact state for anyone
 * Developer tools: the console log and the roundtrip history are carried across a reload again. The component's own pagehide listener tore the component down first, and its exit took the tools' pagehide listeners off before they had run - only a page entering the back/forward cache ever kept them
 * Formatters: DateAbapDateToDateObject and DateAbapDateTimeToDateObject read a date bound straight from a DATS field - the model carries it as YYYY-MM-DD, and it always came out as no date - and a TIMS time as HH:MM:SS, which came out as an Invalid Date. DateCreateObject reads a bare YYYY-MM-DD as the local day; it was UTC midnight, the previous day anywhere west of Greenwich
 * Model size limits: a limit an app set with cs_event-set_size_limit no longer applies to the next app after a navigation - the new app's tables were capped by a limit it never asked for

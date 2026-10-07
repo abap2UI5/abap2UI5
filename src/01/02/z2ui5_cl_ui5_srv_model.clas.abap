@@ -1895,9 +1895,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
         " ISO instant on the wire; the `T` at offset 10 is what tells it
-        " from a price. get_timestampl parses the spellings Z and +hh:mm,
-        " and the p-to-p assignment drops the fraction a short timestamp
-        " does not carry. What it cannot read (a negative offset, -05:00,
+        " from a price. get_timestampl parses the spellings Z and +hh:mm.
+        " A short TIMESTAMP carries no fraction, and the p-to-p assignment
+        " ROUNDS it away - 12:30:59.6 became second 60, a value no timestamp
+        " has; truncated instead, as the instant's second it is. What it cannot read (a negative offset, -05:00,
         " which a western-hemisphere browser writes) it answers as an
         " initial value WITHOUT raising - assigned unchecked, that zeroed
         " the target with no trace. A non-empty instant that parses to
@@ -1911,6 +1912,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                 val = |MODEL_VALUE_REFUSED - '{ lv_value }' is no timestamp the model can read (only Z and +hh:mm offsets)|.
           ENDIF.
           <comp> = lv_ts.
+          " rounded up: the target has no decimals - take the whole second
+          IF <comp> > lv_ts.
+            <comp> = trunc( lv_ts ).
+          ENDIF.
           RETURN.
         ENDIF.
 

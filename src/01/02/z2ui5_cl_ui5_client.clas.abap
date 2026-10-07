@@ -237,11 +237,15 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_app.
 
-    IF id IS NOT INITIAL.
+    " get( )-s_draft-id is the id minted for THIS roundtrip - its draft is
+    " written only when the roundtrip ends, so loading it raised
+    " NO_DRAFT_ENTRY... for an id the interface lists. It names the running
+    " app, which is what it answers now
+    IF id IS INITIAL OR id = mo_action->mo_app->ms_draft-id.
+      result = get_if_app( ).
+    ELSE.
       DATA(lo_app) = z2ui5_cl_ui5_app_cont=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
-    ELSE.
-      result = get_if_app( ).
     ENDIF.
 
   ENDMETHOD.

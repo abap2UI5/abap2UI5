@@ -2370,6 +2370,15 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = lines( lo_model->mt_skipped ) ).
     CLEAR lo_model->mt_skipped.
 
+    " a fraction a short TIMESTAMP cannot carry is cut off, not rounded:
+    " rounded, .6 made second 60 - 20240115123060 is no timestamp at all
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:59.6Z"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    DATA lv_ts_cut TYPE timestamp VALUE '20240115123059'.
+    cl_abap_unit_assert=>assert_equals( exp = lv_ts_cut
+                                        act = lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
     " refused: the grouped thousands separator, text into a number - the
     " old value stands (on a system the failed conversion clears the target
     " first; the copy in delta_apply_field puts it back), the good cell in

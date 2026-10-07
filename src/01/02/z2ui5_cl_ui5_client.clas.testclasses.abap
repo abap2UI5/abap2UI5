@@ -131,6 +131,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_not_sup FOR TESTING RAISING cx_static_check.
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
+    METHODS test_get_app_own_id FOR TESTING RAISING cx_static_check.
     METHODS test_get_event            FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_set_active FOR TESTING RAISING cx_static_check.
@@ -963,6 +964,24 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " an unbound data reference has no value to copy and must not dump
     cl_abap_unit_assert=>assert_not_bound( mo_action->ms_next-r_data ).
+
+  ENDMETHOD.
+
+  METHOD test_get_app_own_id.
+
+    " get( )-s_draft-id is this roundtrip's id, not saved yet - it names the
+    " running app instead of a draft to load (it raised NO_DRAFT_ENTRY...)
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA li_app TYPE REF TO z2ui5_if_app.
+
+    li_client ?= mo_client.
+    li_app = NEW ltcl_test_app( ).
+    mo_action->mo_app->mo_app = li_app.
+    mo_action->mo_app->ms_draft-id = `THIS_ROUNDTRIP_ID`.
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( li_client->get_app( li_client->get( )-s_draft-id ) = li_app ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( li_client->get_app( ) = li_app ) ).
 
   ENDMETHOD.
 
