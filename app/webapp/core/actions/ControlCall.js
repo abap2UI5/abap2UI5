@@ -360,11 +360,22 @@ sap.ui.define(
       "opacity",
     ];
 
+    // Whether the link leaves the app, asked of the URL PARSER, not of the
+    // spelling: resolved against a placeholder origin, an in-app link (#/x,
+    // /path, ?q=) keeps it, and anything that leaves - a scheme, //host -
+    // does not. A pattern on the raw string let through what the browser
+    // reads differently: "/\\evil.com" and "\\\\evil.com" are //evil.com to
+    // it, a leading control character or a line break inside "java
+    // script:" is dropped before the scheme is read. Unparseable counts as
+    // leaving.
+    const URL_PROBE_BASE = "https://z2ui5.invalid/";
     function isAbsoluteUrl(url) {
-      const s = String(url ?? "").trim();
-      // a scheme ("http:", "mailto:", "javascript:") or a protocol-relative
-      // "//host" - everything else resolves against the app's own origin
-      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");
+      try {
+        const base = new URL(URL_PROBE_BASE);
+        return new URL(String(url ?? ""), base).origin !== base.origin;
+      } catch {
+        return true;
+      }
     }
 
     // A method LISTED above carries explicit arg kinds (and some, like openBy/

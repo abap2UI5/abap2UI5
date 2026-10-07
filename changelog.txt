@@ -12,6 +12,10 @@ Legend
 
 unreleased
 ----------
+* MessagePopover link policy RELATIVE_ONLY (CONTROL_BY_ID setAsyncURLHandler) asks the URL parser whether a link leaves the app. A pattern on the spelling let through what the browser reads as another host or scheme - /\evil.com, \\evil.com, a leading control character, a line break inside javascript: - and a message description could carry a working link off the site
+* URLHELPER REDIRECT with NEW_WINDOW opens the target with noopener,noreferrer. URLHelper.redirect opens it without on UI5 1.71 - 1.83, and since this redirect may leave the origin, the foreign page got window.opener and could navigate the app's tab
+* Error dialog: an error text with braces - a JSON snippet, a binding error - is shown as it is. Each line was handed to its Text as a setting, which UI5 reads as binding syntax: {...} vanished, {= } was evaluated, and an unbalanced { threw, so the user got the raw fallback overlay
+* Start page: the sample repository links are written as literal values. They carry the page's own query and hash, where a browser leaves { and } unencoded, so a crafted link read them as a binding and could break the start page
 * Message box: data with a column called ID - the key of most business tables - is shown as data again. client->message_box_display( ) took any ID for a T100 message class, assembled `I:0001:` per row and showed "2 Messages found" instead of the table; a message is built from a class only together with its number now
 * Message box: a negative number shown as data carries its sign in front - -5, -12.50 - instead of behind it (5-, 12.50-)
 * check_queue_last: a keystroke typed into a popup that the response then closed is dropped, as documented. The popup's controller outlives the popup, so the check let it through, and an event for a closed screen went out without a model

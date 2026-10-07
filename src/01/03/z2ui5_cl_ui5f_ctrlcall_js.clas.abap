@@ -206,10 +206,14 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "opacity",` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
+             `    const URL_PROBE_BASE = "https://z2ui5.invalid/";` && |\n| &&
              `    function isAbsoluteUrl(url) {` && |\n| &&
-             `      const s = String(url ?? "").trim();` && |\n| &&
-             `` && |\n| &&
-             `      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");` && |\n| &&
+             `      try {` && |\n| &&
+             `        const base = new URL(URL_PROBE_BASE);` && |\n| &&
+             `        return new URL(String(url ?? ""), base).origin !== base.origin;` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return true;` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const CONTROL_METHOD_DENY_EXACT = [` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          } catch {` && |\n| &&
              `            Lib.logError(``CONTROL_CALL: malformed object argument '${raw}'``);` && |\n| &&
              `            return {};` && |\n| &&
-             `          }` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function castArgAuto(raw) {` && |\n| &&
              `      if (raw === "X" || raw === "true") return true;` && |\n| &&

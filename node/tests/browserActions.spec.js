@@ -628,12 +628,34 @@ test.describe("URLHELPER", () => {
     handlers.URLHELPER(null, [
       "URLHELPER",
       "REDIRECT",
-      { URL: "https://help.sap.com/abap2ui5", NEW_WINDOW: true },
+      { URL: "https://help.sap.com/abap2ui5" },
     ]);
 
     expect(boxErrors).toHaveLength(0);
     expect(urlHelperCalls).toEqual([
-      ["redirect", "https://help.sap.com/abap2ui5", true],
+      ["redirect", "https://help.sap.com/abap2ui5", false],
+    ]);
+  });
+
+  // URLHelper.redirect( url, true ) opens the window without noopener on
+  // 1.71 - 1.83, and the target may be another origin: it would get
+  // window.opener and could navigate this tab
+  test("REDIRECT into a new window severs the opener", () => {
+    const { handlers, urlHelperCalls, opened } = load();
+
+    handlers.URLHELPER(null, [
+      "URLHELPER",
+      "REDIRECT",
+      { URL: "https://help.sap.com/abap2ui5", NEW_WINDOW: true },
+    ]);
+
+    expect(urlHelperCalls).toEqual([]);
+    expect(opened).toEqual([
+      {
+        url: "https://help.sap.com/abap2ui5",
+        target: "_blank",
+        features: "noopener,noreferrer",
+      },
     ]);
   });
 

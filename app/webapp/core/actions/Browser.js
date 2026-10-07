@@ -300,7 +300,16 @@ sap.ui.define(
             );
             return;
           }
-          _URLHelper.redirect(params.URL, params.NEW_WINDOW);
+          // a new window opened by URLHelper.redirect keeps window.opener
+          // on 1.71 - 1.83 (it calls window.open( url, "_blank" ) bare),
+          // and this is the one redirect that may leave the origin: the
+          // foreign page could navigate THIS tab (reverse tabnabbing). Opened
+          // the way OPEN_NEW_TAB opens, on every release
+          if (params.NEW_WINDOW) {
+            window.open(params.URL, "_blank", "noopener,noreferrer");
+            return;
+          }
+          _URLHelper.redirect(params.URL, false);
         },
         TRIGGER_EMAIL: () =>
           _URLHelper.triggerEmail(

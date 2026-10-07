@@ -2398,6 +2398,18 @@ test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", ()
       allowed: false,
       id: "msg1",
     });
+    // what the browser's URL parser reads as leaving, whatever the spelling:
+    // a backslash is a slash to it, a leading control character and a line
+    // break inside the scheme are dropped
+    for (const url of [
+      "/\\evil.com/x",
+      "\\\\evil.com",
+      "\x01https://evil.com",
+      "java\nscript:alert(1)",
+    ]) {
+      expect(oPopover.ask(url).allowed).toBe(false);
+    }
+    expect(oPopover.ask("?q=1").allowed).toBe(true);
   });
 
   test("ALLOW_ALL and DENY_ALL are unconditional", () => {

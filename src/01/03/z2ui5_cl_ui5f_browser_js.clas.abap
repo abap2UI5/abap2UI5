@@ -227,7 +227,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          _URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
+             `` && |\n| &&
+             `          if (params.NEW_WINDOW) {` && |\n| &&
+             `            window.open(params.URL, "_blank", "noopener,noreferrer");` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          _URLHelper.redirect(params.URL, false);` && |\n| &&
              `        },` && |\n| &&
              `        TRIGGER_EMAIL: () =>` && |\n| &&
              `          _URLHelper.triggerEmail(` && |\n| &&

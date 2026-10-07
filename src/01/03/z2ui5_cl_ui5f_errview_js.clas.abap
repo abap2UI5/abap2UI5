@@ -255,7 +255,8 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
              `` && |\n| &&
              `      const content = message.split("\n").map((line) => {` && |\n| &&
-             `        const text = new Text({ text: line });` && |\n| &&
+             `        const text = new Text();` && |\n| &&
+             `        text.setText(line);` && |\n| &&
              `` && |\n| &&
              `        if (typeof text.setRenderWhitespace === "function") {` && |\n| &&
              `          text.setRenderWhitespace(true);` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_errview_js IMPLEMENTATION.
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
-             `    errorContainer.setAttribute("aria-modal", "true");` && |\n| &&
-             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n|.
+             `    errorContainer.setAttribute("aria-modal", "true");` && |\n|.
     result = result &&
+             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n| &&
              `` && |\n| &&
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
