@@ -1065,7 +1065,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1203,6 +1203,16 @@ break one of those four.
   throws `round(), todo, handle decimals` for any `dec` other than 0 -
   still the version the MCP server's Node backend installs). Use `round( )`
   where the scale of the result does not matter.
+- **A time or date assigned to a number keeps its digits in the runtime.**
+  `lv_secs = lv_time.` (`t` into `i`) is the seconds since midnight on a
+  system, and `235930` under `npm run unit` - the same for `int8`, `p` and
+  `f`, and for a `d` source (the digits instead of the day count).
+  Arithmetic is right (`lv_date_to - lv_date_from`), and so is the other
+  direction (`t = i`). Found 2026-10-08 in abap2UI5-addons/admin-cockpit,
+  whose test across midnight answered -149490 instead of 70. Compute the
+  seconds from the parts, `lv_time(2) * 3600 + lv_time+2(2) * 60 +
+  lv_time+4(2)`, which is right on both. **Gate: open** - the source type of
+  an assignment is a question for abaplint, not a regex.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a
