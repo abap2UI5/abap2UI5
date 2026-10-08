@@ -1195,6 +1195,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
         act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+    " a LISTED boolean is dropped when false - ajson writes abap_false as the
+    " literal `false`, never empty, and an emptiness test used to keep it
+    " (samples-controls app 241 lists EXPANDED for exactly this) - and kept
+    " when true
+    li_filter = NEW lcl_initial_paths_filter( VALUE #( ( `EXPANDED` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `false` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `true` ) ) ).
     " an object/array visit always passes, or the row around a dropped field would go
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
@@ -1214,6 +1225,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
         price  TYPE p LENGTH 9 DECIMALS 2,
         weight TYPE f,
         count  TYPE i,
+        " abap_false is initial too - ajson writes it as `false`, which an
+        " emptiness test used to keep
+        flag   TYPE abap_bool,
       END OF ty_s_row.
 
     DATA(ls_row) = VALUE ty_s_row( name = `A` ).

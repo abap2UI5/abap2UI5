@@ -951,8 +951,9 @@ INTERFACE z2ui5_if_client
   "!                                ABAP side when row n is missing - seed the
   "!                                table before building the view.
   "! @parameter omit_initial       | keep INITIAL fields out of the serialized
-  "!                                model instead of sending them as `` / 0. An
-  "!                                ABAP field is never absent - it is initial -
+  "!                                model instead of sending them as `` / 0 /
+  "!                                false. An ABAP field is never absent - it is
+  "!                                initial -
   "!                                so by default every field reaches the client
   "!                                as an explicit value, which overrides the UI5
   "!                                property default the original view relies on
