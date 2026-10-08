@@ -1066,7 +1066,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-downport-elseif-line-exists-subrc
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1211,6 +1211,16 @@ break one of those four.
   parsing found 1 of 3 business objects. Take the offset from
   `find( val = … sub = … occ = -1 )`, which the runtime does resolve, and cut
   with `substring( )`. **Gate: open.**
+- **`REPLACE ... OF ... WITH` reads its WITH text like a regex replacement in
+  the runtime.** `REPLACE ALL OCCURRENCES OF '{' IN s WITH '\{'` leaves `{`
+  under `npm run unit` (the backslash of `\{`, `\}`, `\$` is dropped), and
+  `$&` / `$$` in the WITH text become the match / `$` - on a system the text is
+  inserted as written. The built-in `replace( sub = … with = … )` keeps the
+  backslash but has the same `$` patterns. Found 2026-10-08 in
+  abap2UI5-addons/admin-cockpit, whose brace escaping for a UI5 attribute
+  could not be tested - and a double escape broke a popup on a real system
+  unnoticed. Escape for UI5 with `replace( … occ = 0 )` (abap2UI5's
+  `escape_literal` does), keep `$` out of literal WITH texts. **Gate: open.**
 - **A `line_exists( )` in an `ELSEIF` is moved in front of the `IF` by the
   downport** - as a `READ TABLE … TRANSPORTING NO FIELDS`, which sets
   `sy-subrc`. An `IF sy-subrc <> 0.` after an earlier `READ` then tests the
