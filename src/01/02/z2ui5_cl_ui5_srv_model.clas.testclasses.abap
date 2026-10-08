@@ -2615,10 +2615,11 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
     DATA lv_date TYPE d VALUE '20240229'.
     DATA lv_time TYPE t VALUE '235959'.
-    " a whole hour on purpose: the transpiled runtime converts an ISO
-    " instant into a TIMESTAMPL through a float, so 23:59:59 came back as
-    " 23:59:58.9986304 and ajson's to_timestamp refused the fraction - a
-    " gap of the JS runtime (a system converts exactly), not of this class
+    " a whole hour on purpose: the transpiled runtime copies one packed
+    " field into another through a JS double, so ajson's TIMESTAMPL for
+    " 23:59:59 came back as 23:59:58.9986304 and its to_timestamp refused
+    " the fraction - a gap of the JS runtime (a system copies exactly), not
+    " of this class; abap-check section 4, backlog runtime-packed-copy-precision
     DATA lv_ts   TYPE timestamp VALUE '20240229120000'.
 
     DATA(lo_app) = typed_app( ).

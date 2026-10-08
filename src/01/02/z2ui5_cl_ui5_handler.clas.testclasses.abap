@@ -400,6 +400,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_model_no_wrap FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_device_os FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_number_too_big FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
@@ -622,6 +623,39 @@ CLASS ltcl_01_request IMPLEMENTATION.
                                         act = ls_request-s_front-s_ui5-build_timestamp ).
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
                                         act = ls_request-s_front-s_ui5-theme ).
+
+  ENDMETHOD.
+
+  METHOD test_parse_number_too_big.
+
+    " a number type i cannot take, in one of the diagnostic numbers of the
+    " CONFIG block, is dropped like a missing one - it raised a conversion
+    " error out of the parse and ended the roundtrip in a 500. 1e10 is the
+    " overflow a system raises on (the transpiled runtime does not check the
+    " range of i, so its value is not asserted here); 1e-7, the way
+    " JSON.stringify writes a tiny fraction, is no number for i in the
+    " runtime - the case that fails there without the guard
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"S_DEVICE":{"RESIZE":{"WIDTH":1e10,"HEIGHT":800}},` &&
+                 `"S_FOCUS":{"ID":"in","SELECTION_START":1e-7,"SELECTION_END":3},` &&
+                 `"S_SCROLL":{"MAIN":{"ID":"page","X":1e-7,"Y":1e10}}}}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `ABC123`
+                                        act = ls_request-s_front-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 800
+                                        act = ls_request-s_front-s_device-resize-height ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_focus-selection_start ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = ls_request-s_front-s_focus-selection_end ).
+    cl_abap_unit_assert=>assert_equals( exp = `page`
+                                        act = ls_request-s_front-s_scroll-main-id ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_scroll-main-x ).
 
   ENDMETHOD.
 
@@ -1337,6 +1371,7 @@ CLASS ltcl_02_response DEFINITION FINAL INHERITING FROM ltcl_00_base
   PRIVATE SECTION.
     METHODS test_response_json FOR TESTING RAISING cx_static_check.
     METHODS test_response_no_model FOR TESTING RAISING cx_static_check.
+    METHODS test_response_control_chars FOR TESTING RAISING cx_static_check.
     METHODS test_response_actions_embedded FOR TESTING RAISING cx_static_check.
     METHODS test_view_update_flag FOR TESTING RAISING cx_static_check.
     METHODS test_view_update_popup FOR TESTING RAISING cx_static_check.
@@ -1403,6 +1438,26 @@ CLASS ltcl_02_response IMPLEMENTATION.
     ls_response-model = `{}`.
     lv_json = lo_handler->response_abap_to_json( ls_response ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `MODEL` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_response_control_chars.
+
+    " a bound string carrying U+0001 must leave as JSON the browser can
+    " parse: JSON.parse refuses a raw control character inside a string,
+    " and with it the whole response
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
+    lo_handler = NEW #( val = `` ).
+    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `01` ) ).
+    ls_response-s_front-id = `ID123`.
+    ls_response-model      = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/NAME`
+                                                                   iv_val  = `a` && lv_ctrl && `b` )->stringify( ).
+
+    DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CA lv_ctrl ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"MODEL":{"NAME":"a\u0001b"}` ) ).
 
   ENDMETHOD.
 

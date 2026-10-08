@@ -1066,7 +1066,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-downport-elseif-line-exists-subrc
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1241,6 +1241,25 @@ break one of those four.
   seconds from the parts, `lv_time(2) * 3600 + lv_time+2(2) * 60 +
   lv_time+4(2)`, which is right on both. **Gate: open** - the source type of
   an assignment is a question for abaplint, not a regex.
+- **A packed value with more than 15 significant digits loses its last
+  digits when it is assigned to another packed field in the runtime.** A
+  `timestampl` (`p LENGTH 11 DECIMALS 7`, 21 digits) set from a string is
+  exact, but `lv_b = lv_a.` copies it through a JS double, so
+  `20240229235959` becomes `20240229235958.9986304` and `...123000`
+  becomes `...122999.9988736` - only values the double happens to hold
+  exactly, a whole hour among them, survive. A system copies the digits.
+  ajson's `to_timestampl` returns its result by such a copy, so its
+  `to_timestamp` finds a fraction in `|{ lv_timestampl }|` and raises
+  *Unexpected timestamp format*: `get_timestamp( )` answers 0, and a bound
+  table with a `TIMESTAMP` column holding `23:59:59` is refused whole on its
+  way back in (`to_abap`) under `npm run unit` and in the node runtime.
+  Found 2026-10-08 by the date round trip of `z2ui5_cl_ui5_srv_model`'s test
+  class, which uses a whole hour for that reason. Measured on
+  `@abaplint/runtime` 2.13.99 and 2.14.0 (`Packed.set( )` hands another
+  `Packed` to `this.set(value.get())`, and `get( )` is a `Number`). In a
+  test, pick a value the double holds - a whole hour - and never conclude
+  from a runtime run that such a copy is wrong on a system. **Gate: open** -
+  the fix belongs in the runtime.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

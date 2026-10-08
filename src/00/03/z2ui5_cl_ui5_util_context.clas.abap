@@ -2303,9 +2303,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " the box takes its type/title from the FIRST message, also when several
-    " are collapsed into one box below
-    DATA(lv_type) = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+    " the box takes its type/title from the MOST SEVERE message, also when
+    " several are collapsed into one box below: a warning followed by an
+    " error is an error box (it took the first message's type until
+    " 2026-10, which opened [W, E] as a warning). Error over warning over
+    " success and information, which rank the same - the first of them wins
+    DATA(lv_type) = ``.
+    DATA(lv_rank) = -1.
+    LOOP AT lt_msg REFERENCE INTO DATA(lr_type).
+      DATA(lv_type_row) = ui5_get_msg_type( lr_type->type ).
+      DATA(lv_rank_row) = COND i( WHEN lv_type_row = cs_ui5_msg_type-e THEN 2
+                                  WHEN lv_type_row = cs_ui5_msg_type-w THEN 1
+                                  ELSE 0 ).
+      IF lv_rank_row > lv_rank.
+        lv_rank = lv_rank_row.
+        lv_type = lv_type_row.
+      ENDIF.
+    ENDLOOP.
     result-title = lv_type.
     result-type  = to_lower( lv_type ).
 
@@ -2314,8 +2328,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " several messages: a counting headline plus every text as a bullet
-    result-text = | { lv_lines } Messages found: |.
+    " several messages: a counting headline plus every text as a bullet. No
+    " blank around it - the box shows the text as written, and the template
+    " used to carry one on either side
+    result-text = |{ lv_lines } Messages found:|.
     DATA lt_detail_items TYPE string_table.
     " the texts are data inside markup, escaped like every sibling renderer
     " escapes its values: unescaped, `Enter a value for <MATNR>` lost its

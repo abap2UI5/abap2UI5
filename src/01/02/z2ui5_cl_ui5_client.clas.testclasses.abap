@@ -469,8 +469,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_message_box_messages.
 
     " a message table: one box for all of them, its type and title taken
-    " from the first message, every text a bullet of the details - escaped,
-    " so a field name in angle brackets and a quote survive as text
+    " from the most severe message, every text a bullet of the details -
+    " escaped, so a field name in angle brackets and a quote survive as text
     TYPES:
       BEGIN OF ty_s_msg,
         type    TYPE string,
@@ -481,20 +481,21 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
 
     li_client ?= mo_client.
-    lt_msg = VALUE #( ( type = `E` message = `Enter a value for <MATNR>` )
-                      ( type = `W` message = `Plant "1000" & more` ) ).
+    " the warning first: the error behind it still makes it an error box
+    lt_msg = VALUE #( ( type = `W` message = `Plant "1000" & more` )
+                      ( type = `E` message = `Enter a value for <MATNR>` ) ).
 
     li_client->message_box_display( lt_msg ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","error"," 2 Messages found: ",` &&
-              `{"details":"<ul><li>Enter a value for &lt;MATNR&gt;</li>` &&
-              `<li>Plant &quot;1000&quot; &amp; more</li></ul>","title":"Error"}]`
+        exp = `["MESSAGE_BOX","error","2 Messages found:",` &&
+              `{"details":"<ul><li>Plant &quot;1000&quot; &amp; more</li>` &&
+              `<li>Enter a value for &lt;MATNR&gt;</li></ul>","title":"Error"}]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
     " one message is the text itself, and a title the app passes wins
     CLEAR mo_action->ms_next-s_action-t_custom.
-    DELETE lt_msg INDEX 1.
+    DELETE lt_msg INDEX 2.
     li_client->message_box_display( text  = lt_msg
                                     title = `Check` ).
 

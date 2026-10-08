@@ -104,7 +104,10 @@ Quick orientation while it loads:
   `_bind_edit` is obsolete). Row-template fields bind as `` `{UPPERCASE}` ``.
   Never write a model path as a text literal.
 - Events: `client->_event( `NAME` )`, dispatch via
-  `CASE client->get_event( ).`; client-resolved args are `$`-prefixed.
+  `CASE client->get_event( ).`; client-resolved args are `$`-prefixed. An
+  arg that carries data (user text, a foreign key) goes on a wire with
+  `s_ctrl-check_arg_literal = abap_true` — otherwise a value starting with
+  `$` or `{` is evaluated by the client instead of passed (guide, section 5).
   Changed bound data is pushed automatically — `view_model_update( )` is
   obsolete, does nothing, and gets deleted whenever you touch an app.
 - **A per-keystroke wire (`liveChange`, `liveSearch`, `sliderChange`) sets

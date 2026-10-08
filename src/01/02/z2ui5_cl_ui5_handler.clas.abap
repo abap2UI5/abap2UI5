@@ -281,6 +281,17 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! A number of the request that the app only reads as a diagnostic -
+    "! the device size, the caret, a scroll offset, the browser's last
+    "! roundtrip time. Initial when the node is missing, of another type,
+    "! or a number type i cannot hold (see the method body)
+    CLASS-METHODS request_get_int
+      IMPORTING
+        io_json       TYPE REF TO z2ui5_if_ajson
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE i.
+
     "! one scroll position of S_SCROLL, iv_path naming its slot node
     METHODS scroll_pos_read
       IMPORTING
@@ -475,11 +486,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     " a diagnostic the browser sends for the monitor - a value that does not
     " read as a non-negative integer is dropped, never the request
-    TRY.
-        result-s_front-ms_client_prev = lo_ajson->get_integer( lv_front && `/MS_CLIENT_PREV` ).
-      CATCH cx_root.
-        CLEAR result-s_front-ms_client_prev.
-    ENDTRY.
+    result-s_front-ms_client_prev = request_get_int( io_json = lo_ajson
+                                                     iv_path = lv_front && `/MS_CLIENT_PREV` ).
     IF result-s_front-ms_client_prev < 0.
       CLEAR result-s_front-ms_client_prev.
     ENDIF.
@@ -515,16 +523,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     cs_front-s_device-browser-version = io_json->get_string( lv_device && `/BROWSER/VERSION` ).
     cs_front-s_device-os-name         = device_os_name( io_json->get_string( lv_device && `/OS/NAME` ) ).
     cs_front-s_device-os-version      = io_json->get_string( lv_device && `/OS/VERSION` ).
-    cs_front-s_device-resize-width    = io_json->get_integer( lv_device && `/RESIZE/WIDTH` ).
-    cs_front-s_device-resize-height   = io_json->get_integer( lv_device && `/RESIZE/HEIGHT` ).
+    cs_front-s_device-resize-width    = request_get_int( io_json = io_json
+                                                         iv_path = lv_device && `/RESIZE/WIDTH` ).
+    cs_front-s_device-resize-height   = request_get_int( io_json = io_json
+                                                         iv_path = lv_device && `/RESIZE/HEIGHT` ).
     cs_front-s_device-support-touch   = io_json->get_boolean( lv_device && `/SUPPORT/TOUCH` ).
     cs_front-s_device-support-pointer = io_json->get_boolean( lv_device && `/SUPPORT/POINTER` ).
     cs_front-s_device-support-retina  = io_json->get_boolean( lv_device && `/SUPPORT/RETINA` ).
 
     DATA(lv_focus) = iv_config && `/S_FOCUS`.
     cs_front-s_focus-id              = io_json->get_string( lv_focus && `/ID` ).
-    cs_front-s_focus-selection_start = io_json->get_integer( lv_focus && `/SELECTION_START` ).
-    cs_front-s_focus-selection_end   = io_json->get_integer( lv_focus && `/SELECTION_END` ).
+    cs_front-s_focus-selection_start = request_get_int( io_json = io_json
+                                                        iv_path = lv_focus && `/SELECTION_START` ).
+    cs_front-s_focus-selection_end   = request_get_int( io_json = io_json
+                                                        iv_path = lv_focus && `/SELECTION_END` ).
 
     DATA(lv_scroll) = iv_config && `/S_SCROLL`.
     cs_front-s_scroll-main    = scroll_pos_read( io_json = io_json
@@ -570,11 +582,29 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD request_get_int.
+
+    " ajson's get_integer assigns the node's text to the integer, so a number
+    " the browser can write and type i cannot hold - 1e10, 3000000000 -
+    " raised a conversion error out of the parse, and the whole roundtrip
+    " ended in a 500 over a scroll offset or a window width. These numbers
+    " only inform the app; a value that does not fit is dropped like a
+    " missing one, never the request
+    TRY.
+        result = io_json->get_integer( iv_path ).
+      CATCH cx_root.
+        CLEAR result.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD scroll_pos_read.
 
     result-id = io_json->get_string( iv_path && `/ID` ).
-    result-x  = io_json->get_integer( iv_path && `/X` ).
-    result-y  = io_json->get_integer( iv_path && `/Y` ).
+    result-x  = request_get_int( io_json = io_json
+                                 iv_path = iv_path && `/X` ).
+    result-y  = request_get_int( io_json = io_json
+                                 iv_path = iv_path && `/Y` ).
 
   ENDMETHOD.
 
@@ -953,6 +983,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         result = COND #( WHEN val-model IS INITIAL OR val-model = `{}`
                          THEN |\{"S_FRONT":{ lv_frontend }\}|
                          ELSE |\{"S_FRONT":{ lv_frontend },"MODEL":{ val-model }\}| ).
+
+        " the one door to the browser's JSON.parse: a raw U+0001 in a bound
+        " value would make it refuse the whole response - see escape_controls
+        result = z2ui5_cl_ui5_util_json_fl=>escape_controls( result ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error

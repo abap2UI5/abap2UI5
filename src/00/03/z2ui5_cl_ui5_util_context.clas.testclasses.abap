@@ -1285,7 +1285,7 @@ CLASS ltcl_msg IMPLEMENTATION.
   METHOD test_box_multiple.
 
     " several messages collapse into a count plus an HTML list, and the box
-    " takes its severity from the first message
+    " takes its severity from the most severe message, not the first
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
     lt_msg = VALUE #( ( text = `first`  type = `W` )
@@ -1294,8 +1294,23 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Warning`
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
                                         act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `error`
+                                        act = ls_box-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `2 Messages found:`
+                                        act = ls_box-text ).
+
+    " a warning outranks success and information wherever it stands, and
+    " between those two the first one decides
+    lt_msg = VALUE #( ( text = `a` type = `S` )
+                      ( text = `b` type = `I` )
+                      ( text = `c` type = `W` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `warning`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
+    DELETE lt_msg INDEX 3.
+    cl_abap_unit_assert=>assert_equals( exp = `success`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).

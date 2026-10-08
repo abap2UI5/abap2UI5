@@ -12,6 +12,9 @@ Legend
 
 unreleased
 ----------
+* Response: a bound value carrying a control character other than tab, line feed and carriage return (U+0001, a form feed out of a legacy long text) leaves as a \u00XX escape. It left raw - of the control characters ajson escapes only those three - and the browser's JSON.parse refused the whole response
+* client->message_box_display( ) with a message table: the box takes its type and title from the most severe message (error, then warning, then success or information), not from the first - [W, E] opened as a warning. The headline reads "2 Messages found:" without the blank on either side
+* Request: a device size, caret position or scroll offset the browser writes in a form type i cannot take (1e10, 1e-7) is read as 0 instead of ending the roundtrip in a 500
 * Keyboard shortcuts (cs_event-keyboard_shortcut): a key the keyboard layout only types with Shift - Ctrl++ and ? on a US layout, the digits on AZERTY - fires its shortcut. The keydown carried the Shift and never matched the registered combination; a letter keeps Shift apart (Ctrl+Shift+S is not Ctrl+S) and an explicit Shift+ registration still wins
 * Custom control z2ui5.cc.MessageManager: a row with an empty TYPE is shown as an error, as intended. ABAP sends the unfilled column as an empty string, which never reached the default and became a message of type None
 * cs_event-filter_bar_variant_init: the filter count of the bar includes a filled filter of the basic group (filterItems). Only the filterGroupItems were counted, although the variant stored both
