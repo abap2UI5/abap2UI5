@@ -1439,6 +1439,35 @@ precisely because no gate will catch it.
   (`cl_abap_tabledescr->table_kind`) BEFORE the ASSIGN
   (`z2ui5_cl_ui5_srv_model=>check_table_standard`); the skip entry is gone.
 
+### A sorted-table line by field symbol is not a CHANGING parameter
+
+`abap2UI5-addons/admin-cockpit` did not start on a user's system (2026-10-08):
+
+```
+Call of the method ADD_SUM of the class Z2UI5_CL_COCKPIT_STATS has failed;
+the actual parameter for CS_SUM is write-protected
+```
+
+That is `CX_SY_DYN_CALL_ILLEGAL_TYPE`, raised on the initial rendering. Five
+methods grouped rows in a `SORTED TABLE … WITH UNIQUE KEY app`, reached the
+group with `READ TABLE … ASSIGNING <sum>` (or `INSERT … ASSIGNING <sum>`)
+and called `add_sum( CHANGING cs_sum = <sum> )`. Through a field symbol, the
+key components of a sorted or hashed line are write-protected. The whole line
+is therefore no actual parameter for `CHANGING`, even when the callee writes
+only non-key components. Writing `<sum>-cnt` directly is fine.
+
+- **Fix:** read the line `INTO` a work area, call with the work area, then
+  `MODIFY TABLE itab FROM wa` (`abap2UI5-addons/admin-cockpit#10`). Or pass
+  only the non-key components the callee changes.
+- **Why nothing caught it:** the class activated, so the system's syntax
+  check accepts it. abaplint 2.120.64 reports nothing with every default
+  rule on. The transpiled runtime runs the call (a test method with the same
+  shape passes in `npm run unit`). Only a run on a system shows it.
+- **Gate:** none. A script would need the table kind behind the field symbol,
+  which is a type question for abaplint, not a regex.
+
+**Backlog:** abaplint · abaplint-sorted-line-changing-param
+
 ## 6. Blind spots — green, or red, for the wrong reason
 
 **Gate: none, and that is the definition.** An entry lands in this section
