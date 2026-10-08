@@ -1143,7 +1143,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     IF ms_request-s_front-id IS NOT INITIAL.
       mo_action = mo_action->factory_by_frontend( ).
 
-    ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
+    " an app-state bookmark is a first start too when the URL names no
+    " app: app_state_get_href keeps the page's own query, and a session
+    " that reached its app by navigation (the start page, nav_app_call)
+    " has no ?app_start= in it - such a link used to open the start page
+    " and drop the saved state without a word
+    ELSEIF ms_request-s_control-app_start IS NOT INITIAL
+        OR ms_request-s_control-app_start_draft IS NOT INITIAL.
       z2ui5_cl_ui5_srv_draft=>get_instance( )->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
@@ -1459,6 +1465,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mv_model_before = mo_action->mo_app->mv_model_client.
     ELSE.
       mv_model_before = mo_action->mo_app->model_json_stringify( ).
+      " ... and kept on the app: it IS what the client holds now. Left
+      " empty, a nav_app_call in this main( ) saved the caller's draft
+      " without it (prepare_app_stack), and on the way back the caller's
+      " CURRENT state stood in for what the browser shows - a bound value
+      " the caller changed right before the hop was never pushed
+      mo_action->mo_app->mv_model_client = mv_model_before.
     ENDIF.
     mv_model_before_taken = abap_true.
 

@@ -617,9 +617,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `color`  v = c_icon_color
         )->a( n = `class`  v = `sapUiTinyMarginEnd` ).
 
+    " t, not v, for the href - see render_start: the sample links are
+    " built from the page's own URL (get_app_url), and a browser leaves
+    " `{` and `}` in a query or hash unencoded, so a link carrying them
+    " was read as a binding and could take the start page's view down
     result->tag( `Link`
         )->a( n = `text`   v = text
-        )->a( n = `href`   v = href
+        )->a( n = `href`   t = href
         )->a( n = `width`  v = c_link_width ).
 
     " the Link is still the last child, so this attribute lands on it
@@ -784,7 +788,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     form->tag( `Link`
         )->a( n = `text`    v = text
         )->a( n = `target`  v = `_blank`
-        )->a( n = `href`    v = href ).
+        )->a( n = `href`    t = href ).
 
   ENDMETHOD.
 

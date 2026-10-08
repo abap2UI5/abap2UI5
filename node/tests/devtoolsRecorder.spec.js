@@ -418,6 +418,18 @@ test.describe("model diff", () => {
     expect(diff).toContain("after:  z");
   });
 
+  test("a response without a MODEL changed nothing - it is not compared", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    recordTwo(h, { NAME: "a" }, { NAME: "b" });
+    h.state.oBody = fakeRequest({ event: "THIRD" });
+    h.state.responseData = fakeResponse();
+    h.fireAfterRendering();
+    const diff = h.Recorder.formatModelDiff(h.ctx);
+    expect(diff).toContain("~ /NAME");
+    expect(diff).not.toContain("- /");
+  });
+
   test("says so when both responses carry the same model", () => {
     const h = loadRecorder();
     h.Recorder.install(h.ctx);
@@ -780,4 +792,24 @@ test.describe("view diff", () => {
     }
     expect(h.Recorder.formatViewDiff(h.ctx)).toContain("needs two");
   });
+});
+
+// message_toast_display / message_box_display write the call bare; only a
+// follow_up_action( control_global ) puts CONTROL_GLOBAL in front of it
+test("records the messages of both wire forms", () => {
+  const h = loadRecorder();
+  h.Recorder.install(h.ctx);
+  h.state.oBody = fakeRequest();
+  h.state.responseData = fakeResponse({
+    custom: [
+      ["MESSAGE_TOAST", "show", "Saved"],
+      ["CONTROL_GLOBAL", "MESSAGE_BOX", "error", "Failed"],
+    ],
+  });
+  h.fireAfterRendering();
+  const [record] = h.Recorder.getRecords(h.ctx);
+  expect(record.messages).toEqual([
+    { target: "MESSAGE_TOAST", method: "show", text: "Saved" },
+    { target: "MESSAGE_BOX", method: "error", text: "Failed" },
+  ]);
 });

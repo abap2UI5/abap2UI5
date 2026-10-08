@@ -4,8 +4,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Context",
   ],
-  (Control, Lib, Env, ViewSlots) => {
+  (Control, Lib, Env, ViewSlots, Context) => {
     "use strict";
 
     // Invisible companion control for a sap.ui.table.Table (referenced via
@@ -53,6 +54,22 @@ sap.ui.define(
         const table = this._getTable();
         this.readFilter(table);
         this.readSort(table);
+        // Kept on the component's context too, under the table id: a
+        // view_display rebuild destroys THIS companion with its view and
+        // the new one starts without aFilters/aSorters - the snapshot on
+        // the instance alone never reached the fresh binding it exists
+        // for. cc/Tree keeps its expansion snapshot the same way.
+        const kept = this._tableStates();
+        const id = this.getProperty("tableId");
+        if (kept && id) {
+          kept[id] = { filters: this.aFilters, sorters: this.aSorters };
+        }
+      },
+
+      // state.tableStates of the companion's context - null outside a
+      // component, where there is nowhere to keep anything
+      _tableStates() {
+        return Context.of(this)?.state.tableStates ?? null;
       },
 
       // The ONE apply path. There used to be a second, imperative one -
@@ -87,8 +104,20 @@ sap.ui.define(
             if (this._pendingTable !== oTable) return;
             this._applyPending = false;
             this._pendingTable = null;
-            this._applyGuarded(oTable, this.aFilters, "_applyFilters");
-            this._applyGuarded(oTable, this.aSorters, "_applySorters");
+            // a companion created by the rebuild has read nothing yet -
+            // what its predecessor read is on the context
+            const kept =
+              this._tableStates()?.[this.getProperty("tableId")] ?? {};
+            this._applyGuarded(
+              oTable,
+              this.aFilters ?? kept.filters,
+              "_applyFilters",
+            );
+            this._applyGuarded(
+              oTable,
+              this.aSorters ?? kept.sorters,
+              "_applySorters",
+            );
           });
         } catch (e) {
           this._applyPending = false;

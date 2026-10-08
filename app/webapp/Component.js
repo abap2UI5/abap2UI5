@@ -251,13 +251,21 @@ sap.ui.define(
         this._initLaunchpad();
         this._initVersionInfo();
 
-        this._installUnloadListener();
         // The developer tools own everything of their own: the Ctrl+F12
         // shortcut, the dialog instance, the roundtrip recorder and the
         // "?z2ui5-devtools=" auto open. This call and the exit() below are
         // the framework's ENTIRE coupling to devtools/ - keep it that
         // way (see the module header there).
+        //
+        // BEFORE the unload listener, on purpose: the console capture and
+        // the recorder persist their history on "pagehide", and the
+        // component's own pagehide listener destroys the component - whose
+        // exit( ) uninstalls both, taking their pagehide listeners off in
+        // the middle of the dispatch. A listener removed before it ran is
+        // skipped, so registered after the teardown, nothing was ever
+        // carried across a reload - the one case the history is kept for.
         DevTools.install(this.ctx);
+        this._installUnloadListener();
         this._installScrollListener();
         this._installRouterListener();
       },
@@ -343,7 +351,17 @@ sap.ui.define(
         // getService() honors the manifest declaration and returns the
         // correctly scoped instance.
         this.getService("ShellUIService")
-          .then((s) => setIfAlive("ShellUIService", s))
+          .then((s) => {
+            setIfAlive("ShellUIService", s);
+            // cc/Dirty decides its branch per call and only takes the FLP
+            // flag once this service is there: a mark set before it arrived
+            // (the first render of a restored, dirty app) armed the browser
+            // prompt and left the flag down - a shell navigation then lost
+            // the changes without asking. Re-applied once it is here.
+            if (this._launchpad === launchpad) {
+              sap.ui.require("z2ui5/cc/Dirty")?.sync?.(this.ctx);
+            }
+          })
           .catch((e) =>
             Lib.logError("Component: ShellUIService init failed", e),
           );
@@ -420,19 +438,17 @@ sap.ui.define(
           ctx.state.oDeviceModel.destroy();
         }
 
-        // Robust launchpad teardown:
-        //  1. Clear the FLP dirty flag so it does not carry over into the
-        //     next app the user opens.
-        //  2. Drop this component's own reference to the shared launchpad
-        //     object, which is what turns every still-pending init Promise
-        //     into a no-op (setIfAlive compares against it). The state's
-        //     field is not nulled here - Context.destroy( ) below rebuilds
-        //     the state and with it that field.
-        try {
-          this._launchpad?.Container?.setDirtyFlag?.(false);
-        } catch (e) {
-          Lib.logError("Component: clearing FLP dirty flag failed", e);
-        }
+        // Launchpad teardown: drop this component's own reference to the
+        // shared launchpad object, which is what turns every still-pending
+        // init Promise into a no-op (setIfAlive compares against it). The
+        // state's field is not nulled here - Context.destroy( ) below
+        // rebuilds the state and with it that field.
+        //
+        // The FLP dirty flag is NOT cleared here. cc/Dirty is the only
+        // writer, and its reset (_endApp above) already re-synced the flag
+        // from the marks that remain - an unconditional false written after
+        // it cleared the unsaved changes of ANOTHER component on the page,
+        // and an embedded component cleared its host's own flag on exit.
         this._launchpad = null;
 
         // Last: the context itself. Context.destroy( ) is what

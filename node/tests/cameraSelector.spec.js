@@ -28,9 +28,18 @@ function load({ mediaDevices } = {}) {
     Object.assign(Ctrl.prototype, def);
     return Ctrl;
   };
+  // the settings object of a real Item parses its strings as binding
+  // syntax; `parsed` records whether anything came in that way
   class Item {
-    constructor({ key, text }) {
+    constructor(settings) {
+      this.key = settings?.key;
+      this.text = settings?.text;
+      this.parsed = settings !== undefined;
+    }
+    setKey(key) {
       this.key = key;
+    }
+    setText(text) {
       this.text = text;
     }
   }
@@ -50,6 +59,9 @@ function load({ mediaDevices } = {}) {
     const inst = new CameraSelector();
     inst.items = [];
     inst.addItem = (item) => inst.items.push(item);
+    inst.destroyItems = () => (inst.items = []);
+    inst.loadItemsHandlers = [];
+    inst.attachLoadItems = (fn) => inst.loadItemsHandlers.push(fn);
     inst._destroyed = false;
     inst.isDestroyed = () => inst._destroyed;
     return inst;
@@ -142,4 +154,26 @@ test("an empty or undefined device list adds nothing", async () => {
 
   expect(inst.items).toHaveLength(0);
   expect(errors).toHaveLength(0);
+});
+
+// Before the permission a browser lists each camera with an empty id and
+// label; granting it fires no devicechange in Chromium. Read once, the list
+// kept one blank entry - it is read again when the dropdown opens.
+test("cameras listed before the permission are skipped, and the list is re-read on open", async () => {
+  let devices = [{ kind: "videoinput", deviceId: "", label: "" }];
+  const { makeInstance } = load({
+    mediaDevices: { enumerateDevices: async () => devices },
+  });
+  const inst = makeInstance();
+  inst.init();
+  await tick();
+  expect(inst.items).toHaveLength(0);
+
+  // the permission was granted meanwhile (CameraPicture's getUserMedia)
+  devices = [{ kind: "videoinput", deviceId: "cam1", label: "Cam {front}" }];
+  for (const fn of inst.loadItemsHandlers) fn();
+  await tick();
+  expect(inst.items.map((i) => [i.key, i.text, i.parsed])).toEqual([
+    ["cam1", "Cam {front}", false],
+  ]);
 });

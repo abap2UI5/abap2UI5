@@ -177,6 +177,8 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._setStatus("Starting camera...");` && |\n| &&
              `` && |\n| &&
+             `        const openSeq = (this._openSeq = (this._openSeq || 0) + 1);` && |\n| &&
+             `` && |\n| &&
              `        this._oScanDialog.attachEventOnce("afterOpen", async () => {` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
@@ -207,7 +209,11 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `            const stream = await md.getUserMedia(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
              `` && |\n| &&
-             `            if (Lib.isDestroyed(this) || !this._oScanDialog?.isOpen()) {` && |\n| &&
+             `            if (` && |\n| &&
+             `              Lib.isDestroyed(this) ||` && |\n| &&
+             `              !this._oScanDialog?.isOpen() ||` && |\n| &&
+             `              openSeq !== this._openSeq` && |\n| &&
+             `            ) {` && |\n| &&
              `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
@@ -262,7 +268,11 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `            });` && |\n| &&
              `          }` && |\n| &&
              `          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));` && |\n| &&
+             `` && |\n| &&
+             `          oRm.openStart("span", oControl);` && |\n| &&
+             `          oRm.openEnd();` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
+             `          oRm.close("span");` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

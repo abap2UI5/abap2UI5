@@ -759,6 +759,37 @@ test("navBack consumes a pushed entry and guards the cold deep link", () => {
   expect(backs).toEqual([1, 1]);
 });
 
+test("navBack counts the entries behind the browser, not every push", () => {
+  // cold deep link #/detail/1, one push, then the in-app Back twice: the
+  // first consumes the pushed entry, the second stands on the bookmark
+  // again and must take the fallback instead of leaving the page
+  const { Router, state, writes, backs } = loadRouter({
+    state: { navRouting: false },
+  });
+  state.oController = { eB: () => {} };
+  Router.onHashChanged("/detail/1");
+  Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
+  Router.sync({ setPushState: "/detail/2", id: "D2" });
+  expect(state.hashPushCount).toBe(1);
+
+  Router.navBack("/list");
+  expect(backs).toEqual([1]);
+  // the browser's answer to history.back( )
+  Router.onHashChanged("/detail/1");
+  expect(state.hashPushCount).toBe(0);
+
+  Router.navBack("/list");
+  expect(backs).toEqual([1]);
+  expect(writes.at(-1)).toEqual({ op: "replace", hash: "list", guard: "D1" });
+
+  // the fallback's echo moves nothing; a browser Forward onto the pushed
+  // entry puts one in-app entry behind the browser again
+  Router.onHashChanged("/list");
+  expect(state.hashPushCount).toBe(0);
+  Router.onHashChanged("/detail/2");
+  expect(state.hashPushCount).toBe(1);
+});
+
 test("a hash replace in KEEP mode replaces the route with the suffix", () => {
   const { Router, state, writes } = loadRouter();
   state.oResponse = { APP: CALLER };

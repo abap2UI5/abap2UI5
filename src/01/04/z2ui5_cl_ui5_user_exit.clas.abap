@@ -62,7 +62,12 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD get_instance.
 
-    IF gi_me IS BOUND.
+    " latched only together with an ANSWERED lookup: a raised lookup leaves
+    " gv_exit_class_known unset (see below), and the early return used to
+    " ask for the instance alone - so the repository was never asked again
+    " and the rest of a sticky session ran on the shipped defaults after
+    " all, the installed exit's settings lost
+    IF gi_me IS BOUND AND gv_exit_class_known = abap_true.
       result = gi_me.
       RETURN.
     ENDIF.
@@ -92,7 +97,9 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       exit_instantiate( lv_class_name ).
     ENDIF.
 
-    gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    IF gi_me IS NOT BOUND.
+      gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    ENDIF.
     gv_exit_class       = lv_class_name.
     gv_exit_class_known = lv_known.
     result = gi_me.

@@ -42,6 +42,9 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     resolveById: (_ctx, id) => controls[id] || null,
     byId: (_ctx, _key, id) => controls[id] || null,
     getView: (_ctx, key) => views[key] || null,
+    // no slot controllers here: a slot-scoped shortcut then dispatches on
+    // the controller that registered it (shortcuts.spec.js holds the rest)
+    getController: () => undefined,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
@@ -293,6 +296,66 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     // the pressed action through eB (outside the event array - see
     // actions/ControlCall showBox)
     opts.onClose("OK");
+    expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
+  });
+
+  // MessageBox hands title and action texts to its Dialog and Buttons as
+  // settings, which UI5 reads as binding syntax: braces are escaped for it,
+  // and the pressed action goes back to the backend as it was sent
+  test("a box title and action texts with braces are escaped, the action reported raw", () => {
+    const { FrontendAction, calls } = load();
+    const ebCalls = [];
+    const oController = { eB: (...a) => ebCalls.push(a) };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "show",
+      "Deleted",
+      {
+        title: "Price {net",
+        actions: ["Keep {all}", "OK"],
+        emphasizedAction: "Keep {all}",
+        onClose: "ANSWERED",
+      },
+    ]);
+    const [, , opts] = calls[0];
+    expect(opts.title).toBe("Price \\{net");
+    expect(opts.actions).toEqual(["Keep \\{all\\}", "OK"]);
+    expect(opts.emphasizedAction).toBe("Keep \\{all\\}");
+    opts.onClose("Keep \\{all\\}");
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([
+      [["ANSWERED"], "Keep {all}"],
+      [["ANSWERED"], "OK"],
+    ]);
+  });
+
+  // the user answers a box while another roundtrip runs (a timer poll, a
+  // click): eB's busy guard dropped the answer - it waits for that roundtrip
+  test("a box answered during another roundtrip is sent once it lands", async () => {
+    const { FrontendAction, calls, AppState } = load();
+    AppState.state.onAfterRendering = [];
+    const ebCalls = [];
+    const oController = {
+      ctx: { state: AppState.state },
+      eB: (...a) => ebCalls.push(a),
+    };
+    FrontendAction.execute(oController, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "confirm",
+      "Delete?",
+      { onClose: "ANSWERED" },
+    ]);
+    const [, , opts] = calls[0];
+
+    AppState.state.isBusy = true;
+    opts.onClose("OK");
+    expect(ebCalls).toEqual([]);
+
+    AppState.state.isBusy = false;
+    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    await new Promise((resolve) => setTimeout(resolve, 0));
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
@@ -2395,6 +2458,18 @@ test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", ()
       allowed: false,
       id: "msg1",
     });
+    // what the browser's URL parser reads as leaving, whatever the spelling:
+    // a backslash is a slash to it, a leading control character and a line
+    // break inside the scheme are dropped
+    for (const url of [
+      "/\\evil.com/x",
+      "\\\\evil.com",
+      "\x01https://evil.com",
+      "java\nscript:alert(1)",
+    ]) {
+      expect(oPopover.ask(url).allowed).toBe(false);
+    }
+    expect(oPopover.ask("?q=1").allowed).toBe(true);
   });
 
   test("ALLOW_ALL and DENY_ALL are unconditional", () => {

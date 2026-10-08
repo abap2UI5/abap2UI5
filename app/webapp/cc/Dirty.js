@@ -123,6 +123,13 @@ sap.ui.define(
     // the FLP flag are re-synced from what remains. The flag is written
     // through the launchpad of `ctx` - the one that set it - or, without
     // one, through that of a remaining instance.
+    // Re-apply the aggregate through the launchpad of `ctx` - called by
+    // Component._initLaunchpad once the ShellUIService has arrived, so a
+    // mark set before it reaches the FLP flag (see applyDirtyState).
+    Dirty.sync = function sync(ctx) {
+      applyDirtyState(ctx?.state?.oLaunchpad);
+    };
+
     Dirty.reset = function reset(ctx) {
       for (const inst of dirtyControls) {
         if (Context.of(inst) === ctx) dirtyControls.delete(inst);

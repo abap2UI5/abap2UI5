@@ -321,6 +321,17 @@ sap.ui.define(
       // the browser really stands, whatever this one turns out to be.
       const direction = trailMove(ctx, sNewHash);
 
+      // A Back steps off a pushed entry, a Forward onto one again - so the
+      // count navBack reads is the number of in-app entries BEHIND the
+      // browser, not the number ever pushed. Counting pushes only made the
+      // second in-app Back of a cold deep link call history.back( ) and
+      // leave the page, the exact case its fallback exists for.
+      if (direction === "back") {
+        state.hashPushCount = Math.max(0, state.hashPushCount - 1);
+      } else if (direction === "forward") {
+        state.hashPushCount += 1;
+      }
+
       // Routing is opt-in per app (cs_event-hash_routing); until one
       // enabled it, the hash belongs entirely to the app (cs_event-hash_set,
       // and - when the app registered one - the HASH_LISTENER event).

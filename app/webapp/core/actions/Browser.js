@@ -25,8 +25,19 @@ sap.ui.define(
     // stays trivial; handlers that don't need the controller ignore it.
     // ------------------------------------------------------------------
 
+    // The text to copy is the app's - but an argument that parses as JSON
+    // reaches the frontend as an object (the backend embeds such
+    // arguments, srv_event get_event_client_ajson), and writeText( ) of an
+    // object put "[object Object]" on the clipboard: an app's "copy as
+    // JSON" button copied that. Written back as JSON text it is the data
+    // the app sent.
     function evClipboardCopy(oController, args) {
-      Lib.copyToClipboard(args[1]);
+      const value = args[1];
+      Lib.copyToClipboard(
+        value !== null && typeof value === "object"
+          ? JSON.stringify(value)
+          : value,
+      );
     }
 
     function evDownloadB64File(oController, args) {
@@ -300,7 +311,16 @@ sap.ui.define(
             );
             return;
           }
-          _URLHelper.redirect(params.URL, params.NEW_WINDOW);
+          // a new window opened by URLHelper.redirect keeps window.opener
+          // on 1.71 - 1.83 (it calls window.open( url, "_blank" ) bare),
+          // and this is the one redirect that may leave the origin: the
+          // foreign page could navigate THIS tab (reverse tabnabbing). Opened
+          // the way OPEN_NEW_TAB opens, on every release
+          if (params.NEW_WINDOW) {
+            window.open(params.URL, "_blank", "noopener,noreferrer");
+            return;
+          }
+          _URLHelper.redirect(params.URL, false);
         },
         TRIGGER_EMAIL: () =>
           _URLHelper.triggerEmail(

@@ -45,7 +45,7 @@ function docStub() {
 
 // `views` are the open slots (a key present means the slot is showing),
 // `controls` the resolvable control ids with their open/visible state.
-function load({ views = {}, controls = {} } = {}) {
+function load({ views = {}, controls = {}, slotControllers = {} } = {}) {
   const doc = docStub();
   const errors = [];
   const fired = [];
@@ -60,6 +60,7 @@ function load({ views = {}, controls = {} } = {}) {
       },
       "z2ui5/core/ViewSlots": {
         getView: (_ctx, key) => views[key] || null,
+        getController: (_ctx, key) => slotControllers[key],
         resolveById: (_ctx, id) => controls[id] || null,
       },
     },
@@ -176,6 +177,30 @@ test.describe("shortcutFromEvent (the spelling a keydown produces)", () => {
 });
 
 test.describe("scope precedence", () => {
+  test("a slot-scoped shortcut runs on that slot's controller", () => {
+    // registered by a follow-up action, i.e. on the MAIN controller - but
+    // eB ships the model of the controller it runs on, so a POPUP Ctrl+S
+    // has to run on the POPUP controller to send the dialog's edits
+    const popupFired = [];
+    const popup = { eB: (args) => popupFired.push(args) };
+    const views = { POPUP: {} };
+    const { register, press, fired } = load({
+      views,
+      slotControllers: { POPUP: popup },
+    });
+    register("Ctrl+S", "SAVE_POPUP", "POPUP");
+    register("Ctrl+S", "SAVE");
+
+    press("s", { ctrlKey: true });
+    expect(popupFired).toEqual([["SAVE_POPUP"]]);
+    expect(fired).toEqual([]);
+
+    // the dialog closed: the unscoped entry runs where it was registered
+    delete views.POPUP;
+    press("s", { ctrlKey: true });
+    expect(fired).toEqual([["SAVE"]]);
+  });
+
   test("a control scope wins over a slot scope while its control is open", () => {
     const controls = { myPopover: { isOpen: () => true } };
     const views = { POPOVER: {} };
@@ -251,4 +276,87 @@ test("the + key round-trips from the registration to the keydown", () => {
   expect(press("+", { ctrlKey: true })).toBe(true);
   expect(press("+")).toBe(false);
   expect(fired).toEqual([["ZOOM_IN"]]);
+});
+
+// A text field writes its value to the model on change (blur or Enter); a
+// shortcut pressed while typing came first, and the event went out without
+// the edit. The focused input is committed before the dispatch.
+test("the focused input is committed before the shortcut's event", () => {
+  const order = [];
+  const doc = docStub();
+  const inputDom = {};
+  doc.document.activeElement = inputDom;
+  doc.document.body = {};
+  const input = {
+    isA: (type) => type === "sap.m.InputBase",
+    onChange: () => order.push("commit"),
+  };
+  const ctx = specContext();
+  const oController = { ctx, eB: (args) => order.push(args) };
+  const { module: Shortcuts } = loadModule("core/actions/Shortcuts.js", {
+    sandbox: { document: doc.document },
+    deps: {
+      "z2ui5/core/Lib": { logError() {}, isControllerAlive: () => true },
+      "z2ui5/core/ViewSlots": { getView: () => null, resolveById: () => null },
+      "z2ui5/core/ScrollFocus": {
+        closestUi5Element: (dom) => (dom === inputDom ? input : null),
+      },
+    },
+  });
+  Shortcuts.handlers.KEYBOARD_SHORTCUT(oController, [
+    "KEYBOARD_SHORTCUT",
+    "Ctrl+S",
+    "SAVE",
+  ]);
+
+  doc.press("s", { ctrlKey: true });
+  expect(order).toEqual(["commit", ["SAVE"]]);
+});
+
+// the field's change is wired to the backend: committing it starts a
+// roundtrip, and the shortcut's event follows that one instead of landing
+// in the busy guard
+test("a commit that starts a roundtrip makes the shortcut's event wait for it", async () => {
+  const order = [];
+  const doc = docStub();
+  const inputDom = {};
+  doc.document.activeElement = inputDom;
+  doc.document.body = {};
+  const ctx = specContext();
+  const waiting = [];
+  const input = {
+    isA: (type) => type === "sap.m.InputBase",
+    onChange: () => {
+      order.push("CHG");
+      ctx.state.isBusy = true;
+    },
+  };
+  const oController = { ctx, eB: (args) => order.push(args) };
+  const { module: Shortcuts } = loadModule("core/actions/Shortcuts.js", {
+    sandbox: { document: doc.document },
+    deps: {
+      "z2ui5/core/Lib": {
+        logError() {},
+        isControllerAlive: () => true,
+        afterRoundtrip: (_owner, fn) => waiting.push(fn),
+      },
+      "z2ui5/core/ViewSlots": { getView: () => null, resolveById: () => null },
+      "z2ui5/core/ScrollFocus": {
+        closestUi5Element: (dom) => (dom === inputDom ? input : null),
+      },
+    },
+  });
+  Shortcuts.handlers.KEYBOARD_SHORTCUT(oController, [
+    "KEYBOARD_SHORTCUT",
+    "Ctrl+S",
+    "SAVE",
+  ]);
+
+  doc.press("s", { ctrlKey: true });
+  expect(order).toEqual(["CHG"]);
+
+  ctx.state.isBusy = false;
+  for (const fn of waiting) fn();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(order).toEqual(["CHG", ["SAVE"]]);
 });

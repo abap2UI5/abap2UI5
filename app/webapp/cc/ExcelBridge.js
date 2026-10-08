@@ -59,7 +59,12 @@ sap.ui.define(
     // quirk absorbed for every date from March 1900 on)
     const EXCEL_EPOCH_MS = Date.UTC(1899, 11, 30);
     const DAY_MS = 86400000;
-    const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2}))?/;
+    // anchored at BOTH ends: the whole string is a date, a timestamp, or a
+    // timestamp with fraction, Z or offset. Open at the end, any text that
+    // merely BEGINS with a date ("2024-01-15 delivery", a document number
+    // "2024-01-15-0001") was written as that date and the rest was lost
+    const ISO_DATE =
+      /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
     // a single cell, optionally $-anchored: A1, $B$3, XFD1048576
     const CELL_ADDRESS = /^\$?[A-Za-z]{1,3}\$?[1-9][0-9]{0,6}$/;
 
@@ -337,14 +342,19 @@ sap.ui.define(
       },
 
       onAfterRendering() {
-        if (!this._probed) {
-          this._probed = true;
-          this._probe();
-        }
+        if (!this._probed) this._probe();
         this._syncSubscription();
       },
 
+      // Latched only once Office.js is on the page - its answer is final
+      // then. Before that every rendering asks again: excel( ) keeps nothing
+      // while Office.js is missing precisely so a host page that loads it
+      // late is still found, and a latch set on the first rendering meant
+      // `available` stayed false for the life of the control.
       _probe() {
+        const w = /** @type {any} */ (window);
+        if (!w.Office) return;
+        this._probed = true;
         excel().then((Excel) => {
           if (!Excel || Lib.isDestroyed(this)) return;
           if (!this.getProperty("available")) {

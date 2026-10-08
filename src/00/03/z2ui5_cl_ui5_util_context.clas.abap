@@ -872,6 +872,12 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS check_msg_container
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS scan_flag_prefix
       IMPORTING
         val           TYPE any
@@ -1242,6 +1248,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     itab_corresponding( EXPORTING val = val
                         CHANGING  tab = lt_tab ).
 
+    " LOW / HIGH again from the source row, through data_get_string: the
+    " move into the string fields above wrote a number the way a MOVE does
+    " - sign behind it and padded (`5- `), so a select-option on an integer
+    " field showed `=42 ` and `5-...10 `
+    " UNASSIGN + IS ASSIGNED, not sy-subrc, in the loop (#1937)
+    FIELD-SYMBOLS <lt_source> TYPE ANY TABLE.
+    FIELD-SYMBOLS <ls_range>  TYPE ty_s_range.
+    FIELD-SYMBOLS <lv_part>   TYPE any.
+    ASSIGN val TO <lt_source>.
+    IF <lt_source> IS ASSIGNED.
+      DATA(lv_index) = 0.
+      LOOP AT <lt_source> ASSIGNING FIELD-SYMBOL(<ls_source>).
+        lv_index = lv_index + 1.
+        READ TABLE lt_tab INDEX lv_index ASSIGNING <ls_range>.
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        UNASSIGN <lv_part>.
+        ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_source> TO <lv_part>.
+        IF <lv_part> IS ASSIGNED.
+          <ls_range>-low = data_get_string( <lv_part> ).
+        ENDIF.
+        UNASSIGN <lv_part>.
+        ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_source> TO <lv_part>.
+        IF <lv_part> IS ASSIGNED.
+          <ls_range>-high = data_get_string( <lv_part> ).
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+
     LOOP AT lt_tab REFERENCE INTO DATA(lr_row).
 
       " an option the mapping does not know - initial (a row appended with
@@ -1504,8 +1540,18 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     LOOP AT val REFERENCE INTO DATA(lr_comp).
       IF lr_comp->as_include = abap_true.
-        INSERT LINES OF rtti_get_t_attri_by_include( type  = lr_comp->type
-                                                     depth = depth + 1 ) INTO TABLE result.
+        " INCLUDE ... RENAMING WITH SUFFIX: the structure's components are
+        " named <component><suffix>, and every nested level adds its own -
+        " the bare include names do not exist on the structure, so a
+        " binding path or ASSIGN COMPONENT built from them fails
+        DATA(lt_include) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                        depth = depth + 1 ).
+        IF lr_comp->suffix IS NOT INITIAL.
+          LOOP AT lt_include REFERENCE INTO DATA(lr_include).
+            lr_include->name = lr_include->name && lr_comp->suffix.
+          ENDLOOP.
+        ENDIF.
+        INSERT LINES OF lt_include INTO TABLE result.
       ELSE.
         INSERT lr_comp->* INTO TABLE result.
       ENDIF.
@@ -2072,8 +2118,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD ui5_get_msg_type.
 
+    " A (abort) and X (exit) are the two SAP message types above E - a
+    " BAPIRET2 or SYMSG row of either is an error, never an information
     CASE val.
-      WHEN `E`.
+      WHEN `E` OR `A` OR `X`.
         result = cs_ui5_msg_type-e.
       WHEN `S`.
         result = cs_ui5_msg_type-s.
@@ -2519,7 +2567,20 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " - the same trick get_comp_str( ) uses. A value the runtime refuses to
     " convert must not be the reason a box does not appear
     TRY.
-        result = val.
+        " a number through a string template: the assignment puts the sign
+        " BEHIND it - -5 came out as `5-`, a packed -12.50 as `12.50-`
+        CASE rtti_get_type_kind( val ).
+          WHEN cl_abap_datadescr=>typekind_int OR
+              cl_abap_datadescr=>typekind_int1 OR
+              cl_abap_datadescr=>typekind_int2 OR
+              cl_abap_datadescr=>typekind_packed OR
+              cl_abap_datadescr=>typekind_float OR
+              cl_abap_datadescr=>typekind_decfloat16 OR
+              cl_abap_datadescr=>typekind_decfloat34.
+            result = |{ val }|.
+          WHEN OTHERS.
+            result = val.
+        ENDCASE.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -3261,7 +3322,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          IF ls_attri->name = `ITEM`.
+          " only an ITEM that can HOLD messages is the envelope's payload -
+          " a table, a structure or an object (the BALI item). A plain
+          " ITEM field (a position number) became the whole message and
+          " dropped the structure's other fields
+          IF ls_attri->name = `ITEM` AND check_msg_container( <comp> ) = abap_true.
             result = msg_get_internal( <comp> ).
             RETURN.
           ENDIF.
@@ -3270,7 +3335,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                                msg  = ls_result ).
 
         ENDLOOP.
-        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+        " a T100 message is a class AND a number. A component called ID
+        " alone is the key column of any business row - built into a
+        " message, it gave `I:0001:` (a missing class still answers a text)
+        " and the data never reached the data renderer it was meant for
+        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL AND ls_result-no IS NOT INITIAL.
           ls_result-id = to_upper( ls_result-id ).
           MESSAGE ID ls_result-id TYPE `I` NUMBER ls_result-no
                   WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
@@ -3297,6 +3366,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           INSERT VALUE #( text = val ) INTO TABLE result.
         ENDIF.
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD check_msg_container.
+
+    DATA(lv_kind) = rtti_get_type_kind( val ).
+    result = xsdbool( lv_kind = cl_abap_datadescr=>typekind_table
+                   OR lv_kind = cl_abap_datadescr=>typekind_struct1
+                   OR lv_kind = cl_abap_datadescr=>typekind_struct2
+                   OR lv_kind = cl_abap_datadescr=>typekind_oref ).
 
   ENDMETHOD.
 
@@ -3624,11 +3703,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD scan_flag_prefix.
 
-    DATA(lv_len) = strlen( prefix ).
+    DATA(lv_kind) = rtti_get_type_kind( val ).
+    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
+        AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+      RETURN.
+    ENDIF.
+
+    " a `-` in the prefix is a path, not part of a component name - no
+    " component name can contain one: %ELEMENT-<field> and
+    " %OP-%ACTION-<name> are components of the NESTED structures %ELEMENT
+    " and %OP-%ACTION. Compared against the row's own component names, the
+    " two RAP prefixes never matched, and no message ever carried its
+    " element or action
+    DATA(lv_prefix) = CONV string( prefix ).
+    FIND FIRST OCCURRENCE OF `-` IN lv_prefix MATCH OFFSET DATA(lv_off).
+    IF sy-subrc = 0.
+      ASSIGN COMPONENT lv_prefix(lv_off) OF STRUCTURE val TO FIELD-SYMBOL(<sub>).
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+      result = scan_flag_prefix( val    = <sub>
+                                 prefix = substring( val = lv_prefix
+                                                     off = lv_off + 1 ) ).
+      RETURN.
+    ENDIF.
+
+    DATA(lv_len) = strlen( lv_prefix ).
     DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
       CHECK strlen( ls_attri->name ) > lv_len.
-      CHECK ls_attri->name(lv_len) = prefix.
+      CHECK lv_len = 0 OR ls_attri->name(lv_len) = lv_prefix.
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
       CHECK sy-subrc = 0.
       CHECK <flag> IS NOT INITIAL.

@@ -67,6 +67,18 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (!apply()) requestAnimationFrame(apply);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function dispatchWhenIdle(oController, args) {` && |\n| &&
+             `      const fire = () => {` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `        if (oController.ctx?.state?.isBusy) {` && |\n| &&
+             `          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oController.eB(...args);` && |\n| &&
+             `      };` && |\n| &&
+             `      fire();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function showToast(sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
              `      const sClass = o.class;` && |\n| &&
@@ -74,10 +86,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
-             `        o.onClose = () => {` && |\n| &&
-             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `          oController.eB([sEvent]);` && |\n| &&
-             `        };` && |\n| &&
+             `        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (Object.keys(o).length) MessageToast.show(sText, o);` && |\n| &&
@@ -102,15 +111,32 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const escapeSetting = (v) =>` && |\n| &&
+             `      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => ``\\${c}``) : v;` && |\n| &&
+             `` && |\n| &&
              `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
+             `      if (o.title !== undefined) o.title = escapeSetting(o.title);` && |\n| &&
+             `` && |\n| &&
+             `      const actionOf = new Map();` && |\n| &&
+             `      if (Array.isArray(o.actions)) {` && |\n| &&
+             `        o.actions = o.actions.map((a) => {` && |\n| &&
+             `          const escaped = escapeSetting(a);` && |\n| &&
+             `          if (escaped !== a) actionOf.set(escaped, a);` && |\n| &&
+             `          return escaped;` && |\n| &&
+             `        });` && |\n| &&
+             `        for (const key of ["emphasizedAction", "initialFocus"]) {` && |\n| &&
+             `          if (typeof o[key] === "string") o[key] = escapeSetting(o[key]);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
-             `        o.onClose = (sAction) => {` && |\n| &&
-             `          if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `          oController.eB([sEvent], sAction);` && |\n| &&
-             `        };` && |\n| &&
+             `        o.onClose = (sAction) =>` && |\n| &&
+             `          dispatchWhenIdle(oController, [` && |\n| &&
+             `            [sEvent],` && |\n| &&
+             `            actionOf.get(sAction) ?? sAction,` && |\n| &&
+             `          ]);` && |\n| &&
              `      }` && |\n| &&
              `      if (o.details) {` && |\n| &&
              `        o.details = Lib.sanitizeMessageDetails(o.details);` && |\n| &&
@@ -206,10 +232,14 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "opacity",` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
+             `    const URL_PROBE_BASE = "https://z2ui5.invalid/";` && |\n| &&
              `    function isAbsoluteUrl(url) {` && |\n| &&
-             `      const s = String(url ?? "").trim();` && |\n| &&
-             `` && |\n| &&
-             `      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");` && |\n| &&
+             `      try {` && |\n| &&
+             `        const base = new URL(URL_PROBE_BASE);` && |\n| &&
+             `        return new URL(String(url ?? ""), base).origin !== base.origin;` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return true;` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const CONTROL_METHOD_DENY_EXACT = [` && |\n| &&
@@ -394,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
              `          return Number(raw);` && |\n| &&
-             `        case "bool":` && |\n| &&
+             `        case "bool":` && |\n|.
+    result = result &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
              `          return resolveControl(raw, view, ctx);` && |\n| &&
@@ -424,8 +455,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        default:` && |\n| &&
              `          return raw;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function castArgAuto(raw) {` && |\n| &&
              `      if (raw === "X" || raw === "true") return true;` && |\n| &&

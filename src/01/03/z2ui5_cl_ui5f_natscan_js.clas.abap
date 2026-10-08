@@ -149,7 +149,11 @@ CLASS z2ui5_cl_ui5f_natscan_js IMPLEMENTATION.
              `          oControl._oButton.setText(oControl.getText());` && |\n| &&
              `          oControl._oButton.setIcon(oControl.getIcon());` && |\n| &&
              `          oControl._oButton.setEnabled(oControl.getEnabled());` && |\n| &&
+             `` && |\n| &&
+             `          oRm.openStart("span", oControl);` && |\n| &&
+             `          oRm.openEnd();` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
+             `          oRm.close("span");` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

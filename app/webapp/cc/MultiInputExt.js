@@ -9,6 +9,20 @@ sap.ui.define(
   (Control, Token, Lib, ViewSlots, Env) => {
     "use strict";
 
+    // A Token from RAW text - a cell's or an item's getText( ). Handed over
+    // in the settings object, a string is read as binding syntax:
+    // "Pump {X}" became a binding to path X, "A{1" threw out of MultiInput's
+    // validator (no token, no change event), and a backslash vanished. The
+    // setters take the value as it is. (The free-text branch keeps the
+    // settings form: from 1.120 on MultiInput hands over args.text already
+    // escaped for exactly that form.)
+    function plainToken(key, text) {
+      const token = new Token();
+      token.setKey(key);
+      token.setText(text);
+      return token;
+    }
+
     // Invisible companion control for a sap.m.MultiInput (referenced via
     // MultiInputId): mirrors added/removed tokens into the bindable
     // addedTokens/removedTokens properties and fires `change` so the
@@ -125,10 +139,7 @@ sap.ui.define(
             return v;
           })
           .filter((v) => v !== undefined && v !== "");
-        return new Token({
-          key,
-          text: rest.length ? `${key}(${rest.join(" ")})` : key,
-        });
+        return plainToken(key, rest.length ? `${key}(${rest.join(" ")})` : key);
       },
       setControl() {
         // Once claimed there is nothing left to do - skip the target lookup
@@ -164,16 +175,14 @@ sap.ui.define(
               // vanished. Return that Token; build it from the item when a
               // release hands over none.
               if (args.suggestedToken) return args.suggestedToken;
-              return new Token({
-                key:
-                  typeof picked.getKey === "function"
-                    ? picked.getKey()
-                    : args.text,
-                text:
-                  typeof picked.getText === "function"
-                    ? picked.getText()
-                    : args.text,
-              });
+              return plainToken(
+                typeof picked.getKey === "function"
+                  ? picked.getKey()
+                  : args.text,
+                typeof picked.getText === "function"
+                  ? picked.getText()
+                  : args.text,
+              );
             }
             return new Token({ key: args.text, text: args.text });
           };

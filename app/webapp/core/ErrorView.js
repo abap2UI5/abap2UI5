@@ -353,7 +353,13 @@ sap.ui.define([], () => {
       // control - sap.m.Text is the only content type the dialog depends on,
       // which is what keeps it renderable on a half-broken core.
       const content = message.split("\n").map((line) => {
-        const text = new Text({ text: line });
+        // through the setter, not the settings object: a string setting is
+        // read as binding syntax, so an error text with braces (a JSON
+        // snippet, a binding error) lost its {...} part, evaluated a {= }
+        // expression, or threw on an unbalanced { - and the dialog fell back
+        // to the raw overlay
+        const text = new Text();
+        text.setText(line);
         // A single message can still carry its own indentation (a chain entry
         // that slipped through), so keep whitespace. Set through the mutator
         // and guarded: the property arrived in UI5 1.60 and a control without

@@ -190,11 +190,12 @@ CLASS ltcl_builder IMPLEMENTATION.
 
   METHOD escape_control_chars.
 
-    " a form feed (U+000C) and a record separator (U+001E) out of a legacy
-    " long text: illegal in XML 1.0 even as a character reference, the whole
-    " view failed at the parser - they are dropped, the legal whitespace
-    " next to them still becomes its character reference
-    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `0C1E` ) ).
+    " a NUL, a form feed (U+000C) and a record separator (U+001E) out of a
+    " legacy long text: illegal in XML 1.0 even as a character reference,
+    " the whole view failed at the parser - they are dropped, the legal
+    " whitespace next to them still becomes its character reference. NUL
+    " was missing from the set the comment in xml_escape names
+    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `000C1E` ) ).
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 
     view->tag( `Text`

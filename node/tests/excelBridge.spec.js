@@ -246,7 +246,7 @@ function load({ office } = {}) {
     return out;
   }
 
-  return { ExcelBridge, makeInstance, render, errors, tick, timers };
+  return { ExcelBridge, makeInstance, render, errors, tick, timers, win };
 }
 
 // lets the promise chains of the control settle
@@ -643,6 +643,23 @@ test("inside Excel available turns true after the first render", async () => {
   expect(inst.events).toEqual([]);
 });
 
+test("Office.js loaded after the first render is found on a later one", async () => {
+  const office = fakeOffice();
+  const { makeInstance, win } = load();
+  const inst = makeInstance();
+
+  inst.onAfterRendering();
+  await flush();
+  expect(inst._props.available).toBe(false);
+
+  // the host page loads Office.js late
+  win.Office = office.Office;
+  win.Excel = office.Excel;
+  inst.onAfterRendering();
+  await flush();
+  expect(inst._props.available).toBe(true);
+});
+
 test("the setters write without invalidating", () => {
   const { makeInstance } = load();
   const inst = makeInstance();
@@ -751,6 +768,31 @@ test("an empty HEADER is labelled by the key, array rows by COLn", () => {
     header: true,
   });
   expect(byPosition.values[0]).toEqual(["COL1", "COL2"]);
+});
+
+test("text that only BEGINS with an ISO date stays text", () => {
+  const { ExcelBridge } = load();
+  const texts = [
+    "2024-01-15 delivery",
+    "2024-01-15-0001",
+    "2024-01-15T10:00:00abc",
+  ];
+  const m = ExcelBridge._buildMatrix({
+    rows: texts.map((D) => ({ D })),
+    columns: null,
+    numberFormats: null,
+    header: false,
+  });
+  expect(m.values).toEqual(texts.map((t) => [t]));
+  expect(m.formats).toEqual(texts.map(() => ["@"]));
+  // a fraction or an offset is still a timestamp
+  const t = ExcelBridge._buildMatrix({
+    rows: [{ D: "2024-01-15T12:30:00.123Z" }, { D: "2024-01-15T12:30:00+02:00" }],
+    columns: null,
+    numberFormats: null,
+    header: false,
+  });
+  expect(t.formats).toEqual([["yyyy-mm-dd hh:mm:ss"], ["yyyy-mm-dd hh:mm:ss"]]);
 });
 
 test("an impossible ISO date and the ABAP initial date stay text", () => {

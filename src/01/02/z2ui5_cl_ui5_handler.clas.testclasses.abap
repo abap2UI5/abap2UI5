@@ -299,6 +299,7 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
       IMPORTING
         iv_id         TYPE string
         iv_event      TYPE string
+        iv_model      TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_handler.
 
@@ -357,7 +358,11 @@ CLASS ltcl_00_base IMPLEMENTATION.
   METHOD event_on.
 
     DATA(lv_payload) = `{"value":{"S_FRONT":{"ID":"` && iv_id && `","EVENT":"` && iv_event &&
-                       `","ORIGIN":"O","PATHNAME":"/","SEARCH":""}}}`.
+                       `","ORIGIN":"O","PATHNAME":"/","SEARCH":""}`.
+    IF iv_model IS NOT INITIAL.
+      lv_payload = lv_payload && `,"MODEL":` && iv_model.
+    ENDIF.
+    lv_payload = lv_payload && `}}`.
     result = NEW #( val = lv_payload ).
     result->main_begin( ).
     result->main_loop( ).
@@ -2175,6 +2180,87 @@ ENDCLASS.
 " alone, a silent one ships no model, the caller reads the popup app back,
 " and two instances of ONE class in the stack keep their own state
 " ---------------------------------------------------------------------------
+" the hop_after_delta_pushes pair: a popup app that closes and leaves, and
+" a caller that changes a bound value right before calling it and leaves
+" its view standing on the way back
+CLASS ltcl_app_hop_popup DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_hop_popup IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      client->popup_display( `<Dialog/>` ).
+    ELSEIF client->check_on_event( `CLOSE` ).
+      client->popup_destroy( ).
+      client->nav_app_leave( ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_app_hop_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_val   TYPE string.
+    DATA mv_other TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_hop_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      mv_val = `old`.
+      client->view_display( `<mvc:View><Input value="` && client->_bind( mv_val ) &&
+                            `"/><Input value="` && client->_bind( mv_other ) && `"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `GO` ).
+      mv_val = `changed`.
+      client->nav_app_call( NEW ltcl_app_hop_popup( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" nav_app_call( me ): the app calls itself as a new screen and comes back
+" with Back - the hop_self_reaches_root case
+CLASS ltcl_app_call_self DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_text TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_call_self IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    IF client->check_on_init( ).
+      client->view_display( `<mvc:View><Text text="` && client->_bind( mv_text ) && `"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `SELF` ).
+      client->nav_app_call( me ).
+    ELSEIF client->check_on_event( `BACK` ).
+      IF client->check_app_prev_stack( ).
+        client->nav_app_leave( ).
+      ELSE.
+        mv_text = `root`.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
@@ -2201,6 +2287,11 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS transition_fresh_leave_fwd FOR TESTING RAISING cx_static_check.
     " transition_back = abap_true: an app's own way back between its screens
     METHODS transition_explicit_back FOR TESTING RAISING cx_static_check.
+    " the hop request carried a delta and the caller changed a bound value
+    " before nav_app_call: the way back pushes it, as without a delta
+    METHODS hop_after_delta_pushes FOR TESTING RAISING cx_static_check.
+    " nav_app_call( me ) is a new stack entry: one Back is back at the root
+    METHODS hop_self_reaches_root FOR TESTING RAISING cx_static_check.
 
     " roundtrip 1: the popup caller's first render, saved as a draft
     METHODS caller_started
@@ -2267,6 +2358,51 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"MT_TAB"` ) ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"edited"` )
                                       msg = `the caller could not read the popup app back` ).
+
+  ENDMETHOD.
+
+  METHOD hop_self_reaches_root.
+
+    " the instance's own draft id used to be reused for the call: the
+    " draft's stack pointed at itself, and Back went round forever without
+    " check_app_prev_stack( ) ever turning false
+    DATA(lo_start) = started_with( NEW ltcl_app_call_self( ) ).
+    DATA(lo_self) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                              iv_event = `SELF` ).
+    cl_abap_unit_assert=>assert_differs( exp = lo_self->ms_response-s_front-id
+                                         act = lo_self->mo_action->mo_app->ms_draft-id_prev_app_stack
+                                         msg = `the called draft's stack points at itself` ).
+
+    DATA(lo_back) = event_on( iv_id    = lo_self->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    cl_abap_unit_assert=>assert_initial( act = lo_back->mo_action->mo_app->ms_draft-id_prev_app_stack
+                                         msg = `one Back is the root again` ).
+
+    DATA(lo_root) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_root->ms_response-model CS `"root"` )
+                                      msg = lo_root->ms_response-model ).
+
+  ENDMETHOD.
+
+  METHOD hop_after_delta_pushes.
+
+    " the caller's view stays on screen across the popup app - nothing is
+    " re-displayed on the way back, so only the automatic push can bring
+    " the value the caller set before the hop. The delta on the GO request
+    " cleared the stored client model, the hop saved the caller without
+    " one, and on the way back the caller's own state counted as what the
+    " browser shows: `{}`, the browser kept `old`
+    DATA(lo_start) = started_with( NEW ltcl_app_hop_caller( ) ).
+    DATA(lo_popup) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                               iv_event = `GO`
+                               iv_model = `{"MV_OTHER":"typed"}` ).
+    DATA(lo_back) = event_on( iv_id    = lo_popup->ms_response-s_front-id
+                              iv_event = `CLOSE` ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `HOP_CALLER` ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"changed"` )
+                                      msg = |the way back did not push the hop-time change: { lo_back->ms_response-model }| ).
 
   ENDMETHOD.
 

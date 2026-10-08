@@ -541,7 +541,17 @@ CLASS ltcl_rtti DEFINITION FINAL
     TYPES zip TYPE string.
     TYPES END OF ty_s_with_incl.
 
+    " the same include renamed with a suffix. One level only: a suffix
+    " inside a suffixed include chains on a system, but the transpiled
+    " runtime's structdescr does not model the nesting
+    TYPES BEGIN OF ty_s_with_suffix.
+    TYPES id TYPE string.
+    INCLUDE TYPE ty_s_incl AS inner RENAMING WITH SUFFIX _in.
+    TYPES zip TYPE string.
+    TYPES END OF ty_s_with_suffix.
+
     METHODS test_attri_include    FOR TESTING RAISING cx_static_check.
+    METHODS test_attri_include_suffix FOR TESTING RAISING cx_static_check.
     METHODS test_check_clike     FOR TESTING RAISING cx_static_check.
     METHODS test_printable_decfloat FOR TESTING RAISING cx_static_check.
     METHODS test_srtti_pair_roundtrip FOR TESTING RAISING cx_static_check.
@@ -552,6 +562,7 @@ CLASS ltcl_rtti DEFINITION FINAL
     METHODS test_bound_not_init  FOR TESTING RAISING cx_static_check.
     METHODS test_struc_to_pairs  FOR TESTING RAISING cx_static_check.
     METHODS test_scan_flag       FOR TESTING RAISING cx_static_check.
+    METHODS test_scan_flag_nested FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -584,6 +595,35 @@ CLASS ltcl_rtti IMPLEMENTATION.
     " does not rewrite a line_exists( ) inside a method call argument)
     READ TABLE lt_comp WITH KEY as_include = abap_true TRANSPORTING NO FIELDS. "#EC CI_SORTSEQ
     cl_abap_unit_assert=>assert_subrc( exp = 4 ).
+
+  ENDMETHOD.
+
+  METHOD test_attri_include_suffix.
+
+    " RENAMING WITH SUFFIX names the components <name><suffix> on the
+    " structure - the expansion used to report the bare include names, so
+    " every binding path built from them (srv_model diss_struc,
+    " srv_bind bind_tab_cell) named a component that does not exist
+    DATA ls_struc TYPE ty_s_with_suffix.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ID`
+                                        act = lt_comp[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME_IN`
+                                        act = lt_comp[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `CITY_IN`
+                                        act = lt_comp[ 3 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZIP`
+                                        act = lt_comp[ 4 ]-name ).
+
+    " every reported name is a component the structure really has
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE ls_struc TO FIELD-SYMBOL(<lv_field>) ##NEEDED.
+      cl_abap_unit_assert=>assert_subrc( exp = 0 ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -790,6 +830,57 @@ CLASS ltcl_rtti IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_scan_flag_nested.
+
+    " a `-` in the prefix walks into a nested structure, the shape of the
+    " RAP prefixes %ELEMENT- and %OP-%ACTION- (spelled without the %, which
+    " a TYPES statement here cannot declare): the component names never
+    " contain the `-`, so the flat compare found nothing
+    TYPES:
+      BEGIN OF ty_s_row,
+        pid TYPE string,
+        BEGIN OF element,
+          name TYPE abap_bool,
+          city TYPE abap_bool,
+        END OF element,
+        BEGIN OF op,
+          BEGIN OF action,
+            approve TYPE abap_bool,
+            reject  TYPE abap_bool,
+          END OF action,
+        END OF op,
+      END OF ty_s_row.
+
+    DATA ls_row TYPE ty_s_row.
+
+    ls_row-pid               = `1`.
+    ls_row-element-name      = abap_true.
+    ls_row-op-action-approve = abap_true.
+
+    DATA(lt_element) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val  = ls_row
+                                                                  prefix = `ELEMENT-` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_element ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = lt_element[ 1 ] ).
+
+    DATA(lt_action) = z2ui5_cl_ui5_util_context=>scan_flag_prefix( val  = ls_row
+                                                                 prefix = `OP-ACTION-` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_action ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `APPROVE`
+                                        act = lt_action[ 1 ] ).
+
+    " a path that does not exist, or ends in a non-structure, finds nothing
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_row
+                                                     prefix = `NOPE-` ) ).
+    cl_abap_unit_assert=>assert_initial(
+        z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_row
+                                                     prefix = `PID-` ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -986,11 +1077,14 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_box_exception_object FOR TESTING RAISING cx_static_check.
     METHODS test_box_plain_object     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
+    METHODS test_token_numeric_range FOR TESTING RAISING cx_static_check.
     METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_item_plain_field FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_id_key_column FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1014,6 +1108,45 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>msg_get_t( ls_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_id_key_column.
+
+    " an ID column without a message NUMBER is a key, not a T100 message:
+    " a table of business rows is data, and the box falls back to the data
+    " renderer - it showed `2 Messages found` with I:0001: and I:0002:
+    TYPES:
+      BEGIN OF ty_s_row,
+        id   TYPE c LENGTH 4,
+        name TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA(lt_rows) = VALUE ty_t_row( ( id = `0001` name = `Ada` )
+                                    ( id = `0002` name = `Alan` ) ).
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_rows )-skip ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_item_plain_field.
+
+    " an ITEM that is a plain field (a position number) is no envelope:
+    " it used to become the whole message, text `0010`, and the structure
+    " was never handed to the data renderer
+    TYPES:
+      BEGIN OF ty_s_row,
+        name TYPE string,
+        item TYPE c LENGTH 4,
+      END OF ty_s_row.
+
+    DATA(ls_row) = VALUE ty_s_row( name = `Ada`
+                                   item = `0010` ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( ls_row ).
+
+    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 
@@ -1095,10 +1228,15 @@ CLASS ltcl_msg IMPLEMENTATION.
 
   METHOD test_msg_type_mapping.
 
-    " anything that is not E/S/W falls back to Information - the UI5
-    " MessageBox has no other state to render
+    " E and the two types above it (A abort, X exit) are errors; anything
+    " that is not E/A/X/S/W falls back to Information - the UI5 MessageBox
+    " has no other state to render
     cl_abap_unit_assert=>assert_equals( exp = `Error`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `E` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `A` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `X` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Success`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `S` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Warning`
@@ -1106,7 +1244,7 @@ CLASS ltcl_msg IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `Information`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `I` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
-                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `X` ) ).
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `Z` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `` ) ).
 
@@ -1280,6 +1418,31 @@ CLASS ltcl_msg IMPLEMENTATION.
     " and remove them
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-visible ).
     cl_abap_unit_assert=>assert_true( lt_token[ 1 ]-editable ).
+
+  ENDMETHOD.
+
+  METHOD test_token_numeric_range.
+
+    " a select-option on an integer field: LOW and HIGH read as the numbers
+    " they are, sign in front and unpadded - not `=42 ` and `5-...10 `
+    TYPES:
+      BEGIN OF ty_s_int_range,
+        sign   TYPE c LENGTH 1,
+        option TYPE c LENGTH 2,
+        low    TYPE i,
+        high   TYPE i,
+      END OF ty_s_int_range.
+    TYPES ty_t_int_range TYPE STANDARD TABLE OF ty_s_int_range WITH EMPTY KEY.
+
+    DATA(lt_range) = VALUE ty_t_int_range( ( sign = `I` option = `EQ` low = 42 )
+                                           ( sign = `I` option = `BT` low = -5 high = 10 ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `=42`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `-5...10`
+                                        act = lt_token[ 2 ]-key ).
 
   ENDMETHOD.
 
@@ -1568,6 +1731,16 @@ CLASS ltcl_data_box IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
     cl_abap_unit_assert=>assert_equals( exp = `42`
                                         act = ls_box-text ).
+
+    " ... with its sign in front: the assignment wrote `5-` and `12.50-`
+    lv_int = -5.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `-5`
+        act = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_int )-text ).
+    DATA lv_amount TYPE p LENGTH 8 DECIMALS 2 VALUE '-12.50'.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `-12.50`
+        act = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lv_amount )-text ).
 
   ENDMETHOD.
 

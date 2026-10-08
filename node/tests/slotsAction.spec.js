@@ -10,7 +10,9 @@ const { specContext, contextStub, bindContext } = require("./loadLibModule");
 // argument at all), and every slot has to survive that - MAIN used to be
 // the only one that did, while the popover read `mOptions.openById` and the
 // nested display destructured `mOptions` right away.
-function load({ resolveById = null, byId = null } = {}) {
+// `byIdBySlot`: per-slot answers of ViewSlots.byId (key -> control), for
+// the lookups that depend on which slot is asked; `byId` answers every slot
+function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
   const errors = [];
   const destroyed = [];
   const setViews = [];
@@ -105,7 +107,7 @@ function load({ resolveById = null, byId = null } = {}) {
         getViewXml: () => "",
         trackedModel: () => undefined,
         resolveById: () => resolveById,
-        byId: () => byId,
+        byId: (_ctx, key) => (byIdBySlot ? byIdBySlot[key] : byId),
       },
     },
   });
@@ -337,6 +339,25 @@ test.describe("the fragment slots build through the serialized chain", () => {
 // failing teardown is logged and the insert still runs, a failing insert
 // is logged and the view is released - and never a slot entry for a view
 // that is not in the tree.
+test("NEST2 finds a parent control inside the first nested view", async () => {
+  // nest2_view_display( id = <a control of NEST> ): the nested view has no
+  // id of its own, so the MAIN view's byId never resolves its controls
+  const calls = [];
+  const oParent = { addItem: (v) => calls.push(v) };
+  const { Slots, errors, setViews, view } = load({
+    byIdBySlot: { NEST: oParent },
+  });
+
+  await Slots.action("display", "NEST2", "<mvc:View/>", {
+    id: "inNest",
+    methodInsert: "addItem",
+  });
+
+  expect(errors).toEqual([]);
+  expect(calls).toEqual([view]);
+  expect(setViews.map((entry) => entry.key)).toEqual(["NEST2"]);
+});
+
 test.describe("displayNestedView: the parent's destroy and insert methods", () => {
   function parent({ destroyThrows = false, insertThrows = false } = {}) {
     const calls = [];

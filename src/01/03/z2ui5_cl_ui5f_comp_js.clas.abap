@@ -161,9 +161,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
-             `        this._installUnloadListener();` && |\n| &&
-             `` && |\n| &&
              `        DevTools.install(this.ctx);` && |\n| &&
+             `        this._installUnloadListener();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `        this._installRouterListener();` && |\n| &&
              `      },` && |\n| &&
@@ -206,7 +205,13 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        };` && |\n| &&
              `` && |\n| &&
              `        this.getService("ShellUIService")` && |\n| &&
-             `          .then((s) => setIfAlive("ShellUIService", s))` && |\n| &&
+             `          .then((s) => {` && |\n| &&
+             `            setIfAlive("ShellUIService", s);` && |\n| &&
+             `` && |\n| &&
+             `            if (this._launchpad === launchpad) {` && |\n| &&
+             `              sap.ui.require("z2ui5/cc/Dirty")?.sync?.(this.ctx);` && |\n| &&
+             `            }` && |\n| &&
+             `          })` && |\n| &&
              `          .catch((e) =>` && |\n| &&
              `            Lib.logError("Component: ShellUIService init failed", e),` && |\n| &&
              `          );` && |\n| &&
@@ -266,11 +271,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          ctx.state.oDeviceModel.destroy();` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        try {` && |\n| &&
-             `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
-             `        }` && |\n| &&
              `        this._launchpad = null;` && |\n| &&
              `` && |\n| &&
              `        Context.destroy(ctx);` && |\n| &&

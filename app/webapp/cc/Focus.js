@@ -58,7 +58,14 @@ sap.ui.define(
         // the user had typed past the (stale) captured position. Reading it
         // here - while the old, still-focused element is in the DOM - keeps the
         // guard working across a full view rebuild, not only an in-place patch.
-        this._liveCaret = Lib.readCaret(document.activeElement);
+        //
+        // Kept with the DOM id of the field it was read from: a rebuilt field
+        // comes back under the same id, while a field the backend moves the
+        // focus TO is a different one - the caret of the field just left
+        // must not be applied there (it overrode a requested select-all).
+        const active = document.activeElement;
+        const caret = Lib.readCaret(active);
+        this._liveCaret = caret && { ...caret, id: active.id };
       },
       onAfterRendering() {
         const liveCaret = this._liveCaret;
@@ -94,15 +101,16 @@ sap.ui.define(
             //
             // The field is still the active element only when UI5 patched it in
             // place; a full view rebuild replaces it, so its live caret is gone
-            // and we fall back to the pre-render snapshot (same logical field -
-            // it is the focus target the backend asked to restore).
+            // and we fall back to the pre-render snapshot - only when it was
+            // taken from the same field (same DOM id), not from the one the
+            // focus is moving away from.
             if (len > 0) {
               let liveStart = null;
               let liveEnd = null;
               if (input === document.activeElement) {
                 liveStart = input.selectionStart;
                 liveEnd = input.selectionEnd;
-              } else if (liveCaret) {
+              } else if (liveCaret && liveCaret.id === input.id) {
                 liveStart = liveCaret.start;
                 liveEnd = liveCaret.end;
               }

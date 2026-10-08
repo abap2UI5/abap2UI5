@@ -47,6 +47,7 @@ function load({ deferRender = false } = {}) {
   const z2ui5 = {};
   // The currently resolvable MAIN-view table; tests set it via setTable.
   let currentTable = null;
+  const ctx = { state: { tableStates: Object.create(null) } };
 
   const Lib = {
     toText: (v) => (v == null ? "" : String(v)),
@@ -86,6 +87,9 @@ function load({ deferRender = false } = {}) {
       // has it (1.96+), the private aFilters before
       "z2ui5/core/Env": loadEnv().Env,
       "z2ui5/core/ViewSlots": ViewSlots,
+      // the companion's component context, where the snapshot outlives
+      // the companion instance
+      "z2ui5/core/Context": { of: () => ctx },
     },
     sandbox: { z2ui5 },
   });
@@ -173,6 +177,36 @@ test.describe("callback registration", () => {
 });
 
 test.describe("filter preservation across a binding rebuild", () => {
+  test("a companion re-created by the rebuild applies its predecessor's snapshot", () => {
+    // view_display destroys the companion with its view: the one that runs
+    // the re-apply is a NEW instance that never read anything
+    const env = load();
+    const col = makeColumn("NAME");
+    const b0 = makeBinding({
+      filters: [{ sPath: "NAME", sOperator: "EQ", oValue1: "Bob" }],
+      sorters: [{ sPath: "NAME", bDescending: true }],
+    });
+    const table0 = makeTable(b0, [col]);
+    env.setTable(table0);
+    const before = makeExt(env);
+    before.init();
+    before.readBackend();
+    before.exit();
+
+    const b1 = makeBinding({ filters: [] });
+    env.setTable(makeTable(b1, [col]));
+    const after = makeExt(env);
+    after.init();
+    after.applyBackend();
+
+    expect(b1.calls.filter).toBe(1);
+    expect(b1.calls.lastFilters).toEqual([
+      { sPath: "NAME", sOperator: "EQ", oValue1: "Bob" },
+    ]);
+    expect(b1.calls.sort).toBe(1);
+    expect(col.state.filtered).toBe(true);
+  });
+
   test("re-applies stored filters to a fresh binding and flags the column", () => {
     const env = load();
     const ext = makeExt(env);

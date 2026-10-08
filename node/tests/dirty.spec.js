@@ -119,6 +119,24 @@ test("FLP: uses setDirtyFlag when Container AND ShellUIService exist", () => {
   expect(calls).toEqual([true, false]);
 });
 
+test("FLP: a mark set before the ShellUIService arrived reaches the flag on sync", () => {
+  // the first render of a restored, dirty app can run before the service
+  // resolved: the standalone branch armed the prompt and the FLP flag
+  // stayed down until the next change - Component calls sync on arrival
+  const calls = [];
+  const launchpad = { Container: { setDirtyFlag: (v) => calls.push(v) } };
+  const { Dirty, instance, armed, ctx } = load({ oLaunchpad: launchpad });
+
+  instance().setIsDirty(true);
+  expect(calls).toEqual([]);
+  expect(armed()).toBe(1);
+
+  launchpad.ShellUIService = {};
+  Dirty.sync(ctx);
+  expect(calls).toEqual([true]);
+  expect(armed()).toBe(0);
+});
+
 test("FLP: falls back to the browser prompt when setDirtyFlag throws", () => {
   const { instance, armed } = load({
     oLaunchpad: {

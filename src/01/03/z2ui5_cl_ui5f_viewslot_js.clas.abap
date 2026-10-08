@@ -47,6 +47,8 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      {` && |\n| &&
              `        key: "NEST",` && |\n| &&
+             `` && |\n| &&
+             `        containedSlots: ["NEST2"],` && |\n| &&
              `        prop: "oViewNest",` && |\n| &&
              `        controllerProp: "oControllerNest",` && |\n| &&
              `      },` && |\n| &&
@@ -202,6 +204,10 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      delete slotAppStore(ctx)[key];` && |\n| &&
              `      const view = ctx.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
+             `` && |\n| &&
+             `      for (const inner of slot.containedSlots ?? []) {` && |\n| &&
+             `        if (isInside(ctx.state[byKey(inner).prop], view)) destroy(ctx, inner);` && |\n| &&
+             `      }` && |\n| &&
              `      if (slot.fragmentId) {` && |\n| &&
              `        try {` && |\n| &&
              `          if (view.close) view.close();` && |\n| &&
@@ -223,6 +229,15 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `        Lib.logError(``ViewSlots.destroy: view.destroy() failed for ${key}``, e);` && |\n| &&
              `      }` && |\n| &&
              `      ctx.state[slot.prop] = null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isInside(control, container) {` && |\n| &&
+             `      let node = control?.getParent?.();` && |\n| &&
+             `      for (let depth = 0; node && depth < 200; depth++) {` && |\n| &&
+             `        if (node === container) return true;` && |\n| &&
+             `        node = node.getParent?.();` && |\n| &&
+             `      }` && |\n| &&
+             `      return false;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function detach(ctx, key) {` && |\n| &&

@@ -181,14 +181,15 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      if (!Array.isArray(custom)) return [];` && |\n| &&
              `      const out = [];` && |\n| &&
              `      for (const item of custom) {` && |\n| &&
-             `        if (!Array.isArray(item) || item[0] !== "CONTROL_GLOBAL") continue;` && |\n| &&
-             `        const target = item[1];` && |\n| &&
+             `        if (!Array.isArray(item)) continue;` && |\n| &&
+             `        const call = item[0] === "CONTROL_GLOBAL" ? item.slice(1) : item;` && |\n| &&
+             `        const target = call[0];` && |\n| &&
              `        if (target !== "MESSAGE_TOAST" && target !== "MESSAGE_BOX") continue;` && |\n| &&
-             `        let text = typeof item[3] === "string" ? item[3] : "";` && |\n| &&
+             `        let text = typeof call[2] === "string" ? call[2] : "";` && |\n| &&
              `        if (text.length > MAX_MESSAGE_CHARS) {` && |\n| &&
              `          text = ``${text.slice(0, MAX_MESSAGE_CHARS)}...``;` && |\n| &&
              `        }` && |\n| &&
-             `        out.push({ target, method: item[2] || "", text });` && |\n| &&
+             `        out.push({ target, method: call[1] || "", text });` && |\n| &&
              `      }` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `          `` slowest #${slowest.seq} ${slowest.event || "(start)"}`` +` && |\n| &&
              `          `` at ${slowest.backendMs} ms``,` && |\n| &&
              `      );` && |\n| &&
-             `      const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
-             `      if (sized.length) {` && |\n|.
+             `      const sized = list.filter((r) => r.respBytes !== null);` && |\n|.
     result = result &&
+             `      if (sized.length) {` && |\n| &&
              `        const biggest = sized.reduce((a, b) =>` && |\n| &&
              `          b.respBytes > a.respBytes ? b : a,` && |\n| &&
              `        );` && |\n| &&
@@ -611,7 +612,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function lastTwoResponses(ctx) {` && |\n| &&
-             `      const withPayload = getRecords(ctx).filter((record) => record.response);` && |\n| &&
+             `      const withPayload = getRecords(ctx).filter(` && |\n| &&
+             `        (record) => record.response?.MODEL !== undefined,` && |\n| &&
+             `      );` && |\n| &&
              `      if (withPayload.length < 2) return null;` && |\n| &&
              `      return withPayload.slice(-2);` && |\n| &&
              `    }` && |\n| &&

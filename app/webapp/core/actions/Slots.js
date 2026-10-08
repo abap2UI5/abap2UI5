@@ -247,7 +247,13 @@ sap.ui.define(
         methodInsert: METHOD_INSERT,
       } = mOptions;
 
-      const oParent = ViewSlots.byId(ctx, "MAIN", ID);
+      // NEST2 may sit inside the first nested view (z2ui5_if_client
+      // nest2_view_display: "a control of the main view or of the first
+      // nested view"). That view has no id of its own, so MAIN's byId never
+      // finds its controls - every such display was discarded
+      const oParent =
+        ViewSlots.byId(ctx, "MAIN", ID) ??
+        (slotKey === "NEST2" ? ViewSlots.byId(ctx, "NEST", ID) : undefined);
       if (!oParent) {
         Lib.logError(
           `displayNestedView: parent control '${ID}' not found, nested view discarded`,

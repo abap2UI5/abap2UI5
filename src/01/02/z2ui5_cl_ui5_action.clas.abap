@@ -51,10 +51,19 @@ CLASS z2ui5_cl_ui5_action DEFINITION PUBLIC FINAL.
     METHODS prepare_app_stack
       IMPORTING
         val           TYPE z2ui5_if_ui5_types=>ty_s_next-o_app_leave
+        check_call    TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_action.
 
   PRIVATE SECTION.
+
+    " whether a draft id is this app's own or one below it on the app stack
+    " (see factory_stack_call)
+    METHODS check_draft_on_stack
+      IMPORTING
+        id            TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     " the app instance for a first start - the client-named class, checked
     " to be an app before it is created (the reasoning is on the method)
@@ -167,7 +176,15 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
 
-    DATA(li_app) = app_create( ).
+    " a bookmark without ?app_start= whose draft is gone names no app to
+    " start fresh - it lands where a request without one lands, on the
+    " start page (factory_system_startup), with the toast above
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    IF mo_handler->ms_request-s_control-app_start IS INITIAL.
+      li_app = z2ui5_cl_ui5_app_start=>factory( ).
+    ELSE.
+      li_app = app_create( ).
+    ENDIF.
     result->mo_app->mo_app = li_app.
     li_app->id_draft = result->mo_app->ms_draft-id.
 
@@ -223,7 +240,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD factory_stack_call.
 
-    result = prepare_app_stack( ms_next-o_app_call ).
+    result = prepare_app_stack( val        = ms_next-o_app_call
+                                check_call = abap_true ).
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
 
     " Forward app navigation is ROUTER intent only when hash routing is
@@ -326,9 +344,48 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_draft_on_stack.
+
+    IF id = mo_app->ms_draft-id.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    " bounded like any walk of a chain that a broken draft could close
+    DATA(lv_next) = mo_app->ms_draft-id_prev_app_stack.
+    DATA(lv_count) = 0.
+    WHILE lv_next IS NOT INITIAL AND lv_count < 50.
+      IF lv_next = id.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+      lv_count = lv_count + 1.
+      TRY.
+          lv_next = z2ui5_cl_ui5_app_cont=>db_load( lv_next )->ms_draft-id_prev_app_stack.
+        CATCH cx_root.
+          " an expired link ends the stack the way Back would find it
+          RETURN.
+      ENDTRY.
+    ENDWHILE.
+
+  ENDMETHOD.
+
   METHOD prepare_app_stack.
 
     mo_app->db_save( ).
+
+    " A CALLED instance whose draft is the caller's own or one below it on
+    " the stack - nav_app_call( me ), or a callee calling its caller back
+    " instead of leaving - becomes a NEW stack entry. Reusing its id made
+    " that draft's stack point at itself or round in a circle: the row was
+    " overwritten in place, and Back and check_app_prev_stack( ) never
+    " reached the root again. After the save on purpose: for a call of
+    " itself the instance IS the caller's, and the save writes the caller's
+    " id back onto it
+    IF check_call = abap_true AND val->id_draft IS NOT INITIAL
+        AND check_draft_on_stack( val->id_draft ) = abap_true.
+      CLEAR val->id_draft.
+    ENDIF.
 
     " val is always the ms_next-o_app_leave / ms_next-o_app_call reference
     " itself (see factory_stack_leave / factory_stack_call), so an already

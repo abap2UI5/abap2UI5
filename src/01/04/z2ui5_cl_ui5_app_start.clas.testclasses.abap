@@ -6,8 +6,12 @@ CLASS ltcl_app_startup_test DEFINITION FINAL
     METHODS test_on_init_proposal FOR TESTING RAISING cx_static_check.
     METHODS test_reset_clears_outcome FOR TESTING RAISING cx_static_check.
     METHODS test_link_enabled FOR TESTING RAISING cx_static_check.
+    METHODS test_link_href_literal FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
+
+
+CLASS z2ui5_cl_ui5_app_start DEFINITION LOCAL FRIENDS ltcl_app_startup_test.
 
 
 CLASS ltcl_app_startup_test IMPLEMENTATION.
@@ -72,6 +76,25 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state
                                         exp = `None`
                                         msg = `ValueState is set to None, never cleared` ).
+
+  ENDMETHOD.
+
+  METHOD test_link_href_literal.
+
+    " the sample links carry the page's own query and hash, and a browser
+    " leaves { and } in them unencoded - written as a literal, not as a
+    " binding UI5 would parse (and fail on) when it builds the start page
+    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA(lo_form) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    lo_app->render_icon_row( form = lo_form
+                             icon = `sap-icon://product`
+                             text = `samples`
+                             href = `https://sys/z2ui5?x={/A}` ).
+
+    DATA(lv_xml) = lo_form->stringify( ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_xml CS `\{/A\}` )
+                                      msg = lv_xml ).
 
   ENDMETHOD.
 

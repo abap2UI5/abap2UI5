@@ -55,7 +55,13 @@ test.describe("createState", () => {
     // property Object.prototype carries must be a miss, not a wrong answer
     const { AppState } = load();
     const state = AppState.createState();
-    for (const name of ["timers", "shortcuts", "viewSizeLimits", "treeStates"]) {
+    for (const name of [
+      "timers",
+      "shortcuts",
+      "viewSizeLimits",
+      "treeStates",
+      "tableStates",
+    ]) {
       expect(Object.getPrototypeOf(state[name])).toBeNull();
       expect(state[name]["constructor"]).toBeUndefined();
     }

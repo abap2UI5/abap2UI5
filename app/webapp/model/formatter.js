@@ -63,7 +63,8 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   // day] tuple JavaScript's Date constructor expects. Note: Date months are
   // 0-based, so we subtract 1 from the month component.
   /** @returns {[number, number, number]} */
-  function parseYmd(d) {
+  function parseYmd(value) {
+    const d = abapDigits(value, ISO_DAY);
     return [
       Number(d.slice(0, 4)),
       Number(d.slice(4, 6)) - 1,
@@ -80,8 +81,22 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   // a UI5 date property. Anything that is not 8 digits is rejected too: an
   // Invalid Date is TRUTHY and only blows up much later inside a calendar
   // control (see DateCreateObject).
+  // The model carries a bound DATS field as "YYYY-MM-DD" and a TIMS field
+  // as "HH:MM:SS" - ajson's format_datetime, which the model serialization
+  // keeps on - while a CHAR or NUMC field keeps the raw "YYYYMMDD" /
+  // "HHMMSS". Both spellings mean the same value; the helpers below read
+  // the digits. Taking only the raw form, a date bound straight from a
+  // DATS field always came out as "no date", and a TIMS time as an Invalid
+  // Date.
+  function abapDigits(value, pattern) {
+    const s = String(value ?? "");
+    return pattern.test(s) ? s.replace(/[-:]/g, "") : s;
+  }
+  const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+  const ISO_TIME = /^\d{2}:\d{2}:\d{2}$/;
+
   function isNoAbapDate(d) {
-    const s = String(d);
+    const s = abapDigits(d, ISO_DAY);
     if (!/^\d{8}$/.test(s)) return true;
     // a zero year, month or day is never a real date - "00000000" is the
     // initial DATS value, the partial forms turn up in half-filled records.
@@ -114,8 +129,13 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     // CalendarDate.fromLocalJSDate throws for every rendered day and takes
     // the whole view down. null is what "no date" means to a UI5 date
     // property, so the missing value stays a missing value.
+    // A bare "YYYY-MM-DD" is a calendar day: new Date( ) reads that one
+    // form as UTC midnight, which is the PREVIOUS day anywhere west of
+    // Greenwich - it is built from its local parts instead, like the ABAP
+    // date helpers below. A timestamp keeps the Date constructor.
     DateCreateObject(s) {
       if (!s) return null;
+      if (ISO_DAY.test(String(s))) return new Date(...parseYmd(s));
       return new Date(s);
     },
     DateAbapDateToDateObject(d) {
@@ -128,7 +148,7 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     // inside the binding.
     DateAbapDateTimeToDateObject(d, t) {
       if (isNoAbapDate(d)) return null;
-      const time = t ? String(t) : "000000";
+      const time = t ? abapDigits(t, ISO_TIME) : "000000";
       return new Date(
         ...parseYmd(d),
         Number(time.slice(0, 2)),

@@ -1611,6 +1611,8 @@ CLASS ltcl_03_model_out DEFINITION INHERITING FROM ltcl_00_base FINAL
     " _bind( json = abap_true ): the string IS JSON and becomes a node
     METHODS json_bind_spliced        FOR TESTING RAISING cx_static_check.
     METHODS json_bind_invalid_raises FOR TESTING RAISING cx_static_check.
+    " ... and one that holds no JSON yet is null, not a failed roundtrip
+    METHODS json_bind_initial_null   FOR TESTING RAISING cx_static_check.
     " a filter drops what it says (omit_initial)
     METHODS filter_applied           FOR TESTING RAISING cx_static_check.
     " a mapper renames what it says
@@ -1740,6 +1742,21 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
         cl_abap_unit_assert=>fail( `an unparseable json bind must raise` ).
       CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD json_bind_initial_null.
+
+    CLEAR mo_app->mv_string.
+    DATA(lr_attri) = bind( REF #( mo_app->mv_string ) ).
+    lr_attri->check_json = abap_true.
+
+    DATA(lv_json) = mo_model->main_json_stringify( ).
+    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
+    cl_abap_unit_assert=>assert_true( act = lo_result->exists( lr_attri->name_client )
+                                      msg = lv_json ).
+    cl_abap_unit_assert=>assert_equals( exp = `null`
+                                        act = lo_result->get_node_type( lr_attri->name_client ) ).
 
   ENDMETHOD.
 
@@ -2369,6 +2386,22 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_model->mt_skipped ) ).
     CLEAR lo_model->mt_skipped.
+
+    " the initial timestamp as ajson writes it is the initial value, not a
+    " refusal - it comes back untouched with every sibling edit
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"0000-00-00T00:00:00Z"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a fraction a short TIMESTAMP cannot carry is cut off, not rounded:
+    " rounded, .6 made second 60 - 20240115123060 is no timestamp at all
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:59.6Z"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    DATA lv_ts_cut TYPE timestamp VALUE '20240115123059'.
+    cl_abap_unit_assert=>assert_equals( exp = lv_ts_cut
+                                        act = lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
     " refused: the grouped thousands separator, text into a number - the
     " old value stands (on a system the failed conversion clears the target
@@ -3687,6 +3720,105 @@ CLASS ltcl_06_struct_alias IMPLEMENTATION.
                                       msg = `alias no longer points at ms_nested` ).
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_app->ms_nested-t_items ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" a REFERENCE component below a struct alias: mr_alias points at ms_nested,
+" which holds r_val. The row `MR_ALIAS->R_VAL` inherits `MS_NESTED-R_VAL` as
+" name_ref for the binding search, and the restore followed it like an alias
+" of its own - once mr_alias was re-pointed at ms_nested, both paths named
+" the same variable and r_val came back pointing at itself (2026-10-07)
+" ---------------------------------------------------------------------------
+CLASS ltcl_app_alias_dref DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        id    TYPE string,
+        r_val TYPE REF TO data,
+      END OF ty_s_nested.
+
+    DATA ms_nested TYPE ty_s_nested.
+    DATA mr_alias  TYPE REF TO data.
+
+    METHODS fill.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_alias_dref IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+    FIELD-SYMBOLS <lv_val> TYPE string.
+    ms_nested-id = `n1`.
+    CREATE DATA ms_nested-r_val TYPE string.
+    ASSIGN ms_nested-r_val->* TO <lv_val>.
+    <lv_val> = `payload`.
+    mr_alias = REF #( ms_nested ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_07_alias_dref DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS dref_below_alias_kept FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_07_alias_dref IMPLEMENTATION.
+
+  METHOD dref_below_alias_kept.
+
+    FIELD-SYMBOLS <lv_val> TYPE string.
+    DATA lo_app   TYPE REF TO ltcl_app_alias_dref.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+
+    lo_app = NEW #( ).
+    lo_app->fill( ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " the first save of an app that bound nothing yet - the save's own
+    " dissolve creates the rows, so the inherited name_ref is still there
+    lo_model->main_attri_db_save_srtti( ).
+    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
+    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
+    CLEAR lo_app.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
+                                          IMPORTING any = lo_app ).
+    CREATE DATA lr_attri.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
+                                          IMPORTING any = lr_attri->* ).
+    lo_model = NEW #( attri = lr_attri
+                      app   = lo_app ).
+    lo_model->main_attri_db_load( ).
+
+    DATA(lr_self) = REF #( lo_app->ms_nested-r_val ).
+    cl_abap_unit_assert=>assert_bound( act = lo_app->ms_nested-r_val
+                                       msg = `r_val lost across the draft` ).
+    cl_abap_unit_assert=>assert_false( act = xsdbool( lo_app->ms_nested-r_val = lr_self )
+                                       msg = `r_val points at itself` ).
+    ASSIGN lo_app->ms_nested-r_val->* TO <lv_val>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = `payload`
+                                        act = <lv_val> ).
+    DATA(lr_struc) = REF #( lo_app->ms_nested ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_alias = lr_struc )
+                                      msg = `alias no longer points at ms_nested` ).
 
   ENDMETHOD.
 

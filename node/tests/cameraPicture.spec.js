@@ -160,9 +160,18 @@ test("the trigger fires press and opens the camera dialog", () => {
   const { makeInstance } = load();
   const inst = makeInstance();
   const rendered = [];
-  inst.renderer.render({ renderControl: (c) => rendered.push(c) }, inst);
+  inst.renderer.render(
+    {
+      openStart: (tag) => rendered.push(`open:${tag}`),
+      openEnd: () => {},
+      close: (tag) => rendered.push(`close:${tag}`),
+      renderControl: (c) => rendered.push(c),
+    },
+    inst,
+  );
 
-  expect(rendered).toEqual([inst._oButton]);
+  // the button inside a root of its own, so UI5 finds the control again
+  expect(rendered).toEqual(["open:span", inst._oButton, "close:span"]);
   inst._oButton.settings.press();
   expect(inst.pressed).toBe(1);
   expect(inst._oScanDialog.opened).toBe(true);
@@ -172,7 +181,10 @@ test("a vetoed press leaves the camera dialog closed", () => {
   const { makeInstance } = load();
   const inst = makeInstance();
   inst.pressVetoed = true;
-  inst.renderer.render({ renderControl: () => {} }, inst);
+  inst.renderer.render(
+    { openStart() {}, openEnd() {}, close() {}, renderControl() {} },
+    inst,
+  );
 
   inst._oButton.settings.press();
   // The backend was still told about the press; only the default action -
@@ -296,6 +308,38 @@ test("a stream resolving after the dialog was closed is stopped, not leaked", as
 
   expect(track.stopped).toBe(1);
   expect(inst._stream).toBeFalsy();
+});
+
+test("a stream of an earlier opening is stopped when the dialog was reopened", async () => {
+  const dom = captureDom();
+  const first = { stopped: 0, stop() { this.stopped++; } };
+  const second = { stopped: 0, stop() { this.stopped++; } };
+  const resolvers = [];
+  const { makeInstance } = load({
+    documentElements: dom,
+    mediaDevices: {
+      getUserMedia: () => new Promise((resolve) => resolvers.push(resolve)),
+    },
+  });
+  const inst = makeInstance();
+
+  // open, cancel while the consent prompt is pending, open again
+  inst.onPicture();
+  const pending1 = inst._oScanDialog.afterOpenHandler();
+  inst._oScanDialog.close();
+  inst.onPicture();
+  const pending2 = inst._oScanDialog.afterOpenHandler();
+
+  // consent granted - both requests resolve into the open dialog
+  resolvers[0]({ getTracks: () => [first] });
+  resolvers[1]({ getTracks: () => [second] });
+  await pending1;
+  await pending2;
+
+  expect(first.stopped).toBe(1);
+  expect(second.stopped).toBe(0);
+  inst._oScanDialog.close();
+  expect(second.stopped).toBe(1);
 });
 
 test("a live stream is wired to the video and playback started", async () => {

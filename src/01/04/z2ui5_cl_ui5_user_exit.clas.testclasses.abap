@@ -328,6 +328,15 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_user_exit=>gv_exit_class
                                         act = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
 
+    " the next get_instance( ) asks again while nothing is latched - it
+    " used to return the bound instance without a lookup - and keeps the
+    " one instance either way
+    DATA(li_first) = z2ui5_cl_ui5_user_exit=>gi_me.
+    z2ui5_cl_ui5_user_exit=>get_instance( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = li_first ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_answered
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
+
   ENDMETHOD.
 
 ENDCLASS.

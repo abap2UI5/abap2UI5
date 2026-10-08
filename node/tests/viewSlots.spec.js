@@ -409,6 +409,23 @@ test.describe("destroy", () => {
     expect(state.oViewNest).toBeNull();
   });
 
+  test("a NEST2 placed inside NEST goes down with it", () => {
+    // nest2_view_display with a parent of the first nested view: destroying
+    // NEST took the NEST2 view down but left it in its slot
+    const { ViewSlots, state } = load();
+    const calls = [];
+    const nestView = { destroy: () => calls.push("NEST") };
+    const anchor = { getParent: () => nestView };
+    state.oViewNest = nestView;
+    state.oViewNest2 = {
+      getParent: () => anchor,
+      destroy: () => calls.push("NEST2"),
+    };
+    ViewSlots.destroy("NEST");
+    expect(calls).toEqual(["NEST2", "NEST"]);
+    expect(state.oViewNest2).toBeNull();
+  });
+
   test("destroying a nest directly leaves MAIN and the other nest alone", () => {
     const { ViewSlots, state } = load();
     const calls = [];

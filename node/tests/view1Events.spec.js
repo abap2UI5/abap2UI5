@@ -449,7 +449,13 @@ test.describe("_processAfterRendering (action-free responses)", () => {
         "z2ui5/core/actions/Slots": {
           action: (_ctx, method) => pushes.push(method),
         },
-        "z2ui5/core/ViewSlots": { destroy: (_ctx, key) => destroys.push(key) },
+        "z2ui5/core/ViewSlots": {
+          destroy: (_ctx, key) => destroys.push(key),
+          // no slot views here: a hand-built queued event carries none,
+          // and the view check of _dispatchQueuedEvent compares equal
+          keyOfController: () => "MAIN",
+          getView: () => undefined,
+        },
         "z2ui5/core/Router": {
           sync: (_ctx, o) => syncs.push(o),
           dispatchPendingAppHash: () => pendingHash.push("delivered"),
@@ -485,6 +491,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const { ctrl, state, destroys } = loadForAfterRendering();
     state.renderedApp = "Z2UI5_CL_APP_A";
     state.shortcuts = { "ctrl+s": {} };
+    state.viewSizeLimits = { MAIN: 20 };
+    state.tableStates = { TABLE1: { filters: [] } };
     state.hashEvent = "NAV";
     state.appHash = "/page2";
     state.pendingAppHash = "/page3";
@@ -503,6 +511,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
     expect(state.renderedApp).toBe("Z2UI5_CL_APP_B");
     expect(state.shortcuts).toEqual({});
+    expect(state.viewSizeLimits).toEqual({});
+    expect(state.tableStates).toEqual({});
     expect(state.hashEvent).toBe(null);
     expect(state.appHash).toBe("");
     expect(state.pendingAppHash).toBe(null);
@@ -1176,6 +1186,9 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       getProperty: (path) => values[path.slice(1)],
     };
     const app = { alive: true };
+    // the view showing in the controller's slot - replaced or closed by a
+    // response, the spec swaps it
+    const slot = { view: {} };
     const { module: ctrl } = loadModule("controller/View1.controller.js", {
       deps: {
         "z2ui5/core/Env": classEnv,
@@ -1215,7 +1228,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
         },
         "z2ui5/core/ViewSlots": {
           keyOfController: () => "MAIN",
-          getView: () => ({}),
+          getView: () => slot.view,
           destroy: () => {},
         },
         "z2ui5/core/Router": {
@@ -1232,7 +1245,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       values.VALUE = text;
       model._z2ui5ChangedPaths.add("/VALUE");
     };
-    return { ctrl, state, roundtrips, busy, pendingHash, model, type, app };
+    return { ctrl, state, roundtrips, busy, pendingHash, model, type, app, slot };
   }
 
   test("a queued wire fired while busy keeps the LAST event only, and shows the indicator", () => {
@@ -1329,6 +1342,22 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     ctrl.eB(QUEUED, "abc");
     // the popup the keystroke was typed into was closed by the response
     state.oQueuedEvent.controller = { eB: () => roundtrips.push("dead") };
+
+    state.oResponse = { ID: "D1", MODELPRESENT: false };
+    await ctrl._processAfterRendering(1);
+
+    expect(roundtrips).toEqual([]);
+    expect(state.oQueuedEvent).toBeNull();
+  });
+
+  // The slot controllers outlive the popup they serve: a popup the response
+  // closed still has a live controller. The VIEW the event was typed into
+  // decides - closed, or replaced by another, the keystroke is dropped.
+  test("a queued event whose view the response closed is dropped", async () => {
+    const { ctrl, state, roundtrips, slot } = loadForQueue();
+    state.isBusy = true;
+    ctrl.eB(QUEUED, "abc");
+    slot.view = null;
 
     state.oResponse = { ID: "D1", MODELPRESENT: false };
     await ctrl._processAfterRendering(1);

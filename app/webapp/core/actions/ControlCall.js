@@ -73,6 +73,24 @@ sap.ui.define(
       if (!apply()) requestAnimationFrame(apply);
     }
 
+    // The close callback of a toast or a box fires when the USER is done -
+    // any time, also while another roundtrip is in flight (a timer poll, a
+    // click). A plain eB( ) then hit the busy guard and the event was
+    // dropped: the answer to "Delete?" never reached the backend. It waits
+    // for that roundtrip instead, the way a START_TIMER tick does
+    // (ViewOps.evStartTimer), and fires one macrotask after it.
+    function dispatchWhenIdle(oController, args) {
+      const fire = () => {
+        if (!Lib.isControllerAlive(oController)) return;
+        if (oController.ctx?.state?.isBusy) {
+          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
+          return;
+        }
+        oController.eB(...args);
+      };
+      fire();
+    }
+
     function showToast(sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
       const sClass = o.class;
@@ -84,10 +102,7 @@ sap.ui.define(
         // callback pointing at a dead controller, whose eB( ) would round-
         // trip the old session's event into the app that replaced it. Same
         // guard the timer tick and the SET_FOCUS retry carry.
-        o.onClose = () => {
-          if (!Lib.isControllerAlive(oController)) return;
-          oController.eB([sEvent]);
-        };
+        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);
       }
       // MessageToast is always resolved here: the only caller is the
       // MESSAGE_TOAST.display hook, and evControlCall refuses the call with
@@ -154,8 +169,32 @@ sap.ui.define(
       }
     }
 
+    // MessageBox hands the title and every action text to its Dialog and
+    // Buttons as SETTINGS, and a string setting is read as binding syntax
+    // (the page boots with bindingSyntax="complex"): "Total {net}" came out
+    // empty, "Price {net" threw and the box never opened. The text and the
+    // details go through setters and need nothing. Backslash first - the
+    // parser unescapes \\, \{ and \}.
+    const escapeSetting = (v) =>
+      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => `\\${c}`) : v;
+
     function showBox(sType, sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
+      if (o.title !== undefined) o.title = escapeSetting(o.title);
+      // the action a button reports back is the string it was given - so
+      // the escaped spelling is mapped back before it reaches the backend,
+      // which compares it to the action it sent
+      const actionOf = new Map();
+      if (Array.isArray(o.actions)) {
+        o.actions = o.actions.map((a) => {
+          const escaped = escapeSetting(a);
+          if (escaped !== a) actionOf.set(escaped, a);
+          return escaped;
+        });
+        for (const key of ["emphasizedAction", "initialFocus"]) {
+          if (typeof o[key] === "string") o[key] = escapeSetting(o[key]);
+        }
+      }
       if (o.onClose) {
         // the pressed action must ride OUTSIDE the event array: eB treats
         // args[0] as the event array (name + flags) and Server.roundtrip
@@ -166,10 +205,11 @@ sap.ui.define(
         // ... and the same liveness guard showToast carries: a message box
         // waits for a user, so the app it belongs to may well be gone by the
         // time an action is pressed.
-        o.onClose = (sAction) => {
-          if (!Lib.isControllerAlive(oController)) return;
-          oController.eB([sEvent], sAction);
-        };
+        o.onClose = (sAction) =>
+          dispatchWhenIdle(oController, [
+            [sEvent],
+            actionOf.get(sAction) ?? sAction,
+          ]);
       }
       if (o.details) {
         o.details = Lib.sanitizeMessageDetails(o.details);
@@ -360,11 +400,22 @@ sap.ui.define(
       "opacity",
     ];
 
+    // Whether the link leaves the app, asked of the URL PARSER, not of the
+    // spelling: resolved against a placeholder origin, an in-app link (#/x,
+    // /path, ?q=) keeps it, and anything that leaves - a scheme, //host -
+    // does not. A pattern on the raw string let through what the browser
+    // reads differently: "/\\evil.com" and "\\\\evil.com" are //evil.com to
+    // it, a leading control character or a line break inside "java
+    // script:" is dropped before the scheme is read. Unparseable counts as
+    // leaving.
+    const URL_PROBE_BASE = "https://z2ui5.invalid/";
     function isAbsoluteUrl(url) {
-      const s = String(url ?? "").trim();
-      // a scheme ("http:", "mailto:", "javascript:") or a protocol-relative
-      // "//host" - everything else resolves against the app's own origin
-      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");
+      try {
+        const base = new URL(URL_PROBE_BASE);
+        return new URL(String(url ?? ""), base).origin !== base.origin;
+      } catch {
+        return true;
+      }
     }
 
     // A method LISTED above carries explicit arg kinds (and some, like openBy/

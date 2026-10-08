@@ -52,6 +52,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " _bind( json = abap_true ): the string spliced in as a JSON node
+    METHODS json_bind_set
+      IMPORTING
+        io_result TYPE REF TO z2ui5_if_ajson
+        iv_path   TYPE string
+        iv_json   TYPE any
+      RAISING
+        z2ui5_cx_ajson_error.
+
 
     " how many REFERENCE hops (`->`) a dissolved name may carry - the bound
     " that ends a cyclic object graph (an attribute pointing back at its
@@ -545,8 +554,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " (an ajson value is copied node for node, the result's mapping does
           " not touch it)
           IF lr_attri->check_json = abap_true.
-            li_ajson_result->set( iv_path = lr_attri->name_client
-                               iv_val     = z2ui5_cl_ajson=>parse( <val> ) ).
+            json_bind_set( io_result = li_ajson_result
+                           iv_path   = lr_attri->name_client
+                           iv_json   = <val> ).
             CONTINUE.
           ENDIF.
 
@@ -611,6 +621,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           EXPORTING
             val = x.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD json_bind_set.
+
+    " a string with no JSON in it YET - initial, or cleared - is no JSON at
+    " all and travels as null: refused like a broken one, it failed every
+    " roundtrip of the app (the snapshot before main( ) included) until the
+    " app filled it, a card manifest loaded later
+    " assigned first, not tested inline: a built-in in an IS INITIAL
+    " operand does not compile after the 7.02 downport (#2664)
+    DATA(lv_json) = condense( CONV string( iv_json ) ).
+    IF lv_json IS INITIAL.
+      io_result->set_null( iv_path ).
+      RETURN.
+    ENDIF.
+    io_result->set( iv_path = iv_path
+                    iv_val  = z2ui5_cl_ajson=>parse( iv_json ) ).
+
   ENDMETHOD.
 
   METHOD main_attri_db_load.
@@ -847,6 +875,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_attri_db_load_dref.
+
+    " only a reference the alias pass paired ITSELF is followed. A reference
+    " row BELOW an alias - `<alias>->r_val` - carries `<owner>-r_val` as
+    " name_ref only because refs_below_set rewrites every row under the
+    " alias for the binding search; once the alias is re-pointed at its
+    " owner both paths name the SAME variable, and following the row made
+    " it point at itself, the payload lost on restore. The owner's own row
+    " restores that component whenever it is an alias of its own
+    READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
+         WITH TABLE KEY name = ir_attri->name_parent.
+    IF sy-subrc = 0 AND lr_attri_parent->name_ref IS NOT INITIAL.
+      RETURN.
+    ENDIF.
 
     " IS ASSIGNED, not sy-subrc - see main_attri_db_load_table
     DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
@@ -1882,15 +1923,26 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
         " ISO instant on the wire; the `T` at offset 10 is what tells it
-        " from a price. get_timestampl parses the spellings Z and +hh:mm,
-        " and the p-to-p assignment drops the fraction a short timestamp
-        " does not carry. What it cannot read (a negative offset, -05:00,
+        " from a price. get_timestampl parses the spellings Z and +hh:mm.
+        " A short TIMESTAMP carries no fraction, and the p-to-p assignment
+        " ROUNDS it away - 12:30:59.6 became second 60, a value no timestamp
+        " has; truncated instead, as the instant's second it is. What it
+        " cannot read (a negative offset, -05:00,
         " which a western-hemisphere browser writes) it answers as an
         " initial value WITHOUT raising - assigned unchecked, that zeroed
         " the target with no trace. A non-empty instant that parses to
         " nothing is a refusal like any other conversion failure: the old
         " value stands and t_model_skipped says so
         IF strlen( lv_value ) >= 19 AND lv_value+10(1) = `T`.
+          " the INITIAL timestamp, as ajson writes it - 0000-00-00T00:00:00Z.
+          " It comes back with every edit of a sibling field (an edit below
+          " an attribute sends the attribute whole), and read as an instant
+          " it is nothing: refused, an untouched empty timestamp put a
+          " refusal into t_model_skipped on every roundtrip
+          IF lv_value(10) = `0000-00-00`.
+            CLEAR <comp>.
+            RETURN.
+          ENDIF.
           DATA(lv_ts) = io_delta->get_timestampl( iv_path ).
           IF lv_ts IS INITIAL.
             RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -1898,6 +1950,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                 val = |MODEL_VALUE_REFUSED - '{ lv_value }' is no timestamp the model can read (only Z and +hh:mm offsets)|.
           ENDIF.
           <comp> = lv_ts.
+          " rounded up: the target has no decimals - take the whole second
+          IF <comp> > lv_ts.
+            <comp> = trunc( lv_ts ).
+          ENDIF.
           RETURN.
         ENDIF.
 

@@ -40,7 +40,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
-             `      Lib.copyToClipboard(args[1]);` && |\n| &&
+             `      const value = args[1];` && |\n| &&
+             `      Lib.copyToClipboard(` && |\n| &&
+             `        value !== null && typeof value === "object"` && |\n| &&
+             `          ? JSON.stringify(value)` && |\n| &&
+             `          : value,` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evDownloadB64File(oController, args) {` && |\n| &&
@@ -227,7 +232,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          _URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
+             `` && |\n| &&
+             `          if (params.NEW_WINDOW) {` && |\n| &&
+             `            window.open(params.URL, "_blank", "noopener,noreferrer");` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          _URLHelper.redirect(params.URL, false);` && |\n| &&
              `        },` && |\n| &&
              `        TRIGGER_EMAIL: () =>` && |\n| &&
              `          _URLHelper.triggerEmail(` && |\n| &&

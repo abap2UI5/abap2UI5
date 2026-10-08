@@ -39,7 +39,21 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `    const CameraSelector = ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
              `      init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
+             `        this._onDeviceChange = () => this._loadCameras();` && |\n| &&
+             `        navigator.mediaDevices?.addEventListener?.(` && |\n| &&
+             `          "devicechange",` && |\n| &&
+             `          this._onDeviceChange,` && |\n| &&
+             `        );` && |\n| &&
+             `        this.attachLoadItems?.(this._onDeviceChange);` && |\n| &&
              `        this._loadCameras();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        navigator.mediaDevices?.removeEventListener?.(` && |\n| &&
+             `          "devicechange",` && |\n| &&
+             `          this._onDeviceChange,` && |\n| &&
+             `        );` && |\n| &&
+             `        ComboBox.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _loadCameras() {` && |\n| &&
@@ -49,12 +63,17 @@ CLASS z2ui5_cl_ui5f_camsel_js IMPLEMENTATION.
              `          const devices = await md.enumerateDevices();` && |\n| &&
              `` && |\n| &&
              `          if (!devices || Lib.isDestroyed(this)) return;` && |\n| &&
+             `          const selected = this.getSelectedKey?.();` && |\n| &&
+             `          this.destroyItems?.();` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            if (device.kind !== "videoinput") continue;` && |\n| &&
-             `            this.addItem(` && |\n| &&
-             `              new Item({ key: device.deviceId, text: device.label }),` && |\n| &&
-             `            );` && |\n| &&
+             `            if (device.kind !== "videoinput" || !device.deviceId) continue;` && |\n| &&
+             `` && |\n| &&
+             `            const item = new Item();` && |\n| &&
+             `            item.setKey(device.deviceId);` && |\n| &&
+             `            item.setText(device.label || device.deviceId);` && |\n| &&
+             `            this.addItem(item);` && |\n| &&
              `          }` && |\n| &&
+             `          if (selected) this.setSelectedKey?.(selected);` && |\n| &&
              `        } catch (err) {` && |\n| &&
              `          Lib.logError("CameraSelector: enumerateDevices failed", err);` && |\n| &&
              `        }` && |\n| &&

@@ -211,10 +211,43 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // picked afterwards was queued and never read until the view was rebuilt.
   // The chain also ends when `owner` is destroyed, so a torn-down control
   // stops reading.
+  // A file finished reading while ANOTHER roundtrip is in flight (a click,
+  // a timer tick, a websocket item) is held until it has landed: its event
+  // fired then hit the busy guard and was dropped, and the next file
+  // overwrote the properties - the file never reached the backend. Same
+  // wait as cc/Websocket's drain, one macrotask past the after-rendering
+  // hooks, which run BEFORE View1 clears the busy flag.
   function readFilesInTurn(owner, errorContext, onFile) {
     const queue = [];
     let reading = false;
     let cancelWait = null;
+    let deliverId = null;
+
+    const deliver = (file, result) => {
+      if (isDestroyed(owner)) {
+        reading = false;
+        return;
+      }
+      if (Context.of(owner)?.state.isBusy) {
+        cancelWait = afterRoundtrip(owner, () => {
+          cancelWait = null;
+          deliverId = setTimeout(() => {
+            deliverId = null;
+            deliver(file, result);
+          }, 0);
+        });
+        return;
+      }
+      onFile(file, result);
+      step();
+    };
+
+    const step = () => {
+      cancelWait = afterRoundtrip(owner, () => {
+        cancelWait = null;
+        readNext();
+      });
+    };
 
     const readNext = () => {
       const file = queue.shift();
@@ -223,19 +256,10 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
         return;
       }
       reading = true;
-      const step = () => {
-        cancelWait = afterRoundtrip(owner, () => {
-          cancelWait = null;
-          readNext();
-        });
-      };
       readFileAsDataURL(
         file,
         owner,
-        (result) => {
-          onFile(file, result);
-          step();
-        },
+        (result) => deliver(file, result),
         errorContext,
         // the reader failed on THIS file - the rest of the selection is
         // still readable, and nothing started a roundtrip to wait for
@@ -255,6 +279,10 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
         if (cancelWait) {
           cancelWait();
           cancelWait = null;
+        }
+        if (deliverId !== null) {
+          clearTimeout(deliverId);
+          deliverId = null;
         }
       },
     };
@@ -893,8 +921,11 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // backend receives it as the JSON string every object argument becomes in
   // T_EVENT_ARG and parses it with ajson.
   //
-  // Anything that is not a control is handed through untouched, so this is
-  // purely additive for every wire that works today.
+  // A Date - a control's property, or a bare event parameter such as
+  // `${$parameters>/startDate}` of SinglePlanningCalendar.cellPress - goes
+  // through projectValue below, for the reason given there. Anything else
+  // that is not a control is handed through untouched, so this is purely
+  // additive for every wire that works today.
   const MAX_ARG_DEPTH = 4;
 
   function isManagedObject(value) {
@@ -970,7 +1001,10 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     if (Array.isArray(value)) {
       return value.map((entry) => normalizeEventArg(entry, level + 1));
     }
-    return value;
+    // a bare Date is the same calendar day as a Date property - projecting
+    // only the latter sent `${$parameters>/startDate}` as a UTC instant, a
+    // day early east of Greenwich
+    return projectValue(value);
   }
 
   // Always returns a fresh top-level array: Server.roundtrip shifts

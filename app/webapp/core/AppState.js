@@ -146,6 +146,7 @@
 //                     view is ever in here, so nothing app-owned is touched
 //   viewSizeLimits    per-slot model size limits (actions/ViewOps)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
+//   tableStates       filters/sorters per tableId across rebuilds (UITableExt)
 //   lastError         the last fatal error shown by ErrorView (title/text/
 //                     onRetry), so a details view can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
@@ -265,9 +266,11 @@ sap.ui.define([], () => {
       appHash: "",
       pendingAppHash: null,
       // How many app hashes this PAGE LOAD has pushed (listener, legacy and
-      // KEEP-suffix pushes alike) - Router.navBack's stand-in for UI5's
-      // History.getPreviousHash(): zero means a cold deep link with no
-      // in-app history entry to consume, so a fallback replaces instead.
+      // KEEP-suffix pushes alike) and the browser still stands in front of -
+      // a Back lowers it, a Forward raises it again (Router.onHashChanged).
+      // Router.navBack's stand-in for UI5's History.getPreviousHash(): zero
+      // means no in-app history entry to consume (a cold deep link, or every
+      // pushed entry already stepped back over), so a fallback replaces.
       hashPushCount: 0,
 
       // Control / helper state. The records keyed by a value that comes off
@@ -285,6 +288,7 @@ sap.ui.define([], () => {
       odataClients: new Set(),
       viewSizeLimits: Object.create(null),
       treeStates: Object.create(null),
+      tableStates: Object.create(null),
       lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)

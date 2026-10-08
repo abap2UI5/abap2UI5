@@ -102,6 +102,10 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    Dirty.sync = function sync(ctx) {` && |\n| &&
+             `      applyDirtyState(ctx?.state?.oLaunchpad);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    Dirty.reset = function reset(ctx) {` && |\n| &&
              `      for (const inst of dirtyControls) {` && |\n| &&
              `        if (Context.of(inst) === ctx) dirtyControls.delete(inst);` && |\n| &&

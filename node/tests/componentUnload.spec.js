@@ -323,3 +323,19 @@ test("an embedded app restarts in place: the app ends, the component stays", () 
   inst._restartApp();
   expect(starts).toEqual([true]);
 });
+
+// cc/Dirty owns the FLP dirty flag and re-syncs it on the way out (its
+// reset, from _endApp); an unconditional false written after that cleared
+// the unsaved changes of another component on the page, and an embedded
+// component cleared its host's flag
+test("exit() leaves the FLP dirty flag to cc/Dirty", () => {
+  const writes = [];
+  const { inst } = runExit(fakeAppState(), {}, (component) => {
+    component._launchpad = {
+      Container: { setDirtyFlag: (v) => writes.push(v) },
+    };
+  });
+  expect(writes).toEqual([]);
+  // the reference itself still goes - pending init promises check it
+  expect(inst._launchpad).toBeNull();
+});

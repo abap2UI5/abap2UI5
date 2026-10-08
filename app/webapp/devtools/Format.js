@@ -196,8 +196,15 @@ sap.ui.define([], () => {
   // `.eBP($event,true,['ITEM_PRESS'])`. Match 1 is the method, match 2 the
   // event name. No `g` flag, so exec( ) on it is stateless; a scan over a
   // whole view compiles its own global copy from `.source`.
+  //
+  // What may stand between the parenthesis and the array is only what an
+  // eBP puts there ($event and the veto expression) - never a quote, a
+  // closing parenthesis or an entity. Open to anything but `[`, the skip
+  // ran past the end of an eF('CONTROL_BY_ID', ...) to the next `[` in the
+  // view - the eF was listed under the event of a later eB, and that eB
+  // was gone.
   const FRAMEWORK_CALL =
-    /\b(eB|eBP|eF)\s*\((?:[^[]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
+    /\b(eB|eBP|eF)\s*\((?:[^[)"'&]*\[)?\s*(?:&apos;|&quot;|['"])([A-Za-z0-9_.-]+)/;
 
   return {
     toJson,

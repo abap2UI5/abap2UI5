@@ -73,7 +73,14 @@ function load({ ui5 = true } = {}) {
   // so tests can inspect the built dialog / buttons and trigger their presses.
   const makeCtor = (kind) =>
     function (settings) {
-      const inst = { kind, settings: settings || {}, destroyed: false };
+      // `parsedText`: what came in through the settings object, which a
+      // real control reads as binding syntax
+      const inst = {
+        kind,
+        settings: { ...settings },
+        parsedText: settings?.text,
+        destroyed: false,
+      };
       inst.open = () => (inst.open_called = true);
       inst.close = () => {
         inst.open_called = false;
@@ -517,4 +524,15 @@ test.describe("ErrorView friendly dialog", () => {
     expect(created.dialogs).toHaveLength(0);
     expect(state.lastError.text).toBe("dump");
   });
+});
+
+// An error text is data: through the Text's settings object a {...} in it
+// was a binding - the braces of a JSON snippet vanished, {= } was
+// evaluated, an unbalanced { threw and took the dialog down to the overlay
+test("the error lines reach their Text through the setter, not as binding syntax", () => {
+  const { ErrorView, created } = load();
+  ErrorView.show('bad value {"A":1}');
+  const line = created.dialogs[0].settings.content[0];
+  expect(line.settings.text).toBe('bad value {"A":1}');
+  expect(line.parsedText).toBeUndefined();
 });

@@ -404,9 +404,11 @@ INTERFACE z2ui5_if_client
 
   "! The app-state hash: while active, the URL carries the id of the CURRENT
   "! app state (`#/z2ui5-xapp-state=&lt;id&gt;`), advanced on every roundtrip - a
-  "! reload, a bookmark or a shared link restores the exact state (the draft
-  "! the framework persists anyway is the state container, nothing extra is
-  "! stored). abap_false switches the URL tracking off again. Mutually
+  "! reload or a bookmark restores the exact state (the draft the framework
+  "! persists anyway is the state container, nothing extra is stored). A
+  "! draft belongs to the user who created it and lives a few hours: opened
+  "! by another user, or once it expired, the link starts fresh with a toast
+  "! saying so. abap_false switches the URL tracking off again. Mutually
   "! exclusive with hash_routing and hash_attach_changed - each claims the
   "! whole app hash.
   "!
@@ -417,9 +419,10 @@ INTERFACE z2ui5_if_client
       val TYPE abap_bool DEFAULT abap_true.
 
   "! The absolute URL of the CURRENT app state - the link that restores
-  "! exactly this roundtrip's state, FLP-safe: the shell hash of the page
-  "! survives in the link, so the recipient lands in this app instead of on
-  "! the launchpad home page. Composed from the browser's own location
+  "! exactly this roundtrip's state for the same user while its draft lives
+  "! (see app_state_set_active - another user starts fresh), FLP-safe: the
+  "! shell hash of the page survives in the link, so it lands in this app
+  "! instead of on the launchpad home page. Composed from the browser's own location
   "! (origin/pathname/search ride with the requests) plus this response's
   "! draft id. The app owns the string: copy it with
   "! cs_event-clipboard_copy, show it in an Input, mail it, render it as a
@@ -469,8 +472,10 @@ INTERFACE z2ui5_if_client
   "!                  the fragment (`addContent` for a Page or a VBox,
   "!                  `addItem` for a List, `addPage` for a NavContainer).
   "! @parameter method_destroy | the mutator that removes the previous content
-  "!                  first (`removeAllContent`, `removeAllItems`); without it
-  "!                  every call adds one more fragment.
+  "!                  of the control first (`removeAllContent`,
+  "!                  `removeAllItems`). The previous nested view itself is
+  "!                  destroyed on every call either way - without this,
+  "!                  only the control's OTHER content stays in place.
   METHODS nest_view_display
     IMPORTING
       val            TYPE clike
@@ -695,14 +700,18 @@ INTERFACE z2ui5_if_client
   "!                  DELETE from CANCEL.
   "! @parameter actions | the buttons, as sap.m.MessageBox.Action names (`OK`,
   "!                  `CANCEL`, `YES`, `NO`, `ABORT`, `RETRY`, `IGNORE`,
-  "!                  `CLOSE`, `DELETE`) or as free texts; `OK` alone when
-  "!                  not supplied.
+  "!                  `CLOSE`, `DELETE`) or as free texts. Not supplied, UI5's
+  "!                  default for the type applies - `OK` for information
+  "!                  and success, `CLOSE` for error, `OK` and `CANCEL` for
+  "!                  confirm - so an onclose handler should not expect `OK`
+  "!                  alone.
   "! @parameter emphasizedaction | the one of the actions rendered as the
   "!                  emphasized button.
   "! @parameter initialfocus | the action (or control id) that has the focus
   "!                  when the box opens.
-  "! @parameter details | a further text (or JSON) shown behind the box's
-  "!                  "Show details" link.
+  "! @parameter details | a further text (or JSON) shown below the message,
+  "!                  already unfolded (the box's "Show details" link is
+  "!                  hidden).
   METHODS message_box_display
     IMPORTING
       text             TYPE any
@@ -1092,8 +1101,11 @@ INTERFACE z2ui5_if_client
   "! history.back( ). Frontend code of the app's own ships as a custom
   "! control in the customer frontend BSP (z2ui5_ccc).
   "!
-  "! Every cs_event-* action also works roundtrip-free when WIRED IN THE
-  "! VIEW: write the same call where its result is consumed -
+  "! Every cs_event-* action that runs in the browser also works
+  "! roundtrip-free when WIRED IN THE VIEW - all but hash_routing, hash_set,
+  "! hash_replace, hash_attach_changed and app_state_set_active, which are
+  "! options of the backend's response (see _event_client( )). Write the
+  "! same call where its result is consumed -
   "! `)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )` -
   "! and the action runs in the browser without a server call.
   "!
