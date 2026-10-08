@@ -497,6 +497,25 @@ test.describe("DOWNLOAD_B64_FILE", () => {
     );
   });
 
+  // the browser reads the URL after the URL parser and the data: URL
+  // processor have dropped whitespace - so does the guard
+  for (const url of [
+    " data:text/html;base64,PHNjcmlwdD4=",
+    "da\tta:text/html;base64,PHNjcmlwdD4=",
+    "data: text/html;base64,PHNjcmlwdD4=",
+  ]) {
+    test(`an active data: MIME type is blocked in the spelling ${JSON.stringify(url)}`, () => {
+      const { handlers, anchors, errors } = load();
+
+      handlers.DOWNLOAD_B64_FILE(null, ["DOWNLOAD_B64_FILE", url, "invoice.html"]);
+
+      expect(anchors).toHaveLength(0);
+      expect(errors()).toContain(
+        "DOWNLOAD_B64_FILE: blocked active data: MIME type",
+      );
+    });
+  }
+
   test("an octet-stream data: URL downloads via attach, click, remove", () => {
     const { handlers, anchors, bodyOps } = load();
     const url = "data:application/octet-stream;base64,QQ==";

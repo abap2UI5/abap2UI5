@@ -191,18 +191,22 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      return { values, formats: cellFormats, columns: cols.length };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isDateFormat(format) {` && |\n| &&
-             `      const bare = String(format ?? "")` && |\n| &&
+             `    function bareFormat(format) {` && |\n| &&
+             `      return String(format ?? "")` && |\n| &&
              `        .replace(/"[^"]*"/g, "")` && |\n| &&
              `        .replace(/\\./g, "")` && |\n| &&
              `        .replace(/\[[^\]]*\]/g, "");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isDateFormat(format) {` && |\n| &&
+             `      const bare = bareFormat(format);` && |\n| &&
              `      return /[dy]/i.test(bare) || /h/i.test(bare);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function serialToIso(serial, format) {` && |\n| &&
              `      const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;` && |\n| &&
              `      const iso = new Date(ms).toISOString();` && |\n| &&
-             `      const bare = String(format).replace(/"[^"]*"/g, "");` && |\n| &&
+             `      const bare = bareFormat(format);` && |\n| &&
              `      const hasDate = /[dy]/i.test(bare);` && |\n| &&
              `      const hasTime = /h/i.test(bare);` && |\n| &&
              `      if (hasDate && hasTime) return iso.slice(0, 19);` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `        return this._enqueue("read", (Excel) =>` && |\n| &&
              `          Excel.run(async (context) => {` && |\n| &&
              `            let range = context.workbook.getSelectedRange();` && |\n| &&
-             `            range.load("address,rowCount,columnCount");` && |\n| &&
+             `            range.load("address,rowCount,columnCount");` && |\n|.
+    result = result &&
              `            await context.sync();` && |\n| &&
              `` && |\n| &&
              `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&
-             `              range = range.getUsedRangeOrNullObject(true);` && |\n|.
-    result = result &&
+             `              range = range.getUsedRangeOrNullObject(true);` && |\n| &&
              `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
              `              await context.sync();` && |\n| &&
              `            }` && |\n| &&

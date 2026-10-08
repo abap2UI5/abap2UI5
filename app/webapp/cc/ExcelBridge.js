@@ -228,20 +228,29 @@ sap.ui.define(
       return { values, formats: cellFormats, columns: cols.length };
     }
 
-    // A number format that shows a date or a time - after the quoted text,
-    // the escaped characters and the [Red] / [$-409] sections are cut out.
-    function isDateFormat(format) {
-      const bare = String(format ?? "")
+    // A number format without what does not format the value: the quoted
+    // text, the escaped characters and the [Red] / [$-409] sections.
+    function bareFormat(format) {
+      return String(format ?? "")
         .replace(/"[^"]*"/g, "")
         .replace(/\\./g, "")
         .replace(/\[[^\]]*\]/g, "");
+    }
+
+    // A number format that shows a date or a time.
+    function isDateFormat(format) {
+      const bare = bareFormat(format);
       return /[dy]/i.test(bare) || /h/i.test(bare);
     }
 
+    // Cut the same way isDateFormat cuts: Excel's own Time format is
+    // [$-x-systime]h:mm:ss AM/PM, and the "y" of "systime" in the locale
+    // section read as a date part - a time cell came back as
+    // 1899-12-30T14:30:00 instead of 14:30:00 (and [Red]h:mm the same way)
     function serialToIso(serial, format) {
       const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;
       const iso = new Date(ms).toISOString();
-      const bare = String(format).replace(/"[^"]*"/g, "");
+      const bare = bareFormat(format);
       const hasDate = /[dy]/i.test(bare);
       const hasTime = /h/i.test(bare);
       if (hasDate && hasTime) return iso.slice(0, 19);

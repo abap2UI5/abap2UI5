@@ -808,3 +808,16 @@ test("an impossible ISO date and the ABAP initial date stay text", () => {
   expect(m.values[2][0]).toBeCloseTo(45306.520833, 5);
   expect(m.formats[2]).toEqual(["yyyy-mm-dd hh:mm:ss"]);
 });
+
+test("a time format with a locale or color section reads as a time", () => {
+  const { ExcelBridge } = load();
+  // [$-x-systime]h:mm:ss AM/PM is Excel's own Time format: the "y" of
+  // "systime" must not make the cell a date-time
+  const rows = ExcelBridge._toRows(
+    [[0.6041666666666666, 0.6041666666666666, 45306.5]],
+    [["[$-x-systime]h:mm:ss AM/PM", "[Red]h:mm", "[$-de-DE]dd.mm.yyyy hh:mm"]],
+  );
+  expect(rows).toEqual([
+    { COL1: "14:30:00", COL2: "14:30:00", COL3: "2024-01-15T12:00:00" },
+  ]);
+});

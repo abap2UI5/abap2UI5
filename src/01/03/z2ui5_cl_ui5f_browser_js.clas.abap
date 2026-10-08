@@ -54,9 +54,10 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
+             `      const href = new URL(args[1], window.location.origin).href;` && |\n| &&
              `      if (` && |\n| &&
-             `        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
-             `          args[1],` && |\n| &&
+             `        /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
+             `          href,` && |\n| &&
              `        )` && |\n| &&
              `      ) {` && |\n| &&
              `        Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");` && |\n| &&

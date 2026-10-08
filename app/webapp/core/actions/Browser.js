@@ -48,9 +48,17 @@ sap.ui.define(
       // A data: URL carrying active HTML combined with an attacker-chosen
       // .html/.hta filename is a known drive-by vector; block executable data:
       // MIME types outright (real downloads are octet-stream, images, pdf, ...).
+      // Tested on the URL as the BROWSER reads it, not on the raw argument:
+      // the URL parser drops leading whitespace and every tab or newline, and
+      // the data: URL processor strips the whitespace before the MIME type -
+      // " data:text/html,...", "da\tta:text/html,..." and
+      // "data: text/html,..." all passed a test on the raw string and were
+      // downloaded as the HTML file this guard exists to refuse.
+      // isSafeDownloadURL has just proven that it parses.
+      const href = new URL(args[1], window.location.origin).href;
       if (
-        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
-          args[1],
+        /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
+          href,
         )
       ) {
         Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");
