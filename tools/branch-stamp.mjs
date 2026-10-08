@@ -18,9 +18,9 @@
 //     node tools/branch-stamp.mjs <dir> <branch> [sha]
 //
 // <dir> is the finished tree (tools/out/<branch> or the deploy's copy of
-// it), <sha> the core commit; without the argument GITHUB_SHA, otherwise
-// HEAD. If no commit can be determined, the provenance line is left out
-// instead of being wrong.
+// it), <sha> the core commit - a full 40-digit sha, anything else is refused;
+// without the argument GITHUB_SHA, otherwise HEAD. If no commit can be
+// determined, the provenance line is left out instead of being wrong.
 //
 // What a pulled repository sees does not change through this: README and
 // VERSION carry the same text as before, it just comes into being one step
@@ -61,7 +61,14 @@ export function versionStamp({ sha = null, version = null } = {}) {
 }
 
 export function coreSha(explicit = null) {
-  const given = explicit ?? process.env.GITHUB_SHA ?? "";
+  // A sha that was handed over and is not one is a caller's mistake (a
+  // truncated or upper-case value, a branch name): falling back to HEAD would
+  // stamp the commit of the checkout instead and nobody would see it - the
+  // deploy compares the published stamp against exactly this value.
+  if (explicit && !/^[0-9a-f]{40}$/.test(explicit)) {
+    throw new Error(`branch-stamp: "${explicit}" is no full 40-digit commit sha`);
+  }
+  const given = explicit || process.env.GITHUB_SHA || "";
   if (/^[0-9a-f]{40}$/.test(given)) return given;
   try {
     return execFileSync("git", ["rev-parse", "HEAD"], { cwd: core, encoding: "utf8" }).trim() || null;

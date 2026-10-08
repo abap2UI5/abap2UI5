@@ -127,6 +127,40 @@ test("the validator turns free text into a Token with key = text", () => {
   expect(created.text).toBe("blue");
 });
 
+// Free text went into the Token SETTINGS object, where a string is binding
+// syntax: on a release that hands args.text over raw (1.71, 1.96, 1.114.10)
+// a typed "{a}" became a binding to /a. Releases that escape it first
+// (1.108.30, 1.117 on) are the other half. The setters take the text as the
+// user typed it on both.
+test("typed braces and backslashes become the token text on every release", () => {
+  const cases = [
+    // [what the user typed, args.text as the release hands it over]
+    ["Pump {X}", "Pump {X}"], // raw (1.71)
+    ["Pump {X}", "Pump \\{X\\}"], // escaped (1.117 on)
+    ["a\\b", "a\\b"], // raw backslash
+    ["a\\b", "a\\\\b"], // escaped backslash
+  ];
+  for (const [typed, given] of cases) {
+    const target = { ...inputStub(), getValue: () => ` ${typed} ` };
+    const { makeInstance } = load({ input: target });
+    const inst = makeInstance();
+    inst.setControl();
+    const created = target.validators[0]({ text: given });
+    expect(created.parsed).toBe(false);
+    expect(created.key).toBe(typed);
+    expect(created.text).toBe(typed);
+  }
+});
+
+test("a pasted piece is unescaped only when it reads as escaped", () => {
+  const target = { ...inputStub(), getValue: () => "" };
+  const { makeInstance } = load({ input: target });
+  const inst = makeInstance();
+  inst.setControl();
+  expect(target.validators[0]({ text: "x\\{1\\}" }).text).toBe("x{1}");
+  expect(target.validators[0]({ text: "x{1}" }).text).toBe("x{1}");
+});
+
 test("an unresolved target leaves the claim open", () => {
   const { makeInstance } = load({ input: null });
   const inst = makeInstance();

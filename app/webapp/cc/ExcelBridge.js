@@ -97,10 +97,18 @@ sap.ui.define(
 
     // Case-insensitive member of a plain object - ABAP sends KEY, an app
     // writing JSON by hand may send key.
+    // Own names only: `in` and a bare obj[name] also answer for what every
+    // object inherits (toString, constructor), so a column called that would
+    // read a function. Object.hasOwn is ES2022 - too new for the browsers of
+    // the oldest UI5 releases, hence the prototype call.
+    function hasOwn(obj, name) {
+      return Object.prototype.hasOwnProperty.call(obj, name);
+    }
+
     function member(obj, names) {
       if (!obj || typeof obj !== "object") return undefined;
       for (const name of names) {
-        if (obj[name] !== undefined) return obj[name];
+        if (hasOwn(obj, name) && obj[name] !== undefined) return obj[name];
         const hit = Object.keys(obj).find(
           (k) => k.toLowerCase() === name.toLowerCase(),
         );
@@ -153,7 +161,7 @@ sap.ui.define(
     // The key a row really carries for a column (MATNR for matnr).
     function resolveKey(row, key) {
       if (!row || typeof row !== "object" || Array.isArray(row)) return key;
-      if (key in row) return key;
+      if (hasOwn(row, key)) return key;
       const hit = Object.keys(row).find(
         (k) => k.toLowerCase() === String(key).toLowerCase(),
       );
@@ -218,7 +226,10 @@ sap.ui.define(
         const valueRow = [];
         const formatRow = [];
         keys.forEach((key, i) => {
-          const cell = toCell(row?.[key], formats[i]);
+          // own only, like resolveKey: a row without the column must not
+          // hand over an inherited function
+          const own = row != null && hasOwn(row, key);
+          const cell = toCell(own ? row[key] : undefined, formats[i]);
           valueRow.push(cell.value);
           formatRow.push(cell.format);
         });

@@ -103,6 +103,23 @@ test("a position lands in the properties as text and fires finished", () => {
   expect(inst.finished).toBe(1);
 });
 
+// The W3C API reports heading as NaN while the device stands still - a
+// real fix at rest. It went out as the text "NaN".
+test("a NaN heading of a device at rest lands as the empty string", () => {
+  const { calls, navigator } = geoApi();
+  const { makeInstance } = load({ navigator });
+  const inst = makeInstance();
+
+  inst.onAfterRendering();
+  calls[0].ok({
+    coords: { longitude: 1, latitude: 2, speed: 0, heading: NaN },
+  });
+
+  expect(inst._props.heading).toBe("");
+  expect(inst._props.speed).toBe("0");
+  expect(inst.finished).toBe(1);
+});
+
 test("a geolocation error is logged and fired as event - never thrown, no UI", () => {
   const { calls, navigator } = geoApi();
   const { makeInstance, errors } = load({ navigator });

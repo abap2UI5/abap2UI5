@@ -844,3 +844,25 @@ test("elapsed-time and minutes:seconds formats read as times", () => {
   const plain = ExcelBridge._toRows([[3, 3]], [['0 "[h]"', "General"]]);
   expect(plain).toEqual([{ COL1: 3, COL2: 3 }]);
 });
+
+// resolveKey asked `key in row`, and member( ) read obj[name]: both answer for
+// what every object inherits. A column called "constructor" wrote the source
+// text of Object( ), a numberFormats map without the column read the
+// inherited toString as the format.
+test("a column named like an inherited member reads only own values", () => {
+  const { ExcelBridge } = load();
+  const m = ExcelBridge._buildMatrix({
+    rows: [{ CONSTRUCTOR: "x", A: 1 }, { A: 2 }],
+    columns: [{ KEY: "constructor" }, { KEY: "toString" }],
+    numberFormats: { A: "0.00" },
+    header: false,
+  });
+  expect(m.values).toEqual([
+    ["x", ""],
+    ["", ""],
+  ]);
+  expect(m.formats).toEqual([
+    ["@", "@"],
+    ["@", "@"],
+  ]);
+});

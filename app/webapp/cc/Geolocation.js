@@ -81,7 +81,14 @@ sap.ui.define(
         // The control could be torn down while the geolocation API was busy.
         if (Lib.isDestroyed(this)) return;
         for (const prop of _GEO_PROPS) {
-          this.setProperty(prop, Lib.toText(coords[prop]), true);
+          // A device at rest reports heading as NaN (W3C Geolocation: "if
+          // speed is 0, heading MUST be NaN"), and String(NaN) is a word,
+          // not a number - the backend got "NaN" where an unavailable value
+          // is the empty string, like a null field
+          const v = coords[prop];
+          const text =
+            typeof v === "number" && !Number.isFinite(v) ? "" : Lib.toText(v);
+          this.setProperty(prop, text, true);
         }
         this.fireFinished();
       },

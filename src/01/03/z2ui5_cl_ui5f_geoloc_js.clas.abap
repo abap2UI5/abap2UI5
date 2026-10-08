@@ -100,7 +100,10 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `      callbackPosition({ coords }) {` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        for (const prop of _GEO_PROPS) {` && |\n| &&
-             `          this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
+             `          const v = coords[prop];` && |\n| &&
+             `          const text =` && |\n| &&
+             `            typeof v === "number" && !Number.isFinite(v) ? "" : Lib.toText(v);` && |\n| &&
+             `          this.setProperty(prop, text, true);` && |\n| &&
              `        }` && |\n| &&
              `        this.fireFinished();` && |\n| &&
              `      },` && |\n| &&
