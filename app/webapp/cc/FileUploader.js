@@ -109,7 +109,9 @@ sap.ui.define(
             this,
             "FileUploader",
             (_, result) => {
-              this.setProperty("value", result);
+              // the renderer draws nothing from `value` - write it without
+              // invalidating (AGENTS.md rule 10); the binding still sees it
+              this.setProperty("value", result, true);
               this.fireUpload();
             },
           );

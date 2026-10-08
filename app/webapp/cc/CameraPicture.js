@@ -106,8 +106,10 @@ sap.ui.define(
         }
 
         if (Lib.isDestroyed(this)) return false;
-        this.setProperty("value", resultb64);
-        this.setProperty("thumbnail", thumbB64);
+        // the renderer draws neither - written without invalidating
+        // (AGENTS.md rule 10), the binding still carries them to the model
+        this.setProperty("value", resultb64, true);
+        this.setProperty("thumbnail", thumbB64, true);
         this.fireOnPhoto({ photo: resultb64 });
         this._stopCamera();
         return true;

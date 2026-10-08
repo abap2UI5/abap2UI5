@@ -117,7 +117,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            this,` && |\n| &&
              `            "FileUploader",` && |\n| &&
              `            (_, result) => {` && |\n| &&
-             `              this.setProperty("value", result);` && |\n| &&
+             `              this.setProperty("value", result, true);` && |\n| &&
              `              this.fireUpload();` && |\n| &&
              `            },` && |\n| &&
              `          );` && |\n| &&

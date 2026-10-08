@@ -704,6 +704,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
   PRIVATE SECTION.
 
+    " a token template of filter_get_token_range_mapping with {LOW} and
+    " {HIGH} filled in as written
+    CLASS-METHODS filter_token_fill
+      IMPORTING
+        template      TYPE string
+        low           TYPE string
+        high          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_get_class_descr_on_cloud
       IMPORTING
         classname     TYPE clike
@@ -1291,8 +1301,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       IF lv_value IS INITIAL.
         lv_value = lt_mapping[ n = `EQ` ]-v. "#EC CI_SORTSEQ
       ENDIF.
-      REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
-      REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
+      lv_value = filter_token_fill( template = lv_value
+                                    low      = lr_row->low
+                                    high     = lr_row->high ).
 
       " an excluding row must not render like its including twin - negate the
       " token so the MultiInput shows the filter's real meaning
@@ -1305,6 +1316,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
                       visible  = abap_true
                       editable = abap_true ) INTO TABLE result.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD filter_token_fill.
+
+    " built by concatenation, not REPLACE ... WITH: LOW and HIGH are data,
+    " and the transpiled runtime reads a WITH text like a regex replacement
+    " ( `$&`, `$$`, `\{` change - backlog item runtime-replace-with-literal ).
+    " HIGH first: a LOW that spells `{HIGH}` is then never substituted a
+    " second time ( {LOW} stands before {HIGH} in every template )
+    DATA lv_off  TYPE i.
+    DATA lv_rest TYPE i.
+
+    result = template.
+    lv_off = find( val = result
+                   sub = `{HIGH}` ).
+    IF lv_off >= 0.
+      lv_rest = lv_off + 6.
+      result = substring( val = result
+                          len = lv_off ) && high && substring( val = result
+                                                               off = lv_rest ).
+    ENDIF.
+    lv_off = find( val = result
+                   sub = `{LOW}` ).
+    IF lv_off >= 0.
+      lv_rest = lv_off + 5.
+      result = substring( val = result
+                          len = lv_off ) && low && substring( val = result
+                                                              off = lv_rest ).
+    ENDIF.
 
   ENDMETHOD.
 

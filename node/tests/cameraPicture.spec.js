@@ -121,7 +121,12 @@ function load({ documentElements = {}, mediaDevices } = {}) {
     };
     inst.getId = () => "cam";
     inst.getProperty = (k) => inst._props[k];
-    inst.setProperty = (k, v) => (inst._props[k] = v);
+    // records whether a write suppressed the re-render (third argument)
+    inst._quiet = {};
+    inst.setProperty = (k, v, quiet) => {
+      inst._quiet[k] = quiet === true;
+      return (inst._props[k] = v);
+    };
     inst.getAutoplay = () => inst._props.autoplay;
     inst.getWidth = () => inst._props.width;
     inst.getHeight = () => inst._props.height;
@@ -223,6 +228,8 @@ test("capture() stores the JPEG + thumbnail, fires OnPhoto and stops the camera"
 
   expect(inst._props.value).toBe("data:image/jpeg;base64,FULL");
   expect(inst._props.thumbnail).toBe("data:image/jpeg;base64,THUMB");
+  // the renderer draws neither: both written without invalidating
+  expect(inst._quiet).toMatchObject({ value: true, thumbnail: true });
   expect(inst.photos).toEqual([{ photo: "data:image/jpeg;base64,FULL" }]);
   // the OS camera is released after a successful capture
   expect(track.stopped).toBe(1);

@@ -131,7 +131,12 @@ function load() {
       ...props,
     };
     inst.getProperty = (k) => inst._props[k];
-    inst.setProperty = (k, v) => (inst._props[k] = v);
+    // records whether a write suppressed the re-render (third argument)
+    inst._quiet = {};
+    inst.setProperty = (k, v, quiet) => {
+      inst._quiet[k] = quiet === true;
+      return (inst._props[k] = v);
+    };
     inst.setAggregation = (k, v) => {
       inst[k] = v;
       v.parent = inst;
@@ -236,6 +241,8 @@ test("pressing Upload reads the pending file and fires upload with the data URL"
 
   expect(inst._props.value).toBe("data:mock;base64,doc.txt");
   expect(inst.uploads).toBe(1);
+  // the renderer draws nothing from `value`: written without invalidating
+  expect(inst._quiet.value).toBe(true);
 });
 
 test("with multiple, every selected file is read - one after the other", () => {

@@ -278,6 +278,94 @@ test("the + key round-trips from the registration to the keydown", () => {
   expect(fired).toEqual([["ZOOM_IN"]]);
 });
 
+// A character the layout produces only with Shift ("+" and "?" on a US
+// keyboard) arrives with shiftKey set; the combo without shift is the
+// fallback, so "Ctrl++" and "?" fire there too - while a letter's case stays
+// the Shift ("Ctrl+Shift+S" is not "Ctrl+S") and an explicit Shift+ entry
+// for a shifted character still wins.
+test.describe("keys that need Shift on the layout", () => {
+  test("Ctrl++ fires when + is typed with Shift (US layout)", () => {
+    const { register, press, fired } = load();
+    register("Ctrl++", "ZOOM_IN");
+    expect(press("+", { ctrlKey: true, shiftKey: true })).toBe(true);
+    expect(fired).toEqual([["ZOOM_IN"]]);
+  });
+
+  test("? fires when typed as Shift+/", () => {
+    const { register, press, fired } = load();
+    register("?", "HELP");
+    expect(press("?", { shiftKey: true })).toBe(true);
+    expect(fired).toEqual([["HELP"]]);
+  });
+
+  test("an explicit Shift+ registration for the same character wins", () => {
+    const { register, press, fired } = load();
+    register("?", "HELP");
+    register("Shift+?", "HELP_SHIFT");
+    press("?", { shiftKey: true });
+    expect(fired).toEqual([["HELP_SHIFT"]]);
+  });
+
+  test("a letter keeps Shift apart: Ctrl+Shift+S does not fire Ctrl+S", () => {
+    const { register, press, fired } = load();
+    register("Ctrl+S", "SAVE");
+    expect(press("S", { ctrlKey: true, shiftKey: true })).toBe(false);
+    expect(fired).toEqual([]);
+  });
+
+  test("Shift+Space is not read as Space", () => {
+    const { register, press, fired } = load();
+    register("Space", "TOGGLE");
+    expect(press(" ", { shiftKey: true })).toBe(false);
+    expect(fired).toEqual([]);
+  });
+
+  test("the candidates: exact first, the shift-less fallback second", () => {
+    const { Shortcuts } = load();
+    const ev = (key, mods) => ({
+      key,
+      ctrlKey: false,
+      shiftKey: false,
+      altKey: false,
+      metaKey: false,
+      ...mods,
+    });
+    expect(
+      Shortcuts.shortcutCandidates(ev("+", { ctrlKey: true, shiftKey: true })),
+    ).toEqual(["ctrl+shift++", "ctrl++"]);
+    expect(Shortcuts.shortcutCandidates(ev("S", { shiftKey: true }))).toEqual([
+      "shift+s",
+    ]);
+    expect(
+      Shortcuts.shortcutCandidates(ev("Enter", { shiftKey: true })),
+    ).toEqual(["shift+enter"]);
+    expect(Shortcuts.shortcutCandidates(ev("+", {}))).toEqual(["+"]);
+    // a real KeyboardEvent carries key & co. as prototype getters, which a
+    // spread would drop
+    class FakeKeyEvent {
+      get key() {
+        return "+";
+      }
+      get ctrlKey() {
+        return true;
+      }
+      get shiftKey() {
+        return true;
+      }
+      get altKey() {
+        return false;
+      }
+      get metaKey() {
+        return false;
+      }
+    }
+    expect(Shortcuts.shortcutCandidates(new FakeKeyEvent())).toEqual([
+      "ctrl+shift++",
+      "ctrl++",
+    ]);
+  });
+});
+
 // A text field writes its value to the model on change (blur or Enter); a
 // shortcut pressed while typing came first, and the event went out without
 // the edit. The focused input is committed before the dispatch.

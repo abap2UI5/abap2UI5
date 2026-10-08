@@ -155,10 +155,15 @@ for (const { file, manifest: MANIFEST } of MODULES) {
 
   // --- criterion 2: the export surface matches the justified manifest -------
   // the returned object literal of sap.ui.define; its keys are shorthand
-  // methods (`name(args) {`) or properties (`name: `)
+  // methods (`name(args) {`, `async name(`), properties (`name: `) or
+  // shorthand properties (`name,` - a function declared above the return).
+  // The last form was not read: `return { upper, ... }` exported a function
+  // the manifest never named and the gate stayed green
   const returned = src.slice(src.lastIndexOf("\n  return {"));
   const exported = new Set(
-    [...returned.matchAll(/^\s{4}(\w+)\s*[(:]/gm)].map((m) => m[1]),
+    [...returned.matchAll(/^\s{4}(?:async\s+)?(\w+)\s*(?:[(:,]|$)/gm)].map(
+      (m) => m[1],
+    ),
   );
 
   for (const name of exported) {

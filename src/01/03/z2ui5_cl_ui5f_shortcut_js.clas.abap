@@ -79,6 +79,31 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      return [...mods, key].join("+");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function shortcutCandidates(oEvent) {` && |\n| &&
+             `      const exact = shortcutFromEvent(oEvent);` && |\n| &&
+             `      const key = String(oEvent.key ?? "");` && |\n| &&
+             `      if (` && |\n| &&
+             `        exact === "" ||` && |\n| &&
+             `        !oEvent.shiftKey ||` && |\n| &&
+             `        key.length !== 1 ||` && |\n| &&
+             `        key === " " ||` && |\n| &&
+             `        key.toLowerCase() !== key.toUpperCase()` && |\n| &&
+             `      ) {` && |\n| &&
+             `        return [exact];` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      return [` && |\n| &&
+             `        exact,` && |\n| &&
+             `        shortcutFromEvent({` && |\n| &&
+             `          key: oEvent.key,` && |\n| &&
+             `          ctrlKey: oEvent.ctrlKey,` && |\n| &&
+             `          shiftKey: false,` && |\n| &&
+             `          altKey: oEvent.altKey,` && |\n| &&
+             `          metaKey: oEvent.metaKey,` && |\n| &&
+             `        }),` && |\n| &&
+             `      ];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const SHORTCUT_SLOTS = ["POPOVER", "POPUP", "NEST2", "NEST", "MAIN"];` && |\n| &&
              `` && |\n| &&
              `    const SHORTCUT_GLOBAL = "";` && |\n| &&
@@ -136,7 +161,11 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      if (ctx.shortcuts.listener || typeof document === "undefined") return;` && |\n| &&
              `      const listener = (oEvent) => {` && |\n| &&
              `        try {` && |\n| &&
-             `          const entry = shortcutEntry(ctx, shortcutFromEvent(oEvent));` && |\n| &&
+             `          let entry;` && |\n| &&
+             `          for (const combo of shortcutCandidates(oEvent)) {` && |\n| &&
+             `            entry = shortcutEntry(ctx, combo);` && |\n| &&
+             `            if (entry) break;` && |\n| &&
+             `          }` && |\n| &&
              `          if (!entry) return;` && |\n| &&
              `` && |\n| &&
              `          if (!Lib.isControllerAlive(entry.controller)) return;` && |\n| &&
@@ -215,7 +244,13 @@ CLASS z2ui5_cl_ui5f_shortcut_js IMPLEMENTATION.
              `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return { handlers, reset, normalizeShortcut, shortcutFromEvent };` && |\n| &&
+             `    return {` && |\n| &&
+             `      handlers,` && |\n| &&
+             `      reset,` && |\n| &&
+             `      normalizeShortcut,` && |\n| &&
+             `      shortcutFromEvent,` && |\n| &&
+             `      shortcutCandidates,` && |\n| &&
+             `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

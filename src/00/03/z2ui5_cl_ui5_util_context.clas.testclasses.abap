@@ -1079,6 +1079,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
     METHODS test_token_numeric_range FOR TESTING RAISING cx_static_check.
     METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
+    METHODS test_token_dollar_value FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
@@ -1443,6 +1444,28 @@ CLASS ltcl_msg IMPLEMENTATION.
                                         act = lt_token[ 1 ]-key ).
     cl_abap_unit_assert=>assert_equals( exp = `-5...10`
                                         act = lt_token[ 2 ]-key ).
+
+  ENDMETHOD.
+
+  METHOD test_token_dollar_value.
+
+    " LOW / HIGH are data and go into the token as written - `$&`, `$$` and
+    " a backslash before a brace included, and a value that spells the other
+    " placeholder is not substituted again
+    DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+
+    lt_range = VALUE #( ( sign = `I` option = `EQ` low = `a$&b` )
+                        ( sign = `I` option = `BT` low = `$$` high = `\{x\}` )
+                        ( sign = `I` option = `BT` low = `{HIGH}` high = `9` ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `=a$&b`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `$$...\{x\}`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `{HIGH}...9`
+                                        act = lt_token[ 3 ]-key ).
 
   ENDMETHOD.
 

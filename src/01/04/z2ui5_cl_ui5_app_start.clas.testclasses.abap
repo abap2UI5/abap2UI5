@@ -7,6 +7,7 @@ CLASS ltcl_app_startup_test DEFINITION FINAL
     METHODS test_reset_clears_outcome FOR TESTING RAISING cx_static_check.
     METHODS test_link_enabled FOR TESTING RAISING cx_static_check.
     METHODS test_link_href_literal FOR TESTING RAISING cx_static_check.
+    METHODS test_check_success_clears_text FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -76,6 +77,31 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state
                                         exp = `None`
                                         msg = `ValueState is set to None, never cleared` ).
+
+  ENDMETHOD.
+
+  METHOD test_check_success_clears_text.
+
+    " A failed check leaves its message in class_value_state_text and the
+    " input editable, so the user corrects the name and checks again. The
+    " successful check must drop that message, or the input carries the old
+    " error text under a Success state.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    lo_handler = NEW #( val = `` ).
+    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+
+    lo_app->ms_home-classname              = `z2ui5_cl_ui5_app_hi_world`.
+    lo_app->ms_home-class_value_state      = `Warning`.
+    lo_app->ms_home-class_value_state_text = `Class ZZZ does not exist`.
+
+    lo_app->on_event_check( ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state
+                                        exp = `Success`
+                                        msg = `the check of a real app succeeds` ).
+    cl_abap_unit_assert=>assert_initial( act = lo_app->ms_home-class_value_state_text
+                                         msg = `a success drops the previous check's message` ).
 
   ENDMETHOD.
 

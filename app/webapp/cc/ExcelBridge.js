@@ -229,18 +229,49 @@ sap.ui.define(
     }
 
     // A number format without what does not format the value: the quoted
-    // text, the escaped characters and the [Red] / [$-409] sections.
-    function bareFormat(format) {
+    // text and the escaped characters (unquotedFormat), and on top of that
+    // the [Red] / [$-409] sections (bareFormat).
+    function unquotedFormat(format) {
       return String(format ?? "")
         .replace(/"[^"]*"/g, "")
-        .replace(/\\./g, "")
-        .replace(/\[[^\]]*\]/g, "");
+        .replace(/\\./g, "");
+    }
+    function bareFormat(format) {
+      return unquotedFormat(format).replace(/\[[^\]]*\]/g, "");
+    }
+
+    // What a number format shows. Cutting the bracket sections away (the
+    // locale's "systime", a [Red]) also cut away Excel's ELAPSED-time
+    // sections - [h]:mm:ss, [mm]:ss - and a format without an "h", like
+    // mm:ss, was no time at all: a duration cell came back as a bare
+    // serial (0.0104... for 15:00). Seconds ("s") and an elapsed section
+    // make a time as well; "s" is not a letter of any other format code.
+    function formatParts(format) {
+      const bare = bareFormat(format);
+      const elapsed = /\[(h+|m+|s+)\]/i.test(unquotedFormat(format));
+      return {
+        hasDate: /[dy]/i.test(bare),
+        hasTime: elapsed || /[hs]/i.test(bare),
+        elapsed,
+      };
     }
 
     // A number format that shows a date or a time.
     function isDateFormat(format) {
-      const bare = bareFormat(format);
-      return /[dy]/i.test(bare) || /h/i.test(bare);
+      const { hasDate, hasTime } = formatParts(format);
+      return hasDate || hasTime;
+    }
+
+    // An elapsed time is a duration, not a time of day: [h]:mm of 1.5 is
+    // 36:00, which the time of day of the serial (12:00) would lose. The
+    // hours are not wrapped at 24.
+    function serialToDuration(serial) {
+      const total = Math.round(Math.abs(serial) * 86400);
+      const pad = (n) => String(n).padStart(2, "0");
+      const text = `${pad(Math.floor(total / 3600))}:${pad(
+        Math.floor((total % 3600) / 60),
+      )}:${pad(total % 60)}`;
+      return serial < 0 ? `-${text}` : text;
     }
 
     // Cut the same way isDateFormat cuts: Excel's own Time format is
@@ -248,11 +279,10 @@ sap.ui.define(
     // section read as a date part - a time cell came back as
     // 1899-12-30T14:30:00 instead of 14:30:00 (and [Red]h:mm the same way)
     function serialToIso(serial, format) {
+      const { hasDate, hasTime, elapsed } = formatParts(format);
+      if (elapsed && !hasDate) return serialToDuration(serial);
       const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;
       const iso = new Date(ms).toISOString();
-      const bare = bareFormat(format);
-      const hasDate = /[dy]/i.test(bare);
-      const hasTime = /h/i.test(bare);
       if (hasDate && hasTime) return iso.slice(0, 19);
       if (hasTime) return iso.slice(11, 19);
       return iso.slice(0, 10);

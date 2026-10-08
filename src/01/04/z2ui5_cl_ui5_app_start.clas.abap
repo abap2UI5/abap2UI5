@@ -292,6 +292,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-btn_event_id      = cs_event-button_change.
         ms_home-btn_icon          = `sap-icon://edit`.
         ms_home-class_value_state = `Success`.
+        " a failed check before this one left its message behind - the
+        " input would carry the old error text under a Success state
+        CLEAR ms_home-class_value_state_text.
         ms_home-class_editable    = abap_false.
         ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).

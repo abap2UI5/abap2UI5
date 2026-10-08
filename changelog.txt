@@ -12,6 +12,13 @@ Legend
 
 unreleased
 ----------
+* Keyboard shortcuts (cs_event-keyboard_shortcut): a key the keyboard layout only types with Shift - Ctrl++ and ? on a US layout, the digits on AZERTY - fires its shortcut. The keydown carried the Shift and never matched the registered combination; a letter keeps Shift apart (Ctrl+Shift+S is not Ctrl+S) and an explicit Shift+ registration still wins
+* Custom control z2ui5.cc.MessageManager: a row with an empty TYPE is shown as an error, as intended. ABAP sends the unfilled column as an empty string, which never reached the default and became a message of type None
+* cs_event-filter_bar_variant_init: the filter count of the bar includes a filled filter of the basic group (filterItems). Only the filterGroupItems were counted, although the variant stored both
+* Custom control z2ui5.cc.ExcelBridge: a cell with an elapsed-time format ([h]:mm:ss, [mm]:ss) or a minutes:seconds format (mm:ss) is read as a time - an elapsed one as a duration whose hours run past 24 (36:00:00) - instead of the bare serial number
+* Start page: a successful Check after a failed one drops the old error text from the class name input
+* filter_get_token_t_by_range_t (z2ui5_cl_ui5_util_context): LOW and HIGH go into the token as written. A LOW that spelled {HIGH} was substituted a second time, and under the transpiled runtime a $& or $$ in a value was read as a replacement pattern
+* Custom controls z2ui5.cc.FileUploader and z2ui5.cc.CameraPicture write the read file and the captured photo without re-rendering the control - the renderer draws neither
 * Keyboard shortcuts (cs_event-keyboard_shortcut): the value still being typed in the focused field travels with the shortcut's event. A text field writes its value on change - blur or Enter - and a Ctrl+S or an F-key pressed while typing came first, so the save ran on the old value. The field is committed the way leaving it would; when its change is itself wired to the backend, the shortcut's event follows that roundtrip instead of being dropped
 * Message box and toast: the onclose event of client->message_box_display( ) and message_toast_display( ) reaches the backend also when the user closes the box while another roundtrip is running - a timer poll, a click. It went into the busy guard and was dropped: the answer to "Delete?" never arrived. It now waits for that roundtrip and follows it
 * Nested views: a second nested view placed inside the first (nest2_view_display with a parent of the first nested view) is cleared with it when the first is displayed again. It stayed registered as a destroyed view, so its scoped keyboard shortcuts still fired and the developer tools still listed it

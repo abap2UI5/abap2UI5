@@ -76,6 +76,42 @@ sap.ui.define(
       return [...mods, key].join("+");
     }
 
+    // The combos a keydown may stand for, most specific first. A character
+    // the layout only produces WITH Shift - "+" and "?" on a US keyboard,
+    // the digits on AZERTY - arrives with shiftKey set, so the exact combo
+    // reads "ctrl+shift++" and an app's "Ctrl++" never fired. The produced
+    // character already says what Shift did, so for a printable key without
+    // case (a letter's case IS the Shift, "Ctrl+Shift+S" must stay apart
+    // from "Ctrl+S") the combo without shift is the fallback. The exact one
+    // is tried first, so an explicit "Shift+?" registration still wins.
+    // Space is excluded: no layout needs Shift for it, so Shift+Space is a
+    // combination of its own.
+    function shortcutCandidates(oEvent) {
+      const exact = shortcutFromEvent(oEvent);
+      const key = String(oEvent.key ?? "");
+      if (
+        exact === "" ||
+        !oEvent.shiftKey ||
+        key.length !== 1 ||
+        key === " " ||
+        key.toLowerCase() !== key.toUpperCase()
+      ) {
+        return [exact];
+      }
+      // the fields by name: a spread of a real KeyboardEvent copies none of
+      // them - key, ctrlKey & co. are getters on its prototype
+      return [
+        exact,
+        shortcutFromEvent({
+          key: oEvent.key,
+          ctrlKey: oEvent.ctrlKey,
+          shiftKey: false,
+          altKey: oEvent.altKey,
+          metaKey: oEvent.metaKey,
+        }),
+      ];
+    }
+
     // A shortcut may be SCOPED, which is how UI5's own CommandExecution
     // behaves: one in a Popover's dependents shadows the page-level one for
     // the same command while that popover is open. A scope is either
@@ -164,7 +200,11 @@ sap.ui.define(
       if (ctx.shortcuts.listener || typeof document === "undefined") return;
       const listener = (oEvent) => {
         try {
-          const entry = shortcutEntry(ctx, shortcutFromEvent(oEvent));
+          let entry;
+          for (const combo of shortcutCandidates(oEvent)) {
+            entry = shortcutEntry(ctx, combo);
+            if (entry) break;
+          }
           if (!entry) return;
           // a registration whose controller died with its view (an app
           // switch clears the registry, an in-app teardown does not) must
@@ -278,6 +318,12 @@ sap.ui.define(
 
     // the two pure halves of the registry are exported for the unit specs
     // (node/tests/shortcuts.spec.js); the listener reads them from here
-    return { handlers, reset, normalizeShortcut, shortcutFromEvent };
+    return {
+      handlers,
+      reset,
+      normalizeShortcut,
+      shortcutFromEvent,
+      shortcutCandidates,
+    };
   },
 );

@@ -191,24 +191,44 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      return { values, formats: cellFormats, columns: cols.length };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function bareFormat(format) {` && |\n| &&
+             `    function unquotedFormat(format) {` && |\n| &&
              `      return String(format ?? "")` && |\n| &&
              `        .replace(/"[^"]*"/g, "")` && |\n| &&
-             `        .replace(/\\./g, "")` && |\n| &&
-             `        .replace(/\[[^\]]*\]/g, "");` && |\n| &&
+             `        .replace(/\\./g, "");` && |\n| &&
+             `    }` && |\n| &&
+             `    function bareFormat(format) {` && |\n| &&
+             `      return unquotedFormat(format).replace(/\[[^\]]*\]/g, "");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function formatParts(format) {` && |\n| &&
+             `      const bare = bareFormat(format);` && |\n| &&
+             `      const elapsed = /\[(h+|m+|s+)\]/i.test(unquotedFormat(format));` && |\n| &&
+             `      return {` && |\n| &&
+             `        hasDate: /[dy]/i.test(bare),` && |\n| &&
+             `        hasTime: elapsed || /[hs]/i.test(bare),` && |\n| &&
+             `        elapsed,` && |\n| &&
+             `      };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isDateFormat(format) {` && |\n| &&
-             `      const bare = bareFormat(format);` && |\n| &&
-             `      return /[dy]/i.test(bare) || /h/i.test(bare);` && |\n| &&
+             `      const { hasDate, hasTime } = formatParts(format);` && |\n| &&
+             `      return hasDate || hasTime;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function serialToDuration(serial) {` && |\n| &&
+             `      const total = Math.round(Math.abs(serial) * 86400);` && |\n| &&
+             `      const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
+             `      const text = ``${pad(Math.floor(total / 3600))}:${pad(` && |\n| &&
+             `        Math.floor((total % 3600) / 60),` && |\n| &&
+             `      )}:${pad(total % 60)}``;` && |\n| &&
+             `      return serial < 0 ? ``-${text}`` : text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function serialToIso(serial, format) {` && |\n| &&
+             `      const { hasDate, hasTime, elapsed } = formatParts(format);` && |\n| &&
+             `      if (elapsed && !hasDate) return serialToDuration(serial);` && |\n| &&
              `      const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;` && |\n| &&
              `      const iso = new Date(ms).toISOString();` && |\n| &&
-             `      const bare = bareFormat(format);` && |\n| &&
-             `      const hasDate = /[dy]/i.test(bare);` && |\n| &&
-             `      const hasTime = /h/i.test(bare);` && |\n| &&
              `      if (hasDate && hasTime) return iso.slice(0, 19);` && |\n| &&
              `      if (hasTime) return iso.slice(11, 19);` && |\n| &&
              `      return iso.slice(0, 10);` && |\n| &&
@@ -404,7 +424,8 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `` && |\n| &&
              `            range.numberFormat = matrix.formats;` && |\n| &&
              `            range.values = matrix.values;` && |\n| &&
-             `            if (asTable) sheet.tables.add(range, true);` && |\n| &&
+             `            if (asTable) sheet.tables.add(range, true);` && |\n|.
+    result = result &&
              `            range.format.autofitColumns();` && |\n| &&
              `            range.load("address");` && |\n| &&
              `            await context.sync();` && |\n| &&
@@ -424,8 +445,7 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `        return this._enqueue("read", (Excel) =>` && |\n| &&
              `          Excel.run(async (context) => {` && |\n| &&
              `            let range = context.workbook.getSelectedRange();` && |\n| &&
-             `            range.load("address,rowCount,columnCount");` && |\n|.
-    result = result &&
+             `            range.load("address,rowCount,columnCount");` && |\n| &&
              `            await context.sync();` && |\n| &&
              `` && |\n| &&
              `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&

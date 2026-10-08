@@ -821,3 +821,26 @@ test("a time format with a locale or color section reads as a time", () => {
     { COL1: "14:30:00", COL2: "14:30:00", COL3: "2024-01-15T12:00:00" },
   ]);
 });
+
+// An elapsed-time section ([h], [mm]) is a bracket section too, and mm:ss has
+// no "h": both came back as the bare serial. They read as times now - an
+// elapsed one as a duration whose hours run past 24, mm:ss as the time of day.
+test("elapsed-time and minutes:seconds formats read as times", () => {
+  const { ExcelBridge } = load();
+  const rows = ExcelBridge._toRows(
+    [[1.5, 0.0104166666666667, 0.0104166666666667, 0.0104166666666667, 42]],
+    [["[h]:mm:ss", "[h]:mm", "mm:ss", "[mm]:ss", "0.00"]],
+  );
+  expect(rows).toEqual([
+    {
+      COL1: "36:00:00",
+      COL2: "00:15:00",
+      COL3: "00:15:00",
+      COL4: "00:15:00",
+      COL5: 42,
+    },
+  ]);
+  // a quoted "[h]" is text, not an elapsed section
+  const plain = ExcelBridge._toRows([[3, 3]], [['0 "[h]"', "General"]]);
+  expect(plain).toEqual([{ COL1: 3, COL2: 3 }]);
+});

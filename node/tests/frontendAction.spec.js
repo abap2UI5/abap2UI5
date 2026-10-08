@@ -2362,6 +2362,25 @@ test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)"
     expect(oFilterBar.registered.withValues()).toEqual([fields[0]]);
   });
 
+  test("getFiltersWithValues counts a filled basic-group filterItem as well", () => {
+    const groupItems = [field("PRODUCT", ""), field("QUANTITY", "")];
+    const basic = field("SEARCH", "chair");
+    const ctxLoad = load();
+    ctxLoad.ctx.sap.ui.require = (name) =>
+      name === MODULE ? PersonalizableInfo : null;
+    const oFilterBar = filterBar([...groupItems, basic]);
+    // getFilterGroupItems( ) does not return the `filterItems` aggregation
+    oFilterBar.getFilterGroupItems = () => groupItems;
+    ctxLoad.controls.svm = svm();
+    ctxLoad.controls.fbar = oFilterBar;
+    ctxLoad.FrontendAction.execute(null, [
+      "FILTER_BAR_VARIANT_INIT",
+      "svm",
+      "fbar",
+    ]);
+    expect(oFilterBar.registered.withValues()).toEqual([basic]);
+  });
+
   test("a filter change marks the variant modified and refreshes the bar", () => {
     const fields = [field("PRODUCT", "table")];
     const { oSVM, oFilterBar } = wire(fields);

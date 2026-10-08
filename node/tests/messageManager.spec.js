@@ -169,6 +169,18 @@ test.describe("MessageManager companion control", () => {
     expect(env.messaging.removed).toHaveLength(0);
   });
 
+  test("a row with an empty TYPE (an unfilled ABAP column) defaults to Error", () => {
+    const env = load();
+    const ext = makeExt(env);
+    ext.init();
+    ext.setup();
+    ext.setItems([
+      { MESSAGE: "A", TYPE: "", TARGET: "/X" },
+      { MESSAGE: "B", TARGET: "/Y" },
+    ]);
+    expect(env.messaging.added.map((m) => m.type)).toEqual(["Error", "Error"]);
+  });
+
   test("reconciling the same table twice does not re-add (dedup by key)", () => {
     const env = load();
     const ext = makeExt(env);
