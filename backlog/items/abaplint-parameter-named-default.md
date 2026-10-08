@@ -10,6 +10,7 @@ upstream: abaplint/abaplint
 evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_setup` private section, method `to_int` with the parameters `val TYPE clike` and `default TYPE i` - "Unable to interpret "RETURNING". Possible causes of error include incorrect spellings or comma errors." then "Compilation was canceled"; fixed by renaming the parameter to `fallback`
   - measured 2026-10-06 on abaplint 2.120.70, every default rule on, `check_syntax` live - no finding on the declaration nor on the call `to_int( val = `1` default = 2 )`; the control probe (an undefined variable in the same class) fired
+  - abap2UI5-addons/abap-agent-runtime, 2026-10-08 - a user's syntax check after a pull, 28 errors in 14 classes; three parameters named `default` (`z2ui5_cl_agent_settings=>check_llm`, `z2ui5_cl_agent_session->rows_of`, `z2ui5_cl_agent_llm_anthropic=>setting`) - "Unable to interpret "DEFAULT"" / ""RETURNING"" / ""OPTIONAL"", and the same error at the same line in the public section of every class using `z2ui5_cl_agent_settings`; the PR's build reports exactly these three on the pre-fix sources and nothing after the rename to `default_value`
 ---
 
 # Report a method parameter named DEFAULT
@@ -51,6 +52,7 @@ rename the parameter or escape it with `!`.
 - `val TYPE i DEFAULT 5`: the addition itself.
 - `!default TYPE i`: the escaped name (to confirm on a system).
 
-To confirm on a system before it is filed: whether `OPTIONAL` as a parameter
-name fails the same way, and whether `default` as the first parameter after
-`IMPORTING` is accepted.
+Both open questions are answered by the measurement in abaplint/abaplint#4391
+(SAP_BASIS 758 SP03, 214 signatures): `optional` fails the same way, and
+`default` as the first parameter of a section, after `OPTIONAL` or after a
+`DEFAULT` value is accepted.

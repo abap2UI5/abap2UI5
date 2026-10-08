@@ -582,16 +582,32 @@ declaration as two parameters. Measured on 2.120.70 with every default rule
 on and `check_syntax` live: no finding, while an undefined variable in the
 same class fired. The parameter is called `fallback` now.
 
+It bit again two days later. `abap2UI5-addons/abap-agent-runtime` shipped
+three such parameters - `z2ui5_cl_agent_settings=>check_llm`,
+`z2ui5_cl_agent_session->rows_of`, `z2ui5_cl_agent_llm_anthropic=>setting` -
+and a user's pull (2026-10-08) refused 11 classes: the three themselves
+(*"Unable to interpret "DEFAULT""*, *"… "RETURNING""*, *"… "OPTIONAL""* - the
+token after the swallowed `TYPE`), and every class that uses
+`z2ui5_cl_agent_settings`, with the same error at the same line of *its*
+public section. One misnamed parameter in a central class reads as a broken
+addon. The parameters are called `default_value` now.
+
 - **Do not name a parameter like an addition of the parameter list.**
-  `default` is the one a system has confirmed. `optional` is the obvious
-  sibling, not measured. A structure component may carry these names: a
+  `default` and `optional` after a parameter without `OPTIONAL` or `DEFAULT`,
+  `preferred`, `exporting`, `changing`, `returning`, `raising` and
+  `exceptions` depending on the section - measured on 758 SP03 for
+  abaplint/abaplint#4391, whose description has the full table. `!default`
+  is accepted everywhere, but a different name is the fix that no reader
+  trips over. A structure component may carry these names: a
   `BEGIN OF … END OF` has no such additions.
 
 **Gate: open** until abaplint/abaplint#4391 ships: `check_syntax` then
-reports `default` after another parameter in `IMPORTING` and `CHANGING`.
-`EXPORTING` has no `DEFAULT` addition, so nothing is reported there. Measured
-with that change, it finds exactly the cockpit's `to_int` and nothing in
-abap2UI5, the addons or open-abap-core.
+reports the cases of that table. Measured with that change, it finds exactly
+the cockpit's `to_int` and nothing in abap2UI5, the addons or open-abap-core;
+on the agent runtime before its fix exactly the three parameters the system
+named, and nothing after it (`bool( … row … OPTIONAL default … )` of
+`z2ui5_cl_agent_snapshot` stands after `OPTIONAL` and is accepted, by the
+system and by the rule).
 **Backlog:** abaplint · abaplint-parameter-named-default
 
 ### Do not depend on DDIC objects that are not everywhere
@@ -715,7 +731,14 @@ and points here, so a new trap is added here and nowhere else.
   the five checkouts, which is why it is a leftover regex and not a backlog
   item.) `abap2UI5/samples-stack` still runs its own `check:abapdoc`: its
   abaplint pin has not moved yet, and that script goes the same way when it
-  does.
+  does. **A rule that exists is only a gate where it is switched on**:
+  `abap2UI5-addons/abap-agent-runtime` pins 2.120.64 and still shipped a
+  `"!` between the parameters of `z2ui5_cl_agent_audit=>read`, reported by a
+  user's syntax check (2026-10-08) - its `abaplint.jsonc` lists its rules one
+  by one and `wrong_abapdoc_position` was not among them. On now, in that
+  repository's standard and cloud configs; the pre-fix file fires once.
+  When a repository lists its rules explicitly, a new upstream rule does not
+  reach it by moving the pin.
 
   Two more ways to detach a block, both found by a Code Inspector
   SYNTAX_CHECK on a 7.58 system over the addons (2026-10-04):
