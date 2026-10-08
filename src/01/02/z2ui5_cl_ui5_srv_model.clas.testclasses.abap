@@ -1840,6 +1840,12 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS delta_mass_edit          FOR TESTING RAISING cx_static_check.
     " a __delta node that is not the shape the client is supposed to send
     METHODS delta_malformed_survives FOR TESTING RAISING cx_static_check.
+    " a whole table out and back in with initial and filled dates, times
+    " and timestamps: what went out comes back, initial stays initial
+    METHODS whole_dates_round_trip   FOR TESTING RAISING cx_static_check.
+    " text that needs JSON escaping - quotes, backslashes, control
+    " characters, non-ASCII - out and back in, whole and as a row delta
+    METHODS special_chars_round_trip FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app
       RETURNING
@@ -2602,6 +2608,89 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                                                                  row_parent = 5
                                                                                  field      = `QTY`
                                                                                  value      = `5` ] ) ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD whole_dates_round_trip.
+
+    DATA lv_date TYPE d VALUE '20240229'.
+    DATA lv_time TYPE t VALUE '235959'.
+    " a whole hour on purpose: the transpiled runtime converts an ISO
+    " instant into a TIMESTAMPL through a float, so 23:59:59 came back as
+    " 23:59:58.9986304 and ajson's to_timestamp refused the fraction - a
+    " gap of the JS runtime (a system converts exactly), not of this class
+    DATA lv_ts   TYPE timestamp VALUE '20240229120000'.
+
+    DATA(lo_app) = typed_app( ).
+    " row 1 leaves all three initial, row 2 fills them
+    lo_app->mt_tab[ 2 ]-dt = lv_date.
+    lo_app->mt_tab[ 2 ]-tm = lv_time.
+    lo_app->mt_tab[ 2 ]-ts = lv_ts.
+    DATA(lo_model) = typed_model( lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/MT_TAB`.
+    DATA(lv_out) = lo_model->main_json_stringify( ).
+
+    " the client sends the table back whole (a row added or removed on the
+    " client replaces the delta with the array)
+    CLEAR lo_app->mt_tab.
+    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
+
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL )
+                                      msg = |an initial date came back as '{ lo_app->mt_tab[ 1 ]-dt }'| ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-tm IS INITIAL )
+                                      msg = |an initial time came back as '{ lo_app->mt_tab[ 1 ]-tm }'| ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = lo_app->mt_tab[ 2 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_time
+                                        act = lo_app->mt_tab[ 2 ]-tm ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_ts
+                                        act = lo_app->mt_tab[ 2 ]-ts ).
+    " and the next render ships exactly what the first one did
+    cl_abap_unit_assert=>assert_equals( exp = lv_out
+                                        act = lo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD special_chars_round_trip.
+
+    " non-ASCII built at run time - the source stays 7-bit: a-umlaut, the
+    " euro sign and an emoji outside the BMP (a surrogate pair in JSON)
+    DATA(lv_unicode) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( `C3A4E282ACF09F9880` ).
+    DATA(lv_text) = `"double" 'single' \\ back\slash / slash { brace } </script>`
+                 && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                 && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
+                 && lv_unicode
+                 && ` trailing backslash \`.
+
+    DATA(lo_app) = typed_app( ).
+    lo_app->mt_tab[ 1 ]-name = lv_text.
+    DATA(lo_model) = typed_model( lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/MT_TAB`.
+    DATA(lv_out) = lo_model->main_json_stringify( ).
+
+    " whole: out and in again, unchanged
+    CLEAR lo_app->mt_tab.
+    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_text
+                                        act = lo_app->mt_tab[ 1 ]-name ).
+
+    " a row delta carries the same characters in the JSON escapes a browser
+    " writes - \" \\ \/ \t \r\n, and \u00e4 for the a-umlaut
+    lo_model->main_json_to_attri( delta( `{"MT_TAB":{"__delta":{"1":{"NAME":"q\"b\\s\/t\tn\r\nu\u00e4"}}}}` ) ).
+    DATA(lv_exp) = `q"b\s/t` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                && `n` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
+                && `u` && z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( `C3A4` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = lo_app->mt_tab[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
   ENDMETHOD.
 ENDCLASS.

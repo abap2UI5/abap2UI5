@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { specContext, withSpecController } = require("./loadLibModule");
+const { specContext, withSpecController, loadLib } = require("./loadLibModule");
 
 // Tests the frontend action handlers (CONTROL_GLOBAL / CONTROL_BY_ID,
 // BINDING_CALL, variants, KEYBOARD_SHORTCUT, SET_FOCUS, timers, ...) through
@@ -60,6 +60,8 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
     toText: (val) => (val == null ? "" : String(val)),
+    // the shipped parser, not a copy: SET_FOCUS reads its selection with it
+    toCaretIndex: loadLib().Lib.toCaretIndex,
     whenRendered: (_control, _owner, fn) => fn(),
     // the shipped helper's shape: a one-shot onAfterRendering delegate on
     // the control, removed when it fired (SET_FOCUS's retry sits on it)
@@ -3185,6 +3187,15 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     expect(fx.delegates).toEqual([]);
   });
 
+  // a selection argument that is no number became NaN in the focus info
+  test("a selection that names no position leaves the control's own", () => {
+    const fx = focusFixture({ focusable: true });
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "abc", "3"]);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "-2", "x"]);
+    expect(fx.applied).toEqual([{ selectionEnd: 3 }, { selectionStart: 0 }]);
+  });
+
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
   test("re-applies after the pending re-render when the DOM refused the focus", async () => {
@@ -3264,6 +3275,7 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
           // next rendering
           whenRendered: (_control, _owner, fn) => pending.push(fn),
           onNextRendering: () => {},
+          toCaretIndex: loadLib().Lib.toCaretIndex,
         },
         "z2ui5/core/ViewSlots": { resolveById: () => fx.control },
         "z2ui5/core/ScrollFocus": { mayMoveFocus: () => true },

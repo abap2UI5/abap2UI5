@@ -228,3 +228,15 @@ test("an empty or non-numeric timeout falls back to the default", () => {
   expect(calls[0].opts.timeout).toBe(5000);
   expect(calls[1].opts.timeout).toBe(5000);
 });
+
+// PositionOptions.timeout is a [Clamp] unsigned long: a negative value is
+// clamped to 0 and the request times out before any position is read.
+test("a zero, negative or infinite timeout falls back to the default", () => {
+  const { calls, navigator } = geoApi();
+  const { makeInstance } = load({ navigator });
+  makeInstance({ timeout: "0" }).onAfterRendering();
+  makeInstance({ timeout: "-1000" }).onAfterRendering();
+  makeInstance({ timeout: "Infinity" }).onAfterRendering();
+
+  expect(calls.map((c) => c.opts.timeout)).toEqual([5000, 5000, 5000]);
+});

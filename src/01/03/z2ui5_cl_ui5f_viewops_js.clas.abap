@@ -161,12 +161,11 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      const applyFocus = () => {` && |\n| &&
              `        try {` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          if (args[2] != null && args[2] !== "") {` && |\n| &&
-             `            info.selectionStart = Number(args[2]);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (args[3] != null && args[3] !== "") {` && |\n| &&
-             `            info.selectionEnd = Number(args[3]);` && |\n| &&
-             `          }` && |\n| &&
+             `` && |\n| &&
+             `          const start = Lib.toCaretIndex(args[2]);` && |\n| &&
+             `          const end = Lib.toCaretIndex(args[3]);` && |\n| &&
+             `          if (start !== null) info.selectionStart = start;` && |\n| &&
+             `          if (end !== null) info.selectionEnd = end;` && |\n| &&
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&

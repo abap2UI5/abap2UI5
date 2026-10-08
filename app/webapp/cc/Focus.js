@@ -81,8 +81,11 @@ sap.ui.define(
           // Merge the additional selection info into the existing focus info,
           // then apply both at once.
           const info = oElement.getFocusInfo();
-          let start = Number(this.getProperty("selectionStart"));
-          let end = Number(this.getProperty("selectionEnd"));
+          // A value that is no number ("", "abc") is the property default,
+          // 0 - as a NaN it went through the clamp below unchanged (every
+          // comparison with NaN is false) and into applyFocusInfo.
+          let start = Lib.toCaretIndex(this.getProperty("selectionStart")) ?? 0;
+          let end = Lib.toCaretIndex(this.getProperty("selectionEnd")) ?? 0;
 
           const input = this._textInput(oElement);
           if (input) {

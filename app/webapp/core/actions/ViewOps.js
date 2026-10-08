@@ -228,12 +228,12 @@ sap.ui.define(
       const applyFocus = () => {
         try {
           const info = oElement.getFocusInfo();
-          if (args[2] != null && args[2] !== "") {
-            info.selectionStart = Number(args[2]);
-          }
-          if (args[3] != null && args[3] !== "") {
-            info.selectionEnd = Number(args[3]);
-          }
+          // a selection that names no position (empty, or no number at
+          // all) leaves the control's own - a NaN went to applyFocusInfo
+          const start = Lib.toCaretIndex(args[2]);
+          const end = Lib.toCaretIndex(args[3]);
+          if (start !== null) info.selectionStart = start;
+          if (end !== null) info.selectionEnd = end;
           oElement.applyFocusInfo(info);
         } catch (e) {
           Lib.logError(`SET_FOCUS: failed for '${args[1]}'`, e);

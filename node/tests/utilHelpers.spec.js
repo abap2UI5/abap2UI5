@@ -226,6 +226,27 @@ test.describe("toText", () => {
   });
 });
 
+test.describe("toCaretIndex", () => {
+  const { Lib } = loadLib();
+
+  test("reads a number or a numeric string as a non-negative integer", () => {
+    expect(Lib.toCaretIndex("4")).toBe(4);
+    expect(Lib.toCaretIndex(3)).toBe(3);
+    expect(Lib.toCaretIndex(" 2 ")).toBe(2);
+    expect(Lib.toCaretIndex("2.9")).toBe(2);
+    expect(Lib.toCaretIndex("-5")).toBe(0);
+  });
+
+  test("answers null for a value that names no position", () => {
+    expect(Lib.toCaretIndex(null)).toBeNull();
+    expect(Lib.toCaretIndex(undefined)).toBeNull();
+    expect(Lib.toCaretIndex("")).toBeNull();
+    expect(Lib.toCaretIndex("  ")).toBeNull();
+    expect(Lib.toCaretIndex("abc")).toBeNull();
+    expect(Lib.toCaretIndex("Infinity")).toBeNull();
+  });
+});
+
 test.describe("deriveSystemType", () => {
   const { Lib } = loadLib();
 

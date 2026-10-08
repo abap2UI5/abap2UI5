@@ -42,6 +42,11 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
              `` && |\n| &&
+             `    function timeoutOf(value) {` && |\n| &&
+             `      const ms = Number(value);` && |\n| &&
+             `      return Number.isFinite(ms) && ms > 0 ? ms : _DEFAULT_TIMEOUT_MS;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const Geolocation = Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -141,9 +146,7 @@ CLASS z2ui5_cl_ui5f_geoloc_js IMPLEMENTATION.
              `            this.callbackError.bind(this),` && |\n| &&
              `            {` && |\n| &&
              `              enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
-             `` && |\n| &&
-             `              timeout:` && |\n| &&
-             `                Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,` && |\n| &&
+             `              timeout: timeoutOf(this.getProperty("timeout")),` && |\n| &&
              `            },` && |\n| &&
              `          );` && |\n| &&
              `        } catch (e) {` && |\n| &&

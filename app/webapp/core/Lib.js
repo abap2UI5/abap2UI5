@@ -553,6 +553,17 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return val == null ? "" : String(val);
   }
 
+  // A caret position from the backend (a string property or an action
+  // argument) as a non-negative integer, or null when it names no position:
+  // empty, null, or not a number at all. Number("abc") is NaN, and a NaN
+  // handed to applyFocusInfo / setSelectionRange is read as 0 by one browser
+  // and refused by another - the caller decides what "no position" means.
+  function toCaretIndex(val) {
+    if (val == null || String(val).trim() === "") return null;
+    const n = Number(val);
+    return Number.isFinite(n) ? Math.max(Math.trunc(n), 0) : null;
+  }
+
   // True for a DOM element that carries a text caret.
   function isTextInput(el) {
     return Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
@@ -1039,6 +1050,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     getTextPath,
     copyToClipboard,
     toText,
+    toCaretIndex,
     deriveSystemType,
     deriveOsName,
     isValidRedirectURL,

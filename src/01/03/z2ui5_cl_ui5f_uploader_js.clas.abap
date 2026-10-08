@@ -144,7 +144,6 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (!directUpload) {` && |\n| &&
              `          this.oUploadButton = new Button({` && |\n| &&
-             `            text: this.getProperty("uploadButtonText"),` && |\n| &&
              `            enabled: this.getProperty("path") !== "",` && |\n| &&
              `            press: () => {` && |\n| &&
              `              this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&

@@ -404,6 +404,7 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_limit FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_arg_edge FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_config_leaves FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_start_app_2nd_roundtrip FOR TESTING RAISING cx_static_check.
@@ -735,6 +736,41 @@ CLASS ltcl_01_request IMPLEMENTATION.
     " deliberately (the workaround app 421 carries) must not be rewritten
     cl_abap_unit_assert=>assert_equals( exp = `true`
                                         act = ls_request-s_front-t_event_arg[ 7 ] ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_arg_edge.
+    " the edges of the argument list: none at all, a null, an empty string
+    " and an empty object keep their positions, and an object argument
+    " carrying escapes reaches the app as JSON that still parses to the
+    " same text - quote, backslash, line break and a \u escape
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA ls_request TYPE z2ui5_if_ui5_types=>ty_s_request.
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-t_event_arg ).
+    cl_abap_unit_assert=>assert_equals( exp = `MY_EVENT`
+                                        act = ls_request-s_front-event ).
+
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":[null,"",{},{"K":"a\"b\\c\nd\u0041"},"last"]}}}`.
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = lines( ls_request-s_front-t_event_arg ) ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-t_event_arg[ 1 ] ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-t_event_arg[ 2 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `{}`
+                                        act = ls_request-s_front-t_event_arg[ 3 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `last`
+                                        act = ls_request-s_front-t_event_arg[ 5 ] ).
+    DATA(lo_arg) = z2ui5_cl_ajson=>parse( ls_request-s_front-t_event_arg[ 4 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_newline && `dA`
+                                        act = lo_arg->get_string( `/K` ) ).
   ENDMETHOD.
 
   METHOD test_parse_body_arg_limit.

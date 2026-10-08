@@ -346,6 +346,12 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return val == null ? "" : String(val);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function toCaretIndex(val) {` && |\n| &&
+             `    if (val == null || String(val).trim() === "") return null;` && |\n| &&
+             `    const n = Number(val);` && |\n| &&
+             `    return Number.isFinite(n) ? Math.max(Math.trunc(n), 0) : null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function isTextInput(el) {` && |\n| &&
              `    return Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
              `  }` && |\n| &&
@@ -418,14 +424,14 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `        parsed.protocol === "blob:" ||` && |\n| &&
              `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
              `    );` && |\n| &&
-             `  }` && |\n| &&
+             `  }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `  function isValidContextId(id) {` && |\n| &&
              `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function parseDeltaSteps(segs) {` && |\n|.
-    result = result &&
+             `  function parseDeltaSteps(segs) {` && |\n| &&
              `    const steps = [];` && |\n| &&
              `    let i = 0;` && |\n| &&
              `    while (i < segs.length) {` && |\n| &&
@@ -656,6 +662,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    getTextPath,` && |\n| &&
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
+             `    toCaretIndex,` && |\n| &&
              `    deriveSystemType,` && |\n| &&
              `    deriveOsName,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&

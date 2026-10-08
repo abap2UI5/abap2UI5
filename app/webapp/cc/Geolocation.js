@@ -20,6 +20,16 @@ sap.ui.define(
     // default and the runtime fallback so the two cannot drift apart.
     const _DEFAULT_TIMEOUT_MS = 5000;
 
+    // The `timeout` property as getCurrentPosition's option. Anything that
+    // is not a positive finite number takes the default: an empty or
+    // non-numeric value is NaN, and 0 or a NEGATIVE value - which the
+    // `[Clamp] unsigned long` of PositionOptions clamps to 0 - makes the
+    // request time out at once (error code 3) before any position is read.
+    function timeoutOf(value) {
+      const ms = Number(value);
+      return Number.isFinite(ms) && ms > 0 ? ms : _DEFAULT_TIMEOUT_MS;
+    }
+
     const Geolocation = Control.extend("z2ui5.cc.Geolocation", {
       metadata: {
         properties: {
@@ -133,10 +143,7 @@ sap.ui.define(
             this.callbackError.bind(this),
             {
               enableHighAccuracy: this.getProperty("enableHighAccuracy"),
-              // Guard against an empty or non-numeric property - NaN or 0
-              // would make getCurrentPosition fail immediately.
-              timeout:
-                Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,
+              timeout: timeoutOf(this.getProperty("timeout")),
             },
           );
         } catch (e) {

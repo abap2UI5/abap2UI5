@@ -184,6 +184,19 @@ test("button mode renders uploader + Upload button, disabled while no file", () 
   expect(inst.oUploadButton.enabled).toBe(false);
 });
 
+// A string in a UI5 settings object is read as binding syntax: an
+// uploadButtonText with braces became a binding (and an unbalanced { threw
+// out of the Button constructor). The text goes through the setter only.
+test("the upload button text is set through the setter, never as a setting", () => {
+  const { makeInstance, render } = load();
+  const inst = makeInstance({ uploadButtonText: "Upload {file} \\ now" });
+
+  render(inst);
+
+  expect(inst.oUploadButton.settings).not.toHaveProperty("text");
+  expect(inst.oUploadButton.text).toBe("Upload {file} \\ now");
+});
+
 test("renderer supplies its own DOM root for property invalidation", () => {
   const { makeInstance, FileUploaderDef } = load();
   const inst = makeInstance();
