@@ -1064,8 +1064,8 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-value-row-not-cleared
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number
+**Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-downport-elseif-line-exists-subrc
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1203,6 +1203,23 @@ break one of those four.
   throws `round(), todo, handle decimals` for any `dec` other than 0 -
   still the version the MCP server's Node backend installs). Use `round( )`
   where the scale of the result does not matter.
+- **`substring_after( )` / `substring_before( )` ignore `occ`, `len` and
+  `case` in the runtime.** `substring_after( val = path sub = '-' occ = -1 )`
+  cuts at the FIRST dash under `npm run unit`, at the last on a system.
+  Found 2026-10-08 in abap2UI5-addons/admin-cockpit, whose field-path
+  parsing found 1 of 3 business objects. Take the offset from
+  `find( val = … sub = … occ = -1 )`, which the runtime does resolve, and cut
+  with `substring( )`. **Gate: open.**
+- **A `line_exists( )` in an `ELSEIF` is moved in front of the `IF` by the
+  downport** - as a `READ TABLE … TRANSPORTING NO FIELDS`, which sets
+  `sy-subrc`. An `IF sy-subrc <> 0.` after an earlier `READ` then tests the
+  wrong READ on the 702 branch and in `npm run unit`; on 7.50 the source is
+  right. Found 2026-10-08 in abap2UI5-addons/admin-cockpit
+  (`z2ui5_cl_cockpit_session=>outcomes_of`, a unit test answered "unknown"
+  for a draft that exists). Keep a READ's result at once
+  (`DATA(lv_found) = xsdbool( sy-subrc = 0 ).`) when the chain has a
+  `line_exists( )` / `line_index( )` in an `ELSEIF`. **Gate: open** - the fix
+  belongs into the downport.
 - **A time or date assigned to a number keeps its digits in the runtime.**
   `lv_secs = lv_time.` (`t` into `i`) is the seconds since midnight on a
   system, and `235930` under `npm run unit` - the same for `int8`, `p` and
