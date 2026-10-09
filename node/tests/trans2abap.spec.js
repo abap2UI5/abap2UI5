@@ -10,14 +10,6 @@ const path = require("path");
 const GEN = require(
   path.join(__dirname, "..", "..", "tools", "app2abap", "trans2abap.js"),
 );
-const WEBAPP_FILE = path.join(
-  __dirname,
-  "..",
-  "..",
-  "app",
-  "webapp",
-  "probe.js",
-);
 
 /** Read the string get( ) builds back out of the generated ABAP: backtick
  * literals (a doubled backtick is one) joined, |\n| as a newline. */
