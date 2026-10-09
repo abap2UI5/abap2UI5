@@ -66,3 +66,68 @@ The following items may look like gaps but are intentional design choices:
   wires / 137 control_by_id / 25 binding_call / 3 keyboard_shortcut).
 - **Embedding abap2UI5 into other UI5 apps is built as far as demand asked, not further.** Running it as a reuse component (freestyle views, Fiori elements extensions), several instances per page, and a wrapping custom control were assessed on 2026-09-23 and deferred until there is real demand. Since then several instances per page (stage 2), the `?z2ui5-bundle` and a wrapping control (abap2UI5/embed-control) exist, and on 2026-09-28 the embedded flag that hands the URL to the host (`state.embedded`), which a Fiori elements custom section needed. The findings, the staged plan and why the other page-wide listeners stay page-wide are in `backlog/items/embed-as-reuse-component.md`. The framework's own ids are already component-prefixed (`ViewSlots.ownId`). Do not re-propose the rest as general cleanup.
 - **The `z2ui5_cl_xml_view` builder (src/99) is large because each method wraps one UI5 control for the fluent API.** It is **not** being extended or refactored here: the builder from [samples-controls](https://github.com/abap2UI5/samples-controls) replaces it and becomes the new standard. Do not add wrapper methods, controls or parameters, do not split the class, and do not report its size as a finding. The 1:1-with-the-UI5-SDK rule (method, property and event names match the SDK exactly, no invented convenience shortcuts) carries over to the replacement.
+
+## History that used to sit in AGENTS.md
+
+Moved here unchanged when AGENTS.md was cut down to what an agent needs
+before it starts. The prohibitions these explain are still there, one line each.
+
+### The `src/99` exemptions
+
+**One exemption was opened and has closed again: the popup apps**
+(`src/99/02/z2ui5_cl_pop_*.clas.abap`) were ported off `z2ui5_cl_xml_view`
+onto `z2ui5_cl_ui5_view_builder` (maintainer decision 2026-09-22), so that
+the retired builder has zero consumers anywhere and can go. The port is
+complete — none of the 17 classes names the retired builder any more — and
+the named pathspec that allowed it came out of
+`.github/scripts/frozen-paths-gate.mjs` on 2026-09-25, so `src/99/02` is
+frozen again like the rest of the package. It was defensible because the
+freeze exists so an installation that upgrades keeps **compiling**, and
+the port changed no class name, no method and no signature — only how each
+class assembles the XML string it already produced, which the popup tests
+pin with `CS` assertions on the displayed XML. It covered nothing else and
+it is **not** a precedent — any other change under `src/99` still needs its
+own maintainer decision recorded here.
+
+**One deletion is recorded as such a decision: `z2ui5_cl_pop_js_loader`**
+(maintainer decision 2026-09-22). The popup existed to load app JavaScript
+onto the `z2ui5` global and call it back through `cs_event-z2ui5`; the
+global and the event were removed in the same change, so the class had
+nothing left to talk to, and it was deleted rather than kept compiling
+against a runtime that no longer answers it. It is a released object, so
+an installation naming it stops compiling — the entry in `changelog.txt`
+and `docs/removal-plan.md` §0 says so. The deletion went through the
+popup pathspec above while it was open; it widened nothing else.
+
+### `z2ui5_t_02` and the dictionary objects
+
+`z2ui5_t_02` used to be the third: a released `name`/`value` structure added
+purely so a sample could write
+`CREATE DATA … TYPE STANDARD TABLE OF ('Z2UI5_T_02')` without naming a
+framework internal. **It was removed on 2026-09-22** — in a year nothing named
+it, its only consumer was the unit test pinning its shape, and the app it was
+written for went on naming a table of its own. A dynamic type names a type the
+*system* has; supplying one from the framework was solving the wrong half of
+the problem (`docs/agents/building-apps.md`, `docs/removal-plan.md` §5).
+
+### Why the binding used to be called one-way and two-way
+
+> **Historical note:** writable data used to live under a dedicated `XX/` view-model
+> node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
+> back, while `_bind` wrote read-only data to the root. Delta handling made that
+> separation obsolete: everything is now written to the root model the same way and
+> `_bind`/`_bind_edit` behave identically. That split is where the old
+> "one-way/two-way" wording came from — it has no meaning in the current framework.
+
+### The vendored utility classes
+
+What each class under `src/00/03` is, and the one addition the vendored HTTP class carries
+(the rule itself is `AGENTS.md`, "Utilities"):
+
+| Class | Status |
+|---|---|
+| `src/00/03/z2ui5_cl_ui5_util_context` | Vendored from `zabaputil_cl_util_context`, trimmed to the methods used here. **The one class to use and to extend** |
+| `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http` — leave it alone unless a fix or a caller genuinely needs it. The one addition so far is the raw query (`get_query`, the `query` of `get_req_info` and `client_call`) for the two connector addons, which read and forward their requests through this class (maintainer decision 2026-09-30); the sync carries it back to abap-util |
+| `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
+| `src/00/03/z2ui5_cl_ui5_util_json_fl` | Framework-owned, no abap-util master |
+| `src/99/01/z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Legacy.** Superseded by the classes above. They must stay so downstream apps keep compiling, but must never be used, called from new code, or changed |
