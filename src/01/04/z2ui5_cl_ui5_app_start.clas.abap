@@ -63,11 +63,37 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " the Check of step 4 behind on_event_check. hide_details is the exit's
+    " switch, handed in rather than asked for here, so a test can run the
+    " hidden case without an exit installed on the system
+    METHODS check_class
+      IMPORTING
+        hide_details TYPE abap_bool.
+
+    " the failed check's message - on the input and in a message box
+    METHODS check_failed
+      IMPORTING
+        text TYPE string.
+
+    " check_hide_error_details of the exit's POST config. An exit that raises
+    " leaves the switch at its default (details shown), the way the draft
+    " cleanup asks it
+    METHODS exit_hides_error_details
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " what the page shows for a class that could not be instantiated - the
     " exception text, or a plain sentence where the exit hides error details
     METHODS error_text_for_user
       IMPORTING
         ix            TYPE REF TO cx_root
+        hide_details  TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the User Exit row of the system popup: the exit class, or that none is
+    " installed - an empty row reads as a value that failed to load
+    METHODS user_exit_text
       RETURNING
         VALUE(result) TYPE string.
     METHODS header_icon
@@ -268,6 +294,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD on_event_check.
 
+    check_class( exit_hides_error_details( ) ).
+
+  ENDMETHOD.
+
+  METHOD check_class.
+
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
@@ -275,10 +307,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " would read `Class  does not exist ...`, naming nothing. Not raised into
     " the CATCH either: this is no system detail an exit could want hidden
     IF ms_home-classname IS INITIAL.
-      ms_home-class_value_state_text = `Enter the name of your class first`.
-      ms_home-class_value_state      = `Warning`.
-      client->message_box_display( text = ms_home-class_value_state_text
-                                   type = `error` ).
+      check_failed( `Enter the name of your class first` ).
       RETURN.
     ENDIF.
 
@@ -288,13 +317,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         " class that is no app is refused from its descriptor, before
         " anything of it is loaded or instantiated. The interface name comes
         " from the still unbound li_app_test, never from a literal - a
-        " namespace rename rewrites the reference, not the literal
+        " namespace rename rewrites the reference, not the literal.
+        " Its sentence is the framework's own and names only what the user
+        " typed, so it is shown even where the exit hides error details - it
+        " used to be raised into the CATCH below, where that switch replaced
+        " it by "see the system log" although nothing had been logged
         DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_test ).
         IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
                                                                   intf  = lv_app_intf ) = abap_false.
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING
-              val = |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }|.
+          check_failed( |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }| ).
+          RETURN.
         ENDIF.
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -311,11 +343,38 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-url               = get_app_url( ms_home-classname ).
 
       CATCH cx_root INTO DATA(lx).
-        ms_home-class_value_state_text = error_text_for_user( lx ).
-        ms_home-class_value_state      = `Warning`.
-        client->message_box_display( text = ms_home-class_value_state_text
-                                     type = `error` ).
+        check_failed( error_text_for_user( ix           = lx
+                                           hide_details = hide_details ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD check_failed.
+
+    ms_home-class_value_state_text = text.
+    ms_home-class_value_state      = `Warning`.
+    client->message_box_display( text = text
+                                 type = `error` ).
+
+  ENDMETHOD.
+
+  METHOD exit_hides_error_details.
+
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+    result = ls_config-check_hide_error_details.
+
+  ENDMETHOD.
+
+  METHOD user_exit_text.
+
+    result = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ).
+    IF result IS INITIAL.
+      result = `none (shipped defaults)`.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -324,15 +383,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " the exception text of a CREATE OBJECT for a class name the user typed
     " goes onto the page - with the same switch the 500 body honours: an
     " installation whose exit hides error details gets a plain sentence
-    " here too, not the raw system text. The exit is asked the way the
-    " draft cleanup asks it; an exit that raises leaves the switch at its
-    " default (details shown)
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
-    TRY.
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-    IF ls_config-check_hide_error_details = abap_true.
+    " here too, not the raw system text
+    IF hide_details = abap_true.
       result = `The class could not be instantiated - see the system log for details`.
     ELSE.
       result = ix->get_text( ).
@@ -748,7 +800,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `enabled`   v = `false` ).
     render_text( form  = form
                  label = `User Exit`
-                 text  = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
+                 text  = user_exit_text( ) ).
 
     render_text( form  = form
                  label = `abap2UI5 Version`

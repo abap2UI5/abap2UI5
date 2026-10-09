@@ -1205,8 +1205,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     result = val.
     " spaces and tabs alternate at either end (`\t \tx`) - one pass of each
-    " leaves the inner layer standing, so strip until nothing changes
-    DO 10 TIMES.
+    " leaves the inner layer standing, so strip until nothing changes. No
+    " fixed number of passes: ten left the eleventh layer of a padded value
+    " standing. Every pass that changes something shortens the string, so
+    " the loop ends
+    DO.
       DATA(lv_before) = result.
       result = shift_left( shift_right( result ) ).
       result = shift_right( val = result
@@ -1975,9 +1978,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
              cl_abap_typedescr=>typekind_oref.
 
         WHEN OTHERS.
+          " through data_get_string, not a plain MOVE: that writes the sign
+          " BEHIND a number, so -5 read `5-` and a packed -12.50 `12.50-`
           INSERT VALUE #(
             n = lr_attri->name
-            v = <component>
+            v = data_get_string( <component> )
             ) INTO TABLE result.
       ENDCASE.
 

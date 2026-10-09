@@ -158,9 +158,12 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
     " class_constructor is the alternative and abap-check names it a trap
     CLASS-DATA gv_escape_specials TYPE string.
     CLASS-DATA gv_escape_controls TYPE string.
-    " the characters an element or attribute NAME must not carry - the
-    " markup and quote characters and whitespace; same lazy fill
-    CLASS-DATA gv_name_specials TYPE string.
+    " the characters an element or attribute NAME may carry - a list of
+    " what is allowed, not of what is not: the list of markup characters it
+    " replaced let `te(xt`, `te,xt`, `te{xt` or `1st` through, and the view
+    " died in the browser like before. UI5 names are ASCII letters, digits
+    " and `_`, `.`, `-` (and the `:` of a prefixed name); same lazy fill
+    CLASS-DATA gv_name_chars TYPE string.
 
     " fail fast on a name that is no XML name: `n = 'te"xt'` used to render
     " an attribute that ended early, and the view died in the browser far
@@ -210,6 +213,11 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     IF ns IS NOT INITIAL.
       name_check( val  = ns
                   what = `namespace prefix` ).
+      " the prefix is written in front of a `:` of its own - one in the
+      " prefix renders `core::Icon`, which no XML parser reads
+      IF ns CA `:`.
+        raise( |namespace prefix '{ ns }' carries a colon - pass it without| ).
+      ENDIF.
     ENDIF.
     result = NEW #( ).
     result->root = root.
@@ -298,13 +306,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD name_check.
 
-    IF gv_name_specials IS INITIAL.
-      gv_name_specials = ` <>"'&/=`
-          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
-          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab.
+    DATA lv_first TYPE c LENGTH 1.
+
+    IF gv_name_chars IS INITIAL.
+      gv_name_chars = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`.
     ENDIF.
-    IF val IS INITIAL OR val CA gv_name_specials.
+    " an XML name does not start with a digit, `.` or `-`
+    lv_first = val.
+    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-`.
       raise( |{ what } '{ val }' is not a valid XML name| ).
     ENDIF.
 

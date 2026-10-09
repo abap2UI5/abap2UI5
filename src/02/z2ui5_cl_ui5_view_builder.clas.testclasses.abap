@@ -22,6 +22,13 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS misuse_raises_not_dumps FOR TESTING.
     METHODS end_past_root_raises FOR TESTING.
     METHODS invalid_name_raises FOR TESTING.
+    METHODS invalid_name_shapes_raise FOR TESTING.
+    METHODS prefix_with_colon_raises FOR TESTING.
+    METHODS escape_quotes_cr_mixed FOR TESTING.
+    METHODS escape_entity_is_text FOR TESTING.
+    METHODS escape_unicode_passthrough FOR TESTING.
+    METHODS escape_long_value FOR TESTING.
+    METHODS text_parameter_quotes FOR TESTING.
 ENDCLASS.
 
 
@@ -455,6 +462,153 @@ CLASS ltcl_builder IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_end).
         cl_abap_unit_assert=>assert_true( xsdbool( lx_end->get_text( ) CS `end( )` ) ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD invalid_name_shapes_raise.
+
+    " a list of the markup characters let every other non-name through -
+    " a parenthesis, a comma, a brace, a leading digit or dot - and the
+    " view died in the browser far from the line that wrote it
+    DATA lt_bad TYPE string_table.
+    lt_bad = VALUE #( ( `te(xt` ) ( `te,xt` ) ( `te;xt` ) ( `te{xt` ) ( `te!xt` )
+                      ( `1st` ) ( `.text` ) ( `-text` ) ).
+
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( `Panel` ).
+      TRY.
+          view->a( n = lv_bad
+                   v = `x` ).
+          cl_abap_unit_assert=>fail( |attribute name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_attr).
+          cl_abap_unit_assert=>assert_true( act = xsdbool( lx_attr->get_text( ) CS `is not a valid XML name` )
+                                            msg = lx_attr->get_text( ) ).
+      ENDTRY.
+      TRY.
+          view->tag( lv_bad ).
+          cl_abap_unit_assert=>fail( |element name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    " the shapes UI5 names have still pass - digits after the first
+    " character, underscores, hyphens, dots, a prefix
+    DATA(lv_xml) = z2ui5_cl_ui5_view_builder=>factory(
+        )->tag( n  = `Title_2`
+                ns = `z2ui5`
+            )->a( n = `data-id`
+                  v = `x`
+            )->a( n = `app:custom.key`
+                  v = `y`
+        )->stringify( ).
+    cl_abap_unit_assert=>assert_equals( exp = `<z2ui5:Title_2 data-id="x" app:custom.key="y"/>`
+                                        act = lv_xml ).
+
+  ENDMETHOD.
+
+  METHOD prefix_with_colon_raises.
+
+    " the builder writes the colon behind the prefix itself - one in the
+    " prefix rendered `core::Icon`
+    TRY.
+        z2ui5_cl_ui5_view_builder=>factory( )->ele( n  = `Icon`
+                                                    ns = `core:` ).
+        cl_abap_unit_assert=>fail( `a prefix with a colon must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( act = xsdbool( lx->get_text( ) CS `namespace prefix` )
+                                          msg = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD escape_quotes_cr_mixed.
+
+    " the attribute is written in double quotes: a single quote needs no
+    " escaping, a double one does; a CR becomes its character reference
+    " like LF and TAB, so a CR LF pair survives attribute normalization
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = |it's "a"{ z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf }<b>&| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="it's &quot;a&quot;&#xD;&#xA;&lt;b&gt;&amp;"/>` ).
+
+  ENDMETHOD.
+
+  METHOD escape_entity_is_text.
+
+    " an entity in the value is text: rendered so that the control SHOWS
+    " `&amp;`, not `&`
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = `&amp; &#xA;` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="&amp;amp; &amp;#xA;"/>` ).
+
+  ENDMETHOD.
+
+  METHOD escape_unicode_passthrough.
+
+    " outside ASCII nothing is markup and nothing is a control character -
+    " an umlaut, the euro sign and an emoji pass unchanged, also next to a
+    " character that IS escaped
+    DATA lv_xstr TYPE xstring.
+    lv_xstr = `C3A420E282AC20F09F9880`.
+    DATA(lv_wide) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_xstr ).
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = |{ lv_wide }&| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = |<Text text="{ lv_wide }&amp;"/>| ).
+
+  ENDMETHOD.
+
+  METHOD escape_long_value.
+
+    " a long text - a long-text field, a JSON blob in a tooltip - is escaped
+    " throughout, not only at its start
+    DATA lv_long TYPE string.
+    DATA lv_exp  TYPE string.
+    DO 2000 TIMES.
+      lv_long = lv_long && `abc<&`.
+      lv_exp  = lv_exp && `abc&lt;&amp;`.
+    ENDDO.
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = lv_long ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = |<Text text="{ lv_exp }"/>| ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_quotes.
+
+    " t escapes for the binding parser, the render escapes for XML - both
+    " apply, in that order, to a value with a quote and a brace
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              t = `say "{hi}"` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="say &quot;\{hi\}&quot;"/>` ).
 
   ENDMETHOD.
 
