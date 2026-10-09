@@ -13,6 +13,7 @@ evidence:
   - measured 2026-10-04 on abaplint main 506e7b9 - wrong_abapdoc_position gives no finding for either shape
   - gated in abap2UI5 since 2026-10-04 by `check:atc` (`abapdoc`), which until then asserted that a blank line detaches nothing
   - filed 2026-10-06 together with its two ABAP Doc siblings (blank line, leading `@`, HTML tag) as abaplint/abaplint#4385, which asks the maintainer whether they become one rule, two or three before the PRs are written; no answer yet on 2026-10-09
+  - 2026-10-09: the plain-comment shape (a `"` comment between the block and its declaration, z2ui5_if_client 2026-09-16) added to #4385 as case 1b - wrong_abapdoc_position skips every Comment statement, not only `"!` lines, so the same fix covers both; abaplint main c07da6a reports neither
 ---
 
 # wrong_abapdoc_position: a blank line detaches the block

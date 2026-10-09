@@ -3,13 +3,15 @@ target: abaplint
 title: 'Report a whole line of a sorted or hashed table, reached by a field symbol, passed to a CHANGING parameter'
 summary: '`READ TABLE sorted_tab … ASSIGNING <row>.` then `meth( CHANGING cs = <row> )` activates, and on a system it is CX_SY_DYN_CALL_ILLEGAL_TYPE ("the actual parameter for CS is write-protected") - the line key is write-protected; abaplint reports nothing'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/4407
 first_seen: 2026-10-08
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-08 - a user's first start of the cockpit, `z2ui5_cl_cockpit_stats` - "Call of the method ADD_SUM of the class Z2UI5_CL_COCKPIT_STATS has failed; the actual parameter for CS_SUM is write-protected" (CX_SY_DYN_CALL_ILLEGAL_TYPE, initial rendering); five sites in get_trend, get_apps, get_app_events, get_hints and get_window, each a `SORTED TABLE OF ty_s_sum WITH UNIQUE KEY …` read or inserted with `ASSIGNING <sum>` and passed as `CHANGING cs_sum = <sum>`; fixed in abap2UI5-addons/admin-cockpit#10 with a work area and `MODIFY TABLE`
   - measured 2026-10-08 on abaplint 2.120.64, every default rule on, `check_syntax` live - no finding on a minimal class with the same shape; the system's syntax check accepted the class too (it activated, the error came at run time)
   - measured 2026-10-08 on the transpiled runtime (admin-cockpit `npm run unit`) - the same shape as a test method passes, so the unit run cannot see it either
+  - filed 2026-10-09 as idea 1 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
 checked_upstream: 2026-10-09
 ---
 

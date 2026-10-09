@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table'
 summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories. A rule about ABAP as a language, so it belongs upstream — the abap2UI5-linter's copy covers app classes only, and one of the two remaining sites is vendored code no app-class linter reads
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/4407
 first_seen: 2026-08-17
 checked_upstream: 2026-10-09
 patch: backlog/patches/abaplint-three-rules.patch
@@ -14,6 +15,7 @@ evidence:
   - two of the eight were wrong twice over — the `sy-tabix` belonged to an inner loop, so the index deleted was another table's
   - no rule of the 188 abaplint ships reports it; `invalid_table_index` is constant index 0 only
   - written again 2026-08-22, five days after this item was filed: `abap2UI5/samples-controls` batch b51 shipped the same shape in three NEW ports (617, 618, 619) and took it back out the same day - the author had read app 298's source note and still wrote it, which is the argument for a rule rather than a note
+  - filed 2026-10-09 as idea 2 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
 ---
 
 # Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table
