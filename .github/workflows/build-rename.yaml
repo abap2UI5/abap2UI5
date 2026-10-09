@@ -1,12 +1,18 @@
 name: build-rename
 
-# Renames all artifacts to a chosen namespace and pushes the result to
-# the branch rename_<name>, e.g. rename_zmyui5 — ready to pull with
-# abapGit for a parallel installation in the same SAP system (see
-# https://abap2ui5.github.io/docs/advanced/renaming.html). The renaming
-# itself is the plain abaplint rename with the checked-in config
-# .github/abaplint/rename.jsonc; this workflow only sets the chosen name
-# in the config (placeholder "znamespace") and stores the result.
+# Renames all artifacts to a chosen name and pushes the result to the
+# branch rename_<name> — ready to pull with abapGit for a parallel
+# installation in the same SAP system (see
+# https://abap2ui5.github.io/docs/advanced/renaming.html). The name is
+# either a customer name (ZMYUI5: z2ui5_cl_ui5_client becomes
+# zmyui5_cl_ui5_client, branch rename_zmyui5) or a registered namespace
+# (/CA2UI5/: z2ui5_cl_ui5_client becomes /ca2ui5/cl_ui5_client, branch
+# rename_ca2ui5; abapGit stores it as #ca2ui5#cl_ui5_client, and the
+# target system needs the namespace set up in SE03 and a /CA2UI5/ package
+# to pull into). The renaming itself is the plain abaplint rename with the
+# checked-in config .github/abaplint/rename.jsonc; this workflow only sets
+# the chosen prefix in the config (placeholder "znamespace_") and stores
+# the result.
 # Re-running with the same name updates the branch to the current main
 # state; without content changes nothing is pushed. The main commit is
 # carried as second parent so GitHub shows the branch as "ahead" instead
@@ -16,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       namespace:
-        description: "New namespace (max. 10 characters), e.g. ZMYUI5"
+        description: "New name: ZMYUI5 (max. 10 characters) or a registered namespace /CA2UI5/ (max. 10 with both slashes)"
         required: true
         type: string
         default: znamespace
@@ -40,33 +46,44 @@ jobs:
     env:
       NAMESPACE: ${{ inputs.namespace }}
     steps:
-    # validate the input and derive the branch name before building
-    - name: Derive branch name
+    # validate the input and derive the object name prefix and the branch
+    # name before building. A customer name ZMYUI5 takes the place of z2ui5
+    # (prefix zmyui5_), a namespace /CA2UI5/ the place of z2ui5_ (prefix
+    # /ca2ui5/) - both at most 10 characters, which keeps a 25-character
+    # object name within the 30-character limit (rename.jsonc)
+    - name: Derive prefix and branch name
       run: |
-        if ! printf '%s' "$NAMESPACE" | grep -Eq '^[A-Za-z][A-Za-z0-9_]{0,9}$'; then
-          echo "::error::Invalid namespace '$NAMESPACE' (letter + letters/digits/underscore, max. 10 characters)"
-          exit 1
-        fi
         ns=$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')
-        if [ "$ns" = "z2ui5" ]; then
-          echo "::error::Namespace '$NAMESPACE' is the original namespace - nothing to rename"
+        if printf '%s' "$ns" | grep -Eq '^[a-z][a-z0-9_]{0,9}$'; then
+          if [ "$ns" = "z2ui5" ]; then
+            echo "::error::Name '$NAMESPACE' is the original name - nothing to rename"
+            exit 1
+          fi
+          prefix="${ns}_"
+          name="$ns"
+        elif printf '%s' "$ns" | grep -Eq '^/[a-z0-9][a-z0-9_]{0,7}/$'; then
+          prefix="$ns"
+          name=$(printf '%s' "$ns" | tr -d '/')
+        else
+          echo "::error::Invalid name '$NAMESPACE' (a customer name: letter + letters/digits/underscore, max. 10 characters, e.g. ZMYUI5 - or a namespace with both slashes, max. 10 characters, e.g. /CA2UI5/)"
           exit 1
         fi
-        echo "NS=$ns" >> "$GITHUB_ENV"
-        echo "BRANCH=rename_$ns" >> "$GITHUB_ENV"
-        echo "Building branch: rename_$ns"
+        echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+        echo "BRANCH=rename_$name" >> "$GITHUB_ENV"
+        echo "Renaming z2ui5_ to $prefix, building branch: rename_$name"
 
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: ./.github/actions/setup
       with:
         npm-ci: "true"
 
-    # set the chosen name in the rename config and run the abaplint
+    # set the chosen prefix in the rename config and run the abaplint
     # rename; it writes the renamed sources to
-    # .github/abaplint/output/<workspace path>/src
+    # .github/abaplint/output/<workspace path>/src. `|` as the sed
+    # delimiter: a namespace prefix carries slashes, neither carries a `|`
     - name: Rename to ${{ inputs.namespace }}
       run: |
-        sed "s/znamespace/$NS/g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
+        sed "s|znamespace_|$PREFIX|g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
         npx abaplint .github/abaplint/rename_run.jsonc --rename
 
     # abaplint --rename rewrites references, never string literals: a literal
@@ -91,8 +108,8 @@ jobs:
         mkdir -p "$out"
         cp -r "$src" "$out/src"
         cp LICENSE "$out/"
-        ns_upper=$(printf '%s' "$NS" | tr '[:lower:]' '[:upper:]')
-        sed "s/Z2UI5_IF_APP/${ns_upper}_IF_APP/" .abapgit.xml > "$out/.abapgit.xml"
+        prefix_upper=$(printf '%s' "$PREFIX" | tr '[:lower:]' '[:upper:]')
+        sed "s|Z2UI5_IF_APP|${prefix_upper}IF_APP|" .abapgit.xml > "$out/.abapgit.xml"
 
     - name: Push renamed branch
       run: |

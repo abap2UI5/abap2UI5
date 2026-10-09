@@ -1,20 +1,23 @@
 {
-  // Namespace rename config. Renames every artifact from z2ui5 to the
-  // placeholder namespace "znamespace"; the build_rename workflow replaces the
-  // placeholder with the chosen name (max. 10 characters) before running
-  // `abaplint <config> --rename` - see .github/workflows/build-rename.yaml.
+  // Namespace rename config. Renames every artifact from z2ui5_ to the
+  // placeholder prefix "znamespace_"; the build_rename workflow replaces the
+  // placeholder with the chosen prefix before running
+  // `abaplint <config> --rename` - "<name>_" for a customer name (max. 10
+  // characters, e.g. zmyui5_) or the registered namespace itself (max. 10
+  // characters with both slashes, e.g. /ca2ui5/) - see
+  // .github/workflows/build-rename.yaml.
   //
   // This is also what the rename step of the abaplint PR gate runs
   // (`npm run rename`), against
-  // the 10-character placeholder, i.e. the worst case the workflow allows. A
-  // separate, weaker test config used to exist and let three over-long class
-  // names slip through unnoticed - do not reintroduce one.
+  // the 11-character placeholder prefix, i.e. the worst case the workflow
+  // allows. A separate, weaker test config used to exist and let three
+  // over-long class names slip through unnoticed - do not reintroduce one.
   //
   // A single catch-all pattern is enough because every object name in src/ is
   // kept at 25 characters or less: generated frontend artifacts are capped by
   // MAX_CLASS_NAME_LENGTH in tools/app2abap/trans2abap.js, hand-written ones
-  // by review. 25 + 5 (znamespace is 10 chars, z2ui5 is 5) = the 30-character
-  // ABAP limit, hit exactly.
+  // by review. 25 + 5 (znamespace_ is 11 chars, z2ui5_ is 6) = the 30-character
+  // ABAP limit, hit exactly. A namespace prefix adds 4 at most (10 for 6).
   "global": {
     "files": "/../../src/**/*.*"
   },
@@ -30,8 +33,8 @@
     "patterns": [
       {
         "type": "CLAS|INTF|TABL",
-        "oldName": "^z2ui5(.*)$",
-        "newName": "znamespace$1"
+        "oldName": "^z2ui5_(.*)$",
+        "newName": "znamespace_$1"
       }
     ]
   },
