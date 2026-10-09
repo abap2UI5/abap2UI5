@@ -3,13 +3,15 @@ target: abaplint
 title: 'downport: line_exists( ) in an ELSEIF is moved in front of the IF and overwrites the sy-subrc the IF condition reads'
 summary: '`replaceLineFunctions` turns `ELSEIF line_exists( tab[ … ] )` into a `READ TABLE … TRANSPORTING NO FIELDS` inserted before the whole IF chain (its comment - "assumption: no side effects in IF conditions"); the READ itself sets sy-subrc and sy-tabix, so an `IF sy-subrc <> 0` after an earlier READ now reads the hoisted READ''s result - silently different branching on every downported 702 branch and in the transpiled unit run'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4401
 first_seen: 2026-10-08
 upstream: abaplint/abaplint
 evidence:
   - found 2026-10-08 in abap2UI5-addons/admin-cockpit, `z2ui5_cl_cockpit_session=>outcomes_of` - `READ TABLE lt_meta … WITH TABLE KEY id = lv_key.` followed by `IF lv_key IS INITIAL OR sy-subrc <> 0. … ELSEIF line_exists( lt_prev[ table_line = lv_key ] ).`; its unit test answered "unknown" for a draft that is in `lt_meta`, because the downported code (read in `node/downport/`, @abaplint/cli as pinned by abap2UI5 that day) runs `READ TABLE lt_prev WITH KEY table_line = lv_key TRANSPORTING NO FIELDS. temp143 = sy-subrc.` before the `IF`, and the IF's `sy-subrc <> 0` then tests that READ. Worked around by keeping the first READ's result in a variable at once
   - the cause, read at abaplint/abaplint main 00a31bb - `packages/core/src/rules/downport.ts`, `replaceLineFunctions`: for an `ElseIf` statement the insert position is `findStartOfIf( )`, the start of the IF chain, under the comment "assumption: no side effects in IF conditions"; the inserted `READ TABLE` is such a side effect (sy-subrc for line_exists, sy-tabix for line_index)
   - a scan of abap2UI5/src, sapgui, popups, abap-cloud-gui and admin-cockpit on 2026-10-08 finds no other IF chain that tests sy-subrc in its IF and has a line_exists / line_index in an ELSEIF (2 such ELSEIFs exist, neither IF reads sy-subrc) - the trap is rare, and silent when it hits
+  - filed 2026-10-09 as abaplint/abaplint#4401 - wider than this item: the READ sets sy-subrc and sy-tabix for a plain IF as well (`DELETE tab INDEX sy-tabix` in a LOOP), so the downport saves and restores both where they are read from the insert position on; on abap2UI5's downport that changes one test class and one class in src/99, and the transpiled unit run stays green
 checked_upstream: 2026-10-09
 ---
 
