@@ -247,6 +247,24 @@ test.describe("toCaretIndex", () => {
   });
 });
 
+test.describe("modelPathOf", () => {
+  const { Lib } = loadLib();
+
+  test("reads the three spellings of a model path", () => {
+    expect(Lib.modelPathOf("${/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf(" /S_DATA/NAME ")).toBe("/S_DATA/NAME");
+  });
+
+  test("answers null for anything that names no path", () => {
+    expect(Lib.modelPathOf("S_DATA")).toBeNull();
+    expect(Lib.modelPathOf("{ URL: 'https://x' }")).toBeNull();
+    expect(Lib.modelPathOf("")).toBeNull();
+    expect(Lib.modelPathOf(undefined)).toBeNull();
+    expect(Lib.modelPathOf({ URL: "x" })).toBeNull();
+  });
+});
+
 test.describe("deriveSystemType", () => {
   const { Lib } = loadLib();
 

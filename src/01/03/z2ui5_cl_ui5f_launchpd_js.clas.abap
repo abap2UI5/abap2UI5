@@ -25,74 +25,96 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/m/library", "z2ui5/core/Lib"], (mobileLibrary, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/m/library", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
+             `  (mobileLibrary, Lib, ViewSlots) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
+             `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
-             `  function withCrossAppNavigator(oController, callback) {` && |\n| &&
-             `    const nav = oController?.ctx?.state.oLaunchpad?.CrossAppNavigator;` && |\n| &&
-             `    if (!nav) {` && |\n| &&
-             `      Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
-             `      return;` && |\n| &&
-             `    }` && |\n| &&
-             `    try {` && |\n| &&
-             `      callback(nav);` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      Lib.logError("CrossAppNav: callback failed", e);` && |\n| &&
-             `    }` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function evCrossAppNavToPrevApp(oController) {` && |\n| &&
-             `    withCrossAppNavigator(oController, (nav) => nav.backToPreviousApp());` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function evCrossAppNavToExt(oController, args) {` && |\n| &&
-             `    withCrossAppNavigator(oController, (nav) => {` && |\n| &&
-             `      const hash =` && |\n| &&
-             `        nav.hrefForExternal({ target: args[1], params: args[2] }) || "";` && |\n| &&
-             `      if (args[3] === "EXT") {` && |\n| &&
-             `        const base = window.location.href.split("#")[0];` && |\n| &&
-             `        const url = ``${base}${hash}``;` && |\n| &&
-             `        if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
-             `          Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        _URLHelper.redirect(url, true);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        nav.toExternal({ target: { shellHash: hash } });` && |\n| &&
+             `    function withCrossAppNavigator(oController, callback) {` && |\n| &&
+             `      const nav = oController?.ctx?.state.oLaunchpad?.CrossAppNavigator;` && |\n| &&
+             `      if (!nav) {` && |\n| &&
+             `        Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function evSetTitleLaunchpad(oController, args) {` && |\n| &&
-             `    const title = Lib.toText(args[1]);` && |\n| &&
-             `    try {` && |\n| &&
-             `      const shell = oController?.ctx?.state.oLaunchpad?.ShellUIService;` && |\n| &&
-             `      if (shell?.setTitle) {` && |\n| &&
-             `        const result = shell.setTitle(title);` && |\n| &&
-             `        if (result?.catch) {` && |\n| &&
-             `          result.catch((e) =>` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
-             `              e,` && |\n| &&
-             `            ),` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
+             `      try {` && |\n| &&
+             `        callback(nav);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("CrossAppNav: callback failed", e);` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      Lib.logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);` && |\n| &&
              `    }` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  const handlers = {` && |\n| &&
-             `    CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
-             `    CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&
-             `    SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
-             `  };` && |\n| &&
+             `    function evCrossAppNavToPrevApp(oController) {` && |\n| &&
+             `      withCrossAppNavigator(oController, (nav) => nav.backToPreviousApp());` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
-             `  return { handlers };` && |\n| &&
-             `});` && |\n| &&
+             `    function navParams(oController, raw) {` && |\n| &&
+             `      if (raw == null || raw === "") return undefined;` && |\n| &&
+             `      const path = Lib.modelPathOf(raw);` && |\n| &&
+             `      if (!path) return raw;` && |\n| &&
+             `      const oView = oController?.getView?.();` && |\n| &&
+             `      const oModel = oView` && |\n| &&
+             `        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())` && |\n| &&
+             `        : undefined;` && |\n| &&
+             `      const value = oModel?.getProperty(path);` && |\n| &&
+             `      if (value == null) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return value;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function evCrossAppNavToExt(oController, args) {` && |\n| &&
+             `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
+             `        const params = navParams(oController, args[2]);` && |\n| &&
+             `        if (params === null) return;` && |\n| &&
+             `        const hash = nav.hrefForExternal({ target: args[1], params }) || "";` && |\n| &&
+             `        if (args[3] === "EXT") {` && |\n| &&
+             `          const base = window.location.href.split("#")[0];` && |\n| &&
+             `          const url = ``${base}${hash}``;` && |\n| &&
+             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
+             `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          _URLHelper.redirect(url, true);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          nav.toExternal({ target: { shellHash: hash } });` && |\n| &&
+             `        }` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
+             `      const title = Lib.toText(args[1]);` && |\n| &&
+             `      try {` && |\n| &&
+             `        const shell = oController?.ctx?.state.oLaunchpad?.ShellUIService;` && |\n| &&
+             `        if (shell?.setTitle) {` && |\n| &&
+             `          const result = shell.setTitle(title);` && |\n| &&
+             `          if (result?.catch) {` && |\n| &&
+             `            result.catch((e) =>` && |\n| &&
+             `              Lib.logError(` && |\n| &&
+             `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
+             `                e,` && |\n| &&
+             `              ),` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const handlers = {` && |\n| &&
+             `      CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
+             `      CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&
+             `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    return { handlers };` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

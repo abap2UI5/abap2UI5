@@ -346,6 +346,12 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return val == null ? "" : String(val);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function modelPathOf(raw) {` && |\n| &&
+             `    if (typeof raw !== "string") return null;` && |\n| &&
+             `    const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");` && |\n| &&
+             `    return path.startsWith("/") ? path : null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function toCaretIndex(val) {` && |\n| &&
              `    if (val == null || String(val).trim() === "") return null;` && |\n| &&
              `    const n = Number(val);` && |\n| &&
@@ -418,14 +424,14 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function isSafeDownloadURL(url) {` && |\n| &&
              `    const parsed = parseUrl(url);` && |\n| &&
-             `    return (` && |\n| &&
+             `    return (` && |\n|.
+    result = result &&
              `      parsed !== null &&` && |\n| &&
              `      (parsed.protocol === "data:" ||` && |\n| &&
              `        parsed.protocol === "blob:" ||` && |\n| &&
              `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
              `    );` && |\n| &&
-             `  }` && |\n|.
-    result = result &&
+             `  }` && |\n| &&
              `` && |\n| &&
              `  function isValidContextId(id) {` && |\n| &&
              `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
@@ -752,6 +758,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    getTextPath,` && |\n| &&
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
+             `    modelPathOf,` && |\n| &&
              `    toCaretIndex,` && |\n| &&
              `    deriveSystemType,` && |\n| &&
              `    deriveOsName,` && |\n| &&

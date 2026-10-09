@@ -553,6 +553,20 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return val == null ? "" : String(val);
   }
 
+  // The model path a follow-up action argument names in place of a bound
+  // value, or null when the argument is no path. Wired in a VIEW, `${/S}`
+  // is an expression binding UI5 evaluates when the view is built, and the
+  // handler receives the value; queued from a HANDLER the action is data
+  // (T_CUSTOM), nothing on the response path resolves a binding in it, and
+  // the same argument arrives as the string. `${/S}`, `{/S}` (what _bind( )
+  // renders) and a bare `/S` all name the same path. STORE_DATA, URLHELPER
+  // and CROSS_APP_NAV_TO_EXT read their structure argument this way.
+  function modelPathOf(raw) {
+    if (typeof raw !== "string") return null;
+    const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");
+    return path.startsWith("/") ? path : null;
+  }
+
   // A caret position from the backend (a string property or an action
   // argument) as a non-negative integer, or null when it names no position:
   // empty, null, or not a number at all. Number("abc") is NaN, and a NaN
@@ -1190,6 +1204,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     getTextPath,
     copyToClipboard,
     toText,
+    modelPathOf,
     toCaretIndex,
     deriveSystemType,
     deriveOsName,
