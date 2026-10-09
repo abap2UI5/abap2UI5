@@ -51,6 +51,23 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " abap_true when an argument goes into the handler expression RAW - a
+    " binding, an expression, an event expression - and abap_false when it
+    " is quoted as a string. See the method body
+    CLASS-METHODS check_arg_raw
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " abap_true when every brace of val closes the one before it - outside
+    " the single- or double-quoted strings of the expression
+    CLASS-METHODS check_braces_balanced
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
   PRIVATE SECTION.
     " Escape a value so it is safe as the body of a single-quoted JS string
     " literal emitted into the view XML. Backslash MUST be escaped first (so
@@ -300,43 +317,15 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         lv_pending = |{ lv_pending }, ''|.
         CONTINUE.
       ENDIF.
-      " a message template that starts with a bare positional placeholder
-      " ({0}, {1}, ... - either immediately closed {0} or a conditional
-      " {0?a:b}) is a plain string, not a binding or object literal, so it must
-      " still be quoted - the `{`-raw exception below is only for real
-      " bindings/object literals like {/PATH} or {..}. {0/field} (relative
-      " binding) keeps a `/` after the digits and is therefore not matched, so
-      " it stays raw as before. The scan only matters for values starting
-      " with `{` (any other value is quoted by the first condition group
-      " below anyway), so it only runs for those instead of on every argument.
-      " A plain digit scan, not a regex: this runs once per binding argument
-      " of every _event( ) on every render, and the POSIX regex it replaced
-      " was compiled on each of those calls (the engine is deprecated anyway)
-      DATA(lv_is_placeholder) = abap_false.
-      IF lv_new(1) = `{`.
-        DATA(lv_len) = strlen( lv_new ).
-        DATA(lv_off) = 1.
-        WHILE lv_off < lv_len AND lv_new+lv_off(1) CO `0123456789`.
-          lv_off = lv_off + 1.
-        ENDWHILE.
-        lv_is_placeholder = xsdbool( lv_off > 1 AND lv_off < lv_len
-                                     AND ( lv_new+lv_off(1) = `?` OR lv_new+lv_off(1) = `}` ) ).
-      ENDIF.
       " iv_literal: the wire carries DATA, and every argument is quoted -
       " a value that happens to start with `$` or `{` is a string then, not
       " an expression the client evaluates (see ty_s_event_control)
-      IF iv_literal = abap_true
-          OR (     lv_new(1) <> `$`
-               AND lv_new(1) <> `{`
-               AND lv_new NP `.eB(*`
-               AND lv_new NP `.eBP(*`
-               AND lv_new NP `.eF(*` ) OR lv_is_placeholder = abap_true.
+      IF iv_literal = abap_true OR check_arg_raw( lv_new ) = abap_false.
         " a quoted arg becomes a single-quoted JS string literal; escape it in
         " full (backslash, quote, CR/LF) so no value - including one carrying a
         " literal backslash or ending in '\' - can close the '...' wrapper and
-        " inject JS. The raw-binding branch above (values starting with { $ or
-        " an .eB/.eBP/.eF event expression) stays unescaped by design, since
-        " those are real bindings/expressions, not string data.
+        " inject JS. The raw branch (check_arg_raw) stays unescaped by design,
+        " since those are real bindings/expressions, not string data.
         lv_new = |'{ escape_js_string( lv_new ) }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
@@ -344,6 +333,89 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     ENDLOOP.
 
     result = |{ result })|.
+
+  ENDMETHOD.
+
+  METHOD check_arg_raw.
+
+    IF val IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " only a value that starts with `$` or `{`, or an .eB/.eBP/.eF event
+    " expression, is a candidate - every other value is string data
+    IF val(1) <> `$` AND val(1) <> `{`
+        AND val NP `.eB(*` AND val NP `.eBP(*` AND val NP `.eF(*`.
+      RETURN.
+    ENDIF.
+
+    " a message template that starts with a bare positional placeholder
+    " ({0}, {1}, ... - either immediately closed {0} or a conditional
+    " {0?a:b}) is a plain string, not a binding or object literal, so it must
+    " still be quoted - the `{`-raw exception is only for real
+    " bindings/object literals like {/PATH} or {..}. {0/field} (relative
+    " binding) keeps a `/` after the digits and is therefore not matched, so
+    " it stays raw as before. A plain digit scan, not a regex: this runs once
+    " per binding argument of every _event( ) on every render, and the POSIX
+    " regex it replaced was compiled on each of those calls
+    IF val(1) = `{`.
+      DATA(lv_len) = strlen( val ).
+      DATA(lv_off) = 1.
+      WHILE lv_off < lv_len AND val+lv_off(1) CO `0123456789`.
+        lv_off = lv_off + 1.
+      ENDWHILE.
+      IF lv_off > 1 AND lv_off < lv_len
+          AND ( val+lv_off(1) = `?` OR val+lv_off(1) = `}` ).
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    " the raw value is spliced into the handler expression UI5 parses, and
+    " a brace that does not close - a lone `{`, a truncated `{0`, text a
+    " user typed - broke the parse of the WHOLE expression, so the wire
+    " never fired. What does not balance is no binding and no expression
+    result = check_braces_balanced( val ).
+
+  ENDMETHOD.
+
+  METHOD check_braces_balanced.
+
+    DATA lv_depth TYPE i.
+    DATA lv_quote TYPE string.
+    DATA lv_char TYPE string.
+
+    DATA(lv_len) = strlen( val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      lv_char = val+lv_off(1).
+      IF lv_quote IS NOT INITIAL.
+        " inside a string of the expression ({= ${/A} === '}' }) a brace is
+        " text; a backslash takes the next character with it
+        CASE lv_char.
+          WHEN `\`.
+            lv_off = lv_off + 1.
+          WHEN lv_quote.
+            CLEAR lv_quote.
+          WHEN OTHERS.
+        ENDCASE.
+      ELSE.
+        CASE lv_char.
+          WHEN `'` OR `"`.
+            lv_quote = lv_char.
+          WHEN `{`.
+            lv_depth = lv_depth + 1.
+          WHEN `}`.
+            lv_depth = lv_depth - 1.
+            IF lv_depth < 0.
+              RETURN.
+            ENDIF.
+          WHEN OTHERS.
+        ENDCASE.
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+    result = xsdbool( lv_depth = 0 AND lv_quote IS INITIAL ).
 
   ENDMETHOD.
 

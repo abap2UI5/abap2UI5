@@ -465,6 +465,9 @@ CLASS ltcl_02_db DEFINITION FINAL INHERITING FROM ltcl_00_base
     " ITS app answers - no second parse; another instance of the same id
     " is still restored on its own
     METHODS load_by_app_same_instance  FOR TESTING RAISING cx_static_check.
+    " a load by another instance of a buffered id takes the buffer over: the
+    " next load of the id - by app or by id - answers that container
+    METHODS load_by_app_replaces_buffer FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -620,6 +623,30 @@ CLASS ltcl_02_db IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( lo_other = lo_loaded ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_other->mo_app = mo_user ) ).
     check_restored( mo_user ).
+
+  ENDMETHOD.
+
+  METHOD load_by_app_replaces_buffer.
+
+    bind_all( ).
+    mo_cont->db_save( ).
+    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
+
+    " get_app( ) buffered the deserialized instance, then the stack hops to
+    " the LIVE instance of the same draft id
+    DATA(lo_loaded) = z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
+    DATA(lo_live) = z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_live = lo_loaded ) ).
+
+    " the buffer follows the latest instance: a second hop to it is not
+    " parsed again, and a load by id hands out the container around the
+    " instance the stack is running - not the stale deserialized copy
+    cl_abap_unit_assert=>assert_true(
+        act = xsdbool( z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ) = lo_live )
+        msg = `the second hop parsed the draft again` ).
+    cl_abap_unit_assert=>assert_true(
+        act = xsdbool( z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ) = lo_live )
+        msg = `db_load answered the stale container` ).
 
   ENDMETHOD.
 

@@ -129,10 +129,19 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     ENDIF.
 
     ASSIGN ms_config-tab->* TO <tab>.
+    " the rows count from 1: a cell bind that forgets tab_index sends 0, and
+    " a negative one is no row either. Checked explicitly rather than left to
+    " the kernel's answer for ASSIGN <tab>[ 0 ] / [ -1 ] - the documented
+    " error is what the app sees whatever a release does with such an index
+    DATA(lv_rows) = lines( <tab> ).
+    IF ms_config-tab_index < 1 OR ms_config-tab_index > lv_rows.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
+    ENDIF.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
-    " an out-of-range tab_index leaves <row> unassigned; raise the intended
-    " binding error instead of dumping GETWA_NOT_ASSIGNED on the ASSIGN
-    " COMPONENT below
+    " belt and braces: an unassigned <row> would be GETWA_NOT_ASSIGNED on
+    " the ASSIGN COMPONENT below, a dump instead of the binding error
     IF <row> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING

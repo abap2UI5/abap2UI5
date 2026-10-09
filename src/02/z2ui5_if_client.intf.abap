@@ -837,7 +837,9 @@ INTERFACE z2ui5_if_client
   "!                  those characters (text a user typed, a key from a
   "!                  foreign system) is therefore evaluated, not passed:
   "!                  set s_ctrl-check_arg_literal to have every argument of
-  "!                  the wire quoted as a string instead.
+  "!                  the wire quoted as a string instead. An argument whose
+  "!                  braces do not close (a lone opening brace, a truncated
+  "!                  placeholder) is no expression and is quoted either way.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL

@@ -540,7 +540,7 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 3 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
 
   ENDMETHOD.
 
@@ -549,14 +549,18 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     " a cell bind that names the table and forgets tab_index sends 0 - the
     " rows count from 1, so it is the documented binding error (_bind( ),
     " tab_index: a row that does not exist raises it instead of dumping),
-    " and so is a negative index
+    " and so is a negative index. The text is pinned, not just the prefix:
+    " bind_tab_cell( ) decides both by an explicit range check now instead of
+    " relying on the kernel answering ASSIGN <tab>[ 0 ] / [ -1 ] with
+    " sy-subrc 4 - the transpiled runtime answers that the same way, so this
+    " test pins the outcome and cannot show the difference on its own
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab = REF #( mo_app->mt_tab ) )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = -1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
 
   ENDMETHOD.
 

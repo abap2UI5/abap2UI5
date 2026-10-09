@@ -254,15 +254,17 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " the same draft id hands back THIS object instead of parsing the draft a
     " second time into a second container - two containers for one draft mean
     " whoever reaches the other one mutates state nobody else sees.
-    " Only ever an insert: reading an EXISTING buffer entry here would be
-    " wrong, because a container that came from db_load( ) has its attributes
+    " Never answered from an EXISTING buffer entry (beyond the identity case
+    " at the top): a container that came from db_load( ) has its attributes
     " restored against the deserialized app, and this method's caller needs
-    " them pointing at `app` - unless that deserialized app IS `app`, the
-    " one case answered at the top. So the two loaders stay distinct in that
+    " them pointing at `app`. So the two loaders stay distinct in that
     " direction on purpose - do not "simplify" this into a buffer lookup.
-    " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
-    " logic: an id already in the buffer leaves the existing entry alone and
-    " sets sy-subrc = 4, which is the wanted outcome and not an error
+    " An entry for the id around ANOTHER instance is REPLACED, not kept: the
+    " stack now runs `app`, so that is what a later db_load( ) of the id has
+    " to answer, and a second hop to `app` finds it at the top instead of
+    " parsing the draft again. A plain INSERT used to fail on the unique key
+    " with sy-subrc 4 and nobody noticed - the stale container stayed
+    DELETE TABLE mt_buffer WITH TABLE KEY id = app->id_draft.
     INSERT VALUE #( id  = app->id_draft
                     app = result ) INTO TABLE mt_buffer.
 
