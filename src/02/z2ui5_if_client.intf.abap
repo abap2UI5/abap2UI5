@@ -449,6 +449,11 @@ INTERFACE z2ui5_if_client
   "! history entry - the UI5 router's navTo( ..., true ). What
   "! FlexibleColumnLayout apps do when a NAVIGATION ARROW changes the
   "! layout: the URL follows, but Back does not step through arrow drags.
+  "! As for hash_set( ), only with cs_event-hash_attach_changed registered is
+  "! the value the WHOLE app hash; without a listener VAL is APPENDED to the
+  "! hash the page already has, so writing a whole route (`/repo/1`) on every
+  "! roundtrip grows the URL (`#/repo/1/repo/1`). An app that owns its routes
+  "! registers the listener (in view_display( ), see hash_attach_changed).
   "!
   "! @parameter val | the hash to write, spelled as for hash_set( ).
   METHODS hash_replace
