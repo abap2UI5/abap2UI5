@@ -129,12 +129,30 @@ sap.ui.define(
         Lib.logError(`BIND_ELEMENT: no view for slot '${slot}'`);
         return;
       }
-      const path = String(args[3] ?? "").replace(/[{}]/g, "");
+      // the braces go, and so does the `$` of the `${ client->_bind( ) }`
+      // spelling other actions take - the backend strips only the braces
+      // and left `$/T_PRODUCTS`, which bound the view to nothing
+      const path = String(args[3] ?? "")
+        .replace(/[{}]/g, "")
+        .replace(/^\$/, "");
       if (!path) {
         Lib.logError("BIND_ELEMENT: empty binding path");
         return;
       }
-      view.bindElement(`${path}/${args[2]}`);
+      // The row index must be one. An empty one - a handler that passed an
+      // unset variable, a trailing argument the wire dropped - bound the
+      // view to `<path>/` (the TABLE itself, so every relative binding of
+      // the fragment resolved to nothing) and `abc` or `1.5` to a row that
+      // cannot exist, silently both. The view keeps the binding it has.
+      const index =
+        typeof args[2] === "number" ? String(args[2]) : String(args[2] ?? "");
+      if (!/^\d+$/.test(index.trim())) {
+        Lib.logError(
+          `BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound`,
+        );
+        return;
+      }
+      view.bindElement(`${path}/${index.trim()}`);
     }
 
     function evStartTimer(oController, args) {

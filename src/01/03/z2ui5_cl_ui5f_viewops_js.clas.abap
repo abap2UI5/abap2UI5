@@ -110,12 +110,24 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
+             `` && |\n| &&
+             `      const path = String(args[3] ?? "")` && |\n| &&
+             `        .replace(/[{}]/g, "")` && |\n| &&
+             `        .replace(/^\$/, "");` && |\n| &&
              `      if (!path) {` && |\n| &&
              `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
+             `` && |\n| &&
+             `      const index =` && |\n| &&
+             `        typeof args[2] === "number" ? String(args[2]) : String(args[2] ?? "");` && |\n| &&
+             `      if (!/^\d+$/.test(index.trim())) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      view.bindElement(``${path}/${index.trim()}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&

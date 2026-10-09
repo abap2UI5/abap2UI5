@@ -38,13 +38,17 @@ sap.ui.define(
 
     // The startup parameters handed to the target app (args[2]). Wired in a
     // view they arrive as the bound structure; queued from a handler the
-    // documented `$` && client->_bind( nav_params ) arrives as its model path
-    // (Lib.modelPathOf), which is read from the framework model here - it
-    // used to go into hrefForExternal as a string, and the target app started
-    // without its parameters. The empty placeholder in front of the EXT flag
-    // is no parameters. Returns null when a path names nothing: navigating
-    // anyway would hand over an app that misses the data it was called for.
-    function navParams(oController, raw) {
+    // documented `$` && client->_bind( nav_params ) is resolved by the
+    // runner (FrontendAction.runCustom), and the two spellings it leaves -
+    // `{/NAV_PARAMS}` (a bare _bind( )) and `/NAV_PARAMS` - arrive as the
+    // model path (Lib.modelPathOf), which is read from the framework model
+    // here. It used to go into hrefForExternal as a string, and the target
+    // app started without its parameters. The empty placeholder in front of
+    // the EXT flag is no parameters. Returns null when a path names nothing:
+    // navigating anyway would hand over an app that misses the data it was
+    // called for. The TARGET (args[1]) is read the same way - a bound
+    // { semanticObject, action } structure works from both places.
+    function boundArg(oController, raw, what) {
       if (raw == null || raw === "") return undefined;
       const path = Lib.modelPathOf(raw);
       if (!path) return raw;
@@ -55,18 +59,40 @@ sap.ui.define(
       const value = oModel?.getProperty(path);
       if (value == null) {
         Lib.logError(
-          `CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}'`,
+          `CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}' (${what})`,
         );
         return null;
       }
       return value;
     }
 
+    // The target as hrefForExternal takes it. A view wire writes it as a JS
+    // object literal - `{ semanticObject: "SO", action: "display" }`, which
+    // UI5 evaluates into an object when the view is built. Queued from a
+    // HANDLER the same text is no JSON (the keys are unquoted), the backend
+    // cannot embed it as an object, and it arrived here as the STRING:
+    // hrefForExternal composed a hash from nothing and the shell navigated
+    // to it, silently. A string that opens a brace is therefore refused
+    // with the spelling that works in both places - JSON, which the backend
+    // embeds as an object and UI5's expression parser reads as well.
+    function navTarget(oController, raw) {
+      const target = boundArg(oController, raw, "target");
+      if (typeof target === "string" && target.trim().startsWith("{")) {
+        Lib.logError(
+          `CROSS_APP_NAV_TO_EXT: target '${target}' is no object - spell it as JSON ({"semanticObject":"...","action":"..."}) or pass its model path`,
+        );
+        return null;
+      }
+      return target;
+    }
+
     function evCrossAppNavToExt(oController, args) {
       withCrossAppNavigator(oController, (nav) => {
-        const params = navParams(oController, args[2]);
+        const target = navTarget(oController, args[1]);
+        if (target === null) return;
+        const params = boundArg(oController, args[2], "params");
         if (params === null) return;
-        const hash = nav.hrefForExternal({ target: args[1], params }) || "";
+        const hash = nav.hrefForExternal({ target, params }) || "";
         if (args[3] === "EXT") {
           // External navigation: the intent is opened in a NEW window/tab
           // (URLHelper.redirect's second argument is bNewWindow) - the

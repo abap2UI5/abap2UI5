@@ -348,8 +348,18 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function modelPathOf(raw) {` && |\n| &&
              `    if (typeof raw !== "string") return null;` && |\n| &&
-             `    const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");` && |\n| &&
+             `    const path = raw` && |\n| &&
+             `      .trim()` && |\n| &&
+             `      .replace(/^\$?\{(.*)\}$/, "$1")` && |\n| &&
+             `      .trim()` && |\n| &&
+             `      .replace(/^http>/, "");` && |\n| &&
              `    return path.startsWith("/") ? path : null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function bindingPathOf(raw) {` && |\n| &&
+             `    if (typeof raw !== "string") return null;` && |\n| &&
+             `    const m = /^\$\{\s*(?:http>)?(\/[^{}]*?)\s*\}$/.exec(raw.trim());` && |\n| &&
+             `    return m ? m[1] : null;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function toCaretIndex(val) {` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
-             `    return hasSafeProtocol(parsed);` && |\n| &&
+             `    return hasSafeProtocol(parsed);` && |\n|.
+    result = result &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isSafeRedirectProtocol(url) {` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function isSafeDownloadURL(url) {` && |\n| &&
              `    const parsed = parseUrl(url);` && |\n| &&
-             `    return (` && |\n|.
-    result = result &&
+             `    return (` && |\n| &&
              `      parsed !== null &&` && |\n| &&
              `      (parsed.protocol === "data:" ||` && |\n| &&
              `        parsed.protocol === "blob:" ||` && |\n| &&
@@ -759,6 +769,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
              `    modelPathOf,` && |\n| &&
+             `    bindingPathOf,` && |\n| &&
              `    toCaretIndex,` && |\n| &&
              `    deriveSystemType,` && |\n| &&
              `    deriveOsName,` && |\n| &&

@@ -231,7 +231,68 @@ test.describe("CROSS_APP_NAV_TO_EXT", () => {
     expect(nav.hrefArgs).toEqual([]);
     expect(nav.toExternalArgs).toEqual([]);
     expect(errors()).toContain(
-      "CROSS_APP_NAV_TO_EXT: nothing bound at the model path '/NAV_PARAMS'",
+      "CROSS_APP_NAV_TO_EXT: nothing bound at the model path '/NAV_PARAMS' (params)",
+    );
+  });
+
+  // The target is read like the params: a bound { semanticObject, action }
+  // structure works from a view wire and, as a model path, from a handler.
+  for (const spelling of ["{/S_TARGET}", "/S_TARGET"]) {
+    test(`a target given as the model path '${spelling}' is read from the model`, () => {
+      const nav = navigator();
+      const { handlers, errors } = load({ oLaunchpad: nav });
+
+      handlers.CROSS_APP_NAV_TO_EXT(
+        viewWithModel({
+          "/S_TARGET": { semanticObject: "Other", action: "app" },
+        }),
+        ["CROSS_APP_NAV_TO_EXT", spelling],
+      );
+
+      expect(nav.hrefArgs).toEqual([
+        {
+          target: { semanticObject: "Other", action: "app" },
+          params: undefined,
+        },
+      ]);
+      expect(nav.toExternalArgs).toHaveLength(1);
+      expect(errors()).toEqual([]);
+    });
+  }
+
+  // samples-stack wires the target as the JS object literal
+  // `{ semanticObject: "...", action: "display" }`, which UI5 evaluates on a
+  // view wire. Queued from a handler it is no JSON, arrived as the STRING,
+  // and the shell navigated to a hash composed from nothing.
+  test("an object-literal target queued from a handler is refused with the JSON hint", () => {
+    const nav = navigator();
+    const { handlers, redirects, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT(viewWithModel({}), [
+      "CROSS_APP_NAV_TO_EXT",
+      '{ semanticObject: "Z2UI5_CL_LP_SAMPLE_04",  action: "display" }',
+      "",
+      "EXT",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([]);
+    expect(nav.toExternalArgs).toEqual([]);
+    expect(redirects).toEqual([]);
+    expect(errors().some((m) => m.includes("spell it as JSON"))).toBe(true);
+  });
+
+  test("a target path with nothing bound is reported and does not navigate", () => {
+    const nav = navigator();
+    const { handlers, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT(viewWithModel({}), [
+      "CROSS_APP_NAV_TO_EXT",
+      "{/S_TARGET}",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([]);
+    expect(errors()).toContain(
+      "CROSS_APP_NAV_TO_EXT: nothing bound at the model path '/S_TARGET' (target)",
     );
   });
 

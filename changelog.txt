@@ -12,6 +12,22 @@ Legend
 
 unreleased
 ----------
+! _bind( omit_initial = abap_true ) and omit_initial_paths drop an abap_false as documented. ajson writes it as the literal false, which the emptiness test never counted as initial - an app that needs that false to arrive lists only its other columns in omit_initial_paths
+! z2ui5_cl_ui5_view_builder: an element or attribute name must be an XML name (ASCII letters, digits, _ . - :, not starting with a digit, . or -), and a ns ending in a colon is refused. te(xt or 1st passed and broke the view in the browser; ns = `core:` rendered core::Icon
+! follow_up_action( ) from a handler: an argument that is exactly ${/X} (or ${http>/X}) is read from the model, as on a view wire. It reached every action as that text - BINDING_CALL cleared a bound filter, CROSS_APP_NAV_TO_EXT started the target without its parameters, URLHELPER opened an empty mailto:
+* cs_event-bind_element: an empty, non-integer or negative row index is logged and the view not rebound, instead of binding it to "<path>/"
+* Event arguments: a binding context (${$parameters>/rowContext}), a plain object holding controls and $event itself travel as JSON ({ PATH, OBJECT } for a context, { ID, SOURCE, PARAMETERS } for an event) instead of failing to serialize; a body that cannot be serialized is reported as such, without a Retry that could never work
+* Server: a timeout while the response body is read is reported as the timeout, with Retry; an HTML page answered with 2xx (a logon page after the session expired) and a response without S_FRONT get messages that say what to check; a fetch that reaches no backend names the usual causes
+* Model: a date or time cell that is neither ISO nor digits (15.01.2024) is refused and listed in t_model_skipped instead of stored cut to its first 8 or 6 characters; a delta for a row past the end of the table is listed there too instead of dropped silently
+* _event( t_arg ): an argument that looks like an expression but has unbalanced braces ({, {0, ${x) is quoted instead of breaking the handler
+* cs_event-download_b64_file: a data: URL with an active type (text/html, svg, xml) is refused also when written with leading whitespace, a tab in the scheme or a blank after data:
+* Custom control z2ui5.cc.ExcelBridge: a time cell in Excel's own time format ([$-x-systime]h:mm:ss) is read as a time, not as a 1899-12-30 date-time; a column named constructor or toString no longer reads an inherited member
+* Custom control z2ui5.cc.MultiInputExt: free text with braces or a backslash becomes a token as typed on every release (on 1.71 "{a}" became a binding)
+* Custom controls: Geolocation sends no NaN heading and falls back to the default for an unusable timeout; Focus and SET_FOCUS ignore a non-numeric caret position; the FileUploader button text is shown as written
+* Date formatters: a year below 100 is no longer read as 19xx, and an impossible day (20240230) gives no date instead of rolling over
+* z2ui5_cl_ui5_util_context: c_trim removes any depth of space/tab padding; itab_get_by_struc writes negative numbers with a leading sign; itab_filter_by_val with an empty search keeps every row
+* Start page: Check with an empty input asks for a class name; the "class does not exist" message stays visible when the user exit hides error details; the system popup shows "none (shipped defaults)" without a user exit
+* Draft buffer: loading an app that another instance had buffered under the same draft id replaces the entry instead of parsing the draft again on every load
 * Response: a bound value carrying a control character other than tab, line feed and carriage return (U+0001, a form feed out of a legacy long text) leaves as a \u00XX escape. It left raw - of the control characters ajson escapes only those three - and the browser's JSON.parse refused the whole response
 * client->message_box_display( ) with a message table: the box takes its type and title from the most severe message (error, then warning, then success or information), not from the first - [W, E] opened as a warning. The headline reads "2 Messages found:" without the blank on either side
 * Request: a device size, caret position or scroll offset the browser writes in a form type i cannot take (1e10, 1e-7) is read as 0 instead of ending the roundtrip in a 500

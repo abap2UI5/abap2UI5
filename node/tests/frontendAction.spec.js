@@ -45,6 +45,8 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     // no slot controllers here: a slot-scoped shortcut then dispatches on
     // the controller that registered it (shortcuts.spec.js holds the rest)
     getController: () => undefined,
+    // the framework model of a view: the fixtures carry it as __tracked
+    trackedModel: (view) => view?.__tracked,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
@@ -62,6 +64,8 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     toText: (val) => (val == null ? "" : String(val)),
     // the shipped parser, not a copy: SET_FOCUS reads its selection with it
     toCaretIndex: loadLib().Lib.toCaretIndex,
+    // the shipped parser: runCustom resolves a handler-queued `${/X}` with it
+    bindingPathOf: loadLib().Lib.bindingPathOf,
     whenRendered: (_control, _owner, fn) => fn(),
     // the shipped helper's shape: a one-shot onAfterRendering delegate on
     // the control, removed when it fired (SET_FOCUS's retry sits on it)
@@ -2018,6 +2022,54 @@ test.describe("BIND_ELEMENT", () => {
     expect(bound).toEqual(["/MT_TAB/2"]);
   });
 
+  // An empty index bound the view to "/T_PRODUCTS/" - the TABLE, so every
+  // relative binding of the popup resolved to nothing - and a non-integer
+  // one to a row that cannot exist; both without a word.
+  for (const index of ["", undefined, "abc", "1.5", "-1", " ", null]) {
+    test(`refuses the row index ${JSON.stringify(index)} with a log line`, () => {
+      const { FrontendAction, views, errors } = load();
+      const bound = [];
+      views.POPOVER = { bindElement: (p) => bound.push(p) };
+      FrontendAction.execute(null, [
+        "BIND_ELEMENT",
+        "POPOVER",
+        index,
+        "/T_PRODUCTS",
+      ]);
+      expect(bound).toEqual([]);
+      expect(
+        errors.some((e) =>
+          String(e).includes("is no row index of '/T_PRODUCTS'"),
+        ),
+      ).toBe(true);
+    });
+  }
+
+  test("takes a numeric index - a bound one, resolved", () => {
+    const { FrontendAction, views, errors } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", 0, "/T"]);
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", " 3 ", "/T"]);
+    expect(bound).toEqual(["/T/0", "/T/3"]);
+    expect(errors).toEqual([]);
+  });
+
+  test("strips the $ of the ${ client->_bind( ) } spelling from the path", () => {
+    // the backend strips only the braces of the table binding, so
+    // |${ client->_bind( t ) }| arrived as "$/T_PRODUCTS"
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, [
+      "BIND_ELEMENT",
+      "POPOVER",
+      "1",
+      "$/T_PRODUCTS",
+    ]);
+    expect(bound).toEqual(["/T_PRODUCTS/1"]);
+  });
+
   test("logs and no-ops when the slot view is missing", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute(null, [
@@ -3964,5 +4016,124 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
       ["min", 2, "number"],
       ["max", 500, "number"],
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------
+// The same call from a HANDLER. A follow-up action queued in a handler is
+// data (T_CUSTOM) and runs through FrontendAction.runCustom; the `${/X}`
+// a view wire has evaluated by UI5 arrives there as text. Each test below
+// is a call that misbehaved silently from a handler before runCustom read
+// the bound value - through the real composed dispatch, end to end.
+// ---------------------------------------------------------------------
+test.describe("handler-queued actions with a bound argument", () => {
+  // the main view's controller as View1 is one: eF dispatches into the
+  // composed handlers, the view carries the framework model
+  function controllerWithModel(FrontendAction, data) {
+    const model = { getProperty: (path) => data[path] };
+    const oController = {
+      getView: () => ({ __tracked: model }),
+      eF: (...args) => FrontendAction.execute(oController, args),
+    };
+    return oController;
+  }
+
+  test("CONTROL_GLOBAL: a toast of a bound text shows the text", () => {
+    const { FrontendAction, calls } = load();
+    const oController = controllerWithModel(FrontendAction, {
+      "/MV_NAME": "Franchise Store",
+    });
+    FrontendAction.runCustom(
+      ["CONTROL_GLOBAL", "MESSAGE_TOAST", "show", "Saved: {0}", "${/MV_NAME}"],
+      oController,
+    );
+    expect(calls).toEqual([["toast.show", "Saved: Franchise Store"]]);
+  });
+
+  test("CONTROL_BY_ID: a bound structure reaches the control method as an object", () => {
+    const { FrontendAction, controls } = load();
+    const got = [];
+    controls.p13n = { setP13nData: (o) => got.push(o) };
+    const oController = controllerWithModel(FrontendAction, {
+      "/S_P13N": { columns: [{ key: "A" }] },
+    });
+    FrontendAction.runCustom(
+      ["CONTROL_BY_ID", "p13n", "", "setP13nData", "${/S_P13N}"],
+      oController,
+    );
+    expect(got).toEqual([{ columns: [{ key: "A" }] }]);
+  });
+
+  test("BINDING_CALL: a bound search value filters for the value", () => {
+    const { FrontendAction, controls } = load();
+    const filtered = [];
+    controls.idList = {
+      getBinding: () => ({ filter: (f) => filtered.push(f) }),
+    };
+    const oController = controllerWithModel(FrontendAction, {
+      "/MV_SEARCH": "Pro",
+    });
+    FrontendAction.runCustom(
+      [
+        "BINDING_CALL",
+        "idList",
+        "items",
+        "filter",
+        "NAME",
+        "Contains",
+        "${/MV_SEARCH}",
+      ],
+      oController,
+    );
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0][0]).toMatchObject({ path: "NAME", value1: "Pro" });
+  });
+
+  test("BINDING_CALL: a bound groups table filters - it used to CLEAR the filter", () => {
+    const { FrontendAction, controls } = load();
+    const filtered = [];
+    controls.idList = {
+      getBinding: () => ({ filter: (f) => filtered.push(f) }),
+    };
+    const oController = controllerWithModel(FrontendAction, {
+      "/T_GROUPS": [[["NAME", "EQ", "A"]]],
+    });
+    FrontendAction.runCustom(
+      ["BINDING_CALL", "idList", "items", "filter", "${/T_GROUPS}"],
+      oController,
+    );
+    // one AND filter over one OR group - not filter([]), the clear
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]).toHaveLength(1);
+    expect(filtered[0][0].path).toHaveLength(1);
+  });
+
+  test("BIND_ELEMENT: a bound row index binds that row", () => {
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPUP = { bindElement: (p) => bound.push(p) };
+    const oController = controllerWithModel(FrontendAction, { "/MV_IDX": 4 });
+    FrontendAction.runCustom(
+      ["BIND_ELEMENT", "POPUP", "${/MV_IDX}", "/T_PRODUCTS"],
+      oController,
+    );
+    expect(bound).toEqual(["/T_PRODUCTS/4"]);
+  });
+
+  test("SET_FOCUS: a bound control id focuses that control", () => {
+    const { FrontendAction, controls } = load();
+    const applied = [];
+    controls.inputB = {
+      getFocusInfo: () => ({}),
+      applyFocusInfo: (i) => applied.push(i),
+      getDomRef: () => null,
+      addEventDelegate: () => {},
+      removeEventDelegate: () => {},
+    };
+    const oController = controllerWithModel(FrontendAction, {
+      "/MV_FOCUS": "inputB",
+    });
+    FrontendAction.runCustom(["SET_FOCUS", "${/MV_FOCUS}"], oController);
+    expect(applied).toHaveLength(1);
   });
 });

@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/actions/Shortcuts",
     "z2ui5/core/actions/ViewOps",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
   ],
   (
     ControlCall,
@@ -18,6 +19,7 @@ sap.ui.define(
     Shortcuts,
     ViewOps,
     Lib,
+    ViewSlots,
   ) => {
     "use strict";
 
@@ -120,10 +122,54 @@ sap.ui.define(
       return executeSystem(oController, args, ctx);
     }
 
+    // The arguments of a HANDLER-queued action with every `${/X}` replaced
+    // by the value bound at /X. The same call wired into a VIEW
+    // (`v = client->follow_up_action( ... )`) has its `${/X}` evaluated by
+    // UI5 when the view is built, and the handler receives the value; queued
+    // from a handler the action is data and nothing on the response path
+    // resolved it, so every action received the literal string "${/X}":
+    // SET_TITLE showed it, CLIPBOARD_COPY copied it, a BINDING_CALL filter
+    // searched for it and a bound groups table CLEARED the filter (a string
+    // is no groups array), a CONTROL_BY_ID setter wrote it, a MESSAGE_TOAST
+    // printed it - all without a word. Resolved here, once, for every
+    // action, so a call means the same in both places (the follow_up_action
+    // doc of z2ui5_if_client promises exactly that). The model is the one
+    // the view wire would have read: the framework's tracked model of the
+    // calling view (ViewSlots.trackedModel - the named http> one in switch
+    // mode). Nothing bound at the path is logged and the argument kept as it
+    // came, so an action that reads a path itself (STORE_DATA, URLHELPER,
+    // CROSS_APP_NAV_TO_EXT - Lib.modelPathOf) still refuses it with its own
+    // line instead of running on an undefined.
+    function resolveBoundArgs(oController, args) {
+      let oModel;
+      let looked = false;
+      return args.map((arg, i) => {
+        const path = i === 0 ? null : Lib.bindingPathOf(arg);
+        if (!path) return arg;
+        if (!looked) {
+          looked = true;
+          const oView = oController?.getView?.();
+          oModel = oView
+            ? (ViewSlots.trackedModel(oView) ?? oView.getModel?.())
+            : undefined;
+        }
+        const value = oModel?.getProperty(path);
+        if (value === undefined || value === null) {
+          Lib.logError(
+            `FrontendAction: '${args[0]}' - nothing bound at '${arg}', passed on as text`,
+          );
+          return arg;
+        }
+        return value;
+      });
+    }
+
     // Run one APP follow-up action from the response's T_CUSTOM list: a
     // JSON array ["EVENT", ...args], embedded into the response by the
     // backend (handler actions_serialize). Pure data, dispatched via
-    // oController.eF( ) - no code is parsed or evaluated here. The
+    // oController.eF( ) - no code is parsed or evaluated here; an argument
+    // spelled `${/X}` is read from the model (resolveBoundArgs), a lookup
+    // and nothing more. The
     // stringified form stays accepted so a skewed backend keeps working.
     // Anything else is not run.
     function runCustom(item, oController) {
@@ -137,7 +183,7 @@ sap.ui.define(
           }
         }
         if (Array.isArray(args)) {
-          return oController.eF(...args);
+          return oController.eF(...resolveBoundArgs(oController, args));
         }
       } catch (e) {
         Lib.logError("customJs: execution failed", e);

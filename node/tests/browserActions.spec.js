@@ -434,6 +434,24 @@ test.describe("STORE_DATA", () => {
     });
   }
 
+  // switch_default_model: _bind( ) renders {http>/S_STORAGE} and the
+  // framework model is the named one - the payload was refused as "neither
+  // a payload nor a model path" and the cart stored nothing
+  for (const raw of ["{http>/S_STORAGE}", "${http>/S_STORAGE}"]) {
+    test(`the switch-mode payload '${raw}' is read from the tracked model`, () => {
+      const { handlers, stores, errors } = load();
+      const oController = controllerWithModel(
+        {
+          "/S_STORAGE": { TYPE: "local", PREFIX: "", KEY: "CART", VALUE: "v" },
+        },
+        true,
+      );
+      handlers.STORE_DATA(oController, ["STORE_DATA", raw]);
+      expect(stores[0].ops).toEqual([["put", "CART", "v"]]);
+      expect(errors()).toEqual([]);
+    });
+  }
+
   test("the TRACKED model wins over the default one", () => {
     const { handlers, stores } = load();
     const oController = controllerWithModel(

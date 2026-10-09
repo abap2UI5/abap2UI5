@@ -256,12 +256,51 @@ test.describe("modelPathOf", () => {
     expect(Lib.modelPathOf(" /S_DATA/NAME ")).toBe("/S_DATA/NAME");
   });
 
+  // with switch_default_model, _bind( ) renders `{http>/S_DATA}`: the
+  // framework model is the named one, and the path on it is the same
+  test("drops the http> model name of switch mode", () => {
+    expect(Lib.modelPathOf("${http>/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{http>/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("http>/S_DATA")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{other>/S_DATA}")).toBeNull();
+  });
+
   test("answers null for anything that names no path", () => {
     expect(Lib.modelPathOf("S_DATA")).toBeNull();
     expect(Lib.modelPathOf("{ URL: 'https://x' }")).toBeNull();
     expect(Lib.modelPathOf("")).toBeNull();
     expect(Lib.modelPathOf(undefined)).toBeNull();
     expect(Lib.modelPathOf({ URL: "x" })).toBeNull();
+  });
+});
+
+test.describe("bindingPathOf", () => {
+  const { Lib } = loadLib();
+
+  test("reads the expression-binding spelling a view wire evaluates", () => {
+    expect(Lib.bindingPathOf("${/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.bindingPathOf(" ${ /T_TAB/0/NAME } ")).toBe("/T_TAB/0/NAME");
+    expect(Lib.bindingPathOf("${http>/MV_X}")).toBe("/MV_X");
+  });
+
+  test("answers null for every other spelling - those are text", () => {
+    // a URL, a hash, a _bind( ) without $, relative and event-parameter
+    // bindings, a binding inside text, an expression
+    for (const raw of [
+      "/S_DATA",
+      "{/S_DATA}",
+      "${S_DATA}",
+      "${$parameters>/value}",
+      "${other>/X}",
+      "x ${/S_DATA}",
+      "${/A} === 'b'",
+      "${/A}${/B}",
+      "",
+      undefined,
+      { A: 1 },
+    ]) {
+      expect(Lib.bindingPathOf(raw)).toBeNull();
+    }
   });
 });
 

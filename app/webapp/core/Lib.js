@@ -561,10 +561,38 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // the same argument arrives as the string. `${/S}`, `{/S}` (what _bind( )
   // renders) and a bare `/S` all name the same path. STORE_DATA, URLHELPER
   // and CROSS_APP_NAV_TO_EXT read their structure argument this way.
+  //
+  // The `http>` model name is dropped: with switch_default_model the
+  // framework's JSON model is the NAMED one and _bind( ) renders
+  // `{http>/S}` - the path is the same, and the reader resolves it on the
+  // tracked model (ViewSlots.trackedModel), which IS that one. It used to be
+  // kept, the result did not start with `/`, and a STORE_DATA of a
+  // switch-mode app was refused as "neither a payload nor a model path".
   function modelPathOf(raw) {
     if (typeof raw !== "string") return null;
-    const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");
+    const path = raw
+      .trim()
+      .replace(/^\$?\{(.*)\}$/, "$1")
+      .trim()
+      .replace(/^http>/, "");
     return path.startsWith("/") ? path : null;
+  }
+
+  // The model path of an argument spelled as an EXPRESSION binding,
+  // `${/X}` (or `${http>/X}`), and nothing else - null for every other
+  // value. This is the one spelling UI5 evaluates when the same action is
+  // wired into a view, so it is the one a handler-queued action resolves
+  // for EVERY argument (FrontendAction.runCustom): the call means the same
+  // in both places. Deliberately narrower than modelPathOf: a bare `/X` is
+  // a URL, a hash or a text as often as a path (LOCATION_RELOAD,
+  // PLAY_AUDIO, HASH_BACK all take one), and `{/X}` is no binding on a
+  // view wire either. A relative `${NAME}` or an event parameter
+  // `${$parameters>/value}` has no meaning outside a view and stays as it
+  // came.
+  function bindingPathOf(raw) {
+    if (typeof raw !== "string") return null;
+    const m = /^\$\{\s*(?:http>)?(\/[^{}]*?)\s*\}$/.exec(raw.trim());
+    return m ? m[1] : null;
   }
 
   // A caret position from the backend (a string property or an action
@@ -1205,6 +1233,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     copyToClipboard,
     toText,
     modelPathOf,
+    bindingPathOf,
     toCaretIndex,
     deriveSystemType,
     deriveOsName,

@@ -1116,6 +1116,17 @@ INTERFACE z2ui5_if_client
   "! `)->a( n = `press` v = client->follow_up_action( val = ... t_arg = ... ) )` -
   "! and the action runs in the browser without a server call.
   "!
+  "! A BOUND VALUE as an argument - a structure, a table or a scalar the app
+  "! has bound - is passed as its expression binding,
+  "! ``|${ client->_bind( ms_data ) }|``, and the action receives the CURRENT
+  "! value from both places: on a view wire UI5 evaluates the binding when the
+  "! view is built, and from a handler the frontend reads the model path when
+  "! the action runs (nothing bound there is logged, and the argument stays
+  "! the text it was). Only that ``${`` spelling is read for every action; a
+  "! bare ``{/X}`` or ``/X`` is read as a path only where the entry below
+  "! says so (store_data, urlhelper, cross_app_nav_to_ext), everywhere else
+  "! it is the text it spells.
+  "!
   "! **cs_event-control_by_id** - call a method on a control resolved by id,
   "! t_arg = id, method, params: ``client->follow_up_action( val = client->cs_event-control_by_id t_arg = VALUE #( ( `tab` ) ( `setSelectedIndex` ) ( `0` ) ) )``.
   "! Any public control method works unless it is on the frontend denylist
@@ -1293,6 +1304,65 @@ INTERFACE z2ui5_if_client
   "! operator, value1, value2 (empty values clear the filter); method `sort`:
   "! params = path, descending, group (abap_bool as `X`/``):
   "! ``client->follow_up_action( val = client->cs_event-binding_call t_arg = VALUE #( ( `tab` ) ( `items` ) ( `filter` ) ( `NAME` ) ( `Contains` ) ( `ab` ) ) )``.
+  "!
+  "! **cs_event-urlhelper** - sap.m.URLHelper, t_arg = method, params. The
+  "! method is REDIRECT, TRIGGER_EMAIL, TRIGGER_SMS or TRIGGER_TEL; params is
+  "! ONE structure whose upper-case components name the fields: REDIRECT URL
+  "! (http/https only) and NEW_WINDOW, TRIGGER_EMAIL EMAIL, SUBJECT, BODY, CC,
+  "! BCC and NEW_WINDOW, TRIGGER_SMS TEL, TEXT and NEW_WINDOW, TRIGGER_TEL TEL.
+  "! Pass it as JSON or as the binding of a structure with those components -
+  "! ``client->follow_up_action( val = client->cs_event-urlhelper t_arg = VALUE #( ( `TRIGGER_EMAIL` ) ( |${ client->_bind( ms_mail ) }| ) ) )`` -
+  "! which works from a view wire and from a handler alike (the bare
+  "! ``{/MS_MAIL}`` of a handler too). A field carrying CR or LF refuses the
+  "! call. The object-literal spelling a view wire may use, \{ URL: '...' \},
+  "! is no JSON and is refused when it is queued from a handler.
+  "!
+  "! **cs_event-cross_app_nav_to_ext** - Fiori Launchpad cross-app navigation
+  "! (CrossApplicationNavigation hrefForExternal + toExternal), t_arg =
+  "! target, params, mode. The target is the intent,
+  "! \{"semanticObject":"SO","action":"display"\} as JSON or the binding of a
+  "! structure with those two components; params are the startup parameters
+  "! of the target app, the binding of a flat structure (each component one
+  "! parameter) or JSON, empty for none; mode `EXT` opens the intent in a NEW
+  "! window instead of navigating the shell, and needs the empty params slot
+  "! in front of it when there are none:
+  "! ``client->follow_up_action( val = client->cs_event-cross_app_nav_to_ext t_arg = VALUE #( ( `\{"semanticObject":"SO","action":"display"\}` ) ( |${ client->_bind( ms_params ) }| ) ) )``.
+  "! A bound target or params structure works from a view wire and from a
+  "! handler alike (the bare ``{/MS_PARAMS}`` of a handler too); a path with
+  "! nothing bound refuses the navigation. The JS object-literal target
+  "! \{ semanticObject: "SO", action: "display" \} only works on a view wire -
+  "! queued from a handler it is no JSON and is refused, so prefer the JSON
+  "! spelling. Outside the launchpad the call is a logged no-op.
+  "! **cs_event-cross_app_nav_to_prev_app** - backToPreviousApp( ), no t_arg.
+  "!
+  "! **cs_event-bind_element** - element-bind a whole view slot to one row of
+  "! a bound table, the oView.bindElement( ) of a master-detail popup, so the
+  "! fragment's relative bindings resolve against that row. t_arg = row index
+  "! (0-based), table binding; the slot is the view parameter:
+  "! ``client->follow_up_action( val = client->cs_event-bind_element view = client->cs_view-popup t_arg = VALUE #( ( |{ lv_index }| ) ( client->_bind( mt_tab ) ) ) )``.
+  "! An index that is empty or no non-negative integer is logged and the view
+  "! keeps the binding it has.
+  "!
+  "! **The browser actions**, t_arg in order:
+  "! clipboard_copy - the text (a JSON object or array is copied as its JSON
+  "! text); set_title - the page title; set_title_launchpad - the shell title
+  "! inside the launchpad (silently nothing outside it); set_favicon - the
+  "! icon URL; play_audio - the audio URL; download_b64_file - the data URL
+  "! (data:&lt;mime&gt;;base64,...) and the file name; open_new_tab - a
+  "! same-origin URL, opened with noopener; location_reload - a same-origin
+  "! URL the page navigates to; system_logout - an optional same-origin logout
+  "! URL, without one the launchpad logout or the ICF logoff.
+  "!
+  "! **The view actions**, t_arg in order:
+  "! set_focus - control id, selection start, selection end (both optional);
+  "! scroll_to - control id, top and left in px, behavior (`auto`, `smooth`,
+  "! `instant`); scroll_into_view - control id, behavior (default `smooth`),
+  "! block (default `start`), inline (default `nearest`); set_size_limit - the
+  "! model size limit, the view slot (cs_view-*, which is REQUIRED - the view
+  "! alone resets the slot to the default of 100); set_odata_model - the
+  "! service URL, the model name (empty: the default model), the annotation
+  "! URI (optional). popup_close and popover_close take no t_arg; hash_set,
+  "! hash_replace and app_state_set_active are the methods of the same name.
   "!
   "! @parameter val | the frontend event - a cs_event-* constant.
   "! @parameter view | the view slot the action's control id is resolved in:

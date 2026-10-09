@@ -49,7 +49,7 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      withCrossAppNavigator(oController, (nav) => nav.backToPreviousApp());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function navParams(oController, raw) {` && |\n| &&
+             `    function boundArg(oController, raw, what) {` && |\n| &&
              `      if (raw == null || raw === "") return undefined;` && |\n| &&
              `      const path = Lib.modelPathOf(raw);` && |\n| &&
              `      if (!path) return raw;` && |\n| &&
@@ -60,18 +60,31 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      const value = oModel?.getProperty(path);` && |\n| &&
              `      if (value == null) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}'``,` && |\n| &&
+             `          ``CROSS_APP_NAV_TO_EXT: nothing bound at the model path '${path}' (${what})``,` && |\n| &&
              `        );` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&
              `      return value;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function navTarget(oController, raw) {` && |\n| &&
+             `      const target = boundArg(oController, raw, "target");` && |\n| &&
+             `      if (typeof target === "string" && target.trim().startsWith("{")) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CROSS_APP_NAV_TO_EXT: target '${target}' is no object - spell it as JSON ({"semanticObject":"...","action":"..."}) or pass its model path``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return target;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evCrossAppNavToExt(oController, args) {` && |\n| &&
              `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
-             `        const params = navParams(oController, args[2]);` && |\n| &&
+             `        const target = navTarget(oController, args[1]);` && |\n| &&
+             `        if (target === null) return;` && |\n| &&
+             `        const params = boundArg(oController, args[2], "params");` && |\n| &&
              `        if (params === null) return;` && |\n| &&
-             `        const hash = nav.hrefForExternal({ target: args[1], params }) || "";` && |\n| &&
+             `        const hash = nav.hrefForExternal({ target, params }) || "";` && |\n| &&
              `        if (args[3] === "EXT") {` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
              `          const url = ``${base}${hash}``;` && |\n| &&
