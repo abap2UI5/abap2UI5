@@ -3,7 +3,8 @@ target: abaplint
 title: 'Version-gate two generic-type constructs the kernel only accepts on newer releases'
 summary: 'dereferencing a generic `REF TO data` inline (`lr->*` in an expression, `ASSIGN COMPONENT … OF STRUCTURE mr->*`), the dynamic component selector on a `TYPE any` operand (`val->(name)`) and `CORRESPONDING #( <generic> )` all activate here and fail on 7.50/7.52 systems — bitten three times, twice by users after a pull; abaplint already reports the first below v756 (`check_syntax`), and accepts the other two at every `syntax.version`'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4403
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
@@ -13,6 +14,7 @@ evidence:
   - re-measured 2026-09-23 on 2.120.52 and 2.120.59, `check_syntax` on, isolated class with a control probe - shape 1 (`lines( lr->* )`, `ASSIGN COMPONENT … OF STRUCTURE mr_data->*`) IS reported, "A generic reference cannot be dereferenced", at v702 through v755 and not from v756 on; shape 2 (`ASSIGN val->(lv_name)`, `val TYPE any`) and shape 3 (`CORRESPONDING #( <generic> )`) give no finding at v750, v752 or v755; `ASSIGN lr->* TO <fs>` stays clean. The first version of this item said all three were accepted everywhere, which was already false on 2.120.52
   - abap-check §2 ("Generic types on older releases — the recurring one") carries all three as prose, and calls the family "the single most likely thing to break a system that is not on the newest release"
   - abaplint/abaplint#4364 (2.120.67) extended shape 1 to targets below v756 (`CLEAR lr->*`, `lr->* = …`, an EXPORTING actual); nothing upstream for shapes 2 and 3 (issue search 2026-10-09)
+  - filed 2026-10-09 as abaplint/abaplint#4403 - check_syntax below v756 (not Cloud, not open-abap), the same condition as shape 1: `ASSIGN x->(dyn)` on a generic operand that is no reference, and `CORRESPONDING #` whose type is generic. Shape 3 is narrower than written above: in all four statements a16e2465 rewrote, the TARGET was a generic field symbol (`<row_out> = CORRESPONDING #( … )`), and in one of them the source was concretely typed (`ms_shlp`) - so the PR reports the generic target, not a generic source. A CLI built with it reports 0 on abap2UI5's v750, standard, Cloud and 702-downport runs
 checked_upstream: 2026-10-09
 ---
 
