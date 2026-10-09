@@ -1246,8 +1246,9 @@ break one of those four.
   become methods; type the parameter `TYPE p LENGTH … DECIMALS …`, `LIKE`
   the actual, or `TYPE numeric`. Nothing in the four checkouts has one.
   Fixed from `@abaplint/transpiler-cli` 2.14.0 on
-  (abaplint/transpiler#1971): the parameter becomes a `Packed`. Before that
-  release the rewrite above is still needed.
+  (abaplint/transpiler#1971, pinned here since 2.14.2): the parameter
+  becomes a `Packed`. A host on an older transpiler still needs the rewrite
+  above.
 - **`rescale( )` is not in the runtime** - `abap.builtin.rescale is not a
   function` at runtime, the transpile is green. `round( )` with `dec`,
   `prec` and every `mode` is, from `@abaplint/runtime` 2.13.94 on (2.13.93
@@ -1294,8 +1295,9 @@ break one of those four.
   `d` source counts the days since 01.01.0001 from `@abaplint/runtime`
   2.14.2 on (abaplint/transpiler#1977), a `t` source the seconds since
   midnight from the release after 2.14.2 on (abaplint/transpiler#1976,
-  merged 2026-10-09). Keep the arithmetic from the parts until that release
-  is pinned here.
+  merged 2026-10-09). 2.14.2 is pinned here, so a `d` source is right under
+  `npm run unit`; keep the arithmetic from the parts for a `t` source until
+  the next release is.
 - **A packed value with more than 15 significant digits loses its last
   digits when it is assigned to another packed field in the runtime.** A
   `timestampl` (`p LENGTH 11 DECIMALS 7`, 21 digits) set from a string is

@@ -50,7 +50,9 @@
  * THE PATHS. This file is packed into the package as srv/host.mjs, next to
  * output/ and setup/ - the same neighbours it has here (node/srv next to
  * node/output and node/setup), so `../output/init.mjs` resolves in both
- * places and nothing is rewritten at pack time.
+ * places and nothing is rewritten at pack time. Below output/ the transpiler
+ * (2.14 on) writes one folder per origin: project/ for the framework,
+ * open-abap-core/ and express-icf-shim/ for the two libraries.
  *
  * ONE REQUEST AT A TIME. On an SAP system every request runs in a roll area
  * of its own: the class-data the framework keeps per request - the user
@@ -121,8 +123,8 @@
 import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
-import { cl_express_icf_shim } from "../output/cl_express_icf_shim.clas.mjs";
-import { z2ui5_cl_ui5_http_handler } from "../output/z2ui5_cl_ui5_http_handler.clas.mjs";
+import { cl_express_icf_shim } from "../output/express-icf-shim/cl_express_icf_shim.clas.mjs";
+import { z2ui5_cl_ui5_http_handler } from "../output/project/z2ui5_cl_ui5_http_handler.clas.mjs";
 import { accelerate } from "./accelerate.mjs";
 import { compress } from "./compress.mjs";
 import { hostGuard } from "./hostguard.mjs";
