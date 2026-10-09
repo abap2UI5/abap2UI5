@@ -151,6 +151,8 @@ INTERFACE z2ui5_if_ui5_types
       set_push_state        TYPE string,
       " HashChanger#replaceHash (client->hash_replace): the same write as
       " set_push_state minus the history entry - the router's replace-navTo.
+      " Like set_push_state, the WHOLE app hash only with a hash_attach_changed
+      " listener; without one the value is a suffix to the current hash.
       " When both are set in one roundtrip the push wins (the frontend
       " processes setPushState first)
       hash_replace          TYPE string,
