@@ -3,7 +3,8 @@ target: open-abap
 title: 'runtime: substring_after( ) and substring_before( ) ignore occ, len and case - occ = -1 cuts at the first match'
 summary: '`packages/runtime/src/builtin/substring_after.ts` and `substring_before.ts` build one regex `sub(.*)` / `(.*?)sub` from `sub`/`regex`/`pcre` and never read `occ`, `len` or `case`; `substring_after( val = ''a-b-c'' sub = ''-'' occ = -1 )` is `b-c` instead of `c` - the code is right on a system and wrong in the transpiled build'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1985
 first_seen: 2026-10-08
 upstream: abaplint/transpiler
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - the cause, read in `@abaplint/runtime` 2.13.99 (`build/src/builtin/substring_after.js`) and unchanged at abaplint/transpiler main 65b3da1 - the function reads `val`, `sub`, `regex` and `pcre`, builds `new RegExp(reg + "(.*)")` and returns the first group; `occ`, `len` and `case` are not referenced in either file
   - nothing else in abap2UI5/src, sapgui, popups, abap-cloud-gui or admin-cockpit passes occ, len or case to these two functions (scan 2026-10-08)
   - re-read 2026-10-09 at abaplint/transpiler main 2e299e61 - abaplint/transpiler#1968 ("bugfix substring_after", in 2.13.100) only replaced `(.*)` / `(.*?)` by `([\s\S]*)` / `([\s\S]*?)` so the match crosses line breaks; `occ`, `len` and `case` are still not read in either file
+  - filed 2026-10-09 as abaplint/transpiler#1985 - both functions share one search: with sub it is find( ) (occ from either end, case), with regex/pcre the matches counted from either end; len after / right in front of the occurrence; an empty sub or regex and occ = 0 raise CX_SY_STRG_PAR_VAL, a len past the text CX_SY_RANGE_OUT_OF_BOUNDS (the one point taken from the keyword documentation rather than measured)
 checked_upstream: 2026-10-09
 ---
 
