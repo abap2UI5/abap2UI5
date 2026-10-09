@@ -82,7 +82,10 @@ test.describe("the abort -> responseError -> Retry path", () => {
           show: (delay) => busy.push(["show", delay]),
           hide: () => busy.push(["hide"]),
         },
-        "z2ui5/core/Lib": { isValidContextId: () => false },
+        "z2ui5/core/Lib": {
+          isValidContextId: () => false,
+          byteLength: (s) => s.length,
+        },
         "z2ui5/core/Session": { confirmSent: () => {} },
         "z2ui5/core/ErrorView": { reset: () => {} },
       },
@@ -145,6 +148,84 @@ test.describe("the abort -> responseError -> Retry path", () => {
       expect(typeof errors[1].options?.onRetry).toBe("function");
     });
   }
+
+  // The timeout signal guards the body reads too: when it fires after the
+  // headers arrived, response.json( ) / .text( ) reject with the abort. Their
+  // catches used to read that as a broken body - "Invalid JSON response" or
+  // "could not read error body", without a Retry and without the word
+  // timeout.
+  function armedTimeout(Server) {
+    const timeoutSignal = { aborted: false };
+    Server.createTimeoutSignal = () => ({
+      signal: timeoutSignal,
+      cancel: () => {},
+    });
+    return timeoutSignal;
+  }
+  const timedOut = () =>
+    Object.assign(new Error("signal timed out"), { name: "TimeoutError" });
+
+  test("a timeout while the JSON body is read reports the timeout, with a Retry", async () => {
+    const { Server, ctx, fetches, errors } = loadForAbort();
+    const timeoutSignal = armedTimeout(Server);
+    const p = Server.readHttp(ctx, { S_FRONT: { EVENT: "SAVE" } }, null);
+    fetches[0].resolve({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => {
+        timeoutSignal.aborted = true;
+        throw timedOut();
+      },
+    });
+    await p;
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toBe(
+      "No backend response within 600 seconds - request aborted",
+    );
+    expect(typeof errors[0].options?.onRetry).toBe("function");
+  });
+
+  test("a timeout while an error body is read reports the timeout, with a Retry", async () => {
+    const { Server, ctx, fetches, errors } = loadForAbort();
+    const timeoutSignal = armedTimeout(Server);
+    const p = Server.readHttp(ctx, {}, null);
+    fetches[0].resolve({
+      ok: false,
+      status: 500,
+      headers: { get: () => null },
+      text: async () => {
+        timeoutSignal.aborted = true;
+        throw timedOut();
+      },
+    });
+    await p;
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toBe(
+      "No backend response within 600 seconds - request aborted",
+    );
+    expect(typeof errors[0].options?.onRetry).toBe("function");
+  });
+
+  test("a broken body without a timeout is still reported as such", async () => {
+    const { Server, ctx, fetches, errors } = loadForAbort();
+    armedTimeout(Server);
+    const p = Server.readHttp(ctx, {}, null);
+    fetches[0].resolve({
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      json: async () => {
+        throw new SyntaxError("Unexpected token <");
+      },
+    });
+    await p;
+
+    expect(errors[0].msg).toBe("Invalid JSON response: Unexpected token <");
+    expect(errors[0].options).toBeUndefined();
+  });
 
   test("any other fetch failure is a network error, also with a Retry", async () => {
     const { Server, ctx, fetches, errors } = loadForAbort();

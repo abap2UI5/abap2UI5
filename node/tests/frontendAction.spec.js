@@ -933,6 +933,19 @@ test.describe("CONTROL_BY_ID", () => {
   // aggregation item is addressed positionally - "<id>/<aggregation>/<index>" -
   // which is the UI5 controller idiom oCarousel.getPages()[i] no id-based call
   // can express (sap.m.sample.ComparisonPattern, app 012).
+  // An id that did not resolve was reported as "'<method>' not callable" -
+  // which sent the reader looking for a wrong method name when the id was
+  // the problem (a typo, a closed popup's control, an unrendered view).
+  test("an id that resolves to no control says so, naming the view", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "nope", "POPUP", "setText"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "nope", "", "setText"]);
+    expect(errors).toEqual([
+      "CONTROL_BY_ID: no control 'nope' in view 'POPUP' - 'setText' not called",
+      "CONTROL_BY_ID: no control 'nope' - 'setText' not called",
+    ]);
+  });
+
   test.describe("aggregation-item addressing", () => {
     function carousel(calls, controls) {
       const pages = [{ id: "p0" }, { id: "p1" }, { id: "p2" }];

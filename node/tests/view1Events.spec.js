@@ -895,6 +895,22 @@ test.describe("eB cancels the pending timers before it dispatches", () => {
     ]);
   });
 
+  // `.eB($event)` or a control as the first argument: the guard's own
+  // JSON.stringify threw on the circular graph, so the event handler died
+  // with a TypeError instead of the log entry the guard exists for
+  test("a circular first argument is described, the guard does not throw", () => {
+    const { ctrl, state, bodies } = loadForDispatch();
+    const event = { oSource: null };
+    event.oSource = { event };
+
+    expect(() => ctrl.eB(event)).not.toThrow();
+
+    expect(bodies).toEqual([]);
+    expect(state.errors.map((e) => e.message)).toEqual([
+      "eB: the first argument must be the event array, got an object that is no JSON ([object Object])",
+    ]);
+  });
+
   // the drop-on-busy path returns BEFORE the cancel: the roundtrip in flight
   // still owns those timers, and clearing them here would silence a poll the
   // response is about to re-arm

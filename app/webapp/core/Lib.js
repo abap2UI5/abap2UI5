@@ -934,9 +934,25 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   //
   // A Date - a control's property, or a bare event parameter such as
   // `${$parameters>/startDate}` of SinglePlanningCalendar.cellPress - goes
-  // through projectValue below, for the reason given there. Anything else
-  // that is not a control is handed through untouched, so this is purely
-  // additive for every wire that works today.
+  // through projectValue below, for the reason given there.
+  //
+  // A binding CONTEXT is the second thing that cannot travel as it is -
+  // `${$parameters>/rowContext}` of sap.ui.table.Table.rowSelectionChange,
+  // the `selectedContexts` of a SelectDialog: it holds its model, whose
+  // bindings hold the controls, the same circular graph. It becomes what it
+  // stands for: { PATH, OBJECT } - the model path of the row (`/T_TAB/3`,
+  // which an app reads the row index off) and the data at that path
+  // (getObject), itself normalized like any other value. A plain object -
+  // `${$parameters>/}`, the whole parameter map - is walked as well, so a
+  // control or context INSIDE it is projected the same way as at the top.
+  //
+  // Copy on write: an array or plain object is copied only when something
+  // inside it changed, so plain data - the backend event array in args[0],
+  // an app's own structure - reaches the wire as the very object it was,
+  // and every wire that worked before is untouched. Past MAX_ARG_DEPTH a
+  // value is handed through as it is (as before), and a reference back to
+  // one of its own ancestors - a cycle, which JSON.stringify would throw on
+  // - becomes null.
   const MAX_ARG_DEPTH = 4;
 
   function isManagedObject(value) {
@@ -1005,12 +1021,76 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return result;
   }
 
-  function normalizeEventArg(value, depth) {
+  function isContext(value) {
+    return (
+      value !== null &&
+      typeof value === "object" &&
+      typeof value.isA === "function" &&
+      value.isA("sap.ui.model.Context")
+    );
+  }
+
+  // {} or Object.create(null) - and not a class instance (a UI5 object, a
+  // Date, a Map). Asked through the prototype CHAIN rather than against
+  // Object.prototype, which is one realm's (see projectValue): a plain
+  // object's prototype is the end of the chain or right before it.
+  function isPlainObject(value) {
+    if (value === null || typeof value !== "object") return false;
+    const proto = Object.getPrototypeOf(value);
+    return proto === null || Object.getPrototypeOf(proto) === null;
+  }
+
+  function projectContext(context, level, ancestors) {
+    const result = {};
+    try {
+      result.PATH = context.getPath();
+    } catch {
+      // like a throwing property getter: not reported, the rest still is
+    }
+    try {
+      const data = context.getObject();
+      if (data !== undefined) {
+        result.OBJECT = normalizeEventArg(data, level + 1, ancestors);
+      }
+    } catch {
+      // an OData V4 context whose data is not loaded may throw - same
+    }
+    return result;
+  }
+
+  // an array or plain object, its entries normalized; the original when no
+  // entry changed (copy on write, see above)
+  function projectContainer(value, level, ancestors) {
+    if (ancestors.has(value)) return null;
+    ancestors.add(value);
+    try {
+      let copy = null;
+      const keys = Array.isArray(value)
+        ? value.map((_, i) => i)
+        : Object.keys(value);
+      for (const key of keys) {
+        const entry = value[key];
+        const next = normalizeEventArg(entry, level + 1, ancestors);
+        if (next !== entry && copy === null) {
+          copy = Array.isArray(value) ? value.slice() : { ...value };
+        }
+        if (copy !== null) copy[key] = next;
+      }
+      return copy ?? value;
+    } finally {
+      // only the current PATH counts: the same object reached twice by two
+      // routes is shared data, not a cycle, and JSON.stringify writes it twice
+      ancestors.delete(value);
+    }
+  }
+
+  function normalizeEventArg(value, depth, ancestors) {
     const level = depth || 0;
     if (level > MAX_ARG_DEPTH) return value;
     if (isManagedObject(value)) return projectControl(value);
-    if (Array.isArray(value)) {
-      return value.map((entry) => normalizeEventArg(entry, level + 1));
+    if (isContext(value)) return projectContext(value, level, ancestors);
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return projectContainer(value, level, ancestors);
     }
     // a bare Date is the same calendar day as a Date property - projecting
     // only the latter sent `${$parameters>/startDate}` as a UTC instant, a
@@ -1022,7 +1102,21 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter
   // array.
   function normalizeEventArgs(args) {
-    return args.map((arg) => normalizeEventArg(arg, 0));
+    return args.map((arg) => normalizeEventArg(arg, 0, new Set()));
+  }
+
+  // The size of a string as UTF-8 bytes - what a request body weighs on the
+  // wire, where `.length` counts UTF-16 code units (an umlaut is 2 bytes and
+  // 1 unit, a CJK character 3 and 1). TextEncoder is in every browser this
+  // frontend runs in (it needs fetch and AbortController, which came later);
+  // the Blob and the plain length are for a host without it, the unit specs'
+  // sandbox among them.
+  function byteLength(text) {
+    if (typeof TextEncoder === "function") {
+      return new TextEncoder().encode(text).length;
+    }
+    if (typeof Blob === "function") return new Blob([text]).size;
+    return text.length;
   }
 
   return {
@@ -1065,5 +1159,6 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     EMPTY_RENDERER,
     hookCallback,
     normalizeEventArgs,
+    byteLength,
   };
 });

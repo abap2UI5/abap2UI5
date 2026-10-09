@@ -7,8 +7,9 @@ const { loadLib } = require("./loadLibModule");
 // controls (ViewSettingsDialog.confirm -> filterItems, Menu.itemSelected ->
 // item, SinglePlanningCalendar.selectedDatesChange -> DateRange list), and
 // JSON.stringify throws on a ManagedObject's circular parent/aggregation
-// graph. Everything that is neither a control nor a Date must pass through
-// untouched.
+// graph. A binding context is just as circular and becomes { PATH, OBJECT };
+// a plain object or array is walked for both. Everything else - and every
+// array or object with nothing inside to project - passes through untouched.
 
 const { Lib } = loadLib();
 
@@ -194,4 +195,128 @@ test("a fresh top-level array is returned - Server.roundtrip shifts it", () => {
   expect(result).not.toBe(args);
   result.shift();
   expect(args).toEqual(["A", "B"]);
+});
+
+// A sap.ui.model.Context stand-in: `isA`, getPath, getObject, and the model
+// behind it, whose bindings point back at the context - the cycle that made
+// JSON.stringify throw on `${$parameters>/rowContext}`.
+function context(path, object, { objectThrows = false } = {}) {
+  const model = { bindings: [] };
+  const self = {
+    isA: (type) => type === "sap.ui.model.Context",
+    getPath: () => path,
+    getObject: () => {
+      if (objectThrows) throw new Error("not loaded");
+      return object;
+    },
+    getModel: () => model,
+    oModel: model,
+  };
+  model.bindings.push({ context: self, model });
+  return self;
+}
+
+test.describe("binding contexts", () => {
+  test("a context becomes its PATH and the OBJECT at that path", () => {
+    const row = { NAME: "Alpha", QTY: 3 };
+    const ctxArg = context("/T_TAB/3", row);
+    expect(() => JSON.stringify(ctxArg)).toThrow();
+
+    const [out] = Lib.normalizeEventArgs([ctxArg]);
+    expect(out).toEqual({ PATH: "/T_TAB/3", OBJECT: row });
+    expect(JSON.parse(JSON.stringify(out))).toEqual({
+      PATH: "/T_TAB/3",
+      OBJECT: { NAME: "Alpha", QTY: 3 },
+    });
+  });
+
+  test("an array of contexts - selectedContexts - becomes an array of them", () => {
+    const [out] = Lib.normalizeEventArgs([
+      [context("/T/0", { K: "A" }), context("/T/1", { K: "B" })],
+    ]);
+    expect(out).toEqual([
+      { PATH: "/T/0", OBJECT: { K: "A" } },
+      { PATH: "/T/1", OBJECT: { K: "B" } },
+    ]);
+  });
+
+  test("an OBJECT that throws is left out, the PATH still travels", () => {
+    const [out] = Lib.normalizeEventArgs([
+      context("/T/0", null, { objectThrows: true }),
+    ]);
+    expect(out).toEqual({ PATH: "/T/0" });
+  });
+
+  test("a Date inside the OBJECT is its local day, as everywhere else", () => {
+    const [out] = Lib.normalizeEventArgs([
+      context("/T/0", { D: new Date(2018, 6, 9) }),
+    ]);
+    expect(out.OBJECT.D).toEqual("2018-07-09T00:00:00");
+  });
+});
+
+test.describe("plain objects", () => {
+  test("a control or context inside one is projected, the rest kept", () => {
+    // ${$parameters>/} - the whole parameter map of an event
+    const params = {
+      id: "tab",
+      rowIndex: 3,
+      listItem: control("__item3", { title: "Row" }),
+      rowContext: context("/T/3", { K: "C" }),
+      nested: { deep: [control("__d", { key: "D" })] },
+    };
+    expect(() => JSON.stringify(params)).toThrow();
+
+    const [out] = Lib.normalizeEventArgs([params]);
+    expect(out).toEqual({
+      id: "tab",
+      rowIndex: 3,
+      listItem: { ID: "__item3", title: "Row" },
+      rowContext: { PATH: "/T/3", OBJECT: { K: "C" } },
+      nested: { deep: [{ ID: "__d", key: "D" }] },
+    });
+    expect(() => JSON.stringify(out)).not.toThrow();
+    // the caller's object is not rewritten - a copy carries the projection
+    expect(params.listItem.getId()).toBe("__item3");
+  });
+
+  test("plain data keeps its identity at every level", () => {
+    const inner = { A: [1, 2], B: { C: "x" } };
+    const arr = [inner, "y"];
+    const [out] = Lib.normalizeEventArgs([arr]);
+    expect(out).toBe(arr);
+    expect(out[0]).toBe(inner);
+  });
+
+  test("a reference back to an ancestor - a cycle - becomes null", () => {
+    const loop = { NAME: "a", item: control("__i", { key: "K" }) };
+    loop.self = loop;
+    const [out] = Lib.normalizeEventArgs([loop]);
+    expect(out).toEqual({
+      NAME: "a",
+      item: { ID: "__i", key: "K" },
+      self: null,
+    });
+    expect(() => JSON.stringify(out)).not.toThrow();
+  });
+
+  test("the same object reached twice is shared data, not a cycle", () => {
+    const shared = { K: "S" };
+    const [out] = Lib.normalizeEventArgs([
+      { a: shared, b: shared, c: control("__c", {}) },
+    ]);
+    expect(out.a).toBe(shared);
+    expect(out.b).toBe(shared);
+  });
+
+  test("a class instance that is no control or context is handed through", () => {
+    class Thing {
+      constructor() {
+        this.x = 1;
+      }
+    }
+    const thing = new Thing();
+    const [out] = Lib.normalizeEventArgs([{ t: thing }]);
+    expect(out.t).toBe(thing);
+  });
 });

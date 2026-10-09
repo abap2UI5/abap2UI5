@@ -622,19 +622,79 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return result;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function normalizeEventArg(value, depth) {` && |\n| &&
+             `  function isContext(value) {` && |\n| &&
+             `    return (` && |\n| &&
+             `      value !== null &&` && |\n| &&
+             `      typeof value === "object" &&` && |\n| &&
+             `      typeof value.isA === "function" &&` && |\n| &&
+             `      value.isA("sap.ui.model.Context")` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isPlainObject(value) {` && |\n| &&
+             `    if (value === null || typeof value !== "object") return false;` && |\n| &&
+             `    const proto = Object.getPrototypeOf(value);` && |\n| &&
+             `    return proto === null || Object.getPrototypeOf(proto) === null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function projectContext(context, level, ancestors) {` && |\n| &&
+             `    const result = {};` && |\n| &&
+             `    try {` && |\n| &&
+             `      result.PATH = context.getPath();` && |\n| &&
+             `    } catch {}` && |\n| &&
+             `    try {` && |\n| &&
+             `      const data = context.getObject();` && |\n| &&
+             `      if (data !== undefined) {` && |\n| &&
+             `        result.OBJECT = normalizeEventArg(data, level + 1, ancestors);` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch {}` && |\n| &&
+             `    return result;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function projectContainer(value, level, ancestors) {` && |\n| &&
+             `    if (ancestors.has(value)) return null;` && |\n| &&
+             `    ancestors.add(value);` && |\n| &&
+             `    try {` && |\n| &&
+             `      let copy = null;` && |\n| &&
+             `      const keys = Array.isArray(value)` && |\n| &&
+             `        ? value.map((_, i) => i)` && |\n| &&
+             `        : Object.keys(value);` && |\n| &&
+             `      for (const key of keys) {` && |\n| &&
+             `        const entry = value[key];` && |\n| &&
+             `        const next = normalizeEventArg(entry, level + 1, ancestors);` && |\n| &&
+             `        if (next !== entry && copy === null) {` && |\n| &&
+             `          copy = Array.isArray(value) ? value.slice() : { ...value };` && |\n| &&
+             `        }` && |\n| &&
+             `        if (copy !== null) copy[key] = next;` && |\n| &&
+             `      }` && |\n| &&
+             `      return copy ?? value;` && |\n| &&
+             `    } finally {` && |\n| &&
+             `      ancestors.delete(value);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function normalizeEventArg(value, depth, ancestors) {` && |\n| &&
              `    const level = depth || 0;` && |\n| &&
              `    if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
              `    if (isManagedObject(value)) return projectControl(value);` && |\n| &&
-             `    if (Array.isArray(value)) {` && |\n| &&
-             `      return value.map((entry) => normalizeEventArg(entry, level + 1));` && |\n| &&
+             `    if (isContext(value)) return projectContext(value, level, ancestors);` && |\n| &&
+             `    if (Array.isArray(value) || isPlainObject(value)) {` && |\n| &&
+             `      return projectContainer(value, level, ancestors);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return projectValue(value);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function normalizeEventArgs(args) {` && |\n| &&
-             `    return args.map((arg) => normalizeEventArg(arg, 0));` && |\n| &&
+             `    return args.map((arg) => normalizeEventArg(arg, 0, new Set()));` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function byteLength(text) {` && |\n| &&
+             `    if (typeof TextEncoder === "function") {` && |\n| &&
+             `      return new TextEncoder().encode(text).length;` && |\n| &&
+             `    }` && |\n| &&
+             `    if (typeof Blob === "function") return new Blob([text]).size;` && |\n| &&
+             `    return text.length;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
@@ -677,6 +737,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    EMPTY_RENDERER,` && |\n| &&
              `    hookCallback,` && |\n| &&
              `    normalizeEventArgs,` && |\n| &&
+             `    byteLength,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

@@ -338,6 +338,19 @@ sap.ui.define(
             this.readHttp(ctx, oBody, sessionCarried);
           },
         };
+        // The timeout covers the body reads as well as the fetch: once it
+        // fires, response.text( ) / .json( ) reject with the abort too, and
+        // their catches below would report "Invalid JSON response" or "could
+        // not read error body" - no Retry, and no word of a timeout. So each
+        // of them asks the timeout signal first and reports it the same way
+        // as the fetch's own catch.
+        const reportTimeout = () =>
+          this.responseError(
+            ctx,
+            `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
+            undefined,
+            oRetry,
+          );
 
         // Stamp this request and treat its response as stale once a newer
         // request has been dispatched: only the newest may commit its result,
@@ -387,8 +400,9 @@ sap.ui.define(
           try {
             // one shared number, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
-            // instead of serializing the body a second time
-            ctx.state.lastRequestBytes = body.length;
+            // instead of serializing the body a second time - in bytes, as
+            // the response size next to it is
+            ctx.state.lastRequestBytes = Lib.byteLength(body);
             sentAt = Date.now();
             response = await this._post(ctx, body, signal);
             // A CSRF token layer in front of the backend - an SAP approuter
@@ -413,12 +427,7 @@ sap.ui.define(
             // newer request owns the outcome, so swallow it without an overlay.
             if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
-              this.responseError(
-                ctx,
-                `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
-                undefined,
-                oRetry,
-              );
+              reportTimeout();
             } else {
               this.responseError(
                 ctx,
@@ -446,6 +455,11 @@ sap.ui.define(
             try {
               text = await response.text();
             } catch {
+              if (isStale()) return;
+              if (timeoutSignal.aborted) {
+                reportTimeout();
+                return;
+              }
               text = `HTTP ${response.status}: could not read error body`;
             }
             if (isStale()) return;
@@ -471,6 +485,25 @@ sap.ui.define(
             responseData = await response.json();
           } catch (e) {
             if (isStale()) return;
+            if (timeoutSignal.aborted) {
+              reportTimeout();
+              return;
+            }
+            // A 2xx HTML page where the JSON belongs is no broken backend but
+            // somebody else answering: a logon page after the session expired
+            // (the ICF form logon, an SSO layer), a proxy's or portal's own
+            // page. The parser's "Unexpected token '<'" told the user nothing
+            // they could act on.
+            const type = response.headers.get("content-type") || "";
+            if (type.toLowerCase().includes("text/html")) {
+              this.responseError(
+                ctx,
+                "The server answered with an HTML page instead of the app's data - " +
+                  "usually a logon page after the session expired, or the page of a " +
+                  "proxy in between. Restart the app, logging on again if asked.",
+              );
+              return;
+            }
             this.responseError(ctx, `Invalid JSON response: ${e.message}`);
             return;
           }

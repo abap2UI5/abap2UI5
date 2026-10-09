@@ -97,11 +97,11 @@
 //                     besides oResponse because the developer tools render
 //                     the raw payload
 //   contextId         stateful session id, header transport (Server)
-//   lastRequestBytes  length of the last request body as serialized
-//                     (Server.readHttp) - in UTF-16 code units, the
-//                     JSON.stringify result's length, not the bytes on the
-//                     wire; the developer tools' recorder shows it as REQ
-//                     so the body is not serialized a second time for it
+//   lastRequestBytes  size of the last request body as serialized
+//                     (Server.readHttp), in UTF-8 bytes - what goes on the
+//                     wire, the unit of the response size beside it; the
+//                     developer tools' recorder shows it as REQ so the body
+//                     is not serialized a second time for it
 //   lastRoundtripMs   the duration of the last successful roundtrip as the
 //                     browser saw it, POST to parsed response, in ms
 //                     (Server.readHttp) - the next request carries it to

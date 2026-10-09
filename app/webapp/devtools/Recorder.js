@@ -400,7 +400,7 @@ sap.ui.define(
       const known = ctx.state.lastRequestBytes;
       if (typeof known === "number") return known;
       try {
-        return JSON.stringify({ value: oBody }).length;
+        return Lib.byteLength(JSON.stringify({ value: oBody }));
       } catch {
         return null;
       }

@@ -177,6 +177,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          },` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
+             `        const reportTimeout = () =>` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ctx,` && |\n| &&
+             `            ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
+             `            undefined,` && |\n| &&
+             `            oRetry,` && |\n| &&
+             `          );` && |\n| &&
+             `` && |\n| &&
              `        const seq = ++ctx.server.requestSeq;` && |\n| &&
              `        const isStale = () => seq !== ctx.server.requestSeq;` && |\n| &&
              `` && |\n| &&
@@ -202,7 +210,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
+             `            ctx.state.lastRequestBytes = Lib.byteLength(body);` && |\n| &&
              `            sentAt = Date.now();` && |\n| &&
              `            response = await this._post(ctx, body, signal);` && |\n| &&
              `` && |\n| &&
@@ -216,12 +224,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
-             `              this.responseError(` && |\n| &&
-             `                ctx,` && |\n| &&
-             `                ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
-             `                undefined,` && |\n| &&
-             `                oRetry,` && |\n| &&
-             `              );` && |\n| &&
+             `              reportTimeout();` && |\n| &&
              `            } else {` && |\n| &&
              `              this.responseError(` && |\n| &&
              `                ctx,` && |\n| &&
@@ -245,6 +248,11 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            try {` && |\n| &&
              `              text = await response.text();` && |\n| &&
              `            } catch {` && |\n| &&
+             `              if (isStale()) return;` && |\n| &&
+             `              if (timeoutSignal.aborted) {` && |\n| &&
+             `                reportTimeout();` && |\n| &&
+             `                return;` && |\n| &&
+             `              }` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
@@ -263,6 +271,21 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            responseData = await response.json();` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
+             `            if (timeoutSignal.aborted) {` && |\n| &&
+             `              reportTimeout();` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `` && |\n| &&
+             `            const type = response.headers.get("content-type") || "";` && |\n| &&
+             `            if (type.toLowerCase().includes("text/html")) {` && |\n| &&
+             `              this.responseError(` && |\n| &&
+             `                ctx,` && |\n| &&
+             `                "The server answered with an HTML page instead of the app's data - " +` && |\n| &&
+             `                  "usually a logon page after the session expired, or the page of a " +` && |\n| &&
+             `                  "proxy in between. Restart the app, logging on again if asked.",` && |\n| &&
+             `              );` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `            this.responseError(ctx, ``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -401,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          BusyIndicator.hide();` && |\n| &&
              `          ctx.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
-             `          this.showRenderError(ctx, e);` && |\n| &&
+             `          this.showRenderError(ctx, e);` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -424,8 +448,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          this.responseError(ctx, err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n|.
-    result = result &&
+             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
              `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
              `          const missingModule =` && |\n| &&
              `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&

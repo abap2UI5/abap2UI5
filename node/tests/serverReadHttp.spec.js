@@ -11,7 +11,8 @@ const { specContext, loadLib } = require("./loadLibModule");
 //                    or dispatcher answering for a backend that did not - the
 //                    request may never have reached it), never on a 500 (the
 //                    backend itself, a dump - re-sending would dump again)
-//   invalid JSON     "Invalid JSON response: ..."
+//   invalid JSON     "Invalid JSON response: ...", or the HTML-page message
+//                    when the 2xx is a page (a logon page, a proxy's)
 //   no S_FRONT       "Invalid response: missing S_FRONT"
 //   PROTOCOL         a number that is present and differs is reported; an
 //                    absent one is a backend older than the field and let
@@ -48,13 +49,13 @@ function response({
   };
 }
 
-function load() {
+function load({ libSandbox = {} } = {}) {
   const fetches = [];
   const errors = [];
   const successes = [];
   const busy = [];
   const ctx = specContext({ oSentModel: null, url: "/sap/z2ui5" });
-  const { Lib } = loadLib({ ctx });
+  const { Lib } = loadLib({ ctx, ...libSandbox });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "sap/ui/core/BusyIndicator": {
@@ -196,6 +197,24 @@ test.describe("a 2xx that is no response", () => {
     expect(env.errors[0].msg).toBe("Invalid JSON response: Unexpected token <");
     expect(env.errors[0].options).toBeUndefined();
     expect(env.successes).toEqual([]);
+  });
+
+  // A logon page after the session expired, a proxy's own page: somebody
+  // else answering with a 2xx. The parser's "Unexpected token '<'" was all
+  // the user got.
+  test("an HTML page is reported as such, not with the parser's message", async () => {
+    const env = load();
+    await answer(
+      env,
+      response({ headers: { "content-type": "text/html; charset=utf-8" } }),
+    );
+
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toContain(
+      "The server answered with an HTML page instead of the app's data",
+    );
+    expect(env.errors[0].msg).toContain("logon page");
+    expect(env.errors[0].options).toBeUndefined();
   });
 
   test("a JSON body without S_FRONT is reported", async () => {
@@ -463,5 +482,25 @@ test.describe("the roundtrip's own duration", () => {
     const failed = load();
     await answer(failed, response({ ok: false, status: 500, text: "dump" }));
     expect(failed.ctx.state.lastRoundtripMs).toBeFalsy();
+  });
+});
+
+// The request size the developer tools' recorder shows as REQ, next to the
+// response size Resource Timing reports in bytes. It used to be the
+// serialized body's .length - UTF-16 code units, so every umlaut and every
+// CJK character was undercounted.
+test.describe("the request size", () => {
+  test("is counted in UTF-8 bytes, not in UTF-16 code units", async () => {
+    const env = load({ libSandbox: { TextEncoder } });
+    const body = {
+      S_FRONT: { EVENT: "SAVE" },
+      MODEL: { NAME: "M\u00fcller \u20ac" },
+    };
+    await answer(env, response({ json: { S_FRONT: { ID: "X" } } }), body);
+
+    const sent = env.fetches[0].opts.body;
+    // u-umlaut is 2 bytes and the euro sign 3, each one code unit
+    expect(env.ctx.state.lastRequestBytes).toBe(sent.length + 1 + 2);
+    expect(env.ctx.state.lastRequestBytes).toBe(Buffer.byteLength(sent));
   });
 });

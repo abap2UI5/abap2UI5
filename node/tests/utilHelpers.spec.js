@@ -692,3 +692,28 @@ test.describe("claimOnce (companion-control wiring guard)", () => {
     expect(Lib.claimOnce(owner, { id: "target" })).toBe(true);
   });
 });
+
+// Lib.byteLength - the request size in bytes (Server.readHttp's
+// lastRequestBytes, the recorder's fallback): TextEncoder in every browser
+// the frontend runs in, the Blob size and the plain length for a host
+// without one.
+test.describe("byteLength (UTF-8 size of a string)", () => {
+  // 1 + 2 + 3 + 4 bytes in 5 UTF-16 code units
+  const text = "a\u00e4\u20ac\ud83d\ude00";
+
+  test("counts UTF-8 bytes through TextEncoder", () => {
+    const { Lib } = loadLib({ TextEncoder });
+    expect(Lib.byteLength(text)).toBe(10);
+    expect(Lib.byteLength("")).toBe(0);
+  });
+
+  test("falls back to the Blob size without TextEncoder", () => {
+    const { Lib } = loadLib({ Blob });
+    expect(Lib.byteLength(text)).toBe(10);
+  });
+
+  test("falls back to the length when neither exists", () => {
+    const { Lib } = loadLib();
+    expect(Lib.byteLength(text)).toBe(5);
+  });
+});
