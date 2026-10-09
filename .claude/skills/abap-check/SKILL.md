@@ -236,12 +236,12 @@ the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
 `abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
 The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
 `INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
-of the same type rather than spelling it out. **Gate: open** until
-abaplint/abaplint#4390 ships: `xml_consistency` then compares `INTTYPE` with
+of the same type rather than spelling it out. **Gate: open** until the
+abaplint release after 2.120.71 is pinned here: abaplint/abaplint#4390
+(merged 2026-10-09) makes `xml_consistency` compare `INTTYPE` with
 `DATATYPE` for the confirmed pairs. Measured with that change, it finds
 exactly the 27 fields on the pre-fix cockpit and nothing in 114 exported
 tables.
-**Backlog:** abaplint · abaplint-tabl-inttype
 
 ### Two round-trip rules no gate can decide
 
@@ -443,7 +443,9 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   through the downport, which made it look like an old-release limit. A 7.58
   system refuses it just as well (measured 2026-10-03), and a Code Inspector
   SYNTAX_CHECK found it in two more classes on that system (2026-10-04).
-  abaplint accepts it at every syntax version. Compare instead:
+  abaplint accepted it at every syntax version; from 2.120.71 on
+  (abaplint/abaplint#4378) `check_syntax` reports a built-in function with a
+  character-like result before `IS INITIAL`. Compare instead:
   `IF condense( lv ) = ``.`, `IF lines( lt ) = 0.`. A **functional method
   call** in the same position is fine: `IF upd_mode_text( ) IS NOT INITIAL`
   and `IF session_command_text( lv_cmd ) IS NOT INITIAL` in
@@ -452,8 +454,6 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   expressions there are not measured yet. More sites from the same run,
   since fixed: two in sapgui (abap2UI5-addons/sapgui#8) and one in rap-ext
   (abap2UI5-addons/rap-ext#19).
-
-**Backlog:** abaplint · abaplint-is-initial-function-operand
 
 ### Release-gated ABAP SQL — the syntax version switch does not gate it
 
@@ -554,10 +554,10 @@ This one took abap2UI5 down with it. The class was a dependency of the
 cockpit's roundtrip monitor, so every abap2UI5 request dumped with
 *"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
 
-**Gate: open** until abaplint/abaplint#4389 ships: `check_syntax` then
-reports it. Measured with that change on the pre-fix cockpit, it finds
-exactly the two statements the system named, and nothing in abap2UI5.
-**Backlog:** abaplint · abaplint-dbtab-work-area-too-short
+**Gate: open** until the abaplint release after 2.120.71 is pinned here:
+abaplint/abaplint#4389 (merged 2026-10-09) makes `check_syntax` report it.
+Measured with that change on the pre-fix cockpit, it finds exactly the two
+statements the system named, and nothing in abap2UI5.
 
 ### A parameter called `default` is read as an addition
 
@@ -640,7 +640,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-empty-catch-block, abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line, abaplint-abapdoc-leading-at, abaplint-redundant-conversion-function-result
+**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line, abaplint-abapdoc-leading-at
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -680,10 +680,13 @@ and points here, so a new trap is added here and nowhere else.
   to meet.
 - **An empty `CATCH` block** wants `##NO_HANDLER` — that is how you say the
   empty handler is deliberate. `CATCH cx_root INTO DATA(x) ##NO_HANDLER.`
-  No abaplint rule reads the block (measured on 2.120.52: `empty_structure`
-  lists no CATCH); 14 handlers without the pragma sit in the vendored ajson
-  test classes here (2026-09-19), which is what the backlog item beside this
-  section measures.
+  14 handlers without the pragma sat in the vendored ajson test classes here
+  (2026-09-19). Upstream from the abaplint release after 2.120.71 on
+  (abaplint/abaplint#4387, merged 2026-10-09): `empty_structure` has the
+  option `catch`, off by default, that reports an empty CATCH block without
+  `##NO_HANDLER` or `"#EC NO_HANDLER`. A comment in the block does not count,
+  as SLIN does not count it either. Switch it on in `abaplint.jsonc` once that
+  release is pinned here.
 - **A table declared without a key clause has the default key** — `DATA t
   TYPE TABLE OF x.` is the same table as `… WITH DEFAULT KEY`: every
   character-like component, in declaration order, and `SORT` without `BY`,
@@ -957,6 +960,13 @@ and points here, so a new trap is added here and nowhere else.
   (measured on 2.120.64, the version the cockpit pins), but the cockpit's
   `abaplint.jsonc` did not switch the rule on. It does now. Turn the rule on
   in every repository that ships ABAP.
+
+  **The CONV around a built-in function result** (`CONV string( to_upper( x
+  ) )`) is the same system warning, *"Redundant conversion for type
+  STRING"*, and `redundant_conversion` did not read it. Upstream from
+  abaplint 2.120.71 on (abaplint/abaplint#4386): the rule reports a CONV
+  whose operand is a built-in function with a result of the target type,
+  and a CONV inside a function argument.
 - **A text symbol (`'text'(001)`) is a CHARACTER literal**, so it is not
   type-compatible with a formal parameter typed `string` — the view builder's
   `v`, for one: `'...'(001) is not type-compatible with formal parameter "V"`,
@@ -1064,8 +1074,8 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-downport-elseif-line-exists-subrc
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
+**Backlog:** abaplint · abaplint-downport-elseif-line-exists-subrc
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1201,16 +1211,17 @@ break one of those four.
   nested table in a row that had none, and pinned down with a 17-test repro:
   green transpiled from `src/`, 16 red transpiled from the downport, so the
   transpiler, open-abap and the draft roundtrip are all innocent. Every check
-  is green - the source is right, and abaplint up to 2.120.64 does not report
-  its own output. **Until the fix ships, write the omitted component out**
-  (`t_sub = VALUE #( )`, `qty = 0`) in every row, or keep every row the same
-  shape. Not gated: the item's probe counts 159 constructors across the
-  checkouts (abap2UI5's framework code has none, samples' app overview has
-  one that puts the first tile's intro on every tile at 702), and a gate
-  would fail the sample repositories on a bug that is not theirs. A fix with
-  its tests is ready as `backlog/patches/abaplint-downport-value-row-clear.patch`
-  (a `CLEAR` plus the shared prefix at each row, only where the rows differ in
-  shape); samples spells its eight constructors out meanwhile.
+  is green - the source is right, and abaplint up to 2.120.68 does not report
+  its own output. Fixed in the downport from abaplint 2.120.70 on
+  (abaplint/abaplint#4377): a `CLEAR` plus the shared prefix at each row,
+  only where the rows differ in shape. **A repository that pins an older
+  abaplint has to write the omitted component out** (`t_sub = VALUE #( )`,
+  `qty = 0`) in every row, or keep every row the same shape. Not gated: a
+  probe counted 159 constructors across the checkouts (2026-10-03,
+  abap2UI5's framework code has none, samples' app overview has one that
+  puts the first tile's intro on every tile at 702), and a gate would have
+  failed the sample repositories on a bug that is not theirs; samples spells
+  its eight constructors out.
 - **A `LET` in a `VALUE` without `FOR`, or in a `CONV`, does not survive a
   transpiler before 2.13.98** when it reads 7.40 source: the binding is never declared and
   the statement dies with `ReferenceError: s is not defined` at runtime, not
@@ -1234,6 +1245,9 @@ break one of those four.
   `TYPE numeric` are fine. Found 2026-10-03 by report2cloud, whose FORMs
   become methods; type the parameter `TYPE p LENGTH … DECIMALS …`, `LIKE`
   the actual, or `TYPE numeric`. Nothing in the four checkouts has one.
+  Fixed from `@abaplint/transpiler-cli` 2.14.0 on
+  (abaplint/transpiler#1971): the parameter becomes a `Packed`. Before that
+  release the rewrite above is still needed.
 - **`rescale( )` is not in the runtime** - `abap.builtin.rescale is not a
   function` at runtime, the transpile is green. `round( )` with `dec`,
   `prec` and every `mode` is, from `@abaplint/runtime` 2.13.94 on (2.13.93
@@ -1276,7 +1290,12 @@ break one of those four.
   whose test across midnight answered -149490 instead of 70. Compute the
   seconds from the parts, `lv_time(2) * 3600 + lv_time+2(2) * 60 +
   lv_time+4(2)`, which is right on both. **Gate: open** - the source type of
-  an assignment is a question for abaplint, not a regex.
+  an assignment is a question for abaplint, not a regex. Fixed upstream: a
+  `d` source counts the days since 01.01.0001 from `@abaplint/runtime`
+  2.14.2 on (abaplint/transpiler#1977), a `t` source the seconds since
+  midnight from the release after 2.14.2 on (abaplint/transpiler#1976,
+  merged 2026-10-09). Keep the arithmetic from the parts until that release
+  is pinned here.
 - **A packed value with more than 15 significant digits loses its last
   digits when it is assigned to another packed field in the runtime.** A
   `timestampl` (`p LENGTH 11 DECIMALS 7`, 21 digits) set from a string is

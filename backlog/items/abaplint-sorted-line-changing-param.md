@@ -10,6 +10,7 @@ evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-08 - a user's first start of the cockpit, `z2ui5_cl_cockpit_stats` - "Call of the method ADD_SUM of the class Z2UI5_CL_COCKPIT_STATS has failed; the actual parameter for CS_SUM is write-protected" (CX_SY_DYN_CALL_ILLEGAL_TYPE, initial rendering); five sites in get_trend, get_apps, get_app_events, get_hints and get_window, each a `SORTED TABLE OF ty_s_sum WITH UNIQUE KEY …` read or inserted with `ASSIGNING <sum>` and passed as `CHANGING cs_sum = <sum>`; fixed in abap2UI5-addons/admin-cockpit#10 with a work area and `MODIFY TABLE`
   - measured 2026-10-08 on abaplint 2.120.64, every default rule on, `check_syntax` live - no finding on a minimal class with the same shape; the system's syntax check accepted the class too (it activated, the error came at run time)
   - measured 2026-10-08 on the transpiled runtime (admin-cockpit `npm run unit`) - the same shape as a test method passes, so the unit run cannot see it either
+checked_upstream: 2026-10-09
 ---
 
 # Report a sorted- or hashed-table line passed by field symbol to a CHANGING parameter

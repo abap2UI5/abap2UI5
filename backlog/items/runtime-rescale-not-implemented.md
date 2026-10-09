@@ -11,7 +11,7 @@ evidence:
   - minimal repro 2026-10-03 (test below; @abaplint/transpiler-cli and runtime 2.13.96 - the version abap2UI5's devDependencies pin and the latest on npm that day - against open-abap-core b2d219d) - `rescale( val = CONV decfloat34( '1.235' ) dec = 2 )` transpiles with the syntax check on and fails with `TypeError: abap.builtin.rescale is not a function`; in the same run `round( )` with `dec = 2`, `dec = -1`, `mode = cl_abap_math=>round_half_even` and `prec = 2` all pass
   - the round( ) half, for the record - on the 2.13.93 runtime the same four round( ) tests fail (`round(), todo, handle decimals` three times, a TypeError for `prec`); 2.13.94 (2026-09-30) ships abaplint/transpiler#1923 "round( ): dec, prec and every rounding mode" (merged 2026-09-29). report2cloud's TODO test comes from the abap2UI5 MCP server's Node backend, which installs `@abaplint/transpiler-cli` 2.13.93 next to `@abap2ui5/node-runtime` 1.146.0 - it clears when that backend moves to 2.13.94 or later, not by a change upstream
   - the cause, read in the 2.13.96 package (`build/src/builtin/` has `round.js` and no `rescale.js`) and unchanged at abaplint/transpiler main 2fae932 (2026-10-03) - the directory listing of `packages/runtime/src/builtin` has `round.ts` and no `rescale.ts`
-checked_upstream: 2026-10-03
+checked_upstream: 2026-10-09
 ---
 
 # runtime: rescale( ) is not implemented

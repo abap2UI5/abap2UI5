@@ -5,7 +5,7 @@ summary: deleting the current row from under the loop skips the next one — a w
 priority: medium
 state: open
 first_seen: 2026-08-17
-checked_upstream: 2026-09-14
+checked_upstream: 2026-10-09
 patch: backlog/patches/abaplint-three-rules.patch
 upstream: abaplint/abaplint
 evidence:

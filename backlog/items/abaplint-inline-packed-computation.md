@@ -11,6 +11,8 @@ evidence:
   - measured 2026-10-04 with an abaplint-based probe over abap2UI5, samples-controls and samples-stack - inline declarations whose source is a packed computation, one instance (the above); a `COND #( … ELSE packed * 1000 )` in app 377 takes its type from the THEN operand and is a different case
   - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_stats->p95` line 20 - the same warning for `DATA(lv_target) = lv_total * 95 / 100.` with `lv_total TYPE p LENGTH 16 DECIMALS 0`, so `*` and `/` are covered and a P(16,0) operand still gives P(8,0); abaplint 2.120.70 reports nothing
   - abaplint main 506e7b9 infers `p LENGTH 8 DECIMALS 0` for the inline variable (the first operand's type) and reports nothing
+  - nearest upstream: abaplint/abaplint#645 ("errors for unexpected conversions with inline declarations", larshp, 2019, open) - its examples are screenshots, so whether it means this case is open; comment there instead of opening a second issue (search 2026-10-09)
+checked_upstream: 2026-10-09
 ---
 
 # Report an inline declaration whose type would come from a packed computation
