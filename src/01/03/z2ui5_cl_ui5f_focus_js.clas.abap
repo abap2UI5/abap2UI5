@@ -87,8 +87,9 @@ CLASS z2ui5_cl_ui5f_focus_js IMPLEMENTATION.
              `        if (!oElement || !ScrollFocus.mayMoveFocus(Context.of(this))) return;` && |\n| &&
              `        try {` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          let start = Number(this.getProperty("selectionStart"));` && |\n| &&
-             `          let end = Number(this.getProperty("selectionEnd"));` && |\n| &&
+             `` && |\n| &&
+             `          let start = Lib.toCaretIndex(this.getProperty("selectionStart")) ?? 0;` && |\n| &&
+             `          let end = Lib.toCaretIndex(this.getProperty("selectionEnd")) ?? 0;` && |\n| &&
              `` && |\n| &&
              `          const input = this._textInput(oElement);` && |\n| &&
              `          if (input) {` && |\n| &&

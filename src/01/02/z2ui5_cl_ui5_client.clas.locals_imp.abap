@@ -9,8 +9,12 @@ CLASS lcl_node_value DEFINITION FINAL.
   PUBLIC SECTION.
     " a number is initial in every spelling of zero - the one predicate
     " for that is z2ui5_cl_ui5_util_json_fl=>check_number_initial, shared
-    " with the framework's no-empty-values filter. A string, a bool and
-    " null are initial when empty
+    " with the framework's no-empty-values filter. A boolean is initial
+    " when it is `false`: ajson writes abap_false as that literal, never as
+    " an empty value, so an emptiness test kept every abap_false - the very
+    " value omit_initial is documented to drop (_bind( ) in z2ui5_if_client)
+    " and omit_initial_paths exists to drop per column. A string and null
+    " are initial when empty
     CLASS-METHODS check_initial
       IMPORTING
         is_node       TYPE z2ui5_if_ajson_types=>ty_node
@@ -25,11 +29,14 @@ CLASS lcl_node_value IMPLEMENTATION.
 
   METHOD check_initial.
 
-    IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
-      result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
-    ELSE.
-      result = xsdbool( is_node-value IS INITIAL ).
-    ENDIF.
+    CASE is_node-type.
+      WHEN z2ui5_if_ajson_types=>node_type-number.
+        result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
+      WHEN z2ui5_if_ajson_types=>node_type-boolean.
+        result = xsdbool( is_node-value = `false` ).
+      WHEN OTHERS.
+        result = xsdbool( is_node-value IS INITIAL ).
+    ENDCASE.
 
   ENDMETHOD.
 

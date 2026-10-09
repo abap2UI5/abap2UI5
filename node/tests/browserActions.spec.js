@@ -434,6 +434,24 @@ test.describe("STORE_DATA", () => {
     });
   }
 
+  // switch_default_model: _bind( ) renders {http>/S_STORAGE} and the
+  // framework model is the named one - the payload was refused as "neither
+  // a payload nor a model path" and the cart stored nothing
+  for (const raw of ["{http>/S_STORAGE}", "${http>/S_STORAGE}"]) {
+    test(`the switch-mode payload '${raw}' is read from the tracked model`, () => {
+      const { handlers, stores, errors } = load();
+      const oController = controllerWithModel(
+        {
+          "/S_STORAGE": { TYPE: "local", PREFIX: "", KEY: "CART", VALUE: "v" },
+        },
+        true,
+      );
+      handlers.STORE_DATA(oController, ["STORE_DATA", raw]);
+      expect(stores[0].ops).toEqual([["put", "CART", "v"]]);
+      expect(errors()).toEqual([]);
+    });
+  }
+
   test("the TRACKED model wins over the default one", () => {
     const { handlers, stores } = load();
     const oController = controllerWithModel(
@@ -496,6 +514,25 @@ test.describe("DOWNLOAD_B64_FILE", () => {
       "DOWNLOAD_B64_FILE: blocked active data: MIME type",
     );
   });
+
+  // the browser reads the URL after the URL parser and the data: URL
+  // processor have dropped whitespace - so does the guard
+  for (const url of [
+    " data:text/html;base64,PHNjcmlwdD4=",
+    "da\tta:text/html;base64,PHNjcmlwdD4=",
+    "data: text/html;base64,PHNjcmlwdD4=",
+  ]) {
+    test(`an active data: MIME type is blocked in the spelling ${JSON.stringify(url)}`, () => {
+      const { handlers, anchors, errors } = load();
+
+      handlers.DOWNLOAD_B64_FILE(null, ["DOWNLOAD_B64_FILE", url, "invoice.html"]);
+
+      expect(anchors).toHaveLength(0);
+      expect(errors()).toContain(
+        "DOWNLOAD_B64_FILE: blocked active data: MIME type",
+      );
+    });
+  }
 
   test("an octet-stream data: URL downloads via attach, click, remove", () => {
     const { handlers, anchors, bodyOps } = load();
@@ -682,6 +719,65 @@ test.describe("URLHELPER", () => {
 
     expect(urlHelperCalls).toHaveLength(0);
     expect(boxErrors).toHaveLength(0);
+  });
+
+  // The samples wire `( `TRIGGER_EMAIL` ) ( |${ client->_bind( email ) }| )`
+  // into a press, where UI5 resolves the binding when the view is built. The
+  // same call queued from a HANDLER is data (T_CUSTOM): the params arrive as
+  // the model path, every field read undefined - an empty mailto: opened, a
+  // REDIRECT answered "Invalid redirect URL" for a URL the app had bound.
+  // Read as a path, the way STORE_DATA reads its payload.
+  const controllerWithModel = (data) => {
+    const model = { getProperty: (path) => data[path] };
+    return { getView: () => ({ __tracked: model }) };
+  };
+
+  test("params given as a model path are read from the view model", () => {
+    const { handlers, urlHelperCalls, boxErrors, errors } = load();
+
+    handlers.URLHELPER(
+      controllerWithModel({ "/EMAIL": { EMAIL: "a@b.c", SUBJECT: "hi" } }),
+      ["URLHELPER", "TRIGGER_EMAIL", "${/EMAIL}"],
+    );
+    handlers.URLHELPER(
+      controllerWithModel({ "/URL": { URL: "https://help.sap.com" } }),
+      ["URLHELPER", "REDIRECT", "{/URL}"],
+    );
+
+    expect(urlHelperCalls).toEqual([
+      ["triggerEmail", "a@b.c", "hi", undefined, undefined, undefined, undefined],
+      ["redirect", "https://help.sap.com", false],
+    ]);
+    expect(boxErrors).toEqual([]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("params that are neither an object nor a model path are logged, not run", () => {
+    const { handlers, urlHelperCalls, boxErrors, errors } = load();
+
+    // the object-LITERAL spelling a view wire takes, queued from a handler:
+    // no JSON, so it arrives as the text
+    handlers.URLHELPER(controllerWithModel({}), [
+      "URLHELPER",
+      "REDIRECT",
+      "{ URL: 'https://help.sap.com', NEW_WINDOW: true }",
+    ]);
+    handlers.URLHELPER(controllerWithModel({}), [
+      "URLHELPER",
+      "TRIGGER_TEL",
+      "${/NOPE}",
+    ]);
+
+    expect(urlHelperCalls).toEqual([]);
+    expect(boxErrors).toEqual([]);
+    expect(
+      errors().some((m) => m.includes("is neither a payload nor a model path")),
+    ).toBe(true);
+    expect(
+      errors().some((m) =>
+        m.includes("URLHELPER: nothing bound at the model path '/NOPE'"),
+      ),
+    ).toBe(true);
   });
 });
 

@@ -43,6 +43,23 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `      return token;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const SETTINGS_CHARS = /[\\{}]/;` && |\n| &&
+             `    function freeText(text, input) {` && |\n| &&
+             `      const given = Lib.toText(text);` && |\n| &&
+             `      if (!SETTINGS_CHARS.test(given)) return given;` && |\n| &&
+             `      let value = "";` && |\n| &&
+             `      try {` && |\n| &&
+             `        value = Lib.toText(input?.getValue?.()).trim();` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("MultiInputExt: reading the input value failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      if (value === given) return given;` && |\n| &&
+             `      if (value && value.replace(/[\\{}]/g, "\\$&") === given) return value;` && |\n| &&
+             `      return /^(?:[^\\{}]|\\[\\{}])*$/.test(given)` && |\n| &&
+             `        ? given.replace(/\\([\\{}])/g, "$1")` && |\n| &&
+             `        : given;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const MultiInputExt = Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -167,7 +184,8 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `                  : args.text,` && |\n| &&
              `              );` && |\n| &&
              `            }` && |\n| &&
-             `            return new Token({ key: args.text, text: args.text });` && |\n| &&
+             `            const text = freeText(args.text, input);` && |\n| &&
+             `            return plainToken(text, text);` && |\n| &&
              `          };` && |\n| &&
              `          input.addValidator(this._validator);` && |\n| &&
              `        } catch (e) {` && |\n| &&

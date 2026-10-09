@@ -35,6 +35,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_app_start_safe      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_call_popup_open FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_cross_class FOR TESTING RAISING cx_static_check.
@@ -512,6 +513,52 @@ CLASS ltcl_test IMPLEMENTATION.
     " ... while the REST of the nav intent does carry over with the hop
     cl_abap_unit_assert=>assert_equals( exp = `/caller-state`
                                         act = lo_called->ms_next-s_nav-set_push_state ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_call_popup_open.
+
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+
+    lo_http = NEW #( val = `` ).
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+
+    " the leaving app opened a popup in this roundtrip and closed its
+    " popover, then calls another instance of its OWN class: the display
+    " describes the screen being replaced and is dropped, the carried
+    " popover destroy and the same-class teardown are merged - the frontend
+    " receives at most one action per slot (z2ui5_cl_ui5_frontend=>slot_reset)
+    lo_action->ms_next-t_action_front = VALUE #(
+        ( slot   = z2ui5_if_client=>cs_view-popup
+          method = z2ui5_if_ui5_types=>cs_slot_action-display
+          xml    = `<Dialog/>` )
+        ( slot = z2ui5_if_client=>cs_view-popover method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
+        ( slot = z2ui5_if_client=>cs_view-main    method = z2ui5_if_ui5_types=>cs_slot_action-destroy ) ).
+    lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+
+    lo_result = lo_action->factory_stack_call( ).
+
+    DATA(lv_actions) = ``.
+    LOOP AT lo_result->ms_next-t_action_front INTO DATA(ls_front).
+      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPUP|destroy;POPOVER|destroy;`
+                                        act = lv_actions ).
+
+    " the called app opens a popup of its own - it replaces the queued
+    " teardown instead of standing next to it
+    NEW z2ui5_cl_ui5_frontend( lo_result )->slot_display( slot = z2ui5_if_client=>cs_view-popup
+                                                          xml  = `<Dialog id="next"/>` ).
+    lv_actions = ``.
+    LOOP AT lo_result->ms_next-t_action_front INTO ls_front.
+      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPOVER|destroy;POPUP|display;`
+                                        act = lv_actions ).
 
   ENDMETHOD.
 

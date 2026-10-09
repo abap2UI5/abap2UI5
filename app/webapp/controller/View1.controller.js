@@ -533,8 +533,18 @@ sap.ui.define(
         // answered with nothing an app could recognise. Say so instead;
         // there is no event to send.
         if (!Array.isArray(args[0])) {
+          // described, not stringified: the wrong first argument is as often
+          // `$event` or a control as a string, and JSON.stringify throws on
+          // their circular graph - the guard itself then threw out of the
+          // event handler instead of logging
+          let got;
+          try {
+            got = JSON.stringify(args[0]);
+          } catch {
+            got = `an object that is no JSON (${Object.prototype.toString.call(args[0])})`;
+          }
           Lib.logError(
-            `eB: the first argument must be the event array, got ${JSON.stringify(args[0])}`,
+            `eB: the first argument must be the event array, got ${got}`,
           );
           return;
         }

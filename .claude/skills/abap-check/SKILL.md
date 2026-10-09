@@ -1065,7 +1065,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 break one of those four.
 
 **Backlog:** abaplint · abaplint-downport-value-row-not-cleared, abaplint-downport-elseif-line-exists-subrc
-**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal
+**Backlog:** open-abap · transpiler-generic-packed-parameter, runtime-rescale-not-implemented, runtime-time-date-to-number, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1153,6 +1153,43 @@ break one of those four.
   constructor.** `DATA(lt_in) = VALUE STANDARD TABLE OF …` is a `parser_error`
   in the `abap_cloud` and `abap_standard` configs. Declare with `DATA`, then
   assign (`78d4731f`, #2128).
+- **`NEW` builds objects, `CREATE DATA` builds data.** The downport lowers
+  every `NEW` into `CREATE OBJECT`, also when the target is a data
+  reference. ``mr = NEW #( `x` )`` with `mr TYPE REF TO string`, or
+  ``mr = NEW string( `x` )`` with `mr TYPE REF TO data`, comes out as
+  `CREATE OBJECT mr TYPE string ClassDefinitionNotFound ERROR.`, which is no
+  statement at all: a `parser_error` in the downported tree. Without a value
+  (`NEW #( )`, `NEW string( )`) it becomes a plain `CREATE OBJECT mr`, which
+  `check_syntax` refuses there ("Target must be an object reference",
+  "TYPE "string" not found"). Valid at v750, so the source is green and the
+  transpiled suite never sees it, because it transpiles the downport. Found
+  in a test class of `z2ui5_cl_ui5_serializer` (2026-10-09). Write
+  `CREATE DATA mr.` (or `CREATE DATA mr TYPE string.`) and assign through
+  `mr->*`. Measured on abaplint 2.120.68 in an isolated project (`downport`,
+  `check_syntax` and `parser_error` on, v702). **Gate: this repo** -
+  `npm run downport` ends red, but read the next entry before trusting
+  what it names.
+- **After a parser error, the downport stops for the whole file, and the
+  next error it names is often not a real one.** The `CREATE OBJECT … ERROR`
+  above leaves the file unparseable, and every construct the downport had
+  not reached yet stays as 7.40 source. abaplint then reports those at
+  v702: `xsdbool( lv_x IS INITIAL )` as a `parser_error`, and
+  `xsdbool( lv_x = lv_y )` - two plain names - as a method call with a named
+  parameter (*Method importing parameter "LV_X" does not exist*, *method
+  parameter "VAL" must be supplied*). That reads like a downport defect of
+  `xsdbool` and is not one: on its own, `xsdbool( a = b )` downports to
+  `boolc( a = b )` in every position measured (an assignment, a
+  `RETURNING` value, a positional and a named argument, object references,
+  `<>`, a parenthesized comparison). The order is not the source order
+  either. The downport rewrites a statement that does not parse at v702
+  before one that does, and `xsdbool( a = b )` parses as a method call. So
+  a `NEW` further down the file is fixed first, and the `xsdbool`
+  above it is left behind. A test assertion of `z2ui5_cl_ui5_serializer`
+  was rewritten into an `IF` for that reason (2026-10-09) and put back once
+  this was measured. **Fix the first `parser_error`
+  in the file and run the downport again** before you change anything the
+  later findings name. Measured on 2.120.68, same setup. **Gate: none** -
+  the run is red either way, the trap is in reading it.
 - **In a table `VALUE`, every row names every component an earlier row
   named.** The downport builds all rows in one work area and never clears it,
   so after `VALUE #( ( name = 'A' t_sub = lt_x ) ( name = 'B' ) )` row B
@@ -1240,6 +1277,25 @@ break one of those four.
   seconds from the parts, `lv_time(2) * 3600 + lv_time+2(2) * 60 +
   lv_time+4(2)`, which is right on both. **Gate: open** - the source type of
   an assignment is a question for abaplint, not a regex.
+- **A packed value with more than 15 significant digits loses its last
+  digits when it is assigned to another packed field in the runtime.** A
+  `timestampl` (`p LENGTH 11 DECIMALS 7`, 21 digits) set from a string is
+  exact, but `lv_b = lv_a.` copies it through a JS double, so
+  `20240229235959` becomes `20240229235958.9986304` and `...123000`
+  becomes `...122999.9988736` - only values the double happens to hold
+  exactly, a whole hour among them, survive. A system copies the digits.
+  ajson's `to_timestampl` returns its result by such a copy, so its
+  `to_timestamp` finds a fraction in `|{ lv_timestampl }|` and raises
+  *Unexpected timestamp format*: `get_timestamp( )` answers 0, and a bound
+  table with a `TIMESTAMP` column holding `23:59:59` is refused whole on its
+  way back in (`to_abap`) under `npm run unit` and in the node runtime.
+  Found 2026-10-08 by the date round trip of `z2ui5_cl_ui5_srv_model`'s test
+  class, which uses a whole hour for that reason. Measured on
+  `@abaplint/runtime` 2.13.99 and 2.14.0 (`Packed.set( )` hands another
+  `Packed` to `this.set(value.get())`, and `get( )` is a `Number`). In a
+  test, pick a value the double holds - a whole hour - and never conclude
+  from a runtime run that such a copy is wrong on a system. **Gate: open** -
+  the fix belongs in the runtime.
 - **Transpiler-specific rewrites from the same PR** — each of these was green
   in ABAP and wrong or unsupported under the JS runtime:
   `SHIFT … DELETING LEADING/TRAILING` → `substring( )`; `CP` used as a

@@ -808,3 +808,61 @@ test("an impossible ISO date and the ABAP initial date stay text", () => {
   expect(m.values[2][0]).toBeCloseTo(45306.520833, 5);
   expect(m.formats[2]).toEqual(["yyyy-mm-dd hh:mm:ss"]);
 });
+
+test("a time format with a locale or color section reads as a time", () => {
+  const { ExcelBridge } = load();
+  // [$-x-systime]h:mm:ss AM/PM is Excel's own Time format: the "y" of
+  // "systime" must not make the cell a date-time
+  const rows = ExcelBridge._toRows(
+    [[0.6041666666666666, 0.6041666666666666, 45306.5]],
+    [["[$-x-systime]h:mm:ss AM/PM", "[Red]h:mm", "[$-de-DE]dd.mm.yyyy hh:mm"]],
+  );
+  expect(rows).toEqual([
+    { COL1: "14:30:00", COL2: "14:30:00", COL3: "2024-01-15T12:00:00" },
+  ]);
+});
+
+// An elapsed-time section ([h], [mm]) is a bracket section too, and mm:ss has
+// no "h": both came back as the bare serial. They read as times now - an
+// elapsed one as a duration whose hours run past 24, mm:ss as the time of day.
+test("elapsed-time and minutes:seconds formats read as times", () => {
+  const { ExcelBridge } = load();
+  const rows = ExcelBridge._toRows(
+    [[1.5, 0.0104166666666667, 0.0104166666666667, 0.0104166666666667, 42]],
+    [["[h]:mm:ss", "[h]:mm", "mm:ss", "[mm]:ss", "0.00"]],
+  );
+  expect(rows).toEqual([
+    {
+      COL1: "36:00:00",
+      COL2: "00:15:00",
+      COL3: "00:15:00",
+      COL4: "00:15:00",
+      COL5: 42,
+    },
+  ]);
+  // a quoted "[h]" is text, not an elapsed section
+  const plain = ExcelBridge._toRows([[3, 3]], [['0 "[h]"', "General"]]);
+  expect(plain).toEqual([{ COL1: 3, COL2: 3 }]);
+});
+
+// resolveKey asked `key in row`, and member( ) read obj[name]: both answer for
+// what every object inherits. A column called "constructor" wrote the source
+// text of Object( ), a numberFormats map without the column read the
+// inherited toString as the format.
+test("a column named like an inherited member reads only own values", () => {
+  const { ExcelBridge } = load();
+  const m = ExcelBridge._buildMatrix({
+    rows: [{ CONSTRUCTOR: "x", A: 1 }, { A: 2 }],
+    columns: [{ KEY: "constructor" }, { KEY: "toString" }],
+    numberFormats: { A: "0.00" },
+    header: false,
+  });
+  expect(m.values).toEqual([
+    ["x", ""],
+    ["", ""],
+  ]);
+  expect(m.formats).toEqual([
+    ["@", "@"],
+    ["@", "@"],
+  ]);
+});

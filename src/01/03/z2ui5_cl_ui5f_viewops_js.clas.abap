@@ -110,12 +110,24 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
+             `` && |\n| &&
+             `      const path = String(args[3] ?? "")` && |\n| &&
+             `        .replace(/[{}]/g, "")` && |\n| &&
+             `        .replace(/^\$/, "");` && |\n| &&
              `      if (!path) {` && |\n| &&
              `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
+             `` && |\n| &&
+             `      const index =` && |\n| &&
+             `        typeof args[2] === "number" ? String(args[2]) : String(args[2] ?? "");` && |\n| &&
+             `      if (!/^\d+$/.test(index.trim())) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      view.bindElement(``${path}/${index.trim()}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&
@@ -161,12 +173,11 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `      const applyFocus = () => {` && |\n| &&
              `        try {` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          if (args[2] != null && args[2] !== "") {` && |\n| &&
-             `            info.selectionStart = Number(args[2]);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (args[3] != null && args[3] !== "") {` && |\n| &&
-             `            info.selectionEnd = Number(args[3]);` && |\n| &&
-             `          }` && |\n| &&
+             `` && |\n| &&
+             `          const start = Lib.toCaretIndex(args[2]);` && |\n| &&
+             `          const end = Lib.toCaretIndex(args[3]);` && |\n| &&
+             `          if (start !== null) info.selectionStart = start;` && |\n| &&
+             `          if (end !== null) info.selectionEnd = end;` && |\n| &&
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&

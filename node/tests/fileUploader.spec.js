@@ -131,7 +131,12 @@ function load() {
       ...props,
     };
     inst.getProperty = (k) => inst._props[k];
-    inst.setProperty = (k, v) => (inst._props[k] = v);
+    // records whether a write suppressed the re-render (third argument)
+    inst._quiet = {};
+    inst.setProperty = (k, v, quiet) => {
+      inst._quiet[k] = quiet === true;
+      return (inst._props[k] = v);
+    };
     inst.setAggregation = (k, v) => {
       inst[k] = v;
       v.parent = inst;
@@ -177,6 +182,19 @@ test("button mode renders uploader + Upload button, disabled while no file", () 
   expect(inst._oHBox.parent).toBe(inst);
   expect(inst.oFileUploader.settings.uploadOnChange).toBe(false);
   expect(inst.oUploadButton.enabled).toBe(false);
+});
+
+// A string in a UI5 settings object is read as binding syntax: an
+// uploadButtonText with braces became a binding (and an unbalanced { threw
+// out of the Button constructor). The text goes through the setter only.
+test("the upload button text is set through the setter, never as a setting", () => {
+  const { makeInstance, render } = load();
+  const inst = makeInstance({ uploadButtonText: "Upload {file} \\ now" });
+
+  render(inst);
+
+  expect(inst.oUploadButton.settings).not.toHaveProperty("text");
+  expect(inst.oUploadButton.text).toBe("Upload {file} \\ now");
 });
 
 test("renderer supplies its own DOM root for property invalidation", () => {
@@ -236,6 +254,8 @@ test("pressing Upload reads the pending file and fires upload with the data URL"
 
   expect(inst._props.value).toBe("data:mock;base64,doc.txt");
   expect(inst.uploads).toBe(1);
+  // the renderer draws nothing from `value`: written without invalidating
+  expect(inst._quiet.value).toBe(true);
 });
 
 test("with multiple, every selected file is read - one after the other", () => {

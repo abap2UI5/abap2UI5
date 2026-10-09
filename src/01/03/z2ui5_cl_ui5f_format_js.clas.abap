@@ -44,6 +44,20 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `  const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;` && |\n| &&
              `  const ISO_TIME = /^\d{2}:\d{2}:\d{2}$/;` && |\n| &&
              `` && |\n| &&
+             `  function localDay(value) {` && |\n| &&
+             `    const [year, month, day] = parseYmd(value);` && |\n| &&
+             `    const date = new Date(2000, 0, 1);` && |\n| &&
+             `    date.setFullYear(year, month, day);` && |\n| &&
+             `    if (` && |\n| &&
+             `      date.getFullYear() !== year ||` && |\n| &&
+             `      date.getMonth() !== month ||` && |\n| &&
+             `      date.getDate() !== day` && |\n| &&
+             `    ) {` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `    return date;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function isNoAbapDate(d) {` && |\n| &&
              `    const s = abapDigits(d, ISO_DAY);` && |\n| &&
              `    if (!/^\d{8}$/.test(s)) return true;` && |\n| &&
@@ -58,23 +72,25 @@ CLASS z2ui5_cl_ui5f_format_js IMPLEMENTATION.
              `  return {` && |\n| &&
              `    DateCreateObject(s) {` && |\n| &&
              `      if (!s) return null;` && |\n| &&
-             `      if (ISO_DAY.test(String(s))) return new Date(...parseYmd(s));` && |\n| &&
+             `      if (ISO_DAY.test(String(s))) return localDay(s);` && |\n| &&
              `      return new Date(s);` && |\n| &&
              `    },` && |\n| &&
              `    DateAbapDateToDateObject(d) {` && |\n| &&
              `      if (isNoAbapDate(d)) return null;` && |\n| &&
-             `      return new Date(...parseYmd(d));` && |\n| &&
+             `      return localDay(d);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    DateAbapDateTimeToDateObject(d, t) {` && |\n| &&
              `      if (isNoAbapDate(d)) return null;` && |\n| &&
+             `      const date = localDay(d);` && |\n| &&
+             `      if (!date) return null;` && |\n| &&
              `      const time = t ? abapDigits(t, ISO_TIME) : "000000";` && |\n| &&
-             `      return new Date(` && |\n| &&
-             `        ...parseYmd(d),` && |\n| &&
+             `      date.setHours(` && |\n| &&
              `        Number(time.slice(0, 2)),` && |\n| &&
              `        Number(time.slice(2, 4)),` && |\n| &&
              `        Number(time.slice(4, 6)),` && |\n| &&
              `      );` && |\n| &&
+             `      return date;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    expandInlineIcons(text) {` && |\n| &&

@@ -109,7 +109,9 @@ sap.ui.define(
             this,
             "FileUploader",
             (_, result) => {
-              this.setProperty("value", result);
+              // the renderer draws nothing from `value` - write it without
+              // invalidating (AGENTS.md rule 10); the binding still sees it
+              this.setProperty("value", result, true);
               this.fireUpload();
             },
           );
@@ -149,8 +151,12 @@ sap.ui.define(
         this.oUploadButton = null;
 
         if (!directUpload) {
+          // No `text` in the settings object: a string setting is read as
+          // binding syntax, so an uploadButtonText with braces ("Upload
+          // {file}") became a binding and one with an unbalanced { threw out
+          // of the constructor. _syncControls sets it through the setter,
+          // which takes the value as it is, right after this build.
           this.oUploadButton = new Button({
-            text: this.getProperty("uploadButtonText"),
             enabled: this.getProperty("path") !== "",
             press: () => {
               this.setProperty("path", this.oFileUploader.getProperty("value"));

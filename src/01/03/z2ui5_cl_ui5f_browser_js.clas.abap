@@ -54,9 +54,10 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
+             `      const href = new URL(args[1], window.location.origin).href;` && |\n| &&
              `      if (` && |\n| &&
-             `        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
-             `          args[1],` && |\n| &&
+             `        /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(` && |\n| &&
+             `          href,` && |\n| &&
              `        )` && |\n| &&
              `      ) {` && |\n| &&
              `        Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");` && |\n| &&
@@ -72,13 +73,13 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function storagePayload(oController, raw) {` && |\n| &&
+             `    function boundPayload(oController, raw, action) {` && |\n| &&
              `      if (raw == null || typeof raw !== "string") return raw;` && |\n| &&
              `` && |\n| &&
-             `      const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");` && |\n| &&
-             `      if (!path.startsWith("/")) {` && |\n| &&
+             `      const path = Lib.modelPathOf(raw);` && |\n| &&
+             `      if (!path) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``STORE_DATA: '${raw}' is neither a payload nor a model path``,` && |\n| &&
+             `          ``${action}: '${raw}' is neither a payload nor a model path``,` && |\n| &&
              `        );` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
@@ -89,13 +90,13 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        : undefined;` && |\n| &&
              `      const value = oModel?.getProperty(path);` && |\n| &&
              `      if (value == null) {` && |\n| &&
-             `        Lib.logError(``STORE_DATA: nothing bound at the model path '${path}'``);` && |\n| &&
+             `        Lib.logError(``${action}: nothing bound at the model path '${path}'``);` && |\n| &&
              `      }` && |\n| &&
              `      return value;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStoreData(oController, args) {` && |\n| &&
-             `      const payload = storagePayload(oController, args[1]);` && |\n| &&
+             `      const payload = boundPayload(oController, args[1], "STORE_DATA");` && |\n| &&
              `` && |\n| &&
              `      if (payload == null) {` && |\n| &&
              `        if (args[1] == null) {` && |\n| &&
@@ -216,7 +217,11 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
-             `      const params = args[2] ?? {};` && |\n| &&
+             `      const params =` && |\n| &&
+             `        typeof args[2] === "string"` && |\n| &&
+             `          ? boundPayload(oController, args[2], "URLHELPER")` && |\n| &&
+             `          : (args[2] ?? {});` && |\n| &&
+             `      if (params == null) return;` && |\n| &&
              `` && |\n| &&
              `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
              `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&

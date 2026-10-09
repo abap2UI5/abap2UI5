@@ -45,7 +45,8 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! whose value would not convert (delta_apply_field's CATCH), whose column
     "! takes no value of that shape at all (delta_check_refused), or whose row
     "! sits in a table the delta cannot address (delta_skip_nodes: a sorted or
-    "! hashed table). The instance is created per roundtrip
+    "! hashed table) or past the table's end (delta_skip_row). The instance
+    "! is created per roundtrip
     "! (z2ui5_cl_ui5_app_cont=>create_model), so the list covers exactly one
     "! model parse; the caller hands it to the app as client->get( )-t_model_skipped.
     DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
@@ -269,6 +270,17 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_table      TYPE string
         iv_row_parent TYPE i DEFAULT 0.
 
+    "! Every cell of ONE delta row lands in mt_skipped - for a row the table
+    "! cannot take (delta_skip_nodes) and for an index past the table's end
+    "! (delta_apply_nodes)
+    METHODS delta_skip_row
+      IMPORTING
+        io_delta      TYPE REF TO z2ui5_if_ajson
+        iv_row_path   TYPE string
+        iv_row        TYPE i
+        iv_table      TYPE string
+        iv_row_parent TYPE i DEFAULT 0.
+
     "! The 1-based row index a delta key names, 0 for a key that names no
     "! row: the key is client-supplied, so a garbled (non-numeric) one must
     "! skip that row rather than dump the request, and a negative one
@@ -382,6 +394,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_type_kind TYPE string
       RAISING
         z2ui5_cx_ajson_error.
+
+    "! A date (8) or a time (6) as it is about to be assigned - after the
+    "! ISO unpack - must be exactly that many digits, or it is refused like
+    "! any other conversion failure. The c->d and c->t assignments do not
+    "! check: they copy the first characters of whatever text arrives, so a
+    "! DatePicker without valueFormat (`Jan 15, 2024`, `15.01.2024`) stored
+    "! `Jan 15, ` / `15.01.20` without a trace, and the next serialization
+    "! shipped that back. The whole-object path (ajson's to_abap) refuses
+    "! such a value already
+    METHODS delta_check_digits
+      IMPORTING
+        iv_value  TYPE string
+        iv_length TYPE i
+        iv_kind   TYPE string.
 
     "! the column's kinds, resolved once per column into the caller's
     "! memory (ty_t_col_kind) and answered from it after that
@@ -1783,16 +1809,26 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
-      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
       " no slice( ) per row: slicing walks and copies the WHOLE delta tree
       " for every changed row (O(rows^2) on a mass edit such as a
       " select-all toggle). members( ) and the typed get_* calls below are
       " keyed reads on the sorted node table, so the row is addressed by
       " its full path instead
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
+      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
+      IF sy-subrc <> 0.
+        " an index past the table's end - the client edited a row the
+        " backend no longer has (the app shrank the table without the model
+        " going out again). Traced like a sorted-table row: a bare CONTINUE
+        " dropped the edit with nothing in t_model_skipped, while the
+        " browser went on showing what the user typed
+        delta_skip_row( io_delta      = io_delta
+                        iv_row_path   = lv_row_path
+                        iv_row        = lv_tabix
+                        iv_table      = iv_table
+                        iv_row_parent = iv_row_parent ).
+        CONTINUE.
+      ENDIF.
       DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
@@ -1832,16 +1868,25 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF lv_tabix = 0.
         CONTINUE.
       ENDIF.
-      DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      DATA(lt_fld) = io_delta->members( lv_row_path ).
-      LOOP AT lt_fld INTO DATA(lv_fld).
-        delta_trace_skipped( io_delta = io_delta
-                             iv_path  = |{ lv_row_path }/{ lv_fld }|
-                             is_cell  = VALUE #( name       = iv_table
-                                                 row        = lv_tabix
-                                                 field      = lv_fld
-                                                 row_parent = iv_row_parent ) ).
-      ENDLOOP.
+      delta_skip_row( io_delta      = io_delta
+                      iv_row_path   = |{ iv_base }/{ lv_idx_str }|
+                      iv_row        = lv_tabix
+                      iv_table      = iv_table
+                      iv_row_parent = iv_row_parent ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD delta_skip_row.
+
+    DATA(lt_fld) = io_delta->members( iv_row_path ).
+    LOOP AT lt_fld INTO DATA(lv_fld).
+      delta_trace_skipped( io_delta = io_delta
+                           iv_path  = |{ iv_row_path }/{ lv_fld }|
+                           is_cell  = VALUE #( name       = iv_table
+                                               row        = iv_row
+                                               field      = lv_fld
+                                               row_parent = iv_row_parent ) ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -1910,6 +1955,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
           lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
         ENDIF.
+        delta_check_digits( iv_value  = lv_value
+                            iv_length = 8
+                            iv_kind   = `date` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
         IF lv_value IS INITIAL.
@@ -1919,6 +1967,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
           lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
         ENDIF.
+        delta_check_digits( iv_value  = lv_value
+                            iv_length = 6
+                            iv_kind   = `time` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
@@ -1960,6 +2011,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDCASE.
 
     <comp> = lv_value.
+
+  ENDMETHOD.
+
+  METHOD delta_check_digits.
+
+    IF strlen( iv_value ) = iv_length AND iv_value CO `0123456789`.
+      RETURN.
+    ENDIF.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |MODEL_VALUE_REFUSED - '{ iv_value }' is no { iv_kind } the model can read ({ iv_length } digits or the ISO form)|.
 
   ENDMETHOD.
 
@@ -2046,6 +2108,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                   iv_row_parent = is_cell-row ).
               ENDIF.
             ELSE.
+              " a REPLACE, not a merge: to_abap clears <comp> before it
+              " fills it, so a component the object leaves out ends up
+              " initial. Correct for every request the framework's client
+              " writes - an edit below a structure cell is shipped as the
+              " WHOLE structure, read from the client's current model
+              " (Lib.buildDeltaFromPaths: the first non-numeric segment after
+              " the field is the leaf), and a component that model lacks was
+              " left out because it is initial (omit_initial), so clearing it
+              " changes nothing. Deliberately kept a replace: a top-level
+              " structure attribute is written the same way
+              " (whole_value_apply), and the two have to agree. The one
+              " sender of a genuinely PARTIAL object is the obsolete
+              " _bind( custom_filter ) dropping a non-initial field - such a
+              " field is cleared here, exactly as on the attribute level
               io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
                                                    IMPORTING ev_container     = <comp> ).
             ENDIF.

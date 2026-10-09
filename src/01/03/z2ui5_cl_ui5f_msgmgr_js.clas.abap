@@ -124,7 +124,8 @@ CLASS z2ui5_cl_ui5f_msgmgr_js IMPLEMENTATION.
              `          const oMessage = new Message({` && |\n| &&
              `            message: r.MESSAGE ?? "",` && |\n| &&
              `            description: r.DESCRIPTION ?? "",` && |\n| &&
-             `            type: r.TYPE ?? "Error",` && |\n| &&
+             `` && |\n| &&
+             `            type: r.TYPE || "Error",` && |\n| &&
              `            target: r.TARGET ?? "",` && |\n| &&
              `            additionalText: r.ADDITIONALTEXT ?? "",` && |\n| &&
              `` && |\n| &&

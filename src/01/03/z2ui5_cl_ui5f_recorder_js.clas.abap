@@ -244,7 +244,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      const known = ctx.state.lastRequestBytes;` && |\n| &&
              `      if (typeof known === "number") return known;` && |\n| &&
              `      try {` && |\n| &&
-             `        return JSON.stringify({ value: oBody }).length;` && |\n| &&
+             `        return Lib.byteLength(JSON.stringify({ value: oBody }));` && |\n| &&
              `      } catch {` && |\n| &&
              `        return null;` && |\n| &&
              `      }` && |\n| &&

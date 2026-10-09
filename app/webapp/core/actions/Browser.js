@@ -48,9 +48,17 @@ sap.ui.define(
       // A data: URL carrying active HTML combined with an attacker-chosen
       // .html/.hta filename is a known drive-by vector; block executable data:
       // MIME types outright (real downloads are octet-stream, images, pdf, ...).
+      // Tested on the URL as the BROWSER reads it, not on the raw argument:
+      // the URL parser drops leading whitespace and every tab or newline, and
+      // the data: URL processor strips the whitespace before the MIME type -
+      // " data:text/html,...", "da\tta:text/html,..." and
+      // "data: text/html,..." all passed a test on the raw string and were
+      // downloaded as the HTML file this guard exists to refuse.
+      // isSafeDownloadURL has just proven that it parses.
+      const href = new URL(args[1], window.location.origin).href;
       if (
-        /^data:(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
-          args[1],
+        /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
+          href,
         )
       ) {
         Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");
@@ -83,15 +91,17 @@ sap.ui.define(
     // the key `undefined`. Found on the samples-controls Shopping Cart demo
     // (demo_004), whose cart never survived a restart because its write
     // lives in a handler, not on a press. So a STRING payload is read as
-    // what it can only be here: the MODEL PATH of the structure.
-    function storagePayload(oController, raw) {
+    // what it can only be here: the MODEL PATH of the structure. URLHELPER
+    // takes its params structure the same way and had the same hole: from a
+    // handler, an empty mailto: opened and a bound REDIRECT was refused.
+    function boundPayload(oController, raw, action) {
       if (raw == null || typeof raw !== "string") return raw;
       // `${/S_STORAGE}`, `{/S_STORAGE}` (what _bind( ) renders) and a bare
       // `/S_STORAGE` all name the same path
-      const path = raw.trim().replace(/^\$?\{(.*)\}$/, "$1");
-      if (!path.startsWith("/")) {
+      const path = Lib.modelPathOf(raw);
+      if (!path) {
         Lib.logError(
-          `STORE_DATA: '${raw}' is neither a payload nor a model path`,
+          `${action}: '${raw}' is neither a payload nor a model path`,
         );
         return undefined;
       }
@@ -104,15 +114,15 @@ sap.ui.define(
         : undefined;
       const value = oModel?.getProperty(path);
       if (value == null) {
-        Lib.logError(`STORE_DATA: nothing bound at the model path '${path}'`);
+        Lib.logError(`${action}: nothing bound at the model path '${path}'`);
       }
       return value;
     }
 
     function evStoreData(oController, args) {
-      const payload = storagePayload(oController, args[1]);
+      const payload = boundPayload(oController, args[1], "STORE_DATA");
       // No payload means nothing to write - and nothing to REMOVE either:
-      // storagePayload has already logged why a string could not be
+      // boundPayload has already logged why a string could not be
       // resolved, and falling through here used to destructure {} and
       // call remove(undefined) under the app's prefix after that error.
       if (payload == null) {
@@ -283,7 +293,15 @@ sap.ui.define(
     }
 
     function evUrlHelper(oController, args) {
-      const params = args[2] ?? {};
+      // a STRING here is the model path of the bound params structure (a
+      // call queued from a handler, see boundPayload) - or a value that is
+      // none, logged there and not run: read as an object, every field of a
+      // string is undefined
+      const params =
+        typeof args[2] === "string"
+          ? boundPayload(oController, args[2], "URLHELPER")
+          : (args[2] ?? {});
+      if (params == null) return;
       // mailto:/sms:/tel: targets are handed to URLHelper as-is; a CR/LF in a
       // recipient/subject can inject extra headers in some mail clients.
       // Reject CR/LF in the string params up front.

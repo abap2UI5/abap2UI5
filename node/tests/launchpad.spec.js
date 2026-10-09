@@ -33,6 +33,12 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
         },
       },
       "z2ui5/core/Lib": Lib,
+      // the params of a handler-queued action arrive as a MODEL PATH and
+      // are read from the TRACKED framework model, as STORE_DATA reads its
+      // payload (browserActions spec)
+      "z2ui5/core/ViewSlots": {
+        trackedModel: (owner) => owner?.__tracked,
+      },
     },
     sandbox: {
       window: { location: { href } },
@@ -156,6 +162,156 @@ test.describe("CROSS_APP_NAV_TO_EXT", () => {
     expect(errors()).toContain(
       "CrossAppNav EXT: unsafe redirect URL 'https://evil.example/page#Other-app'",
     );
+  });
+
+  // The handover form samples-stack documents is
+  //   t_arg = ( `{ semanticObject: ... }` ) ( `$` && client->_bind( nav_params ) )
+  // Wired in a VIEW, UI5 evaluates `${/NAV_PARAMS}` when the view is built
+  // and the handler receives the structure. Queued from a HANDLER the action
+  // is data (T_CUSTOM) and the very same argument arrives as the literal
+  // string - which went into hrefForExternal as `params`, so the receiving
+  // app started without its startup parameters and nothing said why.
+  function navigator() {
+    const hrefArgs = [];
+    const toExternalArgs = [];
+    return {
+      hrefArgs,
+      toExternalArgs,
+      CrossAppNavigator: {
+        hrefForExternal: (o) => {
+          hrefArgs.push(o);
+          return "#Other-app";
+        },
+        toExternal: (o) => toExternalArgs.push(o),
+      },
+    };
+  }
+
+  function viewWithModel(data) {
+    const model = { getProperty: (path) => data[path] };
+    const view = { __tracked: model };
+    return { getView: () => view };
+  }
+
+  for (const spelling of ["${/NAV_PARAMS}", "{/NAV_PARAMS}", "/NAV_PARAMS"]) {
+    test(`params given as the model path '${spelling}' are read from the model`, () => {
+      const nav = navigator();
+      const { handlers, errors } = load({ oLaunchpad: nav });
+
+      handlers.CROSS_APP_NAV_TO_EXT(
+        viewWithModel({ "/NAV_PARAMS": { PRODUCT: "P1", QUANTITY: "3" } }),
+        [
+          "CROSS_APP_NAV_TO_EXT",
+          { semanticObject: "Other", action: "app" },
+          spelling,
+        ],
+      );
+
+      expect(nav.hrefArgs).toEqual([
+        {
+          target: { semanticObject: "Other", action: "app" },
+          params: { PRODUCT: "P1", QUANTITY: "3" },
+        },
+      ]);
+      expect(nav.toExternalArgs).toHaveLength(1);
+      expect(errors()).toEqual([]);
+    });
+  }
+
+  test("a model path with nothing bound is reported and does not navigate", () => {
+    const nav = navigator();
+    const { handlers, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT(viewWithModel({}), [
+      "CROSS_APP_NAV_TO_EXT",
+      { semanticObject: "Other", action: "app" },
+      "${/NAV_PARAMS}",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([]);
+    expect(nav.toExternalArgs).toEqual([]);
+    expect(errors()).toContain(
+      "CROSS_APP_NAV_TO_EXT: nothing bound at the model path '/NAV_PARAMS' (params)",
+    );
+  });
+
+  // The target is read like the params: a bound { semanticObject, action }
+  // structure works from a view wire and, as a model path, from a handler.
+  for (const spelling of ["{/S_TARGET}", "/S_TARGET"]) {
+    test(`a target given as the model path '${spelling}' is read from the model`, () => {
+      const nav = navigator();
+      const { handlers, errors } = load({ oLaunchpad: nav });
+
+      handlers.CROSS_APP_NAV_TO_EXT(
+        viewWithModel({
+          "/S_TARGET": { semanticObject: "Other", action: "app" },
+        }),
+        ["CROSS_APP_NAV_TO_EXT", spelling],
+      );
+
+      expect(nav.hrefArgs).toEqual([
+        {
+          target: { semanticObject: "Other", action: "app" },
+          params: undefined,
+        },
+      ]);
+      expect(nav.toExternalArgs).toHaveLength(1);
+      expect(errors()).toEqual([]);
+    });
+  }
+
+  // samples-stack wires the target as the JS object literal
+  // `{ semanticObject: "...", action: "display" }`, which UI5 evaluates on a
+  // view wire. Queued from a handler it is no JSON, arrived as the STRING,
+  // and the shell navigated to a hash composed from nothing.
+  test("an object-literal target queued from a handler is refused with the JSON hint", () => {
+    const nav = navigator();
+    const { handlers, redirects, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT(viewWithModel({}), [
+      "CROSS_APP_NAV_TO_EXT",
+      '{ semanticObject: "Z2UI5_CL_LP_SAMPLE_04",  action: "display" }',
+      "",
+      "EXT",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([]);
+    expect(nav.toExternalArgs).toEqual([]);
+    expect(redirects).toEqual([]);
+    expect(errors().some((m) => m.includes("spell it as JSON"))).toBe(true);
+  });
+
+  test("a target path with nothing bound is reported and does not navigate", () => {
+    const nav = navigator();
+    const { handlers, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT(viewWithModel({}), [
+      "CROSS_APP_NAV_TO_EXT",
+      "{/S_TARGET}",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([]);
+    expect(errors()).toContain(
+      "CROSS_APP_NAV_TO_EXT: nothing bound at the model path '/S_TARGET' (target)",
+    );
+  });
+
+  test("the empty params placeholder in front of EXT means no params", () => {
+    const nav = navigator();
+    const { handlers, redirects, errors } = load({ oLaunchpad: nav });
+
+    handlers.CROSS_APP_NAV_TO_EXT({}, [
+      "CROSS_APP_NAV_TO_EXT",
+      { semanticObject: "Other", action: "app" },
+      "",
+      "EXT",
+    ]);
+
+    expect(nav.hrefArgs).toEqual([
+      { target: { semanticObject: "Other", action: "app" }, params: undefined },
+    ]);
+    expect(redirects).toHaveLength(1);
+    expect(errors()).toEqual([]);
   });
 
   test("a navigator that throws is caught into the log, never up", () => {

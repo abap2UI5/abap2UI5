@@ -35,6 +35,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    "z2ui5/core/actions/Shortcuts",` && |\n| &&
              `    "z2ui5/core/actions/ViewOps",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    ControlCall,` && |\n| &&
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    Shortcuts,` && |\n| &&
              `    ViewOps,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -101,6 +103,30 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `      return executeSystem(oController, args, ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function resolveBoundArgs(oController, args) {` && |\n| &&
+             `      let oModel;` && |\n| &&
+             `      let looked = false;` && |\n| &&
+             `      return args.map((arg, i) => {` && |\n| &&
+             `        const path = i === 0 ? null : Lib.bindingPathOf(arg);` && |\n| &&
+             `        if (!path) return arg;` && |\n| &&
+             `        if (!looked) {` && |\n| &&
+             `          looked = true;` && |\n| &&
+             `          const oView = oController?.getView?.();` && |\n| &&
+             `          oModel = oView` && |\n| &&
+             `            ? (ViewSlots.trackedModel(oView) ?? oView.getModel?.())` && |\n| &&
+             `            : undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `        const value = oModel?.getProperty(path);` && |\n| &&
+             `        if (value === undefined || value === null) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``FrontendAction: '${args[0]}' - nothing bound at '${arg}', passed on as text``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return arg;` && |\n| &&
+             `        }` && |\n| &&
+             `        return value;` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function runCustom(item, oController) {` && |\n| &&
              `      try {` && |\n| &&
              `        let args = item;` && |\n| &&
@@ -112,7 +138,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        if (Array.isArray(args)) {` && |\n| &&
-             `          return oController.eF(...args);` && |\n| &&
+             `          return oController.eF(...resolveBoundArgs(oController, args));` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("customJs: execution failed", e);` && |\n| &&

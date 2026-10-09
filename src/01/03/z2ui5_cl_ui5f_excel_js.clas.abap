@@ -65,10 +65,14 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      return excelReady;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function hasOwn(obj, name) {` && |\n| &&
+             `      return Object.prototype.hasOwnProperty.call(obj, name);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function member(obj, names) {` && |\n| &&
              `      if (!obj || typeof obj !== "object") return undefined;` && |\n| &&
              `      for (const name of names) {` && |\n| &&
-             `        if (obj[name] !== undefined) return obj[name];` && |\n| &&
+             `        if (hasOwn(obj, name) && obj[name] !== undefined) return obj[name];` && |\n| &&
              `        const hit = Object.keys(obj).find(` && |\n| &&
              `          (k) => k.toLowerCase() === name.toLowerCase(),` && |\n| &&
              `        );` && |\n| &&
@@ -119,7 +123,7 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `` && |\n| &&
              `    function resolveKey(row, key) {` && |\n| &&
              `      if (!row || typeof row !== "object" || Array.isArray(row)) return key;` && |\n| &&
-             `      if (key in row) return key;` && |\n| &&
+             `      if (hasOwn(row, key)) return key;` && |\n| &&
              `      const hit = Object.keys(row).find(` && |\n| &&
              `        (k) => k.toLowerCase() === String(key).toLowerCase(),` && |\n| &&
              `      );` && |\n| &&
@@ -181,7 +185,8 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `        const valueRow = [];` && |\n| &&
              `        const formatRow = [];` && |\n| &&
              `        keys.forEach((key, i) => {` && |\n| &&
-             `          const cell = toCell(row?.[key], formats[i]);` && |\n| &&
+             `          const own = row != null && hasOwn(row, key);` && |\n| &&
+             `          const cell = toCell(own ? row[key] : undefined, formats[i]);` && |\n| &&
              `          valueRow.push(cell.value);` && |\n| &&
              `          formatRow.push(cell.format);` && |\n| &&
              `        });` && |\n| &&
@@ -191,20 +196,44 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      return { values, formats: cellFormats, columns: cols.length };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function isDateFormat(format) {` && |\n| &&
-             `      const bare = String(format ?? "")` && |\n| &&
+             `    function unquotedFormat(format) {` && |\n| &&
+             `      return String(format ?? "")` && |\n| &&
              `        .replace(/"[^"]*"/g, "")` && |\n| &&
-             `        .replace(/\\./g, "")` && |\n| &&
-             `        .replace(/\[[^\]]*\]/g, "");` && |\n| &&
-             `      return /[dy]/i.test(bare) || /h/i.test(bare);` && |\n| &&
+             `        .replace(/\\./g, "");` && |\n| &&
+             `    }` && |\n| &&
+             `    function bareFormat(format) {` && |\n| &&
+             `      return unquotedFormat(format).replace(/\[[^\]]*\]/g, "");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function formatParts(format) {` && |\n| &&
+             `      const bare = bareFormat(format);` && |\n| &&
+             `      const elapsed = /\[(h+|m+|s+)\]/i.test(unquotedFormat(format));` && |\n| &&
+             `      return {` && |\n| &&
+             `        hasDate: /[dy]/i.test(bare),` && |\n| &&
+             `        hasTime: elapsed || /[hs]/i.test(bare),` && |\n| &&
+             `        elapsed,` && |\n| &&
+             `      };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isDateFormat(format) {` && |\n| &&
+             `      const { hasDate, hasTime } = formatParts(format);` && |\n| &&
+             `      return hasDate || hasTime;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function serialToDuration(serial) {` && |\n| &&
+             `      const total = Math.round(Math.abs(serial) * 86400);` && |\n| &&
+             `      const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
+             `      const text = ``${pad(Math.floor(total / 3600))}:${pad(` && |\n| &&
+             `        Math.floor((total % 3600) / 60),` && |\n| &&
+             `      )}:${pad(total % 60)}``;` && |\n| &&
+             `      return serial < 0 ? ``-${text}`` : text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function serialToIso(serial, format) {` && |\n| &&
+             `      const { hasDate, hasTime, elapsed } = formatParts(format);` && |\n| &&
+             `      if (elapsed && !hasDate) return serialToDuration(serial);` && |\n| &&
              `      const ms = Math.round(serial * DAY_MS) + EXCEL_EPOCH_MS;` && |\n| &&
              `      const iso = new Date(ms).toISOString();` && |\n| &&
-             `      const bare = String(format).replace(/"[^"]*"/g, "");` && |\n| &&
-             `      const hasDate = /[dy]/i.test(bare);` && |\n| &&
-             `      const hasTime = /h/i.test(bare);` && |\n| &&
              `      if (hasDate && hasTime) return iso.slice(0, 19);` && |\n| &&
              `      if (hasTime) return iso.slice(11, 19);` && |\n| &&
              `      return iso.slice(0, 10);` && |\n| &&
@@ -395,7 +424,8 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `                ? book.worksheets.getItem(sheetName)` && |\n| &&
              `                : book.worksheets.getActiveWorksheet();` && |\n| &&
              `              anchor = sheet.getRange(target);` && |\n| &&
-             `            }` && |\n| &&
+             `            }` && |\n|.
+    result = result &&
              `            const range = anchor.getResizedRange(rowCount - 1, columnCount - 1);` && |\n| &&
              `` && |\n| &&
              `            range.numberFormat = matrix.formats;` && |\n| &&
@@ -424,8 +454,7 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `            await context.sync();` && |\n| &&
              `` && |\n| &&
              `            if (range.rowCount * range.columnCount > limit) {` && |\n| &&
-             `              range = range.getUsedRangeOrNullObject(true);` && |\n|.
-    result = result &&
+             `              range = range.getUsedRangeOrNullObject(true);` && |\n| &&
              `              range.load("address,rowCount,columnCount,isNullObject");` && |\n| &&
              `              await context.sync();` && |\n| &&
              `            }` && |\n| &&

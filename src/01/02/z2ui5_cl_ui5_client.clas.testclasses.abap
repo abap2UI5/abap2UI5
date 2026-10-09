@@ -104,6 +104,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_data     FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_no_data  FOR TESTING RAISING cx_static_check.
+    METHODS test_message_box_messages FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_hash_routing         FOR TESTING RAISING cx_static_check.
     METHODS test_hash_routing_lower   FOR TESTING RAISING cx_static_check.
@@ -462,6 +463,45 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( lt_row ).
 
     cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+
+  ENDMETHOD.
+
+  METHOD test_message_box_messages.
+
+    " a message table: one box for all of them, its type and title taken
+    " from the most severe message, every text a bullet of the details -
+    " escaped, so a field name in angle brackets and a quote survive as text
+    TYPES:
+      BEGIN OF ty_s_msg,
+        type    TYPE string,
+        message TYPE string,
+      END OF ty_s_msg.
+    DATA lt_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+    " the warning first: the error behind it still makes it an error box
+    lt_msg = VALUE #( ( type = `W` message = `Plant "1000" & more` )
+                      ( type = `E` message = `Enter a value for <MATNR>` ) ).
+
+    li_client->message_box_display( lt_msg ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","error","2 Messages found:",` &&
+              `{"details":"<ul><li>Plant &quot;1000&quot; &amp; more</li>` &&
+              `<li>Enter a value for &lt;MATNR&gt;</li></ul>","title":"Error"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+    " one message is the text itself, and a title the app passes wins
+    CLEAR mo_action->ms_next-s_action-t_custom.
+    DELETE lt_msg INDEX 2.
+    li_client->message_box_display( text  = lt_msg
+                                    title = `Check` ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `["MESSAGE_BOX","warning","Plant \"1000\" & more",{"title":"Check"}]`
+        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1195,6 +1235,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
         act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+    " a LISTED boolean is dropped when false - ajson writes abap_false as the
+    " literal `false`, never empty, and an emptiness test used to keep it
+    " (samples-controls app 241 lists EXPANDED for exactly this) - and kept
+    " when true
+    li_filter = NEW lcl_initial_paths_filter( VALUE #( ( `EXPANDED` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_false
+        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `false` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `true` ) ) ).
     " an object/array visit always passes, or the row around a dropped field would go
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
@@ -1214,6 +1265,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
         price  TYPE p LENGTH 9 DECIMALS 2,
         weight TYPE f,
         count  TYPE i,
+        " abap_false is initial too - ajson writes it as `false`, which an
+        " emptiness test used to keep
+        flag   TYPE abap_bool,
       END OF ty_s_row.
 
     DATA(ls_row) = VALUE ty_s_row( name = `A` ).

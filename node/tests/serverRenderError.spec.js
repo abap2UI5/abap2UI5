@@ -32,6 +32,7 @@ function load({ confirmSent = () => {} } = {}) {
       "z2ui5/core/Lib": {
         isValidContextId: () => false,
         logError: () => {},
+        byteLength: (s) => s.length,
       },
       "z2ui5/core/Session": { confirmSent },
     },

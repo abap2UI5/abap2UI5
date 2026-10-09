@@ -704,6 +704,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
   PRIVATE SECTION.
 
+    " a token template of filter_get_token_range_mapping with {LOW} and
+    " {HIGH} filled in as written
+    CLASS-METHODS filter_token_fill
+      IMPORTING
+        template      TYPE string
+        low           TYPE string
+        high          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_get_class_descr_on_cloud
       IMPORTING
         classname     TYPE clike
@@ -1195,8 +1205,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     result = val.
     " spaces and tabs alternate at either end (`\t \tx`) - one pass of each
-    " leaves the inner layer standing, so strip until nothing changes
-    DO 10 TIMES.
+    " leaves the inner layer standing, so strip until nothing changes. No
+    " fixed number of passes: ten left the eleventh layer of a padded value
+    " standing. Every pass that changes something shortens the string, so
+    " the loop ends
+    DO.
       DATA(lv_before) = result.
       result = shift_left( shift_right( result ) ).
       result = shift_right( val = result
@@ -1291,8 +1304,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       IF lv_value IS INITIAL.
         lv_value = lt_mapping[ n = `EQ` ]-v. "#EC CI_SORTSEQ
       ENDIF.
-      REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
-      REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
+      lv_value = filter_token_fill( template = lv_value
+                                    low      = lr_row->low
+                                    high     = lr_row->high ).
 
       " an excluding row must not render like its including twin - negate the
       " token so the MultiInput shows the filter's real meaning
@@ -1308,6 +1322,36 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD filter_token_fill.
+
+    " built by concatenation, not REPLACE ... WITH: LOW and HIGH are data,
+    " and the transpiled runtime reads a WITH text like a regex replacement
+    " ( `$&`, `$$`, `\{` change - backlog item runtime-replace-with-literal ).
+    " HIGH first: a LOW that spells `{HIGH}` is then never substituted a
+    " second time ( {LOW} stands before {HIGH} in every template )
+    DATA lv_off  TYPE i.
+    DATA lv_rest TYPE i.
+
+    result = template.
+    lv_off = find( val = result
+                   sub = `{HIGH}` ).
+    IF lv_off >= 0.
+      lv_rest = lv_off + 6.
+      result = substring( val = result
+                          len = lv_off ) && high && substring( val = result
+                                                               off = lv_rest ).
+    ENDIF.
+    lv_off = find( val = result
+                   sub = `{LOW}` ).
+    IF lv_off >= 0.
+      lv_rest = lv_off + 5.
+      result = substring( val = result
+                          len = lv_off ) && low && substring( val = result
+                                                              off = lv_rest ).
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD itab_filter_by_val.
     " TRANSPILER NOTE: ABAP CS is always case-insensitive, so the two match
     " branches below differ deliberately: ignore_case = abap_true uses
@@ -1319,6 +1363,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_search) = COND string( WHEN ignore_case = abap_true
                                    THEN to_upper( val )
                                    ELSE val ).
+    " an empty search is no filter: every row stays. Said here rather than
+    " left to the match below - whether find( ) or CS reports a hit for an
+    " empty substring is not something to build on, and a row with nothing
+    " printable in it (only a table of children, only a reference) matched
+    " nothing and was deleted
+    IF lv_search IS INITIAL.
+      RETURN.
+    ENDIF.
     DATA(lv_field_count) = lines( fields ).
 
     LOOP AT tab ASSIGNING <row>.
@@ -1381,7 +1433,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = val
+        " the cached spelling, not the caller's: the answer is stored under
+        " the upper-case name, so the question has to be asked in it too -
+        " otherwise the first caller's spelling decides every later answer
+        cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = lv_name
                                               EXCEPTIONS type_not_found = 1 ).
         IF sy-subrc = 0.
           result = abap_true.
@@ -1934,9 +1989,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
              cl_abap_typedescr=>typekind_oref.
 
         WHEN OTHERS.
+          " through data_get_string, not a plain MOVE: that writes the sign
+          " BEHIND a number, so -5 read `5-` and a packed -12.50 `12.50-`
           INSERT VALUE #(
             n = lr_attri->name
-            v = <component>
+            v = data_get_string( <component> )
             ) INTO TABLE result.
       ENDCASE.
 
@@ -2262,9 +2319,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " the box takes its type/title from the FIRST message, also when several
-    " are collapsed into one box below
-    DATA(lv_type) = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+    " the box takes its type/title from the MOST SEVERE message, also when
+    " several are collapsed into one box below: a warning followed by an
+    " error is an error box (it took the first message's type until
+    " 2026-10, which opened [W, E] as a warning). Error over warning over
+    " success and information, which rank the same - the first of them wins
+    DATA(lv_type) = ``.
+    DATA(lv_rank) = -1.
+    LOOP AT lt_msg REFERENCE INTO DATA(lr_type).
+      DATA(lv_type_row) = ui5_get_msg_type( lr_type->type ).
+      DATA(lv_rank_row) = COND i( WHEN lv_type_row = cs_ui5_msg_type-e THEN 2
+                                  WHEN lv_type_row = cs_ui5_msg_type-w THEN 1
+                                  ELSE 0 ).
+      IF lv_rank_row > lv_rank.
+        lv_rank = lv_rank_row.
+        lv_type = lv_type_row.
+      ENDIF.
+    ENDLOOP.
     result-title = lv_type.
     result-type  = to_lower( lv_type ).
 
@@ -2273,8 +2344,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " several messages: a counting headline plus every text as a bullet
-    result-text = | { lv_lines } Messages found: |.
+    " several messages: a counting headline plus every text as a bullet. No
+    " blank around it - the box shows the text as written, and the template
+    " used to carry one on either side
+    result-text = |{ lv_lines } Messages found:|.
     DATA lt_detail_items TYPE string_table.
     " the texts are data inside markup, escaped like every sibling renderer
     " escapes its values: unescaped, `Enter a value for <MATNR>` lost its

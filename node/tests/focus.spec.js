@@ -211,6 +211,39 @@ test("applies the raw selection for controls without a text field", () => {
   expect(target.applied[0].selectionStart).toBe(0);
 });
 
+// A selection property that is no number became NaN, which the clamp passed
+// through unchanged (every comparison with NaN is false) into
+// applyFocusInfo - it is the property default, 0, instead.
+test("a non-numeric selection is restored as 0, never as NaN", () => {
+  const dom = inputDom({ value: "abc" });
+  const target = targetWithInput(dom);
+  const { Focus } = load({ target, activeElement: null });
+
+  run(Focus, { selectionStart: "abc", selectionEnd: "" });
+
+  expect(target.applied).toHaveLength(1);
+  expect(target.applied[0].selectionStart).toBe(0);
+  expect(target.applied[0].selectionEnd).toBe(0);
+});
+
+test("a non-numeric selection on a control without a text field is 0 too", () => {
+  const target = {
+    applied: [],
+    getFocusInfo: () => ({ id: "btn" }),
+    applyFocusInfo(info) {
+      this.applied.push(info);
+    },
+    getFocusDomRef: () => ({ tagName: "BUTTON" }),
+    getDomRef: () => ({ querySelector: () => null }),
+  };
+  const { Focus } = load({ target, activeElement: null });
+
+  run(Focus, { selectionStart: "x", selectionEnd: "2.7" });
+
+  expect(target.applied[0].selectionStart).toBe(0);
+  expect(target.applied[0].selectionEnd).toBe(2);
+});
+
 // The control moves the focus like SET_FOCUS, which replaces it, and asks
 // the same guard first: an EMBEDDED app moves it only while the user works
 // in it (core/ScrollFocus.js mayMoveFocus) - never out of the host's field.

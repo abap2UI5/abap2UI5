@@ -172,9 +172,10 @@ CLASS z2ui5_cl_ui5f_variants_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      });` && |\n| &&
              `    });` && |\n| &&
+             `` && |\n| &&
              `    oFilterBar.registerGetFiltersWithValues(() =>` && |\n| &&
              `      oFilterBar` && |\n| &&
-             `        .getFilterGroupItems()` && |\n| &&
+             `        .getAllFilterItems()` && |\n| &&
              `        .filter((item) => String(filterItemValue(item)).length > 0),` && |\n| &&
              `    );` && |\n| &&
              `  }` && |\n| &&

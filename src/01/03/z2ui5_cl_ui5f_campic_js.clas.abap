@@ -116,8 +116,9 @@ CLASS z2ui5_cl_ui5f_campic_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (Lib.isDestroyed(this)) return false;` && |\n| &&
-             `        this.setProperty("value", resultb64);` && |\n| &&
-             `        this.setProperty("thumbnail", thumbB64);` && |\n| &&
+             `` && |\n| &&
+             `        this.setProperty("value", resultb64, true);` && |\n| &&
+             `        this.setProperty("thumbnail", thumbB64, true);` && |\n| &&
              `        this.fireOnPhoto({ photo: resultb64 });` && |\n| &&
              `        this._stopCamera();` && |\n| &&
              `        return true;` && |\n| &&

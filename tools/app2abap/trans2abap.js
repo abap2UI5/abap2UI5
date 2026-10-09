@@ -74,8 +74,9 @@ function assertSameProgram(before, after, relPath) {
     };
     if (collapse(before, 'the source') !== collapse(after, 'the comment-stripped source')) {
         throw new Error(
-            `${relPath}: stripping the comments changed the program - ` +
-            'a construct terser reprints differently; report it and embed this file unstripped.',
+            `${relPath}: embedding changed the program - the comment strip, or the ` +
+            'trailing whitespace every embedded line loses (inside a template literal ' +
+            'it is part of the string: write it as ${" "} or \\x20 there).',
         );
     }
 }
@@ -132,7 +133,12 @@ async function stripJsComments(source, file, relPath) {
     const prettier = appPrettier();
     const config = (await prettier.resolveConfig(file)) || {};
     code = await prettier.format(code, { ...config, parser: 'babel' });
-    assertSameProgram(source, code, relPath);
+    // Compared against what the ABAP class hands back, not against `code`:
+    // formatAsAbapClass strips the trailing whitespace of every line on the
+    // way in, and inside a multi-line template literal that whitespace is
+    // part of the string. Checked against `code` alone, `\`a  \nb\`` went
+    // into the class as `\`a\nb\`` and the proof above said nothing.
+    assertSameProgram(source, embeddedValue(code, false), relPath);
     return code;
 }
 
@@ -608,5 +614,11 @@ async function main() {
     }
 }
 
-// Run the main function
-main();
+// Run the main function - only as the script itself (npm run auto_app2abap):
+// node/tests/trans2abap.spec.js requires the module for its pure helpers and
+// must not regenerate src/01/03 by doing so.
+if (require.main === module) {
+    main();
+}
+
+module.exports = { formatAsAbapClass, embeddedValue, stripJsComments, assertSameProgram };

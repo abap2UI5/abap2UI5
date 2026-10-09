@@ -682,9 +682,15 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
+             `      if (!control) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``CONTROL_BY_ID: no control '${id}'${view ? `` in view '${view}'`` : ""} - '${method}' not called``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      const inherited =` && |\n| &&
              `        method === "constructor" || isRootPrototypeMethod(control, method);` && |\n| &&
-             `      if (!control || inherited || typeof control[method] !== "function") {` && |\n| &&
+             `      if (inherited || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&

@@ -1177,9 +1177,18 @@ sap.ui.define(
       // itself; this wire has no whitelist of its own (the target decides),
       // so the check is what stands between the wire and Object.prototype. A
       // control that implements its own toString keeps it callable.
+      if (!control) {
+        // its own message: "not callable" sent whoever read the log looking
+        // for a wrong method name when the id was what did not resolve - a
+        // typo, a control of a closed popup, a view that is not rendered
+        Lib.logError(
+          `CONTROL_BY_ID: no control '${id}'${view ? ` in view '${view}'` : ""} - '${method}' not called`,
+        );
+        return;
+      }
       const inherited =
         method === "constructor" || isRootPrototypeMethod(control, method);
-      if (!control || inherited || typeof control[method] !== "function") {
+      if (inherited || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );

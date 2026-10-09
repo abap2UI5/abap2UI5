@@ -903,6 +903,9 @@ CLASS ltcl_itab DEFINITION FINAL
     METHODS test_filter_no_match    FOR TESTING RAISING cx_static_check.
     METHODS test_filter_elementary  FOR TESTING RAISING cx_static_check.
     METHODS test_filter_deep_row    FOR TESTING RAISING cx_static_check.
+    " an empty search is no filter - every row stays, also one with nothing
+    " printable in it and with a field list that names nothing
+    METHODS test_filter_empty_search FOR TESTING RAISING cx_static_check.
     METHODS test_corresponding      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1004,6 +1007,46 @@ CLASS ltcl_itab IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_filter_empty_search.
+
+    TYPES:
+      BEGIN OF ty_s_deep,
+        children TYPE string_table,
+        ref      TYPE REF TO data,
+      END OF ty_s_deep.
+    DATA lt_deep   TYPE STANDARD TABLE OF ty_s_deep WITH EMPTY KEY.
+    DATA lt_fields TYPE string_table.
+
+    " a row with nothing printable used to match nothing and was deleted -
+    " the empty search filtered where it should not filter at all
+    lt_deep = VALUE #( ( children = VALUE #( ( `London` ) ) )
+                       ( children = VALUE #( ) ) ).
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = ``
+                                                CHANGING  tab    = lt_deep ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_deep ) ).
+
+    " the ordinary rows, case-insensitive and through a field list naming a
+    " component the rows do not have: still no filter
+    DATA(lt_row) = get_rows( ).
+    APPEND `NO_SUCH_FIELD` TO lt_fields.
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = ``
+                                                          fields      = lt_fields
+                                                          ignore_case = abap_true
+                                                CHANGING  tab         = lt_row ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_row ) ).
+
+    " a blank-padded CHAR search is empty too - its trailing blanks are no text
+    DATA lv_blank TYPE c LENGTH 10.
+    lt_row = get_rows( ).
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = lv_blank
+                                                CHANGING  tab    = lt_row ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_row ) ).
+
+  ENDMETHOD.
+
   METHOD test_filter_elementary.
 
     " a table with an elementary line type has no components - the filter
@@ -1079,6 +1122,7 @@ CLASS ltcl_msg DEFINITION FINAL
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
     METHODS test_token_numeric_range FOR TESTING RAISING cx_static_check.
     METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
+    METHODS test_token_dollar_value FOR TESTING RAISING cx_static_check.
     METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
@@ -1284,7 +1328,7 @@ CLASS ltcl_msg IMPLEMENTATION.
   METHOD test_box_multiple.
 
     " several messages collapse into a count plus an HTML list, and the box
-    " takes its severity from the first message
+    " takes its severity from the most severe message, not the first
     DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
 
     lt_msg = VALUE #( ( text = `first`  type = `W` )
@@ -1293,8 +1337,23 @@ CLASS ltcl_msg IMPLEMENTATION.
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
 
     cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Warning`
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
                                         act = ls_box-title ).
+    cl_abap_unit_assert=>assert_equals( exp = `error`
+                                        act = ls_box-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `2 Messages found:`
+                                        act = ls_box-text ).
+
+    " a warning outranks success and information wherever it stands, and
+    " between those two the first one decides
+    lt_msg = VALUE #( ( text = `a` type = `S` )
+                      ( text = `b` type = `I` )
+                      ( text = `c` type = `W` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `warning`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
+    DELETE lt_msg INDEX 3.
+    cl_abap_unit_assert=>assert_equals( exp = `success`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
     cl_abap_unit_assert=>assert_equals(
         exp = `<ul><li>first</li><li>second</li></ul>`
         act = ls_box-details ).
@@ -1443,6 +1502,28 @@ CLASS ltcl_msg IMPLEMENTATION.
                                         act = lt_token[ 1 ]-key ).
     cl_abap_unit_assert=>assert_equals( exp = `-5...10`
                                         act = lt_token[ 2 ]-key ).
+
+  ENDMETHOD.
+
+  METHOD test_token_dollar_value.
+
+    " LOW / HIGH are data and go into the token as written - `$&`, `$$` and
+    " a backslash before a brace included, and a value that spells the other
+    " placeholder is not substituted again
+    DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+
+    lt_range = VALUE #( ( sign = `I` option = `EQ` low = `a$&b` )
+                        ( sign = `I` option = `BT` low = `$$` high = `\{x\}` )
+                        ( sign = `I` option = `BT` low = `{HIGH}` high = `9` ) ).
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `=a$&b`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `$$...\{x\}`
+                                        act = lt_token[ 2 ]-key ).
+    cl_abap_unit_assert=>assert_equals( exp = `{HIGH}...9`
+                                        act = lt_token[ 3 ]-key ).
 
   ENDMETHOD.
 
@@ -1905,6 +1986,397 @@ CLASS ltcl_time IMPLEMENTATION.
         exp = 0
         act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = lv_initial
                                                                  time_to   = `20261003101500.0000000` ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" Edge cases of the public helpers apps call: initial and empty input,
+" special and non-ASCII characters, signs, and calendar boundaries
+CLASS ltcl_edge DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    " a string from its UTF-8 bytes - the source stays 7-bit ASCII
+    CLASS-METHODS utf8
+      IMPORTING
+        hex           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS test_url_value_with_equals  FOR TESTING RAISING cx_static_check.
+    METHODS test_url_empty_input        FOR TESTING RAISING cx_static_check.
+    METHODS test_url_name_without_value FOR TESTING RAISING cx_static_check.
+    METHODS test_url_create_empty_value FOR TESTING RAISING cx_static_check.
+    METHODS test_trim_blank_only        FOR TESTING RAISING cx_static_check.
+    METHODS test_trim_case_unicode      FOR TESTING RAISING cx_static_check.
+    METHODS test_trim_many_layers       FOR TESTING RAISING cx_static_check.
+    METHODS test_utf8_roundtrip         FOR TESTING RAISING cx_static_check.
+    METHODS test_utf8_empty             FOR TESTING RAISING cx_static_check.
+    METHODS test_base64_roundtrip       FOR TESTING RAISING cx_static_check.
+    METHODS test_escape_html_entity     FOR TESTING RAISING cx_static_check.
+    METHODS test_struc_pairs_signs      FOR TESTING RAISING cx_static_check.
+    METHODS test_class_exists_case      FOR TESTING RAISING cx_static_check.
+    " a lower-case name asked FIRST answers like the upper-case one
+    METHODS test_class_exists_lower     FOR TESTING RAISING cx_static_check.
+    METHODS test_bool_to_json           FOR TESTING RAISING cx_static_check.
+    METHODS test_token_excluding_bt     FOR TESTING RAISING cx_static_check.
+    METHODS test_uuid_shape             FOR TESTING RAISING cx_static_check.
+    METHODS test_subtract_leap_day      FOR TESTING RAISING cx_static_check.
+    METHODS test_subtract_year_end      FOR TESTING RAISING cx_static_check.
+    METHODS test_diff_ms_leap_day       FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_type_case          FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_edge IMPLEMENTATION.
+
+  METHOD utf8.
+
+    DATA lv_xstr TYPE xstring.
+    lv_xstr = hex.
+    result = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_xstr ).
+
+  ENDMETHOD.
+
+  METHOD test_url_value_with_equals.
+
+    " a base64 value ends in `=` - only the FIRST `=` separates name and
+    " value, the rest belongs to the value
+    cl_abap_unit_assert=>assert_equals(
+        exp = `ab==`
+        act = z2ui5_cl_ui5_util_context=>url_param_get( val = `token`
+                                                        url = `?token=ab==&x=1` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `1`
+        act = z2ui5_cl_ui5_util_context=>url_param_get( val = `x`
+                                                        url = `?token=ab==&x=1` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_empty_input.
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_param_get_tab( `` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_param_get_tab( `?` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_param_get_tab( `?&&` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_util_context=>url_param_get( val = `a`
+                                                        url = `` ) ).
+    " a name that is not there - and the empty name, which matches no
+    " parameter either
+    cl_abap_unit_assert=>assert_equals(
+        exp = ``
+        act = z2ui5_cl_ui5_util_context=>url_param_get( val = ``
+                                                        url = `?=x&a=1` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_name_without_value.
+
+    " `?debug&a=1` - a flag without `=` is a parameter with an empty value,
+    " and it does not swallow the one after it
+    DATA(lt_param) = z2ui5_cl_ui5_util_context=>url_param_get_tab( `?debug&a=1` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_param ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `debug`
+                                        act = lt_param[ 1 ]-n ).
+    cl_abap_unit_assert=>assert_initial( lt_param[ 1 ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `1`
+                                        act = lt_param[ 2 ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_url_create_empty_value.
+
+    " an empty LAST value keeps its `=` - only the separator behind it goes
+    DATA lt_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value.
+
+    lt_params = VALUE #( ( n = `a` v = `1` )
+                         ( n = `b` v = `` ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `a=1&b=`
+        act = z2ui5_cl_ui5_util_context=>url_param_create_url( lt_params ) ).
+
+  ENDMETHOD.
+
+  METHOD test_trim_blank_only.
+
+    DATA lv_val TYPE string.
+    lv_val = |  { z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab }  |.
+
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_ui5_util_context=>c_trim( lv_val ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_ui5_util_context=>c_trim( `` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_ui5_util_context=>c_trim_upper( `   ` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_trim_case_unicode.
+
+    " to_upper / to_lower are not ASCII-only
+    DATA(lv_lower) = utf8( `C3A4C3B6C3BC` ).
+    DATA(lv_upper) = utf8( `C384C396C39C` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_upper
+                                        act = z2ui5_cl_ui5_util_context=>c_trim_upper( | { lv_lower } | ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_lower
+                                        act = z2ui5_cl_ui5_util_context=>c_trim_lower( | { lv_upper } | ) ).
+
+  ENDMETHOD.
+
+  METHOD test_trim_many_layers.
+
+    " spaces and tabs alternating at the edges, more layers than a fixed
+    " number of passes - a pasted value is trimmed completely, whatever
+    " the padding looks like
+    DATA lv_pad TYPE string.
+    DO 12 TIMES.
+      lv_pad = |{ lv_pad } { z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab }|.
+    ENDDO.
+
+    cl_abap_unit_assert=>assert_equals( exp = `x`
+                                        act = z2ui5_cl_ui5_util_context=>c_trim( |{ lv_pad }x{ lv_pad }| ) ).
+
+  ENDMETHOD.
+
+  METHOD test_utf8_roundtrip.
+
+    " a string beyond Latin-1 - an umlaut, the euro sign - is UTF-8 on the
+    " way out and back unchanged
+    DATA(lv_text) = |a { utf8( `C3A4` ) } { utf8( `E282AC` ) } <&>|.
+
+    DATA(lv_xstr) = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( lv_text ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `6120C3A420E282AC203C263E`
+                                        act = |{ lv_xstr }| ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_text
+                                        act = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_xstr ) ).
+
+  ENDMETHOD.
+
+  METHOD test_utf8_empty.
+
+    DATA lv_empty TYPE xstring.
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( `` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_base64_roundtrip.
+
+    DATA lv_empty TYPE xstring.
+
+    DATA(lv_xstr) = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( |{ utf8( `C3A4` ) }?| ).
+    DATA(lv_b64) = z2ui5_cl_ui5_util_context=>conv_encode_x_base64( lv_xstr ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `w6Q/`
+                                        act = lv_b64 ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_xstr
+                                        act = z2ui5_cl_ui5_util_context=>conv_decode_x_base64( lv_b64 ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>conv_encode_x_base64( lv_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD test_escape_html_entity.
+
+    " an entity in the input is text and escaped again - the method has no
+    " notion of "already escaped", which is what makes it safe to apply once
+    cl_abap_unit_assert=>assert_equals( exp = `&amp;amp; &amp;lt;`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_html( `&amp; &lt;` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_html( `` ) ).
+    " outside ASCII nothing is markup - an umlaut, the euro sign, an emoji
+    DATA(lv_wide) = utf8( `C3A420E282AC20F09F9880` ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_wide
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_html( lv_wide ) ).
+
+  ENDMETHOD.
+
+  METHOD test_struc_pairs_signs.
+
+    " a number reads as the number it is - the sign in front, no padding -
+    " not the way a MOVE into a string writes it (`5-`, `12.50-`)
+    TYPES:
+      BEGIN OF ty_s_num,
+        count  TYPE i,
+        amount TYPE p LENGTH 8 DECIMALS 2,
+        label  TYPE c LENGTH 10,
+      END OF ty_s_num.
+
+    DATA(ls_num) = VALUE ty_s_num( count  = -5
+                                   amount = `-12.50`
+                                   label  = `abc` ).
+
+    DATA(lt_pair) = z2ui5_cl_ui5_util_context=>itab_get_by_struc( ls_num ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `-5`
+                                        act = lt_pair[ n = `COUNT` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `-12.50`
+                                        act = lt_pair[ n = `AMOUNT` ]-v ).
+    cl_abap_unit_assert=>assert_equals( exp = `abc`
+                                        act = lt_pair[ n = `LABEL` ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_class_exists_lower.
+
+    " the answer is cached under the upper-case name, and RTTI is asked in
+    " that spelling too: it used to be asked in the caller's, so a class
+    " first asked in lower case could be cached as missing for the whole
+    " roll area. The name comes from a typed reference (a namespace rename
+    " rewrites it) and is asked here first - no other test asks for it
+    DATA lo_class TYPE REF TO z2ui5_cl_ui5_util_http.
+    DATA(lv_name) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_class ).
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( to_lower( lv_name ) ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( lv_name ) ).
+
+  ENDMETHOD.
+
+  METHOD test_class_exists_case.
+
+    " the answer is cached per upper-case name, so the spelling of the FIRST
+    " question must not decide the answer to every later one
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    DATA(lv_name) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app ).
+
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `zz_no_such_class_4711` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `ZZ_NO_SUCH_CLASS_4711` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `` ) ).
+    " an interface is no class
+    cl_abap_unit_assert=>assert_equals(
+        exp = z2ui5_cl_ui5_util_context=>rtti_check_class_exists( lv_name )
+        act = z2ui5_cl_ui5_util_context=>rtti_check_class_exists( to_lower( lv_name ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bool_to_json.
+
+    DATA lv_bool TYPE abap_bool.
+    DATA lv_char TYPE c LENGTH 1.
+
+    lv_bool = abap_true.
+    cl_abap_unit_assert=>assert_equals( exp = `true`
+                                        act = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( lv_bool ) ).
+    lv_bool = abap_false.
+    cl_abap_unit_assert=>assert_equals( exp = `false`
+                                        act = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( lv_bool ) ).
+    " a flag-sized CHAR that is no boolean type goes through as it is
+    lv_char = `X`.
+    cl_abap_unit_assert=>assert_equals( exp = `X`
+                                        act = z2ui5_cl_ui5_util_context=>boolean_abap_2_json( lv_char ) ).
+
+  ENDMETHOD.
+
+  METHOD test_token_excluding_bt.
+
+    " an excluding interval reads negated, like every excluding row
+    DATA lt_range TYPE z2ui5_cl_ui5_util_context=>ty_t_range.
+    DATA ls_range TYPE z2ui5_cl_ui5_util_context=>ty_s_range.
+    DATA lv_sign TYPE string.
+    DATA lv_option TYPE string.
+
+    lv_sign   = `E`.
+    lv_option = `BT`.
+    ls_range-sign   = lv_sign.
+    ls_range-option = lv_option.
+    ls_range-low    = `1`.
+    ls_range-high   = `5`.
+    APPEND ls_range TO lt_range.
+
+    DATA(lt_token) = z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( lt_range ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `!(1...5)`
+                                        act = lt_token[ 1 ]-key ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>filter_get_token_t_by_range_t( VALUE z2ui5_cl_ui5_util_context=>ty_t_range( ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_uuid_shape.
+
+    DATA(lv_first) = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    DATA(lv_second) = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 32
+                                        act = strlen( lv_first ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( to_upper( lv_first ) CO `0123456789ABCDEF` ) ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_first
+                                         act = lv_second ).
+
+  ENDMETHOD.
+
+  METHOD test_subtract_leap_day.
+
+    " back across midnight into the 29th of February of a leap year. Compared
+    " in whole seconds: the transpiled runtime's cl_abap_tstmp answers with a
+    " stray fraction (20240229235950.0005376) - a runtime artefact, see the
+    " packed-precision entry of the abap-check skill, section 4
+    DATA lv_time TYPE timestampl.
+    DATA lv_second TYPE p LENGTH 8 DECIMALS 0.
+    lv_time = `20240301000010.0000000`.
+
+    lv_second = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+                    time    = lv_time
+                    seconds = 20 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `20240229235950`
+                                        act = |{ lv_second }| ).
+
+  ENDMETHOD.
+
+  METHOD test_subtract_year_end.
+
+    " one second back across a year end, and a negative count goes forward
+    " (in whole seconds, as above)
+    DATA lv_time   TYPE timestampl.
+    DATA lv_second TYPE p LENGTH 8 DECIMALS 0.
+    lv_time = `20250101000000.0000000`.
+
+    lv_second = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+                    time    = lv_time
+                    seconds = 1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `20241231235959`
+                                        act = |{ lv_second }| ).
+
+    lv_time = `20241231235959.0000000`.
+    lv_second = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
+                    time    = lv_time
+                    seconds = -1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `20250101000000`
+                                        act = |{ lv_second }| ).
+
+  ENDMETHOD.
+
+  METHOD test_diff_ms_leap_day.
+
+    " the 29th of February counts in a leap year and does not exist in any
+    " other - a day is 86 400 000 ms either way
+    cl_abap_unit_assert=>assert_equals(
+        exp = 2 * 86400000
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20240228120000.0000000`
+                                                                 time_to   = `20240301120000.0000000` ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = 86400000
+        act = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = `20250228120000.0000000`
+                                                                 time_to   = `20250301120000.0000000` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_type_case.
+
+    " a message type is one upper-case letter; anything else, a lower-case
+    " letter included, is no SAP type and renders as Information
+    cl_abap_unit_assert=>assert_equals( exp = `Information`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `e` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Information`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `Error` ) ).
 
   ENDMETHOD.
 

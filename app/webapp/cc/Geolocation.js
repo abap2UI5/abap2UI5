@@ -20,6 +20,16 @@ sap.ui.define(
     // default and the runtime fallback so the two cannot drift apart.
     const _DEFAULT_TIMEOUT_MS = 5000;
 
+    // The `timeout` property as getCurrentPosition's option. Anything that
+    // is not a positive finite number takes the default: an empty or
+    // non-numeric value is NaN, and 0 or a NEGATIVE value - which the
+    // `[Clamp] unsigned long` of PositionOptions clamps to 0 - makes the
+    // request time out at once (error code 3) before any position is read.
+    function timeoutOf(value) {
+      const ms = Number(value);
+      return Number.isFinite(ms) && ms > 0 ? ms : _DEFAULT_TIMEOUT_MS;
+    }
+
     const Geolocation = Control.extend("z2ui5.cc.Geolocation", {
       metadata: {
         properties: {
@@ -81,7 +91,14 @@ sap.ui.define(
         // The control could be torn down while the geolocation API was busy.
         if (Lib.isDestroyed(this)) return;
         for (const prop of _GEO_PROPS) {
-          this.setProperty(prop, Lib.toText(coords[prop]), true);
+          // A device at rest reports heading as NaN (W3C Geolocation: "if
+          // speed is 0, heading MUST be NaN"), and String(NaN) is a word,
+          // not a number - the backend got "NaN" where an unavailable value
+          // is the empty string, like a null field
+          const v = coords[prop];
+          const text =
+            typeof v === "number" && !Number.isFinite(v) ? "" : Lib.toText(v);
+          this.setProperty(prop, text, true);
         }
         this.fireFinished();
       },
@@ -126,10 +143,7 @@ sap.ui.define(
             this.callbackError.bind(this),
             {
               enableHighAccuracy: this.getProperty("enableHighAccuracy"),
-              // Guard against an empty or non-numeric property - NaN or 0
-              // would make getCurrentPosition fail immediately.
-              timeout:
-                Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,
+              timeout: timeoutOf(this.getProperty("timeout")),
             },
           );
         } catch (e) {

@@ -177,6 +177,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          },` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
+             `        const reportTimeout = () =>` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ctx,` && |\n| &&
+             `            ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
+             `            undefined,` && |\n| &&
+             `            oRetry,` && |\n| &&
+             `          );` && |\n| &&
+             `` && |\n| &&
              `        const seq = ++ctx.server.requestSeq;` && |\n| &&
              `        const isStale = () => seq !== ctx.server.requestSeq;` && |\n| &&
              `` && |\n| &&
@@ -186,12 +194,23 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `` && |\n| &&
              `        let sentAt;` && |\n| &&
+             `` && |\n| &&
+             `        let body;` && |\n| &&
+             `        try {` && |\n| &&
+             `          body = JSON.stringify({ value: oBody });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          ctx.server.inflight.delete(superseder);` && |\n| &&
+             `          cancel();` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ctx,` && |\n| &&
+             `            ``The request could not be serialized - an event argument is no plain data (${e.message})``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            const body = JSON.stringify({ value: oBody });` && |\n| &&
-             `` && |\n| &&
-             `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
+             `            ctx.state.lastRequestBytes = Lib.byteLength(body);` && |\n| &&
              `            sentAt = Date.now();` && |\n| &&
              `            response = await this._post(ctx, body, signal);` && |\n| &&
              `` && |\n| &&
@@ -205,16 +224,17 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
-             `              this.responseError(` && |\n| &&
-             `                ctx,` && |\n| &&
-             `                ``No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted``,` && |\n| &&
-             `                undefined,` && |\n| &&
-             `                oRetry,` && |\n| &&
-             `              );` && |\n| &&
+             `              reportTimeout();` && |\n| &&
              `            } else {` && |\n| &&
+             `              const hint =` && |\n| &&
+             `                e.name === "TypeError"` && |\n| &&
+             `                  ? " - the backend could not be reached. Common causes: an expired " +` && |\n| &&
+             `                    "logon session redirecting to another origin (SSO), a CORS rule, " +` && |\n| &&
+             `                    "or the backend being offline."` && |\n| &&
+             `                  : "";` && |\n| &&
              `              this.responseError(` && |\n| &&
              `                ctx,` && |\n| &&
-             `                ``Network error: ${e.message}``,` && |\n| &&
+             `                ``Network error: ${e.message}${hint}``,` && |\n| &&
              `                undefined,` && |\n| &&
              `                oRetry,` && |\n| &&
              `              );` && |\n| &&
@@ -234,6 +254,11 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            try {` && |\n| &&
              `              text = await response.text();` && |\n| &&
              `            } catch {` && |\n| &&
+             `              if (isStale()) return;` && |\n| &&
+             `              if (timeoutSignal.aborted) {` && |\n| &&
+             `                reportTimeout();` && |\n| &&
+             `                return;` && |\n| &&
+             `              }` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
@@ -252,13 +277,34 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            responseData = await response.json();` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
+             `            if (timeoutSignal.aborted) {` && |\n| &&
+             `              reportTimeout();` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `` && |\n| &&
+             `            const type = response.headers.get("content-type") || "";` && |\n| &&
+             `            if (type.toLowerCase().includes("text/html")) {` && |\n| &&
+             `              this.responseError(` && |\n| &&
+             `                ctx,` && |\n| &&
+             `                "The server answered with an HTML page instead of the app's data - " +` && |\n| &&
+             `                  "usually a logon page after the session expired, or the page of a " +` && |\n| &&
+             `                  "proxy in between. Restart the app, logging on again if asked.",` && |\n| &&
+             `              );` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `            this.responseError(ctx, ``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
+             `` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
-             `            this.responseError(ctx, "Invalid response: missing S_FRONT");` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              ctx,` && |\n| &&
+             `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
+             `                "the abap2UI5 handler. Check that the ICF service (or route) of this " +` && |\n| &&
+             `                "page calls z2ui5_cl_ui5_http_handler.",` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -378,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      async responseSuccess(ctx, response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController(ctx, "MAIN");` && |\n| &&
-             `        try {` && |\n| &&
+             `        try {` && |\n|.
+    result = result &&
              `          ctx.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          const followUp = response.S_ACTION;` && |\n| &&
@@ -424,8 +471,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this.responseError(ctx, err);` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      responseError(ctx, response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&

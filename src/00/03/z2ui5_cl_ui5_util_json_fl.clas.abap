@@ -49,10 +49,30 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    "! A JSON text with every raw control character below U+0020 other
+    "! than tab, LF and CR written as a \u00XX escape. ajson's
+    "! escape_string handles only those three plus the quote and the
+    "! backslash, so a string value carrying U+0001 or a form feed (a legacy
+    "! long text, a value out of a file) left the backend raw, and the
+    "! browser's JSON.parse refuses the WHOLE response over one such byte.
+    "! Correct on any compact ajson output: outside a string JSON allows no
+    "! character of this set at all, so every one found is inside a string
+    "! literal, and the escape stands for exactly that character there
+    CLASS-METHODS escape_controls
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+    " the bytes of the set, in the order gv_controls holds the characters
+    CONSTANTS c_controls_hex TYPE string VALUE `0001020304050607080B0C0E0F101112131415161718191A1B1C1D1E1F`.
+
     CLASS-DATA gi_no_empty_values TYPE REF TO z2ui5_if_ajson_filter.
     CLASS-DATA gi_mapper_upper    TYPE REF TO z2ui5_if_ajson_mapping.
+    CLASS-DATA gv_controls        TYPE string.
+    CLASS-DATA gv_controls_built  TYPE abap_bool.
 ENDCLASS.
 
 
@@ -79,6 +99,42 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
   METHOD check_number_initial.
 
     result = xsdbool( val CO `0.-+Ee` ).
+
+  ENDMETHOD.
+
+  METHOD escape_controls.
+
+    IF gv_controls_built = abap_false.
+      gv_controls_built = abap_true.
+      TRY.
+          gv_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( c_controls_hex ) ).
+        CATCH z2ui5_cx_ui5_util_error.
+          " no codepage API (UNSUPPORTED_CODEPAGE_API): degrade like
+          " z2ui5_cl_ui5_view_builder=>xml_escape - the set stays empty and the
+          " text leaves as before, rather than every response failing here
+          CLEAR gv_controls.
+      ENDTRY.
+    ENDIF.
+
+    result = val.
+    " one CA scan: the common response carries none of these
+    IF gv_controls IS INITIAL OR result NA gv_controls.
+      RETURN.
+    ENDIF.
+
+    " one replace per character, no regex - see xml_escape for why
+    DATA(lv_off) = 0.
+    DATA(lv_len) = strlen( gv_controls ).
+    WHILE lv_off < lv_len.
+      IF result CA gv_controls+lv_off(1).
+        DATA(lv_hex) = lv_off * 2.
+        result = replace( val  = result
+                          sub  = gv_controls+lv_off(1)
+                          with = `\u00` && c_controls_hex+lv_hex(2)
+                          occ  = 0 ).
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
 
   ENDMETHOD.
 

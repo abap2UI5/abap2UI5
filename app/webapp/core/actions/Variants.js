@@ -230,9 +230,11 @@ sap.ui.define(["z2ui5/core/Lib", "z2ui5/core/ViewSlots"], (Lib, ViewSlots) => {
         }
       });
     });
+    // the same items fetchData stores: getFilterGroupItems( ) alone left a
+    // filled basic-group `filterItems` entry out of the "Filters (n)" count
     oFilterBar.registerGetFiltersWithValues(() =>
       oFilterBar
-        .getFilterGroupItems()
+        .getAllFilterItems()
         .filter((item) => String(filterItemValue(item)).length > 0),
     );
   }

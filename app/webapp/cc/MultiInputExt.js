@@ -13,14 +13,41 @@ sap.ui.define(
     // in the settings object, a string is read as binding syntax:
     // "Pump {X}" became a binding to path X, "A{1" threw out of MultiInput's
     // validator (no token, no change event), and a backslash vanished. The
-    // setters take the value as it is. (The free-text branch keeps the
-    // settings form: from 1.120 on MultiInput hands over args.text already
-    // escaped for exactly that form.)
+    // setters take the value as it is. (The free-text branch first takes the
+    // escaping off that some releases put on args.text - see freeText.)
     function plainToken(key, text) {
       const token = new Token();
       token.setKey(key);
       token.setText(text);
       return token;
+    }
+
+    // The text a user TYPED, from the free-text validator's args.text.
+    // Whether MultiInput escaped it for the Token settings object
+    // (ManagedObject.escapeSettingsValue: a backslash before every \, { and })
+    // depends on the patch, not the minor - 1.71, 1.96 and 1.114.10 hand it
+    // over raw, 1.108.30 and 1.117 on escaped - so neither the settings form
+    // (raw "{a}" became a binding to /a, a backslash vanished) nor a setter
+    // (escaped "\{a\}" was shown with its backslashes) is right on every
+    // release. Decided per call instead: a text without those characters is
+    // the same either way; one equal to the input's value is raw, one equal
+    // to the escaped value is escaped; a pasted piece (no value to compare)
+    // counts as escaped when it reads as a complete escape sequence.
+    const SETTINGS_CHARS = /[\\{}]/;
+    function freeText(text, input) {
+      const given = Lib.toText(text);
+      if (!SETTINGS_CHARS.test(given)) return given;
+      let value = "";
+      try {
+        value = Lib.toText(input?.getValue?.()).trim();
+      } catch (e) {
+        Lib.logError("MultiInputExt: reading the input value failed", e);
+      }
+      if (value === given) return given;
+      if (value && value.replace(/[\\{}]/g, "\\$&") === given) return value;
+      return /^(?:[^\\{}]|\\[\\{}])*$/.test(given)
+        ? given.replace(/\\([\\{}])/g, "$1")
+        : given;
     }
 
     // Invisible companion control for a sap.m.MultiInput (referenced via
@@ -184,7 +211,8 @@ sap.ui.define(
                   : args.text,
               );
             }
-            return new Token({ key: args.text, text: args.text });
+            const text = freeText(args.text, input);
+            return plainToken(text, text);
           };
           input.addValidator(this._validator);
         } catch (e) {

@@ -35,7 +35,11 @@ const SKIP = [/^src\/00\/01\//, /^src\/00\/02\//, /^src\/99\//];
  * a deliberate failure; and a test that delegates to a helper of its own test
  * class (`verify_*`, `assert_*`, `check_*`) asserts through it — the helper is
  * itself a method in the same file and is judged on its own. */
-const ASSERTS = /cl_abap_unit_assert|cl_aunit_assert|\bassert\b|\bRAISE\s+(EXCEPTION|SHORTDUMP)\b|\b(verify|assert|check|expect)_\w+\s*\(/i;
+/* The helper has to be the test class's OWN method - called bare or through
+ * `me->`. Matched anywhere, `client->check_on_init( )` or
+ * `z2ui5_cl_ui5_util_context=>check_abap_cloud( )` counted as an assertion,
+ * so a test that only called such a method passed the gate. */
+const ASSERTS = /cl_abap_unit_assert|cl_aunit_assert|\bassert\b|\bRAISE\s+(EXCEPTION|SHORTDUMP)\b|(?:^|[^>\w])(?:me->)?(verify|assert|check|expect)_\w+\s*\(/im;
 
 /* A method is a test when its DECLARATION carries FOR TESTING. The
  * declaration and the implementation are in different parts of the file, so

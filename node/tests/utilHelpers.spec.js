@@ -226,6 +226,84 @@ test.describe("toText", () => {
   });
 });
 
+test.describe("toCaretIndex", () => {
+  const { Lib } = loadLib();
+
+  test("reads a number or a numeric string as a non-negative integer", () => {
+    expect(Lib.toCaretIndex("4")).toBe(4);
+    expect(Lib.toCaretIndex(3)).toBe(3);
+    expect(Lib.toCaretIndex(" 2 ")).toBe(2);
+    expect(Lib.toCaretIndex("2.9")).toBe(2);
+    expect(Lib.toCaretIndex("-5")).toBe(0);
+  });
+
+  test("answers null for a value that names no position", () => {
+    expect(Lib.toCaretIndex(null)).toBeNull();
+    expect(Lib.toCaretIndex(undefined)).toBeNull();
+    expect(Lib.toCaretIndex("")).toBeNull();
+    expect(Lib.toCaretIndex("  ")).toBeNull();
+    expect(Lib.toCaretIndex("abc")).toBeNull();
+    expect(Lib.toCaretIndex("Infinity")).toBeNull();
+  });
+});
+
+test.describe("modelPathOf", () => {
+  const { Lib } = loadLib();
+
+  test("reads the three spellings of a model path", () => {
+    expect(Lib.modelPathOf("${/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf(" /S_DATA/NAME ")).toBe("/S_DATA/NAME");
+  });
+
+  // with switch_default_model, _bind( ) renders `{http>/S_DATA}`: the
+  // framework model is the named one, and the path on it is the same
+  test("drops the http> model name of switch mode", () => {
+    expect(Lib.modelPathOf("${http>/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{http>/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("http>/S_DATA")).toBe("/S_DATA");
+    expect(Lib.modelPathOf("{other>/S_DATA}")).toBeNull();
+  });
+
+  test("answers null for anything that names no path", () => {
+    expect(Lib.modelPathOf("S_DATA")).toBeNull();
+    expect(Lib.modelPathOf("{ URL: 'https://x' }")).toBeNull();
+    expect(Lib.modelPathOf("")).toBeNull();
+    expect(Lib.modelPathOf(undefined)).toBeNull();
+    expect(Lib.modelPathOf({ URL: "x" })).toBeNull();
+  });
+});
+
+test.describe("bindingPathOf", () => {
+  const { Lib } = loadLib();
+
+  test("reads the expression-binding spelling a view wire evaluates", () => {
+    expect(Lib.bindingPathOf("${/S_DATA}")).toBe("/S_DATA");
+    expect(Lib.bindingPathOf(" ${ /T_TAB/0/NAME } ")).toBe("/T_TAB/0/NAME");
+    expect(Lib.bindingPathOf("${http>/MV_X}")).toBe("/MV_X");
+  });
+
+  test("answers null for every other spelling - those are text", () => {
+    // a URL, a hash, a _bind( ) without $, relative and event-parameter
+    // bindings, a binding inside text, an expression
+    for (const raw of [
+      "/S_DATA",
+      "{/S_DATA}",
+      "${S_DATA}",
+      "${$parameters>/value}",
+      "${other>/X}",
+      "x ${/S_DATA}",
+      "${/A} === 'b'",
+      "${/A}${/B}",
+      "",
+      undefined,
+      { A: 1 },
+    ]) {
+      expect(Lib.bindingPathOf(raw)).toBeNull();
+    }
+  });
+});
+
 test.describe("deriveSystemType", () => {
   const { Lib } = loadLib();
 
@@ -669,5 +747,30 @@ test.describe("claimOnce (companion-control wiring guard)", () => {
     expect(owner.props.checkInit).toBe(false);
     // ... and still claims once the target shows up on a later render
     expect(Lib.claimOnce(owner, { id: "target" })).toBe(true);
+  });
+});
+
+// Lib.byteLength - the request size in bytes (Server.readHttp's
+// lastRequestBytes, the recorder's fallback): TextEncoder in every browser
+// the frontend runs in, the Blob size and the plain length for a host
+// without one.
+test.describe("byteLength (UTF-8 size of a string)", () => {
+  // 1 + 2 + 3 + 4 bytes in 5 UTF-16 code units
+  const text = "a\u00e4\u20ac\ud83d\ude00";
+
+  test("counts UTF-8 bytes through TextEncoder", () => {
+    const { Lib } = loadLib({ TextEncoder });
+    expect(Lib.byteLength(text)).toBe(10);
+    expect(Lib.byteLength("")).toBe(0);
+  });
+
+  test("falls back to the Blob size without TextEncoder", () => {
+    const { Lib } = loadLib({ Blob });
+    expect(Lib.byteLength(text)).toBe(10);
+  });
+
+  test("falls back to the length when neither exists", () => {
+    const { Lib } = loadLib();
+    expect(Lib.byteLength(text)).toBe(5);
   });
 });

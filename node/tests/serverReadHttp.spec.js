@@ -11,8 +11,10 @@ const { specContext, loadLib } = require("./loadLibModule");
 //                    or dispatcher answering for a backend that did not - the
 //                    request may never have reached it), never on a 500 (the
 //                    backend itself, a dump - re-sending would dump again)
-//   invalid JSON     "Invalid JSON response: ..."
-//   no S_FRONT       "Invalid response: missing S_FRONT"
+//   invalid JSON     "Invalid JSON response: ...", or the HTML-page message
+//                    when the 2xx is a page (a logon page, a proxy's)
+//   no S_FRONT       "Invalid response: missing S_FRONT - the URL probably
+//                    does not reach the abap2UI5 handler..."
 //   PROTOCOL         a number that is present and differs is reported; an
 //                    absent one is a backend older than the field and let
 //                    through
@@ -48,13 +50,13 @@ function response({
   };
 }
 
-function load() {
+function load({ libSandbox = {} } = {}) {
   const fetches = [];
   const errors = [];
   const successes = [];
   const busy = [];
   const ctx = specContext({ oSentModel: null, url: "/sap/z2ui5" });
-  const { Lib } = loadLib({ ctx });
+  const { Lib } = loadLib({ ctx, ...libSandbox });
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "sap/ui/core/BusyIndicator": {
@@ -163,6 +165,30 @@ test.describe("HTTP status outside 2xx", () => {
   });
 });
 
+test.describe("a body that cannot be serialized", () => {
+  // `$event`, a binding context, any object holding a control: no plain
+  // data, and JSON.stringify throws on its circular graph. That is not the
+  // network - nothing went out - so there is no Retry to offer: it would
+  // re-send the same body and fail the same way, forever.
+  test("is reported as such, without a request and without a Retry", async () => {
+    const env = load();
+    const arg = { sId: "press" };
+    arg.oSource = { parent: arg };
+    await env.Server.readHttp(
+      env.ctx,
+      { S_FRONT: { EVENT: "SAVE", T_EVENT_ARG: [arg] } },
+      null,
+    );
+
+    expect(env.fetches).toHaveLength(0);
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toMatch(/^The request could not be serialized/);
+    expect(env.errors[0].msg).not.toMatch(/Network error/);
+    expect(env.errors[0].options).toBeUndefined();
+    expect(env.ctx.server.inflight.size).toBe(0);
+  });
+});
+
 test.describe("a 2xx that is no response", () => {
   test("invalid JSON is reported with the parser's message", async () => {
     const env = load();
@@ -174,11 +200,32 @@ test.describe("a 2xx that is no response", () => {
     expect(env.successes).toEqual([]);
   });
 
+  // A logon page after the session expired, a proxy's own page: somebody
+  // else answering with a 2xx. The parser's "Unexpected token '<'" was all
+  // the user got.
+  test("an HTML page is reported as such, not with the parser's message", async () => {
+    const env = load();
+    await answer(
+      env,
+      response({ headers: { "content-type": "text/html; charset=utf-8" } }),
+    );
+
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toContain(
+      "The server answered with an HTML page instead of the app's data",
+    );
+    expect(env.errors[0].msg).toContain("logon page");
+    expect(env.errors[0].options).toBeUndefined();
+  });
+
   test("a JSON body without S_FRONT is reported", async () => {
     const env = load();
     await answer(env, response({ json: { MODEL: {} } }));
 
-    expect(env.errors[0].msg).toBe("Invalid response: missing S_FRONT");
+    expect(env.errors[0].msg).toMatch(/^Invalid response: missing S_FRONT - /);
+    // valid JSON from somebody else: the message names where to look
+    expect(env.errors[0].msg).toContain("does not reach the abap2UI5 handler");
+    expect(env.errors[0].msg).toContain("z2ui5_cl_ui5_http_handler");
     expect(env.successes).toEqual([]);
   });
 
@@ -186,7 +233,7 @@ test.describe("a 2xx that is no response", () => {
     const env = load();
     await answer(env, response({ json: null }));
 
-    expect(env.errors[0].msg).toBe("Invalid response: missing S_FRONT");
+    expect(env.errors[0].msg).toMatch(/^Invalid response: missing S_FRONT - /);
   });
 });
 
@@ -439,5 +486,25 @@ test.describe("the roundtrip's own duration", () => {
     const failed = load();
     await answer(failed, response({ ok: false, status: 500, text: "dump" }));
     expect(failed.ctx.state.lastRoundtripMs).toBeFalsy();
+  });
+});
+
+// The request size the developer tools' recorder shows as REQ, next to the
+// response size Resource Timing reports in bytes. It used to be the
+// serialized body's .length - UTF-16 code units, so every umlaut and every
+// CJK character was undercounted.
+test.describe("the request size", () => {
+  test("is counted in UTF-8 bytes, not in UTF-16 code units", async () => {
+    const env = load({ libSandbox: { TextEncoder } });
+    const body = {
+      S_FRONT: { EVENT: "SAVE" },
+      MODEL: { NAME: "M\u00fcller \u20ac" },
+    };
+    await answer(env, response({ json: { S_FRONT: { ID: "X" } } }), body);
+
+    const sent = env.fetches[0].opts.body;
+    // u-umlaut is 2 bytes and the euro sign 3, each one code unit
+    expect(env.ctx.state.lastRequestBytes).toBe(sent.length + 1 + 2);
+    expect(env.ctx.state.lastRequestBytes).toBe(Buffer.byteLength(sent));
   });
 });

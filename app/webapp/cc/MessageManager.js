@@ -141,7 +141,11 @@ sap.ui.define(
           const oMessage = new Message({
             message: r.MESSAGE ?? "",
             description: r.DESCRIPTION ?? "",
-            type: r.TYPE ?? "Error",
+            // `||`, not `??`: an ABAP table sends an unfilled TYPE as "",
+            // never as undefined, so `??` never reached the default and
+            // Message turned the "" into MessageType.None - a row without
+            // a type showed as an unmarked message instead of an error
+            type: r.TYPE || "Error",
             target: r.TARGET ?? "",
             additionalText: r.ADDITIONALTEXT ?? "",
             // a free string column the app fills server-side (e.g. a display

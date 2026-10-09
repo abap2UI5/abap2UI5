@@ -265,8 +265,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        if (!Array.isArray(args[0])) {` && |\n| &&
+             `          let got;` && |\n| &&
+             `          try {` && |\n| &&
+             `            got = JSON.stringify(args[0]);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            got = ``an object that is no JSON (${Object.prototype.toString.call(args[0])})``;` && |\n| &&
+             `          }` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``eB: the first argument must be the event array, got ${JSON.stringify(args[0])}``,` && |\n| &&
+             `            ``eB: the first argument must be the event array, got ${got}``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

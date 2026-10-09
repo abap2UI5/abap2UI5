@@ -553,6 +553,59 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return val == null ? "" : String(val);
   }
 
+  // The model path a follow-up action argument names in place of a bound
+  // value, or null when the argument is no path. Wired in a VIEW, `${/S}`
+  // is an expression binding UI5 evaluates when the view is built, and the
+  // handler receives the value; queued from a HANDLER the action is data
+  // (T_CUSTOM), nothing on the response path resolves a binding in it, and
+  // the same argument arrives as the string. `${/S}`, `{/S}` (what _bind( )
+  // renders) and a bare `/S` all name the same path. STORE_DATA, URLHELPER
+  // and CROSS_APP_NAV_TO_EXT read their structure argument this way.
+  //
+  // The `http>` model name is dropped: with switch_default_model the
+  // framework's JSON model is the NAMED one and _bind( ) renders
+  // `{http>/S}` - the path is the same, and the reader resolves it on the
+  // tracked model (ViewSlots.trackedModel), which IS that one. It used to be
+  // kept, the result did not start with `/`, and a STORE_DATA of a
+  // switch-mode app was refused as "neither a payload nor a model path".
+  function modelPathOf(raw) {
+    if (typeof raw !== "string") return null;
+    const path = raw
+      .trim()
+      .replace(/^\$?\{(.*)\}$/, "$1")
+      .trim()
+      .replace(/^http>/, "");
+    return path.startsWith("/") ? path : null;
+  }
+
+  // The model path of an argument spelled as an EXPRESSION binding,
+  // `${/X}` (or `${http>/X}`), and nothing else - null for every other
+  // value. This is the one spelling UI5 evaluates when the same action is
+  // wired into a view, so it is the one a handler-queued action resolves
+  // for EVERY argument (FrontendAction.runCustom): the call means the same
+  // in both places. Deliberately narrower than modelPathOf: a bare `/X` is
+  // a URL, a hash or a text as often as a path (LOCATION_RELOAD,
+  // PLAY_AUDIO, HASH_BACK all take one), and `{/X}` is no binding on a
+  // view wire either. A relative `${NAME}` or an event parameter
+  // `${$parameters>/value}` has no meaning outside a view and stays as it
+  // came.
+  function bindingPathOf(raw) {
+    if (typeof raw !== "string") return null;
+    const m = /^\$\{\s*(?:http>)?(\/[^{}]*?)\s*\}$/.exec(raw.trim());
+    return m ? m[1] : null;
+  }
+
+  // A caret position from the backend (a string property or an action
+  // argument) as a non-negative integer, or null when it names no position:
+  // empty, null, or not a number at all. Number("abc") is NaN, and a NaN
+  // handed to applyFocusInfo / setSelectionRange is read as 0 by one browser
+  // and refused by another - the caller decides what "no position" means.
+  function toCaretIndex(val) {
+    if (val == null || String(val).trim() === "") return null;
+    const n = Number(val);
+    return Number.isFinite(n) ? Math.max(Math.trunc(n), 0) : null;
+  }
+
   // True for a DOM element that carries a text caret.
   function isTextInput(el) {
     return Boolean(el) && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
@@ -923,9 +976,27 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   //
   // A Date - a control's property, or a bare event parameter such as
   // `${$parameters>/startDate}` of SinglePlanningCalendar.cellPress - goes
-  // through projectValue below, for the reason given there. Anything else
-  // that is not a control is handed through untouched, so this is purely
-  // additive for every wire that works today.
+  // through projectValue below, for the reason given there.
+  //
+  // A binding CONTEXT is the second thing that cannot travel as it is -
+  // `${$parameters>/rowContext}` of sap.ui.table.Table.rowSelectionChange,
+  // the `selectedContexts` of a SelectDialog: it holds its model, whose
+  // bindings hold the controls, the same circular graph. It becomes what it
+  // stands for: { PATH, OBJECT } - the model path of the row (`/T_TAB/3`,
+  // which an app reads the row index off) and the data at that path
+  // (getObject), itself normalized like any other value. A plain object -
+  // `${$parameters>/}`, the whole parameter map - is walked as well, so a
+  // control or context INSIDE it is projected the same way as at the top.
+  // The UI5 event itself (`$event`) is the third, { ID, SOURCE, PARAMETERS }
+  // - see projectEvent.
+  //
+  // Copy on write: an array or plain object is copied only when something
+  // inside it changed, so plain data - the backend event array in args[0],
+  // an app's own structure - reaches the wire as the very object it was,
+  // and every wire that worked before is untouched. Past MAX_ARG_DEPTH a
+  // value is handed through as it is (as before), and a reference back to
+  // one of its own ancestors - a cycle, which JSON.stringify would throw on
+  // - becomes null.
   const MAX_ARG_DEPTH = 4;
 
   function isManagedObject(value) {
@@ -994,12 +1065,120 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return result;
   }
 
-  function normalizeEventArg(value, depth) {
+  function isContext(value) {
+    return (
+      value !== null &&
+      typeof value === "object" &&
+      typeof value.isA === "function" &&
+      value.isA("sap.ui.model.Context")
+    );
+  }
+
+  // {} or Object.create(null) - and not a class instance (a UI5 object, a
+  // Date, a Map). Asked through the prototype CHAIN rather than against
+  // Object.prototype, which is one realm's (see projectValue): a plain
+  // object's prototype is the end of the chain or right before it.
+  function isPlainObject(value) {
+    if (value === null || typeof value !== "object") return false;
+    const proto = Object.getPrototypeOf(value);
+    return proto === null || Object.getPrototypeOf(proto) === null;
+  }
+
+  function projectContext(context, level, ancestors) {
+    const result = {};
+    try {
+      result.PATH = context.getPath();
+    } catch {
+      // like a throwing property getter: not reported, the rest still is
+    }
+    try {
+      const data = context.getObject();
+      if (data !== undefined) {
+        result.OBJECT = normalizeEventArg(data, level + 1, ancestors);
+      }
+    } catch {
+      // an OData V4 context whose data is not loaded may throw - same
+    }
+    return result;
+  }
+
+  // an array or plain object, its entries normalized; the original when no
+  // entry changed (copy on write, see above)
+  function projectContainer(value, level, ancestors) {
+    if (ancestors.has(value)) return null;
+    ancestors.add(value);
+    try {
+      let copy = null;
+      const keys = Array.isArray(value)
+        ? value.map((_, i) => i)
+        : Object.keys(value);
+      for (const key of keys) {
+        const entry = value[key];
+        const next = normalizeEventArg(entry, level + 1, ancestors);
+        if (next !== entry && copy === null) {
+          copy = Array.isArray(value) ? value.slice() : { ...value };
+        }
+        if (copy !== null) copy[key] = next;
+      }
+      return copy ?? value;
+    } finally {
+      // only the current PATH counts: the same object reached twice by two
+      // routes is shared data, not a cycle, and JSON.stringify writes it twice
+      ancestors.delete(value);
+    }
+  }
+
+  function isEvent(value) {
+    return (
+      value !== null &&
+      typeof value === "object" &&
+      typeof value.isA === "function" &&
+      value.isA("sap.ui.base.Event")
+    );
+  }
+
+  // The UI5 event itself - a bare `$event` in t_arg. It holds its source
+  // control, the same circular graph as a control, so it used to fail the
+  // serialization of the whole request. It becomes what the ABAP side
+  // documents a `$event` argument as reaching: the event's ID (`press`,
+  // `change`), the SOURCE control's id and its PARAMETERS, the parameter
+  // map normalized like any other value (a control in it becomes its id
+  // plus its properties). Read synchronously, while UI5 still dispatches
+  // the event - UI5 pools event objects and resets them afterwards.
+  function projectEvent(event, level, ancestors) {
+    const result = {};
+    try {
+      result.ID = event.getId();
+    } catch {
+      // like a throwing property getter: not reported, the rest still is
+    }
+    try {
+      const source = event.getSource();
+      if (source && typeof source.getId === "function") {
+        result.SOURCE = source.getId();
+      }
+    } catch {
+      // same
+    }
+    try {
+      const parameters = event.getParameters();
+      if (parameters !== undefined && parameters !== null) {
+        result.PARAMETERS = normalizeEventArg(parameters, level + 1, ancestors);
+      }
+    } catch {
+      // same
+    }
+    return result;
+  }
+
+  function normalizeEventArg(value, depth, ancestors) {
     const level = depth || 0;
     if (level > MAX_ARG_DEPTH) return value;
+    if (isEvent(value)) return projectEvent(value, level, ancestors);
     if (isManagedObject(value)) return projectControl(value);
-    if (Array.isArray(value)) {
-      return value.map((entry) => normalizeEventArg(entry, level + 1));
+    if (isContext(value)) return projectContext(value, level, ancestors);
+    if (Array.isArray(value) || isPlainObject(value)) {
+      return projectContainer(value, level, ancestors);
     }
     // a bare Date is the same calendar day as a Date property - projecting
     // only the latter sent `${$parameters>/startDate}` as a UTC instant, a
@@ -1011,7 +1190,21 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter
   // array.
   function normalizeEventArgs(args) {
-    return args.map((arg) => normalizeEventArg(arg, 0));
+    return args.map((arg) => normalizeEventArg(arg, 0, new Set()));
+  }
+
+  // The size of a string as UTF-8 bytes - what a request body weighs on the
+  // wire, where `.length` counts UTF-16 code units (an umlaut is 2 bytes and
+  // 1 unit, a CJK character 3 and 1). TextEncoder is in every browser this
+  // frontend runs in (it needs fetch and AbortController, which came later);
+  // the Blob and the plain length are for a host without it, the unit specs'
+  // sandbox among them.
+  function byteLength(text) {
+    if (typeof TextEncoder === "function") {
+      return new TextEncoder().encode(text).length;
+    }
+    if (typeof Blob === "function") return new Blob([text]).size;
+    return text.length;
   }
 
   return {
@@ -1039,6 +1232,9 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     getTextPath,
     copyToClipboard,
     toText,
+    modelPathOf,
+    bindingPathOf,
+    toCaretIndex,
     deriveSystemType,
     deriveOsName,
     isValidRedirectURL,
@@ -1053,5 +1249,6 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     EMPTY_RENDERER,
     hookCallback,
     normalizeEventArgs,
+    byteLength,
   };
 });

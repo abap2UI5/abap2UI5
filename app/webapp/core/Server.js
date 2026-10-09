@@ -338,6 +338,19 @@ sap.ui.define(
             this.readHttp(ctx, oBody, sessionCarried);
           },
         };
+        // The timeout covers the body reads as well as the fetch: once it
+        // fires, response.text( ) / .json( ) reject with the abort too, and
+        // their catches below would report "Invalid JSON response" or "could
+        // not read error body" - no Retry, and no word of a timeout. So each
+        // of them asks the timeout signal first and reports it the same way
+        // as the fetch's own catch.
+        const reportTimeout = () =>
+          this.responseError(
+            ctx,
+            `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
+            undefined,
+            oRetry,
+          );
 
         // Stamp this request and treat its response as stale once a newer
         // request has been dispatched: only the newest may commit its result,
@@ -361,15 +374,35 @@ sap.ui.define(
         const signal = this._combineSignals(timeoutSignal, superseder.signal);
         // when the body went out - see lastRoundtripMs below
         let sentAt;
+        // The body is serialized BEFORE the network try below, whose catch
+        // reads every failure as the network's: an event argument that is no
+        // plain data - `$event`, a binding context, any object holding a
+        // control - makes JSON.stringify throw on its circular graph, and
+        // that TypeError used to be reported as "Network error: Converting
+        // circular structure to JSON" with a Retry that re-sent the same
+        // unserializable body and failed the same way, forever. Nothing went
+        // out, so there is nothing to retry: the wire is what to fix.
+        let body;
+        try {
+          body = JSON.stringify({ value: oBody });
+        } catch (e) {
+          ctx.server.inflight.delete(superseder);
+          cancel();
+          this.responseError(
+            ctx,
+            `The request could not be serialized - an event argument is no plain data (${e.message})`,
+          );
+          return;
+        }
         try {
           // Step 1: send the request.
           let response;
           try {
-            const body = JSON.stringify({ value: oBody });
             // one shared number, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
-            // instead of serializing the body a second time
-            ctx.state.lastRequestBytes = body.length;
+            // instead of serializing the body a second time - in bytes, as
+            // the response size next to it is
+            ctx.state.lastRequestBytes = Lib.byteLength(body);
             sentAt = Date.now();
             response = await this._post(ctx, body, signal);
             // A CSRF token layer in front of the backend - an SAP approuter
@@ -394,16 +427,24 @@ sap.ui.define(
             // newer request owns the outcome, so swallow it without an overlay.
             if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
-              this.responseError(
-                ctx,
-                `No backend response within ${REQUEST_TIMEOUT_MS / 1000} seconds - request aborted`,
-                undefined,
-                oRetry,
-              );
+              reportTimeout();
             } else {
+              // fetch rejects with a TypeError when no answer could be read
+              // at all ("Failed to fetch", "NetworkError when attempting to
+              // fetch resource.", "Load failed" - one per browser), and the
+              // browser deliberately says no more than that: a CORS refusal
+              // and a redirect to a logon page on another origin look the
+              // same from here. Name the usual causes, so the user has
+              // something to check before pressing Retry.
+              const hint =
+                e.name === "TypeError"
+                  ? " - the backend could not be reached. Common causes: an expired " +
+                    "logon session redirecting to another origin (SSO), a CORS rule, " +
+                    "or the backend being offline."
+                  : "";
               this.responseError(
                 ctx,
-                `Network error: ${e.message}`,
+                `Network error: ${e.message}${hint}`,
                 undefined,
                 oRetry,
               );
@@ -427,6 +468,11 @@ sap.ui.define(
             try {
               text = await response.text();
             } catch {
+              if (isStale()) return;
+              if (timeoutSignal.aborted) {
+                reportTimeout();
+                return;
+              }
               text = `HTTP ${response.status}: could not read error body`;
             }
             if (isStale()) return;
@@ -452,14 +498,41 @@ sap.ui.define(
             responseData = await response.json();
           } catch (e) {
             if (isStale()) return;
+            if (timeoutSignal.aborted) {
+              reportTimeout();
+              return;
+            }
+            // A 2xx HTML page where the JSON belongs is no broken backend but
+            // somebody else answering: a logon page after the session expired
+            // (the ICF form logon, an SSO layer), a proxy's or portal's own
+            // page. The parser's "Unexpected token '<'" told the user nothing
+            // they could act on.
+            const type = response.headers.get("content-type") || "";
+            if (type.toLowerCase().includes("text/html")) {
+              this.responseError(
+                ctx,
+                "The server answered with an HTML page instead of the app's data - " +
+                  "usually a logon page after the session expired, or the page of a " +
+                  "proxy in between. Restart the app, logging on again if asked.",
+              );
+              return;
+            }
             this.responseError(ctx, `Invalid JSON response: ${e.message}`);
             return;
           }
           // Last check before committing: a newer request may have arrived
           // while the body was being parsed.
           if (isStale()) return;
+          // Valid JSON, but not an abap2UI5 answer: something else owns the
+          // URL - another service on the same ICF path, a proxy or gateway
+          // route answering with its own JSON. Say where to look.
           if (!responseData || !responseData.S_FRONT) {
-            this.responseError(ctx, "Invalid response: missing S_FRONT");
+            this.responseError(
+              ctx,
+              "Invalid response: missing S_FRONT - the URL probably does not reach " +
+                "the abap2UI5 handler. Check that the ICF service (or route) of this " +
+                "page calls z2ui5_cl_ui5_http_handler.",
+            );
             return;
           }
           // The wire this build speaks. The backend stamps its own into every
