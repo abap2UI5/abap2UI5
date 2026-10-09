@@ -13,7 +13,8 @@ const { specContext, loadLib } = require("./loadLibModule");
 //                    backend itself, a dump - re-sending would dump again)
 //   invalid JSON     "Invalid JSON response: ...", or the HTML-page message
 //                    when the 2xx is a page (a logon page, a proxy's)
-//   no S_FRONT       "Invalid response: missing S_FRONT"
+//   no S_FRONT       "Invalid response: missing S_FRONT - the URL probably
+//                    does not reach the abap2UI5 handler..."
 //   PROTOCOL         a number that is present and differs is reported; an
 //                    absent one is a backend older than the field and let
 //                    through
@@ -221,7 +222,10 @@ test.describe("a 2xx that is no response", () => {
     const env = load();
     await answer(env, response({ json: { MODEL: {} } }));
 
-    expect(env.errors[0].msg).toBe("Invalid response: missing S_FRONT");
+    expect(env.errors[0].msg).toMatch(/^Invalid response: missing S_FRONT - /);
+    // valid JSON from somebody else: the message names where to look
+    expect(env.errors[0].msg).toContain("does not reach the abap2UI5 handler");
+    expect(env.errors[0].msg).toContain("z2ui5_cl_ui5_http_handler");
     expect(env.successes).toEqual([]);
   });
 
@@ -229,7 +233,7 @@ test.describe("a 2xx that is no response", () => {
     const env = load();
     await answer(env, response({ json: null }));
 
-    expect(env.errors[0].msg).toBe("Invalid response: missing S_FRONT");
+    expect(env.errors[0].msg).toMatch(/^Invalid response: missing S_FRONT - /);
   });
 });
 

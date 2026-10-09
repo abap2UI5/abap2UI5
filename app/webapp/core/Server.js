@@ -429,9 +429,22 @@ sap.ui.define(
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               reportTimeout();
             } else {
+              // fetch rejects with a TypeError when no answer could be read
+              // at all ("Failed to fetch", "NetworkError when attempting to
+              // fetch resource.", "Load failed" - one per browser), and the
+              // browser deliberately says no more than that: a CORS refusal
+              // and a redirect to a logon page on another origin look the
+              // same from here. Name the usual causes, so the user has
+              // something to check before pressing Retry.
+              const hint =
+                e.name === "TypeError"
+                  ? " - the backend could not be reached. Common causes: an expired " +
+                    "logon session redirecting to another origin (SSO), a CORS rule, " +
+                    "or the backend being offline."
+                  : "";
               this.responseError(
                 ctx,
-                `Network error: ${e.message}`,
+                `Network error: ${e.message}${hint}`,
                 undefined,
                 oRetry,
               );
@@ -510,8 +523,16 @@ sap.ui.define(
           // Last check before committing: a newer request may have arrived
           // while the body was being parsed.
           if (isStale()) return;
+          // Valid JSON, but not an abap2UI5 answer: something else owns the
+          // URL - another service on the same ICF path, a proxy or gateway
+          // route answering with its own JSON. Say where to look.
           if (!responseData || !responseData.S_FRONT) {
-            this.responseError(ctx, "Invalid response: missing S_FRONT");
+            this.responseError(
+              ctx,
+              "Invalid response: missing S_FRONT - the URL probably does not reach " +
+                "the abap2UI5 handler. Check that the ICF service (or route) of this " +
+                "page calls z2ui5_cl_ui5_http_handler.",
+            );
             return;
           }
           // The wire this build speaks. The backend stamps its own into every

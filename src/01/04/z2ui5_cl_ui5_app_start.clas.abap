@@ -270,8 +270,19 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
+    ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
+    " an empty input is no class that "does not exist" - the sentence below
+    " would read `Class  does not exist ...`, naming nothing. Not raised into
+    " the CATCH either: this is no system detail an exit could want hidden
+    IF ms_home-classname IS INITIAL.
+      ms_home-class_value_state_text = `Enter the name of your class first`.
+      ms_home-class_value_state      = `Warning`.
+      client->message_box_display( text = ms_home-class_value_state_text
+                                   type = `error` ).
+      RETURN.
+    ENDIF.
+
     TRY.
-        ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
         " the same pre-check the URL start does (z2ui5_cl_ui5_action=>
         " app_create, the reasoning is there): the name was typed in, so a
         " class that is no app is refused from its descriptor, before

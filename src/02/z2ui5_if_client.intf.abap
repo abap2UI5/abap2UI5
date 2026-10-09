@@ -789,7 +789,9 @@ INTERFACE z2ui5_if_client
   "!                  get_event_arg( n ) in the same order: a literal, a
   "!                  `$\{$source>/...\}` or `$\{$parameters>/...\}` client
   "!                  expression evaluated when the event fires, or
-  "!                  `$event>...` for a field of the UI5 event itself.
+  "!                  `$event>...` for a field of the UI5 event itself. A
+  "!                  bare `$event` arrives as a JSON object: the event's
+  "!                  ID, the SOURCE control's id and its PARAMETERS.
   "!                  Two controller helpers reach what no binding path can,
   "!                  because a `$\{...\}` addresses DATA and these address
   "!                  the live control tree:

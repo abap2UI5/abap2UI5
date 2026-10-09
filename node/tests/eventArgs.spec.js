@@ -320,3 +320,63 @@ test.describe("plain objects", () => {
     expect(out.t).toBe(thing);
   });
 });
+
+// A bare `$event` in t_arg hands the UI5 event object itself to eB. It holds
+// its source control - the same circular graph - so the whole request failed
+// to serialize. The ABAP side documents `$event` as "a field of the UI5 event
+// itself"; the event as a whole arrives as its ID, its SOURCE control's id
+// and its PARAMETERS, normalized like any other value.
+test.describe("the UI5 event itself ($event)", () => {
+  function uiEvent(id, source, parameters, { throwOn = null } = {}) {
+    const guard = (name, fn) => () => {
+      if (name === throwOn) throw new Error(`${name} exploded`);
+      return fn();
+    };
+    const ev = {
+      isA: (type) => type === "sap.ui.base.Event",
+      getId: guard("getId", () => id),
+      getSource: guard("getSource", () => source),
+      getParameters: guard("getParameters", () => parameters),
+    };
+    // the real Event keeps its source in a field, and the control tree leads
+    // back to it - modelled as a direct back reference
+    ev.oSource = { control: source, event: ev };
+    return ev;
+  }
+
+  test("becomes its ID, its SOURCE id and its PARAMETERS", () => {
+    const btn = control("__button0", { text: "Go" });
+    const ev = uiEvent("press", btn, {});
+    expect(() => JSON.stringify(ev)).toThrow();
+
+    const [out] = Lib.normalizeEventArgs([ev]);
+    expect(out).toEqual({ ID: "press", SOURCE: "__button0", PARAMETERS: {} });
+    expect(JSON.parse(JSON.stringify(out))).toEqual(out);
+  });
+
+  test("a control among the parameters is projected like everywhere else", () => {
+    const item = control("__item3", { title: "Row 3", selected: true });
+    const ev = uiEvent("selectionChange", control("list", {}), {
+      listItem: item,
+      selected: true,
+    });
+    const [out] = Lib.normalizeEventArgs([ev]);
+    expect(out.PARAMETERS).toEqual({
+      listItem: { ID: "__item3", title: "Row 3", selected: true },
+      selected: true,
+    });
+  });
+
+  test("a getter that throws leaves its part out, the rest still travels", () => {
+    const ev = uiEvent("change", control("in", {}), { value: "x" }, {
+      throwOn: "getSource",
+    });
+    const [out] = Lib.normalizeEventArgs([ev]);
+    expect(out).toEqual({ ID: "change", PARAMETERS: { value: "x" } });
+  });
+
+  test("an event without a source reports no SOURCE", () => {
+    const [out] = Lib.normalizeEventArgs([uiEvent("tick", null, { n: 1 })]);
+    expect(out).toEqual({ ID: "tick", PARAMETERS: { n: 1 } });
+  });
+});

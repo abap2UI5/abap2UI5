@@ -95,6 +95,28 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
   const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
   const ISO_TIME = /^\d{2}:\d{2}:\d{2}$/;
 
+  // The calendar day a "YYYYMMDD" / "YYYY-MM-DD" names, at LOCAL midnight -
+  // or null when no such day exists. Two things the Date constructor gets
+  // wrong for an ABAP date: a year below 100 is read as 19xx (the low
+  // boundary "00010101" of a validity range became 1901-01-01), and a day
+  // the month does not have rolls over (an unchecked "20240230" from a
+  // foreign system showed as March 1 - a real-looking wrong date).
+  // setFullYear takes the year as written, and a part that moved is a day
+  // the calendar does not have, which is no date.
+  function localDay(value) {
+    const [year, month, day] = parseYmd(value);
+    const date = new Date(2000, 0, 1);
+    date.setFullYear(year, month, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month ||
+      date.getDate() !== day
+    ) {
+      return null;
+    }
+    return date;
+  }
+
   function isNoAbapDate(d) {
     const s = abapDigits(d, ISO_DAY);
     if (!/^\d{8}$/.test(s)) return true;
@@ -135,12 +157,12 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     // date helpers below. A timestamp keeps the Date constructor.
     DateCreateObject(s) {
       if (!s) return null;
-      if (ISO_DAY.test(String(s))) return new Date(...parseYmd(s));
+      if (ISO_DAY.test(String(s))) return localDay(s);
       return new Date(s);
     },
     DateAbapDateToDateObject(d) {
       if (isNoAbapDate(d)) return null;
-      return new Date(...parseYmd(d));
+      return localDay(d);
     },
     // t is an ABAP time string "HHMMSS"; an omitted, null or empty one
     // is midnight. A default parameter covers undefined only, and a bound
@@ -148,13 +170,15 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     // inside the binding.
     DateAbapDateTimeToDateObject(d, t) {
       if (isNoAbapDate(d)) return null;
+      const date = localDay(d);
+      if (!date) return null;
       const time = t ? abapDigits(t, ISO_TIME) : "000000";
-      return new Date(
-        ...parseYmd(d),
+      date.setHours(
         Number(time.slice(0, 2)),
         Number(time.slice(2, 4)),
         Number(time.slice(4, 6)),
       );
+      return date;
     },
 
     // --- glyph resolution ---

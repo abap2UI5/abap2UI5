@@ -233,8 +233,21 @@ test.describe("the abort -> responseError -> Retry path", () => {
     fetches[0].reject(new TypeError("Failed to fetch"));
     await p;
 
-    expect(errors[0].msg).toBe("Network error: Failed to fetch");
+    expect(errors[0].msg).toMatch(/^Network error: Failed to fetch - /);
+    // the browser says no more than "Failed to fetch" - name the usual causes
+    expect(errors[0].msg).toContain("expired logon session");
+    expect(errors[0].msg).toContain("CORS");
+    expect(errors[0].msg).toContain("offline");
     expect(typeof errors[0].options?.onRetry).toBe("function");
+  });
+
+  test("a failure that is no TypeError keeps its own message, without the hint", async () => {
+    const { Server, ctx, fetches, errors } = loadForAbort();
+    const p = Server.readHttp(ctx, {}, null);
+    fetches[0].reject(new Error("something else"));
+    await p;
+
+    expect(errors[0].msg).toBe("Network error: something else");
   });
 
   test("the fetch is armed with the combined signal and the timer is released after", async () => {

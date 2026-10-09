@@ -226,9 +226,15 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              reportTimeout();` && |\n| &&
              `            } else {` && |\n| &&
+             `              const hint =` && |\n| &&
+             `                e.name === "TypeError"` && |\n| &&
+             `                  ? " - the backend could not be reached. Common causes: an expired " +` && |\n| &&
+             `                    "logon session redirecting to another origin (SSO), a CORS rule, " +` && |\n| &&
+             `                    "or the backend being offline."` && |\n| &&
+             `                  : "";` && |\n| &&
              `              this.responseError(` && |\n| &&
              `                ctx,` && |\n| &&
-             `                ``Network error: ${e.message}``,` && |\n| &&
+             `                ``Network error: ${e.message}${hint}``,` && |\n| &&
              `                undefined,` && |\n| &&
              `                oRetry,` && |\n| &&
              `              );` && |\n| &&
@@ -291,8 +297,14 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
+             `` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
-             `            this.responseError(ctx, "Invalid response: missing S_FRONT");` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              ctx,` && |\n| &&
+             `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
+             `                "the abap2UI5 handler. Check that the ICF service (or route) of this " +` && |\n| &&
+             `                "page calls z2ui5_cl_ui5_http_handler.",` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -412,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      async responseSuccess(ctx, response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController(ctx, "MAIN");` && |\n| &&
-             `        try {` && |\n| &&
+             `        try {` && |\n|.
+    result = result &&
              `          ctx.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          const followUp = response.S_ACTION;` && |\n| &&
@@ -424,8 +437,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          BusyIndicator.hide();` && |\n| &&
              `          ctx.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
-             `          this.showRenderError(ctx, e);` && |\n|.
-    result = result &&
+             `          this.showRenderError(ctx, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

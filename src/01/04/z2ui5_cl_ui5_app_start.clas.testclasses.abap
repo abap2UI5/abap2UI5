@@ -8,6 +8,7 @@ CLASS ltcl_app_startup_test DEFINITION FINAL
     METHODS test_link_enabled FOR TESTING RAISING cx_static_check.
     METHODS test_link_href_literal FOR TESTING RAISING cx_static_check.
     METHODS test_check_success_clears_text FOR TESTING RAISING cx_static_check.
+    METHODS test_check_empty_name FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -102,6 +103,32 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
                                         msg = `the check of a real app succeeds` ).
     cl_abap_unit_assert=>assert_initial( act = lo_app->ms_home-class_value_state_text
                                          msg = `a success drops the previous check's message` ).
+
+  ENDMETHOD.
+
+  METHOD test_check_empty_name.
+
+    " Check pressed on an empty input: the message asks for a name instead of
+    " reporting `Class  does not exist or does not implement ...` - a class
+    " with no name, and a double blank where it should stand
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    lo_handler = NEW #( val = `` ).
+    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+
+    lo_app->ms_home-classname = `   `.
+
+    lo_app->on_event_check( ).
+
+    cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state_text
+                                        exp = `Enter the name of your class first`
+                                        msg = `an empty name asks for one` ).
+    cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state
+                                        exp = `Warning`
+                                        msg = `the input is marked like any failed check` ).
+    cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-link_enabled
+                                        exp = abap_false
+                                        msg = `nothing was checked - the app link stays dead` ).
 
   ENDMETHOD.
 

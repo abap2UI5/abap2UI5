@@ -139,3 +139,39 @@ test.describe("the model's own date and time spelling", () => {
       .toEqual([2024, 0, 15, 0]);
   });
 });
+
+// The Date constructor reads a year below 100 as 19xx and rolls a day the
+// month does not have into the next month. An ABAP date carries neither
+// meaning: "00010101" is the low boundary of a validity range, and
+// "20240230" is an unchecked value from somewhere else - shown as March 1,
+// a real-looking wrong date.
+test.describe("a year below 100 and a day the calendar does not have", () => {
+  test("a year below 100 stays that year, in every helper", () => {
+    const parts = (d) => [d.getFullYear(), d.getMonth(), d.getDate()];
+    expect(parts(Formatter.DateAbapDateToDateObject("00010101"))).toEqual([
+      1, 0, 1,
+    ]);
+    expect(
+      parts(Formatter.DateAbapDateTimeToDateObject("00991231", "120000")),
+    ).toEqual([99, 11, 31]);
+    expect(parts(Formatter.DateCreateObject("0050-06-15"))).toEqual([
+      50, 5, 15,
+    ]);
+  });
+
+  test("a day the month does not have is no date, not the next month", () => {
+    expect(Formatter.DateAbapDateToDateObject("20240230")).toBeNull();
+    expect(Formatter.DateAbapDateToDateObject("20230229")).toBeNull();
+    expect(Formatter.DateAbapDateToDateObject("20241301")).toBeNull();
+    expect(
+      Formatter.DateAbapDateTimeToDateObject("20240431", "080000"),
+    ).toBeNull();
+    expect(Formatter.DateCreateObject("2024-02-30")).toBeNull();
+  });
+
+  test("the time still lands on the day it was given", () => {
+    const d = Formatter.DateAbapDateTimeToDateObject("00010101", "134501");
+    expect([d.getFullYear(), d.getHours(), d.getMinutes(), d.getSeconds()])
+      .toEqual([1, 13, 45, 1]);
+  });
+});

@@ -673,9 +673,39 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function isEvent(value) {` && |\n| &&
+             `    return (` && |\n| &&
+             `      value !== null &&` && |\n| &&
+             `      typeof value === "object" &&` && |\n| &&
+             `      typeof value.isA === "function" &&` && |\n| &&
+             `      value.isA("sap.ui.base.Event")` && |\n| &&
+             `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function projectEvent(event, level, ancestors) {` && |\n| &&
+             `    const result = {};` && |\n| &&
+             `    try {` && |\n| &&
+             `      result.ID = event.getId();` && |\n| &&
+             `    } catch {}` && |\n| &&
+             `    try {` && |\n| &&
+             `      const source = event.getSource();` && |\n| &&
+             `      if (source && typeof source.getId === "function") {` && |\n| &&
+             `        result.SOURCE = source.getId();` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch {}` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parameters = event.getParameters();` && |\n| &&
+             `      if (parameters !== undefined && parameters !== null) {` && |\n| &&
+             `        result.PARAMETERS = normalizeEventArg(parameters, level + 1, ancestors);` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch {}` && |\n| &&
+             `    return result;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function normalizeEventArg(value, depth, ancestors) {` && |\n| &&
              `    const level = depth || 0;` && |\n| &&
              `    if (level > MAX_ARG_DEPTH) return value;` && |\n| &&
+             `    if (isEvent(value)) return projectEvent(value, level, ancestors);` && |\n| &&
              `    if (isManagedObject(value)) return projectControl(value);` && |\n| &&
              `    if (isContext(value)) return projectContext(value, level, ancestors);` && |\n| &&
              `    if (Array.isArray(value) || isPlainObject(value)) {` && |\n| &&

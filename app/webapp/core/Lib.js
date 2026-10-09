@@ -945,6 +945,8 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // (getObject), itself normalized like any other value. A plain object -
   // `${$parameters>/}`, the whole parameter map - is walked as well, so a
   // control or context INSIDE it is projected the same way as at the top.
+  // The UI5 event itself (`$event`) is the third, { ID, SOURCE, PARAMETERS }
+  // - see projectEvent.
   //
   // Copy on write: an array or plain object is copied only when something
   // inside it changed, so plain data - the backend event array in args[0],
@@ -1084,9 +1086,53 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     }
   }
 
+  function isEvent(value) {
+    return (
+      value !== null &&
+      typeof value === "object" &&
+      typeof value.isA === "function" &&
+      value.isA("sap.ui.base.Event")
+    );
+  }
+
+  // The UI5 event itself - a bare `$event` in t_arg. It holds its source
+  // control, the same circular graph as a control, so it used to fail the
+  // serialization of the whole request. It becomes what the ABAP side
+  // documents a `$event` argument as reaching: the event's ID (`press`,
+  // `change`), the SOURCE control's id and its PARAMETERS, the parameter
+  // map normalized like any other value (a control in it becomes its id
+  // plus its properties). Read synchronously, while UI5 still dispatches
+  // the event - UI5 pools event objects and resets them afterwards.
+  function projectEvent(event, level, ancestors) {
+    const result = {};
+    try {
+      result.ID = event.getId();
+    } catch {
+      // like a throwing property getter: not reported, the rest still is
+    }
+    try {
+      const source = event.getSource();
+      if (source && typeof source.getId === "function") {
+        result.SOURCE = source.getId();
+      }
+    } catch {
+      // same
+    }
+    try {
+      const parameters = event.getParameters();
+      if (parameters !== undefined && parameters !== null) {
+        result.PARAMETERS = normalizeEventArg(parameters, level + 1, ancestors);
+      }
+    } catch {
+      // same
+    }
+    return result;
+  }
+
   function normalizeEventArg(value, depth, ancestors) {
     const level = depth || 0;
     if (level > MAX_ARG_DEPTH) return value;
+    if (isEvent(value)) return projectEvent(value, level, ancestors);
     if (isManagedObject(value)) return projectControl(value);
     if (isContext(value)) return projectContext(value, level, ancestors);
     if (Array.isArray(value) || isPlainObject(value)) {
