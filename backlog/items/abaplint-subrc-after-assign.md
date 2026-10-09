@@ -5,7 +5,7 @@ summary: on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the tes
 priority: high
 state: open
 first_seen: 2026-08-17
-checked_upstream: 2026-09-14
+checked_upstream: 2026-10-09
 patch: backlog/patches/abaplint-three-rules.patch
 upstream: abaplint/abaplint
 evidence:

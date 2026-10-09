@@ -10,7 +10,7 @@ evidence:
   - found 2026-10-08 in abap2UI5-addons/admin-cockpit, `z2ui5_cl_cockpit_session=>outcomes_of` - `READ TABLE lt_meta … WITH TABLE KEY id = lv_key.` followed by `IF lv_key IS INITIAL OR sy-subrc <> 0. … ELSEIF line_exists( lt_prev[ table_line = lv_key ] ).`; its unit test answered "unknown" for a draft that is in `lt_meta`, because the downported code (read in `node/downport/`, @abaplint/cli as pinned by abap2UI5 that day) runs `READ TABLE lt_prev WITH KEY table_line = lv_key TRANSPORTING NO FIELDS. temp143 = sy-subrc.` before the `IF`, and the IF's `sy-subrc <> 0` then tests that READ. Worked around by keeping the first READ's result in a variable at once
   - the cause, read at abaplint/abaplint main 00a31bb - `packages/core/src/rules/downport.ts`, `replaceLineFunctions`: for an `ElseIf` statement the insert position is `findStartOfIf( )`, the start of the IF chain, under the comment "assumption: no side effects in IF conditions"; the inserted `READ TABLE` is such a side effect (sy-subrc for line_exists, sy-tabix for line_index)
   - a scan of abap2UI5/src, sapgui, popups, abap-cloud-gui and admin-cockpit on 2026-10-08 finds no other IF chain that tests sy-subrc in its IF and has a line_exists / line_index in an ELSEIF (2 such ELSEIFs exist, neither IF reads sy-subrc) - the trap is rare, and silent when it hits
-checked_upstream: 2026-10-08
+checked_upstream: 2026-10-09
 ---
 
 # downport: line_exists( ) in an ELSEIF overwrites the sy-subrc the IF reads

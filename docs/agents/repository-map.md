@@ -3,8 +3,8 @@
 > Extracted from `AGENTS.md`, which points here. It is reference material: an
 > agent needs it once it knows it has to look something up, not before, and
 > AGENTS.md is loaded into every session. Every fact below was in that file
-> unchanged; the `src/` tree itself and the root files stay there, because
-> they are what a reader needs to place a change at all.
+> unchanged; the `src/` tree itself stays there, because it is what a reader
+> needs to place a change at all.
 
 ## Directories
 
@@ -106,12 +106,74 @@ control callbacks no roundtrip can answer (`core:require` of
 `z2ui5/model/clipboard` - today `CopyProvider.extractData`), held to the same
 admission criteria by the same gate.
 
+## Related repositories
+
+| Repository | Purpose |
+|---|---|
+| [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
+| [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples — step 1 of the three sample catalogues |
+| [samples-controls](https://github.com/abap2UI5/samples-controls) (formerly ai-demokit) | Step 2: the official UI5 demo kit rebuilt with abap2UI5, one port per sample, gate-verified. Also carries `CAPABILITIES.md` — what abap2UI5 can express, each claim naming the port that proves it |
+| [samples-stack](https://github.com/abap2UI5/samples-stack) (formerly samples-ext) | Step 3: everything that needs more than an abap2UI5 installation — OData, RAP, WebSockets, the Fiori Launchpad. The dividing line against `samples` is that requirement, not the topic |
+| [docs](https://github.com/abap2UI5/docs) | Project documentation — the prose for **people**; it generates its own `llms.txt` for agents. `llms.txt` here is the map of the CODE, and the two are deliberately different things |
+| [linter](https://github.com/abap2UI5/linter) | `@abap2ui5/linter` — static + headless-render checks over an app class and the view its builder produces. A devDependency **here** (`abap2ui5lint.jsonc`, rule 21) and the destination of the `ui5-check` skill's `Linter:` lines |
+| [mcp-server](https://github.com/abap2UI5/mcp-server) | MCP server giving an agent the loop without an SAP system: search the catalogues, validate a view, deploy, build, run headless, screenshot |
+| [vscode-extension](https://github.com/abap2UI5/vscode-extension) | IDE support — lints while you type, `F9` runs a class against a real system, and registers the MCP servers into the editor |
+| [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities — upstream of `src/00/03/` (see "Utilities") |
+| [app-template](https://github.com/abap2UI5/app-template) | Starter repo for app projects — gates, CI and agent setup preconfigured |
+| [cap2UI5](https://github.com/cap2UI5/cap2UI5) | `cap2ui5` — a CAP plugin that hosts `@abap2ui5/node-runtime`: drafts in a CDS entity, apps as JavaScript classes next to the ABAP ones |
+| [playground](https://github.com/abap2UI5/playground) | The sample catalogue site, <https://abap2ui5.github.io/playground/samples/> — every sample of the three corpora, searchable by control and by UI5 release, most of them one click from running in the browser; `README.md` sends readers there and its `apps.json` index is what an agent fetches. A canary: it builds against a commit SHA of this repository (CONVENTIONS §9) |
+| [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) | The single-class build of the framework. `trigger_local.yaml` pushes `src/` into its `input/` on every push to `main` (deploy key `ACTION_KEY_LOCAL`, the refresh script pinned by hash in `.github/pins/`), and its own workflows fold the sources into one class per target — `z2ui5_cl_abap2ui5_local`, the name a user's SLIN run reports findings against (`abap-check` skill, §3) |
+| [custom-controls](https://github.com/abap2UI5-addons/custom-controls) | Community custom controls in their own BSP — the reserved resourceRoot `z2ui5_cci` in `app/webapp/manifest.json` is what makes it findable |
+| [customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) | Template for a customer's **own** frontend artefacts (reuse library, icon font, CSS) in their own BSP — same mechanism under the reserved resourceRoot `z2ui5_ccc`. Both roots exist so nobody has to patch `index.html` / `manifest.json`, which are generated here and overwritten downstream |
+| [embed-control](https://github.com/abap2UI5/embed-control) | `@abap2ui5/embed-control` — the UI5 control `z2ui5.embed.Container`, which runs an abap2UI5 app inside any UI5 app. It ships no frontend: it loads this one through `?z2ui5-bundle` (`z2ui5_cl_ui5_http_handler=>_http_get_bundle`) and requires the `z2ui5/embed` module that bundle defines, so that name is its contract - its `componentData` includes `embedded: true`, which hands the URL to the host (`state.embedded`, a Fiori elements object page routes by it). Its own namespace `z2ui5.embed` sits below the name and is mapped to the host app's `thirdparty/` — `app/webapp` gets no `embed/` folder |
+
+## Root files
+
+| File | Purpose |
+|---|---|
+| `README.md` | Project intro, key features, quick start, references |
+| `AGENTS.md` | This file — the agent briefing for working on the framework |
+| `llms.txt` | Index of the agent entry points (framework work vs. app building) |
+| `CONTRIBUTING.md` | Contribution workflow and setup instructions |
+| `CODE_OF_CONDUCT.md` | Community code of conduct |
+| `SECURITY.md` | Security reporting policy |
+| `LICENSE` | MIT license |
+| `changelog.txt` | Project changelog (lowercase by convention) |
+| `abaplint.jsonc` | Active linter config (swapped by `auto_downport` to target 7.02) |
+| `.abapgit.xml` | abapGit repo config — `STARTING_FOLDER=/src/`, `FOLDER_LOGIC=PREFIX`, `VERSION_CONSTANT=Z2UI5_IF_APP=>VERSION` |
+| `.gitignore` | Excludes `downport/`, `node_modules/`, `output/`, `node/output/`, env/IDE files |
+| `package.json` | Node tooling entry point (scripts + devDependencies) |
+
+## Reference files
+
+Beyond the must-know files in `AGENTS.md`, "Key Files" - consult as needed:
+
+| File | Why |
+|---|---|
+| `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (`z2ui5_if_exit` is its superseded name) |
+| `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | Default exit + user-exit class support |
+| `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
+| `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
+| `src/01/02/z2ui5_cl_ui5_app_cont.clas.abap` | App lifecycle (create, load, serialize) |
+| `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine — a bound value to its client path, one service per render |
+| `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | The attribute rows: dissolve, binding search, model out and in (row deltas), the draft save and restore of generic references |
+| `src/01/02/z2ui5_cl_ui5_srv_event.clas.abap` | Event registration and payload assembly |
+| `src/01/01/z2ui5_cl_ui5_srv_draft.clas.abap` | Draft/session persistence |
+| `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | The single door to system/platform functionality — see "Utilities" |
+| `app/webapp/core/Context.js` | One context per component: the state instance, the per-module records, and how a module finds it (`Context.of`) |
+| `app/webapp/core/AppState.js` | The shape of a component's state (`createState()`) + its field inventory |
+| `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
+| `app/webapp/core/Lib.js` | Shared frontend helpers |
+| `app/webapp/core/Env.js` | UI5-release compatibility layer (1.71 fallbacks) |
+| `app/webapp/core/Server.js` | Roundtrip lifecycle + request/response wire format docs |
+
 ## Where the rest is
 
 | Looking for | It is in |
 |---|---|
-| the `src/00`–`src/99` package tree, and what each layer is | `AGENTS.md`, "Repository Structure" |
-| the root files (`README.md`, `changelog.txt`, `abaplint.jsonc`, …) | `AGENTS.md`, "Root Files" |
+| the `src/00`–`src/99` package tree, and what each layer is | `AGENTS.md`, "Layered Design" |
+| the frontend rules (custom controls, CSP, 1.71, the generated mirror) | `app/AGENTS.md` |
+| what is out of scope for a review or an audit | `REVIEW.md` |
 | what each workflow does | `docs/agents/ci-workflows.md` |
 | why the draft store and the serializer are interfaces, and the codepage fallback | `docs/agents/architecture-seams.md` |
 | why a proposal was declined (base class, cleanup throttle, authorization hook, …) | `docs/agents/decisions.md` |

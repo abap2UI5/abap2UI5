@@ -150,28 +150,32 @@ git init -q deps/open-abap-core
 git -C deps/open-abap-core fetch -q --depth 1 https://github.com/open-abap/open-abap-core "$CORE"
 git -C deps/open-abap-core checkout -q FETCH_HEAD
 
-npx abap_transpile abap_transpile.json      # abap/*.abap -> output/: yours, and every library object
-npx abap2ui5-own-apps output apps           # output/ -> apps/: yours alone, on the package's classes
+npx abap_transpile abap_transpile.json      # abap/*.abap -> output/project/: yours; output/<library>/: every library object
+npx abap2ui5-own-apps output apps           # output/project/ -> apps/: yours alone, on the package's classes
 ```
 
 Then `apps/` is loaded as above.
 
 `abap2ui5-own-apps` (a bin of this package, `setup/own-apps.mjs`) is not
-optional. The transpile writes every object it read into `output/` - a second
-copy of the framework and of open-abap-core next to your classes, and the
-transpiler has no option to leave them out - and with `addCommonJS` a class
-imports what it extends by a relative path: your exception class,
-`INHERITING FROM cx_static_check`, loads `output/cx_static_check.clas.mjs`
-and with it a second `CX_ROOT`, which replaces the package's in the running
-runtime. From then on the framework's `CATCH cx_root` compares against a
-class its own exceptions do not extend, and every request fails. Without
-`addCommonJS` there are no imports at all, and a class that extends anything
-does not load. So `abap2ui5-own-apps` keeps the files that are not the
-package's, points their imports of everything else at
-`@abap2ui5/node-runtime/output/` - the modules the package already booted -
-and writes `apps/index.mjs`, which imports your classes in the order the
-transpile does. An import it cannot rewrite stops it, with the file and the
-line.
+optional. The transpile writes every object it read into `output/` - your
+classes into `output/project/`, and a second copy of the framework and of
+open-abap-core into a folder per library next to it (`output/downport/`,
+`output/open-abap-core/`); the transpiler has no option to leave them out -
+and with `addCommonJS` a class imports what it extends by a relative path:
+your exception class, `INHERITING FROM cx_static_check`, loads
+`output/open-abap-core/cx_static_check.clas.mjs` and with it a second
+`CX_ROOT`, which replaces the package's in the running runtime. From then on
+the framework's `CATCH cx_root` compares against a class its own exceptions
+do not extend, and every request fails. Without `addCommonJS` there are no
+imports at all, and a class that extends anything does not load. So
+`abap2ui5-own-apps` keeps `output/project/`, points its imports of
+everything else at the package's module of the same name,
+`@abap2ui5/node-runtime/output/<folder>/<file>` - the modules the package
+already booted - and writes `apps/index.mjs`, which imports your classes in
+the order the transpile does. An import it cannot rewrite, or of a module
+the package does not have, stops it with the file and the line. It needs the
+layout of `@abaplint/transpiler-cli` 2.14, the version the package records;
+an output without `project/` is refused.
 
 The transpile type-checks your class against the framework (`ignoreSyntaxCheck`
 is off), so a method that does not exist on `z2ui5_if_client` fails there
@@ -316,7 +320,7 @@ drafts are a CDS entity.
 | `srv/host.mjs` | The entry point - everything above |
 | `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it installs nothing and imports nothing from `output/` |
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
-| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object. The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
+| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object in a folder per origin - `project/` the framework, `open-abap-core/` the ABAP standard library, `express-icf-shim/` the ICF layer (the layout of `@abaplint/transpiler-cli` 2.14; up to 1.146.0 every module sat directly in `output/`). The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
 | `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core at the recorded commit, the config, the transpile, `own-apps` |

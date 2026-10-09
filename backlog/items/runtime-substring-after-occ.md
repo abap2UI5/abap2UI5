@@ -10,7 +10,8 @@ evidence:
   - found 2026-10-08 in abap2UI5-addons/admin-cockpit - `z2ui5_cl_cockpit_session=>business_of` and `messages_of` took the last component of a field path with `substring_after( val = path sub = '-' occ = -1 )` and `substring_before( … occ = -1 )`; two unit tests failed under `npm run unit` (1 of 3 and 0 of 3 rows) because every path was cut at its first dash. Worked around with `find( val = path sub = '-' occ = -1 )` plus `substring( )` - `find( )` handles occ = -1 in the runtime
   - the cause, read in `@abaplint/runtime` 2.13.99 (`build/src/builtin/substring_after.js`) and unchanged at abaplint/transpiler main 65b3da1 - the function reads `val`, `sub`, `regex` and `pcre`, builds `new RegExp(reg + "(.*)")` and returns the first group; `occ`, `len` and `case` are not referenced in either file
   - nothing else in abap2UI5/src, sapgui, popups, abap-cloud-gui or admin-cockpit passes occ, len or case to these two functions (scan 2026-10-08)
-checked_upstream: 2026-10-08
+  - re-read 2026-10-09 at abaplint/transpiler main 2e299e61 - abaplint/transpiler#1968 ("bugfix substring_after", in 2.13.100) only replaced `(.*)` / `(.*?)` by `([\s\S]*)` / `([\s\S]*?)` so the match crosses line breaks; `occ`, `len` and `case` are still not read in either file
+checked_upstream: 2026-10-09
 ---
 
 # runtime: substring_after( ) / substring_before( ) ignore occ, len and case

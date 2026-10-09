@@ -46,10 +46,10 @@
     "README.md",
     "LICENSE",
     "output",
-    "!output/*.testclasses.mjs",
+    "!output/**/*.testclasses.mjs",
     "!output/index.mjs",
     "!output/_unit_open.mjs",
-    "!output/*.map",
+    "!output/**/*.map",
     "setup/setup.mjs",
     "setup/own-apps.mjs",
     "setup/transpile.mjs",
@@ -88,7 +88,7 @@
   },
   "dependencies": {
     "@abaplint/database-sqlite": "^2.13.83",
-    "@abaplint/runtime": "^2.13.96"
+    "@abaplint/runtime": "^2.14.2"
   },
   "peerDependencies": {
     "express": "^4.21.0 || ^5.0.0"

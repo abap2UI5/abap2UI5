@@ -9,6 +9,7 @@ upstream: abaplint/abaplint
 evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_inst->get_implementers` lines 23 and 24 - ""RESULT" is a table with an empty primary key. Check the semantics of the statement." for `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.`, `result` typed `STANDARD TABLE OF string WITH EMPTY KEY`; fixed with `BY table_line` / `COMPARING table_line`
   - measured 2026-10-06 on abaplint 2.120.70, every default rule on - no finding on either statement
+checked_upstream: 2026-10-09
 ---
 
 # Report SORT / DELETE ADJACENT DUPLICATES on a table with an empty primary key

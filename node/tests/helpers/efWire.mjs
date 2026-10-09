@@ -15,7 +15,7 @@ const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..
 
 const init = await import(path.join(OUT, 'init.mjs'));
 await init.initializeABAP();
-const { z2ui5_cl_ui5_srv_event } = await import(path.join(OUT, 'z2ui5_cl_ui5_srv_event.clas.mjs'));
+const { z2ui5_cl_ui5_srv_event } = await import(path.join(OUT, 'project', 'z2ui5_cl_ui5_srv_event.clas.mjs'));
 const event = await new z2ui5_cl_ui5_srv_event().constructor_();
 
 const str = (s) => new globalThis.abap.types.String().set(s);

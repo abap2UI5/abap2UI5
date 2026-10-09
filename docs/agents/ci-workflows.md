@@ -203,3 +203,16 @@ the transpiler, and should say so in a test of its own.
 > prohibition rather than a lookup, so it stays in `AGENTS.md` (end of the
 > "CI/CD Workflows" section) where it is in context before the mistake, and is
 > deliberately not repeated here.
+
+## The downstream frontend repositories are generated, never edited
+
+Both downstream repositories are **generated, never edited**: the deploy writes
+over their content, so a change made there survives only until the next push to
+this `main` and then disappears without a trace. `app/webapp/` is edited here
+and nowhere else. [frontend](https://github.com/abap2UI5/frontend) enforces this
+with its `guard` workflow, which fails every manual pull request by default and
+only lets through changes to the docs it genuinely owns after a maintainer
+applies the `maintenance` label. Its `main` carries those docs plus the
+machine-written `result/<branch>` trees this repository delivers, and every
+published branch is fanned out from them by its `deliver` workflow — always
+exactly one commit ahead of `main` there, never edited in place.
