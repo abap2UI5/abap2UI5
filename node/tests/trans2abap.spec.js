@@ -39,20 +39,22 @@ test("backticks, pipes and braces round-trip through the ABAP literal", () => {
   expect(abapGetValue(abap)).toBe(`${src}\n`);
 });
 
-test("trailing whitespace inside a template literal is refused, not silently dropped", async () => {
+// The proof stripJsComments runs, checked on its own: stripJsComments
+// itself needs the app toolchain (app/node_modules/prettier), which the
+// JS unit job does not install - npm run check:app2abap covers that path
+// over every real file.
+test("trailing whitespace inside a template literal is refused, not silently dropped", () => {
   // the embedded copy strips every line's trailing blanks - inside a
   // template literal they are part of the string, so the program changes
   const src = "const s = `a  \nb`;\n";
-  await expect(GEN.stripJsComments(src, WEBAPP_FILE, "probe.js")).rejects.toThrow(
-    /embedding changed the program/,
-  );
+  expect(() =>
+    GEN.assertSameProgram(src, GEN.embeddedValue(src, false), "probe.js"),
+  ).toThrow(/embedding changed the program/);
 });
 
-test("comments and trailing blanks outside a literal are stripped and accepted", async () => {
-  const code = await GEN.stripJsComments(
-    "const s = 1;   // note\nconst t = `a\nb`;\n",
-    WEBAPP_FILE,
-    "probe.js",
-  );
-  expect(code).not.toContain("note");
+test("trailing blanks outside a literal are dropped and accepted", () => {
+  const src = "const s = 1;   \nconst t = `a\nb`;\n";
+  const value = GEN.embeddedValue(src, false);
+  expect(value).not.toContain("1;   ");
+  expect(() => GEN.assertSameProgram(src, value, "probe.js")).not.toThrow();
 });

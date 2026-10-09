@@ -621,4 +621,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { formatAsAbapClass, embeddedValue, stripJsComments };
+module.exports = { formatAsAbapClass, embeddedValue, stripJsComments, assertSameProgram };
