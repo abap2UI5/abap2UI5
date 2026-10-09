@@ -361,8 +361,6 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
-**Backlog:** abaplint · abaplint-generic-deref-old-releases
-
 ### VALUE constructor — a header default plus a per-row value is a syntax error
 
 - **A component assigned before the first line spec cannot be assigned again
@@ -1078,8 +1076,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-elseif-line-exists-subrc, abaplint-downport-new-data-reference, abaplint-downport-ref-generic-field-symbol
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-replace-with-literal, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
