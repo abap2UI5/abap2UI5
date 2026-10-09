@@ -36,6 +36,14 @@
  * the package does not have, stops it with the file and the line, instead
  * of a second copy at runtime.
  *
+ * A transpiler before 2.14 writes everything flat into output/, the host's
+ * classes next to the library copies. That output is read too: every file
+ * the package has a module of the same name for is a library copy, and so
+ * are the transpile's generated files (init.mjs, index.mjs, the _*.mjs);
+ * the rest is the host's. Flat, a class of the host's named like one of the
+ * package's cannot be told from a copy - it is left out, as it was before
+ * 2.14. abap2UI5/protocol's conformance host transpiles with 2.13.
+ *
  * Also a module: import { ownApps } from "@abap2ui5/node-runtime/setup/own-apps.mjs".
  */
 import fs from "node:fs";
@@ -47,6 +55,9 @@ const RUNTIME_OUTPUT = fileURLToPath(new URL("../output/", import.meta.url));
 
 /* The folder the transpiler writes the transpile's own input into (2.14 on). */
 const PROJECT = "project";
+
+/* The transpile's generated files in a flat output: its boot, its unit-test runner. Never the host's. */
+const GENERATED = (file) => file.startsWith("_") || /^(init|index)\.mjs(\.map)?$/.test(file);
 
 /* An import of another transpiled file, the shapes the transpiler writes -
  * each at the start of a line, so a string literal that reads like one is
@@ -87,16 +98,17 @@ function packageIndex(runtimeOutput) {
  */
 export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   if (!fs.existsSync(output)) throw new Error(`own-apps: ${output} does not exist - run the transpile first`);
-  const projectDir = path.join(output, PROJECT);
-  if (!fs.existsSync(projectDir)) {
-    throw new Error(`own-apps: ${output} has no ${PROJECT}/ folder - it was written by a transpiler before 2.14, `
-      + `and this ${PACKAGE} was built with the folder per origin 2.14 writes (abap2ui5.transpiler in its package.json names the version)`);
-  }
   const index = packageIndex(runtimeOutput);
-  const own = fs.readdirSync(projectDir).filter((f) => /\.mjs(\.map)?$/.test(f)).sort();
+  // a transpiler before 2.14: no project/, the host's classes flat among the library copies
+  const flat = !fs.existsSync(path.join(output, PROJECT));
+  const projectDir = flat ? output : path.join(output, PROJECT);
+  const library = (f) => GENERATED(f) || index.has(f.replace(/\.map$/, ""));
+  const own = fs.readdirSync(projectDir).filter((f) => /\.mjs(\.map)?$/.test(f))
+    .filter((f) => !flat || !library(f)).sort();
   const local = new Set(own);
   if (!own.some((f) => f.endsWith(".mjs"))) {
-    throw new Error(`own-apps: ${projectDir} is empty - which of the classes are yours? `
+    throw new Error(`own-apps: ${flat ? `every file in ${output} is the package's own` : `${projectDir} is empty`}`
+      + " - which of the classes are yours? "
       + "(the transpile's input_folder holds your classes, and it has to be a different folder from the libs)");
   }
   const shadowing = own.filter((f) => index.has(f));
@@ -136,7 +148,7 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   const init = path.join(output, "init.mjs");
   const order = [];
   if (fs.existsSync(init)) {
-    const imported = new RegExp(`^[ \\t]*(?:await\\s+import\\(|import\\s+)"\\./${PROJECT}/([^"/\\n]+\\.mjs)"`, "gm");
+    const imported = new RegExp(`^[ \\t]*(?:await\\s+import\\(|import\\s+)"\\./${flat ? "" : `${PROJECT}/`}([^"/\\n]+\\.mjs)"`, "gm");
     for (const m of fs.readFileSync(init, "utf8").matchAll(imported)) {
       const file = fileOf(m[1]);
       if (main.includes(file) && !order.includes(file)) order.push(file);

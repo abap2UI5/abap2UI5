@@ -155,12 +155,45 @@ test("says so when nothing in the output is the host's", async () => {
   }
 });
 
-test("says so when the output was written by a transpiler before 2.14", async () => {
+test("reads the flat output of a transpiler before 2.14", async () => {
+  // abap2UI5/protocol's conformance host transpiles with 2.13: no project/,
+  // the host's classes flat among the library copies and the generated files
   const { ownApps } = await load();
   const runtimeOutput = tree(PACKAGE_OUTPUT);
-  const output = tree({ "cx_root.clas.mjs": "", "zcl_app.clas.mjs": "", "init.mjs": "" });
+  const output = tree({
+    "cx_root.clas.mjs": "// a second copy",
+    "cx_root.clas.mjs.map": "{}",
+    "cx_static_check.clas.mjs": "// a second copy",
+    "z2ui5_if_app.intf.mjs": "// a second copy",
+    "init.mjs": 'await import("./cx_root.clas.mjs");\nawait import("./zcl_app.clas.mjs");\nawait import("./zcx_app_error.clas.mjs");\n',
+    "_init.mjs": 'import "./zcl_app.clas.mjs";\n',
+    "index.mjs": 'import "./init.mjs";\n',
+    "zcx_app_error.clas.mjs": 'const {cx_static_check} = await import("./cx_static_check.clas.mjs");\nexport {};\n',
+    "zcl_app.clas.mjs": 'const {zcx_app_error} = await import("./zcx_app_error.clas.mjs");\n'
+      + 'const {z2ui5_if_app} = await import("./z2ui5_if_app.intf.mjs");\nexport {};\n',
+    "zcl_app.clas.mjs.map": "{}",
+  });
+  const apps = path.join(os.tmpdir(), `own-apps-out-${process.pid}-${Date.now()}-flat`);
   try {
-    expect(() => ownApps({ output, apps: path.join(output, "apps"), runtimeOutput })).toThrow(/has no project\/ folder - it was written by a transpiler before 2\.14/);
+    const { files, modules } = ownApps({ output, apps, runtimeOutput });
+    expect(files.sort()).toEqual(["index.mjs", "zcl_app.clas.mjs", "zcl_app.clas.mjs.map", "zcx_app_error.clas.mjs"]);
+    expect(modules).toEqual(["zcl_app.clas.mjs", "zcx_app_error.clas.mjs"]);
+    expect(fs.readFileSync(path.join(apps, "zcx_app_error.clas.mjs"), "utf8"))
+      .toContain('await import("@abap2ui5/node-runtime/output/open-abap-core/cx_static_check.clas.mjs")');
+    const app = fs.readFileSync(path.join(apps, "zcl_app.clas.mjs"), "utf8");
+    expect(app).toContain('await import("./zcx_app_error.clas.mjs")');
+    expect(app).toContain('await import("@abap2ui5/node-runtime/output/project/z2ui5_if_app.intf.mjs")');
+  } finally {
+    for (const dir of [runtimeOutput, output, apps]) fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("says so when nothing in a flat output is the host's", async () => {
+  const { ownApps } = await load();
+  const runtimeOutput = tree(PACKAGE_OUTPUT);
+  const output = tree({ "cx_root.clas.mjs": "", "init.mjs": "", "_init.mjs": "" });
+  try {
+    expect(() => ownApps({ output, apps: path.join(output, "apps"), runtimeOutput })).toThrow(/every file in .* is the package's own - which of the classes are yours/);
   } finally {
     for (const dir of [runtimeOutput, output]) fs.rmSync(dir, { recursive: true, force: true });
   }

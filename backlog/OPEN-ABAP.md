@@ -34,7 +34,6 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`runtime-packed-copy-precision`](items/runtime-packed-copy-precision.md) | '`Packed.set( )` has no branch for a `Packed` source and falls through to `this.set(value.get())`; `get( )` answers `Number(this.value) / 10 ** decimals`, so every packed-to-packed assignment of more than 15 significant digits loses its last ones - a `timestampl` (21 digits) set from a string is exact, its copy is not, and ajson''s `to_timestamp` then refuses the value as carrying a fraction'<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/transpiler/pull/1962</sub> | medium | 2026-10-08 | abaplint/transpiler |
-| [`runtime-substring-after-occ`](items/runtime-substring-after-occ.md) | '`packages/runtime/src/builtin/substring_after.ts` and `substring_before.ts` build one regex `sub(.*)` / `(.*?)sub` from `sub`/`regex`/`pcre` and never read `occ`, `len` or `case`; `substring_after( val = ''a-b-c'' sub = ''-'' occ = -1 )` is `b-c` instead of `c` - the code is right on a system and wrong in the transpiled build'<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/transpiler/pull/1985</sub> | medium | 2026-10-08 | abaplint/transpiler |
 
 ---
 

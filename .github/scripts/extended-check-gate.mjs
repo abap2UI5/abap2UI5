@@ -60,6 +60,7 @@
 //                literal the system does not know. Syntax warnings on a
 //                user's system on 2026-09-23, from a test class of
 //                z2ui5_cl_ui5_util_context that feeds deliberately odd rows.
+//                Proposed to abaplint as idea 4 of abaplint/abaplint#4407.
 //
 // Why a gate and not prose: abaplint models none of these. They are checks of a
 // different tool, and prose in AGENTS.md did not stop the three "fix atc
@@ -119,7 +120,8 @@ const BEFORE_END_OF = /^\s*end\s+of\b/i;
  * abaplint's wrong_abapdoc_position reports the block before a chain keyword,
  * inside a statement, and before ENDCLASS / ENDINTERFACE / a SECTION. A
  * comment is none of those: it is not a statement at all, so the rule walks
- * past it to the declaration and finds the block correctly placed. */
+ * past it to the declaration and finds the block correctly placed. Added to
+ * abaplint/abaplint#4385 as case 1b on 2026-10-09. */
 const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
 
 /* ...and a THIRD, reported from a 7.58 system's SYNTAX_CHECK on 2026-10-04 over
