@@ -390,6 +390,8 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS cell_in_runtime_table   FOR TESTING RAISING cx_static_check.
     " an index past the last row
     METHODS index_out_of_range      FOR TESTING RAISING cx_static_check.
+    " no tab_index at all (0, the default) and a negative one
+    METHODS index_not_positive      FOR TESTING RAISING cx_static_check.
     " a value that is not a component of that row, however equal it looks
     METHODS foreign_value_refused   FOR TESTING RAISING cx_static_check.
     " a table of strings has no component to bind a cell of
@@ -538,6 +540,22 @@ CLASS ltcl_02_cell IMPLEMENTATION.
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 3 )
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+
+  ENDMETHOD.
+
+  METHOD index_not_positive.
+
+    " a cell bind that names the table and forgets tab_index sends 0 - the
+    " rows count from 1, so it is the documented binding error (_bind( ),
+    " tab_index: a row that does not exist raises it instead of dumping),
+    " and so is a negative index
+    expect_bind_error( ir_val    = cell_name( 1 )
+                       is_config = VALUE #( tab = REF #( mo_app->mt_tab ) )
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+    expect_bind_error( ir_val    = cell_name( 1 )
+                       is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
+                                            tab_index = -1 )
                        iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
 
   ENDMETHOD.

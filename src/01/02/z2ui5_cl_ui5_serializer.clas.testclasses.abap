@@ -377,11 +377,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_loaded) = load( lv_xml ).
 
     DATA(lo_app) = CAST ltcl_ser_app( lo_loaded->mo_app ).
-    " an IF, not xsdbool( a = b ): with two plain names that parses as a
-    " call with a named parameter in the downported tree
-    IF lo_app = mo_app.
-      cl_abap_unit_assert=>fail( `the parse must build a new instance` ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_false( act = xsdbool( lo_app = mo_app )
+                                       msg = `the parse must build a new instance` ).
     cl_abap_unit_assert=>assert_bound( act = lo_app->mr_tab
                                        msg = `the generic reference did not come back` ).
     ASSIGN lo_app->mr_tab->* TO <tab>.

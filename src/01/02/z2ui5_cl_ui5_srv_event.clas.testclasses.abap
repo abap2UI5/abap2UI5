@@ -62,6 +62,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_backslash_escaped FOR TESTING.
     METHODS event_lone_cr_escaped FOR TESTING.
     METHODS event_placeholder_quoted FOR TESTING.
+    METHODS event_placeholder_bounds FOR TESTING.
     METHODS json_basic FOR TESTING.
     METHODS json_no_args FOR TESTING.
     METHODS json_nav_container FOR TESTING.
@@ -539,6 +540,36 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_cond) = lo_event->get_event( val   = `EVT`
                                          t_arg = VALUE #( ( `{0?Pressed:Unpressed}` ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_cond CS `'{0?Pressed:Unpressed}'` ) ).
+
+  ENDMETHOD.
+
+  METHOD event_placeholder_bounds.
+
+    " the edges of the placeholder scan: a placeholder of several digits is
+    " still message text and quoted, while a RELATIVE binding that starts
+    " with digits ({0/NAME}) and an object literal are no placeholders and
+    " go out raw - UI5 resolves them per firing
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['EVT'], '{12} of {13}')`
+        act = lo_event->get_event( val   = `EVT`
+                                   t_arg = VALUE #( ( `{12} of {13}` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['EVT'], {0/NAME})`
+        act = lo_event->get_event( val   = `EVT`
+                                   t_arg = VALUE #( ( `{0/NAME}` ) ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['EVT'], {a:1})`
+        act = lo_event->get_event( val   = `EVT`
+                                   t_arg = VALUE #( ( `{a:1}` ) ) ) ).
+
+    " and the literal switch quotes all of them alike
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['EVT'], '{0/NAME}')`
+        act = lo_event->get_event( val   = `EVT`
+                                   t_arg = VALUE #( ( `{0/NAME}` ) )
+                                   s_cnt = VALUE #( check_arg_literal = abap_true ) ) ).
 
   ENDMETHOD.
 

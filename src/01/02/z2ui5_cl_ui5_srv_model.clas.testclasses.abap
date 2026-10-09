@@ -1899,6 +1899,10 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS delta_trace              FOR TESTING RAISING cx_static_check.
     " a table kind that takes no row delta
     METHODS delta_sorted_refused     FOR TESTING RAISING cx_static_check.
+    " a row index past the table's end, top level and nested
+    METHODS delta_row_past_end       FOR TESTING RAISING cx_static_check.
+    " a structure cell is written as a whole value - a replace, not a merge
+    METHODS delta_struct_cell_whole  FOR TESTING RAISING cx_static_check.
     " a column kind that takes no value of the shape the wire carries
     METHODS delta_kind_refused       FOR TESTING RAISING cx_static_check.
     " a delta over many rows with a refused cell and a refused nested table
@@ -2580,6 +2584,87 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD delta_row_past_end.
+
+    DATA(lo_app) = typed_app( ).
+    DATA(lo_model) = typed_model( lo_app ).
+
+    " row index 5 of a two-row table: no row is appended, and every cell of
+    " the row is traced like a sorted-table row - it used to vanish without
+    " an entry while the browser kept showing the edit
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"4":{"PRICE":"1.00","NAME":"Ghost"}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_model->mt_skipped ) ).
+    DATA(ls_skip) = lo_model->mt_skipped[ field = `NAME` ]. "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = ls_skip-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = ls_skip-row ).
+    cl_abap_unit_assert=>assert_equals( exp = `Ghost`
+                                        act = ls_skip-value ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = ls_skip-row_parent ).
+
+    " the same for a nested table: the inner index, the outer record as
+    " row_parent, and the existing inner row untouched
+    CLEAR lo_model->mt_skipped.
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"1":{"T_POS":{"__delta":{"3":{"QTY":"7"}}}}}}` )
+                                    iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_app->mt_tab[ 2 ]-t_pos ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_app->mt_tab[ 2 ]-t_pos[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    ls_skip = lo_model->mt_skipped[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB-T_POS`
+                                        act = ls_skip-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = ls_skip-row ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = ls_skip-row_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `7`
+                                        act = ls_skip-value ).
+
+  ENDMETHOD.
+
+  METHOD delta_struct_cell_whole.
+
+    DATA(lo_app) = tree_app( ).
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " what the client sends for an edit of /MT_TREE/0/S_ADR/CITY: the whole
+    " structure, read from its current model - every component lands
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"S_ADR":{"CITY":"New Town","ZIP":"00000"}}}}` )
+                                    iv_name      = `MT_TREE` ).
+    cl_abap_unit_assert=>assert_equals( exp = `New Town`
+                                        act = lo_app->mt_tree[ 1 ]-s_adr-city ).
+    cl_abap_unit_assert=>assert_equals( exp = `00000`
+                                        act = lo_app->mt_tree[ 1 ]-s_adr-zip ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a component the object leaves out is cleared, not kept: the cell is a
+    " replace (see delta_apply_field). The client leaves out only what it
+    " never received - an initial value under omit_initial - so for its own
+    " requests the two readings agree; this pins which one the model takes
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"S_ADR":{"CITY":"Other Town"}}}}` )
+                                    iv_name      = `MT_TREE` ).
+    cl_abap_unit_assert=>assert_equals( exp = `Other Town`
+                                        act = lo_app->mt_tree[ 1 ]-s_adr-city ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tree[ 1 ]-s_adr-zip ).
+    " the sibling cells of the row are no part of the structure
+    cl_abap_unit_assert=>assert_equals( exp = `Manager`
+                                        act = lo_app->mt_tree[ 1 ]-user ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_tree[ 1 ]-nodes ) ).
+
+  ENDMETHOD.
 
   METHOD delta_kind_refused.
 
