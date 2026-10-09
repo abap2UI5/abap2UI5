@@ -361,11 +361,30 @@ sap.ui.define(
         const signal = this._combineSignals(timeoutSignal, superseder.signal);
         // when the body went out - see lastRoundtripMs below
         let sentAt;
+        // The body is serialized BEFORE the network try below, whose catch
+        // reads every failure as the network's: an event argument that is no
+        // plain data - `$event`, a binding context, any object holding a
+        // control - makes JSON.stringify throw on its circular graph, and
+        // that TypeError used to be reported as "Network error: Converting
+        // circular structure to JSON" with a Retry that re-sent the same
+        // unserializable body and failed the same way, forever. Nothing went
+        // out, so there is nothing to retry: the wire is what to fix.
+        let body;
+        try {
+          body = JSON.stringify({ value: oBody });
+        } catch (e) {
+          ctx.server.inflight.delete(superseder);
+          cancel();
+          this.responseError(
+            ctx,
+            `The request could not be serialized - an event argument is no plain data (${e.message})`,
+          );
+          return;
+        }
         try {
           // Step 1: send the request.
           let response;
           try {
-            const body = JSON.stringify({ value: oBody });
             // one shared number, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time

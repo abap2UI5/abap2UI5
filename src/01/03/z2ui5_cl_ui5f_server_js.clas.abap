@@ -186,11 +186,22 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `` && |\n| &&
              `        let sentAt;` && |\n| &&
+             `` && |\n| &&
+             `        let body;` && |\n| &&
+             `        try {` && |\n| &&
+             `          body = JSON.stringify({ value: oBody });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          ctx.server.inflight.delete(superseder);` && |\n| &&
+             `          cancel();` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ctx,` && |\n| &&
+             `            ``The request could not be serialized - an event argument is no plain data (${e.message})``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            const body = JSON.stringify({ value: oBody });` && |\n| &&
-             `` && |\n| &&
              `            ctx.state.lastRequestBytes = body.length;` && |\n| &&
              `            sentAt = Date.now();` && |\n| &&
              `            response = await this._post(ctx, body, signal);` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          this.responseError(ctx, err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n|.
+    result = result &&
              `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
              `          const missingModule =` && |\n| &&
              `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        this.responseError(ctx, err);` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      responseError(ctx, response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&

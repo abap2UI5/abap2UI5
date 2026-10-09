@@ -163,6 +163,30 @@ test.describe("HTTP status outside 2xx", () => {
   });
 });
 
+test.describe("a body that cannot be serialized", () => {
+  // `$event`, a binding context, any object holding a control: no plain
+  // data, and JSON.stringify throws on its circular graph. That is not the
+  // network - nothing went out - so there is no Retry to offer: it would
+  // re-send the same body and fail the same way, forever.
+  test("is reported as such, without a request and without a Retry", async () => {
+    const env = load();
+    const arg = { sId: "press" };
+    arg.oSource = { parent: arg };
+    await env.Server.readHttp(
+      env.ctx,
+      { S_FRONT: { EVENT: "SAVE", T_EVENT_ARG: [arg] } },
+      null,
+    );
+
+    expect(env.fetches).toHaveLength(0);
+    expect(env.errors).toHaveLength(1);
+    expect(env.errors[0].msg).toMatch(/^The request could not be serialized/);
+    expect(env.errors[0].msg).not.toMatch(/Network error/);
+    expect(env.errors[0].options).toBeUndefined();
+    expect(env.ctx.server.inflight.size).toBe(0);
+  });
+});
+
 test.describe("a 2xx that is no response", () => {
   test("invalid JSON is reported with the parser's message", async () => {
     const env = load();
