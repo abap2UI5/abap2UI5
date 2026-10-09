@@ -702,7 +702,10 @@ and points here, so a new trap is added here and nowhere else.
 - **`FIND`/`REPLACE … REGEX` is POSIX**, which is deprecated. `FIND PCRE` only
   exists on >= 7.55 and this repo targets v750/7.02. Prefer plain string logic;
   when a regex is genuinely needed, carry `##REGEX_POSIX` (the vendored AJSON
-  code does the same).
+  code does the same). abaplint's `obsolete_statement` (option `regex`, on
+  by default) reports it only from `syntax.version` v756 on, where PCRE
+  exists - so at this repository's v750 nothing reports a POSIX regex, by
+  design rather than as a gap (measured 2026-10-09 on 2.120.71).
 - **`"!` position.** A doc comment sits directly before the one declaration it
   documents — *inside* a chained statement, not before the chain keyword — and
   **never inside a parameter list**. Document parameters with
@@ -1075,7 +1078,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** abaplint · abaplint-downport-elseif-line-exists-subrc
+**Backlog:** abaplint · abaplint-downport-elseif-line-exists-subrc, abaplint-downport-new-data-reference, abaplint-downport-ref-generic-field-symbol
 **Backlog:** open-abap · runtime-rescale-not-implemented, runtime-substring-after-occ, runtime-replace-with-literal, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
@@ -1148,7 +1151,9 @@ break one of those four.
   first** - `lr_tab = REF #( <tab> ).` with `lr_tab TYPE REF TO data`, then
   `bind( lr_tab )`; the downport turns that into a plain
   `GET REFERENCE OF <tab> INTO lr_tab`. A typed field symbol is fine - the
-  temporary copies its type. **Gate:** `npm run downport` ends with
+  temporary copies its type. The downport itself still writes the `LIKE REF
+  TO` on 2.120.71 (reproduced 2026-10-09); abaplint/abaplint#4405 makes it
+  `TYPE REF TO data` for a generic source. **Gate:** `npm run downport` ends with
   `downport-fix.mjs check-generic-like`, which reads the OUTPUT (the only
   place the shape exists) and fails on any `DATA … LIKE [REF TO | LINE OF]`
   a field symbol the same method types generically; `test.yaml` runs it on
@@ -1159,7 +1164,9 @@ break one of those four.
   `definitions_top` infer `TYPE name`, which is no DDIC type at v702, and
   `auto_downport` exited with an error — the whole downport pipeline, over one
   temporary variable. Inline the expression into its uses instead (`6b80329a`,
-  #2268).
+  #2268). abaplint 2.120.71 declares such a variable `TYPE c LENGTH <n>`
+  (measured 2026-10-09 on a `c LENGTH 30` component `+9`: `LENGTH 21`), so
+  this is history on the current pin.
 - **Do not combine an inline declaration with a table-typed `VALUE`
   constructor.** `DATA(lt_in) = VALUE STANDARD TABLE OF …` is a `parser_error`
   in the `abap_cloud` and `abap_standard` configs. Declare with `DATA`, then
@@ -1177,7 +1184,9 @@ break one of those four.
   in a test class of `z2ui5_cl_ui5_serializer` (2026-10-09). Write
   `CREATE DATA mr.` (or `CREATE DATA mr TYPE string.`) and assign through
   `mr->*`. Measured on abaplint 2.120.68 in an isolated project (`downport`,
-  `check_syntax` and `parser_error` on, v702). **Gate: this repo** -
+  `check_syntax` and `parser_error` on, v702; still so on 2.120.71,
+  2026-10-09). abaplint/abaplint#4404 makes the downport write `CREATE DATA`
+  and the value through the reference. **Gate: this repo** -
   `npm run downport` ends red, but read the next entry before trusting
   what it names.
 - **After a parser error, the downport stops for the whole file, and the
