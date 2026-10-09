@@ -116,6 +116,11 @@
     "check_transformation_exists": true,
     "class_attribute_names": false,
     "classic_exceptions_overlap": true,
+    // An EXPORTING parameter passed by reference keeps the caller's value
+    // until it is written, so reading it first reads that value - the same
+    // trap as a CHANGING parameter, without the name that warns about it.
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "clear_exporting_parameters": true,
     "cloud_types": true,
     "colon_missing_space": true,
     "commented_code": false,
@@ -159,6 +164,8 @@
     "description_empty": true,
     "double_space": false,
     "downport": true,
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "else_after_all_returns": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
     "empty_structure": {
@@ -291,6 +298,11 @@
     "parser_error": true,
     "parser_missing_space": true,
     "pragma_style": true,
+    // xfeld is the one boolean type forbidden_void_type does not list.
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "prefer_abap_bool": true,
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "prefer_abap_bool_values": true,
     "prefer_corresponding": false,
     "prefer_inline": false,
     "prefer_is_not": true,
@@ -349,6 +361,10 @@
     "uncaught_exception": true,
     "unknown_types": true,
     "unnecessary_chaining": true,
+    // LOOP AT an empty table runs zero times, so the IS [NOT] INITIAL guard
+    // around it is dead.
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "unnecessary_loop_guard": true,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
     "unreachable_code": true,
@@ -369,6 +385,11 @@
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
     "use_line_exists": true,
+    // The framework sends no MESSAGE and may not ship a MSAG
+    // (allowed_object_types), so a MESSAGE with inline text has no place
+    // here.
+    // Measured on 2.120.71: 0 findings over src, control probe fired
+    "use_message_class": true,
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
