@@ -11,7 +11,7 @@ evidence:
   - measured on `@abaplint/runtime` 2.13.99, calling `abap.statements.replace` and `abap.builtin.replace` directly - the table below
   - the cause, read in abaplint/transpiler main 65b3da1 - `packages/runtime/src/statements/replace.ts` lines 62-72 (`rr = rr.replace(/\\\$/g, "$")`, the same for `\{` and `\}`) run for the `input.of` branch as well as for `regex`/`pcre`, and line 92 `temp.replace(search, rr)` hands `rr` to JS as a replacement pattern; `packages/runtime/src/builtin/replace.ts` passes `wi` to `val.replace(sub, wi)` the same way
   - no literal WITH text with `\{`, `\}`, `\$`, `$&`, `$$` or `$n` in a non-regex REPLACE in abap2UI5/src, sapgui, popups, abap-cloud-gui or admin-cockpit (scan 2026-10-08); `escape_js_string`'s `\'` and `\n` survive. A WITH operand that is a variable can still carry a `$` from data
-checked_upstream: 2026-10-08
+checked_upstream: 2026-10-09
 ---
 
 # runtime: REPLACE ... OF ... WITH reads its WITH text like a regex replacement

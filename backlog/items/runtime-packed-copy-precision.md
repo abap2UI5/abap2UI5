@@ -3,7 +3,8 @@ target: open-abap
 title: 'runtime: a packed field assigned to another packed field goes through a JS double - a TIMESTAMPL 20240229235959 arrives as 20240229235958.9986304'
 summary: '`Packed.set( )` has no branch for a `Packed` source and falls through to `this.set(value.get())`; `get( )` answers `Number(this.value) / 10 ** decimals`, so every packed-to-packed assignment of more than 15 significant digits loses its last ones - a `timestampl` (21 digits) set from a string is exact, its copy is not, and ajson''s `to_timestamp` then refuses the value as carrying a fraction'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1962
 first_seen: 2026-10-08
 upstream: abaplint/transpiler
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - measured 2026-10-08 on the transpiled ajson (abap2UI5 `node/output`, `@abaplint/runtime` 2.13.99) - `get_timestampl( )` of `2024-02-29T23:59:59Z` formats as `20240229235958.9986304` in a string template, and `get_timestamp( )` answers 0 for `23:59:59`, `23:59:58` and `00:00:01`, the right value for `12:00:00`
   - measured 2026-10-08 on `@abaplint/runtime` 2.13.99 and 2.14.0, calling the type directly - `Packed({length: 11, decimals: 7})` set from the string `20240229235959` formats as `20240229235959.0000000`; a second one set from the first formats as `20240229235958.9986304`, `20240229123000` as `20240229122999.9988736`, `20240229235959.1234567` as `20240229235959.1264256`. A `p LENGTH 8 DECIMALS 0` copy (14 digits) stays exact
   - the cause, read in the 2.14.0 package - `build/src/types/packed.js` `set( )` tests `number`, `string`, `Integer8`, `Float`/`DecFloat34` and ends with `this.set(value.get())`; `get( )` is `Number(this.value) / Math.pow(10, this.decimals)` and `numberToScaled( )` multiplies the double back, while the value itself is kept as a scaled `BigInt` and the same file already has an exact `rescale(mag, fromScale, toScale)`
+  - abaplint/transpiler#1962 ("Packed arithmetic: compute typed p assignments exactly", opened 2026-10-03, open on 2026-10-09) adds the missing `instanceof Packed` branch to `Packed.set( )` - it takes the scaled value as it is when the decimals agree and rescales it exactly otherwise; not written for this item, but it is the change this item asks for, so the item waits on that PR instead of a second one
 checked_upstream: 2026-10-08
 ---
 

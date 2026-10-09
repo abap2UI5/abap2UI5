@@ -229,8 +229,8 @@ to see, because the two files share a basename and the report prints the
 `src/` path:
 
 ```
-node/output/z2ui5_cl_ui5_http_handler.clas.mjs.map
-  sources: [ "../downport/02/z2ui5_cl_ui5_http_handler.clas.abap" ]
+node/output/project/z2ui5_cl_ui5_http_handler.clas.mjs.map
+  sources: [ "../../downport/02/z2ui5_cl_ui5_http_handler.clas.abap" ]
 ```
 
 `c8` instruments the transpiled JS and maps back through that file — and the

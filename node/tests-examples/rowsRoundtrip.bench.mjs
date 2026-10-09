@@ -95,7 +95,7 @@ if (process.argv[2] === "--child") {
   const { initializeABAP } = await import(pathToFileURL(path.join(OUT, "init.mjs")).href);
   await initializeABAP();
   await import(pathToFileURL(appModule).href);
-  const { cl_express_icf_shim } = await import(pathToFileURL(path.join(OUT, "cl_express_icf_shim.clas.mjs")).href);
+  const { cl_express_icf_shim } = await import(pathToFileURL(path.join(OUT, "express-icf-shim", "cl_express_icf_shim.clas.mjs")).href);
   const search = `?app_start=zcl_bench_rows&rows=${rowsArg}`;
   // --als: every roundtrip inside an AsyncLocalStorage context, as CAP runs
   // a request (cds.context) - what that costs depends on the Node version
@@ -173,7 +173,7 @@ function transpiledApp() {
     // the class alone: the rest of what the transpile wrote is a second copy
     // of the framework, and the class resolves everything through the runtime
     fs.mkdirSync(dir, { recursive: true });
-    fs.copyFileSync(path.join(work, "output", "zcl_bench_rows.clas.mjs"), module);
+    fs.copyFileSync(path.join(work, "output", "project", "zcl_bench_rows.clas.mjs"), module);
     return module;
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
