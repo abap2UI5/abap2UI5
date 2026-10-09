@@ -3,13 +3,15 @@ target: abaplint
 title: 'Report an HTML-like token in an ABAP Doc comment outside the tags ABAP Doc defines'
 summary: '`"! Returns the <name> of the row` is parsed as HTML: `<name>` is an unsupported, unclosed tag, ADT reports it and the rendered documentation drops it — three shipped in `z2ui5_if_client` until a user`s system reported them'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/4385
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5 #2705 — three field-symbol-style placeholders (`<wa>`-shaped) in `z2ui5_if_client`'s ABAP Doc reached main and were reported from a user's system on 2026-09-02 ("HTML tag not supported", "not closed"); gated in abap2UI5 since then by `npm run check:atc` (`abapdoc_html`)
   - abap2UI5/samples-controls carried the same check as a corpus regex (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `abapdoc-html-tag` — app classes only
   - measured 2026-09-19 on abaplint 2.120.52 — `abapdoc` checks that documentation EXISTS and `wrong_abapdoc_position` where it sits; neither reads the text. An isolated class with `"! Returns the <name> of the row` produces no finding
+  - filed 2026-10-06 together with its two ABAP Doc siblings (blank line, leading `@`, HTML tag) as abaplint/abaplint#4385, which asks the maintainer whether they become one rule, two or three before the PRs are written; no answer yet on 2026-10-09
 ---
 
 # Report an HTML-like token in an ABAP Doc comment outside the tags ABAP Doc defines

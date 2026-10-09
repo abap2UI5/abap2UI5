@@ -19,7 +19,7 @@
 //
 // stdout: JSON { flows: [{ name, errors }], maxInside, maxArrived }
 import http from "node:http";
-import { cl_express_icf_shim } from "../../output/cl_express_icf_shim.clas.mjs";
+import { cl_express_icf_shim } from "../../output/express-icf-shim/cl_express_icf_shim.clas.mjs";
 import { createApp, initialize } from "../../srv/host.mjs";
 
 await initialize();

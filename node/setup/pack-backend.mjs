@@ -15,7 +15,10 @@
  *
  * What goes in, paths relative to the checkout root:
  *   node/downport/          the 7.02-downported sources the transpile ran over
- *   node/output/            the transpiled backend (init.mjs, index.mjs, ...)
+ *   node/output/            the transpiled backend: init.mjs, index.mjs, ... at the
+ *                           top, the modules in a folder per origin below it
+ *                           (project/, open-abap-core/, express-icf-shim/ - the
+ *                           layout of @abaplint/transpiler-cli 2.14)
  *   node/deps/              the three pinned lib clones - WITHOUT their .git
  *                           directories, which are most of their bytes and
  *                           nothing the runtime reads

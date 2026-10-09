@@ -12,6 +12,8 @@ evidence:
   - `CORRESPONDING #( <generic> )` fails on the same releases and went with `a16e2465`; abaplint's `prefer_corresponding` had to be switched OFF in the low-release config because it recommends the construct that does not compile there
   - re-measured 2026-09-23 on 2.120.52 and 2.120.59, `check_syntax` on, isolated class with a control probe - shape 1 (`lines( lr->* )`, `ASSIGN COMPONENT … OF STRUCTURE mr_data->*`) IS reported, "A generic reference cannot be dereferenced", at v702 through v755 and not from v756 on; shape 2 (`ASSIGN val->(lv_name)`, `val TYPE any`) and shape 3 (`CORRESPONDING #( <generic> )`) give no finding at v750, v752 or v755; `ASSIGN lr->* TO <fs>` stays clean. The first version of this item said all three were accepted everywhere, which was already false on 2.120.52
   - abap-check §2 ("Generic types on older releases — the recurring one") carries all three as prose, and calls the family "the single most likely thing to break a system that is not on the newest release"
+  - abaplint/abaplint#4364 (2.120.67) extended shape 1 to targets below v756 (`CLEAR lr->*`, `lr->* = …`, an EXPORTING actual); nothing upstream for shapes 2 and 3 (issue search 2026-10-09)
+checked_upstream: 2026-10-09
 ---
 
 # Version-gate two generic-type constructs the kernel only accepts on newer releases

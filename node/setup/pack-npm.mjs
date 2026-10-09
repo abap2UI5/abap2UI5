@@ -20,8 +20,11 @@
  *                     pair this output with a runtime it was never run on
  *   README.md         node/setup/npm.README.md - the consumer documentation
  *   LICENSE           the repository's
- *   output/           node/output - the transpiled framework (init.mjs, the
- *                     classes), WITHOUT the browser-test fixtures (below)
+ *   output/           node/output - the transpiled framework: the boot
+ *                     (init.mjs) at the top, below it one folder per origin
+ *                     as @abaplint/transpiler-cli 2.14 writes it - project/
+ *                     (the framework and ZCL_SICF), open-abap-core/,
+ *                     express-icf-shim/ - WITHOUT the browser-test fixtures (below)
  *                     and WITHOUT the framework's own unit tests: the
  *                     manifest's `files` leaves out *.testclasses.mjs, the
  *                     generated runners index.mjs and _unit_open.mjs and the
@@ -133,8 +136,8 @@ for (let i = 0; i < args.length; i += 1) {
 const REQUIRED = [
   { path: "node/downport", by: "npm run downport" },
   { path: "node/output/init.mjs", by: "npm run auto_transpile" },
-  { path: "node/output/cl_express_icf_shim.clas.mjs", by: "npm run auto_transpile" },
-  { path: "node/output/zcl_sicf.clas.mjs", by: "npm run auto_transpile" },
+  { path: "node/output/express-icf-shim/cl_express_icf_shim.clas.mjs", by: "npm run auto_transpile" },
+  { path: "node/output/project/zcl_sicf.clas.mjs", by: "npm run auto_transpile" },
   { path: "node/setup/npm.README.md", by: "the checkout (the package README is committed)" },
 ];
 const missing = REQUIRED.filter((r) => !fs.existsSync(path.join(ROOT, r.path)));
@@ -210,10 +213,11 @@ const isFixtureFile = (file) => FIXTURES.includes(path.basename(file).split(".")
 
 /* init.mjs (and _init.mjs, the same boot for the open unit runner) name
  * every transpiled object twice: an `insert.push(`INSERT INTO "tadir" ...`)`
- * that registers it and an import that loads it - `await import("./<name>
- * .clas.mjs")` in init.mjs, a static `import "./<name>.clas.mjs"` in
- * _init.mjs. Both lines go for every fixture. Transpiler output, so the shape is
- * not ours: each fixture must lose exactly one import here, and the scan
+ * that registers it and an import that loads it - `await import("./project/
+ * <name>.clas.mjs")` in init.mjs, a static `import "./project/<name>.clas.mjs"`
+ * in _init.mjs (node/srv is transpiled as part of the project). Both lines
+ * go for every fixture. Transpiler output, so the shape is not ours: each
+ * fixture must lose exactly one import here, and the scan
  * after packing fails on any name left behind - a changed shape stops the
  * pack instead of shipping half-stripped boot code. */
 function stripFixtures(file) {
@@ -226,7 +230,7 @@ function stripFixtures(file) {
   const missed = [];
   for (const name of FIXTURES) {
     const line = new RegExp(
-      `^(?:await import\\("\\./${name}\\.[a-z]+\\.mjs"\\)|import "\\./${name}\\.[a-z]+\\.mjs");[ \t]*(?:\\r?\\n|$)`, "gm");
+      `^(?:await import\\("\\./project/${name}\\.[a-z]+\\.mjs"\\)|import "\\./project/${name}\\.[a-z]+\\.mjs");[ \t]*(?:\\r?\\n|$)`, "gm");
     const hits = text.match(line)?.length ?? 0;
     if (hits !== 1) missed.push(`${name} (${hits} imports)`);
     text = text.replace(line, "");
@@ -289,7 +293,7 @@ try {
     "package.json", "README.md", "LICENSE",
     "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "srv/hostguard.mjs", "setup/setup.mjs", "setup/own-apps.mjs",
     "output/init.mjs", "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "srv/hostguard.d.ts", "setup/transpile.mjs",
-    "output/cl_express_icf_shim.clas.mjs", "output/zcl_sicf.clas.mjs",
+    "output/express-icf-shim/cl_express_icf_shim.clas.mjs", "output/project/zcl_sicf.clas.mjs",
     "downport/02/z2ui5_if_app.intf.abap",
   ];
   /* And every file the manifest itself points at: a bin, `types`, the target
@@ -506,7 +510,7 @@ try {
   await initialize();
   await import("./apps/index.mjs");
   if (!globalThis.abap?.Classes?.ZCL_HOST_APP) fail("ZCL_HOST_APP did not register in the runtime");
-  const { cx_root } = await import("@abap2ui5/node-runtime/output/cx_root.clas.mjs");
+  const { cx_root } = await import("@abap2ui5/node-runtime/output/open-abap-core/cx_root.clas.mjs");
   if (globalThis.abap.Classes.CX_ROOT !== cx_root) fail("the host's classes brought a second CX_ROOT into the runtime");
   const own = await post(base, "/", { SEARCH: "?app_start=zcl_host_app" });
   if (own.json?.S_FRONT?.APP !== "ZCL_HOST_APP" || !own.text.includes("Hello from the host")) {
