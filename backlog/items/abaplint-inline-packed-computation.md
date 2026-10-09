@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report an inline declaration whose type would come from a packed computation'
 summary: '`DATA(x) = a - b` with packed operands gets the implicit type P(8,0) - a syntax-check warning on a system, and decimals of the operands are lost; abaplint infers the type of the first operand and reports nothing'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/4407
 first_seen: 2026-10-04
 upstream: abaplint/abaplint
 evidence:
@@ -12,6 +13,7 @@ evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_stats->p95` line 20 - the same warning for `DATA(lv_target) = lv_total * 95 / 100.` with `lv_total TYPE p LENGTH 16 DECIMALS 0`, so `*` and `/` are covered and a P(16,0) operand still gives P(8,0); abaplint 2.120.70 reports nothing
   - abaplint main 506e7b9 infers `p LENGTH 8 DECIMALS 0` for the inline variable (the first operand's type) and reports nothing
   - nearest upstream: abaplint/abaplint#645 ("errors for unexpected conversions with inline declarations", larshp, 2019, open) - its examples are screenshots, so whether it means this case is open; comment there instead of opening a second issue (search 2026-10-09)
+  - filed 2026-10-09 as idea 6 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
 checked_upstream: 2026-10-09
 ---
 

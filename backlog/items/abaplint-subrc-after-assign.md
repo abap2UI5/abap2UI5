@@ -3,7 +3,8 @@ target: abaplint
 title: 'Report a `sy-subrc` test used as the success check of an `ASSIGN`'
 summary: on 7.40 SP7 a successful `ASSIGN` does not reset `sy-subrc`, so the test reads a value left by an earlier statement — `IS ASSIGNED` is the only correct check
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/4407
 first_seen: 2026-08-17
 checked_upstream: 2026-10-09
 patch: backlog/patches/abaplint-three-rules.patch
@@ -12,6 +13,7 @@ evidence:
   - abap2UI5 issue #1937 — every app on a 7.40 SP7 system ran into an endless loop; fixed by `41890d59` testing the field symbol instead
   - the `sy-subrc` there was still `4` from a `READ TABLE` in a branch that had not been taken
   - not reproducible under the transpiler, which is more forgiving about `sy-subrc` than the release range abap2UI5 ships to — so no test in that repository can guard it
+  - filed 2026-10-09 as idea 3 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
 ---
 
 # Report a `sy-subrc` test used as the success check of an `ASSIGN`
