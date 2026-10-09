@@ -321,7 +321,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         " Its sentence is the framework's own and names only what the user
         " typed, so it is shown even where the exit hides error details - it
         " used to be raised into the CATCH below, where that switch replaced
-        " it by "see the system log" although nothing had been logged
+        " it by a plain sentence (error_text_for_user)
         DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_test ).
         IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
                                                                   intf  = lv_app_intf ) = abap_false.
@@ -384,8 +384,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " goes onto the page - with the same switch the 500 body honours: an
     " installation whose exit hides error details gets a plain sentence
     " here too, not the raw system text
+    " The sentence names where the details went, and nothing else: it used
+    " to send the reader to "the system log", where nothing of this was
+    " ever written - the exception is caught here and logged nowhere
     IF hide_details = abap_true.
-      result = `The class could not be instantiated - see the system log for details`.
+      result = `The class could not be instantiated - error details are hidden by this installation's user exit (check_hide_error_details)`.
     ELSE.
       result = ix->get_text( ).
     ENDIF.

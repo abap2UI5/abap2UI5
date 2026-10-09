@@ -383,6 +383,20 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! A date (8) or a time (6) as it is about to be assigned - after the
+    "! ISO unpack - must be exactly that many digits, or it is refused like
+    "! any other conversion failure. The c->d and c->t assignments do not
+    "! check: they copy the first characters of whatever text arrives, so a
+    "! DatePicker without valueFormat (`Jan 15, 2024`, `15.01.2024`) stored
+    "! `Jan 15, ` / `15.01.20` without a trace, and the next serialization
+    "! shipped that back. The whole-object path (ajson's to_abap) refuses
+    "! such a value already
+    METHODS delta_check_digits
+      IMPORTING
+        iv_value  TYPE string
+        iv_length TYPE i
+        iv_kind   TYPE string.
+
     "! the column's kinds, resolved once per column into the caller's
     "! memory (ty_t_col_kind) and answered from it after that
     METHODS delta_col_kind
@@ -1910,6 +1924,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
           lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
         ENDIF.
+        delta_check_digits( iv_value  = lv_value
+                            iv_length = 8
+                            iv_kind   = `date` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
         IF lv_value IS INITIAL.
@@ -1919,6 +1936,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
           lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
         ENDIF.
+        delta_check_digits( iv_value  = lv_value
+                            iv_length = 6
+                            iv_kind   = `time` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
@@ -1960,6 +1980,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDCASE.
 
     <comp> = lv_value.
+
+  ENDMETHOD.
+
+  METHOD delta_check_digits.
+
+    IF strlen( iv_value ) = iv_length AND iv_value CO `0123456789`.
+      RETURN.
+    ENDIF.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |MODEL_VALUE_REFUSED - '{ iv_value }' is no { iv_kind } the model can read ({ iv_length } digits or the ISO form)|.
 
   ENDMETHOD.
 

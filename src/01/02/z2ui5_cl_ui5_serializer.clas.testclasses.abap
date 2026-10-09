@@ -61,6 +61,88 @@ CLASS ltcl_ser_app IMPLEMENTATION.
 ENDCLASS.
 
 
+" a serializable helper an app keeps in an attribute
+CLASS ltcl_ser_child DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES if_serializable_object.
+    DATA mv_name TYPE string.
+    DATA mt_tags TYPE string_table.
+ENDCLASS.
+
+
+CLASS ltcl_ser_child IMPLEMENTATION.
+ENDCLASS.
+
+
+" the shapes a real app keeps besides the two above: a table of rows that
+" carry a table, a helper object, a typed and a generic reference to an
+" elementary value, and a generic reference that points INTO another
+" attribute of the same app
+CLASS ltcl_ser_app_deep DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_item,
+        pos TYPE i,
+        txt TYPE string,
+      END OF ty_s_item.
+    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_head,
+        id      TYPE string,
+        amount  TYPE p LENGTH 10 DECIMALS 2,
+        t_items TYPE ty_t_item,
+      END OF ty_s_head.
+    TYPES ty_t_head TYPE STANDARD TABLE OF ty_s_head WITH EMPTY KEY.
+
+    DATA mt_head      TYPE ty_t_head.
+    DATA mo_child     TYPE REF TO ltcl_ser_child.
+    DATA mr_typed     TYPE REF TO string.
+    DATA mr_elem      TYPE REF TO data.
+    DATA mr_alias_tab TYPE REF TO data.
+
+    METHODS fill.
+ENDCLASS.
+
+
+CLASS ltcl_ser_app_deep IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD fill.
+
+    FIELD-SYMBOLS <elem> TYPE any.
+
+    mt_head = VALUE #( ( id      = `H1`
+                         amount  = '12.50'
+                         t_items = VALUE #( ( pos = 1 txt = `first` )
+                                            ( pos = 2 txt = `second` ) ) )
+                       ( id      = `H2`
+                         amount  = '-3.75'
+                         t_items = VALUE #( ) ) ).
+    mo_child = NEW #( ).
+    mo_child->mv_name = `child`.
+    mo_child->mt_tags = VALUE #( ( `a` ) ( `b` ) ).
+    " CREATE DATA, not NEW #( `typed` ): the downport turns a NEW of a data
+    " reference into a CREATE OBJECT that does not parse
+    CREATE DATA mr_typed.
+    mr_typed->* = `typed`.
+    CREATE DATA mr_elem TYPE string.
+    ASSIGN mr_elem->* TO <elem>.
+    <elem> = `generic`.
+    mr_alias_tab = REF #( mt_head ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " the shipped serializer whose transformation fails the first N times -
 " the seam the class is not FINAL for (see its class comment)
 CLASS ltcl_ser_failing DEFINITION INHERITING FROM z2ui5_cl_ui5_serializer
@@ -146,6 +228,25 @@ CLASS ltcl_test DEFINITION FINAL
     " set_serializer( ) is what both container methods go through, and an
     " unbound reference restores the shipped one
     METHODS set_serializer_honoured    FOR TESTING RAISING cx_static_check.
+    " the contract of parse( ): an empty string is a first roundtrip and
+    " answers an unbound reference, not an empty container
+    METHODS parse_empty_unbound        FOR TESTING RAISING cx_static_check.
+    " parse( stringify( ) ) is a container the framework goes on with: the
+    " generic reference comes back through the attribute load, with the
+    " component only the runtime-built line type has
+    METHODS roundtrip_restores_dref    FOR TESTING RAISING cx_static_check.
+    " nested tables, a helper object, typed and generic references and an
+    " alias into another attribute - all back, the alias still an alias
+    METHODS roundtrip_deep_app         FOR TESTING RAISING cx_static_check.
+    " the live instance after a stringify is the same instance with the
+    " same data - nothing parsed, nothing copied
+    METHODS live_instance_untouched    FOR TESTING RAISING cx_static_check.
+
+    METHODS load
+      IMPORTING
+        iv_xml        TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 ENDCLASS.
 
 
@@ -243,6 +344,135 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_failing->mv_calls ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<asx:abap` ) ).
     check_reattached( ).
+
+  ENDMETHOD.
+
+  METHOD load.
+
+    " what z2ui5_cl_ui5_app_cont=>db_load does with the string: parse it,
+    " then restore the attributes against the app the parse produced
+    result ?= NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~parse( iv_xml ).
+    NEW z2ui5_cl_ui5_srv_model( attri = result->mt_attri
+                                app   = result->mo_app )->main_attri_db_load( ).
+
+  ENDMETHOD.
+
+  METHOD parse_empty_unbound.
+
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+
+    cl_abap_unit_assert=>assert_not_bound( lo_serializer->z2ui5_if_ui5_serializer~parse( `` ) ).
+    DATA lv_empty TYPE c LENGTH 10.
+    cl_abap_unit_assert=>assert_not_bound( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_empty ) ).
+
+  ENDMETHOD.
+
+  METHOD roundtrip_restores_dref.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <col> TYPE any.
+
+    DATA(lv_xml) = NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+    DATA(lo_loaded) = load( lv_xml ).
+
+    DATA(lo_app) = CAST ltcl_ser_app( lo_loaded->mo_app ).
+    " an IF, not xsdbool( a = b ): with two plain names that parses as a
+    " call with a named parameter in the downported tree
+    IF lo_app = mo_app.
+      cl_abap_unit_assert=>fail( `the parse must build a new instance` ).
+    ENDIF.
+    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_tab
+                                       msg = `the generic reference did not come back` ).
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( <tab> ) ).
+    READ TABLE <tab> INDEX 1 ASSIGNING <row>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN COMPONENT `COL1` OF STRUCTURE <row> TO <col>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = `handle`
+                                        act = <col> ).
+    ASSIGN COMPONENT `RUNTIME_ONLY` OF STRUCTURE <row> TO <col>.
+    cl_abap_unit_assert=>assert_subrc( msg = `the runtime-built line type lost its component` ).
+    " the payload is consumed by the load, not carried on into the next save
+    LOOP AT lo_loaded->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE srtti_data IS NOT INITIAL OR srtti_type IS NOT INITIAL.
+      cl_abap_unit_assert=>fail( |a payload stayed on the loaded row { lr_attri->name }| ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD roundtrip_deep_app.
+
+    FIELD-SYMBOLS <elem>  TYPE any.
+    FIELD-SYMBOLS <alias> TYPE ltcl_ser_app_deep=>ty_t_head.
+
+    DATA(lo_deep) = NEW ltcl_ser_app_deep( ).
+    lo_deep->fill( ).
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app      = lo_deep.
+    lo_cont->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    DATA(lv_xml) = NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+    DATA(lo_app) = CAST ltcl_ser_app_deep( load( lv_xml )->mo_app ).
+
+    " the nested table, row by row, the empty inner table included
+    cl_abap_unit_assert=>assert_equals( exp = lo_deep->mt_head
+                                        act = lo_app->mt_head ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_head[ 1 ]-t_items ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_head[ 2 ]-t_items ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '-3.75' )
+                                        act = CONV decfloat34( lo_app->mt_head[ 2 ]-amount ) ).
+    " the helper object, with its own table
+    cl_abap_unit_assert=>assert_bound( lo_app->mo_child ).
+    cl_abap_unit_assert=>assert_equals( exp = `child`
+                                        act = lo_app->mo_child->mv_name ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_deep->mo_child->mt_tags
+                                        act = lo_app->mo_child->mt_tags ).
+    " the typed and the generic reference to an elementary value
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_typed ).
+    cl_abap_unit_assert=>assert_equals( exp = `typed`
+                                        act = lo_app->mr_typed->* ).
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_elem ).
+    ASSIGN lo_app->mr_elem->* TO <elem>.
+    cl_abap_unit_assert=>assert_equals( exp = `generic`
+                                        act = <elem> ).
+    " the alias points at the RESTORED attribute, not at a copy of it: a
+    " row appended through it is a row of mt_head
+    cl_abap_unit_assert=>assert_bound( lo_app->mr_alias_tab ).
+    ASSIGN lo_app->mr_alias_tab->* TO <alias>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    APPEND VALUE #( id = `H3` ) TO <alias>.
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_app->mt_head ) ).
+
+  ENDMETHOD.
+
+  METHOD live_instance_untouched.
+
+    DATA(lo_deep) = NEW ltcl_ser_app_deep( ).
+    lo_deep->fill( ).
+    DATA(lo_child) = lo_deep->mo_child.
+    DATA(lr_typed) = lo_deep->mr_typed.
+    DATA(lr_alias) = lo_deep->mr_alias_tab.
+    DATA(lt_head)  = lo_deep->mt_head.
+    DATA(lo_cont) = NEW z2ui5_cl_ui5_app_cont( ).
+    lo_cont->mo_app = lo_deep.
+
+    NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+
+    " the save detached the references and the reattach put the SAME ones
+    " back - a sticky session goes on with this very instance
+    cl_abap_unit_assert=>assert_equals( exp = lo_child
+                                        act = lo_deep->mo_child ).
+    cl_abap_unit_assert=>assert_equals( exp = lr_typed
+                                        act = lo_deep->mr_typed ).
+    cl_abap_unit_assert=>assert_equals( exp = lr_alias
+                                        act = lo_deep->mr_alias_tab ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_head
+                                        act = lo_deep->mt_head ).
 
   ENDMETHOD.
 

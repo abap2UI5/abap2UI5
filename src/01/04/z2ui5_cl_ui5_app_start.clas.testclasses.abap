@@ -140,7 +140,7 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " An exit that hides error details hides SYSTEM text - the exception of a
     " CREATE OBJECT. The pre-check's sentence is the framework's own and
     " names only what the user typed; it used to be raised into the same
-    " CATCH and replaced by "see the system log", where nothing was logged
+    " CATCH and replaced by the plain sentence of error_text_for_user
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
     DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
@@ -172,10 +172,18 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
         act = lo_app->error_text_for_user( ix = lx hide_details = abap_false )
         exp = `CX_SY_CREATE_OBJECT_ERROR detail`
         msg = `details shown: the exception text` ).
+    " ...and the sentence says where the details went. It used to send the
+    " reader to "the system log", where nothing of this is ever written
+    DATA(lv_hidden) = lo_app->error_text_for_user( ix           = lx
+                                                   hide_details = abap_true ).
     cl_abap_unit_assert=>assert_equals(
-        act = lo_app->error_text_for_user( ix = lx hide_details = abap_true )
-        exp = `The class could not be instantiated - see the system log for details`
+        act = lv_hidden
+        exp = `The class could not be instantiated - error details are hidden by this installation's user exit (check_hide_error_details)`
         msg = `details hidden: the plain sentence` ).
+    cl_abap_unit_assert=>assert_false( act = xsdbool( lv_hidden CS `system log` )
+                                       msg = `nothing is logged - the sentence must not point at a log` ).
+    cl_abap_unit_assert=>assert_false( act = xsdbool( lv_hidden CS `CX_SY_CREATE_OBJECT_ERROR` )
+                                       msg = `the hidden detail must not leak into the sentence` ).
 
   ENDMETHOD.
 

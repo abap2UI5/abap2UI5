@@ -903,6 +903,9 @@ CLASS ltcl_itab DEFINITION FINAL
     METHODS test_filter_no_match    FOR TESTING RAISING cx_static_check.
     METHODS test_filter_elementary  FOR TESTING RAISING cx_static_check.
     METHODS test_filter_deep_row    FOR TESTING RAISING cx_static_check.
+    " an empty search is no filter - every row stays, also one with nothing
+    " printable in it and with a field list that names nothing
+    METHODS test_filter_empty_search FOR TESTING RAISING cx_static_check.
     METHODS test_corresponding      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1001,6 +1004,46 @@ CLASS ltcl_itab IMPLEMENTATION.
                                                 CHANGING  tab    = lt_row ).
 
     cl_abap_unit_assert=>assert_initial( lt_row ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_empty_search.
+
+    TYPES:
+      BEGIN OF ty_s_deep,
+        children TYPE string_table,
+        ref      TYPE REF TO data,
+      END OF ty_s_deep.
+    DATA lt_deep   TYPE STANDARD TABLE OF ty_s_deep WITH EMPTY KEY.
+    DATA lt_fields TYPE string_table.
+
+    " a row with nothing printable used to match nothing and was deleted -
+    " the empty search filtered where it should not filter at all
+    lt_deep = VALUE #( ( children = VALUE #( ( `London` ) ) )
+                       ( children = VALUE #( ) ) ).
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = ``
+                                                CHANGING  tab    = lt_deep ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_deep ) ).
+
+    " the ordinary rows, case-insensitive and through a field list naming a
+    " component the rows do not have: still no filter
+    DATA(lt_row) = get_rows( ).
+    APPEND `NO_SUCH_FIELD` TO lt_fields.
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val      = ``
+                                                          fields      = lt_fields
+                                                          ignore_case = abap_true
+                                                CHANGING  tab         = lt_row ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_row ) ).
+
+    " a blank-padded CHAR search is empty too - its trailing blanks are no text
+    DATA lv_blank TYPE c LENGTH 10.
+    lt_row = get_rows( ).
+    z2ui5_cl_ui5_util_context=>itab_filter_by_val( EXPORTING val = lv_blank
+                                                CHANGING  tab    = lt_row ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_row ) ).
 
   ENDMETHOD.
 
@@ -1975,6 +2018,8 @@ CLASS ltcl_edge DEFINITION FINAL
     METHODS test_escape_html_entity     FOR TESTING RAISING cx_static_check.
     METHODS test_struc_pairs_signs      FOR TESTING RAISING cx_static_check.
     METHODS test_class_exists_case      FOR TESTING RAISING cx_static_check.
+    " a lower-case name asked FIRST answers like the upper-case one
+    METHODS test_class_exists_lower     FOR TESTING RAISING cx_static_check.
     METHODS test_bool_to_json           FOR TESTING RAISING cx_static_check.
     METHODS test_token_excluding_bt     FOR TESTING RAISING cx_static_check.
     METHODS test_uuid_shape             FOR TESTING RAISING cx_static_check.
@@ -2177,6 +2222,21 @@ CLASS ltcl_edge IMPLEMENTATION.
                                         act = lt_pair[ n = `AMOUNT` ]-v ).
     cl_abap_unit_assert=>assert_equals( exp = `abc`
                                         act = lt_pair[ n = `LABEL` ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_class_exists_lower.
+
+    " the answer is cached under the upper-case name, and RTTI is asked in
+    " that spelling too: it used to be asked in the caller's, so a class
+    " first asked in lower case could be cached as missing for the whole
+    " roll area. The name comes from a typed reference (a namespace rename
+    " rewrites it) and is asked here first - no other test asks for it
+    DATA lo_class TYPE REF TO z2ui5_cl_ui5_util_http.
+    DATA(lv_name) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_class ).
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( to_lower( lv_name ) ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( lv_name ) ).
 
   ENDMETHOD.
 

@@ -1363,6 +1363,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA(lv_search) = COND string( WHEN ignore_case = abap_true
                                    THEN to_upper( val )
                                    ELSE val ).
+    " an empty search is no filter: every row stays. Said here rather than
+    " left to the match below - whether find( ) or CS reports a hit for an
+    " empty substring is not something to build on, and a row with nothing
+    " printable in it (only a table of children, only a reference) matched
+    " nothing and was deleted
+    IF lv_search IS INITIAL.
+      RETURN.
+    ENDIF.
     DATA(lv_field_count) = lines( fields ).
 
     LOOP AT tab ASSIGNING <row>.
@@ -1425,7 +1433,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = val
+        " the cached spelling, not the caller's: the answer is stored under
+        " the upper-case name, so the question has to be asked in it too -
+        " otherwise the first caller's spelling decides every later answer
+        cl_abap_classdescr=>describe_by_name( EXPORTING  p_name         = lv_name
                                               EXCEPTIONS type_not_found = 1 ).
         IF sy-subrc = 0.
           result = abap_true.

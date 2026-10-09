@@ -84,6 +84,73 @@ CLASS ltcl_app_typed IMPLEMENTATION.
 ENDCLASS.
 
 
+" the numeric and character kinds a delta cell converts into beyond the
+" packed price above: what the wire's text has to land as, exactly
+CLASS ltcl_app_conv DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        dec   TYPE decfloat34,
+        numc  TYPE n LENGTH 5,
+        big   TYPE int8,
+        price TYPE p LENGTH 9 DECIMALS 2,
+        qty   TYPE i,
+        flag  TYPE abap_bool,
+        text  TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mt_row TYPE ty_t_row.
+ENDCLASS.
+
+
+CLASS ltcl_app_conv IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
+" three levels of tables - a delta that walks two nested __delta nodes
+CLASS ltcl_app_deep3 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_leaf,
+        qty TYPE i,
+        txt TYPE string,
+      END OF ty_s_leaf.
+    TYPES ty_t_leaf TYPE STANDARD TABLE OF ty_s_leaf WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_mid,
+        name   TYPE string,
+        t_leaf TYPE ty_t_leaf,
+      END OF ty_s_mid.
+    TYPES ty_t_mid TYPE STANDARD TABLE OF ty_s_mid WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_top,
+        id    TYPE string,
+        t_mid TYPE ty_t_mid,
+      END OF ty_s_top.
+    TYPES ty_t_top TYPE STANDARD TABLE OF ty_s_top WITH EMPTY KEY.
+
+    DATA mt_top TYPE ty_t_top.
+    DATA ms_head TYPE ty_s_leaf.
+ENDCLASS.
+
+
+CLASS ltcl_app_deep3 IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
 " ---------------------------------------------------------------------------
 " The shape catalogue: one attribute per FORM an app attribute can take, and
 " the same invariants run over every row of mt_attri after every lifecycle
@@ -1846,6 +1913,23 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " text that needs JSON escaping - quotes, backslashes, control
     " characters, non-ASCII - out and back in, whole and as a row delta
     METHODS special_chars_round_trip FOR TESTING RAISING cx_static_check.
+    " a JSON null in a delta cell clears it - what a null as a whole value
+    " does (whole_scalar_typed), for every elementary kind of the row
+    METHODS delta_null_clears        FOR TESTING RAISING cx_static_check.
+    " decfloat, NUMC, int8, rounding into a packed cell, a JSON number
+    " node next to a JSON string, a boolean into a number column
+    METHODS delta_number_kinds       FOR TESTING RAISING cx_static_check.
+    " a delta two __delta levels down: the cell lands, a refused one is
+    " traced under the full table path with its immediate parent row
+    METHODS delta_three_levels       FOR TESTING RAISING cx_static_check.
+    " a row added or removed on the client sends the whole array: it
+    " replaces the rows, nested tables included
+    METHODS whole_rows_replaced      FOR TESTING RAISING cx_static_check.
+    " a __delta for an attribute that is no table is traced, never applied
+    METHODS delta_on_structure       FOR TESTING RAISING cx_static_check.
+    " a date or time in a spelling that is neither ISO nor plain digits is
+    " refused and traced - it used to be cut to its first characters
+    METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app
       RETURNING
@@ -2655,6 +2739,262 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " and the next render ships exactly what the first one did
     cl_abap_unit_assert=>assert_equals( exp = lv_out
                                         act = lo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD delta_null_clears.
+
+    DATA(lo_app) = typed_app( ).
+    lo_app->mt_tab[ 1 ]-dt = '20240115'.
+    lo_app->mt_tab[ 1 ]-tm = '123045'.
+    lo_app->mt_tab[ 1 ]-ts = '20240115123045'.
+    DATA(lo_model) = typed_model( lo_app ).
+
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"NAME":null,"PRICE":null,"DT":null,"TM":null,"TS":null}}}` )
+        iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-price ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL )
+                                      msg = |a null date became '{ lo_app->mt_tab[ 1 ]-dt }'| ).
+    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-tm IS INITIAL )
+                                      msg = |a null time became '{ lo_app->mt_tab[ 1 ]-tm }'| ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
+    " the other row and the nested table are not part of the delta
+    cl_abap_unit_assert=>assert_equals( exp = `Monitor`
+                                        act = lo_app->mt_tab[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_app->mt_tab[ 1 ]-t_pos ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD delta_number_kinds.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_app) = NEW ltcl_app_conv( ).
+    lo_app->mt_row = VALUE #( ( qty = 7 text = `seven` ) ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " a JSON number and a JSON string carry the same text to the cell: the
+    " raw text converts, no binary float sits in between (0.1 stays 0.1)
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"DEC":0.1,"NUMC":"42","BIG":"9007199254740993","PRICE":-12.5}}}` )
+        iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '0.1' )
+                                        act = lo_app->mt_row[ 1 ]-dec ).
+    cl_abap_unit_assert=>assert_equals( exp = `00042`
+                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
+    DATA lv_big TYPE int8.
+    lv_big = 9007199254740992.
+    lv_big = lv_big + 1.
+    cl_abap_unit_assert=>assert_equals( exp = lv_big
+                                        act = lo_app->mt_row[ 1 ]-big ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '-12.5' )
+                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " more decimals than the packed cell has: rounded half away from zero,
+    " as the text-to-packed conversion does it - not cut off, not refused
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"PRICE":"1.235"}}}` )
+        iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1.24' )
+                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"PRICE":"-1.235"}}}` )
+        iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '-1.24' )
+                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " a boolean into a number column is a refusal, traced, the old value
+    " kept; into a boolean column it is the flag; into a text column the
+    " text of the flag
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"QTY":true,"FLAG":true,"TEXT":true}}}` )
+        iv_name      = `MT_ROW` ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = lo_app->mt_row[ 1 ]-qty ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_app->mt_row[ 1 ]-flag ).
+    cl_abap_unit_assert=>assert_equals( exp = CONV string( abap_true )
+                                        act = lo_app->mt_row[ 1 ]-text ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `QTY`
+                                        act = lo_model->mt_skipped[ 1 ]-field ).
+
+  ENDMETHOD.
+
+  METHOD delta_three_levels.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_app) = NEW ltcl_app_deep3( ).
+    lo_app->mt_top = VALUE #( ( id    = `T1`
+                                t_mid = VALUE #( ( name   = `M1`
+                                                   t_leaf = VALUE #( ( qty = 1 txt = `L1` ) ) )
+                                                 ( name   = `M2`
+                                                   t_leaf = VALUE #( ( qty = 2 txt = `L2` )
+                                                                     ( qty = 3 txt = `L3` ) ) ) ) ) ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    " row 1 / mid row 2 / leaf row 2: one cell lands, one is refused
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"T_MID":{"__delta":{"1":{"T_LEAF":{"__delta":{"1":{"TXT":"edited","QTY":"lots"}}}}}}}}}` )
+        iv_name      = `MT_TOP` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 2 ]-txt ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 2 ]-qty ).
+    " nothing else moved
+    cl_abap_unit_assert=>assert_equals( exp = `L2`
+                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 1 ]-txt ).
+    cl_abap_unit_assert=>assert_equals( exp = `L1`
+                                        act = lo_app->mt_top[ 1 ]-t_mid[ 1 ]-t_leaf[ 1 ]-txt ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf ) ).
+
+    " the trace names the innermost table by its full path, its row, and
+    " the row of the table it sits in (the immediate parent, not the top)
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    DATA(ls_skip) = lo_model->mt_skipped[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TOP-T_MID-T_LEAF`
+                                        act = ls_skip-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = ls_skip-row ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = ls_skip-row_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `QTY`
+                                        act = ls_skip-field ).
+    cl_abap_unit_assert=>assert_equals( exp = `lots`
+                                        act = ls_skip-value ).
+
+  ENDMETHOD.
+
+  METHOD whole_rows_replaced.
+
+    DATA(lo_app) = typed_app( ).
+    DATA(lo_model) = typed_model( lo_app ).
+    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/MT_TAB`.
+
+    " the client removed the first row: the array is the table now
+    lo_model->main_json_to_attri( delta( `{"MT_TAB":[{"NAME":"Monitor","PRICE":"299.00","T_POS":[{"QTY":2}]}]}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Monitor`
+                                        act = lo_app->mt_tab[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_app->mt_tab[ 1 ]-t_pos[ 1 ]-qty ).
+
+    " the client added two rows, one with a nested table of its own
+    lo_model->main_json_to_attri( delta( `{"MT_TAB":[{"NAME":"Monitor"},{"NAME":"Mouse","T_POS":[{"QTY":4},{"QTY":5}]},{"NAME":"Pad"}]}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_app->mt_tab[ 2 ]-t_pos ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Pad`
+                                        act = lo_app->mt_tab[ 3 ]-name ).
+    " a whole value is the whole row: what the array leaves out is initial
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-price ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-t_pos ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " and the empty array empties it
+    lo_model->main_json_to_attri( delta( `{"MT_TAB":[]}` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+  ENDMETHOD.
+
+  METHOD date_time_text_refused.
+
+    DATA lv_date TYPE d VALUE '20240115'.
+    DATA lv_time TYPE t VALUE '123045'.
+
+    DATA(lo_app) = typed_app( ).
+    lo_app->mt_tab[ 1 ]-dt = lv_date.
+    lo_app->mt_tab[ 1 ]-tm = lv_time.
+    lo_app->mt_tab[ 2 ]-dt = lv_date.
+    DATA(lo_model) = typed_model( lo_app ).
+
+    " what a DatePicker / TimePicker without valueFormat writes: its display
+    " format. Assigned as text, `15.01.2024` became the date `15.01.20`
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"DT":"15.01.2024","TM":"12.30"},"1":{"DT":"Jan 15, 2024","NAME":"kept"}}}` )
+        iv_name      = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = lo_app->mt_tab[ 1 ]-dt ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_time
+                                        act = lo_app->mt_tab[ 1 ]-tm ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = lo_app->mt_tab[ 2 ]-dt ).
+    " the good cell of the same row still lands
+    cl_abap_unit_assert=>assert_equals( exp = `kept`
+                                        act = lo_app->mt_tab[ 2 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
+                                                                                 field = `DT`
+                                                                                 value = `15.01.2024` ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
+                                                                                 field = `TM`
+                                                                                 value = `12.30` ] ) ) ). "#EC CI_SORTSEQ
+
+    " the two spellings that ARE read keep working: ISO and plain digits
+    CLEAR lo_model->mt_skipped.
+    lo_model->delta_apply_to_table(
+        io_val_front = delta( `{"__delta":{"0":{"DT":"2024-02-29","TM":"235959"}}}` )
+        iv_name      = `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240229`
+                                        act = CONV string( lo_app->mt_tab[ 1 ]-dt ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `235959`
+                                        act = CONV string( lo_app->mt_tab[ 1 ]-tm ) ).
+    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+
+    " the same rule for a bound scalar - the whole-value path shares it
+    mo_app->mv_date = lv_date.
+    bind( REF #( mo_app->mv_date ) ).
+    mo_model->main_json_to_attri( delta( `{"MV_DATE":"15.01.2024"}` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_date
+                                        act = mo_app->mv_date ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_DATE`
+                                        act = mo_model->mt_skipped[ 1 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD delta_on_structure.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    DATA(lo_app) = NEW ltcl_app_deep3( ).
+    lo_app->ms_head = VALUE #( qty = 1 txt = `head` ).
+    CREATE DATA lr_attri.
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
+                                                 app   = lo_app ).
+
+    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TXT":"edited"}}}` )
+                                    iv_name      = `MS_HEAD` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `head`
+                                        act = lo_app->ms_head-txt ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_model->mt_skipped ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_HEAD`
+                                        act = lo_model->mt_skipped[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `edited`
+                                        act = lo_model->mt_skipped[ 1 ]-value ).
 
   ENDMETHOD.
 
