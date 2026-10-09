@@ -358,7 +358,8 @@ full in **`app/AGENTS.md`**, under the same numbers.
     any typed formal parameter) — see the comment above `lt_impl` in
     `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std`.
 12. **A module newer than UI5 1.71 is never a hard `sap.ui.define` dependency** — lazy `sap.ui.require` at the
-    point of use.
+    point of use. Never run SAP's UI5 Modernization Plugin or an unreviewed `ui5lint --fix` over
+    `app/webapp` — both target 1.136.
 13. **Nothing the framework ships may need `'unsafe-eval'` or an inline-script `'unsafe-inline'`** — no second
     inline `<script>`, no inline handler, no `eval`/`new Function`/sync load, no configurable value inside the
     hashed GET script. `check:csp` gates the default.

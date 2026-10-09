@@ -45,7 +45,7 @@ Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small
 
 ### Rule 12
 
-**A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `core/actions/ControlCall.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it.
+**A module that exists only in newer UI5 must never be a hard `sap.ui.define([...])` dependency.** abap2UI5 supports OpenUI5 down to **1.71**; a dep the old release lacks 404s and the *whole component* fails to load (blank app). Resolve version-specific modules **lazily** with `sap.ui.require("…")` at the point of use and handle `undefined` gracefully (see `Component.js` Theming/Messaging probing, and the `THEMING` target in `core/actions/ControlCall.js`). Known post-1.71 modules: `sap/ui/core/Theming` and `sap/ui/core/Messaging` (both since 1.118). Before adding any `sap/ui/core/*` dependency, check its "available since" — if it is newer than 1.71, lazy-require it. **Never run SAP's UI5 Modernization Plugin (`/modernize-ui5-app` and its `/fix-*` skills) over `app/webapp`, and never commit an unreviewed `ui5lint --fix`:** the plugin targets manifest `_version` 2.0.0 and `minUI5Version` 1.136, and both replace a deprecated call with its successor whatever release the successor arrived in — exactly the code this rule and `core/Env.js` exist to keep off the 1.71 path. Use their findings; apply each fix by hand under this rule.
 
 ### Rule 13
 
@@ -99,6 +99,9 @@ Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small
 > and `manifest.json` (where `minUI5Version: 1.71` lives) is excluded from
 > ui5lint. So keep checking "available since" of every module, aggregation
 > and control against 1.71 on every frontend change the gate does not reach.
+> The opposite end of the range is gated too: `future-fatal.spec.js` fails
+> when the shell or an event roundtrip logs a `[FUTURE FATAL]` on the pinned
+> current build — what the next major UI5 release turns into an exception.
 > **The whole cluster is written out — with the evidence, and with how to
 > check a fact against 1.71 from the `@openui5/*` npm packages, without a
 > system or a CDN — in the `ui5-check` skill in `.claude/skills/`.** Read it
