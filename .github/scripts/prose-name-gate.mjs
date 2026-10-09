@@ -41,6 +41,10 @@ const PROSE = [
   // is the first page somebody installing the frontend reads.
   { dir: "backlog", depth: 9, ext: [".md"] },
   { dir: "frontend", depth: 9, ext: [".md"] },
+  // The frontend half of the agent briefing, split out of AGENTS.md - the
+  // same prose, so the same check. Only the file itself: app/webapp holds no
+  // Markdown (everything there is embedded into src/01/03).
+  { dir: "app", depth: 0, ext: [".md"] },
 ];
 
 // A changelog is a record of the past, and an entry naming what a class was
@@ -106,7 +110,6 @@ const HISTORICAL = new Map([
   ["Z2UI5_CL_A2UI5_HTTP", "docs/agents/api-snapshot-exceptions.md"],
   ["Z2UI5_CL_APP_STARTUP", "docs/agents/api-snapshot-exceptions.md"],
   ["Z2UI5_CL_APP_HELLO_WORLD", "docs/agents/api-snapshot-exceptions.md"],
-  ["Z2UI5_CL_POPUP_CONTEXT", "AGENTS.md"],
   // the declined base class, named where the decision's reasoning now lives
   ["Z2UI5_CL_APP", "docs/agents/decisions.md"],
   ["Z2UI5_IF_ACTION", "docs/removal-plan.md"],
@@ -126,9 +129,9 @@ const HISTORICAL_FILES = new Map([
   // The js_loader popup was deleted from src/99/02 together with the z2ui5
   // global it existed to write into (maintainer decision 2026-09-22): the
   // changelog entry announces the removal, the removal plan records it,
-  // AGENTS.md names it as the one deletion that decision covers, and the
+  // decisions.md records it as the one deletion that decision covers, and the
   // rule-5 exceptions page names it as the producer of cs_event-z2ui5.
-  ["Z2UI5_CL_POP_JS_LOADER", new Set(["changelog.txt", "docs/removal-plan.md", "AGENTS.md", "docs/agents/api-snapshot-exceptions.md"])],
+  ["Z2UI5_CL_POP_JS_LOADER", new Set(["changelog.txt", "docs/removal-plan.md", "docs/agents/decisions.md", "docs/agents/api-snapshot-exceptions.md"])],
 ]);
 
 // Same idea, per file: the abap-check catalogue is a list of defects that

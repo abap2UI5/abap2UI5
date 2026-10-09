@@ -16,7 +16,7 @@
 
   "paths": ["src", "node/srv"],
 
-  // src/99 is FROZEN (AGENTS.md, "The frozen package"): it ships so existing
+  // src/99 is FROZEN (AGENTS.md, "Layered Design"): it ships so existing
   // downstream installations keep compiling, its production code is not
   // changed, and it "is out of scope for reviews and audits". This gate is an
   // audit, so it stops at the boundary — not collected at all, rather than

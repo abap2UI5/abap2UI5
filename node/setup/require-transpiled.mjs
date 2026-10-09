@@ -38,7 +38,7 @@ if (!fs.existsSync(ENTRY)) {
     + '    npm run auto_transpile   # ABAP -> mjs into node/output\n'
     + '\n'
     + 'Both together take a few minutes; after that `npm run unit` is seconds,\n'
-    + 'and only a change under src/ makes it stale (AGENTS.md, "Build & verify").',
+    + 'and only a change under src/ makes it stale (AGENTS.md, "Build & Validation").',
   );
   process.exit(1);
 }
