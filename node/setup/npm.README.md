@@ -173,9 +173,11 @@ everything else at the package's module of the same name,
 `@abap2ui5/node-runtime/output/<folder>/<file>` - the modules the package
 already booted - and writes `apps/index.mjs`, which imports your classes in
 the order the transpile does. An import it cannot rewrite, or of a module
-the package does not have, stops it with the file and the line. It needs the
-layout of `@abaplint/transpiler-cli` 2.14, the version the package records;
-an output without `project/` is refused.
+the package does not have, stops it with the file and the line. The version
+the package records is `@abaplint/transpiler-cli` 2.14; the flat `output/`
+of an earlier transpiler is read too - every file named like one of the
+package's modules counts as a library copy there, so a class of yours with
+such a name is left out.
 
 The transpile type-checks your class against the framework (`ignoreSyntaxCheck`
 is off), so a method that does not exist on `z2ui5_if_client` fails there
