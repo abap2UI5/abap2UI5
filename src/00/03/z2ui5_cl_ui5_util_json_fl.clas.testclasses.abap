@@ -174,9 +174,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     LOOP AT lt_names INTO DATA(lv_name).
       cl_abap_unit_assert=>assert_equals( exp = li_exp->to_json( iv_path = `/T/1/`
-                                                                iv_name = lv_name )
+                                                                iv_name  = lv_name )
                                           act = li_act->to_json( iv_path = `/T/1/`
-                                                                iv_name = lv_name )
+                                                                iv_name  = lv_name )
                                           msg = lv_name ).
       " the reader upper-cases the answer and takes the node name for an
       " empty one - so the two are the same mapping there as well
