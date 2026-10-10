@@ -48,8 +48,17 @@ module.exports = defineConfig(
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Two workers on CI, not the generator's one. The backend behind every
+     spec is one process that runs ONE request at a time (host.mjs,
+     exclusive( )), so what workers overlap is the browser side only - the
+     page boot, UI5's own module loading and rendering, which is most of a
+     spec's wall time - and the roundtrips of two specs interleave in the
+     queue the host keeps anyway. Measured on the chromium project offline
+     (UI5_PINNED_RESOURCES): 2 workers end the leg in roughly two thirds of
+     the time of 1, with no flake over repeated runs; more than 2 overlaps
+     page boots on a two-core runner for little gain. The specs share no
+     state beyond that backend: every page starts its own app and draft. */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // CI: 'list' puts per-test detail in the job log; the html report and the
   // first-retry trace below are uploaded by test.yaml's browser matrix when a
