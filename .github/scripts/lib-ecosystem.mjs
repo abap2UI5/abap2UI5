@@ -73,9 +73,20 @@ const REPOS = [
    * (abap2UI5-addons/config-management#6). Before that it had no package.json
    * at all, so listing it would have been a finding nobody could act on. */
   { org: 'abap2UI5-addons', repo: 'config-management' },
+  /* Added 2026-10-10: two source repositories with a package.json that no
+   * gate read. http-connector publishes from `standard`, not `main`, so its
+   * entry names the branch the raw read takes. Not yet listed, because their
+   * published main does not meet the rule yet (measured 2026-10-10):
+   * abap-agent-runtime and admin-cockpit (no .nvmrc, no `test` script),
+   * abap-cloud-gui (no .nvmrc). Add each once it does. launchpad-kpi has no
+   * package.json, the config-management case above. */
+  { org: 'abap2UI5-addons', repo: 'http-connector', branch: 'standard' },
+  { org: 'abap2UI5-addons', repo: 'rfc-connector' },
 ].map((e) => (typeof e === 'string' ? { org: 'abap2UI5', repo: e } : e));
 
-const raw = ({ org, repo }, file) => `https://raw.githubusercontent.com/${org}/${repo}/main/${file}`;
+/* `branch` for a repository whose default branch is not `main`. */
+const raw = ({ org, repo, branch = 'main' }, file) =>
+  `https://raw.githubusercontent.com/${org}/${repo}/${branch}/${file}`;
 
 /* One file from one repository, as { text, from } - or { missing: true } when
  * the repository was reached and the file is not in it, which is a finding, or
