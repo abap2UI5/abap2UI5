@@ -36,6 +36,8 @@
     "check:plugin": "node .github/scripts/generate-plugin.mjs --check",
     "check:plugin-hook": "node .github/scripts/plugin-hook.test.mjs",
     "check:version": "node .github/scripts/version-sync-gate.mjs",
+    "facts": "node .github/scripts/readme-facts.mjs",
+    "check:facts": "node .github/scripts/readme-facts.mjs --check",
     "check:icons": "node .github/scripts/ui5-icon-gate.mjs",
     "check:modules": "node .github/scripts/frontend-module-gate.mjs",
     "check:standard": "npx abaplint .github/abaplint/abap_standard.jsonc",
