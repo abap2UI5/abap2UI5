@@ -236,9 +236,9 @@ the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
 `abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
 The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
 `INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
-of the same type rather than spelling it out. **Gate: open** until the
-abaplint release after 2.120.71 is pinned here: abaplint/abaplint#4390
-(merged 2026-10-09) makes `xml_consistency` compare `INTTYPE` with
+of the same type rather than spelling it out. **Gate: abaplint —
+`xml_consistency`**, from 2.120.73 on (pinned here since 2026-10-10):
+abaplint/abaplint#4390 (merged 2026-10-09) makes it compare `INTTYPE` with
 `DATATYPE` for the confirmed pairs. Measured with that change, it finds
 exactly the 27 fields on the pre-fix cockpit and nothing in 114 exported
 tables.
@@ -552,8 +552,9 @@ This one took abap2UI5 down with it. The class was a dependency of the
 cockpit's roundtrip monitor, so every abap2UI5 request dumped with
 *"Syntax error in program Z2UI5_CL_COCKPIT_SETUP"* (section 5).
 
-**Gate: open** until the abaplint release after 2.120.71 is pinned here:
-abaplint/abaplint#4389 (merged 2026-10-09) makes `check_syntax` report it.
+**Gate: abaplint — `check_syntax`**, from 2.120.73 on (pinned here since
+2026-10-10): abaplint/abaplint#4389 (merged 2026-10-09) makes it report *"The
+work area ... is not long enough for table ..."*.
 Measured with that change on the pre-fix cockpit, it finds exactly the two
 statements the system named, and nothing in abap2UI5.
 
@@ -679,12 +680,11 @@ and points here, so a new trap is added here and nowhere else.
 - **An empty `CATCH` block** wants `##NO_HANDLER` — that is how you say the
   empty handler is deliberate. `CATCH cx_root INTO DATA(x) ##NO_HANDLER.`
   14 handlers without the pragma sat in the vendored ajson test classes here
-  (2026-09-19). Upstream from the abaplint release after 2.120.71 on
-  (abaplint/abaplint#4387, merged 2026-10-09): `empty_structure` has the
-  option `catch`, off by default, that reports an empty CATCH block without
-  `##NO_HANDLER` or `"#EC NO_HANDLER`. A comment in the block does not count,
-  as SLIN does not count it either. Switch it on in `abaplint.jsonc` once that
-  release is pinned here.
+  (2026-09-19). From abaplint 2.120.73 on (abaplint/abaplint#4387, merged
+  2026-10-09): `empty_structure` has the option `catch`, off by default, that
+  reports an empty CATCH block without `##NO_HANDLER` or `"#EC NO_HANDLER`. A
+  comment in the block does not count, as SLIN does not count it either. It
+  is on in `abaplint.jsonc` (2026-10-10).
 - **A table declared without a key clause has the default key** — `DATA t
   TYPE TABLE OF x.` is the same table as `… WITH DEFAULT KEY`: every
   character-like component, in declaration order, and `SORT` without `BY`,
@@ -1300,10 +1300,10 @@ break one of those four.
   an assignment is a question for abaplint, not a regex. Fixed upstream: a
   `d` source counts the days since 01.01.0001 from `@abaplint/runtime`
   2.14.2 on (abaplint/transpiler#1977), a `t` source the seconds since
-  midnight from the release after 2.14.2 on (abaplint/transpiler#1976,
-  merged 2026-10-09). 2.14.2 is pinned here, so a `d` source is right under
-  `npm run unit`; keep the arithmetic from the parts for a `t` source until
-  the next release is.
+  midnight from 2.14.3 on (abaplint/transpiler#1976, merged 2026-10-09).
+  2.14.3 is pinned here (2026-10-10), so both are right under `npm run
+  unit`; the arithmetic from the parts stays the form that reads the same
+  on every runtime a host may have installed.
 - **A packed value with more than 15 significant digits loses its last
   digits when it is assigned to another packed field in the runtime.** A
   `timestampl` (`p LENGTH 11 DECIMALS 7`, 21 digits) set from a string is
