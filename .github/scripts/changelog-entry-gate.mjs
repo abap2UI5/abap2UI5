@@ -93,18 +93,25 @@ export function lostLines(diffText, baseRange, headText) {
     removed = [];
     added = 0;
   };
+  /* `---` / `+++` are the file header only before the first hunk; inside a
+   * hunk a removed hyphen rule (`-------`) is a line like any other and has
+   * to advance the old line number, or every later line of the hunk is
+   * judged one line off. */
+  let inHunk = false;
   for (const line of diffText.split("\n")) {
     const hunk = line.match(/^@@ -(\d+)(?:,\d+)? \+\d+(?:,\d+)? @@/);
     if (hunk) {
       close();
+      inHunk = true;
       oldLine = Number(hunk[1]);
       continue;
     }
-    if (line.startsWith("-") && !line.startsWith("---")) {
+    if (!inHunk) continue;
+    if (line.startsWith("-")) {
       const text = line.slice(1);
       if (oldLine >= baseRange.from && oldLine <= baseRange.to && ENTRY.test(text.trim())) removed.push(text);
       oldLine += 1;
-    } else if (line.startsWith("+") && !line.startsWith("+++") && ENTRY.test(line.slice(1).trim())) {
+    } else if (line.startsWith("+") && ENTRY.test(line.slice(1).trim())) {
       added += 1;
     }
   }
@@ -121,6 +128,8 @@ const SELF_TEST = [
   ["@@ -15,2 +15 @@\n-+ a\n-+ b\n+\n@@ -20,0 +20,2 @@\n++ a\n++ b", "2026-10-11 v1.0.0\n+ a\n+ b", []],
   // a removal outside the base's `unreleased` section is not this gate's
   ["@@ -99 +98,0 @@\n-+ old", "", []],
+  // a removed hyphen rule still counts as a line: `+ a` is line 15, not 14
+  ["--- a/changelog.txt\n+++ b/changelog.txt\n@@ -14,2 +14,0 @@\n----------\n-+ a", "", ["+ a"]],
 ];
 for (const [diffText, head, expected] of SELF_TEST) {
   const got = lostLines(diffText, { from: 15, to: 30 }, head);
@@ -159,8 +168,23 @@ if (lost.length && !trailer) {
 }
 if (lost.length) console.log(`changelog-entry-gate: ${lost.length} unreleased line(s) removed, accepted by a Changelog-Removed trailer`);
 
+/* The release cut sets z2ui5_if_app=>version and moves the `unreleased`
+ * lines under the new heading, so it adds none - and was refused as a
+ * contract change nobody wrote down. The value of that one constant is the
+ * release, not the contract: api-snapshot.mjs neutralises it for the same
+ * reason. So a diff of the interface that changes nothing but that line
+ * needs no entry; any other change to the file still does. */
+const VERSION_FILE = "src/02/z2ui5_if_app.intf.abap";
+const VERSION_LINE = /^[+-]\s*CONSTANTS\s+version\s+TYPE\s+string\s+VALUE\s+`[^`]*`\s*\.\s*$/i;
+const onlyVersionBump = (p) => {
+  if (p !== VERSION_FILE) return false;
+  const lines = git("diff", "--unified=0", `${base}...HEAD`, "--", p)
+    .split("\n")
+    .filter((l) => /^[+-]/.test(l) && !/^(?:\+\+\+|---) /.test(l));
+  return lines.length > 0 && lines.every((l) => VERSION_LINE.test(l));
+};
 const needsEntry = changed.filter(
-  (p) => p === ".github/api-snapshot.json" || p.startsWith("src/02/"),
+  (p) => (p === ".github/api-snapshot.json" || p.startsWith("src/02/")) && !onlyVersionBump(p),
 );
 if (needsEntry.length === 0) {
   console.log("changelog-entry-gate: no unreleased line lost; the diff does not touch src/02/** or the api snapshot - no entry required");
