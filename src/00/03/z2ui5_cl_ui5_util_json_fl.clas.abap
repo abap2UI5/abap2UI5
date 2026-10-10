@@ -1,9 +1,16 @@
 " The framework's own STATELESS ajson helpers - the no-empty-values filter
-" this class implements, and the upper-case field mapping next to it. Both
-" carry no state at all (the filter has no attribute, the mapping an empty
-" field table), so ONE instance of each serves the whole roll area instead
-" of a pair of objects per serialization: response_abap_to_json built both
-" on every single response, main_json_stringify one per model.
+" and the upper-case field mapping, both implemented by this class. Neither
+" carries any state, so ONE instance of each serves the whole roll area
+" instead of a pair of objects per serialization: response_abap_to_json
+" built both on every single response, main_json_stringify one per model.
+"
+" The mapping used to be ajson's own create_upper_case( ): its to_json
+" delegates to a field mapping (to_upper plus a READ on a field table that
+" is always empty here) and upper-cases the name a second time - three
+" calls and a table read per node name, on every cell of every bound
+" table. The implementation below is the one line the model needs; what
+" it answers is byte for byte what ajson's answered (the test class holds
+" both side by side).
 "
 " Filled lazily on first use, never in a class_constructor: a
 " class_constructor has to sit in the PUBLIC SECTION or activation fails on
@@ -20,6 +27,7 @@ CLASS z2ui5_cl_ui5_util_json_fl DEFINITION
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES z2ui5_if_ajson_mapping.
 
     CLASS-METHODS create_no_empty_values
       RETURNING
@@ -90,9 +98,33 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
   METHOD mapper_upper.
 
     IF gi_mapper_upper IS NOT BOUND.
-      gi_mapper_upper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+      gi_mapper_upper = NEW z2ui5_cl_ui5_util_json_fl( ).
     ENDIF.
     result = gi_mapper_upper.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ajson_mapping~to_json.
+
+    " ajson hands the lower-cased component name in and writes what comes
+    " back as the node name - the one call the upper-case mapping is
+    rv_result = to_upper( iv_name ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ajson_mapping~to_abap.
+
+    " the reader upper-cases the answer and falls back to the node name
+    " when it is empty, so the name itself is the same answer ajson's
+    " empty field table gave
+    rv_result = iv_name.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ajson_mapping~rename_node.
+
+    " as ajson's own upper-case mapping renames: the node name upper-cased
+    cv_name = to_upper( cv_name ).
 
   ENDMETHOD.
 
