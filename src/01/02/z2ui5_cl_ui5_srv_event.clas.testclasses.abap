@@ -21,12 +21,14 @@ ENDCLASS.
 CLASS ltcl_json IMPLEMENTATION.
 
   METHOD of.
+        DATA lx_error TYPE REF TO z2ui5_cx_ajson_error.
 
     TRY.
         result = io_event->get_event_client_ajson( val   = val
                                                    view  = view
                                                    t_arg = t_arg )->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx_error).
+
+      CATCH z2ui5_cx_ajson_error INTO lx_error.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx_error.
@@ -87,7 +89,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    CREATE OBJECT lo_event.
 
     cl_abap_unit_assert=>assert_equals( exp = `.eB(['POST'])`
                                         act = lo_event->get_event( `POST` ) ).
@@ -100,25 +102,37 @@ CLASS ltcl_test IMPLEMENTATION.
     " with `$` or `{` is a string on it, not an expression the client would
     " evaluate - the default keeps bindings raw, as the docs promise
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    DATA temp1 TYPE string_table.
+    DATA temp2 TYPE z2ui5_if_client=>ty_s_event_control.
+    DATA temp3 TYPE string_table.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp1.
+    INSERT `${$controller>/}.eB(['X'])` INTO TABLE temp1.
+
+    CLEAR temp2.
+    temp2-check_arg_literal = abap_true.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['POST'], '${$controller>/}.eB([\'X\'])')`
         act = lo_event->get_event( val   = `POST`
-                                   t_arg = VALUE #( ( `${$controller>/}.eB(['X'])` ) )
-                                   s_cnt = VALUE #( check_arg_literal = abap_true ) ) ).
+                                   t_arg = temp1
+                                   s_cnt = temp2 ) ).
 
+
+    CLEAR temp3.
+    INSERT `${$source>/KEY}` INTO TABLE temp3.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['POST'], ${$source>/KEY})`
         act = lo_event->get_event( val   = `POST`
-                                   t_arg = VALUE #( ( `${$source>/KEY}` ) ) ) ).
+                                   t_arg = temp3 ) ).
 
   ENDMETHOD.
 
   METHOD event_client.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    CREATE OBJECT lo_event.
 
     cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_FOCUS')`
                                         act = lo_event->get_event_client( z2ui5_if_client=>cs_event-set_focus ) ).
@@ -128,29 +142,41 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_nav_container.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    DATA temp5 TYPE string_table.
+    DATA temp7 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " NavContainer navigation is an ordinary control_by_id `to` call since the
     " five cs_event-*_nav_container_to constants were removed (2026-09-22).
     " This is the migration, on the XML-bound _event_client path: the app
     " writes the method itself, and the slot is the `view` parameter
+
+    CLEAR temp5.
+    INSERT `myContainer` INTO TABLE temp5.
+    INSERT `to` INTO TABLE temp5.
+    INSERT `myPage` INTO TABLE temp5.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'myContainer', '', 'to', 'myPage')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                                          t_arg = temp5 ) ).
 
+
+    CLEAR temp7.
+    INSERT `nestCon` INTO TABLE temp7.
+    INSERT `to` INTO TABLE temp7.
+    INSERT `nestPage` INTO TABLE temp7.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
                                           view  = z2ui5_if_client=>cs_view-nested
-                                          t_arg = VALUE #( ( `nestCon` ) ( `to` ) ( `nestPage` ) ) ) ).
+                                          t_arg = temp7 ) ).
 
   ENDMETHOD.
 
   METHOD event_popup_close.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    CREATE OBJECT lo_event.
 
     " closing a popup IS tearing its slot down, so the two close events are
     " formatted as the same VIEW_SLOTS call the framework queues for a
@@ -175,15 +201,25 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp9 TYPE string_table.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp9.
+    INSERT `arg1` INTO TABLE temp9.
     lv_event = lo_event->get_event( val         = `MY_EVT`
-                                          t_arg = VALUE #( ( `arg1` ) ) ).
+                                          t_arg = temp9 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `MY_EVT` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'arg1'` ) ).
+    temp1 = boolc( lv_event CS `MY_EVT` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
+
+
+    temp2 = boolc( lv_event CS `'arg1'` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
 
   ENDMETHOD.
 
@@ -191,17 +227,32 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp11 TYPE string_table.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp11.
+    INSERT `a1` INTO TABLE temp11.
+    INSERT `a2` INTO TABLE temp11.
+    INSERT `a3` INTO TABLE temp11.
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = VALUE #( ( `a1` ) ( `a2` ) ( `a3` ) ) ).
+                                          t_arg = temp11 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a1'` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a2'` ) ).
+    temp3 = boolc( lv_event CS `'a1'` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'a3'` ) ).
+
+    temp4 = boolc( lv_event CS `'a2'` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
+
+
+    temp5 = boolc( lv_event CS `'a3'` ).
+    cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
 
@@ -209,15 +260,25 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp13 TYPE string_table.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp13.
+    INSERT `$event` INTO TABLE temp13.
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = VALUE #( ( `$event` ) ) ).
+                                          t_arg = temp13 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `$event` ) ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'$event'` ) ).
+    temp6 = boolc( lv_event CS `$event` ).
+    cl_abap_unit_assert=>assert_true( temp6 ).
+
+
+    temp7 = boolc( lv_event CS `'$event'` ).
+    cl_abap_unit_assert=>assert_false( temp7 ).
 
   ENDMETHOD.
 
@@ -225,15 +286,25 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp15 TYPE string_table.
+    DATA temp8 TYPE xsdboolean.
+    DATA temp9 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp15.
+    INSERT `{/MY_PATH}` INTO TABLE temp15.
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = VALUE #( ( `{/MY_PATH}` ) ) ).
+                                          t_arg = temp15 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `{/MY_PATH}` ) ).
 
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `'{/MY_PATH}'` ) ).
+    temp8 = boolc( lv_event CS `{/MY_PATH}` ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
+
+
+    temp9 = boolc( lv_event CS `'{/MY_PATH}'` ).
+    cl_abap_unit_assert=>assert_false( temp9 ).
 
   ENDMETHOD.
 
@@ -241,68 +312,100 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp17 TYPE string_table.
+    DATA temp10 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp17.
+    INSERT `` INTO TABLE temp17.
+    INSERT `real` INTO TABLE temp17.
     lv_event = lo_event->get_event( val         = `EVT`
-                                          t_arg = VALUE #( ( `` ) ( `real` ) ) ).
+                                          t_arg = temp17 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'real'` ) ).
+
+    temp10 = boolc( lv_event CS `'real'` ).
+    cl_abap_unit_assert=>assert_true( temp10 ).
 
   ENDMETHOD.
 
   METHOD event_empty_middle_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    DATA temp19 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " for control_by_id the view is injected as the empty slot at position 2
     " (default cs_view-main), so an empty argument BETWEEN filled ones keeps
     " its position - dropping it would shift every following argument into the
     " wrong slot (a CONTROL_BY_ID action without a view lost its method name
     " this way, live find in beta samples 448/449)
+
+    CLEAR temp19.
+    INSERT `demoPanel` INTO TABLE temp19.
+    INSERT `setExpanded` INTO TABLE temp19.
+    INSERT `X` INTO TABLE temp19.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                                          t_arg = temp19 ) ).
 
   ENDMETHOD.
 
   METHOD event_trailing_empty_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    DATA temp21 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " trailing empties still disappear - an ABAP false boolean param
     " serializes to `` and simply ends the argument list, while the injected
     " main-view empty slot at position 2 stays
+
+    CLEAR temp21.
+    INSERT `demoPanel` INTO TABLE temp21.
+    INSERT `setExpanded` INTO TABLE temp21.
+    INSERT `` INTO TABLE temp21.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
+                                          t_arg = temp21 ) ).
 
   ENDMETHOD.
 
   METHOD event_view_param.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
-    lo_event = NEW #( ).
+    DATA temp23 TYPE string_table.
+    DATA temp25 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " a concrete view is injected as the (filled) slot at position 2, scoping
     " the id lookup to that view slot on the frontend
+
+    CLEAR temp23.
+    INSERT `demoPanel` INTO TABLE temp23.
+    INSERT `setExpanded` INTO TABLE temp23.
+    INSERT `X` INTO TABLE temp23.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', 'POPOVER', 'setExpanded', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
                                           view  = z2ui5_if_client=>cs_view-popover
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                                          t_arg = temp23 ) ).
 
     " the default view (cs_view-main) maps to the empty slot, preserving the
     " unchanged cross-view resolveById default
+
+    CLEAR temp25.
+    INSERT `demoPanel` INTO TABLE temp25.
+    INSERT `setExpanded` INTO TABLE temp25.
+    INSERT `X` INTO TABLE temp25.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
                                           view  = z2ui5_if_client=>cs_view-main
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                                          t_arg = temp25 ) ).
 
   ENDMETHOD.
 
@@ -310,7 +413,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
-    lo_event = NEW #( ).
+    DATA temp27 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     CLEAR ls_ctrl.
     ls_ctrl-check_queue_last = abap_true.
@@ -324,10 +428,13 @@ CLASS ltcl_test IMPLEMENTATION.
                                    s_cnt = ls_ctrl ) ).
 
     " the arguments follow the array unchanged
+
+    CLEAR temp27.
+    INSERT `${$parameters>/value}` INTO TABLE temp27.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['LIVE_CHANGE',false,false,false,true], ${$parameters>/value})`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
-                                   t_arg = VALUE #( ( `${$parameters>/value}` ) )
+                                   t_arg = temp27
                                    s_cnt = ls_ctrl ) ).
 
     " the prevent-default form carries the same array
@@ -345,7 +452,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
-    lo_event = NEW #( ).
+    DATA temp29 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     CLEAR ls_ctrl.
     ls_ctrl-check_no_busy = abap_true.
@@ -366,10 +474,13 @@ CLASS ltcl_test IMPLEMENTATION.
                                    s_cnt = ls_ctrl ) ).
 
     " the arguments still follow the array unchanged
+
+    CLEAR temp29.
+    INSERT `${$parameters>/newValue}` INTO TABLE temp29.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['LIVE_CHANGE',false,false,false,true,true], ${$parameters>/newValue})`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
-                                   t_arg = VALUE #( ( `${$parameters>/newValue}` ) )
+                                   t_arg = temp29
                                    s_cnt = ls_ctrl ) ).
 
     " and the prevent-default form carries the same array
@@ -395,7 +506,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
-    lo_event = NEW #( ).
+    DATA temp31 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     ls_ctrl-check_prevent_default = abap_true.
 
@@ -407,10 +519,13 @@ CLASS ltcl_test IMPLEMENTATION.
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    s_cnt = ls_ctrl ) ).
 
+
+    CLEAR temp31.
+    INSERT `$event.oSource.sId` INTO TABLE temp31.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eBP($event,true,['ITEM_PRESS'], $event.oSource.sId)`
         act = lo_event->get_event( val   = `ITEM_PRESS`
-                                   t_arg = VALUE #( ( `$event.oSource.sId` ) )
+                                   t_arg = temp31
                                    s_cnt = ls_ctrl ) ).
 
     " both flags together stay independent
@@ -433,17 +548,21 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
-    lo_event = NEW #( ).
+    DATA temp33 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     ls_ctrl-prevent_default_expr = `${$parameters>/column}.getId().indexOf('COL_DATE') >= 0`.
 
     " the expression takes the place of the constant `true`, so the veto is
     " decided per firing - one wire protects one column and lets the rest
     " through. The payload after it is unchanged
+
+    CLEAR temp33.
+    INSERT `${$parameters>/width}` INTO TABLE temp33.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eBP($event,${$parameters>/column}.getId().indexOf('COL_DATE') >= 0,['COLUMN_RESIZE'], ${$parameters>/width})`
         act = lo_event->get_event( val   = `COLUMN_RESIZE`
-                                   t_arg = VALUE #( ( `${$parameters>/width}` ) )
+                                   t_arg = temp33
                                    s_cnt = ls_ctrl ) ).
 
     " the expression wins over the flag when both are set
@@ -468,28 +587,50 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    DATA temp35 TYPE string_table.
+    DATA temp11 TYPE xsdboolean.
+    DATA temp12 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
+
+    CLEAR temp35.
+    INSERT `param1` INTO TABLE temp35.
     lv_event = lo_event->get_event_client( val         = `CLOSE`
-                                                 t_arg = VALUE #( ( `param1` ) ) ).
+                                                 t_arg = temp35 ).
 
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `CLOSE` ) ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'param1'` ) ).
+    temp11 = boolc( lv_event CS `CLOSE` ).
+    cl_abap_unit_assert=>assert_true( temp11 ).
+
+
+    temp12 = boolc( lv_event CS `'param1'` ).
+    cl_abap_unit_assert=>assert_true( temp12 ).
 
   ENDMETHOD.
 
   METHOD event_quote_escaped.
 
     " an embedded ' must be escaped to \' so it cannot close the '...' wrapper
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
-    DATA(lt_arg) = VALUE string_table( ( `Value changed to '{0}'` ) ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp37 TYPE string_table.
+    DATA lt_arg LIKE temp37.
+    DATA lv_event TYPE string.
+    DATA temp13 TYPE xsdboolean.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
-    DATA(lv_event) = lo_event->get_event( val   = `EVT`
+    CLEAR temp37.
+    INSERT `Value changed to '{0}'` INTO TABLE temp37.
+
+    lt_arg = temp37.
+
+
+    lv_event = lo_event->get_event( val   = `EVT`
                                           t_arg = lt_arg ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'Value changed to \'{0}\''` ) ).
+
+    temp13 = boolc( lv_event CS `'Value changed to \'{0}\''` ).
+    cl_abap_unit_assert=>assert_true( temp13 ).
 
   ENDMETHOD.
 
@@ -499,16 +640,31 @@ CLASS ltcl_test IMPLEMENTATION.
     " containing "\'" cannot break out of the '...' wrapper and inject JS.
     " Regression for: arg `\',alert(1),'` used to emit `'\\',alert(1),\''`,
     " closing the string early and evaluating alert(1) as an argument.
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
-    DATA(lt_arg) = VALUE string_table( ( `\',alert(1),'` ) ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp39 TYPE string_table.
+    DATA lt_arg LIKE temp39.
+    DATA lv_event TYPE string.
+    DATA temp14 TYPE xsdboolean.
+    DATA temp15 TYPE xsdboolean.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
-    DATA(lv_event) = lo_event->get_event( val   = `EVT`
+    CLEAR temp39.
+    INSERT `\',alert(1),'` INTO TABLE temp39.
+
+    lt_arg = temp39.
+
+
+    lv_event = lo_event->get_event( val   = `EVT`
                                           t_arg = lt_arg ).
 
     " the backslash is doubled and the quotes escaped, so the whole payload
     " stays inside one string literal - no bare alert(1) leaks out
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'\\\',alert(1),\''` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `',alert(1),'` ) ).
+
+    temp14 = boolc( lv_event CS `'\\\',alert(1),\''` ).
+    cl_abap_unit_assert=>assert_true( temp14 ).
+
+    temp15 = boolc( lv_event CS `',alert(1),'` ).
+    cl_abap_unit_assert=>assert_false( temp15 ).
 
   ENDMETHOD.
 
@@ -516,17 +672,37 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a standalone CR (not part of CR+LF) is a JS line terminator like LF -
     " it must be escaped too, or the emitted '...' literal is a syntax error
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
-    DATA(lv_cr) = substring( val = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA lv_cr TYPE string.
+    DATA temp41 TYPE string_table.
+    DATA temp3 LIKE LINE OF temp41.
+    DATA lt_arg LIKE temp41.
+    DATA lv_event TYPE string.
+    DATA temp16 TYPE xsdboolean.
+    DATA temp17 TYPE xsdboolean.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
+
+    lv_cr = substring( val = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
                              off = 0
                              len = 1 ).
-    DATA(lt_arg) = VALUE string_table( ( |before{ lv_cr }after| ) ).
 
-    DATA(lv_event) = lo_event->get_event( val   = `EVT`
+    CLEAR temp41.
+
+    temp3 = |before{ lv_cr }after|.
+    INSERT temp3 INTO TABLE temp41.
+
+    lt_arg = temp41.
+
+
+    lv_event = lo_event->get_event( val   = `EVT`
                                           t_arg = lt_arg ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'before\rafter'` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS lv_cr ) ).
+
+    temp16 = boolc( lv_event CS `'before\rafter'` ).
+    cl_abap_unit_assert=>assert_true( temp16 ).
+
+    temp17 = boolc( lv_event CS lv_cr ).
+    cl_abap_unit_assert=>assert_false( temp17 ).
 
   ENDMETHOD.
 
@@ -534,15 +710,34 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a value-first placeholder ({0}...) and a conditional placeholder
     " ({0?a:b}...) are plain strings, so both are quoted (not emitted raw)
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp43 TYPE string_table.
+    DATA lv_plain TYPE string.
+    DATA temp18 TYPE xsdboolean.
+    DATA temp45 TYPE string_table.
+    DATA lv_cond TYPE string.
+    DATA temp19 TYPE xsdboolean.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
-    DATA(lv_plain) = lo_event->get_event( val   = `EVT`
-                                          t_arg = VALUE #( ( `{0} Pressed` ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_plain CS `'{0} Pressed'` ) ).
 
-    DATA(lv_cond) = lo_event->get_event( val   = `EVT`
-                                         t_arg = VALUE #( ( `{0?Pressed:Unpressed}` ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_cond CS `'{0?Pressed:Unpressed}'` ) ).
+    CLEAR temp43.
+    INSERT `{0} Pressed` INTO TABLE temp43.
+
+    lv_plain = lo_event->get_event( val   = `EVT`
+                                          t_arg = temp43 ).
+
+    temp18 = boolc( lv_plain CS `'{0} Pressed'` ).
+    cl_abap_unit_assert=>assert_true( temp18 ).
+
+
+    CLEAR temp45.
+    INSERT `{0?Pressed:Unpressed}` INTO TABLE temp45.
+
+    lv_cond = lo_event->get_event( val   = `EVT`
+                                         t_arg = temp45 ).
+
+    temp19 = boolc( lv_cond CS `'{0?Pressed:Unpressed}'` ).
+    cl_abap_unit_assert=>assert_true( temp19 ).
 
   ENDMETHOD.
 
@@ -552,27 +747,48 @@ CLASS ltcl_test IMPLEMENTATION.
     " still message text and quoted, while a RELATIVE binding that starts
     " with digits ({0/NAME}) and an object literal are no placeholders and
     " go out raw - UI5 resolves them per firing
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp47 TYPE string_table.
+    DATA temp49 TYPE string_table.
+    DATA temp51 TYPE string_table.
+    DATA temp53 TYPE string_table.
+    DATA temp4 TYPE z2ui5_if_client=>ty_s_event_control.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp47.
+    INSERT `{12} of {13}` INTO TABLE temp47.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{12} of {13}')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{12} of {13}` ) ) ) ).
+                                   t_arg = temp47 ) ).
+
+    CLEAR temp49.
+    INSERT `{0/NAME}` INTO TABLE temp49.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], {0/NAME})`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{0/NAME}` ) ) ) ).
+                                   t_arg = temp49 ) ).
+
+    CLEAR temp51.
+    INSERT `{a:1}` INTO TABLE temp51.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], {a:1})`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{a:1}` ) ) ) ).
+                                   t_arg = temp51 ) ).
 
     " and the literal switch quotes all of them alike
+
+    CLEAR temp53.
+    INSERT `{0/NAME}` INTO TABLE temp53.
+
+    CLEAR temp4.
+    temp4-check_arg_literal = abap_true.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{0/NAME}')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{0/NAME}` ) )
-                                   s_cnt = VALUE #( check_arg_literal = abap_true ) ) ).
+                                   t_arg = temp53
+                                   s_cnt = temp4 ) ).
 
   ENDMETHOD.
 
@@ -582,33 +798,58 @@ CLASS ltcl_test IMPLEMENTATION.
     " a lone `{` - a user's text, a truncated placeholder - broke the parse
     " of the whole expression and the wire never fired. Whatever does not
     " balance is no binding and no expression: it goes out as a string
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp55 TYPE string_table.
+    DATA temp57 TYPE string_table.
+    DATA temp59 TYPE string_table.
+    DATA temp61 TYPE string_table.
+    DATA temp63 TYPE string_table.
+    DATA temp65 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp55.
+    INSERT `{` INTO TABLE temp55.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{` ) ) ) ).
+                                   t_arg = temp55 ) ).
+
+    CLEAR temp57.
+    INSERT `{0` INTO TABLE temp57.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{0')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{0` ) ) ) ).
+                                   t_arg = temp57 ) ).
+
+    CLEAR temp59.
+    INSERT `{/PATH}}` INTO TABLE temp59.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{/PATH}}')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{/PATH}}` ) ) ) ).
+                                   t_arg = temp59 ) ).
+
+    CLEAR temp61.
+    INSERT `${x` INTO TABLE temp61.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '${x')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `${x` ) ) ) ).
+                                   t_arg = temp61 ) ).
     " a closing brace before its opening one is unbalanced too
+
+    CLEAR temp63.
+    INSERT `{a}}{` INTO TABLE temp63.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], '{a}}{')`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{a}}{` ) ) ) ).
+                                   t_arg = temp63 ) ).
+
+    CLEAR temp65.
+    INSERT `{` INTO TABLE temp65.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('EVT', '{')`
         act = lo_event->get_event_client( val   = `EVT`
-                                          t_arg = VALUE #( ( `{` ) ) ) ).
+                                          t_arg = temp65 ) ).
 
   ENDMETHOD.
 
@@ -616,23 +857,36 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the documented raw forms keep going out raw - a brace inside a quoted
     " string of the expression does not count
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp67 TYPE string_table.
+    DATA temp69 TYPE string_table.
+    DATA temp71 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp67.
+    INSERT `{0/NAME}` INTO TABLE temp67.
+    INSERT `${$source>/KEY}` INTO TABLE temp67.
+    INSERT `$event` INTO TABLE temp67.
+    INSERT `{= ${/A} === '}' }` INTO TABLE temp67.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], {0/NAME}, ${$source>/KEY}, $event, {= ${/A} === '}' })`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `{0/NAME}` )
-                                                    ( `${$source>/KEY}` )
-                                                    ( `$event` )
-                                                    ( `{= ${/A} === '}' }` ) ) ) ).
+                                   t_arg = temp67 ) ).
+
+    CLEAR temp69.
+    INSERT `.eB(['INNER'], ${/X})` INTO TABLE temp69.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], .eB(['INNER'], ${/X}))`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `.eB(['INNER'], ${/X})` ) ) ) ).
+                                   t_arg = temp69 ) ).
+
+    CLEAR temp71.
+    INSERT `.eF('X')` INTO TABLE temp71.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eB(['EVT'], .eF('X'))`
         act = lo_event->get_event( val   = `EVT`
-                                   t_arg = VALUE #( ( `.eF('X')` ) ) ) ).
+                                   t_arg = temp71 ) ).
 
   ENDMETHOD.
 
@@ -640,19 +894,25 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the structured follow-up form: a JSON array ["EVENT", ...args] built
     " and escaped entirely in ABAP - data, not an executable eF( ) snippet
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp73 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp73.
+    INSERT `My Title` INTO TABLE temp73.
     cl_abap_unit_assert=>assert_equals(
         exp = `["SET_TITLE","My Title"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-set_title
-                             t_arg    = VALUE #( ( `My Title` ) ) ) ).
+                             t_arg    = temp73 ) ).
 
   ENDMETHOD.
 
   METHOD json_no_args.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["LOCATION_RELOAD"]`
@@ -670,41 +930,72 @@ CLASS ltcl_test IMPLEMENTATION.
     " `MAIN` the removed sugar injected - an empty slot resolves across every
     " open view (ViewSlots.resolveById) and therefore still finds a container
     " in the main view; it is only wider, never narrower.
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp75 TYPE string_table.
+    DATA temp77 TYPE string_table.
+    DATA temp79 TYPE string_table.
+    DATA temp81 TYPE string_table.
+    DATA temp83 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp75.
+    INSERT `myContainer` INTO TABLE temp75.
+    INSERT `to` INTO TABLE temp75.
+    INSERT `myPage` INTO TABLE temp75.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
-                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                             t_arg    = temp75 ) ).
 
+
+    CLEAR temp77.
+    INSERT `myContainer` INTO TABLE temp77.
+    INSERT `to` INTO TABLE temp77.
+    INSERT `myPage` INTO TABLE temp77.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST","to","myPage"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
                              view     = z2ui5_if_client=>cs_view-nested
-                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                             t_arg    = temp77 ) ).
 
+
+    CLEAR temp79.
+    INSERT `myContainer` INTO TABLE temp79.
+    INSERT `to` INTO TABLE temp79.
+    INSERT `myPage` INTO TABLE temp79.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","NEST2","to","myPage"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
                              view     = z2ui5_if_client=>cs_view-nested2
-                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                             t_arg    = temp79 ) ).
 
+
+    CLEAR temp81.
+    INSERT `myContainer` INTO TABLE temp81.
+    INSERT `to` INTO TABLE temp81.
+    INSERT `myPage` INTO TABLE temp81.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPUP","to","myPage"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
                              view     = z2ui5_if_client=>cs_view-popup
-                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                             t_arg    = temp81 ) ).
 
+
+    CLEAR temp83.
+    INSERT `myContainer` INTO TABLE temp83.
+    INSERT `to` INTO TABLE temp83.
+    INSERT `myPage` INTO TABLE temp83.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","POPOVER","to","myPage"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
                              view     = z2ui5_if_client=>cs_view-popover
-                             t_arg    = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+                             t_arg    = temp83 ) ).
 
   ENDMETHOD.
 
@@ -716,60 +1007,93 @@ CLASS ltcl_test IMPLEMENTATION.
     " braces client->_bind( ) answers with have to be gone by then -
     " `{/MT_TAB}/3` is no binding path (core/actions/ViewOps.js strips them
     " again, defensively; this is where it has to happen)
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp85 TYPE string_table.
+    DATA temp87 TYPE string_table.
+    DATA temp89 TYPE string_table.
+    DATA temp91 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
+
+    CLEAR temp85.
+    INSERT `3` INTO TABLE temp85.
+    INSERT `{/MT_TAB}` INTO TABLE temp85.
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","POPUP","3","/MT_TAB"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-bind_element
                              view     = z2ui5_if_client=>cs_view-popup
-                             t_arg    = VALUE #( ( `3` ) ( `{/MT_TAB}` ) ) ) ).
+                             t_arg    = temp85 ) ).
 
     " the default view, and a binding that carries no braces at all
+
+    CLEAR temp87.
+    INSERT `0` INTO TABLE temp87.
+    INSERT `/MT_TAB` INTO TABLE temp87.
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","0","/MT_TAB"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-bind_element
-                             t_arg    = VALUE #( ( `0` ) ( `/MT_TAB` ) ) ) ).
+                             t_arg    = temp87 ) ).
 
     " no binding argument at all: the third element is simply not there,
     " and the frontend's `String(args[3] ?? "")` answers the empty path
     " with a log line instead of element-binding the slot to a bare `/3`
+
+    CLEAR temp89.
+    INSERT `3` INTO TABLE temp89.
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","3"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-bind_element
-                             t_arg    = VALUE #( ( `3` ) ) ) ).
+                             t_arg    = temp89 ) ).
 
     " an EMPTY index between the slot and the path keeps its position - the
     " positional trim only drops what TRAILS. Dropping it would shift the
     " path into the index slot and element-bind the view to `MAIN/`
+
+    CLEAR temp91.
+    INSERT `` INTO TABLE temp91.
+    INSERT `{/MT_TAB}` INTO TABLE temp91.
     cl_abap_unit_assert=>assert_equals(
         exp = `["BIND_ELEMENT","MAIN","","/MT_TAB"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-bind_element
-                             t_arg    = VALUE #( ( `` ) ( `{/MT_TAB}` ) ) ) ).
+                             t_arg    = temp91 ) ).
 
   ENDMETHOD.
 
   METHOD json_view_param.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp93 TYPE string_table.
+    DATA temp95 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " a concrete view fills the slot at position 2, the default main view
     " keeps it empty (cross-view resolveById on the frontend)
+
+    CLEAR temp93.
+    INSERT `demoPanel` INTO TABLE temp93.
+    INSERT `setExpanded` INTO TABLE temp93.
+    INSERT `X` INTO TABLE temp93.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
                              view     = z2ui5_if_client=>cs_view-popover
-                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                             t_arg    = temp93 ) ).
 
+
+    CLEAR temp95.
+    INSERT `demoPanel` INTO TABLE temp95.
+    INSERT `setExpanded` INTO TABLE temp95.
+    INSERT `X` INTO TABLE temp95.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
-                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                             t_arg    = temp95 ) ).
 
     " no arguments at all: the view still lands in its slot, behind an
     " empty id - the INSERT at index 2 used to be a no-op on an empty table
@@ -787,90 +1111,133 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD json_empty_args.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp97 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " an empty argument between filled ones keeps its position, trailing
     " empties are dropped - same contract as the JS form (get_t_arg)
+
+    CLEAR temp97.
+    INSERT `demoPanel` INTO TABLE temp97.
+    INSERT `setExpanded` INTO TABLE temp97.
+    INSERT `` INTO TABLE temp97.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_by_id
-                             t_arg    = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
+                             t_arg    = temp97 ) ).
 
   ENDMETHOD.
 
   METHOD json_object_arg.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp99 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " a JSON object argument (e.g. the STORE_DATA payload) is embedded as
     " real JSON, so the frontend receives a ready-to-use object after one
     " JSON.parse of the whole array
+
+    CLEAR temp99.
+    INSERT `{"KEY":"K1"}` INTO TABLE temp99.
     cl_abap_unit_assert=>assert_equals(
         exp = `["STORE_DATA",{"KEY":"K1"}]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-store_data
-                             t_arg    = VALUE #( ( `{"KEY":"K1"}` ) ) ) ).
+                             t_arg    = temp99 ) ).
 
   ENDMETHOD.
 
   METHOD json_placeholder_stays_string.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp101 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " a message-template placeholder only looks like JSON - it fails the
     " parse and stays a plain string, like the frontend fallback produced
+
+    CLEAR temp101.
+    INSERT `MESSAGE_TOAST` INTO TABLE temp101.
+    INSERT `show` INTO TABLE temp101.
+    INSERT `{0} Pressed` INTO TABLE temp101.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","{0} Pressed"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-control_global
-                             t_arg    = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `{0} Pressed` ) ) ) ).
+                             t_arg    = temp101 ) ).
 
   ENDMETHOD.
 
   METHOD json_escaping.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp103 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " quotes and backslashes in an argument are JSON-escaped by the ABAP
     " serializer - no hand-written escaping, no JS string literal to break
     " out of (the injection surface of the old eF( ) form)
+
+    CLEAR temp103.
+    INSERT `he said "hi" \ bye` INTO TABLE temp103.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CLIPBOARD_COPY","he said \"hi\" \\ bye"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-clipboard_copy
-                             t_arg    = VALUE #( ( `he said "hi" \ bye` ) ) ) ).
+                             t_arg    = temp103 ) ).
 
   ENDMETHOD.
 
   METHOD json_start_timer_no_busy.
 
-    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+    DATA lo_event TYPE REF TO z2ui5_cl_ui5_srv_event.
+    DATA temp105 TYPE string_table.
+    DATA temp107 TYPE string_table.
+    DATA temp109 TYPE string_table.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_ui5_srv_event.
 
     " START_TIMER's optional third argument, the tick's check_no_busy: an
     " ABAP boolean as t_arg carries every boolean, `X` for abap_true, behind
     " the delay - where the frontend reads it (core/actions/ViewOps.js,
     " evStartTimer) ...
+
+    CLEAR temp105.
+    INSERT `TICK` INTO TABLE temp105.
+    INSERT `5000` INTO TABLE temp105.
+    INSERT `X` INTO TABLE temp105.
     cl_abap_unit_assert=>assert_equals(
         exp = `["START_TIMER","TICK","5000","X"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-start_timer
-                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ).
+                             t_arg    = temp105 ) ).
 
     " ... abap_false is the empty string there, a trailing empty that is
     " dropped, so the wire is the two-argument one every existing timer
     " sends ...
+
+    CLEAR temp107.
+    INSERT `TICK` INTO TABLE temp107.
+    INSERT `5000` INTO TABLE temp107.
+    INSERT `` INTO TABLE temp107.
     cl_abap_unit_assert=>assert_equals(
         exp = `["START_TIMER","TICK","5000"]`
         act = ltcl_json=>of( io_event = lo_event
                              val      = z2ui5_if_client=>cs_event-start_timer
-                             t_arg    = VALUE #( ( `TICK` ) ( `5000` ) ( `` ) ) ) ).
+                             t_arg    = temp107 ) ).
 
     " ... and the roundtrip-free wire of a view attribute carries it alike
+
+    CLEAR temp109.
+    INSERT `TICK` INTO TABLE temp109.
+    INSERT `5000` INTO TABLE temp109.
+    INSERT `X` INTO TABLE temp109.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('START_TIMER', 'TICK', '5000', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-start_timer
-                                          t_arg = VALUE #( ( `TICK` ) ( `5000` ) ( `X` ) ) ) ).
+                                          t_arg = temp109 ) ).
 
   ENDMETHOD.
 

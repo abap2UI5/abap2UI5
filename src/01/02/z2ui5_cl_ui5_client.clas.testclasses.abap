@@ -17,7 +17,8 @@ CLASS ltcl_test_app DEFINITION FINAL.
         name TYPE string,
         job  TYPE string,
       END OF ty_s_emp.
-    DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
+    TYPES temp1_f9908b1ee3 TYPE STANDARD TABLE OF ty_s_emp WITH DEFAULT KEY.
+DATA mt_emp TYPE temp1_f9908b1ee3 ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -58,7 +59,9 @@ ENDCLASS.
 
 CLASS ltcl_good_filter IMPLEMENTATION.
   METHOD z2ui5_if_ajson_filter~keep_node.
-    rv_keep = xsdbool( is_node-name <> `DROPME` ).
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( is_node-name <> `DROPME` ).
+    rv_keep = temp1.
   ENDMETHOD.
 ENDCLASS.
 
@@ -161,7 +164,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD system_actions.
 
-    LOOP AT mo_action->ms_next-t_action_front INTO DATA(ls_action).
+    DATA ls_action LIKE LINE OF mo_action->ms_next-t_action_front.
+    LOOP AT mo_action->ms_next-t_action_front INTO ls_action.
       IF result IS NOT INITIAL.
         result = result && `|`.
       ENDIF.
@@ -176,12 +180,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD setup.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_http = NEW #( val = `` ).
-    mo_action = NEW #( val = lo_http ).
-    mo_test_app = NEW #( ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
+    CREATE OBJECT mo_action EXPORTING val = lo_http.
+    CREATE OBJECT mo_test_app.
     mo_action->mo_app->mo_app = mo_test_app.
     mo_action->mo_app->mv_check_initialized = abap_false.
-    mo_client = NEW #( action = mo_action ).
+    CREATE OBJECT mo_client EXPORTING action = mo_action.
 
   ENDMETHOD.
 
@@ -396,27 +400,47 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_message_box_display.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    FIELD-SYMBOLS <temp1> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp2 LIKE sy-tabix.
 
     li_client ?= mo_client.
     li_client->message_box_display( `Hello World` ).
 
+
+
+    temp2 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp1>.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp1>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_message_box_type.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    FIELD-SYMBOLS <temp3> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp4 LIKE sy-tabix.
 
     li_client ?= mo_client.
     li_client->message_box_display( text = `Error occurred`
                                     type = `error` ).
 
+
+
+    temp4 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp3>.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","error","Error occurred"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp3>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -429,20 +453,38 @@ CLASS ltcl_test_client IMPLEMENTATION.
       BEGIN OF ty_s_row,
         carrid TYPE string,
       END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES temp2 TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
+DATA lt_row TYPE temp2.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp5 LIKE lt_row.
+    DATA temp6 LIKE LINE OF temp5.
+    FIELD-SYMBOLS <temp7> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp8 LIKE sy-tabix.
 
     li_client ?= mo_client.
-    lt_row = VALUE #( ( carrid = `LH` ) ).
+
+    CLEAR temp5.
+
+    temp6-carrid = `LH`.
+    INSERT temp6 INTO TABLE temp5.
+    lt_row = temp5.
 
     li_client->message_box_display( lt_row ).
 
+
+
+    temp8 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp7>.
+    sy-tabix = temp8.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","show","Table with 1 entry",` &&
               `{"details":"<ol><li><ul><li><strong>CARRID</strong>: LH</li></ul></li></ol>",` &&
               `"title":"Information"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp7>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -454,7 +496,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
       BEGIN OF ty_s_row,
         carrid TYPE string,
       END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES temp3 TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
+DATA lt_row TYPE temp3.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
 
@@ -476,22 +519,45 @@ CLASS ltcl_test_client IMPLEMENTATION.
         type    TYPE string,
         message TYPE string,
       END OF ty_s_msg.
-    DATA lt_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
+    TYPES temp4 TYPE STANDARD TABLE OF ty_s_msg WITH DEFAULT KEY.
+DATA lt_msg TYPE temp4.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp9 LIKE lt_msg.
+    DATA temp10 LIKE LINE OF temp9.
+    FIELD-SYMBOLS <temp11> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp12 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp13> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp14 LIKE sy-tabix.
 
     li_client ?= mo_client.
     " the warning first: the error behind it still makes it an error box
-    lt_msg = VALUE #( ( type = `W` message = `Plant "1000" & more` )
-                      ( type = `E` message = `Enter a value for <MATNR>` ) ).
+
+    CLEAR temp9.
+
+    temp10-type = `W`.
+    temp10-message = `Plant "1000" & more`.
+    INSERT temp10 INTO TABLE temp9.
+    temp10-type = `E`.
+    temp10-message = `Enter a value for <MATNR>`.
+    INSERT temp10 INTO TABLE temp9.
+    lt_msg = temp9.
 
     li_client->message_box_display( lt_msg ).
 
+
+
+    temp12 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp11>.
+    sy-tabix = temp12.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","error","2 Messages found:",` &&
               `{"details":"<ul><li>Plant &quot;1000&quot; &amp; more</li>` &&
               `<li>Enter a value for &lt;MATNR&gt;</li></ul>","title":"Error"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp11>-o_json->stringify( ) ).
 
     " one message is the text itself, and a title the app passes wins
     CLEAR mo_action->ms_next-s_action-t_custom.
@@ -499,15 +565,26 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->message_box_display( text  = lt_msg
                                     title = `Check` ).
 
+
+
+    temp14 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp13>.
+    sy-tabix = temp14.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","warning","Plant \"1000\" & more",{"title":"Check"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp13>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_message_box_dependent.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp15 TYPE string_table.
+    FIELD-SYMBOLS <temp17> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp18 LIKE sy-tabix.
 
     li_client ?= mo_client.
     " dependentOn and contentWidth are sap.m.MessageBox options, so they are
@@ -515,43 +592,68 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " same object the method below builds for what an ABAP app decides. The
     " object is PARSED on its way to the wire, so its keys arrive sorted -
     " the order an app writes them in carries nothing
+
+    CLEAR temp15.
+    INSERT `MESSAGE_BOX` INTO TABLE temp15.
+    INSERT `confirm` INTO TABLE temp15.
+    INSERT `The quantity exceeds the plan.` INTO TABLE temp15.
+    INSERT `{"dependentOn":"myPage","contentWidth":"20rem"}` INTO TABLE temp15.
     li_client->follow_up_action(
         val   = z2ui5_if_client=>cs_event-control_global
-        t_arg = VALUE #( ( `MESSAGE_BOX` )
-                         ( `confirm` )
-                         ( `The quantity exceeds the plan.` )
-                         ( `{"dependentOn":"myPage","contentWidth":"20rem"}` ) ) ).
+        t_arg = temp15 ).
 
+
+
+    temp18 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp17>.
+    sy-tabix = temp18.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp17>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_message_toast.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    FIELD-SYMBOLS <temp19> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp20 LIKE sy-tabix.
 
     li_client ?= mo_client.
     li_client->message_toast_display( `Saved` ).
 
+
+
+    temp20 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp19>.
+    sy-tabix = temp20.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_TOAST","show","Saved"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp19>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_hash_routing.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp21 TYPE string_table.
     li_client ?= mo_client.
 
     " hash_routing configures the app rather than calling the frontend: it
     " is remembered on the app ( so a later response of this app, and an app
     " that inherits from it, carry it again ) and queues no action of its own
+
+    CLEAR temp21.
+    INSERT z2ui5_if_client=>cs_nav_mode-fresh INTO TABLE temp21.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
-                                 t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
+                                 t_arg = temp21 ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
                                         act = mo_action->ms_next-s_nav-set_nav_routing ).
@@ -566,13 +668,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " the mode as an app may well write it - lower case - lands upper-cased
     " on both sides, as the constants spell it
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp23 TYPE string_table.
     li_client ?= mo_client.
 
     " hash_routing configures the app rather than calling the frontend: it
     " is remembered on the app ( so a later response of this app, and an app
     " that inherits from it, carry it again ) and queues no action of its own
+
+    CLEAR temp23.
+    INSERT `fresh` INTO TABLE temp23.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
-                                 t_arg = VALUE #( ( `fresh` ) ) ).
+                                 t_arg = temp23 ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
                                         act = mo_action->ms_next-s_nav-set_nav_routing ).
@@ -598,11 +704,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_hash_attach_changed.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp25 TYPE string_table.
     li_client ?= mo_client.
 
     " registration travels as a nav option, no custom action queued
+
+    CLEAR temp25.
+    INSERT `HASH_CHANGED` INTO TABLE temp25.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_attach_changed
-                                 t_arg = VALUE #( ( `HASH_CHANGED` ) ) ).
+                                 t_arg = temp25 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `HASH_CHANGED`
                                         act = mo_action->ms_next-s_nav-set_hash_listener ).
@@ -620,6 +730,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_hash_replace.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp27 TYPE string_table.
     li_client ?= mo_client.
 
     " the typed method and the constant reach the same nav option
@@ -628,8 +739,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `/detail/0/OneColumn`
                                         act = mo_action->ms_next-s_nav-hash_replace ).
 
+
+    CLEAR temp27.
+    INSERT `/other` INTO TABLE temp27.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_replace
-                                 t_arg = VALUE #( ( `/other` ) ) ).
+                                 t_arg = temp27 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/other`
                                         act = mo_action->ms_next-s_nav-hash_replace ).
@@ -708,10 +822,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_follow_up_action.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp29 TYPE string_table.
 
     li_client ?= mo_client.
+
+    CLEAR temp29.
+    INSERT `MESSAGE_TOAST` INTO TABLE temp29.
+    INSERT `show` INTO TABLE temp29.
+    INSERT `test` INTO TABLE temp29.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `test` ) ) ).
+                                 t_arg = temp29 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
@@ -721,86 +841,196 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_follow_up_action_ev.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp31 TYPE string_table.
+    FIELD-SYMBOLS <temp33> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp34 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp35> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp36 LIKE sy-tabix.
     li_client ?= mo_client.
 
+
+    CLEAR temp31.
+    INSERT `My Title` INTO TABLE temp31.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_title
-                                 t_arg = VALUE #( ( `My Title` ) ) ).
+                                 t_arg = temp31 ).
     li_client->follow_up_action( z2ui5_if_client=>cs_event-location_reload ).
 
     " framework events travel as pure data - a JSON array serialized in ABAP
     " (get_event_client_ajson), not as an executable eF( ) JS snippet
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
+
+
+    temp34 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp33>.
+    sy-tabix = temp34.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
-                                        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+                                        act = <temp33>-o_json->stringify( ) ).
+
+
+    temp36 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 2 ASSIGNING <temp35>.
+    sy-tabix = temp36.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `["LOCATION_RELOAD"]`
-                                        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+                                        act = <temp35>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_follow_up_action_nav.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp37 TYPE string_table.
+    DATA temp39 TYPE string_table.
+    FIELD-SYMBOLS <temp41> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp42 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp43> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp44 LIKE sy-tabix.
     li_client ?= mo_client.
 
     " NavContainer navigation from the BACKEND, since the five
     " cs_event-*_nav_container_to constants were removed (2026-09-22): the app
     " names the method itself and the slot is the view parameter
+
+    CLEAR temp37.
+    INSERT `myContainer` INTO TABLE temp37.
+    INSERT `to` INTO TABLE temp37.
+    INSERT `myPage` INTO TABLE temp37.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ).
+                                 t_arg = temp37 ).
+
+    CLEAR temp39.
+    INSERT `popContainer` INTO TABLE temp39.
+    INSERT `to` INTO TABLE temp39.
+    INSERT `popPage` INTO TABLE temp39.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
                                  view  = z2ui5_if_client=>cs_view-popup
-                                 t_arg = VALUE #( ( `popContainer` ) ( `to` ) ( `popPage` ) ) ).
+                                 t_arg = temp39 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
     " the empty slot, not the literal `MAIN` the sugar injected: it resolves
     " across every open view and therefore still finds a main-view container
+
+
+    temp42 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp41>.
+    sy-tabix = temp42.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp41>-o_json->stringify( ) ).
+
+
+    temp44 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 2 ASSIGNING <temp43>.
+    sy-tabix = temp44.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = <temp43>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_follow_up_action_ctrl.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp45 TYPE string_table.
+    DATA temp47 TYPE string_table.
+    DATA temp49 TYPE string_table.
+    FIELD-SYMBOLS <temp51> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp52 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp53> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp54 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp55> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp56 LIKE sy-tabix.
     li_client ?= mo_client.
 
     " the whitelisted control calls are plain follow-up events - t_arg is
     " positional: control_global = object, method, params; control_by_id =
     " id, method, params (the view is the separate view parameter, default
     " cs_view-main -> empty slot; a concrete view fills the slot)
+
+    CLEAR temp45.
+    INSERT `MESSAGE_TOAST` INTO TABLE temp45.
+    INSERT `show` INTO TABLE temp45.
+    INSERT `Hello` INTO TABLE temp45.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Hello` ) ) ).
+                                 t_arg = temp45 ).
+
+    CLEAR temp47.
+    INSERT `demoPanel` INTO TABLE temp47.
+    INSERT `setExpanded` INTO TABLE temp47.
+    INSERT `X` INTO TABLE temp47.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
+                                 t_arg = temp47 ).
+
+    CLEAR temp49.
+    INSERT `demoPanel` INTO TABLE temp49.
+    INSERT `setExpanded` INTO TABLE temp49.
+    INSERT `X` INTO TABLE temp49.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
                                  view  = z2ui5_if_client=>cs_view-popover
-                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
+                                 t_arg = temp49 ).
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
     " the eF( ) form KEEPS its CONTROL_GLOBAL prefix - only the framework's
     " own build_global_call drops the dispatch constant from the wire
+
+
+    temp52 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp51>.
+    sy-tabix = temp52.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp51>-o_json->stringify( ) ).
+
+
+    temp54 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 2 ASSIGNING <temp53>.
+    sy-tabix = temp54.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = <temp53>-o_json->stringify( ) ).
+
+
+    temp56 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 3 ASSIGNING <temp55>.
+    sy-tabix = temp56.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = mo_action->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) ).
+        act = <temp55>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_ctrl_global_opt.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp57 TYPE string_table.
+    DATA temp59 TYPE string_table.
+    FIELD-SYMBOLS <temp61> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp62 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp63> LIKE LINE OF mo_action->ms_next-s_action-t_custom.
+    DATA temp64 LIKE sy-tabix.
     li_client ?= mo_client.
 
     " The UI5 options of a toast and of a message box are set on the CONTROL:
@@ -810,25 +1040,47 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " pass-through parameters of message_toast_display( ) /
     " message_box_display( ) took when they left those signatures in 2026-09 -
     " so nothing an app could express before is out of reach.
+
+    CLEAR temp57.
+    INSERT `MESSAGE_TOAST` INTO TABLE temp57.
+    INSERT `show` INTO TABLE temp57.
+    INSERT `Saved` INTO TABLE temp57.
+    INSERT `{"my":"center center","width":"20em"}` INTO TABLE temp57.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` )
-                                                  ( `show` )
-                                                  ( `Saved` )
-                                                  ( `{"my":"center center","width":"20em"}` ) ) ).
+                                 t_arg = temp57 ).
+
+    CLEAR temp59.
+    INSERT `MESSAGE_BOX` INTO TABLE temp59.
+    INSERT `error` INTO TABLE temp59.
+    INSERT `Not saved.` INTO TABLE temp59.
+    INSERT `{"contentWidth":"30rem","icon":"WARNING"}` INTO TABLE temp59.
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_BOX` )
-                                                  ( `error` )
-                                                  ( `Not saved.` )
-                                                  ( `{"contentWidth":"30rem","icon":"WARNING"}` ) ) ).
+                                 t_arg = temp59 ).
 
     " the braces are gone from the wire - the option object is a JSON object,
     " not a string that happens to look like one
+
+
+    temp62 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 1 ASSIGNING <temp61>.
+    sy-tabix = temp62.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"my":"center center","width":"20em"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = <temp61>-o_json->stringify( ) ).
+
+
+    temp64 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_action-t_custom INDEX 2 ASSIGNING <temp63>.
+    sy-tabix = temp64.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Not saved.",{"contentWidth":"30rem","icon":"WARNING"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = <temp63>-o_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -892,10 +1144,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_id TYPE string.
+    DATA temp65 TYPE REF TO ltcl_test_app.
 
     li_client ?= mo_client.
 
-    lv_id = li_client->nav_app_call( NEW ltcl_test_app( ) ).
+
+    CREATE OBJECT temp65 TYPE ltcl_test_app.
+    lv_id = li_client->nav_app_call( temp65 ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_call ).
@@ -908,7 +1163,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_id_first TYPE string.
     DATA lv_id_second TYPE string.
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
     li_client ?= mo_client.
 
     lv_id_first  = li_client->nav_app_call( lo_new_app ).
@@ -926,7 +1181,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app   = lo_app
@@ -945,7 +1200,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string VALUE `payload`.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -962,7 +1217,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string.
     FIELD-SYMBOLS <data> TYPE data.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -980,7 +1235,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app   = lo_app
@@ -995,7 +1250,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lr_data TYPE REF TO data.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
@@ -1013,15 +1268,21 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " running app instead of a draft to load (it raised NO_DRAFT_ENTRY...)
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA li_app TYPE REF TO z2ui5_if_app.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
 
     li_client ?= mo_client.
-    li_app = NEW ltcl_test_app( ).
+    CREATE OBJECT li_app TYPE ltcl_test_app.
     mo_action->mo_app->mo_app = li_app.
     mo_action->mo_app->ms_draft-id = `THIS_ROUNDTRIP_ID`.
 
+
+    temp2 = boolc( li_client->get_app( li_client->get( )-s_draft-id ) = li_app ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( li_client->get_app( li_client->get( )-s_draft-id ) = li_app ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( li_client->get_app( ) = li_app ) ).
+        temp2 ).
+
+    temp3 = boolc( li_client->get_app( ) = li_app ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
@@ -1062,12 +1323,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " get_event_arg( ), the linter rules that read these wires - can tell
     " which spelling an app used
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp66 TYPE string_table.
 
     li_client ?= mo_client.
 
+
+    CLEAR temp66.
+    INSERT `${AUTHOR}` INTO TABLE temp66.
     cl_abap_unit_assert=>assert_equals(
         exp = li_client->_event( val   = `PRESSED`
-                                 t_arg = VALUE #( ( `${AUTHOR}` ) ) )
+                                 t_arg = temp66 )
         act = li_client->_event( val = `PRESSED` arg = `${AUTHOR}` ) ).
 
   ENDMETHOD.
@@ -1079,14 +1344,23 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " composition rather than a guess between two readings - and asserted so
     " it stays that and does not silently become "arg wins"
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp68 TYPE string_table.
+    DATA temp1 TYPE string_table.
 
     li_client ?= mo_client.
 
+
+    CLEAR temp68.
+    INSERT `first` INTO TABLE temp68.
+    INSERT `second` INTO TABLE temp68.
+
+    CLEAR temp1.
+    INSERT `first` INTO TABLE temp1.
     cl_abap_unit_assert=>assert_equals(
         exp = li_client->_event( val   = `PRESSED`
-                                 t_arg = VALUE #( ( `first` ) ( `second` ) ) )
+                                 t_arg = temp68 )
         act = li_client->_event( val   = `PRESSED`
-                                 t_arg = VALUE #( ( `first` ) )
+                                 t_arg = temp1
                                  arg   = `second` ) ).
 
   ENDMETHOD.
@@ -1098,12 +1372,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " on purpose is a filled slot. Were it dropped, every following position
     " would shift - the defect class this wire has produced before
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp70 TYPE string_table.
 
     li_client ?= mo_client.
 
+
+    CLEAR temp70.
+    INSERT `` INTO TABLE temp70.
     cl_abap_unit_assert=>assert_equals(
         exp = li_client->_event( val   = `PRESSED`
-                                 t_arg = VALUE #( ( `` ) ) )
+                                 t_arg = temp70 )
         act = li_client->_event( val = `PRESSED` arg = `` ) ).
 
     " and the parameter left out is not the same as passed empty
@@ -1144,22 +1422,43 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_get_comp_params_memo.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA ls_get_1 TYPE z2ui5_if_client=>ty_s_get.
+    DATA temp72 TYPE z2ui5_if_client=>ty_s_name_value-v.
+    DATA temp73 TYPE z2ui5_if_client=>ty_s_name_value.
+    DATA temp74 TYPE z2ui5_if_client=>ty_s_name_value-v.
+    DATA temp75 TYPE z2ui5_if_client=>ty_s_name_value.
+    DATA ls_get_2 TYPE z2ui5_if_client=>ty_s_get.
     li_client ?= mo_client.
 
     " FLP component data: one array per parameter name, first entry counts
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
         z2ui5_cl_ajson=>parse( `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ).
 
-    DATA(ls_get_1) = li_client->get( ).
+
+    ls_get_1 = li_client->get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( ls_get_1-t_comp_params ) ).
+
+    CLEAR temp72.
+
+    READ TABLE ls_get_1-t_comp_params INTO temp73 WITH KEY n = `foo`.
+    IF sy-subrc = 0.
+      temp72 = temp73-v.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `bar`
-        act = VALUE #( ls_get_1-t_comp_params[ n = `foo` ]-v OPTIONAL ) ).
+        act = temp72 ).
+
+    CLEAR temp74.
+
+    READ TABLE ls_get_1-t_comp_params INTO temp75 WITH KEY n = `qty`.
+    IF sy-subrc = 0.
+      temp74 = temp75-v.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `7`
-        act = VALUE #( ls_get_1-t_comp_params[ n = `qty` ]-v OPTIONAL ) ).
+        act = temp74 ).
 
     " the first call filled the memo (t_comp_params is immutable for the
     " whole roundtrip, so the node-table walk must not run again) ...
@@ -1170,7 +1469,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " ... and the second call answers from it WITHOUT re-walking: with the
     " source dropped, a re-walk would come back empty - the memo must not
     CLEAR mo_action->mo_handler->ms_request-s_front-o_comp_data.
-    DATA(ls_get_2) = li_client->get( ).
+
+    ls_get_2 = li_client->get( ).
 
     cl_abap_unit_assert=>assert_equals( exp = ls_get_1-t_comp_params
                                         act = ls_get_2-t_comp_params ).
@@ -1181,15 +1481,19 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_get_nav_flags_live.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA ls_get_1 TYPE z2ui5_if_client=>ty_s_get.
+    DATA ls_get_2 TYPE z2ui5_if_client=>ty_s_get.
     li_client ?= mo_client.
 
     " the memoized slice must not freeze the _s_nav flags of the same
     " structure: they answer for actions queued since the previous get( )
-    DATA(ls_get_1) = li_client->get( ).
+
+    ls_get_1 = li_client->get( ).
     cl_abap_unit_assert=>assert_false( ls_get_1-_s_nav-check_call ).
 
-    mo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
-    DATA(ls_get_2) = li_client->get( ).
+    CREATE OBJECT mo_action->ms_next-o_app_call TYPE ltcl_test_app.
+
+    ls_get_2 = li_client->get( ).
 
     cl_abap_unit_assert=>assert_true( ls_get_2-_s_nav-check_call ).
 
@@ -1198,7 +1502,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_get_event_arg.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    mo_action->ms_actual-t_event_arg = VALUE #( ( `arg1` ) ( `arg2` ) ).
+    DATA temp76 TYPE string_table.
+    CLEAR temp76.
+    INSERT `arg1` INTO TABLE temp76.
+    INSERT `arg2` INTO TABLE temp76.
+    mo_action->ms_actual-t_event_arg = temp76.
 
     li_client ?= mo_client.
 
@@ -1215,41 +1523,94 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " dropped when initial, so an abap_false that must reach the client (itself
     " initial) survives as long as its column is not listed. That is the whole
     " reason the scoped form exists next to the blanket omit_initial.
-    DATA(li_filter) = CAST z2ui5_if_ajson_filter(
-        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX/` ) ) ) ).
+    DATA temp78 TYPE string_table.
+    DATA temp3 TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_filter LIKE temp3.
+    DATA temp80 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp81 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp82 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp83 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp84 TYPE string_table.
+    DATA temp86 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp87 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp88 TYPE z2ui5_if_ajson_types=>ty_node.
+    CLEAR temp78.
+    INSERT `MIN` INTO TABLE temp78.
+    INSERT `/ROWS/MAX/` INTO TABLE temp78.
+
+    CREATE OBJECT temp3 TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = temp78.
+
+    li_filter = temp3.
 
     " listed + initial -> dropped
+
+    CLEAR temp80.
+    temp80-name = `MIN`.
+    temp80-type = `num`.
+    temp80-value = `0`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+        act = li_filter->keep_node( temp80 ) ).
     " listed by its last path segment as well - a trailing slash used to
     " leave that segment empty and the path silently unlisted
+
+    CLEAR temp81.
+    temp81-name = `MAX`.
+    temp81-type = `str`.
+    temp81-value = ``.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `MAX` type = `str` value = `` ) ) ).
+        act = li_filter->keep_node( temp81 ) ).
     " listed but filled -> kept
+
+    CLEAR temp82.
+    temp82-name = `MIN`.
+    temp82-type = `num`.
+    temp82-value = `5`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `5` ) ) ).
+        act = li_filter->keep_node( temp82 ) ).
     " NOT listed and initial -> kept: this is the boolean that must send false
+
+    CLEAR temp83.
+    temp83-name = `ENABLED`.
+    temp83-type = `bool`.
+    temp83-value = `false`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+        act = li_filter->keep_node( temp83 ) ).
     " a LISTED boolean is dropped when false - ajson writes abap_false as the
     " literal `false`, never empty, and an emptiness test used to keep it
     " (samples-controls app 241 lists EXPANDED for exactly this) - and kept
     " when true
-    li_filter = NEW lcl_initial_paths_filter( VALUE #( ( `EXPANDED` ) ) ).
+
+    CLEAR temp84.
+    INSERT `EXPANDED` INTO TABLE temp84.
+    CREATE OBJECT li_filter TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = temp84.
+
+    CLEAR temp86.
+    temp86-name = `EXPANDED`.
+    temp86-type = `bool`.
+    temp86-value = `false`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `false` ) ) ).
+        act = li_filter->keep_node( temp86 ) ).
+
+    CLEAR temp87.
+    temp87-name = `EXPANDED`.
+    temp87-type = `bool`.
+    temp87-value = `true`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `true` ) ) ).
+        act = li_filter->keep_node( temp87 ) ).
     " an object/array visit always passes, or the row around a dropped field would go
+
+    CLEAR temp88.
+    temp88-name = `MIN`.
+    temp88-type = `object`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_filter->keep_node( is_node  = VALUE #( name = `MIN` type = `object` )
+        act = li_filter->keep_node( is_node  = temp88
                                     iv_visit = z2ui5_if_ajson_filter=>visit_type-open ) ).
 
   ENDMETHOD.
@@ -1270,16 +1631,30 @@ CLASS ltcl_test_client IMPLEMENTATION.
         flag   TYPE abap_bool,
       END OF ty_s_row.
 
-    DATA(ls_row) = VALUE ty_s_row( name = `A` ).
+    DATA temp89 TYPE ty_s_row.
+    DATA ls_row LIKE temp89.
+    DATA temp90 TYPE REF TO z2ui5_if_ajson.
+    DATA lo_ajson LIKE temp90.
+    DATA temp91 TYPE REF TO lcl_empty_filter_keep_rows.
+    DATA temp92 TYPE REF TO lcl_empty_filter_keep_rows.
+    CLEAR temp89.
+    temp89-name = `A`.
 
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    ls_row = temp89.
+
+
+    temp90 ?= z2ui5_cl_ajson=>create_empty( ).
+
+    lo_ajson = temp90.
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/row`
                    iv_val          = ls_row ).
 
+
+    CREATE OBJECT temp91 TYPE lcl_empty_filter_keep_rows.
     cl_abap_unit_assert=>assert_equals(
         exp = `{"row":{"name":"A"}}`
-        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+        act = lo_ajson->filter( temp91 )->stringify( ) ).
 
     " a non-zero value in the same spelling survives
     ls_row-price = '0.01'.
@@ -1288,9 +1663,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
                    iv_path         = `/row`
                    iv_val          = ls_row ).
 
+
+    CREATE OBJECT temp92 TYPE lcl_empty_filter_keep_rows.
     cl_abap_unit_assert=>assert_equals(
         exp = `{"row":{"name":"A","price":0.01}}`
-        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+        act = lo_ajson->filter( temp92 )->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1308,24 +1685,44 @@ CLASS ltcl_test_client IMPLEMENTATION.
         title TYPE string,
         count TYPE i,
       END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     " built statement by statement: the downport rewrites a VALUE table
     " constructor into INSERTs from one shared work area without clearing it
     " between rows, so an inline `( )` row would arrive as a copy of its
     " predecessor instead of an all-initial line
     DATA lt_tab TYPE ty_t_row.
-    APPEND VALUE #( title = `first`
-                    count = 1 ) TO lt_tab.
+    DATA temp93 TYPE ty_s_row.
+    DATA temp94 TYPE ty_s_row.
+    DATA temp95 TYPE REF TO z2ui5_if_ajson.
+    DATA lo_ajson LIKE temp95.
+    DATA lo_act TYPE REF TO z2ui5_if_ajson.
+    DATA temp4 TYPE REF TO lcl_empty_filter_keep_rows.
+    DATA temp96 TYPE ty_s_row.
+    DATA ls_nest LIKE temp96.
+    DATA temp97 TYPE REF TO lcl_empty_filter_keep_rows.
+    CLEAR temp93.
+    temp93-title = `first`.
+    temp93-count = 1.
+    APPEND temp93 TO lt_tab.
     APPEND INITIAL LINE TO lt_tab.
-    APPEND VALUE #( title = `third`
-                    count = 3 ) TO lt_tab.
 
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+    CLEAR temp94.
+    temp94-title = `third`.
+    temp94-count = 3.
+    APPEND temp94 TO lt_tab.
+
+
+    temp95 ?= z2ui5_cl_ajson=>create_empty( ).
+
+    lo_ajson = temp95.
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/`
                    iv_val          = lt_tab ).
-    DATA(lo_act) = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) ).
+
+
+    CREATE OBJECT temp4 TYPE lcl_empty_filter_keep_rows.
+    lo_act = lo_ajson->filter( temp4 ).
 
     " THREE entries - the all-initial middle row stays as an empty object,
     " its initial fields (and only those) are omitted
@@ -1336,14 +1733,19 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " the same shape as a struct MEMBER (not an array element) keeps the old
     " empty-filter behavior: an all-initial sub-structure vanishes entirely,
     " taking the then-empty root with it - stringify of the empty tree is ``
-    DATA(ls_nest) = VALUE ty_s_row( ).
+
+    CLEAR temp96.
+
+    ls_nest = temp96.
     lo_ajson = z2ui5_cl_ajson=>create_empty( ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/sub`
                    iv_val          = ls_nest ).
+
+    CREATE OBJECT temp97 TYPE lcl_empty_filter_keep_rows.
     cl_abap_unit_assert=>assert_equals(
         exp = ``
-        act = lo_ajson->filter( NEW lcl_empty_filter_keep_rows( ) )->stringify( ) ).
+        act = lo_ajson->filter( temp97 )->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1358,24 +1760,33 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " a real system enforces it at db_save
     DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
     DATA li_paths TYPE REF TO z2ui5_if_ajson_filter.
+    DATA temp98 TYPE string_table.
+    DATA temp100 TYPE REF TO lcl_and_filter.
+    DATA temp101 TYPE REF TO ltcl_bad_filter.
 
-    li_omit = NEW lcl_empty_filter_keep_rows( ).
+    CREATE OBJECT li_omit TYPE lcl_empty_filter_keep_rows.
     cl_abap_unit_assert=>assert_true(
         z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_omit ) ).
 
-    li_paths = NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ) ).
+
+    CLEAR temp98.
+    INSERT `MIN` INTO TABLE temp98.
+    CREATE OBJECT li_paths TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = temp98.
     cl_abap_unit_assert=>assert_true(
         z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_paths ) ).
 
+
+    CREATE OBJECT temp100 TYPE lcl_and_filter EXPORTING ii_first = li_paths ii_second = li_omit.
     cl_abap_unit_assert=>assert_true(
         z2ui5_cl_ui5_util_context=>rtti_check_serializable(
-            NEW lcl_and_filter( ii_first  = li_paths
-                                ii_second = li_omit ) ) ).
+            temp100 ) ).
 
     " and the probe class is really refused by the same check - otherwise
     " test_bind_filter_not_serial proves nothing
+
+    CREATE OBJECT temp101 TYPE ltcl_bad_filter.
     cl_abap_unit_assert=>assert_false(
-        z2ui5_cl_ui5_util_context=>rtti_check_serializable( NEW ltcl_bad_filter( ) ) ).
+        z2ui5_cl_ui5_util_context=>rtti_check_serializable( temp101 ) ).
 
   ENDMETHOD.
 
@@ -1384,16 +1795,22 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp102 TYPE REF TO ltcl_bad_filter.
+        DATA temp4 TYPE xsdboolean.
 
     li_client ?= mo_client.
 
     TRY.
+
+        CREATE OBJECT temp102 TYPE ltcl_bad_filter.
         li_client->_bind( val           = mo_test_app->mv_name
-                          custom_filter = NEW ltcl_bad_filter( ) ).
+                          custom_filter = temp102 ).
         cl_abap_unit_assert=>fail(
             `a non-serializable custom_filter must be refused at bind time - serialized into the draft it fails only at db_save on a real system` ).
       CATCH z2ui5_cx_ui5_util_error INTO lx.
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `serializable` ) ).
+
+        temp4 = boolc( lx->get_text( ) CS `serializable` ).
+        cl_abap_unit_assert=>assert_true( temp4 ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1407,27 +1824,52 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " behaviour rather than its class, so the test says what the binding
     " does and not how it is built
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp103 TYPE string_table.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    FIELD-SYMBOLS <temp105> TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    DATA li_stored LIKE lr_attri->custom_filter.
+    DATA temp106 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp107 TYPE z2ui5_if_ajson_types=>ty_node.
     li_client ?= mo_client.
 
+
+    CLEAR temp103.
+    INSERT `MIN` INTO TABLE temp103.
     li_client->_bind( val                = mo_test_app->mv_name
-                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
+                      omit_initial_paths = temp103 ).
 
     " the reference first, then the component: the v702 downport does not
     " lower `REF #( tab[ ] )->comp` as one expression
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
-    DATA(li_stored) = lr_attri->custom_filter.
+
+
+    READ TABLE mo_action->mo_app->mt_attri->* WITH KEY name = `MV_NAME` ASSIGNING <temp105>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+GET REFERENCE OF <temp105> INTO lr_attri.
+
+    li_stored = lr_attri->custom_filter.
     cl_abap_unit_assert=>assert_bound( li_stored ).
 
     " the SCOPED omit: a listed name that is initial goes...
+
+    CLEAR temp106.
+    temp106-name = `MIN`.
+    temp106-type = `num`.
+    temp106-value = `0`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+        act = li_stored->keep_node( temp106 ) ).
     " ...and an UNLISTED one that is initial stays, which is the whole
     " difference to the blanket omit_initial
+
+    CLEAR temp107.
+    temp107-name = `ENABLED`.
+    temp107-type = `bool`.
+    temp107-value = `false`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_stored->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
+        act = li_stored->keep_node( temp107 ) ).
 
   ENDMETHOD.
 
@@ -1439,33 +1881,69 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " the framework combines with its own serializable AND rather than
     " ajson's create_and_filter
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp108 TYPE REF TO z2ui5_if_ajson_filter.
+    DATA li_custom LIKE temp108.
+    DATA temp109 TYPE string_table.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    FIELD-SYMBOLS <temp111> TYPE z2ui5_if_ui5_types=>ty_s_attri.
+    DATA li_stored LIKE lr_attri->custom_filter.
+    DATA temp112 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp113 TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA temp114 TYPE z2ui5_if_ajson_types=>ty_node.
     li_client ?= mo_client.
 
-    DATA(li_custom) = CAST z2ui5_if_ajson_filter( NEW ltcl_good_filter( ) ).
 
+    CREATE OBJECT temp108 TYPE ltcl_good_filter.
+
+    li_custom = temp108.
+
+
+    CLEAR temp109.
+    INSERT `MIN` INTO TABLE temp109.
     li_client->_bind( val                = mo_test_app->mv_name
                       custom_filter      = li_custom
-                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
+                      omit_initial_paths = temp109 ).
 
     " the reference first, then the component: the v702 downport does not
     " lower `REF #( tab[ ] )->comp` as one expression
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
-    DATA(li_stored) = lr_attri->custom_filter.
+
+
+    READ TABLE mo_action->mo_app->mt_attri->* WITH KEY name = `MV_NAME` ASSIGNING <temp111>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+GET REFERENCE OF <temp111> INTO lr_attri.
+
+    li_stored = lr_attri->custom_filter.
     cl_abap_unit_assert=>assert_bound( li_stored ).
 
     " the CALLER's rule still applies - a filled node it names is dropped
+
+    CLEAR temp112.
+    temp112-name = `DROPME`.
+    temp112-type = `str`.
+    temp112-value = `filled`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `DROPME` type = `str` value = `filled` ) ) ).
+        act = li_stored->keep_node( temp112 ) ).
     " ...and so does the framework's, on the name the caller says nothing about
+
+    CLEAR temp113.
+    temp113-name = `MIN`.
+    temp113-type = `num`.
+    temp113-value = `0`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
+        act = li_stored->keep_node( temp113 ) ).
     " a node neither of them names survives
+
+    CLEAR temp114.
+    temp114-name = `OTHER`.
+    temp114-type = `str`.
+    temp114-value = `filled`.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
-        act = li_stored->keep_node( VALUE #( name = `OTHER` type = `str` value = `filled` ) ) ).
+        act = li_stored->keep_node( temp114 ) ).
 
     " and the combination is still serializable, or the next db_save would
     " fail on a system with the binding metadata in hand
@@ -1487,6 +1965,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA lo_cont_db TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA lo_app_db TYPE REF TO ltcl_test_app.
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+    FIELD-SYMBOLS <temp115> TYPE z2ui5_if_ui5_types=>ty_s_attri.
 
     li_client ?= mo_client.
     lo_cont = mo_action->mo_app.
@@ -1507,8 +1987,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = lo_app_db->mv_name ).
 
     " the binding metadata came back with the draft
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( lo_cont_db->mt_attri->*[ name = `MV_NAME` ] OPTIONAL ).
+
+
+    READ TABLE lo_cont_db->mt_attri->* WITH KEY name = `MV_NAME` ASSIGNING <temp115>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+GET REFERENCE OF <temp115> INTO lr_attri.
     cl_abap_unit_assert=>assert_bound( lr_attri ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lr_attri->bind ).
@@ -1532,22 +2017,50 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " that the binding changed. The cell logic itself is covered everywhere by
     " ltcl_02_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp116 TYPE ltcl_test_app=>ty_s_emp.
+    DATA temp117 TYPE ltcl_test_app=>ty_s_emp.
+    FIELD-SYMBOLS <temp118> LIKE LINE OF mo_test_app->mt_emp.
+    DATA temp119 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp120> LIKE LINE OF mo_test_app->mt_emp.
+    DATA temp121 LIKE sy-tabix.
 
     li_client ?= mo_client.
-    INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
-    INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
 
+    CLEAR temp116.
+    temp116-name = `Michael Adams`.
+    temp116-job = `Scrum Master`.
+    INSERT temp116 INTO TABLE mo_test_app->mt_emp.
+
+    CLEAR temp117.
+    temp117-name = `John Miller`.
+    temp117-job = `Product Owner`.
+    INSERT temp117 INTO TABLE mo_test_app->mt_emp.
+
+
+
+    temp119 = sy-tabix.
+    READ TABLE mo_test_app->mt_emp INDEX 1 ASSIGNING <temp118>.
+    sy-tabix = temp119.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
-        act = li_client->_bind( val       = mo_test_app->mt_emp[ 1 ]-name
+        act = li_client->_bind( val       = <temp118>-name
                                 tab       = mo_test_app->mt_emp
                                 tab_index = 1 ) ).
 
+
+
+    temp121 = sy-tabix.
+    READ TABLE mo_test_app->mt_emp INDEX 2 ASSIGNING <temp120>.
+    sy-tabix = temp121.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
-        act = li_client->_bind( val       = mo_test_app->mt_emp[ 2 ]-job
+        act = li_client->_bind( val       = <temp120>-job
                                 tab       = mo_test_app->mt_emp
                                 tab_index = 2 ) ).
 
@@ -1563,21 +2076,29 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " test runs on every target, including this pipeline
     DATA li_client TYPE REF TO z2ui5_if_client.
     FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
+    DATA temp122 TYPE ltcl_test_app=>ty_s_emp.
+    DATA temp123 TYPE ltcl_test_app=>ty_s_emp.
 
     li_client ?= mo_client.
-    INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
-    INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
 
-    ASSIGN mo_test_app->mt_emp[ 1 ] TO <emp>.
+    CLEAR temp122.
+    temp122-name = `Michael Adams`.
+    temp122-job = `Scrum Master`.
+    INSERT temp122 INTO TABLE mo_test_app->mt_emp.
+
+    CLEAR temp123.
+    temp123-name = `John Miller`.
+    temp123-job = `Product Owner`.
+    INSERT temp123 INTO TABLE mo_test_app->mt_emp.
+
+    READ TABLE mo_test_app->mt_emp INDEX 1 ASSIGNING <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
         act = li_client->_bind( val       = <emp>-name
                                 tab       = mo_test_app->mt_emp
                                 tab_index = 1 ) ).
 
-    ASSIGN mo_test_app->mt_emp[ 2 ] TO <emp>.
+    READ TABLE mo_test_app->mt_emp INDEX 2 ASSIGNING <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
         act = li_client->_bind( val       = <emp>-job
@@ -1624,7 +2145,7 @@ CLASS ltcl_app_price_editor DEFINITION FINAL.
       BEGIN OF ty_s_pos,
         qty TYPE i,
       END OF ty_s_pos.
-    TYPES ty_t_pos TYPE STANDARD TABLE OF ty_s_pos WITH EMPTY KEY.
+    TYPES ty_t_pos TYPE STANDARD TABLE OF ty_s_pos WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_product,
@@ -1632,7 +2153,7 @@ CLASS ltcl_app_price_editor DEFINITION FINAL.
         price TYPE p LENGTH 9 DECIMALS 2,
         t_pos TYPE ty_t_pos,
       END OF ty_s_product.
-    TYPES ty_t_product TYPE STANDARD TABLE OF ty_s_product WITH EMPTY KEY.
+    TYPES ty_t_product TYPE STANDARD TABLE OF ty_s_product WITH DEFAULT KEY.
 
     DATA mt_product TYPE ty_t_product.
     " a bound SCALAR of a numeric type - the shape whose refusal used to
@@ -1692,14 +2213,18 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
 
     DATA ls_row TYPE ty_s_product.
 
-    DATA(ls_get) = client->get( ).
+    DATA ls_get TYPE z2ui5_if_client=>ty_s_get.
+    DATA ls_skip LIKE LINE OF ls_get-t_model_skipped.
+      DATA temp5 TYPE xsdboolean.
+    ls_get = client->get( ).
 
     " Read UNCONDITIONALLY, before any event branch. The delta travels with
     " whatever roundtrip follows the edit, and that is not necessarily the
     " Save press - an app that only looks inside its Save branch misses the
     " refusal on every other button.
     CLEAR mv_message.
-    LOOP AT ls_get-t_model_skipped INTO DATA(ls_skip).
+
+    LOOP AT ls_get-t_model_skipped INTO ls_skip.
 
       IF ls_skip-name = `MT_PRODUCT`.
         " the row index is an ABAP table index, so the app's own READ TABLE
@@ -1723,7 +2248,9 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
     ENDLOOP.
 
     IF ls_get-event = `SAVE`.
-      mv_saved = xsdbool( mv_message IS INITIAL ).
+
+      temp5 = boolc( mv_message IS INITIAL ).
+      mv_saved = temp5.
     ENDIF.
 
     mv_bind_path = client->_bind_edit( mt_product ).
@@ -1768,14 +2295,19 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
 
     DATA ls_product TYPE ltcl_app_price_editor=>ty_s_product.
 
-    DATA(lo_http) = NEW z2ui5_cl_ui5_handler( val = `` ).
-    mo_action = NEW #( val = lo_http ).
-    mo_app = NEW #( ).
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp124 TYPE ltcl_app_price_editor=>ty_s_pos.
+    CREATE OBJECT lo_http TYPE z2ui5_cl_ui5_handler EXPORTING val = ``.
+    CREATE OBJECT mo_action EXPORTING val = lo_http.
+    CREATE OBJECT mo_app.
 
     CLEAR ls_product.
     ls_product-name  = `Notebook`.
     ls_product-price = '1249.00'.
-    APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.
+
+    CLEAR temp124.
+    temp124-qty = 1.
+    APPEND temp124 TO ls_product-t_pos.
     APPEND ls_product TO mo_app->mt_product.
 
     CLEAR ls_product.
@@ -1792,6 +2324,7 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD roundtrip.
+    DATA lo_client TYPE REF TO z2ui5_cl_ui5_client.
 
     CLEAR mo_action->ms_actual.
 
@@ -1800,20 +2333,37 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     ENDIF.
     mo_action->ms_actual-event = event.
 
-    DATA(lo_client) = NEW z2ui5_cl_ui5_client( action = mo_action ).
+
+    CREATE OBJECT lo_client TYPE z2ui5_cl_ui5_client EXPORTING action = mo_action.
     mo_app->z2ui5_if_app~main( lo_client ).
 
   ENDMETHOD.
 
   METHOD test_accepted_price_silent.
+    DATA temp125 TYPE decfloat34.
+    DATA temp5 TYPE decfloat34.
+    FIELD-SYMBOLS <temp1> LIKE LINE OF mo_app->mt_product.
+    DATA temp2 LIKE sy-tabix.
 
     " the accepted case first - it is what proves the wire is alive, so the
     " refusal below is a conversion failure and not a dead binding
     roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1250.00"}}}}`
                event = `SAVE` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1250.00' )
-                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
+
+    temp125 = '1250.00'.
+
+
+
+    temp2 = sy-tabix.
+    READ TABLE mo_app->mt_product INDEX 2 ASSIGNING <temp1>.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    temp5 = <temp1>-price.
+    cl_abap_unit_assert=>assert_equals( exp = temp125
+                                        act = temp5 ).
     cl_abap_unit_assert=>assert_initial( mo_app->mv_message ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_app->mv_saved ).
@@ -1821,6 +2371,15 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_refused_scalar_reported.
+    DATA lt_skipped LIKE mo_action->ms_actual-t_model_skipped.
+    FIELD-SYMBOLS <temp126> LIKE LINE OF lt_skipped.
+    DATA temp127 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp128> LIKE LINE OF lt_skipped.
+    DATA temp129 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp130> LIKE LINE OF lt_skipped.
+    DATA temp131 LIKE sy-tabix.
+    DATA temp132 TYPE decfloat34.
+    DATA temp6 TYPE decfloat34.
 
     " `1,250.00` typed into an Input bound to a packed SCALAR: the same
     " refusal a table cell gets - traced with the attribute name, row 0 and
@@ -1830,29 +2389,74 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     roundtrip( model = `{"MV_DISCOUNT":"1,250.00"}`
                event = `SAVE` ).
 
-    DATA(lt_skipped) = mo_action->ms_actual-t_model_skipped.
+
+    lt_skipped = mo_action->ms_actual-t_model_skipped.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_skipped ) ).
+
+
+    temp127 = sy-tabix.
+    READ TABLE lt_skipped INDEX 1 ASSIGNING <temp126>.
+    sy-tabix = temp127.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `MV_DISCOUNT`
-                                        act = lt_skipped[ 1 ]-name ).
+                                        act = <temp126>-name ).
+
+
+    temp129 = sy-tabix.
+    READ TABLE lt_skipped INDEX 1 ASSIGNING <temp128>.
+    sy-tabix = temp129.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = lt_skipped[ 1 ]-row ).
+                                        act = <temp128>-row ).
+
+
+    temp131 = sy-tabix.
+    READ TABLE lt_skipped INDEX 1 ASSIGNING <temp130>.
+    sy-tabix = temp131.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `1,250.00`
-                                        act = lt_skipped[ 1 ]-value ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '5.00' )
-                                        act = CONV decfloat34( mo_app->mv_discount ) ).
+                                        act = <temp130>-value ).
+
+    temp132 = '5.00'.
+
+    temp6 = mo_app->mv_discount.
+    cl_abap_unit_assert=>assert_equals( exp = temp132
+                                        act = temp6 ).
 
   ENDMETHOD.
 
   METHOD test_refused_price_reported.
+    DATA temp133 TYPE decfloat34.
+    DATA temp7 TYPE decfloat34.
+    FIELD-SYMBOLS <temp3> LIKE LINE OF mo_app->mt_product.
+    DATA temp4 LIKE sy-tabix.
 
     " the grouped thousands separator a locale-formatted Input sends
     roundtrip( model = `{"MT_PRODUCT":{"__delta":{"1":{"PRICE":"1,250.00"}}}}`
                event = `SAVE` ).
 
     " the cell is still skipped and nothing raised - the old value stands
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '299.00' )
-                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
+
+    temp133 = '299.00'.
+
+
+
+    temp4 = sy-tabix.
+    READ TABLE mo_app->mt_product INDEX 2 ASSIGNING <temp3>.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    temp7 = <temp3>-price.
+    cl_abap_unit_assert=>assert_equals( exp = temp133
+                                        act = temp7 ).
 
     " ... and the app could say so, which is the whole point. Name, row and
     " field together were enough to reach the row and quote it back
@@ -1862,16 +2466,48 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_save_no_longer_lies.
+    DATA temp134 TYPE decfloat34.
+    DATA temp8 TYPE decfloat34.
+    FIELD-SYMBOLS <temp5> LIKE LINE OF mo_app->mt_product.
+    DATA temp6 LIKE sy-tabix.
+    DATA temp135 TYPE decfloat34.
+    DATA temp9 TYPE decfloat34.
+    FIELD-SYMBOLS <temp7> LIKE LINE OF mo_app->mt_product.
+    DATA temp10 LIKE sy-tabix.
 
     " one bad cell, one good one, in the same delta and the same Save press
     roundtrip( model = `{"MT_PRODUCT":{"__delta":{"0":{"PRICE":"abc"},"1":{"PRICE":"350.00"}}}}`
                event = `SAVE` ).
 
     " the good cell landed - the skip did not take the delta down with it
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '350.00' )
-                                        act = CONV decfloat34( mo_app->mt_product[ 2 ]-price ) ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1249.00' )
-                                        act = CONV decfloat34( mo_app->mt_product[ 1 ]-price ) ).
+
+    temp134 = '350.00'.
+
+
+
+    temp6 = sy-tabix.
+    READ TABLE mo_app->mt_product INDEX 2 ASSIGNING <temp5>.
+    sy-tabix = temp6.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    temp8 = <temp5>-price.
+    cl_abap_unit_assert=>assert_equals( exp = temp134
+                                        act = temp8 ).
+
+    temp135 = '1249.00'.
+
+
+
+    temp10 = sy-tabix.
+    READ TABLE mo_app->mt_product INDEX 1 ASSIGNING <temp7>.
+    sy-tabix = temp10.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    temp9 = <temp7>-price.
+    cl_abap_unit_assert=>assert_equals( exp = temp135
+                                        act = temp9 ).
 
     " and Save reports failure over the discarded cell instead of success
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -1898,6 +2534,10 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_nested_row_unresolved.
+    FIELD-SYMBOLS <temp136> LIKE LINE OF mo_app->mt_product.
+    DATA temp137 LIKE sy-tabix.
+    FIELD-SYMBOLS <temp10> LIKE LINE OF <temp136>-t_pos.
+    DATA temp11 LIKE sy-tabix.
 
     " a cell of the NESTED table. The trace names the path parent first, and
     " row is the index INSIDE t_pos - which MT_PRODUCT row owns that t_pos is
@@ -1905,8 +2545,24 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     roundtrip( model = `{"MT_PRODUCT":{"__delta":{"0":{"T_POS":{"__delta":{"0":{"QTY":"seven"}}}}}}}`
                event = `SAVE` ).
 
+
+
+    temp137 = sy-tabix.
+    READ TABLE mo_app->mt_product INDEX 1 ASSIGNING <temp136>.
+    sy-tabix = temp137.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+
+
+    temp11 = sy-tabix.
+    READ TABLE <temp136>-t_pos INDEX 1 ASSIGNING <temp10>.
+    sy-tabix = temp11.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = mo_app->mt_product[ 1 ]-t_pos[ 1 ]-qty ).
+                                        act = <temp10>-qty ).
     cl_abap_unit_assert=>assert_equals( exp = `Quantity in a position row was not accepted`
                                         act = mo_app->mv_message ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -1915,6 +2571,8 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bind_path_is_not_name.
+    FIELD-SYMBOLS <temp138> LIKE LINE OF mo_action->ms_actual-t_model_skipped.
+    DATA temp139 LIKE sy-tabix.
 
     " the two spellings of the same table an app has to hold at once: _bind
     " hands the view a client PATH, the trace names the ABAP ATTRIBUTE, and
@@ -1927,8 +2585,16 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_action->ms_actual-t_model_skipped ) ).
+
+
+    temp139 = sy-tabix.
+    READ TABLE mo_action->ms_actual-t_model_skipped INDEX 1 ASSIGNING <temp138>.
+    sy-tabix = temp139.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `MT_PRODUCT`
-                                        act = mo_action->ms_actual-t_model_skipped[ 1 ]-name ).
+                                        act = <temp138>-name ).
 
   ENDMETHOD.
 

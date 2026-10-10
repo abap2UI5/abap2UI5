@@ -45,10 +45,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD keep_node.
 
+    DATA temp1 TYPE z2ui5_if_ajson_types=>ty_node.
+    CLEAR temp1.
+    temp1-type = iv_type.
+    temp1-value = iv_value.
+    temp1-children = iv_children.
     rv_keep = mi_filter->keep_node(
-        is_node  = VALUE #( type     = iv_type
-                            value    = iv_value
-                            children = iv_children )
+        is_node  = temp1
         iv_visit = iv_visit ).
 
   ENDMETHOD.
@@ -161,15 +164,26 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a bound string carrying U+0001 and a form feed, serialized the way
     " every model is: ajson leaves both raw, which JSON.parse refuses
-    DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `010C1F` ) ).
-    DATA(lv_json) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/NAME`
+    DATA temp2 TYPE xstring.
+    DATA lv_ctrl TYPE string.
+    DATA lv_json TYPE string.
+    DATA lv_act TYPE string.
+    DATA temp1 TYPE xsdboolean.
+    temp2 = `010C1F`.
+
+    lv_ctrl = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( temp2 ).
+
+    lv_json = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/NAME`
                                                          iv_val   = `a` && lv_ctrl && `b` )->stringify( ).
 
-    DATA(lv_act) = z2ui5_cl_ui5_util_json_fl=>escape_controls( lv_json ).
+
+    lv_act = z2ui5_cl_ui5_util_json_fl=>escape_controls( lv_json ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{"NAME":"a\u0001\u000C\u001Fb"}`
                                         act = lv_act ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CA lv_ctrl ) ).
+
+    temp1 = boolc( lv_act CA lv_ctrl ).
+    cl_abap_unit_assert=>assert_false( temp1 ).
 
     " tab, LF, CR and an escaped backslash are ajson's own and stay as they are
     lv_json = z2ui5_cl_ajson=>create_empty( )->set(

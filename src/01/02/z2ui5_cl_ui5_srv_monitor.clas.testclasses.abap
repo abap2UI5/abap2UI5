@@ -47,12 +47,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD installed_monitor_answers.
 
-    DATA(lo_monitor) = NEW ltcl_monitor_noop( ).
+    DATA lo_monitor TYPE REF TO ltcl_monitor_noop.
+    DATA temp1 TYPE xsdboolean.
+    CREATE OBJECT lo_monitor TYPE ltcl_monitor_noop.
 
     z2ui5_cl_ui5_srv_monitor=>set_monitor( lo_monitor ).
 
+
+    temp1 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ) ).
+        temp1 ).
 
   ENDMETHOD.
 
@@ -61,17 +65,31 @@ CLASS ltcl_test IMPLEMENTATION.
     " asked twice, answered with the same instance - the lookup and the
     " instantiation run once per roll area, not per call (whatever the
     " system has installed, the answer must not change between the two)
-    DATA(li_first)  = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
-    DATA(li_second) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    DATA li_first TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA li_second TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp2 TYPE xsdboolean.
+    DATA lo_double TYPE REF TO ltcl_monitor_noop.
+    DATA temp1 TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp3 TYPE xsdboolean.
+    li_first  = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( li_first = li_second ) ).
+    li_second = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+
+    temp2 = boolc( li_first = li_second ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
 
     " an unbound reference restores the lookup: the installed double is gone
     " again, whatever the system answers in its place
-    DATA(lo_double) = NEW ltcl_monitor_noop( ).
+
+    CREATE OBJECT lo_double TYPE ltcl_monitor_noop.
     z2ui5_cl_ui5_srv_monitor=>set_monitor( lo_double ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_double ) ).
+
+    CLEAR temp1.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp1 ).
+
+    temp3 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_double ).
+    cl_abap_unit_assert=>assert_false( temp3 ).
 
   ENDMETHOD.
 

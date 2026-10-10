@@ -26,9 +26,19 @@ CLASS ltcl_fake_request IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_field.
+        FIELD-SYMBOLS <temp1> LIKE LINE OF mt_header.
+        DATA temp2 LIKE sy-tabix.
 
     TRY.
-        value = mt_header[ n = name ]-v.
+
+
+        temp2 = sy-tabix.
+        READ TABLE mt_header WITH KEY n = name ASSIGNING <temp1>.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        value = <temp1>-v.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -77,16 +87,29 @@ CLASS ltcl_fake_response IMPLEMENTATION.
 
   METHOD set_header_field.
 
-    INSERT VALUE #( n = name
-                    v = value ) INTO TABLE mt_header.
+    DATA temp3 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+    CLEAR temp3.
+    temp3-n = name.
+    temp3-v = value.
+    INSERT temp3 INTO TABLE mt_header.
 
   ENDMETHOD.
 
   METHOD get_cookie.
+        FIELD-SYMBOLS <temp4> LIKE LINE OF mt_cookie.
+        DATA temp5 LIKE sy-tabix.
 
     CLEAR value.
     TRY.
-        value = mt_cookie[ n = name ]-v.
+
+
+        temp5 = sy-tabix.
+        READ TABLE mt_cookie WITH KEY n = name ASSIGNING <temp4>.
+        sy-tabix = temp5.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        value = <temp4>-v.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -121,8 +144,8 @@ CLASS ltcl_fake_server IMPLEMENTATION.
 
   METHOD constructor.
 
-    request  = NEW #( ).
-    response = NEW #( ).
+    CREATE OBJECT request.
+    CREATE OBJECT response.
 
   ENDMETHOD.
 
@@ -164,7 +187,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD setup.
 
-    mo_server = NEW #( ).
+    CREATE OBJECT mo_server.
     mo_cut = z2ui5_cl_ui5_util_http=>factory( mo_server ).
 
   ENDMETHOD.
@@ -178,8 +201,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_cloud.
 
-    DATA(lo_cut) = z2ui5_cl_ui5_util_http=>factory_cloud( req = NEW ltcl_fake_request( )
-                                                      res     = NEW ltcl_fake_response( ) ).
+    DATA lo_cut TYPE REF TO z2ui5_cl_ui5_util_http.
+    DATA temp1 TYPE REF TO ltcl_fake_request.
+    DATA temp2 TYPE REF TO ltcl_fake_response.
+    CREATE OBJECT temp1 TYPE ltcl_fake_request.
+
+    CREATE OBJECT temp2 TYPE ltcl_fake_response.
+    lo_cut = z2ui5_cl_ui5_util_http=>factory_cloud( req = temp1
+                                                      res     = temp2 ).
 
     cl_abap_unit_assert=>assert_bound( lo_cut->mo_request_cloud ).
     cl_abap_unit_assert=>assert_bound( lo_cut->mo_response_cloud ).
@@ -198,8 +227,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_get_header_field.
 
-    INSERT VALUE #( n = `~path`
-                    v = `/sap/bc/z2ui5` ) INTO TABLE mo_server->request->mt_header.
+    DATA temp6 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+    CLEAR temp6.
+    temp6-n = `~path`.
+    temp6-v = `/sap/bc/z2ui5`.
+    INSERT temp6 INTO TABLE mo_server->request->mt_header.
 
     cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
                                         act = mo_cut->get_header_field( `~path` ) ).
@@ -216,20 +248,33 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_set_header_field.
+    FIELD-SYMBOLS <temp7> LIKE LINE OF mo_server->response->mt_header.
+    DATA temp8 LIKE sy-tabix.
 
     mo_cut->set_header_field( n = `content-type`
                               v = `application/json` ).
 
+
+
+    temp8 = sy-tabix.
+    READ TABLE mo_server->response->mt_header WITH KEY n = `content-type` ASSIGNING <temp7>.
+    sy-tabix = temp8.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals(
         exp = `application/json`
-        act = mo_server->response->mt_header[ n = `content-type` ]-v ).
+        act = <temp7>-v ).
 
   ENDMETHOD.
 
   METHOD test_get_response_cookie.
 
-    INSERT VALUE #( n = `sap-sessionid`
-                    v = `ABC123` ) INTO TABLE mo_server->response->mt_cookie.
+    DATA temp9 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+    CLEAR temp9.
+    temp9-n = `sap-sessionid`.
+    temp9-v = `ABC123`.
+    INSERT temp9 INTO TABLE mo_server->response->mt_cookie.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABC123`
                                         act = mo_cut->get_response_cookie( `sap-sessionid` ) ).
@@ -264,7 +309,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " the resolved request object is cached per instance - a wrapper
     " always serves exactly one request, so swapping the server's
     " request object afterwards has no effect anymore
-    mo_server->request = NEW #( ).
+    CREATE OBJECT mo_server->request.
     mo_server->request->mv_cdata = `second`.
 
     cl_abap_unit_assert=>assert_equals( exp = `first`
@@ -276,8 +321,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " cut at the FIRST `?` and left encoded - a later `?` is part of a value,
     " and sap-startup-params keeps its %26 / %3D exactly as they came
-    INSERT VALUE #( n = `~request_uri`
-                    v = `/sap/bc/z2ui5?app_start=z&title=why?&sap-startup-params=a%3D1%26b%3D2` )
+    DATA temp10 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+    CLEAR temp10.
+    temp10-n = `~request_uri`.
+    temp10-v = `/sap/bc/z2ui5?app_start=z&title=why?&sap-startup-params=a%3D1%26b%3D2`.
+    INSERT temp10
            INTO TABLE mo_server->request->mt_header.
 
     cl_abap_unit_assert=>assert_equals( exp = `app_start=z&title=why?&sap-startup-params=a%3D1%26b%3D2`
@@ -287,8 +335,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_get_query_none.
 
-    INSERT VALUE #( n = `~request_uri`
-                    v = `/sap/bc/z2ui5` ) INTO TABLE mo_server->request->mt_header.
+    DATA temp11 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+    CLEAR temp11.
+    temp11-n = `~request_uri`.
+    temp11-v = `/sap/bc/z2ui5`.
+    INSERT temp11 INTO TABLE mo_server->request->mt_header.
 
     cl_abap_unit_assert=>assert_initial( mo_cut->get_query( ) ).
 

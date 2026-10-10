@@ -29,7 +29,7 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
     r_result->icon                = i_icon.
     r_result->html                = i_html.
@@ -39,12 +39,15 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA dialog TYPE REF TO z2ui5_cl_ui5_view_builder.
+    popup = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`      v = `sap.m`
             )->a( n = `xmlns:core` v = `sap.ui.core` ).
 
-    DATA(dialog) = popup->ele( `Dialog`
+
+    dialog = popup->ele( `Dialog`
         )->a( n = `title`      v = title
         )->a( n = `icon`       v = icon
         )->a( n = `afterClose` v = client->_event( `BUTTON_CONFIRM` ) ).
@@ -69,12 +72,12 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_CONFIRM` ).
+    IF client->check_on_event( `BUTTON_CONFIRM` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.

@@ -28,7 +28,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " event has run. This replaced a test that called factory( ) into a
     " ##NEEDED variable and asserted nothing: it passed for as long as the
     " constructor did not dump, which is not what its name claimed.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     cl_abap_unit_assert=>assert_bound( lo_app ).
     cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_editable
@@ -46,7 +47,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " rather than written as a literal: the name is the one thing here that a
     " rename would silently break, and the input would then propose a class
     " that no longer exists.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
     lo_app->on_init( ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -66,7 +68,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " re-opened input still shows the old value state and a stale step-5 link.
     " class_value_state is bound to a UI5 ValueState, so it is set to `None`
     " and NOT cleared - an empty string there is not a valid ValueState.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-url                    = `https://example.org/?app_start=ZCL_X`.
     lo_app->ms_home-class_value_state      = `Success`.
@@ -91,9 +94,11 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " successful check must drop that message, or the input carries the old
     " error text under a Success state.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+    CREATE OBJECT lo_app->client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     lo_app->ms_home-classname              = `z2ui5_cl_ui5_app_hi_world`.
     lo_app->ms_home-class_value_state      = `Warning`.
@@ -115,9 +120,11 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " reporting `Class  does not exist or does not implement ...` - a class
     " with no name, and a double blank where it should stand
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+    CREATE OBJECT lo_app->client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     lo_app->ms_home-classname = `   `.
 
@@ -142,16 +149,23 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " names only what the user typed; it used to be raised into the same
     " CATCH and replaced by the plain sentence of error_text_for_user
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    DATA lv_text LIKE lo_app->ms_home-class_value_state_text.
+    DATA temp1 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
+
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+    CREATE OBJECT lo_app->client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
 
     lo_app->ms_home-classname = `zz_no_such_class_4711`.
 
     lo_app->check_class( abap_true ).
 
-    DATA(lv_text) = lo_app->ms_home-class_value_state_text.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_text CS `ZZ_NO_SUCH_CLASS_4711 does not exist` )
+
+    lv_text = lo_app->ms_home-class_value_state_text.
+
+    temp1 = boolc( lv_text CS `ZZ_NO_SUCH_CLASS_4711 does not exist` ).
+    cl_abap_unit_assert=>assert_true( act = temp1
                                       msg = lv_text ).
     cl_abap_unit_assert=>assert_equals( act = lo_app->ms_home-class_value_state
                                         exp = `Warning`
@@ -165,8 +179,14 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
   METHOD test_error_text_hidden.
 
     " what the switch does hide: the text of an exception the system raised
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val = `CX_SY_CREATE_OBJECT_ERROR detail` ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA lv_hidden TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+
+    CREATE OBJECT lx TYPE z2ui5_cx_ui5_util_error EXPORTING val = `CX_SY_CREATE_OBJECT_ERROR detail`.
 
     cl_abap_unit_assert=>assert_equals(
         act = lo_app->error_text_for_user( ix = lx hide_details = abap_false )
@@ -174,15 +194,20 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
         msg = `details shown: the exception text` ).
     " ...and the sentence says where the details went. It used to send the
     " reader to "the system log", where nothing of this is ever written
-    DATA(lv_hidden) = lo_app->error_text_for_user( ix           = lx
+
+    lv_hidden = lo_app->error_text_for_user( ix           = lx
                                                    hide_details = abap_true ).
     cl_abap_unit_assert=>assert_equals(
         act = lv_hidden
         exp = `The class could not be instantiated - error details are hidden by this installation's user exit (check_hide_error_details)`
         msg = `details hidden: the plain sentence` ).
-    cl_abap_unit_assert=>assert_false( act = xsdbool( lv_hidden CS `system log` )
+
+    temp2 = boolc( lv_hidden CS `system log` ).
+    cl_abap_unit_assert=>assert_false( act = temp2
                                        msg = `nothing is logged - the sentence must not point at a log` ).
-    cl_abap_unit_assert=>assert_false( act = xsdbool( lv_hidden CS `CX_SY_CREATE_OBJECT_ERROR` )
+
+    temp3 = boolc( lv_hidden CS `CX_SY_CREATE_OBJECT_ERROR` ).
+    cl_abap_unit_assert=>assert_false( act = temp3
                                        msg = `the hidden detail must not leak into the sentence` ).
 
   ENDMETHOD.
@@ -192,24 +217,37 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " without an exit the row used to be an empty Text - read as a value that
     " failed to load. It says that the shipped defaults run instead
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    lo_app->client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    DATA lv_exp TYPE string.
+    DATA lv_xml TYPE string.
+    DATA ls_action LIKE LINE OF lo_handler->mo_action->ms_next-t_action_front.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
-    DATA(lv_exp) = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ).
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+    CREATE OBJECT lo_app->client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
+
+
+    lv_exp = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ).
     IF lv_exp IS INITIAL.
       lv_exp = `none (shipped defaults)`.
     ENDIF.
 
     lo_app->render_system_popup( ).
 
-    DATA lv_xml TYPE string.
-    LOOP AT lo_handler->mo_action->ms_next-t_action_front INTO DATA(ls_action).
+
+
+    LOOP AT lo_handler->mo_action->ms_next-t_action_front INTO ls_action.
       lv_xml = lv_xml && ls_action-xml.
     ENDLOOP.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_xml CS |text="User Exit"| )
+
+    temp4 = boolc( lv_xml CS |text="User Exit"| ).
+    cl_abap_unit_assert=>assert_true( act = temp4
                                       msg = lv_xml ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_xml CS |text="{ lv_exp }"| )
+
+    temp5 = boolc( lv_xml CS |text="{ lv_exp }"| ).
+    cl_abap_unit_assert=>assert_true( act = temp5
                                       msg = lv_xml ).
 
   ENDMETHOD.
@@ -219,16 +257,24 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " the sample links carry the page's own query and hash, and a browser
     " leaves { and } in them unencoded - written as a literal, not as a
     " binding UI5 would parse (and fail on) when it builds the start page
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
-    DATA(lo_form) = z2ui5_cl_ui5_view_builder=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    DATA lo_form TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA lv_xml TYPE string.
+    DATA temp6 TYPE xsdboolean.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
+
+    lo_form = z2ui5_cl_ui5_view_builder=>factory( ).
 
     lo_app->render_icon_row( form = lo_form
                              icon = `sap-icon://product`
                              text = `samples`
                              href = `https://sys/z2ui5?x={/A}` ).
 
-    DATA(lv_xml) = lo_form->stringify( ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_xml CS `\{/A\}` )
+
+    lv_xml = lo_form->stringify( ).
+
+    temp6 = boolc( lv_xml CS `\{/A\}` ).
+    cl_abap_unit_assert=>assert_true( act = temp6
                                       msg = lv_xml ).
 
   ENDMETHOD.
@@ -238,7 +284,8 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
     " link_enabled is the plain model value the step-5 link binds to. It must
     " stay the exact inverse of class_editable, so the link is only clickable
     " after a successful check.
-    DATA(lo_app) = z2ui5_cl_ui5_app_start=>factory( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_start.
+    lo_app = z2ui5_cl_ui5_app_start=>factory( ).
 
     lo_app->ms_home-link_enabled = abap_true.
     lo_app->reset_button_state( ).
