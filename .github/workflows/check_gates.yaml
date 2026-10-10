@@ -221,9 +221,10 @@ jobs:
       # a PR that touches the public contract (src/02, the api snapshot) is
       # user-visible by definition and has to say so: the template asks for a
       # line under `unreleased`, this is the gate that asks mechanically.
-      # Pull requests only - it needs a diff base, which is why it is not in
+      # It also fails a PR that drops `unreleased` lines of the base (a
+      # conflict resolution did, twice). Pull requests only - it needs a diff base, which is why it is not in
       # the local `npm run gates` set (NOT_A_VERIFY_GATE in run-gates.mjs)
-      - name: an API-touching PR carries a changelog entry
+      - name: an API-touching PR carries a changelog entry, and no PR loses one
         if: ${{ !cancelled() && github.event_name == 'pull_request' }}
         env:
           BASE_REF: origin/${{ github.base_ref }}
