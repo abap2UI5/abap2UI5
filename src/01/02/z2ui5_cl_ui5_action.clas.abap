@@ -117,9 +117,9 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
       result->ms_actual-t_model_skipped = result->mo_app->model_json_parse(
                                               io_model = mo_handler->ms_request-o_model
                                               iv_path  = mo_handler->ms_request-model_path ).
-      " the deltas just changed the state that string describes - drop it,
+      " the deltas just changed the state that digest describes - drop it,
       " so main_process falls back to a real serialization for its snapshot
-      CLEAR result->mo_app->mv_model_client.
+      CLEAR result->mo_app->mv_model_client_hash.
     ENDIF.
 
     result->ms_actual-event       = mo_handler->ms_request-s_front-event.

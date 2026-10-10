@@ -1566,7 +1566,8 @@ CLASS ltcl_02_response IMPLEMENTATION.
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
+    lo_handler->mv_model_before       = z2ui5_cl_ui5_util_context=>hash_string(
+                                            lo_handler->mo_action->mo_app->model_json_stringify( ) ).
 
     lo_handler->main_end( ).
 
@@ -1654,8 +1655,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_differs( exp = `{}`
                                          act = lo_handler->ms_response-model ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_handler->ms_response-model
-                                        act = lo_handler->mo_action->mo_app->mv_model_client ).
+    " ... as its digest - the text itself stays out of the draft
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>hash_string( lo_handler->ms_response-model )
+                                        act = lo_handler->mo_action->mo_app->mv_model_client_hash ).
 
   ENDMETHOD.
 
@@ -1664,18 +1666,20 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     " no push: the client still holds the before-state, so THAT is stored -
-    " and an empty model is stored as the known `{}` rather than INITIAL,
-    " so the next roundtrip can still skip its snapshot serialization
+    " and an empty model is stored as the digest of the known `{}` rather
+    " than INITIAL, so the next roundtrip can still skip its snapshot
+    " serialization
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = lo_handler->mo_action->mo_app->model_json_stringify( ).
+    lo_handler->mv_model_before       = z2ui5_cl_ui5_util_context=>hash_string(
+                                            lo_handler->mo_action->mo_app->model_json_stringify( ) ).
 
     lo_handler->main_end( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `{}`
-                                        act = lo_handler->mo_action->mo_app->mv_model_client ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>hash_string( `{}` )
+                                        act = lo_handler->mo_action->mo_app->mv_model_client_hash ).
 
   ENDMETHOD.
 
@@ -1689,7 +1693,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
+    lo_handler->mo_action->mo_app->mv_model_client_hash = `{"SENTINEL":true}`.
 
     lo_handler->main_process( ).
 
@@ -1709,12 +1713,12 @@ CLASS ltcl_02_response IMPLEMENTATION.
     " a real serialization instead of trusting a stale string
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->mv_model_client = `{"SENTINEL":true}`.
+    lo_handler->mo_action->mo_app->mv_model_client_hash = `{"SENTINEL":true}`.
     lo_handler->ms_request-o_model = z2ui5_cl_ajson=>parse( `{"NAME":"changed"}` ).
 
     DATA(lo_action) = lo_handler->mo_action->factory_by_frontend( ).
 
-    cl_abap_unit_assert=>assert_initial( lo_action->mo_app->mv_model_client ).
+    cl_abap_unit_assert=>assert_initial( lo_action->mo_app->mv_model_client_hash ).
 
   ENDMETHOD.
 

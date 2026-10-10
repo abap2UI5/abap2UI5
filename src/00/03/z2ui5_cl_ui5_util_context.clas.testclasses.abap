@@ -563,6 +563,8 @@ CLASS ltcl_rtti DEFINITION FINAL
     METHODS test_struc_to_pairs  FOR TESTING RAISING cx_static_check.
     METHODS test_scan_flag       FOR TESTING RAISING cx_static_check.
     METHODS test_scan_flag_nested FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_string      FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_fallback    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -571,6 +573,54 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_rtti.
 
 
 CLASS ltcl_rtti IMPLEMENTATION.
+
+  METHOD test_hash_string.
+
+    " the one promise: equal texts give equal answers, different texts
+    " different ones - on every runtime. Where cl_abap_message_digest
+    " exists (a system, and open-abap-core under npm run unit) the answer
+    " is the SHA-256 of the characters; where it does not, the text itself,
+    " and the comparison holds as before
+    DATA(lv_abc)   = z2ui5_cl_ui5_util_context=>hash_string( `abc` ).
+    DATA(lv_again) = z2ui5_cl_ui5_util_context=>hash_string( `abc` ).
+    DATA(lv_other) = z2ui5_cl_ui5_util_context=>hash_string( `abd` ).
+    DATA(lv_empty) = z2ui5_cl_ui5_util_context=>hash_string( `` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_abc
+                                        act = lv_again ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_abc
+                                         act = lv_other ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_abc
+                                         act = lv_empty ).
+
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `CL_ABAP_MESSAGE_DIGEST` ) = abap_true.
+      cl_abap_unit_assert=>assert_equals( exp = `BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A9CB410FF61F20015AD`
+                                          act = to_upper( lv_abc ) ).
+      cl_abap_unit_assert=>assert_equals( exp = 64
+                                          act = strlen( lv_empty ) ).
+    ELSE.
+      cl_abap_unit_assert=>assert_equals( exp = `abc`
+                                          act = lv_abc ).
+      cl_abap_unit_assert=>assert_initial( lv_empty ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_hash_fallback.
+
+    " the fallback branch on every runtime: a digest class that does not
+    " exist answers nothing, and hash_string( ) then answers the text
+    " itself (asserted above where the runtime has no digest class)
+    DATA(lv_long) = repeat( val = `{"ROW":"value"}`
+                            occ = 1000 ).
+    " (a class that exists without the method is the same CATCH on a system
+    " - CX_SY_DYN_CALL_ILLEGAL_METHOD - and a JS TypeError no CATCH sees in
+    " the transpiled runtime, so it is not asserted here)
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>hash_string_by_class(
+                                             val       = lv_long
+                                             classname = `ZZ_NO_SUCH_DIGEST_CLASS` ) ).
+
+  ENDMETHOD.
 
   METHOD test_attri_include.
 

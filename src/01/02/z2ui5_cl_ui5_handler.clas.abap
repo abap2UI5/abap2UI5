@@ -183,6 +183,7 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " a snapshot is only comparable when it was taken in the SAME dispatch
     " iteration main_end responds for (a nav_app_call/leave hop re-snapshots
     " for the app that then answers).
+    " the pre-main( ) snapshot of the model, as its digest (hash_string)
     DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
 
@@ -1402,7 +1403,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " an explicit view_model_update( ) would; an unchanged model still
       " responds `{}` as before
       DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
-      IF lv_model_now <> mv_model_before.
+      IF z2ui5_cl_ui5_util_context=>hash_string( lv_model_now ) <> mv_model_before.
         lv_model = lv_model_now.
       ENDIF.
     ENDIF.
@@ -1413,18 +1414,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " popup left open across a roundtrip that rebuilt no view alike, without
     " spelling a derivable instruction into every model-carrying response.
 
-    " Remember what this response leaves the client holding: a display or a
-    " push leaves it on lv_model (a display whose model is `{}` leaves the
-    " fresh view's model empty, which `{}` says too), no push leaves it on
-    " the before-state. The next roundtrip of this app reads it back as its
-    " pre-main( ) snapshot (main_process) instead of serializing the model
-    " a second time.
+    " Remember what this response leaves the client holding, as a digest:
+    " a display or a push leaves it on lv_model (a display whose model is
+    " `{}` leaves the fresh view's model empty, which `{}` says too), no
+    " push leaves it on the before-state. The next roundtrip of this app
+    " reads it back as its pre-main( ) snapshot (main_process) instead of
+    " serializing the model a second time - and compares digests, which is
+    " all the snapshot is ever used for (mv_model_client_hash says why the
+    " text itself stays out of the draft).
     IF lv_check_display = abap_true OR lv_model <> `{}`.
-      mo_action->mo_app->mv_model_client = lv_model.
+      mo_action->mo_app->mv_model_client_hash = z2ui5_cl_ui5_util_context=>hash_string( lv_model ).
     ELSEIF mv_model_before_taken = abap_true.
-      mo_action->mo_app->mv_model_client = mv_model_before.
+      mo_action->mo_app->mv_model_client_hash = mv_model_before.
     ELSE.
-      CLEAR mo_action->mo_app->mv_model_client.
+      CLEAR mo_action->mo_app->mv_model_client_hash.
     ENDIF.
 
     " last of all, so the route reflects everything this roundtrip did - the
@@ -1479,11 +1482,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " deltas were applied (factory_by_frontend) and BEFORE main( ) runs -
     " what the client already knows must never trigger a push. Taken per
     " dispatch iteration, so after a nav_app_call/leave the snapshot belongs
-    " to the app main_end responds for. The app's mv_model_client IS that
-    " snapshot whenever it is known: main_end wrote it as exactly what the
-    " client was left holding, and factory_by_frontend cleared it when this
-    " request's deltas touched the state it describes - so the full model
-    " serialization only runs when no stored string can stand in for it.
+    " to the app main_end responds for. The app's mv_model_client_hash IS
+    " that snapshot whenever it is known - a digest, since the snapshot is
+    " only ever compared: main_end wrote it as exactly what the client was
+    " left holding, and factory_by_frontend cleared it when this request's
+    " deltas touched the state it describes - so the full model
+    " serialization only runs when no stored digest can stand in for it.
     "
     " Yes, on a delta roundtrip this is the FIRST of up to two full
     " serializations (main_end runs the second one to compare or to render a
@@ -1495,16 +1499,16 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " into a FULL-MODEL PUSH on every edit roundtrip whose main( ) changed
     " nothing bound, which is exactly the transfer the compare in main_end
     " exists to suppress. Serializing twice beats shipping the model once.
-    IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
-      mv_model_before = mo_action->mo_app->mv_model_client.
+    IF mo_action->mo_app->mv_model_client_hash IS NOT INITIAL.
+      mv_model_before = mo_action->mo_app->mv_model_client_hash.
     ELSE.
-      mv_model_before = mo_action->mo_app->model_json_stringify( ).
+      mv_model_before = z2ui5_cl_ui5_util_context=>hash_string( mo_action->mo_app->model_json_stringify( ) ).
       " ... and kept on the app: it IS what the client holds now. Left
       " empty, a nav_app_call in this main( ) saved the caller's draft
       " without it (prepare_app_stack), and on the way back the caller's
       " CURRENT state stood in for what the browser shows - a bound value
       " the caller changed right before the hop was never pushed
-      mo_action->mo_app->mv_model_client = mv_model_before.
+      mo_action->mo_app->mv_model_client_hash = mv_model_before.
     ENDIF.
     mv_model_before_taken = abap_true.
 

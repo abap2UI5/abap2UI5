@@ -51,19 +51,24 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_check_initialized TYPE abap_bool.
 
     " The model exactly as the client is left holding it after this app's
-    " last response - the full JSON string (`{}` for an empty model), or
-    " INITIAL when unknown: a fresh app, a draft written before this
-    " attribute existed, or an incoming model delta that invalidated it
+    " last response, as its digest (z2ui5_cl_ui5_util_context=>hash_string:
+    " 64 characters, or the JSON text itself where no digest class answers)
+    " - the digest of `{}` for an empty model, or INITIAL when
+    " unknown: a fresh app, a draft written before this attribute existed,
+    " or an incoming model delta that invalidated it
     " (z2ui5_cl_ui5_action=>factory_by_frontend). It lives on the app - and
     " therefore in its draft - so the next roundtrip reuses it as the
     " pre-main( ) snapshot instead of serializing the whole model a second
-    " time (z2ui5_cl_ui5_handler=>main_process / main_end). Staleness leans
-    " one way only: a value that no longer matches re-serialization causes
-    " at most one redundant model push - it can never suppress a push the
-    " client needs, because it is only ever written to what the client was
-    " actually left holding, and cleared the moment incoming deltas touch
-    " the state it describes.
-    DATA mv_model_client TYPE string.
+    " time (z2ui5_cl_ui5_handler=>main_process / main_end). Its one use is
+    " the EQUALITY with the model main( ) leaves behind, so the text itself
+    " never has to be stored: it was the largest part of a draft (173 of
+    " 440 KB at 4000 rows, 30 of 62 KB gzipped), written and read back on
+    " every roundtrip. Staleness leans one way only: a value that no longer
+    " matches re-serialization causes at most one redundant model push - it
+    " can never suppress a push the client needs, because it is only ever
+    " written to what the client was actually left holding, and cleared the
+    " moment incoming deltas touch the state it describes.
+    DATA mv_model_client_hash TYPE string.
 
     "! Refresh z2ui5_if_app~id_draft on the wrapped app. Not a courtesy: it is
     "! the handle db_load_by_app( ) resolves an app reference by, so it has to
