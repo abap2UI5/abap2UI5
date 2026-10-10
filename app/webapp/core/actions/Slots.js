@@ -128,6 +128,9 @@ sap.ui.define(
     async function loadSlotFragment(ctx, slotKey, fragmentId, xml, seq) {
       const oModel = createViewModel(ctx, slotKey);
       applyStoredSizeLimit(ctx, slotKey, oModel);
+      // the libraries the fragment names, as their preload bundles - one
+      // request per library instead of one per control (Env, there)
+      await Env.loadViewLibraries(xml);
       // UI5 1.71 to 1.82 process a fragment synchronously - the controls it
       // needs must be loaded before, or they are eval'd (Lib, there)
       await Env.preloadFragmentModules(xml);
@@ -224,6 +227,8 @@ sap.ui.define(
       const oMainView = ViewSlots.getView(ctx, "MAIN");
       const oTemplateModel =
         oMainView?.getModel("http") ?? oMainView?.getModel();
+      // the libraries the view names, as their preload bundles (Env)
+      await Env.loadViewLibraries(xml);
       const oView = await Context.runAsOwner(ctx, () =>
         XMLView.create({
           definition: xml,
@@ -341,6 +346,12 @@ sap.ui.define(
       applyStoredSizeLimit(ctx, "MAIN", oViewModel);
       if (switchPath) applyStoredSizeLimit(ctx, "MAIN", oModel);
 
+      // The libraries the view names, loaded as their preload bundles
+      // before the build: XMLView.create would otherwise fetch every
+      // control of a library not loaded yet as a module of its own (Env
+      // loadViewLibraries has the numbers). The old page is still up
+      // while this waits (displayMain).
+      await Env.loadViewLibraries(xml);
       const oView = await Context.runAsOwner(ctx, () =>
         XMLView.create({
           definition: xml,

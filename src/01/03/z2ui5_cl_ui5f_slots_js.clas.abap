@@ -95,6 +95,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oModel = createViewModel(ctx, slotKey);` && |\n| &&
              `      applyStoredSizeLimit(ctx, slotKey, oModel);` && |\n| &&
              `` && |\n| &&
+             `      await Env.loadViewLibraries(xml);` && |\n| &&
+             `` && |\n| &&
              `      await Env.preloadFragmentModules(xml);` && |\n| &&
              `` && |\n| &&
              `      const oFragment = await Context.runAsOwner(ctx, () =>` && |\n| &&
@@ -157,6 +159,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oMainView = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
              `      const oTemplateModel =` && |\n| &&
              `        oMainView?.getModel("http") ?? oMainView?.getModel();` && |\n| &&
+             `` && |\n| &&
+             `      await Env.loadViewLibraries(xml);` && |\n| &&
              `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
              `        XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
@@ -238,6 +242,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      applyStoredSizeLimit(ctx, "MAIN", oViewModel);` && |\n| &&
              `      if (switchPath) applyStoredSizeLimit(ctx, "MAIN", oModel);` && |\n| &&
              `` && |\n| &&
+             `      await Env.loadViewLibraries(xml);` && |\n| &&
              `      const oView = await Context.runAsOwner(ctx, () =>` && |\n| &&
              `        XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
@@ -419,13 +424,13 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayPaged(ctx, xml, mOptions, plan) {` && |\n| &&
-             `      const state = ctx.state;` && |\n| &&
+             `      const state = ctx.state;` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
              `      const aOldClients = [...state.odataClients];` && |\n| &&
-             `      state.odataClients.clear();` && |\n|.
-    result = result &&
+             `      state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `      ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
              `      ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&

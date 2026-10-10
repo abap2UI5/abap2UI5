@@ -149,6 +149,9 @@ const ALLOWED_REQUIRE = new Set([
                                    // ICON_POOL target reports "not available"
                                    // instead of failing the component load
   'sap/ui/core/InvisibleMessage',  // @since 1.78
+  'sap/ui/core/Lib',               // @since 1.118 - Env loads a view's
+                                   // libraries through it, the core's
+                                   // loadLibraries before
   'sap/ui/core/Messaging',         // @since 1.118
   'sap/ui/core/Theming',           // @since 1.118
   'sap/ushell/Container',          // the FLP shell, absent outside it by design

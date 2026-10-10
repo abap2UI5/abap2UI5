@@ -160,11 +160,13 @@ test("a re-render keeps the old page up until the new one is in, then destroys i
   await settled(page);
 
   // the old page was still in the container when the new one took its
-  // place - removed and inserted in one step, never zero pages in between
+  // place - removed and inserted in one step, never zero pages in between;
+  // the removePage of its destroy afterwards finds it gone already
   const swaps = await page.evaluate(() => window.__transitions.swaps);
   expect(swaps).toEqual([
     ["removeAllPages", 1, 0],
     ["insertPage", 0, 1],
+    ["removePage", 1, 1],
   ]);
   // ...and it is destroyed afterwards: the same screen rebuilt holds the
   // same number of elements, the page that left holds none

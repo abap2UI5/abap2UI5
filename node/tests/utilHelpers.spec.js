@@ -625,6 +625,149 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
   });
 });
 
+// Env.loadViewLibraries - the libraries a view names, loaded as preload
+// bundles before the view is built (actions/Slots): one request per
+// library instead of one per control. Each xmlns is mapped to the library
+// of the distribution it lies under (sap-ui-version.json, through
+// sap/ui/VersionInfo), a library loaded already is skipped, the rest go
+// through sap/ui/core/Lib.load from 1.118 on and the core's loadLibraries
+// before - and what was tried is remembered for the page.
+test.describe("loadViewLibraries (library preloads of a view)", () => {
+  const VIEW = `<mvc:View xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core" xmlns:t="sap.ui.table" xmlns:f="sap.ui.layout.form"
+    xmlns:z2ui5="z2ui5.cc" xmlns:cd="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
+    xmlns:tpl="http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1">
+    <t:Table/><f:SimpleForm/><z2ui5:Timer/></mvc:View>`;
+  const LIBRARIES = [
+    "sap.m",
+    "sap.ui.core",
+    "sap.ui.layout",
+    "sap.ui.table",
+    "sap.uxap",
+  ];
+  const versionInfo = (libraries = LIBRARIES) => ({
+    load: async () => ({
+      version: "1.144.0",
+      libraries: libraries.map((name) => ({ name })),
+    }),
+  });
+
+  // the modern loader: sap/ui/core/Lib with all( ) and load( )
+  function modern(loaded = ["sap.m", "sap.ui.core"], failing = []) {
+    const loads = [];
+    const Library = {
+      all: () => Object.fromEntries(loaded.map((name) => [name, {}])),
+      load: ({ name }) => {
+        loads.push(name);
+        if (failing.includes(name)) return Promise.reject(new Error("404"));
+        loaded.push(name);
+        return Promise.resolve({});
+      },
+    };
+    return {
+      loads,
+      sap: {
+        ui: {
+          require: (id) => (id === "sap/ui/core/Lib" ? Library : undefined),
+        },
+      },
+    };
+  }
+
+  test("reads the dotted xmlns namespaces of a view, not the frontend's own", () => {
+    const { Env } = loadEnv();
+    expect(Env.viewNamespaces(VIEW).sort()).toEqual([
+      "sap.m",
+      "sap.ui.core",
+      "sap.ui.core.mvc",
+      "sap.ui.layout.form",
+      "sap.ui.table",
+    ]);
+    expect(Env.viewNamespaces("")).toEqual([]);
+    expect(Env.viewNamespaces(undefined)).toEqual([]);
+  });
+
+  test("loads the libraries the view names and nothing loaded already", async () => {
+    const ui = modern();
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
+    await Env.loadViewLibraries(VIEW);
+    // sap.ui.layout.form is a namespace OF sap.ui.layout; sap.ui.core.mvc
+    // lies under a loaded library
+    expect(ui.loads.sort()).toEqual(["sap.ui.layout", "sap.ui.table"]);
+  });
+
+  test("asks once per page: a second view with the same namespaces loads nothing", async () => {
+    const ui = modern();
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
+    await Env.loadViewLibraries(VIEW);
+    await Env.loadViewLibraries(VIEW);
+    await Env.loadViewLibraries(`<mvc:View xmlns:t="sap.ui.table"><t:Table/></mvc:View>`);
+    expect(ui.loads).toHaveLength(2);
+    // a namespace of another library is asked - and that library loaded
+    await Env.loadViewLibraries(`<core:FragmentDefinition xmlns:uxap="sap.uxap"/>`);
+    expect(ui.loads).toContain("sap.uxap");
+  });
+
+  test("a namespace in no library of the distribution is left to the view", async () => {
+    const ui = modern();
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
+    await Env.loadViewLibraries(`<mvc:View xmlns:my="my.custom.lib"><my:Thing/></mvc:View>`);
+    expect(ui.loads).toEqual([]);
+  });
+
+  test("without a version info the namespace itself is tried, and a failure is swallowed", async () => {
+    const ui = modern([], ["sap.ui.layout.form"]);
+    const { Env, state } = loadEnv({ state: { errors: [] }, sap: ui.sap });
+    await Env.loadViewLibraries(VIEW);
+    expect(ui.loads.sort()).toEqual([
+      "sap.m",
+      "sap.ui.core",
+      "sap.ui.core.mvc",
+      "sap.ui.layout.form",
+      "sap.ui.table",
+    ]);
+    expect(state.errors).toEqual([]);
+    // tried once - not again
+    await Env.loadViewLibraries(VIEW);
+    expect(ui.loads).toHaveLength(5);
+  });
+
+  test("falls back to the core's loadLibraries on the 1.71 floor", async () => {
+    const loads = [];
+    const sap = {
+      ui: {
+        require: () => undefined,
+        getCore: () => ({
+          getLoadedLibraries: () => ({ "sap.m": {}, "sap.ui.core": {} }),
+          loadLibraries: (names, options) => {
+            loads.push([names, options]);
+            return Promise.resolve();
+          },
+        }),
+      },
+    };
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap });
+    await Env.loadViewLibraries(VIEW);
+    expect(loads.sort()).toEqual([
+      [["sap.ui.layout"], { async: true }],
+      [["sap.ui.table"], { async: true }],
+    ]);
+  });
+
+  test("a bare bootstrap without a loader API does nothing and never throws", async () => {
+    const { Env } = loadEnv({ sap: { ui: { require: () => undefined } } });
+    await Env.loadViewLibraries(VIEW);
+    await Env.loadLibraries(["sap.ui.table"]);
+  });
+
+  test("loadLibraries takes library names as they are", async () => {
+    const ui = modern();
+    const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
+    await Env.loadLibraries(["sap.ui.table", "sap.m", "not a name/", "sap.uxap"]);
+    expect(ui.loads.sort()).toEqual(["sap.ui.table", "sap.uxap"]);
+  });
+});
+
 test.describe("getTextPath (ancestor-text breadcrumb of a control)", () => {
   const { Lib } = loadLib();
 

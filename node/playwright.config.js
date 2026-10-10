@@ -107,10 +107,14 @@ module.exports = defineConfig(
        first rendering and through its own SET_FOCUS.
        And message-box-details: sap.m.MessageBox fills the details text at
        creation on 1.71 and only on the link's press from 1.120 on, so the
-       unfolded details are asked for on both ends of the range. */
+       unfolded details are asked for on both ends of the range.
+       And library-preload: the libraries a view names come as their
+       bundles through sap.ui.getCore().loadLibraries there and through
+       sap/ui/core/Lib.load on the current release - the request count is
+       asked for on both. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */

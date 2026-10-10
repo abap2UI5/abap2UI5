@@ -63,6 +63,9 @@ function contextStub(ctx) {
 const classEnv = {
   ownClass: (Class) => Class,
   dropClassGlobals: () => {},
+  // a view build asks Env for the view's library preloads first
+  // (actions/Slots); the specs composed on this stub build no real view
+  loadViewLibraries: async () => {},
 };
 
 function loadLib(overrides = {}) {
@@ -94,7 +97,7 @@ function loadLib(overrides = {}) {
 // the probes read sap.ui.version / sap.ui.require / sap.ui.getCore, so a
 // spec seeds or re-seeds those there.
 function loadEnv(overrides = {}) {
-  const { elements = {}, state = {}, ...rest } = overrides;
+  const { elements = {}, state = {}, versionInfo, ...rest } = overrides;
   const { Lib, ctx } = loadLib({ state });
   // Env.getElementById resolves control ids through sap.ui.core.Element;
   // the stub's registry lets a spec register elements to resolve.
@@ -102,6 +105,10 @@ function loadEnv(overrides = {}) {
   const { module, sandbox } = loadModule("core/Env.js", {
     deps: {
       "sap/ui/core/Element": Element,
+      // sap/ui/VersionInfo - the distribution's library list
+      // (loadViewLibraries); unstubbed it answers nothing, as a bootstrap
+      // without sap-ui-version.json does
+      "sap/ui/VersionInfo": versionInfo,
       "z2ui5/core/Lib": Lib,
     },
     sandbox: rest,
