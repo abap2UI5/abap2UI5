@@ -194,7 +194,7 @@ The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOME
 |---|---|
 | `npm start` / `npm run start-local` | Run locally via Fiori tools with FLP sandbox |
 | `npm run build` | UI5 production build |
-| `npm run format` / `format:check` | Prettier |
+| `npm run format` / `format:check` | Prettier. `format` runs with Prettier's own cache (`--cache --cache-strategy content`, in `app/node_modules/.cache/prettier/`, never committed): a file whose content is already the formatted text of the pinned Prettier and `.prettierrc` is skipped, which is a no-op by construction, so a warm run and the cold run CI does (`check_app2abap.yaml`) write the same bytes - `npm run app2abap` starts with this pass on every call, and the warm pass is a third of the cold one (2.3 s to 0.8 s over the 66 webapp files). The second Prettier pass of `app2abap` is `trans2abap.js`'s, over the comment-stripped copies, and stays |
 | `npm run lint` | ESLint on `webapp/**/*.js` (eslint:recommended + `eqeqeq` "smart", `prefer-const`, `no-new-func`) |
 
 Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`.
