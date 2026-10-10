@@ -90,10 +90,11 @@ const OLD_UP = "Z2UI5";
 const OLD_HANDLER_LO = "z2ui5_cl_lp_handler";
 // The backend class the handler calls. Kept unless --backend says otherwise.
 const OLD_BACKEND_LO = "z2ui5_cl_http_handler";
-// The backend's own rename (build-rename.yaml, rename.jsonc) allows a prefix
-// of at most 10 characters: a customer name plus "_" or a namespace with
-// both slashes.
-const MAX_BACKEND_PREFIX_LEN = 10;
+// The backend's own rename (build-rename.yaml, rename.jsonc) takes a name of
+// at most 10 characters: a customer name, whose prefix is the name plus "_"
+// (11 characters at most - the worst case rename.jsonc is tested against),
+// or a namespace with both slashes (10 at most, the slashes included).
+const MAX_BACKEND_NAME_LEN = 10;
 
 // SICF on-disk file name layout used by abapGit: a 15-char left-justified
 // ICF name field followed by a 25-char hash. The hash is the first 25 hex
@@ -250,8 +251,10 @@ export function deriveBackend(input) {
   if (!/^[a-z][a-z0-9_]*_$/.test(prefix) && !/^\/[a-z0-9][a-z0-9_]*\/$/.test(prefix)) {
     throw new Error(`Invalid backend prefix "${input}": a customer name (zmyui5_) or a namespace with both slashes (/ca2ui5/).`);
   }
-  if (prefix.length > MAX_BACKEND_PREFIX_LEN) {
-    throw new Error(`Backend prefix "${prefix}" is ${prefix.length} chars; max ${MAX_BACKEND_PREFIX_LEN} (the limit of abap2UI5's build-rename workflow).`);
+  // the name as build-rename takes it: ZMYUI5 for zmyui5_, /CA2UI5/ for /ca2ui5/
+  const name = prefix.endsWith("_") ? prefix.slice(0, -1) : prefix;
+  if (name.length > MAX_BACKEND_NAME_LEN) {
+    throw new Error(`Backend name "${name}" is ${name.length} chars; max ${MAX_BACKEND_NAME_LEN} (the limit of abap2UI5's build-rename workflow).`);
   }
   if (prefix === `${OLD_LO}_`) {
     throw new Error(`Backend prefix "${prefix}" is the original name - leave --backend out for an unrenamed backend.`);

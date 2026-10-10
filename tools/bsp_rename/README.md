@@ -112,8 +112,8 @@ node tools/bsp_rename/rename-bsp.mjs ZMYUI5 --backend zmyui5           # handler
 ```
 
 Accepted: a customer name with or without its trailing `_` (max. 10
-characters with it) or a namespace with both slashes (max. 10 characters,
-`#abap2ui5#` works too). `z2ui5` itself is refused — leave the option out
+characters without it, the limit of `build-rename`) or a namespace with both
+slashes (max. 10 characters, `#abap2ui5#` works too). `z2ui5` itself is refused — leave the option out
 for an unrenamed backend. Nothing else changes: the UI5 namespace `z2ui5` is
 a frontend module id, not an ABAP object, and the backend rename does not
 touch it either.
