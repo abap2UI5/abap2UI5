@@ -59,6 +59,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      mainArrival: "",` && |\n| &&
              `      mainInstance: "",` && |\n| &&
              `      mainTransition: null,` && |\n| &&
+             `      mainLeaving: null,` && |\n| &&
              `` && |\n| &&
              `      oBody: null,` && |\n| &&
              `      oResponse: null,` && |\n| &&

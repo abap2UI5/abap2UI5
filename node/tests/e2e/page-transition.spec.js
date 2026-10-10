@@ -115,6 +115,64 @@ test("back: the page leaves with its arrival reversed - also after a re-render",
   });
 });
 
+// The plain swap - view_display( ) without a transition - used to destroy
+// the page on screen BEFORE the new one was built, so the container was
+// empty, and the screen blank, for the whole build. The old page stays in
+// the container now until the new one is placed, and is destroyed once the
+// new one rendered (actions/Slots swapAlone): the container never holds
+// zero pages, and nothing of the old page is left behind - the element
+// registry is back at its size from before the re-render.
+test("a re-render keeps the old page up until the new one is in, then destroys it", async ({
+  page,
+}) => {
+  await start(page);
+  await page.locator('[id$="--go-fade"]').click();
+  await expect(page.locator('[id$="--arrival"]')).toContainText("fade");
+  await settled(page);
+
+  // every change of the container's pages, with the count it finds and
+  // leaves - and the registry size before the re-render, once the page
+  // that left with the transition above is gone
+  const baseline = await page.evaluate(() => {
+    const { app } = window.__transitions;
+    const swaps = [];
+    for (const name of ["removeAllPages", "insertPage", "removePage"]) {
+      const original = app[name];
+      app[name] = function (...args) {
+        const before = this.getPages().length;
+        const result = original.apply(this, args);
+        swaps.push([name, before, this.getPages().length]);
+        return result;
+      };
+    }
+    window.__transitions.swaps = swaps;
+    const registry =
+      sap.ui.require("sap/ui/core/ElementRegistry") ||
+      sap.ui.require("sap/ui/core/Element").registry;
+    window.__transitions.registrySize = () => registry.size;
+    return registry.size;
+  });
+
+  await page.locator('[id$="--rerender"]').click();
+  await expect(page.locator('[id$="--arrival"]')).toContainText(
+    "Rendered 2 time(s)",
+  );
+  await settled(page);
+
+  // the old page was still in the container when the new one took its
+  // place - removed and inserted in one step, never zero pages in between
+  const swaps = await page.evaluate(() => window.__transitions.swaps);
+  expect(swaps).toEqual([
+    ["removeAllPages", 1, 0],
+    ["insertPage", 0, 1],
+  ]);
+  // ...and it is destroyed afterwards: the same screen rebuilt holds the
+  // same number of elements, the page that left holds none
+  await expect
+    .poll(() => page.evaluate(() => window.__transitions.registrySize()))
+    .toBe(baseline);
+});
+
 test("a return from a popup-as-app moves nothing", async ({ page }) => {
   await start(page);
   await page.locator('[id$="--go-slide"]').click();

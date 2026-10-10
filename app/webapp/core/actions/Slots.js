@@ -370,10 +370,11 @@ sap.ui.define(
       }
 
       // A MAIN build superseded by a newer request while XMLView.create was
-      // awaiting is still INSTALLED: displayMain destroyed the slot
-      // synchronously before this await and serialises every MAIN build
-      // through ctx.server.viewBuild, so
-      // no newer view can have taken the slot in the meantime - the newer
+      // awaiting is still INSTALLED: displayMain emptied the slot
+      // synchronously before this await (the old page detached, not
+      // destroyed - it stays on screen until this one is placed) and
+      // serialises every MAIN build through ctx.server.viewBuild, so no
+      // newer view can have taken the slot in the meantime - the newer
       // request's own build is chained behind this one and replaces it. A
       // guard here that discarded the build "when a newer view took the
       // slot" could therefore never fire, and dropping the build without
@@ -386,12 +387,51 @@ sap.ui.define(
       return place(ctx, oView);
     }
 
-    // The plain swap: the page goes up alone - the old one is gone already,
-    // displayMain tore it down before the build.
-    function swapAlone(ctx, oView) {
-      ctx.state.oApp.removeAllPages();
-      ctx.state.oApp.insertPage(oView);
+    // The plain swap: the new page takes the old one's place. The old page
+    // stayed in the container while the new one was built - displayMain
+    // detached it from the SLOT, it never destroyed it - so the screen kept
+    // showing it instead of going blank for the whole build (the destroy,
+    // the XML processing, a library load); it leaves the container in the
+    // same synchronous step the new page enters it, and the container
+    // renders both changes in one pass. Destroyed only AFTER that pass
+    // (leaveOnceRendered): the destroy takes the old DOM away at once,
+    // and the pass that draws the new page is a timer away - the blank
+    // would have been the gap between the two. `oOld` is undefined on the
+    // first display and after a view_destroy( ).
+    function swapAlone(ctx, oView, oOld, aOldClients) {
+      const oApp = ctx.state.oApp;
+      oApp.removeAllPages();
+      oApp.insertPage(oView);
+      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);
       return true;
+    }
+
+    // The longest the page a plain swap replaced may outlive its
+    // replacement when the new page never reports a rendering (a
+    // container that is not in the DOM) - a safety net, like
+    // TRANSITION_TIMEOUT; the next MAIN display ends it earlier.
+    const SWAP_TIMEOUT = 3000;
+
+    // The old page's end, after the new one is on screen: its destroy
+    // (nested views inside it included) and that of the OData clients it
+    // was bound to - a page bound to a destroyed model empties while it
+    // is still showing. Whichever comes first ends it: the new page's
+    // rendering, the safety timeout, or the next MAIN display
+    // (state.mainLeaving, which displayMain runs first thing - the page
+    // that left would otherwise still hold the id the next build needs).
+    function leaveOnceRendered(ctx, oView, oOld, aOldClients) {
+      const state = ctx.state;
+      let timer = null;
+      const finish = () => {
+        if (state.mainLeaving !== finish) return;
+        state.mainLeaving = null;
+        clearTimeout(timer);
+        leavePage(ctx, oOld, aOldClients);
+      };
+      state.mainLeaving = finish;
+      freezePage(oOld);
+      timer = setTimeout(finish, SWAP_TIMEOUT);
+      Lib.whenRendered(oView, oView, finish);
     }
 
     // ------------------------------------------------------------------
@@ -400,12 +440,13 @@ sap.ui.define(
     //
     // The root control is a sap.m.App, i.e. a sap.m.NavContainer, and its
     // to( ) / backToPage( ) play the animations - with BOTH pages in the
-    // container at once. The plain swap never has two: it tears the old view
-    // down before it builds the new one (the fixed id, see chainBuild). A
-    // page change therefore builds the new view under the other id, leaves
-    // the old page on screen until the new one is ready, navigates, and
-    // destroys the old page once the NavContainer reports the navigation
-    // done (afterNavigate).
+    // container at once. The plain swap has two only for the length of a
+    // build: the old page stays in the container until the new one is
+    // ready and then leaves in the same step (swapAlone). A page change
+    // builds the new view under the other id the same way, leaves the old
+    // page on screen until the new one is ready, navigates, and destroys
+    // the old page once the NavContainer reports the navigation done
+    // (afterNavigate).
     //
     // WHICH animation plays is the sap.m.NavContainer rule, the one UI5's
     // own router follows. Forward, the transition the new page names. Back,
@@ -629,7 +670,9 @@ sap.ui.define(
     }
 
     // A display under a FIXED id cannot simply run: XMLView.create claims
-    // the "mainView" id synchronously and Fragment.load({ id }) does the
+    // the "mainView" id (or its alternate - two ids, one for the page on
+    // screen and one for the page being built, see MAIN_VIEW_ID)
+    // synchronously and Fragment.load({ id }) does the
     // same for the popup and popover ids, so two overlapping builds of the
     // same slot (a slow library load plus a parallel request - a
     // Back/Forward restore while a popup is still loading) would throw
@@ -664,18 +707,31 @@ sap.ui.define(
           await ctx.state.mainTransition;
           if (isSuperseded(ctx, seq)) return undefined;
         }
+        // the page a previous plain swap replaced and has not destroyed
+        // yet (it waits for the new page's rendering) goes now: the id it
+        // holds is the one this build may need
+        ctx.state.mainLeaving?.();
         const plan = transitionPlan(ctx, mOptions);
         if (plan) return displayPaged(ctx, xml, mOptions, plan);
-        // asked BEFORE the teardown below, which drops the record it reads
+        // asked BEFORE the slot is emptied below, which drops the record it
+        // reads
         rememberPlainArrival(ctx, mOptions, isSameOwner(ctx, mOptions));
-        // The implicit teardown of the previous MAIN view happens HERE,
-        // in the same synchronous step that claims the fixed "mainView"
-        // id (XMLView.create in displayView) - never earlier at action
-        // time: an early destroy empties the slot while an OLDER queued
-        // build may still be awaiting, which would let that stale build
-        // slip past displayView's "a newer view took the slot" guard and
-        // then crash THIS build on a duplicate id.
-        // the previous MAIN's framework-created OData clients do not die
+        // The previous MAIN view leaves the SLOT here, in the same
+        // synchronous step that claims the view id (XMLView.create in
+        // displayView) - never earlier at action time: an early teardown
+        // empties the slot while an OLDER queued build may still be
+        // awaiting, which would let that stale build slip past
+        // displayView's "a newer view took the slot" guard and then crash
+        // THIS build on a duplicate id. Detached, not destroyed: it stays
+        // on screen, with its nested views, while the new one is built,
+        // and is destroyed once the new one is placed and rendered
+        // (swapAlone) - the destroy used to run here, on the critical
+        // path, and the screen was blank from here until the new page
+        // rendered. The new view is built under the id the old one does
+        // not hold (MAIN_VIEW_ID / MAIN_VIEW_ID_ALT, as a page change
+        // does it).
+        const oOld = ViewSlots.detach(ctx, "MAIN");
+        // The previous MAIN's framework-created OData clients do not die
         // with the view (a model is no aggregation): without this every
         // switch-mode rebuild leaked a full OData client - its $metadata
         // request, caches and queues included. EVERY tracked client goes,
@@ -684,20 +740,13 @@ sap.ui.define(
         // actions/ViewOps) survived the view that carried it and the next
         // re-issue found nothing to destroy - the same leak, one model
         // name over. Only clients the framework created are in the
-        // inventory; dependent slots are already down at this point.
-        ViewSlots.destroy(ctx, "MAIN");
-        // each destroy on its own, as Component.exit does it: a client
-        // whose $metadata request is still pending can throw, and a
-        // throw here rejects the serialised build chain - the fatal
-        // "App Terminated" overlay over a MAIN slot already torn down,
-        // with the remaining clients left alive
-        for (const oClient of ctx.state.odataClients) {
-          try {
-            oClient.destroy();
-          } catch (e) {
-            Lib.logError("displayMain: destroying an OData client failed", e);
-          }
-        }
+        // inventory; dependent slots are already out of their slots at
+        // this point. They go WITH the old page (leavePage, one destroy
+        // each in its own try - a client whose $metadata request is still
+        // pending can throw, and a throw here would reject the serialised
+        // build chain into the fatal overlay), not before it: a page bound
+        // to a destroyed model empties while it is still showing.
+        const aOldClients = [...ctx.state.odataClients];
         ctx.state.odataClients.clear();
         // A new MAIN view means a new screen, so the two STANDALONE slots
         // go with it. They live outside the MAIN control tree and would
@@ -710,7 +759,29 @@ sap.ui.define(
         // next runs (View1._runSystemActions).
         ViewSlots.destroy(ctx, "POPUP");
         ViewSlots.destroy(ctx, "POPOVER");
-        return displayView(ctx, xml, ctx.state.oResponse?.OVIEWMODEL, mOptions);
+        const localId =
+          oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)
+            ? MAIN_VIEW_ID_ALT
+            : MAIN_VIEW_ID;
+        let bPlaced;
+        try {
+          bPlaced = await displayView(
+            ctx,
+            xml,
+            ctx.state.oResponse?.OVIEWMODEL,
+            mOptions,
+            (c, oView) => swapAlone(c, oView, oOld, aOldClients),
+            localId,
+          );
+        } catch (e) {
+          // the build failed: the old page must not stay behind, frozen,
+          // under the fatal overlay the failure raises
+          if (oOld) leavePage(ctx, oOld, aOldClients);
+          throw e;
+        }
+        // discarded - the app was torn down while the view was built
+        if (!bPlaced && oOld) leavePage(ctx, oOld, aOldClients);
+        return bPlaced;
       });
     }
 

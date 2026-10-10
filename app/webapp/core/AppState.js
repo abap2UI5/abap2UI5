@@ -81,6 +81,11 @@
 //   mainTransition    the page change in flight: a promise that settles once
 //                     the old page is gone, null when none runs. The next
 //                     MAIN build and the follow-up actions wait for it
+//   mainLeaving       the end of a plain swap still pending: the function
+//                     that destroys the page the swap replaced, run once
+//                     the new page rendered (actions/Slots swapAlone) - or
+//                     by the next MAIN display, first thing. Null when no
+//                     page is on its way out
 //
 // Roundtrip state
 //   oBody             mirror of the current request payload - the body
@@ -200,6 +205,7 @@ sap.ui.define([], () => {
       mainArrival: "",
       mainInstance: "",
       mainTransition: null,
+      mainLeaving: null,
 
       // Roundtrip state
       oBody: null,

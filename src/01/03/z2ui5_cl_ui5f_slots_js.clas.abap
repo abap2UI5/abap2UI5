@@ -267,10 +267,29 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      return place(ctx, oView);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function swapAlone(ctx, oView) {` && |\n| &&
-             `      ctx.state.oApp.removeAllPages();` && |\n| &&
-             `      ctx.state.oApp.insertPage(oView);` && |\n| &&
+             `    function swapAlone(ctx, oView, oOld, aOldClients) {` && |\n| &&
+             `      const oApp = ctx.state.oApp;` && |\n| &&
+             `      oApp.removeAllPages();` && |\n| &&
+             `      oApp.insertPage(oView);` && |\n| &&
+             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n| &&
              `      return true;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const SWAP_TIMEOUT = 3000;` && |\n| &&
+             `` && |\n| &&
+             `    function leaveOnceRendered(ctx, oView, oOld, aOldClients) {` && |\n| &&
+             `      const state = ctx.state;` && |\n| &&
+             `      let timer = null;` && |\n| &&
+             `      const finish = () => {` && |\n| &&
+             `        if (state.mainLeaving !== finish) return;` && |\n| &&
+             `        state.mainLeaving = null;` && |\n| &&
+             `        clearTimeout(timer);` && |\n| &&
+             `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
+             `      };` && |\n| &&
+             `      state.mainLeaving = finish;` && |\n| &&
+             `      freezePage(oOld);` && |\n| &&
+             `      timer = setTimeout(finish, SWAP_TIMEOUT);` && |\n| &&
+             `      Lib.whenRendered(oView, oView, finish);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const TRANSITION_OPTIONS = [` && |\n| &&
@@ -405,7 +424,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
              `      const aOldClients = [...state.odataClients];` && |\n| &&
-             `      state.odataClients.clear();` && |\n| &&
+             `      state.odataClients.clear();` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
              `      ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
@@ -424,8 +444,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          (c, oView) =>` && |\n| &&
              `            navigatePage(c, oOld, oView, plan, mOptions, aOldClients),` && |\n| &&
              `          localId,` && |\n| &&
-             `        );` && |\n|.
-    result = result &&
+             `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        leavePage(ctx, oOld, aOldClients);` && |\n| &&
              `        throw e;` && |\n| &&
@@ -452,25 +471,41 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          await ctx.state.mainTransition;` && |\n| &&
              `          if (isSuperseded(ctx, seq)) return undefined;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        ctx.state.mainLeaving?.();` && |\n| &&
              `        const plan = transitionPlan(ctx, mOptions);` && |\n| &&
              `        if (plan) return displayPaged(ctx, xml, mOptions, plan);` && |\n| &&
              `` && |\n| &&
              `        rememberPlainArrival(ctx, mOptions, isSameOwner(ctx, mOptions));` && |\n| &&
              `` && |\n| &&
-             `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
+             `        const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
-             `        for (const oClient of ctx.state.odataClients) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            oClient.destroy();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError("displayMain: destroying an OData client failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
+             `        const aOldClients = [...ctx.state.odataClients];` && |\n| &&
              `        ctx.state.odataClients.clear();` && |\n| &&
              `` && |\n| &&
              `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
              `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `        return displayView(ctx, xml, ctx.state.oResponse?.OVIEWMODEL, mOptions);` && |\n| &&
+             `        const localId =` && |\n| &&
+             `          oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
+             `            ? MAIN_VIEW_ID_ALT` && |\n| &&
+             `            : MAIN_VIEW_ID;` && |\n| &&
+             `        let bPlaced;` && |\n| &&
+             `        try {` && |\n| &&
+             `          bPlaced = await displayView(` && |\n| &&
+             `            ctx,` && |\n| &&
+             `            xml,` && |\n| &&
+             `            ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
+             `            mOptions,` && |\n| &&
+             `            (c, oView) => swapAlone(c, oView, oOld, aOldClients),` && |\n| &&
+             `            localId,` && |\n| &&
+             `          );` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          if (oOld) leavePage(ctx, oOld, aOldClients);` && |\n| &&
+             `          throw e;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (!bPlaced && oOld) leavePage(ctx, oOld, aOldClients);` && |\n| &&
+             `        return bPlaced;` && |\n| &&
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

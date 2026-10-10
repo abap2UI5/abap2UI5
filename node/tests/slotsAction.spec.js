@@ -90,7 +90,10 @@ function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
         effectiveSizeLimit: () => undefined,
         whenRendered: (control, _owner, fn) => fn(control),
       },
-      "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
+      "z2ui5/core/Env": {
+        preloadFragmentModules: async () => {},
+        loadViewLibraries: async () => {},
+      },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
         ownId: (_ctx, id) => id,
@@ -100,6 +103,9 @@ function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
           { key: "POPUP", ownsModel: true },
         ],
         destroy: (_ctx, key) => destroyed.push(key),
+        // the MAIN display empties its slot without destroying (the old
+        // page stays up while the new one is built); nothing is open here
+        detach: () => undefined,
         setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
         getController: () => null,
         getView: () => null,
@@ -243,7 +249,10 @@ test.describe("the fragment slots build through the serialized chain", () => {
           isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
           effectiveSizeLimit: () => undefined,
         },
-        "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
+        "z2ui5/core/Env": {
+        preloadFragmentModules: async () => {},
+        loadViewLibraries: async () => {},
+      },
         "z2ui5/core/ViewSlots": {
           ownId: (_ctx, id) => id,
           slots: [],
