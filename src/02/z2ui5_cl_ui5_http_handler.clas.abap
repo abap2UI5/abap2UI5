@@ -308,6 +308,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " the origin (scheme, host, port) of an absolute URL - `` for a
+    " relative one, so the GET shell preconnects only to another host (see
+    " the method)
+    CLASS-METHODS _url_origin
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     " a content security policy - the exit's meta tag or a header value -
     " with the shell script's hash added to its script-src (see the method)
     CLASS-METHODS _csp_add_script_hash
@@ -554,6 +563,44 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                             len = lv_len - 3 ).
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD _url_origin.
+
+    " Only an absolute URL names another host: `https://host[:port]/...`,
+    " or the protocol-relative `//host/...`. A UI5 served by the system
+    " itself (/sap/public/bc/ui5_ui5/..., a relative resources/ path) is
+    " the page's own origin, which the browser is connected to already -
+    " and an installation that writes its own origin absolutely gets a
+    " preconnect the browser answers from the connection it holds
+    DATA(lv_url) = val.
+    DATA(lv_scheme) = ``.
+    IF lv_url CP `http://*` OR lv_url CP `https://*`.
+      SPLIT lv_url AT `//` INTO lv_scheme lv_url.
+      lv_scheme = to_lower( lv_scheme ) && `//`.
+    ELSEIF lv_url CP `//*`.
+      lv_url    = lv_url+2.
+      lv_scheme = `//`.
+    ELSE.
+      RETURN.
+    ENDIF.
+    " the host ends at the path, the query or the fragment, whichever is
+    " first; userinfo (user:pw@host) stays out of the page
+    DATA(lv_end) = strlen( lv_url ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_end.
+      IF lv_url+lv_off(1) CA `/?#`.
+        lv_end = lv_off.
+      ELSE.
+        lv_off = lv_off + 1.
+      ENDIF.
+    ENDWHILE.
+    DATA(lv_host) = lv_url(lv_end).
+    IF lv_host IS INITIAL OR lv_host CA `@`.
+      RETURN.
+    ENDIF.
+    result = lv_scheme && lv_host.
 
   ENDMETHOD.
 
@@ -860,6 +907,27 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " and only one of them can react to what the app is actually showing. What
     " is left here is the name the browser shows while UI5 boots, before any
     " app can speak - and a page whose <title> is empty shows the URL.
+    " The UI5 origin, announced before the browser reaches the bootstrap
+    " tag: it sits BELOW the embedded preload - ~300 KB of inline script
+    " the parser executes first - so without the hint the DNS lookup, the
+    " TCP and the TLS handshake to the CDN start only once the parser gets
+    " there. Two hints for the two connection pools the browser keeps: the
+    " bootstrap script, every module and the theme's library.css load
+    " without CORS, UI5's own XHRs (sap-ui-version.json, the library
+    " manifests, i18n) with it, and a preconnect serves only the pool its
+    " crossorigin attribute names. Outside the inline script, so its CSP
+    " hash is untouched; not a preload of the theme stylesheet - its URL is
+    " not derivable here across versions and configs (the sap-ui-cachebuster
+    " segment of the default src, library-RTL.css, a theme root, the theme
+    " fallbacks), and a preload the loader does not match is a wasted
+    " download. Relative src: no hint (see _url_origin)
+    DATA(lv_preconnect) = ``.
+    DATA(lv_origin) = _url_origin( ls_config-src ).
+    IF lv_origin IS NOT INITIAL.
+      lv_preconnect = |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }">\n| &&
+                      |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }" crossorigin>\n|.
+    ENDIF.
+
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
@@ -867,6 +935,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
+                  lv_preconnect &&
                   |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&

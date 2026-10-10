@@ -785,6 +785,11 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_csp_hash_security_hdr   FOR TESTING RAISING cx_static_check.
     METHODS test_shell_script_is_preload FOR TESTING RAISING cx_static_check.
     METHODS test_style_exit_element      FOR TESTING RAISING cx_static_check.
+    " the preconnect to the UI5 origin: for an absolute src only, outside
+    " the hashed script
+    METHODS test_url_origin              FOR TESTING RAISING cx_static_check.
+    METHODS test_preconnect_cdn          FOR TESTING RAISING cx_static_check.
+    METHODS test_preconnect_relative     FOR TESTING RAISING cx_static_check.
     " the bundle: sent as JavaScript under a tag of its own, revalidated to a
     " bodyless 304, and without touching the page's tag
     METHODS test_bundle_response         FOR TESTING RAISING cx_static_check.
@@ -1690,6 +1695,74 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     SPLIT lv_body AT `<style>` INTO TABLE DATA(lt_part).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_part ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_origin.
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://sdk.openui5.org`
+                                        act = z2ui5_cl_ui5_http_handler=>_url_origin(
+                                                  `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example:8443`
+                                        act = z2ui5_cl_ui5_http_handler=>_url_origin(
+                                                  `https://cdn.example:8443/ui5/resources/sap-ui-core.js?x=1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `http://cdn.example`
+                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `HTTP://cdn.example?q` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `//cdn.example`
+                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `//cdn.example/resources/sap-ui-core.js` ) ).
+    " the host alone, no path at all
+    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example`
+                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `https://cdn.example` ) ).
+    " relative: the page's own origin, nothing to announce
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin(
+                                             `/sap/public/bc/ui5_ui5/1/resources/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `resources/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `` ) ).
+    " no host, or userinfo in front of it: nothing rather than a guess
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `https:///x.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `https://u:p@cdn.example/x.js` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_preconnect_cdn.
+
+    " an absolute src: the two hints, in the head, in front of the title -
+    " and outside the inline script, whose text (and so its CSP hash) is
+    " the generated preload alone
+    DATA(lv_body) = shell_for_config( VALUE #(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/resources/sap-ui-core.js` ) ).
+
+    DATA(lv_hints) = |<link rel="preconnect" href="https://sdk.example">\n| &&
+                     |<link rel="preconnect" href="https://sdk.example" crossorigin>\n| &&
+                     |<title>abap2UI5</title>|.
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = lv_hints ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = lv_hints ) < find( val = lv_body
+                                                                              sub = `<script>` ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ) ).
+
+    " an origin out of the exit is attribute-escaped like the src itself
+    lv_body = shell_for_config( VALUE #( theme = `sap_horizon`
+                                         src   = `https://a"b.example/x.js` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = `href="https://a&quot;b.example"` ) >= 0 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_preconnect_relative.
+
+    " a UI5 served by the system itself: no hint at all
+    DATA(lv_body) = shell_for_config( VALUE #(
+        theme = `sap_horizon`
+        src   = `/sap/public/bc/ui5_ui5/1/resources/sap-ui-core.js` ) ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( find( val = lv_body
+                                                      sub = `rel="preconnect"` ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = |<meta http-equiv="X-UA-Compatible" content="IE=edge">\n<title>abap2UI5</title>| ) >= 0 ) ).
 
   ENDMETHOD.
 
