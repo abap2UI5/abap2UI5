@@ -53,6 +53,101 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    "! The JSON text of the value behind ir_ref written directly - a
+    "! STANDARD table of flat rows, or one flat structure, every cell an
+    "! elementary type ajson renders from |{ }| (z2ui5_cl_ui5_util_context
+    "! =>rtti_get_flat_components says which). Empty when the value is
+    "! anything else, and the caller takes the general road through ajson.
+    "! Byte for byte what ajson writes for the same value under the
+    "! upper-case mapping with format_datetime (the model's instance): the
+    "! keys upper-cased and in the order of ajson's node table (by name),
+    "! the same escaping, the same rendering of every kind - the test class
+    "! holds the two side by side for every kind.
+    "! Why: ajson's set( ) builds one node per cell (a path string, a
+    "! sorted-table INSERT, a mapper call, then the stringify walk) - the
+    "! whole cost of a bound table of a few thousand rows
+    METHODS attri_json_fast
+      IMPORTING
+        ir_ref        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the fast path's state over one main_json_stringify: the tokens set
+    " into the tree with the JSON each stands for, and the uuid of the call
+    " every token carries (taken on the first one)
+    TYPES:
+      BEGIN OF ty_s_fast,
+        token TYPE string,
+        json  TYPE string,
+      END OF ty_s_fast.
+    TYPES:
+      BEGIN OF ty_s_fast_state,
+        uuid    TYPE string,
+        t_token TYPE STANDARD TABLE OF ty_s_fast WITH EMPTY KEY,
+      END OF ty_s_fast_state.
+
+    TYPES:
+      BEGIN OF ty_s_mapper_cache,
+        mapper TYPE REF TO z2ui5_if_ajson_mapping,
+        ajson  TYPE REF TO z2ui5_if_ajson,
+      END OF ty_s_mapper_cache.
+    TYPES ty_t_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
+
+    "! the compatibility branch of main_json_stringify - an attribute with
+    "! a custom_mapper or custom_filter of its own, through a scratch
+    "! instance per mapper (ct_mapper_cache) or the shared one (ci_default)
+    METHODS json_custom_set
+      IMPORTING
+        ir_attri        TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        iv_val          TYPE any
+        io_result       TYPE REF TO z2ui5_if_ajson
+      CHANGING
+        ci_default      TYPE REF TO z2ui5_if_ajson
+        ct_mapper_cache TYPE ty_t_mapper_cache
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! a bound table or structure through the fast path: when the value
+    "! takes it, its JSON is kept on cs_fast and a token set into the tree
+    "! under the attribute's path - ev_taken then, abap_false when the
+    "! caller has to set the value the general way
+    METHODS json_fast_set
+      IMPORTING
+        ir_ref    TYPE REF TO data
+        ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        io_result TYPE REF TO z2ui5_if_ajson
+      EXPORTING
+        ev_taken  TYPE abap_bool
+      CHANGING
+        cs_fast   TYPE ty_s_fast_state
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    "! every token's quoted text in the stringified tree replaced by its
+    "! JSON - by offset, see json_fast_set
+    CLASS-METHODS json_fast_splice
+      IMPORTING
+        is_fast TYPE ty_s_fast_state
+      CHANGING
+        cv_json TYPE string.
+
+    "! one row as a JSON object, it_comp sorted by name
+    CLASS-METHODS json_row
+      IMPORTING
+        is_row        TYPE any
+        it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! a string value escaped as z2ui5_cl_ajson's lcl_json_serializer
+    "! escapes it - the five replacements, in its order, and only when one
+    "! of the characters is there
+    CLASS-METHODS json_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     " _bind( json = abap_true ): the string spliced in as a JSON node
     METHODS json_bind_set
       IMPORTING
@@ -549,11 +644,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " of its own - created when the first such attribute asks for it
         DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
 
-        TYPES: BEGIN OF ty_s_mapper_cache,
-                 mapper TYPE REF TO z2ui5_if_ajson_mapping,
-                 ajson  TYPE REF TO z2ui5_if_ajson,
-               END OF ty_s_mapper_cache.
-        DATA lt_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
+        DATA lt_mapper_cache TYPE ty_t_mapper_cache.
+
+        " the fast path (json_fast_set): a bound table of flat rows is
+        " written as text directly and spliced into the stringified tree
+        " afterwards - its tokens and their JSON live here
+        DATA ls_fast TYPE ty_s_fast_state.
 
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
              WHERE bind = abap_true
@@ -600,35 +696,20 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " slot was really used for (create_empty_filter). Kept because a
           " customer app that passes one must keep working
           IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
-            IF lr_attri->custom_mapper IS BOUND.
-              READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-                   WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
-              IF sy-subrc = 0.
-                DATA(ajson) = lr_mapper_cache->ajson.
-              ELSE.
-                ajson = z2ui5_cl_ajson=>create_empty(
-                            ii_custom_mapping = lr_attri->custom_mapper ).
-                INSERT VALUE #( mapper = lr_attri->custom_mapper
-                                ajson  = ajson ) INTO TABLE lt_mapper_cache.
-              ENDIF.
-            ELSE.
-              IF li_ajson_default IS NOT BOUND.
-                li_ajson_default = z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-              ENDIF.
-              ajson = li_ajson_default.
-            ENDIF.
+            json_custom_set( EXPORTING ir_attri        = lr_attri
+                                       iv_val          = <val>
+                                       io_result       = li_ajson_result
+                             CHANGING  ci_default      = li_ajson_default
+                                       ct_mapper_cache = lt_mapper_cache ).
+            CONTINUE.
+          ENDIF.
 
-            ajson->set( iv_ignore_empty = abap_false
-                        iv_path         = `/`
-                        iv_val          = <val> ).
-
-            IF lr_attri->custom_filter IS BOUND.
-              ajson = ajson->filter( lr_attri->custom_filter ).
-            ENDIF.
-
-            li_ajson_result->set( iv_path = lr_attri->name_client
-                               iv_val     = ajson ).
+          json_fast_set( EXPORTING ir_ref    = lr_ref
+                                   ir_attri  = lr_attri
+                                   io_result = li_ajson_result
+                         IMPORTING ev_taken  = DATA(lv_taken)
+                         CHANGING  cs_fast   = ls_fast ).
+          IF lv_taken = abap_true.
             CONTINUE.
           ENDIF.
 
@@ -642,11 +723,204 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           result = `{}`.
         ENDIF.
 
+        json_fast_splice( EXPORTING is_fast = ls_fast
+                          CHANGING  cv_json = result ).
+
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = x.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD json_custom_set.
+
+    IF ir_attri->custom_mapper IS BOUND.
+      READ TABLE ct_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+           WITH KEY mapper = ir_attri->custom_mapper. "#EC CI_SORTSEQ
+      IF sy-subrc = 0.
+        DATA(ajson) = lr_mapper_cache->ajson.
+      ELSE.
+        ajson = z2ui5_cl_ajson=>create_empty(
+                    ii_custom_mapping = ir_attri->custom_mapper ).
+        INSERT VALUE #( mapper = ir_attri->custom_mapper
+                        ajson  = ajson ) INTO TABLE ct_mapper_cache.
+      ENDIF.
+    ELSE.
+      IF ci_default IS NOT BOUND.
+        ci_default = z2ui5_cl_ajson=>create_empty(
+                         ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+      ENDIF.
+      ajson = ci_default.
+    ENDIF.
+
+    ajson->set( iv_ignore_empty = abap_false
+                iv_path         = `/`
+                iv_val          = iv_val ).
+
+    IF ir_attri->custom_filter IS BOUND.
+      ajson = ajson->filter( ir_attri->custom_filter ).
+    ENDIF.
+
+    io_result->set( iv_path = ir_attri->name_client
+                    iv_val  = ajson ).
+
+  ENDMETHOD.
+
+  METHOD json_fast_set.
+
+    ev_taken = abap_false.
+    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
+        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
+        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
+      RETURN.
+    ENDIF.
+    DATA(lv_json) = attri_json_fast( ir_ref ).
+    IF lv_json IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " The tree keeps deciding the shape of the document - the order of the
+    " keys, a dissolved structure's nesting (/MS/T is an object MS around
+    " T) - so the attribute goes into it as a string node holding a token
+    " nobody else can hold (a uuid of this call plus a counter), and the
+    " token's quoted text is replaced by the JSON once the tree is text
+    " (json_fast_splice)
+    IF cs_fast-uuid IS INITIAL.
+      cs_fast-uuid = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    ENDIF.
+    DATA(ls_token) = VALUE ty_s_fast( token = |z2ui5-fast-{ cs_fast-uuid }-{ lines( cs_fast-t_token ) + 1 }|
+                                      json  = lv_json ).
+    APPEND ls_token TO cs_fast-t_token.
+    io_result->set( iv_path = ir_attri->name_client
+                    iv_val  = ls_token-token ).
+    ev_taken = abap_true.
+
+  ENDMETHOD.
+
+  METHOD json_fast_splice.
+
+    " each token's quoted text exactly once in the document, in the order
+    " the tree put them. Spliced by offset, not with replace( ): the
+    " transpiled runtime reads a `$` in a replacement text as a pattern
+    " (abap-check, section 4), and a bound value may well carry one
+    LOOP AT is_fast-t_token REFERENCE INTO DATA(lr_fast).
+      DATA(lv_quoted) = |"{ lr_fast->token }"|.
+      DATA(lv_off) = find( val = cv_json
+                           sub = lv_quoted ).
+      IF lv_off < 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `MODEL_FAST_PATH_TOKEN_LOST`.
+      ENDIF.
+      DATA(lv_rest) = lv_off + strlen( lv_quoted ).
+      cv_json = cv_json(lv_off) && lr_fast->json && cv_json+lv_rest.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD attri_json_fast.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+
+    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_flat_components( ir_ref ).
+    IF lines( lt_comp ) = 0.
+      RETURN.
+    ENDIF.
+    " ajson writes an object's members in the order of its node table,
+    " whose key is the name - the component order of the structure does
+    " not show in the text
+    SORT lt_comp BY name.
+
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
+      " the flat structure itself
+      ASSIGN ir_ref->* TO <row>.
+      result = json_row( is_row  = <row>
+                         it_comp = lt_comp ).
+      RETURN.
+    ENDIF.
+
+    " decided by RTTI first: ASSIGN to a typed field symbol dumps on a
+    " system when the kinds differ (abap-check, section 5)
+    ASSIGN ir_ref->* TO <tab>.
+    DATA lt_row TYPE string_table.
+    LOOP AT <tab> ASSIGNING <row>.
+      APPEND json_row( is_row  = <row>
+                       it_comp = lt_comp ) TO lt_row.
+    ENDLOOP.
+    result = `[` && concat_lines_of( table = lt_row
+                                     sep   = `,` ) && `]`.
+
+  ENDMETHOD.
+
+  METHOD json_row.
+
+    FIELD-SYMBOLS <cell> TYPE any.
+    DATA lt_member TYPE string_table.
+    DATA lv_text   TYPE string.
+
+    LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE is_row TO <cell>.
+      IF sy-subrc <> 0.
+        " the names come from the RTTI of this very row - loud rather than
+        " a document missing a column
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `MODEL_FAST_PATH_COMPONENT_LOST`.
+      ENDIF.
+      " the one rendering ajson uses for every elementary value: the string
+      " template, which decides the sign, the decimals and the exponent by
+      " the type of the cell - and the raw digits of a date or a time,
+      " which ajson's format_date / format_time (the model's instance is
+      " created with format_datetime) write as ISO text, empty when initial
+      lv_text = |{ <cell> }|.
+      CASE lr_comp->json_kind.
+        WHEN `S`.
+          lv_text = |"{ json_escape( lv_text ) }"|.
+        WHEN `D`.
+          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
+                            ELSE |"{ lv_text(4) }-{ lv_text+4(2) }-{ lv_text+6(2) }"| ).
+        WHEN `T`.
+          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
+                            ELSE |"{ lv_text(2) }:{ lv_text+2(2) }:{ lv_text+4(2) }"| ).
+        WHEN `B`.
+          lv_text = COND #( WHEN <cell> IS NOT INITIAL THEN `true` ELSE `false` ).
+      ENDCASE.
+      APPEND |"{ lr_comp->name }":{ lv_text }| TO lt_member.
+    ENDLOOP.
+    result = `{` && concat_lines_of( table = lt_member
+                                     sep   = `,` ) && `}`.
+
+  ENDMETHOD.
+
+  METHOD json_escape.
+
+    result = val.
+    IF result NA |"\\\t\n\r|.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\n|
+                      with = `\n`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\r|
+                      with = `\r`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\t|
+                      with = `\t`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `\"`
+                      occ  = 0 ).
+
   ENDMETHOD.
 
   METHOD json_bind_set.

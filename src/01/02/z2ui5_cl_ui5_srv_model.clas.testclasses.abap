@@ -482,7 +482,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     APPEND NEW ltcl_shp_inner( ) TO mt_apps.
     mt_apps[ 1 ]->mv_inner = `in-table`.
 
-    mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ cl_abap_char_utilities=>newline }second line|.
+    mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }second line|.
 
   ENDMETHOD.
 
@@ -695,8 +695,10 @@ CLASS ltcl_02_search DEFINITION DEFERRED.
 CLASS ltcl_03_model_out DEFINITION DEFERRED.
 CLASS ltcl_04_model_in DEFINITION DEFERRED.
 CLASS ltcl_05_draft DEFINITION DEFERRED.
+CLASS ltcl_06_fast_json DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_dissolve ltcl_02_search
-                                                     ltcl_03_model_out ltcl_04_model_in ltcl_05_draft.
+                                                     ltcl_03_model_out ltcl_04_model_in ltcl_05_draft
+                                                     ltcl_06_fast_json.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -4741,6 +4743,348 @@ CLASS ltcl_07_view_host IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_back->mt_table ) ).
     cl_abap_unit_assert=>assert_equals( exp = lv_before
+                                        act = mo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ---------------------------------------------------------------------------
+" 06 FAST JSON - a bound table of flat rows written directly, byte for byte
+" what ajson writes (attri_json_fast, json_fast_set, json_fast_splice)
+" ---------------------------------------------------------------------------
+CLASS ltcl_app_fast DEFINITION FINAL CREATE PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    TYPES:
+      BEGIN OF ty_s_row,
+        id    TYPE i,
+        name  TYPE string,
+        price TYPE p LENGTH 9 DECIMALS 2,
+        ok    TYPE abap_bool,
+        day   TYPE d,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    DATA mt_rows  TYPE ty_t_row.
+    DATA ms_head  TYPE ty_s_row.
+    DATA mv_title TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_fast IMPLEMENTATION.
+  METHOD z2ui5_if_app~main.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltcl_06_fast_json DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    " every elementary kind the fast path takes, in one row type (no
+    " decfloat16 and no int8: the transpiled runtime has no type for the
+    " first, 7.02 none for the second - both render through |{ }| like
+    " decfloat34 and i do)
+    TYPES:
+      BEGIN OF ty_s_kinds,
+        v_i      TYPE i,
+        v_int1   TYPE int1,
+        v_int2   TYPE int2,
+        v_p      TYPE p LENGTH 9 DECIMALS 2,
+        v_p0     TYPE p LENGTH 5 DECIMALS 0,
+        v_f      TYPE f,
+        v_dec34  TYPE decfloat34,
+        v_c      TYPE c LENGTH 10,
+        v_n      TYPE n LENGTH 5,
+        v_string TYPE string,
+        v_x      TYPE x LENGTH 2,
+        v_xstr   TYPE xstring,
+        v_d      TYPE d,
+        v_t      TYPE t,
+        v_bool   TYPE abap_bool,
+        v_xsd    TYPE xsdboolean,
+        za_last  TYPE string,
+        a_first  TYPE string,
+      END OF ty_s_kinds.
+    TYPES ty_t_kinds TYPE STANDARD TABLE OF ty_s_kinds WITH EMPTY KEY.
+    TYPES ty_t_kinds_sorted TYPE SORTED TABLE OF ty_s_kinds WITH UNIQUE KEY v_i.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        id   TYPE i,
+        s_in TYPE ltcl_app_fast=>ty_s_row,
+      END OF ty_s_nested.
+    TYPES ty_t_nested TYPE STANDARD TABLE OF ty_s_nested WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_stamp,
+        id TYPE i,
+        ts TYPE timestamp,
+      END OF ty_s_stamp.
+    TYPES ty_t_stamp TYPE STANDARD TABLE OF ty_s_stamp WITH EMPTY KEY.
+
+    DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
+
+    METHODS setup.
+
+    " the representative rows - specials, negatives, decimals, initial
+    METHODS rows
+      RETURNING
+        VALUE(result) TYPE ty_t_kinds.
+
+    " the general road: ajson under the upper-case mapping
+    METHODS ajson_text
+      IMPORTING
+        iv_val        TYPE any
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    METHODS every_kind_identical     FOR TESTING RAISING cx_static_check.
+    METHODS empty_table_identical    FOR TESTING RAISING cx_static_check.
+    METHODS flat_struct_identical    FOR TESTING RAISING cx_static_check.
+    METHODS keys_in_ajson_order      FOR TESTING RAISING cx_static_check.
+    METHODS escape_as_ajson          FOR TESTING RAISING cx_static_check.
+    METHODS not_taken_falls_back     FOR TESTING RAISING cx_static_check.
+    METHODS model_identical          FOR TESTING RAISING cx_static_check.
+    METHODS model_dollar_and_token   FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_06_fast_json IMPLEMENTATION.
+
+  METHOD setup.
+
+    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
+    CREATE DATA lr_attri.
+    mo_model = NEW #( attri = lr_attri
+                      app   = NEW ltcl_app_fast( ) ).
+
+  ENDMETHOD.
+
+  METHOD rows.
+
+    DATA ls_row TYPE ty_s_kinds.
+    " row 1: filled, with the characters the escaper handles and a few
+    " more a bound value may carry
+    ls_row-v_i      = 42.
+    ls_row-v_int1   = 255.
+    ls_row-v_int2   = -32768.
+    ls_row-v_p      = '1234567.89'.
+    ls_row-v_p0     = 12.
+    ls_row-v_f      = '12.5'.
+    ls_row-v_dec34  = '-1234.5678'.
+    ls_row-v_c      = 'ab c'.
+    ls_row-v_n      = '42'.
+    ls_row-v_string = `say "hi" \ tab` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                      && `nl` && z2ui5_cl_ui5_util_context=>cv_char_util_newline && `cr` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
+                      && ` { } [ ] / $& $1 <b>&amp;</b> ` && `\u00e9`.
+    ls_row-v_x      = 'A0FF'.
+    ls_row-v_xstr   = '0102'.
+    ls_row-v_d      = '20240229'.
+    ls_row-v_t      = '235959'.
+    ls_row-v_bool   = abap_true.
+    ls_row-v_xsd    = abap_true.
+    ls_row-za_last  = `z`.
+    ls_row-a_first  = `a`.
+    APPEND ls_row TO result.
+    " row 2: negatives and decimals
+    CLEAR ls_row.
+    ls_row-v_i     = -7.
+    ls_row-v_p     = '-0.01'.
+    ls_row-v_p0    = -99999.
+    ls_row-v_f     = '-0.000001'.
+    ls_row-v_dec34 = '123456789012345678901234567890'.
+    ls_row-v_c     = `"`.
+    ls_row-v_n     = '00007'.
+    ls_row-v_string = `\`.
+    APPEND ls_row TO result.
+    " row 3: everything initial
+    CLEAR ls_row.
+    APPEND ls_row TO result.
+
+  ENDMETHOD.
+
+  METHOD ajson_text.
+
+    result = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
+               )->set( iv_ignore_empty = abap_false
+                       iv_path         = `/`
+                       iv_val          = iv_val )->stringify( ).
+
+  ENDMETHOD.
+
+  METHOD every_kind_identical.
+
+    DATA(lt_rows) = rows( ).
+    DATA(lr_rows) = REF #( lt_rows ).
+
+    DATA(lv_act) = mo_model->attri_json_fast( lr_rows ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_act ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = lv_act ).
+    " and a few of the renderings, pinned - the compare above would also
+    " pass if both sides changed together
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":1234567.89` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":-0.01` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":0.00` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_BOOL":true` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_BOOL":false` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_D":"2024-02-29"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_T":"23:59:59"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_D":""` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_T":""` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_N":"00007"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_X":"A0FF"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_C":"ab c"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_INT2":-32768` ) ).
+
+  ENDMETHOD.
+
+  METHOD empty_table_identical.
+
+    DATA lt_rows TYPE ty_t_kinds.
+    DATA(lr_rows) = REF #( lt_rows ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `[]`
+                                        act = mo_model->attri_json_fast( lr_rows ) ).
+    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
+                                        act = mo_model->attri_json_fast( lr_rows ) ).
+
+  ENDMETHOD.
+
+  METHOD flat_struct_identical.
+
+    DATA(lt_rows) = rows( ).
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
+      cl_abap_unit_assert=>assert_equals( exp = ajson_text( lr_row->* )
+                                          act = mo_model->attri_json_fast( lr_row ) ).
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD keys_in_ajson_order.
+
+    " ajson writes the members of an object by name, not in component
+    " order - A_FIRST is the last component and the first key
+    DATA(lt_rows) = rows( ).
+    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CP `[{"A_FIRST":"a",*` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"ZA_LAST":"z"}` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_act
+                                                     sub = `"V_I":` ) < find( val = lv_act
+                                                                             sub  = `"V_INT1":` ) ) ).
+
+  ENDMETHOD.
+
+  METHOD escape_as_ajson.
+
+    " the string escaper against ajson's, character by character, for the
+    " characters it handles and the ones it leaves alone
+    DATA(lv_raw) = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+                   && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `/ $& \u0041 ` && `{}`.
+    DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/V`
+                                                        iv_val   = lv_raw )->stringify( ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp
+                                        act = |\{"V":"{ z2ui5_cl_ui5_srv_model=>json_escape( lv_raw ) }"\}| ).
+    " nothing to escape: the text itself
+    cl_abap_unit_assert=>assert_equals( exp = `plain`
+                                        act = z2ui5_cl_ui5_srv_model=>json_escape( `plain` ) ).
+
+  ENDMETHOD.
+
+  METHOD not_taken_falls_back.
+
+    " a nested structure in the row, a sorted table, a table of scalars, a
+    " scalar, a column typed timestamp (ajson converts it through the time
+    " zone): none of them is written here - the general road through ajson
+    " stays the reference for them
+    DATA lt_nested TYPE ty_t_nested.
+    DATA lt_sorted TYPE ty_t_kinds_sorted.
+    DATA lt_scalar TYPE string_table.
+    DATA lt_stamp  TYPE ty_t_stamp.
+    DATA lv_scalar TYPE string.
+    APPEND VALUE #( id = 1 ) TO lt_nested.
+    INSERT VALUE #( v_i = 1 ) INTO TABLE lt_sorted.
+    APPEND `x` TO lt_scalar.
+    APPEND VALUE #( id = 1 ts = '20240229230000' ) TO lt_stamp.
+
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_stamp ) ) ).
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_nested ) ) ).
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_sorted ) ) ).
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_scalar ) ) ).
+    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lv_scalar ) ) ).
+
+  ENDMETHOD.
+
+  METHOD model_identical.
+
+    " the whole model: a bound table and a bound structure through the fast
+    " path, a bound scalar through the tree - the document is what the
+    " tree alone wrote before (a string node per bound attribute)
+    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
+    lo_app->mt_rows = VALUE #( ( id = 1 name = `one` price = '1.50' ok = abap_true day = '20240101' )
+                               ( id = 2 name = `t"wo` )
+                               ( ) ).
+    lo_app->ms_head  = VALUE #( id = 9 name = `head` ).
+    lo_app->mv_title = `title`.
+    mo_model->main_attri_refresh( ).
+    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE name = `MT_ROWS` OR name = `MS_HEAD` OR name = `MV_TITLE`.
+      lr_attri->bind        = abap_true.
+      lr_attri->name_client = |/{ lr_attri->name }|.
+    ENDLOOP.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MT_ROWS`
+                 iv_val          = lo_app->mt_rows ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MS_HEAD`
+                 iv_val          = lo_app->ms_head ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MV_TITLE`
+                 iv_val          = lo_app->mv_title ).
+
+    DATA(lv_act) = mo_model->main_json_stringify( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
+                                        act = lv_act ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"MT_ROWS":[{"DAY":"2024-01-01","ID":1,"NAME":"one","OK":true,"PRICE":1.50},` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
+
+  ENDMETHOD.
+
+  METHOD model_dollar_and_token.
+
+    " values a splice must not read as anything: a `$&` and `$1` (what the
+    " transpiled runtime's replace( ) reads as a pattern), a value that
+    " looks like a token of this very path, in a cell and in the scalar
+    " the tree writes before the table
+    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
+    lo_app->mt_rows  = VALUE #( ( id = 1 name = `$& $1 $$ z2ui5-fast-x-1` ) ).
+    lo_app->mv_title = `"z2ui5-fast-` && `00000000000000000000000000000000-1"`.
+    mo_model->main_attri_refresh( ).
+    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE name = `MT_ROWS` OR name = `MV_TITLE`.
+      lr_attri->bind        = abap_true.
+      lr_attri->name_client = |/{ lr_attri->name }|.
+    ENDLOOP.
+
+    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MT_ROWS`
+                 iv_val          = lo_app->mt_rows ).
+    li_exp->set( iv_ignore_empty = abap_false
+                 iv_path         = `/MV_TITLE`
+                 iv_val          = lo_app->mv_title ).
+
+    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
                                         act = mo_model->main_json_stringify( ) ).
 
   ENDMETHOD.
