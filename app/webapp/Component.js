@@ -382,6 +382,10 @@ sap.ui.define(
         );
       },
 
+      // Fire-and-forget on purpose: the first roundtrip does not wait for
+      // the version info (a network fetch of sap-ui-version.json), and
+      // core/Session.js sends it on the first roundtrip that finds it
+      // loaded - alone, not with the device profile again.
       async _initVersionInfo() {
         try {
           const info = await VersionInfo.load();

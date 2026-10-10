@@ -67,6 +67,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // core/Session.js - the once-per-page-load send latches
       session: {
         configSent: false,
+        ui5Sent: false,
         liveSent: "",
         pending: null,
         locationSent: false,

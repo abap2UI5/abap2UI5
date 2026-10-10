@@ -28,6 +28,7 @@ function specContext(seed = {}) {
     server: { requestSeq: 0, inflight: new Set(), viewBuild: null, csrfToken: "" },
     session: {
       configSent: false,
+      ui5Sent: false,
       liveSent: "",
       pending: null,
       locationSent: false,

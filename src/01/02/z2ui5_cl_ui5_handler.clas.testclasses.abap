@@ -1393,6 +1393,8 @@ CLASS ltcl_02_response DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_session_launchpad FOR TESTING RAISING cx_static_check.
     METHODS test_session_from_draft FOR TESTING RAISING cx_static_check.
     METHODS test_session_new_device FOR TESTING RAISING cx_static_check.
+    " the UI5 version info arriving on a later roundtrip, alone
+    METHODS test_session_ui5_later FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1924,6 +1926,60 @@ CLASS ltcl_02_response IMPLEMENTATION.
                                         act = lo_handler->ms_request-s_front-s_device-orientation ).
     cl_abap_unit_assert=>assert_equals( exp = 900
                                         act = lo_handler->ms_request-s_front-s_device-resize-width ).
+
+  ENDMETHOD.
+
+  METHOD test_session_ui5_later.
+
+    " the first roundtrip of a page load carries the device block WITHOUT
+    " the version info (loaded asynchronously, the first paint does not
+    " wait for it); the roundtrip that brings S_UI5 alone merges it into
+    " the stored block - the device profile stays, the live fields merge as
+    " on any event roundtrip - and the next one is answered from the draft
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    lo_handler = NEW #( val = `` ).
+    lo_handler->ms_request-s_front-s_device-system      = `phone`.
+    lo_handler->ms_request-s_front-s_device-os-name     = `iOS`.
+    lo_handler->ms_request-s_front-s_device-orientation = `portrait`.
+    lo_handler->ms_request-s_front-origin               = `https://host`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_handler->mo_action->mo_app->ms_session-s_ui5 ).
+
+    CLEAR: lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-origin.
+    lo_handler->ms_request-s_front-s_ui5-version         = `1.120.0`.
+    lo_handler->ms_request-s_front-s_ui5-theme           = `sap_horizon`.
+    lo_handler->ms_request-s_front-s_device-orientation  = `landscape`.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_ui5-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `iOS`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-os-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `landscape`
+                                        act = lo_handler->mo_action->mo_app->ms_session-s_device-orientation ).
+    cl_abap_unit_assert=>assert_equals( exp = `https://host`
+                                        act = lo_handler->ms_request-s_front-origin ).
+    " this request reads like every other: the merged block
+    cl_abap_unit_assert=>assert_equals( exp = `phone`
+                                        act = lo_handler->ms_request-s_front-s_device-system ).
+
+    CLEAR: lo_handler->ms_request-s_front-s_device,
+           lo_handler->ms_request-s_front-s_ui5.
+
+    lo_handler->session_merge( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = lo_handler->ms_request-s_front-s_ui5-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
+                                        act = lo_handler->ms_request-s_front-s_ui5-theme ).
+    cl_abap_unit_assert=>assert_equals( exp = `landscape`
+                                        act = lo_handler->ms_request-s_front-s_device-orientation ).
 
   ENDMETHOD.
 

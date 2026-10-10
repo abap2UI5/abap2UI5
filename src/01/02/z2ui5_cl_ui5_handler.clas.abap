@@ -1234,12 +1234,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " roundtrip inside the FLP
     launchpad_derive( ).
 
-    " A request that CARRIES the block wins: that is the first roundtrip of a
-    " page load, and it is also how a draft reopened on a different device
-    " gets the new device's data instead of the one that created the draft.
-    " Every later roundtrip omits it and is answered from the draft.
-    IF ms_request-s_front-s_device-system IS NOT INITIAL
-        OR ms_request-s_front-s_ui5-version IS NOT INITIAL.
+    " A request that CARRIES the device block wins: that is the first
+    " roundtrip of a page load, and it is also how a draft reopened on a
+    " different device gets the new device's data instead of the one that
+    " created the draft. Every later roundtrip omits it and is answered from
+    " the draft. The UI5 version info is read below, on its own: the
+    " frontend loads it asynchronously and sends it alone on the first
+    " roundtrip that finds it loaded (core/Session.js), so a request
+    " carrying S_UI5 without the device block MERGES it into the stored
+    " block instead of standing in for the whole block (which wiped the
+    " stored device profile with an empty one).
+    IF ms_request-s_front-s_device-system IS NOT INITIAL.
 
       " keep the location trio: the block above has already merged it into
       " the request (stored or restored), and the first roundtrip of a page
@@ -1266,6 +1271,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         ENDTRY.
       ENDIF.
       RETURN.
+    ENDIF.
+
+    " the version info that arrived after the device block - stored, and
+    " read back for every later roundtrip like the rest of the block
+    IF ms_request-s_front-s_ui5-version IS NOT INITIAL.
+      mo_action->mo_app->ms_session-s_ui5 = ms_request-s_front-s_ui5.
     ENDIF.
 
     " Answer this roundtrip from the draft - but let the two device fields

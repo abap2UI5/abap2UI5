@@ -150,6 +150,50 @@ test("keeps sending until the version info has actually arrived", () => {
   expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
 });
 
+test("the version info that arrives after the first roundtrip travels alone", () => {
+  // the first roundtrip does not wait for VersionInfo.load - it goes out
+  // without S_UI5, and the static blocks it carried count as sent: the
+  // event roundtrip that finds the info loaded sends S_UI5 and nothing
+  // else (no device profile, no ComponentData again), once
+  const Session = loadSession(device());
+  const first = Session.config({ ComponentData: { a: 1 } });
+  expect(first.S_UI5).toBeUndefined();
+  expect(first.ComponentData).toEqual({ a: 1 });
+  Session.confirmSent(Session.takePending());
+
+  // still not loaded: nothing at all
+  expect(Session.config({ ComponentData: { a: 1 } }, "DRAFT1")).toEqual({});
+
+  // loaded now: the info alone
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({ S_UI5: { VERSION: "1.120.0" } });
+  // a dropped request does not latch - it travels again
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({ S_UI5: { VERSION: "1.120.0" } });
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+
+  // a page load sends everything again, the info included
+  const again = Session.config(CONFIG, undefined);
+  expect(again.S_UI5).toEqual({ VERSION: "1.120.0" });
+  expect(again.S_DEVICE.SYSTEM).toBeDefined();
+});
+
+test("the version info rides with a device change in the same request", () => {
+  const dev = device({ portrait: false, width: 900 });
+  const Session = loadSession(dev);
+  Session.config({});
+  Session.confirmSent(Session.takePending());
+
+  dev.orientation.portrait = true;
+  const out = Session.config(CONFIG, "DRAFT1");
+  expect(out.S_UI5).toEqual({ VERSION: "1.120.0" });
+  expect(Object.keys(out.S_DEVICE).sort()).toEqual(["ORIENTATION", "RESIZE"]);
+  expect(out.ComponentData).toBeUndefined();
+
+  // the token carries both, and both latch together
+  Session.confirmSent(Session.takePending());
+  expect(Session.config(CONFIG, "DRAFT1")).toEqual({});
+});
+
 // The latches are module state and outlive the component - an FLP re-launch
 // keeps the page alive. Component.exit calls reset( ) so the next launch
 // starts from the same state as a page load: the whole block again, the
@@ -167,6 +211,7 @@ test("reset() puts the send latches back to page-load state", () => {
   // a token built before the reset must not confirm anything afterwards
   expect(Session.takePending()).toBeNull();
   const out = Session.config(CONFIG, "DRAFT1");
+  // the whole block, the version info included - its own latch is reset too
   expect(out.S_UI5).toEqual({ VERSION: "1.120.0" });
   expect(out.S_DEVICE.OS).toEqual({ NAME: "Windows", VERSION: "11" });
   expect(Session.location("DRAFT1")).not.toBeNull();
