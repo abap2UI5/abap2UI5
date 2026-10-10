@@ -70,9 +70,16 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD get_bundle.
 
-    result = |sap.ui.require.preload(\{\n| &&
+    result = |(function () \{\n| &&
+             |  var entries = \{\n| &&
              entries( ) &&
-             |\});\n|.
+             |  \};\n| &&
+             |  sap.ui.require.preload(entries);\n| &&
+             |  sap.ui.require.preload(\{\n| &&
+             |    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],\n| &&
+             |    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]\n| &&
+             |  \});\n| &&
+             |\})();\n|.
 
   ENDMETHOD.
 
