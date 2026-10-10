@@ -119,6 +119,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
     CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
 
+    " The second name the bundle registers the component under (its
+    " Component.js and manifest.json under z2ui5/embed/frontend/, see
+    " BUNDLE_CLOSE in tools/app2abap/trans2abap.js), for a page whose own
+    " component is z2ui5 - abap2UI5/frontend-new, the BSP Z2UI5 a launchpad's
+    " target mappings name. The bundle's z2ui5/embed module tells the
+    " embedding control which name to create the component under.
+    CONSTANTS c_bundle_component TYPE string VALUE `z2ui5.embed.frontend`.
+
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
     " and set_response (security headers) need it; without the cache the user
     " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
@@ -906,6 +914,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " page of its own, whose URL the component leaves alone (Component.init,
     " core/Router.js) - a Fiori elements host routes by its hash.
     "
+    " Its componentName is the second name the bundle registers the
+    " component under (c_bundle_component): a page whose own component is
+    " z2ui5 has the name taken, and the control creates the frontend under
+    " this one instead.
+    "
     " Its nodePath is the path of this request as the SYSTEM saw it - the
     " ICF node, /sap/bc/z2ui5 - and it exists for the one thing the page
     " knows and the backend does not: how the page reached the node. A proxy
@@ -937,6 +950,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |sap.ui.define("z2ui5/embed", function () \{\n| &&
                   |  "use strict";\n| &&
                   |  return \{\n| &&
+                  |    componentName: "{ c_bundle_component }",\n| &&
                   |    componentData: \{\n| &&
                   |      embedded: true,\n| &&
                   |      nodePath: "{ _js_string_escape( iv_path ) }",\n| &&

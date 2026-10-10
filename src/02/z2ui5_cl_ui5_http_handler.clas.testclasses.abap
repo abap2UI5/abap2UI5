@@ -415,6 +415,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                        sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
+    " ...the component a second time, under the name the control creates it
+    " by when the page's own component is z2ui5 (abap2UI5/frontend-new)
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"]` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `componentName: "z2ui5.embed.frontend",` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `onInitComponent` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `ComponentSupport` ) ).
