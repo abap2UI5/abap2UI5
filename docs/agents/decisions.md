@@ -14,22 +14,40 @@ The following items may look like gaps but are intentional design choices:
 - **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here. What the framework does check is the **type**, not the user: `z2ui5_cl_ui5_action=>app_create` refuses a name whose class does not implement `z2ui5_if_app` from its RTTI descriptor (`rtti_check_class_impl_intf`) before anything is instantiated, so a URL cannot make the system load an arbitrary class pool — and the error says "does not implement" instead of "does not exist". That is a type check on the way to `CREATE OBJECT`, not an authorization hook, and it does not change the decision above.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
 - **The pre-main model snapshot in `z2ui5_cl_ui5_handler=>main_process` deliberately serializes a second time on delta roundtrips.** On a delta roundtrip it is the first of up to two full model serializations, and that is a decision, not an oversight: every variant that drops it trades that CPU pass for a full-model push over the wire. The full reasoning lives in the comment at that code site — do not re-propose it as a performance bug.
-- **The developer tools cannot be lazy-loaded out of the preload, and the
-  hard `sap.ui.define` dependencies in `devtools/DevTools.js` are deliberate.**
-  On an ABAP system every frontend file arrives in ONE
-  `sap.ui.require.preload` block inside the GET response
-  (`z2ui5_cl_ui5f_preload`), and the bootstrap sets the resource root to the
-  ICF node, which answers every GET with the shell page — so a module dropped
-  from that block is fetched as `text/html`, never defines, and the tools
-  simply do not open (rule 18 is the same constraint stated from the other
-  side). Requiring lazily *without* dropping them from the preload moves only
-  the factory execution, not the bytes; and `Console` and `Recorder` have to
-  install eagerly anyway, because a history collected after the problem is
-  worth nothing. Measured 2026-08-28: `devtools/` is 32.7% of the preload's
-  bytes and at most 23.2% of it could ever be deferred. Making that real is an
-  on-demand delivery path for a module the page did not receive — a design
-  change to the HTTP handler, not an edit to `DevTools.js`. The full reasoning
-  is in that file's header.
+- **The developer tools are split: the facade, the console capture and the
+  roundtrip recorder stay in the preload; the rest is the devtools bundle,
+  loaded on demand.** Until 2026-10-10 the whole of `devtools/` rode in the
+  shell's inline script, and the decision recorded here said it could not be
+  otherwise: on an ABAP system every frontend file arrived in ONE
+  `sap.ui.require.preload` block inside the GET response, the bootstrap sets
+  the resource root to the ICF node, which answers every GET with the shell
+  page — so a module dropped from that block was fetched as `text/html`,
+  never defined, and the tools simply did not open (rule 18 is the same
+  constraint stated from the other side). The premise changed when the
+  handler learned to serve a generated preload as a FILE under a URL
+  parameter with an ETag (`?z2ui5-bundle`, for the embed control): that is
+  the on-demand delivery path the old entry said was missing. The generator
+  now emits a second bundle — `z2ui5_cl_ui5f_preload=>get_devtools( )`, the
+  dialog, its fragment, the inspectors, the tabs, the picker, the live
+  editor, the report — served on `?z2ui5-bundle=devtools`
+  (`_http_get_devtools`, same headers and 304 as the embed bundle, a
+  validator of its own in `devtools_hash`), and `devtools/DevTools.js` loads
+  it with a `<script>` element the first time the tools are opened and
+  reaches the dialog's class through `sap.ui.require( )` afterwards — a
+  same-origin file under `script-src 'self'`, no inline script and no eval,
+  so rule 13 holds, and the CSP hash of the shell is still taken over the
+  inline script alone. What stays eager stays for the reason it always had:
+  `Console` and `Recorder` collect BEFORE the problem, and `DevTools.js` is
+  the facade the component installs. `trans2abap.js` decides the split
+  (`DEVTOOLS_EAGER`) and refuses a shell module that names a bundled one as
+  a `sap.ui.define` dependency — the failure the old entry described, caught
+  at generation time. Measured 2026-10-10 against the transpiled backend:
+  the GET shell went from 426,018 to 338,840 bytes uncompressed and from
+  98,177 to 76,708 gzipped (the devtools bundle is 89,749 bytes, 22,494
+  gzipped), see the changelog. A page without the
+  tools opened never asks for the bundle (`devtools-bundle` e2e). The old
+  numbers (2026-08-28: `devtools/` was 32.7% of the preload, 23.2% deferrable)
+  were the measurement this change was made on.
 - **An app implements `z2ui5_if_app` — there is deliberately NO app base
   class, and the dispatcher boilerplate is accepted.** Every app hand-writes
   the same `main( )` lifecycle branching (`check_on_init` / `check_on_event`

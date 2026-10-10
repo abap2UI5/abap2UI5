@@ -112,6 +112,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " one ICF node stays the direct way into abap2UI5.
     CONSTANTS c_bundle_param TYPE string VALUE `z2ui5-bundle`.
 
+    " The value of c_bundle_param that asks for the DEVTOOLS bundle instead:
+    " GET <node>?z2ui5-bundle=devtools answers the files of the developer
+    " tools the page does not carry (z2ui5_cl_ui5f_preload=>get_devtools),
+    " which z2ui5/devtools/DevTools.js loads with a <script> element the
+    " first time the tools are opened. A value of the one parameter, not a
+    " parameter of its own: ?z2ui5-devtools is the page's auto-open switch
+    " (the tools open on load), and a GET with it is the page as always.
+    CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
+
     " The sibling BSPs of the frontend (see the settings in _http_get): the
     " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own artefacts (z2ui5_ccc, customer-frontend-extension).
@@ -196,6 +205,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " a GET that asks for the devtools bundle - c_bundle_param with the
+    " value c_bundle_devtools
+    CLASS-METHODS _is_devtools_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " the frontend as a script of its own - see the method. iv_path is the
     " path of THIS request as the system saw it (ty_s_http_req-path), which
     " the module at the end of the script tells the embedding page
@@ -204,6 +221,19 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
+
+    " the developer tools as a script of their own - see the method
+    CLASS-METHODS _http_get_devtools
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the validator of a bundle response: the frontend bundle's, or the
+    " devtools bundle's, which changes with the devtools files alone
+    CLASS-METHODS _bundle_etag
+      IMPORTING
+        iv_devtools   TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE string.
 
     " a value for inside a double-quoted JavaScript string literal of the
     " bundle - the request path it carries (see the method)
@@ -878,6 +908,63 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _is_devtools_request.
+
+    " the one parameter with the one value - see c_bundle_devtools
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = c_bundle_devtools ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _bundle_etag.
+
+    " the frontend bundle's tag carries the build hash through _get_etag
+    " itself; the devtools bundle's files are not part of that digest (the
+    " hash is taken over the shell's script, which they are not in), so
+    " their own digest goes into the key - a redeployed developer tool
+    " changes the tag, a redeployed shell alone changes it too, harmlessly
+    IF iv_devtools = abap_true.
+      result = _get_etag( |{ c_bundle_param }={ c_bundle_devtools }:{ z2ui5_cl_ui5f_preload=>devtools_hash }| ).
+    ELSE.
+      result = _get_etag( c_bundle_param ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD _http_get_devtools.
+
+    " GET <node>?z2ui5-bundle=devtools - the developer tools as a script of
+    " their own: the dialog, its fragment, the inspectors, the tabs, the
+    " picker, the live editor, the report - every file of app/webapp/
+    " devtools/ the shell's inline script does not carry (the facade, the
+    " console capture and the roundtrip recorder stay in the shell: they
+    " have to run from the first roundtrip on). The same shape as the
+    " frontend bundle - sap.ui.require.preload( ) over the generated
+    " entries, nothing run, nothing evaluated from a string - and served
+    " the same way: as JavaScript, with nosniff, under a tag of its own
+    " (_bundle_etag) that a conditional GET revalidates to a bodyless 304.
+    " z2ui5/devtools/DevTools.js loads it with a <script> element of the
+    " page's origin the first time the tools are opened, which script-src
+    " 'self' allows - the page's CSP hash covers the inline script alone,
+    " and this is a file. No user or app data, the same for everybody.
+    DATA(lv_etag) = _bundle_etag( abap_true ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF _check_etag_match( iv_header = lv_if_none_match
+                          iv_etag   = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body          = z2ui5_cl_ui5f_preload=>get_devtools( ).
+    result-status_code   = 200.
+    result-status_reason = `OK`.
+
+  ENDMETHOD.
+
   METHOD _http_get_bundle.
 
     " GET <node>?z2ui5-bundle - the frontend of THIS installation as a script
@@ -1090,13 +1177,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " compare below stays for a 200 that reached this method without
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
-    " The bundle (?z2ui5-bundle) revalidates the same way, under its own tag
+    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools) revalidate the
+    " same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
-                            THEN _get_etag( c_bundle_param )
+                            THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1286,7 +1374,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
         CASE is_req-method.
           WHEN `GET`.
-            IF _is_bundle_request( is_req-t_params ) = abap_true.
+            IF _is_devtools_request( is_req-t_params ) = abap_true.
+              result = _http_get_devtools( ).
+            ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.
               result = _http_get( ).

@@ -221,8 +221,70 @@ const SCRIPT_CLOSE = [
 // GET of the node with ?z2ui5-bundle answers with (z2ui5_cl_ui5_http_handler
 // =>_http_get_bundle), for a page that embeds the component. Only the
 // registration: that page is running already, so nothing is started here.
+// The DEVTOOLS bundle (?z2ui5-bundle=devtools, _http_get_devtools) has the
+// same shape around the deferred files of devtools/ (see DEVTOOLS_EAGER).
 const BUNDLE_OPEN = ['sap.ui.require.preload({'];
 const BUNDLE_CLOSE = ['});'];
+
+// The developer tools are split in two. What has to be there from the
+// first roundtrip on stays in the shell's inline script and in the embed
+// bundle: devtools/DevTools.js (the facade the component installs - the
+// Ctrl+F12 shortcut, the auto open), Console.js and Recorder.js (a console
+// capture and a roundtrip history collected AFTER the problem are worth
+// nothing) and the three leaf modules those two require. Everything else
+// under devtools/ - the dialog, its fragment, the inspectors, the tabs, the
+// picker, the live editor, the report - is the DEVTOOLS BUNDLE, a second
+// generated script the handler serves on ?z2ui5-bundle=devtools, which
+// DevTools.js loads with a <script> element the first time the tools are
+// opened (rule 13: a file of the same origin, allowed by script-src 'self',
+// no eval and no inline script). The split halves nothing by accident: a
+// module of the shell that named a deferred one as a sap.ui.define
+// dependency would be fetched from the ICF node - which answers every GET
+// with the page - and would take the whole component down, so the
+// generation refuses it (assertNoEagerDependencyOnDeferred).
+const DEVTOOLS_DIR = 'devtools/';
+const DEVTOOLS_EAGER = new Set([
+    'devtools/DevTools.js',
+    'devtools/Console.js',
+    'devtools/Recorder.js',
+    // required by Console and Recorder
+    'devtools/Persist.js',
+    'devtools/Format.js',
+    'devtools/Diff.js',
+]);
+function isDeferredDevtools(relPath) {
+    return relPath.startsWith(DEVTOOLS_DIR) && !DEVTOOLS_EAGER.has(relPath);
+}
+
+// The sap.ui.define dependency arrays of a module's source: every quoted
+// module id inside the first array literal after `sap.ui.define(`.
+const DEFINE_DEPS = /sap\.ui\.define\(\s*\[([^\]]*)\]/;
+function defineDependencies(source) {
+    const match = DEFINE_DEPS.exec(source);
+    if (!match) return [];
+    return [...match[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
+}
+
+// Guard 4: no module outside the devtools bundle may depend on one inside
+// it - see DEVTOOLS_EAGER. `sources` maps the relative path of every .js
+// file to its source text.
+function assertNoEagerDependencyOnDeferred(sources) {
+    for (const [relPath, source] of sources) {
+        if (isDeferredDevtools(relPath)) continue;
+        for (const dep of defineDependencies(source)) {
+            if (!dep.startsWith('z2ui5/')) continue;
+            const depPath = `${dep.slice('z2ui5/'.length)}.js`;
+            if (isDeferredDevtools(depPath)) {
+                throw new Error(
+                    `${relPath}: sap.ui.define names ${dep}, a module of the devtools bundle - ` +
+                    'a module outside the bundle (the inline preload, the embed bundle) must reach it ' +
+                    'lazily through DevTools.js, or the file has to join DEVTOOLS_EAGER in ' +
+                    'tools/app2abap/trans2abap.js',
+                );
+            }
+        }
+    }
+}
 
 // One preload entry as the script text carries it: a .js file as the body of
 // a function, anything else as a single-quoted string literal.
@@ -234,6 +296,13 @@ function preloadEntryText({ urlPath, isJs, value }) {
 // returns it - what the browser hashes against the CSP's script-src.
 function inlineScript(entries) {
     return [...SCRIPT_OPEN, ...entries.map(preloadEntryText), ...SCRIPT_CLOSE].map((line) => `${line}\n`).join('');
+}
+
+// The complete text of a bundle script (get_bundle( ) without the embed
+// module the handler appends, get_devtools( )) - the devtools bundle's
+// validator is a digest of it.
+function bundleScript(entries) {
+    return [...BUNDLE_OPEN, ...entries.map(preloadEntryText), ...BUNDLE_CLOSE].map((line) => `${line}\n`).join('');
 }
 
 // A text as the body of an ABAP string template |...|: the four characters
@@ -337,10 +406,13 @@ function generateClassName(filePath) {
 // get_bundle( ) returns the same entries as a script of its own (BUNDLE_OPEN
 // / BUNDLE_CLOSE) - served as a file, not inline, so no hash is taken over
 // it. Both methods read the entries from one private method, so the class
-// carries every embedded file once.
-function buildPreloadClass(entries, buildHash, scriptHash) {
+// carries every embedded file once. get_devtools( ) is the devtools bundle
+// (DEVTOOLS_EAGER): the deferred files of devtools/ as a script of the same
+// shape, with devtools_hash - a digest of that script - as the validator the
+// handler's ETag for it carries, since build_hash does not see those files.
+function buildPreloadClass(entries, devtoolsEntries, buildHash, scriptHash, devtoolsHash) {
     const templateLines = (lines) => lines.map((line) => `|${abapTemplateText(line)}\\n|`);
-    const entryLines = entries.map(({ urlPath, className, isJs }) => {
+    const entryLine = ({ urlPath, className, isJs }) => {
         // A .js entry is a function body - the source is JavaScript and goes in
         // verbatim. Every other entry is a text resource embedded as a
         // single-quoted JS string literal, so its content must be escaped for
@@ -349,11 +421,13 @@ function buildPreloadClass(entries, buildHash, scriptHash) {
             return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
         }
         return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
-    });
+    };
     const concat = (parts) => parts.join(' &&\n             ');
     const script = concat([...templateLines(SCRIPT_OPEN), 'entries( )', ...templateLines(SCRIPT_CLOSE)]);
     const bundle = concat([...templateLines(BUNDLE_OPEN), 'entries( )', ...templateLines(BUNDLE_CLOSE)]);
-    const joined = concat(entryLines);
+    const devtools = concat([...templateLines(BUNDLE_OPEN), 'entries_devtools( )', ...templateLines(BUNDLE_CLOSE)]);
+    const joined = concat(entries.map(entryLine));
+    const joinedDevtools = concat(devtoolsEntries.map(entryLine));
     return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Embedded frontend resource, generated from app/webapp/ by
@@ -380,6 +454,13 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " character does not run at all, which the browser e2e legs would show
     CONSTANTS script_hash TYPE string VALUE '${scriptHash}'.
 
+    " a digest of the devtools bundle get_devtools( ) returns - the files
+    " of the developer tools the shell does not carry. The ETag of that
+    " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
+    " build_hash is taken over the shell's script alone and does not change
+    " with them
+    CONSTANTS devtools_hash TYPE string VALUE '${devtoolsHash}'.
+
     CLASS-METHODS get
       RETURNING
         VALUE(result) TYPE string.
@@ -391,11 +472,26 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the developer tools as a script of the same shape: the dialog, its
+    " fragment, the inspectors - everything under devtools/ the shell does
+    " not carry (tools/app2abap/trans2abap.js, DEVTOOLS_EAGER). Served on
+    " ?z2ui5-bundle=devtools (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
+    " and loaded by z2ui5/devtools/DevTools.js when the tools are opened
+    CLASS-METHODS get_devtools
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    " one line per embedded file - shared by get( ) and get_bundle( )
+    " one line per embedded file of the shell - shared by get( ) and
+    " get_bundle( )
     CLASS-METHODS entries
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one line per file of the devtools bundle - get_devtools( )
+    CLASS-METHODS entries_devtools
       RETURNING
         VALUE(result) TYPE string.
 
@@ -422,9 +518,21 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_devtools.
+
+    result = ${devtools}.
+
+  ENDMETHOD.
+
   METHOD entries.
 
     result = ${joined}.
+
+  ENDMETHOD.
+
+  METHOD entries_devtools.
+
+    result = ${joinedDevtools}.
 
   ENDMETHOD.
 
@@ -516,6 +624,9 @@ async function main() {
         // regardless of the filesystem's readdir order.
         const files = getAllFiles(sourceDir).sort();
         const preloadEntries = [];
+        const devtoolsEntries = [];
+        // the .js sources by relative path, for guard 4
+        const jsSources = new Map();
 
         // Class names ignore folders (cc/Foo.js and Foo.js would both map to
         // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
@@ -547,6 +658,7 @@ async function main() {
             if (file.endsWith('.js')) {
                 // ASCII first, against the author's own line numbers
                 assertSevenBitAscii(sourceContent, className);
+                jsSources.set(relPath, sourceContent);
                 sourceContent = await stripJsComments(sourceContent, file, relPath);
             }
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
@@ -559,9 +671,10 @@ async function main() {
             emit(xmlFilePath, `\uFEFF${xmlContent}`);
 
             // Collect the preload entry. index.html is the standalone dev
-            // page and is not preloaded by the generated GET response.
+            // page and is not preloaded by the generated GET response; the
+            // deferred files of devtools/ go into the devtools bundle.
             if (relPath !== 'index.html') {
-                preloadEntries.push({
+                (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
                     urlPath: `z2ui5/${relPath}`,
                     className: className.toLowerCase(),
                     isJs: file.endsWith('.js'),
@@ -576,7 +689,10 @@ async function main() {
         // Plain code-unit comparison, not localeCompare: the collation of
         // localeCompare depends on the host locale/ICU build, and the sort
         // order is committed output (src/01/03).
-        preloadEntries.sort((a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0));
+        const byUrlPath = (a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0);
+        preloadEntries.sort(byUrlPath);
+        devtoolsEntries.sort(byUrlPath);
+        assertNoEagerDependencyOnDeferred(jsSources);
         // One SHA-256 over the script text the page will carry, UTF-8 like the
         // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
         // bytes a browser hashes to decide whether the script may run.
@@ -585,9 +701,16 @@ async function main() {
         // travels in every GET response header
         const buildHash = digest.toString('hex').slice(0, 16);
         const scriptHash = `sha256-${digest.toString('base64')}`;
+        // the devtools bundle's own validator - served as a file, no CSP
+        // hash is taken over it, the ETag is what it is for
+        const devtoolsHash = crypto
+            .createHash('sha256')
+            .update(bundleScript(devtoolsEntries), 'utf8')
+            .digest('hex')
+            .slice(0, 16);
         emit(
             path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'),
-            buildPreloadClass(preloadEntries, buildHash, scriptHash),
+            buildPreloadClass(preloadEntries, devtoolsEntries, buildHash, scriptHash, devtoolsHash),
         );
         emit(
             path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
@@ -621,4 +744,13 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { formatAsAbapClass, embeddedValue, stripJsComments, assertSameProgram };
+module.exports = {
+    formatAsAbapClass,
+    embeddedValue,
+    stripJsComments,
+    assertSameProgram,
+    isDeferredDevtools,
+    defineDependencies,
+    assertNoEagerDependencyOnDeferred,
+    DEVTOOLS_EAGER,
+};

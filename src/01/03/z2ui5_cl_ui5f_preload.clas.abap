@@ -15,14 +15,21 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '77f9afc0865b4c7b'.
+    CONSTANTS build_hash TYPE string VALUE 'cd6b69b731e642b3'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-d/mvwIZbTHvNfXObsxxv4LBL07m8IQiEB4iFLj2WqYA='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-zWtptzHmQrPThn2AtYIRnFXgcATO0TbK6QUjiW6DLJU='.
+
+    " a digest of the devtools bundle get_devtools( ) returns - the files
+    " of the developer tools the shell does not carry. The ETag of that
+    " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
+    " build_hash is taken over the shell's script alone and does not change
+    " with them
+    CONSTANTS devtools_hash TYPE string VALUE 'f5b50c4359a45094'.
 
     CLASS-METHODS get
       RETURNING
@@ -35,11 +42,26 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " the developer tools as a script of the same shape: the dialog, its
+    " fragment, the inspectors - everything under devtools/ the shell does
+    " not carry (tools/app2abap/trans2abap.js, DEVTOOLS_EAGER). Served on
+    " ?z2ui5-bundle=devtools (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
+    " and loaded by z2ui5/devtools/DevTools.js when the tools are opened
+    CLASS-METHODS get_devtools
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    " one line per embedded file - shared by get( ) and get_bundle( )
+    " one line per embedded file of the shell - shared by get( ) and
+    " get_bundle( )
     CLASS-METHODS entries
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one line per file of the devtools bundle - get_devtools( )
+    CLASS-METHODS entries_devtools
       RETURNING
         VALUE(result) TYPE string.
 
@@ -72,6 +94,14 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
     result = |sap.ui.require.preload(\{\n| &&
              entries( ) &&
+             |\});\n|.
+
+  ENDMETHOD.
+
+  METHOD get_devtools.
+
+    result = |sap.ui.require.preload(\{\n| &&
+             entries_devtools( ) &&
              |\});\n|.
 
   ENDMETHOD.
@@ -125,29 +155,34 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/actions/Variants.js": function()\{{ z2ui5_cl_ui5f_variants_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/actions/ViewOps.js": function()\{{ z2ui5_cl_ui5f_viewops_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/css/style.css": '{ escape_js_literal( z2ui5_cl_ui5f_style_css=>get( ) ) }',| && |\n| &&
-             |      "z2ui5/devtools/AbapSource.js": function()\{{ z2ui5_cl_ui5f_abapsrc_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Bindings.js": function()\{{ z2ui5_cl_ui5f_bindings_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Console.js": function()\{{ z2ui5_cl_ui5f_console_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/DevTools.js": function()\{{ z2ui5_cl_ui5f_devtools_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
-             |      "z2ui5/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Diff.js": function()\{{ z2ui5_cl_ui5f_diff_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Format.js": function()\{{ z2ui5_cl_ui5f_dtformat_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Help.js": function()\{{ z2ui5_cl_ui5f_help_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Log.js": function()\{{ z2ui5_cl_ui5f_log_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Persist.js": function()\{{ z2ui5_cl_ui5f_persist_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Recorder.js": function()\{{ z2ui5_cl_ui5f_recorder_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Report.js": function()\{{ z2ui5_cl_ui5f_report_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/SlotXml.js": function()\{{ z2ui5_cl_ui5f_slotxml_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/devtools/Tabs.js": function()\{{ z2ui5_cl_ui5f_tabs_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_manifest=>get( ) ) }',| && |\n| &&
              |      "z2ui5/model/clipboard.js": function()\{{ z2ui5_cl_ui5f_clipbrd_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/formatter.js": function()\{{ z2ui5_cl_ui5f_format_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_ui5f_models_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/App.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_app_xml=>get( ) ) }',| && |\n|.
+
+  ENDMETHOD.
+
+  METHOD entries_devtools.
+
+    result = |      "z2ui5/devtools/AbapSource.js": function()\{{ z2ui5_cl_ui5f_abapsrc_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Bindings.js": function()\{{ z2ui5_cl_ui5f_bindings_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/DeveloperTools.fragment.xml": '{ escape_js_literal( z2ui5_cl_ui5f_dtools_xml=>get( ) ) }',| && |\n| &&
+             |      "z2ui5/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Help.js": function()\{{ z2ui5_cl_ui5f_help_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Log.js": function()\{{ z2ui5_cl_ui5f_log_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Report.js": function()\{{ z2ui5_cl_ui5f_report_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/SlotXml.js": function()\{{ z2ui5_cl_ui5f_slotxml_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Tabs.js": function()\{{ z2ui5_cl_ui5f_tabs_js=>get( ) }\},| && |\n|.
 
   ENDMETHOD.
 

@@ -399,7 +399,9 @@ again:
   report it as mass assignment.
 - **`changelog.txt`** is the changelog; no `CHANGELOG.md`.
 - **The second model serialization in `z2ui5_cl_ui5_handler=>main_process`** on delta roundtrips is deliberate.
-- **The developer tools stay in the preload** with their hard `sap.ui.define` dependencies.
+- **The developer tools are split** — the facade, the console capture and the recorder in the preload, the rest in
+  the devtools bundle (`?z2ui5-bundle=devtools`, loaded on the first Ctrl+F12); do not move a module across that line
+  without `tools/app2abap/trans2abap.js` (`DEVTOOLS_EAGER`), which refuses a shell module depending on a bundled one.
 - **No app base class and no lifecycle hooks on `z2ui5_if_app`**; the repeated dispatcher is not duplication.
 - **No named frontend-action wrappers on `z2ui5_if_client`** — `follow_up_action` stays the only API.
 - **Embedding as a reuse component goes as far as demand asked** — do not re-propose the rest as cleanup.

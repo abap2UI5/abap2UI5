@@ -26,39 +26,111 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/devtools/Console",` && |\n| &&
-             `    "z2ui5/devtools/DeveloperTools",` && |\n| &&
-             `    "z2ui5/devtools/Picker",` && |\n| &&
-             `    "z2ui5/devtools/Recorder",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Lib, Console, DeveloperTools, Picker, Recorder) => {` && |\n| &&
+             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
+             `  (Lib, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const AUTO_OPEN_PARAM = "z2ui5-devtools";` && |\n| &&
+             `` && |\n| &&
+             `    const BUNDLE_PARAM = "z2ui5-bundle";` && |\n| &&
+             `    const BUNDLE_DEVTOOLS = "devtools";` && |\n| &&
+             `` && |\n| &&
+             `    const DIALOG_MODULE = "z2ui5/devtools/DeveloperTools";` && |\n| &&
+             `    const PICKER_MODULE = "z2ui5/devtools/Picker";` && |\n| &&
              `` && |\n| &&
              `    function recordOf(ctx) {` && |\n| &&
              `      return ctx?.devtools || null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function bundleUrl(ctx) {` && |\n| &&
+             `      const base = ctx?.state?.url;` && |\n| &&
+             `      if (!base) return null;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const url = new URL(base, window.location.href);` && |\n| &&
+             `        url.hash = "";` && |\n| &&
+             `        url.searchParams.set(BUNDLE_PARAM, BUNDLE_DEVTOOLS);` && |\n| &&
+             `        return url.href;` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function loadScript(url) {` && |\n| &&
+             `      return new Promise((resolve, reject) => {` && |\n| &&
+             `        const script = document.createElement("script");` && |\n| &&
+             `        script.src = url;` && |\n| &&
+             `        script.async = true;` && |\n| &&
+             `        script.onload = () => resolve();` && |\n| &&
+             `        script.onerror = () =>` && |\n| &&
+             `          reject(new Error(``the devtools bundle could not be loaded: ${url}``));` && |\n| &&
+             `        document.head.appendChild(script);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function requireModules(names) {` && |\n| &&
+             `      return new Promise((resolve, reject) => {` && |\n| &&
+             `        sap.ui.require(names, (...modules) => resolve(modules), reject);` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function bundleFirst(ctx) {` && |\n| &&
+             `      const state = ctx?.state;` && |\n| &&
+             `      return Boolean(state?.checkLocal || state?.embedded);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function requireDialog(ctx) {` && |\n| &&
+             `      const record = recordOf(ctx);` && |\n| &&
+             `      if (!record) return Promise.resolve(null);` && |\n| &&
+             `      const loaded = sap.ui.require(DIALOG_MODULE);` && |\n| &&
+             `      if (loaded) return Promise.resolve(loaded);` && |\n| &&
+             `      if (!record.loading) {` && |\n| &&
+             `        const fromBundle = () => {` && |\n| &&
+             `          const url = bundleUrl(ctx);` && |\n| &&
+             `          return url` && |\n| &&
+             `            ? loadScript(url)` && |\n| &&
+             `            : Promise.reject(` && |\n| &&
+             `                new Error("no endpoint to load the devtools bundle from"),` && |\n| &&
+             `              );` && |\n| &&
+             `        };` && |\n| &&
+             `        const plain = () =>` && |\n| &&
+             `          requireModules([DIALOG_MODULE]).then(([Dialog]) => Dialog);` && |\n| &&
+             `        const load = bundleFirst(ctx)` && |\n| &&
+             `          ? fromBundle().then(plain)` && |\n| &&
+             `          : plain().catch(() => fromBundle().then(plain));` && |\n| &&
+             `        record.loading = load` && |\n| &&
+             `          .catch((e) => {` && |\n| &&
+             `            Lib.logError("DevTools: loading the developer tools failed", e);` && |\n| &&
+             `            return null;` && |\n| &&
+             `          })` && |\n| &&
+             `          .then((Dialog) => {` && |\n| &&
+             `            record.loading = null;` && |\n| &&
+             `            return Dialog;` && |\n| &&
+             `          });` && |\n| &&
+             `      }` && |\n| &&
+             `      return record.loading;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function get(ctx) {` && |\n| &&
              `      const record = recordOf(ctx);` && |\n| &&
-             `      if (!record) return null;` && |\n| &&
-             `      if (!record.tools) {` && |\n| &&
-             `        const tools = new DeveloperTools();` && |\n| &&
-             `        tools.ctx = ctx;` && |\n| &&
-             `        record.tools = tools;` && |\n| &&
-             `      }` && |\n| &&
-             `      return record.tools;` && |\n| &&
+             `      if (!record) return Promise.resolve(null);` && |\n| &&
+             `      if (record.tools) return Promise.resolve(record.tools);` && |\n| &&
+             `      return requireDialog(ctx).then((DeveloperTools) => {` && |\n| &&
+             `        if (!DeveloperTools || !record.keydown) return null;` && |\n| &&
+             `        if (!record.tools) {` && |\n| &&
+             `          const tools = new DeveloperTools();` && |\n| &&
+             `          tools.ctx = ctx;` && |\n| &&
+             `          record.tools = tools;` && |\n| &&
+             `        }` && |\n| &&
+             `        return record.tools;` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function toggle(ctx) {` && |\n| &&
-             `      get(ctx)?.toggle();` && |\n| &&
+             `      return get(ctx).then((tools) => tools?.toggle());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function show(ctx, tabKey) {` && |\n| &&
-             `      get(ctx)?.show(tabKey);` && |\n| &&
+             `      return get(ctx).then((tools) => tools?.show(tabKey));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function searchParams() {` && |\n| &&
@@ -81,10 +153,11 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function onErrorDetails(ctx) {` && |\n| &&
-             `      const dialog = get(ctx);` && |\n| &&
-             `      if (!dialog) return;` && |\n| &&
-             `      dialog.reopenErrorOnClose = true;` && |\n| &&
-             `      dialog.show("ERROR");` && |\n| &&
+             `      return get(ctx).then((dialog) => {` && |\n| &&
+             `        if (!dialog) return;` && |\n| &&
+             `        dialog.reopenErrorOnClose = true;` && |\n| &&
+             `        dialog.show("ERROR");` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function install(ctx) {` && |\n| &&
@@ -142,7 +215,9 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      Recorder.uninstall(ctx);` && |\n| &&
              `` && |\n| &&
-             `      Picker.stop(ctx);` && |\n| &&
+             `      sap.ui.require(PICKER_MODULE)?.stop(ctx);` && |\n| &&
+             `` && |\n| &&
+             `      record.loading = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
