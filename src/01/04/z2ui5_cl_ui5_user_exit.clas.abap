@@ -15,6 +15,23 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! Install the exit without the class lookup - for a host that is not an
+    "! SAP system and for tests. The lookup (exit_class_lookup) is a
+    "! repository read that answers nothing in such a runtime: it RAISES
+    "! there, and a raised lookup is deliberately not latched (see
+    "! get_instance), so every get_instance( ) of every request paid the
+    "! RTTI walk and the dynamic call again - three times per POST. The
+    "! host knows there is no repository, and says so here once.
+    "! An instance of this class installs the shipped defaults, latched as
+    "! "no exit installed". Any other implementation of z2ui5_if_ui5_exit
+    "! is installed the way the lookup installs a customer exit: called
+    "! through the shipped exit, which seeds the defaults first, and named
+    "! by get_user_exit_class( ). An unbound reference restores the lookup.
+    "! @parameter io_exit | the exit to use from now on
+    CLASS-METHODS set_instance
+      IMPORTING
+        io_exit TYPE REF TO z2ui5_if_ui5_exit.
+
   PROTECTED SECTION.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
     CLASS-DATA gi_user_exit     TYPE REF TO z2ui5_if_ui5_exit.
@@ -103,6 +120,35 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     gv_exit_class       = lv_class_name.
     gv_exit_class_known = lv_known.
     result = gi_me.
+
+  ENDMETHOD.
+
+  METHOD set_instance.
+
+    CLEAR gi_me.
+    CLEAR gi_user_exit.
+    CLEAR gi_user_exit_dep.
+    CLEAR gv_exit_class.
+    CLEAR gv_exit_class_known.
+
+    IF io_exit IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " the shipped exit itself: the defaults, and nothing to dispatch to -
+    " what the lookup answers on a system without an exit. Decided by the
+    " class, not the type of the reference: a subclass of the shipped exit
+    " is a customer exit like any other
+    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
+    IF z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( io_exit )
+         = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped ).
+      gi_me = io_exit.
+    ELSE.
+      gi_user_exit   = io_exit.
+      gi_me          = NEW z2ui5_cl_ui5_user_exit( ).
+      gv_exit_class  = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( io_exit ).
+    ENDIF.
+    gv_exit_class_known = abap_true.
 
   ENDMETHOD.
 
