@@ -38,6 +38,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `      cccResourceRoot: null,` && |\n| &&
              `      nodePath: null,` && |\n| &&
              `      embedded: false,` && |\n| &&
+             `      ownsHash: true,` && |\n| &&
              `` && |\n| &&
              `      oApp: null,` && |\n| &&
              `      oOwnerComponent: null,` && |\n| &&
@@ -110,6 +111,7 @@ CLASS z2ui5_cl_ui5f_appstate_js IMPLEMENTATION.
              `    "cccResourceRoot",` && |\n| &&
              `    "nodePath",` && |\n| &&
              `    "embedded",` && |\n| &&
+             `    "ownsHash",` && |\n| &&
              `    "oApp",` && |\n| &&
              `    "oOwnerComponent",` && |\n| &&
              `    "oDeviceModel",` && |\n| &&

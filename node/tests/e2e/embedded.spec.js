@@ -96,10 +96,11 @@ async function openHost(page, ui5Src, ui5Theme, endpoint = ENDPOINT) {
 // Create the component the way the control does and place it in #host1.
 // Resolves with the component id once Component.create has resolved.
 // `params` are further startup parameters of the app, one value each;
-// `endpoint` is what the control passes as the backend URL.
-function startApp(page, app, params = {}, endpoint = ENDPOINT) {
+// `endpoint` is what the control passes as the backend URL; `host` are the
+// further settings a host passes on the top level (ownsHash).
+function startApp(page, app, params = {}, endpoint = ENDPOINT, host = {}) {
   return page.evaluate(
-    ([appName, extra, endpoint]) =>
+    ([appName, extra, endpoint, host]) =>
       new Promise((resolve, reject) => {
         const embed = window.sap.ui.require("z2ui5/embed");
         window.sap.ui.require(
@@ -113,7 +114,7 @@ function startApp(page, app, params = {}, endpoint = ENDPOINT) {
               name: "z2ui5",
               manifest: true,
               handleValidation: true,
-              componentData: Object.assign({}, embed.componentData, {
+              componentData: Object.assign({}, embed.componentData, host, {
                 startupParameters,
                 endpoint,
               }),
@@ -129,7 +130,7 @@ function startApp(page, app, params = {}, endpoint = ENDPOINT) {
           reject,
         );
       }),
-    [app, params, endpoint],
+    [app, params, endpoint, host],
   );
 }
 
@@ -348,5 +349,51 @@ test.describe("an embedded app and the host's page", () => {
     await waitForApp(page, id);
     await expect(page.locator('input[id$="-inner"]').first()).toBeVisible();
     expect(await pageSetup()).toEqual(before);
+  });
+});
+
+// The URL hash. The bundle's component leaves it to the host - a Fiori
+// elements object page routes by it - and a routed app (zcl_tst_nav_hub,
+// hash_routing FRESH) neither writes a route nor reads one. A host whose page
+// is the one component and nothing else (abap2UI5/frontend-new) hands it
+// back with ownsHash: true, and the app routes as on its own page - a route
+// per app, browser Back and Forward between them (nav-back-forward.spec.js
+// on the backend's own page).
+test.describe("an embedded app and the URL hash", () => {
+  test.beforeEach(async ({ page, ui5Src, ui5Theme }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+    await openHost(page, ui5Src, ui5Theme);
+  });
+
+  test("a routed app leaves the host's hash alone", async ({ page }) => {
+    await page.evaluate(() => {
+      window.location.hash = "#Customers('1001')";
+    });
+    const id = await startApp(page, "zcl_tst_nav_hub");
+    await waitForApp(page, id);
+    await expect(page.getByText("hub-marker")).toBeVisible();
+    await page.getByRole("button", { name: "go-detail" }).click();
+    await expect(page.getByText("detail-marker")).toBeVisible();
+    expect(new URL(page.url()).hash).toBe("#Customers('1001')");
+  });
+
+  test("handed the hash, a routed app routes as on its own page", async ({
+    page,
+  }) => {
+    const id = await startApp(page, "zcl_tst_nav_hub", {}, ENDPOINT, {
+      ownsHash: true,
+    });
+    await waitForApp(page, id);
+    await expect(page.getByText("hub-marker")).toBeVisible();
+    await expect.poll(() => page.url()).toContain("#/app/ZCL_TST_NAV_HUB");
+
+    await page.getByRole("button", { name: "go-detail" }).click();
+    await expect(page.getByText("detail-marker")).toBeVisible();
+    await expect.poll(() => page.url()).toContain("#/app/ZCL_TST_NAV_DETAIL");
+
+    await page.goBack();
+    await expect(page.getByText("hub-marker")).toBeVisible();
+    await page.goForward();
+    await expect(page.getByText("detail-marker")).toBeVisible();
   });
 });

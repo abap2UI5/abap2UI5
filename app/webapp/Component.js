@@ -87,7 +87,8 @@ sap.ui.define(
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
         // its settings as component data, and so do the z2ui5/embed module
         // of ?z2ui5-bundle (embedded, nodePath) and a host app that embeds
-        // this component (endpoint, see below); they configure the frontend
+        // this component (endpoint, ownsHash, see below); they configure the
+        // frontend
         // and are not app data, so they are split off here and never travel
         // to the backend with the rest of the component data. In BSP and
         // Launchpad mode none of them is present.
@@ -97,6 +98,7 @@ sap.ui.define(
           cccResourceRoot,
           endpoint,
           embedded,
+          ownsHash,
           nodePath,
           ...componentData
         } = this.getComponentData() || {};
@@ -141,6 +143,20 @@ sap.ui.define(
             useFullScreenHeight: false,
           });
         }
+
+        // The URL hash of an embedded component is the host's - unless the
+        // host hands it back with ownsHash. A host whose page is this one
+        // component and nothing else (abap2UI5/frontend-new: a
+        // z2ui5.embed.Container filling an empty page) routes by nothing,
+        // and its app keeps what it has on a page of its own: hash routing,
+        // set_push_state / hash_replace, the hash listener, Back and Forward
+        // between routed apps, a route restored on reload. Opt-in, and read
+        // on the TOP level only like the endpoint: a launchpad link must not
+        // take the hash from a host that routes by it, and the bundle does
+        // not pass it - only a host does. One such component per page, the
+        // hash is page-wide (core/Context.js). The router and the request
+        // ask ownsHash, never embedded (core/Router.js, core/Server.js).
+        state.ownsHash = !state.embedded || ownsHash === true;
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:
