@@ -402,6 +402,10 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     " the runtime-built table after main( ) created that table again
     METHODS cells_of_two_tables     FOR TESTING RAISING cx_static_check.
     METHODS cell_after_recreate     FOR TESTING RAISING cx_static_check.
+    " the standard-table verdict is memoised with the component names: the
+    " memo only ever holds a table the check passed for, and a refused
+    " reference never replaces it
+    METHODS std_verdict_memoised    FOR TESTING RAISING cx_static_check.
     " the mapper and the filter of a cell bind land on the TABLE, and a
     " second cell with a different mapper is refused like a second _bind( )
     " of the table would be
@@ -655,6 +659,40 @@ CLASS ltcl_02_cell IMPLEMENTATION.
                        iv_text   = `BINDING_ERROR` ).
 
   ENDMETHOD.
+
+  METHOD std_verdict_memoised.
+
+    DATA lr_tab TYPE REF TO data.
+    lr_tab = REF #( mo_app->mt_tab ).
+
+    " nothing is memoised before the first cell bind
+    cl_abap_unit_assert=>assert_not_bound( mo_bind->mr_cell_tab ).
+
+    " the first cell of a table pays the describe and sets the memo to THAT
+    " reference - the one the verdict was answered for
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`
+                                        act = bind( ir_val    = cell_name( 1 )
+                                                    is_config = VALUE #( tab       = lr_tab
+                                                                         tab_index = 1 ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
+
+    " a reference that is no standard table is refused BEFORE anything is
+    " memoised for it, so the memo keeps naming the table it was set for -
+    " which is what lets the next cell of that table skip the describe
+    expect_bind_error( ir_val    = REF #( mo_app->ms_deep-input )
+                       is_config = VALUE #( tab       = REF #( mo_app->ms_deep )
+                                            tab_index = 1 )
+                       iv_text   = `no standard table` ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
+
+    " the second cell of the memoised table answers through the memo
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/NAME}`
+                                        act = bind( ir_val    = cell_name( 2 )
+                                                    is_config = VALUE #( tab       = lr_tab
+                                                                         tab_index = 2 ) ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -678,6 +716,11 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS later_plain_bind_keeps  FOR TESTING RAISING cx_static_check.
     " the same implementation again is no conflict
     METHODS same_impl_accepted      FOR TESTING RAISING cx_static_check.
+    " the same INSTANCE again is no conflict either, and asks no class name
+    METHODS same_instance_accepted  FOR TESTING RAISING cx_static_check.
+    " the class name of a stored implementation is asked once per service -
+    " a re-bind with a fresh instance reads it from the memo
+    METHODS impl_name_memoised      FOR TESTING RAISING cx_static_check.
     " a different mapper or filter for the same attribute is refused
     METHODS different_mapper_refused FOR TESTING RAISING cx_static_check.
     METHODS different_filter_refused FOR TESTING RAISING cx_static_check.
@@ -787,6 +830,59 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MV_VALUE}`
                                         act = lv_path ).
+
+  ENDMETHOD.
+
+  METHOD same_instance_accepted.
+
+    " an app that keeps its filter in an attribute hands the SAME object to
+    " every _bind( ) - the identity decides, no class name is looked up
+    DATA(lo_filter) = NEW ltcl_test_filter( ).
+
+    bind( ir_val    = REF #( mo_app->mv_value )
+          is_config = VALUE #( custom_filter = lo_filter ) ).
+    DATA(lv_path) = bind( ir_val    = REF #( mo_app->mv_value )
+                          is_config = VALUE #( custom_filter = lo_filter ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MV_VALUE}`
+                                        act = lv_path ).
+    cl_abap_unit_assert=>assert_initial( mo_bind->mt_impl_names ).
+
+  ENDMETHOD.
+
+  METHOD impl_name_memoised.
+
+    DATA(lo_stored) = NEW ltcl_test_filter( ).
+    DATA(lo_second) = NEW ltcl_test_filter( ).
+    DATA(lo_third)  = NEW ltcl_test_filter( ).
+
+    bind( ir_val    = REF #( mo_app->mv_value )
+          is_config = VALUE #( custom_filter = lo_stored ) ).
+    cl_abap_unit_assert=>assert_initial( mo_bind->mt_impl_names ).
+
+    " the first re-bind with a fresh instance asks for both names ...
+    bind( ir_val    = REF #( mo_app->mv_value )
+          is_config = VALUE #( custom_filter = lo_second ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( mo_bind->mt_impl_names ) ).
+
+    " ... the next one only for the new instance: the stored one is read
+    " from the memo, under the reference that is stored on the attribute
+    bind( ir_val    = REF #( mo_app->mv_value )
+          is_config = VALUE #( custom_filter = lo_third ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( mo_bind->mt_impl_names ) ).
+    READ TABLE mo_bind->mt_impl_names INTO DATA(ls_memo) WITH TABLE KEY ref = lo_stored.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_stored )
+                                        act = ls_memo-name ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_stored
+                                        act = mo_bind->mr_attri->custom_filter ).
+
+    " a different implementation is still told apart through the memo
+    expect_bind_error( ir_val    = REF #( mo_app->mv_value )
+                       is_config = VALUE #( custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
+                       iv_text   = `Two different filters` ).
 
   ENDMETHOD.
 
