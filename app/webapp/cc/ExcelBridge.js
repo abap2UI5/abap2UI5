@@ -46,7 +46,7 @@
 // run abap2UI5 itself and load Office.js: a host page of the add-in that
 // embeds the component (?z2ui5-bundle, abap2UI5/embed-control) or a page
 // of the system that loads it. What the add-in provides is described in
-// abap2UI5/office-addin.
+// abap2UI5-addons/office-addin.
 sap.ui.define(
   ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],
   (Control, Lib, Env) => {
