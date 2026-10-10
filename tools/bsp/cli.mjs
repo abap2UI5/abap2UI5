@@ -12,10 +12,11 @@ import { bspName, isSapName, sicfFileName } from "./lib/names.mjs";
 
 const HELP = `abap2ui5-bsp - a UI5 app as an abapGit BSP, and back
 
-  abap2ui5-bsp app2bsp [webapp] --name ZMYAPP [--out bsp] [--text "My app"]
+  abap2ui5-bsp app2bsp [webapp] --name ZMYAPP [--out bsp] [--text "My app"] [--package-text "..."]
       The app folder (default: webapp) as the BSP ZMYAPP, with its two ICF
       nodes, in an abapGit repository folder (default: bsp): .abapgit.xml
       and src/. Push that folder to git and pull it with abapGit.
+      --package-text describes the package (package.devc.xml; default: --text).
 
   abap2ui5-bsp bsp2app [folder] [--out webapp] [--name ZMYAPP] [--keep-mapping] [--force]
       The BSP in the folder (default: src) - what abapGit serializes - as an
