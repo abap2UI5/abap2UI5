@@ -773,4 +773,22 @@ test.describe("byteLength (UTF-8 size of a string)", () => {
     const { Lib } = loadLib();
     expect(Lib.byteLength(text)).toBe(5);
   });
+
+  // Lib.lazyByteLength - what Server.readHttp parks on the state: the
+  // count is a copy of the body, so it is taken on the first call only
+  test("lazyByteLength counts on the first call and remembers", () => {
+    let encodes = 0;
+    class CountingEncoder extends TextEncoder {
+      encode(value) {
+        encodes += 1;
+        return super.encode(value);
+      }
+    }
+    const { Lib } = loadLib({ TextEncoder: CountingEncoder });
+    const measure = Lib.lazyByteLength(text);
+    expect(encodes).toBe(0);
+    expect(measure()).toBe(10);
+    expect(measure()).toBe(10);
+    expect(encodes).toBe(1);
+  });
 });

@@ -743,6 +743,14 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return text.length;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function lazyByteLength(text) {` && |\n| &&
+             `    let bytes;` && |\n| &&
+             `    return () => {` && |\n| &&
+             `      if (bytes === undefined) bytes = byteLength(text);` && |\n| &&
+             `      return bytes;` && |\n| &&
+             `    };` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    errors,` && |\n| &&
              `    logError,` && |\n| &&
@@ -786,6 +794,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    hookCallback,` && |\n| &&
              `    normalizeEventArgs,` && |\n| &&
              `    byteLength,` && |\n| &&
+             `    lazyByteLength,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

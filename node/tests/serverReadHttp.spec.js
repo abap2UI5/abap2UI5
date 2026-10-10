@@ -492,7 +492,10 @@ test.describe("the roundtrip's own duration", () => {
 // The request size the developer tools' recorder shows as REQ, next to the
 // response size Resource Timing reports in bytes. It used to be the
 // serialized body's .length - UTF-16 code units, so every umlaut and every
-// CJK character was undercounted.
+// CJK character was undercounted. And it used to be counted on every
+// request: the count copies the body (TextEncoder.encode), so it is a
+// function now that the recorder calls when it is installed, and nothing
+// else ever does.
 test.describe("the request size", () => {
   test("is counted in UTF-8 bytes, not in UTF-16 code units", async () => {
     const env = load({ libSandbox: { TextEncoder } });
@@ -504,7 +507,29 @@ test.describe("the request size", () => {
 
     const sent = env.fetches[0].opts.body;
     // u-umlaut is 2 bytes and the euro sign 3, each one code unit
-    expect(env.ctx.state.lastRequestBytes).toBe(sent.length + 1 + 2);
-    expect(env.ctx.state.lastRequestBytes).toBe(Buffer.byteLength(sent));
+    expect(env.ctx.state.lastRequestBytes()).toBe(sent.length + 1 + 2);
+    expect(env.ctx.state.lastRequestBytes()).toBe(Buffer.byteLength(sent));
+  });
+
+  test("is not counted until something asks for it", async () => {
+    let encodes = 0;
+    class CountingEncoder extends TextEncoder {
+      encode(text) {
+        encodes += 1;
+        return super.encode(text);
+      }
+    }
+    const env = load({ libSandbox: { TextEncoder: CountingEncoder } });
+    await answer(env, response({ json: { S_FRONT: { ID: "X" } } }), {
+      S_FRONT: { EVENT: "SAVE" },
+    });
+    expect(typeof env.ctx.state.lastRequestBytes).toBe("function");
+    // the request went out without the body being copied for the count...
+    expect(encodes).toBe(0);
+    // ...which happens on the first call, and once
+    const bytes = env.ctx.state.lastRequestBytes();
+    expect(bytes).toBe(Buffer.byteLength(env.fetches[0].opts.body));
+    expect(env.ctx.state.lastRequestBytes()).toBe(bytes);
+    expect(encodes).toBe(1);
   });
 });

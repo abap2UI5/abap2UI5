@@ -1207,6 +1207,22 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return text.length;
   }
 
+  // The same number, computed on the first call and remembered: a function
+  // in place of the number, for a caller that may never ask. byteLength
+  // copies the whole text (TextEncoder.encode allocates it a second time
+  // as bytes), and Server.readHttp measured EVERY request body this way,
+  // on the hot path, for the one reader that wants the number - the
+  // developer tools' recorder, which is not installed on most pages. The
+  // closure keeps the text alive until the next request overwrites it,
+  // the way state.oBody keeps the object it was serialized from.
+  function lazyByteLength(text) {
+    let bytes;
+    return () => {
+      if (bytes === undefined) bytes = byteLength(text);
+      return bytes;
+    };
+  }
+
   return {
     errors,
     logError,
@@ -1250,5 +1266,6 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     hookCallback,
     normalizeEventArgs,
     byteLength,
+    lazyByteLength,
   };
 });

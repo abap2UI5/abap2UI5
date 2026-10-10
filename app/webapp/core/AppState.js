@@ -97,11 +97,14 @@
 //                     besides oResponse because the developer tools render
 //                     the raw payload
 //   contextId         stateful session id, header transport (Server)
-//   lastRequestBytes  size of the last request body as serialized
-//                     (Server.readHttp), in UTF-8 bytes - what goes on the
-//                     wire, the unit of the response size beside it; the
-//                     developer tools' recorder shows it as REQ so the body
-//                     is not serialized a second time for it
+//   lastRequestBytes  a function answering the size of the last request
+//                     body as serialized (Server.readHttp), in UTF-8 bytes
+//                     - what goes on the wire, the unit of the response
+//                     size beside it. A function, not the number: the
+//                     count copies the body (Lib.lazyByteLength) and is
+//                     paid on the first call only - by the developer
+//                     tools' recorder, which shows it as REQ and does not
+//                     serialize the body a second time for it
 //   lastRoundtripMs   the duration of the last successful roundtrip as the
 //                     browser saw it, POST to parsed response, in ms
 //                     (Server.readHttp) - the next request carries it to

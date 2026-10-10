@@ -398,11 +398,13 @@ sap.ui.define(
           // Step 1: send the request.
           let response;
           try {
-            // one shared number, not recorder code: whoever wants the
+            // one shared measure, not recorder code: whoever wants the
             // request size (the devtools recorder does) reads it here
             // instead of serializing the body a second time - in bytes, as
-            // the response size next to it is
-            ctx.state.lastRequestBytes = Lib.byteLength(body);
+            // the response size next to it is. Lazy: the count is a full
+            // copy of the body (Lib.byteLength), paid only when something
+            // asks, which on a page without the developer tools is never
+            ctx.state.lastRequestBytes = Lib.lazyByteLength(body);
             sentAt = Date.now();
             response = await this._post(ctx, body, signal);
             // A CSRF token layer in front of the backend - an SAP approuter

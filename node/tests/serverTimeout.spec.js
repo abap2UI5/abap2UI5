@@ -85,6 +85,7 @@ test.describe("the abort -> responseError -> Retry path", () => {
         "z2ui5/core/Lib": {
           isValidContextId: () => false,
           byteLength: (s) => s.length,
+          lazyByteLength: (s) => () => s.length,
         },
         "z2ui5/core/Session": { confirmSent: () => {} },
         "z2ui5/core/ErrorView": { reset: () => {} },

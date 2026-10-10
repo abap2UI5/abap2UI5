@@ -182,6 +182,26 @@ test.describe("Tier 1 - metadata", () => {
     expect(record.reqBytes).toBe(JSON.stringify({ value: body }).length);
   });
 
+  // Server.readHttp parks the measure of the body it sent as a FUNCTION
+  // (Lib.lazyByteLength) - the count is a copy of the body and is paid
+  // here, on the first call, never on the request's own way out
+  test("takes the request size from the lazy measure Server parked", () => {
+    const h = loadRecorder();
+    h.Recorder.install(h.ctx);
+    let calls = 0;
+    h.state.lastRequestBytes = () => {
+      calls += 1;
+      return 4711;
+    };
+    h.state.oBody = fakeRequest({ model: { NAME: "abc" } });
+    h.state.responseData = fakeResponse();
+    h.fireAfterRendering();
+
+    const [record] = h.Recorder.getRecords(h.ctx);
+    expect(record.reqBytes).toBe(4711);
+    expect(calls).toBe(1);
+  });
+
   test("keeps no payloads unless recording is switched on", () => {
     const h = loadRecorder();
     h.Recorder.install(h.ctx);
