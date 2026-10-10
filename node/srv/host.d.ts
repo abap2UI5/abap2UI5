@@ -27,7 +27,20 @@ export type Handler = (req: object, res: object) => Promise<void>;
 /** The `if_http_extension` class every request goes to: `"ZCL_SICF"`. */
 export const HANDLER_CLASS: string;
 
-export interface HandlerOptions {
+export interface InitOptions {
+  /**
+   * The host's own user exit: an instance of a transpiled ABAP class
+   * implementing `z2ui5_if_ui5_exit` (after its `constructor_()`), called
+   * through the shipped exit the way a customer exit is on a system. Unset,
+   * the shipped defaults are installed - either way once, so the framework
+   * never looks for an exit in a class repository this runtime does not have.
+   */
+  exit?: object;
+  /** How often the expired drafts are swept (default `DRAFT_SWEEP_MS`, five minutes); 0 or `false` leaves the timer off. */
+  draftSweepMs?: number | false;
+}
+
+export interface HandlerOptions extends InitOptions {
   /** Another `if_http_extension` class, transpiled into the same runtime, instead of `ZCL_SICF`. */
   handlerClass?: string;
 }
@@ -59,12 +72,32 @@ export interface CompressOptions {
   pages?: number;
 }
 
+/** The default of `draftSweepMs`: five minutes. */
+export const DRAFT_SWEEP_MS: number;
+
 /**
  * Boot the ABAP runtime once - the SQLite database, the schema, the
  * framework - then call `accelerate()`, which warns once on a runtime older
- * than the package names. Every call returns the first call's promise.
+ * than the package names, install the host's seams (the user exit and the
+ * live-container serializer) and arm the draft sweep. Every call returns the
+ * first call's promise, with the first call's options in force.
  */
-export function initialize(): Promise<void>;
+export function initialize(options?: InitOptions): Promise<void>;
+
+/**
+ * Drop the expired drafts - the rows of the draft table and the live
+ * containers behind them - inside `exclusive()`. What the timer runs; for a
+ * host that runs it itself. Resolves with how many containers went and how
+ * many are kept.
+ */
+export function sweepDrafts(): Promise<{ dropped: number; kept: number }>;
+
+/**
+ * Arm the timer that runs `sweepDrafts()` every `intervalMs`, or stop it with
+ * 0; without an argument, say what is in force. The timer never keeps the
+ * process alive on its own.
+ */
+export function configureDraftSweep(options?: { intervalMs?: number }): { intervalMs: number };
 
 /**
  * Run `fn` once no other request of this process is in the framework, and

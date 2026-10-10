@@ -33,12 +33,13 @@ UI5 itself comes from the CDN.
 | `serve({ port, host, allowedHosts })` | Boot the framework and listen. Resolves with the `http.Server` once it can answer. `host` unset binds every interface, `"127.0.0.1"` loopback only. Whatever the bind, it answers only requests addressed to `127.0.0.1`, `localhost`, `[::1]` or `host` itself (when that is a name, not `0.0.0.0`) and, when they carry an `Origin`, coming from a page there - anything else gets a 403, so a web page in the user's browser cannot drive the server through DNS rebinding. `allowedHosts` adds names (a container's service name, a LAN address), `"*"` answers any |
 | `createApp()` | The express app `serve()` listens with: `compress()`, the raw body parser and the handler on every path. Mount it under a path of your own app, or add middleware in front. `createApp({ compression: false })` leaves out the gzip (a proxy in front compresses anyway) |
 | `createHandler()` | The request handler alone, `(req, res) => Promise<void>` - for a server that is not express (see below) |
-| `initialize()` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`. Once per process; every call returns the first call's promise |
+| `initialize({ exit, draftSweepMs })` | Boot the ABAP runtime without serving: the SQLite database, the schema, the framework, then `accelerate()`, then the host's seams - the user exit (`exit`, yours, or the shipped defaults) and the live-container serializer - and the draft sweep timer (see [Persistence](#persistence)). Once per process; every call returns the first call's promise, with the first call's options in force. `serve()`, `createApp()` and `createHandler()` take the same two options and pass them on |
 | `accelerate()` | Installs nothing since `@abaplint/runtime` 2.13.96, which is linear on large tables by itself (see [Performance](#performance)); kept for the hosts that call it, also importable alone as `@abap2ui5/node-runtime/accelerate`. Returns `true` on a runtime from `RUNTIME_VERSION` on, `false` and a warning once on an older one |
 | `hostGuard({ host, allowedHosts })` | That Host/Origin check as a middleware, `(req, res, next)` - `serve()` puts it in front; `createApp()` and `createHandler()` leave it to the host that mounts them |
 | `compress()` | The gzip middleware `createApp()` puts in front, `(req, res, next)` - for an express app of your own that mounts `createHandler()` (see [Compression](#compression)); also importable alone, as `@abap2ui5/node-runtime/compress` |
 | `exclusive(fn)`, `withSession(req, res, fn)` | What `createHandler()` puts around every request: one request in the framework at a time, in its stateful session (see [Stateful sessions](#stateful-sessions)) - for a host that calls the shim itself |
 | `configureSessions({ ttlMs, max })`, `sessionCount()` | How long an idle stateful session is kept (30 minutes) and how many at most (1000); how many there are |
+| `sweepDrafts()`, `configureDraftSweep({ intervalMs })`, `DRAFT_SWEEP_MS` | Drop the expired drafts now (the table's rows and the live containers behind them, inside `exclusive()`); how often the timer does it (five minutes; 0 stops it) |
 | `HANDLER_CLASS` | `"ZCL_SICF"`, the `if_http_extension` class every request goes to |
 
 `express` is an optional peer dependency, version 4 (from 4.21) or 5:
@@ -315,6 +316,58 @@ at startup - which you implement in ABAP and transpile like an app.
 [cap2UI5](https://github.com/cap2UI5/cap2UI5) does exactly that for CAP: its
 drafts are a CDS entity.
 
+**The draft row carries an id, not the app's state.** On an SAP system the
+state goes into the row as asXML (`CALL TRANSFORMATION id`), which this
+runtime reproduces by walking the whole object graph with RTTI - to save and
+to load, on every click, the most expensive thing in a roundtrip here. In a
+process the object is still there on the next request, so `initialize()`
+installs `zcl_serializer_live` (`output/project/`, through the framework's
+seam `z2ui5_if_ui5_serializer`): the container stays live in the process
+behind the id the row carries. Two things follow. A draft lives as long as
+the process, which the in-memory table already decided. And an id answers
+the app **as it is now**, not as it was when the id was written - every
+roundtrip saves the same object under a new id, so a browser Back/Forward
+or a bookmark into an earlier roundtrip of the same app shows its latest
+state, and a retry after a failed roundtrip runs on the state the failed one
+left: the semantics of a stateful session (`client->set_session_stateful( )`)
+for every app. A store of your own that outlives the process (cap2UI5's
+entity) pairs with the shipped asXML serializer instead -
+`z2ui5_cl_ui5_app_cont=>set_serializer( )` with an unbound reference after
+`initialize()` puts it back.
+
+**Expired drafts are swept on a timer.** The framework sweeps the table only
+when an app cold-starts; a server nobody restarts, with apps that never
+cold-start again, grew without bound - and nothing in the framework sweeps
+the live containers. So `initialize()` arms a timer (`draftSweepMs`, five
+minutes; `0`/`false` leaves it off) that runs `sweepDrafts()` - the store's
+`cleanup( )` and the serializer's `sweep( )`, both below the draft expiry the
+user exit answers (`draft_exp_time_in_hours`, 4 by default), inside
+`exclusive()`. The timer never keeps the process alive on its own; a host
+that schedules its own maintenance calls `sweepDrafts()` itself.
+
+## The user exit
+
+On an SAP system the framework finds the installed user exit (the class
+implementing `z2ui5_if_ui5_exit`: theme, CSP, draft expiry, CSRF) in the
+class repository. This runtime has none - the lookup raises, and a raised
+lookup is deliberately asked again on the next request, so every request
+paid it three times over. `initialize()` installs the exit once instead,
+through `z2ui5_cl_ui5_user_exit=>set_instance( )`: the shipped defaults, or
+yours - `initialize({ exit })` with an instance of your transpiled exit
+class, called through the shipped exit the way a customer exit is on a
+system (the defaults seeded first, your class overriding what it wants):
+
+```js
+import { initialize, serve } from "@abap2ui5/node-runtime";
+import { zcl_my_exit } from "./apps/zcl_my_exit.clas.mjs";
+
+await initialize({ exit: await new zcl_my_exit().constructor_() });
+await serve({ port: 3000 });
+```
+
+The class is one of [your own apps](#your-own-apps): `INTERFACES
+z2ui5_if_ui5_exit`, transpiled and loaded like any other.
+
 ## What is inside
 
 | Path | |
@@ -322,7 +375,7 @@ drafts are a CDS entity.
 | `srv/host.mjs` | The entry point - everything above |
 | `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it installs nothing and imports nothing from `output/` |
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
-| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object in a folder per origin - `project/` the framework, `open-abap-core/` the ABAP standard library, `express-icf-shim/` the ICF layer (the layout of `@abaplint/transpiler-cli` 2.14; up to 1.146.0 every module sat directly in `output/`). The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
+| `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object in a folder per origin - `project/` the framework, the ICF handler `zcl_sicf` and the live-container serializer `zcl_serializer_live`, `open-abap-core/` the ABAP standard library, `express-icf-shim/` the ICF layer (the layout of `@abaplint/transpiler-cli` 2.14; up to 1.146.0 every module sat directly in `output/`). The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
 | `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
 | `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core at the recorded commit, the config, the transpile, `own-apps` |

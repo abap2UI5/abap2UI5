@@ -23,7 +23,8 @@
  *   output/           node/output - the transpiled framework: the boot
  *                     (init.mjs) at the top, below it one folder per origin
  *                     as @abaplint/transpiler-cli 2.14 writes it - project/
- *                     (the framework and ZCL_SICF), open-abap-core/,
+ *                     (the framework, ZCL_SICF and ZCL_SERIALIZER_LIVE),
+ *                     open-abap-core/,
  *                     express-icf-shim/ - WITHOUT the browser-test fixtures (below)
  *                     and WITHOUT the framework's own unit tests: the
  *                     manifest's `files` leaves out *.testclasses.mjs, the
@@ -61,8 +62,9 @@
  *                     again without the fixtures
  *
  * The browser-test fixtures stay in the checkout. node/srv holds the ICF
- * handler every host needs (zcl_sicf) next to the apps the Playwright
- * projects drive (zcl_tst_*), and prepare-transpile folds ALL of node/srv
+ * handler every host needs (zcl_sicf) and the draft serializer host.mjs
+ * installs (zcl_serializer_live) next to the apps the Playwright projects
+ * drive (zcl_tst_*), and prepare-transpile folds ALL of node/srv
  * into node/downport - so the fixtures are in node/output, and output/init.mjs
  * imports them and seeds their TADIR rows at boot. Packed as they are, every
  * host - a CAP project in production included - would start them on
@@ -138,6 +140,7 @@ const REQUIRED = [
   { path: "node/output/init.mjs", by: "npm run auto_transpile" },
   { path: "node/output/express-icf-shim/cl_express_icf_shim.clas.mjs", by: "npm run auto_transpile" },
   { path: "node/output/project/zcl_sicf.clas.mjs", by: "npm run auto_transpile" },
+  { path: "node/output/project/zcl_serializer_live.clas.mjs", by: "npm run auto_transpile" },
   { path: "node/setup/npm.README.md", by: "the checkout (the package README is committed)" },
 ];
 const missing = REQUIRED.filter((r) => !fs.existsSync(path.join(ROOT, r.path)));
@@ -199,8 +202,10 @@ template.abap2ui5 = {
 
 // --- the browser-test fixtures ---------------------------------------------
 /* Every ABAP object in node/srv that is not listed here is a fixture of the
- * repository's own browser tests and stays out of the package (header). */
-const SHIPPED_SRV = new Set(["zcl_sicf"]);
+ * repository's own browser tests and stays out of the package (header).
+ * zcl_serializer_live is what host.mjs installs as the draft serializer -
+ * every host needs it, like the ICF handler. */
+const SHIPPED_SRV = new Set(["zcl_sicf", "zcl_serializer_live"]);
 const FIXTURES = [...new Set(
   fs.readdirSync(path.join(ROOT, "node/srv"))
     .filter((f) => f.endsWith(".abap"))
@@ -294,7 +299,7 @@ try {
     "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "srv/hostguard.mjs", "setup/setup.mjs", "setup/own-apps.mjs",
     "output/init.mjs", "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "srv/hostguard.d.ts", "setup/transpile.mjs",
     "output/express-icf-shim/cl_express_icf_shim.clas.mjs", "output/project/zcl_sicf.clas.mjs",
-    "downport/02/z2ui5_if_app.intf.abap",
+    "output/project/zcl_serializer_live.clas.mjs", "downport/02/z2ui5_if_app.intf.abap",
   ];
   /* And every file the manifest itself points at: a bin, `types`, the target
    * of each export condition. COPIES is a list of its own, so a file named in

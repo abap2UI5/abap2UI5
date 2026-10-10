@@ -95,7 +95,7 @@ ABAP class of `node/srv` into the transpile, so `node/output` holds the
 `zcl_tst_*` apps the Playwright projects drive and `output/init.mjs` loads
 them at boot - packed as they were in 1.145.0, every host started them on
 `?app_start=`. `pack-npm.mjs` leaves out every `node/srv` object but
-`zcl_sicf` (derived from the folder, not from a prefix), strips their imports
+`zcl_sicf` and `zcl_serializer_live` (derived from the folder, not from a prefix), strips their imports
 and TADIR rows from `init.mjs` / `_init.mjs`, and refuses to pack when any
 fixture name is still in a file name or a file of the tarball. The checkout
 keeps them: `npm run express` and the browser projects run the unstripped
@@ -119,6 +119,7 @@ needs no frontend files.
 **`node/srv/host.mjs` is the entry point, and `npm run express` runs through
 it.** It exports `initialize()`, `createHandler()`, `createApp()`, `serve()`,
 `exclusive()`, `withSession()`, `configureSessions()`, `sessionCount()`,
+`sweepDrafts()`, `configureDraftSweep()`, `DRAFT_SWEEP_MS`,
 `accelerate()`, `compress()` and `HANDLER_CLASS`; `createHandler()`
 queues the requests through `exclusive()` - one in the framework at a time,
 because its per-request class-data and the shim's static server object exist
@@ -132,7 +133,19 @@ the header of `host.mjs`); `initialize()` calls
 `accelerate()`, which installs nothing - `@abaplint/runtime` from 2.13.96 on
 has the linear LOOP ... WHERE over a sorted primary key and CP itself - and
 warns once on an older runtime (`node/tests/accelerate.spec.js`; the file's
-header has the rest); `createApp()`
+header has the rest), then installs the host's seams in the framework's
+class-data - the user exit through `z2ui5_cl_ui5_user_exit=>set_instance( )`
+(the shipped defaults, or the host's `exit`), so the repository lookup that
+raises in this runtime and is deliberately not latched on a system is not
+paid three times per POST, and `node/srv/zcl_serializer_live` through
+`z2ui5_cl_ui5_app_cont=>set_serializer( )`, so the draft row carries an id
+and the container stays live behind it instead of being walked into asXML
+and back on every click - and arms the draft sweep, a timer that runs
+`sweepDrafts()` (the store's `cleanup( )` plus the serializer's `sweep( )`,
+inside `exclusive()`) every `draftSweepMs`, unref'd
+(`node/tests/hostSeams.spec.js`, which `test_node` runs; "THE SEAMS" and
+"DRAFT SWEEP" in the header of `host.mjs`, and `docs/agents/architecture-seams.md`
+for what the live container changes); `createApp()`
 puts `compress()` in front, the gzip the framework asks the ICF for and the
 express shim cannot give it, under an Apache-style `"<tag>-gzip"` ETag the
 framework's own `_check_etag_match` answers with a 304
