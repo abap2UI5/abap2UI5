@@ -73,6 +73,20 @@ Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
 (both still act on the host's history, as asked), and `PATHNAME`/`SEARCH`
 on the wire.
 
+**Done 2026-10-10 - the hash handed back.** A host whose page is the one
+component and nothing else - abap2UI5/frontend-new, a
+`z2ui5.embed.Container` filling an empty page - routes by nothing, and its
+app should route as on a page of its own. `componentData.ownsHash: true`
+(top level only, a boolean only, passed by a host and never by the bundle)
+lands in `state.ownsHash`, which `Component.init` derives as "not embedded,
+or handed back"; `core/Router.js` and `core/Server.js` ask `ownsHash`
+instead of `embedded`, so such a component listens to the hash, writes its
+routes and sends `HASH` again - hash routing, `set_push_state`,
+`hash_replace`, Back and Forward between routed apps, a route restored on
+reload. Everything else an embedded component does to stay out of the
+host's page (class globals, mobile setup, focus guard, restart in place)
+stays. One such component per page: the hash is page-wide.
+
 **Done 2026-09-29 - the focus.** An embedded app no longer takes the focus
 from the host page: `sap.m.App` holds its autofocus off until its first page
 has rendered (`controller/App.controller.js`), and SET_FOCUS, a CONTROL_BY_ID
