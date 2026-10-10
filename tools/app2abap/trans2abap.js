@@ -221,8 +221,29 @@ const SCRIPT_CLOSE = [
 // GET of the node with ?z2ui5-bundle answers with (z2ui5_cl_ui5_http_handler
 // =>_http_get_bundle), for a page that embeds the component. Only the
 // registration: that page is running already, so nothing is started here.
-const BUNDLE_OPEN = ['sap.ui.require.preload({'];
-const BUNDLE_CLOSE = ['});'];
+//
+// The component is registered a second time, as z2ui5.embed.frontend - its
+// Component.js and manifest.json under z2ui5/embed/frontend/, the SAME
+// function and text, so nothing is sent twice, and every other module stays
+// where it is. The page that embeds the component may be a component named
+// z2ui5 itself: abap2UI5/frontend-new is the BSP Z2UI5 with the component
+// z2ui5 that a launchpad's target mappings name, and its own
+// z2ui5/Component is defined before this script runs - the loader ignores a
+// preload of a module it has already, and the frontend's would never be
+// found under z2ui5. The z2ui5/embed module of the bundle names the second
+// name (componentName), and @abap2ui5/embed-control creates the component
+// under it. z2ui5/embed/ is the control's namespace; nothing is fetched
+// from it, both entries are preloaded.
+const BUNDLE_OPEN = ['(function () {', '  var entries = {'];
+const BUNDLE_CLOSE = [
+    '  };',
+    '  sap.ui.require.preload(entries);',
+    '  sap.ui.require.preload({',
+    '    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],',
+    '    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]',
+    '  });',
+    '})();',
+];
 
 // One preload entry as the script text carries it: a .js file as the body of
 // a function, anything else as a single-quoted string literal.

@@ -47,7 +47,9 @@ sap.ui.define(
     // this context's hashChanged listener on the page's one HashChanger.
     // The URL itself stays page-wide: every routed instance reacts to a
     // hash change, which is why an embedded instance (state.embedded) leaves
-    // the hash to its host - it neither listens (init) nor writes (sync).
+    // the hash to its host - it neither listens (init) nor writes (sync) -
+    // unless the host handed it back (state.ownsHash, Component.init). Both
+    // ask ownsHash alone.
 
     function hashChanger() {
       return HashChanger.getInstance();
@@ -540,8 +542,9 @@ sap.ui.define(
       // no route, no app hash, and above all not the per-roundtrip cleanup
       // at the end - its replaceHash("") wipes the host's own route, and a
       // Fiori elements app answers that by leaving its object page for the
-      // list. An embedded app that asks for routing or a hash gets neither.
-      if (ctx.state.embedded) return;
+      // list. An embedded app that asks for routing or a hash gets neither -
+      // unless its host handed the hash back (state.ownsHash).
+      if (!ctx.state.ownsHash) return;
       const ID = mOptions.id;
       try {
         applyMode(ctx, mOptions);
@@ -637,8 +640,11 @@ sap.ui.define(
       ctx.router.navigate = fnNavigate;
       // Embedded, there is no hash of ours to listen to, and the host has
       // initialized the HashChanger itself if it routes at all - a host
-      // route change is none of this component's business.
-      if (ctx.state.embedded) return;
+      // route change is none of this component's business. A host that
+      // handed the hash back (state.ownsHash) routes by nothing: the
+      // component listens and initializes the engine as on a page of its
+      // own.
+      if (!ctx.state.ownsHash) return;
       // Listening to the HashChanger's hashChanged event is what makes the
       // native browser Back/Forward buttons - and the FLP shell's back
       // button, which drives the same history - navigate between apps.

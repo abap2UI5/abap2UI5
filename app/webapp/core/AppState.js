@@ -43,7 +43,12 @@
 //   embedded          true when the component runs inside a page it does not
 //                     own - the z2ui5/embed module of ?z2ui5-bundle passes
 //                     it as component data, a host with a ComponentContainer
-//                     may pass it itself. The URL is the host's then: the
+//                     may pass it itself. The URL is the host's then,
+//                     unless the host hands it back with ownsHash
+//                     (Component.init)
+//   ownsHash          true when the component reads and writes the page's
+//                     URL hash: always on a page of its own, embedded only
+//                     when the host passed ownsHash: true. Without it the
 //                     router neither listens to nor writes the hash, and no
 //                     request reports it (Component.init)
 //
@@ -174,6 +179,7 @@ sap.ui.define([], () => {
       cccResourceRoot: null,
       nodePath: null,
       embedded: false,
+      ownsHash: true,
 
       // Views / controllers / UI5 objects
       oApp: null,
@@ -316,6 +322,7 @@ sap.ui.define([], () => {
     "cccResourceRoot",
     "nodePath",
     "embedded",
+    "ownsHash",
     "oApp",
     "oOwnerComponent",
     "oDeviceModel",
