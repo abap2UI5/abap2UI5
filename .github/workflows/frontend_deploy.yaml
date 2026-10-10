@@ -63,7 +63,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Leave empty to publish the four published branches through frontend's main, or name a renamed variant: standard_<name> | standard_v2_<name>"
+        description: "Leave empty to publish the four published branches through frontend's main, or name a renamed variant: standard_<name> | standard_v2_<name> - with __<backend> appended for a backend renamed with build-rename (standard_#abap2ui5#__#abap2ui5#)"
         required: false
         type: string
 
@@ -246,7 +246,10 @@ jobs:
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs "$BRANCH"
 
-    # In the workspace copy, so npx resolves the installed abaplint
+    # In the workspace copy, so npx resolves the installed abaplint. A
+    # variant with a renamed backend (__<backend>) lints against the branch
+    # rename_<backend> of this repository, so build-rename has to have run
+    # for that name first - otherwise the dependency clone fails here.
     - name: Lint the generated src
       if: startsWith(inputs.branch, 'standard') && !startsWith(inputs.branch, 'standard_v2')
       run: cd "$SOURCE" && npx abaplint

@@ -25,6 +25,21 @@
 // tools/bsp_rename). The frontend_deploy workflow builds and pushes
 // such branches on demand.
 //
+// A renamed BSP still calls the backend as z2ui5_cl_http_handler. For a
+// backend that was itself renamed (the build-rename workflow, branch
+// rename_<name>), the branch name carries the backend's name after a
+// double underscore and the handler calls <prefix>cl_http_handler instead:
+//
+//   standard_#abap2ui5#__#abap2ui5#   BSP /ABAP2UI5/UI5, handler calls
+//                                     /abap2ui5/cl_http_handler
+//   standard_v2_zmyui5__zmyui5        BSP ZMYUI5, handler calls
+//                                     zmyui5_cl_http_handler
+//
+// The abaplint config of such a tree takes the backend from the branch the
+// build-rename workflow pushed it to (rename_abap2ui5, rename_zmyui5), so
+// the lint of the tree sees the class the handler calls. That branch has to
+// exist - run build-rename first.
+//
 // Usage:  node tools/build-branches.mjs [branch ...]
 // Without arguments the four fixed branches are built; with arguments only
 // the named ones (so a frontend_deploy run builds exactly its branch).
@@ -64,6 +79,8 @@ import { banner } from "./branch-stamp.mjs";
 // The BSP itself is written by @abap2ui5/bsp (tools/bsp) - the same package
 // an app of any other project takes to become a BSP.
 import { writeFrontendBsp } from "./app2bsp/frontend-bsp.mjs";
+// The renamed backend a renamed BSP calls, and the branch it is published on.
+import { deriveBackend } from "./bsp_rename/rename-bsp.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const core = join(here, "..");
@@ -249,21 +266,48 @@ const BUILDERS = {
 // deployment identity (BSP, SICF node, handler class, file names) in the
 // generated src tree to <NAME>. Name validation (max. 15 characters, Z/Y
 // namespace warning, /NS/ names) is done by rename-bsp.mjs; it passes the
-// #ns#name notation through unchanged.
+// #ns#name notation through unchanged. <NAME>__<BACKEND> additionally
+// points the handler at a backend renamed to <BACKEND> (--backend, validated
+// there as well). The abaplint config of the tree is pointed at the branch
+// that carries the renamed backend, so a lint of the tree finds the class
+// the handler calls (frontend_deploy lints the standard trees).
+const BACKEND_DEP = '"url": "https://github.com/abap2UI5/abap2UI5",';
+function pointLintAtBackend(dir, backend) {
+  const file = join(dir, "abaplint.jsonc");
+  const lint = readFileSync(file, "utf8");
+  if (!lint.includes(BACKEND_DEP)) throw new Error(`${file}: ${BACKEND_DEP} not found`);
+  writeFileSync(file, lint.replace(BACKEND_DEP, `${BACKEND_DEP}\n      "branch": "${backend.branch}",`));
+}
+
 function renamedBuilder(branch) {
   for (const base of ["standard_v2", "standard"]) {
     const prefix = `${base}_`;
     if (!branch.startsWith(prefix)) continue;
-    const name = branch.slice(prefix.length);
+    const rest = branch.slice(prefix.length);
     // An empty name ("standard_v2_") is an error - it must not fall through to
     // the shorter base and be built there with "v2_" as the name.
-    if (!name) return null;
+    if (!rest) return null;
+    const [name, backend, ...more] = rest.split("__");
+    // "standard_x__" or "standard_x__y__z": no silent guess at what was meant
+    if (!name || backend === "" || more.length) return null;
     const buildBase = base === "standard" ? buildStandard : buildStandardV2;
+    // validated before anything is built, so a bad backend name fails fast
+    let dep = null;
+    if (backend) {
+      try {
+        dep = deriveBackend(backend);
+      } catch (error) {
+        console.error(`Invalid branch name '${branch}': ${error.message}`);
+        process.exit(1);
+      }
+    }
     return () => {
       buildBase(branch);
       execFileSync("node",
-        [join(here, "bsp_rename/rename-bsp.mjs"), name, "--yes", "--dir", "src"],
+        [join(here, "bsp_rename/rename-bsp.mjs"), name, "--yes", "--dir", "src",
+          ...(dep ? ["--backend", dep.prefix] : [])],
         { cwd: outDir(branch), stdio: "inherit" });
+      if (dep) pointLintAtBackend(outDir(branch), dep);
     };
   }
   return null;
@@ -282,7 +326,7 @@ const builds = branches.map((b) => {
   }
   const build = BUILDERS[b] ?? renamedBuilder(b);
   if (!build) {
-    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> also in the #ns#name spelling)`);
+    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> also in the #ns#name spelling, <name>__<backend> for a renamed backend)`);
     process.exit(1);
   }
   return build;
