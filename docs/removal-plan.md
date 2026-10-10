@@ -71,7 +71,7 @@ support case.
       and ran as inline script on the direct-start page - arbitrary code an
       exit could inject next to the frontend; frontend code an installation
       needs ships in its own BSP instead (`z2ui5_ccc`,
-      abap2UI5/customer-frontend-extension). `title` had not been read for
+      abap2UI5-addons/custom-controls-customer). `title` had not been read for
       a while: the page carries a constant `<title>` and a running app sets
       its own with `cs_event-set_title`. Ecosystem count at removal: **0**
       in `samples`, `samples-controls` and `samples-stack`. An exit that

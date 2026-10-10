@@ -114,7 +114,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     " The sibling BSPs of the frontend (see the settings in _http_get): the
     " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own artefacts (z2ui5_ccc, customer-frontend-extension).
+    " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
     " Handed to the component by the page and by the bundle alike.
     CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
     CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
@@ -794,7 +794,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own frontend artefacts (z2ui5_ccc,
-    " abap2UI5/customer-frontend-extension) each live in their own BSP, which
+    " abap2UI5-addons/custom-controls-customer) each live in their own BSP, which
     " the frontend finds through the reserved resourceRoots in manifest.json
     " ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc": "../z2ui5_ccc/"). Those paths are
     " siblings of the FRONTEND BSP, so they are only correct when the app is
