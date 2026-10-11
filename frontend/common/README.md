@@ -14,9 +14,11 @@ This repository contains an abap2UI5 frontend artefacts service. For more inform
 >                    frontend_deploy                        deliver
 >   app/webapp/  ──▶  build/  ──────────▶  main           ──────────▶  cloud
 >   (the webapp)      (each branch         result/<branch>             cloud_v2
->    + frontend/       as a committed      (all four trees,            standard
+>    + frontend/       as a committed      (all six trees,             standard
 >                      tree)               one commit per              standard_v2
->                                          change)                     (each: main
+>                                          change)                     cloud_new
+>                                                                      standard_new
+>                                                                      (each: main
 >                                                                      + one commit)
 >
 >                                          standard_<name> is built on demand
@@ -25,7 +27,7 @@ This repository contains an abap2UI5 frontend artefacts service. For more inform
 
 #### Branch
 
-Every branch is generated in [abap2UI5](https://github.com/abap2UI5/abap2UI5) — the webapp lives in `app/webapp` there, everything else a branch is built from in [`frontend/`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend) — and built there by `tools/build-branches.mjs` into the git-ignored `tools/out/`, never committed on that side. Its `frontend_deploy` workflow writes the four stamped trees as `result/<branch>` folders into one commit on `main` here, and the `deliver` workflow turns each folder into its branch: one commit on top of `main`, carrying the folder's content and nothing else. So every branch is always exactly one commit ahead of `main`, `main`'s history shows every change a branch ever received, and what arrives on a branch is what a pull request over there reviewed. Pull the one that matches your system:
+Every branch is generated in [abap2UI5](https://github.com/abap2UI5/abap2UI5) — the webapp lives in `app/webapp` there, everything else a branch is built from in [`frontend/`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend) — and built there by `tools/build-branches.mjs` into the git-ignored `tools/out/`, never committed on that side. Its `frontend_deploy` workflow writes the six stamped trees as `result/<branch>` folders into one commit on `main` here, and the `deliver` workflow turns each folder into its branch: one commit on top of `main`, carrying the folder's content and nothing else. So every branch is always exactly one commit ahead of `main`, `main`'s history shows every change a branch ever received, and what arrives on a branch is what a pull request over there reviewed. Pull the one that matches your system:
 
 | Name        | System                                                | UI5     | Built by |
 |-------------|-------------------------------------------------------|---------|-------|
@@ -33,6 +35,10 @@ Every branch is generated in [abap2UI5](https://github.com/abap2UI5/abap2UI5) �
 | cloud_v2    | S/4 Public Cloud, BTP ABAP Environment                | legacy-free (UI5 2.x) | `npm run frontend:cloud_v2` |
 | standard    | S/4 Private Cloud, S/4 On-Premise, R/3 NetWeaver >750 | classic | `npm run frontend:standard` |
 | standard_v2 | S/4 Private Cloud, S/4 On-Premise                     | legacy-free (UI5 2.x) | `npm run frontend:standard_v2` |
+| cloud_new   | S/4 Public Cloud, BTP ABAP Environment                | embed control | `npm run frontend:cloud_new` |
+| standard_new | S/4 Private Cloud, S/4 On-Premise, R/3 NetWeaver >750 | embed control | `npm run frontend:standard_new` |
+
+The `_new` branches carry no copy of the abap2UI5 frontend: their app is one view with one [`z2ui5.embed.Container`](https://www.npmjs.com/package/@abap2ui5/embed-control), which loads the frontend from the backend it runs against — an abap2UI5 update needs no frontend pull any more. Same objects, names, endpoints and launchpad settings as `cloud` and `standard` - a system switches between the branches by pulling another one, and launchpad target mappings and external links keep working (checked on every build by `tools/check-identity.mjs`); they need an abap2UI5 newer than 1.146.0. The app lives in [`frontend/embed`](https://github.com/abap2UI5/abap2UI5/tree/main/frontend/embed) of abap2UI5, and each of the two branches has a README of its own.
 
 `main` carries this repository's own docs plus the machine-written `result/` trees — it is not a source either: a hand edit to `result/` is overwritten by the next delivery.
 
@@ -42,8 +48,8 @@ Nothing in this repository is written by hand any more. A change made to a gener
 
 | Content | Owned by |
 |---|---|
-| `result/` on `main` | [abap2UI5](https://github.com/abap2UI5/abap2UI5) — its `frontend_deploy` workflow commits the four finished trees, one commit per content change |
-| every branch (`cloud`, `cloud_v2`, `standard`, `standard_v2`) | the `deliver` workflow here — each branch is `main` plus one commit carrying its `result/<branch>` content |
+| `result/` on `main` | [abap2UI5](https://github.com/abap2UI5/abap2UI5) — its `frontend_deploy` workflow commits the six finished trees, one commit per content change |
+| every branch (`cloud`, `cloud_v2`, `standard`, `standard_v2`, `cloud_new`, `standard_new`) | the `deliver` workflow here — each branch is `main` plus one commit carrying its `result/<branch>` content |
 | `standard_<name>` | [abap2UI5](https://github.com/abap2UI5/abap2UI5) — built on demand by a `frontend_deploy` dispatch and pushed straight onto the branch |
 | this repository's docs (`main`) | here, as a maintenance pull request |
 
