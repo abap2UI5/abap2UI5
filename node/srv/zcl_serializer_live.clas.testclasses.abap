@@ -33,10 +33,15 @@ CLASS ltcl_test DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
-    " parse( stringify( container ) ) answers the SAME container, with its
-    " app and its state - the identity is the whole point
+    " the first parse( stringify( container ) ) answers the SAME container,
+    " with its app and its state - the identity is the whole point
     METHODS test_roundtrip_identity   FOR TESTING RAISING cx_static_check.
-    " every stringify hands out an id of its own, also for the same object
+    " a second parse of the id answers the state it named, not the state
+    " the roundtrip that got the live object left (the retry of a lost
+    " response, session.id-reuse)
+    METHODS test_reuse_is_snapshot    FOR TESTING RAISING cx_static_check.
+    " every stringify hands out an id of its own, also for the same object,
+    " and each id answers the state of its own stringify
     METHODS test_id_per_stringify     FOR TESTING RAISING cx_static_check.
     " an empty input is a first roundtrip - unbound, like the shipped one
     METHODS test_parse_empty          FOR TESTING RAISING cx_static_check.
@@ -94,29 +99,62 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `DRAFT-one`
                                         act = lo_back->ms_draft-id ).
 
-    " ... and as often as asked - the id is not consumed by a parse
+  ENDMETHOD.
+
+  METHOD test_reuse_is_snapshot.
+
+    DATA(lo_cont) = container( `one` ).
+    DATA(lv_id) = mo_serializer->stringify( lo_cont ).
+
+    " the roundtrip that gets the live object changes it ...
+    DATA lo_back TYPE REF TO z2ui5_cl_ui5_app_cont.
     lo_back ?= mo_serializer->parse( lv_id ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_back = lo_cont ) ).
+    DATA lo_live TYPE REF TO ltcl_app.
+    lo_live ?= lo_back->mo_app.
+    lo_live->mv_value = `changed`.
+
+    " ... and the id, asked again, answers what it named - from the
+    " snapshot, so another object, and the id is not consumed
+    DO 2 TIMES.
+      lo_back ?= mo_serializer->parse( lv_id ).
+      cl_abap_unit_assert=>assert_false( xsdbool( lo_back = lo_cont ) ).
+      cl_abap_unit_assert=>assert_equals( exp = `one`
+                                          act = CAST ltcl_app( lo_back->mo_app )->mv_value ).
+      cl_abap_unit_assert=>assert_equals( exp = `DRAFT-one`
+                                          act = lo_back->ms_draft-id ).
+    ENDDO.
 
   ENDMETHOD.
 
   METHOD test_id_per_stringify.
 
     DATA(lo_cont) = container( `one` ).
-    DATA(lv_first)  = mo_serializer->stringify( lo_cont ).
+    DATA(lv_first) = mo_serializer->stringify( lo_cont ).
+
+    " the same object saved again, changed and under a draft of its own,
+    " without the first id ever being asked for
+    DATA lo_app TYPE REF TO ltcl_app.
+    lo_app ?= lo_cont->mo_app.
+    lo_app->mv_value = `two`.
+    lo_cont->ms_draft-id = `DRAFT-two`.
     DATA(lv_second) = mo_serializer->stringify( lo_cont ).
 
     cl_abap_unit_assert=>assert_differs( exp = lv_first
                                          act = lv_second ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = zcl_serializer_live=>count_entries( ) ).
-    " both ids name the one object - the state it HAS, not a copy
-    DATA lo_app TYPE REF TO ltcl_app.
-    lo_app ?= lo_cont->mo_app.
-    lo_app->mv_value = `changed`.
+
+    " the first id answers its own state, not the object as it is now
     DATA lo_back TYPE REF TO z2ui5_cl_ui5_app_cont.
     lo_back ?= mo_serializer->parse( lv_first ).
-    cl_abap_unit_assert=>assert_equals( exp = `changed`
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_back = lo_cont ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `one`
+                                        act = CAST ltcl_app( lo_back->mo_app )->mv_value ).
+
+    " the second is the live object
+    lo_back ?= mo_serializer->parse( lv_second ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back = lo_cont ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `two`
                                         act = CAST ltcl_app( lo_back->mo_app )->mv_value ).
 
   ENDMETHOD.

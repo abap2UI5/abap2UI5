@@ -12,7 +12,8 @@ Legend
 
 unreleased
 ----------
-+ Frontend delivery: the branches standard_new and cloud_new of abap2UI5/frontend - the app around @abap2ui5/embed-control (one z2ui5.embed.Container filling the page, the frontend loaded from the backend through ?z2ui5-bundle), formerly the repository abap2UI5/frontend-new and now frontend/embed here. Built by tools/build-branches.mjs and delivered through result/<branch> like the other four: standard_new is the BSP Z2UI5 with the control under thirdparty/, cloud_new the app as a Fiori project next to the HTTP service, its endpoint /sap/bc/http/sap/z2ui5. Every name, endpoint and launchpad setting as on standard and cloud - a system switches between the branches by pulling another one, and tools/check-identity.mjs (npm run check:frontend) holds every branch to the identity of standard and cloud; startup parameters reach t_comp_params as from the classic frontend (first value each). The handler calls z2ui5_cl_ui5_http_handler. Needs an abap2UI5 newer than 1.146.0
+* @abap2ui5/node-runtime: a draft is a snapshot again - an earlier draft id (the retry of a lost response, a browser Back/Forward, a bookmark into an earlier roundtrip) continues from the state it named, as abap2UI5/protocol requires (session.id-reuse). Since 1.147.0 zcl_serializer_live answered every id with the app as it was now; it now keeps the asXML of the shipped serializer next to the live container and hands out the live object only on the first load of an id, so a roundtrip still saves the parse but pays the asXML stringify again
+
 
 2026-10-11 v1.147.0
 -------------------
