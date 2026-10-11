@@ -1,0 +1,40 @@
+specVersion: "4.0"
+metadata:
+  name: z2ui5
+type: application
+framework:
+  name: OpenUI5
+  version: "1.136.21"
+  # The abap2UI5 apps load whatever library their ABAP views name. `ui5
+  # serve` serves only the libraries listed here - on a system the BSP gets
+  # every library the system's UI5 has, so this list is for the dev server
+  # only. abap2UI5's developer tools (Ctrl+F12) need sap.ui.codeeditor.
+  libraries:
+    - name: sap.m
+    - name: sap.ui.core
+    - name: sap.ui.layout
+    - name: sap.ui.codeeditor
+    - name: sap.f
+    - name: sap.uxap
+    - name: sap.ui.table
+    - name: sap.ui.unified
+    - name: themelib_sap_horizon
+# The control comes from npm; `ui5 build` copies it into
+# dist/thirdparty/z2ui5/embed/ because it is named here. The abap2UI5
+# frontend is no part of the build: the control loads it from the backend.
+builder:
+  settings:
+    includeDependency:
+      - "@abap2ui5/embed-control"
+server:
+  customMiddleware:
+    # /sap/** goes to the SAP system that runs abap2UI5: its URL here, user
+    # and password in .env (.env.example). The proxy sends X-Forwarded-Host,
+    # which abap2UI5's CSRF check compares the browser's Origin with.
+    # `npm run start-local` runs against abap2UI5 in Node instead
+    # (ui5-local.yaml).
+    - name: ui5-middleware-simpleproxy
+      afterMiddleware: compression
+      mountPath: /sap
+      configuration:
+        baseUri: https://my-sap-system:44300/sap
