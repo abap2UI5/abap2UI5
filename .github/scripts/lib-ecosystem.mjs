@@ -75,13 +75,16 @@ const REPOS = [
   { org: 'abap2UI5-addons', repo: 'config-management' },
   /* Added 2026-10-10: two source repositories with a package.json that no
    * gate read. http-connector publishes from `standard`, not `main`, so its
-   * entry names the branch the raw read takes. Not yet listed, because their
-   * published main does not meet the rule yet (measured 2026-10-10):
-   * abap-agent-runtime and admin-cockpit (no .nvmrc, no `test` script),
-   * abap-cloud-gui (no .nvmrc). Add each once it does. launchpad-kpi has no
+   * entry names the branch the raw read takes. launchpad-kpi has no
    * package.json, the config-management case above. */
   { org: 'abap2UI5-addons', repo: 'http-connector', branch: 'standard' },
   { org: 'abap2UI5-addons', repo: 'rfc-connector' },
+  /* Added 2026-10-11, once their main met the rule: abap-agent-runtime and
+   * admin-cockpit got .nvmrc and a `test` script (abap-agent-runtime#9,
+   * admin-cockpit#21), abap-cloud-gui got .nvmrc (abap-cloud-gui#13). */
+  { org: 'abap2UI5-addons', repo: 'abap-agent-runtime' },
+  { org: 'abap2UI5-addons', repo: 'admin-cockpit' },
+  { org: 'abap2UI5-addons', repo: 'abap-cloud-gui' },
 ].map((e) => (typeof e === 'string' ? { org: 'abap2UI5', repo: e } : e));
 
 /* `branch` for a repository whose default branch is not `main`. */
