@@ -643,7 +643,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-abapdoc-html-tag, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line, abaplint-abapdoc-leading-at
+**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -762,7 +762,9 @@ and points here, so a new trap is added here and nowhere else.
     after ABAP Doc symbol "@""*. Only `@parameter`, `@raising` and
     `@exception` may start a line. Break the line one word earlier, so the
     annotation sits mid-line, where it is plain text. Four sites in rap-ext,
-    fixed in abap2UI5-addons/rap-ext#19. Not gated.
+    fixed in abap2UI5-addons/rap-ext#19. Not gated here; abaplint reports
+    it as `abapdoc_leading_at` (abaplint/abaplint#4421, merged 2026-10-11)
+    from the first release after 2.120.74.
 
   And one the rule does decide, where the repository has it off: four blocks
   in front of a chained `TYPES:` in rap-ext (same PR). That is
@@ -777,7 +779,9 @@ and points here, so a new trap is added here and nowhere else.
   (2026-09-02) - so it is a gate now: `check:atc` (`abapdoc_html`) reads every
   `"!` line for a complete tag-like token outside the tags ABAP Doc knows
   (`p em strong ul ol li h1-h3 br`). A comparison `a < b` is not a token and
-  not a finding.
+  not a finding. abaplint has the same check as `abapdoc_html_tag`
+  (abaplint/abaplint#4422, merged 2026-10-11) from the first release after
+  2.120.74; `check:atc` keeps it until the pin catches up.
 
 - **`PREFERRED PARAMETER` is ignored unless every IMPORTING parameter is
   optional.** The addition names the parameter a short-form call `meth( x )`
@@ -857,9 +861,10 @@ and points here, so a new trap is added here and nowhere else.
   components you mean. Found by a user's pull of
   `abap2UI5-addons/admin-cockpit` (2026-10-06,
   `z2ui5_cl_cockpit_inst->get_implementers`). abaplint 2.120.70 reports
-  nothing. Not gated: the key is in the table's type, which can be a
-  returning parameter typed in another class.
-  **Backlog:** abaplint · abaplint-sort-empty-key
+  nothing. Not gated here: the key is in the table's type, which can be a
+  returning parameter typed in another class. abaplint reports it as
+  `sort_empty_key` (abaplint/abaplint#4419, merged 2026-10-11) from the
+  first release after 2.120.74.
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -1592,10 +1597,10 @@ only non-key components. Writing `<sum>-cnt` directly is fine.
   check accepts it. abaplint 2.120.64 reports nothing with every default
   rule on. The transpiled runtime runs the call (a test method with the same
   shape passes in `npm run unit`). Only a run on a system shows it.
-- **Gate:** none. A script would need the table kind behind the field symbol,
-  which is a type question for abaplint, not a regex.
-
-**Backlog:** abaplint · abaplint-sorted-line-changing-param
+- **Gate:** none here. A script would need the table kind behind the field
+  symbol, which is a type question for abaplint, not a regex. abaplint reports
+  it as `changing_sorted_line` (abaplint/abaplint#4420, merged 2026-10-11)
+  from the first release after 2.120.74.
 
 ## 6. Blind spots — green, or red, for the wrong reason
 
