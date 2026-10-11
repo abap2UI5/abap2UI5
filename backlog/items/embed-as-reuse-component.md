@@ -74,7 +74,8 @@ Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
 on the wire.
 
 **Done 2026-10-10 - the hash handed back.** A host whose page is the one
-component and nothing else - abap2UI5/frontend-new, a
+component and nothing else - the abap2UI5/frontend branches `standard_new`
+and `cloud_new` (then the repository abap2UI5/frontend-new), a
 `z2ui5.embed.Container` filling an empty page - routes by nothing, and its
 app should route as on a page of its own. `componentData.ownsHash: true`
 (top level only, a boolean only, passed by a host and never by the bundle)

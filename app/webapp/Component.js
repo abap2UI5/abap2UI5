@@ -146,8 +146,9 @@ sap.ui.define(
 
         // The URL hash of an embedded component is the host's - unless the
         // host hands it back with ownsHash. A host whose page is this one
-        // component and nothing else (abap2UI5/frontend-new: a
-        // z2ui5.embed.Container filling an empty page) routes by nothing,
+        // component and nothing else (the abap2UI5/frontend branches
+        // standard_new and cloud_new: a z2ui5.embed.Container filling an
+        // empty page) routes by nothing,
         // and its app keeps what it has on a page of its own: hash routing,
         // set_push_state / hash_replace, the hash listener, Back and Forward
         // between routed apps, a route restored on reload. Opt-in, and read

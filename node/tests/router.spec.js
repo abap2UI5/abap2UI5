@@ -888,7 +888,8 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
   }
 });
 
-// A host whose page is this one component (abap2UI5/frontend-new) hands
+// A host whose page is this one component (the abap2UI5/frontend branches
+// standard_new and cloud_new) hands
 // the hash back: the component listens, initializes the engine and writes
 // its routes as on a page of its own.
 test("an embedded component the host handed the hash to routes as on its own page", () => {

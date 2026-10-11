@@ -237,8 +237,9 @@ const SCRIPT_CLOSE = [
 // Component.js and manifest.json under z2ui5/embed/frontend/, the SAME
 // function and text, so nothing is sent twice, and every other module stays
 // where it is. The page that embeds the component may be a component named
-// z2ui5 itself: abap2UI5/frontend-new is the BSP Z2UI5 with the component
-// z2ui5 that a launchpad's target mappings name, and its own
+// z2ui5 itself: the abap2UI5/frontend branches standard_new and cloud_new
+// are the BSP Z2UI5 with the component z2ui5 that a launchpad's target
+// mappings name, and its own
 // z2ui5/Component is defined before this script runs - the loader ignores a
 // preload of a module it has already, and the frontend's would never be
 // found under z2ui5. The z2ui5/embed module of the bundle names the second
