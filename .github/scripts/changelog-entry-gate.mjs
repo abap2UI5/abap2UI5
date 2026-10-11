@@ -22,14 +22,18 @@
  * The second half: no pull request may LOSE an `unreleased` line. Twice
  * a squash merge resolved a conflict in changelog.txt by dropping the lines
  * the previous pull request had just added - #2853 replaced the six of
- * #2852 with its own, #2877 the two of #2875 and #2876 - and nothing
- * noticed until the release cut was being prepared. So a hunk that removes
- * more `unreleased` entry lines than it adds fails, naming every removed
- * line that is nowhere in the new changelog.txt. A reword (one out, one in)
- * passes, and so does the release cut, which moves the lines under a
- * version heading - they are still in the file. A deliberate removal (a
- * change reverted before its release) says so with a commit trailer
- * `Changelog-Removed: <why>` in the pull request.
+ * #2852 with its own, #2877 the two of #2875 and #2876, #2884 the one of
+ * #2882 - and nothing noticed until the release cut was being prepared. So
+ * every removed `unreleased` entry line that is nowhere in the new
+ * changelog.txt has to be matched by a line the same hunk adds that rewords
+ * it (the same words for the most part - rewords), each added line standing
+ * for one removed line; what is left over is reported. A reword (one out,
+ * one in, mostly the same words) passes, and so does the release cut, which
+ * moves the lines under a version heading - they are still in the file.
+ * Counting alone was not enough: #2884 replaced the line of #2882 with its
+ * own, one out and one in, and passed as a reword. A deliberate removal (a
+ * change reverted before its release, two entries folded into one) says so
+ * with a commit trailer `Changelog-Removed: <why>` in the pull request.
  *
  * CI-only, on purpose: it needs a diff base, which the working tree does not
  * have - which is why it sits in run-gates.mjs's NOT_A_VERIFY_GATE rather
@@ -76,22 +80,49 @@ const unreleasedRange = (text) => {
 
 const ENTRY = /^[+!*-] \S/;
 
+/* The words of an entry line, for telling a reword from a replacement:
+ * lower case, with the punctuation that is part of a name kept
+ * (z2ui5.cc.X, @abap2ui5/node-runtime, 2.14.3). */
+const entryWords = (line) =>
+  new Set(line.toLowerCase().split(/[^a-z0-9@./_<>-]+/).filter((w) => w.length > 0));
+
+/* Whether `added` rewords `removed`: at least half of the words of the
+ * shorter line are in the other one. Measured on the lines of this
+ * changelog: a reword (a version number, a repository renamed, a sentence
+ * added) shares 0.9 and more, a line written over another (#2884 over
+ * #2882) 0.3. */
+export function rewords(removed, added) {
+  const a = entryWords(removed);
+  const b = entryWords(added);
+  const smaller = Math.min(a.size, b.size);
+  if (smaller === 0) return removed.trim() === added.trim();
+  let shared = 0;
+  for (const w of a) if (b.has(w)) shared += 1;
+  return shared / smaller >= 0.5;
+}
+
 /* The `unreleased` entry lines a diff removes without replacing them: per
  * hunk, the entry lines removed from the BASE's section (old line numbers)
- * against the entry lines the hunk adds; a hunk that removes more than it
- * adds reports its removed lines that `headText` no longer carries anywhere.
- * Pure, so the self-test below runs it on the two diffs that lost lines. */
+ * that `headText` no longer carries anywhere, each matched against an entry
+ * line the hunk adds that rewords it - an added line stands for one removed
+ * line at most. The unmatched ones are lost. Pure, so the self-test below
+ * runs it on the diffs that lost lines. */
 export function lostLines(diffText, baseRange, headText) {
   if (!baseRange) return [];
   const present = new Set(headText.split("\n"));
   const lost = [];
   let oldLine = 0;
   let removed = [];
-  let added = 0;
+  let added = [];
   const close = () => {
-    if (removed.length > added) lost.push(...removed.filter((l) => !present.has(l)));
+    const free = [...added];
+    for (const line of removed.filter((l) => !present.has(l))) {
+      const at = free.findIndex((a) => rewords(line, a));
+      if (at === -1) lost.push(line);
+      else free.splice(at, 1);
+    }
     removed = [];
-    added = 0;
+    added = [];
   };
   /* `---` / `+++` are the file header only before the first hunk; inside a
    * hunk a removed hyphen rule (`-------`) is a line like any other and has
@@ -112,7 +143,7 @@ export function lostLines(diffText, baseRange, headText) {
       if (oldLine >= baseRange.from && oldLine <= baseRange.to && ENTRY.test(text.trim())) removed.push(text);
       oldLine += 1;
     } else if (line.startsWith("+") && ENTRY.test(line.slice(1).trim())) {
-      added += 1;
+      added.push(line.slice(1));
     }
   }
   close();
@@ -124,6 +155,14 @@ const SELF_TEST = [
   ["@@ -15,2 +15 @@\n-+ a\n-+ b\n++ c", "+ c", ["+ a", "+ b"]],
   // a reword: one out, one in
   ["@@ -15 +15 @@\n-! x 2.14.2\n+! x 2.14.3", "! x 2.14.3", []],
+  // #2884: the line of #2882 written over with an unrelated one, one out
+  // and one in - counted as a reword before
+  ["@@ -15 +15 @@\n-+ Frontend delivery: the branches standard_new and cloud_new of abap2UI5/frontend\n+* @abap2ui5/node-runtime: a draft is a snapshot again, as abap2UI5/protocol requires",
+    "* @abap2ui5/node-runtime: a draft is a snapshot again, as abap2UI5/protocol requires",
+    ["+ Frontend delivery: the branches standard_new and cloud_new of abap2UI5/frontend"]],
+  // two rewords in one hunk: each added line stands for one removed line
+  ["@@ -15,2 +15,2 @@\n-! node-runtime: transpiler 2.14.2 and output/ per origin\n-+ Custom control NativeBridgeScan for abap2UI5/test-mobile\n+! node-runtime: transpiler 2.14.3 and output/ per origin\n++ Custom control NativeBridgeScan for abap2UI5/mobile-shell",
+    "! node-runtime: transpiler 2.14.3 and output/ per origin\n+ Custom control NativeBridgeScan for abap2UI5/mobile-shell", []],
   // the release cut that shows the lines as moved: still in the file
   ["@@ -15,2 +15 @@\n-+ a\n-+ b\n+\n@@ -20,0 +20,2 @@\n++ a\n++ b", "2026-10-11 v1.0.0\n+ a\n+ b", []],
   // a removal outside the base's `unreleased` section is not this gate's
