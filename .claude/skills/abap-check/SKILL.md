@@ -335,8 +335,8 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 This class of defect has now bitten three times, twice reported by users after
 a pull, and it is the single most likely thing to break a system that is not on
 the newest release. abaplint's default target accepts all of it; at `syntax.version`
-v750 or v702, `check_syntax` reports the first shape (below v756) and still
-accepts the other two (measured 2026-09-23 on 2.120.59).
+v750 or v702, `check_syntax` reports the first shape (below v756), and from
+2.120.72 on (abaplint/abaplint#4403, pinned here) the other two as well.
 
 - **A generic `REF TO data` cannot be dereferenced inline.** `lr_ref->*` in an
   expression, and `ASSIGN COMPONENT … OF STRUCTURE mr_data->*`, both fail with
@@ -355,8 +355,10 @@ accepts the other two (measured 2026-09-23 on 2.120.59).
   `ASSIGN val->(lv_name) TO …` where `val` is `TYPE any` is rejected on NW 7.52
   and 7.02 with *"VAL is not a reference variable"* (#2409). Cast once —
   `DATA(lx) = CAST cx_root( val ).` — and address `lx->(lv_name)`.
+  `check_syntax` reports it below v756 from 2.120.72 on.
 - **`CORRESPONDING #( <generic> )` is not available.** Same commit
-  (`a16e2465`): use `CLEAR` + `MOVE-CORRESPONDING`. abaplint's
+  (`a16e2465`): use `CLEAR` + `MOVE-CORRESPONDING`. `check_syntax` reports
+  a generic target below v756 from 2.120.72 on. abaplint's
   `prefer_corresponding` rule had to be switched off for the low-release config
   because it recommends the construct that does not compile there.
 
@@ -600,14 +602,15 @@ addon. The parameters are called `default_value` now.
   trips over. A structure component may carry these names: a
   `BEGIN OF … END OF` has no such additions.
 
-**Gate: open** until abaplint/abaplint#4391 ships: `check_syntax` then
-reports the cases of that table. Measured with that change, it finds exactly
+**Gate: open** until abaplint 2.120.74: abaplint/abaplint#4391 is merged
+(2026-10-10) but came after v2.120.73, so it ships with the next release
+(abaplint/abaplint#4411); `check_syntax` then reports the cases of that
+table. Measured with that change, it finds exactly
 the cockpit's `to_int` and nothing in abap2UI5, the addons or open-abap-core;
 on the agent runtime before its fix exactly the three parameters the system
 named, and nothing after it (`bool( … row … OPTIONAL default … )` of
 `z2ui5_cl_agent_snapshot` stands after `OPTIONAL` and is accepted, by the
 system and by the rule).
-**Backlog:** abaplint · abaplint-parameter-named-default
 
 ### Do not depend on DDIC objects that are not everywhere
 
@@ -1075,7 +1078,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-replace-with-literal, runtime-packed-copy-precision
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1147,9 +1150,9 @@ break one of those four.
   first** - `lr_tab = REF #( <tab> ).` with `lr_tab TYPE REF TO data`, then
   `bind( lr_tab )`; the downport turns that into a plain
   `GET REFERENCE OF <tab> INTO lr_tab`. A typed field symbol is fine - the
-  temporary copies its type. The downport itself still writes the `LIKE REF
-  TO` on 2.120.71 (reproduced 2026-10-09); abaplint/abaplint#4405 makes it
-  `TYPE REF TO data` for a generic source. **Gate:** `npm run downport` ends with
+  temporary copies its type. Up to 2.120.71 the downport itself wrote the `LIKE
+  REF TO`; from 2.120.72 on (abaplint/abaplint#4405, pinned here) it writes
+  `TYPE REF TO data` for a generic source, and the gate stays as a guard. **Gate:** `npm run downport` ends with
   `downport-fix.mjs check-generic-like`, which reads the OUTPUT (the only
   place the shape exists) and fails on any `DATA … LIKE [REF TO | LINE OF]`
   a field symbol the same method types generically; `test.yaml` runs it on
@@ -1181,8 +1184,8 @@ break one of those four.
   `CREATE DATA mr.` (or `CREATE DATA mr TYPE string.`) and assign through
   `mr->*`. Measured on abaplint 2.120.68 in an isolated project (`downport`,
   `check_syntax` and `parser_error` on, v702; still so on 2.120.71,
-  2026-10-09). abaplint/abaplint#4404 makes the downport write `CREATE DATA`
-  and the value through the reference. **Gate: this repo** -
+  2026-10-09). From 2.120.72 on (abaplint/abaplint#4404, pinned here) the
+  downport writes `CREATE DATA` and the value through the reference. **Gate: this repo** -
   `npm run downport` ends red, but read the next entry before trusting
   what it names.
 - **After a parser error, the downport stops for the whole file, and the
@@ -1267,7 +1270,8 @@ break one of those four.
   Found 2026-10-08 in abap2UI5-addons/admin-cockpit, whose field-path
   parsing found 1 of 3 business objects. Take the offset from
   `find( val = … sub = … occ = -1 )`, which the runtime does resolve, and cut
-  with `substring( )`. **Gate: open.**
+  with `substring( )`. Fixed in the runtime from 2.14.3 on
+  (abaplint/transpiler#1985, pinned here).
 - **`REPLACE ... OF ... WITH` reads its WITH text like a regex replacement in
   the runtime.** `REPLACE ALL OCCURRENCES OF '{' IN s WITH '\{'` leaves `{`
   under `npm run unit` (the backslash of `\{`, `\}`, `\$` is dropped), and
@@ -1277,7 +1281,8 @@ break one of those four.
   abap2UI5-addons/admin-cockpit, whose brace escaping for a UI5 attribute
   could not be tested - and a double escape broke a popup on a real system
   unnoticed. Escape for UI5 with `replace( … occ = 0 )` (abap2UI5's
-  `escape_literal` does), keep `$` out of literal WITH texts. **Gate: open.**
+  `escape_literal` does), keep `$` out of literal WITH texts. Fixed in the
+  runtime from 2.14.3 on (abaplint/transpiler#1987, pinned here).
 - **A `line_exists( )` in an `ELSEIF` is moved in front of the `IF` by the
   downport** - as a `READ TABLE … TRANSPORTING NO FIELDS`, which sets
   `sy-subrc`. An `IF sy-subrc <> 0.` after an earlier `READ` then tests the
@@ -1286,8 +1291,9 @@ break one of those four.
   (`z2ui5_cl_cockpit_session=>outcomes_of`, a unit test answered "unknown"
   for a draft that exists). Keep a READ's result at once
   (`DATA(lv_found) = xsdbool( sy-subrc = 0 ).`) when the chain has a
-  `line_exists( )` / `line_index( )` in an `ELSEIF`. **Gate: open** - the fix
-  belongs into the downport.
+  `line_exists( )` / `line_index( )` in an `ELSEIF`. Fixed in the downport
+  from abaplint 2.120.72 on (abaplint/abaplint#4401, pinned here): it saves
+  and restores `sy-subrc` and `sy-tabix` around the inserted READ.
 - **A time or date assigned to a number keeps its digits in the runtime.**
   `lv_secs = lv_time.` (`t` into `i`) is the seconds since midnight on a
   system, and `235930` under `npm run unit` - the same for `int8`, `p` and
@@ -1551,6 +1557,8 @@ precisely because no gate will catch it.
   system with the refused cells at zero. The rule: whenever a write may be
   refused and the old value is promised, copy it aside first and put it back
   in the handler - `main_json_to_attri` already did, the delta path now does.
+  From runtime 2.14.3 on (abaplint/transpiler#1986, pinned here) the
+  transpiled runtime clears the target too, so `npm run unit` shows it.
 - **`ASSIGN dref->* TO <fs>` with a typed field symbol is a runtime error,
   not sy-subrc 4.** A sorted table assigned to a `TYPE STANDARD TABLE` field
   symbol dumps with `ASSIGN_TYPE_CONFLICT` on a system; the transpiler answers
