@@ -1,19 +1,4 @@
 {
-  "abaplint-delete-index-in-loop": {
-    "describe": "DELETE <t> INDEX sy-tabix inside an open LOOP AT <t>, and the correct READ-TABLE-then-DELETE form as the negative",
-    "ran": "2026-09-16",
-    "checkouts": [
-      "abap2UI5",
-      "samples",
-      "samples-controls",
-      "samples-stack"
-    ],
-    "sites": 1,
-    "negatives": 1,
-    "repos": [
-      "abap2UI5"
-    ]
-  },
   "abaplint-subrc-after-assign": {
     "describe": "a sy-subrc test whose nearest sy-subrc-setting statement is a plain ASSIGN, with ASSIGN COMPONENT as the negative",
     "ran": "2026-09-16",

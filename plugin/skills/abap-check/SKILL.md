@@ -1393,7 +1393,7 @@ the frozen legacy.
 The rest needs a running system with real data and is written down here
 precisely because no gate will catch it.
 
-**Backlog:** abaplint · abaplint-subrc-after-assign, abaplint-delete-index-in-loop
+**Backlog:** abaplint · abaplint-subrc-after-assign
 
 - **A syntax error is not an exception — `CATCH cx_root` does not stop it.**
   A class with a syntax error that is loaded at run time ends the request with
@@ -1502,22 +1502,27 @@ precisely because no gate will catch it.
   `DELETE`, the response structures) do have it, which is why only the
   `EXECUTE` statements were flagged and the `READ ENTITIES` in the same class
   was not. `cebe6bd`.
-- **`DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the SAME table has two
-  failure modes, and only the loud one is reliably visible.** Deleting the
-  current row shifts every row after it while the loop's own cursor walks on,
-  so the row *after* each deletion is skipped:
+- **`DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the SAME table
+  deletes whatever row `sy-tabix` names when the statement runs.** The loop
+  handles the deletion of its current row - the next pass is the row after
+  it - but `sy-tabix` is the loop's index only until another statement in
+  the body writes it: an inner `LOOP`, `READ TABLE`, `APPEND`, `INSERT`,
+  `COLLECT`, a method that does any of these.
 
-      LOOP AT tab INTO DATA(row).          " filters 10 rows, judges 5 of them
-        IF <drop it>.
-          DELETE tab INDEX sy-tabix.
-        ENDIF.
+      LOOP AT tab INTO DATA(row).
+        LOOP AT row-items INTO DATA(item) WHERE flag = abap_true.
+          DELETE tab INDEX sy-tabix.     " sy-tabix is the index in row-items
+          EXIT.
+        ENDLOOP.
       ENDLOOP.
 
-  Where `sy-tabix` is merely STALE but positive, nothing dumps: the statement
-  returns a plausible-looking, WRONG result — a filter that keeps rows it was
-  told to drop. Where it has been reset to **0** — an inner loop that has
-  ended, a `DO` between the `LOOP` and the `DELETE` — index 0 is a short dump,
-  and `TABLE_INVALID_INDEX` is the ABAP runtime error's own name for it.
+  Where the overwritten `sy-tabix` is positive, nothing dumps: the statement
+  deletes another row and the result looks plausible and is WRONG. Where it is
+  **0** - an inner `LOOP` that found nothing - index 0 is a short dump, and
+  `TABLE_INVALID_INDEX` is the ABAP runtime error's own name for it. (`DO`
+  sets `sy-index`, not `sy-tabix`.) When nothing in the body writes
+  `sy-tabix`, the statement deletes the right row, and the next change to the
+  body breaks it without a sign.
 
   Found by an e2e interaction driving samples-controls' app 352, whose
   `listClose` round-trip answered HTTP 500 with that error (2026-08-17).
@@ -1533,14 +1538,15 @@ precisely because no gate will catch it.
   `itab_filter_by_val`, app 070), and one in the vendored ajson
   (`z2ui5_cl_ajson_filter_lib`, upstream — not patched here). Two of them were
   wrong twice over: in `filter_itab` the `sy-tabix` belonged to an INNER loop,
-  so the index deleted was another table's, and elsewhere a `DO` loop between
-  the `LOOP` and the `DELETE` clobbers it again.
+  so the index deleted was another table's.
 
   Build the result instead — collect what is kept and assign it back. It reads
   as what it does and has neither failure mode. `DELETE itab WHERE …` is fine
   too where the condition can be expressed there; `DELETE itab INDEX sy-tabix`
   right after a `READ TABLE` is correct and common (`z2ui5_cl_ajson`), which is
-  why the shape cannot simply be banned.
+  why the shape cannot simply be banned. abaplint reports the shape as
+  `delete_index_in_loop` (abaplint/abaplint#4418, merged 2026-10-11, the
+  read-then-delete form excepted) from the first release after 2.120.74.
 
 - **Three environments, one source.** Code must work on NW 7.02, standard ABAP
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
