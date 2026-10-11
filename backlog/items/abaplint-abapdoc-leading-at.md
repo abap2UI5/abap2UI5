@@ -4,7 +4,7 @@ title: 'Report an ABAP Doc line that begins with @ but is no command'
 summary: '`"! @UI.presentationVariant ...` is "A command was expected after ABAP Doc symbol @" on a system - only @parameter, @raising and @exception may start a line; abaplint reports nothing'
 priority: low
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4385
+filed: https://github.com/abaplint/abaplint/pull/4421
 first_seen: 2026-10-04
 upstream: abaplint/abaplint
 evidence:
@@ -12,6 +12,7 @@ evidence:
   - an `@` mid-line (`… the @UI.facet entries …`) was not reported in the same run
   - measured 2026-10-04 on abaplint main 506e7b9 - no finding with check_syntax or wrong_abapdoc_position
   - filed 2026-10-06 together with its two ABAP Doc siblings (blank line, leading `@`, HTML tag) as abaplint/abaplint#4385, which asks the maintainer whether they become one rule, two or three before the PRs are written; no answer yet on 2026-10-09
+  - pull request abaplint/abaplint#4421 opened 2026-10-10, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 ---
 
 # ABAP Doc: a line that begins with @

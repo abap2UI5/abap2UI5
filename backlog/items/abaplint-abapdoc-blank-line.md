@@ -4,7 +4,7 @@ title: 'wrong_abapdoc_position: a blank line inside or after the ABAP Doc block'
 summary: 'a blank line between a "! block and its declaration, or inside the block, is "ABAP Doc comment is in the wrong position" on a system; wrong_abapdoc_position does not report it'
 priority: medium
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4385
+filed: https://github.com/abaplint/abaplint/pull/4414
 first_seen: 2026-10-04
 upstream: abaplint/abaplint
 evidence:
@@ -14,6 +14,7 @@ evidence:
   - gated in abap2UI5 since 2026-10-04 by `check:atc` (`abapdoc`), which until then asserted that a blank line detaches nothing
   - filed 2026-10-06 together with its two ABAP Doc siblings (blank line, leading `@`, HTML tag) as abaplint/abaplint#4385, which asks the maintainer whether they become one rule, two or three before the PRs are written; no answer yet on 2026-10-09
   - 2026-10-09: the plain-comment shape (a `"` comment between the block and its declaration, z2ui5_if_client 2026-09-16) added to #4385 as case 1b - wrong_abapdoc_position skips every Comment statement, not only `"!` lines, so the same fix covers both; abaplint main c07da6a reports neither
+  - pull request abaplint/abaplint#4414 opened 2026-10-10 - the fix in wrong_abapdoc_position for cases 1 and 1b of #4385, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 ---
 
 # wrong_abapdoc_position: a blank line detaches the block

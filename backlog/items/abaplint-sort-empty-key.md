@@ -4,13 +4,14 @@ title: 'Report SORT / DELETE ADJACENT DUPLICATES without BY / COMPARING on a tab
 summary: '`SORT itab.` on a `WITH EMPTY KEY` table is the syntax-check warning "… is a table with an empty primary key" and sorts nothing; abaplint reports nothing'
 priority: medium
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4407
+filed: https://github.com/abaplint/abaplint/pull/4419
 first_seen: 2026-10-06
 upstream: abaplint/abaplint
 evidence:
   - abap2UI5-addons/admin-cockpit, 2026-10-06 - a user's pull, `z2ui5_cl_cockpit_inst->get_implementers` lines 23 and 24 - ""RESULT" is a table with an empty primary key. Check the semantics of the statement." for `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.`, `result` typed `STANDARD TABLE OF string WITH EMPTY KEY`; fixed with `BY table_line` / `COMPARING table_line`
   - measured 2026-10-06 on abaplint 2.120.70, every default rule on - no finding on either statement
   - filed 2026-10-09 as idea 5 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
+  - pull request abaplint/abaplint#4419 opened 2026-10-10, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 checked_upstream: 2026-10-09
 ---
 

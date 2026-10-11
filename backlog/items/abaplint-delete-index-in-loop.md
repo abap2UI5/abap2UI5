@@ -1,13 +1,12 @@
 ---
 target: abaplint
 title: 'Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table'
-summary: deleting the current row from under the loop skips the next one — a wrong answer where `sy-tabix` is stale, a short dump where it is 0; found eight times across four repositories. A rule about ABAP as a language, so it belongs upstream — the abap2UI5-linter's copy covers app classes only, and one of the two remaining sites is vendored code no app-class linter reads
+summary: '`sy-tabix` is the index of the loop row only until another statement in the body writes it (an inner LOOP, READ TABLE, APPEND, INSERT, a method call) - then the DELETE removes another row, or dumps with TABLE_INVALID_INDEX when it is 0; found eight times across four repositories, two of them with sy-tabix from an inner loop. A rule about ABAP as a language, so it belongs upstream'
 priority: medium
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4407
+filed: https://github.com/abaplint/abaplint/pull/4418
 first_seen: 2026-08-17
 checked_upstream: 2026-10-09
-patch: backlog/patches/abaplint-three-rules.patch
 upstream: abaplint/abaplint
 evidence:
   - found 2026-08-17 by an e2e interaction — `abap2UI5/samples-controls` app 352's `listClose` round-trip answered HTTP 500 with `TABLE_INVALID_INDEX`
@@ -16,6 +15,7 @@ evidence:
   - no rule of the 188 abaplint ships reports it; `invalid_table_index` is constant index 0 only
   - written again 2026-08-22, five days after this item was filed: `abap2UI5/samples-controls` batch b51 shipped the same shape in three NEW ports (617, 618, 619) and took it back out the same day - the author had read app 298's source note and still wrote it, which is the argument for a rule rather than a note
   - filed 2026-10-09 as idea 2 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
+  - pull request abaplint/abaplint#4418 opened 2026-10-10, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 ---
 
 # Report `DELETE itab INDEX sy-tabix` inside a `LOOP AT` over the same table
@@ -26,7 +26,7 @@ The split is decided now: `abap2ui5lint` keeps the abap2UI5-specific checks,
 and rules about ABAP as a language go to abaplint. This one is the clearest
 case of the second kind — its measured remaining site is vendored code that no
 app-class linter ever reads — so it is back in the stock as **open**, with the
-patch below still the paste-ready implementation. The two sections that
+patch of 2026-09-14 as its implementation (now abaplint/abaplint#4418). The two sections that
 follow are the history of the deferral, kept because they carry the
 measurements.
 
@@ -50,7 +50,7 @@ the deferral is the decision not to do it now that the ecosystem itself is
 served.
 
 **Overtaken 2026-09-14 by a maintainer decision to write it anyway.** The rule
-is in the patch below with the other two. The generalization argument it was
+went into a patch with two others (now abaplint/abaplint#4418). The generalization argument it was
 parked on is now measured rather than asserted: of its two findings across the
 four code bases, ONE is abap2UI5's vendored `z2ui5_cl_ajson_filter_lib` - code
 the abap2UI5-linter never reads, which is exactly what this item said only
@@ -61,26 +61,27 @@ reading a diff rather than writing one.
 ## What happens
 
 ```abap
-LOOP AT tab INTO DATA(row).          " filters 10 rows, judges 5 of them
-  IF <drop it>.
-    DELETE tab INDEX sy-tabix.
-  ENDIF.
+LOOP AT tab INTO DATA(row).
+  LOOP AT row-items INTO DATA(item) WHERE flag = abap_true.
+    DELETE tab INDEX sy-tabix.     " sy-tabix is the index in row-items here
+    EXIT.
+  ENDLOOP.
 ENDLOOP.
 ```
 
-Deleting the current row shifts every row after it while the loop's own cursor
-walks on, so the row *after* each deletion is never seen. The statement is
-syntactically fine and looks like the obvious way to say "drop this one".
+`sy-tabix` holds the index of the loop's current row only until another
+statement writes it: an inner `LOOP`, `READ TABLE`, `APPEND`, `INSERT`,
+`COLLECT`, or a method called in the body. Then the `DELETE` removes the row of
+`tab` at someone else's index, and with `sy-tabix` 0 it is the short dump
+`TABLE_INVALID_INDEX`. When nothing in the body writes `sy-tabix`, the
+statement deletes the right row - the loop handles the deletion of its current
+row - and the next change to the body breaks it without a sign.
 
-There are two outcomes and only the second is visible:
-
-- **`sy-tabix` stale but positive** — nothing dumps. The result is plausible
-  and wrong: a filter that keeps rows it was told to drop.
-- **`sy-tabix` reset to 0** — an inner `LOOP` that has ended, or a `DO` between
-  the `LOOP` and the `DELETE` — index 0 is a short dump, `TABLE_INVALID_INDEX`.
-
-The first outcome is why this survived eight times in code that is read,
-reviewed and linted: it produces output, and the output is wrong by a little.
+**Corrected 2026-10-10.** This section used to say that deleting the current
+row makes the loop skip the next one. That is wrong (SAP's documentation of
+`LOOP AT itab`), and so was the example of a `DO` resetting `sy-tabix` - `DO`
+sets `sy-index`. The correction is on abaplint/abaplint#4407; #4418 describes
+the rule this way.
 
 ## Why no existing rule catches it
 
@@ -149,33 +150,10 @@ readable from outside.
 
 ## The change
 
-All three rules are written, tested and measured. The change is attached as
-[`backlog/patches/abaplint-three-rules.patch`](../patches/abaplint-three-rules.patch)
-(`git am` against `abaplint/abaplint` f09171a) - one commit carrying all three, because
-they were written and measured in one pass:
-
-| rule | findings on abap2UI5 / samples / samples-controls / samples-stack |
-|---|---|
-| `subrc_after_assign` | **66** (28 / 14 / 22 / 2) |
-| `delete_index_in_loop` | **2** - the vendored ajson filter lib, and one port |
-| `preferred_parameter_ignored` | **0** - those code bases run an ATC gate for it already, so this rule has fixture evidence only |
-
-`preferred_parameter_ignored` has shipped on its own since: abaplint/abaplint#4357,
-merged 2026-10-03 and released in 2.120.65, with a quick fix that declares the
-mandatory parameters `OPTIONAL`. The patch still carries the older version of
-it, so drop that rule from the patch before it goes upstream.
-
-`npm test` in `packages/core`: **11020 passing**, eslint clean,
-`scripts/schema.json` regenerated.
-
-Refreshed 2026-09-29 onto f09171a, where the old patch applied only with
-`git am -3`. It now carries the `scripts/schema.json` that `npm run schema`
-writes from the rule sources. `npm test` in `packages/core`: 11 189 passing
-(32 pending), eslint and api-extractor clean.
-
-It is not open as a pull request because this session has no write access to
-`abaplint/abaplint` (the Claude GitHub App is not installed on the `abaplint`
-organization).
+Open as abaplint/abaplint#4418 (2026-10-10), taken from the patch this item
+carried since 2026-09-14 and brought up to current abaplint main. The patch
+itself is gone: the pull request is the implementation now, and its
+description carries the tests and the measurement.
 
 <!-- probe:start — written by `npm run backlog:probe`, do not edit by hand -->
 

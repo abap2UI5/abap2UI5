@@ -4,7 +4,7 @@ title: 'Report a whole line of a sorted or hashed table, reached by a field symb
 summary: '`READ TABLE sorted_tab … ASSIGNING <row>.` then `meth( CHANGING cs = <row> )` activates, and on a system it is CX_SY_DYN_CALL_ILLEGAL_TYPE ("the actual parameter for CS is write-protected") - the line key is write-protected; abaplint reports nothing'
 priority: high
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4407
+filed: https://github.com/abaplint/abaplint/pull/4420
 first_seen: 2026-10-08
 upstream: abaplint/abaplint
 evidence:
@@ -12,6 +12,7 @@ evidence:
   - measured 2026-10-08 on abaplint 2.120.64, every default rule on, `check_syntax` live - no finding on a minimal class with the same shape; the system's syntax check accepted the class too (it activated, the error came at run time)
   - measured 2026-10-08 on the transpiled runtime (admin-cockpit `npm run unit`) - the same shape as a test method passes, so the unit run cannot see it either
   - filed 2026-10-09 as idea 1 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
+  - pull request abaplint/abaplint#4420 opened 2026-10-10 - as rule changing_sorted_line, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 checked_upstream: 2026-10-09
 ---
 

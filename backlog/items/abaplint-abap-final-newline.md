@@ -4,7 +4,7 @@ title: 'Report a source file that does not end with exactly one newline'
 summary: 'abapGit serializes every file with one terminating newline; a file written without it shows `\ No newline at end of file` in every diff and comes back changed on the next pull — the round-trip family has `xml_bom`, `7bit_ascii` and `whitespace_end` upstream and nothing for the file end'
 priority: low
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/4407
+filed: https://github.com/abaplint/abaplint/pull/4412
 first_seen: 2026-09-19
 upstream: abaplint/abaplint
 evidence:
@@ -12,6 +12,7 @@ evidence:
   - the abap2UI5-linter carries it since 2026-09 (`missing-final-newline`, with a fix) — for the files it collects, which are app classes
   - measured 2026-09-19 on abaplint 2.120.52 with every rule on — a `.clas.abap` with no terminating newline produces no finding; `whitespace_end` reports trailing blanks on a line, `line_break_style` the CR, `7bit_ascii` the BOM, and no rule looks at the last byte
   - filed 2026-10-09 as idea 7 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
+  - pull request abaplint/abaplint#4412 opened 2026-10-10, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
 checked_upstream: 2026-10-09
 ---
 
