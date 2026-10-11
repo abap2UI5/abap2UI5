@@ -7,6 +7,16 @@
 //   cloud_v2     like cloud, webapp patched to legacy-free (UI5 2.0)
 //   standard     BSP Z2UI5 (app2bsp) + ICF handler, classic bootstrap
 //   standard_v2  BSP Z2UI5 legacy-free (build-legacy-free.mjs)
+//   cloud_new    frontend/embed (the embed app) + frontend/abap/cloud
+//   standard_new BSP Z2UI5 of frontend/embed (app2bsp) + ICF handler
+//
+// The two _new branches carry no copy of the abap2UI5 frontend: the app in
+// frontend/embed is one view with one z2ui5.embed.Container
+// (@abap2ui5/embed-control), which loads the frontend from the backend it
+// runs against (?z2ui5-bundle). Same names, same deployment identity as
+// cloud and standard - they replace those installations - and the same
+// split: standard_new the BSP itself, cloud_new the project for a Fiori
+// deployment.
 //
 // The two BSP branches additionally get the minified UI5 component preload
 // bundle (app2bsp/preload.js), which folds the ~50 single requests of an app
@@ -41,7 +51,7 @@
 // exist - run build-rename first.
 //
 // Usage:  node tools/build-branches.mjs [branch ...]
-// Without arguments the four fixed branches are built; with arguments only
+// Without arguments the six fixed branches are built; with arguments only
 // the named ones (so a frontend_deploy run builds exactly its branch).
 //
 // Everything is built into the gitignored tools/out/<branch>/ - no tree is
@@ -63,6 +73,7 @@
 //                         with the abaplint config, which is turned to /src/
 //                         in the branch
 //   frontend/common/      files every branch inherits (README, LICENSE, ...)
+//   frontend/embed/       the embed app of the _new branches
 // The scripts themselves live in tools/.
 //
 // The cloud branches deliver the complete Fiori project from app/ - the same
@@ -79,6 +90,7 @@ import { banner } from "./branch-stamp.mjs";
 // The BSP itself is written by @abap2ui5/bsp (tools/bsp) - the same package
 // an app of any other project takes to become a BSP.
 import { writeFrontendBsp } from "./app2bsp/frontend-bsp.mjs";
+import { app2bsp } from "./bsp/index.mjs";
 // The renamed backend a renamed BSP calls, and the branch it is published on.
 import { deriveBackend } from "./bsp_rename/rename-bsp.mjs";
 
@@ -125,12 +137,12 @@ const ABAPGIT_STANDARD = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 </asx:abap>
 `;
 
-function initBranch(branch, abapgitXml) {
+function initBranch(branch, abapgitXml, readme = "README.md") {
   const dir = outDir(branch);
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   for (const f of COMMON) if (existsSync(join(data, "common", f))) cpSync(join(data, "common", f), join(dir, f));
-  writeFileSync(join(dir, "README.md"), banner(branch) + "\n" + readFileSync(join(data, "common/README.md"), "utf8"));
+  writeFileSync(join(dir, "README.md"), banner(branch) + "\n" + readFileSync(join(data, "common", readme), "utf8"));
   writeFileSync(join(dir, ".abapgit.xml"), abapgitXml);
   // abaplint config from main, source path turned to the /src/ of the output
   // branches; without it the abaplint check on the output branches always
@@ -255,11 +267,120 @@ function buildStandardV2(branch = "standard_v2") {
   rmSync(work, { recursive: true, force: true });
 }
 
+/* The _new branches: frontend/embed, the app around @abap2ui5/embed-control
+ * (formerly the repository abap2UI5/frontend-new). Its BSP holds the app and
+ * the control, nothing of the abap2UI5 frontend - the control loads that
+ * from the backend (?z2ui5-bundle), so the branches do not follow every
+ * release of it. Everything else is the old branches': the README's own
+ * (common/README_new.md), the ABAP artefacts of frontend/abap, every name. */
+const embed = join(data, "embed");
+const EMBED_CONTROL = "@abap2ui5/embed-control";
+// where the control's package serves it (its ui5.yaml) and the app's
+// manifest registers it: a BSP answers every <app>/resources/ path from the
+// system's UI5, so the control cannot sit there
+const THIRDPARTY = "thirdparty/z2ui5/embed/";
+
+function mustContain(file, text) {
+  if (!readFileSync(file, "utf8").includes(text)) throw new Error(`${relative(core, file)}: '${text}' not found`);
+}
+
+// The control the BSP of standard_new carries comes from this repository's
+// node_modules; cloud_new ships frontend/embed/package-lock.json, and a
+// Fiori build of it installs the version that pins. They have to be the
+// same release, or the two branches would deliver two different controls.
+function embedControlSources() {
+  const installed = join(core, "node_modules", EMBED_CONTROL);
+  if (!existsSync(join(installed, "package.json"))) throw new Error(`${EMBED_CONTROL} is not installed - run npm ci first`);
+  const { version } = JSON.parse(readFileSync(join(installed, "package.json"), "utf8"));
+  const lock = JSON.parse(readFileSync(join(embed, "package-lock.json"), "utf8"));
+  const pinned = lock.packages?.[`node_modules/${EMBED_CONTROL}`]?.version;
+  if (version !== pinned) {
+    throw new Error(`${EMBED_CONTROL}: ${version} installed, frontend/embed/package-lock.json pins ${pinned} - `
+      + "bump both together (the root package.json and frontend/embed)");
+  }
+  mustContain(join(installed, "ui5.yaml"), `/${THIRDPARTY}: ./src/`);
+  mustContain(join(embed, "webapp/manifest.json"), `"z2ui5.embed": "./${THIRDPARTY}"`);
+  return join(installed, "src");
+}
+
+// The launchpad handler of the old branches calls the frozen
+// z2ui5_cl_http_handler (src/99), an empty subclass of the public
+// z2ui5_cl_ui5_http_handler. The _new branches need an abap2UI5 that has the
+// public one anyway, so their handler calls it. Guarded: a call the
+// replacement no longer finds would ship the frozen class again in silence.
+const FROZEN_HANDLER = "z2ui5_cl_http_handler=>run(";
+const PUBLIC_HANDLER = "z2ui5_cl_ui5_http_handler=>run(";
+
+function callPublicHandler(dir) {
+  const file = join(dir, "src/01/z2ui5_cl_lp_handler.clas.abap");
+  const source = readFileSync(file, "utf8");
+  if (source.split(FROZEN_HANDLER).length !== 2) {
+    throw new Error(`${relative(core, file)}: expected exactly one ${FROZEN_HANDLER}`);
+  }
+  writeFileSync(file, source.replace(FROZEN_HANDLER, PUBLIC_HANDLER));
+}
+
+// The view names the on-premise endpoint; a cloud deployment talks to the
+// HTTP service (see CLOUD_URI above). Guarded like the manifest of cloud.
+const EMBED_ENDPOINT = `endpoint="${ONPREM_URI}"`;
+
+function patchCloudEndpoint(viewXml) {
+  if (viewXml.split(EMBED_ENDPOINT).length !== 2) {
+    throw new Error(`frontend/embed/webapp/view/Main.view.xml: expected exactly one ${EMBED_ENDPOINT}`);
+  }
+  return viewXml.replace(EMBED_ENDPOINT, `endpoint="${CLOUD_URI}"`);
+}
+
+// What frontend/embed is developed and checked with here, not what a
+// developer deploying the cloud_new project needs (see DEV_ONLY above) - and
+// .env, git-ignored, which holds a developer's logon to a system
+const EMBED_DEV_ONLY = new Set(["test", "AGENTS.md", "CLAUDE.md", ".env"]);
+const skipEmbedDevFiles = (src) => !EMBED_DEV_ONLY.has(posix(relative(embed, src)));
+
+// The BSP Z2UI5 of the embed app: its webapp with the control under
+// thirdparty/, as `ui5 build` lays it out - nothing minified, no preload
+// bundle, nothing patched. Every name as on standard.
+function buildStandardNew(branch = "standard_new") {
+  const dir = initBranch(branch, ABAPGIT_STANDARD, "README_new.md");
+  const work = join(scratch, "_work_standard_new");
+  rmSync(work, { recursive: true, force: true });
+  cpSync(join(embed, "webapp"), work, { recursive: true });
+  cpSync(embedControlSources(), join(work, THIRDPARTY), { recursive: true });
+  cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
+  callPublicHandler(dir);
+  app2bsp({
+    webapp: work,
+    target: join(dir, "src/02"),
+    name: "Z2UI5",
+    text: "abap2UI5 frontend (generated)",
+    icfText: "abap2UI5 - Frontend",
+    packageText: "abap2UI5",
+  });
+  rmSync(work, { recursive: true, force: true });
+}
+
+// The embed app as a Fiori project in app/, next to the ABAP artefacts of
+// cloud - deployed from there, as cloud's app/ is.
+function buildCloudNew(branch = "cloud_new") {
+  const dir = initBranch(branch, ABAPGIT_CLOUD, "README_new.md");
+  embedControlSources();
+  cpSync(embed, join(dir, "app"), {
+    recursive: true,
+    filter: (src) => skipBuildArtifacts(src) && skipEmbedDevFiles(src),
+  });
+  cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
+  callPublicHandler(dir);
+  const view = join(dir, "app/webapp/view/Main.view.xml");
+  writeFileSync(view, patchCloudEndpoint(readFileSync(view, "utf8")));
+}
+
 const BUILDERS = {
   cloud: () => buildCloudVariant("cloud"),
   cloud_v2: () => buildCloudVariant("cloud_v2"),
   standard: () => buildStandard(),
   standard_v2: () => buildStandardV2(),
+  cloud_new: () => buildCloudNew(),
+  standard_new: () => buildStandardNew(),
 };
 
 // standard_<NAME> / standard_v2_<NAME>: build the base, then rename the whole

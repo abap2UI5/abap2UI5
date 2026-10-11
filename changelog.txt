@@ -12,7 +12,7 @@ Legend
 
 unreleased
 ----------
-
++ Frontend delivery: the branches standard_new and cloud_new of abap2UI5/frontend - the app around @abap2ui5/embed-control (one z2ui5.embed.Container filling the page, the frontend loaded from the backend through ?z2ui5-bundle), formerly the repository abap2UI5/frontend-new and now frontend/embed here. Built by tools/build-branches.mjs and delivered through result/<branch> like the other four: standard_new is the BSP Z2UI5 with the control under thirdparty/, cloud_new the app as a Fiori project next to the HTTP service, its endpoint /sap/bc/http/sap/z2ui5. Every name as on standard and cloud; the handler calls z2ui5_cl_ui5_http_handler. Needs an abap2UI5 newer than 1.146.0
 
 2026-10-11 v1.147.0
 -------------------

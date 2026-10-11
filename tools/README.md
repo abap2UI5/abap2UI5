@@ -22,7 +22,8 @@ whether a pull request may merge.
 | `check-v2-sdk.mjs` | the monthly guard on the pinned legacy-free SDK |
 
 What these consume besides the webapp — the ABAP artefacts of the delivery
-branches and the files every branch inherits — lives in
+branches, the files every branch inherits and the embed app of the `_new`
+branches (`frontend/embed`, around `@abap2ui5/embed-control`) — lives in
 [`frontend/`](../frontend). Tools here, data there.
 
 ## Where a build lands
@@ -38,9 +39,9 @@ running in the pull-request gate (`frontend_check`) and at deploy time
 
 ```bash
 npm run app2abap                # regenerate src/01/03 from app/webapp
-npm run frontend:build          # all four delivery branches -> tools/out/
+npm run frontend:build          # all six delivery branches -> tools/out/
 npm run frontend:standard       # just one
-npm run check:frontend          # build all four and check the BSP page invariants
+npm run check:frontend          # build all six and check the BSP page invariants
 npm run frontend:lint           # abaplint over frontend/abap/cloud (the standard handler is linted in the built tree)
 node tools/check-pages.mjs      # BSP invariants on what was built
 npm run frontend:verify         # diff a local build against the published branches
@@ -72,13 +73,13 @@ them.
 ## Deployment
 
 `frontend_deploy.yaml` publishes the delivery trees into abap2UI5/frontend: the
-four published ones on every push to `main` that touches what the build
+six published ones on every push to `main` that touches what the build
 consumes (`app/`, `frontend/`, `tools/`, the npm dependencies) or the
 `VERSION` stamp inputs (the framework version constant), a renamed
 `standard_<name>` on dispatch, and everything again on a monthly safety-net
 cron.
 
-For the four it runs the same `npm run frontend:build` the pull-request gate
+For the six it runs the same `npm run frontend:build` the pull-request gate
 ran, stamps the provenance and ships the result as `result/<branch>` folders
 in ONE commit on the delivery repository's `main`. From there that repository's own `deliver` workflow fans
 each folder out into its branch: one commit per branch, parented on the `main`

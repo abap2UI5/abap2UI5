@@ -1,0 +1,27 @@
+<mvc:View
+    controllerName="abap2ui5.frontend.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:z2ui5="z2ui5.embed"
+    displayBlock="true"
+    height="100%">
+    <MessageStrip
+        id="failed"
+        type="Error"
+        showIcon="true"
+        visible="{= !!${start>/error} }"
+        text="{start>/error}"
+        class="sapUiSmallMargin"/>
+    <!-- endpoint: the abap2UI5 service the frontend and the roundtrips
+         come from - /sap/bc/z2ui5 on premise (the standard_new branch);
+         the cloud_new branch is built with the HTTP service path,
+         /sap/bc/http/sap/z2ui5 -->
+    <z2ui5:Container
+        id="app"
+        endpoint="/sap/bc/z2ui5"
+        app="{start>/app}"
+        params="{start>/params}"
+        height="100%"
+        componentCreated=".onComponentCreated"
+        componentFailed=".onComponentFailed"/>
+</mvc:View>
