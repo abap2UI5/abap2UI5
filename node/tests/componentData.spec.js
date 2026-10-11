@@ -166,7 +166,8 @@ test("only a boolean true embeds - the page and the launchpad do not", () => {
 
 // The URL hash: a page of the app's own owns it, an embedded component
 // leaves it to the host - unless the host hands it back with ownsHash: true
-// (abap2UI5/frontend-new, one control filling an empty page). A host's
+// (the abap2UI5/frontend branches standard_new and cloud_new, one control
+// filling an empty page). A host's
 // setting: read on the top level only, a boolean true only, and never sent.
 test("the hash is the page's own, the host's when embedded, unless handed back", () => {
   expect(init({}).ownsHash).toBe(true);

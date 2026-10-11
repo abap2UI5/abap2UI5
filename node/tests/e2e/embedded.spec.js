@@ -355,7 +355,8 @@ test.describe("an embedded app and the host's page", () => {
 // The URL hash. The bundle's component leaves it to the host - a Fiori
 // elements object page routes by it - and a routed app (zcl_tst_nav_hub,
 // hash_routing FRESH) neither writes a route nor reads one. A host whose page
-// is the one component and nothing else (abap2UI5/frontend-new) hands it
+// is the one component and nothing else (the abap2UI5/frontend branches
+// standard_new and cloud_new) hands it
 // back with ownsHash: true, and the app routes as on its own page - a route
 // per app, browser Back and Forward between them (nav-back-forward.spec.js
 // on the backend's own page).
