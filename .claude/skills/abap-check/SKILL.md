@@ -602,8 +602,10 @@ addon. The parameters are called `default_value` now.
   trips over. A structure component may carry these names: a
   `BEGIN OF … END OF` has no such additions.
 
-**Gate:** `check_syntax` reports the cases of that table from abaplint
-2.120.73 on (abaplint/abaplint#4391, pinned here). Measured with that change, it finds exactly
+**Gate: open** until abaplint 2.120.74: abaplint/abaplint#4391 is merged
+(2026-10-10) but came after v2.120.73, so it ships with the next release
+(abaplint/abaplint#4411); `check_syntax` then reports the cases of that
+table. Measured with that change, it finds exactly
 the cockpit's `to_int` and nothing in abap2UI5, the addons or open-abap-core;
 on the agent runtime before its fix exactly the three parameters the system
 named, and nothing after it (`bool( … row … OPTIONAL default … )` of
