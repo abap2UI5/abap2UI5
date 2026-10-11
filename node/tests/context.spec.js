@@ -57,6 +57,7 @@ test.describe("create", () => {
     });
     expect(ctx.session).toEqual({
       configSent: false,
+      ui5Sent: false,
       liveSent: "",
       pending: null,
       locationSent: false,

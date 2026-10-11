@@ -65,17 +65,26 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    const latches = ctx.session;` && |\n| &&
              `    const live = getDeviceLive();` && |\n| &&
              `    const liveKey = JSON.stringify(live);` && |\n| &&
+             `    const ui5 = oConfig?.S_UI5;` && |\n| &&
              `    if (latches.configSent && draftId) {` && |\n| &&
-             `      if (liveKey === latches.liveSent) {` && |\n| &&
+             `      const sendUi5 = Boolean(ui5) && !latches.ui5Sent;` && |\n| &&
+             `      const sendLive = liveKey !== latches.liveSent;` && |\n| &&
+             `      if (!sendUi5 && !sendLive) {` && |\n| &&
              `        latches.pending = null;` && |\n| &&
              `        return {};` && |\n| &&
              `      }` && |\n| &&
-             `      latches.pending = { live: liveKey };` && |\n| &&
-             `      return { S_DEVICE: live };` && |\n| &&
+             `      latches.pending = {` && |\n| &&
+             `        ...(sendUi5 && { ui5: true }),` && |\n| &&
+             `        ...(sendLive && { live: liveKey }),` && |\n| &&
+             `      };` && |\n| &&
+             `      return {` && |\n| &&
+             `        ...(sendUi5 && { S_UI5: ui5 }),` && |\n| &&
+             `        ...(sendLive && { S_DEVICE: live }),` && |\n| &&
+             `      };` && |\n| &&
              `    }` && |\n| &&
-             `    latches.pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };` && |\n| &&
+             `    latches.pending = { config: true, ui5: Boolean(ui5), live: liveKey };` && |\n| &&
              `    return {` && |\n| &&
-             `      S_UI5: oConfig?.S_UI5,` && |\n| &&
+             `      S_UI5: ui5,` && |\n| &&
              `      ComponentData: oConfig?.ComponentData,` && |\n| &&
              `      S_DEVICE: { ...getDeviceStatic(), ...live },` && |\n| &&
              `    };` && |\n| &&
@@ -91,6 +100,7 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `    if (!p) return;` && |\n| &&
              `    const latches = ctx.session;` && |\n| &&
              `    if (p.config) latches.configSent = true;` && |\n| &&
+             `    if (p.ui5) latches.ui5Sent = true;` && |\n| &&
              `    if (p.live !== undefined) latches.liveSent = p.live;` && |\n| &&
              `    if (p.location) latches.locationSent = true;` && |\n| &&
              `  }` && |\n| &&
@@ -110,6 +120,7 @@ CLASS z2ui5_cl_ui5f_session_js IMPLEMENTATION.
              `  function reset(ctx) {` && |\n| &&
              `    const latches = ctx.session;` && |\n| &&
              `    latches.configSent = false;` && |\n| &&
+             `    latches.ui5Sent = false;` && |\n| &&
              `    latches.liveSent = "";` && |\n| &&
              `    latches.pending = null;` && |\n| &&
              `    latches.locationSent = false;` && |\n| &&

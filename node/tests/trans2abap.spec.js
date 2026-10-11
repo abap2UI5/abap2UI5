@@ -50,3 +50,79 @@ test("trailing blanks outside a literal are dropped and accepted", () => {
   expect(value).not.toContain("1;   ");
   expect(() => GEN.assertSameProgram(src, value, "probe.js")).not.toThrow();
 });
+
+// The developer tools are split in two at generation time: the eager half
+// stays in the shell's script, the rest is the devtools bundle
+// (DEVTOOLS_EAGER). A module of the shell that named a bundled one as a
+// sap.ui.define dependency would be fetched from the ICF node - which
+// answers every GET with the page - and take the component down, so the
+// generation refuses it.
+test.describe("the devtools bundle split", () => {
+  test("the facade, the capture, the recorder and their leaves stay eager", () => {
+    for (const eager of [
+      "devtools/DevTools.js",
+      "devtools/Console.js",
+      "devtools/Recorder.js",
+      "devtools/Persist.js",
+      "devtools/Format.js",
+      "devtools/Diff.js",
+    ]) {
+      expect(GEN.isDeferredDevtools(eager), eager).toBe(false);
+    }
+    for (const deferred of [
+      "devtools/DeveloperTools.js",
+      "devtools/DeveloperTools.fragment.xml",
+      "devtools/Inspect.js",
+      "devtools/Tabs.js",
+      "devtools/Picker.js",
+    ]) {
+      expect(GEN.isDeferredDevtools(deferred), deferred).toBe(true);
+    }
+    expect(GEN.isDeferredDevtools("core/Lib.js")).toBe(false);
+    expect(GEN.isDeferredDevtools("Component.js")).toBe(false);
+  });
+
+  test("reads the sap.ui.define dependencies of a module", () => {
+    expect(
+      GEN.defineDependencies(
+        'sap.ui.define(\n  ["z2ui5/core/Lib", \'sap/m/Button\'],\n  (Lib, Button) => {},\n);',
+      ),
+    ).toEqual(["z2ui5/core/Lib", "sap/m/Button"]);
+    expect(GEN.defineDependencies("sap.ui.define([], () => {});")).toEqual([]);
+    expect(GEN.defineDependencies("const x = 1;")).toEqual([]);
+  });
+
+  test("refuses a module outside the bundle that depends on one inside it", () => {
+    const sources = new Map([
+      ["devtools/DevTools.js", 'sap.ui.define(["z2ui5/core/Lib", "z2ui5/devtools/Console"], () => {});'],
+      // a bundled module may depend on another bundled one, and on the shell
+      ["devtools/Tabs.js", 'sap.ui.define(["z2ui5/devtools/Inspect", "z2ui5/core/Lib"], () => {});'],
+    ]);
+    expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).not.toThrow();
+    sources.set(
+      "devtools/DevTools.js",
+      'sap.ui.define(["z2ui5/core/Lib", "z2ui5/devtools/DeveloperTools"], () => {});',
+    );
+    expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).toThrow(
+      /devtools\/DevTools\.js: sap\.ui\.define names z2ui5\/devtools\/DeveloperTools/,
+    );
+  });
+
+  test("the shipped sources pass the guard", () => {
+    const fs = require("fs");
+    const webapp = path.join(__dirname, "..", "..", "app", "webapp");
+    const sources = new Map();
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(full);
+        else if (entry.name.endsWith(".js")) {
+          sources.set(path.relative(webapp, full).split(path.sep).join("/"), fs.readFileSync(full, "utf8"));
+        }
+      }
+    };
+    walk(webapp);
+    expect(sources.has("devtools/DevTools.js")).toBe(true);
+    expect(() => GEN.assertNoEagerDependencyOnDeferred(sources)).not.toThrow();
+  });
+});

@@ -107,6 +107,7 @@ function makeView(id) {
   const dom = { style: {} };
   return {
     destroyed: false,
+    rendered: false,
     getId: () => id,
     getDomRef: () => dom,
     setModel() {},
@@ -122,6 +123,8 @@ function makeView(id) {
 // response of `app`; `timers` holds what the transition armed as its safety
 // net, so a spec can let it fire.
 function load() {
+  // filled at the end - the XMLView fake reads failNext off it
+  const env = { failNext: false, holdBuild: null };
   const app = fakeApp();
   const errors = [];
   const built = [];
@@ -137,12 +140,19 @@ function load() {
     setSizeLimit() {}
     destroy() {}
   }
+  // a view built here is not rendered until the spec says so (render
+  // below) - the plain swap destroys the page it replaced only then
+  const renders = [];
   const Lib = {
     logError: (m) => errors.push(m),
     usesXmlTemplating: () => false,
     isAlive: (o) => Boolean(o) && !o.destroyed,
     isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
     effectiveSizeLimit: () => undefined,
+    whenRendered: (control, _owner, fn) => {
+      if (control.rendered) fn();
+      else renders.push({ control, fn });
+    },
   };
   const sandbox = {
     setTimeout: (fn, ms) => {
@@ -164,15 +174,23 @@ function load() {
     deps: {
       "sap/ui/core/mvc/XMLView": {
         create: async (cfg) => {
+          if (env.failNext) {
+            env.failNext = false;
+            throw new Error("broken view");
+          }
           const view = makeView(cfg.id);
           built.push(view);
+          if (env.holdBuild) await env.holdBuild;
           return view;
         },
       },
       "sap/ui/core/Fragment": {},
       "sap/ui/model/json/JSONModel": JSONModel,
       "z2ui5/core/Lib": Lib,
-      "z2ui5/core/Env": { preloadFragmentModules: async () => {} },
+      "z2ui5/core/Env": {
+        preloadFragmentModules: async () => {},
+        loadViewLibraries: async () => {},
+      },
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/Context": contextStub(ctx),
     },
@@ -187,7 +205,24 @@ function load() {
     app.complete();
     await Promise.resolve();
   };
-  return { app, ctx, state, errors, built, timers, display, complete };
+  // the container's rendering pass: every view built so far has its DOM,
+  // and whoever waited for a view's rendering runs
+  const render = () => {
+    for (const view of built) view.rendered = true;
+    for (const { fn } of renders.splice(0)) fn();
+  };
+  Object.assign(env, {
+    app,
+    ctx,
+    state,
+    errors,
+    built,
+    timers,
+    display,
+    complete,
+    render,
+  });
+  return env;
 }
 
 test.describe("forward", () => {
@@ -454,10 +489,121 @@ test.describe("the plain swap stays what it was", () => {
     await env.display({}, "ZCL_A");
     const first = env.state.oView;
     await env.display({}, "ZCL_B");
+    env.render();
     expect(first.destroyed).toBe(true);
-    expect(env.state.oView.getId()).toBe("mainView");
+    expect(env.app.pages).toEqual([env.state.oView]);
     expect(env.app.played).toEqual([]);
     expect(env.state.mainTransition).toBeNull();
+  });
+
+  // The old page used to be destroyed BEFORE the new one was built, so the
+  // screen was blank for the whole build. It stays in the container now,
+  // detached from the slot, until the new page is in - and is destroyed
+  // once that one rendered, the pass that takes the old DOM away anyway.
+  test("the old page stays in the container until the new one is placed", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    const first = env.state.oView;
+    // the build takes its time - XMLView.create resolves when the spec says
+    let release;
+    env.holdBuild = new Promise((resolve) => {
+      release = resolve;
+    });
+    const pending = env.display({}, "ZCL_B");
+    await new Promise((resolve) => setImmediate(resolve));
+    // the build is under way: the slot is empty, the page still up
+    expect(env.built).toHaveLength(2);
+    expect(env.state.oView).toBeNull();
+    expect(env.app.pages).toEqual([first]);
+    expect(first.destroyed).toBe(false);
+    release();
+    await pending;
+    // placed: the new page alone is in the container, the old one lives
+    // on until the container rendered the new page, frozen like a page
+    // that leaves with a transition
+    expect(env.app.pages).toEqual([env.state.oView]);
+    expect(first.destroyed).toBe(false);
+    expect(first.getDomRef().style.pointerEvents).toBe("none");
+    expect(typeof env.state.mainLeaving).toBe("function");
+    env.render();
+    expect(first.destroyed).toBe(true);
+    expect(env.state.mainLeaving).toBeNull();
+  });
+
+  test("the new page is built under the id the old one does not hold", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    expect(env.state.oView.getId()).toBe("mainView");
+    await env.display({}, "ZCL_B");
+    expect(env.state.oView.getId()).toBe("mainView2");
+    env.render();
+    await env.display({}, "ZCL_C");
+    expect(env.state.oView.getId()).toBe("mainView");
+  });
+
+  test("the OData clients of the old page die with it, after the placement", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    const client = {
+      destroyed: false,
+      destroy() {
+        this.destroyed = true;
+      },
+    };
+    env.state.odataClients.add(client);
+    await env.display({}, "ZCL_B");
+    expect(env.state.odataClients.size).toBe(0);
+    expect(client.destroyed).toBe(false);
+    env.render();
+    expect(client.destroyed).toBe(true);
+  });
+
+  test("the next MAIN display ends a leave still pending, first thing", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    const first = env.state.oView;
+    await env.display({}, "ZCL_B");
+    const second = env.state.oView;
+    expect(first.destroyed).toBe(false);
+    // no rendering in between: the id the first page holds is the one
+    // the third build needs
+    await env.display({}, "ZCL_C");
+    expect(first.destroyed).toBe(true);
+    expect(env.state.oView.getId()).toBe("mainView");
+    expect(second.destroyed).toBe(false);
+    env.render();
+    expect(second.destroyed).toBe(true);
+    expect(env.app.pages).toEqual([env.state.oView]);
+  });
+
+  test("a page whose replacement never renders goes on the safety timeout", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    const first = env.state.oView;
+    await env.display({}, "ZCL_B");
+    expect(env.timers).toHaveLength(1);
+    env.timers[0].fn();
+    expect(first.destroyed).toBe(true);
+    expect(env.state.mainLeaving).toBeNull();
+    // the rendering, when it comes, finds nothing left to do
+    env.render();
+    expect(env.errors).toEqual([]);
+  });
+
+  test("a build that fails leaves the old page destroyed, not frozen behind the overlay", async () => {
+    const env = load();
+    await env.display({}, "ZCL_A");
+    const first = env.state.oView;
+    env.failNext = true;
+    let failure;
+    try {
+      await env.display({}, "ZCL_B");
+    } catch (e) {
+      failure = e;
+    }
+    expect(failure?.message).toBe("broken view");
+    expect(first.destroyed).toBe(true);
+    expect(env.state.mainLeaving).toBeNull();
   });
 
   test("the first display has nothing to leave - its transition is remembered", async () => {

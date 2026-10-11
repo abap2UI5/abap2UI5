@@ -226,6 +226,40 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO cl_abap_typedescr.
 
+    " one component of a flat structure, with the one fact a JSON writer
+    " decides by: json_kind is B for a boolean (abap_bool and its DDIC
+    " twins, by type name - as ajson tells them apart), N for a number
+    " (every numeric kind), S for a string (character, numeric text, string
+    " and binary - all of which |{ }| renders as ajson does), D for a date
+    " and T for a time (which ajson writes as ISO text, YYYY-MM-DD and
+    " HH:MM:SS, and empty when initial), and empty for a kind no such
+    " writer should take on - utclong, an enumeration, and a packed field
+    " TYPED timestamp or timestampl, which ajson converts through the time
+    " zone (rare in a bound row, and ajson's own rendering stays the
+    " reference for them)
+    TYPES:
+      BEGIN OF ty_s_flat_comp,
+        name      TYPE string,
+        json_kind TYPE c LENGTH 1,
+      END OF ty_s_flat_comp.
+    TYPES ty_t_flat_comp TYPE STANDARD TABLE OF ty_s_flat_comp WITH EMPTY KEY.
+
+    "! The components of the FLAT structure behind a data reference - the
+    "! structure itself, or the line of the STANDARD table it points to -
+    "! each with its json_kind (see the type). Empty when the reference
+    "! points to anything else (a scalar, a sorted or hashed table, a table
+    "! of scalars), when any component is no elementary one (a nested
+    "! structure, a table, a reference), when the structure has an include
+    "! (whose components are a question of their own), or when a component
+    "! has no json_kind - so a caller that gets rows can write every cell
+    "! of every row as a scalar, and one that gets none takes the general
+    "! road
+    CLASS-METHODS rtti_get_flat_components
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE ty_t_flat_comp.
+
     TYPES:
       BEGIN OF ty_s_sel_tab_type,
         tabledescr       TYPE REF TO cl_abap_tabledescr,
@@ -605,6 +639,21 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    "! A digest of a text for EQUALITY comparisons only - a fixed 64
+    "! characters standing in for a text nobody has to read back (the
+    "! client-model snapshot a draft carries, z2ui5_cl_ui5_app_cont). SHA-256
+    "! over the characters through cl_abap_message_digest (7.02 and up,
+    "! released in ABAP Cloud, open-abap-core has it too; named dynamically);
+    "! where the class is absent or cannot answer, the text itself is the
+    "! answer, so a comparison still holds. The same input always gives the
+    "! same answer within one system; it is never stored for longer than a
+    "! draft lives
+    CLASS-METHODS hash_string
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
@@ -759,6 +808,28 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         exists TYPE abap_bool,
       END OF ty_s_class_exists.
     CLASS-DATA gt_class_exists TYPE HASHED TABLE OF ty_s_class_exists WITH UNIQUE KEY name.
+
+    " hash_string: the dynamic call raised once in this roll area, so the
+    " class is absent here - the text answers from then on without a
+    " raise per call (two per roundtrip)
+    CLASS-DATA gv_hash_absent TYPE abap_bool.
+
+    " the json_kind of one elementary type (see ty_s_flat_comp)
+    CLASS-METHODS rtti_get_json_kind
+      IMPORTING
+        val           TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE ty_s_flat_comp-json_kind.
+
+    " hash_string with the digest class named by the caller, INITIAL when
+    " that class cannot answer - the test class reaches that branch through
+    " a class that does not exist
+    CLASS-METHODS hash_string_by_class
+      IMPORTING
+        val           TYPE clike
+        classname     TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
 
     " rtti_check_class_impl_intf, cached per class and interface the way
     " the existence check is: it is asked on every app start, and each
@@ -2222,6 +2293,73 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_get_flat_components.
+
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    TRY.
+        lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
+        IF lo_type->kind = cl_abap_typedescr=>kind_table.
+          DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
+          IF lo_table->table_kind <> cl_abap_tabledescr=>tablekind_std.
+            RETURN.
+          ENDIF.
+          lo_type = lo_table->get_table_line_type( ).
+        ENDIF.
+        IF lo_type->kind <> cl_abap_typedescr=>kind_struct.
+          RETURN.
+        ENDIF.
+        DATA(lt_comp) = CAST cl_abap_structdescr( lo_type )->get_components( ).
+        LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+          DATA(ls_flat) = VALUE ty_s_flat_comp( name = lr_comp->name ).
+          IF lr_comp->as_include = abap_true OR lr_comp->type->kind <> cl_abap_typedescr=>kind_elem.
+            CLEAR result.
+            RETURN.
+          ENDIF.
+          ls_flat-json_kind = rtti_get_json_kind( lr_comp->type ).
+          IF ls_flat-json_kind IS INITIAL.
+            CLEAR result.
+            RETURN.
+          ENDIF.
+          APPEND ls_flat TO result.
+        ENDLOOP.
+      CATCH cx_root.
+        CLEAR result.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_json_kind.
+
+    " the same distinctions z2ui5_cl_ajson's lcl_abap_to_json=>convert_value
+    " makes, in the same order - a boolean by its type name first, so an
+    " abap_bool (a CHAR 1) is not a string
+    CASE val->absolute_name.
+      WHEN `\TYPE-POOL=ABAP\TYPE=ABAP_BOOL` OR `\TYPE=ABAP_BOOLEAN` OR `\TYPE=XSDBOOLEAN`
+          OR `\TYPE=FLAG` OR `\TYPE=XFELD`.
+        result = `B`.
+        RETURN.
+      WHEN `\TYPE=TIMESTAMP` OR `\TYPE=TIMESTAMPL`.
+        RETURN.
+    ENDCASE.
+    CASE val->type_kind.
+      WHEN cl_abap_typedescr=>typekind_char OR cl_abap_typedescr=>typekind_num
+          OR cl_abap_typedescr=>typekind_string OR cl_abap_typedescr=>typekind_hex
+          OR cl_abap_typedescr=>typekind_xstring.
+        result = `S`.
+      WHEN cl_abap_typedescr=>typekind_date.
+        result = `D`.
+      WHEN cl_abap_typedescr=>typekind_time.
+        result = `T`.
+      WHEN cl_abap_typedescr=>typekind_int OR cl_abap_typedescr=>typekind_int1
+          OR cl_abap_typedescr=>typekind_int2 OR cl_abap_typedescr=>typekind_float
+          OR cl_abap_typedescr=>typekind_packed OR cl_abap_typedescr=>typekind_decfloat16
+          OR cl_abap_typedescr=>typekind_decfloat34 OR `8`.
+        " `8`: typekind_int8, a constant lower releases do not have
+        result = `N`.
+    ENDCASE.
+
+  ENDMETHOD.
+
   METHOD rtti_get_typedescr_by_data.
 
     result = cl_abap_typedescr=>describe_by_data( val ).
@@ -3282,6 +3420,45 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
       CATCH cx_root.
         do_fallback = abap_true.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD hash_string.
+
+    IF gv_hash_absent = abap_true.
+      result = val.
+      RETURN.
+    ENDIF.
+    result = hash_string_by_class( val       = val
+                                   classname = `CL_ABAP_MESSAGE_DIGEST` ).
+    IF result IS INITIAL.
+      " no digest class, or one that cannot answer: the text itself, which
+      " compares exactly as before
+      gv_hash_absent = abap_true.
+      result = val.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD hash_string_by_class.
+
+    DATA lv_classname TYPE string.
+    DATA lv_data      TYPE string.
+    DATA lv_algorithm TYPE string.
+
+    lv_classname = classname.
+    lv_data      = val.
+    lv_algorithm = `SHA256`.
+    TRY.
+        CALL METHOD (lv_classname)=>calculate_hash_for_char
+          EXPORTING
+            if_algorithm  = lv_algorithm
+            if_data       = lv_data
+          IMPORTING
+            ef_hashstring = result.
+      CATCH cx_root.
+        CLEAR result.
     ENDTRY.
 
   ENDMETHOD.

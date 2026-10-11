@@ -28,7 +28,7 @@
     "build": "ui5 build --config=ui5.yaml --clean-dest --dest dist",
     "start-noflp": "fiori run --open \"index.html?sap-ui-xx-viewCache=false\"",
     "start-variants-management": "fiori run --open \"preview.html?sap-ui-xx-viewCache=false&fiori-tools-rta-mode=true&sap-ui-rta-skip-flex-validation=true#preview-app\"",
-    "format": "prettier --write 'webapp/**/*.js'",
+    "format": "prettier --write 'webapp/**/*.js' --cache --cache-strategy content",
     "format:check": "prettier --check 'webapp/**/*.js'",
     "lint": "eslint 'webapp/**/*.js'",
     "typecheck": "tsc -p ."

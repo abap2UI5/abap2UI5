@@ -816,3 +816,64 @@ The same tree, with the subtree held in a variable:
   project scaffold without a GitHub template button or an editor.
 - **`interact_app`** in the MCP server: click, type and fire events in the
   headless app and look at the result — the event branch, not just the boot.
+
+## 10. The in-app developer tools (Ctrl+F12)
+
+Every abap2UI5 page carries its own developer tools: a dialog over the running
+app that shows the roundtrips, the view XML and the model, the log and the
+environment, without the browser's devtools. They are part of the frontend
+(`app/webapp/devtools/`), so they are there on every system and in every
+app, with nothing to install and nothing to configure.
+
+### Starting them
+
+| How | What it does |
+|---|---|
+| **Ctrl+F12** in the running app | Opens the dialog; Ctrl+F12 again closes it. Without a tab named, it reopens where you left off (remembered per browser tab in `sessionStorage`) |
+| **`?z2ui5-devtools=1`** on the page URL | Opens the tools as soon as the page has booted, on the Overview. For a problem that happens during startup, where Ctrl+F12 comes too late. Example: `https://<host>/sap/bc/z2ui5?sap-client=100&z2ui5-devtools=1` |
+| **`?z2ui5-devtools=<KEY>`** | Opens them directly on one view, by its key. Group keys: `OVERVIEW`, `PROBLEMS`, `ROUNDTRIPS`, `VIEWDATA`, `SYSTEM`, `SEARCH`. View keys: `ERROR`, `LOG`, `HISTORY`, `REQUEST`, `PLAIN`, `ACTIONS`, `DIFF`, `VIEWDIFF`, `VIEW`, `MODEL`, `BINDINGS`, `POPUP`, `POPUP_MODEL`, `POPUP_BINDINGS`, `POPOVER`, `POPOVER_MODEL`, `POPOVER_BINDINGS`, `NEST1`, `NEST2`. Example: `?z2ui5-devtools=HISTORY` |
+| **"Open on Error"** switch on the Overview tab | Once on, the tools pop open on the Log as soon as anything logs at error level: a backend error, an uncaught exception, an unhandled rejection, a binding problem. Off by default, remembered per browser tab |
+| From the **start app** (`z2ui5_cl_ui5_app_start`) | The System information popup covers the backend (settings, user exit, drafts); its text points to Ctrl+F12 for the frontend side (UI5 version, theme, device, requests, logs) |
+
+The roundtrip history and the console capture record from the first
+roundtrip on, whether the dialog was ever opened or not: opening the tools
+after the problem still shows what happened before. The dialog itself and
+the inspectors arrive on the first Ctrl+F12 as a second bundle
+(`GET <page url>&z2ui5-bundle=devtools`, cached by ETag), so a plain app
+start does not pay for them. There is no backend switch and no ABAP call to
+open them; they are a frontend affair.
+
+### What you find there
+
+- **Overview**: which app, which roundtrip, is anything broken, and where to
+  go next. The landing tab, with the "Open on Error" switch.
+- **Problems**: the last fatal error (with Retry / Restart / Logout) and one
+  Log timeline of everything: the framework's error log with stack traces,
+  UI5's log, uncaught errors, rejections, every `console.*` call and the
+  messages the user was shown.
+- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes
+  and draft ids, the raw request and response JSON, the follow-up actions and
+  a diff of the model between two roundtrips.
+- **View & Data**: the XML of the main view, the popup, the popover and the
+  nested views as the backend sent it, the model that fills each, and the
+  bindings with a missing-path check and a size ranking. The picker marks a
+  control on screen and jumps to its XML.
+- **System**: UI5 version, theme, device, the running app's ABAP class.
+- **Search**: one term across every other tab at once.
+- **Report a Bug** (toolbar): puts the whole session state on the clipboard as a
+  GitHub-ready issue body (environment, error, log, roundtrip history, the
+  app's class, each in a collapsed section). Paste it into an issue as it is.
+- The **(i)** button opens the built-in help with the same keys and shortcuts.
+
+### When they do not open
+
+- The page runs under the shipped CSP; the devtools bundle is a same-origin
+  file and needs nothing beyond `script-src 'self'`. A CSP of your own that
+  drops `'self'` blocks it, and the Log of the browser's console names the
+  blocked URL.
+- On a Fiori launchpad or a BSP page the dialog's modules are asked from the
+  page's own loader first and from the bundle second; a 404 in between is
+  expected and harmless.
+- An embedded component (`@abap2ui5/embed-control`, `?z2ui5-bundle`) has the
+  tools too, loaded from its own backend endpoint, but without the page-wide
+  console capture: the host's page is not the app's.

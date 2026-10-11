@@ -242,6 +242,7 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `    function measureRequest(ctx, oBody) {` && |\n| &&
              `      if (!oBody) return null;` && |\n| &&
              `      const known = ctx.state.lastRequestBytes;` && |\n| &&
+             `      if (typeof known === "function") return known();` && |\n| &&
              `      if (typeof known === "number") return known;` && |\n| &&
              `      try {` && |\n| &&
              `        return Lib.byteLength(JSON.stringify({ value: oBody }));` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `        ``  Backend: avg ${avg} ms over ${timed.length} roundtrip(s),`` +` && |\n| &&
              `          `` slowest #${slowest.seq} ${slowest.event || "(start)"}`` +` && |\n| &&
              `          `` at ${slowest.backendMs} ms``,` && |\n| &&
-             `      );` && |\n| &&
-             `      const sized = list.filter((r) => r.respBytes !== null);` && |\n|.
+             `      );` && |\n|.
     result = result &&
+             `      const sized = list.filter((r) => r.respBytes !== null);` && |\n| &&
              `      if (sized.length) {` && |\n| &&
              `        const biggest = sized.reduce((a, b) =>` && |\n| &&
              `          b.respBytes > a.respBytes ? b : a,` && |\n| &&

@@ -8,9 +8,11 @@
  *
  *   initialize()     boots the ABAP runtime once - the SQLite database and
  *                    the schema (setup/setup.mjs), then the framework's
- *                    class constructors - and installs accelerate()'s fast
- *                    paths on it. Idempotent: every call returns the first
- *                    call's promise.
+ *                    class constructors - installs the host's seams in the
+ *                    framework (THE SEAMS, below) and starts the draft sweep
+ *                    (DRAFT SWEEP, below). Idempotent: every call returns
+ *                    the first call's promise, so the options of the first
+ *                    call are the ones in force.
  *   createHandler()  the HTTP handler, (req, res) => Promise<void>. It hands
  *                    the request to ZCL_SICF (node/srv/zcl_sicf.clas.abap,
  *                    transpiled with the framework), the same class an ICF
@@ -34,6 +36,12 @@
  *                    request names, and hands the session id back on the
  *                    response (STATEFUL SESSIONS, below). createHandler()
  *                    puts it around every request; inside exclusive( ).
+ *   sweepDrafts()    drops the expired drafts - the table's rows and the
+ *                    live containers behind them - inside exclusive(); what
+ *                    the timer of DRAFT SWEEP runs, for a host that would
+ *                    rather run it itself.
+ *   configureDraftSweep({ intervalMs })
+ *                    how often the timer runs sweepDrafts() (0 stops it).
  *
  * accelerate() (srv/accelerate.mjs, re-exported here) installs nothing any
  * more: @abaplint/runtime from 2.13.96 on is linear on large tables itself
@@ -112,6 +120,45 @@
  * themselves is the process's, as before. node/tests/sessions.spec.js holds
  * it.
  *
+ * THE SEAMS. The framework looks two things up in the class repository of
+ * an SAP system that this runtime does not have: the user exit (the class
+ * implementing z2ui5_if_ui5_exit) and, through it, the roundtrip monitor.
+ * The exit lookup RAISES here (no SEO_INTERFACE_IMPLEM_GET_ALL), and a
+ * raised lookup is deliberately not remembered on a system - a transient
+ * repository error must not leave a sticky session on the shipped defaults
+ * for good - so every z2ui5_cl_ui5_user_exit=>get_instance( ) of every
+ * request walked the RTTI and the dynamic call again, three times per
+ * POST. initialize() tells the framework once, through
+ * z2ui5_cl_ui5_user_exit=>set_instance( ): the shipped exit (the defaults,
+ * latched as "no exit installed"), or the host's own `exit` - an instance
+ * of a transpiled ABAP class implementing z2ui5_if_ui5_exit, called through
+ * the shipped exit the way a customer exit on a system is, so the defaults
+ * are seeded first. And the draft: z2ui5_cl_ui5_app_cont turns the app
+ * state into asXML through CALL TRANSFORMATION id and S-RTTI, which this
+ * runtime reproduces with an RTTI walk of the whole object graph - to save
+ * AND to load, on every click. In a process the object is still there on
+ * the next request, so initialize() installs zcl_serializer_live
+ * (node/srv/zcl_serializer_live.clas.abap, transpiled with the framework
+ * and packed next to zcl_sicf): the draft row carries an id, the container
+ * stays live behind it, and an id names the container as it IS - the
+ * semantics of a stateful session for every app; the class comment has the
+ * rest. node/tests/hostSeams.spec.js holds both.
+ *
+ * DRAFT SWEEP. Z2UI5_T_01 takes one row per roundtrip and is swept by the
+ * framework only when an app cold-starts (z2ui5_cl_ui5_handler calls
+ * cleanup( ) from factory_first_start, never per roundtrip - a maintainer
+ * decision, docs/agents/decisions.md), and the live containers of
+ * zcl_serializer_live are swept by nothing in the framework at all. On a
+ * system the table is the database's and every process shares it; here it
+ * is this process's memory, and a dev server nobody restarts, with apps
+ * that never cold-start again, grew without bound. So initialize() arms a
+ * timer: every `draftSweepMs` (5 minutes) sweepDrafts() runs the store's
+ * cleanup( ) - the DELETE below the expiry the exit answers - and the
+ * serializer's sweep( ) with the same expiry, inside exclusive(), so no
+ * request is in the framework while it runs. The timer is unref'd: it
+ * keeps no process alive that has nothing else to do. A sweep that fails
+ * (the exit raising, say) is logged and the next one runs as scheduled.
+ *
  * THE FRONTEND needs nothing here. The GET branch of
  * z2ui5_cl_ui5_http_handler answers with the page and the whole UI5 component
  * embedded in it - every module, view and stylesheet, carried as ABAP
@@ -125,6 +172,10 @@ import http from "node:http";
 import { initializeABAP } from "../output/init.mjs";
 import { cl_express_icf_shim } from "../output/express-icf-shim/cl_express_icf_shim.clas.mjs";
 import { z2ui5_cl_ui5_http_handler } from "../output/project/z2ui5_cl_ui5_http_handler.clas.mjs";
+import { z2ui5_cl_ui5_user_exit } from "../output/project/z2ui5_cl_ui5_user_exit.clas.mjs";
+import { z2ui5_cl_ui5_app_cont } from "../output/project/z2ui5_cl_ui5_app_cont.clas.mjs";
+import { z2ui5_cl_ui5_srv_draft } from "../output/project/z2ui5_cl_ui5_srv_draft.clas.mjs";
+import { zcl_serializer_live } from "../output/project/zcl_serializer_live.clas.mjs";
 import { accelerate } from "./accelerate.mjs";
 import { compress } from "./compress.mjs";
 import { hostGuard } from "./hostguard.mjs";
@@ -138,17 +189,87 @@ export const HANDLER_CLASS = "ZCL_SICF";
 
 let booted;
 
+/** The default of `draftSweepMs`: five minutes. */
+export const DRAFT_SWEEP_MS = 5 * 60 * 1000;
+
 /**
  * Boot the ABAP runtime: the database, its schema and the framework, then
  * accelerate(), which warns once when the runtime is older than the one the
- * package names. Once per process; later calls return the same promise.
+ * package names; then the host's seams (THE SEAMS above) and the draft
+ * sweep (DRAFT SWEEP above). Once per process; later calls return the same
+ * promise, with the first call's options in force.
+ * @param {{ exit?: object, draftSweepMs?: number | false }} [options]
+ *   `exit`: the host's own user exit - an instance of a transpiled ABAP class
+ *   implementing z2ui5_if_ui5_exit (after its `constructor_()`), instead of
+ *   the shipped defaults. `draftSweepMs`: how often the expired drafts are
+ *   swept (default DRAFT_SWEEP_MS); 0 or false leaves the timer off.
  * @returns {Promise<void>}
  */
-export function initialize() {
-  booted ??= initializeABAP().then(() => {
+export function initialize({ exit, draftSweepMs = DRAFT_SWEEP_MS } = {}) {
+  booted ??= initializeABAP().then(async () => {
     accelerate();
+    await installSeams({ exit });
+    configureDraftSweep({ intervalMs: draftSweepMs || 0 });
   });
   return booted;
+}
+
+/** The options of initialize() out of a wider options object (serve(), createApp(), createHandler()). */
+function initOptions({ exit, draftSweepMs } = {}) {
+  return { exit, ...(draftSweepMs !== undefined ? { draftSweepMs } : {}) };
+}
+
+/** The framework's class-data seams, set once per process - THE SEAMS above. */
+async function installSeams({ exit }) {
+  const io_exit = exit ?? (await new z2ui5_cl_ui5_user_exit().constructor_());
+  await z2ui5_cl_ui5_user_exit.set_instance({ io_exit });
+  const serializer = await new zcl_serializer_live().constructor_();
+  await z2ui5_cl_ui5_app_cont.set_serializer({ serializer });
+}
+
+let sweepTimer;
+const sweep = { intervalMs: 0 };
+
+/**
+ * Drop the expired drafts: the rows of the draft table (the store's
+ * cleanup( ) - the DELETE below the expiry the exit answers, what the
+ * framework runs on an app cold start) and the live containers of
+ * zcl_serializer_live older than that same expiry. Inside exclusive(), so
+ * it never runs while a request is in the framework. Resolves with how
+ * many containers went and how many are kept.
+ * @returns {Promise<{ dropped: number, kept: number }>}
+ */
+export function sweepDrafts() {
+  return exclusive(async () => {
+    const store = (await z2ui5_cl_ui5_srv_draft.get_instance({ result: 1 })).get();
+    await store.z2ui5_if_ui5_draft_store$cleanup();
+    const dropped = (await zcl_serializer_live.sweep({ result: 1 })).get();
+    const kept = (await zcl_serializer_live.count_entries({ result: 1 })).get();
+    return { dropped, kept };
+  });
+}
+
+/**
+ * Arm the timer that runs sweepDrafts() every `intervalMs` (DRAFT SWEEP
+ * above) - or stop it with 0. Returns the interval in force. The timer is
+ * unref'd and never keeps the process alive on its own.
+ * @param {{ intervalMs?: number }} [options]
+ * @returns {{ intervalMs: number }}
+ */
+export function configureDraftSweep({ intervalMs } = {}) {
+  if (intervalMs === undefined) return { ...sweep };
+  if (sweepTimer) {
+    clearInterval(sweepTimer);
+    sweepTimer = undefined;
+  }
+  sweep.intervalMs = Number.isFinite(intervalMs) && intervalMs > 0 ? intervalMs : 0;
+  if (sweep.intervalMs > 0) {
+    sweepTimer = setInterval(() => {
+      sweepDrafts().catch((e) => console.warn(`abap2ui5: the draft sweep failed - ${e?.message ?? e}`));
+    }, sweep.intervalMs);
+    sweepTimer.unref();
+  }
+  return { ...sweep };
 }
 
 // the request in the framework, or the last one queued behind it - module
@@ -322,13 +443,15 @@ export async function withSession(req, res, fn, { owner = "" } = {}) {
  * The HTTP handler. Boots the runtime on the first request when nothing
  * called initialize() before, queues the requests (exclusive()) and keeps
  * the stateful sessions (withSession()).
- * @param {{ handlerClass?: string }} [options] another if_http_extension
- *   class, transpiled into the same runtime, instead of ZCL_SICF
+ * @param {{ handlerClass?: string, exit?: object, draftSweepMs?: number | false }} [options]
+ *   `handlerClass`: another if_http_extension class, transpiled into the
+ *   same runtime, instead of ZCL_SICF; the rest is initialize()'s
  * @returns {(req: object, res: object) => Promise<void>}
  */
-export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
+export function createHandler({ handlerClass = HANDLER_CLASS, ...options } = {}) {
+  const init = initOptions(options);
   return async function handle(req, res) {
-    await initialize();
+    await initialize(init);
     // express.raw() leaves req.body undefined on a request without one (every
     // GET); the shim reads it as a Buffer either way
     if (!req.body) req.body = Buffer.alloc(0);
@@ -355,7 +478,7 @@ export function createHandler({ handlerClass = HANDLER_CLASS } = {}) {
  * response and the shim cannot, so without it the ~360 KB page and every
  * roundtrip went out uncompressed. `compression: false` leaves it out (a
  * proxy in front that compresses anyway); an object is compress()'s options.
- * @param {{ handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
+ * @param {{ handlerClass?: string, bodyLimit?: string, compression?: boolean | object, exit?: object, draftSweepMs?: number | false }} [options]
  * @returns {Promise<import("express").Express>}
  */
 export async function createApp({ bodyLimit = "10mb", compression = true, ...options } = {}) {
@@ -386,14 +509,14 @@ export async function createApp({ bodyLimit = "10mb", compression = true, ...opt
  * in `allowedHosts` - and, with an Origin, coming from a page there - is
  * answered; any other gets a 403 (srv/hostguard.mjs says why: DNS
  * rebinding). `allowedHosts: "*"` answers every request, as before.
- * @param {{ port?: number | string, host?: string, allowedHosts?: string | string[], handlerClass?: string, bodyLimit?: string, compression?: boolean | object }} [options]
+ * @param {{ port?: number | string, host?: string, allowedHosts?: string | string[], handlerClass?: string, bodyLimit?: string, compression?: boolean | object, exit?: object, draftSweepMs?: number | false }} [options]
  *   `host` unset binds every interface; "127.0.0.1" binds loopback only
  * @returns {Promise<import("node:http").Server>}
  */
 export async function serve({ port = 3000, host, allowedHosts, ...options } = {}) {
   const app = await createApp(options);
   const guard = hostGuard({ host, allowedHosts });
-  await initialize();
+  await initialize(initOptions(options));
   return new Promise((resolve, reject) => {
     const server = http.createServer((req, res) => guard(req, res, () => app(req, res)));
     server.once("error", reject);

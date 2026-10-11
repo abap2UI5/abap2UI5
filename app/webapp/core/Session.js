@@ -51,15 +51,23 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   }
 
   // The latches of `ctx.session`:
-  //   configSent   the block has gone out COMPLETE - sent until then, not
-  //                just once: the version info is loaded asynchronously
-  //                during component init, so the first roundtrip can fire
-  //                before it exists. Repeating it costs the same bytes it
-  //                used to cost every time, and stops as soon as there is
-  //                something to store. A page load always starts by
-  //                sending it again, which is what makes a draft reopened
-  //                on a different device pick up THAT device instead of the
-  //                one that created it.
+  //   configSent   the static blocks - the device profile and the
+  //                launchpad's ComponentData - have gone out. A page load
+  //                always starts by sending them again, which is what
+  //                makes a draft reopened on a different device pick up
+  //                THAT device instead of the one that created it.
+  //   ui5Sent      the UI5 version info has gone out. It is a latch of its
+  //                own because the info is loaded asynchronously during
+  //                component init (Component._initVersionInfo) and the
+  //                first roundtrip fires before it exists - on purpose, the
+  //                first paint does not wait for a network fetch. Until
+  //                2026-10 the whole block counted as unsent while S_UI5
+  //                was missing, so the second roundtrip of EVERY page load
+  //                repeated the device profile and the ComponentData. Now
+  //                the version info travels alone, on the first roundtrip
+  //                that finds it loaded (the backend merges it into the
+  //                stored block, z2ui5_cl_ui5_handler=>session_merge), and
+  //                a page whose fetch failed sends nothing for it.
   //   liveSent     the last-sent live device values. Orientation and
   //                resize are the two device fields that are NOT
   //                session-constant - but they change on a rotation or
@@ -89,17 +97,28 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     const latches = ctx.session;
     const live = getDeviceLive();
     const liveKey = JSON.stringify(live);
+    const ui5 = oConfig?.S_UI5;
     if (latches.configSent && draftId) {
-      if (liveKey === latches.liveSent) {
+      // the version info alone, once it is there and not yet sent; the
+      // live device fields only when they changed
+      const sendUi5 = Boolean(ui5) && !latches.ui5Sent;
+      const sendLive = liveKey !== latches.liveSent;
+      if (!sendUi5 && !sendLive) {
         latches.pending = null;
         return {};
       }
-      latches.pending = { live: liveKey };
-      return { S_DEVICE: live };
+      latches.pending = {
+        ...(sendUi5 && { ui5: true }),
+        ...(sendLive && { live: liveKey }),
+      };
+      return {
+        ...(sendUi5 && { S_UI5: ui5 }),
+        ...(sendLive && { S_DEVICE: live }),
+      };
     }
-    latches.pending = { config: Boolean(oConfig?.S_UI5), live: liveKey };
+    latches.pending = { config: true, ui5: Boolean(ui5), live: liveKey };
     return {
-      S_UI5: oConfig?.S_UI5,
+      S_UI5: ui5,
       ComponentData: oConfig?.ComponentData,
       S_DEVICE: { ...getDeviceStatic(), ...live },
     };
@@ -121,6 +140,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
     if (!p) return;
     const latches = ctx.session;
     if (p.config) latches.configSent = true;
+    if (p.ui5) latches.ui5Sent = true;
     if (p.live !== undefined) latches.liveSent = p.live;
     if (p.location) latches.locationSent = true;
   }
@@ -159,6 +179,7 @@ sap.ui.define(["sap/ui/Device", "z2ui5/core/Lib"], (Device, Lib) => {
   function reset(ctx) {
     const latches = ctx.session;
     latches.configSent = false;
+    latches.ui5Sent = false;
     latches.liveSent = "";
     latches.pending = null;
     latches.locationSent = false;

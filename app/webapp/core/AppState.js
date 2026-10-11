@@ -86,6 +86,11 @@
 //   mainTransition    the page change in flight: a promise that settles once
 //                     the old page is gone, null when none runs. The next
 //                     MAIN build and the follow-up actions wait for it
+//   mainLeaving       the end of a plain swap still pending: the function
+//                     that destroys the page the swap replaced, run once
+//                     the new page rendered (actions/Slots swapAlone) - or
+//                     by the next MAIN display, first thing. Null when no
+//                     page is on its way out
 //
 // Roundtrip state
 //   oBody             mirror of the current request payload - the body
@@ -102,11 +107,14 @@
 //                     besides oResponse because the developer tools render
 //                     the raw payload
 //   contextId         stateful session id, header transport (Server)
-//   lastRequestBytes  size of the last request body as serialized
-//                     (Server.readHttp), in UTF-8 bytes - what goes on the
-//                     wire, the unit of the response size beside it; the
-//                     developer tools' recorder shows it as REQ so the body
-//                     is not serialized a second time for it
+//   lastRequestBytes  a function answering the size of the last request
+//                     body as serialized (Server.readHttp), in UTF-8 bytes
+//                     - what goes on the wire, the unit of the response
+//                     size beside it. A function, not the number: the
+//                     count copies the body (Lib.lazyByteLength) and is
+//                     paid on the first call only - by the developer
+//                     tools' recorder, which shows it as REQ and does not
+//                     serialize the body a second time for it
 //   lastRoundtripMs   the duration of the last successful roundtrip as the
 //                     browser saw it, POST to parsed response, in ms
 //                     (Server.readHttp) - the next request carries it to
@@ -203,6 +211,7 @@ sap.ui.define([], () => {
       mainArrival: "",
       mainInstance: "",
       mainTransition: null,
+      mainLeaving: null,
 
       // Roundtrip state
       oBody: null,

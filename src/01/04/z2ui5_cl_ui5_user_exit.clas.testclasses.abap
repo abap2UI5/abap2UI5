@@ -30,6 +30,33 @@ CLASS ltcl_exit_dep IMPLEMENTATION.
 ENDCLASS.
 
 
+" A host's own exit, handed in through set_instance - what a Node host
+" passes in its options instead of a class the lookup would find.
+CLASS ltcl_exit_host DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_exit.
+
+ENDCLASS.
+
+
+CLASS ltcl_exit_host IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_get.
+
+    cs_config-theme = `sap_fiori_3`.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_post.
+
+    cs_config-draft_exp_time_in_hours = 7.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_user_exit DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -48,6 +75,9 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
     METHODS test_lookup_fail_no_latch FOR TESTING RAISING cx_static_check.
+    METHODS test_set_instance_shipped FOR TESTING RAISING cx_static_check.
+    METHODS test_set_instance_host    FOR TESTING RAISING cx_static_check.
+    METHODS test_set_instance_reset   FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
     METHODS test_csp_wasm_unsafe_eval FOR TESTING RAISING cx_static_check.
@@ -294,6 +324,101 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit_dep ).
+
+  ENDMETHOD.
+
+  METHOD test_set_instance_shipped.
+
+    " a host installs the shipped defaults: latched as "no exit installed"
+    " - the answer the lookup gives on a system without an exit - so no
+    " later get_instance( ) asks the repository the runtime does not have
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW z2ui5_cl_ui5_user_exit( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gv_exit_class ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
+    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
+    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit_dep ).
+
+    " the one instance, on every call - the early return of get_instance( )
+    DATA(li_first) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( li_first = z2ui5_cl_ui5_user_exit=>gi_me ) ).
+    DATA(li_again) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( li_again = li_first ) ).
+
+    li_first->set_config_http_get( CHANGING cs_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
+                                        act = ls_config-theme ).
+
+    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_set_instance_host.
+
+    " a host's own exit is installed the way the lookup installs a customer
+    " exit: called through the shipped one, so the defaults are seeded
+    " first and the exit overrides what it wants, and named as the
+    " installed exit
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+
+    DATA(lo_host) = NEW ltcl_exit_host( ).
+    z2ui5_cl_ui5_user_exit=>set_instance( lo_host ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_host )
+                                        act = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_user_exit = lo_host ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = lo_host ) ).
+
+    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
+    li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `sap_fiori_3`
+                                        act = ls_config-theme ).
+    " ... on top of the shipped defaults, not instead of them
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 7
+                                        act = ls_post-draft_exp_time_in_hours ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_post-check_csrf_active ).
+
+    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_set_instance_reset.
+
+    " an unbound reference restores the lookup: nothing latched, nothing
+    " bound, and the next get_instance( ) asks the repository again
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_host( ) ).
+    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gv_exit_class ).
+    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_me ).
+    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
+
+    " the same contract test_lookup_fail_no_latch pins: latched only when
+    " the lookup answered
+    DATA lv_answered TYPE abap_bool.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>exit_class_lookup( ).
+        lv_answered = abap_true.
+      CATCH cx_root.
+        lv_answered = abap_false.
+    ENDTRY.
+    z2ui5_cl_ui5_user_exit=>get_instance( ).
+    cl_abap_unit_assert=>assert_bound( z2ui5_cl_ui5_user_exit=>gi_me ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_answered
+                                        act = z2ui5_cl_ui5_user_exit=>gv_exit_class_known ).
 
   ENDMETHOD.
 

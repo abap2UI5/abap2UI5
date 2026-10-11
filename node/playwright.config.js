@@ -48,8 +48,17 @@ module.exports = defineConfig(
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Two workers on CI, not the generator's one. The backend behind every
+     spec is one process that runs ONE request at a time (host.mjs,
+     exclusive( )), so what workers overlap is the browser side only - the
+     page boot, UI5's own module loading and rendering, which is most of a
+     spec's wall time - and the roundtrips of two specs interleave in the
+     queue the host keeps anyway. Measured on the chromium project offline
+     (UI5_PINNED_RESOURCES): 2 workers end the leg in roughly two thirds of
+     the time of 1, with no flake over repeated runs; more than 2 overlaps
+     page boots on a two-core runner for little gain. The specs share no
+     state beyond that backend: every page starts its own app and draft. */
+  workers: process.env.CI ? 2 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   // CI: 'list' puts per-test detail in the job log; the html report and the
   // first-retry trace below are uploaded by test.yaml's browser matrix when a
@@ -107,10 +116,14 @@ module.exports = defineConfig(
        first rendering and through its own SET_FOCUS.
        And message-box-details: sap.m.MessageBox fills the details text at
        creation on 1.71 and only on the link's press from 1.120 on, so the
-       unfolded details are asked for on both ends of the range. */
+       unfolded details are asked for on both ends of the range.
+       And library-preload: the libraries a view names come as their
+       bundles through sap.ui.getCore().loadLibraries there and through
+       sap/ui/core/Lib.load on the current release - the request count is
+       asked for on both. */
     {
       name: 'ui5-1.71',
-      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details)\.spec\.js$/,
+      testMatch: /e2e[/\\](example|roundtrip|page-transition|embedded|message-box-details|library-preload)\.spec\.js$/,
       use: {
         ...devices['Desktop Chrome'],
         /* newest 1.71 patch on the CDN at pin time - bump deliberately */

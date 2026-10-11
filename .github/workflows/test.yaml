@@ -186,6 +186,11 @@ jobs:
     # session against one transpiled framework (host.mjs, STATEFUL SESSIONS)
     - name: stateful sessions in the transpiled framework
       run: npx playwright test -c node/playwright-unit.config.js sessions
+    # hostSeams.spec.js the same: what initialize() installs in the
+    # framework - the user exit, the live-container serializer - and the
+    # draft sweep over both (host.mjs, THE SEAMS and DRAFT SWEEP)
+    - name: the host's seams and the draft sweep in the transpiled framework
+      run: npx playwright test -c node/playwright-unit.config.js hostSeams
 
   browser:
     needs: transpile

@@ -81,6 +81,31 @@ What an implementation has to keep is a round trip, not a format:
 `parse( stringify( container ) )` must answer a container the framework can go
 on with. The string in between is the implementation's business.
 
+**The Node host installs one** (`node/srv/zcl_serializer_live.clas.abap`,
+from `host.mjs`'s `initialize()`, packed into `@abap2ui5/node-runtime` next to
+`zcl_sicf`). In a process the roll area never ends, so the string is an id
+and the container stays live in a class-wide table behind it - no RTTI walk
+of the object graph to save, none to load. The draft row in `Z2UI5_T_01`
+carries the id, so a draft lives as long as the process, which the in-memory
+SQLite of that host had already decided. What it changes: an id answers the
+container **as it is**, not as it was when the id was written - every
+roundtrip of an app saves the same object under a new id, so a Back/Forward
+or a bookmark into an earlier roundtrip of the same app shows its latest
+state, and a retry after a failed roundtrip runs on the state the failed one
+left. That is the semantics of a stateful session
+(`client->set_session_stateful( )`), which the framework already runs with
+the live handler, for every app of that host; the id chain (`id_prev`,
+`id_prev_app`) is kept as before. An id the table no longer holds - swept,
+or written by an earlier process - answers
+`NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`, the store's own error for a
+missing row, so the handler treats both alike. The table is swept by
+`zcl_serializer_live=>sweep( )` with the expiry the exit answers
+(`draft_exp_time_in_hours`, the rule `cleanup( )` applies to `Z2UI5_T_01`),
+which the host runs together with `cleanup( )` on a timer (`host.mjs`,
+"DRAFT SWEEP") - the per-cold-start sweep stays what it is on a system
+(`docs/agents/decisions.md`), and the timer is the host's, not the
+framework's. On an SAP system nothing changes.
+
 ## The roundtrip monitor (`z2ui5_if_ui5_monitor`)
 
 The one seam in the **released** API (`src/02`), because the party that
@@ -169,4 +194,4 @@ view, so losing it must not cost the render.
 
 ## The exit interface during the rename (`z2ui5_if_ui5_exit` / `z2ui5_if_exit`)
 
-**Exit Pattern:** `z2ui5_if_ui5_exit` (the public extension point) implemented by `z2ui5_cl_ui5_user_exit` for custom themes, CSP headers, etc. **Two interfaces are honoured during the rename:** `z2ui5_if_exit` is the superseded name and carries the same two methods, its types being references to the ones on `z2ui5_if_ui5_exit` rather than copies. It lives in `src/99` and is the **one** object of that package `abaplint.jsonc` lists in the strict ruleset by name — a `src/01` class naming a type the strict parser cannot see is 37 unresolvable-type errors, so the line stays until the interface goes. `get_user_exit_class( )` looks the current interface up first and the superseded one only when that names nothing, so a class implementing both is found under the current name; `get_instance( )` casts to the current interface first, so such a class is called once, through `z2ui5_if_ui5_exit`. The shipped exit implements `z2ui5_if_ui5_exit` only — `gi_user_exit_dep`, the reference of the superseded type, holds nothing but a customer class written against that name. When `z2ui5_if_exit` goes, what goes with it is the second lookup, the second class-data reference and the two delegating methods — all in `z2ui5_cl_ui5_user_exit`.
+**Exit Pattern:** `z2ui5_if_ui5_exit` (the public extension point) implemented by `z2ui5_cl_ui5_user_exit` for custom themes, CSP headers, etc. **A host installs the exit without the lookup:** `z2ui5_cl_ui5_user_exit=>set_instance( )` takes the shipped exit (the defaults, latched as "no exit installed") or any other implementation of `z2ui5_if_ui5_exit`, which is then called through the shipped exit exactly as a customer exit the lookup found - the defaults seeded first - and named by `get_user_exit_class( )`; an unbound reference restores the lookup. It exists because the lookup is a repository read that RAISES in a runtime without a class repository, and a raised lookup is deliberately not latched (a transient repository error on a system must not leave a sticky session on the shipped defaults for good) - so the transpiled runtime paid the RTTI walk and the dynamic call on every `get_instance( )`, three times per POST. `node/srv/host.mjs` calls it from `initialize()`; the no-latch contract for a system is untouched. **Two interfaces are honoured during the rename:** `z2ui5_if_exit` is the superseded name and carries the same two methods, its types being references to the ones on `z2ui5_if_ui5_exit` rather than copies. It lives in `src/99` and is the **one** object of that package `abaplint.jsonc` lists in the strict ruleset by name — a `src/01` class naming a type the strict parser cannot see is 37 unresolvable-type errors, so the line stays until the interface goes. `get_user_exit_class( )` looks the current interface up first and the superseded one only when that names nothing, so a class implementing both is found under the current name; `get_instance( )` casts to the current interface first, so such a class is called once, through `z2ui5_if_ui5_exit`. The shipped exit implements `z2ui5_if_ui5_exit` only — `gi_user_exit_dep`, the reference of the superseded type, holds nothing but a customer class written against that name. When `z2ui5_if_exit` goes, what goes with it is the second lookup, the second class-data reference and the two delegating methods — all in `z2ui5_cl_ui5_user_exit`.

@@ -25,217 +25,349 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Element", "z2ui5/core/Lib"], (Element, Lib) => {` && |\n| &&
-             `  "use strict";` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/Element", "sap/ui/VersionInfo", "z2ui5/core/Lib"],` && |\n| &&
+             `  (Element, VersionInfo, Lib) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `  function getElementById(sId) {` && |\n| &&
-             `    if (!sId) return null;` && |\n| &&
-             `    if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
-             `` && |\n| &&
-             `    if (sap.ui.getCore) {` && |\n| &&
-             `      const core = sap.ui.getCore();` && |\n| &&
-             `      if (core?.byId) return core.byId(sId) || null;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  let messagingFacade = null;` && |\n| &&
-             `  function getMessaging() {` && |\n| &&
-             `    if (messagingFacade) return messagingFacade;` && |\n| &&
-             `    const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
-             `    if (Messaging) {` && |\n| &&
-             `      messagingFacade = Messaging;` && |\n| &&
-             `      return Messaging;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    if (sap.ui.getCore) {` && |\n| &&
-             `      const core = sap.ui.getCore();` && |\n| &&
-             `      if (core?.getMessageManager) {` && |\n| &&
-             `        messagingFacade = core.getMessageManager();` && |\n| &&
-             `        return messagingFacade;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    return null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getThemingModule() {` && |\n| &&
-             `    return sap.ui.require("sap/ui/core/Theming") || null;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function getTheme() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const Theming = getThemingModule();` && |\n| &&
-             `      if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `    function getElementById(sId) {` && |\n| &&
+             `      if (!sId) return null;` && |\n| &&
+             `      if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
              `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
-             `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `        if (config?.getTheme) return config.getTheme();` && |\n| &&
+             `        const core = sap.ui.getCore();` && |\n| &&
+             `        if (core?.byId) return core.byId(sId) || null;` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      Lib.logError("Env: reading theme failed", e);` && |\n| &&
-             `    }` && |\n| &&
-             `    return "";` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  function getLocale() {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
-             `      if (Localization?.getLanguage) {` && |\n| &&
-             `        return {` && |\n| &&
-             `          language: Localization.getLanguage(),` && |\n| &&
-             `          rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
-             `        };` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    let messagingFacade = null;` && |\n| &&
+             `    function getMessaging() {` && |\n| &&
+             `      if (messagingFacade) return messagingFacade;` && |\n| &&
+             `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
+             `      if (Messaging) {` && |\n| &&
+             `        messagingFacade = Messaging;` && |\n| &&
+             `        return Messaging;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (sap.ui.getCore) {` && |\n| &&
-             `        const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
-             `        if (config?.getLanguage) {` && |\n| &&
-             `          return {` && |\n| &&
-             `            language: config.getLanguage(),` && |\n| &&
-             `            rtl: Boolean(config.getRTL?.()),` && |\n| &&
-             `          };` && |\n| &&
+             `        const core = sap.ui.getCore();` && |\n| &&
+             `        if (core?.getMessageManager) {` && |\n| &&
+             `          messagingFacade = core.getMessageManager();` && |\n| &&
+             `          return messagingFacade;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      Lib.logError("Env: reading locale failed", e);` && |\n| &&
+             `` && |\n| &&
+             `      return null;` && |\n| &&
              `    }` && |\n| &&
-             `    return { language: "", rtl: false };` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  function hasMessagingModule() {` && |\n| &&
-             `    const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `    const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `    if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
-             `    return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function fragmentLoadsSync() {` && |\n| &&
-             `    const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `    const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `    if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
-             `    return major === 1 && minor < 84;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;` && |\n| &&
-             `  const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;` && |\n| &&
-             `  function fragmentControlModules(xml) {` && |\n| &&
-             `    const text = String(xml ?? "");` && |\n| &&
-             `    const namespaces = new Map();` && |\n| &&
-             `    for (const [, prefix, namespace] of text.matchAll(XMLNS)) {` && |\n| &&
-             `      namespaces.set(prefix ?? "", namespace);` && |\n| &&
+             `    function getThemingModule() {` && |\n| &&
+             `      return sap.ui.require("sap/ui/core/Theming") || null;` && |\n| &&
              `    }` && |\n| &&
-             `    const result = new Set();` && |\n| &&
-             `    for (const [, prefix, name] of text.matchAll(ELEMENT)) {` && |\n| &&
-             `      const namespace = namespaces.get(prefix ?? "");` && |\n| &&
-             `      if (!namespace || name === "FragmentDefinition") continue;` && |\n| &&
-             `      result.add(``${namespace.replace(/\./g, "/")}/${name}``);` && |\n| &&
-             `    }` && |\n| &&
-             `    return [...result];` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  function preloadFragmentModules(xml) {` && |\n| &&
-             `    if (!fragmentLoadsSync()) return Promise.resolve();` && |\n| &&
-             `    const modules = fragmentControlModules(xml);` && |\n| &&
-             `    if (!modules.length) return Promise.resolve();` && |\n| &&
-             `    return new Promise((resolve) => {` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        modules,` && |\n| &&
-             `        () => resolve(),` && |\n| &&
-             `        (e) => {` && |\n| &&
-             `          Lib.logError("Env: preloading the fragment's controls failed", e);` && |\n| &&
-             `          resolve();` && |\n| &&
-             `        },` && |\n| &&
+             `    function getTheme() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Theming = getThemingModule();` && |\n| &&
+             `        if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `` && |\n| &&
+             `        if (sap.ui.getCore) {` && |\n| &&
+             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
+             `          if (config?.getTheme) return config.getTheme();` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Env: reading theme failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      return "";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getLocale() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Localization = sap.ui.require("sap/base/i18n/Localization");` && |\n| &&
+             `        if (Localization?.getLanguage) {` && |\n| &&
+             `          return {` && |\n| &&
+             `            language: Localization.getLanguage(),` && |\n| &&
+             `            rtl: Boolean(Localization.getRTL?.()),` && |\n| &&
+             `          };` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (sap.ui.getCore) {` && |\n| &&
+             `          const config = sap.ui.getCore().getConfiguration?.();` && |\n| &&
+             `          if (config?.getLanguage) {` && |\n| &&
+             `            return {` && |\n| &&
+             `              language: config.getLanguage(),` && |\n| &&
+             `              rtl: Boolean(config.getRTL?.()),` && |\n| &&
+             `            };` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Env: reading locale failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      return { language: "", rtl: false };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function hasMessagingModule() {` && |\n| &&
+             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `` && |\n| &&
+             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
+             `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function fragmentLoadsSync() {` && |\n| &&
+             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `` && |\n| &&
+             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      return major === 1 && minor < 84;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const XMLNS = /\bxmlns(?::([\w.-]+))?\s*=\s*["']([\w.]+)["']/g;` && |\n| &&
+             `    const ELEMENT = /<(?:([\w.-]+):)?([A-Z]\w*)[\s/>]/g;` && |\n| &&
+             `    function fragmentControlModules(xml) {` && |\n| &&
+             `      const text = String(xml ?? "");` && |\n| &&
+             `      const namespaces = new Map();` && |\n| &&
+             `      for (const [, prefix, namespace] of text.matchAll(XMLNS)) {` && |\n| &&
+             `        namespaces.set(prefix ?? "", namespace);` && |\n| &&
+             `      }` && |\n| &&
+             `      const result = new Set();` && |\n| &&
+             `      for (const [, prefix, name] of text.matchAll(ELEMENT)) {` && |\n| &&
+             `        const namespace = namespaces.get(prefix ?? "");` && |\n| &&
+             `        if (!namespace || name === "FragmentDefinition") continue;` && |\n| &&
+             `        result.add(``${namespace.replace(/\./g, "/")}/${name}``);` && |\n| &&
+             `      }` && |\n| &&
+             `      return [...result];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function preloadFragmentModules(xml) {` && |\n| &&
+             `      if (!fragmentLoadsSync()) return Promise.resolve();` && |\n| &&
+             `      const modules = fragmentControlModules(xml);` && |\n| &&
+             `      if (!modules.length) return Promise.resolve();` && |\n| &&
+             `      return new Promise((resolve) => {` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          modules,` && |\n| &&
+             `          () => resolve(),` && |\n| &&
+             `          (e) => {` && |\n| &&
+             `            Lib.logError("Env: preloading the fragment's controls failed", e);` && |\n| &&
+             `            resolve();` && |\n| &&
+             `          },` && |\n| &&
+             `        );` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const LIBRARY_NAME = /^[A-Za-z_]\w*(?:\.\w+)+$/;` && |\n| &&
+             `` && |\n| &&
+             `    const namespaceLibrary = new Map();` && |\n| &&
+             `    const libraryLoads = new Map();` && |\n| &&
+             `` && |\n| &&
+             `    let distributionLibraries = null;` && |\n| &&
+             `` && |\n| &&
+             `    function viewNamespaces(xml) {` && |\n| &&
+             `      const result = new Set();` && |\n| &&
+             `      for (const [, , namespace] of String(xml ?? "").matchAll(XMLNS)) {` && |\n| &&
+             `        if (LIBRARY_NAME.test(namespace) && !namespace.startsWith("z2ui5")) {` && |\n| &&
+             `          result.add(namespace);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return [...result];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function loadDistributionLibraries() {` && |\n| &&
+             `      if (!distributionLibraries) {` && |\n| &&
+             `        distributionLibraries = Promise.resolve()` && |\n| &&
+             `          .then(() => VersionInfo?.load?.())` && |\n| &&
+             `          .then((info) =>` && |\n| &&
+             `            Array.isArray(info?.libraries)` && |\n| &&
+             `              ? info.libraries.map((lib) => lib?.name).filter(Boolean)` && |\n| &&
+             `              : null,` && |\n| &&
+             `          )` && |\n| &&
+             `          .catch(() => null);` && |\n| &&
+             `      }` && |\n| &&
+             `      return distributionLibraries;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function loadedLibraryNames() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Library = sap.ui.require("sap/ui/core/Lib");` && |\n| &&
+             `        if (Library?.all) return new Set(Object.keys(Library.all()));` && |\n| &&
+             `` && |\n| &&
+             `        if (sap.ui.getCore) {` && |\n| &&
+             `          const loaded = sap.ui.getCore().getLoadedLibraries?.();` && |\n| &&
+             `          if (loaded) return new Set(Object.keys(loaded));` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Env: reading the loaded libraries failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      return new Set();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function isUnder(name, library) {` && |\n| &&
+             `      return name === library || name.startsWith(``${library}.``);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function libraryOf(namespace, libraries) {` && |\n| &&
+             `      if (!libraries) return namespace;` && |\n| &&
+             `      let best = null;` && |\n| &&
+             `      for (const library of libraries) {` && |\n| &&
+             `        if (` && |\n| &&
+             `          isUnder(namespace, library) &&` && |\n| &&
+             `          (!best || library.length > best.length)` && |\n| &&
+             `        ) {` && |\n| &&
+             `          best = library;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return best;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function loadLibrary(name) {` && |\n| &&
+             `      let load = libraryLoads.get(name);` && |\n| &&
+             `      if (load) return load;` && |\n| &&
+             `      load = new Promise((resolve) => {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const Library = sap.ui.require("sap/ui/core/Lib");` && |\n| &&
+             `          if (Library?.load) {` && |\n| &&
+             `            Library.load({ name }).then(` && |\n| &&
+             `              () => resolve(true),` && |\n| &&
+             `              () => resolve(false),` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          const core = sap.ui.getCore?.();` && |\n| &&
+             `          if (core?.loadLibraries) {` && |\n| &&
+             `            core.loadLibraries([name], { async: true }).then(` && |\n| &&
+             `              () => resolve(true),` && |\n| &&
+             `              () => resolve(false),` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``Env: loading the library ${name} failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `        resolve(false);` && |\n| &&
+             `      });` && |\n| &&
+             `      libraryLoads.set(name, load);` && |\n| &&
+             `      return load;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    async function loadLibraries(names) {` && |\n| &&
+             `      const wanted = (names || []).filter(` && |\n| &&
+             `        (name) => LIBRARY_NAME.test(name) && !libraryLoads.get(name),` && |\n| &&
              `      );` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  const ownClasses = [];` && |\n| &&
-             `  let hostPage = false;` && |\n| &&
-             `` && |\n| &&
-             `  const hostNamespaces = new WeakSet();` && |\n| &&
-             `  function collectHostNamespaces(object, depth) {` && |\n| &&
-             `    if (!object || typeof object !== "object" || depth > 3) return;` && |\n| &&
-             `    hostNamespaces.add(object);` && |\n| &&
-             `    for (const key of Object.keys(object)) {` && |\n| &&
-             `      collectHostNamespaces(object[key], depth + 1);` && |\n| &&
+             `      if (!wanted.length) return;` && |\n| &&
+             `      const loaded = loadedLibraryNames();` && |\n| &&
+             `      await Promise.all(` && |\n| &&
+             `        wanted` && |\n| &&
+             `          .filter((name) => ![...loaded].some((lib) => isUnder(name, lib)))` && |\n| &&
+             `          .map(loadLibrary),` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  collectHostNamespaces(window.z2ui5, 0);` && |\n| &&
-             `` && |\n| &&
-             `  function removeGlobal(name, value) {` && |\n| &&
-             `    if (!name || value === undefined) return;` && |\n| &&
-             `    const keys = String(name).split(".");` && |\n| &&
-             `    const leaf = keys.pop();` && |\n| &&
-             `    const chain = [window];` && |\n| &&
-             `    for (const key of keys) {` && |\n| &&
-             `      const next = chain[chain.length - 1][key];` && |\n| &&
-             `      if (!next || typeof next !== "object") return;` && |\n| &&
-             `      chain.push(next);` && |\n| &&
-             `    }` && |\n| &&
-             `    const holder = chain[chain.length - 1];` && |\n| &&
-             `    if (holder[leaf] !== value) return;` && |\n| &&
-             `    delete holder[leaf];` && |\n| &&
-             `    for (let i = keys.length - 1; i >= 0; i--) {` && |\n| &&
-             `      const namespace = chain[i + 1];` && |\n| &&
-             `      if (hostNamespaces.has(namespace) || Object.keys(namespace).length) {` && |\n| &&
-             `        return;` && |\n| &&
+             `    async function loadViewLibraries(xml) {` && |\n| &&
+             `      const namespaces = viewNamespaces(xml).filter(` && |\n| &&
+             `        (namespace) => !namespaceLibrary.has(namespace),` && |\n| &&
+             `      );` && |\n| &&
+             `      if (!namespaces.length) return;` && |\n| &&
+             `      const libraries = await loadDistributionLibraries();` && |\n| &&
+             `      const loaded = loadedLibraryNames();` && |\n| &&
+             `      const names = new Set();` && |\n| &&
+             `      for (const namespace of namespaces) {` && |\n| &&
+             `        const library = libraryOf(namespace, libraries);` && |\n| &&
+             `        namespaceLibrary.set(namespace, library);` && |\n| &&
+             `        if (!library) continue;` && |\n| &&
+             `        if ([...loaded].some((lib) => isUnder(library, lib))) continue;` && |\n| &&
+             `        names.add(library);` && |\n| &&
              `      }` && |\n| &&
-             `      delete chain[i][keys[i]];` && |\n| &&
+             `      await Promise.all([...names].map(loadLibrary));` && |\n| &&
              `    }` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  function removeClassGlobals(Class) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const metadata = Class.getMetadata();` && |\n| &&
-             `      removeGlobal(metadata.getName(), Class);` && |\n| &&
+             `    const ownClasses = [];` && |\n| &&
+             `    let hostPage = false;` && |\n| &&
              `` && |\n| &&
-             `      if (typeof metadata.getRendererName === "function") {` && |\n| &&
-             `        removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n| &&
+             `    const hostNamespaces = new WeakSet();` && |\n| &&
+             `    function collectHostNamespaces(object, depth) {` && |\n| &&
+             `      if (!object || typeof object !== "object" || depth > 3) return;` && |\n| &&
+             `      hostNamespaces.add(object);` && |\n| &&
+             `      for (const key of Object.keys(object)) {` && |\n| &&
+             `        collectHostNamespaces(object[key], depth + 1);` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      Lib.logError("Env: removing a class's global export failed", e);` && |\n| &&
              `    }` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  function ownClass(Class) {` && |\n| &&
-             `    ownClasses.push(Class);` && |\n| &&
-             `    if (hostPage) removeClassGlobals(Class);` && |\n| &&
-             `    return Class;` && |\n| &&
-             `  }` && |\n| &&
+             `    collectHostNamespaces(window.z2ui5, 0);` && |\n| &&
              `` && |\n| &&
-             `  function dropClassGlobals() {` && |\n| &&
-             `    hostPage = true;` && |\n| &&
-             `    for (const Class of ownClasses) removeClassGlobals(Class);` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  function controlFilters(binding) {` && |\n| &&
-             `    if (!binding) return undefined;` && |\n| &&
-             `    if (typeof binding.getFilters === "function") {` && |\n| &&
-             `      return binding.getFilters("Control");` && |\n| &&
+             `    function removeGlobal(name, value) {` && |\n| &&
+             `      if (!name || value === undefined) return;` && |\n| &&
+             `      const keys = String(name).split(".");` && |\n| &&
+             `      const leaf = keys.pop();` && |\n| &&
+             `      const chain = [window];` && |\n| &&
+             `      for (const key of keys) {` && |\n| &&
+             `        const next = chain[chain.length - 1][key];` && |\n| &&
+             `        if (!next || typeof next !== "object") return;` && |\n| &&
+             `        chain.push(next);` && |\n| &&
+             `      }` && |\n| &&
+             `      const holder = chain[chain.length - 1];` && |\n| &&
+             `      if (holder[leaf] !== value) return;` && |\n| &&
+             `      delete holder[leaf];` && |\n| &&
+             `      for (let i = keys.length - 1; i >= 0; i--) {` && |\n| &&
+             `        const namespace = chain[i + 1];` && |\n| &&
+             `        if (hostNamespaces.has(namespace) || Object.keys(namespace).length) {` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        delete chain[i][keys[i]];` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
-             `    return binding.aFilters;` && |\n| &&
-             `  }` && |\n| &&
              `` && |\n| &&
-             `  return {` && |\n| &&
-             `    getElementById,` && |\n| &&
-             `    getMessaging,` && |\n| &&
-             `    controlFilters,` && |\n| &&
-             `    getThemingModule,` && |\n| &&
-             `    getTheme,` && |\n| &&
-             `    getLocale,` && |\n| &&
-             `    hasMessagingModule,` && |\n| &&
-             `    fragmentLoadsSync,` && |\n| &&
-             `    fragmentControlModules,` && |\n| &&
-             `    preloadFragmentModules,` && |\n| &&
-             `    ownClass,` && |\n| &&
-             `    dropClassGlobals,` && |\n| &&
-             `  };` && |\n| &&
-             `});` && |\n| &&
+             `    function removeClassGlobals(Class) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const metadata = Class.getMetadata();` && |\n| &&
+             `        removeGlobal(metadata.getName(), Class);` && |\n| &&
+             `` && |\n| &&
+             `        if (typeof metadata.getRendererName === "function") {` && |\n| &&
+             `          removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("Env: removing a class's global export failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function ownClass(Class) {` && |\n| &&
+             `      ownClasses.push(Class);` && |\n| &&
+             `      if (hostPage) removeClassGlobals(Class);` && |\n| &&
+             `      return Class;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function dropClassGlobals() {` && |\n| &&
+             `      hostPage = true;` && |\n| &&
+             `      for (const Class of ownClasses) removeClassGlobals(Class);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function controlFilters(binding) {` && |\n| &&
+             `      if (!binding) return undefined;` && |\n| &&
+             `      if (typeof binding.getFilters === "function") {` && |\n| &&
+             `        return binding.getFilters("Control");` && |\n| &&
+             `      }` && |\n| &&
+             `      return binding.aFilters;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    return {` && |\n| &&
+             `      getElementById,` && |\n| &&
+             `      getMessaging,` && |\n| &&
+             `      controlFilters,` && |\n| &&
+             `      getThemingModule,` && |\n| &&
+             `      getTheme,` && |\n| &&
+             `      getLocale,` && |\n| &&
+             `      hasMessagingModule,` && |\n| &&
+             `      fragmentLoadsSync,` && |\n| &&
+             `      fragmentControlModules,` && |\n| &&
+             `      preloadFragmentModules,` && |\n| &&
+             `      viewNamespaces,` && |\n| &&
+             `      loadLibraries,` && |\n| &&
+             `      loadViewLibraries,` && |\n| &&
+             `      ownClass,` && |\n| &&
+             `      dropClassGlobals,` && |\n| &&
+             `    };` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
              `` && |\n| &&
               ``.
 

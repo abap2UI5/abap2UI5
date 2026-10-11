@@ -112,6 +112,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " one ICF node stays the direct way into abap2UI5.
     CONSTANTS c_bundle_param TYPE string VALUE `z2ui5-bundle`.
 
+    " The value of c_bundle_param that asks for the DEVTOOLS bundle instead:
+    " GET <node>?z2ui5-bundle=devtools answers the files of the developer
+    " tools the page does not carry (z2ui5_cl_ui5f_preload=>get_devtools),
+    " which z2ui5/devtools/DevTools.js loads with a <script> element the
+    " first time the tools are opened. A value of the one parameter, not a
+    " parameter of its own: ?z2ui5-devtools is the page's auto-open switch
+    " (the tools open on load), and a GET with it is the page as always.
+    CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
+
     " The sibling BSPs of the frontend (see the settings in _http_get): the
     " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
@@ -204,6 +213,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    " a GET that asks for the devtools bundle - c_bundle_param with the
+    " value c_bundle_devtools
+    CLASS-METHODS _is_devtools_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     " the frontend as a script of its own - see the method. iv_path is the
     " path of THIS request as the system saw it (ty_s_http_req-path), which
     " the module at the end of the script tells the embedding page
@@ -212,6 +229,19 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         iv_path       TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
+
+    " the developer tools as a script of their own - see the method
+    CLASS-METHODS _http_get_devtools
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the validator of a bundle response: the frontend bundle's, or the
+    " devtools bundle's, which changes with the devtools files alone
+    CLASS-METHODS _bundle_etag
+      IMPORTING
+        iv_devtools   TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE string.
 
     " a value for inside a double-quoted JavaScript string literal of the
     " bundle - the request path it carries (see the method)
@@ -281,6 +311,15 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " otherwise a quote-breakout into the bootstrap script tag. The CSP value
     " stays raw on purpose - it is a whole meta TAG, not an attribute
     CLASS-METHODS _attr_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the origin (scheme, host, port) of an absolute URL - `` for a
+    " relative one, so the GET shell preconnects only to another host (see
+    " the method)
+    CLASS-METHODS _url_origin
       IMPORTING
         val           TYPE string
       RETURNING
@@ -532,6 +571,44 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                             len = lv_len - 3 ).
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD _url_origin.
+
+    " Only an absolute URL names another host: `https://host[:port]/...`,
+    " or the protocol-relative `//host/...`. A UI5 served by the system
+    " itself (/sap/public/bc/ui5_ui5/..., a relative resources/ path) is
+    " the page's own origin, which the browser is connected to already -
+    " and an installation that writes its own origin absolutely gets a
+    " preconnect the browser answers from the connection it holds
+    DATA(lv_url) = val.
+    DATA(lv_scheme) = ``.
+    IF lv_url CP `http://*` OR lv_url CP `https://*`.
+      SPLIT lv_url AT `//` INTO lv_scheme lv_url.
+      lv_scheme = to_lower( lv_scheme ) && `//`.
+    ELSEIF lv_url CP `//*`.
+      lv_url    = lv_url+2.
+      lv_scheme = `//`.
+    ELSE.
+      RETURN.
+    ENDIF.
+    " the host ends at the path, the query or the fragment, whichever is
+    " first; userinfo (user:pw@host) stays out of the page
+    DATA(lv_end) = strlen( lv_url ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_end.
+      IF lv_url+lv_off(1) CA `/?#`.
+        lv_end = lv_off.
+      ELSE.
+        lv_off = lv_off + 1.
+      ENDIF.
+    ENDWHILE.
+    DATA(lv_host) = lv_url(lv_end).
+    IF lv_host IS INITIAL OR lv_host CA `@`.
+      RETURN.
+    ENDIF.
+    result = lv_scheme && lv_host.
 
   ENDMETHOD.
 
@@ -838,6 +915,27 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " and only one of them can react to what the app is actually showing. What
     " is left here is the name the browser shows while UI5 boots, before any
     " app can speak - and a page whose <title> is empty shows the URL.
+    " The UI5 origin, announced before the browser reaches the bootstrap
+    " tag: it sits BELOW the embedded preload - ~300 KB of inline script
+    " the parser executes first - so without the hint the DNS lookup, the
+    " TCP and the TLS handshake to the CDN start only once the parser gets
+    " there. Two hints for the two connection pools the browser keeps: the
+    " bootstrap script, every module and the theme's library.css load
+    " without CORS, UI5's own XHRs (sap-ui-version.json, the library
+    " manifests, i18n) with it, and a preconnect serves only the pool its
+    " crossorigin attribute names. Outside the inline script, so its CSP
+    " hash is untouched; not a preload of the theme stylesheet - its URL is
+    " not derivable here across versions and configs (the sap-ui-cachebuster
+    " segment of the default src, library-RTL.css, a theme root, the theme
+    " fallbacks), and a preload the loader does not match is a wasted
+    " download. Relative src: no hint (see _url_origin)
+    DATA(lv_preconnect) = ``.
+    DATA(lv_origin) = _url_origin( ls_config-src ).
+    IF lv_origin IS NOT INITIAL.
+      lv_preconnect = |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }">\n| &&
+                      |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }" crossorigin>\n|.
+    ENDIF.
+
     result-body = |<!DOCTYPE html>\n| &&
                   |<html lang="en">\n| &&
                   |<head>\n| &&
@@ -845,6 +943,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta charset="UTF-8">\n| &&
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
+                  lv_preconnect &&
                   |<title>abap2UI5</title>\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
@@ -883,6 +982,63 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " names come lower-cased from url_param_get_tab); a handful of URL
     " parameters, read sequentially
     result = xsdbool( line_exists( it_params[ n = c_bundle_param ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _is_devtools_request.
+
+    " the one parameter with the one value - see c_bundle_devtools
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = c_bundle_devtools ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _bundle_etag.
+
+    " the frontend bundle's tag carries the build hash through _get_etag
+    " itself; the devtools bundle's files are not part of that digest (the
+    " hash is taken over the shell's script, which they are not in), so
+    " their own digest goes into the key - a redeployed developer tool
+    " changes the tag, a redeployed shell alone changes it too, harmlessly
+    IF iv_devtools = abap_true.
+      result = _get_etag( |{ c_bundle_param }={ c_bundle_devtools }:{ z2ui5_cl_ui5f_preload=>devtools_hash }| ).
+    ELSE.
+      result = _get_etag( c_bundle_param ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD _http_get_devtools.
+
+    " GET <node>?z2ui5-bundle=devtools - the developer tools as a script of
+    " their own: the dialog, its fragment, the inspectors, the tabs, the
+    " picker, the live editor, the report - every file of app/webapp/
+    " devtools/ the shell's inline script does not carry (the facade, the
+    " console capture and the roundtrip recorder stay in the shell: they
+    " have to run from the first roundtrip on). The same shape as the
+    " frontend bundle - sap.ui.require.preload( ) over the generated
+    " entries, nothing run, nothing evaluated from a string - and served
+    " the same way: as JavaScript, with nosniff, under a tag of its own
+    " (_bundle_etag) that a conditional GET revalidates to a bodyless 304.
+    " z2ui5/devtools/DevTools.js loads it with a <script> element of the
+    " page's origin the first time the tools are opened, which script-src
+    " 'self' allows - the page's CSP hash covers the inline script alone,
+    " and this is a file. No user or app data, the same for everybody.
+    DATA(lv_etag) = _bundle_etag( abap_true ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF _check_etag_match( iv_header = lv_if_none_match
+                          iv_etag   = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body          = z2ui5_cl_ui5f_preload=>get_devtools( ).
+    result-status_code   = 200.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 
@@ -1104,13 +1260,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " compare below stays for a 200 that reached this method without
     " main( ) having read the header (a direct _main( ) call), and costs one
     " header read on a full shell reply
-    " The bundle (?z2ui5-bundle) revalidates the same way, under its own tag
+    " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools) revalidate the
+    " same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
-                            THEN _get_etag( c_bundle_param )
+                            THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1300,7 +1457,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
         CASE is_req-method.
           WHEN `GET`.
-            IF _is_bundle_request( is_req-t_params ) = abap_true.
+            IF _is_devtools_request( is_req-t_params ) = abap_true.
+              result = _http_get_devtools( ).
+            ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.
               result = _http_get( ).

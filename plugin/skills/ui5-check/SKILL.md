@@ -345,7 +345,12 @@ Not about names or layout — these only show up when the app runs.
   pulls `sap.ui.layout` in without its preload bundle, so the library reads
   as loaded and `VerticalLayout.js` is still fetched and eval'd. What the
   preload cannot see - a module named only in a binding type or a
-  `core:require` - still needs `'unsafe-eval'` below 1.84.
+  `core:require` - still needs `'unsafe-eval'` below 1.84. Since 2026-10
+  `Env.loadViewLibraries( )` runs before both: every `xmlns` of a view or
+  fragment is mapped to its library (through `sap-ui-version.json`) and the
+  ones not loaded yet come as their `library-preload.js` - on every release,
+  for the request count (`library-preload` e2e), and on 1.71-1.82 it also
+  makes the module requires above cache hits.
 - **No inline script runs, on any release.** The default CSP's script-src
   carries no `'unsafe-inline'`; the page's own inline script (the embedded
   preload) runs by its SHA-256 hash, which also makes every browser ignore an

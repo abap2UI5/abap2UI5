@@ -39,29 +39,32 @@ jobs:
         with:
           deps: "true"
 
-      - name: Standard ABAP
+      # Four full parses of the sources, each ~18 s and independent of the
+      # others, used to be four sequential steps - a minute of wall time for
+      # what two cores finish in half. Two pairs now, each pair in one step
+      # through run-concurrent.mjs, which buffers every child's output and
+      # prints it afterwards under a log group per command, in order, so a
+      # red parse is still named and the other one's findings are still
+      # reported (both children run to the end before the step fails). Not a
+      # matrix: the install this workflow exists to pay once would be paid
+      # per leg (see the header).
+      - name: Standard ABAP and ABAP Cloud
         if: ${{ !cancelled() }}
-        run: npm run check:standard
-
-      - name: ABAP Cloud
-        if: ${{ !cancelled() }}
-        run: npm run check:cloud
+        run: node .github/scripts/run-concurrent.mjs "npm run check:standard" "npm run check:cloud"
 
       # The formatting rules - indentation, keyword_case, line_length,
       # align_parameters, whitespace_end, sequential_blank, space_before_colon
       # and _dot - are `false` in abaplint.jsonc and `true` only in the autofix
       # config, so nothing checked them: `auto_abaplint_fix.yaml` runs weekly
       # and opens a pull request, which means a week of drift is normal and
-      # unformatted code merges in between. This is the same config with the
-      # --fix left off, so the rules that write the house format also decide
-      # whether it is there. `npm run auto_abaplint` is the fix.
-      - name: Sources are in the house format
+      # unformatted code merges in between. check:format is the same config
+      # with the --fix left off, so the rules that write the house format also
+      # decide whether it is there. `npm run auto_abaplint` is the fix.
+      #
+      # The rename rides in the same step: it writes a full renamed copy of
+      # the sources to .github/abaplint/output/, which no other check reads.
+      # Same config build-rename uses for the real rename_<name> branches,
+      # against the placeholder namespace.
+      - name: House format and namespace rename
         if: ${{ !cancelled() }}
-        run: npm run check:format
-
-      # Last, because the rename writes a full renamed copy of the sources to
-      # .github/abaplint/output/. Same config build-rename uses for the real
-      # rename_<name> branches, against the placeholder namespace.
-      - name: Namespace rename
-        if: ${{ !cancelled() }}
-        run: npm run rename
+        run: node .github/scripts/run-concurrent.mjs "npm run check:format" "npm run rename"

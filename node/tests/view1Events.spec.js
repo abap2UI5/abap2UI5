@@ -972,6 +972,12 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
           getController: () => undefined,
           setView: () => {},
           destroy: (_ctx, key) => destroyed.push(key),
+          // MAIN leaves its slot without a destroy: the old page stays up
+          // while the new one is built (actions/Slots swapAlone)
+          detach: (_ctx, key) => {
+            destroyed.push(`${key}:detached`);
+            return undefined;
+          },
         },
       },
     });
@@ -979,12 +985,12 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
     return { Slots, destroyed, pages, oView };
   }
 
-  test("displaying MAIN destroys MAIN, POPUP and POPOVER", async () => {
+  test("displaying MAIN empties MAIN and destroys POPUP and POPOVER", async () => {
     const { Slots, destroyed, pages, oView } = loadSlots(1);
 
     await Slots.action("display", "MAIN", "<View/>", {}, 1);
 
-    expect(destroyed).toEqual(["MAIN", "POPUP", "POPOVER"]);
+    expect(destroyed).toEqual(["MAIN:detached", "POPUP", "POPOVER"]);
     // the teardown is part of the build, not something that replaced it
     expect(pages).toEqual([oView]);
   });
@@ -1047,6 +1053,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         setModel: (model, name) => {
           models[name] = model;
         },
+        // rendered - so the page a swap replaces leaves at once
+        getDomRef: () => ({ style: {} }),
         destroy: () => {},
       };
     }
@@ -1077,6 +1085,8 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         isControllerAlive: () => true,
         logError: () => {},
         requireODataModel: () => Promise.resolve(ODataModel),
+        // the views above are rendered: the callback runs at once
+        whenRendered: (control, _owner, fn) => fn(control),
       },
       "z2ui5/core/ViewSlots": {
         // the real module prefixes with the owner component; no owner here
@@ -1088,6 +1098,11 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         getController: () => undefined,
         setView: (_ctx, key, view) => (openSlots[key] = view),
         destroy: (_ctx, key) => delete openSlots[key],
+        detach: (_ctx, key) => {
+          const view = openSlots[key];
+          delete openSlots[key];
+          return view;
+        },
         trackedModel: () => undefined,
       },
       "z2ui5/core/Context": contextStub(odataCtx),

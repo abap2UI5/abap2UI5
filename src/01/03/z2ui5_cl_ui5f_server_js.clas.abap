@@ -210,7 +210,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            ctx.state.lastRequestBytes = Lib.byteLength(body);` && |\n| &&
+             `            ctx.state.lastRequestBytes = Lib.lazyByteLength(body);` && |\n| &&
              `            sentAt = Date.now();` && |\n| &&
              `            response = await this._post(ctx, body, signal);` && |\n| &&
              `` && |\n| &&

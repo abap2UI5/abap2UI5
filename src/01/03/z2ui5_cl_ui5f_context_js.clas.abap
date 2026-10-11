@@ -49,6 +49,7 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      session: {` && |\n| &&
              `        configSent: false,` && |\n| &&
+             `        ui5Sent: false,` && |\n| &&
              `        liveSent: "",` && |\n| &&
              `        pending: null,` && |\n| &&
              `        locationSent: false,` && |\n| &&

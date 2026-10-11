@@ -48,6 +48,26 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     DATA mr_cell_tab   TYPE REF TO data.
     DATA mt_cell_names TYPE string_table.
 
+    " the class name of a mapper or filter the service has already asked
+    " for, keyed on the reference - a memo for check_same_impl, which used
+    " to describe the STORED implementation again on every re-bind of the
+    " same attribute (one RTTI call per mapper and per filter, per render).
+    " Same life as the memo above: one render, and a reference is a class
+    " for as long as it exists, so an entry cannot go stale
+    TYPES:
+      BEGIN OF ty_s_impl_name,
+        ref  TYPE REF TO object,
+        name TYPE string,
+      END OF ty_s_impl_name.
+    DATA mt_impl_names TYPE HASHED TABLE OF ty_s_impl_name WITH UNIQUE KEY ref.
+
+    " the class name of ir_ref, from the memo above or from RTTI once
+    METHODS impl_name
+      IMPORTING
+        ir_ref        TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS get_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
@@ -121,8 +141,14 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " read on the next line is GETWA_NOT_ASSIGNED instead. Either way an app's
     " config mistake ended the roundtrip with no response at all, for the
     " same class of mistake the two refusals below answer with a binding
-    " error. Checked over the REFERENCE, before anything is assigned
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ms_config-tab ) = abap_false.
+    " error. Checked over the REFERENCE, before anything is assigned - and
+    " only for a table the memo below does not hold yet: mr_cell_tab is set
+    " after this check passed for that very reference, and a reference
+    " keeps its type for as long as it exists, so the memoised table is a
+    " standard table whenever it is the one asked for. The describe used to
+    " run for every cell of the same table, like the component scan did
+    IF mr_cell_tab <> ms_config-tab
+        AND z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ms_config-tab ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `BINDING_ERROR_TAB_CELL_LEVEL - config-tab is no standard table`.
@@ -193,12 +219,38 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD check_same_impl.
 
-    IF ir_existing IS BOUND AND ir_new IS BOUND
-        AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( ir_existing )
-         <> z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( ir_new ).
+    IF ir_existing IS NOT BOUND OR ir_new IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " the same OBJECT is the same implementation - no class name to ask
+    " for. An app that hands the instance it stored in an attribute to
+    " every _bind( ) lands here; one that builds a filter per call (the
+    " shape z2ui5_cl_ui5_util_json_fl asks for, since the stored instance
+    " is written into the draft) pays one RTTI call for the new object and
+    " reads the stored one's name from the memo after the first re-bind
+    IF ir_existing = ir_new.
+      RETURN.
+    ENDIF.
+
+    IF impl_name( ir_existing ) <> impl_name( ir_new ).
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = |<p>Binding Error - Two different { iv_label } used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD impl_name.
+
+    READ TABLE mt_impl_names INTO DATA(ls_memo) WITH TABLE KEY ref = ir_ref.
+    IF sy-subrc = 0.
+      result = ls_memo-name.
+      RETURN.
+    ENDIF.
+
+    result = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( ir_ref ).
+    INSERT VALUE #( ref  = ir_ref
+                    name = result ) INTO TABLE mt_impl_names.
 
   ENDMETHOD.
 
