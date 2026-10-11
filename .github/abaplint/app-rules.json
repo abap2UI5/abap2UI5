@@ -1,5 +1,5 @@
 {
-  "note": "The abaplint rule set for abap2UI5 APP repositories. Generated artefact of @abap2ui5/linter - do not hand-edit a copy; see data/README-abap-rules.md.",
+  "note": "The abaplint rule set for abap2UI5 APP repositories, and its source: samples, samples-controls and samples-stack carry it as the rule block of their abaplint.jsonc (all but object_naming), held to it by .github/scripts/shared-file-gate.mjs here and scripts/check-app-rules.mjs there. Change it here first, then copy it into all three.",
   "version": 1,
   "excluded": {
     "object_naming": "each repository names its own object prefixes"
@@ -55,6 +55,7 @@
     "call_transaction_authority_check": true,
     "catch_and_raise": true,
     "cds_association_name": true,
+    "cds_check_syntax": true,
     "cds_comment_style": true,
     "cds_field_order": true,
     "cds_legacy_view": true,
@@ -142,6 +143,7 @@
     "downport": true,
     "dynpro_checks": true,
     "easy_to_find_messages": true,
+    "else_after_all_returns": true,
     "empty_event": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
@@ -174,6 +176,7 @@
     "fully_type_itabs": true,
     "function_module_recommendations": true,
     "functional_writing": true,
+    "generic_regex": false,
     "global_class": true,
     "identical_conditions": true,
     "identical_contents": true,
@@ -248,6 +251,7 @@
     "no_aliases": true,
     "no_chained_assignment": true,
     "no_comments_between_methods": true,
+    "no_dynamic_stuff": false,
     "no_exclamation_escape": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
@@ -268,8 +272,11 @@
     "parser_error": true,
     "parser_missing_space": true,
     "pragma_style": true,
+    "prefer_abap_bool": true,
+    "prefer_abap_bool_values": true,
     "prefer_corresponding": false,
     "prefer_inline": false,
+    "prefer_insert_into_table": false,
     "prefer_is_not": true,
     "prefer_pragmas": true,
     "prefer_raise_exception_new": {
@@ -278,8 +285,10 @@
       ]
     },
     "prefer_returning_to_exporting": true,
+    "prefer_string_template": false,
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
+    "preferred_parameter_ignored": true,
     "prefix_is_current_class": true,
     "reduce_procedural_code": true,
     "reduce_string_templates": true,
@@ -329,6 +338,7 @@
     "uncaught_exception": true,
     "unknown_types": true,
     "unnecessary_chaining": true,
+    "unnecessary_loop_guard": true,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
     "unreachable_code": true,
@@ -353,9 +363,16 @@
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
     "use_line_exists": true,
+    "use_message_class": {
+      "exclude": [
+        "z2ui5_cl_smps_app_489_ws\\.clas\\."
+      ]
+    },
     "use_new": true,
     "when_others_last": true,
     "whitespace_end": true,
+    "wrong_abapdoc_position": true,
+    "xml_bom": true,
     "xml_consistency": true
   }
 }
