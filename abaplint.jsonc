@@ -177,7 +177,12 @@
       "do": true,
       "at": true,
       "try": true,
-      "when": false
+      "when": false,
+      // An empty CATCH without ##NO_HANDLER, as SLIN reports it (2.120.73,
+      // abaplint/abaplint#4387). check:atc keeps its own check, which also
+      // reads src/99. Measured on 2.120.73: 0 findings over src, control
+      // probe fired
+      "catch": true
     },
     "exit_or_check": true,
     "expand_macros": true,
