@@ -26,7 +26,8 @@
 //
 // What stays page-wide by nature, and deliberately: the URL hash (every
 // routed instance reacts to it - an embedded instance, state.embedded,
-// leaves it to the host), document.title and the favicon, the global
+// leaves it to the host unless the host hands it back, state.ownsHash),
+// document.title and the favicon, the global
 // BusyIndicator and the UI5 messaging facade, the devtools' console
 // capture, the unsaved-changes prompt of cc/Dirty and the raw fatal-error
 // overlay (one at a time). Lib.logError's ring is a page-wide diagnostic

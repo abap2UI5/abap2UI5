@@ -105,7 +105,7 @@ test("the first roundtrip carries the location, an event roundtrip omits it", ()
 // read like "#/app/<CLASS>" would start that class instead of the host's
 // app_start.
 test("an embedded component does not report the host's hash", () => {
-  const { Server, bodies } = loadServer({ embedded: true });
+  const { Server, bodies } = loadServer({ embedded: true, ownsHash: false });
 
   Server.roundtrip({});
   Server.roundtrip({ ID: "DRAFT1" });
@@ -115,6 +115,18 @@ test("an embedded component does not report the host's hash", () => {
   // the location is not the hash - it still travels on its own cadence
   expect(bodies[0].S_FRONT.ORIGIN).toBe("https://host");
   expect(bodies[1].S_FRONT.ORIGIN).toBeUndefined();
+});
+
+// A host that handed the hash back (state.ownsHash) routes by nothing - a
+// route in the hash is the app's own again, and a reload restores it.
+test("an embedded component the host handed the hash to reports it", () => {
+  const { Server, bodies } = loadServer({ embedded: true, ownsHash: true });
+
+  Server.roundtrip({});
+  Server.roundtrip({ ID: "DRAFT1" });
+
+  expect(bodies[0].S_FRONT.HASH).toBe("#/route");
+  expect(bodies[1].S_FRONT.HASH).toBe("#/route");
 });
 
 test("an app-start-shaped request re-sends the location (route restore)", () => {

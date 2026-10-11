@@ -13,6 +13,12 @@ name: build-rename
 # checked-in config .github/abaplint/rename.jsonc; this workflow only sets
 # the chosen prefix in the config (placeholder "znamespace_") and stores
 # the result.
+# The frontend BSP that goes with it is built by frontend_deploy with the
+# branch name standard_<name>__<name> (standard_#abap2ui5#__#abap2ui5#,
+# standard_zmyui5__zmyui5): its ICF handler then calls the renamed backend
+# class <prefix>cl_http_handler instead of z2ui5_cl_http_handler (see
+# tools/bsp_rename). Run this workflow first - the lint of that build
+# reads the backend from the branch rename_<name> pushed here.
 # Re-running with the same name updates the branch to the current main
 # state; without content changes nothing is pushed. The main commit is
 # carried as second parent so GitHub shows the branch as "ahead" instead

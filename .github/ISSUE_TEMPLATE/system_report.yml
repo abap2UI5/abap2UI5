@@ -1,0 +1,56 @@
+name: System report
+description: Report a release of abap2UI5 running (or not) on a real SAP system - the rows of docs/verified-on.md come from here
+labels: ["system-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        CI verifies abap2UI5 against transpiled ABAP and pinned UI5 builds. A real system is the
+        one thing it cannot run on. Each report here becomes a row in
+        [Verified on](https://github.com/abap2UI5/abap2UI5/blob/main/docs/verified-on.md),
+        green or red - a red row with a linked issue is as useful as a green one.
+  - type: input
+    id: version
+    attributes:
+      label: abap2UI5 version
+      description: The tag you installed (constant `version` in z2ui5_if_app), e.g. 1.146.0 or 1.146.0-702.
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: ABAP release
+      description: As SM51 / `System > Status` shows it, e.g. SAP_BASIS 7.40 SP 26, S/4HANA 2023 FPS02, BTP ABAP Environment 2508.
+    validations:
+      required: true
+  - type: input
+    id: ui5
+    attributes:
+      label: UI5 version
+      description: The version the app runs on (the developer tools show it, Ctrl+F12), e.g. 1.71.78 on-stack, 1.136.5 from the CDN.
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - "Green - installs, activates, the start page and my apps run"
+        - "Red - something fails (describe below and link the issue if there is one)"
+    validations:
+      required: true
+  - type: dropdown
+    id: use
+    attributes:
+      label: Use
+      options:
+        - "Production"
+        - "Quality / test system"
+        - "Development / sandbox"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: What you installed (frontend variant, user exit settings, launchpad or standalone), what failed, and whether we may name your company in the row. Nothing here is required.

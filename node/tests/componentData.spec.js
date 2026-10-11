@@ -164,6 +164,40 @@ test("only a boolean true embeds - the page and the launchpad do not", () => {
   });
 });
 
+// The URL hash: a page of the app's own owns it, an embedded component
+// leaves it to the host - unless the host hands it back with ownsHash: true
+// (abap2UI5/frontend-new, one control filling an empty page). A host's
+// setting: read on the top level only, a boolean true only, and never sent.
+test("the hash is the page's own, the host's when embedded, unless handed back", () => {
+  expect(init({}).ownsHash).toBe(true);
+  expect(init(undefined).ownsHash).toBe(true);
+  expect(init({ embedded: true }).ownsHash).toBe(false);
+
+  const state = init({
+    embedded: true,
+    ownsHash: true,
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+  expect(state.embedded).toBe(true);
+  expect(state.ownsHash).toBe(true);
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+});
+
+test("only a host's boolean true hands the hash back - not a launchpad link", () => {
+  expect(init({ embedded: true, ownsHash: "true" }).ownsHash).toBe(false);
+  expect(init({ embedded: true, ownsHash: 1 }).ownsHash).toBe(false);
+  const state = init({
+    embedded: true,
+    startupParameters: { ownsHash: ["true"] },
+  });
+  expect(state.ownsHash).toBe(false);
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { ownsHash: ["true"] },
+  });
+});
+
 // UI5 1.x exports every class it creates as a global - window.z2ui5.Component
 // and the rest (core/Env.js ownClass). An embedded component runs on a HOST's
 // page, whose window is not the frontend's: its init takes them off. A page

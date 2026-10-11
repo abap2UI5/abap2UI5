@@ -254,6 +254,13 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/version-sync-gate.mjs # npm run check:version
 
+      # the facts line under the README badges is counted, not typed - a
+      # stale count in the first thing a visitor reads is the claim nobody
+      # notices going wrong
+      - name: the README facts line matches the repository
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/readme-facts.mjs --check # npm run check:facts
+
       # the blank-owner draft tolerance has a removal deadline a build can
       # miss - the gate holds the tolerance present through the grace window
       # and refuses it afterwards

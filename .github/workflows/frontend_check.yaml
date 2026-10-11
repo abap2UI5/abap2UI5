@@ -81,6 +81,13 @@ jobs:
     - name: Build a renamed variant
       run: node tools/build-branches.mjs standard_zcheck
 
+    # The same, calling a renamed backend (standard_<name>__<backend>): the
+    # handler is rewritten to <backend>_cl_http_handler and the tree's
+    # abaplint config pointed at the branch rename_<backend>. Built only -
+    # that branch exists for no check name, so the tree is not linted here.
+    - name: Build a renamed variant against a renamed backend
+      run: node tools/build-branches.mjs standard_zcheck__zcheck
+
     # The same build frontend_deploy runs at deploy time, into the gitignored
     # tools/out/ - failing here is what keeps a broken build away from main -
     # followed by the invariants a BSP page has to satisfy, checked on the

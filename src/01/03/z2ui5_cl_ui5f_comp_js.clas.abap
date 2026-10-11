@@ -96,6 +96,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          cccResourceRoot,` && |\n| &&
              `          endpoint,` && |\n| &&
              `          embedded,` && |\n| &&
+             `          ownsHash,` && |\n| &&
              `          nodePath,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
@@ -118,6 +119,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `            useFullScreenHeight: false,` && |\n| &&
              `          });` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        state.ownsHash = !state.embedded || ownsHash === true;` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&

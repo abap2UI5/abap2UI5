@@ -843,14 +843,15 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
 });
 
 // ---------------------------------------------------------------------------
-// Embedded - the hash is the host's (state.embedded)
+// Embedded - the hash is the host's (state.embedded), unless the host handed
+// it back (state.ownsHash, which Component.init derives from both)
 // ---------------------------------------------------------------------------
 
 test("an embedded component neither listens to the hash nor starts its engine", () => {
   // the host routes by the hash (a Fiori elements object page) or not at
   // all - either way a hash change is none of the component's business
   const { Router, listeners, inits } = loadRouter({
-    state: { embedded: true },
+    state: { embedded: true, ownsHash: false },
     hash: "Customers('1001')",
   });
   Router.init(() => {
@@ -870,7 +871,7 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
   // replaceHash("") took the object page's route away after every click
   for (const navRouting of [false, true]) {
     const { Router, writes, pushes, replaces, errors } = loadRouter({
-      state: { embedded: true, navRouting },
+      state: { embedded: true, ownsHash: false, navRouting },
       hash: "Customers('1001')",
     });
     Router.sync({ id: "D2" });
@@ -885,6 +886,32 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
     expect(replaces).toEqual([]);
     expect(errors).toEqual([]);
   }
+});
+
+// A host whose page is this one component (abap2UI5/frontend-new) hands
+// the hash back: the component listens, initializes the engine and writes
+// its routes as on a page of its own.
+test("an embedded component the host handed the hash to routes as on its own page", () => {
+  const { Router, state, listeners, inits, writes } = loadRouter({
+    state: { embedded: true, ownsHash: true },
+  });
+  let restored = 0;
+  Router.init(() => {
+    restored += 1;
+  });
+  expect(listeners.map((l) => l.name)).toEqual(["hashChanged"]);
+  expect(inits()).toBe(1);
+
+  // a roundtrip writes the route of the rendered app
+  state.oResponse = { APP: CALLER };
+  Router.sync({ id: "D2" });
+  expect(writes).toEqual([
+    { op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" },
+  ]);
+
+  // a browser Back to another route restores it
+  listeners[0].fn({ getParameter: () => `/app/${CALLEE}/D9` });
+  expect(restored).toBe(1);
 });
 
 // The option names are a contract with the backend: z2ui5_cl_ui5_act_front=>

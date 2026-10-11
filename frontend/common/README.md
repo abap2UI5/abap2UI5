@@ -53,7 +53,7 @@ Because the overwrite is not loud — the change is merged, works, and vanishes 
 
 #### Renaming
 
-Need the BSP under a **different name** (e.g. a second copy in the same system)? Run the [`frontend_deploy` workflow](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml) in abap2UI5 with a branch name of the form `standard_<name>` — plain (`ZMYUI5`) or in a registered namespace (`/ABAPGIT/` → BSP `/ABAPGIT/UI5`, handler `/ABAPGIT/CL_LP_HANDLER`) — it generates and pushes a branch `standard_<name>` / `standard_v2_<name>` with the whole deployment identity (BSP, SICF nodes, handler class) renamed. Details in [`tools/bsp_rename`](https://github.com/abap2UI5/abap2UI5/tree/main/tools/bsp_rename).
+Need the BSP under a **different name** (e.g. a second copy in the same system)? Run the [`frontend_deploy` workflow](https://github.com/abap2UI5/abap2UI5/actions/workflows/frontend_deploy.yaml) in abap2UI5 with a branch name of the form `standard_<name>` — plain (`ZMYUI5`) or in a registered namespace (`/ABAPGIT/` → BSP `/ABAPGIT/UI5`, handler `/ABAPGIT/CL_LP_HANDLER`) — it generates and pushes a branch `standard_<name>` / `standard_v2_<name>` with the whole deployment identity (BSP, SICF nodes, handler class) renamed. For a backend that was itself renamed with the [`build-rename` workflow](https://github.com/abap2UI5/abap2UI5/actions/workflows/build-rename.yaml), append `__<name>` (`standard_#abap2ui5#__#abap2ui5#`): the handler then calls that backend's `cl_http_handler`. Details in [`tools/bsp_rename`](https://github.com/abap2UI5/abap2UI5/tree/main/tools/bsp_rename).
 
 #### Sibling BSPs
 
@@ -62,7 +62,7 @@ Need the BSP under a **different name** (e.g. a second copy in the same system)?
 | resourceRoot | Sibling BSP | Built from |
 |---|---|---|
 | `z2ui5_cci` | `Z2UI5_CCI` | [abap2UI5-addons/custom-controls](https://github.com/abap2UI5-addons/custom-controls) — community custom controls |
-| `z2ui5_ccc` | `Z2UI5_CCC` | [abap2UI5/customer-frontend-extension](https://github.com/abap2UI5/customer-frontend-extension) — a customer's own reuse library, icon font or CSS |
+| `z2ui5_ccc` | `Z2UI5_CCC` | [abap2UI5-addons/custom-controls-customer](https://github.com/abap2UI5-addons/custom-controls-customer) — a customer's own reuse library, icon font or CSS |
 
 Neither BSP has to be installed: the browser requests nothing from a resourceRoot until a view names the namespace. Both entries come from abap2UI5 `app/webapp` — see "Where to change what" above.
 

@@ -234,8 +234,10 @@ sap.ui.define(
           // state (route restore, app-state bookmarks) on every request.
           // Not for an embedded component (state.embedded): the hash is the
           // host's route then, and one that reads like "#/app/<CLASS>" would
-          // start that class instead of the app the host asked for
-          HASH: state.embedded ? "" : window.location.hash,
+          // start that class instead of the app the host asked for - unless
+          // the host handed the hash back (state.ownsHash), and a route in
+          // it is the app's own again: a reload restores it
+          HASH: state.ownsHash ? window.location.hash : "",
         };
         const sFront = oBody.S_FRONT;
         // an all-empty CONFIG is left off entirely

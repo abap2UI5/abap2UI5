@@ -1,14 +1,14 @@
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const acorn = require('acorn');
-const terser = require('terser');
-const abapClassTemplate = require('./abapClassTemplate');
-const xmlTemplate = require('./abapXMLTemplate');
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const acorn = require("acorn");
+const terser = require("terser");
+const abapClassTemplate = require("./abapClassTemplate");
+const xmlTemplate = require("./abapXMLTemplate");
 
 // Define source and target directories
-const sourceDir = path.join(__dirname, '../../app/webapp');
-const targetDir = path.join(__dirname, '../../src/01/03');
+const sourceDir = path.join(__dirname, "../../app/webapp");
+const targetDir = path.join(__dirname, "../../src/01/03");
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
@@ -25,12 +25,12 @@ const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 
 // Function to read the file content from the source directory
 function readFile(filePath) {
-    return fs.promises.readFile(filePath, 'utf-8');
+  return fs.promises.readFile(filePath, "utf-8");
 }
 
 // Function to create a new file in the target directory
 function createFileInTargetDir(targetFilePath, content) {
-    return fs.promises.writeFile(targetFilePath, content, 'utf-8');
+  return fs.promises.writeFile(targetFilePath, content, "utf-8");
 }
 
 // Guard 1: the frontend source is embedded into an ABAP string constant,
@@ -42,18 +42,18 @@ function createFileInTargetDir(targetFilePath, content) {
 // below reflows the code, so the reported line number is one the author can
 // find in app/webapp.
 function assertSevenBitAscii(content, className) {
-    content.split('\n').forEach((line, index) => {
-        // The range IS ASCII, control characters included: this line is the
-        // 7bit_ascii rule itself.
-        // eslint-disable-next-line no-control-regex
-        const nonAscii = line.match(/[^\x00-\x7F]/);
-        if (nonAscii) {
-            throw new Error(
-                `${className} line ${index + 1}: non-ASCII character ${JSON.stringify(nonAscii[0])} ` +
-                `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
-            );
-        }
-    });
+  content.split("\n").forEach((line, index) => {
+    // The range IS ASCII, control characters included: this line is the
+    // 7bit_ascii rule itself.
+    // eslint-disable-next-line no-control-regex
+    const nonAscii = line.match(/[^\x00-\x7F]/);
+    if (nonAscii) {
+      throw new Error(
+        `${className} line ${index + 1}: non-ASCII character ${JSON.stringify(nonAscii[0])} ` +
+          `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
+      );
+    }
+  });
 }
 
 // Both sides are re-minified with the same settings, so anything that is only
@@ -61,24 +61,27 @@ function assertSevenBitAscii(content, className) {
 // (ported from tools/app2bsp/preload.js). `evaluate` folds constant
 // expressions identically on both sides, so the two prints are comparable.
 function assertSameProgram(before, after, relPath) {
-    const collapse = (code, label) => {
-        const result = terser.minify_sync(code, {
-            compress: { defaults: false, evaluate: true },
-            mangle: false,
-            format: { ascii_only: true },
-        });
-        if (result.error) {
-            throw new Error(`${relPath}: ${label} does not parse - ${result.error}`);
-        }
-        return result.code;
-    };
-    if (collapse(before, 'the source') !== collapse(after, 'the comment-stripped source')) {
-        throw new Error(
-            `${relPath}: embedding changed the program - the comment strip, or the ` +
-            'trailing whitespace every embedded line loses (inside a template literal ' +
-            'it is part of the string: write it as ${" "} or \\x20 there).',
-        );
+  const collapse = (code, label) => {
+    const result = terser.minify_sync(code, {
+      compress: { defaults: false, evaluate: true },
+      mangle: false,
+      format: { ascii_only: true },
+    });
+    if (result.error) {
+      throw new Error(`${relPath}: ${label} does not parse - ${result.error}`);
     }
+    return result.code;
+  };
+  if (
+    collapse(before, "the source") !==
+    collapse(after, "the comment-stripped source")
+  ) {
+    throw new Error(
+      `${relPath}: embedding changed the program - the comment strip, or the ` +
+        "trailing whitespace every embedded line loses (inside a template literal " +
+        'it is part of the string: write it as ${" "} or \\x20 there).',
+    );
+  }
 }
 
 // The app's own Prettier (also what `npm run app2abap` formats app/webapp
@@ -87,17 +90,19 @@ function assertSameProgram(before, after, relPath) {
 // require at import time when app deps are missing.
 let prettierModule = null;
 function appPrettier() {
-    if (!prettierModule) {
-        try {
-            prettierModule = require(path.join(__dirname, '../../app/node_modules/prettier'));
-        } catch {
-            throw new Error(
-                "comment strip needs the app toolchain - run 'npm --prefix app ci' first " +
-                '(npm run app2abap and check:app2abap install it for you)',
-            );
-        }
+  if (!prettierModule) {
+    try {
+      prettierModule = require(
+        path.join(__dirname, "../../app/node_modules/prettier"),
+      );
+    } catch {
+      throw new Error(
+        "comment strip needs the app toolchain - run 'npm --prefix app ci' first " +
+          "(npm run app2abap and check:app2abap install it for you)",
+      );
     }
-    return prettierModule;
+  }
+  return prettierModule;
 }
 
 // The embedded copy of a .js file is a DELIVERY artefact - the readable
@@ -117,64 +122,64 @@ function appPrettier() {
 // the app's own config, and terser re-parses both sides once to prove the
 // PROGRAM did not change.
 async function stripJsComments(source, file, relPath) {
-    const comments = [];
-    try {
-        acorn.parse(source, {
-            ecmaVersion: 'latest',
-            onComment: (_isBlock, _text, start, end) => comments.push([start, end]),
-        });
-    } catch (e) {
-        throw new Error(`${relPath}: does not parse - ${e.message}`, { cause: e });
-    }
-    let code = source;
-    for (const [start, end] of comments.reverse()) {
-        code = code.slice(0, start) + code.slice(end);
-    }
-    const prettier = appPrettier();
-    const config = (await prettier.resolveConfig(file)) || {};
-    code = await prettier.format(code, { ...config, parser: 'babel' });
-    // Compared against what the ABAP class hands back, not against `code`:
-    // formatAsAbapClass strips the trailing whitespace of every line on the
-    // way in, and inside a multi-line template literal that whitespace is
-    // part of the string. Checked against `code` alone, `\`a  \nb\`` went
-    // into the class as `\`a\nb\`` and the proof above said nothing.
-    assertSameProgram(source, embeddedValue(code, false), relPath);
-    return code;
+  const comments = [];
+  try {
+    acorn.parse(source, {
+      ecmaVersion: "latest",
+      onComment: (_isBlock, _text, start, end) => comments.push([start, end]),
+    });
+  } catch (e) {
+    throw new Error(`${relPath}: does not parse - ${e.message}`, { cause: e });
+  }
+  let code = source;
+  for (const [start, end] of comments.reverse()) {
+    code = code.slice(0, start) + code.slice(end);
+  }
+  const prettier = appPrettier();
+  const config = (await prettier.resolveConfig(file)) || {};
+  code = await prettier.format(code, { ...config, parser: "babel" });
+  // Compared against what the ABAP class hands back, not against `code`:
+  // formatAsAbapClass strips the trailing whitespace of every line on the
+  // way in, and inside a multi-line template literal that whitespace is
+  // part of the string. Checked against `code` alone, `\`a  \nb\`` went
+  // into the class as `\`a\nb\`` and the proof above said nothing.
+  assertSameProgram(source, embeddedValue(code, false), relPath);
+  return code;
 }
 
 // Function to format the content into an ABAP class method
 function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
-    assertSevenBitAscii(content, className);
-    const lines = content.split('\n');
-    const formattedLines = lines.map((line, index) => {
-        line = line.replace(/\s+$/, ''); // Remove trailing spaces
+  assertSevenBitAscii(content, className);
+  const lines = content.split("\n");
+  const formattedLines = lines.map((line, index) => {
+    line = line.replace(/\s+$/, ""); // Remove trailing spaces
 
-        let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
-        formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
+    let formattedLine = `             \`${line.replace(/`/g, "``")}\` && ${isSpecialFile ? "" : "|\\n|  &&"}`;
+    formattedLine = formattedLine.replace(/&&\s+$/, "&&"); // Remove trailing spaces after &&
 
-        // Guard 2: an ABAP source line is capped at 255 characters. A generated
-        // line over the limit breaks the ABAP compile/lint downstream with an
-        // opaque error; surface it here against the source line so it is obvious
-        // which frontend line to shorten.
-        if (formattedLine.length > 255) {
-            throw new Error(
-                `${className} line ${index + 1}: generated ABAP line is ${formattedLine.length} chars ` +
-                `(max 255) - shorten this frontend source line: ${line.trim()}`,
-            );
-        }
-        if ((index + 1) % 400 === 0) {
-            // ABAP caps the length of a chained expression, so the result is
-            // split into several statements every 400 lines. This line
-            // already carries its own separator (|\n| for normal files, none
-            // for special files), so close the statement by turning its
-            // trailing `&&` into `.` rather than appending a second |\n| -
-            // the latter inserted a spurious blank line every 400 lines and
-            // would have corrupted newline-free special files past that size.
-            return `${formattedLine.replace(/\s*&&$/, '.')}\n    result = result &&`;
-        }
-        return formattedLine;
-    });
-    return abapClassTemplate(className, formattedLines.join('\n'), sourcePath);
+    // Guard 2: an ABAP source line is capped at 255 characters. A generated
+    // line over the limit breaks the ABAP compile/lint downstream with an
+    // opaque error; surface it here against the source line so it is obvious
+    // which frontend line to shorten.
+    if (formattedLine.length > 255) {
+      throw new Error(
+        `${className} line ${index + 1}: generated ABAP line is ${formattedLine.length} chars ` +
+          `(max 255) - shorten this frontend source line: ${line.trim()}`,
+      );
+    }
+    if ((index + 1) % 400 === 0) {
+      // ABAP caps the length of a chained expression, so the result is
+      // split into several statements every 400 lines. This line
+      // already carries its own separator (|\n| for normal files, none
+      // for special files), so close the statement by turning its
+      // trailing `&&` into `.` rather than appending a second |\n| -
+      // the latter inserted a spurious blank line every 400 lines and
+      // would have corrupted newline-free special files past that size.
+      return `${formattedLine.replace(/\s*&&$/, ".")}\n    result = result &&`;
+    }
+    return formattedLine;
+  });
+  return abapClassTemplate(className, formattedLines.join("\n"), sourcePath);
 }
 
 // The string the class formatAsAbapClass builds hands back from get( ) at run
@@ -185,20 +190,22 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
 // generation time (see inlineScript), so it has to be byte for byte what the
 // ABAP side produces - change one, change the other.
 function embeddedValue(content, isSpecialFile) {
-    const lines = content.split('\n').map((line) => line.replace(/\s+$/, ''));
-    return isSpecialFile ? lines.join('') : lines.map((line) => `${line}\n`).join('');
+  const lines = content.split("\n").map((line) => line.replace(/\s+$/, ""));
+  return isSpecialFile
+    ? lines.join("")
+    : lines.map((line) => `${line}\n`).join("");
 }
 
 // JavaScript twin of escape_js_literal in the generated preload class (below):
 // backslash first, then the apostrophe, CR, LF and every < - the order the
 // ABAP method applies them in.
 function escapeJsLiteral(value) {
-    return value
-        .replace(/\\/g, '\\\\')
-        .replace(/'/g, "\\'")
-        .replace(/\r/g, '\\r')
-        .replace(/\n/g, '\\n')
-        .replace(/</g, '\\x3c');
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n")
+    .replace(/</g, "\\x3c");
 }
 
 // The lines around the preload entries in the GET shell's one inline
@@ -208,23 +215,52 @@ function escapeJsLiteral(value) {
 // text starts with the newline after <script>). Held once, as data, so the
 // ABAP string template in buildPreloadClass and the hashed JavaScript string
 // in inlineScript cannot drift apart.
-const SCRIPT_OPEN = ['', '  function onInitComponent(){', '    sap.ui.require.preload({'];
+const SCRIPT_OPEN = [
+  "",
+  "  function onInitComponent(){",
+  "    sap.ui.require.preload({",
+];
 const SCRIPT_CLOSE = [
-    '    });',
-    '    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){',
-    '     ComponentSupport.run();',
-    '    });',
-    '  }',
+  "    });",
+  '    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){',
+  "     ComponentSupport.run();",
+  "    });",
+  "  }",
 ];
 
 // The lines around the same entries in the frontend BUNDLE - the script a
 // GET of the node with ?z2ui5-bundle answers with (z2ui5_cl_ui5_http_handler
 // =>_http_get_bundle), for a page that embeds the component. Only the
 // registration: that page is running already, so nothing is started here.
+//
+// The component is registered a second time, as z2ui5.embed.frontend - its
+// Component.js and manifest.json under z2ui5/embed/frontend/, the SAME
+// function and text, so nothing is sent twice, and every other module stays
+// where it is. The page that embeds the component may be a component named
+// z2ui5 itself: abap2UI5/frontend-new is the BSP Z2UI5 with the component
+// z2ui5 that a launchpad's target mappings name, and its own
+// z2ui5/Component is defined before this script runs - the loader ignores a
+// preload of a module it has already, and the frontend's would never be
+// found under z2ui5. The z2ui5/embed module of the bundle names the second
+// name (componentName), and @abap2ui5/embed-control creates the component
+// under it. z2ui5/embed/ is the control's namespace; nothing is fetched
+// from it, both entries are preloaded.
+const BUNDLE_OPEN = ["(function () {", "  var entries = {"];
+const BUNDLE_CLOSE = [
+  "  };",
+  "  sap.ui.require.preload(entries);",
+  "  sap.ui.require.preload({",
+  '    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],',
+  '    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]',
+  "  });",
+  "})();",
+];
+
 // The DEVTOOLS bundle (?z2ui5-bundle=devtools, _http_get_devtools) has the
-// same shape around the deferred files of devtools/ (see DEVTOOLS_EAGER).
-const BUNDLE_OPEN = ['sap.ui.require.preload({'];
-const BUNDLE_CLOSE = ['});'];
+// plain shape around the deferred files of devtools/ (see DEVTOOLS_EAGER):
+// only a preload, no second registration - the component is not in it.
+const DEVTOOLS_OPEN = ["sap.ui.require.preload({"];
+const DEVTOOLS_CLOSE = ["});"];
 
 // The developer tools are split in two. What has to be there from the
 // first roundtrip on stays in the shell's inline script and in the embed
@@ -242,79 +278,85 @@ const BUNDLE_CLOSE = ['});'];
 // dependency would be fetched from the ICF node - which answers every GET
 // with the page - and would take the whole component down, so the
 // generation refuses it (assertNoEagerDependencyOnDeferred).
-const DEVTOOLS_DIR = 'devtools/';
+const DEVTOOLS_DIR = "devtools/";
 const DEVTOOLS_EAGER = new Set([
-    'devtools/DevTools.js',
-    'devtools/Console.js',
-    'devtools/Recorder.js',
-    // required by Console and Recorder
-    'devtools/Persist.js',
-    'devtools/Format.js',
-    'devtools/Diff.js',
+  "devtools/DevTools.js",
+  "devtools/Console.js",
+  "devtools/Recorder.js",
+  // required by Console and Recorder
+  "devtools/Persist.js",
+  "devtools/Format.js",
+  "devtools/Diff.js",
 ]);
 function isDeferredDevtools(relPath) {
-    return relPath.startsWith(DEVTOOLS_DIR) && !DEVTOOLS_EAGER.has(relPath);
+  return relPath.startsWith(DEVTOOLS_DIR) && !DEVTOOLS_EAGER.has(relPath);
 }
 
 // The sap.ui.define dependency arrays of a module's source: every quoted
 // module id inside the first array literal after `sap.ui.define(`.
 const DEFINE_DEPS = /sap\.ui\.define\(\s*\[([^\]]*)\]/;
 function defineDependencies(source) {
-    const match = DEFINE_DEPS.exec(source);
-    if (!match) return [];
-    return [...match[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
+  const match = DEFINE_DEPS.exec(source);
+  if (!match) return [];
+  return [...match[1].matchAll(/["']([^"']+)["']/g)].map((m) => m[1]);
 }
 
 // Guard 4: no module outside the devtools bundle may depend on one inside
 // it - see DEVTOOLS_EAGER. `sources` maps the relative path of every .js
 // file to its source text.
 function assertNoEagerDependencyOnDeferred(sources) {
-    for (const [relPath, source] of sources) {
-        if (isDeferredDevtools(relPath)) continue;
-        for (const dep of defineDependencies(source)) {
-            if (!dep.startsWith('z2ui5/')) continue;
-            const depPath = `${dep.slice('z2ui5/'.length)}.js`;
-            if (isDeferredDevtools(depPath)) {
-                throw new Error(
-                    `${relPath}: sap.ui.define names ${dep}, a module of the devtools bundle - ` +
-                    'a module outside the bundle (the inline preload, the embed bundle) must reach it ' +
-                    'lazily through DevTools.js, or the file has to join DEVTOOLS_EAGER in ' +
-                    'tools/app2abap/trans2abap.js',
-                );
-            }
-        }
+  for (const [relPath, source] of sources) {
+    if (isDeferredDevtools(relPath)) continue;
+    for (const dep of defineDependencies(source)) {
+      if (!dep.startsWith("z2ui5/")) continue;
+      const depPath = `${dep.slice("z2ui5/".length)}.js`;
+      if (isDeferredDevtools(depPath)) {
+        throw new Error(
+          `${relPath}: sap.ui.define names ${dep}, a module of the devtools bundle - ` +
+            "a module outside the bundle (the inline preload, the embed bundle) must reach it " +
+            "lazily through DevTools.js, or the file has to join DEVTOOLS_EAGER in " +
+            "tools/app2abap/trans2abap.js",
+        );
+      }
     }
+  }
 }
 
 // One preload entry as the script text carries it: a .js file as the body of
 // a function, anything else as a single-quoted string literal.
 function preloadEntryText({ urlPath, isJs, value }) {
-    return isJs ? `      "${urlPath}": function(){${value}},` : `      "${urlPath}": '${escapeJsLiteral(value)}',`;
+  return isJs
+    ? `      "${urlPath}": function(){${value}},`
+    : `      "${urlPath}": '${escapeJsLiteral(value)}',`;
 }
 
 // The complete text of the inline <script> exactly as the generated get( )
 // returns it - what the browser hashes against the CSP's script-src.
 function inlineScript(entries) {
-    return [...SCRIPT_OPEN, ...entries.map(preloadEntryText), ...SCRIPT_CLOSE].map((line) => `${line}\n`).join('');
+  return [...SCRIPT_OPEN, ...entries.map(preloadEntryText), ...SCRIPT_CLOSE]
+    .map((line) => `${line}\n`)
+    .join("");
 }
 
 // The complete text of a bundle script (get_bundle( ) without the embed
 // module the handler appends, get_devtools( )) - the devtools bundle's
 // validator is a digest of it.
-function bundleScript(entries) {
-    return [...BUNDLE_OPEN, ...entries.map(preloadEntryText), ...BUNDLE_CLOSE].map((line) => `${line}\n`).join('');
+function bundleScript(entries, open = BUNDLE_OPEN, close = BUNDLE_CLOSE) {
+  return [...open, ...entries.map(preloadEntryText), ...close]
+    .map((line) => `${line}\n`)
+    .join("");
 }
 
 // A text as the body of an ABAP string template |...|: the four characters
 // the template itself interprets are escaped. The literal newline after each
 // line is written as \n by the caller.
 function abapTemplateText(text) {
-    return text.replace(/[\\|{}]/g, (c) => `\\${c}`);
+  return text.replace(/[\\|{}]/g, (c) => `\\${c}`);
 }
 
 // Embedded frontend artefacts carry the `ui5f` segment (UI5 frontend); plain
 // ABAP artefacts use `ui5` (z2ui5_cl_ui5_view_builder).
-const CLASS_NAME_PREFIX = 'z2ui5_cl_ui5f_';
+const CLASS_NAME_PREFIX = "z2ui5_cl_ui5f_";
 
 // ABAP object names are capped at 30 characters, but a generated name must
 // survive the rename workflow (.github/workflows/build-rename.yaml), which
@@ -330,61 +372,61 @@ const MAX_CLASS_NAME_LENGTH = 25;
 // `developertool_xml` (a DeveloperTools fragment that lost its plural) and
 // `smartmultiinpu_js`. Names not listed here keep their basename.
 const CLASS_NAME_STEMS = {
-    'Component.js': 'comp_js',
-    'cc/CameraPicture.js': 'campic_js',
-    'cc/CameraSelector.js': 'camsel_js',
-    'cc/ExcelBridge.js': 'excel_js',
-    'cc/FileUploader.js': 'uploader_js',
-    'cc/Geolocation.js': 'geoloc_js',
-    'cc/MessageManager.js': 'msgmgr_js',
-    'cc/MultiInputExt.js': 'multiinp_js',
-    'cc/NativeBridgeScan.js': 'natscan_js',
-    'cc/Scrolling.js': 'scroll_js',
-    'cc/SmartMultiInputExt.js': 'smartinp_js',
-    'cc/UITableExt.js': 'uitable_js',
-    'cc/UploadSetExt.js': 'upldset_js',
-    'cc/Websocket.js': 'websock_js',
-    'devtools/AbapSource.js': 'abapsrc_js',
-    'devtools/DeveloperTools.fragment.xml': 'dtools_xml',
-    'devtools/DeveloperTools.js': 'dtools_js',
-    // `format_js` is taken by model/formatter.js, and a collision is a hard
-    // error rather than a silent overwrite - so this one carries the folder.
-    'devtools/Format.js': 'dtformat_js',
-    'core/ErrorView.js': 'errview_js',
-    'core/FrontendAction.js': 'frontact_js',
-    'core/ScrollFocus.js': 'scrfocus_js',
-    'core/ViewSlots.js': 'viewslot_js',
-    'core/actions/BindingCall.js': 'bindcall_js',
-    'core/actions/ControlCall.js': 'ctrlcall_js',
-    'core/actions/Launchpad.js': 'launchpd_js',
-    'core/actions/Shortcuts.js': 'shortcut_js',
-    'manifest.json': 'manifest',
-    'model/clipboard.js': 'clipbrd_js',
-    'model/formatter.js': 'format_js',
+  "Component.js": "comp_js",
+  "cc/CameraPicture.js": "campic_js",
+  "cc/CameraSelector.js": "camsel_js",
+  "cc/ExcelBridge.js": "excel_js",
+  "cc/FileUploader.js": "uploader_js",
+  "cc/Geolocation.js": "geoloc_js",
+  "cc/MessageManager.js": "msgmgr_js",
+  "cc/MultiInputExt.js": "multiinp_js",
+  "cc/NativeBridgeScan.js": "natscan_js",
+  "cc/Scrolling.js": "scroll_js",
+  "cc/SmartMultiInputExt.js": "smartinp_js",
+  "cc/UITableExt.js": "uitable_js",
+  "cc/UploadSetExt.js": "upldset_js",
+  "cc/Websocket.js": "websock_js",
+  "devtools/AbapSource.js": "abapsrc_js",
+  "devtools/DeveloperTools.fragment.xml": "dtools_xml",
+  "devtools/DeveloperTools.js": "dtools_js",
+  // `format_js` is taken by model/formatter.js, and a collision is a hard
+  // error rather than a silent overwrite - so this one carries the folder.
+  "devtools/Format.js": "dtformat_js",
+  "core/ErrorView.js": "errview_js",
+  "core/FrontendAction.js": "frontact_js",
+  "core/ScrollFocus.js": "scrfocus_js",
+  "core/ViewSlots.js": "viewslot_js",
+  "core/actions/BindingCall.js": "bindcall_js",
+  "core/actions/ControlCall.js": "ctrlcall_js",
+  "core/actions/Launchpad.js": "launchpd_js",
+  "core/actions/Shortcuts.js": "shortcut_js",
+  "manifest.json": "manifest",
+  "model/clipboard.js": "clipbrd_js",
+  "model/formatter.js": "format_js",
 };
 
 // Function to generate a class name from a file path
 function generateClassName(filePath) {
-    const relativePath = path.relative(sourceDir, filePath);
-    const relPath = relativePath.split(path.sep).join('/');
-    const parts = relativePath.split(path.sep);
-    const fileName = parts.pop().split('.');
-    if (fileName.length > 2) {
-        fileName.splice(1, 1); // Remove the middle part
-    }
-    const stem = CLASS_NAME_STEMS[relPath] || fileName.join('_').toLowerCase();
-    const className = `${CLASS_NAME_PREFIX}${stem}`;
-    // Guard 3: fail instead of truncating. A silently shortened name stays
-    // valid ABAP and only surfaces much later, as an opaque "Name not allowed"
-    // out of the rename run - the exact failure mode this cap removes.
-    if (className.length > MAX_CLASS_NAME_LENGTH) {
-        throw new Error(
-            `${relPath}: generated class name '${className}' is ${className.length} chars ` +
-            `(max ${MAX_CLASS_NAME_LENGTH}) - add a short stem for this file to ` +
-            `CLASS_NAME_STEMS in tools/app2abap/trans2abap.js`,
-        );
-    }
-    return className;
+  const relativePath = path.relative(sourceDir, filePath);
+  const relPath = relativePath.split(path.sep).join("/");
+  const parts = relativePath.split(path.sep);
+  const fileName = parts.pop().split(".");
+  if (fileName.length > 2) {
+    fileName.splice(1, 1); // Remove the middle part
+  }
+  const stem = CLASS_NAME_STEMS[relPath] || fileName.join("_").toLowerCase();
+  const className = `${CLASS_NAME_PREFIX}${stem}`;
+  // Guard 3: fail instead of truncating. A silently shortened name stays
+  // valid ABAP and only surfaces much later, as an opaque "Name not allowed"
+  // out of the rename run - the exact failure mode this cap removes.
+  if (className.length > MAX_CLASS_NAME_LENGTH) {
+    throw new Error(
+      `${relPath}: generated class name '${className}' is ${className.length} chars ` +
+        `(max ${MAX_CLASS_NAME_LENGTH}) - add a short stem for this file to ` +
+        `CLASS_NAME_STEMS in tools/app2abap/trans2abap.js`,
+    );
+  }
+  return className;
 }
 
 // Builds the generated z2ui5_cl_ui5f_preload class. Its get( ) returns the
@@ -407,28 +449,47 @@ function generateClassName(filePath) {
 // / BUNDLE_CLOSE) - served as a file, not inline, so no hash is taken over
 // it. Both methods read the entries from one private method, so the class
 // carries every embedded file once. get_devtools( ) is the devtools bundle
-// (DEVTOOLS_EAGER): the deferred files of devtools/ as a script of the same
-// shape, with devtools_hash - a digest of that script - as the validator the
+// (DEVTOOLS_EAGER): the deferred files of devtools/ as a plain preload
+// script (DEVTOOLS_OPEN / DEVTOOLS_CLOSE), with devtools_hash - a digest of that script - as the validator the
 // handler's ETag for it carries, since build_hash does not see those files.
-function buildPreloadClass(entries, devtoolsEntries, buildHash, scriptHash, devtoolsHash) {
-    const templateLines = (lines) => lines.map((line) => `|${abapTemplateText(line)}\\n|`);
-    const entryLine = ({ urlPath, className, isJs }) => {
-        // A .js entry is a function body - the source is JavaScript and goes in
-        // verbatim. Every other entry is a text resource embedded as a
-        // single-quoted JS string literal, so its content must be escaped for
-        // that literal (see escape_js_literal below).
-        if (isJs) {
-            return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
-        }
-        return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
-    };
-    const concat = (parts) => parts.join(' &&\n             ');
-    const script = concat([...templateLines(SCRIPT_OPEN), 'entries( )', ...templateLines(SCRIPT_CLOSE)]);
-    const bundle = concat([...templateLines(BUNDLE_OPEN), 'entries( )', ...templateLines(BUNDLE_CLOSE)]);
-    const devtools = concat([...templateLines(BUNDLE_OPEN), 'entries_devtools( )', ...templateLines(BUNDLE_CLOSE)]);
-    const joined = concat(entries.map(entryLine));
-    const joinedDevtools = concat(devtoolsEntries.map(entryLine));
-    return `* =====================================================================
+function buildPreloadClass(
+  entries,
+  devtoolsEntries,
+  buildHash,
+  scriptHash,
+  devtoolsHash,
+) {
+  const templateLines = (lines) =>
+    lines.map((line) => `|${abapTemplateText(line)}\\n|`);
+  const entryLine = ({ urlPath, className, isJs }) => {
+    // A .js entry is a function body - the source is JavaScript and goes in
+    // verbatim. Every other entry is a text resource embedded as a
+    // single-quoted JS string literal, so its content must be escaped for
+    // that literal (see escape_js_literal below).
+    if (isJs) {
+      return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
+    }
+    return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
+  };
+  const concat = (parts) => parts.join(" &&\n             ");
+  const script = concat([
+    ...templateLines(SCRIPT_OPEN),
+    "entries( )",
+    ...templateLines(SCRIPT_CLOSE),
+  ]);
+  const bundle = concat([
+    ...templateLines(BUNDLE_OPEN),
+    "entries( )",
+    ...templateLines(BUNDLE_CLOSE),
+  ]);
+  const devtools = concat([
+    ...templateLines(DEVTOOLS_OPEN),
+    "entries_devtools( )",
+    ...templateLines(DEVTOOLS_CLOSE),
+  ]);
+  const joined = concat(entries.map(entryLine));
+  const joinedDevtools = concat(devtoolsEntries.map(entryLine));
+  return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * Embedded frontend resource, generated from app/webapp/ by
 * tools/app2abap/trans2abap.js. Change the source under app/webapp/
@@ -586,171 +647,202 @@ ENDCLASS.
 
 // Function to recursively get all files in a directory
 function getAllFiles(dirPath, arrayOfFiles) {
-    const files = fs.readdirSync(dirPath);
+  const files = fs.readdirSync(dirPath);
 
-    arrayOfFiles = arrayOfFiles || [];
+  arrayOfFiles = arrayOfFiles || [];
 
-    files.forEach(file => {
-        const filePath = path.join(dirPath, file);
-        if (fs.statSync(filePath).isDirectory()) {
-            arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
-        } else {
-            arrayOfFiles.push(filePath);
-        }
-    });
+  files.forEach((file) => {
+    const filePath = path.join(dirPath, file);
+    if (fs.statSync(filePath).isDirectory()) {
+      arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
+    } else {
+      arrayOfFiles.push(filePath);
+    }
+  });
 
-    return arrayOfFiles;
+  return arrayOfFiles;
 }
 
 // Main function to read the source files and create new target files
 async function main() {
-    try {
-        // Everything is generated into memory FIRST and written only once the
-        // whole set is built. The target directory used to be deleted as the
-        // very first statement, before a single guard had run - so a source
-        // file with a non-ASCII character, a class-name collision or an
-        // over-long line left src/01/03 wiped and half-regenerated in the
-        // contributor's working tree, and `git checkout src/01/03` was the
-        // only way back. The drift gate then reported the wreckage instead of
-        // the cause. Nothing below touches the filesystem until `outputs` is
-        // complete.
-        const outputs = [];
-        const emit = (filePath, content) => outputs.push({ filePath, content });
+  try {
+    // Everything is generated into memory FIRST and written only once the
+    // whole set is built. The target directory used to be deleted as the
+    // very first statement, before a single guard had run - so a source
+    // file with a non-ASCII character, a class-name collision or an
+    // over-long line left src/01/03 wiped and half-regenerated in the
+    // contributor's working tree, and `git checkout src/01/03` was the
+    // only way back. The drift gate then reported the wreckage instead of
+    // the cause. Nothing below touches the filesystem until `outputs` is
+    // complete.
+    const outputs = [];
+    const emit = (filePath, content) => outputs.push({ filePath, content });
 
-        // The initial XML file with BOM
-        emit(path.join(targetDir, 'package.devc.xml'), initialXMLContent);
+    // The initial XML file with BOM
+    emit(path.join(targetDir, "package.devc.xml"), initialXMLContent);
 
-        // Sort so the generation order (and console log) is deterministic
-        // regardless of the filesystem's readdir order.
-        const files = getAllFiles(sourceDir).sort();
-        const preloadEntries = [];
-        const devtoolsEntries = [];
-        // the .js sources by relative path, for guard 4
-        const jsSources = new Map();
+    // Sort so the generation order (and console log) is deterministic
+    // regardless of the filesystem's readdir order.
+    const files = getAllFiles(sourceDir).sort();
+    const preloadEntries = [];
+    const devtoolsEntries = [];
+    // the .js sources by relative path, for guard 4
+    const jsSources = new Map();
 
-        // Class names ignore folders (cc/Foo.js and Foo.js would both map to
-        // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
-        // each other. Fail fast instead.
-        const seenClassNames = new Map();
-        const classNameByFile = new Map();
-        for (const file of files) {
-            const cn = generateClassName(file);
-            if (seenClassNames.has(cn)) {
-                throw new Error(
-                    `class name collision: ${file} and ${seenClassNames.get(cn)} both map to ${cn}`,
-                );
-            }
-            seenClassNames.set(cn, file);
-            classNameByFile.set(file, cn);
-        }
-
-        for (const file of files) {
-            let sourceContent = await readFile(file);
-            console.log(`Source file content fetched successfully for ${file}.`);
-
-            const className = classNameByFile.get(file);
-            const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
-            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html') || file.endsWith('.css');
-            // Only .js is stripped: the special files (.xml/.json/.html/.css)
-            // go in untouched - their comments are structure (fragment
-            // documentation, manifest annotations) and none of them is
-            // JavaScript for terser to reprint.
-            if (file.endsWith('.js')) {
-                // ASCII first, against the author's own line numbers
-                assertSevenBitAscii(sourceContent, className);
-                jsSources.set(relPath, sourceContent);
-                sourceContent = await stripJsComments(sourceContent, file, relPath);
-            }
-            const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile, relPath);
-
-            const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
-            emit(targetFilePath, abapClassContent);
-
-            const xmlContent = xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`);
-            const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
-            emit(xmlFilePath, `\uFEFF${xmlContent}`);
-
-            // Collect the preload entry. index.html is the standalone dev
-            // page and is not preloaded by the generated GET response; the
-            // deferred files of devtools/ go into the devtools bundle.
-            if (relPath !== 'index.html') {
-                (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
-                    urlPath: `z2ui5/${relPath}`,
-                    className: className.toLowerCase(),
-                    isJs: file.endsWith('.js'),
-                    // what the class returns at run time - the preload's
-                    // share of the hashed script text
-                    value: embeddedValue(sourceContent, isSpecialFile),
-                });
-            }
-        }
-
-        // Generate the preload mapping class (sorted for a stable output).
-        // Plain code-unit comparison, not localeCompare: the collation of
-        // localeCompare depends on the host locale/ICU build, and the sort
-        // order is committed output (src/01/03).
-        const byUrlPath = (a, b) => (a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0);
-        preloadEntries.sort(byUrlPath);
-        devtoolsEntries.sort(byUrlPath);
-        assertNoEagerDependencyOnDeferred(jsSources);
-        // One SHA-256 over the script text the page will carry, UTF-8 like the
-        // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
-        // bytes a browser hashes to decide whether the script may run.
-        const digest = crypto.createHash('sha256').update(inlineScript(preloadEntries), 'utf8').digest();
-        // 16 hex characters: a validator, not a security digest, and the tag
-        // travels in every GET response header
-        const buildHash = digest.toString('hex').slice(0, 16);
-        const scriptHash = `sha256-${digest.toString('base64')}`;
-        // the devtools bundle's own validator - served as a file, no CSP
-        // hash is taken over it, the ETag is what it is for
-        const devtoolsHash = crypto
-            .createHash('sha256')
-            .update(bundleScript(devtoolsEntries), 'utf8')
-            .digest('hex')
-            .slice(0, 16);
-        emit(
-            path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.abap'),
-            buildPreloadClass(preloadEntries, devtoolsEntries, buildHash, scriptHash, devtoolsHash),
+    // Class names ignore folders (cc/Foo.js and Foo.js would both map to
+    // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
+    // each other. Fail fast instead.
+    const seenClassNames = new Map();
+    const classNameByFile = new Map();
+    for (const file of files) {
+      const cn = generateClassName(file);
+      if (seenClassNames.has(cn)) {
+        throw new Error(
+          `class name collision: ${file} and ${seenClassNames.get(cn)} both map to ${cn}`,
         );
-        emit(
-            path.join(targetDir, 'z2ui5_cl_ui5f_preload.clas.xml'),
-            `\uFEFF${xmlTemplate('z2ui5_cl_ui5f_preload', 'abap2UI5 - preload mapping')}`,
-        );
-
-        // Every guard has passed and every byte is in hand - only now is the
-        // committed tree replaced.
-        fs.rmSync(targetDir, { recursive: true, force: true });
-        fs.mkdirSync(targetDir, { recursive: true });
-        for (const { filePath, content } of outputs) {
-            await createFileInTargetDir(filePath, content);
-            console.log(`Target file created successfully at: ${filePath}`);
-        }
-        console.log(`${outputs.length} file(s) written to ${targetDir}`);
-    } catch (error) {
-        // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
-        // treat a broken generation run as success and commit a partial
-        // src/01/03. Since the write phase above is the last thing main( )
-        // does, a failure reported here also means the committed tree was
-        // never touched.
-        console.error('Error:', error.message);
-        process.exitCode = 1;
+      }
+      seenClassNames.set(cn, file);
+      classNameByFile.set(file, cn);
     }
+
+    for (const file of files) {
+      let sourceContent = await readFile(file);
+      console.log(`Source file content fetched successfully for ${file}.`);
+
+      const className = classNameByFile.get(file);
+      const relPath = path.relative(sourceDir, file).split(path.sep).join("/");
+      const isSpecialFile =
+        file.endsWith(".xml") ||
+        file.endsWith(".json") ||
+        file.endsWith(".html") ||
+        file.endsWith(".css");
+      // Only .js is stripped: the special files (.xml/.json/.html/.css)
+      // go in untouched - their comments are structure (fragment
+      // documentation, manifest annotations) and none of them is
+      // JavaScript for terser to reprint.
+      if (file.endsWith(".js")) {
+        // ASCII first, against the author's own line numbers
+        assertSevenBitAscii(sourceContent, className);
+        jsSources.set(relPath, sourceContent);
+        sourceContent = await stripJsComments(sourceContent, file, relPath);
+      }
+      const abapClassContent = formatAsAbapClass(
+        sourceContent,
+        className,
+        isSpecialFile,
+        relPath,
+      );
+
+      const targetFilePath = path.join(
+        targetDir,
+        `${className.toLowerCase()}.clas.abap`,
+      );
+      emit(targetFilePath, abapClassContent);
+
+      const xmlContent = xmlTemplate(
+        className,
+        `abap2UI5 - ${path.basename(file)}`,
+      );
+      const xmlFilePath = path.join(
+        targetDir,
+        `${className.toLowerCase()}.clas.xml`,
+      );
+      emit(xmlFilePath, `\uFEFF${xmlContent}`);
+
+      // Collect the preload entry. index.html is the standalone dev
+      // page and is not preloaded by the generated GET response; the
+      // deferred files of devtools/ go into the devtools bundle.
+      if (relPath !== "index.html") {
+        (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
+          urlPath: `z2ui5/${relPath}`,
+          className: className.toLowerCase(),
+          isJs: file.endsWith(".js"),
+          // what the class returns at run time - the preload's
+          // share of the hashed script text
+          value: embeddedValue(sourceContent, isSpecialFile),
+        });
+      }
+    }
+
+    // Generate the preload mapping class (sorted for a stable output).
+    // Plain code-unit comparison, not localeCompare: the collation of
+    // localeCompare depends on the host locale/ICU build, and the sort
+    // order is committed output (src/01/03).
+    const byUrlPath = (a, b) =>
+      a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0;
+    preloadEntries.sort(byUrlPath);
+    devtoolsEntries.sort(byUrlPath);
+    assertNoEagerDependencyOnDeferred(jsSources);
+    // One SHA-256 over the script text the page will carry, UTF-8 like the
+    // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
+    // bytes a browser hashes to decide whether the script may run.
+    const digest = crypto
+      .createHash("sha256")
+      .update(inlineScript(preloadEntries), "utf8")
+      .digest();
+    // 16 hex characters: a validator, not a security digest, and the tag
+    // travels in every GET response header
+    const buildHash = digest.toString("hex").slice(0, 16);
+    const scriptHash = `sha256-${digest.toString("base64")}`;
+    // the devtools bundle's own validator - served as a file, no CSP
+    // hash is taken over it, the ETag is what it is for
+    const devtoolsHash = crypto
+      .createHash("sha256")
+      .update(
+        bundleScript(devtoolsEntries, DEVTOOLS_OPEN, DEVTOOLS_CLOSE),
+        "utf8",
+      )
+      .digest("hex")
+      .slice(0, 16);
+    emit(
+      path.join(targetDir, "z2ui5_cl_ui5f_preload.clas.abap"),
+      buildPreloadClass(
+        preloadEntries,
+        devtoolsEntries,
+        buildHash,
+        scriptHash,
+        devtoolsHash,
+      ),
+    );
+    emit(
+      path.join(targetDir, "z2ui5_cl_ui5f_preload.clas.xml"),
+      `\uFEFF${xmlTemplate("z2ui5_cl_ui5f_preload", "abap2UI5 - preload mapping")}`,
+    );
+
+    // Every guard has passed and every byte is in hand - only now is the
+    // committed tree replaced.
+    fs.rmSync(targetDir, { recursive: true, force: true });
+    fs.mkdirSync(targetDir, { recursive: true });
+    for (const { filePath, content } of outputs) {
+      await createFileInTargetDir(filePath, content);
+      console.log(`Target file created successfully at: ${filePath}`);
+    }
+    console.log(`${outputs.length} file(s) written to ${targetDir}`);
+  } catch (error) {
+    // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
+    // treat a broken generation run as success and commit a partial
+    // src/01/03. Since the write phase above is the last thing main( )
+    // does, a failure reported here also means the committed tree was
+    // never touched.
+    console.error("Error:", error.message);
+    process.exitCode = 1;
+  }
 }
 
 // Run the main function - only as the script itself (npm run auto_app2abap):
 // node/tests/trans2abap.spec.js requires the module for its pure helpers and
 // must not regenerate src/01/03 by doing so.
 if (require.main === module) {
-    main();
+  main();
 }
 
 module.exports = {
-    formatAsAbapClass,
-    embeddedValue,
-    stripJsComments,
-    assertSameProgram,
-    isDeferredDevtools,
-    defineDependencies,
-    assertNoEagerDependencyOnDeferred,
-    DEVTOOLS_EAGER,
+  formatAsAbapClass,
+  embeddedValue,
+  stripJsComments,
+  assertSameProgram,
+  isDeferredDevtools,
+  defineDependencies,
+  assertNoEagerDependencyOnDeferred,
+  DEVTOOLS_EAGER,
 };

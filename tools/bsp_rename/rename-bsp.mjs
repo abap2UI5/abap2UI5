@@ -39,6 +39,10 @@
 // WHAT IS DELIBERATELY KEPT (these are protocol contracts with the abap2UI5
 // *backend*; renaming them breaks the app unless you also rebrand the backend):
 //   * z2ui5_cl_http_handler ................... the backend framework class the handler calls
+//     - unless --backend <prefix> names a backend renamed with the
+//       build-rename workflow of abap2UI5/abap2UI5 (prefix zmyui5_ or
+//       /ca2ui5/): then the handler calls <prefix>cl_http_handler, the class
+//       that backend ships under
 //   * the UI5 framework namespace `z2ui5` ..... z2ui5/core/*, z2ui5/cc/*, custom controls
 //                                               z2ui5.cc.* and the resourceroots key.
 //     (legacy-free proves this: it renamed the BSP to z2ui5_v2 but KEPT the
@@ -57,6 +61,8 @@
 //
 // Options:
 //   --dir <paths>        comma-separated roots to process (default: "src")
+//   --backend <prefix>   the handler calls <prefix>cl_http_handler, the backend
+//                        renamed to that prefix (zmyui5_, /ca2ui5/ or #ca2ui5#)
 //   --with-namespace     also rewrite the UI5 namespace (advanced, see above)
 //   --dry-run            show what would change, write nothing
 //   --yes                skip the confirmation prompt
@@ -66,6 +72,7 @@
 //   node rename-bsp.mjs ZMYUI5
 //   node rename-bsp.mjs /abapgit/ --dry-run
 //   node rename-bsp.mjs ZMYUI5 --with-namespace --yes
+//   node rename-bsp.mjs /abap2ui5/ --backend /abap2ui5/ --yes
 //
 
 import { readFile, writeFile, rename, readdir } from "node:fs/promises";
@@ -81,6 +88,12 @@ import { stdin, stdout, argv, exit } from "node:process";
 const OLD_LO = "z2ui5";
 const OLD_UP = "Z2UI5";
 const OLD_HANDLER_LO = "z2ui5_cl_lp_handler";
+// The backend class the handler calls. Kept unless --backend says otherwise.
+const OLD_BACKEND_LO = "z2ui5_cl_http_handler";
+// The backend's own rename (build-rename.yaml, rename.jsonc) allows a prefix
+// of at most 10 characters: a customer name plus "_" or a namespace with
+// both slashes.
+const MAX_BACKEND_PREFIX_LEN = 10;
 
 // SICF on-disk file name layout used by abapGit: a 15-char left-justified
 // ICF name field followed by a 25-char hash. The hash is the first 25 hex
@@ -112,7 +125,7 @@ const BSP_LINE_WIDTH = 255;
 // Argument parsing
 // ---------------------------------------------------------------------------
 function parseArgs(args) {
-  const opts = { dirs: ["src"], withNamespace: false, dryRun: false, yes: false, name: null, help: false };
+  const opts = { dirs: ["src"], withNamespace: false, dryRun: false, yes: false, name: null, backend: null, help: false };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "-h" || a === "--help") opts.help = true;
@@ -120,6 +133,7 @@ function parseArgs(args) {
     else if (a === "--dry-run") opts.dryRun = true;
     else if (a === "--yes" || a === "-y") opts.yes = true;
     else if (a === "--dir") opts.dirs = (args[++i] || "").split(",").map((s) => s.trim()).filter(Boolean);
+    else if (a === "--backend") opts.backend = args[++i] ?? "";
     else if (a.startsWith("-")) { console.error(`Unknown option: ${a}`); exit(2); }
     else if (opts.name === null) opts.name = a;
     else { console.error(`Unexpected argument: ${a}`); exit(2); }
@@ -139,6 +153,9 @@ NEW_NAME is a plain name (ZMYUI5) or a name in a registered SAP namespace:
 
 Options:
   --dir <paths>        comma-separated roots to process (default: "src")
+  --backend <prefix>   the handler calls <prefix>cl_http_handler - for a backend
+                       renamed with abap2UI5's build-rename workflow to the same
+                       prefix (zmyui5_, /ca2ui5/; #ca2ui5# is accepted as well)
   --with-namespace     also rewrite the UI5 namespace (advanced; not for /NS/ names)
   --dry-run            show what would change, write nothing
   --yes                skip the confirmation prompt
@@ -149,8 +166,9 @@ class, file names, manifest data source). For /NS/ names the SICF nodes move
 to /sap/bc/<ns>/<name> etc. and the missing namespace-level ICF nodes are
 generated; "/" becomes "#" in file names like abapGit serializes it. The UI5
 framework namespace "z2ui5" and the backend class z2ui5_cl_http_handler are
-KEPT, because they are protocol contracts with the abap2UI5 backend. Use --with-namespace
-only when you are rebranding the backend as well.`;
+KEPT, because they are protocol contracts with the abap2UI5 backend. A backend
+renamed with the build-rename workflow is named with --backend; use
+--with-namespace only when you are rebranding the backend as well.`;
 
 // ---------------------------------------------------------------------------
 // Validation / name derivation
@@ -211,6 +229,35 @@ export function deriveNames(input) {
     handlerUp: `${up}_CL_LP_HANDLER`, handlerLo: `${lo}_cl_lp_handler`,
     warnings,
   };
+}
+
+// The backend class the ICF handler calls, for a backend renamed with the
+// build-rename workflow of abap2UI5/abap2UI5 to `prefix`: the workflow takes
+// a customer name (ZMYUI5 -> prefix zmyui5_) or a registered namespace
+// (/CA2UI5/ -> prefix /ca2ui5/), each at most 10 characters, and renames
+// z2ui5_cl_http_handler to <prefix>cl_http_handler. Both spellings are
+// accepted here, the name without its underscore too, and the abapGit file
+// name spelling #ca2ui5# as well - it is how a namespace travels in a branch
+// name. Returns { prefix, lo, up, branch } - the class, and the branch the
+// workflow publishes that backend on (rename_<name>: the prefix without its
+// underscore or slashes, the way build-rename.yaml derives it) - or null
+// when no backend is named.
+export function deriveBackend(input) {
+  if (input === null || input === undefined) return null;
+  let prefix = input.trim().toLowerCase().replace(/#/g, "/");
+  if (!prefix) throw new Error("--backend needs a value: the prefix of the renamed backend, e.g. zmyui5_ or /ca2ui5/");
+  if (/^[a-z][a-z0-9_]*$/.test(prefix) && !prefix.endsWith("_")) prefix += "_";
+  if (!/^[a-z][a-z0-9_]*_$/.test(prefix) && !/^\/[a-z0-9][a-z0-9_]*\/$/.test(prefix)) {
+    throw new Error(`Invalid backend prefix "${input}": a customer name (zmyui5_) or a namespace with both slashes (/ca2ui5/).`);
+  }
+  if (prefix.length > MAX_BACKEND_PREFIX_LEN) {
+    throw new Error(`Backend prefix "${prefix}" is ${prefix.length} chars; max ${MAX_BACKEND_PREFIX_LEN} (the limit of abap2UI5's build-rename workflow).`);
+  }
+  if (prefix === `${OLD_LO}_`) {
+    throw new Error(`Backend prefix "${prefix}" is the original name - leave --backend out for an unrenamed backend.`);
+  }
+  const lo = `${prefix}cl_http_handler`;
+  return { prefix, lo, up: lo.toUpperCase(), branch: `rename_${prefix.replace(/\/|_$/g, "")}` };
 }
 
 // abapGit escapes the "/" of namespaced object names as "#" in file names.
@@ -285,10 +332,17 @@ function transformWapa(content, N) {
 }
 
 // ABAP class source / metadata: rename ONLY our own handler class and KEEP
-// the backend framework class z2ui5_cl_http_handler.
-function transformClass(content, N) {
-  return content.replace(new RegExp(OLD_HANDLER_LO, "gi"), (m) =>
+// the backend framework class z2ui5_cl_http_handler - unless a renamed
+// backend is named (--backend): then the call goes to its class. The two
+// tokens never overlap (lp_handler / http_handler), so the order is free.
+function transformClass(content, N, backend) {
+  let out = content.replace(new RegExp(OLD_HANDLER_LO, "gi"), (m) =>
     m === OLD_HANDLER_LO ? N.handlerLo : N.handlerUp);
+  if (backend) {
+    out = out.replace(new RegExp(OLD_BACKEND_LO, "gi"), (m) =>
+      m === OLD_BACKEND_LO ? backend.lo : backend.up);
+  }
+  return out;
 }
 
 // manifest.json: always repoint the data source at the renamed handler node.
@@ -349,17 +403,17 @@ function renormalizeBspPage(content) {
 }
 
 // Decide how a file's CONTENT must be transformed, based on its name.
-function contentTransformFor(name, N, withNamespace) {
-  const tf = rawTransformFor(name, N, withNamespace);
+function contentTransformFor(name, N, withNamespace, backend) {
+  const tf = rawTransformFor(name, N, withNamespace, backend);
   if (tf && isBspPageFile(name)) return (c) => renormalizeBspPage(tf(c));
   return tf;
 }
 
-function rawTransformFor(name, N, withNamespace) {
+function rawTransformFor(name, N, withNamespace, backend) {
   if (name.endsWith(".sicf.xml")) return (c) => transformSicf(c, N);
   if (name.endsWith(".smim.xml")) return (c) => transformSmim(c, N);
   if (name.endsWith(".wapa.xml")) return (c) => transformWapa(c, N); // BSP descriptor only
-  if (name.endsWith(".clas.abap") || name.endsWith(".clas.xml")) return (c) => transformClass(c, N);
+  if (name.endsWith(".clas.abap") || name.endsWith(".clas.xml")) return (c) => transformClass(c, N, backend);
   if (name.endsWith("manifest.json")) return (c) => transformManifest(c, N, withNamespace);
   if (withNamespace && /\.(js|xml|html|css|json)$/.test(name)) return (c) => transformNamespace(c, N.lo);
   return null; // no content change
@@ -458,6 +512,13 @@ async function main() {
     console.error(`\n  ${err.message}\n`);
     exit(1);
   }
+  let backend = null;
+  try {
+    backend = deriveBackend(opts.backend);
+  } catch (err) {
+    console.error(`\n  ${err.message}\n`);
+    exit(1);
+  }
   if (opts.withNamespace && N.ns) {
     console.error(`\n  --with-namespace cannot be combined with a /NS/ name: UI5 module ids cannot carry a SAP namespace.\n`);
     exit(1);
@@ -477,7 +538,7 @@ async function main() {
   const nsParentUrls = new Set();
   for (const path of files) {
     const name = basename(path);
-    const tf = contentTransformFor(name, N, opts.withNamespace);
+    const tf = contentTransformFor(name, N, opts.withNamespace, backend);
     let after = null;
     if (tf) {
       const before = await readFile(path, "utf8");
@@ -500,6 +561,7 @@ async function main() {
   // Report.
   console.log(`\nRename abap2UI5 BSP:  ${OLD_UP}  ->  ${N.up}   (lowercase ${OLD_LO} -> ${N.lo})`);
   console.log(`ICF handler class:   ${OLD_HANDLER_LO.toUpperCase()}  ->  ${N.handlerUp}`);
+  console.log(`Backend class:       ${backend ? `${OLD_BACKEND_LO.toUpperCase()}  ->  ${backend.up}   (--backend)` : `${OLD_BACKEND_LO} kept (unrenamed backend)`}`);
   console.log(`Roots:               ${opts.dirs.join(", ")}`);
   console.log(`UI5 namespace:       ${opts.withNamespace ? `ALSO renamed (--with-namespace)` : "kept as z2ui5 (backend contract)"}`);
   for (const w of N.warnings) console.log(`  ! ${w}`);
