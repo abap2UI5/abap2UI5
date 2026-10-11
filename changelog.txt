@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* z2ui5_cl_ui5_http_handler: the comments on c_bundle_component and on its test name the branches standard_new and cloud_new of abap2UI5/frontend, not the repository abap2UI5/frontend-new, which no longer exists
 
 
 2026-10-11 v1.147.0
