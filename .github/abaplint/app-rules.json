@@ -1,5 +1,5 @@
 {
-  "note": "The abaplint rule set for abap2UI5 APP repositories, and its source: samples, samples-controls and samples-stack carry it as the rule block of their abaplint.jsonc (all but object_naming), held to it by .github/scripts/shared-file-gate.mjs here and scripts/check-app-rules.mjs there. Change it here first, then copy it into all three.",
+  "note": "The abaplint rule set for abap2UI5 APP repositories, and its source: samples, samples-controls and samples-stack carry it as the rule block of their abaplint.jsonc (all but object_naming), held to it by .github/scripts/shared-file-gate.mjs here and scripts/check-app-rules.mjs there; abap2UI5/protocol carries it the same way in conformance/apps/abaplint.jsonc, held to it by the same gate. Change it here first, then copy it into all four.",
   "version": 1,
   "excluded": {
     "object_naming": "each repository names its own object prefixes"
