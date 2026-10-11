@@ -84,18 +84,18 @@ on with. The string in between is the implementation's business.
 **The Node host installs one** (`node/srv/zcl_serializer_live.clas.abap`,
 from `host.mjs`'s `initialize()`, packed into `@abap2ui5/node-runtime` next to
 `zcl_sicf`). In a process the roll area never ends, so the string is an id
-and the container stays live in a class-wide table behind it - no RTTI walk
-of the object graph to save, none to load. The draft row in `Z2UI5_T_01`
-carries the id, so a draft lives as long as the process, which the in-memory
-SQLite of that host had already decided. What it changes: an id answers the
-container **as it is**, not as it was when the id was written - every
-roundtrip of an app saves the same object under a new id, so a Back/Forward
-or a bookmark into an earlier roundtrip of the same app shows its latest
-state, and a retry after a failed roundtrip runs on the state the failed one
-left. That is the semantics of a stateful session
-(`client->set_session_stateful( )`), which the framework already runs with
-the live handler, for every app of that host; the id chain (`id_prev`,
-`id_prev_app`) is kept as before. An id the table no longer holds - swept,
+and the container stays live in a class-wide table behind it, next to the
+asXML the shipped serializer writes - no RTTI walk of the object graph to
+load. The draft row in `Z2UI5_T_01` carries the id, so a draft lives as long
+as the process, which the in-memory SQLite of that host had already decided.
+A draft is still a snapshot (abap2UI5/protocol, `spec/sessions.md`, "Drafts
+are snapshots"): the live object answers an id only the first time it is
+asked for, and only while the container was not saved again; every other
+parse of the id - the retry of a lost response, a Back/Forward or a bookmark
+into an earlier roundtrip - builds the container from the asXML, so it
+continues from the state the id named. A roundtrip costs one asXML stringify
+instead of a stringify and a parse; the id chain (`id_prev`, `id_prev_app`)
+is kept as before. An id the table no longer holds - swept,
 or written by an earlier process - answers
 `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`, the store's own error for a
 missing row, so the handler treats both alike. The table is swept by

@@ -12,6 +12,7 @@ Legend
 
 unreleased
 ----------
+* @abap2ui5/node-runtime: a draft is a snapshot again - an earlier draft id (the retry of a lost response, a browser Back/Forward, a bookmark into an earlier roundtrip) continues from the state it named, as abap2UI5/protocol requires (session.id-reuse). Since 1.147.0 zcl_serializer_live answered every id with the app as it was now; it now keeps the asXML of the shipped serializer next to the live container and hands out the live object only on the first load of an id, so a roundtrip still saves the parse but pays the asXML stringify again
 
 
 2026-10-11 v1.147.0

@@ -139,8 +139,9 @@ class-data - the user exit through `z2ui5_cl_ui5_user_exit=>set_instance( )`
 raises in this runtime and is deliberately not latched on a system is not
 paid three times per POST, and `node/srv/zcl_serializer_live` through
 `z2ui5_cl_ui5_app_cont=>set_serializer( )`, so the draft row carries an id
-and the container stays live behind it instead of being walked into asXML
-and back on every click - and arms the draft sweep, a timer that runs
+and the container stays live behind it next to its asXML, so the next
+roundtrip gets the object instead of a parse (a second load of the id parses
+the snapshot) - and arms the draft sweep, a timer that runs
 `sweepDrafts()` (the store's `cleanup( )` plus the serializer's `sweep( )`,
 inside `exclusive()`) every `draftSweepMs`, unref'd
 (`node/tests/hostSeams.spec.js`, which `test_node` runs; "THE SEAMS" and
