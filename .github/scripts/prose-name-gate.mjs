@@ -72,6 +72,9 @@ const EXTERNAL = new Map([
   // its "Local Implementations" are where SLIN reports findings that are
   // annotated away on this side, which is the abap-check entry naming it
   ["Z2UI5_CL_ABAP2UI5_LOCAL", "the bundled class abap2UI5/abap2UI5-local builds"],
+  // frontend/abap holds it, outside src/: it ships in the branches of
+  // abap2UI5/frontend, whose READMEs (frontend/common) name it
+  ["Z2UI5_CL_LP_HANDLER", "the launchpad handler of the abap2UI5/frontend branches (frontend/abap)"],
 ]);
 
 // Whole families that live in the sample repositories. The removal plan counts

@@ -140,9 +140,10 @@
  * the next request, so initialize() installs zcl_serializer_live
  * (node/srv/zcl_serializer_live.clas.abap, transpiled with the framework
  * and packed next to zcl_sicf): the draft row carries an id, the container
- * stays live behind it, and an id names the container as it IS - the
- * semantics of a stateful session for every app; the class comment has the
- * rest. node/tests/hostSeams.spec.js holds both.
+ * stays live behind it next to its asXML, and the first load of an id
+ * answers the live object - no parse. A second load of the id answers the
+ * snapshot, so a draft stays what it named (the retry of a lost response);
+ * the class comment has the rest. node/tests/hostSeams.spec.js holds both.
  *
  * DRAFT SWEEP. Z2UI5_T_01 takes one row per roundtrip and is swept by the
  * framework only when an app cold-starts (z2ui5_cl_ui5_handler calls

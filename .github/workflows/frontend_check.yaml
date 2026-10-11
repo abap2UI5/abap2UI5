@@ -39,8 +39,8 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
-# The most expensive pull-request job in the repository - four delivery trees,
-# a renamed BSP variant and two abaplint passes, budgeted at 15 minutes - and
+# The most expensive pull-request job in the repository - six delivery trees,
+# a renamed BSP variant and four abaplint passes, budgeted at 15 minutes - and
 # the only one that had no concurrency group, so a three-commit push burst ran
 # it three times to completion. Same shape as every other workflow here.
 concurrency:
@@ -94,11 +94,28 @@ jobs:
     # artefact rather than on the bundle it was made from: a page line is at
     # most 255 characters, a page name carries no character CREATE_NEW_PAGE
     # rejects, and the preload page is still valid JavaScript once padded.
-    # `check:frontend` is `frontend:build` + tools/check-pages.mjs - the one
-    # spelling of this gate, here and in package.json.
-    - name: Build the four delivery trees and check the BSP page invariants
+    # Then that every branch keeps the deployment identity of standard and
+    # cloud - objects, ICF nodes, BSP, endpoint, launchpad inbound - so a
+    # system can switch between them (tools/check-identity.mjs).
+    # `check:frontend` is `frontend:build` + tools/check-pages.mjs +
+    # tools/check-identity.mjs - the one spelling of this gate, here and in
+    # package.json.
+    - name: Build the six delivery trees and check the BSP page invariants
       run: npm run check:frontend
 
     # Same abaplint run the standard branch gets in its own repository
     - name: Lint the generated standard tree
       run: cd tools/out/standard && npx abaplint
+
+    # The _new trees call z2ui5_cl_ui5_http_handler (the old ones the frozen
+    # z2ui5_cl_http_handler), so both are linted against main
+    - name: Lint the generated standard_new tree
+      run: cd tools/out/standard_new && npx abaplint
+
+    - name: Lint the generated cloud_new tree
+      run: cd tools/out/cloud_new && npx abaplint
+
+    # frontend/embed, the app of the _new branches: which class it starts,
+    # with which parameters
+    - name: Test frontend/embed
+      run: npm run test:embed

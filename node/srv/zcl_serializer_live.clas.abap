@@ -1,5 +1,5 @@
 " The Node host's serializer (node/srv/host.mjs installs it in initialize( )):
-" the draft keeps the LIVE container instead of its asXML.
+" the draft keeps the LIVE container next to its asXML.
 "
 " The shipped z2ui5_cl_ui5_serializer turns the container into asXML through
 " CALL TRANSFORMATION id and S-RTTI, which open-abap reproduces by walking
@@ -13,14 +13,20 @@
 " outlive the process - neither can the in-memory SQLite the host keeps the
 " table in (node/setup/setup.mjs), so nothing is lost that was there before.
 "
-" What changes against the asXML draft: an id answers the container as it
-" IS, not as it was when the id was written. Every roundtrip of an app
-" saves the same object under a new id, so a Back/Forward or a bookmark
-" into an earlier roundtrip of the same app shows its latest state, and a
-" retry after a failed roundtrip runs on the state the failed one left -
-" the semantics of a sticky session (client->set_session_stateful), which
-" the framework already runs every app of this host with the live handler.
-" On an SAP system nothing changes: the shipped serializer stays installed.
+" A draft is still a snapshot (abap2UI5/protocol, spec/sessions.md "Drafts
+" are snapshots", checked by session.id-reuse): an earlier id - the retry of
+" a lost response, a Back/Forward or a bookmark into an earlier roundtrip -
+" continues from the state it named, not from the latest one. So stringify
+" keeps the asXML of the shipped serializer next to the live object, and
+" parse hands out the live object only the FIRST time an id is asked for,
+" and only while no later draft of the same container exists (its draft id
+" is still the one this entry recorded). Every other parse of the id - a
+" second one, or one after the container was saved again - builds the
+" container from the asXML, exactly as the shipped serializer does. A
+" roundtrip then costs one asXML stringify instead of a stringify and a
+" parse, and a container that fails the transformation fails here as it
+" fails on a system. On an SAP system nothing changes: the shipped
+" serializer stays installed.
 "
 " The table is swept the way z2ui5_cl_ui5_srv_draft=>cleanup sweeps
 " Z2UI5_T_01 - every entry older than the draft expiry the exit answers
@@ -41,6 +47,13 @@ CLASS zcl_serializer_live DEFINITION PUBLIC FINAL CREATE PUBLIC.
       BEGIN OF ty_s_live,
         id         TYPE string,
         container  TYPE REF TO object,
+        "! the container's draft id when it was kept - a later save of the
+        "! same object writes another one
+        draft_id   TYPE string,
+        "! the snapshot: the shipped serializer's asXML of the container
+        xml        TYPE string,
+        "! the live object went out once; from then on the snapshot answers
+        handed_out TYPE abap_bool,
         timestampl TYPE timestampl,
       END OF ty_s_live.
     TYPES ty_t_live TYPE HASHED TABLE OF ty_s_live WITH UNIQUE KEY id.
@@ -68,6 +81,11 @@ CLASS zcl_serializer_live DEFINITION PUBLIC FINAL CREATE PUBLIC.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
 
     CLASS-DATA gt_live TYPE ty_t_live.
+
+    "! the shipped asXML serializer, which writes and reads the snapshots
+    CLASS-METHODS snapshot
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_serializer.
 ENDCLASS.
 
 
@@ -80,9 +98,17 @@ CLASS zcl_serializer_live IMPLEMENTATION.
         EXPORTING val = `Internal error - cannot keep an unbound container as a draft`.
     ENDIF.
 
+    " the snapshot first: it narrows the container and raises the shipped
+    " serializer's error for one it cannot write, before anything is kept
+    DATA(lv_xml) = snapshot( )->stringify( container ).
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    lo_cont ?= container.
+
     DATA(lv_id) = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     INSERT VALUE #( id         = lv_id
                     container  = container
+                    draft_id   = lo_cont->ms_draft-id
+                    xml        = lv_xml
                     timestampl = z2ui5_cl_ui5_util_context=>time_get_timestampl( ) ) INTO TABLE gt_live.
     result = lv_id.
 
@@ -98,14 +124,25 @@ CLASS zcl_serializer_live IMPLEMENTATION.
 
     DATA lv_id TYPE string.
     lv_id = val.
-    READ TABLE gt_live INTO DATA(ls_live) WITH TABLE KEY id = lv_id.
+    READ TABLE gt_live REFERENCE INTO DATA(lr_live) WITH TABLE KEY id = lv_id.
     IF sy-subrc <> 0.
       " swept, or written by another process: the error of a missing
       " draft row, so the handler's expired-draft handling takes it
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
-    result = ls_live-container.
+
+    " the live object is the snapshot only until it goes out - the roundtrip
+    " it goes out to changes it - and only while it was not saved again
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    lo_cont ?= lr_live->container.
+    IF lr_live->handed_out = abap_false AND lo_cont->ms_draft-id = lr_live->draft_id.
+      lr_live->handed_out = abap_true.
+      result = lo_cont.
+      RETURN.
+    ENDIF.
+
+    result = snapshot( )->parse( lr_live->xml ).
 
   ENDMETHOD.
 
@@ -138,6 +175,12 @@ CLASS zcl_serializer_live IMPLEMENTATION.
   METHOD clear.
 
     CLEAR gt_live.
+
+  ENDMETHOD.
+
+  METHOD snapshot.
+
+    result = NEW z2ui5_cl_ui5_serializer( ).
 
   ENDMETHOD.
 

@@ -323,14 +323,12 @@ to load, on every click, the most expensive thing in a roundtrip here. In a
 process the object is still there on the next request, so `initialize()`
 installs `zcl_serializer_live` (`output/project/`, through the framework's
 seam `z2ui5_if_ui5_serializer`): the container stays live in the process
-behind the id the row carries. Two things follow. A draft lives as long as
-the process, which the in-memory table already decided. And an id answers
-the app **as it is now**, not as it was when the id was written - every
-roundtrip saves the same object under a new id, so a browser Back/Forward
-or a bookmark into an earlier roundtrip of the same app shows its latest
-state, and a retry after a failed roundtrip runs on the state the failed one
-left: the semantics of a stateful session (`client->set_session_stateful( )`)
-for every app. A store of your own that outlives the process (cap2UI5's
+behind the id the row carries, next to the asXML it is still written to, and
+the next roundtrip gets the live object instead of a parse. A draft lives as
+long as the process, which the in-memory table already decided. It is still
+a snapshot: a retry of a lost response, a browser Back/Forward or a bookmark
+into an earlier roundtrip continues from the state that id named - the
+second load of an id is the asXML parse a system does. A store of your own that outlives the process (cap2UI5's
 entity) pairs with the shipped asXML serializer instead -
 `z2ui5_cl_ui5_app_cont=>set_serializer( )` with an unbound reference after
 `initialize()` puts it back.
