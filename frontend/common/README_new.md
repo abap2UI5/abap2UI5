@@ -59,6 +59,29 @@ The abap2UI5 frontend the control loads into it is a component `z2ui5` too,
 so the control creates it under the second name the backend gives it,
 `z2ui5.embed.frontend`.
 
+## Switching branches
+
+A system switches between `standard`, `standard_v2` and `standard_new` - or
+`cloud`, `cloud_v2` and `cloud_new` - by pulling the other branch into the
+same abapGit repository, in either direction. Nothing that points at the
+installation from outside notices:
+
+| | the same on every branch |
+|---|---|
+| abapGit | repository `abap2UI5-frontend`, every package, object and text |
+| ICF / HTTP service | `/sap/bc/z2ui5` (`Z2UI5_CL_LP_HANDLER`), `/sap/bc/http/sap/z2ui5` on the cloud branches |
+| BSP | `Z2UI5`, `/sap/bc/ui5_ui5/sap/z2ui5/index.html`, `/sap/bc/bsp/sap/z2ui5` |
+| launchpad | component `z2ui5`, inbound `z2ui5-display` (semantic object `z2ui5`, action `display`), `sap.cloud` service `z2ui5` |
+| endpoint | `sap.app/dataSources/http` of the manifest: `/sap/bc/z2ui5`, `/sap/bc/http/sap/z2ui5` on the cloud branches |
+| external calls | `?app_start=<class>` and the other URL parameters, the intent's `app_start` and startup parameters (first value each, in `client->get( )-t_comp_params`), deep links with a hash |
+| sibling BSPs | `z2ui5_cci`, `z2ui5_ccc` |
+
+The build checks this on every change (`tools/check-identity.mjs` in
+abap2UI5). Pulling `standard_new` removes the pages of the classic frontend
+from the BSP, pulling `standard` back brings them again - the BSP stays the
+same object. `cloud_new` has to be deployed from `app/` like `cloud`, under
+the same BSP name.
+
 ## Which app starts
 
 | Where | What decides |

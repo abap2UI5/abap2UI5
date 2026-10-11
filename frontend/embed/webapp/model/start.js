@@ -15,17 +15,28 @@ sap.ui.define([], () => {
   //
   // Only the class and the parameters come from the URL, never the endpoint:
   // the frontend is code, and it is loaded from that endpoint.
+  //
+  // Both reach the backend as they did from the classic frontend on the
+  // branches standard and cloud, so an app reads the same
+  // client->get( )-t_comp_params after a switch to the _new branches: the
+  // class as it was given (the backend trims, upper-cases and unpacks a
+  // namespace itself), and of a parameter with several values the first one
+  // - the launchpad convention the backend applies to the classic frontend's
+  // startupParameters (the control would join them into one text instead).
   return function start(componentData, search, defaultApp) {
     const startup = (componentData && componentData.startupParameters) || {};
     const params = {};
     for (const name of Object.keys(startup)) {
-      if (name !== "app_start") params[name] = startup[name];
+      if (name === "app_start") continue;
+      const value = [].concat(startup[name])[0];
+      if (value != null) params[name] = value;
     }
+    const given = (value) => value != null && String(value).trim() !== "";
     const fromLaunchpad = [].concat(startup.app_start || [])[0];
     const fromUrl = new URLSearchParams(search || "").get("app_start");
-    const app = String(fromLaunchpad || fromUrl || defaultApp || "").trim();
+    const app = [fromLaunchpad, fromUrl, defaultApp].find(given);
     return {
-      app: app.toUpperCase(),
+      app: app === undefined ? "" : String(app),
       params: Object.keys(params).length ? params : null,
     };
   };

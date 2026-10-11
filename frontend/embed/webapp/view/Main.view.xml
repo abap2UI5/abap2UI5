@@ -12,13 +12,9 @@
         visible="{= !!${start>/error} }"
         text="{start>/error}"
         class="sapUiSmallMargin"/>
-    <!-- endpoint: the abap2UI5 service the frontend and the roundtrips
-         come from - /sap/bc/z2ui5 on premise (the standard_new branch);
-         the cloud_new branch is built with the HTTP service path,
-         /sap/bc/http/sap/z2ui5 -->
     <z2ui5:Container
         id="app"
-        endpoint="/sap/bc/z2ui5"
+        endpoint="{start>/endpoint}"
         app="{start>/app}"
         params="{start>/params}"
         height="100%"

@@ -123,6 +123,12 @@ jobs:
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs
 
+    # Every branch keeps the deployment identity of standard / cloud, so a
+    # system can switch between them without a launchpad target mapping or
+    # an external link noticing (tools/check-identity.mjs)
+    - name: Check the branches are interchangeable
+      run: node tools/check-identity.mjs
+
     # In the workspace copy, so npx resolves the installed abaplint. The
     # _new trees call z2ui5_cl_ui5_http_handler, which the old ones do not -
     # cloud_new is linted for that call too.

@@ -1,5 +1,5 @@
 {
-  "name": "abap2ui5-frontend",
+  "name": "z2ui5",
   "version": "0.1.0",
   "private": true,
   "description": "The abap2UI5 frontend app: a UI5 app whose one view runs abap2UI5 in @abap2ui5/embed-control - the frontend itself comes from the backend",
@@ -18,5 +18,6 @@
   "devDependencies": {
     "@ui5/cli": "^4.0.71",
     "ui5-middleware-simpleproxy": "^3.9.0"
-  }
+  },
+  "sapuxLayer": "CUSTOMER_BASE"
 }

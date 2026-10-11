@@ -37,7 +37,12 @@ sap.ui.define(
 
         UIComponent.prototype.init.apply(this, arguments);
 
+        // The endpoint is where the classic frontend of the branches
+        // standard and cloud has it, sap.app/dataSources/http - and the
+        // build of cloud_new turns it to the HTTP service path the same way
+        // it does for cloud. Never from the URL or the launchpad (start.js).
         const config = this.getManifestEntry("/sap.ui5/config") || {};
+        const http = this.getManifestEntry("/sap.app/dataSources/http") || {};
         this.setModel(
           new JSONModel(
             Object.assign(
@@ -46,7 +51,7 @@ sap.ui.define(
                 window.location.search,
                 config.defaultApp,
               ),
-              { error: "" },
+              { endpoint: http.uri || "", error: "" },
             ),
           ),
           "start",

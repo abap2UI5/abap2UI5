@@ -51,7 +51,7 @@
     "check:ui5": "node .github/scripts/ui5lint-gate.mjs",
     "check:types": "npm --prefix app run typecheck",
     "check:app2abap": "node .github/scripts/ensure-app-deps.mjs && node .github/scripts/app2abap-gate.mjs",
-    "check:frontend": "npm run frontend:build && node tools/check-pages.mjs",
+    "check:frontend": "npm run frontend:build && node tools/check-pages.mjs && node tools/check-identity.mjs",
     "check:api": "node .github/scripts/api-snapshot.mjs",
     "check:formatter": "node .github/scripts/formatter-scope-gate.mjs",
     "check:asserts": "node .github/scripts/assertion-gate.mjs",

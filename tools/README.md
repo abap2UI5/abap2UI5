@@ -18,6 +18,7 @@ whether a pull request may merge.
 | `build-branches.mjs` | drives the above into one delivery branch |
 | `branch-stamp.mjs` | the provenance of a branch (`VERSION`, README banner), written at deploy time |
 | `check-pages.mjs` | the BSP page invariants, checked on the built artefact |
+| `check-identity.mjs` | every branch keeps the deployment identity of `standard` / `cloud` (objects, ICF nodes, BSP, endpoint, launchpad inbound), so a system can switch between them |
 | `verify-branches.mjs` | compares a local build in `tools/out/` against what abap2UI5/frontend publishes today |
 | `check-v2-sdk.mjs` | the monthly guard on the pinned legacy-free SDK |
 
@@ -41,7 +42,7 @@ running in the pull-request gate (`frontend_check`) and at deploy time
 npm run app2abap                # regenerate src/01/03 from app/webapp
 npm run frontend:build          # all six delivery branches -> tools/out/
 npm run frontend:standard       # just one
-npm run check:frontend          # build all six and check the BSP page invariants
+npm run check:frontend          # build all six, check the BSP page invariants and that the branches are interchangeable
 npm run frontend:lint           # abaplint over frontend/abap/cloud (the standard handler is linted in the built tree)
 node tools/check-pages.mjs      # BSP invariants on what was built
 npm run frontend:verify         # diff a local build against the published branches

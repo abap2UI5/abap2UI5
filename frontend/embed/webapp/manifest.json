@@ -8,6 +8,12 @@
     },
     "title": "abap2UI5",
     "description": "Runs abap2UI5 apps - the frontend comes from the backend",
+    "dataSources": {
+      "http": {
+        "uri": "/sap/bc/z2ui5",
+        "type": "JSON"
+      }
+    },
     "crossNavigation": {
       "inbounds": {
         "z2ui5-display": {
@@ -42,11 +48,19 @@
     },
     "resourceRoots": {
       "z2ui5.embed": "./thirdparty/z2ui5/embed/",
-      "abap2ui5.frontend": "./"
+      "abap2ui5.frontend": "./",
+      "z2ui5_cci": "../z2ui5_cci/",
+      "z2ui5_ccc": "../z2ui5_ccc/"
     },
     "contentDensities": {
       "compact": true,
       "cozy": true
+    },
+    "services": {
+      "ShellUIService": {
+        "factoryName": "sap.ushell.ui5service.ShellUIService",
+        "lazy": true
+      }
     },
     "config": {
       "defaultApp": "Z2UI5_CL_UI5_APP_START"

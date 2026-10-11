@@ -11,8 +11,17 @@ repository abap2UI5/frontend-new.
 `tools/build-branches.mjs` turns it into the branches: `standard_new` is its
 `webapp/` with the control under `thirdparty/z2ui5/embed/` as the BSP `Z2UI5`
 next to `frontend/abap/standard`, `cloud_new` is this folder as `app/` next to
-`frontend/abap/cloud`, the view's endpoint turned to the HTTP service path.
+`frontend/abap/cloud`, the endpoint turned to the HTTP service path.
 Both handlers call `z2ui5_cl_ui5_http_handler`.
+
+**A system switches between `standard` and `standard_new` (or `cloud` and
+`cloud_new`) by pulling the other branch - nothing else may change for a
+launchpad or an external caller.** `tools/check-identity.mjs` holds the
+`_new` trees to the old ones (`npm run check:frontend`): every ABAP object and
+its metadata, the BSP's attributes, the ICF nodes, the manifest's id, data
+source, inbound, services, sibling roots and `sap.cloud`, the page's
+component settings. What `start.js` hands over reaches the backend as the
+classic frontend sent it (`client->get( )-t_comp_params`).
 
 | Path | |
 |---|---|
@@ -31,8 +40,9 @@ Both handlers call `z2ui5_cl_ui5_http_handler`.
   comes from the backend.
 - **Never take the endpoint from the URL or the launchpad.** What is loaded
   from it is code. Only `app_start` and the app's parameters come from
-  there. The view names `/sap/bc/z2ui5` literally, once - the cloud build
-  rewrites exactly that attribute.
+  there. The endpoint is `sap.app/dataSources/http/uri` of the manifest,
+  where the classic frontend has it, and the cloud build turns it to the HTTP
+  service path with the same patch as `cloud`'s.
 - **The component is `z2ui5`**, as on `standard` and `cloud` - existing
   launchpad target mappings name it. Exactly two files of it are below
   `z2ui5/`, `Component.js` and `manifest.json`; everything else is

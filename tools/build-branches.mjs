@@ -207,12 +207,12 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 const ONPREM_URI = "/sap/bc/z2ui5";
 const CLOUD_URI = "/sap/bc/http/sap/z2ui5";
 
-function patchCloudBackendUri(manifestJson) {
+function patchCloudBackendUri(manifestJson, source = "app/webapp/manifest.json") {
   const m = JSON.parse(manifestJson);
   const ds = m["sap.app"]?.dataSources?.http;
   if (ds?.uri !== ONPREM_URI) {
     throw new Error(
-      `app/webapp/manifest.json: sap.app.dataSources.http.uri is ${JSON.stringify(ds?.uri)}, `
+      `${source}: sap.app.dataSources.http.uri is ${JSON.stringify(ds?.uri)}, `
       + `expected ${JSON.stringify(ONPREM_URI)} - the cloud branches rewrite it to ${CLOUD_URI} `
       + "and must not ship a path they did not recognise",
     );
@@ -320,17 +320,6 @@ function callPublicHandler(dir) {
   writeFileSync(file, source.replace(FROZEN_HANDLER, PUBLIC_HANDLER));
 }
 
-// The view names the on-premise endpoint; a cloud deployment talks to the
-// HTTP service (see CLOUD_URI above). Guarded like the manifest of cloud.
-const EMBED_ENDPOINT = `endpoint="${ONPREM_URI}"`;
-
-function patchCloudEndpoint(viewXml) {
-  if (viewXml.split(EMBED_ENDPOINT).length !== 2) {
-    throw new Error(`frontend/embed/webapp/view/Main.view.xml: expected exactly one ${EMBED_ENDPOINT}`);
-  }
-  return viewXml.replace(EMBED_ENDPOINT, `endpoint="${CLOUD_URI}"`);
-}
-
 // What frontend/embed is developed and checked with here, not what a
 // developer deploying the cloud_new project needs (see DEV_ONLY above) - and
 // .env, git-ignored, which holds a developer's logon to a system
@@ -370,8 +359,10 @@ function buildCloudNew(branch = "cloud_new") {
   });
   cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
   callPublicHandler(dir);
-  const view = join(dir, "app/webapp/view/Main.view.xml");
-  writeFileSync(view, patchCloudEndpoint(readFileSync(view, "utf8")));
+  // the endpoint is where cloud has it (sap.app/dataSources/http), and
+  // turned to the HTTP service path by the same patch
+  const manifest = join(dir, "app/webapp/manifest.json");
+  writeFileSync(manifest, patchCloudBackendUri(readFileSync(manifest, "utf8"), "frontend/embed/webapp/manifest.json"));
 }
 
 const BUILDERS = {

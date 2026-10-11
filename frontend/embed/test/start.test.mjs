@@ -24,10 +24,10 @@ test("nothing given: the default app, no params", () => {
   });
 });
 
-test("standalone: app_start of the URL, upper-cased and trimmed", () => {
+test("standalone: app_start of the URL, as given - the backend normalizes it", () => {
   assert.deepEqual(
-    start(undefined, "?sap-client=100&app_start=%20z2ui5_cl_my_app", DEFAULT),
-    { app: "Z2UI5_CL_MY_APP", params: null },
+    start(undefined, "?sap-client=100&app_start=z2ui5_cl_my_app", DEFAULT),
+    { app: "z2ui5_cl_my_app", params: null },
   );
 });
 
@@ -39,9 +39,11 @@ test("launchpad: app_start of the intent, the rest as params", () => {
       plant: ["1000", "2000"],
     },
   };
+  // the first value of each, as the backend took them from the classic
+  // frontend - not the control's "1000,2000"
   assert.deepEqual(start(componentData, "", DEFAULT), {
-    app: "Z2UI5_CL_MY_APP",
-    params: { matnr: ["4711"], plant: ["1000", "2000"] },
+    app: "z2ui5_cl_my_app",
+    params: { matnr: "4711", plant: "1000" },
   });
 });
 
@@ -57,9 +59,9 @@ test("launchpad without app_start: the URL, then the default", () => {
   const componentData = { startupParameters: { matnr: ["4711"] } };
   assert.deepEqual(start(componentData, "", DEFAULT), {
     app: DEFAULT,
-    params: { matnr: ["4711"] },
+    params: { matnr: "4711" },
   });
-  assert.equal(start(componentData, "?app_start=z_x", DEFAULT).app, "Z_X");
+  assert.equal(start(componentData, "?app_start=z_x", DEFAULT).app, "z_x");
 });
 
 test("an empty app_start is none", () => {
@@ -67,5 +69,21 @@ test("an empty app_start is none", () => {
   assert.equal(
     start({ startupParameters: { app_start: [""] } }, "", DEFAULT).app,
     DEFAULT,
+  );
+});
+
+test("a blank app_start is none", () => {
+  assert.equal(start(undefined, "?app_start=%20", DEFAULT).app, DEFAULT);
+});
+
+test("a namespaced class travels as given", () => {
+  assert.equal(
+    start({ startupParameters: { app_start: ["-ns-cl_app"] } }, "", DEFAULT)
+      .app,
+    "-ns-cl_app",
+  );
+  assert.equal(
+    start(undefined, "?app_start=%2Fns%2Fcl_app", DEFAULT).app,
+    "/ns/cl_app",
   );
 });

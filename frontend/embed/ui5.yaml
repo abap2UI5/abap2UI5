@@ -1,6 +1,6 @@
 specVersion: "4.0"
 metadata:
-  name: abap2ui5.frontend
+  name: z2ui5
 type: application
 framework:
   name: OpenUI5
