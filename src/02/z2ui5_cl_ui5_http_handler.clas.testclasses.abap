@@ -420,7 +420,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
     " ...the component a second time, under the name the control creates it
-    " by when the page's own component is z2ui5 (abap2UI5/frontend-new)
+    " by when the page's own component is z2ui5 (abap2UI5/frontend, the
+    " branches standard_new and cloud_new)
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"]` ) ).
     cl_abap_unit_assert=>assert_true(
