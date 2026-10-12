@@ -1089,7 +1089,23 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available
+
+- **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
+  `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
+  disguise, and one that `abap_transpile.json` does not list: the suite reports the
+  method as run. Nine tests in `src/99` sat behind it (2026-10-12); seven pass on Node
+  with the guard gone, the two that do not are in the skip list with their backlog
+  item. Skip through the config, which names the reason, never through `sy-sysid`.
+  The same inventory found five runtime gaps that each keep one test off Node - a
+  lower-case dynamic type name in `CREATE DATA … TYPE (name)`, an `ASSIGN COMPONENT`
+  name with a dash in it, `cl_abap_refdescr=>create( )` without `kind`,
+  `cl_abap_tstmp=>add( )` dropping the fraction of a `timestampl`, and
+  `describe_by_data_ref( )` on a reference to a reference - every one written up in
+  the backlog with the fix, measured in memory against the transpiled tree. Two
+  in-code probes were dead: `CREATE OBJECT TYPE ('CL_ABAP_ZIP')` and
+  `describe_by_name( 'DFIES' )` both succeed in open-abap-core, so the tests behind
+  them run in full.
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a

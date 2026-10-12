@@ -24,10 +24,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_sy.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     DATA(lv_msg_id) = `NET`.
     MESSAGE ID lv_msg_id TYPE `I` NUMBER `001` INTO DATA(lv_msg_text) ##NEEDED.
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get_by_sy( ).
@@ -44,10 +40,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bapiret.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
       ( type = `E` id = `MSG1` number = `001` message = `An empty Report field causes an empty XML Message to be sent` )
@@ -67,10 +59,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bapirettab.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
       ( type = `E` id = `MSG1` number = `001` message = `An empty Report field causes an empty XML Message to be sent` )
@@ -133,10 +121,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_rap_via_get.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     " Dynamically build a RAP-shaped `failed` structure (one entity table whose
     " row carries `%FAIL-CAUSE`) and verify the auto-detection branch in msg_get.
     " Component names with `%` are created dynamically - ABAP TYPES does not
@@ -193,10 +177,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_collect.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     DATA(lt_msg) = VALUE bapirettab(
       ( type = `E` id = `MSG1` number = `001` message = `first error` )
       ( type = `W` id = `MSG2` number = `002` message = `second warning` ) ).
@@ -218,10 +198,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_rap_other.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     " Simulate `reported-%other`: a TABLE OF REF TO cx_root (stand-in for
     " if_abap_behv_message) sitting on a struct with a `%OTHER` component name.
@@ -288,10 +264,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_rap_element.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     " Build a RAP-shaped failed row carrying %FAIL-CAUSE plus all metadata fields
     " the util surfaces: %ELEMENT-<X>, %STATE_AREA, %OP-%ACTION-<X>, %PID, %CID, %TKY.

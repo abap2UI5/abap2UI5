@@ -16,10 +16,6 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_w_bapiret.
 
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
     DATA(lt_msg) = VALUE bapirettab(
       ( type = `E` id = `MSG1` number = `001` message = `Error occurred` )
       ( type = `I` id = `MSG2` number = `002` message = `Info message` ) ).
@@ -45,10 +41,6 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_factory_msg_type.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
       ( type = `E` message = `Error` )
