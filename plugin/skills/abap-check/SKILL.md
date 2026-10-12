@@ -139,9 +139,9 @@ the autofix config, where its quick fix inserts the BOM rather than reporting
 it. Trailing whitespace is **abaplint — `whitespace_end`**, per repository and
 not everywhere; see below. Everything else in the table is this repository's
 script and nothing else — and a consumer repository that has not turned
-`xml_bom` on can still ship a BOM-less sidecar with a green CI.
-
-**Backlog:** abaplint · abaplint-abap-final-newline
+`xml_bom` on can still ship a BOM-less sidecar with a green CI. The EOF
+newline is **abaplint — `final_newline`** (abaplint/abaplint#4412, merged
+2026-10-12) from the first release after 2.120.74.
 
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
@@ -643,7 +643,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-get-reference-obsolete, abaplint-inline-packed-computation, abaplint-abapdoc-blank-line
+**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-get-reference-obsolete
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -755,8 +755,10 @@ and points here, so a new trap is added here and nowhere else.
     abap-cloud-gui (`z2ui5_cl_cgui_layout`, `z2ui5_cl_cgui_report`,
     `z2ui5_if_cgui_variant_store`, fixed in
     abap2UI5-addons/abap-cloud-gui#9). `check:atc` asserted the opposite
-    until that day; it reports the shape now. `wrong_abapdoc_position` does
-    not.
+    until that day; it reports the shape now. `wrong_abapdoc_position`
+    reports it, and a plain comment between block and declaration, from
+    the first release after 2.120.74 (abaplint/abaplint#4414, merged
+    2026-10-12).
   - **A `"!` line that begins with `@`** is read as a command:
     `"! @UI.presentationVariant's sortOrder …` is *"A command was expected
     after ABAP Doc symbol "@""*. Only `@parameter`, `@raising` and
@@ -841,15 +843,16 @@ and points here, so a new trap is added here and nowhere else.
   `abap2UI5/samples-controls` (2026-10-04, `z2ui5_cl_smpc_demo_002->row_json`,
   fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
   abap2UI5, samples-controls and samples-stack found no other instance.
-  Neither abaplint nor any gate here reports it.
+  No gate here reports it.
 
   **Second case, with `*` and `/` (2026-10-06).** A user's pull of
   `abap2UI5-addons/admin-cockpit` reported the same warning for
   `z2ui5_cl_cockpit_stats->p95`: `DATA(lv_target) = lv_total * 95 / 100.`
   with `lv_total TYPE p LENGTH 16 DECIMALS 0`. So the length of the operand
   does not carry over either: a P(16,0) operand still gives P(8,0). Fixed by
-  declaring `lv_target` with the operand's type. abaplint 2.120.70 still
-  reports nothing.
+  declaring `lv_target` with the operand's type. abaplint reports both
+  shapes as `inline_packed_computation` (abaplint/abaplint#4413, merged
+  2026-10-12) from the first release after 2.120.74.
 - **`SORT` or `DELETE ADJACENT DUPLICATES` on a table with an empty key.**
   `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.` on a
   `STANDARD TABLE OF string WITH EMPTY KEY` give the warning *""RESULT" is a
