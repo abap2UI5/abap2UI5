@@ -89,7 +89,7 @@ in the stock with a line of its own, alongside its `**Linter:**` and
 `**Gate:**` lines:
 
 ```
-**Backlog:** abaplint · abaplint-delete-index-in-loop, abaplint-subrc-after-assign
+**Backlog:** abaplint · abaplint-subrc-after-assign
 **Backlog:** open-abap · TODO: the ixml parser drops the position of a parse error
 ```
 
