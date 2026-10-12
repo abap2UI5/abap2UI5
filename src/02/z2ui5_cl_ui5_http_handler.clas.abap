@@ -131,9 +131,10 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " The second name the bundle registers the component under (its
     " Component.js and manifest.json under z2ui5/embed/frontend/, see
     " BUNDLE_CLOSE in tools/app2abap/trans2abap.js), for a page whose own
-    " component is z2ui5 - abap2UI5/frontend-new, the BSP Z2UI5 a launchpad's
-    " target mappings name. The bundle's z2ui5/embed module tells the
-    " embedding control which name to create the component under.
+    " component is z2ui5 - the branches standard_new and cloud_new of
+    " abap2UI5/frontend, the BSP Z2UI5 a launchpad's target mappings name.
+    " The bundle's z2ui5/embed module tells the embedding control which
+    " name to create the component under.
     CONSTANTS c_bundle_component TYPE string VALUE `z2ui5.embed.frontend`.
 
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)

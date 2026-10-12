@@ -266,6 +266,10 @@
     "no_comments_between_methods": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
+    // The client is the runtime's job: z2ui5_t_01 is client dependent and no
+    // statement on it names MANDT in a condition or a CLIENT clause.
+    // Measured on 2.120.73: 0 findings over src, control probe fired
+    "no_mandt_in_database_operations": true,
     "no_public_attributes": false,
     "no_yoda_conditions": true,
     "nrob_consistency": true,

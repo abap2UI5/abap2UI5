@@ -3,7 +3,7 @@
  * check-app-rules — this repository's abaplint rules match the shared set.
  *
  * The shared set is `abap2UI5/abap2UI5`'s `.github/abaplint/app-rules.json`:
- * 187 rules, everything except `object_naming`, which every repository sets
+ * 200 rules, everything except `object_naming`, which every repository sets
  * for its own object prefixes. abap2UI5 is the SOURCE — it is where the rest
  * of "how to write an abap2UI5 app" already lives (the build-an-app and
  * view-chain-layout skills, docs/agents/building-apps.md, abap-check,
