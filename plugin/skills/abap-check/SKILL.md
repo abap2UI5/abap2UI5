@@ -140,8 +140,8 @@ it. Trailing whitespace is **abaplint — `whitespace_end`**, per repository and
 not everywhere; see below. Everything else in the table is this repository's
 script and nothing else — and a consumer repository that has not turned
 `xml_bom` on can still ship a BOM-less sidecar with a green CI. The EOF
-newline is **abaplint — `final_newline`** (abaplint/abaplint#4412, merged
-2026-10-12) from the first release after 2.120.74.
+newline is **abaplint — `final_newline`** too (abaplint/abaplint#4412), on in
+`abaplint.jsonc` since the 2.120.75 pin, next to `check:abapgit`.
 
 abapGit writes every file one specific way. Write it another way and it
 differs from what the system serializes back — permanently, on every pull, for
@@ -664,7 +664,9 @@ and points here, so a new trap is added here and nowhere else.
   system on 2026-09-23, out of `test_token_odd_option` in
   `z2ui5_cl_ui5_util_context`, a test that feeds such rows on purpose. A test
   that needs an odd row builds it field by field and passes the odd value
-  through a variable. Gated (`range_row`): only literals are judged, and a
+  through a variable. Gated by abaplint — `range_row_values`
+  (abaplint/abaplint#4415), on in `abaplint.jsonc` since the 2.120.75 pin; it
+  replaced `check:atc`'s `range_row`. Only literals are judged, and a
   header default (`VALUE #( sign = `I` option = `EQ` ( low = … ) )`) counts.
 - **`LOOP AT … WHERE` over a standard table is a sequential read** and wants
   `"#EC CI_SORTSEQ` on the statement. Fifteen were annotated in the three
@@ -735,7 +737,9 @@ and points here, so a new trap is added here and nowhere else.
   **the linter's** finding here now: `wrong_abapdoc_position` is on in
   `abaplint.jsonc` since the 2.120.51 pin, and `check:atc` kept exactly one
   shape the rule does not decide — a block directly before `END OF`, measured
-  against that version. (No site of that shape has ever been found in any of
+  against that version. The plain comment between block and declaration was
+  `check:atc`'s too until 2.120.75, where the rule took it over
+  (abaplint/abaplint#4414). (No site of that shape has ever been found in any of
   the five checkouts, which is why it is a leftover regex and not a backlog
   item.) `abap2UI5/samples-stack` still runs its own `check:abapdoc`: its
   abaplint pin has not moved yet, and that script goes the same way when it
@@ -755,18 +759,17 @@ and points here, so a new trap is added here and nowhere else.
     abap-cloud-gui (`z2ui5_cl_cgui_layout`, `z2ui5_cl_cgui_report`,
     `z2ui5_if_cgui_variant_store`, fixed in
     abap2UI5-addons/abap-cloud-gui#9). `check:atc` asserted the opposite
-    until that day; it reports the shape now. `wrong_abapdoc_position`
-    reports it, and a plain comment between block and declaration, from
-    the first release after 2.120.74 (abaplint/abaplint#4414, merged
-    2026-10-12).
+    until that day and then reported the shape itself, until
+    `wrong_abapdoc_position` took it over in 2.120.75
+    (abaplint/abaplint#4414), on here since that pin.
   - **A `"!` line that begins with `@`** is read as a command:
     `"! @UI.presentationVariant's sortOrder …` is *"A command was expected
     after ABAP Doc symbol "@""*. Only `@parameter`, `@raising` and
     `@exception` may start a line. Break the line one word earlier, so the
     annotation sits mid-line, where it is plain text. Four sites in rap-ext,
-    fixed in abap2UI5-addons/rap-ext#19. Not gated here; abaplint reports
-    it as `abapdoc_leading_at` (abaplint/abaplint#4421, merged 2026-10-11)
-    from the first release after 2.120.74.
+    fixed in abap2UI5-addons/rap-ext#19. Gated by abaplint —
+    `abapdoc_leading_at` (abaplint/abaplint#4421), on in `abaplint.jsonc`
+    since the 2.120.75 pin.
 
   And one the rule does decide, where the repository has it off: four blocks
   in front of a chained `TYPES:` in rap-ext (same PR). That is
@@ -778,12 +781,12 @@ and points here, so a new trap is added here and nowhere else.
   and "not closed" in a system, and the block renders wrong. Write
   `&lt;wa&gt;`. AGENTS.md carried the rule as prose, and three of them still
   shipped in `z2ui5_if_client` (#2705) until a user's system reported them
-  (2026-09-02) - so it is a gate now: `check:atc` (`abapdoc_html`) reads every
-  `"!` line for a complete tag-like token outside the tags ABAP Doc knows
-  (`p em strong ul ol li h1-h3 br`). A comparison `a < b` is not a token and
-  not a finding. abaplint has the same check as `abapdoc_html_tag`
-  (abaplint/abaplint#4422, merged 2026-10-11) from the first release after
-  2.120.74; `check:atc` keeps it until the pin catches up.
+  (2026-09-02) - so it was made a gate, `check:atc` (`abapdoc_html`). Gated by
+  abaplint — `abapdoc_html_tag` (abaplint/abaplint#4422, from this
+  catalogue) since the 2.120.75 pin, on in `abaplint.jsonc`; the `check:atc`
+  part is gone. It reports a tag-like token outside the tags ABAP Doc knows
+  (`p em strong ul ol li h1-h3 br`); a comparison `a < b` is not a token and
+  not a finding.
 
 - **`PREFERRED PARAMETER` is ignored unless every IMPORTING parameter is
   optional.** The addition names the parameter a short-form call `meth( x )`
@@ -843,16 +846,15 @@ and points here, so a new trap is added here and nowhere else.
   `abap2UI5/samples-controls` (2026-10-04, `z2ui5_cl_smpc_demo_002->row_json`,
   fixed in abap2UI5/samples-controls#251). An abaplint-based probe over
   abap2UI5, samples-controls and samples-stack found no other instance.
-  No gate here reports it.
 
   **Second case, with `*` and `/` (2026-10-06).** A user's pull of
   `abap2UI5-addons/admin-cockpit` reported the same warning for
   `z2ui5_cl_cockpit_stats->p95`: `DATA(lv_target) = lv_total * 95 / 100.`
   with `lv_total TYPE p LENGTH 16 DECIMALS 0`. So the length of the operand
   does not carry over either: a P(16,0) operand still gives P(8,0). Fixed by
-  declaring `lv_target` with the operand's type. abaplint reports both
-  shapes as `inline_packed_computation` (abaplint/abaplint#4413, merged
-  2026-10-12) from the first release after 2.120.74.
+  declaring `lv_target` with the operand's type. Gated by abaplint —
+  `inline_packed_computation` (abaplint/abaplint#4413), both shapes, on in
+  `abaplint.jsonc` since the 2.120.75 pin.
 - **`SORT` or `DELETE ADJACENT DUPLICATES` on a table with an empty key.**
   `SORT result.` and `DELETE ADJACENT DUPLICATES FROM result.` on a
   `STANDARD TABLE OF string WITH EMPTY KEY` give the warning *""RESULT" is a
@@ -864,10 +866,10 @@ and points here, so a new trap is added here and nowhere else.
   components you mean. Found by a user's pull of
   `abap2UI5-addons/admin-cockpit` (2026-10-06,
   `z2ui5_cl_cockpit_inst->get_implementers`). abaplint 2.120.70 reports
-  nothing. Not gated here: the key is in the table's type, which can be a
-  returning parameter typed in another class. abaplint reports it as
-  `sort_empty_key` (abaplint/abaplint#4419, merged 2026-10-11) from the
-  first release after 2.120.74.
+  nothing. No script here could decide it: the key is in the table's type,
+  which can be a returning parameter typed in another class. Gated by
+  abaplint — `sort_empty_key` (abaplint/abaplint#4419), on in
+  `abaplint.jsonc` since the 2.120.75 pin.
 - **`DATA( )` from a generic parameter** (`DATA(lv) = val` with
   `val TYPE clike`) is "the fixed type STRING is used for the generic type
   CLIKE": the inline declaration has to pick a type, and SLIN objects to the
@@ -1396,8 +1398,6 @@ the frozen legacy.
 The rest needs a running system with real data and is written down here
 precisely because no gate will catch it.
 
-**Backlog:** abaplint · abaplint-subrc-after-assign
-
 - **A syntax error is not an exception — `CATCH cx_root` does not stop it.**
   A class with a syntax error that is loaded at run time ends the request with
   the runtime error `SYNTAX_ERROR`, a short dump. No `TRY` around the call
@@ -1454,6 +1454,13 @@ precisely because no gate will catch it.
   **2** re-assign — about one in three needs the `UNASSIGN`. The #1937 fix
   itself is a simple case: `<attri>` is declared at method start and assigned
   in two mutually exclusive branches.
+  Gated by abaplint — `subrc_after_assign`, from 2.120.75 on
+  (abaplint/abaplint#4417, written from this repository's backlog), on in
+  `abaplint.jsonc`. It replaced the script gate this repository ran for it: on
+  2.120.75 it reports the same 16 sites as the detector that gate ran (11 in
+  the frozen `src/99`, 5 in the mirrors `src/00/01` and `src/00/02`), and none
+  in the packages the ruleset reports on. The `UNASSIGN` half stays a review
+  point — the rule reports the test, not the missing `UNASSIGN`.
 - **An object name inside a string literal is not a reference — a rename sweep
   will get it wrong and nothing will notice.** `#2564` renamed `z2ui5_cl_exit`
   to `z2ui5_cl_ui5_user_exit` and carried the rename into the *interface*
@@ -1547,9 +1554,9 @@ precisely because no gate will catch it.
   as what it does and has neither failure mode. `DELETE itab WHERE …` is fine
   too where the condition can be expressed there; `DELETE itab INDEX sy-tabix`
   right after a `READ TABLE` is correct and common (`z2ui5_cl_ajson`), which is
-  why the shape cannot simply be banned. abaplint reports the shape as
-  `delete_index_in_loop` (abaplint/abaplint#4418, merged 2026-10-11, the
-  read-then-delete form excepted) from the first release after 2.120.74.
+  why the shape cannot simply be banned. Gated by abaplint —
+  `delete_index_in_loop` (abaplint/abaplint#4418, the read-then-delete form
+  excepted), on in `abaplint.jsonc` since the 2.120.75 pin.
 
 - **Three environments, one source.** Code must work on NW 7.02, standard ABAP
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
@@ -1606,10 +1613,9 @@ only non-key components. Writing `<sum>-cnt` directly is fine.
   check accepts it. abaplint 2.120.64 reports nothing with every default
   rule on. The transpiled runtime runs the call (a test method with the same
   shape passes in `npm run unit`). Only a run on a system shows it.
-- **Gate:** none here. A script would need the table kind behind the field
-  symbol, which is a type question for abaplint, not a regex. abaplint reports
-  it as `changing_sorted_line` (abaplint/abaplint#4420, merged 2026-10-11)
-  from the first release after 2.120.74.
+- **Gate: abaplint — `changing_sorted_line`** (abaplint/abaplint#4420), on in
+  `abaplint.jsonc` since the 2.120.75 pin. A script could not decide it: it
+  needs the table kind behind the field symbol, a type question.
 
 ## 6. Blind spots — green, or red, for the wrong reason
 

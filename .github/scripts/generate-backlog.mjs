@@ -32,7 +32,7 @@
  * staging area `skill-rule-gate.mjs` describes). A skill section names what it
  * put in the stock with a line of its own:
  *
- *   **Backlog:** abaplint · abaplint-subrc-after-assign
+ *   **Backlog:** abaplint · abaplint-default-key-implicit
  *   **Backlog:** open-abap · TODO: the transpiler's DELETE INDEX raises where ABAP sets sy-subrc
  *
  * The first form has to resolve to an item of that target - so a renamed or
