@@ -1,14 +1,13 @@
 ---
 target: abaplint
 title: 'Report transactions whose program, class or screen does not exist'
-summary: 'a TRAN pointing at a missing report or class fails at start; abapOpenChecks checks it, abaplint has consistency checks for SMIM/SICF/MSAG/NROB but not TRAN'
+summary: 'a TRAN pointing at a missing report or class fails at start; abaplint has consistency checks for SMIM/SICF/MSAG/NROB but not TRAN'
 priority: low
 state: open
 first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 073 (larshp/abapOpenChecks docs/_checks/73.md)'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
 ---
 
@@ -23,5 +22,3 @@ TRAN ZMYTX with PGMNA = ZMISSING
 **Not reported.** Parameter transactions pointing at SAP transactions (void).
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** M.
-
-**Source.** abapOpenChecks check 073.

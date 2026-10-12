@@ -10,7 +10,7 @@ checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 11a7e58 introduced `read_progdir( )` followed by `IF sy-subrc = 0`, e2c625f replaced it two PRs later'
-  - 'current sites: abapGit zcl_abapgit_sap_package.clas.abap:446, abapOpenChecks zcl_aoc_parser.clas.abap:910'
+  - 'current site: abapGit zcl_abapgit_sap_package.clas.abap:446'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'sbcgua/ajson fedc4e3: sy-tabix in a LOOP over a hashed table made every array index 0 (ITAB_DUPLICATE_KEY)'
   - 'abaplint/abaplint#3260 (sy-tabix in DO/WHILE) asks for part of it'

@@ -9,11 +9,7 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'code-pal-for-abap check comment-type (SAP/code-pal-for-abap docs/checks/comment-type.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
-  - 'code-pal-for-abap check comment-position (SAP/code-pal-for-abap docs/checks/comment-position.md)'
-  - 'abapOpenChecks check 070 (larshp/abapOpenChecks docs/_checks/70.md)'
-  - 'SAP/abap-cleaner rule SpaceAroundCommentSignRule (docs/rules/SpaceAroundCommentSignRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
 ---
 
 # Comment style: * comments, indentation, TODO markers, a space after the quote
@@ -33,8 +29,6 @@ Merged on 2026-10-12 from the items `abaplint-asterisk-comments`, `abaplint-comm
 
 **Not reported.** Header comment blocks at the top of an include (option); generated code.
 
-**Source.** code-pal-for-abap check comment-type.
-
 ## Report " comments not indented like the statement that follows
 
 ```abap
@@ -46,8 +40,6 @@ Merged on 2026-10-12 from the items `abaplint-asterisk-comments`, `abaplint-comm
 **Proposal.** Report full-line " comments whose column differs from the next statement's; quick fix re-indents. Could be an option of indentation.
 
 **Not reported.** End-of-line comments; comments in empty branches; ABAP Doc (wrong_abapdoc_position).
-
-**Source.** code-pal-for-abap check comment-position.
 
 ## Report TODO, FIXME and XXX markers in comments
 
@@ -61,8 +53,6 @@ A marker in a comment is work that was left behind.
 
 **Not reported.** Words that merely contain the marker ("todos"); ABAP Doc (option).
 
-**Source.** abapOpenChecks check 070.
-
 ## Put a space after the " comment sign
 
 abaplint/abaplint#1313 asks for the same.
@@ -75,8 +65,6 @@ lv = 1.
 **Proposal.** Report full-line and end-of-line comments whose " is not followed by a blank; quick fix inserts it.
 
 **Not reported.** ABAP Doc ("!), pseudo comments ("#EC), commented-out code.
-
-**Source.** SAP/abap-cleaner rule SpaceAroundCommentSignRule.
 
 **Where.** a new rule, one option per check. **Effort:** S.
 

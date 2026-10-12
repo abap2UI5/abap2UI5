@@ -8,10 +8,8 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 042 (larshp/abapOpenChecks docs/_checks/42.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'identical_contents compares the start/end of IF branches, not whole WHEN bodies'
-  - 'abapOpenChecks check 024 (larshp/abapOpenChecks docs/_checks/24.md)'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
 ---
 
@@ -45,8 +43,6 @@ ENDCASE.
 
 **Not reported.** Empty blocks; WHEN OTHERS (option).
 
-**Source.** abapOpenChecks check 042.
-
 ## Report identical code blocks (copy-paste detection)
 
 ```abap
@@ -56,7 +52,5 @@ the same 15 statements in two methods
 **Proposal.** Report token-identical (after normalising names, option) sequences of at least N statements across the repository.
 
 **Not reported.** Generated code; test classes (option).
-
-**Source.** abapOpenChecks check 024.
 
 **Where.** a new rule, one option per check. **Effort:** M.

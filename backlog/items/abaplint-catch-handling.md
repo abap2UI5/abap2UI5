@@ -8,9 +8,7 @@ first_seen: 2026-10-11
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'code-pal-for-abap check cx-root-usage (SAP/code-pal-for-abap docs/checks/cx-root-usage.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
-  - 'abapOpenChecks check 098 (larshp/abapOpenChecks docs/_checks/98.md)'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
 
@@ -32,8 +30,6 @@ ENDTRY.
 **Proposal.** Report cx_root in a CATCH clause; option to allow it in the outermost handler of a request (e.g. methods named handle_request) or with INTO + RAISE ... previous.
 
 **Not reported.** CATCH cx_static_check / cx_dynamic_check (option).
-
-**Source.** code-pal-for-abap check cx-root-usage.
 
 ## Report two or more empty CATCH blocks in one TRY
 
@@ -59,8 +55,6 @@ ENDTRY.
 **Proposal.** Report a TRY with two or more empty CATCH blocks; quick fix merges them into one CATCH a b.
 
 **Not reported.** A single empty CATCH (empty_structure has a catch option for that, off by default).
-
-**Source.** abapOpenChecks check 098.
 
 ## Report RAISE EXCEPTION inside CATCH … INTO x that does not pass previous = x
 

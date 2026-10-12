@@ -1664,9 +1664,9 @@ numbered section above.
 **Gate: open**, by definition: every check below is an abaplint rule idea in
 `backlog/` (`backlog/ABAPLINT.md` lists them, each item carries the bad
 example, the scope and the evidence). Sections 1–6 hold defects that reached
-`main`; this section is the other half — shapes other linters (abapOpenChecks,
-code-pal-for-abap, abap-cleaner) and the fix history of 18 ABAP repositories
-say go wrong, collected on 2026-10-11/12 and probed against abaplint 2.120.75:
+`main`; this section is the other half — shapes other linters, Clean ABAP
+and the fix history of open-source ABAP code say go wrong, collected on
+2026-10-11/12 and probed against abaplint 2.120.75:
 no rule reports them yet. Until one ships and is switched on in
 `abaplint.jsonc`, the only check is a reader. Read a change under `src/` for
 them the way you read it for sections 1–5. When a rule lands, its item goes
@@ -1767,7 +1767,7 @@ fix.
 
 ### Style and Clean ABAP — only where the house style asks for it
 
-These are Clean ABAP and abap-cleaner clean-ups, not defects. AGENTS.md
+These are Clean ABAP clean-ups, not defects. AGENTS.md
 ("Coding Style") decides which apply here; three of them it rules out:
 
 | Check | Here |

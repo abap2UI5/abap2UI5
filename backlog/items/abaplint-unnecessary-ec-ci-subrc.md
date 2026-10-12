@@ -8,7 +8,6 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 078 (larshp/abapOpenChecks docs/_checks/78.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
 ---
 
@@ -26,5 +25,3 @@ IF sy-subrc <> 0.
 **Not reported.** Statements whose sy-subrc is not read.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** abapOpenChecks check 078.

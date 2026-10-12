@@ -13,9 +13,9 @@ evidence:
   - '78 calls without OTHERS in the current abapGit, MBT-Base and ABAP-SDK-for-Azure trees'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'Marc-Bernard-Tools/MBT-Base 3492028 (''Fix exception in tree class'')'
-  - '24 such mappings in the current abapGit, MBT-Base, abapOpenChecks and abap-file-formats-tools trees'
+  - '24 such mappings across four open-source ABAP trees, among them abapGit, MBT-Base and abap-file-formats-tools'
   - 'abaplint/abaplint#391 (''todo: CALL FUNCTION'' for check_subrc)'
-  - 'larshp/abapOpenChecks d7b637a, ff5c37f, 9d5c567; abapGit/abapGit e3c1623 (#3724); abap2UI5/abap2UI5 79c0780'
+  - 'abapGit/abapGit e3c1623 (#3724); abap2UI5/abap2UI5 79c0780'
   - '24 functional describe_by_name( <variable> ) calls in current trees, e.g. abapGit zcl_abapgit_gui_page_data:213/220, abap2xlsx zcl_excel_converter:956/1178'
 ---
 
@@ -75,7 +75,7 @@ lv = 1.
 
 **Not reported.** Calls whose EXCEPTIONS map everything to 0 (separate item).
 
-**Source.** abapOpenChecks 40; Sonar S1511.
+**Source.** Sonar S1511.
 
 ## Report methods with classic EXCEPTIONS called functionally
 
@@ -87,7 +87,7 @@ lo_type = cl_abap_typedescr=>describe_by_name( lv_name ).
 
 **Not reported.** Literal names known to exist (option).
 
-**Source.** abapOpenChecks, abapGit, abap2UI5 fix history.
+**Source.** abapGit, abap2UI5 fix history.
 
 **Where.** a new rule, one option per check. **Effort:** M.
 

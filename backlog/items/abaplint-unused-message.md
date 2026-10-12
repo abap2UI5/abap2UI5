@@ -8,7 +8,6 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 035/036 (larshp/abapOpenChecks docs/_checks/35.md, docs/_checks/36.md)'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
 ---
 
@@ -23,5 +22,3 @@ MSAG ZMSG message 042, referenced nowhere
 **Not reported.** Messages of SAP classes; repositories that are libraries for others (option).
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** M.
-
-**Source.** abapOpenChecks check 035/036.

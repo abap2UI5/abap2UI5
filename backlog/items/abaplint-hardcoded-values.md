@@ -9,7 +9,6 @@ checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
-  - 'abapOpenChecks check 010 (larshp/abapOpenChecks docs/_checks/10.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
 ---
 
@@ -31,7 +30,7 @@ OPEN DATASET '/usr/sap/tmp/x' FOR OUTPUT IN TEXT MODE ENCODING DEFAULT.
 
 **Not reported.** Test classes.
 
-**Source.** Sonar S5115/S1313; abapOpenChecks 102.
+**Source.** Sonar S5115/S1313.
 
 ## Report icon codes written as literals ('@00@') instead of ICON_ constants
 
@@ -50,7 +49,5 @@ lv_icon = icon_okay.
 **Proposal.** Report a character literal matching '@[0-9A-Z]{2}@' (optionally followed by a quick-info part) in code.
 
 **Not reported.** Literals in comments and string templates that are clearly not icons; test classes (option).
-
-**Source.** abapOpenChecks check 010.
 
 **Where.** a new rule, one option per check. **Effort:** S.

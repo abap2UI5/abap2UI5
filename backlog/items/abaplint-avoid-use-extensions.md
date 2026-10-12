@@ -12,7 +12,6 @@ evidence:
   - 'measured 2026-09-19 over abap2UI5 `src/` (the probe beside this item) — 31 implicit default-key declarations, every one in code no abaplint run of this repository reports on - the vendored `src/00/01` (`noIssues` in `abaplint.jsonc`) and the frozen `src/99` (not in its `files`)'
   - 'measured 2026-09-19 on abaplint 2.120.52, `avoid_use` with `defaultKey: true` — `DATA lt TYPE TABLE OF string.` produces no finding; the rule matches the `DEFAULT KEY` tokens'
   - 're-measured 2026-09-23 on 2.120.52 and 2.120.59, v750, isolated class - `fully_type_itabs` reports `DATA lt TYPE TABLE OF string.` ("Specify table type"), `DATA lt TYPE STANDARD TABLE OF string.` and `TYPES ty TYPE STANDARD TABLE OF string.` ("Specify table key"), and leaves `… WITH EMPTY KEY` alone; `avoid_use.defaultKey` reports only `… WITH DEFAULT KEY`. abap2UI5 and samples-controls both have `fully_type_itabs` on'
-  - 'code-pal-for-abap check collect (SAP/code-pal-for-abap docs/checks/collect.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
 ---
 
@@ -168,7 +167,5 @@ COLLECT ls_row INTO lt_sums.
 
 **Not reported.** Off by default (option).
 
-
-**Source.** code-pal-for-abap check collect.
 
 **Where.** options of the existing avoid_use rule. **Effort:** S.

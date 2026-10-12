@@ -8,7 +8,6 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 092 (larshp/abapOpenChecks docs/_checks/92.md)'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
 ---
 
@@ -23,5 +22,3 @@ zcl_calc.clas.abap without zcl_calc.clas.testclasses.abap
 **Not reported.** Exception classes, constant classes, classes with only getters (option).
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** abapOpenChecks check 092.

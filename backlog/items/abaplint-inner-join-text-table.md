@@ -8,7 +8,6 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 076 (larshp/abapOpenChecks docs/_checks/76.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
 ---
 
@@ -35,5 +34,3 @@ SELECT a~matnr, t~maktx FROM mara AS a
 **Not reported.** LEFT OUTER JOIN; joins between two data tables.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** M.
-
-**Source.** abapOpenChecks check 076.

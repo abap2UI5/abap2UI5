@@ -8,10 +8,7 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 093 (larshp/abapOpenChecks docs/_checks/93.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
-  - 'code-pal-for-abap check constants-interface (SAP/code-pal-for-abap docs/checks/constants-interface.md)'
-  - 'code-pal-for-abap check interface-in-class (SAP/code-pal-for-abap docs/checks/interface-in-class.md)'
 ---
 
 # Class design: static-only classes, constant interfaces, public methods outside an interface
@@ -36,8 +33,6 @@ ENDCLASS.
 
 **Not reported.** Classes with any instance method; exception classes; test classes.
 
-**Source.** abapOpenChecks check 093.
-
 ## Report interfaces that contain only constants
 
 ```abap
@@ -49,8 +44,6 @@ ENDINTERFACE.
 **Proposal.** Report an INTERFACE whose components are all CONSTANTS (and TYPES, option).
 
 **Not reported.** Interfaces with any method, event or data.
-
-**Source.** code-pal-for-abap check constants-interface.
 
 ## Report public instance methods that are not part of an interface
 
@@ -64,7 +57,5 @@ ENDCLASS.
 **Proposal.** Report METHODS in the PUBLIC SECTION of a global class that are not REDEFINITION and not constructor, when the class implements no interface or the method is not an interface method.
 
 **Not reported.** CLASS-METHODS; exception classes; test classes; constructor.
-
-**Source.** code-pal-for-abap check interface-in-class.
 
 **Where.** a new rule, one option per check. **Effort:** S.

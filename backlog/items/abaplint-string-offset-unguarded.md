@@ -8,7 +8,7 @@ first_seen: 2026-10-11
 checked_upstream: 2026-10-11
 upstream: abaplint/abaplint
 evidence:
-  - 'abapGit/abapGit 3620e12 (#3394), 25f2bf4 (#4371), 4ca6c4a (#6468), c267d2a (#6415); larshp/abapOpenChecks 6b29404 (#1110)'
+  - 'abapGit/abapGit 3620e12 (#3394), 25f2bf4 (#4371), 4ca6c4a (#6468), c267d2a (#6415)'
   - 'about 105 locally unguarded uses in current trees, many guarded earlier in the flow - so the rule needs flow analysis'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
@@ -25,4 +25,4 @@ IF lv_line(6) = 'gpgsig'.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** M.
 
-**Source.** abapGit, abapOpenChecks fix history.
+**Source.** abapGit fix history.

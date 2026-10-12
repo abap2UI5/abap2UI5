@@ -1,16 +1,14 @@
 ---
 target: abaplint
 title: 'Modern statements: += instead of x = x + …, to_upper( ) instead of TRANSLATE, condense( ) instead of CONDENSE'
-summary: 'abap-cleaner rewrites these three on every run; abaplint has no finding for them yet - one rule with a quick fix each, gated on the syntax version'
+summary: 'three statements with a shorter modern form; abaplint has no finding for them yet - one rule with a quick fix each, gated on the syntax version'
 priority: low
 state: open
 first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'SAP/abap-cleaner rule CalculationAssignmentRule (docs/rules/CalculationAssignmentRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
-  - 'SAP/abap-cleaner rule TranslateRule (docs/rules/TranslateRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
-  - 'SAP/abap-cleaner rule CondenseRule (docs/rules/CondenseRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
+  - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
 ---
 
 # Modern statements: += instead of x = x + …, to_upper( ) instead of TRANSLATE, condense( ) instead of CONDENSE
@@ -33,8 +31,6 @@ lv_count += 1.
 
 **Not reported.** Below v754; targets with offset/length.
 
-**Source.** SAP/abap-cleaner rule CalculationAssignmentRule.
-
 ## Replace TRANSLATE … TO UPPER/LOWER CASE with to_upper( )/to_lower( )
 
 ```abap
@@ -51,8 +47,6 @@ lv_name = to_upper( lv_name ).
 
 **Not reported.** TRANSLATE … USING (no direct function).
 
-**Source.** SAP/abap-cleaner rule TranslateRule.
-
 ## Replace CONDENSE with condense( )
 
 ```abap
@@ -68,7 +62,5 @@ lv_text = condense( lv_text ).
 **Proposal.** Report CONDENSE [NO-GAPS]; quick fix to lv = condense( lv ) / condense( val = lv del = ` ` ).
 
 **Not reported.** Below v702; operands of type c where the result type matters (option).
-
-**Source.** SAP/abap-cleaner rule CondenseRule.
 
 **Where.** a new rule, one option per check. **Effort:** S.

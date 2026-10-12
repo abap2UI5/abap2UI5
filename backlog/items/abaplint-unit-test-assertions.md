@@ -8,13 +8,8 @@ first_seen: 2026-10-11
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'code-pal-for-abap check unit_test_assert (SAP/code-pal-for-abap docs/checks/unit_test_assert.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
-  - 'SAP/abap-cleaner rule AssertEqualsBooleanRule (docs/rules/AssertEqualsBooleanRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
-  - 'SAP/abap-cleaner rule AssertEqualsSubrcRule (docs/rules/AssertEqualsSubrcRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
-  - 'SAP/abap-cleaner rule AssertClassRule (docs/rules/AssertClassRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
-  - 'SAP/abap-cleaner rule AssertParameterOrderRule (docs/rules/AssertParameterOrderRule.md); probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
 ---
 
 # Unit-test assertions: pointless, imprecise or missing
@@ -32,8 +27,6 @@ cl_abap_unit_assert=>assert_equals( act = 1 exp = 1 ).
 **Proposal.** Report calls of cl_abap_unit_assert=>assert_* (and methods named *assert*) where act and exp are token-identical or both literals.
 
 **Not reported.** Asserts with only act (assert_bound, assert_true).
-
-**Source.** code-pal-for-abap check unit_test_assert.
 
 ## Report a test that expects an exception but never calls fail( )
 
@@ -66,8 +59,6 @@ cl_abap_unit_assert=>assert_true( lv_ok ).
 
 **Not reported.** act of a type other than abap_bool.
 
-**Source.** SAP/abap-cleaner rule AssertEqualsBooleanRule.
-
 ## Use assert_subrc instead of assert_equals on sy-subrc
 
 ```abap
@@ -83,8 +74,6 @@ cl_abap_unit_assert=>assert_subrc( ).
 **Proposal.** Report assert_equals with act = sy-subrc; quick fix to assert_subrc( exp = … ).
 
 **Not reported.** -
-
-**Source.** SAP/abap-cleaner rule AssertEqualsSubrcRule.
 
 ## Use cl_abap_unit_assert instead of ASSERT in test classes
 
@@ -103,8 +92,6 @@ cl_abap_unit_assert=>assert_equals( act = lv_count exp = 2 ).
 
 **Not reported.** Helper classes that are not FOR TESTING.
 
-**Source.** SAP/abap-cleaner rule AssertClassRule.
-
 ## Standardize the order act before exp
 
 ```abap
@@ -114,7 +101,5 @@ cl_abap_unit_assert=>assert_equals( exp = 2 act = lv_count ).
 **Proposal.** Report calls of cl_abap_unit_assert methods that pass exp before act (configurable order); quick fix reorders.
 
 **Not reported.** -
-
-**Source.** SAP/abap-cleaner rule AssertParameterOrderRule.
 
 **Where.** a new rule, one option per check. **Effort:** S.

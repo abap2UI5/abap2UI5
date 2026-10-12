@@ -8,9 +8,7 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 046 (larshp/abapOpenChecks docs/_checks/46.md)'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
-  - 'code-pal-for-abap check scope-of-variable (SAP/code-pal-for-abap docs/checks/scope-of-variable.md)'
 ---
 
 # Variable scope: shadowed names, a block-local declaration used after the block
@@ -34,8 +32,6 @@ METHOD run.
 
 **Not reported.** Inherited private attributes (not visible); test classes (option).
 
-**Source.** abapOpenChecks check 046.
-
 ## Report a variable declared inside an IF/CASE/LOOP block and used after it
 
 ```abap
@@ -49,7 +45,5 @@ lv = 2.
 **Proposal.** Report a DATA/FIELD-SYMBOLS declaration inside IF/ELSEIF/ELSE/CASE/WHEN/LOOP/DO/WHILE that is referenced outside that block.
 
 **Not reported.** Declarations at the top of the procedure (definitions_top); inline declarations in optional branches (no_inline_in_optional_branches covers those).
-
-**Source.** code-pal-for-abap check scope-of-variable.
 
 **Where.** a new rule, one option per check. **Effort:** M.

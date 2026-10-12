@@ -8,7 +8,6 @@ first_seen: 2026-10-12
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - 'abapOpenChecks check 033 (larshp/abapOpenChecks docs/_checks/33.md)'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
 ---
 
@@ -23,5 +22,3 @@ APPEND structure ZAMARA on MARA with field MYFIELD
 **Not reported.** Customer tables; includes.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** abapOpenChecks check 033.
