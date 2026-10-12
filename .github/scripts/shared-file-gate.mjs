@@ -92,7 +92,7 @@ const SHARED = [
   },
   {
     /* Not a whole file: the consumers keep their own `abaplint.jsonc` with
-     * their own `object_naming`, and share the 200 rules around it. So the
+     * their own `object_naming`, and share the 211 rules around it. So the
      * comparison is on a SECTION, extracted and parsed from both sides.
      *
      * The source here is not a config this repository uses — abap2UI5's own
@@ -110,7 +110,7 @@ const SHARED = [
     consumers: ['samples', 'samples-controls', 'samples-stack'],
     consumerFile: 'abaplint.jsonc',
     why: 'the abaplint rule set every abap2UI5 APP repository is judged by —'
-      + ' 200 rules, the same settings in all three',
+      + ' 211 rules, the same settings in all three',
     /* Compared as PARSED SETTINGS, not as text and not as a list of names.
      * The checker this replaces compared rule NAMES only, so `"rule": true`
      * and `"rule": false` looked identical to it — and switching a rule off is
