@@ -13,6 +13,9 @@
       ]
     },
     "abapdoc": false,
+    "abapdoc_html_tag": true,
+    "abapdoc_leading_at": true,
+    "abapdoc_parameter_names": true,
     "add_test_attributes": true,
     "aff_and_xml": true,
     "align_parameters": false,
@@ -75,6 +78,7 @@
     "cds_parser_error": true,
     "chain_mainly_declarations": true,
     "change_if_to_case": true,
+    "changing_sorted_line": true,
     "check_abstract": {
       "exclude": [
         "z2ui5_cl_smps_bp_[a-z]+\\.clas\\."
@@ -133,6 +137,7 @@
     },
     "db_operation_in_loop": true,
     "definitions_top": true,
+    "delete_index_in_loop": true,
     "description_empty": true,
     "double_space": {
       "keywords": false,
@@ -162,6 +167,7 @@
     "exit_or_check": true,
     "expand_macros": true,
     "exporting": true,
+    "final_newline": true,
     "fm_global_parameters_obsolete": true,
     "forbidden_identifier": true,
     "forbidden_pseudo_and_pragma": true,
@@ -190,6 +196,7 @@
     "indentation": false,
     "index_completely_contained": true,
     "inline_data_old_versions": true,
+    "inline_packed_computation": true,
     "intf_referencing_clas": true,
     "invalid_table_index": true,
     "keep_single_parameter_on_one_line": false,
@@ -276,6 +283,7 @@
     "prefer_abap_bool_values": true,
     "prefer_corresponding": false,
     "prefer_inline": false,
+    "prefer_inline_cast": false,
     "prefer_insert_into_table": false,
     "prefer_is_not": true,
     "prefer_pragmas": true,
@@ -290,6 +298,7 @@
     "preferred_compare_operator": true,
     "preferred_parameter_ignored": true,
     "prefix_is_current_class": true,
+    "range_row_values": true,
     "reduce_procedural_code": true,
     "reduce_string_templates": true,
     "redundant_conversion": true,
@@ -313,6 +322,7 @@
     "sicf_consistency": true,
     "slow_parameter_passing": true,
     "smim_consistency": false,
+    "sort_empty_key": true,
     "space_before_colon": true,
     "space_before_dot": true,
     "sql_escape_host_variables": true,
@@ -320,6 +330,7 @@
     "start_at_tab": true,
     "static_call_via_instance": true,
     "strict_sql": true,
+    "subrc_after_assign": true,
     "superclass_final": {
       "exclude": [
         "z2ui5_cl_smps_app_489_ws\\.clas\\."
