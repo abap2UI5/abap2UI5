@@ -27,12 +27,10 @@
 //                ONE shape is left to this gate, measured against 2.120.51 on
 //                2026-09-13: a block directly before `END OF`, inside the
 //                chain it belongs to, which the rule does not report. That is
-//                all the check below still does.
-//   abapdoc_html "HTML tag <wa> is not supported in ABAP Doc" - ABAP Doc is
-//                parsed as HTML, so a placeholder or a field symbol written
-//                as <name> is an unsupported, unclosed tag. AGENTS.md said
-//                so in prose and three of them shipped in z2ui5_if_client
-//                (#2705), found by a user's system on 2026-09-02.
+//                all the check below still does: the blank line and the
+//                plain comment between block and declaration, added here
+//                later, went to the same rule in 2.120.75
+//                (abaplint/abaplint#4414).
 //   handle_call  "No method can be specified in the current position" -
 //                CREATE DATA ... TYPE HANDLE takes a data object, not a
 //                method call; abaplint and the transpiler accept the call
@@ -53,14 +51,15 @@
 //                after z2ui5_cl_ui5_util_context=>msg_get_internal gained a
 //                second, defaulted parameter that morning (#2719) and took
 //                the addition along with it.
+//
+// Two more rules lived here until abaplint 2.120.75 shipped them; they are on
+// in abaplint.jsonc now and their self-test cases fire there (measured
+// 2026-10-12):
+//   abapdoc_html "HTML tag <wa> is not supported in ABAP Doc" (#2705) - now
+//                abapdoc_html_tag (abaplint/abaplint#4422).
 //   range_row    'Specification "OPTION" is missing in the selection
-//                structure' / '"eq" is not a permitted value for component
-//                "OPTION" in a selection structure' - a VALUE row of a range
-//                table (sign/option/low/high) without an option, or with a
-//                literal the system does not know. Syntax warnings on a
-//                user's system on 2026-09-23, from a test class of
-//                z2ui5_cl_ui5_util_context that feeds deliberately odd rows.
-//                Proposed to abaplint as rule range_row_values, abaplint/abaplint#4415.
+//                structure' (2026-09-23) - now range_row_values
+//                (abaplint/abaplint#4415).
 //
 // Why a gate and not prose: abaplint models none of these. They are checks of a
 // different tool, and prose in AGENTS.md did not stop the three "fix atc
@@ -109,32 +108,6 @@ const files = walk(ROOT, "src")
  * ABAP Doc can reach. */
 const BEFORE_END_OF = /^\s*end\s+of\b/i;
 
-/* ...and a SECOND shape the rule does not report, reported from a system's
- * SYNTAX_CHECK on 2026-09-16: a plain `"` comment BETWEEN the block and the
- * declaration. z2ui5_if_client's check_on_navigated carried four such lines -
- * a note to whoever edits the framework, deliberately not ABAP Doc so the
- * documentation site would not print it - and they detached the sixteen-line
- * block above them from the METHODS below. The note belongs ABOVE the block,
- * where it breaks nothing.
- *
- * abaplint's wrong_abapdoc_position reports the block before a chain keyword,
- * inside a statement, and before ENDCLASS / ENDINTERFACE / a SECTION. A
- * comment is none of those: it is not a statement at all, so the rule walks
- * past it to the declaration and finds the block correctly placed. Added to
- * abaplint/abaplint#4385 as case 1b on 2026-10-09; the fix is abaplint/abaplint#4414,
- * merged 2026-10-12 and reported from the first release after 2.120.74. */
-const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
-
-/* ...and a THIRD, reported from a 7.58 system's SYNTAX_CHECK on 2026-10-04 over
- * abap2UI5-addons/abap-cloud-gui: a blank line inside the block or between
- * the block and its declaration detaches it just like a comment does - "ABAP
- * Doc comment is in the wrong position" on z2ui5_cl_cgui_layout (a blank line
- * in the middle of the class's block), z2ui5_cl_cgui_report and
- * z2ui5_if_cgui_variant_store (one before the declaration). This gate used to
- * assert the opposite. abaplint's wrong_abapdoc_position reports it from the
- * same release on (abaplint/abaplint#4414); both shapes leave this gate with
- * the pin bump that reaches it. */
-
 function abapdocFindings(file, source) {
   const out = [];
   const src = source.split("\n");
@@ -143,36 +116,14 @@ function abapdocFindings(file, source) {
     if (/^\s*"!/.test(src[i - 1] || "")) return; // only the block's first line
 
     let n = i + 1;
-    let blank = false;
-    while (n < src.length && (/^\s*"!/.test(src[n]) || !src[n].trim())) {
-      if (!src[n].trim()) blank = true;
-      n += 1;
-    }
+    while (n < src.length && /^\s*"!/.test(src[n])) n += 1;
     const next = n < src.length ? src[n].trim() : "";
-
-    if (blank && n < src.length) {
-      out.push({
-        at: `${file}:${i + 1}`,
-        rule: "abapdoc",
-        message: `a blank line inside or after this "! block detaches it from the declaration below - a system reports "ABAP Doc comment is in the wrong position"; close the gap`,
-      });
-      return;
-    }
 
     if (BEFORE_END_OF.test(next)) {
       out.push({
         at: `${file}:${i + 1}`,
         rule: "abapdoc",
         message: `"! before \`${next}\` documents nothing - the last component of the structure is above it, not below`,
-      });
-      return;
-    }
-
-    if (n < src.length && PLAIN_COMMENT.test(src[n])) {
-      out.push({
-        at: `${file}:${i + 1}`,
-        rule: "abapdoc",
-        message: `a plain comment sits between this "! block and the declaration below it, which detaches the block - move the comment ABOVE the block`,
       });
     }
   });
@@ -214,9 +165,9 @@ const ABAPDOC_SELF_TEST = [
     expect: 0,
   },
   {
-    name: "a plain comment between the block and its declaration - the 2026-09-16 case",
+    name: "a plain comment between the block and its declaration - abaplint's now (2.120.75), not this gate's",
     source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n  " a note to whoever edits this\n  METHODS run.\nENDINTERFACE.',
-    expect: 1,
+    expect: 0,
   },
   {
     name: "the same note ABOVE the block - the repaired shape",
@@ -224,19 +175,19 @@ const ABAPDOC_SELF_TEST = [
     expect: 0,
   },
   {
-    name: "a blank line between them detaches it too - the 2026-10-04 case",
+    name: "a blank line between them - abaplint's now (2.120.75), not this gate's",
     source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n\n  METHODS run.\nENDINTERFACE.',
-    expect: 1,
+    expect: 0,
   },
   {
-    name: "a blank line inside the block - the same finding",
+    name: "a blank line inside the block - abaplint's now (2.120.75), not this gate's",
     source: 'INTERFACE zif_x PUBLIC.\n  "! line one\n\n  "! line two\n  METHODS run.\nENDINTERFACE.',
-    expect: 1,
+    expect: 0,
   },
   {
-    name: "a `*` comment detaches it just as well",
+    name: "a `*` comment between them - abaplint's now (2.120.75), not this gate's",
     source: 'INTERFACE zif_x PUBLIC.\n  "! what it answers\n* a note\n  METHODS run.\nENDINTERFACE.',
-    expect: 1,
+    expect: 0,
   },
 ];
 
@@ -596,153 +547,11 @@ selfTest(
     + "them is a sibling checkout.",
 );
 
-/* A ROW OF A RANGE TABLE - a structure with the components sign, option, low
- * and high - is a "selection structure" to the syntax check, whatever it is
- * declared as, and a VALUE row of one is checked against the fixed domain of
- * those components: a row without an option answers 'Specification "OPTION"
- * is missing in the selection structure', and a literal outside the domain -
- * a lower-case `eq` included - '"eq" is not a permitted value for component
- * "OPTION" in a selection structure'. Warnings, not errors, but warnings a
- * user's system lists on every pull (2026-09-23, three of them from
- * ltcl_test's test_token_odd_option in z2ui5_cl_ui5_util_context, which feeds
- * exactly such rows on purpose). abaplint knows no selection structures.
- *
- * Decided on the text: a row is the innermost `( ... )` of a statement with a
- * VALUE in it that assigns `low` and at least one of `sign` / `option`. A
- * component given as a header default before the rows (`VALUE #( sign = `I`
- * option = `EQ` ( low = ... ) )`) counts as given. Only LITERALS are judged -
- * a variable or constant is the documented way to feed an odd value to a
- * test, and it is what the repaired test does. */
-const RANGE_SIGNS = new Set(["I", "E"]);
-const RANGE_OPTIONS = new Set(["EQ", "NE", "BT", "NB", "CP", "NP", "GT", "GE", "LT", "LE"]);
-
-/* The code of one line with its trailing comment cut and its literals KEPT -
- * stripNoise drops literal content, and the content is what this rule reads. */
-function codeKeepingLiterals(line) {
-  let mode = "code";
-  for (let i = 0; i < line.length; i += 1) {
-    const c = line[i];
-    if (mode === "code") {
-      if (c === "`") mode = "tick";
-      else if (c === "'") mode = "quote";
-      else if (c === "|") mode = "tmpl";
-      else if (c === '"') return line.slice(0, i);
-    } else if (mode === "tick" && c === "`") mode = "code";
-    else if (mode === "quote" && c === "'") mode = "code";
-    else if (mode === "tmpl") {
-      if (c === "\\") i += 1;
-      else if (c === "|") mode = "code";
-    }
-  }
-  return line;
-}
-
-function rangeRowFindings(file, source) {
-  const out = [];
-  for (const stmt of statements(source)) {
-    const text = stmt.text.split("\n").map(codeKeepingLiterals).join(" ");
-    if (!/\bVALUE\b/i.test(text)) continue;
-    // literals out of the way of the paren walk, their content kept aside
-    const literals = [];
-    const masked = text.replace(/`(?:[^`]|``)*`|'(?:[^']|'')*'/g, (lit) => {
-      literals.push(lit.slice(1, -1));
-      return `\u0000${literals.length - 1}\u0000`;
-    });
-    const rows = [...masked.matchAll(/\(([^()]*)\)/g)].map(m => m[1]);
-    const header = masked.replace(/\([^()]*\)/g, " ");
-    for (const row of rows) {
-      if (!/\blow\s*=/i.test(row)) continue;
-      if (!/\b(?:sign|option)\s*=/i.test(row)) continue;
-      for (const [component, domain] of [["sign", RANGE_SIGNS], ["option", RANGE_OPTIONS]]) {
-        const given = new RegExp(`\\b${component}\\s*=\\s*(\\S+)`, "i").exec(row);
-        if (!given) {
-          if (new RegExp(`\\b${component}\\s*=`, "i").test(header)) continue;
-          out.push({
-            at: `${file}:${stmt.start}`,
-            rule: "range_row",
-            message: `a range row without ${component.toUpperCase()} - "Specification ${component.toUpperCase()} is missing in the selection structure" on a system; give it, or build the row field by field`,
-          });
-          continue;
-        }
-        // eslint-disable-next-line no-control-regex -- \u0000 is the literal placeholder the masking above writes
-        const literal = /^\u0000(\d+)\u0000$/.exec(given[1]);
-        if (!literal) continue;
-        const value = literals[Number(literal[1])];
-        if (domain.has(value)) continue;
-        out.push({
-          at: `${file}:${stmt.start}`,
-          rule: "range_row",
-          message: `"${value}" is not a permitted value for component ${component.toUpperCase()} in a selection structure - use ${[...domain].join("/")}, or feed an odd value through a variable`,
-        });
-      }
-    }
-  }
-  return out;
-}
-
-const RANGE_ROW_SELF_TEST = [
-  {
-    name: "the three rows of the incident - missing, lower-case and unknown option",
-    source: "lt_range = VALUE #( ( sign = `I` low = `X` )\n                    ( sign = `I` option = `eq` low = `Y` )\n                    ( sign = `I` option = `ZZ` low = `Z` ) ).",
-    expect: 3,
-  },
-  {
-    name: "well-formed rows, single quotes as well",
-    source: "lt_range = VALUE #( ( sign = `I` option = `EQ` low = `X` )\n                    ( sign = 'E' option = 'BT' low = `1` high = `9` ) ).",
-    expect: 0,
-  },
-  {
-    name: "sign and option as header defaults for every row",
-    source: "lt_range = VALUE #( sign = `I` option = `EQ` ( low = `A` ) ( low = `B` ) ).",
-    expect: 0,
-  },
-  {
-    name: "a variable for the odd value - the repaired shape",
-    source: "lt_range = VALUE #( ( sign = `I` option = lv_option low = `Y` ) ).",
-    expect: 0,
-  },
-  {
-    name: "an invalid sign",
-    source: "ls_range = VALUE #( sign = `X` option = `EQ` low = `A` ).",
-    expect: 1,
-  },
-  {
-    name: "no range row at all - a structure without sign or option",
-    source: "ls_row = VALUE #( name = `eq` low = `A` ).",
-    expect: 0,
-  },
-];
-
-selfTest(
-  RANGE_ROW_SELF_TEST,
-  source => rangeRowFindings("selftest.clas.abap", source),
-  "The range-row rule changed. A green run over src/ says nothing while this\n"
-    + "case fails - src/ carries no malformed range row to fire on.",
-);
-
-const ABAPDOC_TAGS = new Set(["p", "em", "strong", "ul", "ol", "li", "h1", "h2", "h3", "br"]);
-function abapdocHtmlFindings(file, source) {
-  source.split(/\r?\n/).forEach((line, i) => {
-    if (!/^\s*"!/.test(line)) return;
-    const tags = [...line.matchAll(/<\/?([A-Za-z_][A-Za-z0-9_-]*)>/g)];
-    for (const m of tags) {
-      if (ABAPDOC_TAGS.has(m[1].toLowerCase())) continue;
-      findings.push({
-        at: `${file}:${i + 1}`,
-        rule: "abapdoc_html",
-        message: `ABAP Doc is parsed as HTML - <${m[1]}> is an unsupported, unclosed tag there; write &lt;${m[1]}&gt;`,
-      });
-    }
-  });
-}
-
 for (const file of files) {
   const source = readFileSync(join(ROOT, file), "utf8");
   if (/\.(clas|intf)\.abap$/.test(file)) findings.push(...abapdocFindings(file, source));
-  abapdocHtmlFindings(file, source);
   findings.push(...derefCallFindings(file, source));
   findings.push(...textSymbolFindings(file, source));
-  findings.push(...rangeRowFindings(file, source));
   const stmts = statements(source);
 
   stmts.forEach((stmt, index) => {
@@ -875,4 +684,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length + TEXT_SYMBOL_SELF_TEST.length + RANGE_ROW_SELF_TEST.length} self-test case(s) checked - OK`);
+console.log(`extended-check: ${files.length} file(s), ${ABAPDOC_SELF_TEST.length + PREFERRED_SELF_TEST.length + DEREF_SELF_TEST.length + NOWHERE_SELF_TEST.length + TEXT_SYMBOL_SELF_TEST.length} self-test case(s) checked - OK`);

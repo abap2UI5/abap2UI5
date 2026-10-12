@@ -48,7 +48,6 @@ const GATES = [
   { npm: "check:frozen-only", script: "frozen-only-gate.mjs" },
   { npm: "check:abapgit", script: "abapgit-format-gate.mjs" },
   { npm: "check:atc", script: "extended-check-gate.mjs" },
-  { npm: "check:subrc", script: "subrc-after-assign-gate.mjs" },
   { npm: "check:cause", script: "exception-cause-gate.mjs" },
   { npm: "check_visibility", script: "testclass-visibility-gate.mjs" },
   { npm: "check:members", script: "member-visibility-gate.mjs" },

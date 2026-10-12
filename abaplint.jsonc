@@ -51,6 +51,44 @@
   "rules": {
     "7bit_ascii": true,
     "abapdoc": false,
+    // ABAP Doc is parsed as HTML: <wa> is "HTML tag not supported" on a system
+    // (abaplint/abaplint#4422, from this repository's backlog). Replaces the
+    // `abapdoc_html` part of check:atc. Measured on 2.120.75: 0 findings over
+    // src, control probe fired
+    "abapdoc_html_tag": true,
+    // A "! line that begins with @ is read as an ABAP Doc command
+    // (abaplint/abaplint#4421). Measured on 2.120.75: 0 findings over src,
+    // control probe fired
+    "abapdoc_leading_at": true,
+    // @parameter / @raising naming a parameter or exception the declaration
+    // does not have (abaplint/abaplint#4416). Measured on 2.120.75: 0 findings
+    // over src, control probe fired
+    "abapdoc_parameter_names": true,
+    // A line of a SORTED or HASHED table passed as a CHANGING parameter
+    // (abaplint/abaplint#4420). Measured on 2.120.75: 0 findings over src,
+    // control probe fired
+    "changing_sorted_line": true,
+    // DELETE itab INDEX sy-tabix in a LOOP over itab after another statement
+    // may have overwritten sy-tabix (abaplint/abaplint#4418). Measured on
+    // 2.120.75: 0 findings over src, control probe fired
+    "delete_index_in_loop": true,
+    // Every .abap and .xml file ends with exactly one newline, as abapGit
+    // writes it (abaplint/abaplint#4412); check:abapgit enforces it as well.
+    // Measured on 2.120.75: 0 findings over src, control probe fired
+    "final_newline": true,
+    // DATA( ) from a packed computation is P(8,0) on a system
+    // (abaplint/abaplint#4413). Measured on 2.120.75: 0 findings over src,
+    // control probe fired
+    "inline_packed_computation": true,
+    // A VALUE row of a range table without OPTION, or with a SIGN/OPTION
+    // literal outside the domain (abaplint/abaplint#4415). Replaces the
+    // `range_row` part of check:atc. Measured on 2.120.75: 0 findings over src,
+    // control probe fired
+    "range_row_values": true,
+    // SORT / DELETE ADJACENT DUPLICATES without BY / COMPARING on a table with
+    // an empty key (abaplint/abaplint#4419). Measured on 2.120.75: 0 findings
+    // over src, control probe fired
+    "sort_empty_key": true,
     "sql_value_conversion": true,
     "select_single_full_key": true,
     "strict_sql": true,
@@ -91,6 +129,12 @@
     "aff_and_xml": true,
     "implicit_start_of_selection": true,
     "reduce_procedural_code": true,
+    // A sy-subrc test as the success check of a dynamic ASSIGN, #1937
+    // (abaplint/abaplint#4417). Replaces check:subrc: on 2.120.75 it reports
+    // the same 16 sites as the detector that gate ran (11 in the frozen src/99,
+    // 5 in the mirrors src/00/01 and src/00/02), and 0 in the packages this
+    // ruleset reports on
+    "subrc_after_assign": true,
     "tables_declared_locally": true,
     "unused_macros": true,
     "align_type_expressions": false,
@@ -410,7 +454,9 @@
     // in 2.120.51 (abaplint/abaplint#4286) after this repository put the case
     // on abaplint/abaplint#1951. It replaces the `abapdoc` half of
     // `npm run check:atc`, which now decides only the one shape the rule does
-    // not: a block directly before `END OF`.
+    // not: a block directly before `END OF`. Since 2.120.75 it also reports a
+    // block cut off by a blank line or a plain comment (abaplint/abaplint#4414),
+    // which check:atc had decided until then.
     "wrong_abapdoc_position": true,
     "xml_bom": true,
     "xml_consistency": true,
