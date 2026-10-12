@@ -14,6 +14,7 @@ evidence:
   - not reproducible under the transpiler, which is more forgiving about `sy-subrc` than the release range abap2UI5 ships to — so no test in that repository can guard it
   - filed 2026-10-09 as idea 3 of abaplint/abaplint#4407 (a collection of rule ideas that asks the maintainer which ones he would take); the snippet there gives no finding on abaplint main c07da6a, all rules on, v758
   - pull request abaplint/abaplint#4417 opened 2026-10-10, after the maintainer's answer in abaplint/abaplint#4407 (open them as PRs, one by one); full core suite and the packages/cli tests green, CI green
+  - merged 2026-10-11 as abaplint rule `subrc_after_assign`, after v2.120.74. The item stays because `check:subrc` runs its probe; both go in the pin bump to the first release that carries the rule, which switches the rule on instead
 ---
 
 # Report a `sy-subrc` test used as the success check of an `ASSIGN`

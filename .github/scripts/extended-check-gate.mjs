@@ -121,7 +121,8 @@ const BEFORE_END_OF = /^\s*end\s+of\b/i;
  * inside a statement, and before ENDCLASS / ENDINTERFACE / a SECTION. A
  * comment is none of those: it is not a statement at all, so the rule walks
  * past it to the declaration and finds the block correctly placed. Added to
- * abaplint/abaplint#4385 as case 1b on 2026-10-09; the fix is abaplint/abaplint#4414. */
+ * abaplint/abaplint#4385 as case 1b on 2026-10-09; the fix is abaplint/abaplint#4414,
+ * merged 2026-10-12 and reported from the first release after 2.120.74. */
 const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
 
 /* ...and a THIRD, reported from a 7.58 system's SYNTAX_CHECK on 2026-10-04 over
@@ -130,7 +131,9 @@ const PLAIN_COMMENT = /^\s*(?:"(?!!)|\*)/;
  * Doc comment is in the wrong position" on z2ui5_cl_cgui_layout (a blank line
  * in the middle of the class's block), z2ui5_cl_cgui_report and
  * z2ui5_if_cgui_variant_store (one before the declaration). This gate used to
- * assert the opposite. abaplint's wrong_abapdoc_position does not report it. */
+ * assert the opposite. abaplint's wrong_abapdoc_position reports it from the
+ * same release on (abaplint/abaplint#4414); both shapes leave this gate with
+ * the pin bump that reaches it. */
 
 function abapdocFindings(file, source) {
   const out = [];

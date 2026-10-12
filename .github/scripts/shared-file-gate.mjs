@@ -71,6 +71,18 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
  * gated instead: check-catalogue-contract.mjs below pins the published
  * catalogue.json contract each generator must keep emitting.
  */
+/* How the app rule set is read on both sides - the entries for
+ * `.github/abaplint/app-rules.json` below compare with these. */
+function appRulesSection(text, side) {
+  const rules = parseJsonc(text)?.rules;
+  if (!rules) throw new Error(`${side}: no \`rules\` block`);
+  const out = {};
+  // each repository names its own object prefixes
+  for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
+  return out;
+}
+const appRulesMine = (text) => parseJsonc(text).rules;
+
 const SHARED = [
   {
     file: '.claude/skills/view-chain-layout/SKILL.md',
@@ -103,15 +115,23 @@ const SHARED = [
      * The checker this replaces compared rule NAMES only, so `"rule": true`
      * and `"rule": false` looked identical to it — and switching a rule off is
      * precisely the drift its own header warned about. */
-    section: (text, side) => {
-      const rules = parseJsonc(text)?.rules;
-      if (!rules) throw new Error(`${side}: no \`rules\` block`);
-      const out = {};
-      // each repository names its own object prefixes
-      for (const k of Object.keys(rules).sort()) if (k !== 'object_naming') out[k] = rules[k];
-      return out;
-    },
-    mine: (text) => parseJsonc(text).rules,
+    section: appRulesSection,
+    mine: appRulesMine,
+  },
+  {
+    /* The same rule set, a fourth copy outside the app repositories:
+     * abap2UI5/protocol lints the ABAP conformance apps (conformance/apps/abap)
+     * with it, and its config says so in its header - "copied unchanged -
+     * except object_naming". Its own entry because the copy sits in another
+     * file there (the repository's root config is not an ABAP one), compared
+     * the same way, as parsed settings minus object_naming. */
+    file: '.github/abaplint/app-rules.json',
+    consumers: ['protocol'],
+    consumerFile: 'conformance/apps/abaplint.jsonc',
+    why: 'the shared app rule set, copied into the abaplint config of'
+      + " abap2UI5/protocol's ABAP conformance apps",
+    section: appRulesSection,
+    mine: appRulesMine,
   },
   {
     /* The app-building guide, mirrored into app-template's AGENTS.md so a new
@@ -566,7 +586,7 @@ async function readConsumer(repo, consumerFile) {
   }
 }
 
-/* All ~31 consumer reads in flight at once - the nested loop below consumes
+/* All ~32 consumer reads in flight at once - the nested loop below consumes
  * settled results in list order, so the report stays deterministic. Awaiting
  * inside the loop made this gate's wall time the SUM of the round trips, each
  * with a 15-second timeout; toolchain-gate.mjs and scripts-gate.mjs carry the
