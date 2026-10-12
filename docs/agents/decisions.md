@@ -107,6 +107,24 @@ pin with `CS` assertions on the displayed XML. It covered nothing else and
 it is **not** a precedent — any other change under `src/99` still needs its
 own maintainer decision recorded here.
 
+**A second exemption is open for one change: the two dynamic WHERE
+builders** (maintainer decision 2026-10-12). `z2ui5_cl_util_ext=>tab_get_where_by_dfies`
+put the values of a row into `LIKE '%…%'` literals as they were - a quote
+typed into a value help ended the literal and appended SQL of its own - and
+`z2ui5_cl_util=>filter_get_sql_where` put each filter's `name` into the
+WHERE clause unchecked, while the filters of a selection screen are bound
+to the view and come back from the browser. Nothing in this repository
+calls either, but the addons do (popups, selection-screen), and an
+installation that still has them calls the frozen copies. The fix is the
+one popups (abap2UI5-addons/popups#43) and se16n (abap2UI5-addons/se16n#29)
+made in their own copies: the quotes doubled, `#` and `_` escaped and
+`ESCAPE '#'` always given; and only a plain field name (`[A-Z0-9_/]+`) is
+taken, any other filter is skipped. No name, no signature and no result for
+a well-formed input changes, so an installation that upgrades keeps
+compiling - the reason the freeze exists. The two class files are named in
+`.github/scripts/frozen-paths-gate.mjs` for that change only and come out
+again right after it; like the popup port it is **not** a precedent.
+
 **One deletion is recorded as such a decision: `z2ui5_cl_pop_js_loader`**
 (maintainer decision 2026-09-22). The popup existed to load app JavaScript
 onto the `z2ui5` global and call it back through `cs_event-z2ui5`; the
