@@ -161,13 +161,6 @@ ENDCLASS.
 CLASS ltcl_zip_ops IMPLEMENTATION.
 
   METHOD pack_basic.
-    DATA lo_probe TYPE REF TO object.
-    TRY.
-        CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
     DATA(lt_files) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file(
         ( name = `test.txt` content = CONV xstring( `48656C6C6F` ) ) ).
     DATA(lv_archive) = z2ui5_cl_util_ext=>zip_pack( lt_files ).
@@ -175,26 +168,12 @@ CLASS ltcl_zip_ops IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD pack_empty.
-    DATA lo_probe TYPE REF TO object.
-    TRY.
-        CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
     DATA(lt_files) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file( ).
     DATA(lv_archive) = z2ui5_cl_util_ext=>zip_pack( lt_files ).
     cl_abap_unit_assert=>assert_not_initial( lv_archive ).
   ENDMETHOD.
 
   METHOD roundtrip.
-    DATA lo_probe TYPE REF TO object.
-    TRY.
-        CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
     DATA(lt_in) = VALUE z2ui5_cl_util_ext=>ty_t_zip_file(
         ( name = `a.txt` content = CONV xstring( `414141` ) )
         ( name = `b.txt` content = CONV xstring( `424242` ) ) ).
@@ -221,8 +200,9 @@ CLASS ltcl_rtti_ext DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    " The on-prem RTTI path needs the DDIC type DFIES and table DD02T,
-    " neither exists in the JS transpiler runtime - probe and skip there
+    " The on-prem RTTI path needs the DDIC type DFIES, which ABAP Cloud
+    " does not release - probe and skip there. open-abap-core ships DFIES,
+    " so under npm run unit the three tests run in full
     METHODS check_dfies_available
       RETURNING
         VALUE(result) TYPE abap_bool.
