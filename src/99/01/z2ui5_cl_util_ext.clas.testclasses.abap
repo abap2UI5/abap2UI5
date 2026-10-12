@@ -283,6 +283,80 @@ ENDCLASS.
 
 
 " ================================================================
+" WHERE CLAUSE FROM A ROW AND ITS DFIES
+" ================================================================
+CLASS ltcl_where_by_dfies DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        key1 TYPE string,
+        text TYPE string,
+        info TYPE string,
+      END OF ty_s_row.
+
+    METHODS where
+      IMPORTING
+        key1          TYPE string
+        text          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS plain_values                   FOR TESTING.
+    METHODS quote_doubled                  FOR TESTING.
+    METHODS escape_and_underscore_escaped  FOR TESTING.
+
+ENDCLASS.
+
+CLASS ltcl_where_by_dfies IMPLEMENTATION.
+
+  METHOD where.
+    DATA ls_row TYPE ty_s_row.
+    ls_row-key1 = key1.
+    ls_row-text = text.
+    ls_row-info = `not a key, not the checked field`.
+    DATA(lr_row) = REF #( ls_row ).
+    DATA(lt_dfies) = VALUE z2ui5_cl_util_ext=>ty_t_dfies(
+        ( fieldname = `KEY1` keyflag = abap_true )
+        ( fieldname = `TEXT` )
+        ( fieldname = `INFO` ) ).
+    result = z2ui5_cl_util_ext=>tab_get_where_by_dfies( mv_check_tab_field = `TEXT`
+                                                        ms_data_row        = lr_row
+                                                        it_dfies           = lt_dfies ).
+  ENDMETHOD.
+
+  METHOD plain_values.
+    " the spacing is the method's own (a leading blank, two before a second
+    " condition) - the WHERE clause reads the same either way
+    cl_abap_unit_assert=>assert_equals(
+        exp = ` ( KEY1 LIKE '%A%' ESCAPE '#' ) AND  ( TEXT LIKE '%b%' ESCAPE '#' )`
+        act = where( key1 = `A`
+                     text = `b` ) ).
+  ENDMETHOD.
+
+  METHOD quote_doubled.
+    " a quote typed into the value help cannot end the literal any more
+    cl_abap_unit_assert=>assert_equals(
+        exp = ` ( TEXT LIKE '%x'' OR ''1'' = ''1%' ESCAPE '#' )`
+        act = where( key1 = ``
+                     text = `x' OR '1' = '1` ) ).
+  ENDMETHOD.
+
+  METHOD escape_and_underscore_escaped.
+    " # is the escape character itself, so it is escaped first - a # next
+    " to an _ used to make the pattern invalid
+    cl_abap_unit_assert=>assert_equals(
+        exp = ` ( KEY1 LIKE '%a##b#_c%' ESCAPE '#' )`
+        act = where( key1 = `a#b_c`
+                     text = `` ) ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+" ================================================================
 " TRANSPORT REQUEST OPERATIONS
 " ================================================================
 CLASS ltcl_transport_ops DEFINITION FINAL

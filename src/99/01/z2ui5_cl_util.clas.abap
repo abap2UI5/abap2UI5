@@ -2531,6 +2531,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
+      " the name goes into the WHERE clause as it is, and a filter bound to a
+      " view comes back from the browser - only a plain field name is taken,
+      " never a condition or a subquery on another table
+      IF ls_filter-name IS INITIAL
+          OR ls_filter-name CN `ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_/`.
+        CONTINUE.
+      ENDIF.
+
       DATA(lv_field_where) = ``.
       LOOP AT ls_filter-t_range INTO DATA(ls_range).
         DATA(lv_cond) = filter_get_sql_cond_by_range( fieldname = ls_filter-name

@@ -1551,19 +1551,24 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         DATA(and) = ` AND `.
       ENDIF.
 
-      IF <value> CA `_`.
-        DATA(escape) = `ESCAPE '#'`.
-      ELSE.
-        CLEAR escape.
-      ENDIF.
-
+      " the value is what the user typed: its quotes are doubled, so it
+      " cannot end the literal and append SQL of its own, and the escape
+      " character and _ are escaped - % stays the user's wildcard
       val = <value>.
+      val = replace( val  = val
+                     sub  = `#`
+                     with = `##`
+                     occ  = 0 ).
+      val = replace( val  = val
+                     sub  = `_`
+                     with = `#_`
+                     occ  = 0 ).
+      val = replace( val  = val
+                     sub  = `'`
+                     with = `''`
+                     occ  = 0 ).
 
-      IF val CA `_`.
-        REPLACE ALL OCCURRENCES OF `_` IN val WITH `#_`.
-      ENDIF.
-
-      result = |{ result }{ and } ( { dfies->fieldname } LIKE '%{ val }%' { escape } )|.
+      result = |{ result }{ and } ( { dfies->fieldname } LIKE '%{ val }%' ESCAPE '#' )|.
 
     ENDLOOP.
 
