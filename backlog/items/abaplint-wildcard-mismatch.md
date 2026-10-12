@@ -25,5 +25,3 @@ SELECT * FROM t INTO TABLE @lt WHERE name LIKE 'A*'.
 **Not reported.** Escaped characters; dynamic patterns.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** abapOpenChecks 94.

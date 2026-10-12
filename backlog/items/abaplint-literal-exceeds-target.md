@@ -10,7 +10,6 @@ checked_upstream: 2026-10-11
 upstream: abaplint/abaplint
 evidence:
   - 'abap2xlsx/abap2xlsx 0744e0c: `CLASS-DATA eol TYPE char01 VALUE cl_abap_char_utilities=>cr_lf` lost its LF in every CSV'
-  - 'larshp/abapOpenChecks 88b8000 (''bugfix constant length'', ''RADIO'' into 4 characters)'
   - 'abaplint/abaplint#1343 asks for it'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
@@ -29,6 +28,6 @@ CONSTANTS c_eol TYPE c LENGTH 1 VALUE cl_abap_char_utilities=>cr_lf.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** M.
 
-**Source.** abap2xlsx, abapOpenChecks fix history.
+**Source.** abap2xlsx fix history.
 
 An upstream request exists (https://github.com/abaplint/abaplint/issues/1343); this item collects the case and the scope for a pull request.

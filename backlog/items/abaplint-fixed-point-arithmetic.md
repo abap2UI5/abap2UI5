@@ -23,5 +23,3 @@ evidence:
 **Not reported.** Objects without packed arithmetic (option).
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** abapOpenChecks 85.

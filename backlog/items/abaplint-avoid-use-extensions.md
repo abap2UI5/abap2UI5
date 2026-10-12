@@ -1,20 +1,27 @@
 ---
 target: abaplint
-title: 'Extend `avoid_use.defaultKey` to the IMPLICIT default key'
-summary: '`DATA t TYPE TABLE OF x.` with no `WITH … KEY` gets the same default key as `WITH DEFAULT KEY`; `avoid_use.defaultKey` reports only the spelled-out form, but `fully_type_itabs` already reports the implicit one ("Specify table type" / "Specify table key") — deferred, there is nothing left to file'
+title: 'avoid_use options: the implicit default key, COLLECT'
+summary: 'two statements avoid_use does not cover yet - a table declared with the IMPLICIT default key (avoid_use.defaultKey only sees WITH DEFAULT KEY) and COLLECT - both fit as options of the existing rule'
 priority: low
-state: deferred
+state: open
 first_seen: 2026-09-19
-checked_upstream: 2026-09-23
+checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
-  - abap2UI5/samples-controls app 034 shipped `TYPE TABLE OF` without a key clause; the corpus gate grew a regex for it (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `default-key-table` — which reads app classes only
-  - measured 2026-09-19 over abap2UI5 `src/` (the probe beside this item) — 31 implicit default-key declarations, every one in code no abaplint run of this repository reports on - the vendored `src/00/01` (`noIssues` in `abaplint.jsonc`) and the frozen `src/99` (not in its `files`)
-  - measured 2026-09-19 on abaplint 2.120.52, `avoid_use` with `defaultKey: true` — `DATA lt TYPE TABLE OF string.` produces no finding; the rule matches the `DEFAULT KEY` tokens
-  - re-measured 2026-09-23 on 2.120.52 and 2.120.59, v750, isolated class - `fully_type_itabs` reports `DATA lt TYPE TABLE OF string.` ("Specify table type"), `DATA lt TYPE STANDARD TABLE OF string.` and `TYPES ty TYPE STANDARD TABLE OF string.` ("Specify table key"), and leaves `… WITH EMPTY KEY` alone; `avoid_use.defaultKey` reports only `… WITH DEFAULT KEY`. abap2UI5 and samples-controls both have `fully_type_itabs` on
+  - 'abap2UI5/samples-controls app 034 shipped `TYPE TABLE OF` without a key clause; the corpus gate grew a regex for it (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `default-key-table` — which reads app classes only'
+  - 'measured 2026-09-19 over abap2UI5 `src/` (the probe beside this item) — 31 implicit default-key declarations, every one in code no abaplint run of this repository reports on - the vendored `src/00/01` (`noIssues` in `abaplint.jsonc`) and the frozen `src/99` (not in its `files`)'
+  - 'measured 2026-09-19 on abaplint 2.120.52, `avoid_use` with `defaultKey: true` — `DATA lt TYPE TABLE OF string.` produces no finding; the rule matches the `DEFAULT KEY` tokens'
+  - 're-measured 2026-09-23 on 2.120.52 and 2.120.59, v750, isolated class - `fully_type_itabs` reports `DATA lt TYPE TABLE OF string.` ("Specify table type"), `DATA lt TYPE STANDARD TABLE OF string.` and `TYPES ty TYPE STANDARD TABLE OF string.` ("Specify table key"), and leaves `… WITH EMPTY KEY` alone; `avoid_use.defaultKey` reports only `… WITH DEFAULT KEY`. abap2UI5 and samples-controls both have `fully_type_itabs` on'
+  - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
 ---
 
-# Extend `avoid_use.defaultKey` to the IMPLICIT default key
+# avoid_use options: the implicit default key, COLLECT
+
+Both are options of the existing avoid_use rule rather than new rules.
+
+Merged on 2026-10-12 from the items `abaplint-default-key-implicit`, `abaplint-collect-usage`.
+
+## Extend `avoid_use.defaultKey` to the IMPLICIT default key
 
 ## Deferred — `fully_type_itabs` already covers it
 
@@ -149,3 +156,16 @@ Run **2026-09-19** against `abap2UI5` (not checked out: samples, samples-control
 - RANGE OF and TABLE FOR are not matched by construction; a `LIKE` declaration is not either.
 
 <!-- probe:end -->
+
+## Report COLLECT (configurable)
+
+```abap
+COLLECT ls_row INTO lt_sums.
+```
+
+**Proposal.** Report COLLECT; natural home an option of avoid_use.
+
+**Not reported.** Off by default (option).
+
+
+**Where.** options of the existing avoid_use rule. **Effort:** S.

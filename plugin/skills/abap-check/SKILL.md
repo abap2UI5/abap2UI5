@@ -643,7 +643,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-default-key-implicit, abaplint-get-reference-obsolete
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -1660,6 +1660,151 @@ numbered section above.
   the `.abap` files so the `.clas.xml` keeps its `object_naming` and
   `xml_consistency` coverage.
 
+## 7. The rule stock — read for it by hand until abaplint decides it
+
+**Gate: open**, by definition: every check below is an abaplint rule idea in
+`backlog/` (`backlog/ABAPLINT.md` lists them, each item carries the bad
+example, the scope and the evidence). Sections 1–6 hold defects that reached
+`main`; this section is the other half — shapes other linters, Clean ABAP
+and the fix history of open-source ABAP code say go wrong, collected on
+2026-10-11/12 and probed against abaplint 2.120.75:
+no rule reports them yet. Until one ships and is switched on in
+`abaplint.jsonc`, the only check is a reader. Read a change under `src/` for
+them the way you read it for sections 1–5. When a rule lands, its item goes
+and the line here goes with it.
+
+The groups are by consequence, worst first. A line names the shape, then the
+fix.
+
+### Wrong results and dumps — read every change for these
+
+- **A stale field symbol behind `IS ASSIGNED`.** `READ TABLE … ASSIGNING <fs>`
+  in a loop, then `IF <fs> IS ASSIGNED` — a failed READ leaves `<fs>` on the
+  previous row. `UNASSIGN <fs>` before the READ (section 5 has the #1937
+  half of this).
+- **A stale system field.** A sy-subrc test after a statement that does not
+  set sy-subrc (a method call without EXCEPTIONS, an assignment, CLEAR); an
+  `INDEX sy-tabix` after a nested READ or LOOP overwrote sy-tabix. Read the
+  field right after the statement that sets it, into a variable if needed.
+- **A read that needs a SORT.** `READ TABLE … BINARY SEARCH` and
+  `DELETE ADJACENT DUPLICATES … COMPARING` on a table not sorted by those
+  fields silently miss rows. SORT by exactly those fields first, or use a
+  sorted table.
+- **LOOP and READ targets.** The work area or field symbol read after
+  `ENDLOOP` (it holds the last row, or nothing); an inner LOOP/READ reusing the
+  outer target; `READ TABLE … INTO <fs>` overwriting the row `<fs>` points to
+  (ASSIGNING was meant); a target typed with another structure than the line.
+- **Loops that do not loop.** A body that ends with RETURN/EXIT/RAISE on every
+  path; a WHILE whose condition variables the body never writes.
+- **Blanks a character literal loses.** `REPLACE ALL OCCURRENCES OF ' '` has an
+  empty pattern and raises `CX_SY_REPLACE_INFINITE_LOOP`; `'Hello '` loses its
+  blank in CONCATENATE and `&&`. Backtick literals keep the blank.
+- **Constant comparisons.** `a = a`, `x <> A OR x <> B` (always true),
+  `x = A AND x = B` (always false) — copy-paste bugs (abap2UI5 `7647c26`).
+- **Implicit conversions.** A character field compared with a number, a d/t
+  field with a formatted literal (`'2024-01-01'`); a literal or constant longer
+  than its target; TIMESTAMPL assigned to TIMESTAMP (the fraction is cut); a
+  constant offset/length on a string without a length check; `DATA( )` from a
+  generically typed parameter (the type is decided at runtime).
+- **Field symbols and references.** A field symbol read that nothing in the
+  method assigns; a data reference dereferenced on a path where it can be
+  initial.
+- **VALUE for a unique-key table** with two literal rows of the same key — a
+  dump at runtime.
+- **Classic EXCEPTIONS.** `CALL FUNCTION … EXCEPTIONS` without `OTHERS` (an
+  unlisted exception dumps), a named exception mapped to 0, the sy-subrc of the
+  EXCEPTIONS never read, a method with classic exceptions called functionally.
+- **CATCH that cannot catch.** A CATCH of an exception nothing in the TRY can
+  raise; RAISE of a cx_root-typed variable in a method without a RAISING
+  clause; inside `CATCH … INTO x`, a RAISE that does not pass `previous = x`
+  (section 3's cause rule, `check:cause`, covers the message form only).
+- **Discarded results.** A functional call whose RETURNING value nobody reads.
+- **Copy-paste.** Two WHEN blocks with identical bodies — merge the conditions,
+  or one of them is the bug.
+- **Shadowing.** A local with the name of an attribute or a global (`mv_x` as
+  a local), a DATA declared in an IF/LOOP block and used after it.
+- **SQL that reads or writes too much or too little.** DELETE FROM / UPDATE
+  without WHERE; `INNER JOIN` on a text table (rows without a translation
+  vanish — LEFT OUTER JOIN with the language in the ON); FOR ALL ENTRIES whose
+  field list lacks the primary key (duplicates collapse); a COMMIT, a CALL
+  FUNCTION … DESTINATION or a MESSAGE inside `SELECT … ENDSELECT` or an open
+  cursor; SQL wildcards in CP (`%`) and ABAP wildcards in LIKE (`*`).
+- **Function module calls** whose actual parameter type does not fit the
+  formal one — the dump comes at runtime, not at activation.
+- **Control levels** (`AT NEW`, `AT END OF`, `AT FIRST`/`LAST`) inside
+  `LOOP … WHERE` or `FROM`/`TO` — they see the filtered rows and break wrongly.
+- **RAP.** COMMIT/ROLLBACK WORK, IN UPDATE TASK or SUBMIT in a behavior
+  handler or saver.
+- **Tests.** An assertion that cannot fail (act = exp, two literals); a test
+  that expects an exception but has no `fail( )` after the call; DB writes,
+  COMMIT, SUBMIT or RFC in a FOR TESTING class; ASSERT in production code
+  (a dump, not an error) and in tests (dumps the run instead of failing it).
+
+**Backlog:** abaplint · abaplint-stale-fs-is-assigned, abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-literal-blanks, abaplint-self-comparison, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-inline-generic-source, abaplint-fs-never-assigned, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+
+### Activation — the system refuses these, `check_syntax` does not yet
+
+- A CATCH of a subclass after the CATCH of its superclass in the same TRY.
+- `RAISE EXCEPTION … MESSAGE` for a class without IF_T100_MESSAGE.
+- A write to a key component of a sorted or hashed line through a field
+  symbol (`<line>-key = …` after LOOP/READ … ASSIGNING) — the CHANGING form is
+  section 5's.
+- `LOOP … USING KEY` a sorted secondary key with a key component under OR or
+  CP in the WHERE.
+- RETURN, or EXIT/CONTINUE/CHECK of an outer loop, inside a CLEANUP block
+  (abaplint/abaplint#4431 is open).
+- An SAP API or addition the configured release does not have; GET REFERENCE
+  under the Cloud language version.
+
+**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-syntax-cleanup-leaves-block, abaplint-release-api-availability
+
+### Security
+
+- A literal assigned to or passed as a password, secret or token.
+- A dynamic WHERE, field list or table name built from input without
+  `cl_abap_dyn_prg` (`escape_quotes`, `check_column_name`, …).
+
+**Backlog:** abaplint · abaplint-hardcoded-credentials, abaplint-sql-injection-dynamic
+
+### Style and Clean ABAP — only where the house style asks for it
+
+These are Clean ABAP clean-ups, not defects. AGENTS.md
+("Coding Style") decides which apply here; three of them it rules out:
+
+| Check | Here |
+|---|---|
+| Empty PROTECTED/PRIVATE SECTION removed | **no** — AGENTS.md keeps all three sections |
+| CATCH cx_root avoided | **no** — AGENTS.md catches cx_root and re-raises it with `previous` |
+| OPTIONAL and boolean IMPORTING parameters avoided | **no** for the public API (`z2ui5_if_client` relies on them); fine in new private methods |
+| Comments: `"` not `*`, indented like the next line, a space after `"`, no forgotten TODO/FIXME | yes |
+| Guard clauses: `IF … CONTINUE` instead of CHECK in a loop; an early exit instead of a long IF at the end of a loop or method | yes |
+| A method returning `abap_bool` named `is_`/`has_`/… | yes for new methods; the `check_on_*( )` names are API |
+| `+=`, `to_upper( )`, `condense( )` instead of `x = x + …`, TRANSLATE, CONDENSE | yes — the downport expands `+=` for 7.02; `to_upper( )` and `condense( )` exist on 7.02 already |
+| `FINAL( )` for inline declarations never changed | **not yet** — 7.57; check that the downport handles it first |
+| A table expression / `VALUE #( … OPTIONAL )` instead of READ TABLE + sy-subrc | yes, where not-found is skipped; the exception differs otherwise |
+| SORT … BY with ASCENDING/DESCENDING stated | optional |
+| CLEAR right after DATA, a needless `me->` | yes |
+| Classes of only static methods, interfaces of only constants, public methods outside an interface | judge per case |
+| Class size (methods, attributes per class), statements per WHEN | the method limits in AGENTS.md apply; the rest is a smell |
+| Magic numbers, sy-uname/sy-sysid compared with a literal, `'@00@'` icon literals | name them as constants |
+| MESSAGE TYPE E/A/X or WRITE in a global class; MESSAGE ID sy-msgid … TYPE sy-msgty | no dialog in classes — raise an exception |
+| COLLECT; a table with the implicit default key | avoid (AGENTS.md: no default key) |
+| A CONV whose target already has the type; `"#EC CI_SUBRC` where sy-subrc is checked; an OPTIONAL parameter no caller supplies; a message nothing uses | remove |
+
+**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-redundant-conv-target, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message
+
+### Objects and files
+
+- A UTF-8 BOM at the start of a `.abap` file (`check:abapgit` covers this
+  repository; other repositories need the rule).
+- PROG/FUGR/CLAS XML without fixed point arithmetic.
+- An object whose original language is not the configured one.
+- Append-structure fields without the ZZ/YY prefix.
+- A transaction whose program, class or screen does not exist.
+- A global class with logic and no test class.
+
+**Backlog:** abaplint · abaplint-abap-file-bom, abaplint-fixed-point-arithmetic, abaplint-master-language, abaplint-append-field-prefix, abaplint-tran-consistency, abaplint-class-without-test-class
+
 ---
 
 ## When a pull does show diffs
@@ -1680,7 +1825,8 @@ Keep the catalogue worth reading: one entry, one defect that actually happened.
 
 1. **Put it in the right section** — 1 round trip and import, 2 activation,
    3 extended check, 4 downport/transpile, 5 runtime, 6 blind spots. A new kind
-   of failure gets a new section.
+   of failure gets a new section. Section 7 is the rule stock, not cases: a
+   case that bites us moves out of it into 1–6.
 2. **Name the evidence** — the commit, PR, issue or file where it bit us. An
    entry without a case is a rule somebody will delete as speculation. Say when
    it was a user who found it; those are the expensive ones.

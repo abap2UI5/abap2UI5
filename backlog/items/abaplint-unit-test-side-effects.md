@@ -1,7 +1,7 @@
 ---
 target: abaplint
 title: 'Report database writes, COMMIT, SUBMIT and RFC in FOR TESTING classes'
-summary: 'tests that write to the database or commit change shared system data and are flaky; code-pal and ATC report them'
+summary: 'tests that write to the database or commit change shared system data and are flaky; ATC reports them'
 priority: low
 state: open
 first_seen: 2026-10-11
@@ -25,5 +25,3 @@ ENDMETHOD.
 **Not reported.** Classes that set up cl_osql_test_environment or cl_cds_test_environment.
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** S.
-
-**Source.** code-pal db-access-in-ut, external-call-in-ut.

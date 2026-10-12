@@ -8,7 +8,7 @@ first_seen: 2026-10-11
 checked_upstream: 2026-10-11
 upstream: abaplint/abaplint
 evidence:
-  - 'SAP/code-pal-for-abap 9a02ae8; sbcgua/ajson 075a09b; abapGit/abapGit c5a6aed, f6ad8c6, 497b432, 1eafca9'
+  - 'sbcgua/ajson 075a09b; abapGit/abapGit c5a6aed, f6ad8c6, 497b432, 1eafca9'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
 
@@ -24,4 +24,4 @@ cl_abap_unit_assert=>skip( 'not on this release' ).   " not on 7.50
 
 **Where.** a new rule (or an option of the closest existing one). **Effort:** L.
 
-**Source.** code-pal, ajson, abapGit fix history.
+**Source.** ajson, abapGit fix history.
