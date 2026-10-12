@@ -1,5 +1,6 @@
 /*
- * Detector for `abaplint-default-key-implicit`: `TYPE [STANDARD] TABLE OF x`
+ * Detector for the default-key half of `abaplint-avoid-use-extensions`
+ * (until 2026-10-12 the item `abaplint-default-key-implicit`): `TYPE [STANDARD] TABLE OF x`
  * with no WITH … KEY clause in the same declaration element, with the
  * explicit `WITH DEFAULT KEY` (what obsolete_statement already reports) as
  * the negative.

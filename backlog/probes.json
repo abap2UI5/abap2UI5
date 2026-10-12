@@ -1,5 +1,5 @@
 {
-  "abaplint-default-key-implicit": {
+  "abaplint-avoid-use-extensions": {
     "describe": "an implicit default-key table declaration, with the explicit WITH DEFAULT KEY as the negative",
     "ran": "2026-09-19",
     "checkouts": [
