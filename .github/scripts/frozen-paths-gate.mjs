@@ -40,11 +40,20 @@ const git = (...args) =>
 const EXEMPT = [
   ":(exclude)src/99/*.testclasses.abap",
   ":(exclude)src/99/*.clas.xml",
-  // No further entry. A third one - src/99/02/z2ui5_cl_pop_*.clas.abap -
-  // was open from 2026-09-22 to 2026-09-25 while the popup apps were ported
-  // off z2ui5_cl_xml_view, and came out with the last ported class: an
+  // A popup exemption - src/99/02/z2ui5_cl_pop_*.clas.abap - was open from
+  // 2026-09-22 to 2026-09-25 while the popup apps were ported off
+  // z2ui5_cl_xml_view, and came out with the last ported class: an
   // exemption for one migration, not a hole in the freeze. The decision and
   // its closing are recorded in AGENTS.md, "Layered Design".
+  //
+  // OPEN for one change (maintainer decision 2026-10-12, recorded in
+  // docs/agents/decisions.md, "The src/99 exemptions"): the two dynamic
+  // WHERE builders the addons still call escape what the browser sends.
+  // These two names come out again in the next change to this file after
+  // that change merged - they are not a standing permission to edit the
+  // classes.
+  ":(exclude)src/99/01/z2ui5_cl_util.clas.abap",
+  ":(exclude)src/99/01/z2ui5_cl_util_ext.clas.abap",
 ];
 
 const head = process.env.HEAD_SHA || "HEAD";

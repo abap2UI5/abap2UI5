@@ -131,8 +131,9 @@ internals they assert on) and the `.clas.xml` sidecars. Moving an object **out**
 of the package is allowed; the gate refuses a deletion only when the object
 name exists nowhere else under `src/` afterwards **and** it shipped in the
 latest release tag. Any other change under `src/99` needs a maintainer decision
-recorded in `docs/agents/decisions.md` first — the one exemption that was
-opened (the popup port) has closed again and is **not** a precedent.
+recorded in `docs/agents/decisions.md` first — the popup port's exemption has
+closed again, the one for the two WHERE builders (2026-10-12) closes right
+after its change, and neither is a precedent.
 
 ### Utilities — the context class is the only door
 

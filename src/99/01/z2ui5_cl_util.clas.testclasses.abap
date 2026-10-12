@@ -970,6 +970,7 @@ CLASS ltcl_filter_ops DEFINITION FINAL
     METHODS sql_where_cp                   FOR TESTING.
     METHODS sql_where_multiple_fields      FOR TESTING.
     METHODS sql_where_exclude              FOR TESTING.
+    METHODS sql_where_name_not_a_field     FOR TESTING.
 
     " filter_get_multi_by_sql_where roundtrip
     METHODS sql_roundtrip_eq               FOR TESTING.
@@ -1082,6 +1083,15 @@ CLASS ltcl_filter_ops IMPLEMENTATION.
         ( name = `STATUS` t_range = VALUE #( ( sign = `E` option = `EQ` low = `X` ) ) ) ).
     DATA(lv_result) = z2ui5_cl_util=>filter_get_sql_where( lt_filter ).
     cl_abap_unit_assert=>assert_equals( exp = `( STATUS <> 'X' )` act = lv_result ).
+  ENDMETHOD.
+
+  METHOD sql_where_name_not_a_field.
+    " a name that is not a plain field name never reaches the WHERE clause
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS = 'A' OR MANDT` t_range = VALUE #( ( sign = `I` option = `EQ` low = `X` ) ) )
+        ( name = `/ABC/FIELD_1` t_range = VALUE #( ( sign = `I` option = `EQ` low = `1` ) ) ) ).
+    DATA(lv_result) = z2ui5_cl_util=>filter_get_sql_where( lt_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = `( /ABC/FIELD_1 = '1' )` act = lv_result ).
   ENDMETHOD.
 
   METHOD sql_roundtrip_eq.
