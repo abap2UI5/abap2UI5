@@ -12,18 +12,25 @@ sap.ui.define(["sap/ui/core/mvc/Controller"], (Controller) => {
   // older than 1.146.0), the component failed. Say so instead of a blank
   // page.
   return Controller.extend("abap2ui5.frontend.controller.Main", {
-    // This page is the control and nothing else, so the URL hash is the
-    // app's: hash routing, set_push_state / hash_replace, browser Back and
-    // Forward between routed apps (the control's ownsHash). Set here, before
-    // the first rendering starts the app.
+    // This page is the control and nothing else, so the page is the app's:
+    // the URL hash (hash routing, set_push_state / hash_replace, browser
+    // Back and Forward between routed apps), the title, the favicon, the
+    // busy indicator and the "leave page?" prompt - the control's ownsPage.
+    // A control that predates ownsPage hands it over by its older name
+    // ownsHash, which abap2UI5 reads the same way. Set here, before the
+    // first rendering starts the app.
     //
-    // A control without the property is 0.1.1, which knows no second name
-    // either: it would create the frontend as z2ui5 - this component again
+    // A control with neither is 0.1.1, which knows no second name either:
+    // it would create the frontend as z2ui5 - this component again
     // (Component.js stops that). Nothing starts then, and the page says
-    // what is missing. Goes into the view as ownsHash="true" once the
+    // what is missing. Goes into the view as ownsPage="true" once the
     // control's release that has it is in package-lock.json.
     onInit() {
       const container = this.byId("app");
+      if (typeof container.setOwnsPage === "function") {
+        container.setOwnsPage(true);
+        return;
+      }
       if (typeof container.setOwnsHash !== "function") {
         this._model().setProperty("/app", "");
         this._model().setProperty("/error", NEEDS);

@@ -26,6 +26,20 @@ sap.ui.define(
     // forever.
     const REQUEST_TIMEOUT_MS = 600000;
 
+    // The busy overlay of a roundtrip: the global BusyIndicator on a page the
+    // component owns, the component's own area on a host's page
+    // (state.ownsPage, Component.init - Lib.setComponentBusy). The same pair
+    // sits in View1.controller.js, the other half of the busy protocol.
+    function showBusy(ctx, delay) {
+      if (ctx?.state?.ownsPage === false)
+        Lib.setComponentBusy(ctx, true, delay);
+      else BusyIndicator.show(delay);
+    }
+    function hideBusy(ctx) {
+      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);
+      else BusyIndicator.hide();
+    }
+
     // Roundtrip lifecycle (spans this file and View1.controller.js):
     //   1. View1.eB(...)              builds the request body with the model
     //                                 delta and hands it to roundtrip(oBody)
@@ -192,7 +206,7 @@ sap.ui.define(
         // request that aborts the Back/Forward navigation without any
         // feedback. _processAfterRendering / responseError clear it again.
         ctx.state.isBusy = true;
-        BusyIndicator.show(0);
+        showBusy(ctx, 0);
         // A restore is a new roundtrip like any other, so the timers armed by
         // the screen being left go with it (View1.eB does the same before its
         // dispatch) - a poll armed one Back ago otherwise kept ticking its
@@ -336,7 +350,7 @@ sap.ui.define(
         const oRetry = {
           onRetry: () => {
             ctx.state.isBusy = true;
-            BusyIndicator.show(0);
+            showBusy(ctx, 0);
             this.readHttp(ctx, oBody, sessionCarried);
           },
         };
@@ -764,7 +778,7 @@ sap.ui.define(
           // catch below instead of an unhandled rejection.
           await oController._processAfterRendering(reqSeq);
         } catch (e) {
-          BusyIndicator.hide();
+          hideBusy(ctx);
           ctx.state.isBusy = false;
           Lib.logError("responseSuccess: unexpected error", e);
           this.showRenderError(ctx, e);
@@ -826,7 +840,7 @@ sap.ui.define(
       // (used for network/timeout failures where the request may never have
       // reached the server).
       responseError(ctx, response, title, oOptions) {
-        BusyIndicator.hide();
+        hideBusy(ctx);
         ctx.state.isBusy = false;
         // The overlay below ends the app: every further request is the
         // overlay's own Retry / Restart. A keystroke a check_queue_last wire

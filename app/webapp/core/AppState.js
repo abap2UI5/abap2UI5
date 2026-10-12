@@ -44,13 +44,20 @@
 //                     own - the z2ui5/embed module of ?z2ui5-bundle passes
 //                     it as component data, a host with a ComponentContainer
 //                     may pass it itself. The URL is the host's then,
-//                     unless the host hands it back with ownsHash
+//                     unless the host hands the page back with ownsPage
 //                     (Component.init)
-//   ownsHash          true when the component reads and writes the page's
-//                     URL hash: always on a page of its own, embedded only
-//                     when the host passed ownsHash: true. Without it the
-//                     router neither listens to nor writes the hash, and no
-//                     request reports it (Component.init)
+//   ownsPage          true when the component may act on the whole page:
+//                     the URL hash, the document title, the favicon, the
+//                     global busy indicator, the browser's "leave page?"
+//                     prompt. Always on a page of its own, embedded only
+//                     when the host passed ownsPage: true (or its older
+//                     name ownsHash: true). Without it SET_TITLE and
+//                     SET_FAVICON change nothing, a roundtrip shows the busy
+//                     state on the component's own area, unsaved changes
+//                     raise no prompt (Component.init)
+//   ownsHash          the hash part of ownsPage, always equal to it: the
+//                     router neither listens to nor writes the hash without
+//                     it, and no request reports it (Component.init)
 //
 // Views / controllers / UI5 objects
 //   oApp              sap.m.App hosting the main view (App.controller)
@@ -188,6 +195,7 @@ sap.ui.define([], () => {
       nodePath: null,
       embedded: false,
       ownsHash: true,
+      ownsPage: true,
 
       // Views / controllers / UI5 objects
       oApp: null,
@@ -332,6 +340,7 @@ sap.ui.define([], () => {
     "nodePath",
     "embedded",
     "ownsHash",
+    "ownsPage",
     "oApp",
     "oOwnerComponent",
     "oDeviceModel",

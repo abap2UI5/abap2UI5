@@ -48,6 +48,16 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
              `` && |\n| &&
+             `    function showBusy(ctx, delay) {` && |\n| &&
+             `      if (ctx?.state?.ownsPage === false)` && |\n| &&
+             `        Lib.setComponentBusy(ctx, true, delay);` && |\n| &&
+             `      else BusyIndicator.show(delay);` && |\n| &&
+             `    }` && |\n| &&
+             `    function hideBusy(ctx) {` && |\n| &&
+             `      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);` && |\n| &&
+             `      else BusyIndicator.hide();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      PROTOCOL: 2,` && |\n| &&
              `` && |\n| &&
@@ -78,7 +88,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      restoreFromRoute(ctx) {` && |\n| &&
              `        ctx.state.isBusy = true;` && |\n| &&
-             `        BusyIndicator.show(0);` && |\n| &&
+             `        showBusy(ctx, 0);` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(ctx);` && |\n| &&
              `` && |\n| &&
@@ -172,7 +182,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        const oRetry = {` && |\n| &&
              `          onRetry: () => {` && |\n| &&
              `            ctx.state.isBusy = true;` && |\n| &&
-             `            BusyIndicator.show(0);` && |\n| &&
+             `            showBusy(ctx, 0);` && |\n| &&
              `            this.readHttp(ctx, oBody, sessionCarried);` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        if (!sentValues) return;` && |\n| &&
              `        for (const path of Array.from(pending)) {` && |\n| &&
              `          if (` && |\n| &&
-             `            sentValues.has(path) &&` && |\n| &&
+             `            sentValues.has(path) &&` && |\n|.
+    result = result &&
              `            sentValues.get(path) === oModel.getProperty(path)` && |\n| &&
              `          ) {` && |\n| &&
              `            pending.delete(path);` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      async responseSuccess(ctx, response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController(ctx, "MAIN");` && |\n| &&
-             `        try {` && |\n|.
-    result = result &&
+             `        try {` && |\n| &&
              `          ctx.state.oResponse = response;` && |\n| &&
              `` && |\n| &&
              `          const followUp = response.S_ACTION;` && |\n| &&
@@ -434,7 +444,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          await oController._processAfterRendering(reqSeq);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          BusyIndicator.hide();` && |\n| &&
+             `          hideBusy(ctx);` && |\n| &&
              `          ctx.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          this.showRenderError(ctx, e);` && |\n| &&
@@ -474,7 +484,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      responseError(ctx, response, title, oOptions) {` && |\n| &&
-             `        BusyIndicator.hide();` && |\n| &&
+             `        hideBusy(ctx);` && |\n| &&
              `        ctx.state.isBusy = false;` && |\n| &&
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&

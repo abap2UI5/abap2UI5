@@ -87,11 +87,10 @@ sap.ui.define(
         // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
         // its settings as component data, and so do the z2ui5/embed module
         // of ?z2ui5-bundle (embedded, nodePath) and a host app that embeds
-        // this component (endpoint, ownsHash, see below); they configure the
-        // frontend
-        // and are not app data, so they are split off here and never travel
-        // to the backend with the rest of the component data. In BSP and
-        // Launchpad mode none of them is present.
+        // this component (endpoint, ownsPage, ownsHash, see below); they
+        // configure the frontend and are not app data, so they are split off
+        // here and never travel to the backend with the rest of the
+        // component data. In BSP and Launchpad mode none of them is present.
         const {
           checkLocal,
           ccResourceRoot,
@@ -99,6 +98,7 @@ sap.ui.define(
           endpoint,
           embedded,
           ownsHash,
+          ownsPage,
           nodePath,
           ...componentData
         } = this.getComponentData() || {};
@@ -144,20 +144,38 @@ sap.ui.define(
           });
         }
 
-        // The URL hash of an embedded component is the host's - unless the
-        // host hands it back with ownsHash. A host whose page is this one
-        // component and nothing else (the abap2UI5/frontend branches
-        // standard_new and cloud_new: a z2ui5.embed.Container filling an
-        // empty page) routes by nothing,
-        // and its app keeps what it has on a page of its own: hash routing,
+        // What belongs to the PAGE rather than to an area of it - the URL
+        // hash, the document title and the favicon, the global busy
+        // indicator, the browser's "leave page?" prompt - is the host's for
+        // an embedded component, unless the host hands the page back with
+        // ownsPage. A host whose page is this one component and nothing else
+        // (the abap2UI5/frontend branches standard_new and cloud_new: a
+        // z2ui5.embed.Container filling an empty page) does, and its app
+        // keeps what it has on a page of its own: hash routing,
         // set_push_state / hash_replace, the hash listener, Back and Forward
-        // between routed apps, a route restored on reload. Opt-in, and read
-        // on the TOP level only like the endpoint: a launchpad link must not
-        // take the hash from a host that routes by it, and the bundle does
-        // not pass it - only a host does. One such component per page, the
-        // hash is page-wide (core/Context.js). The router and the request
-        // ask ownsHash, never embedded (core/Router.js, core/Server.js).
-        state.ownsHash = !state.embedded || ownsHash === true;
+        // between routed apps, a route restored on reload (core/Router.js,
+        // core/Server.js ask state.ownsHash), SET_TITLE / SET_FAVICON and
+        // cc/Title / cc/Favicon (core/actions/Browser.js), the global busy
+        // indicator (Server / View1 showBusy) and the prompt (cc/Dirty).
+        // Without it the title and the favicon stay the host's, a roundtrip
+        // shows its busy state on the component's own area
+        // (Lib.setComponentBusy), and unsaved changes do not keep the user
+        // on the host's page.
+        //
+        // ownsHash is the older name of the same switch: it named only the
+        // hash, but its host is by its contract the same - a page that is
+        // the component and nothing else - so it hands back the whole page
+        // as well, and a host that passes it keeps what it had. Both are
+        // opt-in and read on the TOP level only like the endpoint: a
+        // launchpad link must not take the page from a host that routes by
+        // it, and the bundle does not pass them - only a host does. One such
+        // component per page, the hash is page-wide (core/Context.js). What
+        // an embedded component does to stay out of a host's window (class
+        // globals, mobile setup, focus guard, restart in place, console
+        // capture) stays either way.
+        state.ownsPage =
+          !state.embedded || ownsPage === true || ownsHash === true;
+        state.ownsHash = state.ownsPage;
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:

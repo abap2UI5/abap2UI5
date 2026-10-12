@@ -271,7 +271,10 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
 
   test("an absent number is a backend older than the field and passes", async () => {
     const env = load();
-    await answer(env, response({ json: { S_FRONT: { ID: "x", S_ACTION: {} } } }));
+    await answer(
+      env,
+      response({ json: { S_FRONT: { ID: "x", S_ACTION: {} } } }),
+    );
 
     expect(env.errors).toEqual([]);
     expect(env.successes.map((s) => s.ID)).toEqual(["x"]);
@@ -316,7 +319,8 @@ test.describe("the X-CSRF-Token handshake", () => {
       headers: { "x-csrf-token": "Required" },
     });
   const token = (value) => response({ headers: { "x-csrf-token": value } });
-  const good = (id) => response({ json: { S_FRONT: { ID: id, S_ACTION: {} } } });
+  const good = (id) =>
+    response({ json: { S_FRONT: { ID: id, S_ACTION: {} } } });
 
   // let readHttp run up to its next fetch, or to its end
   async function flush() {
@@ -418,7 +422,9 @@ test.describe("the X-CSRF-Token handshake", () => {
 
     expect(env.fetches).toHaveLength(3);
     expect(env.errors).toHaveLength(1);
-    expect(env.errors[0].msg).toBe("The request does not contain a x-csrf-token");
+    expect(env.errors[0].msg).toBe(
+      "The request does not contain a x-csrf-token",
+    );
     expect(env.errors[0].options).toBeUndefined();
     expect(env.successes).toEqual([]);
   });
@@ -442,7 +448,9 @@ test.describe("the X-CSRF-Token handshake", () => {
 
       expect(env.fetches).toHaveLength(2);
       expect(env.errors).toHaveLength(1);
-      expect(env.errors[0].msg).toBe("The request does not contain a x-csrf-token");
+      expect(env.errors[0].msg).toBe(
+        "The request does not contain a x-csrf-token",
+      );
       expect(env.ctx.server.csrfToken).toBe("");
     });
   }
@@ -455,7 +463,11 @@ test.describe("the X-CSRF-Token handshake", () => {
     expect(env.fetches[1].opts.method).toBe("HEAD");
 
     // a newer request goes out while the token is on its way
-    const newer = env.Server.readHttp(env.ctx, { S_FRONT: { EVENT: "NEXT" } }, null);
+    const newer = env.Server.readHttp(
+      env.ctx,
+      { S_FRONT: { EVENT: "NEXT" } },
+      null,
+    );
     expect(env.fetches).toHaveLength(3);
     env.fetches[1].resolve(token("tok-1"));
     await p;
@@ -532,4 +544,27 @@ test.describe("the request size", () => {
     expect(env.ctx.state.lastRequestBytes()).toBe(bytes);
     expect(encodes).toBe(1);
   });
+});
+
+// A component that does not own the page (state.ownsPage false, embedded -
+// Component.init) shows the busy state on its own area: the global
+// BusyIndicator would block the host's whole page. The overlay goes on the
+// component's root control (Lib.setComponentBusy), at the same delay.
+test("the Retry of an embedded component is busy on its own area, not the page's", async () => {
+  const env = load();
+  const root = { calls: [] };
+  root.setBusyIndicatorDelay = (d) => root.calls.push(["delay", d]);
+  root.setBusy = (b) => root.calls.push(["busy", b]);
+  env.ctx.state.ownsPage = false;
+  env.ctx.component = { getRootControl: () => root };
+
+  await answer(env, response({ ok: false, status: 503, text: "gateway" }));
+  env.errors[0].options.onRetry();
+
+  expect(env.ctx.state.isBusy).toBe(true);
+  expect(env.busy).toEqual([]);
+  expect(root.calls).toEqual([
+    ["delay", 0],
+    ["busy", true],
+  ]);
 });

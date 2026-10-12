@@ -186,6 +186,35 @@ test("the hash is the page's own, the host's when embedded, unless handed back",
   });
 });
 
+// The rest of the page - the title, the favicon, the global busy indicator,
+// the "leave page?" prompt - goes with the hash: ownsPage hands all of it
+// back, and ownsHash, the switch's older name, does the same, so a host that
+// passes it keeps what it had. Read like ownsHash, and never sent.
+test("the page is the component's own, the host's when embedded, unless handed back", () => {
+  expect(init({}).ownsPage).toBe(true);
+  expect(init({ embedded: true }).ownsPage).toBe(false);
+
+  const state = init({
+    embedded: true,
+    ownsPage: true,
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+  expect(state.ownsPage).toBe(true);
+  expect(state.ownsHash).toBe(true);
+  expect(state.oConfig.ComponentData).toEqual({
+    startupParameters: { app_start: ["ZCL_APP"] },
+  });
+
+  expect(init({ embedded: true, ownsHash: true }).ownsPage).toBe(true);
+  expect(init({ embedded: true, ownsPage: "true" }).ownsPage).toBe(false);
+  const linked = init({
+    embedded: true,
+    startupParameters: { ownsPage: ["true"] },
+  });
+  expect(linked.ownsPage).toBe(false);
+  expect(linked.ownsHash).toBe(false);
+});
+
 test("only a host's boolean true hands the hash back - not a launchpad link", () => {
   expect(init({ embedded: true, ownsHash: "true" }).ownsHash).toBe(false);
   expect(init({ embedded: true, ownsHash: 1 }).ownsHash).toBe(false);

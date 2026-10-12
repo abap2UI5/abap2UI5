@@ -52,6 +52,16 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    function showBusy(ctx, delay) {` && |\n| &&
+             `      if (ctx?.state?.ownsPage === false)` && |\n| &&
+             `        Lib.setComponentBusy(ctx, true, delay);` && |\n| &&
+             `      else BusyIndicator.show(delay);` && |\n| &&
+             `    }` && |\n| &&
+             `    function hideBusy(ctx) {` && |\n| &&
+             `      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);` && |\n| &&
+             `      else BusyIndicator.hide();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const View1Controller = Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (this.ctx.state.oResponse) this._processAfterRendering();` && |\n| &&
@@ -131,7 +141,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        } finally {` && |\n| &&
              `          if (!superseded) {` && |\n| &&
-             `            BusyIndicator.hide();` && |\n| &&
+             `            hideBusy(this.ctx);` && |\n| &&
              `            this.ctx.state.isBusy = false;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -297,14 +307,14 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `              args: Lib.normalizeEventArgs(args),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
-             `          if (!noBusy) BusyIndicator.show(0);` && |\n| &&
+             `          if (!noBusy) showBusy(this.ctx, 0);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(this.ctx);` && |\n| &&
              `` && |\n| &&
              `        this.ctx.state.isBusy = true;` && |\n| &&
-             `        if (!noBusy) BusyIndicator.show();` && |\n| &&
+             `        if (!noBusy) showBusy(this.ctx);` && |\n| &&
              `` && |\n| &&
              `        const oBody = {};` && |\n| &&
              `        this.ctx.state.oBody = oBody;` && |\n| &&

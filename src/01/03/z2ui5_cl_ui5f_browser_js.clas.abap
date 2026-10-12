@@ -266,7 +266,12 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function ownsPage(oController) {` && |\n| &&
+             `      return oController?.ctx?.state?.ownsPage !== false;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetTitle(oController, args) {` && |\n| &&
+             `      if (!ownsPage(oController)) return;` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
              `        document.title = title;` && |\n| &&
@@ -276,6 +281,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetFavicon(oController, args) {` && |\n| &&
+             `      if (!ownsPage(oController)) return;` && |\n| &&
              `      const href = Lib.toText(args[1]);` && |\n| &&
              `` && |\n| &&
              `      if (!Lib.isSafeDownloadURL(href)) {` && |\n| &&

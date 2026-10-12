@@ -31,8 +31,9 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/actions/Browser",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, Browser, Env) => {` && |\n| &&
+             `  (Control, Lib, Browser, Env, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const Title = Control.extend("z2ui5.cc.Title", {` && |\n| &&
@@ -45,7 +46,11 @@ CLASS z2ui5_cl_ui5f_title_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      setTitle(val) {` && |\n| &&
              `        this.setProperty("title", val, true);` && |\n| &&
-             `        Browser.handlers.SET_TITLE(null, ["SET_TITLE", val]);` && |\n| &&
+             `` && |\n| &&
+             `        Browser.handlers.SET_TITLE({ ctx: Context.of(this) }, [` && |\n| &&
+             `          "SET_TITLE",` && |\n| &&
+             `          val,` && |\n| &&
+             `        ]);` && |\n| &&
              `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&

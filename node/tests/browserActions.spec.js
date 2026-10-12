@@ -159,6 +159,8 @@ function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
     },
     errors: () => (libState.errors || []).map((e) => e.message),
     Lib,
+    ctx,
+    document: documentStub,
   };
 }
 
@@ -172,7 +174,10 @@ test.describe("LOCATION_RELOAD", () => {
 
   test("a cross-origin or javascript: URL is refused with a MessageBox", () => {
     const { handlers, location, boxErrors } = load();
-    handlers.LOCATION_RELOAD(null, ["LOCATION_RELOAD", "https://evil.example/"]);
+    handlers.LOCATION_RELOAD(null, [
+      "LOCATION_RELOAD",
+      "https://evil.example/",
+    ]);
     handlers.LOCATION_RELOAD(null, ["LOCATION_RELOAD", "javascript:alert(1)"]);
     expect(location.href).toBe("");
     expect(boxErrors).toHaveLength(2);
@@ -245,7 +250,9 @@ test.describe("SYSTEM_LOGOUT", () => {
 
     expect(frames).toHaveLength(1);
     const frame = frames[0];
-    expect(frame.src).toBe("/sap/bc/bsp/sap/z2ui5/index.html?sap-sessioncmd=logoff");
+    expect(frame.src).toBe(
+      "/sap/bc/bsp/sap/z2ui5/index.html?sap-sessioncmd=logoff",
+    );
     expect(frame.style.display).toBe("none");
     expect(bodyOps).toEqual([["append", frame]]);
     // nothing navigates before the terminate answered
@@ -321,7 +328,9 @@ test.describe("PLAY_AUDIO", () => {
     handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", "javascript:alert(1)"]);
     handlers.PLAY_AUDIO(null, ["PLAY_AUDIO", ""]);
     expect(audios).toEqual([]);
-    expect(errors().filter((m) => m === "PLAY_AUDIO: blocked unsafe audio URL")).toHaveLength(2);
+    expect(
+      errors().filter((m) => m === "PLAY_AUDIO: blocked unsafe audio URL"),
+    ).toHaveLength(2);
   });
 
   test("a play( ) rejected by the autoplay policy is logged, never unhandled", async () => {
@@ -424,7 +433,12 @@ test.describe("STORE_DATA", () => {
     test(`the payload '${raw}' is resolved against the view model`, () => {
       const { handlers, stores, errors } = load();
       const oController = controllerWithModel({
-        "/S_STORAGE": { TYPE: "local", PREFIX: "", KEY: "CART", VALUE: { A: 1 } },
+        "/S_STORAGE": {
+          TYPE: "local",
+          PREFIX: "",
+          KEY: "CART",
+          VALUE: { A: 1 },
+        },
       });
       handlers.STORE_DATA(oController, ["STORE_DATA", raw]);
       expect(stores).toHaveLength(1);
@@ -467,9 +481,7 @@ test.describe("STORE_DATA", () => {
     handlers.STORE_DATA(controllerWithModel({}), ["STORE_DATA", "S_STORAGE"]);
     expect(stores).toEqual([]);
     expect(
-      errors().some((m) =>
-        m.includes("is neither a payload nor a model path"),
-      ),
+      errors().some((m) => m.includes("is neither a payload nor a model path")),
     ).toBe(true);
   });
 
@@ -525,7 +537,11 @@ test.describe("DOWNLOAD_B64_FILE", () => {
     test(`an active data: MIME type is blocked in the spelling ${JSON.stringify(url)}`, () => {
       const { handlers, anchors, errors } = load();
 
-      handlers.DOWNLOAD_B64_FILE(null, ["DOWNLOAD_B64_FILE", url, "invoice.html"]);
+      handlers.DOWNLOAD_B64_FILE(null, [
+        "DOWNLOAD_B64_FILE",
+        url,
+        "invoice.html",
+      ]);
 
       expect(anchors).toHaveLength(0);
       expect(errors()).toContain(
@@ -745,7 +761,15 @@ test.describe("URLHELPER", () => {
     );
 
     expect(urlHelperCalls).toEqual([
-      ["triggerEmail", "a@b.c", "hi", undefined, undefined, undefined, undefined],
+      [
+        "triggerEmail",
+        "a@b.c",
+        "hi",
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
       ["redirect", "https://help.sap.com", false],
     ]);
     expect(boxErrors).toEqual([]);
@@ -793,4 +817,20 @@ test("CLIPBOARD_COPY of a JSON argument copies the JSON text", () => {
   handlers.CLIPBOARD_COPY(null, ["CLIPBOARD_COPY", "plain text"]);
 
   expect(copied).toEqual(['{"id":1,"name":"x"}', '["a","b"]', "plain text"]);
+});
+
+// The document title names the PAGE: a component that owns it sets it, an
+// embedded one the host did not hand the page to (state.ownsPage false,
+// Component.init) leaves the host's title as it is. SET_FAVICON asks the
+// same (favicon.spec.js, through cc/Favicon).
+test("SET_TITLE sets the title only for a component that owns the page", () => {
+  const { handlers, ctx, document } = load();
+  document.title = "Host";
+
+  handlers.SET_TITLE(null, ["SET_TITLE", "App"]);
+  expect(document.title).toBe("App");
+
+  ctx.state.ownsPage = false;
+  handlers.SET_TITLE(null, ["SET_TITLE", "Other"]);
+  expect(document.title).toBe("App");
 });

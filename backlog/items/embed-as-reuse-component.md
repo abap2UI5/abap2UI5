@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag exists and hands the URL to the host (a Fiori elements custom section needed it), the other page-wide behaviours - title, favicon, busy indicator, sap.m.App root - wait for real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else; a root other than sap.m.App, the messaging decision and the rest of the wire wait for real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -88,6 +88,27 @@ reload. Everything else an embedded component does to stay out of the
 host's page (class globals, mobile setup, focus guard, restart in place)
 stays. One such component per page: the hash is page-wide.
 
+**Done 2026-10-12 - the rest of the page, and the switch that hands it
+back.** Asked for by the maintainer. The document title and the favicon
+(`SET_TITLE`, `SET_FAVICON` in `core/actions/Browser.js`, which
+`cc/Title.js` and `cc/Favicon.js` call with their context), the global
+busy indicator (`showBusy`/`hideBusy` in `core/Server.js` and
+`controller/View1.controller.js`) and the browser's "leave page?" prompt
+(`cc/Dirty.js`) ask `state.ownsPage`. An embedded component without it
+leaves the title and the favicon to the host, shows a roundtrip's busy
+state on its own root control (`Lib.setComponentBusy`) instead of
+blocking the host's page, and raises no prompt for the host's page (the
+FLP dirty flag is the shell's and stays). `componentData.ownsPage: true`
+(top level only, a boolean only) hands all of it back together with the
+hash; `ownsHash: true`, its older name, hands back the same, because its
+host is by contract the same page - so `standard_new` and `cloud_new`
+keep what they had. `state.ownsHash` is now always equal to
+`state.ownsPage`. Pinned by `componentData.spec.js`,
+`browserActions.spec.js`, `favicon.spec.js`, `dirty.spec.js` and
+`serverReadHttp.spec.js`. What an app calls on the BusyIndicator itself
+(`GLOBAL_TARGETS` in `core/actions/ControlCall.js`) is the app's explicit
+choice and still reaches the global one.
+
 **Done 2026-09-29 - the focus.** An embedded app no longer takes the focus
 from the host page: `sap.m.App` holds its autofocus off until its first page
 has rendered (`controller/App.controller.js`), and SET_FOCUS, a CONTROL_BY_ID
@@ -134,10 +155,10 @@ What else stage 1 needs:
      `replaceState`), `cc/History.js`, and `HASH`/`PATHNAME`/`SEARCH` on
      the wire (`core/Server.js`, `core/Session.js`). The backend then has to
      tolerate a request without them.
-   - Document title and favicon: `SET_TITLE`/`SET_FAVICON` in
-     `core/actions/Browser.js`, `cc/Title.js`, `cc/Favicon.js`.
-   - `window.onbeforeunload` (`cc/Dirty.js`) and the unload listener in
-     `Component.js`.
+   - Document title and favicon: done 2026-10-12 (`state.ownsPage`).
+   - `window.onbeforeunload` (`cc/Dirty.js`): done 2026-10-12 (the
+     prompt, `state.ownsPage`). The unload listener in `Component.js` is
+     the component's own teardown on `pagehide` and stays.
    - The developer tools' page-wide capture (`devtools/Console.js`
      `error`/`unhandledrejection`, `sessionStorage`).
 2. **A neutral root container** instead of `sap.m.App` in
@@ -214,9 +235,11 @@ npm package `@abap2ui5/embed-control`, with `app`, `endpoint` and `params`
 properties. It ships no frontend - it loads the bundle above from the
 backend it talks to, so it needs abap2UI5 1.145.0 or later - and it is what
 asked for `componentData.endpoint` and the bundle. The stage 1 items above
-are still what it lacks, the URL aside (done 2026-09-28): an embedded app
-shows the global busy indicator, may set the title and the favicon, and
-renders its root as `sap.m.App`.
+are still what it lacks, the URL (done 2026-09-28) and the title, the
+favicon, the busy indicator and the prompt (done 2026-10-12) aside: an
+embedded app renders its root as `sap.m.App`. Its `ownsHash` property
+hands the page back today; an `ownsPage` property of the same meaning is
+the control's side of the 2026-10-12 switch.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and
 its own namespace `z2ui5.embed` sits below it, mapped to the host app's

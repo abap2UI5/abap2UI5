@@ -27,11 +27,13 @@
 // What stays page-wide by nature, and deliberately: the URL hash (every
 // routed instance reacts to it - an embedded instance, state.embedded,
 // leaves it to the host unless the host hands it back, state.ownsHash),
-// document.title and the favicon, the global
-// BusyIndicator and the UI5 messaging facade, the devtools' console
-// capture, the unsaved-changes prompt of cc/Dirty and the raw fatal-error
-// overlay (one at a time). Lib.logError's ring is a page-wide diagnostic
-// for the same reason.
+// document.title and the favicon, the global BusyIndicator and the
+// unsaved-changes prompt of cc/Dirty (an embedded instance leaves those to
+// the host too unless the host hands the page back, state.ownsPage - it
+// then shows its busy state on its own area), the UI5 messaging facade,
+// the devtools' console capture and the raw fatal-error overlay (one at a
+// time). Lib.logError's ring is a page-wide diagnostic for the same
+// reason.
 sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   "use strict";
 

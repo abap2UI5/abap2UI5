@@ -106,7 +106,7 @@ starting an app.
 | frontend code in the BSP | a generated copy of `app/webapp` (~ the whole frontend) | none - the app, its view and the control (9 pages) |
 | after an abap2UI5 update | pull the matching frontend branch as well | nothing to do |
 | component in the launchpad | `z2ui5`, inbound `z2ui5-display` | the same - existing target mappings keep working |
-| URL hash | the app's: hash routing, `set_push_state`, `hash_replace`, browser back between routed apps | the app's as well - the page is the control and nothing else, so it hands the hash to the app (`ownsHash`) |
+| URL hash | the app's: hash routing, `set_push_state`, `hash_replace`, browser back between routed apps | the app's as well - the page is the control and nothing else, so it hands the page to the app (`ownsPage`, before it `ownsHash`): the hash, the title, the favicon, the busy indicator, the "leave page?" prompt |
 
 Not covered: the legacy-free (UI5 2.x) variants and the renamed
 `standard_<name>` builds.

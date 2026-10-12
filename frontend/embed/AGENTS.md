@@ -56,6 +56,8 @@ classic frontend sent it (`client->get( )-t_comp_params`).
 - **Every name is the old branches'** - the abapGit repository, the
   packages and their texts, `Z2UI5_CL_LP_HANDLER`, the BSP `Z2UI5`, the ICF
   nodes. These branches replace those installations: never rename one.
-- **The page is the control and nothing else, so the hash is the app's**
-  (the control's `ownsHash`). Nothing else of this app may route by the
-  hash or write it.
+- **The page is the control and nothing else, so the page is the app's**
+  (the control's `ownsPage`, or `ownsHash` on a control that predates
+  it): the hash, the title, the favicon, the busy indicator, the "leave
+  page?" prompt. Nothing else of this app may route by the hash, write it
+  or set the title.
