@@ -75,6 +75,19 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return CONTROLLER_FIELDS.some((field) => state[field] === oController);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function setComponentBusy(ctx, busy, delay) {` && |\n| &&
+             `    const root = ctx?.component?.getRootControl?.() || ctx?.state?.oApp || null;` && |\n| &&
+             `    if (!root || isDestroyed(root)) return;` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (busy) {` && |\n| &&
+             `        root.setBusyIndicatorDelay(typeof delay === "number" ? delay : 1000);` && |\n| &&
+             `      }` && |\n| &&
+             `      root.setBusy(busy === true);` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      logError("setComponentBusy: setting the busy state failed", e);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function isDestroyed(obj) {` && |\n| &&
              `    if (!obj) return false;` && |\n| &&
              `` && |\n| &&
@@ -411,7 +424,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function hasSafeProtocol(parsed) {` && |\n| &&
              `    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
-             `    logError(` && |\n| &&
+             `    logError(` && |\n|.
+    result = result &&
              `      ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
              `    );` && |\n| &&
              `    return false;` && |\n| &&
@@ -424,8 +438,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `      logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
-             `    return hasSafeProtocol(parsed);` && |\n|.
-    result = result &&
+             `    return hasSafeProtocol(parsed);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isSafeRedirectProtocol(url) {` && |\n| &&
@@ -755,6 +768,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    errors,` && |\n| &&
              `    logError,` && |\n| &&
              `    isDestroyed,` && |\n| &&
+             `    setComponentBusy,` && |\n| &&
              `    isControllerAlive,` && |\n| &&
              `    requireODataModel,` && |\n| &&
              `    afterRoundtrip,` && |\n| &&

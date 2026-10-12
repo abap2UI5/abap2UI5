@@ -16,7 +16,7 @@ const { loadLib, classEnv } = require("./loadLibModule");
 // suppression (an empty renderer means a re-render would achieve nothing)
 // and Lib.toText, which turns an unbound property into "" rather than
 // "undefined".
-function load({ head = [] } = {}) {
+function load({ head = [], ownsPage = true } = {}) {
   const links = head;
   const created = [];
 
@@ -31,8 +31,7 @@ function load({ head = [] } = {}) {
       querySelector: (sel) => {
         expect(sel).toBe('link[rel~="icon"]');
         return (
-          links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ??
-          null
+          links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ?? null
         );
       },
       // appendChild is on the same head object the action queried.
@@ -66,6 +65,9 @@ function load({ head = [] } = {}) {
       "sap/ui/core/Control": { extend: (_name, def) => def },
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/actions/Browser": Browser,
+      // the context of the component the control sits in - what says
+      // whether the page is the component's to name (state.ownsPage)
+      "z2ui5/core/Context": { of: () => ({ state: { ownsPage } }) },
     },
     sandbox: { document },
   });
@@ -180,4 +182,21 @@ test("the property is written with invalidation suppressed", () => {
   // The renderer is empty, so a re-render would achieve nothing; the effect
   // above is the whole point of the control.
   expect(inst._set).toEqual([["favicon", "/a.ico", true]]);
+});
+
+// An embedded component that was not handed the page (state.ownsPage
+// false, Component.init) leaves the host's icon alone - the favicon names
+// the host's page, not the area the component got.
+test("a component that does not own the page writes no icon", () => {
+  const existing = { rel: "icon", href: "/host.ico" };
+  const { instance, links, created } = load({
+    head: [existing],
+    ownsPage: false,
+  });
+
+  instance().setFavicon("/app.ico");
+
+  expect(existing.href).toBe("/host.ico");
+  expect(links).toEqual([existing]);
+  expect(created).toEqual([]);
 });

@@ -89,6 +89,15 @@ sap.ui.define(
     // any one that has it does).
     function applyDirtyState(launchpad) {
       const anyDirty = dirtyControls.size > 0;
+      // The browser's "leave page?" prompt guards the PAGE, so only the
+      // instances of a component that owns it count for it (state.ownsPage,
+      // Component.init): an embedded component's unsaved changes do not
+      // stop the user from leaving a host's page - the host decides that.
+      // An instance in no component (Context.of null) is on a page of its
+      // own. The FLP flag above is the shell's, and counts every instance.
+      const anyDirtyOnOwnPage = [...dirtyControls].some(
+        (inst) => Context.of(inst)?.state?.ownsPage !== false,
+      );
       try {
         const hasFlpDirtyFlag =
           launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;
@@ -101,11 +110,11 @@ sap.ui.define(
           // "leave page?" dialog for a dirty state that is long gone
           syncUnloadPrompt(false);
         } else {
-          syncUnloadPrompt(anyDirty);
+          syncUnloadPrompt(anyDirtyOnOwnPage);
         }
       } catch (e) {
         Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);
-        syncUnloadPrompt(anyDirty);
+        syncUnloadPrompt(anyDirtyOnOwnPage);
       }
     }
 

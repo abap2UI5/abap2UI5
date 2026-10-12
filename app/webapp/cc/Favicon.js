@@ -6,8 +6,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/actions/Browser",
     "z2ui5/core/Env",
+    "z2ui5/core/Context",
   ],
-  (Control, Lib, Browser, Env) => {
+  (Control, Lib, Browser, Env, Context) => {
     "use strict";
     // OBSOLETE: replaced by the frontend event cs_event-set_favicon - kept for backward compatibility.
     //
@@ -31,7 +32,12 @@ sap.ui.define(
         // Empty renderer -> suppress the no-op invalidation; the effect below
         // (updating the <link> tag) is what actually matters.
         this.setProperty("favicon", val, true);
-        Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);
+        // with this control's context, which says whether the page is the
+        // component's to name (state.ownsPage)
+        Browser.handlers.SET_FAVICON({ ctx: Context.of(this) }, [
+          "SET_FAVICON",
+          val,
+        ]);
         return this;
       },
       renderer: Lib.EMPTY_RENDERER,

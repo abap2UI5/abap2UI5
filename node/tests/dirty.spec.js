@@ -249,3 +249,24 @@ test("standalone: one listener is added once and removed once", () => {
   expect(removes).toEqual(["beforeunload"]);
   expect(armed()).toBe(0);
 });
+
+// The prompt keeps the user on the PAGE, so an embedded component the host
+// did not hand the page to (state.ownsPage false, Component.init) raises
+// none for its unsaved changes - leaving the host's page is the host's to
+// guard. A component on a page of its own beside it still does.
+test("only a component that owns the page arms the prompt", () => {
+  const { instance, armed } = load();
+  const embedded = instance(specContext({ ownsPage: false }));
+
+  embedded.setIsDirty(true);
+  expect(armed()).toBe(0);
+
+  const own = instance();
+  own.setIsDirty(true);
+  expect(armed()).toBe(1);
+
+  own.setIsDirty(false);
+  expect(armed()).toBe(0);
+  embedded.setIsDirty(false);
+  expect(armed()).toBe(0);
+});

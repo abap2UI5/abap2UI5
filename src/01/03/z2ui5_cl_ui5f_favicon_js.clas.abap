@@ -31,8 +31,9 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/actions/Browser",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Lib, Browser, Env) => {` && |\n| &&
+             `  (Control, Lib, Browser, Env, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const Favicon = Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
@@ -45,7 +46,11 @@ CLASS z2ui5_cl_ui5f_favicon_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      setFavicon(val) {` && |\n| &&
              `        this.setProperty("favicon", val, true);` && |\n| &&
-             `        Browser.handlers.SET_FAVICON(null, ["SET_FAVICON", val]);` && |\n| &&
+             `` && |\n| &&
+             `        Browser.handlers.SET_FAVICON({ ctx: Context.of(this) }, [` && |\n| &&
+             `          "SET_FAVICON",` && |\n| &&
+             `          val,` && |\n| &&
+             `        ]);` && |\n| &&
              `        return this;` && |\n| &&
              `      },` && |\n| &&
              `      renderer: Lib.EMPTY_RENDERER,` && |\n| &&

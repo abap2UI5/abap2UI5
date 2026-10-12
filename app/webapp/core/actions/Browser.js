@@ -362,7 +362,17 @@ sap.ui.define(
       }
     }
 
+    // The document title and the favicon are the PAGE's: a component that
+    // does not own it (state.ownsPage false - embedded, Component.init)
+    // leaves both to its host, whose page they name. Asked of the calling
+    // controller's context; a caller without one (no component around it)
+    // is on a page of its own.
+    function ownsPage(oController) {
+      return oController?.ctx?.state?.ownsPage !== false;
+    }
+
     function evSetTitle(oController, args) {
+      if (!ownsPage(oController)) return;
       const title = Lib.toText(args[1]);
       try {
         document.title = title;
@@ -372,6 +382,7 @@ sap.ui.define(
     }
 
     function evSetFavicon(oController, args) {
+      if (!ownsPage(oController)) return;
       const href = Lib.toText(args[1]);
       // the one URL-consuming action that had no validator - no current
       // browser executes javascript: in a <link rel=icon>, but consistency

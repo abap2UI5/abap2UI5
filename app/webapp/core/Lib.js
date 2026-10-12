@@ -128,6 +128,29 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return CONTROLLER_FIELDS.some((field) => state[field] === oController);
   }
 
+  // The busy state of a roundtrip for a component that does not own the
+  // page (state.ownsPage false - embedded, Component.init): the global
+  // BusyIndicator blocks the HOST's whole page, so the overlay goes on the
+  // component's own root control instead, the area the host gave it. The
+  // callers (core/Server.js, View1.controller) ask ownsPage and take
+  // sap/ui/core/BusyIndicator otherwise. `delay` as for BusyIndicator.show,
+  // UI5's 1000 ms when left out; a control's busy state lays its overlay
+  // over the live DOM without a rendering, 1.71 included. A component
+  // without a root control yet (a roundtrip before the first rendering)
+  // shows nothing - the busy STATE (state.isBusy) guards it all the same.
+  function setComponentBusy(ctx, busy, delay) {
+    const root = ctx?.component?.getRootControl?.() || ctx?.state?.oApp || null;
+    if (!root || isDestroyed(root)) return;
+    try {
+      if (busy) {
+        root.setBusyIndicatorDelay(typeof delay === "number" ? delay : 1000);
+      }
+      root.setBusy(busy === true);
+    } catch (e) {
+      logError("setComponentBusy: setting the busy state failed", e);
+    }
+  }
+
   // True when the object supports isDestroyed() and reports destroyed.
   // For a CONTROL (a ManagedObject). A controller is asked with
   // isControllerAlive( ) above - see there for why this one cannot tell.
@@ -1227,6 +1250,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     errors,
     logError,
     isDestroyed,
+    setComponentBusy,
     isControllerAlive,
     requireODataModel,
     afterRoundtrip,

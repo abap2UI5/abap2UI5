@@ -86,6 +86,10 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `` && |\n| &&
              `    function applyDirtyState(launchpad) {` && |\n| &&
              `      const anyDirty = dirtyControls.size > 0;` && |\n| &&
+             `` && |\n| &&
+             `      const anyDirtyOnOwnPage = [...dirtyControls].some(` && |\n| &&
+             `        (inst) => Context.of(inst)?.state?.ownsPage !== false,` && |\n| &&
+             `      );` && |\n| &&
              `      try {` && |\n| &&
              `        const hasFlpDirtyFlag =` && |\n| &&
              `          launchpad?.Container?.setDirtyFlag && launchpad.ShellUIService;` && |\n| &&
@@ -94,11 +98,11 @@ CLASS z2ui5_cl_ui5f_dirty_js IMPLEMENTATION.
              `` && |\n| &&
              `          syncUnloadPrompt(false);` && |\n| &&
              `        } else {` && |\n| &&
-             `          syncUnloadPrompt(anyDirty);` && |\n| &&
+             `          syncUnloadPrompt(anyDirtyOnOwnPage);` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("Dirty._applyDirtyState: setDirtyFlag failed", e);` && |\n| &&
-             `        syncUnloadPrompt(anyDirty);` && |\n| &&
+             `        syncUnloadPrompt(anyDirtyOnOwnPage);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

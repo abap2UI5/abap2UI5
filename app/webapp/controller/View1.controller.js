@@ -34,6 +34,20 @@ sap.ui.define(
   ) => {
     "use strict";
 
+    // The busy overlay of a roundtrip: the global BusyIndicator on a page the
+    // component owns, the component's own area on a host's page
+    // (state.ownsPage, Component.init - Lib.setComponentBusy). The same pair
+    // sits in core/Server.js, the other half of the busy protocol.
+    function showBusy(ctx, delay) {
+      if (ctx?.state?.ownsPage === false)
+        Lib.setComponentBusy(ctx, true, delay);
+      else BusyIndicator.show(delay);
+    }
+    function hideBusy(ctx) {
+      if (ctx?.state?.ownsPage === false) Lib.setComponentBusy(ctx, false);
+      else BusyIndicator.hide();
+    }
+
     const View1Controller = Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
         // _processAfterRendering re-checks _processed itself - only the
@@ -222,7 +236,7 @@ sap.ui.define(
           // a wire that opted out may still have to take the overlay down -
           // a CLICK dropped while its roundtrip ran raised it at 0 delay.
           if (!superseded) {
-            BusyIndicator.hide();
+            hideBusy(this.ctx);
             this.ctx.state.isBusy = false;
           }
           // Its OWN follow-up actions are a different matter, and they run.
@@ -595,7 +609,7 @@ sap.ui.define(
               args: Lib.normalizeEventArgs(args),
             };
           }
-          if (!noBusy) BusyIndicator.show(0);
+          if (!noBusy) showBusy(this.ctx, 0);
           return;
         }
 
@@ -609,7 +623,7 @@ sap.ui.define(
         // read it, and a wire that opted out of the overlay has not opted out
         // of being one roundtrip in flight. Only the overlay is skipped.
         this.ctx.state.isBusy = true;
-        if (!noBusy) BusyIndicator.show();
+        if (!noBusy) showBusy(this.ctx);
 
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to this.ctx.state.oBody right

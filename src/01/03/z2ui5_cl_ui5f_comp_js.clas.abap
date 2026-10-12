@@ -97,6 +97,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          endpoint,` && |\n| &&
              `          embedded,` && |\n| &&
              `          ownsHash,` && |\n| &&
+             `          ownsPage,` && |\n| &&
              `          nodePath,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
@@ -120,7 +121,9 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          });` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        state.ownsHash = !state.embedded || ownsHash === true;` && |\n| &&
+             `        state.ownsPage =` && |\n| &&
+             `          !state.embedded || ownsPage === true || ownsHash === true;` && |\n| &&
+             `        state.ownsHash = state.ownsPage;` && |\n| &&
              `` && |\n| &&
              `        state.endpoint =` && |\n| &&
              `          typeof endpoint === "string" && endpoint.trim()` && |\n| &&
