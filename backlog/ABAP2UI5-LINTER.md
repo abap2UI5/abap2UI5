@@ -15,13 +15,7 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-## Deferred
-
-_a decision was made not to do this now, and why_
-
-| Item | What | Priority | In stock since | Upstream |
-|---|---|---|---|---|
-| [`bound-aggregation-size-limit`](items/bound-aggregation-size-limit.md) | the 100-entry cap is normal UI5 behaviour and `cs_event-set_size_limit` already switches it — what is missing is the detection, because a port that forgets it renders truncated with no error anywhere and every gate stays green | medium | 2026-08-24 | abap2UI5/linter |
+_Empty. Nothing is waiting to be filed against this one._
 
 ---
 
