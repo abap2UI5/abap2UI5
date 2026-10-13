@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler-cli cannot transpile against a library without emitting it again - the own classes of a host load a second copy, whose second CX_ROOT breaks every CATCH'
 summary: every object the transpile reads - the libraries under `libs` included - is written to the output folder, and a transpiled class imports what it extends by a relative path. A host that transpiles its own classes against an already transpiled library (an npm package) loads a second copy of that library; the second CX_ROOT replaces the first in abap.Classes and exceptions fly through every CATCH. A lib option that type-checks against the library and imports it from a module specifier instead of emitting it would end the workarounds
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1999
 first_seen: 2026-09-29
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - two workarounds exist today, both rewriting the transpiler's output - abap2UI5's `node/setup/own-apps.mjs` (the bin `abap2ui5-own-apps`, abap2UI5#2813) keeps the host's files and points their imports at `@abap2ui5/node-runtime/output/<file>`, and abap2UI5/mcp-server's npm backend (`rewriteImports`, abap2UI5/mcp-server#36) does the same for dev apps
   - `ITranspilerConfig.libs` of @abaplint/transpiler-cli 2.13.93 has `url`, `folder`, `files` and `exclude_filter` - nothing that keeps a library out of the output; unchanged at abaplint/transpiler main 916d00f (2026-09-29)
   - re-read 2026-10-09 at abaplint/transpiler main 2e299e61 (2.14.2) - 2.14.0 (abaplint/transpiler#1973) writes every library into a folder of its own under the output folder and the project into `project/`, 2.14.1 (#1980) adds `skip_duplicate_dependencies`; a library is still emitted and still imported by a relative path, and `libs` still has no option that keeps one out of the output - the request stands, only the relative path in the example becomes `../<lib>/…`; abap2UI5's `node/setup/own-apps.mjs` was adapted to it on 2026-10-09 - it keeps `output/project/` and points every other import at the package's module of the same name, `@abap2ui5/node-runtime/output/<folder>/<file>`
-checked_upstream: 2026-10-09
+  - filed 2026-10-13 as abaplint/transpiler#1999 - a single `libs[].import` (the module specifier) both keeps the lib out of the output and makes its objects imported from below the specifier, in the generated modules and in `init.mjs`; no separate `emit` flag. Checked end to end in the PR's CLI test: after `init.mjs`, `abap.Classes` holds the package's own class, no second copy
+checked_upstream: 2026-10-13
 ---
 
 # Transpile against a library without emitting it

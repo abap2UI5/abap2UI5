@@ -158,6 +158,7 @@ function componentState(page, id) {
     const state = component?.ctx?.state;
     return {
       rendered: Boolean(state?.oView && state.oResponse && !state.isBusy),
+      root: state?.oApp?.getMetadata().getName() ?? null,
     };
   }, id);
 }
@@ -317,12 +318,14 @@ test.describe("an embedded app and the sibling BSPs", () => {
   });
 });
 
-// sap.m.App - the frontend's root - runs sap/ui/util/Mobile.init( ) when it
-// is created, once per page with the settings of whoever calls first. On a
-// host's page without a sap.m.App of its own that put height: 100% on
-// <html>, a viewport meta tag that disables zooming and a format-detection
-// meta tag there - and on iOS took the host's scrolling. An embedded
-// component makes the call first, with everything off (Component.init).
+// sap/ui/util/Mobile.init( ) runs once per page with the settings of whoever
+// calls first - sap.m.App, and a sap.m.Shell in the app's view. On a host's
+// page without a sap.m.App of its own that put height: 100% on <html>, a
+// viewport meta tag that disables zooming and a format-detection meta tag
+// there - and on iOS took the host's scrolling. An embedded component makes
+// the call first, with everything off (Component.init). And its root is a
+// sap.m.NavContainer, not the full-screen sap.m.App (App.controller.js,
+// createRoot).
 test.describe("an embedded app and the host's page", () => {
   test("the frontend leaves <html> and the host's meta tags as they are", async ({
     page,
@@ -349,6 +352,7 @@ test.describe("an embedded app and the host's page", () => {
     await waitForApp(page, id);
     await expect(page.locator('input[id$="-inner"]').first()).toBeVisible();
     expect(await pageSetup()).toEqual(before);
+    expect((await componentState(page, id)).root).toBe("sap.m.NavContainer");
   });
 });
 
@@ -385,6 +389,8 @@ test.describe("an embedded app and the URL hash", () => {
       ownsHash: true,
     });
     await waitForApp(page, id);
+    // the page is the app's: the full-screen root, as on a page of its own
+    expect((await componentState(page, id)).root).toBe("sap.m.App");
     await expect(page.getByText("hub-marker")).toBeVisible();
     await expect.poll(() => page.url()).toContain("#/app/ZCL_TST_NAV_HUB");
 

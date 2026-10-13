@@ -121,6 +121,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_ctrl_global_opt      FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
+    METHODS test_event_client     FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event_empty FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_navigated   FOR TESTING RAISING cx_static_check.
@@ -847,6 +848,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_event_client.
+
+    " _event_client( ) is the typed door to a FRONTEND event - the eF( )
+    " call the view embeds, which the event service spells; the client
+    " passes it through unchanged, view and arguments included
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'myContainer', '', 'to', 'myPage')`
+        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                        t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
+        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                        view  = z2ui5_if_client=>cs_view-nested
+                                        t_arg = VALUE #( ( `nestCon` ) ( `to` ) ( `nestPage` ) ) ) ).
 
   ENDMETHOD.
 

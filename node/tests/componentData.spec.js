@@ -449,11 +449,13 @@ test.describe("the sibling BSP roots behind a proxy", () => {
   });
 });
 
-// sap.m.App, the root of the root view, runs sap/ui/util/Mobile.init( ) when
-// it is created - once per page, whoever calls first, and on a host's page
-// that was the embedded app setting the host's page up as a mobile app. An
-// embedded component makes the call first, with everything off, before the
-// root view exists; on a page of the app's own the call stays sap.m.App's.
+// sap/ui/util/Mobile.init( ) runs once per page, whoever calls first, and on
+// a host's page that was the embedded app setting the host's page up as a
+// mobile app. An embedded component's root (a sap.m.NavContainer) never
+// calls it, but a sap.m.Shell or sap.m.SplitApp in the app's view does when
+// it is created - so the component makes the call first, with everything
+// off, before the root view exists; on a page of the app's own the call
+// stays sap.m.App's.
 test("an embedded component makes the page's Mobile.init( ) call first, with everything off", () => {
   const calls = [];
   initContext({ embedded: true }, { calls });

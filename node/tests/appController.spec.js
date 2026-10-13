@@ -7,19 +7,29 @@ const { classEnv } = require("./loadLibModule");
 // wiring. Under test: the backend-URL decision (a host's endpoint vs. the
 // page URL in local mode vs. the manifest URI), one View1 controller
 // instance per view slot (driven by the ViewSlots table, not a hardcoded
-// list), the app container lookup, and the initial roundtrip kick-off.
+// list), the root control it creates, and the initial roundtrip kick-off.
 function load({
   manifest,
   checkLocal = false,
   endpoint = null,
   embedded = false,
+  ownsPage = !embedded,
   app = { id: "app" },
   href = "http://localhost:3000/",
 } = {}) {
   // the controller reads the owner component's context (Context.of)
-  const state = { checkLocal, endpoint, embedded };
+  const state = { checkLocal, endpoint, embedded, ownsPage };
   const ctx = { state, alive: true };
   const roundtrips = [];
+  // the root classes: `new Root(id)` hands the stub back and records which
+  // class was asked for, under which id
+  const created = [];
+  const rootClass = (name) =>
+    function Root(id) {
+      created.push({ name, id });
+      return app;
+    };
+  const owners = [];
   class View1Controller {}
   const slots = [
     { controllerProp: "oController" },
@@ -31,25 +41,29 @@ function load({
     deps: {
       "z2ui5/core/Env": classEnv,
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
+      "sap/m/App": rootClass("sap.m.App"),
+      "sap/m/NavContainer": rootClass("sap.m.NavContainer"),
       "z2ui5/controller/View1.controller": View1Controller,
       "z2ui5/core/Server": { roundtrip: (c) => roundtrips.push(c) },
-      "z2ui5/core/Context": { of: (component) => (component ? ctx : null) },
+      "z2ui5/core/Context": {
+        of: (component) => (component ? ctx : null),
+        runAsOwner: (c, fn) => {
+          owners.push(c);
+          return fn();
+        },
+      },
       "z2ui5/core/ViewSlots": { slots },
     },
     sandbox: { window: { location: { href } } },
   });
 
   const component = { getManifest: () => manifest };
-  const byIdCalls = [];
-  const view = {
-    byId: (id) => {
-      byIdCalls.push(id);
-      return app;
-    },
-  };
+  const contents = [];
+  const slot = { setRoot: (c) => contents.push(c) };
   const inst = Object.create(AppController);
+  inst.byId = (id) => (id === "rootSlot" ? slot : null);
   inst.getOwnerComponent = () => component;
-  inst.getView = () => view;
+  inst.createId = (id) => `view--${id}`;
 
   return {
     inst,
@@ -57,7 +71,9 @@ function load({
     state,
     roundtrips,
     component,
-    byIdCalls,
+    created,
+    contents,
+    owners,
     View1Controller,
     slots,
   };
@@ -132,14 +148,51 @@ test("one View1 controller is created per view slot from the slot table", () => 
   expect(state.oController).not.toBe(state.oControllerNest);
 });
 
-test("the owner component and the app container are stored in the state", () => {
-  const { inst, state, component, byIdCalls } = load({ manifest: MANIFEST });
+test("the owner component and the root are stored in the state", () => {
+  const { inst, state, component, ctx, created, contents, owners } = load({
+    manifest: MANIFEST,
+  });
 
   inst.onInit();
 
   expect(state.oOwnerComponent).toBe(component);
-  expect(byIdCalls).toEqual(["app"]);
+  // on a page of the app's own the root is a sap.m.App, id "app" in the
+  // shell view, created under the component as owner
+  expect(created).toEqual([{ name: "sap.m.App", id: "view--app" }]);
+  expect(owners).toEqual([ctx]);
+  expect(contents).toEqual([{ id: "app" }]);
   expect(state.oApp).toEqual({ id: "app" });
+});
+
+// sap.m.App is the full-screen root: it sets the page up as a mobile app,
+// paints the theme's background and gives every ancestor up to <html> a
+// height of 100%. On a host's page all of that is the host's - an embedded
+// component's root is its base class, a plain sap.m.NavContainer.
+test("embedded, the root is a sap.m.NavContainer", () => {
+  const { inst, state, created, contents } = load({
+    manifest: MANIFEST,
+    embedded: true,
+  });
+
+  inst.onInit();
+
+  expect(created).toEqual([{ name: "sap.m.NavContainer", id: "view--app" }]);
+  expect(contents).toEqual([state.oApp]);
+});
+
+// A host that hands the page back (ownsPage: its page is this one component
+// and nothing else) gets the full-screen root again, like the title, the
+// busy indicator and the hash.
+test("embedded with the page handed back, the root is a sap.m.App", () => {
+  const { inst, created } = load({
+    manifest: MANIFEST,
+    embedded: true,
+    ownsPage: true,
+  });
+
+  inst.onInit();
+
+  expect(created).toEqual([{ name: "sap.m.App", id: "view--app" }]);
 });
 
 test("onInit kicks off exactly one initial roundtrip", () => {
