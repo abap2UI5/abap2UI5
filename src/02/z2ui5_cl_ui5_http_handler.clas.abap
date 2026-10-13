@@ -360,6 +360,10 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
+            DATA temp47 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+            DATA ls_config_post LIKE temp47.
+              DATA lv_terminate TYPE string.
+        DATA lx_fatal TYPE REF TO cx_root.
 
     " Outer top-level catch. _main( ) carries one of its own and is where a
     " failing app lands, but three things run OUTSIDE it and used to be
@@ -405,13 +409,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " (seeded in z2ui5_cl_ui5_user_exit=>set_config_http_post), so a
             " cross-origin request is rejected unless an app opts out via its
             " own exit.
-            DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+
+            CLEAR temp47.
+
+            ls_config_post = temp47.
             z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
             IF check_csrf_rejected_request( ls_config_post ) = abap_true.
-              ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
-                                status_code   = 403
-                                status_reason = `Forbidden` ).
+              CLEAR ms_res.
+              ms_res-body = `CSRF validation failed - cross-origin request rejected`.
+              ms_res-status_code = 403.
+              ms_res-status_reason = `Forbidden`.
             ELSEIF ms_req-method = `HEAD`.
               " Two HEADs reach this node, both sent by the frontend
               " (core/Server.js): the session-terminate ping of endSession,
@@ -442,12 +450,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               " Nothing but the framework's own frontend sends HEAD to this
               " node, so the generic-client reading of HEAD has no consumer
               " to serve.
-              DATA(lv_terminate) = mo_server->get_header_field( `sap-terminate` ).
+
+              lv_terminate = mo_server->get_header_field( `sap-terminate` ).
               IF to_lower( lv_terminate ) = `session`.
                 mo_server->set_session_stateful( 0 ).
               ENDIF.
-              ms_res = VALUE #( status_code   = 200
-                                status_reason = `OK` ).
+              CLEAR ms_res.
+              ms_res-status_code = 200.
+              ms_res-status_reason = `OK`.
             ELSE.
               ms_res = _main( ms_req ).
             ENDIF.
@@ -455,7 +465,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             ms_res = _main( ms_req ).
         ENDCASE.
 
-      CATCH cx_root INTO DATA(lx_fatal).
+
+      CATCH cx_root INTO lx_fatal.
         ms_res = _error_response( val    = lx_fatal
                                   method = ms_req-method ).
     ENDTRY.
@@ -465,6 +476,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_csrf_rejected_request.
+    DATA lv_origin TYPE string.
+    DATA lv_referer TYPE string.
+    DATA temp48 TYPE string.
+    DATA lv_host LIKE temp48.
+      DATA lv_rest_hosts TYPE string.
 
     IF is_config-check_csrf_active = abap_false.
       RETURN.
@@ -472,8 +488,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " prefer Origin, fall back to Referer - the same order as the rule
     " below, so the second header is read only when the first is absent
-    DATA(lv_origin) = mo_server->get_header_field( `origin` ).
-    DATA lv_referer TYPE string.
+
+    lv_origin = mo_server->get_header_field( `origin` ).
+
     IF lv_origin IS INITIAL.
       lv_referer = mo_server->get_header_field( `referer` ).
     ENDIF.
@@ -494,13 +511,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " (z2ui5_if_ui5_exit=>ty_s_http_config_post-check_trust_forwarded_host).
     " The header is client-suppliable, so an installation without such a
     " proxy stops trusting it via that switch
-    DATA(lv_host) = COND string(
-        WHEN is_config-check_trust_forwarded_host = abap_true
-        THEN mo_server->get_header_field( `x-forwarded-host` ) ).
+
+    IF is_config-check_trust_forwarded_host = abap_true.
+      temp48 = mo_server->get_header_field( `x-forwarded-host` ).
+    ELSE.
+      CLEAR temp48.
+    ENDIF.
+
+    lv_host = temp48.
     IF lv_host IS INITIAL.
       lv_host = mo_server->get_header_field( `host` ).
     ELSE.
-      SPLIT lv_host AT `,` INTO lv_host DATA(lv_rest_hosts) ##NEEDED.
+
+      SPLIT lv_host AT `,` INTO lv_host lv_rest_hosts ##NEEDED.
     ENDIF.
 
     result = _check_csrf_rejected( active  = abap_true
@@ -511,6 +534,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _check_csrf_rejected.
+    DATA temp49 TYPE string.
+    DATA lv_source LIKE temp49.
+    DATA temp1 TYPE xsdboolean.
 
     IF active = abap_false.
       RETURN.
@@ -518,9 +544,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " prefer Origin (sent on every cross-origin POST and on same-origin
     " fetch), fall back to Referer when Origin is absent
-    DATA(lv_source) = COND string( WHEN origin IS NOT INITIAL
-                                   THEN origin
-                                   ELSE referer ).
+
+    IF origin IS NOT INITIAL.
+      temp49 = origin.
+    ELSE.
+      temp49 = referer.
+    ENDIF.
+
+    lv_source = temp49.
 
     " lenient: nothing to compare -> allow (do not lock out proxies/old
     " clients that strip these headers); only an explicit mismatch is blocked
@@ -528,11 +559,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = xsdbool( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
+
+    temp1 = boolc( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD _csrf_host_authority.
+    DATA lv_rest TYPE string.
+    DATA lv_len TYPE i.
+    DATA lv_tail TYPE string.
 
     result = to_lower( val ).
 
@@ -543,7 +579,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
 
     " the authority ends at the first path / query / fragment separator
-    SPLIT result AT `/` INTO result DATA(lv_rest).
+
+    SPLIT result AT `/` INTO result lv_rest.
     SPLIT result AT `?` INTO result lv_rest.
     SPLIT result AT `#` INTO result lv_rest.
 
@@ -552,8 +589,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " two are the same authority - the request was refused as cross-origin
     " (403) for the port the scheme implies. Both defaults are stripped
     " whatever the scheme was: the Host side carries none to compare with
-    DATA lv_len  TYPE i.
-    DATA lv_tail TYPE string.
+
+
     lv_len = strlen( result ).
     IF lv_len > 4.
       lv_tail = substring( val = result
@@ -583,8 +620,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the page's own origin, which the browser is connected to already -
     " and an installation that writes its own origin absolutely gets a
     " preconnect the browser answers from the connection it holds
-    DATA(lv_url) = val.
-    DATA(lv_scheme) = ``.
+    DATA lv_url LIKE val.
+    DATA lv_scheme TYPE string.
+    DATA lv_end TYPE i.
+    DATA lv_off TYPE i.
+    DATA lv_host TYPE string.
+    lv_url = val.
+
+    lv_scheme = ``.
     IF lv_url CP `http://*` OR lv_url CP `https://*`.
       SPLIT lv_url AT `//` INTO lv_scheme lv_url.
       lv_scheme = to_lower( lv_scheme ) && `//`.
@@ -596,8 +639,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
     " the host ends at the path, the query or the fragment, whichever is
     " first; userinfo (user:pw@host) stays out of the page
-    DATA(lv_end) = strlen( lv_url ).
-    DATA(lv_off) = 0.
+
+    lv_end = strlen( lv_url ).
+
+    lv_off = 0.
     WHILE lv_off < lv_end.
       IF lv_url+lv_off(1) CA `/?#`.
         lv_end = lv_off.
@@ -605,7 +650,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         lv_off = lv_off + 1.
       ENDIF.
     ENDWHILE.
-    DATA(lv_host) = lv_url(lv_end).
+
+    lv_host = lv_url(lv_end).
     IF lv_host IS INITIAL OR lv_host CA `@`.
       RETURN.
     ENDIF.
@@ -650,16 +696,20 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA lv_end     TYPE i.
     DATA lv_stop    TYPE i.
     DATA lv_sources TYPE string.
+    DATA lv_source TYPE string.
+    DATA lv_lower TYPE string.
 
     result = val.
-    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+
+    lv_source = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
     " an exit that listed the hash itself gets no second copy
     IF val IS INITIAL OR find( val = val
                                sub = lv_source ) >= 0.
       RETURN.
     ENDIF.
 
-    DATA(lv_lower) = to_lower( result ).
+
+    lv_lower = to_lower( result ).
     DO.
       lv_hit = find( val = lv_lower
                      sub = `script-src`
@@ -705,6 +755,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " right before or right after it is part of a longer name or host
     CONSTANTS lc_name_chars TYPE string VALUE `abcdefghijklmnopqrstuvwxyz0123456789-`.
     DATA lv_char TYPE string.
+    DATA lv_end TYPE i.
 
     result = -1.
     IF iv_hit > 0.
@@ -716,7 +767,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    DATA(lv_end) = iv_hit + 10.
+
+    lv_end = iv_hit + 10.
     IF strlen( iv_lower ) >= lv_end + 5.
       lv_char = substring( val = iv_lower
                            off = lv_end
@@ -744,15 +796,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _csp_directive_stop.
+    DATA lv_semicolon TYPE i.
+    DATA lv_quote TYPE i.
 
     result = strlen( iv_lower ).
-    DATA(lv_semicolon) = find( val = iv_lower
+
+    lv_semicolon = find( val = iv_lower
                                sub = `;`
                                off = iv_off ).
     IF lv_semicolon >= 0.
       result = lv_semicolon.
     ENDIF.
-    DATA(lv_quote) = find( val = iv_lower
+
+    lv_quote = find( val = iv_lower
                            sub = `"`
                            off = iv_off ).
     IF lv_quote >= 0 AND lv_quote < result.
@@ -762,15 +818,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory.
+      FIELD-SYMBOLS <response> TYPE any.
 
     IF server IS BOUND.
-      result = NEW #( ).
+      CREATE OBJECT result.
       result->mo_server = z2ui5_cl_ui5_util_http=>factory( server ).
       " generic field symbol on purpose: a typed one (REF TO object) makes
       " the dynamic ASSIGN cast, and REF TO if_http_response is not
       " IDENTICAL to REF TO object - a real stack raises an uncatchable
       " casting error there, the MOVE below widens legally instead
-      FIELD-SYMBOLS <response> TYPE any.
+
       " IS ASSIGNED, not sy-subrc (#1937 - see
       " z2ui5_cl_ui5_util_context=>unassign_data): a successful dynamic
       " ASSIGN does not reset sy-subrc on every release, and a stale 4 here
@@ -793,7 +850,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD factory_cloud.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_server = z2ui5_cl_ui5_util_http=>factory_cloud( req = req
                                                                res = res ).
 
@@ -811,17 +868,33 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
-    DATA(ls_config) = config_http_get( ).
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lv_cache_key TYPE string.
+    DATA temp50 LIKE LINE OF ls_config-t_add_config.
+    DATA lr_config_key LIKE REF TO temp50.
+      DATA lv_etag LIKE sv_get_etag.
+    DATA lv_if_none_match LIKE sv_if_none_match.
+    DATA lv_style_exit TYPE string.
+    DATA lv_settings TYPE string.
+    DATA lv_preconnect TYPE string.
+    DATA lv_origin TYPE string.
+    DATA lv_add_config TYPE string.
+    DATA temp51 LIKE LINE OF ls_config-t_add_config.
+    DATA lr_config LIKE REF TO temp51.
+    ls_config = config_http_get( ).
 
     " every config part the body is built from, length-prefixed so two
     " different configs can never concatenate to the same key. The embedded
     " frontend needs no key part: it is constant for the life of this class
     " load, and the cache does not outlive it
-    DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
+
+    lv_cache_key = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
                          |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
                          |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
                          |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }|.
-    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config_key).
+
+
+    LOOP AT ls_config-t_add_config REFERENCE INTO lr_config_key.
       lv_cache_key = lv_cache_key &&
                      |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
                      |{ strlen( lr_config_key->v ) }:{ lr_config_key->v }|.
@@ -838,7 +911,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " full build for a reply without a body. The tag of the cached body is
     " reused when the key still matches - a hash over the key otherwise
     IF sv_get_etag_key = lv_cache_key AND sv_get_etag IS NOT INITIAL.
-      DATA(lv_etag) = sv_get_etag.
+
+      lv_etag = sv_get_etag.
     ELSE.
       lv_etag = _get_etag( lv_cache_key ).
     ENDIF.
@@ -846,7 +920,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     sv_get_etag_key = lv_cache_key.
 
     " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
+
+    lv_if_none_match = sv_if_none_match.
     CLEAR sv_if_none_match.
     IF _check_etag_match( iv_header = lv_if_none_match
                           iv_etag   = lv_etag ) = abap_true.
@@ -870,7 +945,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " generation time. Every < becomes the CSS escape \3c (the blank ends the
     " escape), which reads back as the same character in a string, a url( )
     " or a selector - an admin-supplied </style> cannot end the element
-    DATA(lv_style_exit) = ``.
+
+    lv_style_exit = ``.
     IF ls_config-styles_css IS NOT INITIAL.
       lv_style_exit = |<style>{ replace( val   = ls_config-styles_css
                                           sub  = `<`
@@ -898,7 +974,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " when the BSP is not installed - nothing is requested from it until a
     " view names the namespace. There is no window.z2ui5 global any more; it
     " used to carry these fields (removed 2026-09-22).
-    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
+
+    lv_settings = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
                         |"ccResourceRoot" : "{ c_cci_root }", | &&
                         |"cccResourceRoot" : "{ c_ccc_root }"\}\}|.
 
@@ -930,8 +1007,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " segment of the default src, library-RTL.css, a theme root, the theme
     " fallbacks), and a preload the loader does not match is a wasted
     " download. Relative src: no hint (see _url_origin)
-    DATA(lv_preconnect) = ``.
-    DATA(lv_origin) = _url_origin( ls_config-src ).
+
+    lv_preconnect = ``.
+
+    lv_origin = _url_origin( ls_config-src ).
     IF lv_origin IS NOT INITIAL.
       lv_preconnect = |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }">\n| &&
                       |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }" crossorigin>\n|.
@@ -958,8 +1037,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " built apart and appended once: result-body already carries the whole
     " embedded preload here, so appending per config row re-copied ~400KB
     " per entry. Name and value are both escaped - see _attr_escape
-    DATA(lv_add_config) = ``.
-    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
+
+    lv_add_config = ``.
+
+
+    LOOP AT ls_config-t_add_config REFERENCE INTO lr_config.
       lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
     ENDLOOP.
 
@@ -982,15 +1064,26 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the name only - the parameter carries no value worth reading (the
     " names come lower-cased from url_param_get_tab); a handful of URL
     " parameters, read sequentially
-    result = xsdbool( line_exists( it_params[ n = c_bundle_param ] ) ). "#EC CI_SORTSEQ
+    DATA temp52 LIKE sy-subrc.
+    DATA temp2 TYPE xsdboolean.
+    READ TABLE it_params WITH KEY n = c_bundle_param TRANSPORTING NO FIELDS.
+    temp52 = sy-subrc.
+
+    temp2 = boolc( temp52 = 0 ).
+    result = temp2. "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
   METHOD _is_devtools_request.
 
     " the one parameter with the one value - see c_bundle_devtools
-    result = xsdbool( line_exists( it_params[ n = c_bundle_param
-                                              v = c_bundle_devtools ] ) ). "#EC CI_SORTSEQ
+    DATA temp53 LIKE sy-subrc.
+    DATA temp3 TYPE xsdboolean.
+    READ TABLE it_params WITH KEY n = c_bundle_param v = c_bundle_devtools TRANSPORTING NO FIELDS.
+    temp53 = sy-subrc.
+
+    temp3 = boolc( temp53 = 0 ).
+    result = temp3. "#EC CI_SORTSEQ
 
   ENDMETHOD.
 
@@ -1025,10 +1118,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " page's origin the first time the tools are opened, which script-src
     " 'self' allows - the page's CSP hash covers the inline script alone,
     " and this is a file. No user or app data, the same for everybody.
-    DATA(lv_etag) = _bundle_etag( abap_true ).
+    DATA lv_etag TYPE string.
+    DATA lv_if_none_match LIKE sv_if_none_match.
+    lv_etag = _bundle_etag( abap_true ).
 
     " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
+
+    lv_if_none_match = sv_if_none_match.
     CLEAR sv_if_none_match.
     IF _check_etag_match( iv_header = lv_if_none_match
                           iv_etag   = lv_etag ) = abap_true.
@@ -1091,10 +1187,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Caching needs nothing extra: a browser caches per URL, so the bundle
     " of one node path never answers for another, and the tag stays the
     " bundle's own.
-    DATA(lv_etag) = _get_etag( c_bundle_param ).
+    DATA lv_etag TYPE string.
+    DATA lv_if_none_match LIKE sv_if_none_match.
+    lv_etag = _get_etag( c_bundle_param ).
 
     " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
+
+    lv_if_none_match = sv_if_none_match.
     CLEAR sv_if_none_match.
     IF _check_etag_match( iv_header = lv_if_none_match
                           iv_etag   = lv_etag ) = abap_true.
@@ -1167,6 +1266,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " unavailable the method answers empty and set_response skips ETag/304
     " - conditional GET degrades, nothing breaks.
     DATA lv_xstr TYPE xstring.
+    DATA lv_len TYPE i.
+    DATA lv_h1 TYPE i VALUE 5381.
+    DATA lv_h2 TYPE i VALUE 17.
+    DATA lv_h3 TYPE i VALUE 104729.
+    DATA lv_byte TYPE i.
+    DATA lv_off TYPE i.
     TRY.
         lv_xstr = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( val ).
       CATCH cx_root.
@@ -1181,12 +1286,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " position, so a pair that collides in h1/h2 still separates in h3
     " unless it also collides under a structurally different mix -
     " implausible for a cache validator's job, still no cryptographic claim
-    DATA(lv_len) = xstrlen( lv_xstr ).
-    DATA lv_h1 TYPE i VALUE 5381.
-    DATA lv_h2 TYPE i VALUE 17.
-    DATA lv_h3 TYPE i VALUE 104729.
-    DATA lv_byte TYPE i.
-    DATA lv_off TYPE i.
+
+    lv_len = xstrlen( lv_xstr ).
+
+
+
+
+
     WHILE lv_off < lv_len.
       lv_byte = lv_xstr+lv_off(1).
       lv_h1 = ( lv_h1 * 33 + lv_byte ) MOD 65521.
@@ -1203,6 +1309,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _check_etag_match.
+    DATA lv_gzip TYPE string.
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_candidate TYPE temp1.
+    DATA lv_candidate LIKE LINE OF lt_candidate.
 
     " RFC 7232: If-None-Match is a LIST of validators, compared weakly - a
     " proxy that recompresses the page weak-marks the tag (nginx gzip sends
@@ -1216,10 +1326,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     IF iv_header IS INITIAL OR iv_etag IS INITIAL.
       RETURN.
     ENDIF.
-    DATA(lv_gzip) = substring( val = iv_etag
+
+    lv_gzip = substring( val = iv_etag
                                len = strlen( iv_etag ) - 1 ) && `-gzip"`.
-    SPLIT iv_header AT `,` INTO TABLE DATA(lt_candidate).
-    LOOP AT lt_candidate INTO DATA(lv_candidate).
+
+
+    SPLIT iv_header AT `,` INTO TABLE lt_candidate.
+
+    LOOP AT lt_candidate INTO lv_candidate.
       CONDENSE lv_candidate.
       IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
                                                    len = 2 ) = `W/`.
@@ -1236,7 +1350,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD run.
 
-    DATA(lo_handler) = factory( server = server
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_http_handler.
+    lo_handler = factory( server = server
                                 req    = req
                                 res    = res ).
 
@@ -1263,13 +1378,25 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " header read on a full shell reply
     " The bundles (?z2ui5-bundle, ?z2ui5-bundle=devtools) revalidate the
     " same way, each under its own tag
-    DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
-                               AND _is_bundle_request( ms_req-t_params ) = abap_true ).
-    DATA(lv_etag_get) = ``.
+    DATA lv_bundle TYPE abap_bool.
+    DATA temp4 TYPE xsdboolean.
+    DATA lv_etag_get TYPE string.
+      DATA temp54 TYPE string.
+    DATA temp55 TYPE string.
+    DATA lv_content_type LIKE temp55.
+    DATA lv_contextid TYPE string.
+    temp4 = boolc( ms_req-method = `GET` AND _is_bundle_request( ms_req-t_params ) = abap_true ).
+    lv_bundle = temp4.
+
+    lv_etag_get = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
-      lv_etag_get = COND #( WHEN lv_bundle = abap_true
-                            THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
-                            ELSE sv_get_etag ).
+
+      IF lv_bundle = abap_true.
+        temp54 = _bundle_etag( _is_devtools_request( ms_req-t_params ) ).
+      ELSE.
+        temp54 = sv_get_etag.
+      ENDIF.
+      lv_etag_get = temp54.
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
         AND _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
@@ -1287,11 +1414,18 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
     " for the bundle and JSON for the POST roundtrip.
-    DATA(lv_content_type) = COND string(
-        WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
-        WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
-        WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
-        ELSE `application/json; charset=UTF-8` ).
+
+    IF ms_res-status_code >= 400.
+      temp55 = `text/plain; charset=UTF-8`.
+    ELSEIF lv_bundle = abap_true.
+      temp55 = `application/javascript; charset=UTF-8`.
+    ELSEIF ms_req-method = `GET`.
+      temp55 = `text/html; charset=UTF-8`.
+    ELSE.
+      temp55 = `application/json; charset=UTF-8`.
+    ENDIF.
+
+    lv_content_type = temp55.
     mo_server->set_header_field( n = `content-type`
                                  v = lv_content_type ).
 
@@ -1342,7 +1476,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                            reason = ms_res-status_reason ).
 
     " transform cookie into header-based contextid handling
-    DATA lv_contextid TYPE string.
+
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( `sap-contextid-accept` ) = `header`.
@@ -1366,13 +1500,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD set_response_exit_headers.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_header LIKE LINE OF ls_config-t_security_header.
     TRY.
         ls_config = config_http_get( ).
       CATCH cx_root ##NO_HANDLER.
         " a raising exit costs its headers, not the response
     ENDTRY.
 
-    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+
+    LOOP AT ls_config-t_security_header INTO ls_header.
       " a policy the exit sends as a header (the enforcing one or the
       " -Report-Only one) has to allow the shell's inline script by its hash
       " exactly like the meta tag - see _csp_add_script_hash
@@ -1386,13 +1522,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _http_post.
+      DATA lo_post TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA temp5 TYPE xsdboolean.
+    DATA lo_action_before LIKE lo_post->mo_action.
 
     " the request itself is intentionally not wrapped - exceptions bubble up
     " to the single top-level catch in _main( ), which turns them into a 500.
     " Only the sticky-handler bookkeeping at the end has its own catch, which
     " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_ui5_handler( is_req-body ).
+
+      CREATE OBJECT lo_post TYPE z2ui5_cl_ui5_handler EXPORTING VAL = is_req-body.
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
@@ -1403,7 +1543,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " z2ui5_cl_ui5_handler->mv_session_sticky); the app switches the session
     " on again with set_session_stateful( ), which a stale flag used to
     " turn into a no-op
-    lo_post->mv_session_sticky = xsdbool( so_sticky_handler IS BOUND ).
+
+    temp5 = boolc( so_sticky_handler IS BOUND ).
+    lo_post->mv_session_sticky = temp5.
 
     " the only place the core's own response type meets the public one. Both
     " are structurally identical, so MOVE-CORRESPONDING carries every field
@@ -1423,7 +1565,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " "CX_STATIC_CHECK not caught or declared" for the extended check (the
     " static type could be one), while CLEANUP runs on the way out to the
     " handler in _main( ) and lets the original exception pass untouched
-    DATA(lo_action_before) = lo_post->mo_action.
+
+    lo_action_before = lo_post->mo_action.
     TRY.
         MOVE-CORRESPONDING lo_post->main( ) TO result.
       CLEANUP.
@@ -1446,6 +1589,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _main.
+        DATA lx TYPE REF TO cx_root.
 
     " Single top-level catch for the whole request. The framework may raise
     " anywhere (e.g. a wrong app name in the URL -> CREATE OBJECT of an unknown
@@ -1470,12 +1614,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
           WHEN OTHERS.
             " OPTIONS/PUT/DELETE/... - without this branch the response
             " would go out with status code 0
-            result = VALUE #( body          = `Method Not Allowed`
-                              status_code   = 405
-                              status_reason = `Method Not Allowed` ).
+            CLEAR result.
+            result-body = `Method Not Allowed`.
+            result-status_code = 405.
+            result-status_reason = `Method Not Allowed`.
         ENDCASE.
 
-      CATCH cx_root INTO DATA(lx).
+
+      CATCH cx_root INTO lx.
         result = _error_response( val    = lx
                                   method = is_req-method ).
     ENDTRY.
@@ -1489,7 +1635,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " system/user context the full dump carries) is replaced by a generic
     " message instead of leaking to the client.
     " Default is abap_false -> the real reason is returned as before.
-    DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
+    DATA temp56 TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    DATA ls_config_post LIKE temp56.
+    DATA lv_body TYPE string.
+    CLEAR temp56.
+
+    ls_config_post = temp56.
     TRY.
         z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
       CATCH cx_root ##NO_HANDLER.
@@ -1504,7 +1655,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " source position, kernel id and exception attributes), not just the
     " outermost message: a MOVE_CAST or a failed dynamic call says nothing
     " without the cause below it
-    DATA lv_body TYPE string.
+
     IF ls_config_post-check_hide_error_details = abap_true.
       lv_body = `Internal Server Error`.
     ELSE.
@@ -1523,15 +1674,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    result = VALUE #( body          = lv_body
-                      status_code   = 500
-                      status_reason = `Internal Server Error` ).
+    CLEAR result.
+    result-body = lv_body.
+    result-status_code = 500.
+    result-status_reason = `Internal Server Error`.
 
   ENDMETHOD.
 
   METHOD _error_body.
 
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    DATA lv_nl LIKE z2ui5_cl_ui5_util_context=>cv_char_util_newline.
+    lv_nl = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     result = |abap2UI5 { z2ui5_if_app=>version } - unhandled exception in a { method } request| &&
              lv_nl && lv_nl && z2ui5_cx_ui5_util_error=>get_text_full( val ).
@@ -1540,7 +1693,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD get_request.
 
-    DATA(lo_handler) = factory( server = server
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_http_handler.
+    lo_handler = factory( server = server
                                 req    = req
                                 res    = res ).
 

@@ -86,22 +86,29 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD teardown.
+    DATA temp1 TYPE REF TO z2ui5_if_ui5_exit.
 
     z2ui5_cl_ui5_srv_monitor=>set_monitor( mi_installed ).
     " the exit double goes, the lookup decides again - the same reset
     " z2ui5_cl_ui5_user_exit's own tests use
-    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+    CLEAR temp1.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp1 ).
 
   ENDMETHOD.
 
   METHOD installed_monitor_answers.
 
-    DATA(lo_monitor) = NEW ltcl_monitor_noop( ).
+    DATA lo_monitor TYPE REF TO ltcl_monitor_noop.
+    DATA temp1 TYPE xsdboolean.
+    CREATE OBJECT lo_monitor TYPE ltcl_monitor_noop.
 
     z2ui5_cl_ui5_srv_monitor=>set_monitor( lo_monitor ).
 
+
+    temp1 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ) ).
+        temp1 ).
 
   ENDMETHOD.
 
@@ -110,17 +117,31 @@ CLASS ltcl_test IMPLEMENTATION.
     " asked twice, answered with the same instance - the lookup and the
     " instantiation run once per roll area, not per call (whatever the
     " system has installed, the answer must not change between the two)
-    DATA(li_first)  = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
-    DATA(li_second) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    DATA li_first TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA li_second TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp3 TYPE xsdboolean.
+    DATA lo_double TYPE REF TO ltcl_monitor_noop.
+    DATA temp2 TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp4 TYPE xsdboolean.
+    li_first  = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( li_first = li_second ) ).
+    li_second = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+
+    temp3 = boolc( li_first = li_second ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
     " an unbound reference restores the lookup: the installed double is gone
     " again, whatever the system answers in its place
-    DATA(lo_double) = NEW ltcl_monitor_noop( ).
+
+    CREATE OBJECT lo_double TYPE ltcl_monitor_noop.
     z2ui5_cl_ui5_srv_monitor=>set_monitor( lo_double ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_double ) ).
+
+    CLEAR temp2.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp2 ).
+
+    temp4 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_double ).
+    cl_abap_unit_assert=>assert_false( temp4 ).
 
   ENDMETHOD.
 
@@ -129,8 +150,13 @@ CLASS ltcl_test IMPLEMENTATION.
     " OPT-IN: with the exit saying nothing (the shipped default is off) the
     " repository is not even asked - no monitor, and nothing latched, so an
     " exit that switches it on later is honoured without a new roll area
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp3 TYPE REF TO ltcl_exit_switch.
+    DATA temp4 TYPE REF TO z2ui5_if_ui5_monitor.
+    CREATE OBJECT temp3 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp3 ).
+
+    CLEAR temp4.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp4 ).
 
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -143,18 +169,28 @@ CLASS ltcl_test IMPLEMENTATION.
     " switching the monitor off takes effect on the next roundtrip of a
     " running sticky session too: a latched answer is not returned while
     " the switch is off, whatever the lookup found while it was on
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp5 TYPE REF TO ltcl_exit_switch.
+    DATA temp6 TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA li_on TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp7 TYPE xsdboolean.
+    CREATE OBJECT temp5 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp5 ).
+
+    CLEAR temp6.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp6 ).
 
     ltcl_exit_switch=>gv_active = abap_true.
-    DATA(li_on) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+    li_on = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
 
     ltcl_exit_switch=>gv_active = abap_false.
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) ).
 
     " and on again: the same answer as before, from the latch or the lookup
     ltcl_exit_switch=>gv_active = abap_true.
-    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = li_on ) ).
+
+    temp7 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = li_on ).
+    cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
 
@@ -162,8 +198,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " an exit whose POST config raises is "off" for the monitor - the same
     " CATCH that keeps a broken exit from deciding anything here
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp7 TYPE REF TO ltcl_exit_switch.
+    DATA temp8 TYPE REF TO z2ui5_if_ui5_monitor.
+    CREATE OBJECT temp7 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp7 ).
+
+    CLEAR temp8.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp8 ).
     ltcl_exit_switch=>gv_active = abap_true.
     ltcl_exit_switch=>gv_raise  = abap_true.
 
@@ -181,11 +222,18 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a host that installs the monitor chose it - the exit's switch is not
     " asked, off or not
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    DATA(lo_monitor) = NEW ltcl_monitor_noop( ).
+    DATA temp9 TYPE REF TO ltcl_exit_switch.
+    DATA lo_monitor TYPE REF TO ltcl_monitor_noop.
+    DATA temp8 TYPE xsdboolean.
+    CREATE OBJECT temp9 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp9 ).
+
+    CREATE OBJECT lo_monitor TYPE ltcl_monitor_noop.
     z2ui5_cl_ui5_srv_monitor=>set_monitor( lo_monitor ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ) ).
+
+    temp8 = boolc( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) = lo_monitor ).
+    cl_abap_unit_assert=>assert_true( temp8 ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = z2ui5_cl_ui5_srv_monitor=>gv_installed ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -200,15 +248,29 @@ CLASS ltcl_test IMPLEMENTATION.
     " does not ask again. The lookup that came back is the one asserted on;
     " a repository that raised (not latched, by design) would leave gv_known
     " off, and then the two answers are simply both unbound
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp10 TYPE REF TO ltcl_exit_switch.
+    DATA temp11 TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA li_first TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA lv_known LIKE z2ui5_cl_ui5_srv_monitor=>gv_known.
+    DATA li_second TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA temp9 TYPE xsdboolean.
+    CREATE OBJECT temp10 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp10 ).
+
+    CLEAR temp11.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp11 ).
     ltcl_exit_switch=>gv_active = abap_true.
 
-    DATA(li_first) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
-    DATA(lv_known) = z2ui5_cl_ui5_srv_monitor=>gv_known.
-    DATA(li_second) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( li_first = li_second ) ).
+    li_first = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+    lv_known = z2ui5_cl_ui5_srv_monitor=>gv_known.
+
+    li_second = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+
+    temp9 = boolc( li_first = li_second ).
+    cl_abap_unit_assert=>assert_true( temp9 ).
     IF li_first IS BOUND.
       cl_abap_unit_assert=>assert_equals( exp = abap_true
                                           act = lv_known ).
@@ -220,8 +282,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " set_monitor( unbound ) is the way back to the lookup: neither
     " "installed" nor "known" survives it
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( NEW ltcl_monitor_noop( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp12 TYPE REF TO ltcl_monitor_noop.
+    DATA temp13 TYPE REF TO z2ui5_if_ui5_monitor.
+    CREATE OBJECT temp12 TYPE ltcl_monitor_noop.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp12 ).
+
+    CLEAR temp13.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp13 ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = z2ui5_cl_ui5_srv_monitor=>gv_installed ).
@@ -242,8 +309,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_class TYPE string.
     DATA lo_monitor TYPE REF TO object.
 
-    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
-    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    DATA temp14 TYPE REF TO ltcl_exit_switch.
+    DATA temp15 TYPE REF TO z2ui5_if_ui5_monitor.
+    DATA li_monitor TYPE REF TO z2ui5_if_ui5_monitor.
+    CREATE OBJECT temp14 TYPE ltcl_exit_switch.
+    z2ui5_cl_ui5_user_exit=>set_instance( temp14 ).
+
+    CLEAR temp15.
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( temp15 ).
     ltcl_exit_switch=>gv_active = abap_true.
 
     TRY.
@@ -255,7 +328,8 @@ CLASS ltcl_test IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    DATA(li_monitor) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+
+    li_monitor = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = z2ui5_cl_ui5_srv_monitor=>gv_known ).
     IF lv_class IS INITIAL.

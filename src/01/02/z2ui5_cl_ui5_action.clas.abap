@@ -83,13 +83,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   METHOD constructor.
 
     mo_handler = val.
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
 
   ENDMETHOD.
 
   METHOD factory_by_frontend.
 
-    result = NEW #( mo_handler ).
+    CREATE OBJECT result EXPORTING VAL = mo_handler.
 
     IF mo_handler->mo_action->mo_app->mo_app IS BOUND.
       result->mo_app = mo_handler->mo_action->mo_app.
@@ -128,8 +128,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_first_start.
+          DATA temp24 TYPE REF TO z2ui5_cl_ui5_frontend.
+    DATA li_app TYPE REF TO z2ui5_if_app.
 
-    result = NEW #( mo_handler ).
+    CREATE OBJECT result EXPORTING VAL = mo_handler.
 
     IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
       TRY.
@@ -169,7 +171,9 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           " There is no client object yet at this point in the factory,
           " so the toast is queued directly through the action builder
           " message_toast_display( ) delegates to.
-          NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
+
+          CREATE OBJECT temp24 TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = result.
+          temp24->msg_toast(
               `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
       ENDTRY.
     ENDIF.
@@ -179,7 +183,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " a bookmark without ?app_start= whose draft is gone names no app to
     " start fresh - it lands where a request without one lands, on the
     " start page (factory_system_startup), with the toast above
-    DATA li_app TYPE REF TO z2ui5_if_app.
+
     IF mo_handler->ms_request-s_control-app_start IS INITIAL.
       li_app = z2ui5_cl_ui5_app_start=>factory( ).
     ELSE.
@@ -194,7 +198,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
   METHOD app_create.
 
-    DATA(lv_app_start) = mo_handler->ms_request-s_control-app_start.
+    DATA lv_app_start LIKE mo_handler->ms_request-s_control-app_start.
+    DATA li_app_type TYPE REF TO z2ui5_if_app.
+    DATA lv_app_intf TYPE string.
+        DATA x TYPE REF TO cx_root.
+    lv_app_start = mo_handler->ms_request-s_control-app_start.
 
     " asked BEFORE the CREATE OBJECT, not answered by it. The name is
     " client-controlled (URL parameter, hash route, launchpad startup
@@ -212,8 +220,9 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " namespace rename rewrites the reference but left the literal behind,
     " and a renamed installation then refused every app it was asked to
     " start (.github/scripts/rename-literal-gate.mjs)
-    DATA li_app_type TYPE REF TO z2ui5_if_app.
-    DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_type ).
+
+
+    lv_app_intf = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_type ).
     IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = lv_app_start
                                                               intf  = lv_app_intf ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -225,7 +234,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     TRY.
         CREATE OBJECT result TYPE (lv_app_start).
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         " the class exists and is an app, and still could not be created -
         " abstract, CREATE PRIVATE, a constructor that raised. It used to be
         " reported as "does not exist" too, which sent whoever read the 500
@@ -321,8 +331,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " diagnostics while a crafted value cannot smuggle markup/script into
     " the response body. A character loop instead of the (deprecated) POSIX
     " regex it used to be: the value is a class name, a few dozen characters
-    DATA(lv_len) = strlen( val ).
-    DATA(lv_off) = 0.
+    DATA lv_len TYPE i.
+    DATA lv_off TYPE i.
+    lv_len = strlen( val ).
+
+    lv_off = 0.
     WHILE lv_off < lv_len.
       IF val+lv_off(1) CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/`.
         result = result && val+lv_off(1).
@@ -333,18 +346,23 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_system_startup.
+    DATA temp25 TYPE REF TO z2ui5_if_app.
 
-    result = NEW #( mo_handler ).
+    CREATE OBJECT result EXPORTING VAL = mo_handler.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_ui5_app_start=>factory( ).
 
-    CAST z2ui5_if_app( result->mo_app->mo_app )->id_draft = result->mo_app->ms_draft-id.
+
+    temp25 ?= result->mo_app->mo_app.
+    temp25->id_draft = result->mo_app->ms_draft-id.
 
   ENDMETHOD.
 
   METHOD check_draft_on_stack.
+    DATA lv_next LIKE mo_app->ms_draft-id_prev_app_stack.
+    DATA lv_count TYPE i.
 
     IF id = mo_app->ms_draft-id.
       result = abap_true.
@@ -352,8 +370,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     ENDIF.
 
     " bounded like any walk of a chain that a broken draft could close
-    DATA(lv_next) = mo_app->ms_draft-id_prev_app_stack.
-    DATA(lv_count) = 0.
+
+    lv_next = mo_app->ms_draft-id_prev_app_stack.
+
+    lv_count = 0.
     WHILE lv_next IS NOT INITIAL AND lv_count < 50.
       IF lv_next = id.
         result = abap_true.
@@ -371,6 +391,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD prepare_app_stack.
+    DATA lv_minted LIKE abap_false.
+    DATA temp26 TYPE z2ui5_if_ui5_types=>ty_t_system_action.
+    DATA ls_front LIKE LINE OF ms_next-t_action_front.
+      DATA lo_frontend TYPE REF TO z2ui5_cl_ui5_frontend.
 
     mo_app->db_save( ).
 
@@ -393,13 +417,14 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " it: the load below used to run for it anyway - a guaranteed miss that
     " ended in a NO_DRAFT_ENTRY exception on every nav_app_call of a fresh
     " app, caught two lines further down
-    DATA(lv_minted) = abap_false.
+
+    lv_minted = abap_false.
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
       lv_minted = abap_true.
     ENDIF.
 
-    result = NEW #( mo_handler ).
+    CREATE OBJECT result EXPORTING VAL = mo_handler.
     IF lv_minted = abap_true.
       result->mo_app->mo_app = val.
     ELSE.
@@ -462,10 +487,13 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " view of its own (a popup-as-app). Its DISPLAYS do not: they describe
     " the screen being replaced. The called app's own displays still win
     " over a carried destroy through slot_reset( ).
-    result->ms_next-t_action_front = VALUE #(
-        FOR ls_front IN ms_next-t_action_front
-        WHERE ( method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
-        ( ls_front ) ).
+
+    CLEAR temp26.
+
+    LOOP AT ms_next-t_action_front INTO ls_front WHERE method = z2ui5_if_ui5_types=>cs_slot_action-destroy.
+      INSERT ls_front INTO TABLE temp26.
+    ENDLOOP.
+    result->ms_next-t_action_front = temp26.
 
     " The two standalone slots (POPUP/POPOVER) die on every app switch - they
     " live OUTSIDE the MAIN control tree, so they do not fall with the page
@@ -482,7 +510,8 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     IF mo_app->mo_app IS BOUND
         AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( val )
           = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
-      DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+
+      CREATE OBJECT lo_frontend TYPE z2ui5_cl_ui5_frontend EXPORTING ACTION = result.
       lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
       lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
     ENDIF.
