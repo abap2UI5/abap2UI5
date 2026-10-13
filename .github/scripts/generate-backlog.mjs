@@ -32,7 +32,7 @@
  * staging area `skill-rule-gate.mjs` describes). A skill section names what it
  * put in the stock with a line of its own:
  *
- *   **Backlog:** abaplint · abaplint-default-key-implicit
+ *   **Backlog:** abaplint · abaplint-avoid-use-extensions
  *   **Backlog:** open-abap · TODO: the transpiler's DELETE INDEX raises where ABAP sets sy-subrc
  *
  * The first form has to resolve to an item of that target - so a renamed or
@@ -290,6 +290,29 @@ for (const item of items) {
 }
 
 const probes = fs.existsSync(PROBES) ? JSON.parse(fs.readFileSync(PROBES, 'utf8')) : {};
+
+/* A detector and its cached result are found by the item's id, so a renamed
+ * or merged item left its measurement behind without a word - the row lost
+ * its count, and the probe kept measuring for an item nobody could open
+ * (abaplint-default-key-implicit, merged into abaplint-avoid-use-extensions
+ * on 2026-10-12). Both have to name an item. */
+for (const name of fs.readdirSync(ITEMS).filter((n) => n.endsWith('.probe.mjs'))) {
+  const id = name.slice(0, -'.probe.mjs'.length);
+  if (!byId.has(id)) {
+    problems.push(
+      `backlog/items/${name}: is the probe of \`${id}\`, which is no item under backlog/items/\n`
+      + '    rename it after the item it now measures, or delete it with its item',
+    );
+  }
+}
+for (const id of Object.keys(probes)) {
+  if (!byId.has(id)) {
+    problems.push(
+      `backlog/probes.json: caches a result for \`${id}\`, which is no item under backlog/items/\n`
+      + '    move the entry to the item the probe now measures, or delete it',
+    );
+  }
+}
 const mined = fs.existsSync(MINED) ? JSON.parse(fs.readFileSync(MINED, 'utf8')) : { candidates: [] };
 
 const { refs, raw } = readMarkers();
