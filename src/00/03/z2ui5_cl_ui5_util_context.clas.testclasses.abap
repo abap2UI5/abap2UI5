@@ -1822,6 +1822,14 @@ CLASS ltcl_msg_rap DEFINITION FINAL
       RETURNING
         VALUE(result)    TYPE REF TO data.
 
+    " the value of one meta entry of a message, or nothing
+    METHODS meta_of
+      IMPORTING
+        msg           TYPE z2ui5_cl_ui5_util_context=>ty_s_msg
+        n             TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -1940,6 +1948,15 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD meta_of.
+
+    READ TABLE msg-t_meta INTO DATA(ls_meta) WITH KEY n = n.
+    IF sy-subrc = 0.
+      result = ls_meta-v.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD failed_bookings.
 
     DATA lo_str   TYPE REF TO cl_abap_elemdescr.
@@ -2028,14 +2045,14 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `BOOKINGS: Entity is locked`
                                         act = ls_msg-text ).
     cl_abap_unit_assert=>assert_equals( exp = `pid-1`
-                                        act = VALUE #( ls_msg-t_meta[ n = `pid` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = ls_msg n = `pid` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `cid-1`
-                                        act = VALUE #( ls_msg-t_meta[ n = `cid` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = ls_msg n = `cid` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `PRODUCT_ID=4711`
-                                        act = VALUE #( ls_msg-t_meta[ n = `tky` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = ls_msg n = `tky` ) ).
     " nothing of the dashed kind in this row
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( ls_msg-t_meta[ n = `element` ] ) ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( ls_msg-t_meta[ n = `action` ] ) ) ).
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `element` ) ).
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `action` ) ).
 
     " the same rows through the generic door every popup takes
     DATA(lt_any) = z2ui5_cl_ui5_util_context=>msg_get_t( <failed> ).
@@ -2100,7 +2117,7 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp( exp = `*booking date in the past*`
                                          act = lt_msg[ 1 ]-text ).
     cl_abap_unit_assert=>assert_equals( exp = `pid-9`
-                                        act = VALUE #( lt_msg[ 1 ]-t_meta[ n = `pid` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `pid` ) ).
 
   ENDMETHOD.
 
@@ -2119,9 +2136,9 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_msg ) ).
     cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`
-                                        act = VALUE #( lt_msg[ 1 ]-t_meta[ n = `element` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `element` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`
-                                        act = VALUE #( lt_msg[ 1 ]-t_meta[ n = `action` ]-v OPTIONAL ) ).
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `action` ) ).
 
   ENDMETHOD.
 
@@ -2406,8 +2423,9 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " a reference to data renders what it points to, as if the value had
     " been passed itself
     DATA lr_row TYPE REF TO ty_s_row.
-    lr_row = NEW #( carrid = `LH`
-                    seats  = 2 ).
+    CREATE DATA lr_row.
+    lr_row->* = VALUE #( carrid = `LH`
+                         seats  = 2 ).
 
     DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lr_row ).
 
@@ -2439,8 +2457,9 @@ CLASS ltcl_data_box IMPLEMENTATION.
     " rendering a deep structure to the bottom - a tree six levels deep
     " shows its first levels and `...` where the limit cuts
     DATA lr_six TYPE REF TO ty_s_node.
-    lr_six = NEW #( name  = `l1`
-                    nodes = VALUE ty_t_row( ( carrid = `l2` ) ) ).
+    CREATE DATA lr_six.
+    lr_six->* = VALUE #( name  = `l1`
+                         nodes = VALUE ty_t_row( ( carrid = `l2` ) ) ).
     DATA lr_outer TYPE REF TO data.
     " every reference level adds one to the depth - five hops around the
     " structure are enough to pass the limit
