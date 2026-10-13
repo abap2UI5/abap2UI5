@@ -28,14 +28,36 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
+             `    "sap/m/App",` && |\n| &&
+             `    "sap/m/NavContainer",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, Context, ViewSlots, Env) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    BaseController,` && |\n| &&
+             `    App,` && |\n| &&
+             `    NavContainer,` && |\n| &&
+             `    Controller,` && |\n| &&
+             `    Server,` && |\n| &&
+             `    Context,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    Env,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    function createRoot(ctx, oController) {` && |\n| &&
+             `      const Root = ctx.state.ownsPage ? App : NavContainer;` && |\n| &&
+             `      const oRoot = Context.runAsOwner(` && |\n| &&
+             `        ctx,` && |\n| &&
+             `        () => new Root(oController.createId("app")),` && |\n| &&
+             `      );` && |\n| &&
+             `` && |\n| &&
+             `      oController.byId("rootSlot").setRoot(oRoot);` && |\n| &&
+             `      return oRoot;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function holdFirstAutoFocus(oApp) {` && |\n| &&
              `      if (!oApp?.getAutoFocus?.()) return;` && |\n| &&
@@ -61,7 +83,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        state.url =` && |\n| &&
              `          state.endpoint || (state.checkLocal ? window.location.href : uri);` && |\n| &&
              `` && |\n| &&
-             `        state.oApp = this.getView().byId("app");` && |\n| &&
+             `        state.oApp = createRoot(ctx, this);` && |\n| &&
              `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&
              `` && |\n| &&
              `        this.startApp();` && |\n| &&
