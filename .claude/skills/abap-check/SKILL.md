@@ -1088,7 +1088,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available, core-seo-interface-implem-get-all
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in

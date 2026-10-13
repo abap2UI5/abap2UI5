@@ -131,15 +131,17 @@ function decodeMappings(mappings) {
  * any function ran when the module loaded, which it did (the suite imported
  * every test class, and a test class imports what it tests). */
 function jsLineHeat(source, functions) {
+  // V8's ranges nest: a function's range, blocks inside it, and functions
+  // inside those - and the class's `<instance_members_initializer>` spans
+  // the whole class body with count 0 when no instance was ever built,
+  // while the static methods inside it ran. So the ranges are applied from
+  // the outside in, the widest first, and the innermost range decides what
+  // a character's count is
+  const ranges = [];
+  for (const fn of functions) for (const range of fn.ranges) ranges.push(range);
+  ranges.sort((a, b) => (b.endOffset - b.startOffset) - (a.endOffset - a.startOffset));
   const cold = new Uint8Array(source.length);
-  for (const fn of functions) {
-    for (const range of fn.ranges) {
-      if (range.count === 0) cold.fill(1, range.startOffset, range.endOffset);
-    }
-  }
-  // a hot inner range inside a cold outer one does not happen (V8 reports
-  // the deepest block that was not run), but a cold inner inside a hot outer
-  // does, and the fill above handles it: the inner zero range wins
+  for (const range of ranges) cold.fill(range.count === 0 ? 1 : 0, range.startOffset, range.endOffset);
   const heat = [];
   let offset = 0;
   for (const line of source.split("\n")) {
