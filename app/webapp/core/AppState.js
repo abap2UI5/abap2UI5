@@ -60,7 +60,8 @@
 //                     it, and no request reports it (Component.init)
 //
 // Views / controllers / UI5 objects
-//   oApp              sap.m.App hosting the main view (App.controller)
+//   oApp              the root hosting the main view: a sap.m.App, or a
+//                     sap.m.NavContainer when embedded (App.controller)
 //   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
 //                     the five view slots, written by ViewSlots.setView

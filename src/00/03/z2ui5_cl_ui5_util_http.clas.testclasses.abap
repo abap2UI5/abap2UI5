@@ -1,3 +1,20 @@
+" client_target( ) is PRIVATE - the URL arithmetic it does is what the
+" tests below assert on, so the test class needs friendship (checked by
+" npm run check_visibility).
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_util_http DEFINITION LOCAL FRIENDS ltcl_test.
+
+" a server object that carries neither REQUEST nor RESPONSE - what the
+" wrapper meets when a host hands it the wrong object
+CLASS ltcl_fake_bare_server DEFINITION FINAL.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_fake_bare_server IMPLEMENTATION.
+ENDCLASS.
+
 CLASS ltcl_fake_request DEFINITION FINAL.
   PUBLIC SECTION.
     DATA mv_cdata  TYPE string.
@@ -156,6 +173,15 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_request_cached       FOR TESTING RAISING cx_static_check.
     METHODS test_get_query            FOR TESTING RAISING cx_static_check.
     METHODS test_get_query_none       FOR TESTING RAISING cx_static_check.
+    METHODS test_target_no_query      FOR TESTING RAISING cx_static_check.
+    METHODS test_target_destination   FOR TESTING RAISING cx_static_check.
+    METHODS test_target_url_query     FOR TESTING RAISING cx_static_check.
+    METHODS test_target_url_has_query FOR TESTING RAISING cx_static_check.
+    METHODS test_target_none_is_url   FOR TESTING RAISING cx_static_check.
+    METHODS test_client_create_url    FOR TESTING RAISING cx_static_check.
+    METHODS test_request_missing      FOR TESTING RAISING cx_static_check.
+    METHODS test_response_missing     FOR TESTING RAISING cx_static_check.
+    METHODS test_header_strips_crlf   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -291,6 +317,137 @@ CLASS ltcl_test IMPLEMENTATION.
                     v = `/sap/bc/z2ui5` ) INTO TABLE mo_server->request->mt_header.
 
     cl_abap_unit_assert=>assert_initial( mo_cut->get_query( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_target_no_query.
+
+    " no query: the url as given, no request_uri to override
+    DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
+                                                           url         = `https://host/path`
+                                                           query       = `` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host/path`
+                                        act = ls_target-url ).
+    cl_abap_unit_assert=>assert_initial( ls_target-request_uri ).
+
+  ENDMETHOD.
+
+  METHOD test_target_destination.
+
+    " through an RFC destination the url is the destination's: the query
+    " travels as the ~request_uri header, with the leading ? the caller may
+    " or may not have written
+    DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = `MY_DEST`
+                                                           url         = ``
+                                                           query       = `?a=1&b=2` ).
+
+    cl_abap_unit_assert=>assert_initial( ls_target-url ).
+    cl_abap_unit_assert=>assert_equals( exp = `?a=1&b=2`
+                                        act = ls_target-request_uri ).
+
+    ls_target = z2ui5_cl_ui5_util_http=>client_target( destination = `MY_DEST`
+                                                     url         = ``
+                                                     query       = `a=1` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `?a=1`
+                                        act = ls_target-request_uri ).
+
+  ENDMETHOD.
+
+  METHOD test_target_url_query.
+
+    " by url the query is appended to the url itself
+    DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
+                                                           url         = `https://host/path`
+                                                           query       = `?a=1` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host/path?a=1`
+                                        act = ls_target-url ).
+    cl_abap_unit_assert=>assert_initial( ls_target-request_uri ).
+
+  ENDMETHOD.
+
+  METHOD test_target_url_has_query.
+
+    " a url that already carries a query takes the next one with &
+    DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
+                                                           url         = `https://host/path?x=0`
+                                                           query       = `a=1` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host/path?x=0&a=1`
+                                        act = ls_target-url ).
+
+  ENDMETHOD.
+
+  METHOD test_target_none_is_url.
+
+    " the destination NONE means "by url", like no destination at all
+    DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = `NONE`
+                                                           url         = `https://host/path`
+                                                           query       = `a=1` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://host/path?a=1`
+                                        act = ls_target-url ).
+    cl_abap_unit_assert=>assert_initial( ls_target-request_uri ).
+
+  ENDMETHOD.
+
+  METHOD test_client_create_url.
+
+    " by url: a client comes back without the call going anywhere - the
+    " dynamic CL_HTTP_CLIENT=>create_by_url only builds the object
+    DATA(lo_client) = z2ui5_cl_ui5_util_http=>client_create( url = `https://localhost/never-called` ).
+
+    cl_abap_unit_assert=>assert_bound( lo_client ).
+
+  ENDMETHOD.
+
+  METHOD test_request_missing.
+
+    " a server object without a REQUEST attribute is refused with the
+    " wrapper's own error, not with a dynamic ASSIGN surprise later
+    DATA(lo_cut) = z2ui5_cl_ui5_util_http=>factory( NEW ltcl_fake_bare_server( ) ).
+
+    TRY.
+        lo_cut->get_cdata( ).
+        cl_abap_unit_assert=>fail( `a server without REQUEST must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*HTTP_SERVER_REQUEST_NOT_FOUND*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_response_missing.
+
+    DATA(lo_cut) = z2ui5_cl_ui5_util_http=>factory( NEW ltcl_fake_bare_server( ) ).
+
+    TRY.
+        lo_cut->set_cdata( `x` ).
+        cl_abap_unit_assert=>fail( `a server without RESPONSE must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*HTTP_SERVER_RESPONSE_NOT_FOUND*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_header_strips_crlf.
+
+    " a header name or value carrying CR/LF would split the header - both
+    " characters are dropped before the stack sees them
+    DATA(lv_cr) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1) ).
+    DATA(lv_lf) = CONV string( z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf+1(1) ).
+
+    mo_cut->set_header_field( n = |x-{ lv_cr }test|
+                              v = |one{ lv_lf }two| ).
+
+    DATA(ls_header) = mo_server->response->mt_header[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = `x-test`
+                                        act = ls_header-n ).
+    cl_abap_unit_assert=>assert_equals( exp = `onetwo`
+                                        act = ls_header-v ).
 
   ENDMETHOD.
 

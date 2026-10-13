@@ -65,6 +65,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_placeholder_bounds FOR TESTING.
     " an argument whose braces do not balance is quoted, the raw forms stay
     METHODS event_unbalanced_quoted FOR TESTING.
+    METHODS event_escaped_quote_raw   FOR TESTING RAISING cx_static_check.
     METHODS event_balanced_raw FOR TESTING.
     METHODS json_basic FOR TESTING.
     METHODS json_no_args FOR TESTING.
@@ -609,6 +610,20 @@ CLASS ltcl_test IMPLEMENTATION.
         exp = `.eF('EVT', '{')`
         act = lo_event->get_event_client( val   = `EVT`
                                           t_arg = VALUE #( ( `{` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD event_escaped_quote_raw.
+
+    " a backslash inside the quoted string takes the next character with it:
+    " the escaped quote does not end the string, so the brace after it is
+    " still text and the expression counts as balanced
+    DATA(lo_event) = NEW z2ui5_cl_ui5_srv_event( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['EVT'], {= ${/A} === 'it\'s}' })`
+        act = lo_event->get_event( val   = `EVT`
+                                   t_arg = VALUE #( ( `{= ${/A} === 'it\'s}' }` ) ) ) ).
 
   ENDMETHOD.
 

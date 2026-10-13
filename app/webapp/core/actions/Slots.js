@@ -449,7 +449,8 @@ sap.ui.define(
     // Page transitions of the MAIN view - view_display( transition )
     // ------------------------------------------------------------------
     //
-    // The root control is a sap.m.App, i.e. a sap.m.NavContainer, and its
+    // The root control is a sap.m.NavContainer (a sap.m.App, or the plain
+    // NavContainer of an embedded component - App.controller), and its
     // to( ) / backToPage( ) play the animations - with BOTH pages in the
     // container at once. The plain swap has two only for the length of a
     // build: the old page stays in the container until the new one is
