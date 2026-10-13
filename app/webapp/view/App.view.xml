@@ -1,6 +1,8 @@
 <mvc:View controllerName="z2ui5.controller.App"
-    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
-    xmlns="sap.m">
-    <App id="app">
-    </App>
+    xmlns:mvc="sap.ui.core.mvc" xmlns:z2ui5core="z2ui5.core"
+    displayBlock="true" height="100%">
+    <!-- The root control, id "app", is created by the controller: a
+         sap.m.App on a page of the app's own, a sap.m.NavContainer for an
+         embedded component (App.controller.js, createRoot). -->
+    <z2ui5core:RootSlot id="rootSlot"/>
 </mvc:View>

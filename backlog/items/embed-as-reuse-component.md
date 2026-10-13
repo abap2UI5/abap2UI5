@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else; a root other than sap.m.App, the messaging decision and the rest of the wire wait for real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else (the control's ownsPage property too, abap2UI5/embed-control#29); an embedded component's root is a sap.m.NavContainer instead of the full-screen sap.m.App (2026-10-13), and its messages stay in the page-wide messaging by decision (2026-10-13); the rest of the wire (cc/History, HASH_BACK, PATHNAME/SEARCH) waits for real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -16,7 +16,8 @@ evidence:
 **Status: stage 2 done (2026-09-23, maintainer decision to build it after
 all), the custom control exists, stage 1 in part: the embedded flag and the
 URL (2026-09-28, for the Fiori elements example of abap2UI5/embed-control),
-the rest open.** abap2UI5 is built for the
+the rest of the page (2026-10-12), the root and the messaging decision
+(2026-10-13); open is the rest of the wire.** abap2UI5 is built for the
 whole page: a stateful roundtrip per event, and the backend drives routing,
 popups, title and favicon. Embedding it as one area of a host app (a
 freestyle view, a Fiori elements V4 custom section or V2 reuse component)
@@ -137,9 +138,10 @@ a viewport meta tag that disables zooming and a format-detection meta tag
 there, and on iOS took the host's scrolling (`position: fixed` on `<html>`).
 An embedded component makes the call first, with everything off
 (`Component.init`); a host that has a `sap.m.App` has made it already. What
-stays is the web-app-capable meta tag `sap.m.App` sets on every rendering
-on a phone or tablet - item 2 below (a root other than `sap.m.App`) ends
-that. Found by the review of abap2UI5/embed-control, pinned by
+stayed was the web-app-capable meta tag `sap.m.App` sets on every rendering
+on a phone or tablet - item 2 below ended that on 2026-10-13. The call
+itself stays: a `sap.m.Shell` or `sap.m.SplitApp` in the app's view makes
+it too when it is created (the hello world app has a Shell). Found by the review of abap2UI5/embed-control, pinned by
 `node/tests/componentData.spec.js` and `node/tests/e2e/embedded.spec.js`.
 
 **Done 2026-09-29 - the console.** The developer tools' page-wide capture
@@ -161,14 +163,29 @@ What else stage 1 needs:
      the component's own teardown on `pagehide` and stays.
    - The developer tools' page-wide capture (`devtools/Console.js`
      `error`/`unhandledrejection`, `sessionStorage`).
-2. **A neutral root container** instead of `sap.m.App` in
-   `view/App.view.xml` (`core/actions/Slots.js` swaps MAIN with
-   `removeAllPages`/`insertPage`). `sap.m.App` is a full-screen root, and
-   inside an Object Page section it is the wrong control.
-3. **A decision on messaging.** `Env.getMessaging` is the page-wide
+2. **A neutral root container** instead of `sap.m.App`: done 2026-10-13.
+   `sap.m.App` is a full-screen root - it sets the page up as a mobile app
+   (the web-app-capable meta tag on a phone or tablet), paints the theme's
+   background and gives every ancestor up to `<html>` a height of 100% -
+   and inside an Object Page section it is the wrong control. An embedded
+   component's root is its base class, a `sap.m.NavContainer`, with the
+   same pages and navigation API (`core/actions/Slots.js` swaps MAIN with
+   `removeAllPages`/`insertPage` and `to`/`backToPage`) and the same
+   autofocus; a host that hands the page back (`ownsPage`) gets the
+   `sap.m.App` again. The class is only known at run time and an XMLView
+   renders only what its XML declared, so `view/App.view.xml` declares the
+   place (`core/RootSlot.js`, one element of 100% width and height) and
+   `controller/App.controller.js` (`createRoot`) puts the root there. The
+   host gives the root its height, as `z2ui5.embed.Container` does. A
+   `sap.m.Shell` in an app's view still walks up the DOM like `sap.m.App`
+   did; the control stops that walk at its own element
+   (`data-sap-ui-root-content`). Pinned by `appController.spec.js`,
+   `rootSlot.spec.js` and `embedded.spec.js`.
+3. **A decision on messaging:** decided 2026-10-13, by the maintainer - it
+   stays as it is. `Env.getMessaging` is the page-wide
    `Messaging`/`MessageManager`, so in Fiori elements the embedded app's
-   messages show up in the host's message button. That may be what we want,
-   but it should be decided rather than left to happen.
+   messages show up in the host's message button, which is what a Fiori
+   elements host usually wants.
 
 **Why this is NOT done for the standalone and launchpad case:** document-wide
 listeners cannot simply be scoped to the component's DOM. UI5 renders
@@ -235,11 +252,11 @@ npm package `@abap2ui5/embed-control`, with `app`, `endpoint` and `params`
 properties. It ships no frontend - it loads the bundle above from the
 backend it talks to, so it needs abap2UI5 1.145.0 or later - and it is what
 asked for `componentData.endpoint` and the bundle. The stage 1 items above
-are still what it lacks, the URL (done 2026-09-28) and the title, the
-favicon, the busy indicator and the prompt (done 2026-10-12) aside: an
-embedded app renders its root as `sap.m.App`. Its `ownsHash` property
-hands the page back today; an `ownsPage` property of the same meaning is
-the control's side of the 2026-10-12 switch.
+are done except for the rest of the wire: the URL (2026-09-28), the title,
+the favicon, the busy indicator and the prompt (2026-10-12), and the root,
+a `sap.m.NavContainer` (2026-10-13). Its `ownsPage` property
+(abap2UI5/embed-control#29) hands the whole page back, `ownsHash` is its
+older name.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and
 its own namespace `z2ui5.embed` sits below it, mapped to the host app's

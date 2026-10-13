@@ -681,7 +681,7 @@ sap.ui.define([], () => {
 
     // ...and keep it there when something ELSE moves it. The trap above only
     // sees the user's Tab, but the page behind the overlay keeps running and
-    // may move the focus on its own: sap.m.App focusing the first input of
+    // may move the focus on its own: the root focusing the first input of
     // its first page (NavContainer autoFocus), a SET_FOCUS follow-up action
     // of a response still being rendered (the start app sends one on init),
     // a focus restore. That focus left the aria-modal overlay for good, so
