@@ -54,6 +54,7 @@ const FLOOR = '1.71';
  * see `Component.js` and `sap/ui/core/Theming` (@since 1.118). */
 const ALLOWED = new Set([
   'sap/base/strings/formatMessage', // @since 1.58 - model/clipboard.js
+  'sap/m/App',
   'sap/m/Button',
   'sap/m/ComboBox',
   'sap/m/ComboBoxRenderer',
@@ -62,6 +63,7 @@ const ALLOWED = new Set([
   'sap/m/Input',
   'sap/m/InputRenderer',
   'sap/m/MessageBox',
+  'sap/m/NavContainer',
   'sap/m/Text',
   'sap/m/Token',
   'sap/m/library',

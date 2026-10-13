@@ -15,14 +15,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '9cecbecb49e1448d'.
+    CONSTANTS build_hash TYPE string VALUE '5f9b391aa7ff788f'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-nOy+y0nhRI3ah8OBVbFnLJ8le0dr9Exmem7fEdtmN9A='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-X5s5Gqf/eI89aLOzxZ4Wq9UvwnHtrXRJ/WRFmiF7Vkk='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that
@@ -148,6 +148,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_ui5f_lib_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/RootSlot.js": function()\{{ z2ui5_cl_ui5f_rootslot_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Router.js": function()\{{ z2ui5_cl_ui5f_router_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ScrollFocus.js": function()\{{ z2ui5_cl_ui5f_scrfocus_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Server.js": function()\{{ z2ui5_cl_ui5f_server_js=>get( ) }\},| && |\n| &&

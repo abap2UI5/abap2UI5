@@ -120,20 +120,19 @@ sap.ui.define(
         // ... and so is a restart: the app restarts in place instead of
         // reloading the page (core/ErrorView.js restart)
         if (state.embedded) this.ctx.restart = () => this._restartApp();
-        // ... and so is the page's mobile setup. sap.m.App, the root of
-        // App.view.xml, runs sap/ui/util/Mobile.init( ) when it is created -
-        // once per page, with the settings of whoever calls it first: html
-        // { height: 100% }, a viewport meta tag that disables zooming, a
-        // format-detection meta tag, and on iOS native scrolling off
+        // ... and so is the page's mobile setup. sap/ui/util/Mobile.init( )
+        // runs once per page, with the settings of whoever calls it first:
+        // html { height: 100% }, a viewport meta tag that disables zooming,
+        // a format-detection meta tag, and on iOS native scrolling off
         // (position: fixed on <html>) and the browser UI hidden. On a page
         // of the app's own that is the page the app needs; on a host's page
-        // it took the host's zoom and, on an iPad, its scrolling. A host
-        // with a sap.m.App of its own has made that call already, and this
-        // one changes nothing; a host without one keeps the page it had.
-        // What stays is the web-app-capable meta tag on a phone or tablet:
-        // sap.m.App sets it on every rendering through the same module, and
-        // only a root other than sap.m.App ends that (backlog item
-        // embed-as-reuse-component).
+        // it took the host's zoom and, on an iPad, its scrolling. An
+        // embedded component's root is a sap.m.NavContainer, which never
+        // calls it (App.controller.js, createRoot), but a sap.m.Shell or a
+        // sap.m.SplitApp in the app's view does, when it is created - the
+        // hello world app has a Shell. A host with a sap.m.App of its own
+        // has made that call already, and this one changes nothing; a host
+        // without one keeps the page it had.
         if (state.embedded) {
           Mobile.init({
             viewport: false,
