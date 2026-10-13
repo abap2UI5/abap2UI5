@@ -985,7 +985,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
     DATA lt_names TYPE string_table.
     lt_names = VALUE #( ( `a` ) ).
 
-    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab        = REF #( lt_names )
+    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab       = REF #( lt_names )
                                                                         add_sel_field = abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -1026,7 +1026,7 @@ CLASS ltcl_rtti IMPLEMENTATION.
       END OF ty_s_sel.
     DATA lt_sel TYPE STANDARD TABLE OF ty_s_sel WITH EMPTY KEY.
 
-    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab        = REF #( lt_sel )
+    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab       = REF #( lt_sel )
                                                                         add_sel_field = abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -2051,8 +2051,10 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `PRODUCT_ID=4711`
                                         act = meta_of( msg = ls_msg n = `tky` ) ).
     " nothing of the dashed kind in this row
-    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `element` ) ).
-    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `action` ) ).
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg
+                                                  n   = `element` ) ).
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg
+                                                  n   = `action` ) ).
 
     " the same rows through the generic door every popup takes
     DATA(lt_any) = z2ui5_cl_ui5_util_context=>msg_get_t( <failed> ).
@@ -2162,12 +2164,12 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
                                          c     = `three` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `three`
-                                        act = z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
+                                        act = z2ui5_cl_ui5_util_context=>get_comp_str( val = ls_nested
                                                                                       comp = `C` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
-                                                                                comp = `INNER` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
-                                                                                comp = `NO_SUCH` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val = ls_nested
+                                                                                comp  = `INNER` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val = ls_nested
+                                                                                comp  = `NO_SUCH` ) ).
 
   ENDMETHOD.
 
