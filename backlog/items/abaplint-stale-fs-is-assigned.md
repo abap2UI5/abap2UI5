@@ -3,15 +3,17 @@ target: abaplint
 title: 'Report IS ASSIGNED after READ … ASSIGNING inside a loop without UNASSIGN first'
 summary: 'a failed READ TABLE … ASSIGNING leaves the field symbol on the previous iteration''s row, so IS ASSIGNED reads TRUE for the failure - the complement of subrc_after_assign'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4442
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-10-13
 upstream: abaplint/abaplint
 evidence:
   - 'abap2xlsx/abap2xlsx 719fe85 (''Do not rely on IS ASSIGNED inside a LOOP'')'
   - 'abap2UI5/abap2UI5 932cf90, 75bf551, 1e4c2a4'
   - '28 sites in current trees, two latent bugs: abapGit src/ui/zcl_abapgit_popups.clas.locals_imp.abap:168-172 and abap2xlsx src/zcl_excel_writer_huge_file.clas.abap:807 (a cell gets the previous cell''s style)'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
+  - 'filed 2026-10-13 as abaplint/abaplint#4442, the new rule `is_assigned_in_loop` (quick fix: UNASSIGN before the statement) - it also covers ASSIGN COMPONENT, dynamic ASSIGN, dereference and table expressions; measured on this repository''s `src`: 10 issues, all ASSIGN COMPONENT ... OF STRUCTURE in a loop followed by IS NOT ASSIGNED in `z2ui5_cl_util_ext` (`rtti_get_t_attri_on_prem` copies the previous component''s value when one is missing); open-abap-core `src`: 0'
 ---
 
 # Report IS ASSIGNED after READ … ASSIGNING inside a loop without UNASSIGN first
