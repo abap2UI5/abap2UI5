@@ -3,13 +3,15 @@ target: open-abap
 title: 'runtime: CREATE DATA ... TYPE (name) knows the built-in types in upper case only - `TYPE (''utclong'')` raises CX_SY_CREATE_DATA_ERROR'
 summary: the runtime's `statements/create_data.js` compares a dynamic type name against `"UTCLONG"`, `"STRING"`, `"I"`, … as written, so `CREATE DATA lr TYPE ('utclong')` - valid on a system, where names are not case-sensitive - raises CX_SY_CREATE_DATA_ERROR; ajson guards its `set_utclong` test with exactly that TRY and skips it under the runtime for no reason
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1998
 first_seen: 2026-10-12
 upstream: abaplint/transpiler
 evidence:
   - found 2026-10-12 going through every abap2UI5 unit test that does not run under `npm run unit` - `z2ui5_cl_ajson` `ltcl_writer_test->set_utclong` probes `CREATE DATA lr_utclong TYPE ('utclong')` in a TRY and returns on the exception ("type utclong is not availble in lower releases"), and under the runtime the exception fires although the type exists
   - measured 2026-10-12 on `@abaplint/runtime` 2.14.3 (abap2UI5's pin) - `abap.statements.createData(ref, {name: "utclong"})` throws `cx_sy_create_data_error`, `{name: "UTCLONG"}` assigns a `UTCLong`; with the name upper-cased in the probe (the patch below, applied in memory) the ajson test runs to the end and passes
   - the cause, read in the 2.14.3 package - `build/src/statements/create_data.js` in the `options.name` branch compares `options.name.trimEnd()` against the literals `"ABAP_BOOL"`, `"STRING"`, `"XSTRING"`, `"UTCLONG"`, `"I"`, `"T"`, `"D"`, `"F"`, `"INT8"` without changing the case, while the `=>` branch next to it upper-cases its class name
+checked_upstream: 2026-10-13
 ---
 
 # runtime: `CREATE DATA ... TYPE (name)` with a lower-case built-in type name
