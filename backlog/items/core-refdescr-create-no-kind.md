@@ -3,7 +3,9 @@ target: open-abap
 title: 'cl_abap_refdescr=>create( ) leaves kind and type_kind initial - CREATE DATA ... TYPE HANDLE on a table of REF TO <class> dies with CONVT_NO_NUMBER'
 summary: open-abap-core's `cl_abap_refdescr=>create( p_referenced_type )` only stores the referenced type; `kind` stays blank instead of `kind_ref` and `type_kind` blank instead of `typekind_oref`/`typekind_dref`, so `kernel_create_data_handle=>call( )` falls through its CASE on `kind` into `ASSERT 1 = 'todo'`, which the runtime reports as `CONVT_NO_NUMBER` - a `TABLE OF REF TO cx_root` built from such a descriptor cannot be created
 priority: medium
-state: open
+state: filed
+filed: https://github.com/open-abap/open-abap-core/pull/1310
+checked_upstream: 2026-10-13
 first_seen: 2026-10-12
 evidence:
   - found 2026-10-12 going through every abap2UI5 unit test that does not run under `npm run unit` - `z2ui5_cl_util_msg` `ltcl_unit_test_msg_mapper->test_rap_other` stands in for RAP's `reported-%other` with `cl_abap_tabledescr=>create( cl_abap_refdescr=>create( CAST cl_abap_classdescr( cl_abap_typedescr=>describe_by_name( 'CX_ROOT' ) ) ) )` inside a structure and `CREATE DATA lr TYPE HANDLE lo_top`; it used to sit behind a `sy-sysid = 'ABC'` guard, which is the runtime's fixed system id

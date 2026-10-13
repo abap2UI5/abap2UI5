@@ -3,7 +3,9 @@ target: open-abap
 title: 'cl_abap_tstmp=>add( ) / subtractsecs( ) truncate a TIMESTAMPL to the whole second and answer a short TIMESTAMP - a +60 s / diff round trip gives 59'
 summary: open-abap-core's `cl_abap_tstmp=>add( )` is declared `RETURNING VALUE(time) TYPE timestamp` and its kernel line keeps 14 digits (`toISOString( ).slice( 0, 19 )`), so the 7 fraction digits of a `timestampl` input are dropped - on a system the result carries them (the method answers packed with decimals); `subtract( )` returns `i`, whole seconds. `time_get_timestampl( ) + 60` followed by a diff answers 59 for any input whose fraction is not 0, which is most of them
 priority: medium
-state: open
+state: filed
+filed: https://github.com/open-abap/open-abap-core/pull/1311
+checked_upstream: 2026-10-13
 first_seen: 2026-10-12
 evidence:
   - found 2026-10-12 going through every abap2UI5 unit test that does not run under `npm run unit` - `z2ui5_cl_util` `ltcl_time_ops->add_seconds` and `->diff_seconds` (skipped in `node/setup/abap_transpile.json`, the old note blamed "fractional seconds") do `time_add_seconds( time = time_get_timestampl( ) seconds = 60 )` and assert `time_diff_seconds( ) = 60`

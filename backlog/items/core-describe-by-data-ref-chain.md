@@ -3,7 +3,9 @@ target: open-abap
 title: 'cl_abap_typedescr=>describe_by_data_ref( ) dies on a reference to a reference - `TypeError: Cannot read properties of undefined (reading ''constructor'')`'
 summary: open-abap-core's `describe_by_data_ref( )` dereferences once and calls `describe_by_data( <ref> )`; when the value behind the reference is itself a `REF TO data` (`CREATE DATA mr TYPE REF TO data`, then `CREATE DATA mr->* TYPE string`), `describe_by_data( )` reaches into the inner `DataReference` and reads `.constructor` of a pointer that is not an ABAP type - a JS TypeError no CATCH sees. A system answers a `cl_abap_refdescr` whose referenced type is the inner reference
 priority: medium
-state: open
+state: filed
+filed: https://github.com/open-abap/open-abap-core/pull/1312
+checked_upstream: 2026-10-13
 first_seen: 2026-10-12
 evidence:
   - the test abap2UI5 skips for it - `z2ui5_cl_ui5_srv_model` `ltcl_05_draft->dref_chain_survives` (`node/setup/abap_transpile.json`) builds `mr_ref_ref TYPE REF TO data`, `CREATE DATA mr_ref_ref TYPE REF TO data`, assigns `mr_ref_ref->*` and `CREATE DATA <inner> TYPE string`, then binds the inner reference; the framework's `rtti_get_typedescr_by_data_ref( )` describes it on the way
