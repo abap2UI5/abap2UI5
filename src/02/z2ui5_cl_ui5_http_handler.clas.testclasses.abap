@@ -722,6 +722,20 @@ CLASS ltcl_exit_injector IMPLEMENTATION.
 ENDCLASS.
 
 
+" the server object an ICF handler hands over, reduced to what factory( )
+" reads from it: a RESPONSE attribute. The request side is not touched by
+" factory( ) itself
+CLASS ltcl_server_shape DEFINITION FINAL.
+  PUBLIC SECTION.
+    DATA response TYPE REF TO object.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_server_shape IMPLEMENTATION.
+ENDCLASS.
+
+
 CLASS ltcl_test_http_response DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION LONG.
 
@@ -805,6 +819,9 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the frontend bundle's
     METHODS test_devtools_response       FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_304            FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_onprem      FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_cloud       FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_nothing     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1911,6 +1928,51 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `<!DOCTYPE html>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_onprem.
+
+    " an ICF server object: the layer-0 wrapper is built around it and its
+    " RESPONSE is kept at hand for the compression switch set_response( )
+    " flips - a server without one simply has nothing to flip
+    DATA(lo_server) = NEW ltcl_server_shape( ).
+    lo_server->response = NEW ltcl_server_shape( ).
+
+    DATA(lo_handler) = z2ui5_cl_ui5_http_handler=>factory( lo_server ).
+
+    cl_abap_unit_assert=>assert_bound( lo_handler->mo_server ).
+    cl_abap_unit_assert=>assert_bound( lo_handler->mo_server->mo_server_onprem ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_handler->mo_response_onprem = lo_server->response ) ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_cloud.
+
+    " the cloud pair: request and response objects, no server, so nothing
+    " on-premise to keep
+    DATA(lo_handler) = z2ui5_cl_ui5_http_handler=>factory( req = NEW ltcl_server_shape( )
+                                                           res = NEW ltcl_server_shape( ) ).
+
+    cl_abap_unit_assert=>assert_bound( lo_handler->mo_server ).
+    cl_abap_unit_assert=>assert_bound( lo_handler->mo_server->mo_request_cloud ).
+    cl_abap_unit_assert=>assert_bound( lo_handler->mo_server->mo_response_cloud ).
+    cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_server->mo_server_onprem ).
+    cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_response_onprem ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_nothing.
+
+    " neither a server nor the cloud pair is a programming error of the
+    " caller, named as such
+    TRY.
+        z2ui5_cl_ui5_http_handler=>factory( ).
+        cl_abap_unit_assert=>fail( `factory( ) without any object must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*EMPTY_HTTP_HANDLER_CALL_ERROR*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

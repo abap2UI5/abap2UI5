@@ -15,6 +15,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_text_full_any_cx  FOR TESTING RAISING cx_static_check.
     METHODS test_text_full_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_chain_bounded     FOR TESTING RAISING cx_static_check.
+    METHODS test_x_root_own_voice  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -241,4 +242,39 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( lx->get_text( ) ).
 
   ENDMETHOD.
+
+  METHOD test_x_root_own_voice.
+
+    " an exception handed over as val is normally also the previous and is
+    " rendered once, as a chain entry; only with a DIFFERENT previous does
+    " the val exception keep a voice of its own in get_text_own( )
+    DATA lx_val  TYPE REF TO cx_root.
+    DATA lx_prev TYPE REF TO cx_root.
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `the cause`.
+      CATCH cx_root INTO lx_val ##NO_HANDLER.
+    ENDTRY.
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `another previous`.
+      CATCH cx_root INTO lx_prev ##NO_HANDLER.
+    ENDTRY.
+
+    DATA(lx) = NEW z2ui5_cx_ui5_util_error( val      = lx_val
+                                            previous = lx_prev ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lx->previous = lx_prev ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*the cause*`
+                                         act = lx->get_text_own( ) ).
+
+    " and with val as the previous (the default), no second rendering
+    DATA(lx_same) = NEW z2ui5_cx_ui5_util_error( val = lx_val ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lx_same->previous = lx_val ) ).
+    cl_abap_unit_assert=>assert_initial( lx_same->get_text_own( ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.

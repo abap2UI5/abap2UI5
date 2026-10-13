@@ -94,7 +94,7 @@ DATA mt_rows TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
 ## Measured
 
-`abaplint-default-key-implicit.probe.mjs` — an implicit default-key table declaration, with the explicit WITH DEFAULT KEY as the negative.
+`abaplint-avoid-use-extensions.probe.mjs` — an implicit default-key table declaration, with the explicit WITH DEFAULT KEY as the negative.
 Run **2026-09-19** against `abap2UI5` (not checked out: samples, samples-controls, samples-stack).
 
 **Would fire on 31 site(s)** in 1 repository:

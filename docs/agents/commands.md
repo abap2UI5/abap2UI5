@@ -158,7 +158,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run check:draftowner` | The blank-owner draft tolerance in `z2ui5_cl_ui5_srv_draft` (legacy rows readable during the upgrade transition) carries a removal deadline — this gate holds the tolerance present through the grace window and refuses it after, so the fail-open branch in a fail-closed security control cannot outlive its own comment (`.github/scripts/draft-owner-gate.mjs`; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:release` | The release-readiness gate — the tag, `package.json`, `z2ui5_if_app=>version` and `changelog.txt` all name the same version, and the `unreleased` section is empty (the cut MOVES the entries under the version heading; a copy would publish them again next release) (`.github/scripts/release-gate.mjs`; run by `release.yaml` before anything is published, and by hand before tagging). Not part of `verify`: a normal commit is not a release |
 | `npm run blockers` | What still stands between this repository and `docs/removal-plan.md`, measured over sibling checkouts you point it at (`npm run blockers -- ../samples ../samples-controls ...`). Not a gate and not part of `verify` — the siblings are not checked out here. It exists because every blocker in that plan is a caller count in another repository, and a hand-measured count silently rots. `removal-blockers.yaml` checks the siblings out and runs it monthly into its job summary |
-| `npm run coverage` | What `npm run unit` covers, **per ABAP file** — the transpiler's source maps point back at the `.clas.abap`, so a JS coverage tool measures ABAP lines with ABAP line numbers. Needs the transpiled tree (`npm run downport && npm run auto_transpile`). A report, not a gate, and not part of `verify` — see "What the suite covers" |
+| `npm run coverage` | What `npm run unit` covers, **per ABAP file** — the transpiler's source maps point back at the `.clas.abap`, so V8's coverage of the transpiled JS, mapped back by the script itself, measures ABAP lines with ABAP line numbers. Needs the transpiled tree (`npm run downport && npm run auto_transpile`). A report, not a gate, and not part of `verify` — see "What the suite covers" |
 | `npm run check:abap2ui5` | The [abap2UI5-linter](https://github.com/abap2UI5/linter) over this repository's OWN app classes — the ones under `src/01/04`/`src/02` plus the test-server apps in `node/srv`. They are what an app developer copies from, so the corpus shipped to be imitated is checked with the tool shipped for imitators. Its reason for being here is `chain-house-layout`, the builder-chain layout rule (one call per line, four spaces per level, the closing call in the column of the element it closes) — nothing else formats a chain, abaplint's `indentation` does not reach into one. `npm run fmt:chains` applies it. Config and the two rule decisions: `abap2ui5lint.jsonc` (part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:formatter` | The curated-formatter scope gate — the exports of `app/webapp/model/formatter.js` must match the gate's justified manifest and the module must hardcode no ValueState/icon URI (see AGENTS.md rule 19; part of `verify`, gated in `check_gates.yaml`) |
 | `npm run check:app2abap` | Regenerate `src/01/03/` from `app/webapp/` and fail on drift (mirrors `check_app2abap.yaml`; regenerates in place; installs `app/node_modules` when missing; part of `verify`) |
@@ -215,15 +215,24 @@ Config files: `eslint.config.mjs`, `ui5lint.config.mjs`, `.prettierrc`, `.editor
 
 ### What the suite covers
 
-`npm run coverage` answers it per ABAP file: the transpiler emits source maps back to the `.clas.abap`, so a JavaScript coverage tool measures ABAP lines with ABAP line numbers. Scoped to the engine — `src/00/01` and `src/00/02` are upstream mirrors, `src/99` is frozen, and the `src/01/03` frontend carriers are one method returning a JS/XML literal each, 100% by construction and two thirds of the line count, which would flatter the number without saying anything about the engine.
+`npm run coverage` answers it per ABAP file: the transpiler emits source maps back to the `.clas.abap`, so V8's own coverage of the transpiled JavaScript, mapped back line by line, measures ABAP lines with ABAP line numbers. Scoped to the engine — `src/00/01` and `src/00/02` are upstream mirrors, `src/99` is frozen, and the `src/01/03` frontend carriers are one method returning a JS/XML literal each, 100% by construction and two thirds of the line count, which would flatter the number without saying anything about the engine. A "line" is an ABAP statement the map names; declarations and comments are not counted.
 
-**72.6% of the engine** (8,435 of 11,623 lines, 19 files) — measured by `coverage.yaml`, which runs `npm run coverage` monthly and writes the per-file table to its job summary, so the number here has a run behind it rather than a memory. It is a report and not a gate on purpose: a threshold is a number a build starts optimising for, while the useful question is always *which* file is low and whether that matters. Three are, and only one of them is a gap:
+**91.5% of the engine** (6,651 of 7,271 lines, 21 files; measured 2026-10-13 on @abaplint/transpiler-cli 2.14.3) — `coverage.yaml` runs `npm run coverage` monthly and writes the per-file table to its job summary, so the number here has a run behind it rather than a memory. It is a report and not a gate on purpose: a threshold is a number a build starts optimising for, while the useful question is always *which* file is low and whether that matters. Four are low, and each for a reason the unit suite cannot reach:
 
 | File | Lines | Why |
 |---|---|---|
-| `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | 35% of 3,175 | **The real gap** — 2,056 uncovered lines, more than the rest of the engine's misses together. It is the door to everything utility-shaped (§ "Utilities"), and most of what it offers is called by *apps*, not by the engine the suite drives |
-| `src/02/z2ui5_cl_ui5_http_handler.clas.abap` | 28% of 606, **of the downported copy** | The ICF entry point. The transpiled suite comes in through `z2ui5_cl_ui5_handler` (94%) because there is no ICF request to make; the browser tests drive the rest through `zcl_sicf`. **The "`_http_get( )` is never executed" reading was an artefact, and it is now explained** — see below. Read the 28% as coverage of `node/downport/02/…`, never as a per-line statement about `src/02/…` |
-| `src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap` | 29% of 56 | A demo app. Its view is exercised by the browser tests, not by the unit suite |
+| `src/01/02/z2ui5_cl_ui5_srv_monitor.clas.abap` | 62% of 52 | The switch, the latch and the fail-open path are tested; what is cold is the branch where the repository lookup FOUND a monitor class. The transpiled runtime has no `SEO_INTERFACE_IMPLEM_GET_ALL`, so `monitor_class_lookup( )` raises there (backlog `core-seo-interface-implem-get-all`), which is the third answer the tests assert |
+| `src/00/03/z2ui5_cl_ui5_util_http.clas.abap` | 63% of 254 | The on-premise `IF_HTTP_*` calls, the cloud `IF_WEB_HTTP_*` calls and `client_call( )` over `CL_HTTP_CLIENT`. A test class naming either interface compiles on one kind of system only, and the production code calls them dynamically for that reason; the browser tests drive the on-premise half through `zcl_sicf` |
+| `src/00/03/z2ui5_cl_ui5_util_context.clas.abap` | 86% of 1,925 | The XCO branches (`rtti_get_classes_intf_cloud`, `rtti_get_dtel_texts_by_xco`, `rtti_get_class_descr_on_cloud`), the `CL_ABAP_CONV_IN_CE` fallback behind `CL_ABAP_CONV_CODEPAGE`, the `GUID_CREATE` fallback behind `CL_SYSTEM_UUID` - every one a branch for a system this runtime is not |
+| `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | 87% of 151 | The lookup branches that find an exit class or fall back to the superseded interface - the same repository read as the monitor's |
+
+Before 2026-10-13 the report went through `c8`, which maps V8's coverage
+through the source map with v8-to-istanbul; with the maps transpiler-cli 2.14
+writes that answered 97% for the engine, a cloud-only method at 72 of 72
+statements hit. `coverage-report.mjs` now reads V8's raw coverage
+(`NODE_V8_COVERAGE`) and decodes the map itself, which is also why the line
+totals are smaller than the 2.13.99 figure's: a declaration has no mapping and
+is not a line here.
 
 **Coverage line numbers are the DOWNPORT's, not `src/`'s.** This cost a while
 to see, because the two files share a basename and the report prints the
@@ -234,7 +243,7 @@ node/output/project/z2ui5_cl_ui5_http_handler.clas.mjs.map
   sources: [ "../../downport/02/z2ui5_cl_ui5_http_handler.clas.abap" ]
 ```
 
-`c8` instruments the transpiled JS and maps back through that file — and the
+The coverage is mapped back through that file — and the
 downporter rewrites the source on the way. One `DATA(ls_config) = …` becomes
 seven `DATA` declarations plus an assignment, `COND` becomes an `IF`, a string
 template becomes a concatenation. The measurable numbers (re-measured

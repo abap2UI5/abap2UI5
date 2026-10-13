@@ -89,7 +89,7 @@ in the stock with a line of its own, alongside its `**Linter:**` and
 `**Gate:**` lines:
 
 ```
-**Backlog:** abaplint · abaplint-default-key-implicit
+**Backlog:** abaplint · abaplint-avoid-use-extensions
 **Backlog:** open-abap · TODO: the ixml parser drops the position of a parse error
 ```
 
