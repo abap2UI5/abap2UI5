@@ -1089,7 +1089,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available, core-seo-interface-implem-get-all
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1135,7 +1135,7 @@ break one of those four.
   they stand: a `WITH [TABLE] KEY` operand and an internal-table `WHERE`.
   abaplint's `check_syntax` reports the `READ TABLE … WITH [TABLE] KEY` one
   below 7.40 as well (abaplint/abaplint#4432, merged 2026-10-12, from this
-  catalogue) from the first release after 2.120.75; the `WHERE` positions
+  catalogue) from 2.120.76 on, pinned here; the `WHERE` positions
   and the predicate operand stay this gate's alone.
   **A third position, same cause: the operand of a predicate expression.**
   `condense( val ) IS INITIAL` answers `Unexpected operator "IS"` on 7.02 —
@@ -1767,12 +1767,10 @@ fix.
   section 5's.
 - `LOOP … USING KEY` a sorted secondary key with a key component under OR or
   CP in the WHERE.
-- RETURN, or EXIT/CONTINUE/CHECK of an outer loop, inside a CLEANUP block
-  (abaplint/abaplint#4431 is open).
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-syntax-cleanup-leaves-block, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
 
 ### Security
 

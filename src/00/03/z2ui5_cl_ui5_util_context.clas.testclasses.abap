@@ -565,7 +565,38 @@ CLASS ltcl_rtti DEFINITION FINAL
     METHODS test_scan_flag_nested FOR TESTING RAISING cx_static_check.
     METHODS test_hash_string      FOR TESTING RAISING cx_static_check.
     METHODS test_hash_fallback    FOR TESTING RAISING cx_static_check.
+    METHODS test_sel_tab_unbound  FOR TESTING RAISING cx_static_check.
+    METHODS test_sel_tab_elem     FOR TESTING RAISING cx_static_check.
+    METHODS test_sel_tab_of_tabs  FOR TESTING RAISING cx_static_check.
+    METHODS test_sel_tab_existing FOR TESTING RAISING cx_static_check.
+    METHODS test_error_attributes FOR TESTING RAISING cx_static_check.
+    METHODS test_error_unbound    FOR TESTING RAISING cx_static_check.
 
+ENDCLASS.
+
+
+" an exception with attributes of its own - the public printable one is what
+" the error dump shows, the table and the private one are not
+CLASS ltcl_rtti_cx DEFINITION FINAL INHERITING FROM cx_static_check.
+  PUBLIC SECTION.
+    DATA mv_detail TYPE string.
+    DATA mv_empty  TYPE string ##NEEDED.
+    DATA mt_rows   TYPE string_table ##NEEDED.
+    METHODS constructor
+      IMPORTING
+        detail TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    DATA mv_secret TYPE string.
+ENDCLASS.
+
+CLASS ltcl_rtti_cx IMPLEMENTATION.
+  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+    super->constructor( ).
+    mv_detail = detail.
+    mv_secret = `secret`.
+    APPEND `row` TO mt_rows.
+  ENDMETHOD.
 ENDCLASS.
 
 
@@ -928,6 +959,115 @@ CLASS ltcl_rtti IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>scan_flag_prefix( val    = ls_row
                                                      prefix = `PID-` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_sel_tab_unbound.
+
+    " no table reference is the caller's mistake and is said so, not an
+    " ASSIGN on nothing
+    DATA lr_none TYPE REF TO data.
+
+    TRY.
+        z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( lr_none ).
+        cl_abap_unit_assert=>fail( `an unbound table reference must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*no table reference*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_sel_tab_elem.
+
+    " a table of scalars gets its line wrapped into TAB_LINE, flagged so the
+    " caller knows to unwrap it on the way back, plus the selection flag
+    DATA lt_names TYPE string_table.
+    lt_names = VALUE #( ( `a` ) ).
+
+    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab        = REF #( lt_names )
+                                                                        add_sel_field = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_type-check_table_line ).
+    DATA(lt_comp) = CAST cl_abap_structdescr( ls_type-tabledescr->get_table_line_type( ) )->get_components( ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_comp ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `TAB_LINE`
+                                        act = lt_comp[ 1 ]-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZZSELKZ`
+                                        act = lt_comp[ 2 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_sel_tab_of_tabs.
+
+    " a table of tables has no line a row could be selected from
+    DATA lt_deep TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
+
+    TRY.
+        z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( REF #( lt_deep ) ).
+        cl_abap_unit_assert=>fail( `a table of tables must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*no selectable line*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_sel_tab_existing.
+
+    " a line that already carries the selection field keeps it - no second
+    " ZZSELKZ, and no flag on a structured line
+    TYPES:
+      BEGIN OF ty_s_sel,
+        name    TYPE string,
+        zzselkz TYPE abap_bool,
+      END OF ty_s_sel.
+    DATA lt_sel TYPE STANDARD TABLE OF ty_s_sel WITH EMPTY KEY.
+
+    DATA(ls_type) = z2ui5_cl_ui5_util_context=>rtti_create_sel_tab_type( ir_tab        = REF #( lt_sel )
+                                                                        add_sel_field = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_type-check_table_line ).
+    DATA(lt_comp) = CAST cl_abap_structdescr( ls_type-tabledescr->get_table_line_type( ) )->get_components( ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_comp ) ).
+
+  ENDMETHOD.
+
+  METHOD test_error_attributes.
+
+    " the attributes of an exception, as name/value pairs for the error
+    " popup: public, printable and filled - the table, the private one and
+    " cx_root's own bookkeeping (PREVIOUS, TEXTID, ...) stay out
+    DATA lx TYPE REF TO cx_root.
+    TRY.
+        RAISE EXCEPTION TYPE ltcl_rtti_cx
+          EXPORTING
+            detail = `  the detail  `.
+      CATCH cx_root INTO lx ##NO_HANDLER.
+    ENDTRY.
+
+    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>error_get_attributes( lx ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_attri ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_DETAIL`
+                                        act = lt_attri[ 1 ]-n ).
+    cl_abap_unit_assert=>assert_equals( exp = `the detail`
+                                        act = lt_attri[ 1 ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_error_unbound.
+
+    " no exception, no attributes and no position - both answer nothing
+    DATA lx TYPE REF TO cx_root.
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>error_get_attributes( lx ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>error_get_source_position( lx ) ).
 
   ENDMETHOD.
 
@@ -1667,6 +1807,28 @@ CLASS ltcl_msg_rap DEFINITION FINAL
     METHODS test_flatten_nested       FOR TESTING RAISING cx_static_check.
     METHODS test_flatten_not_a_struct FOR TESTING RAISING cx_static_check.
     METHODS test_is_rap_struct_plain  FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_fail_rows        FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_msg_row          FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_meta_dashed      FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_not_a_struct     FOR TESTING RAISING cx_static_check.
+    METHODS test_comp_str             FOR TESTING RAISING cx_static_check.
+
+    " a RAP-shaped `failed` structure built at runtime - component names
+    " with % cannot be declared statically. One entity table BOOKINGS whose
+    " row carries %FAIL-CAUSE, %PID, %CID and a %TKY key
+    METHODS failed_bookings
+      IMPORTING
+        with_dashed_meta TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)    TYPE REF TO data.
+
+    " the value of one meta entry of a message, or nothing
+    METHODS meta_of
+      IMPORTING
+        msg           TYPE z2ui5_cl_ui5_util_context=>ty_s_msg
+        n             TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
 ENDCLASS.
 
@@ -1786,6 +1948,229 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD meta_of.
+
+    READ TABLE msg-t_meta INTO DATA(ls_meta) WITH KEY n = n.
+    IF sy-subrc = 0.
+      result = ls_meta-v.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD failed_bookings.
+
+    DATA lo_str   TYPE REF TO cl_abap_elemdescr.
+    DATA lo_c1    TYPE REF TO cl_abap_elemdescr.
+    DATA lo_key   TYPE REF TO cl_abap_structdescr.
+    DATA lo_fail  TYPE REF TO cl_abap_structdescr.
+    DATA lo_row   TYPE REF TO cl_abap_structdescr.
+    DATA lo_rows  TYPE REF TO cl_abap_tabledescr.
+    DATA lo_top   TYPE REF TO cl_abap_structdescr.
+    DATA lt_comp  TYPE cl_abap_structdescr=>component_table.
+
+    FIELD-SYMBOLS <failed> TYPE any.
+    FIELD-SYMBOLS <tab>    TYPE ANY TABLE.
+    FIELD-SYMBOLS <ftab>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>    TYPE any.
+    FIELD-SYMBOLS <comp>   TYPE any.
+
+    lo_str = cl_abap_elemdescr=>get_string( ).
+    lo_c1  = cl_abap_elemdescr=>get_c( 1 ).
+
+    lo_key  = cl_abap_structdescr=>create( VALUE #( ( name = `PRODUCT_ID` type = lo_str ) ) ).
+    lo_fail = cl_abap_structdescr=>create( VALUE #( ( name = `CAUSE` type = cl_abap_elemdescr=>get_i( ) ) ) ).
+
+    lt_comp = VALUE #( ( name = `%FAIL` type = lo_fail )
+                       ( name = `%TKY`  type = lo_key )
+                       ( name = `%PID`  type = lo_str )
+                       ( name = `%CID`  type = lo_str ) ).
+    IF with_dashed_meta = abap_true.
+      INSERT VALUE #( name = `%ELEMENT-CUSTOMERID`        type = lo_c1 ) INTO TABLE lt_comp.
+      INSERT VALUE #( name = `%OP-%ACTION-DEDUCTDISCOUNT` type = lo_c1 ) INTO TABLE lt_comp.
+    ENDIF.
+    lo_row  = cl_abap_structdescr=>create( lt_comp ).
+    lo_rows = cl_abap_tabledescr=>create( lo_row ).
+    lo_top  = cl_abap_structdescr=>create( VALUE #( ( name = `BOOKINGS` type = lo_rows ) ) ).
+
+    CREATE DATA result TYPE HANDLE lo_top.
+    ASSIGN result->* TO <failed>.
+    ASSIGN COMPONENT `BOOKINGS` OF STRUCTURE <failed> TO <tab>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab> TO <ftab>.
+    APPEND INITIAL LINE TO <ftab> ASSIGNING <row>.
+
+    ASSIGN COMPONENT `%FAIL-CAUSE` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> = 2.
+    ASSIGN COMPONENT `%PID` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> = `pid-1`.
+    ASSIGN COMPONENT `%CID` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> = `cid-1`.
+    ASSIGN COMPONENT `%TKY-PRODUCT_ID` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> = `4711`.
+    IF with_dashed_meta = abap_true.
+      ASSIGN COMPONENT `%ELEMENT-CUSTOMERID` OF STRUCTURE <row> TO <comp>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <comp> = `X`.
+      ASSIGN COMPONENT `%OP-%ACTION-DEDUCTDISCOUNT` OF STRUCTURE <row> TO <comp>.
+      cl_abap_unit_assert=>assert_subrc( ).
+      <comp> = `X`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_rap_fail_rows.
+
+    " the `failed` response of a RAP call: one message per failed row, the
+    " cause mapped to its text, the entity named in front, and the row's
+    " key and ids carried as meta so the popup can say WHICH booking
+    FIELD-SYMBOLS <failed> TYPE any.
+    DATA(lr_failed) = failed_bookings( ).
+    ASSIGN lr_failed->* TO <failed>.
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = abap_true
+        act = z2ui5_cl_ui5_util_context=>check_is_rap_struct( <failed> ) ).
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_rap( <failed> ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    DATA(ls_msg) = lt_msg[ 1 ].
+    cl_abap_unit_assert=>assert_equals( exp = `E`
+                                        act = ls_msg-type ).
+    cl_abap_unit_assert=>assert_equals( exp = `BOOKINGS: Entity is locked`
+                                        act = ls_msg-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `pid-1`
+                                        act = meta_of( msg = ls_msg n = `pid` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `cid-1`
+                                        act = meta_of( msg = ls_msg n = `cid` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `PRODUCT_ID=4711`
+                                        act = meta_of( msg = ls_msg n = `tky` ) ).
+    " nothing of the dashed kind in this row
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `element` ) ).
+    cl_abap_unit_assert=>assert_initial( meta_of( msg = ls_msg n = `action` ) ).
+
+    " the same rows through the generic door every popup takes
+    DATA(lt_any) = z2ui5_cl_ui5_util_context=>msg_get_t( <failed> ).
+    cl_abap_unit_assert=>assert_equals( exp = ls_msg-text
+                                        act = lt_any[ 1 ]-text ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_msg_row.
+
+    " the `reported` response: a row whose %MSG holds the message object -
+    " its text is the message, the row's meta travels with it. A reference
+    " component is built from cl_abap_refdescr=>create( ), which the
+    " transpiled runtime cannot CREATE DATA yet (backlog
+    " core-refdescr-create-no-kind) - skipped there by configuration
+    DATA lo_str  TYPE REF TO cl_abap_elemdescr.
+    DATA lo_ref  TYPE REF TO cl_abap_refdescr.
+    DATA lo_row  TYPE REF TO cl_abap_structdescr.
+    DATA lo_rows TYPE REF TO cl_abap_tabledescr.
+    DATA lo_top  TYPE REF TO cl_abap_structdescr.
+    DATA lr_data TYPE REF TO data.
+    DATA lx      TYPE REF TO cx_root.
+
+    FIELD-SYMBOLS <reported> TYPE any.
+    FIELD-SYMBOLS <tab>      TYPE ANY TABLE.
+    FIELD-SYMBOLS <ftab>     TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>      TYPE any.
+    FIELD-SYMBOLS <comp>     TYPE any.
+
+    lo_str = cl_abap_elemdescr=>get_string( ).
+    lo_ref = cl_abap_refdescr=>create(
+      CAST cl_abap_classdescr( cl_abap_typedescr=>describe_by_name( `CX_ROOT` ) ) ).
+    lo_row  = cl_abap_structdescr=>create( VALUE #( ( name = `%MSG` type = lo_ref )
+                                                    ( name = `%PID` type = lo_str ) ) ).
+    lo_rows = cl_abap_tabledescr=>create( lo_row ).
+    lo_top  = cl_abap_structdescr=>create( VALUE #( ( name = `BOOKINGS` type = lo_rows ) ) ).
+
+    CREATE DATA lr_data TYPE HANDLE lo_top.
+    ASSIGN lr_data->* TO <reported>.
+    ASSIGN COMPONENT `BOOKINGS` OF STRUCTURE <reported> TO <tab>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    ASSIGN <tab> TO <ftab>.
+    APPEND INITIAL LINE TO <ftab> ASSIGNING <row>.
+
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `booking date in the past`.
+      CATCH cx_root INTO lx ##NO_HANDLER.
+    ENDTRY.
+    ASSIGN COMPONENT `%MSG` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> ?= lx.
+    ASSIGN COMPONENT `%PID` OF STRUCTURE <row> TO <comp>.
+    cl_abap_unit_assert=>assert_subrc( ).
+    <comp> = `pid-9`.
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_rap( <reported> ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*booking date in the past*`
+                                         act = lt_msg[ 1 ]-text ).
+    cl_abap_unit_assert=>assert_equals( exp = `pid-9`
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `pid` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_meta_dashed.
+
+    " %ELEMENT-<field> and %OP-%ACTION-<name> are flags whose NAME carries
+    " the information - the meta names the field and the action. The
+    " transpiled runtime reads such a name as a path (backlog
+    " runtime-assign-component-dash-name) - skipped there by configuration
+    FIELD-SYMBOLS <failed> TYPE any.
+    DATA(lr_failed) = failed_bookings( abap_true ).
+    ASSIGN lr_failed->* TO <failed>.
+
+    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_rap( <failed> ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `element` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`
+                                        act = meta_of( msg = lt_msg[ 1 ] n = `action` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_not_a_struct.
+
+    " msg_get_rap on something that is not a structure answers nothing -
+    " it is called on whatever box_resolve decided was RAP-shaped
+    DATA(lv_text) = `plain text`.
+    DATA lt_lines TYPE string_table.
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>msg_get_rap( lv_text ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>msg_get_rap( lt_lines ) ).
+
+  ENDMETHOD.
+
+  METHOD test_comp_str.
+
+    " a printable component by name, as text; a missing one or a structure
+    " (not printable) answers nothing instead of dumping its bytes
+    DATA(ls_nested) = VALUE ty_s_nested( inner = VALUE #( a = `1` )
+                                         c     = `three` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `three`
+                                        act = z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
+                                                                                      comp = `C` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
+                                                                                comp = `INNER` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>get_comp_str( val  = ls_nested
+                                                                                comp = `NO_SUCH` ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 
@@ -1817,7 +2202,29 @@ CLASS ltcl_data_box DEFINITION FINAL
     METHODS test_empty_table     FOR TESTING RAISING cx_static_check.
     METHODS test_escapes_markup  FOR TESTING RAISING cx_static_check.
     METHODS test_row_limit       FOR TESTING RAISING cx_static_check.
+    METHODS test_object          FOR TESTING RAISING cx_static_check.
+    METHODS test_exception       FOR TESTING RAISING cx_static_check.
+    METHODS test_data_ref        FOR TESTING RAISING cx_static_check.
+    METHODS test_unbound_refs    FOR TESTING RAISING cx_static_check.
+    METHODS test_depth_limit     FOR TESTING RAISING cx_static_check.
 
+ENDCLASS.
+
+
+" an object an app might hand to message_box_display( ) - two public
+" attributes, one class attribute and one constant that must not render
+CLASS ltcl_data_box_obj DEFINITION FINAL.
+  PUBLIC SECTION.
+    CONSTANTS cv_kind TYPE string VALUE `constant` ##NEEDED.
+    CLASS-DATA gv_shared TYPE string VALUE `class-wide` ##NEEDED.
+    DATA mv_name TYPE string VALUE `Ada` ##NEEDED.
+    DATA mv_year TYPE i VALUE 1815 ##NEEDED.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+    DATA mv_hidden TYPE string VALUE `private` ##NEEDED.
+ENDCLASS.
+
+CLASS ltcl_data_box_obj IMPLEMENTATION.
 ENDCLASS.
 
 
@@ -1963,6 +2370,113 @@ CLASS ltcl_data_box IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `Table with 105 entries`
                                         act = ls_box-text ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_box-details CS `... 5 more entries` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_object.
+
+    " an object renders its public instance attributes as a list - the
+    " constant, the class attribute and the private one stay out
+    DATA(lo_obj) = NEW ltcl_data_box_obj( ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lo_obj ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `Object *`
+                                         act = ls_box-text ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*<li><strong>MV_NAME</strong>: Ada</li>*`
+                                         act = ls_box-details ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*<li><strong>MV_YEAR</strong>: 1815</li>*`
+                                         act = ls_box-details ).
+    cl_abap_unit_assert=>assert_char_np( exp = `*constant*`
+                                         act = ls_box-details ).
+    cl_abap_unit_assert=>assert_char_np( exp = `*class-wide*`
+                                         act = ls_box-details ).
+    cl_abap_unit_assert=>assert_char_np( exp = `*private*`
+                                         act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_exception.
+
+    " an exception object is its text, escaped - not its attribute dump
+    DATA lx TYPE REF TO cx_root.
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `a <b>bold</b> failure`.
+      CATCH cx_root INTO lx ##NO_HANDLER.
+    ENDTRY.
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lx ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*a &lt;b&gt;bold&lt;/b&gt; failure*`
+                                         act = ls_box-details ).
+    cl_abap_unit_assert=>assert_char_np( exp = `*<b>bold*`
+                                         act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_data_ref.
+
+    " a reference to data renders what it points to, as if the value had
+    " been passed itself
+    DATA lr_row TYPE REF TO ty_s_row.
+    CREATE DATA lr_row.
+    lr_row->* = VALUE #( carrid = `LH`
+                         seats  = 2 ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lr_row ).
+
+    cl_abap_unit_assert=>assert_false( ls_box-skip ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `<ul><li><strong>CARRID</strong>: LH</li><li><strong>SEATS</strong>: 2</li></ul>`
+        act = ls_box-details ).
+
+  ENDMETHOD.
+
+  METHOD test_unbound_refs.
+
+    " an unbound reference of either kind has nothing to show and must not
+    " dereference
+    DATA lr_row TYPE REF TO ty_s_row.
+    DATA lo_obj TYPE REF TO object.
+
+    DATA(ls_data) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lr_row ).
+    cl_abap_unit_assert=>assert_initial( ls_data-details ).
+
+    DATA(ls_obj) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lo_obj ).
+    cl_abap_unit_assert=>assert_initial( ls_obj-details ).
+
+  ENDMETHOD.
+
+  METHOD test_depth_limit.
+
+    " the recursion stops at cv_data_max_depth with an ellipsis instead of
+    " rendering a deep structure to the bottom - a tree six levels deep
+    " shows its first levels and `...` where the limit cuts
+    DATA lr_six TYPE REF TO ty_s_node.
+    CREATE DATA lr_six.
+    lr_six->* = VALUE #( name  = `l1`
+                         nodes = VALUE ty_t_row( ( carrid = `l2` ) ) ).
+    DATA lr_outer TYPE REF TO data.
+    " every reference level adds one to the depth - five hops around the
+    " structure are enough to pass the limit
+    lr_outer = REF #( lr_six ).
+    DATA lr_2 TYPE REF TO data.
+    lr_2 = REF #( lr_outer ).
+    DATA lr_3 TYPE REF TO data.
+    lr_3 = REF #( lr_2 ).
+    DATA lr_4 TYPE REF TO data.
+    lr_4 = REF #( lr_3 ).
+    DATA lr_5 TYPE REF TO data.
+    lr_5 = REF #( lr_4 ).
+
+    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_data_box_format( lr_5 ).
+
+    cl_abap_unit_assert=>assert_char_cp( exp = `*<em>...</em>*`
+                                         act = ls_box-details ).
 
   ENDMETHOD.
 
