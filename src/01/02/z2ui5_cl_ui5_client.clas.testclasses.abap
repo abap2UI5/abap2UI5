@@ -853,20 +853,22 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_event_client.
 
-    " _event_client( ) is the typed door to the event JS the view embeds -
-    " the same string get_event( ) of the event service builds, so the
-    " frontend sees one spelling whichever way the app asked
+    " _event_client( ) is the typed door to a FRONTEND event - the eF( )
+    " call the view embeds, which the event service spells; the client
+    " passes it through unchanged, view and arguments included
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    DATA(lv_event) = li_client->_event_client( val   = `PRESS`
-                                               t_arg = VALUE #( ( `$event` ) ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'myContainer', '', 'to', 'myPage')`
+        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                        t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `.eB(['PRESS'], $event)`
-                                        act = lv_event ).
-    cl_abap_unit_assert=>assert_equals( exp = li_client->_event( val   = `PRESS`
-                                                                 t_arg = VALUE #( ( `$event` ) ) )
-                                        act = lv_event ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
+        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                        view  = z2ui5_if_client=>cs_view-nested
+                                        t_arg = VALUE #( ( `nestCon` ) ( `to` ) ( `nestPage` ) ) ) ).
 
   ENDMETHOD.
 

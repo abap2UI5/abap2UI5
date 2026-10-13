@@ -233,19 +233,40 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD lookup_names_a_class.
 
-    " the repository read itself: it answers a class name or nothing, and
-    " whatever it answers names a class the monitor can instantiate - on a
-    " system with a monitor installed, that one; on a system or a runtime
-    " without, an empty name (the local double above is no global class and
-    " must not be found)
-    DATA(lv_class) = z2ui5_cl_ui5_srv_monitor=>monitor_class_lookup( ).
+    " the repository read itself. It answers a class name or nothing, or it
+    " raises where there is no repository to read (the transpiled runtime
+    " has no SEO_INTERFACE_IMPLEM_GET_ALL) - and each of the three is a
+    " different answer of get_monitor( ): a name is instantiated, nothing
+    " is latched as "no monitor", a raise is neither (fail open, asked
+    " again next time)
+    DATA lv_class TYPE string.
+    DATA lo_monitor TYPE REF TO object.
 
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_switch( ) ).
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+    ltcl_exit_switch=>gv_active = abap_true.
+
+    TRY.
+        lv_class = z2ui5_cl_ui5_srv_monitor=>monitor_class_lookup( ).
+      CATCH cx_root.
+        cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_srv_monitor=>get_monitor( ) ).
+        cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                            act = z2ui5_cl_ui5_srv_monitor=>gv_known ).
+        RETURN.
+    ENDTRY.
+
+    DATA(li_monitor) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = z2ui5_cl_ui5_srv_monitor=>gv_known ).
     IF lv_class IS INITIAL.
+      cl_abap_unit_assert=>assert_not_bound( li_monitor ).
       RETURN.
     ENDIF.
-    DATA lo_monitor TYPE REF TO object.
+    " the local double above is no global class and must not be what the
+    " repository found; what it found instantiates
     CREATE OBJECT lo_monitor TYPE (lv_class).
     cl_abap_unit_assert=>assert_bound( lo_monitor ).
+    cl_abap_unit_assert=>assert_bound( li_monitor ).
 
   ENDMETHOD.
 
