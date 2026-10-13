@@ -15,7 +15,7 @@ unreleased
 
 
 
-2026-10-13 v1.147.0
+2026-10-14 v1.147.0
 -------------------
 + Embedded frontend: componentData.ownsPage: true hands the whole page back to an embedded component - the URL hash as with ownsHash, and with it the document title and the favicon (SET_TITLE, SET_FAVICON, z2ui5.cc.Title, z2ui5.cc.Favicon), the global busy indicator and the browser's "leave page?" prompt of z2ui5.cc.Dirty. ownsHash: true, the switch's older name, now does the same, so a host that passes it (the abap2UI5/frontend branches standard_new and cloud_new) keeps what it had. Top level only and a boolean only, like ownsHash; the bundle does not pass it
 ! Embedded frontend: an embedded component the host did not hand the page to (no ownsPage or ownsHash - a Fiori elements custom section, a freestyle host) leaves the host's page alone: SET_TITLE and SET_FAVICON change nothing, a roundtrip shows its busy state on the component's own area instead of blocking the host's whole page, and unsaved changes no longer raise the browser's "leave page?" prompt for the host's page. Inside the launchpad the FLP dirty flag is set as before
