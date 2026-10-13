@@ -1128,8 +1128,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `` ) ) )
         act = li_client->_event( val = `PRESSED` arg = `` ) ).
 
-    " and the parameter left out is not the same as passed empty
-    cl_abap_unit_assert=>assert_differs(
+    " arg is appended last, and the wire drops a trailing empty argument
+    " (z2ui5_cl_ui5_srv_event=>get_t_arg) - passed empty and left out come
+    " out the same
+    cl_abap_unit_assert=>assert_equals(
         exp = li_client->_event( `PRESSED` )
         act = li_client->_event( val = `PRESSED` arg = `` ) ).
 
