@@ -3,7 +3,9 @@ target: open-abap
 title: 'runtime: ASSIGN COMPONENT with a dash in the name is read as a path - a RAP `%ELEMENT-<field>` component built at runtime is never found'
 summary: the runtime's `statements/assign.js` splits every component name at `-` and walks it as a path (`a-b` → component `a`, then its component `b`); a component whose NAME carries a dash, as `cl_abap_structdescr=>create( )` accepts for a RAP-shaped `%ELEMENT-CUSTOMERID` row, is never looked up as one name, and `result?.get()` on the way dies with `TypeError: Cannot read properties of undefined` instead of sy-subrc 4
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/1996
+checked_upstream: 2026-10-13
 first_seen: 2026-10-12
 upstream: abaplint/transpiler
 evidence:

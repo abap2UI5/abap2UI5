@@ -47,7 +47,7 @@
 // Run:  npm run coverage      (needs `npm run downport && npm run auto_transpile` first)
 import { existsSync, readFileSync, readdirSync, rmSync, mkdirSync } from "fs";
 import { spawnSync } from "child_process";
-import { pathToFileURL, fileURLToPath } from "url";
+import { fileURLToPath } from "url";
 import path from "path";
 
 const OUTPUT = "node/output/index.mjs";
@@ -86,13 +86,11 @@ const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
  * original line is kept: this report counts lines, not columns. */
 function decodeMappings(mappings) {
   const lines = [];
-  let source = 0;
+  // every field is a delta to the previous segment's; only the original
+  // line is accumulated, the others are not read
   let origLine = 0;
-  let origCol = 0;
-  let name = 0;
   for (const line of mappings.split(";")) {
     const out = [];
-    let genCol = 0;
     for (const seg of line.split(",")) {
       if (!seg) continue;
       const fields = [];
@@ -109,12 +107,8 @@ function decodeMappings(mappings) {
           value = 0;
         }
       }
-      genCol += fields[0];
       if (fields.length > 1) {
-        source += fields[1];
         origLine += fields[2];
-        origCol += fields[3];
-        if (fields.length > 4) name += fields[4];
         out.push(origLine + 1);
       }
     }
