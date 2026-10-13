@@ -324,8 +324,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " no query: the url as given, no request_uri to override
     DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
-                                                           url         = `https://host/path`
-                                                           query       = `` ).
+                                                           url           = `https://host/path`
+                                                           query         = `` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://host/path`
                                         act = ls_target-url ).
@@ -339,16 +339,16 @@ CLASS ltcl_test IMPLEMENTATION.
     " travels as the ~request_uri header, with the leading ? the caller may
     " or may not have written
     DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = `MY_DEST`
-                                                           url         = ``
-                                                           query       = `?a=1&b=2` ).
+                                                           url           = ``
+                                                           query         = `?a=1&b=2` ).
 
     cl_abap_unit_assert=>assert_initial( ls_target-url ).
     cl_abap_unit_assert=>assert_equals( exp = `?a=1&b=2`
                                         act = ls_target-request_uri ).
 
     ls_target = z2ui5_cl_ui5_util_http=>client_target( destination = `MY_DEST`
-                                                     url         = ``
-                                                     query       = `a=1` ).
+                                                     url           = ``
+                                                     query         = `a=1` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `?a=1`
                                         act = ls_target-request_uri ).
@@ -359,8 +359,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " by url the query is appended to the url itself
     DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
-                                                           url         = `https://host/path`
-                                                           query       = `?a=1` ).
+                                                           url           = `https://host/path`
+                                                           query         = `?a=1` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://host/path?a=1`
                                         act = ls_target-url ).
@@ -372,8 +372,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a url that already carries a query takes the next one with &
     DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = ``
-                                                           url         = `https://host/path?x=0`
-                                                           query       = `a=1` ).
+                                                           url           = `https://host/path?x=0`
+                                                           query         = `a=1` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://host/path?x=0&a=1`
                                         act = ls_target-url ).
@@ -384,8 +384,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the destination NONE means "by url", like no destination at all
     DATA(ls_target) = z2ui5_cl_ui5_util_http=>client_target( destination = `NONE`
-                                                           url         = `https://host/path`
-                                                           query       = `a=1` ).
+                                                           url           = `https://host/path`
+                                                           query         = `a=1` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `https://host/path?a=1`
                                         act = ls_target-url ).
