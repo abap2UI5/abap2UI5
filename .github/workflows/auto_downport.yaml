@@ -5,11 +5,21 @@ name: auto_downport
 # of its inputs and still rebuilt and force-pushed the branch. Not a
 # required check, so a paths filter is safe here (contrast check_gates.yaml,
 # where "a check that does not run cannot be required").
+#
+# changelog.txt is in the list for one reason: release.yaml refuses to tag
+# the 702 branch unless its head names the release commit, and a release
+# cut can be a changelog-only commit (the versions bumped earlier, the
+# unreleased entries moved under the heading last). Without this entry
+# such a commit never rebuilt the branch, and the release failed asking
+# to wait for a run that would never come. workflow_dispatch is the
+# fallback for any other commit that has to be the release commit.
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
       - 'src/**'
+      - 'changelog.txt'
       - 'abaplint.jsonc'
       - '.abapgit.xml'
       - '.github/abaplint/**'
