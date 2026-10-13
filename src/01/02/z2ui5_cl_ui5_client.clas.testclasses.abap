@@ -121,6 +121,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_ctrl_global_opt      FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
+    METHODS test_event_client     FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event_empty FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_navigated   FOR TESTING RAISING cx_static_check.
@@ -847,6 +848,25 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = mo_client->z2ui5_if_client~check_on_init( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_event_client.
+
+    " _event_client( ) is the typed door to the event JS the view embeds -
+    " the same string get_event( ) of the event service builds, so the
+    " frontend sees one spelling whichever way the app asked
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    DATA(lv_event) = li_client->_event_client( val   = `PRESS`
+                                               t_arg = VALUE #( ( `$event` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `.eB(['PRESS'], $event)`
+                                        act = lv_event ).
+    cl_abap_unit_assert=>assert_equals( exp = li_client->_event( val   = `PRESS`
+                                                                 t_arg = VALUE #( ( `$event` ) ) )
+                                        act = lv_event ).
 
   ENDMETHOD.
 
