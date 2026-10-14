@@ -151,16 +151,20 @@ tab: same gates, same notes, no tag and no release.
 - **Whether `main` is worth releasing.** `npm run verify` says the tree is
   correct, not that it is a good moment.
 - **The 702 content.** `auto_downport` rebuilds the `702` branch from `main` on
-  every push, so at tag time it already holds the downport of the released
-  commit. The release job only tags it — but it no longer tags it blind: the
-  downport commit carries a `Source-Commit:` trailer naming the `main` commit
-  it was built from, and the release job refuses to tag a `702` head whose
-  trailer does not name the release commit. A stale branch (the downport job
-  failed, or is still running) therefore fails the release with a message
-  saying to wait for `auto_downport`, instead of shipping a stale `-702`
-  release. Checking that `auto_downport` ran green before tagging is still
-  good manners; it is just no longer the only thing standing between a failed
-  downport and a wrong release.
+  every push, so at tag time it usually holds the downport of the released
+  commit, and the release job tags that head. It checks first: every downport
+  commit carries a `Source-Commit:` trailer naming the `main` commit it was
+  built from, and the head is tagged only when that trailer names the release
+  commit. When it does not, because `auto_downport` is still running or a push
+  to `main` after the release commit has rebuilt the branch already (1.148.0:
+  #2923 landed between the merge of the cut and the tag), the release job
+  builds the downport of the release commit itself, the way `auto_downport`
+  does, and tags that commit. The branch is force-pushed on every rebuild, so
+  the earlier build is not in its history any more, and the rebuild is the
+  same tree: for 1.148.0 it matched the head `auto_downport` had pushed, hash
+  for hash. The branch itself stays `auto_downport`'s; the release job never
+  pushes it. A downport that fails or does not lint fails the step, and with
+  it the `-702` release.
 - **The addons.** `abap2UI5-addons/*` and the sample repositories are versioned
   on their own and are not touched here.
 
