@@ -139,15 +139,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    "! a string value escaped as z2ui5_cl_ajson's lcl_json_serializer
-    "! escapes it - the five replacements, in its order, and only when one
-    "! of the characters is there
-    CLASS-METHODS json_escape
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
     " _bind( json = abap_true ): the string spliced in as a JSON node
     METHODS json_bind_set
       IMPORTING
@@ -877,7 +868,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       lv_text = |{ <cell> }|.
       CASE lr_comp->json_kind.
         WHEN `S`.
-          lv_text = |"{ json_escape( lv_text ) }"|.
+          lv_text = |"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_text ) }"|.
         WHEN `D`.
           lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
                             ELSE |"{ lv_text(4) }-{ lv_text+4(2) }-{ lv_text+6(2) }"| ).
@@ -891,35 +882,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDLOOP.
     result = `{` && concat_lines_of( table = lt_member
                                      sep   = `,` ) && `}`.
-
-  ENDMETHOD.
-
-  METHOD json_escape.
-
-    result = val.
-    IF result NA |"\\\t\n\r|.
-      RETURN.
-    ENDIF.
-    result = replace( val  = result
-                      sub  = `\`
-                      with = `\\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = |\n|
-                      with = `\n`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = |\r|
-                      with = `\r`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = |\t|
-                      with = `\t`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `\"`
-                      occ  = 0 ).
 
   ENDMETHOD.
 

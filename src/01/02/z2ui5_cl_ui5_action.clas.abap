@@ -319,16 +319,10 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " app_start is client-controlled and reflected into the error text:
     " stripped to class-name-safe characters, so a real typo still shows for
     " diagnostics while a crafted value cannot smuggle markup/script into
-    " the response body. A character loop instead of the (deprecated) POSIX
-    " regex it used to be: the value is a class name, a few dozen characters
-    DATA(lv_len) = strlen( val ).
-    DATA(lv_off) = 0.
-    WHILE lv_off < lv_len.
-      IF val+lv_off(1) CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/`.
-        result = result && val+lv_off(1).
-      ENDIF.
-      lv_off = lv_off + 1.
-    ENDWHILE.
+    " the response body
+    result = z2ui5_cl_ui5_util_context=>c_filter_chars(
+        val     = val
+        allowed = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/` ).
 
   ENDMETHOD.
 

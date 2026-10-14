@@ -418,8 +418,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     " strip CR/LF from both halves before they reach the stack: header names
     " and values are exit-suppliable (t_security_header), and an exit that
     " derives one from the request would otherwise hand a response-splitting
-    " primitive to the client - the same reasoning as _attr_escape in
-    " z2ui5_cl_ui5_http_handler, applied to the header channel. The stack
+    " primitive to the client - the same reasoning as the attribute
+    " escaping of z2ui5_cl_ui5_http_handler's GET page, applied to the header channel. The stack
     " may reject embedded CRLF itself, but nothing here should depend on it
     IF lv_n CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
         OR lv_v CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.

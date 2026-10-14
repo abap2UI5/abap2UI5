@@ -387,12 +387,191 @@ CLASS ltcl_string DEFINITION FINAL
     METHODS test_url_create_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_url_roundtrip     FOR TESTING RAISING cx_static_check.
     METHODS test_escape_html       FOR TESTING RAISING cx_static_check.
+    METHODS test_escape_json       FOR TESTING RAISING cx_static_check.
+    METHODS test_escape_js         FOR TESTING RAISING cx_static_check.
+    METHODS test_escape_xml        FOR TESTING RAISING cx_static_check.
+    METHODS test_truncate          FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_chars      FOR TESTING RAISING cx_static_check.
+    METHODS test_cut_at            FOR TESTING RAISING cx_static_check.
+    METHODS test_url_origin        FOR TESTING RAISING cx_static_check.
+    METHODS test_url_authority     FOR TESTING RAISING cx_static_check.
+    METHODS test_etag_match_rules  FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_checksum     FOR TESTING RAISING cx_static_check.
     METHODS test_data_uri          FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_string IMPLEMENTATION.
+
+  METHOD test_url_origin.
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://sdk.openui5.org`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_origin(
+                                                  `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example:8443`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_origin(
+                                                  `https://cdn.example:8443/ui5/resources/sap-ui-core.js?x=1` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `http://cdn.example`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_origin( `HTTP://cdn.example?q` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `//cdn.example`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_origin( `//cdn.example/resources/sap-ui-core.js` ) ).
+    " the host alone, no path at all
+    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_origin( `https://cdn.example` ) ).
+    " relative: the page's own origin, nothing to announce
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_get_origin(
+                                             `/sap/public/bc/ui5_ui5/1/resources/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_get_origin( `resources/sap-ui-core.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_get_origin( `` ) ).
+    " no host, or userinfo in front of it: nothing rather than a guess
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_get_origin( `https:///x.js` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>url_get_origin( `https://u:p@cdn.example/x.js` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_etag_match_rules.
+
+    DATA(lv_tag) = `"1.0-11-22-33"`.
+
+    " exact, weak, listed, any, the Apache suffix - all a match
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `"1.0-11-22-33"`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `W/"1.0-11-22-33"`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `"a" , "1.0-11-22-33" ,"b"`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `*`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `"1.0-11-22-33-gzip"`
+        etag          = lv_tag ) ).
+
+    " another tag, a tag that merely starts like ours, nothing at all
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `"1.0-99-99-99"`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `"1.0-11-22-33-x"`
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = ``
+        etag          = lv_tag ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>http_check_etag_match(
+        if_none_match = `*`
+        etag          = `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_escape_json.
+
+    DATA(lv_raw) = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                   && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `d`.
+    cl_abap_unit_assert=>assert_equals( exp = `a\"b\\c\t\r\nd`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_json( lv_raw ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `plain </b>`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_json( `plain </b>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_escape_js.
+
+    " both quotes, the backslash, the line terminators and the end of an
+    " inline script - the backslash first, or it would double the others
+    DATA(lv_raw) = `a"b'c\d</e` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `f`.
+    cl_abap_unit_assert=>assert_equals( exp = `a\"b\'c\\d<\/e\r\nf`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_js( lv_raw ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_js( `/sap/bc/z2ui5` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_escape_xml.
+
+    " the entities, the whitespace as character references, and a form feed
+    " (illegal in XML 1.0 even as a reference) dropped
+    DATA(lv_ff) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `0C` ) ).
+    DATA(lv_raw) = `a&b<c>d"e'f` && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+                   && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab && lv_ff && `g`.
+    cl_abap_unit_assert=>assert_equals( exp = `a&amp;b&lt;c&gt;d&quot;e'f&#xA;&#x9;g`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_xml( lv_raw ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `plain`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_xml( `plain` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_truncate.
+
+    cl_abap_unit_assert=>assert_equals( exp = `abcdefg...`
+                                        act = z2ui5_cl_ui5_util_context=>c_truncate( val = `abcdefghijklmn`
+                                                                                     max = 10 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `abcdefghij`
+                                        act = z2ui5_cl_ui5_util_context=>c_truncate( val = `abcdefghij`
+                                                                                     max = 10 ) ).
+    " no room for the ellipsis: a plain cut
+    cl_abap_unit_assert=>assert_equals( exp = `ab`
+                                        act = z2ui5_cl_ui5_util_context=>c_truncate( val = `abcdef`
+                                                                                     max = 2 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_chars.
+
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = z2ui5_cl_ui5_util_context=>c_filter_chars(
+                                                  val     = `ZCL_X"><script>`
+                                                  allowed = `ABCDEFGHIJKLMNOPQRSTUVWXYZ_` ) ).
+    " nothing to strip: the value itself
+    cl_abap_unit_assert=>assert_equals( exp = `abc`
+                                        act = z2ui5_cl_ui5_util_context=>c_filter_chars( val     = `abc`
+                                                                                         allowed = `abc` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>c_filter_chars( val     = ``
+                                                                                    allowed = `abc` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_cut_at.
+
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = z2ui5_cl_ui5_util_context=>c_cut_at( val = `ZCL_X?a=1`
+                                                                                   sub = `?` ) ).
+    " sub absent: the whole value, not the empty one substring_before answers
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
+                                        act = z2ui5_cl_ui5_util_context=>c_cut_at( val = `ZCL_X`
+                                                                                   sub = `?` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_authority.
+
+    cl_abap_unit_assert=>assert_equals( exp = `host.example:8443`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_authority(
+                                                  `HTTPS://Host.Example:8443/path?q#f` ) ).
+    " a default port is no port, whatever the scheme
+    cl_abap_unit_assert=>assert_equals( exp = `host.example`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_authority( `host.example:443` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `host.example`
+                                        act = z2ui5_cl_ui5_util_context=>url_get_authority( `http://host.example:80/` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_hash_checksum.
+
+    DATA(lv_a) = z2ui5_cl_ui5_util_context=>hash_checksum( `<html>shell content A</html>` ).
+    DATA(lv_b) = z2ui5_cl_ui5_util_context=>hash_checksum( `<html>shell content B</html>` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_a ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_a
+                                         act = lv_b ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_a
+                                        act = z2ui5_cl_ui5_util_context=>hash_checksum( `<html>shell content A</html>` ) ).
+    " the byte count leads
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_a CP `28-*` ) ).
+
+  ENDMETHOD.
 
   METHOD test_data_uri.
 

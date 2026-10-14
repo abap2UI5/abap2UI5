@@ -278,12 +278,12 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   METHOD escape_js_string.
 
-    " same fast path as z2ui5_cl_ui5_view_builder=>xml_escape: the five
+    " same fast path as z2ui5_cl_ui5_util_context=>c_escape_xml: the five
     " REPLACE ALL passes below each copy the whole string even when nothing
     " matches, and the common value here - an event name, a plain argument -
     " contains none of these characters. Runs once per _event( ) per render,
     " plus once per quoted argument. NOTE the backslash IS in this set
-    " (xml_escape's set has none)
+    " (c_escape_xml's set has none)
     result = val.
     IF result NA `\'` AND result NA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
       RETURN.
