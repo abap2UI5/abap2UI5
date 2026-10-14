@@ -2,8 +2,15 @@
 /*
  * own-apps.mjs - a host's own transpiled classes, on the package's runtime.
  * Shipped in @abap2ui5/node-runtime as setup/own-apps.mjs and as the bin
- * `abap2ui5-own-apps`; npm.README.md, "Your own apps", is the recipe it is
- * one step of.
+ * `abap2ui5-own-apps`; until 1.147.0 npm.README.md, "Your own apps", was
+ * the recipe it is one step of.
+ *
+ * DEPRECATED since abap2ui5-transpile transpiles the framework and the
+ * host's classes together into one runtime of the host's own
+ * (setup/transpile.mjs, "WHY ONE TRANSPILE"): one transpile, one transpiler
+ * version, nothing to rewrite - the way the transpiler's maintainer asked
+ * for (abaplint/transpiler#1999). This bin stays for the hosts that call it
+ * (abap2UI5/protocol's conformance host transpiles with 2.13), unchanged.
  *
  *   npx abap_transpile abap_transpile.json     # abap/ -> output/project/, with "addCommonJS": true
  *   npx abap2ui5-own-apps output apps           # output/project/ -> apps/: your classes alone

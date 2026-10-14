@@ -33,6 +33,15 @@ _an issue or PR exists; the item goes when it merges_
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
 | [`runtime-packed-copy-precision`](items/runtime-packed-copy-precision.md) | '`Packed.set( )` has no branch for a `Packed` source and falls through to `this.set(value.get())`; `get( )` answers `Number(this.value) / 10 ** decimals`, so every packed-to-packed assignment of more than 15 significant digits loses its last ones - a `timestampl` (21 digits) set from a string is exact, its copy is not, and ajson''s `to_timestamp` then refuses the value as carrying a fraction'<br><sub>written up in [4. Downport and transpile — one source, three targets plus a JS runtime](../.claude/skills/abap-check/SKILL.md)</sub><br><sub>https://github.com/abaplint/transpiler/pull/1962</sub> | medium | 2026-10-08 | abaplint/transpiler |
+
+---
+
+## Deferred
+
+_a decision was made not to do this now, and why_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
 | [`transpiler-cli-library-second-copy`](items/transpiler-cli-library-second-copy.md) | every object the transpile reads - the libraries under `libs` included - is written to the output folder, and a transpiled class imports what it extends by a relative path. A host that transpiles its own classes against an already transpiled library (an npm package) loads a second copy of that library; the second CX_ROOT replaces the first in abap.Classes and exceptions fly through every CATCH. A lib option that type-checks against the library and imports it from a module specifier instead of emitting it would end the workarounds<br><sub>https://github.com/abaplint/transpiler/pull/1999</sub> | medium | 2026-09-29 | abaplint/transpiler |
 
 ---

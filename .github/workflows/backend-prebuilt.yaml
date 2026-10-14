@@ -145,8 +145,9 @@ jobs:
     # node/setup/pack-npm.mjs assembles and packs it (its header lists the
     # contents and why each is there); --check then installs the tarball
     # into a scratch project and drives it - the framework has to answer
-    # GET / with the UI5 component embedded, and a class the scratch project
-    # transpiles against downport/ has to register in the running runtime.
+    # GET / with the UI5 component embedded, and classes the scratch project
+    # transpiles WITH downport/ (abap2ui5-transpile) have to start through
+    # the host.mjs of that output.
     # A tarball that fails its own install is not uploaded, let alone
     # published.
     - name: Pack @abap2ui5/node-runtime and prove the tarball installs

@@ -1,48 +1,59 @@
 #!/usr/bin/env node
 /*
- * transpile.mjs - a host's own ABAP classes, transpiled against the package
- * and loaded on its runtime, in one command. Shipped in @abap2ui5/node-runtime
- * as setup/transpile.mjs and as the bin `abap2ui5-transpile`; npm.README.md,
- * "Your own apps", is the recipe it runs.
+ * transpile.mjs - the framework and a host's own ABAP classes, transpiled
+ * together into one runtime, in one command. Shipped in
+ * @abap2ui5/node-runtime as setup/transpile.mjs and as the bin
+ * `abap2ui5-transpile`; npm.README.md, "Your own apps", is the recipe it runs.
  *
- *   npx abap2ui5-transpile abap srv/apps        # abap/*.abap -> srv/apps/: yours, on the package's classes
+ *   npx abap2ui5-transpile abap abap2ui5        # abap/*.abap + the framework -> abap2ui5/
  *
- * then, after the runtime has booted:  await import("./apps/index.mjs")
+ * then import the package's exports from that output instead of from the
+ * package - they run on it:
+ *   import { serve } from "./abap2ui5/host.mjs";
  *
- * WHY. Transpiling an app against the framework takes five things that all
- * have to agree with the package, and the README used to list them as steps
- * for the host to carry out by hand: the transpiler at the EXACT version
- * output/ was built with (transpiler output is tied to its runtime - the
- * package records it as `abap2ui5.transpiler`); open-abap-core, the standard
- * library the transpile type-checks against, at the COMMIT the framework was
- * built against (`abap2ui5.openAbapCore` - the transpiler's own fallback is
- * whatever HEAD is that day); a transpile config whose libraries point at the
- * package's downport/ and that checkout; the transpile; and own-apps.mjs
- * afterwards, because the transpiler writes a second copy of every library
- * object next to the host's classes. Three consumers (abap2UI5/mcp-server,
- * cap2UI5, cap2UI5/samples) implemented that recipe separately, and a fourth
- * would again. This file is the recipe.
+ * WHY ONE TRANSPILE. The package ships the framework transpiled (output/),
+ * and a host's classes could be transpiled on their own against its sources
+ * and loaded next to it. But the transpiler writes every library it reads
+ * into the output again, and a transpiled class imports what it extends by
+ * a relative path - so the host's classes loaded a second copy of the
+ * framework and of open-abap-core, whose second CX_ROOT broke every CATCH.
+ * Until 1.147.0 own-apps.mjs rewrote those imports after the transpile, and
+ * abaplint/transpiler#1999 proposed a transpiler option to the same end.
+ * The transpiler's maintainer preferred the other way round (#1999): one
+ * transpile of everything, with one transpiler version, gives consistent
+ * output and nothing to rewrite. So this file transpiles the framework's
+ * sources (the package's downport/), open-abap-core and express-icf-shim at
+ * the commits output/ was built against, and the host's classes, in one run
+ * into one output folder - a complete runtime with the same layout as the
+ * package's output/ (project/, open-abap-core/, express-icf-shim/, init.mjs),
+ * whose host.mjs is the package's entry point bound to it. About ten seconds for
+ * the framework's thousand objects; the playground, which recompiles on
+ * every edit, compiles in-process against a registry and is not this path.
  *
  * WHAT IT DOES.
  *   1. Reads the package's package.json: the transpiler version and the
- *      open-abap-core commit output/ was built with.
+ *      open-abap-core and express-icf-shim commits output/ was built with.
  *   2. Finds @abaplint/transpiler-cli in the project. Installed at that
- *      version: runs it. Installed at another version: stops - a transpile
- *      with another transpiler runs on this package's runtime by luck. Not
- *      installed: runs it through `npx -p @abaplint/transpiler-cli@<version>`
+ *      version: runs it. Installed at another version: stops - transpiler
+ *      output is tied to its runtime, and the package pins the runtime.
+ *      Not installed: runs it through `npx -p @abaplint/transpiler-cli@<version>`
  *      and says how to install it (`--save-exact`, so a later `npm install`
  *      does not move it).
- *   3. Checks out open-abap-core at the recorded commit, once, into
- *      node_modules/.cache/abap2ui5-node-runtime/open-abap-core/<commit>
- *      (git fetch --depth 1 of that one commit). --core <dir> or
- *      ABAP2UI5_OPEN_ABAP_CORE names a checkout to use instead.
- *   4. Writes the transpile config (the README's, with the paths filled in)
- *      and runs the transpile into a folder below node_modules/.cache.
- *      --config <file> uses the host's own config instead; a library in it
- *      with the open-abap-core url and an empty folder is filled at the
- *      recorded commit all the same.
- *   5. Runs own-apps.mjs: the host's classes alone into the apps folder,
- *      their imports pointed at the package's output/.
+ *   3. Checks out open-abap-core and express-icf-shim at the recorded
+ *      commits, once each, into
+ *      node_modules/.cache/abap2ui5-node-runtime/<library>/<commit>
+ *      (git fetch --depth 1 of that one commit). --core <dir> /
+ *      ABAP2UI5_OPEN_ABAP_CORE and --shim <dir> / ABAP2UI5_EXPRESS_ICF_SHIM
+ *      name checkouts to use instead.
+ *   4. Writes the transpile config - the package's own build, with the
+ *      host's folder as a second input - into node_modules/.cache and runs
+ *      the transpile into the output folder, which it empties first (a
+ *      folder that is not a transpile output it refuses to empty), and
+ *      writes host.mjs into it: the package's exports, bound to that output
+ *      (srv/framework.mjs, hostEntry( )).
+ *      --config <file> runs the host's own config instead; a library in it
+ *      with the open-abap-core or express-icf-shim url and a folder that
+ *      does not exist is filled at the recorded commit all the same.
  *
  * Every path the transpiler reads has to be below the project (it joins the
  * folders to its working directory), so the package has to be installed in
@@ -55,19 +66,33 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { ownApps } from "./own-apps.mjs";
+import { hostEntry } from "../srv/framework.mjs";
 
 const PACKAGE = "@abap2ui5/node-runtime";
 const TRANSPILER = "@abaplint/transpiler-cli";
 export const OPEN_ABAP_CORE_URL = "https://github.com/open-abap/open-abap-core";
+export const EXPRESS_ICF_SHIM_URL = "https://github.com/open-abap/express-icf-shim";
 const PACKAGE_DIR = fileURLToPath(new URL("../", import.meta.url));
 const CACHE = path.join("node_modules", ".cache", "abap2ui5-node-runtime");
 
 const NPX = process.platform === "win32" ? "npx.cmd" : "npx";
 
-/** A path as the transpiler reads a library folder: "/<relative to cwd>", forward slashes. */
+/* The two git libraries of the transpile: where they come from, the key in
+ * the package's `abap2ui5` record that names their commit, and the option
+ * and variable that name a checkout of the host's own instead. */
+const LIBRARIES = {
+  core: { name: "open-abap-core", url: OPEN_ABAP_CORE_URL, recorded: "openAbapCore", option: "--core", env: "ABAP2UI5_OPEN_ABAP_CORE" },
+  shim: { name: "express-icf-shim", url: EXPRESS_ICF_SHIM_URL, recorded: "expressIcfShim", option: "--shim", env: "ABAP2UI5_EXPRESS_ICF_SHIM" },
+};
+
+/** A path relative to `from`, forward slashes. */
+function posixRelative(from, to) {
+  return path.relative(from, to).split(path.sep).join("/");
+}
+
+/** A path as the transpiler reads a library folder: "/<relative to cwd>". */
 function libFolder(cwd, dir) {
-  return "/" + path.relative(cwd, dir).split(path.sep).join("/");
+  return "/" + posixRelative(cwd, dir);
 }
 
 function below(cwd, dir) {
@@ -76,29 +101,43 @@ function below(cwd, dir) {
 }
 
 /**
- * The transpile config for a host's classes: the README's "Your own apps"
- * config with the paths filled in. Pure.
- * @param {{ cwd: string, abap: string, output: string, packageDir?: string, core: string }} options
+ * The transpile config for the framework and a host's classes: the
+ * package's own build (abap2UI5's node/setup/abap_transpile.json without the
+ * unit tests), with the host's folder as a second input. Pure.
+ * @param {{ cwd: string, abap: string, output: string, packageDir?: string, core: string, shim: string }} options
  *   every path absolute; `abap` the host's classes, `output` where the
- *   transpiler writes, `core` the open-abap-core checkout
+ *   transpiler writes, `core` and `shim` the two library checkouts
  * @returns {object} the config, as abap_transpile.json holds it
  */
-export function transpileConfig({ cwd, abap, output, packageDir = PACKAGE_DIR, core }) {
-  for (const [what, dir] of [["the ABAP folder", abap], ["the output folder", output], ["the package", packageDir], ["open-abap-core", core]]) {
+export function transpileConfig({ cwd, abap, output, packageDir = PACKAGE_DIR, core, shim }) {
+  const folders = [["the ABAP folder", abap], ["the output folder", output], ["the package", packageDir], ["open-abap-core", core], ["express-icf-shim", shim]];
+  for (const [what, dir] of folders) {
     if (!below(cwd, dir)) {
       throw new Error(`abap2ui5-transpile: ${what} (${dir}) is not below the project (${cwd}) - the transpiler reads every folder relative to the project; `
         + (what === "the package" ? `install ${PACKAGE} in the project (npm install ${PACKAGE})` : "move it below the project"));
     }
   }
+  const downport = path.join(packageDir, "downport");
+  if (path.resolve(abap) === path.resolve(output) || below(output, abap) || below(abap, output)) {
+    throw new Error(`abap2ui5-transpile: the output folder (${output}) and the ABAP folder (${abap}) overlap - the output folder is emptied before every transpile`);
+  }
   return {
-    input_folder: path.relative(cwd, abap).split(path.sep).join("/"),
-    output_folder: path.relative(cwd, output).split(path.sep).join("/"),
+    input_folder: [posixRelative(cwd, abap), posixRelative(cwd, downport)],
+    output_folder: posixRelative(cwd, output),
     libs: [
-      { folder: libFolder(cwd, path.join(packageDir, "downport")), files: "/**/*.*" },
       { url: OPEN_ABAP_CORE_URL, folder: libFolder(cwd, core) },
+      { url: EXPRESS_ICF_SHIM_URL, folder: libFolder(cwd, shim) },
     ],
     write_unit_tests: false,
-    options: { ignoreSyntaxCheck: false, addFilenames: true, addCommonJS: true, unknownTypes: "runtimeError" },
+    options: {
+      ignoreSyntaxCheck: false,
+      addFilenames: true,
+      addCommonJS: true,
+      unknownTypes: "runtimeError",
+      populateTables: { reposrc: false },
+      // init.mjs imports the database setup by this path, relative to itself
+      setup: { filename: posixRelative(output, path.join(packageDir, "setup", "setup.mjs")), preFunction: "setup" },
+    },
   };
 }
 
@@ -155,59 +194,91 @@ function git(args, cwd) {
 }
 
 /**
- * open-abap-core at one commit, in `dir`: fetched once, reused afterwards.
- * @param {{ dir: string, commit: string, log?: (line: string) => void }} options
+ * A git library at one commit, in `dir`: fetched once, reused afterwards.
+ * @param {{ dir: string, commit: string, library?: { name: string, url: string, recorded: string, option: string, env: string }, log?: (line: string) => void }} options
+ *   `library` one of LIBRARIES (default open-abap-core)
  * @returns {string} dir
  */
-export function ensureCore({ dir, commit, log = () => {} }) {
+export function ensureCheckout({ dir, commit, library = LIBRARIES.core, log = () => {} }) {
   if (!commit) {
-    throw new Error(`abap2ui5-transpile: this ${PACKAGE} does not record the open-abap-core commit it was built against (abap2ui5.openAbapCore) - `
-      + "1.146.0 or later does; name a checkout with --core <dir> or ABAP2UI5_OPEN_ABAP_CORE");
+    throw new Error(`abap2ui5-transpile: this ${PACKAGE} does not record the ${library.name} commit it was built against (abap2ui5.${library.recorded}) - `
+      + `name a checkout with ${library.option} <dir> or ${library.env}`);
   }
   if (fs.existsSync(path.join(dir, ".git"))) {
     try {
       if (git(["rev-parse", "HEAD"], dir) === commit) return dir;
     } catch { /* re-fetch below */ }
   }
-  log(`abap2ui5-transpile: open-abap-core ${commit.slice(0, 7)} -> ${dir}`);
+  log(`abap2ui5-transpile: ${library.name} ${commit.slice(0, 7)} -> ${dir}`);
   fs.rmSync(dir, { recursive: true, force: true });
   fs.mkdirSync(dir, { recursive: true });
   try {
     git(["init", "-q"], dir);
-    git(["fetch", "-q", "--depth", "1", OPEN_ABAP_CORE_URL, commit], dir);
+    git(["fetch", "-q", "--depth", "1", library.url, commit], dir);
     git(["checkout", "-q", "FETCH_HEAD"], dir);
   } catch (e) {
-    throw new Error(`abap2ui5-transpile: could not check out open-abap-core at ${commit} (git: ${e.stderr?.toString().trim() || e.message}) - `
-      + "git and network access are needed once; or name a checkout with --core <dir> or ABAP2UI5_OPEN_ABAP_CORE", { cause: e });
+    throw new Error(`abap2ui5-transpile: could not check out ${library.name} at ${commit} (git: ${e.stderr?.toString().trim() || e.message}) - `
+      + `git and network access are needed once; or name a checkout with ${library.option} <dir> or ${library.env}`, { cause: e });
   }
   return dir;
 }
 
-/** A host's own config: the open-abap-core library in it, when it has one with a folder. */
-function coreLibOf(config) {
-  return (config.libs || []).find((lib) => lib.url && /open-abap-core/.test(lib.url) && lib.folder) || null;
+/** open-abap-core at one commit - ensureCheckout( ) for that library. */
+export function ensureCore({ dir, commit, log = () => {} }) {
+  return ensureCheckout({ dir, commit, library: LIBRARIES.core, log });
+}
+
+/** A host's own config: its library with that url, when it names a folder. */
+function libOf(config, library) {
+  return (config.libs || []).find((lib) => lib.url && lib.url.replace(/\.git$/, "") === library.url && lib.folder) || null;
 }
 
 /**
- * Transpile a host's classes against the package and load them on its runtime.
- * @param {{ abap: string, apps: string, cwd?: string, config?: string, core?: string, output?: string, keep?: boolean, log?: (line: string) => void }} options
- *   `abap` the host's ABAP folder, `apps` where its transpiled classes go;
- *   `config` the host's own abap_transpile.json instead of the generated one;
- *   `core` an open-abap-core checkout to use; `output` where the transpiler
- *   writes (default below node_modules/.cache); `keep` leaves that folder
- * @returns {{ files: string[], modules: string[], output: string, config: string }}
+ * Empty the output folder for a transpile - only when it is one: missing,
+ * empty, or holding the init.mjs a transpile writes. Anything else is a
+ * folder the host keeps something else in, and it is refused.
  */
-export function transpile({ abap, apps, cwd = process.cwd(), config, core, output, keep = false, log = () => {} }) {
-  const cache = path.join(cwd, CACHE);
-  const abapDir = path.resolve(cwd, abap);
-  const appsDir = path.resolve(cwd, apps);
-  if (!fs.existsSync(abapDir)) throw new Error(`abap2ui5-transpile: ${abapDir} does not exist`);
-  const built = manifest().abap2ui5 || {};
+function emptyOutput(dir) {
+  if (!fs.existsSync(dir)) return;
+  const entries = fs.readdirSync(dir);
+  if (entries.length && !entries.includes("init.mjs")) {
+    throw new Error(`abap2ui5-transpile: ${dir} is not empty and holds no transpile output (no init.mjs) - name a folder of its own for the output, it is emptied before every transpile`);
+  }
+  fs.rmSync(dir, { recursive: true, force: true });
+}
 
-  const coreDir = core || process.env.ABAP2UI5_OPEN_ABAP_CORE
-    ? path.resolve(cwd, core || process.env.ABAP2UI5_OPEN_ABAP_CORE)
-    : ensureCore({ dir: path.join(cache, "open-abap-core", built.openAbapCore || "unknown"), commit: built.openAbapCore, log });
-  if (!fs.existsSync(coreDir)) throw new Error(`abap2ui5-transpile: open-abap-core checkout ${coreDir} does not exist`);
+/**
+ * The output's entry point: host.mjs, the package's exports bound to this
+ * output, with claim.mjs, its first import (srv/framework.mjs, hostEntry( )),
+ * and its types - the package's.
+ * @param {string} dir the transpile's output folder
+ */
+export function writeEntry(dir) {
+  for (const [file, text] of Object.entries(hostEntry({ packageName: PACKAGE }))) fs.writeFileSync(path.join(dir, file), text);
+  fs.writeFileSync(path.join(dir, "host.d.ts"), `// Written by abap2ui5-transpile - the types of ${PACKAGE}, which host.mjs re-exports.\nexport * from "${PACKAGE}";\n`);
+}
+
+/**
+ * Transpile the framework and a host's classes into one runtime.
+ * @param {{ abap: string, output: string, cwd?: string, config?: string, core?: string, shim?: string, log?: (line: string) => void }} options
+ *   `abap` the host's ABAP folder, `output` the folder the runtime goes to
+ *   (its host.mjs is what the host imports); `config` the host's own
+ *   abap_transpile.json instead of the generated one (its output_folder
+ *   wins); `core` and `shim` checkouts of the two libraries to use
+ * @returns {{ output: string, config: string }}
+ */
+export function transpile({ abap, output, cwd = process.cwd(), config, core, shim, log = () => {} }) {
+  const cache = path.join(cwd, CACHE);
+  const built = manifest().abap2ui5 || {};
+  const checkout = (key, given) => {
+    const library = LIBRARIES[key];
+    const named = given || process.env[library.env];
+    const dir = named
+      ? path.resolve(cwd, named)
+      : ensureCheckout({ dir: path.join(cache, library.name, built[library.recorded] || "unknown"), commit: built[library.recorded], library, log });
+    if (!fs.existsSync(dir)) throw new Error(`abap2ui5-transpile: ${library.name} checkout ${dir} does not exist`);
+    return dir;
+  };
 
   let configPath;
   let outputDir;
@@ -215,13 +286,17 @@ export function transpile({ abap, apps, cwd = process.cwd(), config, core, outpu
     configPath = path.resolve(cwd, config);
     const own = JSON.parse(fs.readFileSync(configPath, "utf8"));
     outputDir = path.resolve(cwd, own.output_folder);
-    const lib = coreLibOf(own);
-    if (lib && !fs.existsSync(path.join(cwd, lib.folder))) {
-      ensureCore({ dir: path.join(cwd, lib.folder), commit: built.openAbapCore, log });
+    for (const library of Object.values(LIBRARIES)) {
+      const lib = libOf(own, library);
+      if (lib && !fs.existsSync(path.join(cwd, lib.folder))) {
+        ensureCheckout({ dir: path.join(cwd, lib.folder), commit: built[library.recorded], library, log });
+      }
     }
   } else {
-    outputDir = output ? path.resolve(cwd, output) : path.join(cache, "transpile-output");
-    const generated = transpileConfig({ cwd, abap: abapDir, output: outputDir, core: coreDir });
+    const abapDir = path.resolve(cwd, abap);
+    if (!fs.existsSync(abapDir)) throw new Error(`abap2ui5-transpile: ${abapDir} does not exist`);
+    outputDir = path.resolve(cwd, output);
+    const generated = transpileConfig({ cwd, abap: abapDir, output: outputDir, core: checkout("core", core), shim: checkout("shim", shim) });
     fs.mkdirSync(cache, { recursive: true });
     configPath = path.join(cache, "abap_transpile.json");
     fs.writeFileSync(configPath, JSON.stringify(generated, null, 2) + "\n");
@@ -230,7 +305,7 @@ export function transpile({ abap, apps, cwd = process.cwd(), config, core, outpu
   const run = transpilerCommand({ version: built.transpiler, installed: installedTranspiler(cwd) });
   if (run.note) log(run.note);
   log(`abap2ui5-transpile: ${TRANSPILER} ${built.transpiler} on ${path.relative(cwd, configPath)}`);
-  fs.rmSync(outputDir, { recursive: true, force: true });
+  emptyOutput(outputDir);
   // npx.cmd is a batch file, and Node refuses to spawn one without a shell
   // since CVE-2024-27980 (spawnSync npx.cmd EINVAL on every Node >= 22) -
   // pack-npm.mjs runs npm.cmd the same way. Through the shell the arguments
@@ -238,23 +313,23 @@ export function transpile({ abap, apps, cwd = process.cwd(), config, core, outpu
   const viaShell = run.command === NPX && process.platform === "win32";
   const args = [...run.args, configPath].map((a) => (viaShell ? `"${a}"` : a));
   execFileSync(run.command, args, { cwd, stdio: "inherit", shell: viaShell });
-
-  const result = ownApps({ output: outputDir, apps: appsDir });
-  if (!keep && !config) fs.rmSync(outputDir, { recursive: true, force: true });
-  return { ...result, output: outputDir, config: configPath };
+  if (!fs.existsSync(path.join(outputDir, "init.mjs"))) {
+    throw new Error(`abap2ui5-transpile: the transpile wrote no ${path.join(outputDir, "init.mjs")}`);
+  }
+  writeEntry(outputDir);
+  return { output: outputDir, config: configPath };
 }
 
 /* Run as the bin, not when imported. */
 const invoked = process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
 if (invoked) {
-  const usage = "usage: abap2ui5-transpile <abap folder> <apps folder> [--config <abap_transpile.json>] [--core <open-abap-core checkout>] [--output <dir>] [--keep]";
+  const usage = "usage: abap2ui5-transpile <abap folder> <output folder> [--config <abap_transpile.json>] [--core <open-abap-core checkout>] [--shim <express-icf-shim checkout>]";
   const positional = [];
   const opts = {};
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (arg === "--keep") opts.keep = true;
-    else if (["--config", "--core", "--output"].includes(arg) && argv[i + 1]) opts[arg.slice(2)] = argv[++i];
+    if (["--config", "--core", "--shim"].includes(arg) && argv[i + 1]) opts[arg.slice(2)] = argv[++i];
     else if (arg.startsWith("--")) {
       console.error(`abap2ui5-transpile: unknown option ${arg}\n${usage}`);
       process.exit(2);
@@ -265,11 +340,11 @@ if (invoked) {
     process.exit(2);
   }
   try {
-    const [abap, apps] = positional;
-    const { modules, files } = transpile({ abap, apps, ...opts, log: (line) => console.error(line) });
-    console.log(`abap2ui5-transpile: ${modules.length} class(es) of your own into ${apps} (${files.length} files), `
-      + `every other import on ${PACKAGE}: ${modules.join(", ")}\n`
-      + `  load them after the runtime has booted:  await initialize(); await import("./${path.relative(process.cwd(), path.resolve(apps)).split(path.sep).join("/")}/index.mjs");`);
+    const [abap, output] = positional;
+    const result = transpile({ abap, output, ...opts, log: (line) => console.error(line) });
+    const rel = posixRelative(process.cwd(), result.output);
+    console.log(`abap2ui5-transpile: the framework and your classes in ${rel}/ - import the package's exports from there:\n`
+      + `  import { serve } from "./${rel}/host.mjs";`);
   } catch (e) {
     console.error(e.message);
     process.exit(1);
