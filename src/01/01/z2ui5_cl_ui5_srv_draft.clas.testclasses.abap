@@ -87,15 +87,23 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_nav_ids_read_back.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA temp1 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA ls_draft LIKE temp1.
+    DATA ls_db TYPE z2ui5_t_01.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    DATA(ls_draft) = VALUE z2ui5_cl_ui5_srv_draft=>ty_s_draft( id                = `TEST_NAV_IDS`
-                                                               id_prev           = `NAV_PREV`
-                                                               id_prev_app       = `NAV_PREV_APP`
-                                                               id_prev_app_stack = `NAV_PREV_APP_STACK` ).
+
+    CLEAR temp1.
+    temp1-id = `TEST_NAV_IDS`.
+    temp1-id_prev = `NAV_PREV`.
+    temp1-id_prev_app = `NAV_PREV_APP`.
+    temp1-id_prev_app_stack = `NAV_PREV_APP_STACK`.
+
+    ls_draft = temp1.
     lo_draft->create( draft     = ls_draft
                       model_xml = `nav state` ).
 
-    DATA(ls_db) = lo_draft->read_draft( `TEST_NAV_IDS` ).
+
+    ls_db = lo_draft->read_draft( `TEST_NAV_IDS` ).
     cl_abap_unit_assert=>assert_equals( exp = `NAV_PREV`
                                         act = ls_db-id_prev ).
     cl_abap_unit_assert=>assert_equals( exp = `NAV_PREV_APP`
@@ -115,20 +123,30 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_nav_ids_overwrite.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA temp2 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+    DATA temp3 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+    DATA ls_info TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id                = `TEST_NAV_OW`
-                                           id_prev           = `FIRST_PREV`
-                                           id_prev_app       = `FIRST_APP`
-                                           id_prev_app_stack = `FIRST_STACK` )
+
+    CLEAR temp2.
+    temp2-id = `TEST_NAV_OW`.
+    temp2-id_prev = `FIRST_PREV`.
+    temp2-id_prev_app = `FIRST_APP`.
+    temp2-id_prev_app_stack = `FIRST_STACK`.
+    lo_draft->create( draft     = temp2
                       model_xml = `first` ).
 
     " the collision path (INSERT refused, UPDATE of the own row): a chain
     " that was emptied stays empty, it does not keep the first write's ids
-    lo_draft->create( draft     = VALUE #( id      = `TEST_NAV_OW`
-                                           id_prev = `SECOND_PREV` )
+
+    CLEAR temp3.
+    temp3-id = `TEST_NAV_OW`.
+    temp3-id_prev = `SECOND_PREV`.
+    lo_draft->create( draft     = temp3
                       model_xml = `second` ).
 
-    DATA(ls_info) = lo_draft->read_info( `TEST_NAV_OW` ).
+
+    ls_info = lo_draft->read_info( `TEST_NAV_OW` ).
     cl_abap_unit_assert=>assert_equals( exp = `SECOND_PREV`
                                         act = ls_info-id_prev ).
     cl_abap_unit_assert=>assert_initial( ls_info-id_prev_app ).
@@ -141,13 +159,21 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_missing_draft.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+        DATA lx_full TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp1 TYPE xsdboolean.
+        DATA lx_info TYPE REF TO z2ui5_cx_ui5_util_error.
+        DATA temp2 TYPE xsdboolean.
+    DATA temp4 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     TRY.
         lo_draft->read_draft( `TEST_NEVER_WRITTEN` ).
         cl_abap_unit_assert=>fail( `a draft nobody wrote cannot be read` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_full).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_full->get_text( ) CS `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_full.
+
+        temp1 = boolc( lx_full->get_text( ) CS `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND` ).
+        cl_abap_unit_assert=>assert_true( temp1 ).
     ENDTRY.
 
     " the light read fails the same way - the caller cannot tell the two
@@ -155,14 +181,20 @@ CLASS ltcl_test IMPLEMENTATION.
     TRY.
         lo_draft->read_info( `TEST_NEVER_WRITTEN` ).
         cl_abap_unit_assert=>fail( `the id chain of a draft nobody wrote cannot be read` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_info).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_info->get_text( ) CS `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND` ) ).
+
+      CATCH z2ui5_cx_ui5_util_error INTO lx_info.
+
+        temp2 = boolc( lx_info->get_text( ) CS `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND` ).
+        cl_abap_unit_assert=>assert_true( temp2 ).
     ENDTRY.
 
     cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_NEVER_WRITTEN` ) ).
 
     " ...and an own draft does exist
-    lo_draft->create( draft     = VALUE #( id = `TEST_EXISTS_OWN` )
+
+    CLEAR temp4.
+    temp4-id = `TEST_EXISTS_OWN`.
+    lo_draft->create( draft     = temp4
                       model_xml = `own` ).
     cl_abap_unit_assert=>assert_true( lo_draft->check_exists( `TEST_EXISTS_OWN` ) ).
 
@@ -171,11 +203,17 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_create_without_id.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA lv_before TYPE i.
+        DATA temp5 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    DATA(lv_before) = lo_draft->count_entries_total( ).
+
+    lv_before = lo_draft->count_entries_total( ).
 
     TRY.
-        lo_draft->create( draft     = VALUE #( id_prev = `SOME_PREV` )
+
+        CLEAR temp5.
+        temp5-id_prev = `SOME_PREV`.
+        lo_draft->create( draft     = temp5
                           model_xml = `orphan` ).
         cl_abap_unit_assert=>fail( `a draft without an id must not be written` ).
       CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
@@ -191,13 +229,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a row from before the UNAME column existed: no owner at all
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA temp6 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+    DATA ls_claimed TYPE z2ui5_t_01.
     ls_db-id      = `TEST_LEGACY_ROW`.
     ls_db-id_prev = `LEGACY_PREV`.
     ls_db-data    = `legacy state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     " readable by anyone during the upgrade transition - see read( )
@@ -209,9 +250,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a write over it is allowed and makes the writer its owner - the row
     " leaves the blank-owner tolerance with that write
-    lo_draft->create( draft     = VALUE #( id = `TEST_LEGACY_ROW` )
+
+    CLEAR temp6.
+    temp6-id = `TEST_LEGACY_ROW`.
+    lo_draft->create( draft     = temp6
                       model_xml = `claimed state` ).
-    DATA(ls_claimed) = lo_draft->read_draft( `TEST_LEGACY_ROW` ).
+
+    ls_claimed = lo_draft->read_draft( `TEST_LEGACY_ROW` ).
     cl_abap_unit_assert=>assert_equals( exp = `claimed state`
                                         act = ls_claimed-data ).
     cl_abap_unit_assert=>assert_equals( exp = sy-uname
@@ -222,7 +267,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_instance_seam.
 
     DATA li_double TYPE REF TO z2ui5_if_ui5_draft_store.
-    li_double = NEW ltcl_store_double( ).
+    DATA li_none TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA li_shipped TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_srv_draft.
+    CREATE OBJECT li_double TYPE ltcl_store_double.
 
     z2ui5_cl_ui5_srv_draft=>set_instance( li_double ).
     cl_abap_unit_assert=>assert_equals( exp = li_double
@@ -231,13 +279,14 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = z2ui5_cl_ui5_srv_draft=>get_instance( )->count_entries_total( ) ).
 
     " an unbound reference restores the shipped store
-    DATA li_none TYPE REF TO z2ui5_if_ui5_draft_store.
+
     z2ui5_cl_ui5_srv_draft=>set_instance( li_none ).
-    DATA(li_shipped) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+
+    li_shipped = z2ui5_cl_ui5_srv_draft=>get_instance( ).
     IF li_shipped = li_double.
       cl_abap_unit_assert=>fail( `the double must not outlive the reset` ).
     ENDIF.
-    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_srv_draft.
+
     cl_abap_unit_assert=>assert_equals(
         exp = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped )
         act = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( li_shipped ) ).
@@ -248,8 +297,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
+    DATA temp7 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
+
+    CLEAR temp7.
+    temp7-id = `TEST_ID`.
+    lo_draft->create( draft     = temp7
                       model_xml = `my xml` ).
 
 
@@ -264,11 +317,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
+    DATA temp8 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id                = `TEST_CR`
-                                           id_prev           = `PREV1`
-                                           id_prev_app       = `APP1`
-                                           id_prev_app_stack = `STACK1` )
+
+    CLEAR temp8.
+    temp8-id = `TEST_CR`.
+    temp8-id_prev = `PREV1`.
+    temp8-id_prev_app = `APP1`.
+    temp8-id_prev_app_stack = `STACK1`.
+    lo_draft->create( draft     = temp8
                       model_xml = `<xml>data</xml>` ).
 
 
@@ -285,8 +342,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_info TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA temp9 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id = `TEST_INFO` id_prev_app_stack = `MY_STACK` )
+
+    CLEAR temp9.
+    temp9-id = `TEST_INFO`.
+    temp9-id_prev_app_stack = `MY_STACK`.
+    lo_draft->create( draft     = temp9
                       model_xml = `info test` ).
 
 
@@ -306,8 +368,16 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
+    DATA temp10 TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA ls_draft LIKE temp10.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    DATA(ls_draft) = VALUE z2ui5_cl_ui5_srv_draft=>ty_s_draft( id = `TEST_BUF` ).
+
+    CLEAR temp10.
+    temp10-id = `TEST_BUF`.
+
+    ls_draft = temp10.
 
     lo_draft->create( draft     = ls_draft
                       model_xml = `buffered data` ).
@@ -317,8 +387,12 @@ CLASS ltcl_test IMPLEMENTATION.
                       model_xml = `overwritten data` ).
     ls_second = lo_draft->read_draft( `TEST_BUF` ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_first-data CS `buffered data` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_second-data CS `overwritten data` ) ).
+
+    temp3 = boolc( ls_first-data CS `buffered data` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
+
+    temp4 = boolc( ls_second-data CS `overwritten data` ).
+    cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
 
@@ -326,10 +400,18 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     DATA ls_db TYPE z2ui5_t_01.
+    DATA temp11 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
+    DATA temp12 TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
+
+    CLEAR temp11.
+    temp11-id = `TEST_OW`.
+    lo_draft->create( draft     = temp11
                       model_xml = `original` ).
-    lo_draft->create( draft     = VALUE #( id = `TEST_OW` )
+
+    CLEAR temp12.
+    temp12-id = `TEST_OW`.
+    lo_draft->create( draft     = temp12
                       model_xml = `updated` ).
 
 
@@ -346,13 +428,14 @@ CLASS ltcl_test IMPLEMENTATION.
     " write a row with a foreign owner directly, then assert both read_draft
     " and check_exists refuse it for the current user
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     ls_db-id    = `TEST_OWNER`.
     ls_db-uname = |{ sy-uname }_OTHER|.
     ls_db-data  = `secret state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
     TRY.
@@ -371,16 +454,20 @@ CLASS ltcl_test IMPLEMENTATION.
     " who owns the row only on a key collision - a foreign row must still
     " be refused there, and stay as it was
     DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+    DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+    DATA lv_data TYPE z2ui5_t_01-data.
+    DATA temp1 TYPE string.
     ls_db-id    = `TEST_OWNER_WRITE`.
     ls_db-uname = |{ sy-uname }_OTHER|.
     ls_db-data  = `foreign state`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
-    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
+
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
-    DATA ls_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
+
     ls_draft-id = `TEST_OWNER_WRITE`.
     TRY.
         lo_draft->create( draft     = ls_draft
@@ -389,9 +476,12 @@ CLASS ltcl_test IMPLEMENTATION.
       CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
     ENDTRY.
 
-    SELECT SINGLE data FROM z2ui5_t_01
-      WHERE id = @( `TEST_OWNER_WRITE` )
-      INTO @DATA(lv_data).
+
+
+    temp1 = `TEST_OWNER_WRITE`.
+SELECT SINGLE data FROM z2ui5_t_01 INTO lv_data
+      WHERE id = temp1
+      .
     cl_abap_unit_assert=>assert_subrc( exp = 0 ).
     cl_abap_unit_assert=>assert_equals( exp = `foreign state`
                                         act = lv_data ).
@@ -409,7 +499,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_total TYPE i.
 
     " start from a known state, so a second run of the test counts the same
-    DELETE FROM z2ui5_t_01 WHERE id = @( `TEST_COUNT_FOREIGN` ) ##SUBRC_OK.
+    DATA temp13 TYPE string.
+    temp13 = `TEST_COUNT_FOREIGN`.
+DELETE FROM z2ui5_t_01 WHERE id = temp13 ##SUBRC_OK.
     COMMIT WORK.
 
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
@@ -419,7 +511,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_db-id    = `TEST_COUNT_FOREIGN`.
     ls_db-uname = |{ sy-uname }_OTHER_COUNT|.
     ls_db-data  = `foreign row`.
-    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    MODIFY z2ui5_t_01 FROM ls_db ##SUBRC_OK.
     COMMIT WORK.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_own
