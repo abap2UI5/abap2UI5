@@ -56,16 +56,19 @@ same job is the second: the npm package **`@abap2ui5/node-runtime`**,
 assembled in a staging directory outside the checkout from `node/output`,
 `node/setup/setup.mjs` (the hook `output/init.mjs` imports by the relative
 path fixed in `node/setup/abap_transpile.json`), `node/setup/own-apps.mjs`
-(the bin `abap2ui5-own-apps`: a host's own transpiled classes out of a
-transpile's output, their imports pointed at the package's `output/` - the
-transpile writes a second copy of every library object next to them, and
-importing that copy replaced the package's `CX_ROOT`), `node/setup/transpile.mjs`
-(the bin `abap2ui5-transpile`: the README's whole "Your own apps" recipe as one
-command - the transpiler at the recorded version, open-abap-core at the
-recorded commit, the config, the transpile, `own-apps` - so that mcp-server,
-cap2UI5 and cap2UI5/samples stop carrying their own copy of it; `--check`
-runs the host's classes through it), **`node/srv/host.mjs`** (the
-entry point, below), `node/srv/*.d.ts` (hand-written TypeScript declarations
+(the bin `abap2ui5-own-apps`, deprecated: a host's own transpiled classes out
+of a transpile's output, their imports pointed at the package's `output/` -
+how "Your own apps" worked until 1.147.0, kept for the hosts that call it),
+`node/setup/transpile.mjs` (the bin `abap2ui5-transpile`: the README's whole
+"Your own apps" recipe as one command - the transpiler at the recorded
+version, open-abap-core and express-icf-shim at the recorded commits, the
+framework's `downport/` and the host's classes in ONE transpile into an
+output of the host's own, and that output's `host.mjs`; one transpile, one
+transpiler version, nothing rewritten, as the transpiler's maintainer asked
+for in abaplint/transpiler#1999; `--check` runs the host's classes through
+it), **`node/srv/host.mjs`** (the entry point, below - `node/srv/hostcore.mjs`
+bound to `output/` through `node/srv/framework.mjs`, first claiming the
+process with `node/srv/claim.mjs`), `node/srv/*.d.ts` (hand-written TypeScript declarations
 for the three entry points, named by `types` in the manifest and on every
 `exports` entry; `pack-npm.mjs` copies an explicit list of files, so it also
 checks that every file the manifest points at - a bin, `types`, an export
@@ -167,10 +170,12 @@ the express peer**, drives it: `serve()` answers GET / with the component
 embedded - gzipped, and revalidated to a 304 by its `-gzip` tag - and a POST
 roundtrip, `createApp()` does the same mounted under
 `/sap/bc/z2ui5`, no `ZCL_TST_*` is registered, the classes the scratch
-project transpiles against `downport/` and open-abap-core at the recorded
-commit - an exception class of its own among them - load through
-`abap2ui5-own-apps` with the package's `CX_ROOT` still in place, start, and
-what they raise the framework catches, the runtime the package pins is linear on
+project transpiles WITH `downport/` and the two libraries at the recorded
+commits (`abap2ui5-transpile`) - an exception class of its own among them -
+start through the output's own `host.mjs` in a process of their own, with
+the output's `CX_ROOT` the one in the runtime, and what they raise the
+framework catches, importing the package's entry point next to that output
+is refused before it loads a second runtime, the runtime the package pins is linear on
 large tables (`accelerate()` says so and changes nothing), and
 `serve()` rejects on a port that is taken.
 

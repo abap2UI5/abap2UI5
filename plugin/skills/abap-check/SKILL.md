@@ -1089,7 +1089,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-get-time-stamp-double, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available, core-seo-interface-implem-get-all
+**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1102,7 +1102,9 @@ break one of those four.
   name with a dash in it, `cl_abap_refdescr=>create( )` without `kind`,
   `cl_abap_tstmp=>add( )` dropping the fraction of a `timestampl`, and
   `describe_by_data_ref( )` on a reference to a reference - every one written up in
-  the backlog with the fix, measured in memory against the transpiled tree. Two
+  the backlog with the fix, measured in memory against the transpiled tree. All
+  five are fixed upstream and pinned here since 2026-10-13 (`@abaplint/runtime`
+  2.14.5, open-abap-core `9c1271b`), and the tests they kept off Node run. Two
   in-code probes were dead: `CREATE OBJECT TYPE ('CL_ABAP_ZIP')` and
   `describe_by_name( 'DFIES' )` both succeed in open-abap-core, so the tests behind
   them run in full.
@@ -1306,12 +1308,13 @@ break one of those four.
   (abaplint/transpiler#1971, pinned here since 2.14.2): the parameter
   becomes a `Packed`. A host on an older transpiler still needs the rewrite
   above.
-- **`rescale( )` is not in the runtime** - `abap.builtin.rescale is not a
-  function` at runtime, the transpile is green. `round( )` with `dec`,
-  `prec` and every `mode` is, from `@abaplint/runtime` 2.13.94 on (2.13.93
-  throws `round(), todo, handle decimals` for any `dec` other than 0 -
-  still the version the MCP server's Node backend installs). Use `round( )`
-  where the scale of the result does not matter.
+- **`rescale( )` is not in the runtime before 2.14.4** - `abap.builtin.rescale
+  is not a function` at runtime, the transpile is green. Fixed from
+  `@abaplint/runtime` 2.14.4 on (abaplint/transpiler#1997, pinned here).
+  `round( )` with `dec`, `prec` and every `mode` is in from 2.13.94 on
+  (2.13.93 throws `round(), todo, handle decimals` for any `dec` other than
+  0 - still the version the MCP server's Node backend installs). On an older
+  runtime use `round( )` where the scale of the result does not matter.
 - **`substring_after( )` / `substring_before( )` ignore `occ`, `len` and
   `case` in the runtime.** `substring_after( val = path sub = '-' occ = -1 )`
   cuts at the FIRST dash under `npm run unit`, at the last on a system.

@@ -33,17 +33,26 @@
  *                     tarball (the suite runs here, `npm run unit`)
  *   setup/setup.mjs   node/setup/setup.mjs - the database hook output/init.mjs
  *                     imports by the relative path abap_transpile.json fixes
- *   setup/own-apps.mjs  node/setup/own-apps.mjs - the bin abap2ui5-own-apps:
- *                     a host's own transpiled classes, their imports pointed
- *                     at output/ (README, "Your own apps")
+ *   setup/own-apps.mjs  node/setup/own-apps.mjs - the bin abap2ui5-own-apps,
+ *                     deprecated: a host's own transpiled classes, their
+ *                     imports pointed at output/ - the way "Your own apps"
+ *                     worked until abap2ui5-transpile transpiled everything
  *   setup/transpile.mjs  node/setup/transpile.mjs - the bin abap2ui5-transpile:
  *                     the whole "Your own apps" recipe as one command (the
- *                     transpiler at the recorded version, open-abap-core at
- *                     the recorded commit, the config, the transpile,
- *                     own-apps)
- *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`).
- *                     Same neighbours as in the checkout, so its relative
- *                     imports need no rewriting - see its header
+ *                     transpiler at the recorded version, open-abap-core and
+ *                     express-icf-shim at the recorded commits, the
+ *                     framework's downport/ and the host's classes in one
+ *                     transpile, the output's own host.mjs)
+ *   srv/host.mjs      node/srv/host.mjs - the entry point (`exports["."]`):
+ *                     srv/hostcore.mjs bound to output/. Same neighbours as
+ *                     in the checkout, so its relative imports need no
+ *                     rewriting - see its header
+ *   srv/hostcore.mjs, srv/framework.mjs, srv/claim.mjs  what the entry
+ *                     point exports, the binding to a transpiled output and
+ *                     the entry point's claim on the process - the first
+ *                     two also imported by the host.mjs abap2ui5-transpile
+ *                     writes, as `exports["./srv/hostcore.mjs"]` and
+ *                     `exports["./srv/framework.mjs"]`
  *   srv/*.d.ts        node/srv/host.d.ts, accelerate.d.ts, compress.d.ts,
  *                     hostguard.d.ts -
  *                     the TypeScript declarations `types` and the `types`
@@ -173,6 +182,14 @@ const openAbapCore = fs.existsSync(path.join(DEPS_CORE, ".git")) ? gitHead(DEPS_
 if (!openAbapCore) {
   console.warn("pack-npm: WARN node/deps/open-abap-core is not a checkout - abap2ui5.openAbapCore is recorded as null");
 }
+/* The same for express-icf-shim, the third input of the transpile: a host
+ * that transpiles its classes with the framework (abap2ui5-transpile)
+ * transpiles the shim too, and at this commit. */
+const DEPS_SHIM = path.join(ROOT, "node/deps/express-icf-shim");
+const expressIcfShim = fs.existsSync(path.join(DEPS_SHIM, ".git")) ? gitHead(DEPS_SHIM) : null;
+if (!expressIcfShim) {
+  console.warn("pack-npm: WARN node/deps/express-icf-shim is not a checkout - abap2ui5.expressIcfShim is recorded as null");
+}
 
 // --- the manifest -----------------------------------------------------------
 const template = JSON.parse(fs.readFileSync(path.join(ROOT, "node/setup/npm.package.json"), "utf8"));
@@ -186,18 +203,19 @@ for (const dep of Object.keys(template.dependencies)) {
   }
   template.dependencies[dep] = v;
 }
-/* What a host needs to transpile its own apps against this build: the
+/* What a host needs to transpile its own apps with this build: the
  * transpiler that wrote output/, so the host's output matches it, and the
- * open-abap-core commit output/ was built against, so the host type-checks
- * against the same standard library rather than whatever its HEAD is that
- * day (README, "Your own apps"). Recorded here rather than in prose that
- * goes stale. */
+ * open-abap-core and express-icf-shim commits output/ was built from, so
+ * the host transpiles the same libraries rather than whatever their HEAD is
+ * that day (README, "Your own apps"). Recorded here rather than in prose
+ * that goes stale. */
 template.abap2ui5 = {
   commit: gitHead(),
   builtAt: new Date().toISOString(),
   node: process.version,
   transpiler: locked("@abaplint/transpiler-cli"),
   openAbapCore,
+  expressIcfShim,
 };
 
 // --- the browser-test fixtures ---------------------------------------------
@@ -255,6 +273,9 @@ const COPIES = [
   ["node/setup/own-apps.mjs", "setup/own-apps.mjs"],
   ["node/setup/transpile.mjs", "setup/transpile.mjs"],
   ["node/srv/host.mjs", "srv/host.mjs"],
+  ["node/srv/hostcore.mjs", "srv/hostcore.mjs"],
+  ["node/srv/framework.mjs", "srv/framework.mjs"],
+  ["node/srv/claim.mjs", "srv/claim.mjs"],
   ["node/srv/host.d.ts", "srv/host.d.ts"],
   ["node/srv/accelerate.mjs", "srv/accelerate.mjs"],
   ["node/srv/accelerate.d.ts", "srv/accelerate.d.ts"],
@@ -296,7 +317,7 @@ try {
 
   const MUST = [
     "package.json", "README.md", "LICENSE",
-    "srv/host.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "srv/hostguard.mjs", "setup/setup.mjs", "setup/own-apps.mjs",
+    "srv/host.mjs", "srv/hostcore.mjs", "srv/framework.mjs", "srv/claim.mjs", "srv/accelerate.mjs", "srv/compress.mjs", "srv/hostguard.mjs", "setup/setup.mjs", "setup/own-apps.mjs",
     "output/init.mjs", "srv/host.d.ts", "srv/accelerate.d.ts", "srv/compress.d.ts", "srv/hostguard.d.ts", "setup/transpile.mjs",
     "output/express-icf-shim/cl_express_icf_shim.clas.mjs", "output/project/zcl_sicf.clas.mjs",
     "output/project/zcl_serializer_live.clas.mjs", "downport/02/z2ui5_if_app.intf.abap",
@@ -343,7 +364,7 @@ try {
   console.log(
     `  ${template.name}@${template.version}, commit ${template.abap2ui5.commit ?? "unknown"},`
     + ` transpiler ${template.abap2ui5.transpiler ?? "unknown"}, runtime ${template.dependencies["@abaplint/runtime"]},`
-    + ` open-abap-core ${openAbapCore ?? "unknown"}`,
+    + ` open-abap-core ${openAbapCore ?? "unknown"}, express-icf-shim ${expressIcfShim ?? "unknown"}`,
   );
   console.log(`  left out ${FIXTURES.length} browser-test fixture(s) of node/srv: ${FIXTURES.join(", ")}`);
 } finally {
@@ -365,15 +386,17 @@ if (!check) process.exit(0);
  *   2. createApp() mounted under /sap/bc/z2ui5 of the host's own express app
  *      does the same there - the README's "In an express app of your own"
  *   3. no browser-test fixture is registered or starts
- *   4. a class transpiled BY THE HOST against downport/ and open-abap-core at
- *      the recorded commit registers in the running runtime and starts - the
- *      "Your own apps" recipe, executed literally: with an exception class
- *      of the host's own (INHERITING FROM cx_static_check, so its module
- *      imports what it extends), through the bin abap2ui5-transpile (which
- *      runs the transpiler the package names, fetches open-abap-core at the
- *      recorded commit and runs abap2ui5-own-apps), and the package's
- *      CX_ROOT still the one in the runtime - the framework catches what the
- *      host's app raises
+ *   4. classes of the host's own, transpiled WITH the framework - the "Your
+ *      own apps" recipe, executed literally: through the bin
+ *      abap2ui5-transpile (which runs the transpiler the package names,
+ *      fetches open-abap-core and express-icf-shim at the recorded commits
+ *      and transpiles downport/ and the host's classes into one output),
+ *      with an exception class of the host's own (INHERITING FROM
+ *      cx_static_check), served through the output's host.mjs in a process
+ *      of its own (check-own.mjs): the framework's app and the host's start,
+ *      the framework catches what the host's app raises, the one CX_ROOT is
+ *      the output's, and importing the package's entry point next to it is
+ *      refused before it loads a second runtime
  *   5. serve() rejects on a port that is taken instead of resolving
  *   6. the runtime the package pins is linear on large tables: the
  *      "./accelerate" subpath a host that boots itself imports says so, and
@@ -421,8 +444,7 @@ try {
     "",
   ].join("\n"));
   /* the host's own exception class: a module that imports what it extends,
-   * relatively, from the transpile's output/ - which abap2ui5-own-apps has
-   * to point at the package's classes */
+   * relatively, from the output - open-abap-core of the same transpile */
   fs.writeFileSync(path.join(scratch, "abap/zcx_host_error.clas.abap"), [
     "CLASS zcx_host_error DEFINITION PUBLIC INHERITING FROM cx_static_check CREATE PUBLIC.",
     "  PUBLIC SECTION.",
@@ -436,23 +458,24 @@ try {
   ].join("\n"));
   /* The README's one command: abap2ui5-transpile finds the transpiler the
    * scratch project installed (the version the package names - another one
-   * is refused), fetches open-abap-core at the commit the package records
-   * into node_modules/.cache, writes the config, transpiles and runs
-   * own-apps. A build without node/deps records no commit; then the HEAD
-   * clone the transpiler would make itself is made here and handed over,
-   * so the check still runs (and the pack warned about it above). */
-  const transpileArgs = ["abap2ui5-transpile", "abap", "apps"];
-  if (!openAbapCore) {
-    const core = path.join(scratch, "deps/open-abap-core");
-    run("git", ["clone", "--quiet", "--depth", "1", "https://github.com/open-abap/open-abap-core", core]);
-    transpileArgs.push("--core", "deps/open-abap-core");
+   * is refused), fetches open-abap-core and express-icf-shim at the commits
+   * the package records into node_modules/.cache, writes the config and
+   * transpiles the framework and the host's classes into abap2ui5/. A build
+   * without node/deps records no commits; then a HEAD clone of each is made
+   * here and handed over, so the check still runs (and the pack warned
+   * about it above). */
+  const transpileArgs = ["abap2ui5-transpile", "abap", "abap2ui5"];
+  for (const [commit, name, option] of [[openAbapCore, "open-abap-core", "--core"], [expressIcfShim, "express-icf-shim", "--shim"]]) {
+    if (commit) continue;
+    run("git", ["clone", "--quiet", "--depth", "1", `https://github.com/open-abap/${name}`, path.join(scratch, "deps", name)]);
+    transpileArgs.push(option, `deps/${name}`);
   }
   run(WIN ? "npx.cmd" : "npx", transpileArgs);
 
   fs.writeFileSync(path.join(scratch, "check.mjs"), `
 import { createRequire } from "node:module";
 import express from "express";
-import { serve, createApp, initialize } from "@abap2ui5/node-runtime";
+import { serve, createApp } from "@abap2ui5/node-runtime";
 const fail = (what) => { console.error("FAIL: " + what); process.exit(1); };
 const ok = (what) => console.log("ok  " + what);
 const expressVersion = createRequire(import.meta.url)("express/package.json").version;
@@ -512,22 +535,6 @@ try {
   if (fixture.json?.S_FRONT?.APP === "ZCL_TST_HOST") fail("?app_start=ZCL_TST_HOST starts the browser-test fixture");
   ok("no browser-test fixture is registered, and ?app_start=ZCL_TST_HOST starts nothing");
 
-  await initialize();
-  await import("./apps/index.mjs");
-  if (!globalThis.abap?.Classes?.ZCL_HOST_APP) fail("ZCL_HOST_APP did not register in the runtime");
-  const { cx_root } = await import("@abap2ui5/node-runtime/output/open-abap-core/cx_root.clas.mjs");
-  if (globalThis.abap.Classes.CX_ROOT !== cx_root) fail("the host's classes brought a second CX_ROOT into the runtime");
-  const own = await post(base, "/", { SEARCH: "?app_start=zcl_host_app" });
-  if (own.json?.S_FRONT?.APP !== "ZCL_HOST_APP" || !own.text.includes("Hello from the host")) {
-    fail("the host's own app does not start: " + own.text.slice(0, 400));
-  }
-  const raised = await post(base, "/", { ID: own.json.S_FRONT.ID, EVENT: "RAISE" });
-  if (raised.status !== 500 || !raised.text.includes("ZCX_HOST_ERROR")) {
-    fail("the framework did not catch the host's own exception: " + raised.status + " " + raised.text.slice(0, 400));
-  }
-  ok("classes transpiled by the host with abap2ui5-transpile against downport/ - an exception class of its own among them -"
-    + " load on the package's classes, start, and what they raise the framework catches");
-
   const { accelerate: viaSubpath, RUNTIME_VERSION } = await import("@abap2ui5/node-runtime/accelerate");
   const loop = globalThis.abap.statements.loop;
   const compare = globalThis.abap.compare;
@@ -557,6 +564,55 @@ try {
   mounted.close();
 }
 `);
+  /* 4., in a process of its own: one process runs one output, and this one
+   * is the host's - abap2ui5/host.mjs, the package's exports bound to it */
+  fs.writeFileSync(path.join(scratch, "check-own.mjs"), `
+import { serve } from "./abap2ui5/host.mjs";
+const fail = (what) => { console.error("FAIL: " + what); process.exit(1); };
+const ok = (what) => console.log("ok  " + what);
+const post = async (base, front) => {
+  const res = await fetch(base + "/", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ value: { S_FRONT: { ORIGIN: base, PATHNAME: "/", SEARCH: "", ...front } } }),
+  });
+  const text = await res.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch { /* not JSON - the caller decides */ }
+  return { status: res.status, json, text };
+};
+
+const server = await serve({ port: 0, host: "127.0.0.1" });
+const base = "http://127.0.0.1:" + server.address().port;
+try {
+  const page = await fetch(base + "/");
+  if (page.status !== 200 || !(await page.text()).includes('"z2ui5/Component.js"')) fail("GET / on the host's output is not the page with the component");
+  const hi = await post(base, { SEARCH: "?app_start=z2ui5_cl_ui5_app_hi_world" });
+  if (hi.json?.S_FRONT?.APP !== "Z2UI5_CL_UI5_APP_HI_WORLD") fail("the framework's own app does not start on the host's output: " + hi.text.slice(0, 400));
+
+  const { cx_root } = await import("./abap2ui5/open-abap-core/cx_root.clas.mjs");
+  if (globalThis.abap.Classes.CX_ROOT !== cx_root) fail("CX_ROOT in the runtime is not the one of the host's output");
+  const own = await post(base, { SEARCH: "?app_start=zcl_host_app" });
+  if (own.json?.S_FRONT?.APP !== "ZCL_HOST_APP" || !own.text.includes("Hello from the host")) {
+    fail("the host's own app does not start: " + own.text.slice(0, 400));
+  }
+  const raised = await post(base, { ID: own.json.S_FRONT.ID, EVENT: "RAISE" });
+  if (raised.status !== 500 || !raised.text.includes("ZCX_HOST_ERROR")) {
+    fail("the framework did not catch the host's own exception: " + raised.status + " " + raised.text.slice(0, 400));
+  }
+  ok("classes transpiled by the host WITH the framework (abap2ui5-transpile) - an exception class of its own among them -"
+    + " served through the output's host.mjs: the framework's app and the host's start, one CX_ROOT, and what the host's app raises the framework catches");
+
+  const second = await import("@abap2ui5/node-runtime").then(() => null, (e) => e);
+  if (!second || !/a process runs one output/.test(second.message)) fail("importing the package's entry point next to the host's output was not refused: " + second);
+  if (globalThis.abap.Classes.CX_ROOT !== cx_root) fail("the refused import replaced the runtime anyway");
+  const after = await post(base, { SEARCH: "?app_start=zcl_host_app" });
+  if (after.json?.S_FRONT?.APP !== "ZCL_HOST_APP") fail("the host's output stopped answering after the refused import: " + after.text.slice(0, 400));
+  ok("importing @abap2ui5/node-runtime next to the host's output is refused before it loads a second runtime");
+} finally {
+  server.close();
+}
+`);
   const ranges = String(template.peerDependencies?.express ?? "").split("||").map((r) => r.trim()).filter(Boolean);
   if (!ranges.length) {
     console.error("pack-npm --check: the manifest names no express peer range to check against");
@@ -566,6 +622,7 @@ try {
     console.log(`\npack-npm --check: express ${range}`);
     run(NPM, ["install", "--no-audit", "--no-fund", `express@${range}`]);
     run(process.execPath, ["check.mjs"]);
+    run(process.execPath, ["check-own.mjs"]);
   }
   console.log(`pack-npm --check: the tarball installs and runs (express ${ranges.join(", ")})`);
 } finally {

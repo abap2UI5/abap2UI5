@@ -8,7 +8,7 @@ decides the view and handles every event. This package is that framework
 transpiled to JavaScript by [@abaplint/transpiler](https://github.com/abaplint/transpiler)
 over [open-abap](https://github.com/open-abap/open-abap), together with an HTTP
 handler, an express server and the ABAP sources to transpile your own apps
-against - all from one release commit of abap2UI5. The version of this package
+with - all from one release commit of abap2UI5. The version of this package
 is the version of the framework.
 
 ```bash
@@ -78,42 +78,57 @@ in front provides them out of the box.
 The framework alone runs its own apps - `Z2UI5_CL_UI5_APP_HI_WORLD` and the
 other classes under abap2UI5's `src/`. The test apps abap2UI5's own browser
 tests drive (`ZCL_TST_*`) are not in the package: nothing but the framework
-and its handler `ZCL_SICF` can be started by `?app_start=`. Your apps are ABAP classes too, and
-they have to be transpiled with the framework as a library. The package
-carries the framework's sources for exactly that in `downport/`, and in its
-`package.json` the two versions `output/` was built with: the transpiler
-(`abap2ui5.transpiler`) and the commit of open-abap-core
-(`abap2ui5.openAbapCore`).
+and its handler `ZCL_SICF` can be started by `?app_start=`. Your apps are ABAP
+classes too, and they are transpiled **with** the framework: one transpile of
+the framework's sources and yours, with one transpiler, into one runtime of
+your own. The package carries the framework's sources for exactly that in
+`downport/`, and in its `package.json` the versions `output/` was built with:
+the transpiler (`abap2ui5.transpiler`) and the commits of open-abap-core
+(`abap2ui5.openAbapCore`) and of express-icf-shim (`abap2ui5.expressIcfShim`).
 
-`abap2ui5-transpile`, a bin of this package, does the rest. With your classes
-in `abap/`:
+`abap2ui5-transpile`, a bin of this package, does it. With your classes in
+`abap/`:
 
 ```bash
 npm install --save-dev --save-exact @abaplint/transpiler-cli@$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.transpiler")
-npx abap2ui5-transpile abap apps        # abap/*.abap -> apps/: yours alone, on the package's classes
+npx abap2ui5-transpile abap abap2ui5    # abap/*.abap and the framework -> abap2ui5/
 ```
 
-It checks out open-abap-core at the recorded commit - once, into
-`node_modules/.cache/abap2ui5-node-runtime/` - writes the transpile config
-below, runs the transpiler the package names (the installed one; through
-`npx` at that version when the project has none; another version installed
-is refused, with the install command that fixes it) and runs
-`abap2ui5-own-apps` over the output. `--config abap_transpile.json` runs a
-config of your own instead, `--core <dir>` uses an open-abap-core checkout of
-your own (also `ABAP2UI5_OPEN_ABAP_CORE`), `--keep` leaves the transpiler's
-output folder in place.
+It checks out open-abap-core and express-icf-shim at the recorded commits -
+once, into `node_modules/.cache/abap2ui5-node-runtime/` - writes the
+transpile config below, runs the transpiler the package names (the installed
+one; through `npx` at that version when the project has none; another
+version installed is refused, with the install command that fixes it) and
+transpiles into `abap2ui5/` - emptied first, and refused when it holds
+anything but an earlier output. `--config abap_transpile.json` runs a config
+of your own instead, `--core <dir>` and `--shim <dir>` use checkouts of your
+own (also `ABAP2UI5_OPEN_ABAP_CORE`, `ABAP2UI5_EXPRESS_ICF_SHIM`). It takes
+about ten seconds - the framework is a thousand objects.
 
-Then load `apps/` **after** the framework has booted - each class registers
-itself in the running runtime:
+`abap2ui5/` is a complete runtime with the layout of the package's `output/`,
+your classes in `project/` next to the framework's, and a `host.mjs`: the
+package's exports, running on that output. Import them from there instead of
+from the package:
 
 ```js
-import { initialize, serve } from "@abap2ui5/node-runtime";
+import { serve } from "./abap2ui5/host.mjs";
 
-await initialize();
-await import("./apps/index.mjs");
 await serve({ port: 3000 });
 // http://localhost:3000/?app_start=ZCL_MY_APP
 ```
+
+Everything of [What you get](#what-you-get) is there, under the same names
+and types. A process runs one output: importing `@abap2ui5/node-runtime`
+itself next to `./abap2ui5/host.mjs` is refused with an error before it
+would load the package's framework as a second runtime. Your tables, data
+elements and the like are created in the SQLite database like the
+framework's.
+
+Ship `abap2ui5/`: a deployment has to carry the files you import, so keep it
+inside the tree it ships - a CAP project's `cds build`, for one, copies
+`srv/` but not a top-level folder (`npx abap2ui5-transpile abap
+srv/abap2ui5`, and `import { serve } from "./abap2ui5/host.mjs"` from a module
+in `srv/`).
 
 ### By hand
 
@@ -129,79 +144,60 @@ npm install --save-dev --save-exact @abaplint/transpiler-cli@$(node -p "require(
 npm records a caret range, and a later install moves the transpiler away from
 the runtime this package pins.
 
-`abap_transpile.json`:
+`abap_transpile.json` - the package's own build, with your folder as a second
+input:
 
 ```json
 {
-  "input_folder": "abap",
-  "output_folder": "output",
+  "input_folder": ["abap", "node_modules/@abap2ui5/node-runtime/downport"],
+  "output_folder": "abap2ui5",
   "libs": [
-    { "folder": "/node_modules/@abap2ui5/node-runtime/downport", "files": "/**/*.*" },
-    { "url": "https://github.com/open-abap/open-abap-core", "folder": "/deps/open-abap-core" }
+    { "url": "https://github.com/open-abap/open-abap-core", "folder": "/deps/open-abap-core" },
+    { "url": "https://github.com/open-abap/express-icf-shim", "folder": "/deps/express-icf-shim" }
   ],
   "write_unit_tests": false,
-  "options": { "ignoreSyntaxCheck": false, "addFilenames": true, "addCommonJS": true, "unknownTypes": "runtimeError" }
+  "options": {
+    "ignoreSyntaxCheck": false, "addFilenames": true, "addCommonJS": true, "unknownTypes": "runtimeError",
+    "populateTables": { "reposrc": false },
+    "setup": { "filename": "../node_modules/@abap2ui5/node-runtime/setup/setup.mjs", "preFunction": "setup" }
+  }
 }
 ```
 
 ```bash
-# once: open-abap-core at the commit output/ was built against
-CORE=$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.openAbapCore")
-git init -q deps/open-abap-core
-git -C deps/open-abap-core fetch -q --depth 1 https://github.com/open-abap/open-abap-core "$CORE"
-git -C deps/open-abap-core checkout -q FETCH_HEAD
+# once: the two libraries at the commits output/ was built from
+for LIB in open-abap-core:openAbapCore express-icf-shim:expressIcfShim; do
+  NAME=${LIB%%:*}; COMMIT=$(node -p "require('@abap2ui5/node-runtime/package.json').abap2ui5.${LIB##*:}")
+  git init -q deps/$NAME
+  git -C deps/$NAME fetch -q --depth 1 https://github.com/open-abap/$NAME "$COMMIT"
+  git -C deps/$NAME checkout -q FETCH_HEAD
+done
 
-npx abap_transpile abap_transpile.json      # abap/*.abap -> output/project/: yours; output/<library>/: every library object
-npx abap2ui5-own-apps output apps           # output/project/ -> apps/: yours alone, on the package's classes
+npx abap_transpile abap_transpile.json      # -> abap2ui5/: the framework, your classes, both libraries
 ```
 
-Then `apps/` is loaded as above.
+Then write `abap2ui5/host.mjs` and its first import `abap2ui5/claim.mjs` the
+way the command does - `hostEntry( )` in `@abap2ui5/node-runtime/srv/framework.mjs`
+returns both texts (`import { writeEntry } from
+"@abap2ui5/node-runtime/setup/transpile.mjs"; writeEntry("abap2ui5")` writes
+them).
 
-`abap2ui5-own-apps` (a bin of this package, `setup/own-apps.mjs`) is not
-optional. The transpile writes every object it read into `output/` - your
-classes into `output/project/`, and a second copy of the framework and of
-open-abap-core into a folder per library next to it (`output/downport/`,
-`output/open-abap-core/`); the transpiler has no option to leave them out -
-and with `addCommonJS` a class imports what it extends by a relative path:
-your exception class, `INHERITING FROM cx_static_check`, loads
-`output/open-abap-core/cx_static_check.clas.mjs` and with it a second
-`CX_ROOT`, which replaces the package's in the running runtime. From then on
-the framework's `CATCH cx_root` compares against a class its own exceptions
-do not extend, and every request fails. Without `addCommonJS` there are no
-imports at all, and a class that extends anything does not load. So
-`abap2ui5-own-apps` keeps `output/project/`, points its imports of
-everything else at the package's module of the same name,
-`@abap2ui5/node-runtime/output/<folder>/<file>` - the modules the package
-already booted - and writes `apps/index.mjs`, which imports your classes in
-the order the transpile does. An import it cannot rewrite, or of a module
-the package does not have, stops it with the file and the line. The version
-the package records is `@abaplint/transpiler-cli` 2.14; the flat `output/`
-of an earlier transpiler is read too - every file named like one of the
-package's modules counts as a library copy there, so a class of yours with
-such a name is left out.
+Both inputs are the transpile's own: your classes and the framework land in
+`project/` together and are type-checked against each other
+(`ignoreSyntaxCheck` is off), so a method that does not exist on
+`z2ui5_if_client` fails there rather than at runtime. `setup.filename` is
+relative to the output folder - `init.mjs` imports the database hook by it.
+The `url` of a library takes no commit, and without the folder the
+transpiler clones it on every run at whatever its HEAD is that day; hence
+the checkouts at the commits the package records, so your runtime is built
+from the same libraries as the package's.
 
-The transpile type-checks your class against the framework (`ignoreSyntaxCheck`
-is off), so a method that does not exist on `z2ui5_if_client` fails there
-rather than at runtime. `files` is needed because the transpiler reads a
-library below `/src/**` by default and `downport/` is flat. `open-abap-core`
-is what stands in for the ABAP standard library: the transpiler reads it from
-`deps/open-abap-core` when that folder exists, and otherwise clones the `url`
-into a temporary folder on every run - at whatever its HEAD is that day,
-because the `url` takes no commit. Hence the checkout above, at the commit
-the package records: your classes are type-checked against the same
-standard library the framework was. Both libraries are there for the type
-check; at runtime the package provides them. (1.145.0, the one version
-published without `abap2ui5.openAbapCore`, was built against open-abap-core
-`b2d219df61f8c077df7a038bc43d168f9f280fbf` - the pin in abap2UI5's
-`node/setup/fetch-deps.mjs` at that tag.)
-
-Ship `apps/`, not `output/`: a deployment has to carry the files you import,
-so keep them inside the tree it ships - a CAP project's `cds build`, for one,
-copies `srv/` but not a top-level folder (`npx abap2ui5-transpile abap
-srv/apps`, and `await import("./apps/index.mjs")` from a module in `srv/`).
-Tables, data elements and the like of your own are kept too; their database
-tables are not created in the package's SQLite - that is the host's
-persistence (below).
+Until 1.147.0 your classes were transpiled alone, against the framework as a
+library, and `abap2ui5-own-apps` (`setup/own-apps.mjs`) pointed their imports
+at the package's `output/` - the transpiler writes every library into the
+output again, and the copy's second `CX_ROOT` broke every `CATCH`. That bin
+is still in the package for the hosts that call it, deprecated: one
+transpile of everything needs nothing rewritten.
 
 ## Performance
 
@@ -356,29 +352,30 @@ class, called through the shipped exit the way a customer exit is on a
 system (the defaults seeded first, your class overriding what it wants):
 
 ```js
-import { initialize, serve } from "@abap2ui5/node-runtime";
-import { zcl_my_exit } from "./apps/zcl_my_exit.clas.mjs";
+import { initialize, serve } from "./abap2ui5/host.mjs";
+import { zcl_my_exit } from "./abap2ui5/project/zcl_my_exit.clas.mjs";
 
 await initialize({ exit: await new zcl_my_exit().constructor_() });
 await serve({ port: 3000 });
 ```
 
 The class is one of [your own apps](#your-own-apps): `INTERFACES
-z2ui5_if_ui5_exit`, transpiled and loaded like any other.
+z2ui5_if_ui5_exit`, transpiled with the framework like any other.
 
 ## What is inside
 
 | Path | |
 |---|---|
-| `srv/host.mjs` | The entry point - everything above |
+| `srv/host.mjs` | The entry point - everything above: `srv/hostcore.mjs`, bound to `output/` |
+| `srv/hostcore.mjs`, `srv/framework.mjs`, `srv/claim.mjs` | What the entry point exports, the binding to a transpiled output, and the entry point's claim on the process - the `host.mjs` that `abap2ui5-transpile` writes binds the same exports to your output |
 | `srv/accelerate.mjs` | `accelerate()` alone (`@abap2ui5/node-runtime/accelerate`) - it installs nothing and imports nothing from `output/` |
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object in a folder per origin - `project/` the framework, the ICF handler `zcl_sicf` and the live-container serializer `zcl_serializer_live`, `open-abap-core/` the ABAP standard library, `express-icf-shim/` the ICF layer (the layout of `@abaplint/transpiler-cli` 2.14; up to 1.146.0 every module sat directly in `output/`). The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
-| `setup/own-apps.mjs` | The bin `abap2ui5-own-apps` - your transpiled classes out of a transpile's output, on the package's (see [Your own apps](#your-own-apps)) |
-| `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core at the recorded commit, the config, the transpile, `own-apps` |
+| `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core and express-icf-shim at the recorded commits, the framework and your classes in one transpile, the output's `host.mjs` |
+| `setup/own-apps.mjs` | The bin `abap2ui5-own-apps`, deprecated - the way your classes were loaded on the package's `output/` until 1.147.0 (see [Your own apps](#your-own-apps)) |
 | `srv/*.d.ts` | TypeScript declarations for the three entry points - `types` in `package.json` and on every export, nothing to install |
-| `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled against (without its local test classes) |
+| `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled with (without its local test classes) |
 
 The shape of `output/` - the class constructors, the static `ATTRIBUTES` and
 `METHODS` maps, `~` becoming `$` - is the transpiler's, not abap2UI5's. What

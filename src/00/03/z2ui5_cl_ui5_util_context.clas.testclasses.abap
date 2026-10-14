@@ -2178,6 +2178,9 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
     DATA lo_row   TYPE REF TO cl_abap_structdescr.
     DATA lo_rows  TYPE REF TO cl_abap_tabledescr.
     DATA lo_top   TYPE REF TO cl_abap_structdescr.
+    DATA lo_elem  TYPE REF TO cl_abap_structdescr.
+    DATA lo_act   TYPE REF TO cl_abap_structdescr.
+    DATA lo_op    TYPE REF TO cl_abap_structdescr.
     DATA lt_comp  TYPE cl_abap_structdescr=>component_table.
 
     FIELD-SYMBOLS <failed> TYPE any.
@@ -2197,8 +2200,13 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
                        ( name = `%PID`  type = lo_str )
                        ( name = `%CID`  type = lo_str ) ).
     IF with_dashed_meta = abap_true.
-      INSERT VALUE #( name = `%ELEMENT-CUSTOMERID`        type = lo_c1 ) INTO TABLE lt_comp.
-      INSERT VALUE #( name = `%OP-%ACTION-DEDUCTDISCOUNT` type = lo_c1 ) INTO TABLE lt_comp.
+      " as RAP declares them: %ELEMENT and %OP-%ACTION are nested structures
+      " of flags, %ELEMENT-CUSTOMERID is the path to one of them
+      lo_elem = cl_abap_structdescr=>create( VALUE #( ( name = `CUSTOMERID` type = lo_c1 ) ) ).
+      lo_act  = cl_abap_structdescr=>create( VALUE #( ( name = `DEDUCTDISCOUNT` type = lo_c1 ) ) ).
+      lo_op   = cl_abap_structdescr=>create( VALUE #( ( name = `%ACTION` type = lo_act ) ) ).
+      INSERT VALUE #( name = `%ELEMENT` type = lo_elem ) INTO TABLE lt_comp.
+      INSERT VALUE #( name = `%OP`      type = lo_op ) INTO TABLE lt_comp.
     ENDIF.
     lo_row  = cl_abap_structdescr=>create( lt_comp ).
     lo_rows = cl_abap_tabledescr=>create( lo_row ).
@@ -2278,10 +2286,8 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
   METHOD test_rap_msg_row.
 
     " the `reported` response: a row whose %MSG holds the message object -
-    " its text is the message, the row's meta travels with it. A reference
-    " component is built from cl_abap_refdescr=>create( ), which the
-    " transpiled runtime cannot CREATE DATA yet (backlog
-    " core-refdescr-create-no-kind) - skipped there by configuration
+    " its text is the message, the row's meta travels with it. The reference
+    " component is built from cl_abap_refdescr=>create( )
     DATA lo_str  TYPE REF TO cl_abap_elemdescr.
     DATA lo_ref  TYPE REF TO cl_abap_refdescr.
     DATA lo_row  TYPE REF TO cl_abap_structdescr.
@@ -2338,9 +2344,9 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
   METHOD test_rap_meta_dashed.
 
     " %ELEMENT-<field> and %OP-%ACTION-<name> are flags whose NAME carries
-    " the information - the meta names the field and the action. The
-    " transpiled runtime reads such a name as a path (backlog
-    " runtime-assign-component-dash-name) - skipped there by configuration
+    " the information - the meta names the field and the action. The flags
+    " sit in the nested structures %ELEMENT and %OP-%ACTION, as RAP declares
+    " them
     FIELD-SYMBOLS <failed> TYPE any.
     DATA(lr_failed) = failed_bookings( abap_true ).
     ASSIGN lr_failed->* TO <failed>.

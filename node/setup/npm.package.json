@@ -15,7 +15,7 @@
   ],
   "name": "@abap2ui5/node-runtime",
   "version": "0.0.0-set-at-pack",
-  "description": "abap2UI5 for Node: the framework transpiled to JavaScript by @abaplint/transpiler over open-abap, with an HTTP handler, an express server and the ABAP sources to transpile your own apps against.",
+  "description": "abap2UI5 for Node: the framework transpiled to JavaScript by @abaplint/transpiler over open-abap, with an HTTP handler, an express server and the ABAP sources to transpile your own apps with.",
   "keywords": [
     "abap2ui5",
     "abap",
@@ -54,6 +54,9 @@
     "setup/own-apps.mjs",
     "setup/transpile.mjs",
     "srv/host.mjs",
+    "srv/hostcore.mjs",
+    "srv/framework.mjs",
+    "srv/claim.mjs",
     "srv/host.d.ts",
     "srv/accelerate.mjs",
     "srv/accelerate.d.ts",
@@ -81,6 +84,8 @@
       "types": "./srv/compress.d.ts",
       "default": "./srv/compress.mjs"
     },
+    "./srv/hostcore.mjs": "./srv/hostcore.mjs",
+    "./srv/framework.mjs": "./srv/framework.mjs",
     "./package.json": "./package.json",
     "./output/*": "./output/*",
     "./setup/*": "./setup/*",
@@ -88,7 +93,7 @@
   },
   "dependencies": {
     "@abaplint/database-sqlite": "^2.13.83",
-    "@abaplint/runtime": "^2.14.3"
+    "@abaplint/runtime": "^2.14.5"
   },
   "peerDependencies": {
     "express": "^4.21.0 || ^5.0.0"
