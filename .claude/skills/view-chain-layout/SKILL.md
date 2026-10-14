@@ -64,6 +64,7 @@ METHOD view_display.
                           )->a( n = `title` v = `{PRODUCT}`
                           )->a( n = `info`  v = `{QUANTITY}`
 
+                  )->end(
               )->end(
 
               )->tag( `Button`
