@@ -244,29 +244,12 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
-    " a value for inside a double-quoted JavaScript string literal of the
-    " bundle - the request path it carries (see the method)
-    CLASS-METHODS _js_string_escape
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
     " a cache validator, not a cryptographic hash - see the method
     CLASS-METHODS _get_etag
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
-
-    " If-None-Match against the current tag, RFC 7232 weak comparison over a
-    " list - see the method
-    CLASS-METHODS _check_etag_match
-      IMPORTING
-        iv_header     TYPE string
-        iv_etag       TYPE string
-      RETURNING
-        VALUE(result) TYPE abap_bool.
 
     " The plain-text body of a 500 response: one header line naming the
     " framework version and the request method, then the full exception dump
@@ -296,35 +279,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         !method       TYPE clike
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
-
-    " reduce an Origin/Referer/Host value to its bare host[:port] authority
-    " (lower-cased, scheme and path/query/fragment stripped) for same-origin
-    " comparison in _check_csrf_rejected
-    CLASS-METHODS _csrf_host_authority
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " minimal HTML-attribute escaping for the exit-supplied values the GET
-    " page interpolates into attribute positions (theme, src, t_add_config).
-    " An exit deriving one of them from the request (t_params reaches it) is
-    " otherwise a quote-breakout into the bootstrap script tag. The CSP value
-    " stays raw on purpose - it is a whole meta TAG, not an attribute
-    CLASS-METHODS _attr_escape
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the origin (scheme, host, port) of an absolute URL - `` for a
-    " relative one, so the GET shell preconnects only to another host (see
-    " the method)
-    CLASS-METHODS _url_origin
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
 
     " a content security policy - the exit's meta tag or a header value -
     " with the shell script's hash added to its script-src (see the method)
@@ -528,101 +482,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = xsdbool( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
-
-  ENDMETHOD.
-
-  METHOD _csrf_host_authority.
-
-    result = to_lower( val ).
-
-    " drop the scheme (e.g. `https://`)
-    IF result CS `://`.
-      result = substring_after( val = result
-                                sub = `://` ).
-    ENDIF.
-
-    " the authority ends at the first path / query / fragment separator
-    SPLIT result AT `/` INTO result DATA(lv_rest).
-    SPLIT result AT `?` INTO result lv_rest.
-    SPLIT result AT `#` INTO result lv_rest.
-
-    " a default port is no port: a browser writes `Origin: https://host`
-    " while the proxy in front of the ICF node forwards `host:443`, and the
-    " two are the same authority - the request was refused as cross-origin
-    " (403) for the port the scheme implies. Both defaults are stripped
-    " whatever the scheme was: the Host side carries none to compare with
-    DATA lv_len  TYPE i.
-    DATA lv_tail TYPE string.
-    lv_len = strlen( result ).
-    IF lv_len > 4.
-      lv_tail = substring( val = result
-                           off = lv_len - 4 ).
-      IF lv_tail = `:443`.
-        result = substring( val = result
-                            len = lv_len - 4 ).
-        RETURN.
-      ENDIF.
-    ENDIF.
-    IF lv_len > 3.
-      lv_tail = substring( val = result
-                           off = lv_len - 3 ).
-      IF lv_tail = `:80`.
-        result = substring( val = result
-                            len = lv_len - 3 ).
-      ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD _url_origin.
-
-    " Only an absolute URL names another host: `https://host[:port]/...`,
-    " or the protocol-relative `//host/...`. A UI5 served by the system
-    " itself (/sap/public/bc/ui5_ui5/..., a relative resources/ path) is
-    " the page's own origin, which the browser is connected to already -
-    " and an installation that writes its own origin absolutely gets a
-    " preconnect the browser answers from the connection it holds
-    DATA(lv_url) = val.
-    DATA(lv_scheme) = ``.
-    IF lv_url CP `http://*` OR lv_url CP `https://*`.
-      SPLIT lv_url AT `//` INTO lv_scheme lv_url.
-      lv_scheme = to_lower( lv_scheme ) && `//`.
-    ELSEIF lv_url CP `//*`.
-      lv_url    = lv_url+2.
-      lv_scheme = `//`.
-    ELSE.
-      RETURN.
-    ENDIF.
-    " the host ends at the path, the query or the fragment, whichever is
-    " first; userinfo (user:pw@host) stays out of the page
-    DATA(lv_end) = strlen( lv_url ).
-    DATA(lv_off) = 0.
-    WHILE lv_off < lv_end.
-      IF lv_url+lv_off(1) CA `/?#`.
-        lv_end = lv_off.
-      ELSE.
-        lv_off = lv_off + 1.
-      ENDIF.
-    ENDWHILE.
-    DATA(lv_host) = lv_url(lv_end).
-    IF lv_host IS INITIAL OR lv_host CA `@`.
-      RETURN.
-    ENDIF.
-    result = lv_scheme && lv_host.
-
-  ENDMETHOD.
-
-  METHOD _attr_escape.
-
-    result = val.
-    " the common value carries none of these - skip the copies then
-    IF result NA `&<>"'`.
-      RETURN.
-    ENDIF.
-    " the one HTML escaper of the framework - this method used to carry its
-    " own four replacements, one drift away from the shared one
-    result = z2ui5_cl_ui5_util_context=>c_escape_html( result ).
+    result = xsdbool( z2ui5_cl_ui5_util_context=>url_get_authority( lv_source ) <> z2ui5_cl_ui5_util_context=>url_get_authority( host ) ).
 
   ENDMETHOD.
 
@@ -848,8 +708,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " consumed once - see sv_if_none_match
     DATA(lv_if_none_match) = sv_if_none_match.
     CLEAR sv_if_none_match.
-    IF _check_etag_match( iv_header = lv_if_none_match
-                          iv_etag   = lv_etag ) = abap_true.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
       result-status_code   = 304.
       result-status_reason = `Not Modified`.
       RETURN.
@@ -929,12 +789,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " not derivable here across versions and configs (the sap-ui-cachebuster
     " segment of the default src, library-RTL.css, a theme root, the theme
     " fallbacks), and a preload the loader does not match is a wasted
-    " download. Relative src: no hint (see _url_origin)
+    " download. Relative src: no hint - only another host is worth one
     DATA(lv_preconnect) = ``.
-    DATA(lv_origin) = _url_origin( ls_config-src ).
+    DATA(lv_origin) = z2ui5_cl_ui5_util_context=>url_get_origin( ls_config-src ).
     IF lv_origin IS NOT INITIAL.
-      lv_preconnect = |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }">\n| &&
-                      |<link rel="preconnect" href="{ _attr_escape( lv_origin ) }" crossorigin>\n|.
+      lv_origin = z2ui5_cl_ui5_util_context=>c_escape_html( lv_origin ).
+      lv_preconnect = |<link rel="preconnect" href="{ lv_origin }">\n| &&
+                      |<link rel="preconnect" href="{ lv_origin }" crossorigin>\n|.
     ENDIF.
 
     result-body = |<!DOCTYPE html>\n| &&
@@ -953,14 +814,18 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>\n| &&
                   |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
-                  |data-sap-ui-theme="{ _attr_escape( ls_config-theme ) }" src="{ _attr_escape( ls_config-src ) }"|.
+                  |data-sap-ui-theme="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-theme ) }" src="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-src ) }"|.
 
     " built apart and appended once: result-body already carries the whole
     " embedded preload here, so appending per config row re-copied ~400KB
-    " per entry. Name and value are both escaped - see _attr_escape
+    " per entry. Name and value are both escaped like theme and src above:
+    " the exit may derive any of them from the request (t_params reaches
+    " it), and unescaped that is a quote-breakout into the bootstrap script
+    " tag. The CSP value stays raw on purpose - it is a whole meta TAG, not
+    " an attribute
     DATA(lv_add_config) = ``.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
-      lv_add_config = |{ lv_add_config } { _attr_escape( lr_config->n ) }='{ _attr_escape( lr_config->v ) }'|.
+      lv_add_config = |{ lv_add_config } { z2ui5_cl_ui5_util_context=>c_escape_html( lr_config->n ) }='{ z2ui5_cl_ui5_util_context=>c_escape_html( lr_config->v ) }'|.
     ENDLOOP.
 
     result-body = result-body && lv_add_config &&
@@ -1030,8 +895,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " consumed once - see sv_if_none_match
     DATA(lv_if_none_match) = sv_if_none_match.
     CLEAR sv_if_none_match.
-    IF _check_etag_match( iv_header = lv_if_none_match
-                          iv_etag   = lv_etag ) = abap_true.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
       result-status_code   = 304.
       result-status_reason = `Not Modified`.
       RETURN.
@@ -1096,8 +961,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " consumed once - see sv_if_none_match
     DATA(lv_if_none_match) = sv_if_none_match.
     CLEAR sv_if_none_match.
-    IF _check_etag_match( iv_header = lv_if_none_match
-                          iv_etag   = lv_etag ) = abap_true.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
       result-status_code   = 304.
       result-status_reason = `Not Modified`.
       RETURN.
@@ -1110,7 +975,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    componentName: "{ c_bundle_component }",\n| &&
                   |    componentData: \{\n| &&
                   |      embedded: true,\n| &&
-                  |      nodePath: "{ _js_string_escape( iv_path ) }",\n| &&
+                  |      nodePath: "{ z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) }",\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&
                   |    \}\n| &&
@@ -1121,116 +986,32 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _js_string_escape.
-
-    " The path goes into a double-quoted string literal of a script the
-    " browser runs on the host's page, and it is what the stack reports of
-    " the request URL - an ICF node matches on its prefix, so anything may
-    " follow it. Backslash and quote are what can end the literal; </ is
-    " escaped so the text stays harmless should it ever end up inline. The
-    " common value carries none of these - skip the copies then
-    result = val.
-    IF result NA `\"<`.
-      RETURN.
-    ENDIF.
-    result = replace( val  = result
-                      sub  = `\`
-                      with = `\\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `\"`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `</`
-                      with = `<\/`
-                      occ  = 0 ).
-
-  ENDMETHOD.
-
   METHOD _get_etag.
 
-    " a cache VALIDATOR, not a cryptographic hash: three modular
-    " accumulators over the UTF-8 bytes of the CACHE KEY plus its byte count,
-    " joined with the version constant and the build hash of the embedded
-    " frontend (z2ui5_cl_ui5f_preload=>build_hash, a digest of every
-    " embedded source computed once at generation time). It used to hash
-    " the assembled BODY instead - the same guarantee, but paid per page
-    " load: the cache in _http_get lives in CLASS-DATA and dies with the
-    " internal session, so on stateless ICF "once per cache fill" was every
-    " GET, ~700 KB through an interpreted byte loop before set_response
-    " could even decide on a 304. The key is the exit config the body is
-    " built from (a few KB), and the build hash carries what the body hash
-    " carried: a redeployed frontend between releases changes the tag with
-    " the version constant unchanged. Plain ABAP so the method downports to
-    " 7.02 and transpiles. On a stack where the byte conversion is
-    " unavailable the method answers empty and set_response skips ETag/304
-    " - conditional GET degrades, nothing breaks.
-    DATA lv_xstr TYPE xstring.
-    TRY.
-        lv_xstr = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( val ).
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
-    " Three accumulators, not two: with the version constant, the build
-    " hash and the byte count equal (two exit configs of the same length),
-    " the two 16-bit accumulators alone left ~2^32 states - enough for a
-    " same-length collision to 304 a browser into keeping a stale shell.
-    " The third mixes with a larger modulus AND weighs every byte by its
-    " position, so a pair that collides in h1/h2 still separates in h3
-    " unless it also collides under a structurally different mix -
-    " implausible for a cache validator's job, still no cryptographic claim
-    DATA(lv_len) = xstrlen( lv_xstr ).
-    DATA lv_h1 TYPE i VALUE 5381.
-    DATA lv_h2 TYPE i VALUE 17.
-    DATA lv_h3 TYPE i VALUE 104729.
-    DATA lv_byte TYPE i.
-    DATA lv_off TYPE i.
-    WHILE lv_off < lv_len.
-      lv_byte = lv_xstr+lv_off(1).
-      lv_h1 = ( lv_h1 * 33 + lv_byte ) MOD 65521.
-      lv_h2 = ( lv_h2 * 31 + lv_byte ) MOD 65519.
-      lv_h3 = ( lv_h3 * 131 + lv_byte * ( lv_off MOD 251 + 1 ) ) MOD 1000003.
-      lv_off = lv_off + 1.
-    ENDWHILE.
+    " a cache VALIDATOR, not a cryptographic hash: the checksum of the CACHE
+    " KEY (z2ui5_cl_ui5_util_context=>hash_checksum), joined with the version
+    " constant and the build hash of the embedded frontend
+    " (z2ui5_cl_ui5f_preload=>build_hash, a digest of every embedded source
+    " computed once at generation time). It used to hash the assembled BODY
+    " instead - the same guarantee, but paid per page load: the cache in
+    " _http_get lives in CLASS-DATA and dies with the internal session, so on
+    " stateless ICF "once per cache fill" was every GET, ~700 KB through an
+    " interpreted byte loop before set_response could even decide on a 304.
+    " The key is the exit config the body is built from (a few KB), and the
+    " build hash carries what the body hash carried: a redeployed frontend
+    " between releases changes the tag with the version constant unchanged.
+    " On a stack where the byte conversion is unavailable the checksum is
+    " empty, so is the tag, and set_response skips ETag/304 - conditional GET
+    " degrades, nothing breaks.
+    DATA(lv_checksum) = z2ui5_cl_ui5_util_context=>hash_checksum( val ).
+    IF lv_checksum IS INITIAL.
+      RETURN.
+    ENDIF.
 
     " quoted, as the ETag header syntax demands; the version constant and
     " the build hash ride along so a release or a redeployed frontend always
     " changes the tag even if the accumulators ever collided across it
-    result = |"{ z2ui5_if_app=>version }-{ z2ui5_cl_ui5f_preload=>build_hash }-{ lv_len }-{ lv_h1 }-{ lv_h2 }-{ lv_h3 }"|.
-
-  ENDMETHOD.
-
-  METHOD _check_etag_match.
-
-    " RFC 7232: If-None-Match is a LIST of validators, compared weakly - a
-    " proxy that recompresses the page weak-marks the tag (nginx gzip sends
-    " W/"tag" back), a browser may echo several, and `*` matches whatever is
-    " current. Apache mod_deflate (DeflateAlterETag AddSuffix, its default)
-    " instead appends `-gzip` INSIDE the quotes and passes the browser's
-    " echo through untouched, so that suffix is accepted too - no tag of
-    " this class ever carries it by itself. Exact string equality answered
-    " none of the four, and behind such a proxy the conditional GET quietly
-    " degraded to a full shell transfer on every reload for every user
-    IF iv_header IS INITIAL OR iv_etag IS INITIAL.
-      RETURN.
-    ENDIF.
-    DATA(lv_gzip) = substring( val = iv_etag
-                               len = strlen( iv_etag ) - 1 ) && `-gzip"`.
-    SPLIT iv_header AT `,` INTO TABLE DATA(lt_candidate).
-    LOOP AT lt_candidate INTO DATA(lv_candidate).
-      CONDENSE lv_candidate.
-      IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
-                                                   len = 2 ) = `W/`.
-        lv_candidate = substring( val = lv_candidate
-                                  off = 2 ).
-      ENDIF.
-      IF lv_candidate = `*` OR lv_candidate = iv_etag OR lv_candidate = lv_gzip.
-        result = abap_true.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
+    result = |"{ z2ui5_if_app=>version }-{ z2ui5_cl_ui5f_preload=>build_hash }-{ lv_checksum }"|.
 
   ENDMETHOD.
 
@@ -1272,8 +1053,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
-        AND _check_etag_match( iv_header = mo_server->get_header_field( `if-none-match` )
-                               iv_etag   = lv_etag_get ) = abap_true.
+        AND z2ui5_cl_ui5_util_context=>http_check_etag_match(
+                if_none_match = mo_server->get_header_field( `if-none-match` )
+                etag          = lv_etag_get ) = abap_true.
       ms_res-status_code   = 304.
       ms_res-status_reason = `Not Modified`.
       CLEAR ms_res-body.

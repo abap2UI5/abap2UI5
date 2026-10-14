@@ -16,7 +16,7 @@ const { pathToFileURL } = require("url");
 // the Content-Length), the per-ETag page cache. And the middleware in front
 // of the REAL framework (helpers/compressFramework.mjs, in a child process):
 // the conditional GET only closes its circle with the framework's own
-// _check_etag_match, which accepts the "tag-gzip" the middleware sends - that
+// http_check_etag_match, which accepts the "tag-gzip" the middleware sends - that
 // half needs the transpiled tree and skips without it, like
 // efWireRoundtrip.spec.js; test.yaml's test_node job runs it on one.
 // ---------------------------------------------------------------------
@@ -79,7 +79,7 @@ test.describe("the middleware", () => {
     expect(Number(res.headers["content-length"])).toBe(res.raw.length);
     expect(res.raw.length).toBeLessThan(Buffer.byteLength(PAGE) / 5);
     expect(res.body).toBe(PAGE);
-    // mod_deflate's form, the one _check_etag_match accepts back
+    // mod_deflate's form, the one http_check_etag_match accepts back
     expect(res.headers.etag).toBe("\"v1-abc-gzip\"");
   });
 
@@ -216,7 +216,7 @@ test.describe("in front of the framework", () => {
       expect(run.gzip.samePage).toBe(true);
       expect(run.gzip.rawLength).toBeLessThan(run.plain.rawLength / 3);
       expect(run.gzip.etag).toBe(run.plain.etag.replace(/"$/, "-gzip\""));
-      // the framework's _check_etag_match reads the -gzip tag back
+      // the framework's http_check_etag_match reads the -gzip tag back
       expect(run.revalidated.status).toBe(304);
       expect(run.revalidated.textLength).toBe(0);
       expect(run.revalidated.etag).toBe(run.gzip.etag);

@@ -12,6 +12,8 @@ Legend
 
 unreleased
 ----------
+! z2ui5_cl_ui5_util_context: the UI5 helpers of the core classes moved next to ui5_get_msg_type and ui5_msg_box_format - ui5_escape_binding_literal (the body of z2ui5_cl_ui5_view_builder=>escape_literal, which stays and delegates), ui5_escape_handler_string and ui5_check_braces_balanced (were escape_js_string and check_braces_balanced of z2ui5_cl_ui5_srv_event). Behaviour unchanged
+! z2ui5_cl_ui5_util_context: the generic string, URL and HTTP helpers of the core classes moved into the context class - c_escape_json (was z2ui5_cl_ui5_srv_model=>json_escape), c_escape_xml (was z2ui5_cl_ui5_view_builder=>xml_escape), c_escape_js (was z2ui5_cl_ui5_http_handler=>_js_string_escape, now also escaping single quotes, CR and LF), c_truncate, c_filter_chars and c_cut_at (the caps, allow-list strips and the cut of z2ui5_cl_ui5_handler and z2ui5_cl_ui5_action), url_get_origin, url_get_authority, http_check_etag_match and hash_checksum (the URL, CSRF and ETag helpers of z2ui5_cl_ui5_http_handler). c_escape_html skips its copies when there is nothing to escape, so the handler's _attr_escape wrapper is gone too. None of the moved methods was public
 
 
 

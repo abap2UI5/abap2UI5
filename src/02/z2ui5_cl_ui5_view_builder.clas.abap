@@ -145,24 +145,12 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
       CHANGING
         ct_out TYPE string_table.
 
-    METHODS xml_escape
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
   PRIVATE SECTION.
-    " the character set xml_escape guards against, concatenated once per
-    " roll area instead of once per attribute (three CLASS-DATA reads and a
-    " template per call otherwise). Lazily filled on first use - a public
-    " class_constructor is the alternative and abap-check names it a trap
-    CLASS-DATA gv_escape_specials TYPE string.
-    CLASS-DATA gv_escape_controls TYPE string.
     " the characters an element or attribute NAME may carry - a list of
     " what is allowed, not of what is not: the list of markup characters it
     " replaced let `te(xt`, `te,xt`, `te{xt` or `1st` through, and the view
     " died in the browser like before. UI5 names are ASCII letters, digits
-    " and `_`, `.`, `-` (and the `:` of a prefixed name); same lazy fill
+    " and `_`, `.`, `-` (and the `:` of a prefixed name); filled lazily on first use
     CLASS-DATA gv_name_chars TYPE string.
 
     " fail fast on a name that is no XML name: `n = 'te"xt'` used to render
@@ -339,7 +327,7 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " to copy a two-string structure per attribute
     DATA lt_attr TYPE string_table.
     LOOP AT t_pair REFERENCE INTO DATA(lr_pair).
-      INSERT | { lr_pair->n }="{ xml_escape( lr_pair->v ) }"| INTO TABLE lt_attr.
+      INSERT | { lr_pair->n }="{ z2ui5_cl_ui5_util_context=>c_escape_xml( lr_pair->v ) }"| INTO TABLE lt_attr.
     ENDLOOP.
     DATA(attrs) = concat_lines_of( lt_attr ).
 
@@ -355,102 +343,6 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     APPEND |</{ qname }>| TO ct_out.
 
   ENDMETHOD.
-
-
-  METHOD xml_escape.
-
-    " one CA scan up front: replace( occ = 0 ) copies the whole string on
-    " every call even when nothing matches, and a value without any special
-    " character is the COMMON case - that made every attribute value pay for
-    " seven full copies. A value that does carry one still runs all seven
-    " replaces below, unchanged
-    IF gv_escape_specials IS INITIAL.
-      " the XML-illegal control characters as one string, so the CA scan
-      " stays a single statement; built from their UTF-8 bytes through the
-      " context class (the one door to the codepage API)
-      TRY.
-          gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
-              CONV xstring( `000102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
-        CATCH z2ui5_cx_ui5_util_error.
-          " No codepage API here (UNSUPPORTED_CODEPAGE_API). Degrade instead of
-          " failing: the set stays empty, the CA scan below then matches no
-          " control character and the drop loop never runs, while `&`, `<`, `>`,
-          " `"`, newline, CR and tab are escaped exactly as before. Dropping
-          " those 30 exotic bytes is a repair for legacy long texts, not a
-          " correctness requirement of the view - so losing it must not cost
-          " the render. Before this, a missing class raised out of the utility
-          " and took down every view on the first escape of the process.
-          CLEAR gv_escape_controls.
-      ENDTRY.
-      gv_escape_specials = `&<>"`
-          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
-          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
-          && gv_escape_controls.
-    ENDIF.
-    result = val.
-    IF result NA gv_escape_specials.
-      RETURN.
-    ENDIF.
-
-    result = replace( val  = result
-                      sub  = `&`
-                      with = `&amp;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `<`
-                      with = `&lt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `>`
-                      with = `&gt;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `"`
-                      with = `&quot;`
-                      occ  = 0 ).
-    " whitespace as character references - a literal LF/CR/TAB in an attribute
-    " value is turned into a plain space by XML attribute-value normalization,
-    " so line breaks (e.g. a two-line noDataText) would silently disappear.
-    " char constants come from the context class - the one place allowed to
-    " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
-    result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
-                      with = `&#xA;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-                      with = `&#xD;`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
-                      with = `&#x9;`
-                      occ  = 0 ).
-
-    " what is left of the control range is illegal in XML 1.0 outright -
-    " U+0000-U+0008, U+000B, U+000C, U+000E-U+001F cannot even be written
-    " as character references, and UI5's XMLView parser rejects the whole
-    " document over one such byte (a form feed or record separator out of a
-    " legacy long text blanks the view). They carry no meaning in an
-    " attribute value, so they are dropped. Only reached for a value that
-    " passed the CA scan above - see gv_escape_specials
-    IF result CA gv_escape_controls.
-      " one replace per character, no regex: [[:cntrl:]] is not a class every
-      " runtime this code runs on knows (the transpiled one left every byte
-      " in place), and this branch is the rare one
-      DATA(lv_off) = 0.
-      DATA(lv_len) = strlen( gv_escape_controls ).
-      WHILE lv_off < lv_len.
-        result = replace( val  = result
-                          sub  = gv_escape_controls+lv_off(1)
-                          with = ``
-                          occ  = 0 ).
-        lv_off = lv_off + 1.
-      ENDWHILE.
-    ENDIF.
-
-  ENDMETHOD.
-
 
   METHOD attr_value.
 
@@ -508,34 +400,9 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD escape_literal.
 
-    result = val.
-
-    " nothing to escape: no brace, no backslash. Note that the shortcut is
-    " NOT "no brace": UI5's XMLTemplateProcessor hands EVERY string property
-    " to the binding parser with unescaping on, brace or not, and the
-    " parser unescapes `\\`, `\{` and `\}` even when it finds no binding
-    " (OpenUI5 1.71 BindingParser.complexParser, the bUnescaped tail). A
-    " lone backslash is left alone, so `C:\temp\file` rendered fine either
-    " way - but `\\server\share` lost one backslash per pair until the
-    " backslash was escaped whenever present (2026-09-05)
-    IF result NA `{}\`.
-      RETURN.
-    ENDIF.
-
-    " the backslash first (UI5 unescapes `\\` back to one), then the braces,
-    " which would otherwise start a binding
-    result = replace( val  = result
-                      sub  = `\`
-                      with = `\\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `{`
-                      with = `\{`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `}`
-                      with = `\}`
-                      occ  = 0 ).
+    " the UI5 binding-parser escape lives in the context class; this public
+    " method stays the builder's documented entry point
+    result = z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal( val ).
 
   ENDMETHOD.
 
