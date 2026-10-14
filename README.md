@@ -37,6 +37,7 @@
 </p>
 
 ## Why abap2UI5?
+* **Code, Not Configuration** – An app is one ABAP class and nothing else: no designer metadata, no generated artefacts, no frontend project. It is written in ADT or SE80, reviewed as a diff, transported and debugged like every other class – so your existing ABAP change process governs it without a single new rule
 * **User-Friendly** – Implement a single interface to build a complete UI5 app, purely in ABAP
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
@@ -119,6 +120,7 @@ Every line below ends with the place that proves it.
 * **Compatibility** – One source for NW 7.02 to ABAP Cloud and for UI5 1.71 to 2.x. The public API is snapshotted, a change to it fails the pull request, and every deprecation is announced in the changelog and tracked until it is removed – [API snapshot](.github/api-snapshot.json) · [changelog.txt](changelog.txt) · [Removal plan](docs/removal-plan.md)
 * **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code. A build in your own namespace is one workflow run – [LICENSE](LICENSE) · [build-rename](.github/workflows/build-rename.yaml)
 * **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md); a security report is acknowledged within three business days – [SECURITY.md](SECURITY.md#response-timeline)
+* **Governance** – Code first: an app is a class, so development, review, transport and release follow the ABAP process you already run; authorization and logon are SAP's, every roundtrip can be logged, and Basis has four settings to change – [abap2UI5 for IT governance](docs/governance.md)
 * **Fit** – Where abap2UI5 is the right tool, and where RAP and Fiori Elements are – [When to use abap2UI5](docs/when-to-use.md)
 
 ## AI Assistants
