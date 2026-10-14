@@ -400,34 +400,9 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD escape_literal.
 
-    result = val.
-
-    " nothing to escape: no brace, no backslash. Note that the shortcut is
-    " NOT "no brace": UI5's XMLTemplateProcessor hands EVERY string property
-    " to the binding parser with unescaping on, brace or not, and the
-    " parser unescapes `\\`, `\{` and `\}` even when it finds no binding
-    " (OpenUI5 1.71 BindingParser.complexParser, the bUnescaped tail). A
-    " lone backslash is left alone, so `C:\temp\file` rendered fine either
-    " way - but `\\server\share` lost one backslash per pair until the
-    " backslash was escaped whenever present (2026-09-05)
-    IF result NA `{}\`.
-      RETURN.
-    ENDIF.
-
-    " the backslash first (UI5 unescapes `\\` back to one), then the braces,
-    " which would otherwise start a binding
-    result = replace( val  = result
-                      sub  = `\`
-                      with = `\\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `{`
-                      with = `\{`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `}`
-                      with = `\}`
-                      occ  = 0 ).
+    " the UI5 binding-parser escape lives in the context class; this public
+    " method stays the builder's documented entry point
+    result = z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal( val ).
 
   ENDMETHOD.
 

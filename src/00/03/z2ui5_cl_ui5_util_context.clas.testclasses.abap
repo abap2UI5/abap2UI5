@@ -397,6 +397,9 @@ CLASS ltcl_string DEFINITION FINAL
     METHODS test_url_authority     FOR TESTING RAISING cx_static_check.
     METHODS test_etag_match_rules  FOR TESTING RAISING cx_static_check.
     METHODS test_hash_checksum     FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_binding_literal FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_handler_string FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_braces_balanced FOR TESTING RAISING cx_static_check.
     METHODS test_data_uri          FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -556,6 +559,36 @@ CLASS ltcl_string IMPLEMENTATION.
                                         act = z2ui5_cl_ui5_util_context=>url_get_authority( `host.example:443` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `host.example`
                                         act = z2ui5_cl_ui5_util_context=>url_get_authority( `http://host.example:80/` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_binding_literal.
+
+    cl_abap_unit_assert=>assert_equals( exp = `a \{/PATH\} \\\\server`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal( `a {/PATH} \\server` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `plain`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal( `plain` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_handler_string.
+
+    DATA(lv_raw) = `it's a\b` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `c`.
+    cl_abap_unit_assert=>assert_equals( exp = `it\'s a\\b\nc`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( lv_raw ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `EVENT_ID`
+                                        act = z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( `EVENT_ID` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_braces_balanced.
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( `{/A}` ) ).
+    " a brace inside a string of the expression is text
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( `{= ${/A} === '}' }` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( `{0` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( `}{` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( `{'a}` ) ).
 
   ENDMETHOD.
 

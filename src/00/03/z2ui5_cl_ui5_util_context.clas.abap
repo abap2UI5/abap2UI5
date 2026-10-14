@@ -172,6 +172,34 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg_box.
 
+    "! A text for a UI5 property that is to be shown as written, not read
+    "! by the binding parser: backslash and both braces escaped, so `{/X}`
+    "! stays text and `\\server` keeps both backslashes.
+    CLASS-METHODS ui5_escape_binding_literal
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! A text for the body of a single-quoted string argument of a UI5 event
+    "! handler expression (`press=".onPress('...')"`): backslash, quote, CR
+    "! and LF escaped, so no value can close the literal.
+    CLASS-METHODS ui5_escape_handler_string
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Whether every brace of a UI5 binding or expression closes the one
+    "! before it - braces inside its single- or double-quoted strings do
+    "! not count. A value that does not balance breaks the parse of the
+    "! whole attribute it sits in.
+    CLASS-METHODS ui5_check_braces_balanced
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_check_serializable
       IMPORTING
         val           TYPE REF TO object
@@ -2364,6 +2392,105 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       WHEN OTHERS.
         result = cs_ui5_msg_type-i.
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD ui5_escape_binding_literal.
+
+    result = val.
+
+    " nothing to escape: no brace, no backslash. Note that the shortcut is
+    " NOT "no brace": UI5's XMLTemplateProcessor hands EVERY string property
+    " to the binding parser with unescaping on, brace or not, and the
+    " parser unescapes `\\`, `\{` and `\}` even when it finds no binding
+    " (OpenUI5 1.71 BindingParser.complexParser, the bUnescaped tail). A
+    " lone backslash is left alone, so `C:\temp\file` rendered fine either
+    " way - but `\\server\share` lost one backslash per pair until the
+    " backslash was escaped whenever present (2026-09-05)
+    IF result NA `{}\`.
+      RETURN.
+    ENDIF.
+
+    " the backslash first (UI5 unescapes `\\` back to one), then the braces,
+    " which would otherwise start a binding
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `\{`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `\}`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD ui5_escape_handler_string.
+
+    " same fast path as c_escape_xml: the five
+    " REPLACE ALL passes below each copy the whole string even when nothing
+    " matches, and the common value here - an event name, a plain argument -
+    " contains none of these characters. Runs once per _event( ) per render,
+    " plus once per quoted argument. NOTE the backslash IS in this set
+    " (c_escape_xml's set has none)
+    result = val.
+    IF result NA `\'` AND result NA cv_char_util_cr_lf.
+      RETURN.
+    ENDIF.
+    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
+    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
+    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf IN result WITH `\n`.
+    REPLACE ALL OCCURRENCES OF cv_char_util_newline IN result WITH `\n`.
+    " a standalone CR (not part of CR+LF, already collapsed above) is a JS
+    " line terminator too and would break the '...' literal
+    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf(1)
+            IN result WITH `\r`.
+
+  ENDMETHOD.
+
+  METHOD ui5_check_braces_balanced.
+
+    DATA lv_depth TYPE i.
+    DATA lv_quote TYPE string.
+    DATA lv_char TYPE string.
+
+    DATA lv_val TYPE string.
+    lv_val = val.
+    DATA(lv_len) = strlen( lv_val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      lv_char = lv_val+lv_off(1).
+      IF lv_quote IS NOT INITIAL.
+        " inside a string of the expression ({= ${/A} === '}' }) a brace is
+        " text; a backslash takes the next character with it
+        CASE lv_char.
+          WHEN `\`.
+            lv_off = lv_off + 1.
+          WHEN lv_quote.
+            CLEAR lv_quote.
+          WHEN OTHERS.
+        ENDCASE.
+      ELSE.
+        CASE lv_char.
+          WHEN `'` OR `"`.
+            lv_quote = lv_char.
+          WHEN `{`.
+            lv_depth = lv_depth + 1.
+          WHEN `}`.
+            lv_depth = lv_depth - 1.
+            IF lv_depth < 0.
+              RETURN.
+            ENDIF.
+          WHEN OTHERS.
+        ENDCASE.
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+    result = xsdbool( lv_depth = 0 AND lv_quote IS INITIAL ).
 
   ENDMETHOD.
 
