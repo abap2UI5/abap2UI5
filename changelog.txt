@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! frontend/embed (the delivery branches standard_new and cloud_new): @abap2ui5/embed-control 0.3.0, and the page is handed to the app by the control's ownsPage, set in the view - the controller no longer probes the control for ownsPage or its older name ownsHash
 
 
 2026-10-14 v1.148.0

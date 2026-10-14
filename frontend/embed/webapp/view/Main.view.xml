@@ -17,6 +17,7 @@
         endpoint="{start>/endpoint}"
         app="{start>/app}"
         params="{start>/params}"
+        ownsPage="true"
         height="100%"
         componentCreated=".onComponentCreated"
         componentFailed=".onComponentFailed"/>

@@ -57,7 +57,6 @@ classic frontend sent it (`client->get( )-t_comp_params`).
   packages and their texts, `Z2UI5_CL_LP_HANDLER`, the BSP `Z2UI5`, the ICF
   nodes. These branches replace those installations: never rename one.
 - **The page is the control and nothing else, so the page is the app's**
-  (the control's `ownsPage`, or `ownsHash` on a control that predates
-  it): the hash, the title, the favicon, the busy indicator, the "leave
-  page?" prompt. Nothing else of this app may route by the hash, write it
-  or set the title.
+  (the control's `ownsPage`, set in the view): the hash, the title, the
+  favicon, the busy indicator, the "leave page?" prompt. Nothing else of
+  this app may route by the hash, write it or set the title.
