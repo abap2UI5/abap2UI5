@@ -142,7 +142,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
           gv_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( c_controls_hex ) ).
         CATCH z2ui5_cx_ui5_util_error.
           " no codepage API (UNSUPPORTED_CODEPAGE_API): degrade like
-          " z2ui5_cl_ui5_view_builder=>xml_escape - the set stays empty and the
+          " z2ui5_cl_ui5_util_context=>c_escape_xml - the set stays empty and the
           " text leaves as before, rather than every response failing here
           CLEAR gv_controls.
       ENDTRY.
@@ -154,7 +154,7 @@ CLASS z2ui5_cl_ui5_util_json_fl IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " one replace per character, no regex - see xml_escape for why
+    " one replace per character, no regex - see c_escape_xml of the context class for why
     DATA(lv_off) = 0.
     DATA(lv_len) = strlen( gv_controls ).
     WHILE lv_off < lv_len.

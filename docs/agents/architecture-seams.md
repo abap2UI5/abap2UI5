@@ -182,11 +182,12 @@ body of the first `CATCH`, so when it failed too a raw
 handles. Now both failures chain into `UNSUPPORTED_CODEPAGE_API`, a
 `z2ui5_cx_ui5_util_error` like everything else here.
 
-That matters because of who calls it. `z2ui5_cl_ui5_view_builder`'s
-`xml_escape( )` builds its control-character set through this method, lazily,
-on the first escape of the process — so on a release with neither class, or in
-any runtime where a dynamic `CALL METHOD` resolves nothing, **every view render
-died**. The builder now catches `z2ui5_cx_ui5_util_error` and degrades: the set
+That matters because of who calls it. `c_escape_xml( )` (the attribute escaper
+of `z2ui5_cl_ui5_view_builder`, moved into the context class) builds its
+control-character set through this method, lazily, on the first escape of the
+process — so on a release with neither class, or in any runtime where a dynamic
+`CALL METHOD` resolves nothing, **every view render died**. The escaper now
+catches `z2ui5_cx_ui5_util_error` and degrades: the set
 stays empty, the `CA` scan matches no control character, and `&`, `<`, `>`,
 `"`, newline, CR and tab are escaped exactly as before. Dropping those 29 exotic
 bytes repairs legacy long texts; it is not a correctness requirement of the

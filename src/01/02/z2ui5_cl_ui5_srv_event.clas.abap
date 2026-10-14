@@ -60,26 +60,7 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " abap_true when every brace of val closes the one before it - outside
-    " the single- or double-quoted strings of the expression
-    CLASS-METHODS check_braces_balanced
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
   PRIVATE SECTION.
-    " Escape a value so it is safe as the body of a single-quoted JS string
-    " literal emitted into the view XML. Backslash MUST be escaped first (so
-    " the escapes added afterwards are not themselves re-escaped); without it a
-    " value ending in '\' or containing "\'" breaks out of the '...' wrapper
-    " and the trailing text is evaluated as JS. CR/LF are escaped too - a raw
-    " newline is a syntax error inside a single-quoted JS literal.
-    CLASS-METHODS escape_js_string
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -109,7 +90,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
       lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_function.
     ENDIF.
 
-    result = |{ lv_func }({ lv_event_arg }['{ escape_js_string( CONV string( val ) ) }'|.
+    result = |{ lv_func }({ lv_event_arg }['{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( CONV string( val ) ) }'|.
 
     " The event array is read by POSITION in View1.eB: [0] the name, [1] a
     " reserved placeholder (always false), [2] reserved (always false), [3]
@@ -142,7 +123,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
                                        view  = view
                                        t_arg = t_arg ).
 
-    result = |{ z2ui5_if_ui5_types=>cs_ui5-event_frontend_function }('{ escape_js_string( ls_event-val ) }'{ get_t_arg( ls_event-t_arg ) }|.
+    result = |{ z2ui5_if_ui5_types=>cs_ui5-event_frontend_function }('{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( ls_event-val ) }'{ get_t_arg( ls_event-t_arg ) }|.
 
   ENDMETHOD.
 
@@ -276,32 +257,6 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD escape_js_string.
-
-    " same fast path as z2ui5_cl_ui5_view_builder=>xml_escape: the five
-    " REPLACE ALL passes below each copy the whole string even when nothing
-    " matches, and the common value here - an event name, a plain argument -
-    " contains none of these characters. Runs once per _event( ) per render,
-    " plus once per quoted argument. NOTE the backslash IS in this set
-    " (xml_escape's set has none)
-    result = val.
-    IF result NA `\'` AND result NA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
-      RETURN.
-    ENDIF.
-    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
-    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
-    " read the newline constants from the context class, not cl_abap_char_
-    " utilities directly (the SAP-standard dependency is abstracted there for
-    " non-ABAP runtimes - see z2ui5_cl_ui5_util_context)
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf IN result WITH `\n`.
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_newline IN result WITH `\n`.
-    " a standalone CR (not part of CR+LF, already collapsed above) is a JS
-    " line terminator too and would break the '...' literal
-    REPLACE ALL OCCURRENCES OF z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-            IN result WITH `\r`.
-
-  ENDMETHOD.
-
   METHOD get_t_arg.
 
     DATA lv_new TYPE string.
@@ -326,7 +281,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " literal backslash or ending in '\' - can close the '...' wrapper and
         " inject JS. The raw branch (check_arg_raw) stays unescaped by design,
         " since those are real bindings/expressions, not string data.
-        lv_new = |'{ escape_js_string( lv_new ) }'|.
+        lv_new = |'{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( lv_new ) }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
       lv_pending = ``.
@@ -374,48 +329,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " a brace that does not close - a lone `{`, a truncated `{0`, text a
     " user typed - broke the parse of the WHOLE expression, so the wire
     " never fired. What does not balance is no binding and no expression
-    result = check_braces_balanced( val ).
-
-  ENDMETHOD.
-
-  METHOD check_braces_balanced.
-
-    DATA lv_depth TYPE i.
-    DATA lv_quote TYPE string.
-    DATA lv_char TYPE string.
-
-    DATA(lv_len) = strlen( val ).
-    DATA(lv_off) = 0.
-    WHILE lv_off < lv_len.
-      lv_char = val+lv_off(1).
-      IF lv_quote IS NOT INITIAL.
-        " inside a string of the expression ({= ${/A} === '}' }) a brace is
-        " text; a backslash takes the next character with it
-        CASE lv_char.
-          WHEN `\`.
-            lv_off = lv_off + 1.
-          WHEN lv_quote.
-            CLEAR lv_quote.
-          WHEN OTHERS.
-        ENDCASE.
-      ELSE.
-        CASE lv_char.
-          WHEN `'` OR `"`.
-            lv_quote = lv_char.
-          WHEN `{`.
-            lv_depth = lv_depth + 1.
-          WHEN `}`.
-            lv_depth = lv_depth - 1.
-            IF lv_depth < 0.
-              RETURN.
-            ENDIF.
-          WHEN OTHERS.
-        ENDCASE.
-      ENDIF.
-      lv_off = lv_off + 1.
-    ENDWHILE.
-
-    result = xsdbool( lv_depth = 0 AND lv_quote IS INITIAL ).
+    result = z2ui5_cl_ui5_util_context=>ui5_check_braces_balanced( val ).
 
   ENDMETHOD.
 

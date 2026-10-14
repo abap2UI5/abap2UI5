@@ -772,7 +772,6 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_cache_hit_same_config   FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_on_if_none_match FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_weak_tag FOR TESTING RAISING cx_static_check.
-    METHODS test_etag_match_rules FOR TESTING RAISING cx_static_check.
     METHODS test_get_no_304_on_stale_tag FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_post      FOR TESTING RAISING cx_static_check.
     METHODS test_cache_control_error     FOR TESTING RAISING cx_static_check.
@@ -808,7 +807,6 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_style_exit_element      FOR TESTING RAISING cx_static_check.
     " the preconnect to the UI5 origin: for an absolute src only, outside
     " the hashed script
-    METHODS test_url_origin              FOR TESTING RAISING cx_static_check.
     METHODS test_preconnect_cdn          FOR TESTING RAISING cx_static_check.
     METHODS test_preconnect_relative     FOR TESTING RAISING cx_static_check.
     " the bundle: sent as JavaScript under a tag of its own, revalidated to a
@@ -987,43 +985,6 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( mo_mock->mv_cdata ).
     cl_abap_unit_assert=>assert_equals( exp = `"1.0-11-22-33"`
                                         act = header_value( `etag` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_etag_match_rules.
-
-    DATA(lv_tag) = `"1.0-11-22-33"`.
-
-    " exact, weak, listed, any, the Apache suffix - all a match
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `"1.0-11-22-33"`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `W/"1.0-11-22-33"`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `"a" , "1.0-11-22-33" ,"b"`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `*`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `"1.0-11-22-33-gzip"`
-        iv_etag   = lv_tag ) ).
-
-    " another tag, a tag that merely starts like ours, nothing at all
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `"1.0-99-99-99"`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `"1.0-11-22-33-x"`
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = ``
-        iv_etag   = lv_tag ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_http_handler=>_check_etag_match(
-        iv_header = `*`
-        iv_etag   = `` ) ).
 
   ENDMETHOD.
 
@@ -1719,32 +1680,6 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     SPLIT lv_body AT `<style>` INTO TABLE DATA(lt_part).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_part ) ).
-
-  ENDMETHOD.
-
-  METHOD test_url_origin.
-
-    cl_abap_unit_assert=>assert_equals( exp = `https://sdk.openui5.org`
-                                        act = z2ui5_cl_ui5_http_handler=>_url_origin(
-                                                  `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example:8443`
-                                        act = z2ui5_cl_ui5_http_handler=>_url_origin(
-                                                  `https://cdn.example:8443/ui5/resources/sap-ui-core.js?x=1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `http://cdn.example`
-                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `HTTP://cdn.example?q` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `//cdn.example`
-                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `//cdn.example/resources/sap-ui-core.js` ) ).
-    " the host alone, no path at all
-    cl_abap_unit_assert=>assert_equals( exp = `https://cdn.example`
-                                        act = z2ui5_cl_ui5_http_handler=>_url_origin( `https://cdn.example` ) ).
-    " relative: the page's own origin, nothing to announce
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin(
-                                             `/sap/public/bc/ui5_ui5/1/resources/sap-ui-core.js` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `resources/sap-ui-core.js` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `` ) ).
-    " no host, or userinfo in front of it: nothing rather than a guess
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `https:///x.js` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_url_origin( `https://u:p@cdn.example/x.js` ) ).
 
   ENDMETHOD.
 

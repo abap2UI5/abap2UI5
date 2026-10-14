@@ -13,7 +13,7 @@
  * the same way.
  *
  * GZIP ONLY. The GET page carries an ETag, and the framework answers a
- * conditional GET itself (_check_etag_match): an exact tag, a weak W/"tag",
+ * conditional GET itself (http_check_etag_match): an exact tag, a weak W/"tag",
  * or Apache mod_deflate's "tag-gzip" - the suffix INSIDE the quotes. A
  * compressed page is another representation and needs another strong tag,
  * so it goes out as "tag-gzip", and the browser's If-None-Match: "tag-gzip"

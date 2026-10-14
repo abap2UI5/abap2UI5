@@ -16,6 +16,11 @@ and there is no service, no frontend project and no deployment. The first
 scales with how standard your app is. The second scales with how much of the
 UI is yours.
 
+With abap2UI5 the app is code, not configuration: a class that is reviewed,
+transported and debugged like every other one.
+[abap2UI5 for IT governance](governance.md) is the same decision written for
+the people who approve a tool rather than build with it.
+
 ## Use abap2UI5 when
 
 - **The team is ABAP.** No JavaScript, no UI5 tooling, no Business

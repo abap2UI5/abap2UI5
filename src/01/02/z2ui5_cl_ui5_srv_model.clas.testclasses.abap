@@ -4991,10 +4991,10 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
     DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/V`
                                                         iv_val   = lv_raw )->stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = lv_exp
-                                        act = |\{"V":"{ z2ui5_cl_ui5_srv_model=>json_escape( lv_raw ) }"\}| ).
+                                        act = |\{"V":"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_raw ) }"\}| ).
     " nothing to escape: the text itself
     cl_abap_unit_assert=>assert_equals( exp = `plain`
-                                        act = z2ui5_cl_ui5_srv_model=>json_escape( `plain` ) ).
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_json( `plain` ) ).
 
   ENDMETHOD.
 

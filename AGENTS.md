@@ -202,7 +202,7 @@ seams; see `docs/agents/architecture-seams.md`.
   closed** — a broken monitor must never break an app.
 - **`@abap2ui5/node-runtime`:** the transpiled tree as an npm package; its manifest is
   `node/setup/npm.package.json`, **deliberately not `node/package.json`** (see `docs/agents/ci-workflows.md`).
-- **A missing codepage class must not take down the view** — `xml_escape( )` degrades on
+- **A missing codepage class must not take down the view** — `z2ui5_cl_ui5_util_context=>c_escape_xml( )` degrades on
   `UNSUPPORTED_CODEPAGE_API` (reasoning at both code sites).
 
 ## CI/CD Workflows

@@ -201,7 +201,7 @@ CLASS ltcl_builder IMPLEMENTATION.
     " legacy long text: illegal in XML 1.0 even as a character reference,
     " the whole view failed at the parser - they are dropped, the legal
     " whitespace next to them still becomes its character reference. NUL
-    " was missing from the set the comment in xml_escape names
+    " was missing from the set the comment in z2ui5_cl_ui5_util_context=>c_escape_xml names
     DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `000C1E` ) ).
     DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
 

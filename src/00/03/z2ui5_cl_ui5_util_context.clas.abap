@@ -172,6 +172,34 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg_box.
 
+    "! A text for a UI5 property that is to be shown as written, not read
+    "! by the binding parser: backslash and both braces escaped, so `{/X}`
+    "! stays text and `\\server` keeps both backslashes.
+    CLASS-METHODS ui5_escape_binding_literal
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! A text for the body of a single-quoted string argument of a UI5 event
+    "! handler expression (`press=".onPress('...')"`): backslash, quote, CR
+    "! and LF escaped, so no value can close the literal.
+    CLASS-METHODS ui5_escape_handler_string
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Whether every brace of a UI5 binding or expression closes the one
+    "! before it - braces inside its single- or double-quoted strings do
+    "! not count. A value that does not balance breaks the parse of the
+    "! whole attribute it sits in.
+    CLASS-METHODS ui5_check_braces_balanced
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_check_serializable
       IMPORTING
         val           TYPE REF TO object
@@ -488,11 +516,100 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    "! Escape a text for a JSON string literal - the quotes around it are
+    "! the caller's. Vendored from abap-util's `c_escape_json`: backslash,
+    "! quote, CR, LF and TAB, the backslash first. The other control
+    "! characters pass unchanged (z2ui5_cl_ui5_util_json_fl=>escape_controls
+    "! covers those for a whole response).
+    CLASS-METHODS c_escape_json
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Escape a text for a JavaScript string literal in a script - single-
+    "! or double-quoted alike: backslash, both quotes, CR and LF, and `</`
+    "! so the text cannot end an inline script element.
+    CLASS-METHODS c_escape_js
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Escape a text for an XML attribute value: `&`, `<`, `>`, `"` as
+    "! entities, LF, CR and TAB as character references (attribute-value
+    "! normalization would turn them into blanks), and the control
+    "! characters XML 1.0 forbids outright dropped. Degrades when the
+    "! codepage API is missing - see the method.
+    CLASS-METHODS c_escape_xml
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! At most max characters, the ellipsis included. Vendored from
+    "! abap-util's `c_truncate`.
+    CLASS-METHODS c_truncate
+      IMPORTING
+        val           TYPE clike
+        max           TYPE i
+        ellipsis      TYPE string DEFAULT `...`
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The characters of val that occur in allowed, in their order - an
+    "! allow-list strip for a value that is reflected back somewhere.
+    CLASS-METHODS c_filter_chars
+      IMPORTING
+        val           TYPE clike
+        allowed       TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! val up to the first occurrence of sub - val itself when sub does
+    "! not occur (unlike substring_before( ), which answers empty then).
+    CLASS-METHODS c_cut_at
+      IMPORTING
+        val           TYPE clike
+        sub           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS url_param_get_tab
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_t_name_value.
+
+    "! The origin (scheme, host, port) of an absolute URL -
+    "! `https://host[:port]` or the protocol-relative `//host` - and ``
+    "! for a relative one, for one without a host and for one carrying
+    "! userinfo. The scheme comes back lower-cased.
+    CLASS-METHODS url_get_origin
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! The bare host[:port] authority of an Origin, Referer or Host value -
+    "! lower-cased, scheme and path/query/fragment dropped, a default port
+    "! (:443, :80) dropped too - so two spellings of one authority compare
+    "! equal.
+    CLASS-METHODS url_get_authority
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Whether an If-None-Match header matches the current ETag - RFC 7232
+    "! weak comparison over a list, `*`, and the `-gzip` suffix Apache's
+    "! mod_deflate writes into a tag (see the method).
+    CLASS-METHODS http_check_etag_match
+      IMPORTING
+        if_none_match TYPE clike
+        etag          TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS rtti_get_t_attri_by_oref
       IMPORTING
@@ -654,6 +771,16 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    "! A checksum of a text for a cache validator, not a cryptographic hash:
+    "! `bytes-h1-h2-h3`, three modular accumulators over the UTF-8
+    "! bytes plus their count. Plain ABAP, so it downports and transpiles;
+    "! `` where the byte conversion is unavailable.
+    CLASS-METHODS hash_checksum
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
@@ -675,7 +802,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " the view builder's xml_escape builds its control-character set with it
+    " c_escape_xml builds its control-character set with it
     CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
         val           TYPE xstring
@@ -685,7 +812,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " back in the utility surface since 2026-09 - it used to carry the
     " frozen-only marker (no framework caller, kept for src/99), but the
     " GET-shell ETag hashes the UTF-8 bytes of its cache key, so the
-    " framework itself calls this again: see z2ui5_cl_ui5_http_handler=>_get_etag
+    " framework itself calls this again: see hash_checksum
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
         val           TYPE string
@@ -813,6 +940,13 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " class is absent here - the text answers from then on without a
     " raise per call (two per roundtrip)
     CLASS-DATA gv_hash_absent TYPE abap_bool.
+
+    " the character set c_escape_xml guards against, concatenated once per
+    " roll area instead of once per attribute value. Lazily filled on first
+    " use - a public class_constructor is the alternative and abap-check
+    " names it a trap
+    CLASS-DATA gv_xml_escape_specials TYPE string.
+    CLASS-DATA gv_xml_escape_controls TYPE string.
 
     " the json_kind of one elementary type (see ty_s_flat_comp)
     CLASS-METHODS rtti_get_json_kind
@@ -2261,6 +2395,105 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD ui5_escape_binding_literal.
+
+    result = val.
+
+    " nothing to escape: no brace, no backslash. Note that the shortcut is
+    " NOT "no brace": UI5's XMLTemplateProcessor hands EVERY string property
+    " to the binding parser with unescaping on, brace or not, and the
+    " parser unescapes `\\`, `\{` and `\}` even when it finds no binding
+    " (OpenUI5 1.71 BindingParser.complexParser, the bUnescaped tail). A
+    " lone backslash is left alone, so `C:\temp\file` rendered fine either
+    " way - but `\\server\share` lost one backslash per pair until the
+    " backslash was escaped whenever present (2026-09-05)
+    IF result NA `{}\`.
+      RETURN.
+    ENDIF.
+
+    " the backslash first (UI5 unescapes `\\` back to one), then the braces,
+    " which would otherwise start a binding
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `\{`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `\}`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD ui5_escape_handler_string.
+
+    " same fast path as c_escape_xml: the five
+    " REPLACE ALL passes below each copy the whole string even when nothing
+    " matches, and the common value here - an event name, a plain argument -
+    " contains none of these characters. Runs once per _event( ) per render,
+    " plus once per quoted argument. NOTE the backslash IS in this set
+    " (c_escape_xml's set has none)
+    result = val.
+    IF result NA `\'` AND result NA cv_char_util_cr_lf.
+      RETURN.
+    ENDIF.
+    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
+    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
+    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf IN result WITH `\n`.
+    REPLACE ALL OCCURRENCES OF cv_char_util_newline IN result WITH `\n`.
+    " a standalone CR (not part of CR+LF, already collapsed above) is a JS
+    " line terminator too and would break the '...' literal
+    REPLACE ALL OCCURRENCES OF cv_char_util_cr_lf(1)
+            IN result WITH `\r`.
+
+  ENDMETHOD.
+
+  METHOD ui5_check_braces_balanced.
+
+    DATA lv_depth TYPE i.
+    DATA lv_quote TYPE string.
+    DATA lv_char TYPE string.
+
+    DATA lv_val TYPE string.
+    lv_val = val.
+    DATA(lv_len) = strlen( lv_val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      lv_char = lv_val+lv_off(1).
+      IF lv_quote IS NOT INITIAL.
+        " inside a string of the expression ({= ${/A} === '}' }) a brace is
+        " text; a backslash takes the next character with it
+        CASE lv_char.
+          WHEN `\`.
+            lv_off = lv_off + 1.
+          WHEN lv_quote.
+            CLEAR lv_quote.
+          WHEN OTHERS.
+        ENDCASE.
+      ELSE.
+        CASE lv_char.
+          WHEN `'` OR `"`.
+            lv_quote = lv_char.
+          WHEN `{`.
+            lv_depth = lv_depth + 1.
+          WHEN `}`.
+            lv_depth = lv_depth - 1.
+            IF lv_depth < 0.
+              RETURN.
+            ENDIF.
+          WHEN OTHERS.
+        ENDCASE.
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+    result = xsdbool( lv_depth = 0 AND lv_quote IS INITIAL ).
+
+  ENDMETHOD.
+
   METHOD rtti_get_data_element_text_l.
 
     result = rtti_get_data_element_texts( val )-long.
@@ -2829,13 +3062,375 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD c_escape_html.
 
     " the ampersand first: escaping it afterwards would hit the ones the
-    " replacements below have just written
+    " replacements below have just written. The common value carries none
+    " of the five characters - skip the copies then
     result = val.
+    IF result NA `&<>"'`.
+      RETURN.
+    ENDIF.
     REPLACE ALL OCCURRENCES OF `&` IN result WITH `&amp;`.
     REPLACE ALL OCCURRENCES OF `<` IN result WITH `&lt;`.
     REPLACE ALL OCCURRENCES OF `>` IN result WITH `&gt;`.
     REPLACE ALL OCCURRENCES OF `"` IN result WITH `&quot;`.
     REPLACE ALL OCCURRENCES OF `'` IN result WITH `&#39;`.
+
+  ENDMETHOD.
+
+  METHOD c_escape_json.
+
+    " the backslash first: escaping it afterwards would double the ones the
+    " replacements below have just written. The common value carries none
+    " of the five characters - skip the copies then
+    result = val.
+    IF result NA |"\\\t\n\r|.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\n|
+                      with = `\n`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\r|
+                      with = `\r`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\t|
+                      with = `\t`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `\"`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD c_escape_js.
+
+    " Backslash and the quotes are what can end the literal, CR and LF are
+    " line terminators a literal must not contain, and </ is escaped so the
+    " text stays harmless should it ever end up in an inline script. The
+    " common value carries none of these - skip the copies then
+    result = val.
+    IF result NA |\\"'<\n\r|.
+      RETURN.
+    ENDIF.
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `\"`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `\'`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `</`
+                      with = `<\/`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\n|
+                      with = `\n`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = |\r|
+                      with = `\r`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD c_escape_xml.
+
+    " one CA scan up front: replace( occ = 0 ) copies the whole string on
+    " every call even when nothing matches, and a value without any special
+    " character is the COMMON case - that made every attribute value pay for
+    " seven full copies. A value that does carry one still runs all seven
+    " replaces below, unchanged
+    IF gv_xml_escape_specials IS INITIAL.
+      " the XML-illegal control characters as one string, so the CA scan
+      " stays a single statement; built from their UTF-8 bytes
+      TRY.
+          gv_xml_escape_controls = conv_get_string_by_xstring(
+              CONV xstring( `000102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+        CATCH z2ui5_cx_ui5_util_error.
+          " No codepage API here (UNSUPPORTED_CODEPAGE_API). Degrade instead of
+          " failing: the set stays empty, the CA scan below then matches no
+          " control character and the drop loop never runs, while `&`, `<`, `>`,
+          " `"`, newline, CR and tab are escaped exactly as before. Dropping
+          " those 30 exotic bytes is a repair for legacy long texts, not a
+          " correctness requirement of the view - so losing it must not cost
+          " the render. Before this, a missing class raised out of the utility
+          " and took down every view on the first escape of the process.
+          CLEAR gv_xml_escape_controls.
+      ENDTRY.
+      gv_xml_escape_specials = `&<>"`
+          && cv_char_util_newline
+          && cv_char_util_cr_lf(1)
+          && cv_char_util_horizontal_tab
+          && gv_xml_escape_controls.
+    ENDIF.
+    result = val.
+    IF result NA gv_xml_escape_specials.
+      RETURN.
+    ENDIF.
+
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    " whitespace as character references - a literal LF/CR/TAB in an attribute
+    " value is turned into a plain space by XML attribute-value normalization,
+    " so line breaks (e.g. a two-line noDataText) would silently disappear
+    result = replace( val  = result
+                      sub  = cv_char_util_newline
+                      with = `&#xA;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_cr_lf(1)
+                      with = `&#xD;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = cv_char_util_horizontal_tab
+                      with = `&#x9;`
+                      occ  = 0 ).
+
+    " what is left of the control range is illegal in XML 1.0 outright -
+    " U+0000-U+0008, U+000B, U+000C, U+000E-U+001F cannot even be written
+    " as character references, and UI5's XMLView parser rejects the whole
+    " document over one such byte (a form feed or record separator out of a
+    " legacy long text blanks the view). They carry no meaning in an
+    " attribute value, so they are dropped. Only reached for a value that
+    " passed the CA scan above - see gv_xml_escape_specials
+    IF result CA gv_xml_escape_controls.
+      " one replace per character, no regex: [[:cntrl:]] is not a class every
+      " runtime this code runs on knows (the transpiled one left every byte
+      " in place), and this branch is the rare one
+      DATA(lv_off) = 0.
+      DATA(lv_len) = strlen( gv_xml_escape_controls ).
+      WHILE lv_off < lv_len.
+        result = replace( val  = result
+                          sub  = gv_xml_escape_controls+lv_off(1)
+                          with = ``
+                          occ  = 0 ).
+        lv_off = lv_off + 1.
+      ENDWHILE.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD c_truncate.
+
+    result = val.
+    IF strlen( result ) <= max.
+      RETURN.
+    ENDIF.
+    DATA(lv_ellipsis_len) = strlen( ellipsis ).
+    IF max > lv_ellipsis_len.
+      result = substring( val = result
+                          len = max - lv_ellipsis_len ) && ellipsis.
+    ELSEIF max > 0.
+      result = substring( val = result
+                          len = max ).
+    ELSE.
+      CLEAR result.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD c_filter_chars.
+
+    " a character loop instead of a (deprecated) POSIX regex - the values
+    " this strips are short, and the transpiled runtime knows no character
+    " classes. Both operands as strings: a CO against a char field would
+    " count its trailing blanks as allowed
+    DATA(lv_val) = CONV string( val ).
+    DATA(lv_allowed) = CONV string( allowed ).
+    IF lv_val CO lv_allowed.
+      result = lv_val.
+      RETURN.
+    ENDIF.
+    DATA(lv_len) = strlen( lv_val ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_len.
+      IF lv_val+lv_off(1) CO lv_allowed.
+        result = result && lv_val+lv_off(1).
+      ENDIF.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+  ENDMETHOD.
+
+  METHOD c_cut_at.
+
+    result = val.
+    DATA(lv_off) = find( val = result
+                         sub = sub ).
+    IF lv_off >= 0.
+      result = substring( val = result
+                          len = lv_off ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD url_get_origin.
+
+    " Only an absolute URL names a host: `https://host[:port]/...`, or the
+    " protocol-relative `//host/...`. A relative one is the page's own
+    " origin - nothing to answer
+    DATA(lv_url) = CONV string( val ).
+    DATA(lv_scheme) = ``.
+    IF lv_url CP `http://*` OR lv_url CP `https://*`.
+      SPLIT lv_url AT `//` INTO lv_scheme lv_url.
+      lv_scheme = to_lower( lv_scheme ) && `//`.
+    ELSEIF lv_url CP `//*`.
+      lv_url    = lv_url+2.
+      lv_scheme = `//`.
+    ELSE.
+      RETURN.
+    ENDIF.
+    " the host ends at the path, the query or the fragment, whichever is
+    " first; userinfo (user:pw@host) is no origin to repeat
+    DATA(lv_end) = strlen( lv_url ).
+    DATA(lv_off) = 0.
+    WHILE lv_off < lv_end.
+      IF lv_url+lv_off(1) CA `/?#`.
+        lv_end = lv_off.
+      ELSE.
+        lv_off = lv_off + 1.
+      ENDIF.
+    ENDWHILE.
+    DATA(lv_host) = lv_url(lv_end).
+    IF lv_host IS INITIAL OR lv_host CA `@`.
+      RETURN.
+    ENDIF.
+    result = lv_scheme && lv_host.
+
+  ENDMETHOD.
+
+  METHOD url_get_authority.
+
+    result = to_lower( val ).
+
+    " drop the scheme (e.g. `https://`)
+    IF result CS `://`.
+      result = substring_after( val = result
+                                sub = `://` ).
+    ENDIF.
+
+    " the authority ends at the first path / query / fragment separator
+    SPLIT result AT `/` INTO result DATA(lv_rest).
+    SPLIT result AT `?` INTO result lv_rest.
+    SPLIT result AT `#` INTO result lv_rest.
+
+    " a default port is no port: a browser writes `Origin: https://host`
+    " while a proxy forwards `host:443`, and the two are the same
+    " authority. Both defaults are stripped whatever the scheme was: a Host
+    " value carries none to compare with
+    DATA lv_len  TYPE i.
+    DATA lv_tail TYPE string.
+    lv_len = strlen( result ).
+    IF lv_len > 4.
+      lv_tail = substring( val = result
+                           off = lv_len - 4 ).
+      IF lv_tail = `:443`.
+        result = substring( val = result
+                            len = lv_len - 4 ).
+        RETURN.
+      ENDIF.
+    ENDIF.
+    IF lv_len > 3.
+      lv_tail = substring( val = result
+                           off = lv_len - 3 ).
+      IF lv_tail = `:80`.
+        result = substring( val = result
+                            len = lv_len - 3 ).
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD http_check_etag_match.
+
+    " RFC 7232: If-None-Match is a LIST of validators, compared weakly - a
+    " proxy that recompresses the page weak-marks the tag (nginx gzip sends
+    " W/"tag" back), a browser may echo several, and `*` matches whatever is
+    " current. Apache mod_deflate (DeflateAlterETag AddSuffix, its default)
+    " instead appends `-gzip` INSIDE the quotes and passes the browser's
+    " echo through untouched, so that suffix is accepted too. Exact string
+    " equality answered none of the four, and behind such a proxy the
+    " conditional GET quietly degraded to a full transfer on every reload
+    DATA(lv_etag) = CONV string( etag ).
+    DATA(lv_header) = CONV string( if_none_match ).
+    IF lv_header IS INITIAL OR lv_etag IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(lv_gzip) = substring( val = lv_etag
+                               len = strlen( lv_etag ) - 1 ) && `-gzip"`.
+    SPLIT lv_header AT `,` INTO TABLE DATA(lt_candidate).
+    LOOP AT lt_candidate INTO DATA(lv_candidate).
+      CONDENSE lv_candidate.
+      IF strlen( lv_candidate ) > 2 AND substring( val = lv_candidate
+                                                   len = 2 ) = `W/`.
+        lv_candidate = substring( val = lv_candidate
+                                  off = 2 ).
+      ENDIF.
+      IF lv_candidate = `*` OR lv_candidate = lv_etag OR lv_candidate = lv_gzip.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD hash_checksum.
+
+    " Three accumulators, not two: with the byte count equal (two inputs of
+    " the same length), two 16-bit accumulators alone left ~2^32 states -
+    " enough for a same-length collision. The third mixes with a larger
+    " modulus AND weighs every byte by its position, so a pair that collides
+    " in h1/h2 still separates in h3 unless it also collides under a
+    " structurally different mix - implausible for a cache validator's job,
+    " still no cryptographic claim
+    DATA lv_xstr TYPE xstring.
+    TRY.
+        lv_xstr = conv_get_xstring_by_string( CONV string( val ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    DATA(lv_len) = xstrlen( lv_xstr ).
+    DATA lv_h1 TYPE i VALUE 5381.
+    DATA lv_h2 TYPE i VALUE 17.
+    DATA lv_h3 TYPE i VALUE 104729.
+    DATA lv_byte TYPE i.
+    DATA lv_off TYPE i.
+    WHILE lv_off < lv_len.
+      lv_byte = lv_xstr+lv_off(1).
+      lv_h1 = ( lv_h1 * 33 + lv_byte ) MOD 65521.
+      lv_h2 = ( lv_h2 * 31 + lv_byte ) MOD 65519.
+      lv_h3 = ( lv_h3 * 131 + lv_byte * ( lv_off MOD 251 + 1 ) ) MOD 1000003.
+      lv_off = lv_off + 1.
+    ENDWHILE.
+
+    result = |{ lv_len }-{ lv_h1 }-{ lv_h2 }-{ lv_h3 }|.
 
   ENDMETHOD.
 

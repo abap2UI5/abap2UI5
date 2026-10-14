@@ -1,7 +1,7 @@
 // The framework half of compress.spec.js: compress() in front of the REAL
 // transpiled framework, through host.mjs's serve() and createApp() - the
 // conditional GET has to close its circle with the framework's own
-// _check_etag_match, which only the framework can say.
+// http_check_etag_match, which only the framework can say.
 //
 // A separate process for the same reason as efWire.mjs: the transpiled tree
 // and the runtime load natively here, and the spec reads plain JSON back.
