@@ -355,13 +355,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       EXPORTING
         ev_class TYPE string
         ev_after TYPE string.
-
-    METHODS cut_at
-      IMPORTING
-        iv_val        TYPE string
-        iv_sub        TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -840,16 +833,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                         off = 4 ).
   ENDMETHOD.
 
-  METHOD cut_at.
-    result = iv_val.
-    DATA(lv_off) = find( val = iv_val
-                         sub = iv_sub ).
-    IF lv_off >= 0.
-      result = substring( val = iv_val
-                          len = lv_off ).
-    ENDIF.
-  ENDMETHOD.
-
   METHOD request_app_start_route.
     " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
     " Returns empty when the hash carries no app route, so a normal boot or an
@@ -880,10 +863,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " bookmark, a reload or Back restarted the app fresh instead of
     " restoring the draft. app/webapp/core/Router.js (parse) mirrors this
     CLEAR: ev_class, ev_after.
-    DATA(lv_rest) = cut_at( iv_val = iv_rest
-                            iv_sub = `&` ).
-    lv_rest = cut_at( iv_val = lv_rest
-                      iv_sub = `?` ).
+    DATA(lv_rest) = z2ui5_cl_ui5_util_context=>c_cut_at( val = iv_rest
+                                                         sub = `&` ).
+    lv_rest = z2ui5_cl_ui5_util_context=>c_cut_at( val = lv_rest
+                                                   sub = `?` ).
     DATA(lv_off) = 0.
     IF strlen( lv_rest ) > 1 AND lv_rest(1) = `/`.
       DATA(lv_tail) = substring( val = lv_rest
@@ -932,8 +915,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           RETURN.
         ENDIF.
         result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-            cut_at( iv_val = lv_after
-                    iv_sub = `/` ) ).
+            z2ui5_cl_ui5_util_context=>c_cut_at( val = lv_after
+                                                 sub = `/` ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
@@ -1104,11 +1087,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD context_info_cap.
 
-    result = val.
-    IF strlen( result ) > 300.
-      result = substring( val = result
-                          len = 300 ) && `...`.
-    ENDIF.
+    " 300 characters of the value, then the ellipsis
+    result = z2ui5_cl_ui5_util_context=>c_truncate( val = val
+                                                    max = 303 ).
 
   ENDMETHOD.
 
@@ -1126,16 +1107,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " real typo readable. Kept: letters, digits and the url delimiters
     " / ? & = . _ - ~ : % + - every percent-encoded character stays encoded,
     " so a browser's url arrives unchanged. Dropped: everything else, among
-    " it < > " ' ` and blanks. A character loop like
+    " it < > " ' ` and blanks. The same strip as
     " z2ui5_cl_ui5_action=>app_start_safe, the strip of the class name.
-    DATA(lv_len) = strlen( val ).
-    DATA(lv_off) = 0.
-    WHILE lv_off < lv_len.
-      IF val+lv_off(1) CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/?&=._-~:%+`.
-        result = result && val+lv_off(1).
-      ENDIF.
-      lv_off = lv_off + 1.
-    ENDWHILE.
+    result = z2ui5_cl_ui5_util_context=>c_filter_chars(
+        val     = val
+        allowed = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/?&=._-~:%+` ).
 
   ENDMETHOD.
 

@@ -9,7 +9,7 @@ const { execFileSync } = require("child_process");
 // The eF( ) wire, end to end, with BOTH real implementations.
 //
 // An argument the backend wires into a view event handler is escaped by
-// z2ui5_cl_ui5_srv_event=>escape_js_string (the backslash, the single quote,
+// z2ui5_cl_ui5_util_context=>ui5_escape_handler_string (the backslash, the single quote,
 // and the line breaks it rewrites to \n / \r) and read back as a JavaScript
 // string literal - by UI5's event-handler parser, which follows the
 // JavaScript literal rules. The ABAP suite pins the escaping against wire
@@ -35,7 +35,7 @@ test.skip(
   "needs the transpiled backend: npm run downport && npm run auto_transpile",
 );
 
-// Everything escape_js_string names, everything next to it, and the shapes
+// Everything ui5_escape_handler_string names, everything next to it, and the shapes
 // that broke the parser before: a trailing backslash, an escaped backslash
 // followed by an "n", a lone CR.
 const VALUES = [

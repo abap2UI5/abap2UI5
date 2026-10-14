@@ -152,7 +152,7 @@ inside `exclusive()`) every `draftSweepMs`, unref'd
 for what the live container changes); `createApp()`
 puts `compress()` in front, the gzip the framework asks the ICF for and the
 express shim cannot give it, under an Apache-style `"<tag>-gzip"` ETag the
-framework's own `_check_etag_match` answers with a 304
+framework's own `http_check_etag_match` answers with a 304
 (`node/tests/compress.spec.js`, whose framework half `test_node` runs); `express.mjs` is the lines that call `serve()` with
 `PORT`/`HOST` and print the log line `mcp-server` waits for ("Listening on").
 One code path for the dev server and the package, so what CI drives in the
