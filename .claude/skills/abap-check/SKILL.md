@@ -1088,7 +1088,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available, core-seo-interface-implem-get-all
+**Backlog:** open-abap · runtime-rescale-not-implemented, runtime-packed-copy-precision, runtime-get-time-stamp-double, runtime-create-data-dynamic-name-case, runtime-assign-component-dash-name, core-refdescr-create-no-kind, core-tstmp-add-drops-fraction, core-describe-by-data-ref-chain, core-json-reader-duplicate-keys, core-class-source-not-available, core-seo-interface-implem-get-all
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1105,6 +1105,23 @@ break one of those four.
   in-code probes were dead: `CREATE OBJECT TYPE ('CL_ABAP_ZIP')` and
   `describe_by_name( 'DFIES' )` both succeed in open-abap-core, so the tests behind
   them run in full.
+
+- **A `timestampl` from `GET TIME STAMP` is noisy in the runtime, and on a
+  `:00` second it is not a time.** `@abaplint/runtime` fills the long stamp by
+  adding the milliseconds as a JS double to a 21-digit value, and the copy of a
+  short `timestamp` into a `timestampl` takes the same double (abaplint/transpiler#1962).
+  The noise stays inside the second until the clock is on a whole minute with
+  0 or 1 ms: then `20261014103400` arrives as `…103399.9990784`, the ISO text
+  reads `10:33:99`, and `cl_abap_tstmp=>add( )` / `subtractsecs( )` die with a
+  JS `RangeError: Invalid time value` that no `CATCH` sees. It cost the release
+  of 1.147.0 its first backend-prebuilt run (2026-10-14, `npm run unit` at
+  05:34:00 UTC in `zcl_serializer_live`'s `test_sweep_expiry`); the same tree
+  was green minutes before and after. So a unit test that fails once and
+  passes on the re-run, with that stack, is this and not the change under
+  test. A test that needs a clock should take a literal stamp or a whole hour
+  (those copy exactly) rather than `time_get_timestampl( )`, until the two
+  fixes land; the production sweep on the node runtime is exposed the same way,
+  about two in sixty thousand sweeps. Backlog item: runtime-get-time-stamp-double.
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
