@@ -13,7 +13,7 @@
     "build": "ui5 build --clean-dest"
   },
   "dependencies": {
-    "@abap2ui5/embed-control": "^0.1.1"
+    "@abap2ui5/embed-control": "^0.3.0"
   },
   "devDependencies": {
     "@ui5/cli": "^4.0.71",
