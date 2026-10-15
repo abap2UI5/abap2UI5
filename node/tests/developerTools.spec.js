@@ -277,6 +277,7 @@ test.describe("Sub-views", () => {
       "ACTIONS",
       "DIFF",
       "VIEWDIFF",
+      "JOURNEY",
     ]);
     expect(modelData.showViewBar).toBe(true);
   });

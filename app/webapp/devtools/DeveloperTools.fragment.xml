@@ -123,6 +123,29 @@
                     press=".onToggleRecordPayloads"
                     visible="{/isRoundtrips}"
                 />
+                <!-- Journey: record a click-through, export it as an ABAP
+                     Unit test for the headless frontend (devtools/Journey.js).
+                     Recording goes on while the dialog is closed. -->
+                <ToggleButton
+                    text="Record Journey"
+                    tooltip="Record every roundtrip as a step - what was typed, what was pressed, what the screen showed. Close the tools, click through the app, come back and press again to stop."
+                    pressed="{/recordJourney}"
+                    press=".onToggleRecordJourney"
+                    visible="{/isJourney}"
+                />
+                <Button
+                    text="Export ABAP Unit"
+                    type="Emphasized"
+                    tooltip="The recorded journey as a local test class that replays it on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend)"
+                    press=".onExportJourney"
+                    visible="{/isJourney}"
+                />
+                <Button
+                    text="Clear Journey"
+                    tooltip="Drop every recorded journey"
+                    press=".onClearJourney"
+                    visible="{/isJourney}"
+                />
                 <!-- Problems: the actions of the fatal-error overlay,
                      shown with the error rather than everywhere. -->
                 <Button

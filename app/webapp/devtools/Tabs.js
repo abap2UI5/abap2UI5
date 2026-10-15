@@ -32,11 +32,12 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/devtools/Format",
     "z2ui5/devtools/Inspect",
+    "z2ui5/devtools/Journey",
     "z2ui5/devtools/Picker",
     "z2ui5/devtools/Recorder",
     "z2ui5/devtools/SlotXml",
   ],
-  (ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {
+  (ViewSlots, Format, Inspect, Journey, Picker, Recorder, SlotXml) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -222,6 +223,21 @@ sap.ui.define(
         produce: (ctx) => Recorder.formatViewDiff(ctx),
         exportOrder: 51,
         inExport: (_ctx) => Recorder.isRecordingPayloads(),
+      },
+      // The journey recorder: a click-through as steps, exported as an
+      // ABAP Unit test for the headless frontend (devtools/Journey.js). In
+      // the Roundtrips group because a step IS a roundtrip - the event and
+      // the model delta of its request, the screen of its response.
+      {
+        key: "JOURNEY",
+        group: "ROUNDTRIPS",
+        label: "Journey",
+        kind: "text",
+        produce: (ctx) => Journey.formatJourney(ctx),
+        // In the bug report once something was recorded: a journey is the
+        // "steps to reproduce" written down by the app itself.
+        exportOrder: 45,
+        inExport: (ctx) => Journey.stepCount(ctx) > 0,
       },
 
       // -------- View & Data --------

@@ -36,6 +36,7 @@ sap.ui.define(
     "z2ui5/devtools/AbapSource",
     "z2ui5/devtools/Console",
     "z2ui5/devtools/Inspect",
+    "z2ui5/devtools/Journey",
     "z2ui5/devtools/LiveEdit",
     "z2ui5/devtools/Persist",
     "z2ui5/devtools/Picker",
@@ -53,6 +54,7 @@ sap.ui.define(
     AbapSource,
     Console,
     Inspect,
+    Journey,
     LiveEdit,
     Persist,
     Picker,
@@ -191,6 +193,8 @@ sap.ui.define(
         data.isSearch = tab.group === "SEARCH";
         data.isErrorView = key === "ERROR";
         data.isSourceView = key === "SOURCE";
+        data.isJourney = key === "JOURNEY";
+        data.recordJourney = Journey.isRecording(ctx);
         data.hasRetry =
           key === "ERROR" && typeof ctx.state.lastError?.onRetry === "function";
         data.recordPayloads = Recorder.isRecordingPayloads();
@@ -448,6 +452,71 @@ sap.ui.define(
         this.renderTab(oModel.getData().selectedTab, oModel);
       },
 
+      // The journey recorder (devtools/Journey.js): pressed starts a
+      // recording, released stops it. Recording goes on while the dialog
+      // is closed - that is when the developer clicks through the app -
+      // so the toggle only reflects the state, it does not own it.
+      onToggleRecordJourney(oEvent) {
+        const oSource = oEvent.getSource();
+        if (oSource.getPressed()) Journey.start(this.ctx);
+        else Journey.stop(this.ctx);
+        const oModel = oSource.getModel();
+        this.renderTab(oModel.getData().selectedTab, oModel);
+      },
+
+      onClearJourney(oEvent) {
+        Journey.clear(this.ctx);
+        const oModel = oEvent.getSource().getModel();
+        this.renderTab(oModel.getData().selectedTab, oModel);
+      },
+
+      // The exported test class in a stretched popup: a TextArea to read
+      // it through, Copy for the paste into the test include, Download
+      // for the file. Built the way Report.openDialog builds the export
+      // popup - a modal dialog confirms on its own buttons.
+      onExportJourney() {
+        const text = Journey.buildAbapUnit(this.ctx);
+        const fileName = Journey.exportFileName(this.ctx);
+        sap.ui.require(
+          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
+          (Dialog, TextArea, Button) => {
+            const area = new TextArea({
+              editable: true,
+              width: "100%",
+              rows: 25,
+              growing: false,
+            });
+            area.setValue(text);
+            const dialog = new Dialog({
+              title: "abap2UI5 - Journey as ABAP Unit test",
+              stretch: true,
+              content: [area],
+              // `buttons`, not beginButton/endButton - see Report.openDialog
+              buttons: [
+                new Button({
+                  text: "Copy",
+                  type: "Emphasized",
+                  press: (oEvent) => {
+                    Lib.copyToClipboard(area.getValue());
+                    Report.confirmOnButton(oEvent.getSource());
+                  },
+                }),
+                new Button({
+                  text: "Download",
+                  press: () => Report.downloadText(fileName, area.getValue()),
+                }),
+                new Button({
+                  text: "Close",
+                  press: () => dialog.close(),
+                }),
+              ],
+              afterClose: () => dialog.destroy(),
+            });
+            dialog.open();
+          },
+        );
+      },
+
       // Pop the tools open on the Log as soon as anything logs at error
       // level. Off by default - a modal dialog jumping up is the last
       // thing a productive user needs - but in a test system it is the
@@ -641,6 +710,8 @@ sap.ui.define(
             isSearch: false,
             isErrorView: false,
             isSourceView: false,
+            isJourney: false,
+            recordJourney: Journey.isRecording(this.ctx),
             hasRetry: false,
             canApply: false,
             isTemplating: false,
