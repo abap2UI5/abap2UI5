@@ -831,7 +831,7 @@ app, with nothing to install and nothing to configure.
 |---|---|
 | **Ctrl+F12** in the running app | Opens the dialog; Ctrl+F12 again closes it. Without a tab named, it reopens where you left off (remembered per browser tab in `sessionStorage`) |
 | **`?z2ui5-devtools=1`** on the page URL | Opens the tools as soon as the page has booted, on the Overview. For a problem that happens during startup, where Ctrl+F12 comes too late. Example: `https://<host>/sap/bc/z2ui5?sap-client=100&z2ui5-devtools=1` |
-| **`?z2ui5-devtools=<KEY>`** | Opens them directly on one view, by its key. Group keys: `OVERVIEW`, `PROBLEMS`, `ROUNDTRIPS`, `VIEWDATA`, `SYSTEM`, `SEARCH`. View keys: `ERROR`, `LOG`, `HISTORY`, `REQUEST`, `PLAIN`, `ACTIONS`, `DIFF`, `VIEWDIFF`, `VIEW`, `MODEL`, `BINDINGS`, `POPUP`, `POPUP_MODEL`, `POPUP_BINDINGS`, `POPOVER`, `POPOVER_MODEL`, `POPOVER_BINDINGS`, `NEST1`, `NEST2`. Example: `?z2ui5-devtools=HISTORY` |
+| **`?z2ui5-devtools=<KEY>`** | Opens them directly on one view, by its key. Group keys: `OVERVIEW`, `PROBLEMS`, `ROUNDTRIPS`, `VIEWDATA`, `SYSTEM`, `SEARCH`. View keys: `ERROR`, `LOG`, `HISTORY`, `REQUEST`, `PLAIN`, `ACTIONS`, `DIFF`, `VIEWDIFF`, `VIEW`, `MODEL`, `BINDINGS`, `POPUP`, `POPUP_MODEL`, `POPUP_BINDINGS`, `POPOVER`, `POPOVER_MODEL`, `POPOVER_BINDINGS`, `NEST1`, `NEST2`, `JOURNEY`. Example: `?z2ui5-devtools=HISTORY` |
 | **"Open on Error"** switch on the Overview tab | Once on, the tools pop open on the Log as soon as anything logs at error level: a backend error, an uncaught exception, an unhandled rejection, a binding problem. Off by default, remembered per browser tab |
 | From the **start app** (`z2ui5_cl_ui5_app_start`) | The System information popup covers the backend (settings, user exit, drafts); its text points to Ctrl+F12 for the frontend side (UI5 version, theme, device, requests, logs) |
 
@@ -853,7 +853,14 @@ open them; they are a frontend affair.
   messages the user was shown.
 - **Roundtrips**: every roundtrip with backend vs. render time, payload sizes
   and draft ids, the raw request and response JSON, the follow-up actions and
-  a diff of the model between two roundtrips.
+  a diff of the model between two roundtrips. The **Journey** view records a
+  click-through: press "Record Journey", use the app, press it again, and
+  "Export ABAP Unit" hands over a local test class that replays the steps on
+  `z2ui5_cl_frontend_simulator` ([headless-frontend](https://github.com/abap2UI5/headless-frontend))
+  - `set_value( )` for what was typed, `click( )` for every event, assertions
+  on the messages, layers, control ids and events the screens showed. Paste it
+  into the app's test include; record from the app start, because the test
+  starts the app fresh.
 - **View & Data**: the XML of the main view, the popup, the popover and the
   nested views as the backend sent it, the model that fills each, and the
   bindings with a missing-path check and a size ranking. The picker marks a

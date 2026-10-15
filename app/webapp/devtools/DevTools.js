@@ -105,10 +105,11 @@ sap.ui.define(
     const BUNDLE_PARAM = "z2ui5-bundle";
     const BUNDLE_DEVTOOLS = "devtools";
 
-    // The dialog's module, and the picker's - both in the bundle, neither
-    // a dependency of this module (see the header)
+    // The dialog's module, the picker's and the journey recorder's - all
+    // in the bundle, none a dependency of this module (see the header)
     const DIALOG_MODULE = "z2ui5/devtools/DeveloperTools";
     const PICKER_MODULE = "z2ui5/devtools/Picker";
+    const JOURNEY_MODULE = "z2ui5/devtools/Journey";
 
     // The record of a context's tools - see the module header. `null` for
     // a context that has none (a spec context built without one, or no
@@ -371,6 +372,9 @@ sap.ui.define(
       // picker is in the bundle: a pick can only run once it is loaded,
       // and then the one-id require answers it.
       sap.ui.require(PICKER_MODULE)?.stop(ctx);
+      // The same for a journey recording: its hook sits on this context's
+      // callback array, and the module is in the bundle like the picker.
+      sap.ui.require(JOURNEY_MODULE)?.stop(ctx);
       // a bundle still loading when the tools went down creates nothing
       // (get asks for the install marker) - the next install starts over
       record.loading = null;

@@ -37,6 +37,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `` && |\n| &&
              `    const DIALOG_MODULE = "z2ui5/devtools/DeveloperTools";` && |\n| &&
              `    const PICKER_MODULE = "z2ui5/devtools/Picker";` && |\n| &&
+             `    const JOURNEY_MODULE = "z2ui5/devtools/Journey";` && |\n| &&
              `` && |\n| &&
              `    function recordOf(ctx) {` && |\n| &&
              `      return ctx?.devtools || null;` && |\n| &&
@@ -216,6 +217,8 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `      Recorder.uninstall(ctx);` && |\n| &&
              `` && |\n| &&
              `      sap.ui.require(PICKER_MODULE)?.stop(ctx);` && |\n| &&
+             `` && |\n| &&
+             `      sap.ui.require(JOURNEY_MODULE)?.stop(ctx);` && |\n| &&
              `` && |\n| &&
              `      record.loading = null;` && |\n| &&
              `    }` && |\n| &&

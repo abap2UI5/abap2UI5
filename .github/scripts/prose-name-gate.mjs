@@ -75,6 +75,9 @@ const EXTERNAL = new Map([
   // frontend/abap holds it, outside src/: it ships in the branches of
   // abap2UI5/frontend, whose READMEs (frontend/common) name it
   ["Z2UI5_CL_LP_HANDLER", "the launchpad handler of the abap2UI5/frontend branches (frontend/abap)"],
+  // the headless frontend: the developer tools' Journey view exports a test
+  // class that replays a click-through on it, and the docs say so
+  ["Z2UI5_CL_FRONTEND_SIMULATOR", "the headless frontend of abap2UI5/headless-frontend"],
 ]);
 
 // Whole families that live in the sample repositories. The removal plan counts

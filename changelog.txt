@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
++ Developer tools: the Journey tab (Roundtrips, key JOURNEY) records a click-through - every roundtrip as a step with the event, its arguments, the model delta the user typed and the screen the response showed - and exports it as an ABAP Unit test class that replays the journey on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend): set_value / set_json / set_cell for the typed values, click for the event, assertions on the messages, layers, control ids and events of the screens reached. Paste it into the app's test include
 ! frontend/embed (the delivery branches standard_new and cloud_new): @abap2ui5/embed-control 0.3.0, and the page is handed to the app by the control's ownsPage, set in the view - the controller no longer probes the control for ownsPage or its older name ownsHash
 + coding agents: the abap2UI5 plugin for GitHub Copilot in plugin-copilot/ (copilot plugin install abap2UI5/abap2UI5:plugin-copilot) - the four skills, the five commands (also as VS Code prompt files), the abap2ui5-reviewer custom agent and the MCP server - and the four skills in the Agent Skills format in skills/ (npx skills add abap2UI5/abap2UI5), both generated from the Claude Code plugin's sources
 
