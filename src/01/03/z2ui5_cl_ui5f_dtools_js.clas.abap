@@ -35,6 +35,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    "z2ui5/devtools/AbapSource",` && |\n| &&
              `    "z2ui5/devtools/Console",` && |\n| &&
              `    "z2ui5/devtools/Inspect",` && |\n| &&
+             `    "z2ui5/devtools/Journey",` && |\n| &&
              `    "z2ui5/devtools/LiveEdit",` && |\n| &&
              `    "z2ui5/devtools/Persist",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
@@ -52,6 +53,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `    AbapSource,` && |\n| &&
              `    Console,` && |\n| &&
              `    Inspect,` && |\n| &&
+             `    Journey,` && |\n| &&
              `    LiveEdit,` && |\n| &&
              `    Persist,` && |\n| &&
              `    Picker,` && |\n| &&
@@ -142,6 +144,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        data.isSearch = tab.group === "SEARCH";` && |\n| &&
              `        data.isErrorView = key === "ERROR";` && |\n| &&
              `        data.isSourceView = key === "SOURCE";` && |\n| &&
+             `        data.isJourney = key === "JOURNEY";` && |\n| &&
+             `        data.recordJourney = Journey.isRecording(ctx);` && |\n| &&
              `        data.hasRetry =` && |\n| &&
              `          key === "ERROR" && typeof ctx.state.lastError?.onRetry === "function";` && |\n| &&
              `        data.recordPayloads = Recorder.isRecordingPayloads();` && |\n| &&
@@ -317,6 +321,63 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      onToggleRecordJourney(oEvent) {` && |\n| &&
+             `        const oSource = oEvent.getSource();` && |\n| &&
+             `        if (oSource.getPressed()) Journey.start(this.ctx);` && |\n| &&
+             `        else Journey.stop(this.ctx);` && |\n| &&
+             `        const oModel = oSource.getModel();` && |\n| &&
+             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onClearJourney(oEvent) {` && |\n| &&
+             `        Journey.clear(this.ctx);` && |\n| &&
+             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        this.renderTab(oModel.getData().selectedTab, oModel);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onExportJourney() {` && |\n| &&
+             `        const text = Journey.buildAbapUnit(this.ctx);` && |\n| &&
+             `        const fileName = Journey.exportFileName(this.ctx);` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
+             `          (Dialog, TextArea, Button) => {` && |\n| &&
+             `            const area = new TextArea({` && |\n| &&
+             `              editable: true,` && |\n| &&
+             `              width: "100%",` && |\n| &&
+             `              rows: 25,` && |\n| &&
+             `              growing: false,` && |\n| &&
+             `            });` && |\n| &&
+             `            area.setValue(text);` && |\n| &&
+             `            const dialog = new Dialog({` && |\n| &&
+             `              title: "abap2UI5 - Journey as ABAP Unit test",` && |\n| &&
+             `              stretch: true,` && |\n| &&
+             `              content: [area],` && |\n| &&
+             `` && |\n| &&
+             `              buttons: [` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Copy",` && |\n| &&
+             `                  type: "Emphasized",` && |\n| &&
+             `                  press: (oEvent) => {` && |\n| &&
+             `                    Lib.copyToClipboard(area.getValue());` && |\n| &&
+             `                    Report.confirmOnButton(oEvent.getSource());` && |\n| &&
+             `                  },` && |\n| &&
+             `                }),` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Download",` && |\n| &&
+             `                  press: () => Report.downloadText(fileName, area.getValue()),` && |\n| &&
+             `                }),` && |\n| &&
+             `                new Button({` && |\n| &&
+             `                  text: "Close",` && |\n| &&
+             `                  press: () => dialog.close(),` && |\n| &&
+             `                }),` && |\n| &&
+             `              ],` && |\n| &&
+             `              afterClose: () => dialog.destroy(),` && |\n| &&
+             `            });` && |\n| &&
+             `            dialog.open();` && |\n| &&
+             `          },` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      onToggleOpenOnError(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        Console.setAlertOnError(oSource.getPressed());` && |\n| &&
@@ -363,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        if (record.applied !== current) {` && |\n| &&
              `          delete this._appliedXml[tabKey];` && |\n| &&
              `          return current;` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        return record.original;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -424,8 +486,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.devtools.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
-             `              id: this.fragmentId(),` && |\n|.
-    result = result &&
+             `              id: this.fragmentId(),` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -459,6 +520,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            isSearch: false,` && |\n| &&
              `            isErrorView: false,` && |\n| &&
              `            isSourceView: false,` && |\n| &&
+             `            isJourney: false,` && |\n| &&
+             `            recordJourney: Journey.isRecording(this.ctx),` && |\n| &&
              `            hasRetry: false,` && |\n| &&
              `            canApply: false,` && |\n| &&
              `            isTemplating: false,` && |\n| &&

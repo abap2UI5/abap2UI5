@@ -221,6 +221,7 @@ test.describe("bindings", () => {
       "ERROR",
       "LOG",
       "HISTORY",
+      "JOURNEY",
       "PLAIN",
       "VIEW",
       "MODEL",

@@ -70,6 +70,13 @@ CLASS z2ui5_cl_ui5f_help_js IMPLEMENTATION.
              `    "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
              `    "  Model Diff    what the backend changed between two responses",` && |\n| &&
              `    "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
+             `    "  Journey       a click-through recorded as steps - what was typed",` && |\n| &&
+             `    "                and pressed, what each screen showed. 'Record",` && |\n| &&
+             `    "                Journey' starts and stops it, 'Export ABAP Unit'",` && |\n| &&
+             `    "                turns it into a local test class that replays the",` && |\n| &&
+             `    "                steps on z2ui5_cl_frontend_simulator (the headless",` && |\n| &&
+             `    "                frontend, abap2UI5/headless-frontend) - paste it into",` && |\n| &&
+             `    "                the app's test include",` && |\n| &&
              `    "",` && |\n| &&
              `    "  'Record Payloads' keeps the request/response bodies, which is what",` && |\n| &&
              `    "  the two diffs need. OFF by default: it is the only part of the",` && |\n| &&

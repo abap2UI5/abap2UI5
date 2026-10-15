@@ -36,7 +36,7 @@ Where the rest is:
 | `docs/agents/repository-map.md` | placing a change outside `src/`; related repositories, root files, reference files |
 | `docs/agents/commands.md` | you need a command — the complete inventory, gated against `package.json` |
 | `docs/agents/ci-workflows.md` | a check went red, or you touch a workflow |
-| `docs/agents/architecture-seams.md` | touching the draft store, the serializer, the monitor or the exit lookup |
+| `docs/agents/architecture-seams.md` | touching the draft store, the serializer, the monitor, the language model seam or the exit lookup |
 | `docs/agents/decisions.md` | you want to argue with a decision below, or need the history behind one |
 | `docs/agents/api-snapshot-exceptions.md` | rule 5 — the recorded exceptions to the public-API snapshot |
 | `docs/agents/test-inventory.md` | which spec covers which module |
@@ -107,8 +107,9 @@ src/
 │   ├── 01/   Draft service (z2ui5_cl_ui5_srv_draft + table z2ui5_t_01)
 │   ├── 02/   handler, client, action, frontend, app_cont, srv_bind/_event/_model/_monitor, z2ui5_if_ui5_types
 │   ├── 03/   Embedded UI5 frontend — GENERATED from app/webapp/, never edit (rule 2)
-│   └── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
-├── 02/   Layer 2: Public API — the whole contract, six objects (rule 5)
+│   ├── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
+│   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http)
+├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
 └── 99/   FROZEN legacy code — ships for downstream installations, zero in-repo consumers
 ```
 
@@ -116,7 +117,8 @@ src/
 - **Layer 1** — the engine. `z2ui5_cl_ui5f_*` (**f**rontend) are the generated classes in `src/01/03`; the bare
   `z2ui5_cl_ui5_*` segment is everything hand-written. There is no `z2ui5_cl_app_*` object any more.
 - **Layer 2** — `z2ui5_if_app`, `z2ui5_if_client`, `z2ui5_if_ui5_exit`, `z2ui5_if_ui5_monitor`,
-  `z2ui5_cl_ui5_http_handler`, `z2ui5_cl_ui5_view_builder`. Recorded symbol for symbol in
+  `z2ui5_cl_ui5_http_handler`, `z2ui5_cl_ui5_view_builder`, and the language model seam `z2ui5_if_ui5_llm`,
+  `z2ui5_cx_ui5_llm`, `z2ui5_cl_ui5_llm`. Recorded symbol for symbol in
   `.github/api-snapshot.json`. **A type lives on the object that uses it** (`ty_s_get` on `z2ui5_if_client`,
   the HTTP-config types on the exit) — nothing in `src/00`–`src/02` resolves into the retired `z2ui5_if_types`.
 - **`src/99` — frozen.** The legacy XML view builder (`z2ui5_cl_xml_view`, `_cc`), the `z2ui5_cl_http_handler`

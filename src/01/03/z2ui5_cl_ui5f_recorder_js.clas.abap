@@ -707,6 +707,9 @@ CLASS z2ui5_cl_ui5f_recorder_js IMPLEMENTATION.
              `      formatModelDiff,` && |\n| &&
              `      formatViewDiff,` && |\n| &&
              `` && |\n| &&
+             `      extractMessages,` && |\n| &&
+             `      displayedXml,` && |\n| &&
+             `` && |\n| &&
              `      _internals: { MAX_RECORDS, PAYLOAD_BUDGET_BYTES, PAYLOAD_FLAG_KEY },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

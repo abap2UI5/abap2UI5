@@ -30,11 +30,12 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/devtools/Format",` && |\n| &&
              `    "z2ui5/devtools/Inspect",` && |\n| &&
+             `    "z2ui5/devtools/Journey",` && |\n| &&
              `    "z2ui5/devtools/Picker",` && |\n| &&
              `    "z2ui5/devtools/Recorder",` && |\n| &&
              `    "z2ui5/devtools/SlotXml",` && |\n| &&
              `  ],` && |\n| &&
-             `  (ViewSlots, Format, Inspect, Picker, Recorder, SlotXml) => {` && |\n| &&
+             `  (ViewSlots, Format, Inspect, Journey, Picker, Recorder, SlotXml) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
@@ -157,6 +158,17 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `        produce: (ctx) => Recorder.formatViewDiff(ctx),` && |\n| &&
              `        exportOrder: 51,` && |\n| &&
              `        inExport: (_ctx) => Recorder.isRecordingPayloads(),` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      {` && |\n| &&
+             `        key: "JOURNEY",` && |\n| &&
+             `        group: "ROUNDTRIPS",` && |\n| &&
+             `        label: "Journey",` && |\n| &&
+             `        kind: "text",` && |\n| &&
+             `        produce: (ctx) => Journey.formatJourney(ctx),` && |\n| &&
+             `` && |\n| &&
+             `        exportOrder: 45,` && |\n| &&
+             `        inExport: (ctx) => Journey.stepCount(ctx) > 0,` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      {` && |\n| &&
@@ -412,7 +424,8 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    function aspectsOfSlot(ctx, slotKey) {` && |\n| &&
              `      return enabledTabs(ctx, "VIEWDATA")` && |\n| &&
              `        .filter((tab) => tab.slot === slotKey)` && |\n| &&
-             `        .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));` && |\n| &&
+             `        .sort((a, b) => ASPECTS.indexOf(a.aspect) - ASPECTS.indexOf(b.aspect));` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function tabFor(ctx, slotKey, aspect) {` && |\n| &&
@@ -424,8 +437,7 @@ CLASS z2ui5_cl_ui5f_tabs_js IMPLEMENTATION.
              `    function render(ctx, tabKey) {` && |\n| &&
              `      const tab = get(tabKey);` && |\n| &&
              `      if (!tab) return "";` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        return tab.produce(ctx) ?? "";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        return ``(${tab.label} could not be rendered: ${e?.message || e})``;` && |\n| &&

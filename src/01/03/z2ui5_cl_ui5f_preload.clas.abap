@@ -15,21 +15,21 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '5f9b391aa7ff788f'.
+    CONSTANTS build_hash TYPE string VALUE '7222c4a68c575299'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-X5s5Gqf/eI89aLOzxZ4Wq9UvwnHtrXRJ/WRFmiF7Vkk='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-ciLEpoxXUpk8WLPpIzYPga1xTWtqPR/fTb1ncq3qQZ4='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that
     " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
     " build_hash is taken over the shell's script alone and does not change
     " with them
-    CONSTANTS devtools_hash TYPE string VALUE 'f5b50c4359a45094'.
+    CONSTANTS devtools_hash TYPE string VALUE '0b63a82d2912809a'.
 
     CLASS-METHODS get
       RETURNING
@@ -185,6 +185,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/devtools/DeveloperTools.js": function()\{{ z2ui5_cl_ui5f_dtools_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Help.js": function()\{{ z2ui5_cl_ui5f_help_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Inspect.js": function()\{{ z2ui5_cl_ui5f_inspect_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/devtools/Journey.js": function()\{{ z2ui5_cl_ui5f_journey_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/LiveEdit.js": function()\{{ z2ui5_cl_ui5f_liveedit_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Log.js": function()\{{ z2ui5_cl_ui5f_log_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/devtools/Picker.js": function()\{{ z2ui5_cl_ui5f_picker_js=>get( ) }\},| && |\n| &&
