@@ -2,8 +2,7 @@
 
 abap2UI5 is one way to put a UI5 interface on ABAP. RAP with Fiori Elements
 is another, freestyle UI5 with OData a third, and all three run side by side
-in the same launchpad; the commercial low-code platforms are a fourth, compared
-further down. This page is the honest version of the decision:
+in the same launchpad. This page is the honest version of the decision:
 where abap2UI5 is the shorter path, where it is the wrong tool, and what it
 costs either way. It is written so that a team can disagree with a specific
 line rather than with a feeling.
@@ -88,60 +87,6 @@ the people who approve a tool rather than build with it.
 | Reuse by other consumers | None — there is no service | The OData service, by anything |
 | Runs on | NW 7.02 → ABAP Cloud, UI5 1.71 → 2.x | 7.5x+ for RAP, ABAP Cloud for the full model |
 | Licence | MIT, no per-user cost | Part of the platform licence |
-
-## Compared with the low-code platforms
-
-Two commercial platforms also put a UI on SAP data without a frontend
-project: [Neptune DXP](https://www.neptune-software.com) and
-[Simplifier](https://www.simplifier.io). They are a different trade from RAP:
-not SAP's programming model against a framework, but a platform — designer,
-connectors, workflow, mobile, licence — against one class. Same honesty as
-the table above: where each is the shorter path, and what it costs. The
-facts are the vendors' own pages as of October 2026, summarised in the
-[competitive review](competitive-review-2026-10.md); versions and prices
-age, so re-read the source before quoting one.
-
-| | abap2UI5 | Neptune DXP | Simplifier |
-|---|---|---|---|
-| What the app is | One ABAP class in abapGit; the view is code | A JSON app definition built in the App Designer, mapped to abapGit packages | A platform-internal app, exported as OpenUI5 / TypeScript |
-| Where it runs | Inside the ABAP system, NW 7.02 → ABAP Cloud, UI5 1.71 → 2.x | SAP Edition: an ABAP add-on, SAP_BASIS 731 SP30 or later, on-premise. Open Edition: a Node server next to the system (Docker, BTP, cloud), the side-by-side path for Public Cloud | Its own Scala/JS server, on-premise or cloud; reaches SAP through RFC, OData and REST connectors |
-| How the app reaches the system | abapGit pull — the frontend is served by the system itself | SAP Edition: installed with the add-on. Open Edition: deployed to the Neptune server | Exported and loaded into the ABAP repository through `/UI5/UI5_REPOSITORY_LOAD`, or served by the Simplifier server |
-| Who builds it | An ABAP developer, in ADT or SE80 | A low-code developer in the drag-and-drop designer; ABAP for the server classes | A low-code developer in the Web App Editor and the visual binding editor; connectors configured, not coded |
-| Change management | The ABAP transport and review process you have; diffs, unit tests, debugger | The designer's versioning; packages mapped to abapGit | The platform's versioning and export; the ABAP side holds a generated artefact |
-| AI | MCP server and coding-agent plugins (Claude Code, Copilot, skills for other agents); validates, runs and screenshots without a system; your own model and key | Naia Build (prompt to components in the designer), Agent Studio, MCP server, AI Context Hub; several models, your own key | Agent Builder (one LLM per use case), an AI test agent that records a journey and writes OPA5 tests, a migration agent, an MCP server for the connectors |
-| Mobile and offline | Browser, plus a [mobile shell](https://github.com/abap2UI5/mobile-shell) for device features; no offline store | Native mobile builds with offline synchronisation | Browser; mobile and offline not covered by the review |
-| Workflow engine | None — out of scope by design | Built in | Part of the platform; not re-verified by the review |
-| Beyond the UI | What the samples show: OData calls, launchpad, APC — the app's job | Launchpad with role administration, connector and API designer, marketplace, managed cloud | Connector layer (RFC, OData, REST) and the server that hosts it |
-| Licence | MIT, no per-user cost | Per user, vendor list; a trial exists | Per user, vendor list |
-| Exit path | The class stays an ABAP class; the framework is a transport you can read | The app definitions are the platform's; a different runtime means a rebuild | The exported OpenUI5 code runs without the platform; the connectors and the editor do not |
-
-**Neptune DXP is the shorter path when** the team is not ABAP developers and
-should build in a designer; when native mobile with offline is a requirement,
-not a wish; when workflow, launchpad administration and API management should
-come from one vendor with a support contract; and when the SAP Edition's floor
-(7.31 SP30 on-premise) is met, or the Open Edition's extra server is
-acceptable.
-
-**Simplifier is the shorter path when** the UI spans several backends and the
-connector layer is the point; when a central server outside the ABAP stack is
-wanted or already there; when recorded UI tests (OPA5 from a journey) matter
-to the team; and when the generated OpenUI5 code being the deliverable is a
-feature rather than a cost.
-
-**abap2UI5 is the shorter path when** the team is ABAP and the screen is a
-tool, cockpit or replaced GUI transaction; when the system is older than the
-platforms' floors or should carry no add-on and no second server; when an app
-has to be a reviewable diff, a transport and a debuggable class; and when the
-per-user licence of a platform is the cost that does not fit a handful of
-internal tools.
-
-What it costs either way: a platform buys the designer, the connectors and
-the roadmap at the price of a per-user licence, a runtime of its own and app
-definitions that live in that runtime; abap2UI5 buys one class and no licence
-at the price of writing the UI as code, bringing your own workflow, offline
-and administration, and a framework maintained by a community rather than a
-vendor. The [governance page](governance.md) is the same comparison for the
-people who sign the licence.
 
 ## Both, in one launchpad
 
