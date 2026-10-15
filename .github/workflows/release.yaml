@@ -142,9 +142,24 @@ jobs:
       run: gh workflow run backend-prebuilt.yaml -f tag="$VERSION"
 
     # The 702 branch is rebuilt from main by auto_downport on every push, so at
-    # tag time it already carries the downport of this commit. Tagging it is
+    # tag time it usually carries the downport of this commit. Tagging it is
     # what gives a 7.02 system something immutable to install - the same
     # promise the main tag makes, for the other half of the supported range.
+    #
+    # Usually, not always: auto_downport is asynchronous and force-pushes the
+    # branch, so its head names whatever main commit it was last built from.
+    # Still running on the release commit, the head names an older one; a
+    # push to main after the release commit (1.148.0: #2923 landed between
+    # the merge of the cut and the tag), a newer one - and the build of the
+    # release commit is gone from the branch, a force-push keeps no history.
+    # Both used to fail this step. Now the head is tagged only when its
+    # Source-Commit trailer names the release commit; otherwise the job
+    # builds that downport itself, exactly as auto_downport does (a worktree
+    # at the release commit, `npm run auto_downport`, the 702 lint, the same
+    # commit with the same trailer), and tags that commit. The build is a
+    # function of the commit: for 1.148.0 the rebuild's tree was identical,
+    # hash for hash, to the 702 head auto_downport had pushed. The branch
+    # itself is never pushed from here - it stays auto_downport's.
     - name: Tag the downported branch
       if: github.ref_type == 'tag'
       env:
@@ -153,18 +168,25 @@ jobs:
       run: |
         git fetch origin 702:702
         echo "702 head: $(git log -1 --format='%h %s' 702)"
-        # auto_downport is asynchronous and paths-scoped, so "rebuilt on every
-        # push" is a promise about the workflow, not about THIS moment: a
-        # failed or still-running downport would let this step tag a stale
-        # branch as the release. The branch head's Source-Commit trailer names
-        # the main commit it was built from - assert it names the one being
-        # released before anything immutable is created.
+        TARGET=702
         if ! git log -1 --format=%B 702 | grep -q "Source-Commit: $GITHUB_SHA"; then
-          echo "::error::The 702 branch head does not name Source-Commit: $GITHUB_SHA."
-          echo "::error::auto_downport has not rebuilt 702 from the release commit yet - wait for its run on this commit to finish green (a release commit always triggers it: the version bump touches package.json and src/02, both in its paths filter), then re-run this job."
-          exit 1
+          echo "::notice::The 702 head names $(git log -1 --format=%B 702 | sed -n 's/^Source-Commit: //p' | cut -c1-12), not the release commit - downporting $GITHUB_SHA here, as auto_downport does."
+          WT="$RUNNER_TEMP/downport-702"
+          git worktree add --detach "$WT" "$GITHUB_SHA"
+          (
+            cd "$WT"
+            npm ci --no-audit --no-fund
+            npm run auto_downport
+            npx abaplint
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git add .
+            git diff --staged --quiet || git commit -m "Downport changes" -m "Source-Commit: $GITHUB_SHA"
+          )
+          TARGET="$(git -C "$WT" rev-parse HEAD)"
+          echo "702 build of the release commit: $(git log -1 --format='%h %s' "$TARGET")"
         fi
-        git tag "$VERSION-702" 702
+        git tag "$VERSION-702" "$TARGET"
         git push origin "$VERSION-702"
         gh release create "$VERSION-702" \
           --title "$VERSION-702" \

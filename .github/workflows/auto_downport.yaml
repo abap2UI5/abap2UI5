@@ -6,13 +6,13 @@ name: auto_downport
 # required check, so a paths filter is safe here (contrast check_gates.yaml,
 # where "a check that does not run cannot be required").
 #
-# changelog.txt is in the list for one reason: release.yaml refuses to tag
-# the 702 branch unless its head names the release commit, and a release
-# cut can be a changelog-only commit (the versions bumped earlier, the
-# unreleased entries moved under the heading last). Without this entry
-# such a commit never rebuilt the branch, and the release failed asking
-# to wait for a run that would never come. workflow_dispatch is the
-# fallback for any other commit that has to be the release commit.
+# changelog.txt is in the list for one reason: release.yaml tags the 702
+# head only when it names the release commit, and a release cut can be a
+# changelog-only commit (the versions bumped earlier, the unreleased
+# entries moved under the heading last). Without this entry such a commit
+# never rebuilt the branch. release.yaml now builds the downport itself
+# when the head names another commit, so this is the fast path rather than
+# the only one; workflow_dispatch rebuilds the branch by hand.
 on:
   workflow_dispatch:
   push:
@@ -64,9 +64,10 @@ jobs:
     - name: Lint the downported tree before publishing it
       run: npx abaplint
 
-    # The Source-Commit trailer is the provenance release.yaml asserts on
-    # before tagging the 702 branch: it names the main commit this downport
-    # was built from, so a stale branch cannot be tagged as a release.
+    # The Source-Commit trailer is the provenance release.yaml reads before
+    # tagging the 702 branch: it names the main commit this downport was
+    # built from, so a head built from another commit is never tagged as a
+    # release (release.yaml builds the release commit's downport instead).
     - name: Commit and Push Changes
       run: |
         git config --global user.name 'github-actions[bot]'
