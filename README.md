@@ -23,7 +23,7 @@
 
 <!-- facts:start -->
 <p align="center">
-  <sub>1,497 ABAP unit tests · 91 JS unit specs · 16 browser test suites · 49 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
+  <sub>1,497 ABAP unit tests · 91 JS unit specs · 16 browser test suites · 50 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
 </p>
 <!-- facts:end -->
 
@@ -82,6 +82,10 @@ Only the MCP server, without the skills:
 ```bash
 claude mcp add abap2ui5 -- npx --yes -p @abap2ui5/mcp-server abap2ui5-mcp
 ```
+
+Working with GitHub Copilot? The same skills, commands (`/abap2ui5-new-app` and so on), reviewer agent and MCP server come as a Copilot plugin, without the lint hook – `copilot plugin install abap2UI5/abap2UI5:plugin-copilot` in the Copilot CLI; the folder [`plugin-copilot/`](plugin-copilot/README.md) also holds the commands as VS Code prompt files.
+
+Any other agent that reads `SKILL.md` gets the four skills with `npx skills add abap2UI5/abap2UI5` (from [`skills/`](skills/README.md)); register the MCP server in that agent as `npx --yes -p @abap2ui5/mcp-server abap2ui5-mcp` (stdio).
 
 Everything else – other assistants, editors and the full setup – is in [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html), and [AI Assistants](#ai-assistants) below has a prompt to paste into any of them.
 

@@ -79,6 +79,19 @@ for it under `/plugin` - Marketplaces.
 The full setup, including the other assistants, is
 [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai.html).
 
+## GitHub Copilot and other agents
+
+For GitHub Copilot the same skills, commands, reviewer agent and MCP server
+are in [`plugin-copilot/`](../plugin-copilot/README.md):
+`copilot plugin install abap2UI5/abap2UI5:plugin-copilot` in the Copilot
+CLI. The commands are `/abap2ui5-new-app` and so on, and the folder also
+holds them as VS Code prompt files. There is no lint-on-edit hook.
+
+The four skills alone, for any agent that reads `SKILL.md` (Cursor, Codex,
+Copilot and others): `npx skills add abap2UI5/abap2UI5`, which installs them
+from [`skills/`](../skills/README.md). The MCP server is then registered in
+that agent by hand.
+
 ## For maintainers - most of this folder is generated
 
 `skills/` and `docs/agents/building-apps.md` are **copies**, written by
@@ -95,6 +108,11 @@ tested with hook payloads by `.github/scripts/plugin-hook.test.mjs`
 (`npm run check:plugin-hook`, part of `npm run gates` and `check_gates.yaml`). The commands reach the MCP tools as
 `mcp__plugin_abap2ui5_abap2ui5__<tool>`, the name Claude Code gives a tool of
 a plugin's own server; `claude plugin validate ./plugin` checks the lot.
+The same run writes `plugin-copilot/` from these commands, this agent and
+the manifest, translated for Copilot, and `skills/` from the skills - so a
+command is edited here and `npm run plugin` carries it over;
+`npm run check:plugin-formats` parses every generated frontmatter and JSON
+file.
 
 The plugin is a folder of its own rather than the repository root because
 Claude Code runs the package install of a plugin whose root has a
