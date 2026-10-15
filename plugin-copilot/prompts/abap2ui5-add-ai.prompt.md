@@ -50,6 +50,10 @@ so the first version answers locally:
   ty_t_message RETURNING VALUE(result) TYPE string` - in the project's own
   namespace (`zif_<app>_llm`) so nothing depends on a package that is not
   installed yet. The same shape is what keeps step 5 a change in one place.
+  When the installed abap2UI5 already ships the framework seam
+  `z2ui5_if_ui5_llm` (providers from `z2ui5_cl_ui5_llm`: `create_local`,
+  `create_claude`, `create_openai`), use it instead of an own interface -
+  section 11 of the app guide.
 - **The local stub** (`zcl_<app>_llm_local`, implementing it): deterministic
   and honest about it - keyword rules over the last user message like
   `get_answer( )` in 540, or totals, extremes and outliers over the rows like

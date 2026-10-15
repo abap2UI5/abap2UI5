@@ -163,7 +163,7 @@ What each class under `src/00/03` is, and the one addition the vendored HTTP cla
 | Class | Status |
 |---|---|
 | `src/00/03/z2ui5_cl_ui5_util_context` | Vendored from `zabaputil_cl_util_context`, trimmed to the methods used here. **The one class to use and to extend** |
-| `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http` — leave it alone unless a fix or a caller genuinely needs it. The one addition so far is the raw query (`get_query`, the `query` of `get_req_info` and `client_call`) for the two connector addons, which read and forward their requests through this class (maintainer decision 2026-09-30); the sync carries it back to abap-util |
+| `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http` — leave it alone unless a fix or a caller genuinely needs it. The one addition so far is the raw query (`get_query`, the `query` of `get_req_info` and `client_call`) for the two connector addons, which read and forward their requests through this class (maintainer decision 2026-09-30); the second is `client_request` - header fields, a timeout and the ABAP Cloud client (`CL_WEB_HTTP_CLIENT_MANAGER`, by name) - for the language model providers in `src/01/05`, which `client_call` now wraps (2026-10-15). The sync carries both back to abap-util |
 | `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
 | `src/00/03/z2ui5_cl_ui5_util_json_fl` | Framework-owned, no abap-util master |
 | `src/99/01/z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Legacy.** Superseded by the classes above. They must stay so downstream apps keep compiling, but must never be used, called from new code, or changed |

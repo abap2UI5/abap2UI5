@@ -1,4 +1,4 @@
-# Architecture seams — the draft store, the serializer, the roundtrip monitor, the codepage fallback
+# Architecture seams — the draft store, the serializer, the roundtrip monitor, the language model, the codepage fallback
 
 > Extracted from `AGENTS.md`, which points here. The sections below are
 > the places where the framework deliberately lets something be swapped,
@@ -170,6 +170,36 @@ Four decisions, each written at its code site as well:
 
 Not monitored: the page request (GET), HEAD, and a POST the CSRF gate
 rejects — none of them runs an app.
+
+## The language model seam (`z2ui5_if_ui5_llm`)
+
+The second seam in the released API, and the first one an app CALLS rather
+than implements: `chat( )` takes a system prompt, the conversation and
+model/token/temperature options and answers the text, the stop reason and
+the token usage, raising `z2ui5_cx_ui5_llm` (with `http_status` and
+`retryable`). Three objects are released for it - the interface, the
+exception and `z2ui5_cl_ui5_llm`, whose `create_claude( )`, `create_openai( )`
+and `create_local( )` answer a provider behind the interface. The providers
+themselves are engine classes in `src/01/05` and stay free to change; an
+addon with a provider of its own implements the interface.
+
+- **HTTP goes through `z2ui5_cl_ui5_util_http=>client_request( )`**, which
+  picks `CL_HTTP_CLIENT` on Standard and `CL_WEB_HTTP_CLIENT_MANAGER` on ABAP
+  Cloud, both by name, so the class activates on 7.02 and on Cloud alike
+  (the abap-check skill, "Do not depend on DDIC objects that are not
+  everywhere"). `client_call( )` is now a wrapper of it and keeps its old
+  behaviour on Standard, the url next to a destination still ignored.
+- **The providers reach it through `z2ui5_if_ui5_llm_http`** (`src/01/05`),
+  one POST; the unit tests hand the providers a double and assert the request
+  body and the parsing of the answer without a network.
+- **No model id, no key, no endpoint of a customer is in the framework.** The
+  app passes a destination or a URL plus key and the model; the public
+  endpoints are the only defaults.
+- **The local provider is the 7.02 and test path**: rule-based, deterministic,
+  word counts as usage - an app can be shown before anyone has a key.
+- Text only on purpose: no tool use, no streaming, no images. The agent
+  runtime (abap2UI5-addons/abap-agent-runtime) keeps its own tool-calling
+  contract on top until the seam needs to grow.
 
 ## A missing codepage class must not take down the view
 

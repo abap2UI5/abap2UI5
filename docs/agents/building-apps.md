@@ -882,3 +882,31 @@ open them; they are a frontend affair.
 - An embedded component (`@abap2ui5/embed-control`, `?z2ui5-bundle`) has the
   tools too, loaded from its own backend endpoint, but without the page-wide
   console capture: the host's page is not the app's.
+
+## 11. Calling a language model
+
+`z2ui5_if_ui5_llm` is the one seam: `chat( system t_message s_options )`
+takes a system prompt, the conversation (`role` `user`/`assistant` plus
+`content`) and model/`max_tokens`/`temperature`, and answers `text`,
+`stop_reason` and `s_usage`; every failure is `z2ui5_cx_ui5_llm` (`get_text( )`
+for the user, `retryable` for a 408/429/5xx or a timeout). Get a provider from
+`z2ui5_cl_ui5_llm`: `create_claude( )` (Messages API), `create_openai( )`
+(Chat Completions - OpenAI, Azure with `auth_header` set to `api-key`, Ollama,
+LM Studio, gateways) or `create_local( t_rule = … )`, a deterministic
+rule-based provider without HTTP for 7.02, unit tests and demos.
+
+```abap
+DATA(li_llm) = z2ui5_cl_ui5_llm=>create_claude( model       = ls_cfg-model
+                                                destination = ls_cfg-destination ).
+DATA(ls_answer) = li_llm->chat( system    = `Answer briefly.`
+                                t_message = mt_chat ).
+```
+
+- **No key, model or endpoint in the class.** Read them from your own
+  configuration and pass a destination (SM59 on Standard, a communication
+  arrangement or BTP destination on Cloud) or a URL plus key; there is no
+  default model.
+- Create the provider in the method that calls it - never keep it in an
+  attribute, the app instance is serialized every roundtrip. Keep the
+  conversation (`mt_chat`) as the attribute instead, and call in an event
+  branch: the user waits for the whole answer.
