@@ -231,8 +231,10 @@ jobs:
       # plugin/ is the Claude Code plugin this repository's marketplace
       # installs, and its skills and app guide are copies - a plugin cannot
       # reach outside its own folder - so a skill edited without
-      # `npm run plugin` would ship the old text to every plugin user
-      - name: the Claude Code plugin matches its sources
+      # `npm run plugin` would ship the old text to every plugin user; the
+      # same run covers the Copilot plugin (plugin-copilot/) and the
+      # portable skills (skills/)
+      - name: the agent plugins and skills match their sources
         if: ${{ !cancelled() }}
         run: node .github/scripts/generate-plugin.mjs --check # npm run check:plugin
 
@@ -242,6 +244,14 @@ jobs:
       - name: the Claude Code plugin's lint hook behaves
         if: ${{ !cancelled() }}
         run: node .github/scripts/plugin-hook.test.mjs # npm run check:plugin-hook
+
+      # a copy can match its source and still be unreadable - an unquoted
+      # `: ` in a description is a YAML error that makes the agent drop the
+      # skill silently - so the generated frontmatter and JSON are parsed
+      # the way Claude Code, Copilot and the skills CLI parse them
+      - name: the generated plugin files parse in their consumers' formats
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/plugin-formats.test.mjs # npm run check:plugin-formats
 
       - name: the two version numbers agree
         if: ${{ !cancelled() }}
