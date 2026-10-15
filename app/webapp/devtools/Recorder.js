@@ -949,6 +949,10 @@ sap.ui.define(
       formatHistory,
       formatModelDiff,
       formatViewDiff,
+      // the two response readers devtools/Journey.js builds its steps
+      // from - one reading of the wire, not two
+      extractMessages,
+      displayedXml,
       // exposed for the unit specs
       _internals: { MAX_RECORDS, PAYLOAD_BUDGET_BYTES, PAYLOAD_FLAG_KEY },
     };
