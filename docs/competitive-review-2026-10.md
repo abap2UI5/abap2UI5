@@ -157,8 +157,8 @@ Ordered by return on effort. Each phase names what "done" looks like.
 
 ### Phase 3 — Provider-agnostic AI (weeks 4–12)
 
-1. One LLM seam in the framework: `z2ui5_if_ui5_llm` (or the agent
-   runtime's seam promoted into `src/`) with providers for Anthropic,
+1. One LLM seam in the framework (a provider interface in `src/`, or the
+   agent runtime's seam promoted there) with providers for Anthropic,
    OpenAI-compatible endpoints (covers Azure OpenAI, Ollama, SAP AI Core
    through the ABAP AI SDK) and a local rule-based one for 7.02. The
    samples-stack interface and the add-ai command point at it.
