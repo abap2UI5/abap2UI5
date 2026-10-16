@@ -1,0 +1,11 @@
+CLASS zui5latest_cl_http_handler DEFINITION PUBLIC INHERITING FROM zui5latest_cl_ui5_http_handler.
+
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+CLASS zui5latest_cl_http_handler IMPLEMENTATION.
+
+ENDCLASS.

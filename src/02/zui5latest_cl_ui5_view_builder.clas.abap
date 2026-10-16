@@ -1,0 +1,409 @@
+"! Generic UI5 XML view builder - translate a UI5 XML view 1:1 by method
+"! chaining. The navigating methods are abbreviations of the term they stand
+"! for, and the attribute verb is the single `a`:
+"!   factory         a new empty builder root
+"!   ele - element   add a child element and DESCEND into it (returns the child)
+"!   tag - tag       add a child element and STAY here (returns the same node)
+"!   a   - attribute set an attribute on the element it follows
+"!   end - end       ascend to the parent element (returns the parent)
+"!   stringify       render the whole view, always from the root
+"! Element = n (name), namespace prefix = ns (e.g. `f`, `core`, `l`).
+"! There is exactly one rule: a( ) applies to the element the chain is
+"! POINTING AT - the child just added by ele( )/tag( ), or the node itself
+"! while it has no children yet. So an a( ) always follows the control it
+"! belongs to, no matter whether that control was opened with ele( ) or added
+"! with tag( ), and every attribute is set by its own a( ).
+"! Reach for tag( ) on a leaf and for ele( )/end( ) on a container. The flip
+"! side of the rule: once an element has a child, a( ) can no longer reach
+"! it - give an element its attributes before its first child.
+"! Every ele( ) may be closed by an end( );
+"! a trailing end( ) at the end of the chain can be omitted, because stringify( )
+"! renders from the root no matter where the chain stopped.
+"! The root mvc:View element and its xmlns declarations are written by hand,
+"! exactly like a real UI5 view:
+"!   DATA(view) = z2ui5_cl_ui5_view_builder=>factory( ).
+"!   view->ele( n = `View` ns = `mvc`
+"!       )->a( n = `xmlns`     v = `sap.m`
+"!       )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` ) ...
+"! `v` may be any string expression (literal, a client bind/event, || template).
+"! For a boolean pass b instead of v - it renders `true` / `false`, so an ABAP
+"! flag reaches the view without a conversion of its own:
+"!   )->a( n = `editable` b = mv_edit_mode
+"!   )->a( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
+"! For TEXT that must render as it is - a value that carries user input or
+"! external data - pass t instead of v: it is escaped as a literal
+"! (escape_literal), so a `{` in it is shown, not read as a binding:
+"!   )->a( n = `title` t = |Results for { mv_search }| )
+"! v stays the form for everything with binding vocabulary - a _bind( ), an
+"! _event( ), a `{/path}` template, an expression - and for constant text,
+"! which needs no escaping.
+CLASS zui5latest_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
+
+  PUBLIC SECTION.
+
+    "! returns an empty builder root; open the mvc:View element and declare the
+    "! xmlns namespaces yourself, exactly like any other control
+    CLASS-METHODS factory
+      RETURNING
+        VALUE(result) TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    "! add a child element and descend into it - the returned reference is the
+    "! new element, so a following a( ) lands on it
+    METHODS ele
+      IMPORTING
+        n             TYPE string
+        ns            TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    "! add a child element and STAY on the current one, so the next tag( ) or
+    "! ele( ) becomes its sibling and no end( ) is needed. A following a( )
+    "! still lands on the tag, because it is now this node's last child - the
+    "! form for a leaf, whatever its attributes are.
+    METHODS tag
+      IMPORTING
+        n             TYPE string
+        ns            TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    "! set an attribute on the element the chain is pointing at - the child
+    "! just added by ele( )/tag( ), or this node itself while it has none.
+    "! Pass exactly one of v, b or t - never two, never none:
+    "!   v  any string expression, written as it is - a binding, an event,
+    "!      a template, an expression, or constant text
+    "!   b  an ABAP boolean, rendered as `true` / `false`
+    "!   t  TEXT to render literally: escaped with escape_literal( ) so a
+    "!      brace or backslash in it is shown instead of parsed as a binding.
+    "!      The form for a value that carries user input or external data.
+    "!      Appended after b: rule 5 allows a new optional parameter at the
+    "!      END of the list only
+    METHODS a
+      IMPORTING
+        n             TYPE string
+        v             TYPE string    OPTIONAL
+        b             TYPE abap_bool OPTIONAL
+        t             TYPE string    OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    "! ascend to the parent element
+    METHODS end
+      RETURNING
+        VALUE(result) TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    "! render the complete view as XML - always from the root, no matter which
+    "! element this reference currently points at
+    METHODS stringify
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! Escape a value that must render as LITERAL text in an attribute: the
+    "! page bootstraps with complex binding syntax, so a curly brace in the
+    "! value - think a user-supplied search string - is otherwise parsed
+    "! by UI5 as a binding path (or an expression) instead of shown as text,
+    "! and can read arbitrary paths out of the view model. Backslash-escaping
+    "! the braces is UI5's own convention for literal text.
+    "! Deliberately NOT applied to v by a( ) itself: a deliberate binding in
+    "! v - client-&gt;_bind( ), an event, a template - is the builder's bread
+    "! and butter, and only the app knows which values are literals. The app
+    "! says so with the t parameter of a( ), which is this method applied to
+    "! the whole value - the form to reach for:
+    "!   )-&gt;a( n = `text` t = lv_input )
+    "! Call this method directly only when ONE attribute value mixes literal
+    "! text with a binding, so the escaping has to be applied to a part:
+    "!   )-&gt;a( n = `title` v = |{ z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) }: \{/COUNT\} hits| )
+    "! XML escaping is a separate concern and always applied on render.
+    CLASS-METHODS escape_literal
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+    TYPES ty_t_node TYPE STANDARD TABLE OF REF TO zui5latest_cl_ui5_view_builder WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+    DATA name    TYPE string.
+    DATA prefix  TYPE string.
+    DATA t_pair  TYPE ty_t_name_value.
+    DATA t_child TYPE ty_t_node.
+    DATA parent  TYPE REF TO zui5latest_cl_ui5_view_builder.
+    DATA root    TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    " Append this node's markup to ct_out - the open tag, the children (by
+    " the same call), the close tag. One accumulator for the whole tree,
+    " concatenated once by stringify( ): a render that returned a string
+    " per node copied every subtree once per ancestor (view size times
+    " nesting depth on every render); appending moves each character once
+    METHODS render_into
+      CHANGING
+        ct_out TYPE string_table.
+
+  PRIVATE SECTION.
+    " the characters an element or attribute NAME may carry - a list of
+    " what is allowed, not of what is not: the list of markup characters it
+    " replaced let `te(xt`, `te,xt`, `te{xt` or `1st` through, and the view
+    " died in the browser like before. UI5 names are ASCII letters, digits
+    " and `_`, `.`, `-` (and the `:` of a prefixed name); filled lazily on first use
+    CLASS-DATA gv_name_chars TYPE string.
+
+    " fail fast on a name that is no XML name: `n = 'te"xt'` used to render
+    " an attribute that ended early, and the view died in the browser far
+    " from the line that wrote it. Same road as every other misuse (raise)
+    METHODS name_check
+      IMPORTING
+        val  TYPE string
+        what TYPE string.
+
+    " every misuse of the chain ends here: a catchable exception naming the
+    " element and attribute, which the framework renders like any other error
+    METHODS raise
+      IMPORTING
+        val TYPE string.
+
+    " the value of a( ) from whichever of v, b and t was passed - the
+    " supplied flags travel as parameters because IS SUPPLIED only answers
+    " inside the method that declares the optional
+    METHODS attr_value
+      IMPORTING
+        n             TYPE string
+        v             TYPE string
+        b             TYPE abap_bool
+        t             TYPE string
+        check_v       TYPE abap_bool
+        check_b       TYPE abap_bool
+        check_t       TYPE abap_bool
+      RETURNING
+        VALUE(result) TYPE string.
+ENDCLASS.
+
+
+CLASS zui5latest_cl_ui5_view_builder IMPLEMENTATION.
+
+  METHOD factory.
+
+    result = NEW #( ).
+    result->root = result.
+
+  ENDMETHOD.
+
+
+  METHOD ele.
+
+    name_check( val  = n
+                what = `element name` ).
+    IF ns IS NOT INITIAL.
+      name_check( val  = ns
+                  what = `namespace prefix` ).
+      " the prefix is written in front of a `:` of its own - one in the
+      " prefix renders `core::Icon`, which no XML parser reads
+      IF ns CA `:`.
+        raise( |namespace prefix '{ ns }' carries a colon - pass it without| ).
+      ENDIF.
+    ENDIF.
+    result = NEW #( ).
+    result->root = root.
+    result->parent = me.
+    result->name = n.
+    result->prefix = ns.
+    APPEND result TO t_child.
+
+  ENDMETHOD.
+
+
+  METHOD tag.
+
+    ele( n  = n
+         ns = ns ).
+    " stay where we are - the tag is complete, its siblings follow directly
+    result = me.
+
+  ENDMETHOD.
+
+
+  METHOD a.
+
+    " one rule: the attribute lands on the element the chain is pointing at -
+    " the child just added by ele( )/tag( ), or this node itself while it has
+    " no children yet. That way a( ) follows the control it belongs to
+    " whether that control was opened with ele( ) or added with tag( ).
+    " fail fast instead of dropping silently: on the empty builder root there
+    " is no element to attach to, and a duplicate name renders invalid XML.
+    " Raised, not ASSERTed: ASSERTION_FAILED is a short dump that no TRY can
+    " take, so it bypassed the single top-level catch in
+    " z2ui5_cl_ui5_http_handler=>_main( ) - the developer got an ST22 dump
+    " instead of the 500 body with the error overlay every other framework
+    " error produces, and the dump could not even name the attribute
+    IF name IS INITIAL AND t_child IS INITIAL.
+      raise( |a( n = '{ n }' ) on the empty builder root - open an element with ele( ) first| ).
+    ENDIF.
+    name_check( val  = n
+                what = `attribute name` ).
+    " v, b and t are mutually exclusive, and one of them is required - the
+    " check and the resolution sit in attr_value, see there
+    DATA(val) = attr_value( n       = n
+                            v       = v
+                            b       = b
+                            t       = t
+                            check_v = xsdbool( v IS SUPPLIED )
+                            check_b = xsdbool( b IS SUPPLIED )
+                            check_t = xsdbool( t IS SUPPLIED ) ).
+
+    " the attribute goes on the element opened last - the root itself as
+    " long as it has no child
+    DATA(target) = me.
+    IF t_child IS NOT INITIAL.
+      target = t_child[ lines( t_child ) ].
+    ENDIF.
+    IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
+    ENDIF.
+    APPEND VALUE #( n = n
+                    v = val ) TO target->t_pair.
+    result = me.
+
+  ENDMETHOD.
+
+
+  METHOD end.
+
+    " fail fast: an end( ) past the mvc:View root would hand back a null
+    " reference that only crashes at the next chained call, far from the bug
+    IF parent IS NOT BOUND.
+      raise( |end( ) past the root - one end( ) more than there are ele( )| ).
+    ENDIF.
+    result = parent.
+
+  ENDMETHOD.
+
+
+  METHOD raise.
+
+    RAISE EXCEPTION TYPE zui5latest_cx_ui5_util_error
+      EXPORTING
+        val = |VIEW_BUILDER_ERROR - { val }|.
+
+  ENDMETHOD.
+
+
+  METHOD name_check.
+
+    DATA lv_first TYPE c LENGTH 1.
+
+    IF gv_name_chars IS INITIAL.
+      gv_name_chars = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`.
+    ENDIF.
+    " an XML name does not start with a digit, `.` or `-`
+    lv_first = val.
+    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-`.
+      raise( |{ what } '{ val }' is not a valid XML name| ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD render_into.
+
+    DATA child TYPE REF TO zui5latest_cl_ui5_view_builder.
+
+    " empty builder root - render only the children
+    IF name IS INITIAL.
+      LOOP AT t_child INTO child.
+        child->render_into( CHANGING ct_out = ct_out ).
+      ENDLOOP.
+      RETURN.
+    ENDIF.
+
+    DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
+    " table-then-concat for the attributes: a string template accumulator
+    " re-copied every attribute rendered so far on each further one,
+    " quadratic on attribute-heavy elements. REFERENCE INTO - the loop used
+    " to copy a two-string structure per attribute
+    DATA lt_attr TYPE string_table.
+    LOOP AT t_pair REFERENCE INTO DATA(lr_pair).
+      INSERT | { lr_pair->n }="{ zui5latest_cl_ui5_util_context=>c_escape_xml( lr_pair->v ) }"| INTO TABLE lt_attr.
+    ENDLOOP.
+    DATA(attrs) = concat_lines_of( lt_attr ).
+
+    IF t_child IS INITIAL.
+      APPEND |<{ qname }{ attrs }/>| TO ct_out.
+      RETURN.
+    ENDIF.
+
+    APPEND |<{ qname }{ attrs }>| TO ct_out.
+    LOOP AT t_child INTO child.
+      child->render_into( CHANGING ct_out = ct_out ).
+    ENDLOOP.
+    APPEND |</{ qname }>| TO ct_out.
+
+  ENDMETHOD.
+
+  METHOD attr_value.
+
+    " v, b and t are mutually exclusive - each is judged by whether it was
+    " SUPPLIED, because an empty value and "not passed" look the same
+    " (abap_false is the same character as an initial abap_bool, an empty
+    " string the same as an initial one).
+    " "never neither" is judged the same way rather than by IS NOT INITIAL
+    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
+    " legal: what this refuses is a( n = `visible` ) with no value at all,
+    " which used to render visible="" - a working view that behaves wrongly,
+    " and the one invariant of the three in the ABAP Doc above that nothing
+    " checked
+    IF check_v = abap_false AND check_b = abap_false AND check_t = abap_false.
+      raise( |a( n = '{ n }' ) without a value - pass v, b or t| ).
+    ENDIF.
+    " ...with one tolerance kept from the days of v and b alone: an EMPTY v
+    " next to b or t is ignored rather than refused, so a call that passed
+    " `v = `` b = flag` before this parameter existed still renders
+    DATA(lv_supplied) = 0.
+    IF check_v = abap_true AND v IS NOT INITIAL.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF check_b = abap_true.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF check_t = abap_true.
+      lv_supplied = lv_supplied + 1.
+    ENDIF.
+    IF lv_supplied > 1.
+      raise( |a( n = '{ n }' ) with more than one of v, b and t - pass exactly one| ).
+    ENDIF.
+
+    IF check_b = abap_true.
+      result = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
+    ELSEIF check_t = abap_true.
+      " t is text: the literal escaping the app used to have to remember is
+      " applied here; the XML escaping follows on render like for every value
+      result = escape_literal( t ).
+    ELSE.
+      result = v.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD stringify.
+
+    DATA lt_out TYPE string_table.
+    root->render_into( CHANGING ct_out = lt_out ).
+    result = concat_lines_of( lt_out ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal.
+
+    " the UI5 binding-parser escape lives in the context class; this public
+    " method stays the builder's documented entry point
+    result = zui5latest_cl_ui5_util_context=>ui5_escape_binding_literal( val ).
+
+  ENDMETHOD.
+
+ENDCLASS.

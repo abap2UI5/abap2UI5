@@ -1,0 +1,615 @@
+CLASS ltcl_builder DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS render_nested_view FOR TESTING.
+    METHODS a_after_ele_hits_the_element FOR TESTING.
+    METHODS a_after_tag_hits_the_tag FOR TESTING.
+    METHODS a_after_end_hits_closed_ele FOR TESTING.
+    METHODS tag_stays_and_siblings FOR TESTING.
+    METHODS trailing_end_is_optional FOR TESTING.
+    METHODS escape_attribute_value FOR TESTING.
+    METHODS escape_whitespace_chars FOR TESTING.
+    METHODS escape_control_chars FOR TESTING.
+    METHODS escape_literal_braces FOR TESTING.
+    METHODS escape_literal_passthrough FOR TESTING.
+    METHODS escape_literal_backslash FOR TESTING.
+    METHODS bool_parameter FOR TESTING.
+    METHODS text_parameter FOR TESTING.
+    METHODS text_parameter_empty FOR TESTING.
+    METHODS text_parameter_beside_empty_v FOR TESTING.
+    METHODS misuse_raises_not_dumps FOR TESTING.
+    METHODS end_past_root_raises FOR TESTING.
+    METHODS invalid_name_raises FOR TESTING.
+    METHODS invalid_name_shapes_raise FOR TESTING.
+    METHODS prefix_with_colon_raises FOR TESTING.
+    METHODS escape_quotes_cr_mixed FOR TESTING.
+    METHODS escape_entity_is_text FOR TESTING.
+    METHODS escape_unicode_passthrough FOR TESTING.
+    METHODS escape_long_value FOR TESTING.
+    METHODS text_parameter_quotes FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltcl_builder IMPLEMENTATION.
+
+  METHOD render_nested_view.
+
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( n  = `View`
+               ns = `mvc`
+        )->a( n   = `xmlns`
+                v = `sap.m`
+
+        )->tag( `Text`
+            )->a( n   = `text`
+                    v = `Hello`
+
+        )->ele( `Panel`
+            )->tag( `Title` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<mvc:View xmlns="sap.m"><Text text="Hello"/><Panel><Title/></Panel></mvc:View>` ).
+
+  ENDMETHOD.
+
+
+  METHOD a_after_ele_hits_the_element.
+
+    " ele( ) descends into a node that has no children yet, so a( ) sets the
+    " attribute on that node itself
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Page`
+        )->a( n   = `title`
+                v = `Home`
+        )->ele( `Panel`
+            )->a( n   = `width`
+                    v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Page title="Home"><Panel width="100%"/></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD a_after_tag_hits_the_tag.
+
+    " tag( ) does not move, but the tag is now this node's last child, so the
+    " a( ) still reaches it - this is what makes tag( ) usable for a leaf
+    " that carries attributes
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->tag( `Title`
+            )->a( n   = `width`
+                    v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel><Title width="100%"/></Panel>` ).
+
+  ENDMETHOD.
+
+
+  METHOD a_after_end_hits_closed_ele.
+
+    " after end( ) the chain stands on the parent, whose last child is the
+    " container just closed - so a( ) attaches to that container, not to the
+    " parent. The flip side of the rule: an element that already has children
+    " can no longer be given an attribute
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Page`
+        )->ele( `Panel`
+            )->tag( `Title`
+        )->end(
+        )->a( n   = `width`
+                v = `100%` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Page><Panel width="100%"><Title/></Panel></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD tag_stays_and_siblings.
+
+    " tag( ) does not move, so siblings follow directly and no end( ) is
+    " needed - each a( ) block travels with the tag it follows
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Page`
+        )->tag( `Text`
+            )->a( n   = `text`
+                    v = `first`
+        )->tag( n  = `Text`
+                ns = `m`
+            )->a( n   = `text`
+                    v = `second`
+        )->tag( `ToolbarSpacer` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Page><Text text="first"/><m:Text text="second"/><ToolbarSpacer/></Page>` ).
+
+  ENDMETHOD.
+
+
+  METHOD trailing_end_is_optional.
+
+    " stringify( ) renders from the root, so the chain may simply stop
+    DATA(closed) = zui5latest_cl_ui5_view_builder=>factory( ).
+    closed->ele( `Page`
+        )->ele( `Panel`
+            )->ele( `Title`
+            )->end(
+        )->end( ).
+
+    DATA(open) = zui5latest_cl_ui5_view_builder=>factory( ).
+    open->ele( `Page`
+        )->ele( `Panel`
+            )->ele( `Title` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = open->stringify( )
+      exp = closed->stringify( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_attribute_value.
+
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n   = `text`
+                v = `a<b>&"c` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="a&lt;b&gt;&amp;&quot;c"/>` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_whitespace_chars.
+
+    " a literal LF/TAB in an attribute value must survive XML attribute-value
+    " normalization as a character reference (e.g. a two-line noDataText)
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n   = `text`
+                v = |line1{ zui5latest_cl_ui5_util_context=>cv_char_util_newline }line2{ zui5latest_cl_ui5_util_context=>cv_char_util_horizontal_tab }end| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="line1&#xA;line2&#x9;end"/>` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_control_chars.
+
+    " a NUL, a form feed (U+000C) and a record separator (U+001E) out of a
+    " legacy long text: illegal in XML 1.0 even as a character reference,
+    " the whole view failed at the parser - they are dropped, the legal
+    " whitespace next to them still becomes its character reference. NUL
+    " was missing from the set the comment in z2ui5_cl_ui5_util_context=>c_escape_xml names
+    DATA(lv_ctrl) = zui5latest_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `000C1E` ) ).
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n   = `text`
+                v = |a{ lv_ctrl }b{ zui5latest_cl_ui5_util_context=>cv_char_util_horizontal_tab }c| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="ab&#x9;c"/>` ).
+
+  ENDMETHOD.
+
+  METHOD escape_literal_braces.
+
+    " a braced value is parsed by the UI5 binding parser, so literal text
+    " needs UI5's backslash escaping - the backslash itself first, because
+    " the parser unescapes the strings it processes
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `a {/PATH} b` )
+      exp = `a \{/PATH\} b` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `{= 1 > 0 }\x` )
+      exp = `\{= 1 > 0 \}\\x` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal_passthrough.
+
+    " neither brace nor backslash: nothing to escape
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `a plain text` )
+      exp = `a plain text` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `` )
+      exp = `` ).
+
+  ENDMETHOD.
+
+
+  METHOD escape_literal_backslash.
+
+    " UI5 unescapes a doubled backslash in EVERY string property, brace or
+    " not - so the backslash is escaped whenever present: a lone one comes
+    " back as itself (`C:\temp\file` renders unchanged), and a UNC path
+    " keeps both of its leading backslashes instead of losing one
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `C:\temp\file` )
+      exp = `C:\\temp\\file` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = zui5latest_cl_ui5_view_builder=>escape_literal( `\\server\share` )
+      exp = `\\\\server\\share` ).
+
+  ENDMETHOD.
+
+
+  METHOD bool_parameter.
+
+    " b is the only way to render a boolean - abap_false must come out as
+    " `false`, not vanish, which is why it is read with IS SUPPLIED
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n   = `visible`
+                b = abap_true
+        )->a( n   = `expanded`
+                b = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel visible="true" expanded="false"/>` ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter.
+
+    " t renders TEXT: a brace that would otherwise start a binding and a
+    " backslash UI5 would unescape are escaped the escape_literal( ) way,
+    " and the XML escaping of the render still follows on top
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              t = `Results for {/PASSWORD} & co`
+        )->a( n = `tooltip`
+              t = `\\server\share` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText="Results for \{/PASSWORD\} &amp; co" tooltip="\\\\server\\share"/>` ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_beside_empty_v.
+
+    " the tolerance b always had, carried over: an empty v next to t is
+    " ignored, t decides the value
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              v = ``
+              t = `{x}` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText="\{x\}"/>` ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_empty.
+
+    " an empty t is a value like an empty v - the refusal is for NO
+    " parameter at all, not for an empty one
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->ele( `Panel`
+        )->a( n = `headerText`
+              t = `` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Panel headerText=""/>` ).
+
+  ENDMETHOD.
+
+  METHOD misuse_raises_not_dumps.
+
+    " every misuse of the chain is a catchable exception naming the element
+    " and the attribute - not an ASSERT, whose ASSERTION_FAILED bypasses the
+    " framework's top-level catch and dumps instead of rendering the error
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    TRY.
+        view->a( n = `text`
+                 v = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) on the empty root must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_root).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_root->get_text( ) CS `text` ) ).
+    ENDTRY.
+
+    view->ele( `Panel` ).
+    TRY.
+        view->a( `visible` ).
+        cl_abap_unit_assert=>fail( `a( ) without v and b must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_none).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_none->get_text( ) CS `visible` ) ).
+    ENDTRY.
+
+    TRY.
+        view->a( n = `visible`
+                 v = `true`
+                 b = abap_true ).
+        cl_abap_unit_assert=>fail( `a( ) with v and b must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_both).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_both->get_text( ) CS `visible` ) ).
+    ENDTRY.
+
+    " t is the third of the exclusive three - with v as much as with b. An
+    " EMPTY v next to it is tolerated, as it always was next to b (see
+    " attr_value), so the conflict needs a v that carries something
+    TRY.
+        view->a( n = `title`
+                 v = `y`
+                 t = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) with v and t must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_v_t).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_v_t->get_text( ) CS `title` ) ).
+    ENDTRY.
+
+    TRY.
+        view->a( n = `title`
+                 b = abap_true
+                 t = `x` ).
+        cl_abap_unit_assert=>fail( `a( ) with b and t must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_b_t).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_b_t->get_text( ) CS `title` ) ).
+    ENDTRY.
+
+    view->a( n = `text`
+             v = `once` ).
+    TRY.
+        view->a( n = `text`
+                 v = `twice` ).
+        cl_abap_unit_assert=>fail( `a duplicate attribute must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_dup).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_dup->get_text( ) CS `Panel` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD invalid_name_raises.
+
+    " a name that is no XML name is refused where it is written, not by the
+    " browser: a quote or a markup character in an attribute name closed
+    " the attribute early, whitespace split it in two
+    DATA lt_bad TYPE string_table.
+    lt_bad = VALUE #( ( `te"xt` ) ( `te'xt` ) ( `te<xt` ) ( `te>xt` ) ( `te&xt` )
+                      ( `te xt` ) ( `te=xt` ) ( `te/xt` ) ( `` ) ).
+
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      DATA(view) = zui5latest_cl_ui5_view_builder=>factory( )->ele( `Panel` ).
+      TRY.
+          view->a( n = lv_bad
+                   v = `x` ).
+          cl_abap_unit_assert=>fail( |attribute name '{ lv_bad }' must raise| ).
+        CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_attr).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_attr->get_text( ) CS `attribute name` ) ).
+      ENDTRY.
+      TRY.
+          view->tag( lv_bad ).
+          cl_abap_unit_assert=>fail( |element name '{ lv_bad }' must raise| ).
+        CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_tag).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_tag->get_text( ) CS `element name` ) ).
+      ENDTRY.
+      " an EMPTY prefix is the default (no namespace) and passes
+      IF lv_bad IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      TRY.
+          view->ele( n  = `Text`
+                     ns = lv_bad ).
+          cl_abap_unit_assert=>fail( |namespace prefix '{ lv_bad }' must raise| ).
+        CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_ns).
+          cl_abap_unit_assert=>assert_true( xsdbool( lx_ns->get_text( ) CS `namespace prefix` ) ).
+      ENDTRY.
+    ENDLOOP.
+
+    " the names a view is made of still pass: a prefixed one, a dotted one
+    DATA(lv_xml) = zui5latest_cl_ui5_view_builder=>factory(
+        )->ele( n  = `View`
+                ns = `mvc`
+            )->a( n = `xmlns:mvc`
+                  v = `sap.ui.core.mvc`
+            )->a( n = `core:require`
+                  v = `{ f: 'z2ui5/model/formatter' }`
+            )->tag( n  = `Fragment`
+                    ns = `core`
+                )->a( n = `fragmentName`
+                      v = `my.frag`
+        )->stringify( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<mvc:View xmlns:mvc="sap.ui.core.mvc"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<core:Fragment fragmentName="my.frag"/>` ) ).
+
+  ENDMETHOD.
+
+  METHOD end_past_root_raises.
+
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    TRY.
+        view->ele( `Panel` )->end( )->end( ).
+        cl_abap_unit_assert=>fail( `end( ) past the root must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_end).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_end->get_text( ) CS `end( )` ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD invalid_name_shapes_raise.
+
+    " a list of the markup characters let every other non-name through -
+    " a parenthesis, a comma, a brace, a leading digit or dot - and the
+    " view died in the browser far from the line that wrote it
+    DATA lt_bad TYPE string_table.
+    lt_bad = VALUE #( ( `te(xt` ) ( `te,xt` ) ( `te;xt` ) ( `te{xt` ) ( `te!xt` )
+                      ( `1st` ) ( `.text` ) ( `-text` ) ).
+
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      DATA(view) = zui5latest_cl_ui5_view_builder=>factory( )->ele( `Panel` ).
+      TRY.
+          view->a( n = lv_bad
+                   v = `x` ).
+          cl_abap_unit_assert=>fail( |attribute name '{ lv_bad }' must raise| ).
+        CATCH zui5latest_cx_ui5_util_error INTO DATA(lx_attr).
+          cl_abap_unit_assert=>assert_true( act = xsdbool( lx_attr->get_text( ) CS `is not a valid XML name` )
+                                            msg = lx_attr->get_text( ) ).
+      ENDTRY.
+      TRY.
+          view->tag( lv_bad ).
+          cl_abap_unit_assert=>fail( |element name '{ lv_bad }' must raise| ).
+        CATCH zui5latest_cx_ui5_util_error ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    " the shapes UI5 names have still pass - digits after the first
+    " character, underscores, hyphens, dots, a prefix
+    DATA(lv_xml) = zui5latest_cl_ui5_view_builder=>factory(
+        )->tag( n  = `Title_2`
+                ns = `z2ui5`
+            )->a( n = `data-id`
+                  v = `x`
+            )->a( n = `app:custom.key`
+                  v = `y`
+        )->stringify( ).
+    cl_abap_unit_assert=>assert_equals( exp = `<z2ui5:Title_2 data-id="x" app:custom.key="y"/>`
+                                        act = lv_xml ).
+
+  ENDMETHOD.
+
+  METHOD prefix_with_colon_raises.
+
+    " the builder writes the colon behind the prefix itself - one in the
+    " prefix rendered `core::Icon`
+    TRY.
+        zui5latest_cl_ui5_view_builder=>factory( )->ele( n  = `Icon`
+                                                    ns = `core:` ).
+        cl_abap_unit_assert=>fail( `a prefix with a colon must raise` ).
+      CATCH zui5latest_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( act = xsdbool( lx->get_text( ) CS `namespace prefix` )
+                                          msg = lx->get_text( ) ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD escape_quotes_cr_mixed.
+
+    " the attribute is written in double quotes: a single quote needs no
+    " escaping, a double one does; a CR becomes its character reference
+    " like LF and TAB, so a CR LF pair survives attribute normalization
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = |it's "a"{ zui5latest_cl_ui5_util_context=>cv_char_util_cr_lf }<b>&| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="it's &quot;a&quot;&#xD;&#xA;&lt;b&gt;&amp;"/>` ).
+
+  ENDMETHOD.
+
+  METHOD escape_entity_is_text.
+
+    " an entity in the value is text: rendered so that the control SHOWS
+    " `&amp;`, not `&`
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = `&amp; &#xA;` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="&amp;amp; &amp;#xA;"/>` ).
+
+  ENDMETHOD.
+
+  METHOD escape_unicode_passthrough.
+
+    " outside ASCII nothing is markup and nothing is a control character -
+    " an umlaut, the euro sign and an emoji pass unchanged, also next to a
+    " character that IS escaped
+    DATA lv_xstr TYPE xstring.
+    lv_xstr = `C3A420E282AC20F09F9880`.
+    DATA(lv_wide) = zui5latest_cl_ui5_util_context=>conv_get_string_by_xstring( lv_xstr ).
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = |{ lv_wide }&| ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = |<Text text="{ lv_wide }&amp;"/>| ).
+
+  ENDMETHOD.
+
+  METHOD escape_long_value.
+
+    " a long text - a long-text field, a JSON blob in a tooltip - is escaped
+    " throughout, not only at its start
+    DATA lv_long TYPE string.
+    DATA lv_exp  TYPE string.
+    DO 2000 TIMES.
+      lv_long = lv_long && `abc<&`.
+      lv_exp  = lv_exp && `abc&lt;&amp;`.
+    ENDDO.
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              v = lv_long ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = |<Text text="{ lv_exp }"/>| ).
+
+  ENDMETHOD.
+
+  METHOD text_parameter_quotes.
+
+    " t escapes for the binding parser, the render escapes for XML - both
+    " apply, in that order, to a value with a quote and a brace
+    DATA(view) = zui5latest_cl_ui5_view_builder=>factory( ).
+
+    view->tag( `Text`
+        )->a( n = `text`
+              t = `say "{hi}"` ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = view->stringify( )
+      exp = `<Text text="say &quot;\{hi\}&quot;"/>` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
