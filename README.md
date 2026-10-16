@@ -213,14 +213,4 @@ We welcome all contributions! Here's how you can help:
 * [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates and community highlights
 * [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
 
-Developer quick start – three commands and you have the full CI gate locally:
-
-```bash
-npm ci               # the toolchain: abaplint, the gates, the transpiler
-npm run check        # fast lint while iterating (seconds)
-npm run verify       # the full pre-PR gate, exactly what CI runs
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete workflow.
-
 _Share your knowledge, hunt for bugs, submit a PR, give us a ⭐, or tell your colleagues about abap2UI5. Every contribution counts!_
