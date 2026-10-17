@@ -2269,7 +2269,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           cl_abap_datadescr=>typekind_float OR
           cl_abap_datadescr=>typekind_decfloat16 OR
           cl_abap_datadescr=>typekind_decfloat34 OR
-          cl_abap_datadescr=>typekind_hex.
+          cl_abap_datadescr=>typekind_hex OR
+          `8`.
+        " `8`: typekind_int8, a constant lower releases do not have
         result = abap_true.
     ENDCASE.
 
@@ -3020,7 +3022,9 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
               cl_abap_datadescr=>typekind_packed OR
               cl_abap_datadescr=>typekind_float OR
               cl_abap_datadescr=>typekind_decfloat16 OR
-              cl_abap_datadescr=>typekind_decfloat34.
+              cl_abap_datadescr=>typekind_decfloat34 OR
+              `8`.
+            " `8`: typekind_int8, a constant lower releases do not have
             result = |{ val }|.
           WHEN OTHERS.
             result = val.
