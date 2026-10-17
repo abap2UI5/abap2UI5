@@ -321,9 +321,13 @@ sap.ui.define(
       const chunks = [];
       let i = 0;
       while (i < escaped.length) {
-        // never split a doubled backtick
+        // never split a doubled backtick: the run of backticks ending at the
+        // cut is made of whole pairs unless it is odd - only then does the
+        // cut fall inside a pair (a cut between two pairs must stay put)
         let end = Math.min(i + LITERAL_CHUNK, escaped.length);
-        if (escaped[end - 1] === "`" && escaped[end] === "`") end += 1;
+        let run = 0;
+        while (end - 1 - run >= i && escaped[end - 1 - run] === "`") run += 1;
+        if (run % 2 === 1 && escaped[end] === "`") end += 1;
         chunks.push(`\`${escaped.slice(i, end)}\``);
         i = end;
       }

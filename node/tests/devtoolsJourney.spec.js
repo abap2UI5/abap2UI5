@@ -65,7 +65,11 @@ function response({
   if (toast) custom.push(["MESSAGE_TOAST", "show", toast]);
   if (box) custom.push(["CONTROL_GLOBAL", "MESSAGE_BOX", "error", box]);
   const out = {
-    S_FRONT: { ID: "draft-new", APP: app, S_ACTION: { T_SYSTEM: system, T_CUSTOM: custom } },
+    S_FRONT: {
+      ID: "draft-new",
+      APP: app,
+      S_ACTION: { T_SYSTEM: system, T_CUSTOM: custom },
+    },
   };
   if (model !== undefined) out.MODEL = model;
   return out;
@@ -73,8 +77,8 @@ function response({
 
 const MAIN_XML =
   '<mvc:View xmlns="sap.m"><Page title="Example"><Input id="inputName" width="100%" value="{/MV_NAME}"/>' +
-  "<Button text=\"Greet\" press=\".eB([&apos;GREET&apos;])\"/>" +
-  "<Button text=\"Clear\" press=\".eB([&apos;CLEAR&apos;])\"/></Page></mvc:View>";
+  '<Button text="Greet" press=".eB([&apos;GREET&apos;])"/>' +
+  '<Button text="Clear" press=".eB([&apos;CLEAR&apos;])"/></Page></mvc:View>';
 const MAIN_NO_IDS =
   '<mvc:View xmlns="sap.m"><Button text="Open" press=".eB([&apos;POPUP_OPEN&apos;])"/>' +
   '<Button text="Row" press=".eBP($event,true,[&apos;ROW&apos;],$event.oSource.getBindingContext())"/></mvc:View>';
@@ -90,7 +94,10 @@ function recordGreeting(h) {
   h.roundtrip({
     event: "GREET",
     model: { MV_NAME: "World" },
-    response: response({ toast: "Hello World!", model: { MV_NAME: "World", MV_GREETING: "Hello World!" } }),
+    response: response({
+      toast: "Hello World!",
+      model: { MV_NAME: "World", MV_GREETING: "Hello World!" },
+    }),
   });
   h.Journey.stop(h.ctx);
 }
@@ -168,7 +175,9 @@ test.describe("recording", () => {
     const step = h.Journey.getJourneys(h.ctx)[0].steps[0];
     expect(step.event).toBe("SAVE");
     expect(step.delta.dropped).toContain("characters");
-    expect(h.Journey.buildAbapUnit(h.ctx)).toContain('" model changes not replayed');
+    expect(h.Journey.buildAbapUnit(h.ctx)).toContain(
+      '" model changes not replayed',
+    );
   });
 
   test("the step cap stops the recording from growing, and the export says so", () => {
@@ -189,7 +198,9 @@ test.describe("recording", () => {
     // a response whose action list is not an array of arrays, and a
     // request that is not an object
     h.state.oBody = "garbage";
-    h.state.responseData = { S_FRONT: { S_ACTION: { T_SYSTEM: 42, T_CUSTOM: "x" } } };
+    h.state.responseData = {
+      S_FRONT: { S_ACTION: { T_SYSTEM: 42, T_CUSTOM: "x" } },
+    };
     expect(() => {
       for (const fn of h.state.onAfterRendering) fn();
     }).not.toThrow();
@@ -247,7 +258,10 @@ test.describe("the exported ABAP Unit class", () => {
     const h = loadJourney();
     h.state.responseData = response({ main: MAIN_NO_IDS });
     h.Journey.start(h.ctx);
-    h.roundtrip({ event: "POPUP_OPEN", response: response({ popup: POPUP_XML }) });
+    h.roundtrip({
+      event: "POPUP_OPEN",
+      response: response({ popup: POPUP_XML }),
+    });
     h.roundtrip({
       event: "POPUP_CONFIRM",
       model: { MV_POPUP_TEXT: "Bea" },
@@ -257,8 +271,12 @@ test.describe("the exported ABAP Unit class", () => {
     const abap = h.Journey.buildAbapUnit(h.ctx);
     // the start screen: no ids, so the events it wires - the prevent-default
     // wire (.eBP) included
-    expect(abap).toContain("cl_abap_unit_assert=>assert_true( sim->check_event_exists( `POPUP_OPEN` ) ).");
-    expect(abap).toContain("cl_abap_unit_assert=>assert_true( sim->check_event_exists( `ROW` ) ).");
+    expect(abap).toContain(
+      "cl_abap_unit_assert=>assert_true( sim->check_event_exists( `POPUP_OPEN` ) ).",
+    );
+    expect(abap).toContain(
+      "cl_abap_unit_assert=>assert_true( sim->check_event_exists( `ROW` ) ).",
+    );
     // the popup: its layer and its id
     expect(abap).toContain(
       "    sim->click( `POPUP_OPEN` ).\n" +
@@ -286,8 +304,12 @@ test.describe("the exported ABAP Unit class", () => {
     h.Journey.stop(h.ctx);
     const abap = h.Journey.buildAbapUnit(h.ctx);
     // started with the app of the first step
-    expect(abap).toContain("z2ui5_cl_frontend_simulator=>start( `ZCL_DETAIL` )");
-    expect(abap).toContain("the recording began after roundtrips this test does not replay");
+    expect(abap).toContain(
+      "z2ui5_cl_frontend_simulator=>start( `ZCL_DETAIL` )",
+    );
+    expect(abap).toContain(
+      "the recording began after roundtrips this test does not replay",
+    );
     expect(abap).toContain(
       "    sim->click( event = `ROW`\n" +
         "                t_arg = VALUE #( ( `2` )\n" +
@@ -303,7 +325,10 @@ test.describe("the exported ABAP Unit class", () => {
     const h = loadJourney();
     h.state.responseData = response({ app: "ZCL_A", main: MAIN_XML });
     h.Journey.start(h.ctx);
-    h.roundtrip({ event: "CALL", response: response({ app: "ZCL_B", main: MAIN_NO_IDS }) });
+    h.roundtrip({
+      event: "CALL",
+      response: response({ app: "ZCL_B", main: MAIN_NO_IDS }),
+    });
     h.Journey.stop(h.ctx);
     expect(h.Journey.buildAbapUnit(h.ctx)).toContain(
       "    cl_abap_unit_assert=>assert_equals( exp = `ZCL_B`\n" +
@@ -318,22 +343,32 @@ test.describe("the exported ABAP Unit class", () => {
     h.roundtrip({ event: "", response: response({ main: MAIN_XML }) });
     h.Journey.stop(h.ctx);
     const abap = h.Journey.buildAbapUnit(h.ctx);
-    expect(abap).toContain('" step 2: a roundtrip without an event (reload, navigation) - not replayed');
+    expect(abap).toContain(
+      '" step 2: a roundtrip without an event (reload, navigation) - not replayed',
+    );
     expect(abap.match(/sim->click/g)).toBeNull();
   });
 
   test("two journeys are two test methods; none is a class with a hint", () => {
     const h = loadJourney();
-    expect(h.Journey.buildAbapUnit(h.ctx)).toContain('" no journey recorded yet');
+    expect(h.Journey.buildAbapUnit(h.ctx)).toContain(
+      '" no journey recorded yet',
+    );
     recordGreeting(h);
     h.Journey.start(h.ctx);
     h.roundtrip({ event: "CLEAR", response: response() });
     h.Journey.stop(h.ctx);
     const abap = h.Journey.buildAbapUnit(h.ctx);
-    expect(abap).toContain("    METHODS journey_1 FOR TESTING RAISING cx_static_check.");
-    expect(abap).toContain("    METHODS journey_2 FOR TESTING RAISING cx_static_check.");
+    expect(abap).toContain(
+      "    METHODS journey_1 FOR TESTING RAISING cx_static_check.",
+    );
+    expect(abap).toContain(
+      "    METHODS journey_2 FOR TESTING RAISING cx_static_check.",
+    );
     expect(abap).toContain("  METHOD journey_2.");
-    expect(h.Journey.exportFileName(h.ctx)).toBe("zcl_app_journey.clas.testclasses.abap");
+    expect(h.Journey.exportFileName(h.ctx)).toBe(
+      "zcl_app_journey.clas.testclasses.abap",
+    );
   });
 
   test("no line of the export is longer than an ABAP line", () => {
@@ -341,14 +376,41 @@ test.describe("the exported ABAP Unit class", () => {
     h.Journey.start(h.ctx);
     h.roundtrip({
       event: "SAVE",
-      model: { MV_LONG: "word ".repeat(80), MT_ROW: { __delta: { 2: { NOTE: "note ".repeat(60) } } } },
+      model: {
+        MV_LONG: "word ".repeat(80),
+        MT_ROW: { __delta: { 2: { NOTE: "note ".repeat(60) } } },
+      },
       response: response({ toast: "t".repeat(400) }),
     });
     h.Journey.stop(h.ctx);
     const abap = h.Journey.buildAbapUnit(h.ctx);
-    for (const line of abap.split("\n")) expect(line.length).toBeLessThanOrEqual(255);
+    for (const line of abap.split("\n"))
+      expect(line.length).toBeLessThanOrEqual(255);
     // the long value is one literal split with &&
     expect(abap).toContain("` &&\n");
+  });
+
+  test("a long literal is never cut inside a doubled backtick", () => {
+    const h = loadJourney();
+    const { literal } = h.Journey._internals;
+    // the cut at 100 falls between two pairs, at 99 inside one, at 101 after
+    // a pair that starts at 100 - every chunk must hold whole pairs
+    for (const value of [
+      "a".repeat(98) + "``" + "b".repeat(20),
+      "a".repeat(99) + "`" + "b".repeat(20),
+      "a".repeat(100) + "`" + "b".repeat(20),
+    ]) {
+      const chunks = literal(value, 4).split(" &&\n    ");
+      for (const chunk of chunks) {
+        const inner = chunk.slice(1, -1);
+        expect(chunk[0]).toBe("`");
+        expect(chunk[chunk.length - 1]).toBe("`");
+        for (const run of inner.match(/`+/g) || [])
+          expect(run.length % 2).toBe(0);
+      }
+      const joined = chunks.map((c) => c.slice(1, -1)).join("");
+      expect(joined).toBe(value.replace(/`/g, "``"));
+    }
   });
 });
 
@@ -414,10 +476,11 @@ test.describe("the setters for a model delta", () => {
     const h = loadJourney();
     const { idsOf, eventsOf } = h.Journey._internals;
     expect(idsOf(MAIN_XML)).toEqual(["inputName"]);
-    expect(idsOf('<A id="x"/><B tooltipId="no" width="100%" id="x"/><C id="a&amp;b"/>')).toEqual([
-      "x",
-      "a&b",
-    ]);
+    expect(
+      idsOf(
+        '<A id="x"/><B tooltipId="no" width="100%" id="x"/><C id="a&amp;b"/>',
+      ),
+    ).toEqual(["x", "a&b"]);
     expect(eventsOf(MAIN_XML)).toEqual(["GREET", "CLEAR"]);
     expect(eventsOf(MAIN_NO_IDS)).toEqual(["POPUP_OPEN", "ROW"]);
     expect(eventsOf("")).toEqual([]);
@@ -427,10 +490,14 @@ test.describe("the setters for a model delta", () => {
 test.describe("the tab", () => {
   test("renders the state, the hint and every step", () => {
     const h = loadJourney();
-    expect(h.Journey.formatJourney(h.ctx)).toContain("(no journey recorded yet)");
+    expect(h.Journey.formatJourney(h.ctx)).toContain(
+      "(no journey recorded yet)",
+    );
     recordGreeting(h);
     const text = h.Journey.formatJourney(h.ctx);
-    expect(text).toContain("Journey recorder - OFF (2 step(s) in 1 journey(s))");
+    expect(text).toContain(
+      "Journey recorder - OFF (2 step(s) in 1 journey(s))",
+    );
     expect(text).toContain("Journey 1 - ZCL_APP - 2 step(s)");
     expect(text).toContain("#1   (start)");
     expect(text).toContain("screen: MAIN ids: inputName");
