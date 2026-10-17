@@ -240,7 +240,9 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      let i = 0;` && |\n| &&
              `      while (i < escaped.length) {` && |\n| &&
              `        let end = Math.min(i + LITERAL_CHUNK, escaped.length);` && |\n| &&
-             `        if (escaped[end - 1] === "``" && escaped[end] === "``") end += 1;` && |\n| &&
+             `        let run = 0;` && |\n| &&
+             `        while (end - 1 - run >= i && escaped[end - 1 - run] === "``") run += 1;` && |\n| &&
+             `        if (run % 2 === 1 && escaped[end] === "``") end += 1;` && |\n| &&
              `        chunks.push(``\``${escaped.slice(i, end)}\````);` && |\n| &&
              `        i = end;` && |\n| &&
              `      }` && |\n| &&
@@ -422,10 +424,10 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      if (!ids.length) {` && |\n| &&
              `        for (const event of events) {` && |\n| &&
              `          out.push(` && |\n| &&
-             `            ...assertTrue(` && |\n| &&
-             `              pad,` && |\n| &&
-             `              ``sim->check_event_exists( ${literal(event, 0) || "````"} )``,` && |\n|.
+             `            ...assertTrue(` && |\n|.
     result = result &&
+             `              pad,` && |\n| &&
+             `              ``sim->check_event_exists( ${literal(event, 0) || "````"} )``,` && |\n| &&
              `            ),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&

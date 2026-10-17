@@ -174,8 +174,18 @@ sap.ui.define(
       const [, y, mo, d, h = "0", mi = "0", s = "0"] = m;
       if (Number(y) < 1900) return undefined;
       const ms = Date.UTC(+y, +mo - 1, +d, +h, +mi, +s);
-      // Date.UTC rolls 2024-02-31 over into March - not a date then
-      if (new Date(ms).getUTCDate() !== +d) return undefined;
+      // Date.UTC rolls 2024-02-31 over into March, 2024-13-01 into the next
+      // year and 10:75 into the next hour - not a date then
+      const dt = new Date(ms);
+      if (
+        dt.getUTCFullYear() !== +y ||
+        dt.getUTCMonth() !== +mo - 1 ||
+        dt.getUTCDate() !== +d ||
+        dt.getUTCHours() !== +h ||
+        dt.getUTCMinutes() !== +mi ||
+        dt.getUTCSeconds() !== +s
+      )
+        return undefined;
       return {
         serial: (ms - EXCEL_EPOCH_MS) / DAY_MS,
         hasTime: m[4] !== undefined,

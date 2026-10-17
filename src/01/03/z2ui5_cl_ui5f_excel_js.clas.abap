@@ -137,7 +137,16 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `      if (Number(y) < 1900) return undefined;` && |\n| &&
              `      const ms = Date.UTC(+y, +mo - 1, +d, +h, +mi, +s);` && |\n| &&
              `` && |\n| &&
-             `      if (new Date(ms).getUTCDate() !== +d) return undefined;` && |\n| &&
+             `      const dt = new Date(ms);` && |\n| &&
+             `      if (` && |\n| &&
+             `        dt.getUTCFullYear() !== +y ||` && |\n| &&
+             `        dt.getUTCMonth() !== +mo - 1 ||` && |\n| &&
+             `        dt.getUTCDate() !== +d ||` && |\n| &&
+             `        dt.getUTCHours() !== +h ||` && |\n| &&
+             `        dt.getUTCMinutes() !== +mi ||` && |\n| &&
+             `        dt.getUTCSeconds() !== +s` && |\n| &&
+             `      )` && |\n| &&
+             `        return undefined;` && |\n| &&
              `      return {` && |\n| &&
              `        serial: (ms - EXCEL_EPOCH_MS) / DAY_MS,` && |\n| &&
              `        hasTime: m[4] !== undefined,` && |\n| &&
@@ -415,7 +424,8 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `            if (mode === "selection") {` && |\n| &&
              `              anchor = book.getSelectedRange().getCell(0, 0);` && |\n| &&
              `              sheet = anchor.worksheet;` && |\n| &&
-             `            } else if (mode === "newsheet") {` && |\n| &&
+             `            } else if (mode === "newsheet") {` && |\n|.
+    result = result &&
              `              sheet = book.worksheets.add(sheetName || undefined);` && |\n| &&
              `              sheet.activate();` && |\n| &&
              `              anchor = sheet.getRange("A1");` && |\n| &&
@@ -424,8 +434,7 @@ CLASS z2ui5_cl_ui5f_excel_js IMPLEMENTATION.
              `                ? book.worksheets.getItem(sheetName)` && |\n| &&
              `                : book.worksheets.getActiveWorksheet();` && |\n| &&
              `              anchor = sheet.getRange(target);` && |\n| &&
-             `            }` && |\n|.
-    result = result &&
+             `            }` && |\n| &&
              `            const range = anchor.getResizedRange(rowCount - 1, columnCount - 1);` && |\n| &&
              `` && |\n| &&
              `            range.numberFormat = matrix.formats;` && |\n| &&

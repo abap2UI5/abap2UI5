@@ -225,7 +225,12 @@ function load({ office } = {}) {
     inst.getProperty = (k) => inst._props[k];
     inst.setProperty = (k, v) => (inst._props[k] = v);
     inst.events = [];
-    for (const name of ["OnWritten", "OnRead", "OnSelectionChange", "OnError"]) {
+    for (const name of [
+      "OnWritten",
+      "OnRead",
+      "OnSelectionChange",
+      "OnError",
+    ]) {
       inst[`fire${name}`] = (p) => inst.events.push([name, p]);
     }
     inst._destroyed = false;
@@ -390,7 +395,11 @@ test("target newSheet adds and activates a sheet with the given name", async () 
 test("an address with a sheetName goes to that sheet", async () => {
   const office = fakeOffice();
   const { makeInstance } = load({ office });
-  const inst = makeInstance({ rows: [{ A: 1 }], target: "$B$2", sheetName: "Plan" });
+  const inst = makeInstance({
+    rows: [{ A: 1 }],
+    target: "$B$2",
+    sheetName: "Plan",
+  });
 
   await inst.write();
 
@@ -408,7 +417,10 @@ test("too many cells are refused before anything reaches Excel", async () => {
 
   expect(office.runs).toBe(0);
   expect(inst.events).toEqual([
-    ["OnError", { message: "202 cells exceed the limit of 50", code: "TooLarge" }],
+    [
+      "OnError",
+      { message: "202 cells exceed the limit of 50", code: "TooLarge" },
+    ],
   ]);
 });
 
@@ -416,7 +428,12 @@ test("maxCells cannot lift the hard ceiling", async () => {
   const office = fakeOffice();
   const { makeInstance } = load({ office });
   const rows = Array.from({ length: 60000 }, (_v, i) => ({ A: i, B: i }));
-  const inst = makeInstance({ rows, maxCells: 10000000, asTable: false, header: false });
+  const inst = makeInstance({
+    rows,
+    maxCells: 10000000,
+    asTable: false,
+    header: false,
+  });
 
   await inst.write();
 
@@ -432,7 +449,10 @@ test("an invalid target is refused", async () => {
     const inst = makeInstance({ rows: [{ A: 1 }], target });
     await inst.write();
     expect(inst.events).toEqual([
-      ["OnError", { message: `invalid target '${target}'`, code: "InvalidTarget" }],
+      [
+        "OnError",
+        { message: `invalid target '${target}'`, code: "InvalidTarget" },
+      ],
     ]);
   }
   expect(office.runs).toBe(0);
@@ -445,7 +465,9 @@ test("nothing to write is an error, not an empty write", async () => {
 
   await inst.write();
 
-  expect(inst.events).toEqual([["OnError", { message: "nothing to write", code: "NoData" }]]);
+  expect(inst.events).toEqual([
+    ["OnError", { message: "nothing to write", code: "NoData" }],
+  ]);
 });
 
 test("a protected sheet fails as OnError with Excel's code - logged, never thrown", async () => {
@@ -581,7 +603,9 @@ test("an empty selection reads as no rows", async () => {
   await inst.read();
 
   expect(inst._props.selection).toEqual([]);
-  expect(inst.events).toEqual([["OnRead", { address: "", rowCount: 0, columnCount: 0 }]]);
+  expect(inst.events).toEqual([
+    ["OnRead", { address: "", rowCount: 0, columnCount: 0 }],
+  ]);
 });
 
 test("a selection over the limit is refused, nothing read", async () => {
@@ -593,10 +617,15 @@ test("a selection over the limit is refused, nothing read", async () => {
   await inst.read();
 
   expect(inst.events).toEqual([
-    ["OnError", { message: "30000 cells exceed the limit of 20000", code: "TooLarge" }],
+    [
+      "OnError",
+      { message: "30000 cells exceed the limit of 20000", code: "TooLarge" },
+    ],
   ]);
   expect(inst._props.selection).toEqual([{ COL1: "old" }]);
-  expect(office.log.some((l) => l[0] === "load" && l[1].includes("values"))).toBe(false);
+  expect(
+    office.log.some((l) => l[0] === "load" && l[1].includes("values")),
+  ).toBe(false);
 });
 
 // ---- outside Excel -------------------------------------------------------
@@ -709,7 +738,9 @@ test("selectionChange subscribes, reports the settled address once, and unsubscr
   office.handlers[0]();
   tick();
   await flush();
-  expect(inst.events).toEqual([["OnSelectionChange", { address: "Sheet1!B3:B5" }]]);
+  expect(inst.events).toEqual([
+    ["OnSelectionChange", { address: "Sheet1!B3:B5" }],
+  ]);
 
   inst.setSelectionChange(false);
   await flush();
@@ -787,7 +818,10 @@ test("text that only BEGINS with an ISO date stays text", () => {
   expect(m.formats).toEqual(texts.map(() => ["@"]));
   // a fraction or an offset is still a timestamp
   const t = ExcelBridge._buildMatrix({
-    rows: [{ D: "2024-01-15T12:30:00.123Z" }, { D: "2024-01-15T12:30:00+02:00" }],
+    rows: [
+      { D: "2024-01-15T12:30:00.123Z" },
+      { D: "2024-01-15T12:30:00+02:00" },
+    ],
     columns: null,
     numberFormats: null,
     header: false,
@@ -798,7 +832,11 @@ test("text that only BEGINS with an ISO date stays text", () => {
 test("an impossible ISO date and the ABAP initial date stay text", () => {
   const { ExcelBridge } = load();
   const m = ExcelBridge._buildMatrix({
-    rows: [{ D: "2024-02-31" }, { D: "0000-00-00" }, { D: "2024-01-15T12:30:00Z" }],
+    rows: [
+      { D: "2024-02-31" },
+      { D: "0000-00-00" },
+      { D: "2024-01-15T12:30:00Z" },
+    ],
     columns: null,
     numberFormats: null,
     header: false,
@@ -807,6 +845,24 @@ test("an impossible ISO date and the ABAP initial date stay text", () => {
   expect(m.values[1]).toEqual(["0000-00-00"]);
   expect(m.values[2][0]).toBeCloseTo(45306.520833, 5);
   expect(m.formats[2]).toEqual(["yyyy-mm-dd hh:mm:ss"]);
+});
+
+test("a month, hour or minute out of range stays text too", () => {
+  const { ExcelBridge } = load();
+  // Date.UTC rolls each over and the day-of-month check alone let them through
+  const bad = [
+    "2024-13-01",
+    "2024-00-15",
+    "2024-01-15T10:75:00",
+    "2024-01-15T25:00:00",
+  ];
+  const m = ExcelBridge._buildMatrix({
+    rows: bad.map((D) => ({ D })),
+    columns: null,
+    numberFormats: null,
+    header: false,
+  });
+  expect(m.values).toEqual(bad.map((D) => [D]));
 });
 
 test("a time format with a locale or color section reads as a time", () => {

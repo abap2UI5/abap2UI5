@@ -120,11 +120,19 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const confirmState = new WeakMap();` && |\n| &&
              `    function confirmOnButton(oButton) {` && |\n| &&
-             `      const original = oButton.getText();` && |\n| &&
+             `      let state = confirmState.get(oButton);` && |\n| &&
+             `      if (state) {` && |\n| &&
+             `        clearTimeout(state.timer);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        state = { original: oButton.getText(), timer: null };` && |\n| &&
+             `        confirmState.set(oButton, state);` && |\n| &&
+             `      }` && |\n| &&
              `      oButton.setText("Copied");` && |\n| &&
-             `      setTimeout(() => {` && |\n| &&
-             `        if (!Lib.isDestroyed(oButton)) oButton.setText(original);` && |\n| &&
+             `      state.timer = setTimeout(() => {` && |\n| &&
+             `        confirmState.delete(oButton);` && |\n| &&
+             `        if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);` && |\n| &&
              `      }, 1500);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

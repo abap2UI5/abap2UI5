@@ -141,11 +141,22 @@ sap.ui.define(
     // A copy that leaves no trace looks like a copy that did not happen.
     // Exported because the dialog's own Copy button needs the same feedback
     // (DeveloperTools.onCopyTab) - it had a second copy of these six lines.
+    // A second press inside the 1.5 s read "Copied" as the label and put
+    // it back for good - the real label and the pending timer are kept per
+    // button, so the last press restores the label once.
+    const confirmState = new WeakMap();
     function confirmOnButton(oButton) {
-      const original = oButton.getText();
+      let state = confirmState.get(oButton);
+      if (state) {
+        clearTimeout(state.timer);
+      } else {
+        state = { original: oButton.getText(), timer: null };
+        confirmState.set(oButton, state);
+      }
       oButton.setText("Copied");
-      setTimeout(() => {
-        if (!Lib.isDestroyed(oButton)) oButton.setText(original);
+      state.timer = setTimeout(() => {
+        confirmState.delete(oButton);
+        if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);
       }, 1500);
     }
 
