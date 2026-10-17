@@ -214,16 +214,22 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_bad_temperature.
 
+    DATA lt_bad TYPE string_table.
+
     DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_claude( model   = `test-model`
                                                 io_http = NEW ltd_http( ) ).
-    TRY.
-        lo_llm->build_request( t_message = conversation( )
-                               s_options = VALUE #( temperature = `1.2.3` ) ).
-        cl_abap_unit_assert=>fail( `a temperature that is no number must be refused` ).
-      CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
-        cl_abap_unit_assert=>assert_char_cp( exp = `*temperature*`
-                                             act = lx->get_text( ) ).
-    ENDTRY.
+    " `.7` and `1.` passed the character check and went out as invalid JSON
+    lt_bad = VALUE #( ( `1.2.3` ) ( `.7` ) ( `1.` ) ( `.` ) ).
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      TRY.
+          lo_llm->build_request( t_message = conversation( )
+                                 s_options = VALUE #( temperature = lv_bad ) ).
+          cl_abap_unit_assert=>fail( |the temperature { lv_bad } must be refused| ).
+        CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
+          cl_abap_unit_assert=>assert_char_cp( exp = `*temperature*`
+                                               act = lx->get_text( ) ).
+      ENDTRY.
+    ENDLOOP.
 
   ENDMETHOD.
 
