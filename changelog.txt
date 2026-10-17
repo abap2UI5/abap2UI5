@@ -11,6 +11,11 @@ Legend
 
 unreleased
 ----------
+* z2ui5_cl_ui5_view_builder: an element or attribute name starting with a colon, and a prefixed name next to ns (ele( n = `x:Icon` ns = `core` )), raise instead of rendering a view no XML parser reads
+* z2ui5_if_ui5_llm: a temperature with a leading or trailing point (`.7`, `1.`) is refused before the request instead of going out as invalid JSON
+* message box and error texts: an int8 value is printed, with its sign in front
+* Developer tools: the Journey export no longer cuts a long literal inside a doubled backtick, and a Copy button pressed twice returns to its label
+* ExcelBridge: a text like 2024-13-01 or 2024-01-15T10:75:00 stays text instead of becoming a rolled-over date
 + Developer tools: the Journey tab (Roundtrips, key JOURNEY) records a click-through - every roundtrip as a step with the event, its arguments, the model delta the user typed and the screen the response showed - and exports it as an ABAP Unit test class that replays the journey on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend): set_value / set_json / set_cell for the typed values, click for the event, assertions on the messages, layers, control ids and events of the screens reached. Paste it into the app's test include
 + z2ui5_if_ui5_llm: one language model seam for apps and addons - chat( ) with system prompt, conversation and options, answering text, stop reason and token usage, raising z2ui5_cx_ui5_llm; providers from z2ui5_cl_ui5_llm: create_claude( ) (Messages API), create_openai( ) (Chat Completions: OpenAI, Azure OpenAI, Ollama, LM Studio, gateways) and create_local( ) (rule-based, no HTTP, for 7.02 and tests). Keys, models and endpoints come from the app
 + z2ui5_cl_ui5_util_http=>client_request( ): outbound HTTP with header fields and a timeout, on Standard (CL_HTTP_CLIENT) and on ABAP Cloud (CL_WEB_HTTP_CLIENT_MANAGER), both named dynamically; client_call( ) goes through it and so reaches ABAP Cloud as well
