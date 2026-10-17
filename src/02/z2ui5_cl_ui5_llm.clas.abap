@@ -32,7 +32,7 @@ CLASS z2ui5_cl_ui5_llm DEFINITION
         contains TYPE string,
         answer   TYPE string,
       END OF ty_s_rule.
-    TYPES ty_t_rule TYPE STANDARD TABLE OF ty_s_rule WITH EMPTY KEY.
+    TYPES ty_t_rule TYPE STANDARD TABLE OF ty_s_rule WITH DEFAULT KEY.
 
     "! The Claude Messages API: POST /v1/messages with the headers x-api-key
     "! and anthropic-version.
@@ -109,30 +109,19 @@ CLASS z2ui5_cl_ui5_llm IMPLEMENTATION.
 
   METHOD create_claude.
 
-    result = NEW z2ui5_cl_ui5_llm_claude( model       = model
-                                          api_key     = api_key
-                                          url         = url
-                                          destination = destination
-                                          timeout     = timeout ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_llm_claude EXPORTING model = model api_key = api_key url = url destination = destination timeout = timeout.
 
   ENDMETHOD.
 
   METHOD create_openai.
 
-    result = NEW z2ui5_cl_ui5_llm_openai( model               = model
-                                          api_key             = api_key
-                                          url                 = url
-                                          destination         = destination
-                                          timeout             = timeout
-                                          auth_header         = auth_header
-                                          check_legacy_tokens = check_legacy_tokens ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = model api_key = api_key url = url destination = destination timeout = timeout auth_header = auth_header check_legacy_tokens = check_legacy_tokens.
 
   ENDMETHOD.
 
   METHOD create_local.
 
-    result = NEW z2ui5_cl_ui5_llm_local( t_rule   = t_rule
-                                         fallback = fallback ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = t_rule fallback = fallback.
 
   ENDMETHOD.
 

@@ -62,15 +62,27 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD conversation.
 
-    result = VALUE #( ( role = z2ui5_if_ui5_llm=>cs_role-user      content = `Hello` )
-                      ( role = z2ui5_if_ui5_llm=>cs_role-assistant content = `Hi, how can I help?` )
-                      ( role = z2ui5_if_ui5_llm=>cs_role-user      content = `What is abap2UI5?` ) ).
+    DATA temp1 TYPE z2ui5_if_ui5_llm=>ty_t_message.
+    DATA temp2 LIKE LINE OF temp1.
+    CLEAR temp1.
+
+    temp2-role = z2ui5_if_ui5_llm=>cs_role-user.
+    temp2-content = `Hello`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-role = z2ui5_if_ui5_llm=>cs_role-assistant.
+    temp2-content = `Hi, how can I help?`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-role = z2ui5_if_ui5_llm=>cs_role-user.
+    temp2-content = `What is abap2UI5?`.
+    INSERT temp2 INTO TABLE temp1.
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD header.
 
-    LOOP AT is_request-t_header INTO DATA(ls_header).
+    DATA ls_header LIKE LINE OF is_request-t_header.
+    LOOP AT is_request-t_header INTO ls_header.
       IF ls_header-name = name.
         result = ls_header-value.
         RETURN.
@@ -81,13 +93,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_request_body.
 
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai( model   = `test-model`
-                                                io_http = NEW ltd_http( ) ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp1 TYPE REF TO ltd_http.
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    DATA lo_json TYPE REF TO z2ui5_cl_ajson.
+    CREATE OBJECT temp1 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` io_http = temp1.
 
-    DATA(ls_request) = lo_llm->build_request( system    = `Answer briefly.`
+
+    ls_request = lo_llm->build_request( system    = `Answer briefly.`
                                               t_message = conversation( ) ).
 
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+
+    lo_json = z2ui5_cl_ajson=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = `test-model`
                                         act = lo_json->get_string( `/model` ) ).
     " the system prompt is the first message - this API has no field for it
@@ -113,11 +131,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_request_headers.
 
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai( model   = `test-model`
-                                                api_key = `test-key`
-                                                io_http = NEW ltd_http( ) ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp2 TYPE REF TO ltd_http.
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    CREATE OBJECT temp2 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` api_key = `test-key` io_http = temp2.
 
-    DATA(ls_request) = lo_llm->build_request( conversation( ) ).
+
+    ls_request = lo_llm->build_request( conversation( ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Bearer test-key`
                                         act = header( is_request = ls_request
@@ -130,14 +151,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_request_azure.
 
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai(
-        model       = `my-deployment`
-        api_key     = `test-key`
-        url         = `https://example.openai.azure.com/openai/v1/chat/completions`
-        auth_header = `api-key`
-        io_http     = NEW ltd_http( ) ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp3 TYPE REF TO ltd_http.
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    CREATE OBJECT temp3 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `my-deployment` api_key = `test-key` url = `https://example.openai.azure.com/openai/v1/chat/completions` auth_header = `api-key` io_http = temp3.
 
-    DATA(ls_request) = lo_llm->build_request( conversation( ) ).
+
+    ls_request = lo_llm->build_request( conversation( ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `test-key`
                                         act = header( is_request = ls_request
@@ -152,23 +173,38 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_request_tokens.
 
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai( model   = `test-model`
-                                                io_http = NEW ltd_http( ) ).
-    DATA(ls_request) = lo_llm->build_request( t_message = conversation( )
-                                              s_options = VALUE #( max_tokens  = 300
-                                                                   temperature = `0.7` ) ).
-    DATA(lo_json) = z2ui5_cl_ajson=>parse( ls_request-body ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp5 TYPE REF TO ltd_http.
+    DATA temp3 TYPE z2ui5_if_ui5_llm=>ty_s_options.
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    DATA lo_json TYPE REF TO z2ui5_cl_ajson.
+    DATA temp1 TYPE REF TO ltd_http.
+    DATA temp4 TYPE z2ui5_if_ui5_llm=>ty_s_options.
+    CREATE OBJECT temp5 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` io_http = temp5.
+
+    CLEAR temp3.
+    temp3-max_tokens = 300.
+    temp3-temperature = `0.7`.
+
+    ls_request = lo_llm->build_request( t_message = conversation( )
+                                              s_options = temp3 ).
+
+    lo_json = z2ui5_cl_ajson=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = 300
                                         act = lo_json->get_integer( `/max_completion_tokens` ) ).
     cl_abap_unit_assert=>assert_char_cp( exp = `*"temperature":0.7*`
                                          act = ls_request-body ).
 
     " a server that only knows the older name
-    lo_llm = NEW z2ui5_cl_ui5_llm_openai( model               = `test-model`
-                                          check_legacy_tokens = abap_true
-                                          io_http             = NEW ltd_http( ) ).
+
+    CREATE OBJECT temp1 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` check_legacy_tokens = abap_true io_http = temp1.
+
+    CLEAR temp4.
+    temp4-max_tokens = 300.
     ls_request = lo_llm->build_request( t_message = conversation( )
-                                        s_options = VALUE #( max_tokens = 300 ) ).
+                                        s_options = temp4 ).
     lo_json = z2ui5_cl_ajson=>parse( ls_request-body ).
     cl_abap_unit_assert=>assert_equals( exp = 300
                                         act = lo_json->get_integer( `/max_tokens` ) ).
@@ -180,11 +216,14 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_request_local_url.
 
     " a local Ollama: no key, no destination, a URL of its own
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai( model   = `test-model`
-                                                url     = `http://localhost:11434/v1/chat/completions`
-                                                io_http = NEW ltd_http( ) ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp6 TYPE REF TO ltd_http.
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    CREATE OBJECT temp6 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` url = `http://localhost:11434/v1/chat/completions` io_http = temp6.
 
-    DATA(ls_request) = lo_llm->build_request( conversation( ) ).
+
+    ls_request = lo_llm->build_request( conversation( ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `http://localhost:11434/v1/chat/completions`
                                         act = ls_request-url ).
@@ -196,12 +235,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_no_model.
 
-    DATA(lo_llm) = NEW z2ui5_cl_ui5_llm_openai( model   = ``
-                                                io_http = NEW ltd_http( ) ).
+    DATA lo_llm TYPE REF TO z2ui5_cl_ui5_llm_openai.
+    DATA temp7 TYPE REF TO ltd_http.
+        DATA lx TYPE REF TO z2ui5_cx_ui5_llm.
+    CREATE OBJECT temp7 TYPE ltd_http.
+    CREATE OBJECT lo_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `` io_http = temp7.
     TRY.
         lo_llm->build_request( conversation( ) ).
         cl_abap_unit_assert=>fail( `a request without a model must be refused` ).
-      CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
+
+      CATCH z2ui5_cx_ui5_llm INTO lx.
         cl_abap_unit_assert=>assert_char_cp( exp = `*model*`
                                              act = lx->get_text( ) ).
     ENDTRY.
@@ -210,11 +253,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_parse_answer.
 
-    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-        status = 200
-        body   = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",`
-              && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},`
-              && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}` ) ).
+    DATA temp5 TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CLEAR temp5.
+    temp5-status = 200.
+    temp5-body = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",` && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},` && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}`.
+
+    ls_result = z2ui5_cl_ui5_llm_openai=>parse_response( temp5 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `abap2UI5 builds UI5 apps in ABAP.`
                                         act = ls_result-text ).
@@ -231,10 +276,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_parse_length.
 
-    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-        status = 200
-        body   = `{"model":"test-model","choices":[{"message":{"role":"assistant","content":"abap2UI5 is"},`
-              && `"finish_reason":"length"}],"usage":{"prompt_tokens":5,"completion_tokens":2}}` ) ).
+    DATA temp6 TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CLEAR temp6.
+    temp6-status = 200.
+    temp6-body = `{"model":"test-model","choices":[{"message":{"role":"assistant","content":"abap2UI5 is"},` && `"finish_reason":"length"}],"usage":{"prompt_tokens":5,"completion_tokens":2}}`.
+
+    ls_result = z2ui5_cl_ui5_llm_openai=>parse_response( temp6 ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_ui5_llm=>cs_stop-max_tokens
                                         act = ls_result-stop_reason ).
@@ -244,14 +292,20 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_parse_error.
+        DATA temp7 TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
+        DATA lx TYPE REF TO z2ui5_cx_ui5_llm.
+        DATA temp8 TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
 
     TRY.
-        z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-            status = 401
-            reason = `Unauthorized`
-            body   = `{"error":{"message":"Incorrect API key provided","type":"invalid_request_error"}}` ) ).
+
+        CLEAR temp7.
+        temp7-status = 401.
+        temp7-reason = `Unauthorized`.
+        temp7-body = `{"error":{"message":"Incorrect API key provided","type":"invalid_request_error"}}`.
+        z2ui5_cl_ui5_llm_openai=>parse_response( temp7 ).
         cl_abap_unit_assert=>fail( `an error status must raise` ).
-      CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
+
+      CATCH z2ui5_cx_ui5_llm INTO lx.
         cl_abap_unit_assert=>assert_char_cp( exp = `*Incorrect API key provided*`
                                              act = lx->get_text( ) ).
         cl_abap_unit_assert=>assert_equals( exp = 401
@@ -262,9 +316,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " Ollama sends the error as a plain string
     TRY.
-        z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-            status = 503
-            body   = `{"error":"model is loading"}` ) ).
+
+        CLEAR temp8.
+        temp8-status = 503.
+        temp8-body = `{"error":"model is loading"}`.
+        z2ui5_cl_ui5_llm_openai=>parse_response( temp8 ).
         cl_abap_unit_assert=>fail( `an error status must raise` ).
       CATCH z2ui5_cx_ui5_llm INTO lx.
         cl_abap_unit_assert=>assert_char_cp( exp = `*model is loading*`
@@ -279,15 +335,17 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
 
-    DATA(lo_http) = NEW ltd_http( ).
-    lo_http->ms_response = VALUE #(
-        status = 200
-        body   = `{"model":"test-model","choices":[{"message":{"role":"assistant","content":"42"},`
-              && `"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":1}}` ).
-    li_llm = NEW z2ui5_cl_ui5_llm_openai( model   = `test-model`
-                                          io_http = lo_http ).
+    DATA lo_http TYPE REF TO ltd_http.
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT lo_http TYPE ltd_http.
+    CLEAR lo_http->ms_response.
+    lo_http->ms_response-status = 200.
+    lo_http->ms_response-body = `{"model":"test-model","choices":[{"message":{"role":"assistant","content":"42"},`
+&& `"finish_reason":"stop"}],"usage":{"prompt_tokens":3,"completion_tokens":1}}`.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_openai EXPORTING model = `test-model` io_http = lo_http.
 
-    DATA(ls_result) = li_llm->chat( conversation( ) ).
+
+    ls_result = li_llm->chat( conversation( ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `42`
                                         act = ls_result-text ).

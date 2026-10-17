@@ -14,7 +14,7 @@ INTERFACE z2ui5_if_ui5_llm_http
       name  TYPE string,
       value TYPE string,
     END OF ty_s_header.
-  TYPES ty_t_header TYPE STANDARD TABLE OF ty_s_header WITH EMPTY KEY.
+  TYPES ty_t_header TYPE STANDARD TABLE OF ty_s_header WITH DEFAULT KEY.
 
   TYPES:
     "! url: the full URL, or with destination the path below it.

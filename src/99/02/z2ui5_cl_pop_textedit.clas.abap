@@ -42,7 +42,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->mv_stretch_active = i_stretch_active.
     r_result->ms_result-text = i_textarea.
     r_result->mv_title          = i_title.
@@ -52,12 +52,15 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA dialog TYPE REF TO z2ui5_cl_ui5_view_builder.
+    popup = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`      v = `sap.m`
             )->a( n = `xmlns:core` v = `sap.ui.core` ).
 
-    DATA(dialog) = popup->ele( `Dialog`
+
+    dialog = popup->ele( `Dialog`
         )->a( n = `afterClose` v = client->_event( `BUTTON_TEXTAREA_CANCEL` )
         )->a( n = `stretch`    b = mv_stretch_active
         )->a( n = `title`      v = mv_title
@@ -86,7 +89,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.

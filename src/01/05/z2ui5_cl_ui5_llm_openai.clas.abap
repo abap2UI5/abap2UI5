@@ -130,28 +130,43 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
   METHOD constructor.
+    DATA temp9 TYPE i.
+      DATA temp10 TYPE string.
 
     mv_model               = model.
     mv_api_key             = api_key.
     mv_url                 = url.
     mv_destination         = destination.
-    mv_timeout             = COND #( WHEN timeout > 0 THEN timeout ELSE cv_default_timeout ).
+
+    IF timeout > 0.
+      temp9 = timeout.
+    ELSE.
+      temp9 = cv_default_timeout.
+    ENDIF.
+    mv_timeout             = temp9.
     mv_auth_header         = auth_header.
     mv_check_legacy_tokens = check_legacy_tokens.
     IF mv_url IS INITIAL.
-      mv_url = COND #( WHEN mv_destination IS INITIAL THEN cv_default_url ELSE cv_default_path ).
+
+      IF mv_destination IS INITIAL.
+        temp10 = cv_default_url.
+      ELSE.
+        temp10 = cv_default_path.
+      ENDIF.
+      mv_url = temp10.
     ENDIF.
     IF io_http IS BOUND.
       mi_http = io_http.
     ELSE.
-      mi_http = NEW z2ui5_cl_ui5_llm_http( ).
+      CREATE OBJECT mi_http TYPE z2ui5_cl_ui5_llm_http.
     ENDIF.
 
   ENDMETHOD.
 
   METHOD message_push.
 
-    DATA(lo_item) = z2ui5_cl_ajson=>create_empty( ).
+    DATA lo_item TYPE REF TO z2ui5_cl_ajson.
+    lo_item = z2ui5_cl_ajson=>create_empty( ).
     lo_item->set( iv_path = `/role`
                   iv_val  = role ).
     lo_item->set( iv_path = `/content`
@@ -165,6 +180,10 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
     DATA lv_model TYPE string.
     DATA lv_system TYPE string.
+        DATA lo_body TYPE REF TO z2ui5_cl_ajson.
+          DATA temp11 TYPE string.
+        DATA ls_message LIKE LINE OF t_message.
+        DATA lx TYPE REF TO z2ui5_cx_ajson_error.
 
     lv_model = s_options-model.
     IF lv_model IS INITIAL.
@@ -192,13 +211,18 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     lv_system = system.
 
     TRY.
-        DATA(lo_body) = z2ui5_cl_ajson=>create_empty( ).
+
+        lo_body = z2ui5_cl_ajson=>create_empty( ).
         lo_body->set( iv_path = `/model`
                       iv_val  = lv_model ).
         IF s_options-max_tokens > 0.
-          lo_body->set_integer( iv_path = COND #( WHEN mv_check_legacy_tokens = abap_true
-                                                   THEN `/max_tokens`
-                                                   ELSE `/max_completion_tokens` )
+
+          IF mv_check_legacy_tokens = abap_true.
+            temp11 = `/max_tokens`.
+          ELSE.
+            temp11 = `/max_completion_tokens`.
+          ENDIF.
+          lo_body->set_integer( iv_path = temp11
                                 iv_val  = s_options-max_tokens ).
         ENDIF.
         IF s_options-temperature IS NOT INITIAL.
@@ -213,7 +237,8 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
                         role    = `system`
                         content = lv_system ).
         ENDIF.
-        LOOP AT t_message INTO DATA(ls_message).
+
+        LOOP AT t_message INTO ls_message.
           IF ls_message-content IS INITIAL.
             RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
               EXPORTING
@@ -224,7 +249,8 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
                         content = ls_message-content ).
         ENDLOOP.
         result = lo_body->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_ajson_error INTO lx.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
           EXPORTING
             text     = `the request body could not be written as JSON`
@@ -234,6 +260,9 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD build_request.
+    DATA temp12 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
+      DATA temp13 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
+      DATA temp14 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
 
     result-body        = build_body( system    = system
                                      t_message = t_message
@@ -242,14 +271,23 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     result-destination = mv_destination.
     result-timeout     = mv_timeout.
 
-    INSERT VALUE #( name  = `content-type`
-                    value = `application/json; charset=utf-8` ) INTO TABLE result-t_header.
+
+    CLEAR temp12.
+    temp12-name = `content-type`.
+    temp12-value = `application/json; charset=utf-8`.
+    INSERT temp12 INTO TABLE result-t_header.
     IF mv_api_key IS NOT INITIAL AND mv_auth_header IS INITIAL.
-      INSERT VALUE #( name  = `Authorization`
-                      value = |Bearer { mv_api_key }| ) INTO TABLE result-t_header.
+
+      CLEAR temp13.
+      temp13-name = `Authorization`.
+      temp13-value = |Bearer { mv_api_key }|.
+      INSERT temp13 INTO TABLE result-t_header.
     ELSEIF mv_api_key IS NOT INITIAL.
-      INSERT VALUE #( name  = mv_auth_header
-                      value = mv_api_key ) INTO TABLE result-t_header.
+
+      CLEAR temp14.
+      temp14-name = mv_auth_header.
+      temp14-value = mv_api_key.
+      INSERT temp14 INTO TABLE result-t_header.
     ENDIF.
 
   ENDMETHOD.
@@ -273,6 +311,7 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
     DATA lo_json TYPE REF TO z2ui5_if_ajson.
     DATA lv_message TYPE string.
+      DATA temp1 TYPE xsdboolean.
 
     TRY.
         lo_json = z2ui5_cl_ajson=>parse( is_response-body ).
@@ -292,11 +331,13 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
         lv_message = z2ui5_cl_ui5_util_context=>c_truncate( val = is_response-body
                                                            max  = 200 ).
       ENDIF.
+
+      temp1 = boolc( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING
           text        = |the Chat Completions endpoint answered HTTP { is_response-status } { is_response-reason } - { lv_message }|
           http_status = is_response-status
-          retryable   = xsdbool( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
+          retryable   = temp1.
     ENDIF.
 
     IF lo_json IS NOT BOUND.
@@ -323,10 +364,13 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_llm~chat.
 
-    DATA(ls_request) = build_request( system    = system
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    DATA ls_response TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
+    ls_request = build_request( system    = system
                                       t_message = t_message
                                       s_options = s_options ).
-    DATA(ls_response) = mi_http->post( ls_request ).
+
+    ls_response = mi_http->post( ls_request ).
     result = parse_response( ls_response ).
 
   ENDMETHOD.
