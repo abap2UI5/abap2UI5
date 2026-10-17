@@ -206,6 +206,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       IF ns CA `:`.
         raise( |namespace prefix '{ ns }' carries a colon - pass it without| ).
       ENDIF.
+      " a prefixed name of its own beside ns renders `core:x:Icon`
+      IF n CA `:`.
+        raise( |element name '{ n }' carries a prefix beside ns '{ ns }' - pass one of them| ).
+      ENDIF.
     ENDIF.
     result = NEW #( ).
     result->root = root.
@@ -299,9 +303,10 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     IF gv_name_chars IS INITIAL.
       gv_name_chars = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`.
     ENDIF.
-    " an XML name does not start with a digit, `.` or `-`
+    " an XML name does not start with a digit, `.` or `-`, and a namespace-aware
+    " parser refuses an empty prefix (`:x`)
     lv_first = val.
-    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-`.
+    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-:`.
       raise( |{ what } '{ val }' is not a valid XML name| ).
     ENDIF.
 
