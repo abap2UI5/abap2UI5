@@ -108,7 +108,8 @@ src/
 │   ├── 02/   handler, client, action, frontend, app_cont, srv_bind/_event/_model/_monitor, z2ui5_if_ui5_types
 │   ├── 03/   Embedded UI5 frontend — GENERATED from app/webapp/, never edit (rule 2)
 │   ├── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
-│   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http)
+│   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
+│             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
 ├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
 └── 99/   FROZEN legacy code — ships for downstream installations, zero in-repo consumers
 ```

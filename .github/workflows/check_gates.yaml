@@ -238,6 +238,14 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/generate-plugin.mjs --check # npm run check:plugin
 
+      # the app guide ships in every system as z2ui5_cl_ui5_llm_guide (behind
+      # z2ui5_cl_ui5_llm=>guide( )) - abapGit installs src/ only, and the
+      # assistants working in a system read its code, not this repository.
+      # A guide edited without `npm run guide-class` would install the old one
+      - name: the guide class in src/01/05 matches docs/agents/building-apps.md
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/generate-guide-class.mjs --check # npm run check:guide-class
+
       # the plugin's PostToolUse hook runs on every edit in every project the
       # plugin is enabled in - silent without the linter, a finding fed back
       # to the agent with it; the test drives it with hook payloads

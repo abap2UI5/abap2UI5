@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
++ z2ui5_cl_ui5_llm=>guide( ): the guide to building apps (docs/agents/building-apps.md) ships in the system, in the version of the release installed - for a model that writes apps and for the AI assistants that read the system's code rather than the repository. Generated into z2ui5_cl_ui5_llm_guide by npm run guide-class
 * z2ui5_cl_ui5_view_builder: an element or attribute name starting with a colon, and a prefixed name next to ns (ele( n = `x:Icon` ns = `core` )), raise instead of rendering a view no XML parser reads
 * z2ui5_if_ui5_llm: a temperature with a leading or trailing point (`.7`, `1.`) is refused before the request instead of going out as invalid JSON
 * message box and error texts: an int8 value is printed, with its sign in front
