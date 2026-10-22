@@ -1015,6 +1015,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         " the same in the monitor's log and on the user's screen
         DATA(lx_error) = NEW z2ui5_cx_ui5_util_error( val      = lv_context
                                                       previous = x ).
+        " A failed roundtrip of an app that is not sticky leaves the LUW as
+        " the failure left it: the db_rollback that follows the app's main( )
+        " in main_process never ran, and the end of the ICF dialog step
+        " COMMITS whatever the app wrote before it raised - a row that the
+        " same code without the raise would have rolled back. Rolled back
+        " here, as the success path would have, before the monitor runs (a
+        " monitor that commits its log entry then commits nothing of the
+        " app) and whether or not one is installed. Never for a sticky app,
+        " whose LUW the framework does not touch on the error path. Guarded:
+        " a failure in main_begin leaves no action or app behind
+        IF mo_action IS BOUND AND mo_action->mo_app IS BOUND AND mo_action->mo_app->mv_check_sticky = abap_false.
+          z2ui5_cl_ui5_util_context=>db_rollback( ).
+        ENDIF.
         monitor_notify( lx_error ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
@@ -1555,19 +1568,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " the error report, and a monitor must never break a roundtrip - it fails
     " open, see z2ui5_cl_ui5_srv_monitor=>get_monitor
     TRY.
+        " on the error path the app's LUW has already been rolled back by
+        " the CATCH in main( ) (for an app that is not sticky), so a monitor
+        " that commits its log entry commits nothing of the app
         DATA(ls_roundtrip) = monitor_roundtrip( ix_error ).
-
-        " A failed roundtrip of an app that is not sticky leaves the LUW as
-        " the failure left it: the db_rollback that follows the app's main( )
-        " in main_process never ran. Rolled back here, as the success path
-        " would have, so a monitor that commits its log entry commits nothing
-        " of the app. Only with a monitor installed - without one the request
-        " ends exactly as it always did - and never for a sticky app, whose
-        " LUW the framework does not touch on any path (main_process)
-        IF ls_roundtrip-check_error = abap_true AND ls_roundtrip-check_sticky = abap_false.
-          z2ui5_cl_ui5_util_context=>db_rollback( ).
-        ENDIF.
-
         mi_monitor->on_roundtrip( ls_roundtrip ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.

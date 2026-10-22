@@ -53,10 +53,8 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      if (raw == null || raw === "") return undefined;` && |\n| &&
              `      const path = Lib.modelPathOf(raw);` && |\n| &&
              `      if (!path) return raw;` && |\n| &&
-             `      const oView = oController?.getView?.();` && |\n| &&
-             `      const oModel = oView` && |\n| &&
-             `        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())` && |\n| &&
-             `        : undefined;` && |\n| &&
+             `` && |\n| &&
+             `      const oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
              `      const value = oModel?.getProperty(path);` && |\n| &&
              `      if (value == null) {` && |\n| &&
              `        Lib.logError(` && |\n| &&

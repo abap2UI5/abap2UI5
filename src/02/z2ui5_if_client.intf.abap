@@ -395,6 +395,10 @@ INTERFACE z2ui5_if_client
   "! apps that need GUI-like locking; see the Statefulness chapter. Two calls
   "! in one roundtrip cancel out - the state at the END of the roundtrip is what
   "! the server gets. Pair every switch on with a switch off on every exit path.
+  "! The framework still writes the draft of a stateful app when the URL
+  "! carries the app (hash routing, app state) and on every nav_app_call( ) /
+  "! nav_app_leave( ), and that write is a COMMIT WORK: a LUW the app keeps
+  "! open across roundtrips does not survive those paths.
   "!
   "! @parameter val | abap_true (the default) makes the session stateful,
   "!                  abap_false makes it stateless again.
@@ -601,7 +605,8 @@ INTERFACE z2ui5_if_client
   "! the object main( ) was called on, for a helper that only holds the
   "! client. With an id, the instance that draft holds, loaded from the
   "! database: that is how the previous app on the stack is reached
-  "! (get( )-s_draft-id_prev_app, which get_app_prev( ) does for you).
+  "! (get( )-s_draft-id_prev_app, which get_app_prev( ) does for you). The
+  "! running app's own draft id returns the in-memory instance, not a load.
   "!
   "! @parameter id | the draft id of the instance to load (get( )-s_draft-id,
   "!                  -id_prev_app, -id_prev_app_stack); empty for the

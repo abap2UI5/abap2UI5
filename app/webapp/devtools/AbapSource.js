@@ -26,12 +26,29 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
     return ctx?.state?.responseData?.S_FRONT?.APP || "";
   }
 
+  // The origin of the SYSTEM the app talks to: the page's own, unless the
+  // component was given an endpoint on another origin (an embedded
+  // component on a host's page, Component.init) - ADT lives next to the
+  // service node, not next to the host page, so a URL built from the
+  // page's origin 404ed there and the tab stayed blank.
+  function systemOrigin(ctx) {
+    const endpoint = ctx?.state?.endpoint;
+    if (endpoint) {
+      try {
+        return new URL(endpoint, window.location.href).origin;
+      } catch {
+        // an endpoint that does not parse: the page's origin stands
+      }
+    }
+    return window.location.origin;
+  }
+
   // The ADT REST endpoint that renders the running app's ABAP class
   // source. Empty when the app class name is unknown (no response yet).
   function sourceUrl(ctx) {
     const name = appName(ctx);
     if (!name) return "";
-    return `${window.location.origin}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main`;
+    return `${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main`;
   }
 
   // The ADT url, deep-linked at the handler of the event the last

@@ -52,10 +52,9 @@ sap.ui.define(
       if (raw == null || raw === "") return undefined;
       const path = Lib.modelPathOf(raw);
       if (!path) return raw;
-      const oView = oController?.getView?.();
-      const oModel = oView
-        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())
-        : undefined;
+      // the model of the slot the responding app filled (a popup app's
+      // arguments live in POPUP, not in the caller's MAIN)
+      const oModel = ViewSlots.responseModel(oController?.ctx, oController);
       const value = oModel?.getProperty(path);
       if (value == null) {
         Lib.logError(

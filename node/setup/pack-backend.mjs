@@ -34,6 +34,17 @@
  * it next to the trees). Renaming or moving any of the four is a change over
  * there first.
  *
+ * Next to the tarball goes `backend-<version>.tar.gz.sha256` - one line in
+ * sha256sum's format (`<hex>  backend-<version>.tar.gz`), written AFTER the
+ * archive passed its own listing below, so it digests what is shipped. The
+ * archive is code the consumer executes (`run_app` boots node/output), and
+ * a mirror reached over http or a proxy that rewrites the download is a way
+ * for other code to arrive under that name; the digest is what a consumer
+ * verifies before it unpacks (`sha256sum -c`, or Node's crypto). The digest
+ * cannot live in the manifest - the manifest is inside the archive it
+ * would describe - so it is a sidecar, and an ADDITION to the contract
+ * above, never a rename: a consumer that does not know it is unaffected.
+ *
  * `tar` through execFileSync with an ARGUMENT ARRAY, never a shell string -
  * the rule fetch-deps.mjs states for git, for the same reason. The CLI is on
  * ubuntu-latest, macOS and Windows 10+ (bsdtar there), and every flag below
@@ -43,13 +54,14 @@
  * afterwards and refused when a .git directory got in - a wrong asset is
  * worse than none, because the consumer would trust it.
  *
- *   node node/setup/pack-backend.mjs               backend-<version>.tar.gz at the root
+ *   node node/setup/pack-backend.mjs               backend-<version>.tar.gz (+ .sha256) at the root
  *   node node/setup/pack-backend.mjs --out <file>  somewhere else
  *
  * Refuses (exit 1) when the trees are not there and names the scripts that
  * produce them - the courtesy require-transpiled.mjs pays `npm run unit`.
  */
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -179,8 +191,12 @@ try {
     process.exit(1);
   }
 
+  const digest = createHash("sha256").update(fs.readFileSync(out)).digest("hex");
+  fs.writeFileSync(`${out}.sha256`, `${digest}  ${path.basename(out)}\n`);
+
   const mb = (fs.statSync(out).size / 1024 / 1024).toFixed(1);
   console.log(`pack-backend: ${path.relative(ROOT, out) || out} (${mb} MB, ${entries.length} entries)`);
+  console.log(`  sha256 ${digest} (${path.basename(out)}.sha256)`);
   console.log(
     `  version ${manifest.version}, commit ${manifest.commit ?? "unknown"},`
     + ` transpiler ${manifest.transpiler ?? "unknown"}, node ${manifest.node}`,

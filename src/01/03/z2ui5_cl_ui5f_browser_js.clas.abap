@@ -83,11 +83,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      const oView = oController?.getView?.();` && |\n| &&
              `` && |\n| &&
-             `      const oModel = oView` && |\n| &&
-             `        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())` && |\n| &&
-             `        : undefined;` && |\n| &&
+             `      const oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
              `      const value = oModel?.getProperty(path);` && |\n| &&
              `      if (value == null) {` && |\n| &&
              `        Lib.logError(``${action}: nothing bound at the model path '${path}'``);` && |\n| &&

@@ -47,6 +47,14 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     getController: () => undefined,
     // the framework model of a view: the fixtures carry it as __tracked
     trackedModel: (view) => view?.__tracked,
+    // ... and the one a handler-queued action reads: the spec runs in one
+    // context with no recorded slot owners, so the real resolver would
+    // fall back to the calling controller's view exactly like this
+    // (viewSlots.spec.js holds the slot resolution)
+    responseModel: (_ctx, c) => {
+      const v = c?.getView?.();
+      return v?.__tracked ?? v?.getModel?.();
+    },
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight

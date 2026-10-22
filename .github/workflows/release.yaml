@@ -80,7 +80,12 @@ jobs:
     # mismatch here costs a minute; catching it afterwards costs a version
     # number, because a tag that has been pushed has already been fetched.
     - name: The tag, the two versions and the changelog agree
-      run: node .github/scripts/release-gate.mjs ${{ github.ref_type == 'tag' && format('--tag {0}', github.ref_name) || '' }}
+      # the ref through env, never interpolated into the script, like every
+      # other workflow here - the tag glob above constrains it today, but a
+      # rule that holds by accident is one the next edit of the glob breaks
+      env:
+        TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+      run: node .github/scripts/release-gate.mjs ${TAG:+--tag "$TAG"}
 
     # On the exact commit being released. `verify` is the whole thing: abaplint
     # for standard and cloud, every gate, the downport, the transpiled unit

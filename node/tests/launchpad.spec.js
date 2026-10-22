@@ -38,6 +38,10 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
       // payload (browserActions spec)
       "z2ui5/core/ViewSlots": {
         trackedModel: (owner) => owner?.__tracked,
+        responseModel: (_ctx, c) => {
+          const v = c?.getView?.();
+          return v?.__tracked ?? v?.getModel?.();
+        },
       },
     },
     sandbox: {

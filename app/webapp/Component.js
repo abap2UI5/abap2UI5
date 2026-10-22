@@ -586,6 +586,13 @@ sap.ui.define(
         const ctx = this.ctx;
         if (!ctx?.alive) return;
         this._endApp();
+        // the page a plain swap replaced and has not destroyed yet (it
+        // waits for the new page's rendering, actions/Slots
+        // leaveOnceRendered) goes first - as the next MAIN display runs it
+        // first thing. Context.resetApp nulls the field below, and a page
+        // that was only removeAllPages()'d kept its exits (cc/Websocket,
+        // cc/Timer) from ever running
+        ctx.state.mainLeaving?.();
         ViewSlots.destroy(ctx, "MAIN");
         Context.resetApp(ctx);
         this.getRootControl()?.getController?.()?.startApp();

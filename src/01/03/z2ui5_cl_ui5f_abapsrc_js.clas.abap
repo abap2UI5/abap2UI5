@@ -34,10 +34,20 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `    return ctx?.state?.responseData?.S_FRONT?.APP || "";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function systemOrigin(ctx) {` && |\n| &&
+             `    const endpoint = ctx?.state?.endpoint;` && |\n| &&
+             `    if (endpoint) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        return new URL(endpoint, window.location.href).origin;` && |\n| &&
+             `      } catch {}` && |\n| &&
+             `    }` && |\n| &&
+             `    return window.location.origin;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function sourceUrl(ctx) {` && |\n| &&
              `    const name = appName(ctx);` && |\n| &&
              `    if (!name) return "";` && |\n| &&
-             `    return ``${window.location.origin}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
+             `    return ``${systemOrigin(ctx)}/sap/bc/adt/oo/classes/${encodeURIComponent(name)}/source/main``;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function adtUrl(ctx) {` && |\n| &&

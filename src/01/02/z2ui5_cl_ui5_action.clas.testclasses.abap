@@ -813,6 +813,9 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_saved = NEW #( ).
     lo_saved->mo_app = NEW ltcl_test_app( ).
     lo_saved->ms_draft-id = `STATE_RESTORE_DRAFT`.
+    " the stack and caller of the session the bookmark was made in
+    lo_saved->ms_draft-id_prev_app       = `DEAD_SESSION_CALLER`.
+    lo_saved->ms_draft-id_prev_app_stack = `DEAD_SESSION_STACK`.
     lo_saved->db_save( ).
 
     lo_http = NEW #( val = `` ).
@@ -824,6 +827,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_true( lo_result->ms_next-s_nav-set_app_state_active ).
     cl_abap_unit_assert=>assert_true( lo_result->mo_app->mv_app_state_active ).
+    " ... and it is a root of THIS session: neither the stack nor the
+    " caller of the dead session survive (get_app_prev would otherwise
+    " follow an expired draft into a 500)
+    cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app_stack ).
+    cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app ).
 
   ENDMETHOD.
 

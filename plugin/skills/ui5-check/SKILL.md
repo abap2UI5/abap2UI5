@@ -391,6 +391,28 @@ Not about names or layout — these only show up when the app runs.
 - **`sap.m.MessageBox` always closes on Escape** and offers no way to suppress
   it. A popup that must not be Escape-dismissable — the fatal-error overlay —
   is a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()`.
+- **`escapeHandler` as an XML attribute is a string on 1.71, and Escape
+  closes without it.** `sap.m.Dialog.escapeHandler` is declared
+  `{type: "any"}` in 1.71 (`sap/m/Dialog.js` of `@openui5/sap.m@1.71.0`;
+  it became `"function"` later, 1.120 has it so), and the XML template
+  processor runs `DataType("any").parseValue` on an attribute of that type
+  - which keeps the literal `".onEscape"`. Nothing resolves it against the
+  controller, nothing complains, and `Dialog.onsapescape` takes its plain
+  close branch because the property holds no function. Shipped in
+  `DeveloperTools.fragment.xml` (2026-10): the tools opened from the fatal
+  overlay's Details closed on Escape straight into the broken app, and the
+  error popup the `reopenErrorOnClose` flag was armed for never came back
+  (rule 16's failure mode, one dialog further). Newer releases resolve the
+  attribute to the controller method, so every spec and every e2e leg but
+  1.71 passed. Set the handler in code after the load -
+  `oDialog.setEscapeHandler((p) => this.onEscape(p))`, as
+  `core/ErrorView.js` builds its dialog with a function - and assert the
+  wire through what the dialog received, not by calling the method
+  (`developerTools.spec.js`). **Linter:** ready to move for a fragment the
+  linter reads: an `escapeHandler="..."` attribute on a `sap.m.Dialog` is
+  the whole detection, and `data/properties.json` already carries the
+  member's type per release; the view half cannot occur, a backend-built
+  view has no controller to name.
 - **An enum property REFUSES an empty string, and an EMPTIED aggregation hands
   it one.** Not "falls back to the default" — the control throws:
 

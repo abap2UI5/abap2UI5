@@ -135,11 +135,12 @@ sap.ui.define(
     // action, so a call means the same in both places (the follow_up_action
     // doc of z2ui5_if_client promises exactly that). The model is the one
     // the view wire would have read: the framework's tracked model of the
-    // calling view (ViewSlots.trackedModel - the named http> one in switch
-    // mode). Nothing bound at the path is logged and the argument kept as it
-    // came, so an action that reads a path itself (STORE_DATA, URLHELPER,
-    // CROSS_APP_NAV_TO_EXT - Lib.modelPathOf) still refuses it with its own
-    // line instead of running on an undefined.
+    // slot the responding app filled (ViewSlots.responseModel - the named
+    // http> one in switch mode; the calling view's when no slot is that
+    // app's). Nothing bound at the path is logged and the argument kept as
+    // it came, so an action that reads a path itself (STORE_DATA,
+    // URLHELPER, CROSS_APP_NAV_TO_EXT - Lib.modelPathOf) still refuses it
+    // with its own line instead of running on an undefined.
     function resolveBoundArgs(oController, args) {
       let oModel;
       let looked = false;
@@ -148,10 +149,7 @@ sap.ui.define(
         if (!path) return arg;
         if (!looked) {
           looked = true;
-          const oView = oController?.getView?.();
-          oModel = oView
-            ? (ViewSlots.trackedModel(oView) ?? oView.getModel?.())
-            : undefined;
+          oModel = ViewSlots.responseModel(oController?.ctx, oController);
         }
         const value = oModel?.getProperty(path);
         if (value === undefined || value === null) {

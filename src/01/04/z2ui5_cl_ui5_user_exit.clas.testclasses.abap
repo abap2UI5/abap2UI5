@@ -57,6 +57,21 @@ CLASS ltcl_exit_host IMPLEMENTATION.
 ENDCLASS.
 
 
+" A subclass of the shipped exit that redefines nothing - the shape a host
+" writes to "extend" the defaults. set_instance must install it as the
+" shipped instance, never as a customer exit the shipped body dispatches
+" to (reasoning at set_instance).
+CLASS ltcl_exit_subclass DEFINITION INHERITING FROM z2ui5_cl_ui5_user_exit FINAL.
+  PUBLIC SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_exit_subclass IMPLEMENTATION.
+ENDCLASS.
+
+
 CLASS ltcl_test_user_exit DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -78,6 +93,7 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_set_instance_shipped FOR TESTING RAISING cx_static_check.
     METHODS test_set_instance_host    FOR TESTING RAISING cx_static_check.
     METHODS test_set_instance_reset   FOR TESTING RAISING cx_static_check.
+    METHODS test_set_instance_subclass FOR TESTING RAISING cx_static_check.
     METHODS test_context_app_start   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_no_unsafe_eval  FOR TESTING RAISING cx_static_check.
     METHODS test_csp_wasm_unsafe_eval FOR TESTING RAISING cx_static_check.
@@ -388,6 +404,34 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
                                         act = ls_post-draft_exp_time_in_hours ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_post-check_csrf_active ).
+
+    z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_set_instance_subclass.
+
+    " a subclass of the shipped exit is the shipped instance: not named as
+    " an installed exit, not dispatched to - a non-redefined method is the
+    " shipped body, which would otherwise call itself through gi_user_exit
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+
+    DATA(lo_sub) = NEW ltcl_exit_subclass( ).
+    z2ui5_cl_ui5_user_exit=>set_instance( lo_sub ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5_user_exit=>gi_me = lo_sub ) ).
+    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
+
+    " returns with the defaults - the recursion would never get here
+    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
+    li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
+                                        act = ls_config-theme ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = ls_post-draft_exp_time_in_hours ).
 
     z2ui5_cl_ui5_user_exit=>set_instance( VALUE #( ) ).
 

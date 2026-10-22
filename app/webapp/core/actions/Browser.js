@@ -105,13 +105,11 @@ sap.ui.define(
         );
         return undefined;
       }
-      const oView = oController?.getView?.();
-      // the TRACKED framework model first, exactly as SET_SIZE_LIMIT
-      // resolves it: in switch mode the default slot holds the OData model
-      // and the app's bound structure lives in the JSON model under http>
-      const oModel = oView
-        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())
-        : undefined;
+      // the TRACKED framework model of the slot the responding app filled
+      // (ViewSlots.responseModel), exactly as SET_SIZE_LIMIT resolves it: in
+      // switch mode the default slot holds the OData model and the app's
+      // bound structure lives in the JSON model under http>
+      const oModel = ViewSlots.responseModel(oController?.ctx, oController);
       const value = oModel?.getProperty(path);
       if (value == null) {
         Lib.logError(`${action}: nothing bound at the model path '${path}'`);
