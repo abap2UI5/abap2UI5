@@ -141,7 +141,8 @@ ENDCLASS.
 `;
 }
 
-const XML_TEXT = `﻿<?xml version="1.0" encoding="utf-8"?>
+// The byte-order mark abapGit writes in front of every sidecar.
+const XML_TEXT = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_CLAS" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
