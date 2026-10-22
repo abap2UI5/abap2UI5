@@ -40,7 +40,10 @@
   // systems that installed it; the port did not (it builds the same XML). So
   // the findings are recorded here instead. Drop this `ignore` the day src/99
   // stops being frozen, and fix the list.
-  "ignore": ["/src/99/"],
+  // And the guide class: docs/agents/building-apps.md as string literals
+  // (.github/scripts/generate-guide-class.mjs). The builder calls in it are the
+  // guide's examples, text for a reader - not a view this class builds.
+  "ignore": ["/src/99/", "/src/01/05/z2ui5_cl_ui5_llm_guide."],
 
   // The oldest release abap2UI5 supports — the same floor the samples are held
   // to, and the reason it matters here is that a shipped app demonstrating a
