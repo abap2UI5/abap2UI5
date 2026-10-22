@@ -9,7 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5/playground `src/editor/transpile-core.mjs:55-60` and `:95-98` (2026-10): ''The transpiler restores nothing it changes: it replaces the registry''s …''; the playground sets the editor config back through the proxy and calls `reg.parse()` again; `docs/design/build-traps.md:220-222`'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/validation.ts:145-156`: `reg.setConfig(conf)` with no restore'
-  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/run-restores-registry-config` (fd69084) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/run-restores-registry-config` (fd69084) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
 checked_upstream: 2026-10-22
 ---
 
