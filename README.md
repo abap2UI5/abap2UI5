@@ -64,6 +64,8 @@ ENDCLASS.
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
+One thing stays yours: the framework performs no authority check of its own, so an app that guards business data checks its authorizations at the top of `main`, like a transaction does – see the [security model](docs/security.md#what-the-app-has-to-do).
+
 Next stop: the [sample catalogue](https://abap2ui5.github.io/playground/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration, searchable by control and by the UI5 release your system runs, and most of them one click from running in the browser – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
 ## Build with AI

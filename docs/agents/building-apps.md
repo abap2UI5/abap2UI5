@@ -742,8 +742,30 @@ The same tree, with the subtree held in a variable:
   anything not bound belongs in PROTECTED (or is re-read per request) — a
   bloated public section makes every click slower.
 - Authorization is **the app's job**: any user who can reach the ICF node can
-  start any `z2ui5_if_app` class. Check your authorizations at the top of
-  `main` and render an error/leave when denied.
+  start any `z2ui5_if_app` class. The framework performs no `AUTHORITY-CHECK`
+  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).
+  Check your authorizations at the top of `main`, before any dispatch, and
+  render an error when denied - the same place a transaction or a report
+  does it. The shipped Hello World has no check because it guards nothing;
+  an app that reads or writes business data starts like this:
+
+  ```abap
+  METHOD z2ui5_if_app~main.
+
+    AUTHORITY-CHECK OBJECT 'Z_MY_APP' ID 'ACTVT' FIELD '03'.
+    IF sy-subrc <> 0.
+      client->message_box_display( text = `You are not authorized to use this app`
+                                   type = `error` ).
+      RETURN.
+    ENDIF.
+
+    me->client = client.
+    IF client->check_on_init( ).
+    ...
+  ```
+
+  The check runs on every roundtrip, which is what you want: a revoked
+  authorization takes effect on the next click, not on the next cold start.
 - The default UI5 bootstrap loads from the CDN; system-local hosting and
   CSP/theme/bootstrap customizing go through `z2ui5_if_ui5_exit` /
   `z2ui5_cl_ui5_user_exit`.
