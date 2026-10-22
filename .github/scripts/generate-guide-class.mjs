@@ -79,12 +79,14 @@ function ascii(text) {
   return out;
 }
 
-const literal = (s) => `\`${s.replace(/`/g, "``")}\``;
+// An ABAP backtick literal has exactly one escape: a backtick is doubled.
+// A backslash means nothing in it, so there is nothing else to escape.
+const literal = (s) => `\`${s.split("`").join("``")}\``;
 
 // One line of the guide as ABAP lines: its pieces joined with &&, the last
 // one followed by the newline.
 function abapLines(line) {
-  const text = line.replace(/\s+$/, "");
+  const text = line.trimEnd();
   if (text === "") return [`${INDENT}|\\n| &&`];
   const pieces = [];
   for (let i = 0; i < text.length; i += PIECE) pieces.push(text.slice(i, i + PIECE));
@@ -97,7 +99,8 @@ export function guideClass(markdown) {
   lines.forEach((line, i) => {
     body.push(...abapLines(line));
     if ((i + 1) % STATEMENT_LINES === 0 && i + 1 < lines.length) {
-      body[body.length - 1] = body[body.length - 1].replace(/\s*&&$/, ".");
+      // the statement ends here: its last `&&` becomes the full stop
+      body[body.length - 1] = `${body[body.length - 1].slice(0, -" &&".length)}.`;
       body.push("    result = result &&");
     }
   });
