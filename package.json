@@ -37,6 +37,8 @@
     "check:backlog": "node .github/scripts/generate-backlog.mjs --check",
     "plugin": "node .github/scripts/generate-plugin.mjs",
     "check:plugin": "node .github/scripts/generate-plugin.mjs --check",
+    "guide-class": "node .github/scripts/generate-guide-class.mjs",
+    "check:guide-class": "node .github/scripts/generate-guide-class.mjs --check",
     "check:plugin-hook": "node .github/scripts/plugin-hook.test.mjs",
     "check:plugin-formats": "node .github/scripts/plugin-formats.test.mjs",
     "check:version": "node .github/scripts/version-sync-gate.mjs",

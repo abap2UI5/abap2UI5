@@ -71,8 +71,12 @@ for (const file of files) {
 
 // scanned: every package but the frozen one. src/99 is history only - never
 // changed, so a gate that governs change has nothing to decide there, and
-// its lower-case literals are event ids spelled like class names
-const scanned = files.filter(f => !f.startsWith("src/99/"));
+// its lower-case literals are event ids spelled like class names. Nor the
+// guide class: it is docs/agents/building-apps.md as string literals
+// (generate-guide-class.mjs), whose code spans name sample apps of the
+// other repositories - text for a reader, never a name looked up
+const GUIDE_CLASS = "src/01/05/z2ui5_cl_ui5_llm_guide.clas.abap";
+const scanned = files.filter(f => !f.startsWith("src/99/") && f !== GUIDE_CLASS);
 
 const findings = [];
 for (const file of scanned) {
