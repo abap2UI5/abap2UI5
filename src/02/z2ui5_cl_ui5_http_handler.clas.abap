@@ -513,9 +513,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     result = val.
     DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
-    " an exit that listed the hash itself gets no second copy
-    IF val IS INITIAL OR find( val = val
-                               sub = lv_source ) >= 0.
+    DATA(lv_source_lower) = to_lower( lv_source ).
+    IF val IS INITIAL.
       RETURN.
     ENDIF.
 
@@ -545,6 +544,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                     sub = `'sha` ) < 0
           AND find( val = lv_sources
                     sub = `'nonce-` ) < 0.
+        lv_offset = lv_stop.
+        CONTINUE.
+      ENDIF.
+      " an exit that listed the hash itself gets no second copy - decided
+      " per directive: it used to be one find( ) over the whole policy, so a
+      " hash the exit wrote into script-src kept script-src-elem (which
+      " governs <script> elements when present) from getting one, and the
+      " shell did not boot
+      IF find( val = lv_sources
+               sub = lv_source_lower ) >= 0.
         lv_offset = lv_stop.
         CONTINUE.
       ENDIF.
@@ -1212,6 +1221,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         IF so_sticky_handler IS BOUND.
           lo_post->mo_action = lo_action_before.
           CLEAR lo_post->mo_action->ms_next.
+          " ... and the sticky flag the app may have switched in this
+          " roundtrip (set_session_stateful) goes back to the request's
+          " start state too: the switch is applied to the ICF session only
+          " on the 200 path (set_response), so after a 500 the session is
+          " still stateful while a flag left at abap_false would clear
+          " so_sticky_handler below - the next event then ran on a fresh
+          " stateless handler against a draft that was never written
+          IF lo_action_before->mo_app IS BOUND.
+            lo_action_before->mo_app->mv_check_sticky = lo_action_before->mv_check_sticky_start.
+          ENDIF.
         ENDIF.
     ENDTRY.
 

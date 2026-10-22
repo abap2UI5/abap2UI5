@@ -802,6 +802,7 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_csp_hash_directives     FOR TESTING RAISING cx_static_check.
     METHODS test_csp_hash_header_value   FOR TESTING RAISING cx_static_check.
     METHODS test_csp_hash_once           FOR TESTING RAISING cx_static_check.
+    METHODS test_csp_hash_per_directive  FOR TESTING RAISING cx_static_check.
     METHODS test_csp_hash_security_hdr   FOR TESTING RAISING cx_static_check.
     METHODS test_shell_script_is_preload FOR TESTING RAISING cx_static_check.
     METHODS test_style_exit_element      FOR TESTING RAISING cx_static_check.
@@ -1591,6 +1592,25 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
         exp = |<meta http-equiv="Content-Security-Policy" content="script-src 'self' { lv_source }"/>|
         act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
                   `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_csp_hash_per_directive.
+
+    " the hash the exit listed in script-src does not count for
+    " script-src-elem: the browser reads the -elem directive for <script>
+    " elements when it is there, so it needs the hash of its own
+    DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
+    cl_abap_unit_assert=>assert_equals(
+        exp = |script-src 'self' { lv_source }; script-src-elem 'self' { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
+                  |script-src 'self' { lv_source }; script-src-elem 'self'| ) ).
+
+    " ... and the mirror case
+    cl_abap_unit_assert=>assert_equals(
+        exp = |script-src-elem 'self' { lv_source }; script-src 'self' { lv_source }|
+        act = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash(
+                  |script-src-elem 'self' { lv_source }; script-src 'self'| ) ).
 
   ENDMETHOD.
 

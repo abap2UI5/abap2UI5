@@ -312,6 +312,17 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     result-s_usage-output_tokens = lo_json->get_integer( `/usage/completion_tokens` ).
     result-text                  = lo_json->get_string( `/choices/1/message/content` ).
 
+    " a declined request: content is null and message.refusal says why -
+    " reported like the Claude provider's stop_reason refusal, not as a
+    " token limit
+    DATA(lv_refusal) = lo_json->get_string( `/choices/1/message/refusal` ).
+    IF result-text IS INITIAL AND lv_refusal IS NOT INITIAL.
+      result-stop_reason = z2ui5_if_ui5_llm=>cs_stop-refusal.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
+        EXPORTING
+          text        = |the model declined to answer (refusal) - { lv_refusal }|
+          http_status = is_response-status.
+    ENDIF.
     IF result-text IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING

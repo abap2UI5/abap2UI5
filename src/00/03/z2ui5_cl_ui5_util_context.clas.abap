@@ -3128,10 +3128,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " replaces below, unchanged
     IF gv_xml_escape_specials IS INITIAL.
       " the XML-illegal control characters as one string, so the CA scan
-      " stays a single statement; built from their UTF-8 bytes
+      " stays a single statement; built from their UTF-8 bytes. Behind them
+      " the two non-characters U+FFFE and U+FFFF (EF BF BE, EF BF BF): a
+      " legacy long text through a broken codepage conversion carries them,
+      " and the XMLView parser refuses the whole document for one of them
       TRY.
           gv_xml_escape_controls = conv_get_string_by_xstring(
-              CONV xstring( `000102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+              CONV xstring( `000102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F`
+                            && `EFBFBE` && `EFBFBF` ) ).
         CATCH z2ui5_cx_ui5_util_error.
           " No codepage API here (UNSUPPORTED_CODEPAGE_API). Degrade instead of
           " failing: the set stays empty, the CA scan below then matches no
@@ -3485,6 +3489,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD conv_decode_x_base64.
     DATA lv_web_http_name TYPE c LENGTH 19.
     DATA classname        TYPE c LENGTH 15.
+    DATA lx_first         TYPE REF TO cx_root.
 
     TRY.
 
@@ -3494,8 +3499,14 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             encoded = val
           RECEIVING
             decoded = result.
+        RETURN.
 
-      CATCH cx_root.
+      CATCH cx_root INTO lx_first ##NO_HANDLER.
+        " the cause is chained below if the classic API fails too - the
+        " two-TRY shape of conv_get_string_by_xstring, reasoning there
+    ENDTRY.
+
+    TRY.
 
         classname = `CL_HTTP_UTILITY`.
         CALL METHOD (classname)=>(`DECODE_X_BASE64`)
@@ -3504,6 +3515,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RECEIVING
             decoded = result.
 
+      CATCH cx_root.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `UNSUPPORTED_BASE64_API - neither CL_WEB_HTTP_UTILITY nor CL_HTTP_UTILITY could decode here`
+            previous = lx_first.
     ENDTRY.
 
   ENDMETHOD.
@@ -3511,6 +3527,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD conv_encode_x_base64.
     DATA lv_web_http_name TYPE c LENGTH 19.
     DATA classname        TYPE c LENGTH 15.
+    DATA lx_first         TYPE REF TO cx_root.
 
     TRY.
 
@@ -3520,8 +3537,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
             unencoded = val
           RECEIVING
             encoded   = result.
+        RETURN.
 
-      CATCH cx_root.
+      CATCH cx_root INTO lx_first ##NO_HANDLER.
+        " see conv_decode_x_base64
+    ENDTRY.
+
+    TRY.
 
         classname = `CL_HTTP_UTILITY`.
         CALL METHOD (classname)=>(`ENCODE_X_BASE64`)
@@ -3530,6 +3552,11 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           RECEIVING
             encoded   = result.
 
+      CATCH cx_root.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `UNSUPPORTED_BASE64_API - neither CL_WEB_HTTP_UTILITY nor CL_HTTP_UTILITY could encode here`
+            previous = lx_first.
     ENDTRY.
 
   ENDMETHOD.

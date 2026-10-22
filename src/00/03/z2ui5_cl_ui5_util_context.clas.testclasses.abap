@@ -502,6 +502,12 @@ CLASS ltcl_string IMPLEMENTATION.
                    && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab && lv_ff && `g`.
     cl_abap_unit_assert=>assert_equals( exp = `a&amp;b&lt;c&gt;d&quot;e'f&#xA;&#x9;g`
                                         act = z2ui5_cl_ui5_util_context=>c_escape_xml( lv_raw ) ).
+
+    " the non-characters U+FFFE and U+FFFF are dropped like a control
+    " character - the XMLView parser refuses the document for one of them
+    DATA(lv_nonchar) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `EFBFBE` && `EFBFBF` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `ab`
+                                        act = z2ui5_cl_ui5_util_context=>c_escape_xml( `a` && lv_nonchar && `b` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `plain`
                                         act = z2ui5_cl_ui5_util_context=>c_escape_xml( `plain` ) ).
 
@@ -2984,10 +2990,10 @@ CLASS ltcl_edge IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `zz_no_such_class_4711` ) ).
     cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `ZZ_NO_SUCH_CLASS_4711` ) ).
     cl_abap_unit_assert=>assert_false( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( `` ) ).
-    " an interface is no class
-    cl_abap_unit_assert=>assert_equals(
-        exp = z2ui5_cl_ui5_util_context=>rtti_check_class_exists( lv_name )
-        act = z2ui5_cl_ui5_util_context=>rtti_check_class_exists( to_lower( lv_name ) ) ).
+    " an interface resolves too - describe_by_name answers for every
+    " global type - and the lower-case spelling gets the same answer
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( lv_name ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>rtti_check_class_exists( to_lower( lv_name ) ) ).
 
   ENDMETHOD.
 

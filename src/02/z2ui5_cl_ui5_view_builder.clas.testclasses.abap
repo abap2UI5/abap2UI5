@@ -24,6 +24,7 @@ CLASS ltcl_builder DEFINITION FINAL FOR TESTING
     METHODS invalid_name_raises FOR TESTING.
     METHODS invalid_name_shapes_raise FOR TESTING.
     METHODS prefix_with_colon_raises FOR TESTING.
+    METHODS name_colon_shapes FOR TESTING.
     METHODS escape_quotes_cr_mixed FOR TESTING.
     METHODS escape_entity_is_text FOR TESTING.
     METHODS escape_unicode_passthrough FOR TESTING.
@@ -502,6 +503,41 @@ CLASS ltcl_builder IMPLEMENTATION.
                   v = `y`
         )->stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = `<z2ui5:Title_2 data-id="x" app:custom.key="y"/>`
+                                        act = lv_xml ).
+
+  ENDMETHOD.
+
+  METHOD name_colon_shapes.
+
+    " a trailing colon (the typo `xmlns:`) and a second colon pass the
+    " first-character check and used to render `xmlns:=""` / `<a::b/>`
+    DATA lt_bad TYPE string_table.
+    lt_bad = VALUE #( ( `xmlns:` ) ( `core:` ) ( `a::b` ) ( `a:b:c` ) ).
+
+    LOOP AT lt_bad INTO DATA(lv_bad).
+      DATA(view) = z2ui5_cl_ui5_view_builder=>factory( )->ele( `Panel` ).
+      TRY.
+          view->a( n = lv_bad
+                   v = `x` ).
+          cl_abap_unit_assert=>fail( |attribute name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_attr).
+          cl_abap_unit_assert=>assert_true( act = xsdbool( lx_attr->get_text( ) CS `is not a valid XML name` )
+                                            msg = lx_attr->get_text( ) ).
+      ENDTRY.
+      TRY.
+          view->tag( lv_bad ).
+          cl_abap_unit_assert=>fail( |element name '{ lv_bad }' must raise| ).
+        CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+    " one colon in the middle is a prefix and stays valid
+    DATA(lv_xml) = z2ui5_cl_ui5_view_builder=>factory(
+        )->tag( `core:Fragment`
+            )->a( n = `xmlns:core`
+                  v = `sap.ui.core`
+        )->stringify( ).
+    cl_abap_unit_assert=>assert_equals( exp = `<core:Fragment xmlns:core="sap.ui.core"/>`
                                         act = lv_xml ).
 
   ENDMETHOD.
