@@ -50,25 +50,33 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 
-    " The model exactly as the client is left holding it after this app's
-    " last response, as its digest (z2ui5_cl_ui5_util_context=>hash_string:
-    " 64 characters, or the JSON text itself where no digest class answers)
-    " - the digest of `{}` for an empty model, or INITIAL when
-    " unknown: a fresh app, a draft written before this attribute existed,
-    " or an incoming model delta that invalidated it
-    " (z2ui5_cl_ui5_action=>factory_by_frontend). It lives on the app - and
-    " therefore in its draft - so the next roundtrip reuses it as the
-    " pre-main( ) snapshot instead of serializing the whole model a second
-    " time (z2ui5_cl_ui5_handler=>main_process / main_end). Its one use is
-    " the EQUALITY with the model main( ) leaves behind, so the text itself
-    " never has to be stored: it was the largest part of a draft (173 of
-    " 440 KB at 4000 rows, 30 of 62 KB gzipped), written and read back on
-    " every roundtrip. Staleness leans one way only: a value that no longer
-    " matches re-serialization causes at most one redundant model push - it
-    " can never suppress a push the client needs, because it is only ever
-    " written to what the client was actually left holding, and cleared the
-    " moment incoming deltas touch the state it describes.
-    DATA mv_model_client_hash TYPE string.
+    " automatic model update: set when main( ) changed a bound value and the
+    " roundtrip then LEFT this app without a response of its own - a
+    " nav_app_call ends the dispatch iteration in factory_stack_call, and
+    " the change is never pushed. The next roundtrip this app answers
+    " (coming back from the called app) pushes the model even when its own
+    " main( ) changed nothing; main_end clears it with every display or
+    " push. It replaces the digest of the client model that used to live
+    " here (mv_model_client_hash, dropped 2026-10 - a draft written before
+    " carries a surplus element and does not deserialize any more, the same
+    " one-time break as the type_name note in z2ui5_if_ui5_types): the
+    " pre-main( ) snapshot is a copy of the bound values now
+    " (z2ui5_cl_ui5_srv_model=>main_snapshot), cheap enough to take on every
+    " roundtrip, so nothing about the client model has to survive a draft
+    " except this one bit
+    DATA mv_model_client_stale TYPE abap_bool.
+
+    "! the pre-main( ) snapshot of the bound values - see
+    "! z2ui5_cl_ui5_srv_model=>main_snapshot
+    METHODS model_snapshot
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_ui5_srv_model=>ty_t_snapshot.
+
+    METHODS model_snapshot_changed
+      IMPORTING
+        snapshot      TYPE z2ui5_cl_ui5_srv_model=>ty_t_snapshot
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     "! Refresh z2ui5_if_app~id_draft on the wrapped app. Not a courtesy: it is
     "! the handle db_load_by_app( ) resolves an app reference by, so it has to
@@ -309,6 +317,18 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD model_json_stringify.
 
     result = create_model( )->main_json_stringify( ).
+
+  ENDMETHOD.
+
+  METHOD model_snapshot.
+
+    result = create_model( )->main_snapshot( ).
+
+  ENDMETHOD.
+
+  METHOD model_snapshot_changed.
+
+    result = create_model( )->main_snapshot_changed( snapshot ).
 
   ENDMETHOD.
 

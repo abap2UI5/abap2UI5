@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! automatic model update: the pre-main( ) snapshot the handler compares against is a copy of the bound values (table sharing makes it free for everything main( ) leaves alone) instead of a digest of the serialized model - a delta roundtrip no longer serializes the whole model before main( ) runs, and an event roundtrip without a display serializes it only when it will be sent. The digest the draft carried for it (mv_model_client_hash) is gone: a draft written by the previous release does not deserialize any more, the roundtrip on it answers the error page once and the next start is a fresh app. z2ui5_cl_ui5_util_context=>hash_string( ), which existed for that digest, is removed
 * z2ui5_cl_ui5_view_builder: an element or attribute name starting with a colon, and a prefixed name next to ns (ele( n = `x:Icon` ns = `core` )), raise instead of rendering a view no XML parser reads
 * z2ui5_if_ui5_llm: a temperature with a leading or trailing point (`.7`, `1.`) is refused before the request instead of going out as invalid JSON
 * message box and error texts: an int8 value is printed, with its sign in front
