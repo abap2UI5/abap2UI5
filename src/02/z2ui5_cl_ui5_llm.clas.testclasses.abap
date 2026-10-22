@@ -49,7 +49,9 @@ CLASS ltcl_test IMPLEMENTATION.
     " in chained statements of 400 lines, and a lost statement would cut it
     DATA(lv_guide) = z2ui5_cl_ui5_llm=>guide( ).
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_guide CP `# Building apps with abap2UI5*` ) ).
+    " its first line at offset 0 - not CP, whose # escapes the next character
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = find( val = lv_guide sub = `# Building apps with abap2UI5` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_guide CS `z2ui5_if_app` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_guide CS `the user waits for the whole answer.` ) ).
 
