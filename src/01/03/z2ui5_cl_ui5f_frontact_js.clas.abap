@@ -111,10 +111,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `        if (!path) return arg;` && |\n| &&
              `        if (!looked) {` && |\n| &&
              `          looked = true;` && |\n| &&
-             `          const oView = oController?.getView?.();` && |\n| &&
-             `          oModel = oView` && |\n| &&
-             `            ? (ViewSlots.trackedModel(oView) ?? oView.getModel?.())` && |\n| &&
-             `            : undefined;` && |\n| &&
+             `          oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
              `        }` && |\n| &&
              `        const value = oModel?.getProperty(path);` && |\n| &&
              `        if (value === undefined || value === null) {` && |\n| &&

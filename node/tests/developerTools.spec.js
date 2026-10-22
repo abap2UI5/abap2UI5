@@ -1294,6 +1294,71 @@ test.describe("show()", () => {
     return { data: models[0]?.getData(), storage, DeveloperTools };
   };
 
+  // On 1.71 `escapeHandler` is a property of type "any": written as an XML
+  // attribute the dialog received the literal string ".onEscape" and its
+  // onsapescape closed without the handler - the tools opened from the
+  // error popup's Details closed on Escape into the broken app, and the
+  // popup never came back. So the handler is set in code after the load,
+  // and this is where the wire is asserted: through what the dialog got.
+  test("sets the escape handler in code, and Escape runs onEscape", async () => {
+    const models = [];
+    const reopenCalls = [];
+    let escapeHandler;
+    const dialog = {
+      setModel: (m) => models.push(m),
+      open() {
+        this._open = true;
+      },
+      close() {
+        this._open = false;
+      },
+      isOpen() {
+        return Boolean(this._open);
+      },
+      setEscapeHandler: (fn) => (escapeHandler = fn),
+    };
+    const { DeveloperTools } = loadDeveloperTools({
+      storage: {},
+      responseData: { S_FRONT: {} },
+      errors: [],
+      reopenCalls,
+      fragment: {
+        load: async () => dialog,
+        byId: () => ({ setContent() {} }),
+      },
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          errors: [],
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard() {},
+        },
+        "sap/ui/model/json/JSONModel": class {
+          constructor(data) {
+            this.data = data;
+          }
+          getData() {
+            return this.data;
+          }
+          refresh() {}
+        },
+      },
+      extraSandbox: {
+        sap: { ui: { require: (_mods, resolve) => resolve() } },
+        fetch: async () => ({ ok: false }),
+      },
+    });
+    await DeveloperTools.show();
+    expect(typeof escapeHandler).toBe("function");
+
+    DeveloperTools.reopenErrorOnClose = true;
+    let rejected = false;
+    escapeHandler({ reject: () => (rejected = true), resolve() {} });
+    expect(rejected).toBe(true);
+    expect(dialog.isOpen()).toBe(false);
+    expect(reopenCalls.length).toBe(1);
+  });
+
   test("seeds the app class name into the dialog title", async () => {
     // The fragment binds the title to a plain /title property.
     const { data } = await openTools({

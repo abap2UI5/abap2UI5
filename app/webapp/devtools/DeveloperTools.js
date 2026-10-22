@@ -650,7 +650,13 @@ sap.ui.define(
       // sap.m.Dialog closes on Escape without routing through onClose;
       // handle it ourselves (reject the default, run our close) so Escape
       // behaves exactly like the Close button - including re-showing the
-      // error popup.
+      // error popup. Wired in show() with setEscapeHandler, not as an XML
+      // attribute: on 1.71 `escapeHandler` is a property of type "any"
+      // (it became "function" later), so the XML processor keeps the
+      // literal ".onEscape" and the dialog's onsapescape finds no function
+      // - Escape closed the tools without this method, and the error popup
+      // the Details action came from was never re-shown (the ui5-check
+      // skill, section 4, has the evidence).
       onEscape(oPromise) {
         oPromise.reject();
         this.close();
@@ -671,6 +677,10 @@ sap.ui.define(
               controller: this,
               id: this.fragmentId(),
             });
+            // see onEscape: a function set in code works on every release
+            this.oDialog.setEscapeHandler?.((oPromise) =>
+              this.onEscape(oPromise),
+            );
           }
           // If the user closed the app while the fragment was loading we
           // must throw the freshly created dialog away.

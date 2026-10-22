@@ -17,8 +17,9 @@ function loadAbapSource({
   eventLine = 0,
   windowStub,
   fetchImpl,
+  endpoint = null,
 } = {}) {
-  const ctx = specContext({ responseData, oBody });
+  const ctx = specContext({ responseData, oBody, endpoint });
   const { module } = loadModule("devtools/AbapSource.js", {
     deps: {
       "z2ui5/devtools/Inspect": { findEventLine: () => eventLine },
@@ -43,6 +44,42 @@ const EXPECTED_URL =
 test.describe("Source url", () => {
   test("builds the ADT source endpoint for the running app", () => {
     const { AbapSource, ctx } = loadAbapSource({ responseData: { S_FRONT: { APP } } });
+    expect(AbapSource.sourceUrl(ctx)).toBe(EXPECTED_URL);
+  });
+
+  // An embedded component may talk to a system on ANOTHER origin
+  // (componentData.endpoint, Component.init): ADT lives next to the service
+  // node, not next to the host page - built from the page's origin the url
+  // 404ed there and the tab stayed blank
+  test("takes the origin of the endpoint when the app talks to another origin", () => {
+    const { AbapSource, ctx } = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      endpoint: "https://abap.example.com:44300/sap/bc/z2ui5",
+      windowStub: {
+        location: {
+          origin: "https://portal.example.com",
+          href: "https://portal.example.com/host/index.html",
+        },
+        open() {},
+      },
+    });
+    expect(AbapSource.sourceUrl(ctx)).toBe(
+      "https://abap.example.com:44300/sap/bc/adt/oo/classes/Z2UI5_CL_MY_APP/source/main",
+    );
+  });
+
+  test("a relative endpoint keeps the page's origin", () => {
+    const { AbapSource, ctx } = loadAbapSource({
+      responseData: { S_FRONT: { APP } },
+      endpoint: "/proxy/sap/bc/z2ui5",
+      windowStub: {
+        location: {
+          origin: "https://sap.example.com",
+          href: "https://sap.example.com/index.html",
+        },
+        open() {},
+      },
+    });
     expect(AbapSource.sourceUrl(ctx)).toBe(EXPECTED_URL);
   });
 

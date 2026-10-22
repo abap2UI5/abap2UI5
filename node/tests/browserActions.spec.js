@@ -114,6 +114,10 @@ function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
       // does - through the TRACKED framework model when there is one
       "z2ui5/core/ViewSlots": {
         trackedModel: (owner) => owner?.__tracked,
+        responseModel: (_ctx, c) => {
+          const v = c?.getView?.();
+          return v?.__tracked ?? v?.getModel?.();
+        },
       },
     },
     sandbox: {

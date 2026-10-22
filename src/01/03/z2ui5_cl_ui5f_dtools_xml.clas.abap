@@ -31,10 +31,13 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <!-- The title is a plain model property; show() assembles the string. -->` &&
+             `    <!-- No escapeHandler attribute here: on 1.71 the property is typed` &&
+             `         "any", so the XML processor hands the dialog the literal string` &&
+             `         ".onEscape" and Escape closes without the handler. DeveloperTools` &&
+             `         sets it in code after Fragment.load (ui5-check skill, section 4). -->` &&
              `    <Dialog` &&
              `        title="{/title}"` &&
              `        stretch="true"` &&
-             `        escapeHandler=".onEscape"` &&
              `    >` &&
              `        <!-- Six groups instead of twenty-two flat tabs. They are ordered` &&
              `             the way a debugging session runs: what is going on, what` &&

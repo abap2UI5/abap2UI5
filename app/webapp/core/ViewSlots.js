@@ -226,6 +226,37 @@ sap.ui.define(
       return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
     }
 
+    // The model a HANDLER-queued action of the last response reads its
+    // `${/X}` arguments from: the framework model of the slot the
+    // responding app filled. The custom actions always run on the MAIN
+    // controller (Server.responseSuccess), but a response carries the
+    // model of ONE app, and MAIN need not be its: an app called only to
+    // open a dialog (nav_app_call to a popup app) has its model in POPUP
+    // while MAIN still shows the caller - resolved against MAIN, its
+    // `${/FIELD}` found nothing (or the caller's value of the same name).
+    // MAIN first, so a same-app popup over the app's own page keeps
+    // reading the shared root model; a slot without a recorded owner
+    // never matches. Falls back to the calling controller's view when no
+    // slot is the responding app's (a slot filled before any response
+    // named an app, a stub controller).
+    function responseModel(ctx, oController) {
+      const app = ctx?.state?.oResponse?.APP;
+      let oView;
+      if (app) {
+        for (const slot of slots) {
+          if (getViewApp(ctx, slot.key) !== app) continue;
+          const candidate = getView(ctx, slot.key);
+          if (candidate) {
+            oView = candidate;
+            break;
+          }
+        }
+      }
+      if (!oView) oView = oController?.getView?.();
+      if (!oView) return undefined;
+      return trackedModel(oView) ?? oView.getModel?.();
+    }
+
     // Mark a model path as edited on the framework model `owner` binds to,
     // so the next roundtrip from that slot ships it in the delta - what the
     // model's own propertyChange does for a bound control, for a companion
@@ -377,6 +408,7 @@ sap.ui.define(
       resolveById,
       containingSlotKey,
       trackedModel,
+      responseModel,
       markChanged,
       destroy,
       detach,

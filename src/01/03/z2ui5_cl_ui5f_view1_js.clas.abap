@@ -29,7 +29,6 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/m/MessageBox",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
@@ -41,7 +40,6 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
-             `    MessageBox,` && |\n| &&
              `    Server,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
@@ -78,12 +76,18 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
              `        try {` && |\n| &&
              `          const state = this.ctx.state;` && |\n| &&
-             `          if (oResponse.APP && state.renderedApp !== oResponse.APP) {` && |\n| &&
-             `            if (state.renderedApp) {` && |\n| &&
+             `          const previousApp = state.renderedApp;` && |\n| &&
+             `          if (oResponse.APP && previousApp !== oResponse.APP) {` && |\n| &&
+             `            if (previousApp) {` && |\n| &&
              `              ViewSlots.destroy(this.ctx, "POPUP");` && |\n| &&
              `              ViewSlots.destroy(this.ctx, "POPOVER");` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
+             `            state.oQueuedEvent = null;` && |\n| &&
+             `            state.renderedApp = oResponse.APP;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          if (this._replacesMainOwner(oResponse, previousApp)) {` && |\n| &&
              `            state.shortcuts = Object.create(null);` && |\n| &&
              `            state.treeStates = Object.create(null);` && |\n| &&
              `            state.tableStates = Object.create(null);` && |\n| &&
@@ -93,9 +97,6 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            state.hashEvent = null;` && |\n| &&
              `            state.appHash = "";` && |\n| &&
              `            state.pendingAppHash = null;` && |\n| &&
-             `` && |\n| &&
-             `            state.oQueuedEvent = null;` && |\n| &&
-             `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (oResponse.S_ACTION) {` && |\n| &&
@@ -155,6 +156,23 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `            Router.dispatchPendingAppHash(this.ctx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _replacesMainOwner(oResponse, previousApp) {` && |\n| &&
+             `        if (!oResponse?.APP) return false;` && |\n| &&
+             `        const systemJs = oResponse.S_ACTION?.T_SYSTEM;` && |\n| &&
+             `        const displaysMain =` && |\n| &&
+             `          Array.isArray(systemJs) &&` && |\n| &&
+             `          systemJs.some(` && |\n| &&
+             `            (item) =>` && |\n| &&
+             `              Array.isArray(item) &&` && |\n| &&
+             `              item[0] === "VIEW_SLOTS" &&` && |\n| &&
+             `              item[1] === "display" &&` && |\n| &&
+             `              item[2] === "MAIN",` && |\n| &&
+             `          );` && |\n| &&
+             `        if (!displaysMain) return false;` && |\n| &&
+             `        const owner = ViewSlots.getViewApp(this.ctx, "MAIN") ?? previousApp;` && |\n| &&
+             `        return owner !== oResponse.APP;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _runSystemActions(oResponse, seq) {` && |\n| &&
@@ -287,13 +305,6 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const [, , , useMainModel, queueLast, noBusy] = args[0];` && |\n| &&
-             `` && |\n| &&
-             `        if (!navigator.onLine) {` && |\n| &&
-             `          MessageBox.alert(` && |\n| &&
-             `            "No internet connection! Please reconnect to the server and try again.",` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
              `` && |\n| &&
              `        if (this.ctx.state.isBusy) {` && |\n| &&
              `          if (queueLast) {` && |\n| &&

@@ -11,7 +11,6 @@ sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
     "sap/ui/core/BusyIndicator",
-    "sap/m/MessageBox",
     "z2ui5/core/Server",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
@@ -23,7 +22,6 @@ sap.ui.define(
   (
     Controller,
     BusyIndicator,
-    MessageBox,
     Server,
     Lib,
     FrontendAction,
@@ -98,11 +96,32 @@ sap.ui.define(
           // instance of the SAME class is invisible here - the backend
           // queues the teardown for exactly that case.)
           const state = this.ctx.state;
-          if (oResponse.APP && state.renderedApp !== oResponse.APP) {
-            if (state.renderedApp) {
+          const previousApp = state.renderedApp;
+          if (oResponse.APP && previousApp !== oResponse.APP) {
+            if (previousApp) {
               ViewSlots.destroy(this.ctx, "POPUP");
               ViewSlots.destroy(this.ctx, "POPOVER");
             }
+            // ... and the event a check_queue_last wire kept while the
+            // roundtrip ran: it was typed into the leaving app's view, and
+            // the dispatch below (_dispatchQueuedEvent) would otherwise
+            // send it under the NEW app's draft id, where the backend
+            // routes it to an app that never registered the event
+            state.oQueuedEvent = null;
+            state.renderedApp = oResponse.APP;
+          }
+          // The state an app OWNS goes when its PAGE goes - not when the
+          // response merely names another app. An app called only to open
+          // a dialog (nav_app_call to a popup app, the shape every
+          // z2ui5_cl_pop_* has) answers two responses under its own name
+          // while MAIN keeps the caller's view: resetting on the name alone
+          // left the caller, once the dialog closed, with its shortcuts
+          // dead, its hash listener gone, its tree snapshots lost and its
+          // tables capped by the default size limit. So the reset asks who
+          // filled MAIN (ViewSlots.getViewApp) and whether this response
+          // replaces it - BEFORE the system actions, since the new app
+          // registers its shortcuts and takes its tree snapshots in them.
+          if (this._replacesMainOwner(oResponse, previousApp)) {
             // the leaving app's keyboard shortcuts die with it - the new app
             // registers its own (actions/Shortcuts documents this reset) -
             // and so do its tree-expansion snapshots, which are keyed by the
@@ -129,13 +148,6 @@ sap.ui.define(
             state.hashEvent = null;
             state.appHash = "";
             state.pendingAppHash = null;
-            // ... and the event a check_queue_last wire kept while the
-            // roundtrip ran: it was typed into the leaving app's view, and
-            // the dispatch below (_dispatchQueuedEvent) would otherwise
-            // send it under the NEW app's draft id, where the backend
-            // routes it to an app that never registered the event
-            state.oQueuedEvent = null;
-            state.renderedApp = oResponse.APP;
           }
           // No early return on an empty action list: a response without any
           // action still gets its model push, its hash sync and the
@@ -288,6 +300,30 @@ sap.ui.define(
       // carries the request stamp (so the slot displays can discard a build
       // a newer parallel request superseded) and the response record (so the
       // ROUTER action stashes its options on the response they belong to).
+      // Does this response put ANOTHER app's page on MAIN? True when it
+      // carries a MAIN display and the app answering is not the one that
+      // filled MAIN (ViewSlots.getViewApp; before any slot recorded an
+      // owner, the app rendered before this response stands in). A
+      // popup-only app's responses carry no MAIN display, and a same-app
+      // re-display carries one for the same owner - neither replaces the
+      // page.
+      _replacesMainOwner(oResponse, previousApp) {
+        if (!oResponse?.APP) return false;
+        const systemJs = oResponse.S_ACTION?.T_SYSTEM;
+        const displaysMain =
+          Array.isArray(systemJs) &&
+          systemJs.some(
+            (item) =>
+              Array.isArray(item) &&
+              item[0] === "VIEW_SLOTS" &&
+              item[1] === "display" &&
+              item[2] === "MAIN",
+          );
+        if (!displaysMain) return false;
+        const owner = ViewSlots.getViewApp(this.ctx, "MAIN") ?? previousApp;
+        return owner !== oResponse.APP;
+      },
+
       async _runSystemActions(oResponse, seq) {
         const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
@@ -564,12 +600,13 @@ sap.ui.define(
         }
         const [, , , useMainModel, queueLast, noBusy] = args[0];
 
-        if (!navigator.onLine) {
-          MessageBox.alert(
-            "No internet connection! Please reconnect to the server and try again.",
-          );
-          return;
-        }
+        // No navigator.onLine gate here: a browser reports "offline" for a
+        // host without a default route (a VPN-only adapter, an intranet
+        // without internet) while the ABAP system is reachable, and the
+        // gate answered every click - and every START_TIMER tick, whose
+        // slot is deleted before it fires - with an alert and no roundtrip.
+        // A real network failure is reported by the fetch itself, with a
+        // Retry (Server.responseError).
 
         // A roundtrip is already in flight and this event's keystroke/click is
         // dropped. Surface the global busy indicator right away (0 delay)
