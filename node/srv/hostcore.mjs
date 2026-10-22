@@ -310,18 +310,22 @@ export function exclusive(fn) {
 const SESSION_HEADER = "sap-contextid";
 // session id -> { handler, owner, last } - see STATEFUL SESSIONS above
 const sessions = new Map();
-const sessionLimits = { ttlMs: 30 * 60 * 1000, max: 1000 };
+const sessionLimits = { ttlMs: 30 * 60 * 1000, max: 1000, secure: false };
 
 /**
  * Set how long an idle stateful session is kept (`ttlMs`, default 30
  * minutes) and how many are kept at most (`max`, default 1000; the least
  * recently used goes first). Returns the limits now in force.
- * @param {{ ttlMs?: number, max?: number }} [limits]
- * @returns {{ ttlMs: number, max: number }}
+ * `secure` marks the session cookie `Secure`, for a host behind TLS - off by
+ * default because the dev server answers plain http, where a Secure cookie
+ * never comes back and every request would open a new session.
+ * @param {{ ttlMs?: number, max?: number, secure?: boolean }} [limits]
+ * @returns {{ ttlMs: number, max: number, secure: boolean }}
  */
-export function configureSessions({ ttlMs, max } = {}) {
+export function configureSessions({ ttlMs, max, secure } = {}) {
   if (Number.isFinite(ttlMs) && ttlMs > 0) sessionLimits.ttlMs = ttlMs;
   if (Number.isInteger(max) && max > 0) sessionLimits.max = max;
+  if (typeof secure === "boolean") sessionLimits.secure = secure;
   return { ...sessionLimits };
 }
 
@@ -431,7 +435,7 @@ export async function withSession(req, res, fn, { owner = "" } = {}) {
     sweepSessions(Date.now());
     if (!answer || !sessions.has(id)) return;
     if (asHeader) res.append(SESSION_HEADER, id);
-    else res.append("Set-Cookie", `${SESSION_HEADER}=${id}; Path=/; HttpOnly; SameSite=Lax`);
+    else res.append("Set-Cookie", `${SESSION_HEADER}=${id}; Path=/; HttpOnly; SameSite=Lax${sessionLimits.secure ? "; Secure" : ""}`);
   };
 
   const hadOwnSend = Object.prototype.hasOwnProperty.call(res, "send");

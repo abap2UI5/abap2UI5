@@ -85,9 +85,15 @@ const MODES = {
     const file = join(ROOT, "abaplint.jsonc");
     const before = readFileSync(file, "utf8");
     const after = before.replaceAll('"files": "/../../src/**/*.*"', '"files": "/src/**/*.*"');
+    // Loud, never a silent pass: this mode runs right after abap_702.jsonc
+    // was copied over abaplint.jsonc, so the glob IS there or the copy (or
+    // the glob string in abap_702.jsonc) changed. "Nothing to do" here once
+    // meant the 702 branch kept a config pointing at /../../src, over which
+    // abaplint lints zero files and reports green.
     if (after === before) {
-      console.log("abaplint-path: abaplint.jsonc carries no /../../src glob - nothing to do");
-      return;
+      console.error("abaplint-path: abaplint.jsonc carries no \"/../../src/**/*.*\" glob to rewrite");
+      console.error("  expected the copy of .github/abaplint/abap_702.jsonc - did its \"files\" glob change? Then change the string here too.");
+      process.exit(1);
     }
     writeFileSync(file, after);
     console.log("abaplint-path: abaplint.jsonc glob rewritten to /src/**/*.*");

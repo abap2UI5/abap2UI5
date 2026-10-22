@@ -124,8 +124,13 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         VERSION="$(node -p "require('./package.json').version")"
-        gh release upload "$TAG" "backend-$VERSION.tar.gz" --clobber --repo "$GITHUB_REPOSITORY"
-        echo "attached backend-$VERSION.tar.gz to release $TAG"
+        # the .sha256 sidecar pack-backend wrote next to it (its header says
+        # what a consumer does with it) - the tarball is code the consumer
+        # runs, and the digest is how it tells the archive built here from
+        # one a mirror or a proxy handed it
+        sha256sum -c "backend-$VERSION.tar.gz.sha256"
+        gh release upload "$TAG" "backend-$VERSION.tar.gz" "backend-$VERSION.tar.gz.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+        echo "attached backend-$VERSION.tar.gz and its .sha256 to release $TAG"
 
     # --- the same build, as an npm package -------------------------------
     #

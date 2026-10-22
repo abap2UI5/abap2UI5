@@ -25,6 +25,8 @@
  *                                            for a tag, e.g. to re-attach the
  *                                            backend, must not go red on the
  *                                            npm half
+ *   the registry could not be asked     -> exit 1: a timeout or a 5xx is
+ *                                            not "not there" (see published)
  *
  * A stored NPM_TOKEN still works and takes precedence - the fallback for an
  * organisation that has not moved to trusted publishing. The workflow hands
@@ -60,7 +62,29 @@ try {
 }
 
 const npm = (...argv) => spawnSync("npm", argv, { encoding: "utf8" });
-const published = (spec) => npm("view", spec, "version").status === 0;
+
+/* "Is it on the registry?" has THREE answers, not two. `npm view` exits 1 for
+ * a package that is not there AND for a registry it could not reach, and the
+ * first version of this script read both as "not there" - so a registry
+ * timeout during the publish step fell through to the bootstrap warning and
+ * exit 0, and a release went green with nothing published. Only the
+ * registry's own 404 (`error.code` E404 in the --json output) means "not
+ * there"; everything else is a failure this script cannot interpret, and a
+ * failure it cannot interpret is a red step, never a pass. */
+function published(spec) {
+  const run = npm("view", spec, "version", "--json");
+  if (run.status === 0) return true;
+  let error;
+  try {
+    error = JSON.parse(run.stdout).error;
+  } catch {
+    error = undefined;
+  }
+  if (error && /^E404$/i.test(String(error.code ?? ""))) return false;
+  console.error(`::error::npm view ${spec} failed and it was not a 404 - the registry could not be asked whether the package exists`);
+  console.error(run.stderr || run.stdout || `(exit ${run.status}, signal ${run.signal})`);
+  process.exit(1);
+}
 
 if (published(`${name}@${version}`)) {
   console.log(`npm-publish: ${name}@${version} is already on the registry - nothing to do`);

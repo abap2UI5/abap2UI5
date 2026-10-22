@@ -47,9 +47,12 @@ permissions:
 
 jobs:
   # Doc-only changes (about one commit in five) skip the expensive jobs
-  # below: nothing in docs/, backlog/, .claude/, a *.md file or the
-  # changelog is an input to the transpile, the unit suites or the browser
-  # legs. This is a job-level `if`, NOT a paths-ignore on the trigger, on
+  # below: nothing in docs/, backlog/, .claude/, skills/, a ROOT *.md file
+  # or the changelog is an input to the transpile, the unit suites or the
+  # browser legs. Root only: a *.md deeper in the tree can be a build input
+  # (node/setup/npm.README.md ships inside @abap2ui5/node-runtime and
+  # pack-npm.mjs refuses to pack without it), so it counts as code. This
+  # is a job-level `if`, NOT a paths-ignore on the trigger, on
   # purpose: a job skipped by its condition still reports a check run
   # (conclusion: skipped), which satisfies branch protection - a workflow
   # that never triggers reports nothing and a required check would block the
@@ -76,7 +79,7 @@ jobs:
           files=$(git diff --name-only "$BASE" "$HEAD")
           echo "changed files:"
           echo "$files"
-          if [ -n "$files" ] && ! echo "$files" | grep -qvE '^(docs/|backlog/|\.claude/|\.github/ISSUE_TEMPLATE/|LICENSE$|changelog\.txt$|llms\.txt$)|\.md$'; then
+          if [ -n "$files" ] && ! echo "$files" | grep -qvE '^(docs/|backlog/|\.claude/|skills/|\.github/ISSUE_TEMPLATE/|LICENSE$|changelog\.txt$|llms\.txt$)|^[^/]+\.md$'; then
             code=false
           fi
         fi
