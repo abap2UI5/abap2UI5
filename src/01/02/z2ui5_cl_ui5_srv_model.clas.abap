@@ -38,6 +38,35 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " automatic model update: the pre-main( ) snapshot of the bound values,
+    " one copy per attribute the JSON loop would serialize. A COPY, not the
+    " serialized model: assigning an internal table or a string to another
+    " data object shares its body until one side is written (table sharing),
+    " so the snapshot costs nothing for an attribute main( ) leaves alone -
+    " and comparing it afterwards is a memory compare, not an ajson tree, a
+    " stringify and a digest over it. The references live on the handler
+    " for one dispatch iteration and never enter the draft
+    TYPES:
+      BEGIN OF ty_s_snapshot,
+        name   TYPE string,
+        o_data TYPE REF TO data,
+      END OF ty_s_snapshot.
+    TYPES ty_t_snapshot TYPE SORTED TABLE OF ty_s_snapshot WITH UNIQUE KEY name.
+
+    METHODS main_snapshot
+      RETURNING
+        VALUE(result) TYPE ty_t_snapshot.
+
+    "! true when a bound value differs from its snapshot, or is bound now
+    "! and was not when the snapshot was taken - the attribute filter is
+    "! the one of main_json_stringify, so what is compared is what would
+    "! be serialized
+    METHODS main_snapshot_changed
+      IMPORTING
+        snapshot      TYPE ty_t_snapshot
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
@@ -614,6 +643,68 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                              iv_path  = lv_node
                              iv_name  = lr_attri->name ).
       ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_snapshot.
+
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <copy> TYPE any.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true
+               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+
+      ASSIGN lr_ref->* TO <val>.
+      DATA lr_copy TYPE REF TO data.
+      CREATE DATA lr_copy LIKE <val>.
+      ASSIGN lr_copy->* TO <copy>.
+      <copy> = <val>.
+      INSERT VALUE #( name   = lr_attri->name
+                      o_data = lr_copy ) INTO TABLE result.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_snapshot_changed.
+
+    FIELD-SYMBOLS <val>  TYPE any.
+    FIELD-SYMBOLS <copy> TYPE any.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE bind = abap_true
+               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
+               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
+
+      " bound by this main( ): the client holds no value for it yet
+      READ TABLE snapshot REFERENCE INTO DATA(lr_snap) WITH TABLE KEY name = lr_attri->name.
+      IF sy-subrc <> 0.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+
+      ASSIGN lr_ref->* TO <val>.
+      ASSIGN lr_snap->o_data->* TO <copy>.
+      IF <val> <> <copy>.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+
     ENDLOOP.
 
   ENDMETHOD.
