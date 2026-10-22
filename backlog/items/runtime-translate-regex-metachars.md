@@ -10,6 +10,7 @@ evidence:
   - 'measured 2026-10-22 on abaplint/transpiler main 53a708f (runtime 2.14.10) with `runFiles`: `s = translate( val = ''a]b[c'' from = '']'' to = ''x'' ).` writes `a]b[c` (a system: `axb[c`)'
   - 'the cause, read in the same checkout - `packages/runtime/src/builtin/translate.ts:33-34`: `const reg = new RegExp("[" + from + "]", "g"); val = val.replace(reg, m => chars[m] || "")`'
   - 'samples-controls `src/02/01/z2ui5_cl_smpc_app_651.clas.abap:195-197` (2026-10-20): three `replace( … occ = 0 )` calls instead of `translate( from = `[]"` to = `` )` because the transpiled `translate( )` reads FROM as a regex class; `.claude/skills/e2e-debugging/SKILL.md:205-206`'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/translate-no-regex` (e4ee2af) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
 checked_upstream: 2026-10-22
 ---
 

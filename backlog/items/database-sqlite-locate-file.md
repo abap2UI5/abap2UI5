@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5/playground `src/runtime/db-setup.mjs:15-31` (2026-10): ''leaves sql.js to guess where its .wasm file is - and emscripten''s guess is wrong as soon as the page is not at the site root … so the client is subclassed for that one line'' (`BrowserSQLiteClient`); the web build ships `sql-wasm-browser.wasm` with a `locateFile` of its own'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/database-sqlite/src/index.ts:12-17`: the constructor takes `{trace}` only and `connect( )` calls `initSqlJs()` with no config'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `feat/sqlite-sqljs-config` (a642e23) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
 checked_upstream: 2026-10-22
 ---
 

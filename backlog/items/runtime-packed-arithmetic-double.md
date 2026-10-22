@@ -12,6 +12,7 @@ evidence:
   - 'abap2UI5 `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:1889-1893` (`time_get_seconds`): DIV/MOD on a 14-digit timestamp is worth about 4 ms of resolution, `20261003101500.35` is `20261003101500.34765625` there - the method reads the digits from the string form instead'
   - 'abap2UI5 `node/setup/abap_transpile.json` skips `Z2UI5_CL_AJSON ltcl_abap_to_json->set_value_timestampl` because `lv_timestampl + ''0.1234567''` answers `.1245184` - an addition, attributed so far to the copy item runtime-packed-copy-precision (#1962), which does not cover it'
   - 'abaplint/transpiler#1962 (open on 2026-10-22) adds the `Packed`-to-`Packed` copy branch in `Packed.set( )` and rescales typed assignments; the operators are untouched by it. Searched the tracker 2026-10-22 for packed arithmetic / DIV / MOD: nothing'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/packed-arithmetic-exact` (6af00ba) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
 checked_upstream: 2026-10-22
 ---
 

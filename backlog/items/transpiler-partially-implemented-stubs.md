@@ -10,6 +10,7 @@ evidence:
   - 'measured 2026-10-22 on abaplint/transpiler main 53a708f with `runFiles`: `INTERFACE lif. METHODS a. METHODS b RETURNING VALUE(r) TYPE i. ENDINTERFACE. CLASS lcl DEFINITION FOR TESTING. PUBLIC SECTION. INTERFACES lif PARTIALLY IMPLEMENTED. ENDCLASS.` implementing only `lif~a`, then `v = lo->b( )` → `TypeError: lo.get(...).lif$b is not a function`; a system answers `v = 0`'
   - 'read in the same checkout: no handling of the `PARTIALLY IMPLEMENTED` flag anywhere under `packages/transpiler/src` (grep -i partially: nothing); `statements/class_implementation.ts` emits only the methods the implementation has'
   - 'abap2UI5 `src/01/01/z2ui5_cl_ui5_srv_draft.clas.testclasses.abap:1-3` (''the transpiled runtime generates no stubs for a PARTIALLY IMPLEMENTED interface''), `src/01/05/z2ui5_cl_ui5_llm_guide.clas.abap:866`, `docs/agents/building-apps.md:830`; found 2026-09-19 in the app-template''s `ltd_client` (`.claude/skills/abap-check/SKILL.md`, section 4); the vscode-extension writes the warning into every generated `check.yml` (`src/scaffold.ts:503-509`) and the mcp-server README (`:540-543`) repeats it'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/partially-implemented-stubs` (aa05377) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
 checked_upstream: 2026-10-22
 ---
 

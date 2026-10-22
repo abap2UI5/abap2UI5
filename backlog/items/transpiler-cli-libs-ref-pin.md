@@ -10,6 +10,7 @@ evidence:
   - 'abap2UI5 `node/setup/fetch-deps.mjs:2-7` (2026-09): ''abap_transpile.json only take a URL, so the same commit could … build green today and red tomorrow''; `node/setup/transpile.mjs:196-224`, `pack-npm.mjs:174-216` record and re-fetch the commits for hosts; `.github/scripts/transpile-pins-gate.mjs` (`check_gates.yaml:111-117`) keeps the config and the pins in sync'
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs` clones open-abap-core ''at a pinned sha'' itself for the same reason; abap2UI5/playground `tools/build-framework.mjs` uses a `deps/` folder'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/cli/src/types.ts` libs: `url?`, `folder?`, `files?`, `exclude_filter?`; `packages/cli/src/git_clone.ts` clones with no revision; `libraries.ts:56-67`'
+  - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `feat/cli-libs-ref` (338b6d8) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests).'
 checked_upstream: 2026-10-22
 ---
 
