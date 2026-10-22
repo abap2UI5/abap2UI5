@@ -402,6 +402,8 @@ again:
 - **`_bind` writing back from the client model is by design** — do not split `_bind` / `_bind_edit` again, and do not
   report it as mass assignment.
 - **`changelog.txt`** is the changelog; no `CHANGELOG.md`.
+- **A sticky app's draft is committed where it is written** (KEEP routing, app state, every nav hop, the first-start
+  cleanup) — stated at the sites and on `set_session_stateful`; the shipped store gets no secondary DB connection.
 - **The second model serialization in `z2ui5_cl_ui5_handler=>main_process`** on delta roundtrips is deliberate.
 - **The developer tools are split** — the facade, the console capture and the recorder in the preload, the rest in
   the devtools bundle (`?z2ui5-bundle=devtools`, loaded on the first Ctrl+F12); do not move a module across that line

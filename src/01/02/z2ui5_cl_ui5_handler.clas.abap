@@ -1173,6 +1173,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " and drop the saved state without a word
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL
         OR ms_request-s_control-app_start_draft IS NOT INITIAL.
+      " on every first start, a bookmark or route restore included (each
+      " Back/Forward under KEEP routing re-creates the app and lands here):
+      " one DELETE and a COMMIT WORK per such request, inside an existing
+      " stateful session too - the first start of an app is the one request
+      " on which a sticky app's LUW is empty by definition, and a restore
+      " builds a fresh instance the same way (decisions.md, "The draft of a
+      " sticky app")
       z2ui5_cl_ui5_srv_draft=>get_instance( )->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
@@ -1454,7 +1461,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " shared link landed in factory_first_start's CATCH - "bookmarked app
       " state expired" and a fresh app. The draft is saved for exactly
       " these two modes; a sticky app that asked for neither keeps skipping
-      " the serialization
+      " the serialization. The save is a COMMIT WORK AND WAIT (srv_draft),
+      " and so is the one prepare_app_stack does on every nav hop: a LUW the
+      " sticky app keeps open across roundtrips ends on these paths, and
+      " the locks it holds go with it. Decided to stay so (decisions.md,
+      " "The draft of a sticky app"): the draft is what makes the URL and
+      " the hop survivable, the store is a seam an installation can put on
+      " a connection of its own, and z2ui5_if_client=>set_session_stateful
+      " tells the app which roundtrips commit
       mo_action->mo_app->db_save( ).
     ELSE.
       " a sticky session skips the draft save, but the lifecycle latch must

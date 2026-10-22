@@ -161,12 +161,16 @@ Four decisions, each written at its code site as well:
   the first there, so neither means the same in the transpiled runtime as on a
   system.
 - **The LUW is clean when the monitor runs, unless the app is sticky.** On
-  success the draft save has committed; on failure `monitor_notify` rolls back
-  first — the rollback that follows the app's `main( )` in `main_process`
-  never ran — so a monitor's `COMMIT WORK` commits only its own entry. It does
-  so only while a monitor is installed (without one nothing changed) and never
-  for a sticky app, whose LUW the framework does not touch on any path; the
-  interface tells the implementation not to commit then.
+  success the draft save has committed; on failure the CATCH in `main( )`
+  rolls back before the monitor is notified — the rollback that follows the
+  app's `main( )` in `main_process` never ran — so a monitor's `COMMIT WORK`
+  commits only its own entry. That rollback happens with or without a
+  monitor installed (since 2026-10-22; before, only with one, and the
+  implicit commit at the end of the ICF dialog step persisted what the app
+  had written before it raised). Never for a sticky app: on the error path
+  the framework does not touch its LUW, and on the success path it commits
+  it only where it writes the draft — see "The draft of a sticky app" in
+  `decisions.md`; the interface tells the implementation not to commit then.
 
 Not monitored: the page request (GET), HEAD, and a POST the CSRF gate
 rejects — none of them runs an app.

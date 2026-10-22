@@ -32,7 +32,11 @@
 "! hold uncommitted work and locks across roundtrips, which a COMMIT WORK
 "! here would commit or release. Do not commit then: keep the entry and write
 "! it on a later roundtrip that is not sticky, or through a database
-"! connection of its own.
+"! connection of its own. The framework itself commits a sticky app's LUW on
+"! the roundtrips that write its draft - a route or app-state link carrying
+"! the draft id, and every nav_app_call( ) / nav_app_leave( ) - and the app
+"! guide says so; on an ordinary event roundtrip it does not touch the LUW,
+"! and this flag cannot tell the two apart, so the rule above holds either way.
 "! The framework offers no commit helper - its utility class is not
 "! released API - so an implementation issues COMMIT WORK itself.
 INTERFACE z2ui5_if_ui5_monitor
