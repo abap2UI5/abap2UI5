@@ -3,15 +3,18 @@ target: open-abap
 title: 'runtime: GET TIME STAMP FIELD into a TIMESTAMPL adds the milliseconds through a JS double - at a whole minute the stamp reads 10:33:99,999 and cl_abap_tstmp=>add( ) dies with a JS RangeError'
 summary: '`getTime( )` in `statements/get_time.ts` fills a `p LENGTH 11 DECIMALS 7` target as `stamp.set(stamp.get() + decimals)` - a 21-digit value through a `Number` that holds 15 to 17 - so the last digits are noise; when the clock is on a whole second with a millisecond of 0 or 1 the noise goes below the second (`20261014053400` becomes `20261014053399.9984128`), the ISO rendering is `05:33:99`, and `cl_abap_tstmp=>add( )` ends in `RangeError: Invalid time value` from `toISOString( )`, which no CATCH sees. The release job of abap2UI5 1.147.0 hit it: `npm run unit` ran `zcl_serializer_live`''s `test_sweep_expiry` at 05:34:00 UTC'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/issues/2002
 first_seen: 2026-10-14
 upstream: abaplint/transpiler
+checked_upstream: 2026-10-22
 evidence:
   - 'the release of abap2UI5 1.147.0 (2026-10-14): backend-prebuilt run 38517095016, job `attach`, step "The transpiled backend runs its unit suite" - `ZCL_SERIALIZER_LIVE: running ltcl_test->test_sweep_expiry` then `RangeError: Invalid time value at Date.toISOString at cl_abap_tstmp.add (open-abap-core/cl_abap_tstmp.clas.mjs:156) at cl_abap_tstmp.subtractsecs at z2ui5_cl_ui5_util_context.time_subtract_seconds at zcl_serializer_live.sweep`; the step ended at 05:34:00 UTC. The same tree was green under `npm run verify` on two machines minutes before and after (the clock was on another second), and green on the re-run of the job at 06:12'
   - 'measured 2026-10-14 on `@abaplint/runtime` 2.14.3 (`node/output` of abap2UI5 at d771abad): a `Packed({length: 11, decimals: 7})` set to `20261014103400` and then, as `getTime( )` does, `set(get() + 0.000)` formats as `2026-10-14T10:33:99,9990784`; set to `20261014053100` plus `0.000` or `0.001` as `05:30:99,9984128`; `20261013235959` plus `0.999` as `23:59:60,0013312`. Every value whose seconds are `00` and whose millisecond part is 0 or 1 goes below the second; the rest keep noise inside their own second (`053357.1234567` becomes `053357.1229…`), which is invisible until a comparison or a diff'
   - 'the cause, read in the 2.14.3 package - `build/src/statements/get_time.js`: `options.stamp.set(date + time)` (exact, a string) and then `options.stamp.set(options.stamp.get() + decimals)` with the comment "parsing to float will make it imprecise, ie. filling the nanoseconds part with garbage, which is what we want"; `Packed.get( )` is `Number(this.value) / 10 ** decimals` and `numberToScaled( )` is `BigInt(Math.round(value * factor))` - 20261014053400 * 1e7 is 2.03e20, past 2^53'
   - 'the second half of the chain is `runtime-packed-copy-precision` (abaplint/transpiler#1962, open on 2026-10-14): the short `timestamp` that `cl_abap_tstmp=>add( )` answers goes into the caller''s `timestampl` through the same double, so a `20261014103400` the test computed as "five hours later" arrives as `10:33:99` by that path even with `getTime( )` fixed. Both fixes are needed for the chain above to be safe at every second of the day'
   - 'the same chain is production code on the node runtime, not only the test: `zcl_serializer_live=>sweep( )` and `z2ui5_cl_ui5_http_handler`''s draft cleanup both do `time_get_timestampl( )` then `time_subtract_seconds( )`, so the draft sweep timer of `@abap2ui5/node-runtime` (`initialize({ draftSweepMs })`, every five minutes) dies with the same `RangeError` when it fires on a `:00.000` or `:00.001` clock - about two in sixty thousand sweeps'
+  - 'filed 2026-10-14 as abaplint/transpiler#2002 (issue, body as below, names #1962 as the companion); re-read 2026-10-22 - open, no comment, no linked branch or PR, `get_time.ts` unchanged at abaplint/transpiler main 53a708f (2.14.10). The PR is prepared on that main: the three-line change plus a deterministic runtime test (`packages/runtime/test/statements/get_time.ts`, the clock fixed per case) that fails on main with the four values above and passes with the fix; the runtime suite, the transpiled-ABAP GET TIME tests and eslint are green'
 ---
 
 # `GET TIME STAMP FIELD` into a `timestampl` goes through a JS double
@@ -121,13 +124,14 @@ the way `getTime( )` does for `20261014103400` and 0 ms, expect
 
 ## How to file
 
-An issue against abaplint/transpiler, body as above; a PR if wanted - the
-change is the three lines in `packages/runtime/src/statements/get_time.ts`
-plus a runtime test. Name abaplint/transpiler#1962 as the companion.
+Filed as abaplint/transpiler#2002 on 2026-10-14 (issue, body as above).
+The PR is prepared: the three lines in
+`packages/runtime/src/statements/get_time.ts` plus the runtime test
+`packages/runtime/test/statements/get_time.ts` (clock fixed per case, the
+four values of the table), named "Closes #2002", with
+abaplint/transpiler#1962 as the companion.
 
-1. Search the abaplint/transpiler tracker first and record the date in
-   `checked_upstream:` (2026-10-14: the tracker was not reachable from the
-   session that wrote this item - search it before filing).
-2. Open the issue or the PR.
-3. Set `state: filed` and `filed: <url>` here, run `npm run backlog`, commit.
-4. When it ships, bump `@abaplint/runtime` in abap2UI5 and delete this item.
+1. Open the PR from the prepared commit (branch `fix/get-time-stamp-exact`
+   on a fork of abaplint/transpiler).
+2. Set `filed:` here to the PR, run `npm run backlog`, commit.
+3. When it ships, bump `@abaplint/runtime` in abap2UI5 and delete this item.
