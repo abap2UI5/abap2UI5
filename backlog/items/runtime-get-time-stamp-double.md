@@ -14,7 +14,7 @@ evidence:
   - 'the cause, read in the 2.14.3 package - `build/src/statements/get_time.js`: `options.stamp.set(date + time)` (exact, a string) and then `options.stamp.set(options.stamp.get() + decimals)` with the comment "parsing to float will make it imprecise, ie. filling the nanoseconds part with garbage, which is what we want"; `Packed.get( )` is `Number(this.value) / 10 ** decimals` and `numberToScaled( )` is `BigInt(Math.round(value * factor))` - 20261014053400 * 1e7 is 2.03e20, past 2^53'
   - 'the second half of the chain is `runtime-packed-copy-precision` (abaplint/transpiler#1962, open on 2026-10-14): the short `timestamp` that `cl_abap_tstmp=>add( )` answers goes into the caller''s `timestampl` through the same double, so a `20261014103400` the test computed as "five hours later" arrives as `10:33:99` by that path even with `getTime( )` fixed. Both fixes are needed for the chain above to be safe at every second of the day'
   - 'the same chain is production code on the node runtime, not only the test: `zcl_serializer_live=>sweep( )` and `z2ui5_cl_ui5_http_handler`''s draft cleanup both do `time_get_timestampl( )` then `time_subtract_seconds( )`, so the draft sweep timer of `@abap2ui5/node-runtime` (`initialize({ draftSweepMs })`, every five minutes) dies with the same `RangeError` when it fires on a `:00.000` or `:00.001` clock - about two in sixty thousand sweeps'
-  - 'filed 2026-10-14 as abaplint/transpiler#2002 (issue, body as below, names #1962 as the companion); re-read 2026-10-22 - open, no comment, no linked branch or PR, `get_time.ts` unchanged at abaplint/transpiler main 53a708f (2.14.10). The PR is prepared on that main: the three-line change plus a deterministic runtime test (`packages/runtime/test/statements/get_time.ts`, the clock fixed per case) that fails on main with the four values above and passes with the fix; the runtime suite, the transpiled-ABAP GET TIME tests and eslint are green'
+  - 'filed 2026-10-14 as abaplint/transpiler#2002 (issue, body as below, names #1962 as the companion); re-read 2026-10-22 - open, no comment, no linked branch or PR, `get_time.ts` unchanged at abaplint/transpiler main 53a708f (2.14.10). The PR is prepared on that main: the three-line change plus a deterministic runtime test (`packages/runtime/test/statements/get_time.ts`, the clock fixed per case) that fails on main with the four values above and passes with the fix; the runtime suite, the transpiled-ABAP GET TIME tests and eslint are green; pushed 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/get-time-stamp-exact` (8807232)'
 ---
 
 # `GET TIME STAMP FIELD` into a `timestampl` goes through a JS double
@@ -131,7 +131,8 @@ The PR is prepared: the three lines in
 four values of the table), named "Closes #2002", with
 abaplint/transpiler#1962 as the companion.
 
-1. Open the PR from the prepared commit (branch `fix/get-time-stamp-exact`
-   on a fork of abaplint/transpiler).
+1. Open the PR from `oblomov-dev/fork-transpiler`, branch `fix/get-time-stamp-exact`
+   (commit 8807232 on abaplint/transpiler main 53a708f): title and body are
+   the commit message.
 2. Set `filed:` here to the PR, run `npm run backlog`, commit.
 3. When it ships, bump `@abaplint/runtime` in abap2UI5 and delete this item.
