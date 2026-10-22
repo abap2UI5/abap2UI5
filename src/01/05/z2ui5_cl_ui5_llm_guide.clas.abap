@@ -777,8 +777,30 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  anything not bound belongs in PROTECTED (or is re-read per request) - a` && |\n| &&
              `  bloated public section makes every click slower.` && |\n| &&
              `- Authorization is **the app's job**: any user who can reach the ICF node can` && |\n| &&
-             `  start any ``z2ui5_if_app`` class. Check your authorizations at the top of` && |\n| &&
-             `  ``main`` and render an error/leave when denied.` && |\n| &&
+             `  start any ``z2ui5_if_app`` class. The framework performs no ``AUTHORITY-CHECK``` && |\n| &&
+             `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n| &&
+             `  Check your authorizations at the top of ``main``, before any dispatch, and` && |\n| &&
+             `  render an error when denied - the same place a transaction or a report` && |\n| &&
+             `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
+             `  an app that reads or writes business data starts like this:` && |\n| &&
+             |\n| &&
+             `  ``````abap` && |\n| &&
+             `  METHOD z2ui5_if_app~main.` && |\n| &&
+             |\n| &&
+             `    AUTHORITY-CHECK OBJECT 'Z_MY_APP' ID 'ACTVT' FIELD '03'.` && |\n| &&
+             `    IF sy-subrc <> 0.` && |\n| &&
+             `      client->message_box_display( text = ``You are not authorized to use this app``` && |\n| &&
+             `                                   type = ``error`` ).` && |\n| &&
+             `      RETURN.` && |\n| &&
+             `    ENDIF.` && |\n| &&
+             |\n| &&
+             `    me->client = client.` && |\n| &&
+             `    IF client->check_on_init( ).` && |\n| &&
+             `    ...` && |\n| &&
+             `  ``````` && |\n| &&
+             |\n| &&
+             `  The check runs on every roundtrip, which is what you want: a revoked` && |\n| &&
+             `  authorization takes effect on the next click, not on the next cold start.` && |\n| &&
              `- The default UI5 bootstrap loads from the CDN; system-local hosting and` && |\n| &&
              `  CSP/theme/bootstrap customizing go through ``z2ui5_if_ui5_exit`` /` && |\n| &&
              `  ``z2ui5_cl_ui5_user_exit``.` && |\n| &&
@@ -810,7 +832,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md` && |\n| &&
              `  and the agent permission setup preconfigured.` && |\n| &&
              `- **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks` && |\n| &&
-             `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n| &&
+             `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n|.
+    result = result &&
              `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
              `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n| &&
              `  available as a GitHub Action and inside the VS Code extension.` && |\n| &&
@@ -832,8 +855,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``ltd_client`` with ``INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.`` in` && |\n| &&
              `  the class's ``.clas.testclasses.abap`` answers ``check_on_init`` /` && |\n| &&
              `  ``check_on_event`` / ``get_event`` from attributes and records what` && |\n| &&
-             `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n|.
-    result = result &&
+             `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
              `  calls ``main( )`` and asserts.` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
              `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&

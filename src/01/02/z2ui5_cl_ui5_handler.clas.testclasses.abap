@@ -40,6 +40,25 @@ CLASS ltcl_app_noop DEFINITION FINAL.
   PRIVATE SECTION.
 ENDCLASS.
 
+" binds a value, changes it and leaves through nav_app_call in one main( )
+CLASS ltcl_app_change_call DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA name TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_change_call IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    client->_bind( name ).
+    name = `changed before the hop`.
+    client->nav_app_call( NEW ltcl_app_noop( ) ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_app_noop IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
@@ -309,10 +328,38 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
         iv_slot       TYPE string
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    " a handler on a fresh ltcl_app_noop whose CHECK_INIT is bound - the
+    " auto-model-update tests need one attribute the snapshot can see
+    METHODS noop_bound
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_handler.
 ENDCLASS.
 
 
 CLASS ltcl_00_base IMPLEMENTATION.
+
+  METHOD noop_bound.
+
+    result = NEW #( val = `` ).
+    DATA(lo_app) = NEW ltcl_app_noop( ).
+    result->mo_action->mo_app->mo_app      = lo_app.
+    result->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+
+    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = result->mo_action->mo_app->mt_attri
+                                                  app  = lo_app ).
+    " main_attri_refresh runs the (private) dissolve pass - on this fresh,
+    " unbound model it is a pure dissolve, which is all the test needs
+    lo_model->main_attri_refresh( ).
+    READ TABLE result->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
+         WITH KEY name = `CHECK_INIT`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_attri->bind        = abap_true.
+    lr_attri->name_client = `/CHECK_INIT`.
+
+  ENDMETHOD.
 
   METHOD system_actions_of.
 
@@ -1380,10 +1427,10 @@ CLASS ltcl_02_response DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_auto_update_same FOR TESTING RAISING cx_static_check.
     METHODS test_nested_display_push FOR TESTING RAISING cx_static_check.
     METHODS test_auto_update_snapshot FOR TESTING RAISING cx_static_check.
-    METHODS test_model_client_stored FOR TESTING RAISING cx_static_check.
-    METHODS test_model_client_unchanged FOR TESTING RAISING cx_static_check.
-    METHODS test_snapshot_reuses_client FOR TESTING RAISING cx_static_check.
-    METHODS test_delta_drops_client FOR TESTING RAISING cx_static_check.
+    METHODS test_stale_forces_push FOR TESTING RAISING cx_static_check.
+    METHODS test_display_clears_stale FOR TESTING RAISING cx_static_check.
+    METHODS test_new_binding_pushes FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_call_marks_stale FOR TESTING RAISING cx_static_check.
     METHODS test_system_slot_order FOR TESTING RAISING cx_static_check.
     METHODS test_system_last_wins FOR TESTING RAISING cx_static_check.
     METHODS test_system_empty FOR TESTING RAISING cx_static_check.
@@ -1539,14 +1586,13 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    " the snapshot differs from the model after main( ) - the model is sent
-    " exactly as an explicit view_model_update( ) would send it, with no app
-    " opt-in of any kind: automatic model update is always on
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    " a bound value differs from its snapshot after main( ) - the model is
+    " sent exactly as an explicit view_model_update( ) would send it, with
+    " no app opt-in of any kind: automatic model update is always on
+    lo_handler = noop_bound( ).
+    lo_handler->mt_model_before       = lo_handler->mo_action->mo_app->model_snapshot( ).
     lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = `<other model state>`.
+    CAST ltcl_app_noop( lo_handler->mo_action->mo_app->mo_app )->check_init = abap_true.
 
     lo_handler->main_end( ).
 
@@ -1564,12 +1610,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " main( ) changed nothing - the response stays `{}` and no update flag is
     " set, so an idle event round-trip carries no model payload as before
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    lo_handler = noop_bound( ).
+    lo_handler->mt_model_before       = lo_handler->mo_action->mo_app->model_snapshot( ).
     lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = z2ui5_cl_ui5_util_context=>hash_string(
-                                            lo_handler->mo_action->mo_app->model_json_stringify( ) ).
 
     lo_handler->main_end( ).
 
@@ -1612,8 +1655,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    " main_process always has a before-main snapshot - taken fresh here,
-    " since a fresh app carries no stored client model to reuse
+    " main_process always takes a before-main snapshot
     lo_handler = NEW #( val = `` ).
     lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
@@ -1625,102 +1667,86 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_model_client_stored.
+  METHOD test_stale_forces_push.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    " a pushed model is exactly what the client is left holding - main_end
-    " stores it on the app, and the next roundtrip of this app reuses it as
-    " its pre-main( ) snapshot instead of serializing the model again
+    " a change this app made and never pushed (it left through nav_app_call)
+    " is flagged on the app: the roundtrip that brings the user back pushes
+    " the model although THIS main( ) changed nothing, and settles the flag
+    lo_handler = noop_bound( ).
+    lo_handler->mt_model_before       = lo_handler->mo_action->mo_app->model_snapshot( ).
+    lo_handler->mv_model_before_taken = abap_true.
+    lo_handler->mo_action->mo_app->mv_model_client_stale = abap_true.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lo_handler->mo_action->mo_app->model_json_stringify( )
+                                        act = lo_handler->ms_response-model ).
+    cl_abap_unit_assert=>assert_false( lo_handler->mo_action->mo_app->mv_model_client_stale ).
+
+  ENDMETHOD.
+
+  METHOD test_display_clears_stale.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    " a display ships the model with the view - the client holds the current
+    " model afterwards, so nothing is left to push
+    lo_handler = noop_bound( ).
+    lo_handler->mo_action->mo_app->mv_model_client_stale = abap_true.
+    li_client = NEW z2ui5_cl_ui5_client( lo_handler->mo_action ).
+    li_client->view_display( `<View/>` ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_false( lo_handler->mo_action->mo_app->mv_model_client_stale ).
+
+  ENDMETHOD.
+
+  METHOD test_new_binding_pushes.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
+
+    " an attribute bound by this main( ) has no snapshot - the client holds
+    " no value for it, so it counts as changed and the model travels
     lo_handler = NEW #( val = `` ).
     DATA(lo_app) = NEW ltcl_app_noop( ).
     lo_handler->mo_action->mo_app->mo_app      = lo_app.
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lo_handler->mo_action->mo_app->mt_attri
-                                                  app  = lo_app ).
-    " main_attri_refresh runs the (private) dissolve pass - on this fresh,
-    " unbound model it is a pure dissolve, which is all the test needs
-    lo_model->main_attri_refresh( ).
-    READ TABLE lo_handler->mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WITH KEY name = `CHECK_INIT`.
-    IF sy-subrc <> 0.
-      cl_abap_unit_assert=>abort( ).
-    ENDIF.
-    lr_attri->bind        = abap_true.
-    lr_attri->name_client = `/CHECK_INIT`.
-
+    lo_handler->mt_model_before       = lo_handler->mo_action->mo_app->model_snapshot( ).
     lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = `<other model state>`.
+    cl_abap_unit_assert=>assert_initial( lo_handler->mt_model_before ).
+
+    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_ui5_client( lo_handler->mo_action ) ).
+    li_client->_bind( lo_app->check_init ).
 
     lo_handler->main_end( ).
 
     cl_abap_unit_assert=>assert_differs( exp = `{}`
                                          act = lo_handler->ms_response-model ).
-    " ... as its digest - the text itself stays out of the draft
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>hash_string( lo_handler->ms_response-model )
-                                        act = lo_handler->mo_action->mo_app->mv_model_client_hash ).
 
   ENDMETHOD.
 
-  METHOD test_model_client_unchanged.
+  METHOD test_nav_call_marks_stale.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
-    " no push: the client still holds the before-state, so THAT is stored -
-    " and an empty model is stored as the digest of the known `{}` rather
-    " than INITIAL, so the next roundtrip can still skip its snapshot
-    " serialization
+    " the caller binds and changes a value and hops away in the same main( ):
+    " no response of its own carries the change, so the container that
+    " prepare_app_stack saved is flagged - its next roundtrip pushes
     lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_change_call( ).
     lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    lo_handler->mv_model_before_taken = abap_true.
-    lo_handler->mv_model_before       = z2ui5_cl_ui5_util_context=>hash_string(
-                                            lo_handler->mo_action->mo_app->model_json_stringify( ) ).
-
-    lo_handler->main_end( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>hash_string( `{}` )
-                                        act = lo_handler->mo_action->mo_app->mv_model_client_hash ).
-
-  ENDMETHOD.
-
-  METHOD test_snapshot_reuses_client.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-
-    " main_process trusts the stored client model over a fresh serialization
-    " - the sentinel can only arrive in the snapshot through the reuse path,
-    " a real serialization of the no-op app would produce `{}`
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    lo_handler->mo_action->mo_app->mv_model_client_hash = `{"SENTINEL":true}`.
+    DATA(lo_caller) = lo_handler->mo_action->mo_app.
 
     lo_handler->main_process( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `{"SENTINEL":true}`
-                                        act = lo_handler->mv_model_before ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_handler->mv_model_before_taken ).
-
-  ENDMETHOD.
-
-  METHOD test_delta_drops_client.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-
-    " incoming model deltas change the state the stored string describes -
-    " the factory drops it, so the snapshot of this roundtrip falls back to
-    " a real serialization instead of trusting a stale string
-    lo_handler = NEW #( val = `` ).
-    lo_handler->mo_action->mo_app->mo_app = NEW ltcl_app_noop( ).
-    lo_handler->mo_action->mo_app->mv_model_client_hash = `{"SENTINEL":true}`.
-    lo_handler->ms_request-o_model = z2ui5_cl_ajson=>parse( `{"NAME":"changed"}` ).
-
-    DATA(lo_action) = lo_handler->mo_action->factory_by_frontend( ).
-
-    cl_abap_unit_assert=>assert_initial( lo_action->mo_app->mv_model_client_hash ).
+    cl_abap_unit_assert=>assert_true( lo_caller->mv_model_client_stale ).
+    " the hop was taken: the handler now answers for the called app
+    cl_abap_unit_assert=>assert_false( xsdbool( lo_handler->mo_action->mo_app = lo_caller ) ).
+    cl_abap_unit_assert=>assert_false( lo_handler->mo_action->mo_app->mv_model_client_stale ).
 
   ENDMETHOD.
 
