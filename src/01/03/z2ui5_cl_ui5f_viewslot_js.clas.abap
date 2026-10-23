@@ -189,10 +189,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return trackedModel(oView) ?? oView.getModel?.();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function markChanged(owner, path) {` && |\n| &&
-             `      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    function containingSlotKey(ctx, element) {` && |\n| &&
              `      const state = ctx?.state;` && |\n| &&
              `      if (!state) return undefined;` && |\n| &&
@@ -291,7 +287,6 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&
              `      responseModel,` && |\n| &&
-             `      markChanged,` && |\n| &&
              `      destroy,` && |\n| &&
              `      detach,` && |\n| &&
              `    };` && |\n| &&

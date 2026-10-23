@@ -153,8 +153,8 @@ sap.ui.define(
         // keeps what it has on a page of its own: hash routing,
         // set_push_state / hash_replace, the hash listener, Back and Forward
         // between routed apps, a route restored on reload (core/Router.js,
-        // core/Server.js ask state.ownsHash), SET_TITLE / SET_FAVICON and
-        // cc/Title / cc/Favicon (core/actions/Browser.js), the global busy
+        // core/Server.js ask state.ownsHash), SET_TITLE / SET_FAVICON
+        // (core/actions/Browser.js), the global busy
         // indicator (Server / View1 showBusy) and the prompt (cc/Dirty).
         // Without it the title and the favicon stay the host's, a roundtrip
         // shows its busy state on the component's own area
@@ -528,7 +528,7 @@ sap.ui.define(
         // alive, and the dialog of the app that just ended stayed on screen
         // over the one that replaced it. Everything inside them stayed alive
         // with it - no inner control ran its exit( ), so a Websocket kept its
-        // connection, a Timer kept ticking, and cc/Dirty kept
+        // connection and cc/Dirty kept
         // window.onbeforeunload installed for unsaved changes of an app that
         // no longer exists (its reset( ) below is the symptom patch that
         // predates this line, and stays as the backstop for a Dirty control
@@ -590,8 +590,8 @@ sap.ui.define(
         // waits for the new page's rendering, actions/Slots
         // leaveOnceRendered) goes first - as the next MAIN display runs it
         // first thing. Context.resetApp nulls the field below, and a page
-        // that was only removeAllPages()'d kept its exits (cc/Websocket,
-        // cc/Timer) from ever running
+        // that was only removeAllPages()'d kept its exits (cc/Websocket)
+        // from ever running
         ctx.state.mainLeaving?.();
         ViewSlots.destroy(ctx, "MAIN");
         Context.resetApp(ctx);

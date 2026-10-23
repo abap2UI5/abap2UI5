@@ -727,7 +727,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // is the Content Security Policy's decision, not this function's. The
   // shipped default (z2ui5_cl_ui5_user_exit) names 'self', data:, blob:
   // and the UI5 CDN hosts in img-src and media-src, so a favicon
-  // (SET_FAVICON, cc/Favicon) or an audio source (PLAY_AUDIO) on any other
+  // (SET_FAVICON) or an audio source (PLAY_AUDIO) on any other
   // host is accepted here and then refused by the browser with a CSP
   // violation in the console, and nothing else - an installation that
   // wants it adds the host to img-src / media-src in its exit.

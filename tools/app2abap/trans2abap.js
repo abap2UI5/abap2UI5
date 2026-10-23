@@ -464,7 +464,6 @@ const CLASS_NAME_STEMS = {
   "cc/MessageManager.js": "msgmgr_js",
   "cc/MultiInputExt.js": "multiinp_js",
   "cc/NativeBridgeScan.js": "natscan_js",
-  "cc/Scrolling.js": "scroll_js",
   "cc/SmartMultiInputExt.js": "smartinp_js",
   "cc/UITableExt.js": "uitable_js",
   "cc/UploadSetExt.js": "upldset_js",

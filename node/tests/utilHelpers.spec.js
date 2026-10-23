@@ -561,7 +561,7 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
     'xmlns:l=\'sap.ui.layout\' xmlns:t="sap.ui.table" xmlns:z2ui5="z2ui5.cc">' +
     '<Dialog title="x"><content><l:VerticalLayout><Text text="a"/></l:VerticalLayout>' +
     '<t:Table><t:columns><t:Column><Label text="c"/><t:template><Text text="v"/>' +
-    "</t:template></t:Column></t:columns></t:Table><z2ui5:Timer/></content>" +
+    "</t:template></t:Column></t:columns></t:Table><z2ui5:Dirty/></content>" +
     "<buttons><Button/></buttons></Dialog></core:FragmentDefinition>";
 
   test("gated to the releases whose fragment processing is synchronous", () => {
@@ -590,7 +590,7 @@ test.describe("fragment control preload (UI5 1.71 to 1.82)", () => {
       "sap/ui/layout/VerticalLayout",
       "sap/ui/table/Column",
       "sap/ui/table/Table",
-      "z2ui5/cc/Timer",
+      "z2ui5/cc/Dirty",
     ]);
   });
 
@@ -637,7 +637,7 @@ test.describe("loadViewLibraries (library preloads of a view)", () => {
     xmlns:core="sap.ui.core" xmlns:t="sap.ui.table" xmlns:f="sap.ui.layout.form"
     xmlns:z2ui5="z2ui5.cc" xmlns:cd="http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1"
     xmlns:tpl="http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1">
-    <t:Table/><f:SimpleForm/><z2ui5:Timer/></mvc:View>`;
+    <t:Table/><f:SimpleForm/><z2ui5:Dirty/></mvc:View>`;
   const LIBRARIES = [
     "sap.m",
     "sap.ui.core",

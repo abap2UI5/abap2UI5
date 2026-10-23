@@ -129,9 +129,9 @@ sap.ui.define(
     // so is the keyboard focus on it: a starting app used to take it out of
     // the host field the user was typing in - the root's first rendering
     // (see App.controller) and the app's own SET_FOCUS alike. The framework
-    // moves the focus in three places - SET_FOCUS (actions/ViewOps), a
-    // CONTROL_BY_ID focus( ) (actions/ControlCall) and the obsolete
-    // cc/Focus control - and each asks mayMoveFocus( ) right before it does.
+    // moves the focus in two places - SET_FOCUS (actions/ViewOps) and a
+    // CONTROL_BY_ID focus( ) (actions/ControlCall) - and each asks
+    // mayMoveFocus( ) right before it does.
     // Embedded, the answer is yes while the focus is IN this component, and
     // while it is nowhere (the body: a rebuild took the focused field away)
     // after the user's last focus or click went into it; a user in the
