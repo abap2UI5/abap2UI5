@@ -10,7 +10,8 @@ evidence:
   - 'abap2UI5/mcp-server `lib/migrate.mjs:93-105` and `:131-138` (2026-10): migrated reports that contain `@KERNEL` are refused; `lib/runtime.mjs:2085-2095` and `:2122-2136` give child processes an environment allowlist because ''@KERNEL reaches process.env''; `CHANGELOG.md:616-657`; `SECURITY.md`'
   - 'abap2UI5/playground `src/runtime/lockdown.mjs:1-47` deletes `caches`, `indexedDB`, `Worker`, `SharedWorker` in the worker that runs user code, for the same reason'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/statements/write.ts` emits the literal after `@KERNEL ` as code with no option to restrict it'
-checked_upstream: 2026-10-22
+  - 'prepared 2026-10-23 as `oblomov-dev/fork-transpiler` branch `feat/kernel-allowlist` (41e8631) on abaplint/transpiler main 3197186: option kernel.allow (regex list over object names, case-insensitive), a WRITE ''@KERNEL'' elsewhere is the validation issue kernel_not_allowed with file and row; option absent changes nothing; five tests, transpiler suite 413 green, CLI build and eslint clean'
+checked_upstream: 2026-10-23
 ---
 
 # transpiler: an allowlist for `@KERNEL`

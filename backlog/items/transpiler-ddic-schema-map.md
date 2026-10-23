@@ -10,7 +10,8 @@ evidence:
   - 'abap2UI5/playground `src/editor/transpile-core.mjs:241-265` (2026-10): regex `/^CREATE TABLE ''([^'']+)''/` over `output.databaseSetup.schemas.sqlite`, result stored per table in `abap.DDIC[NAME]`'
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs:441-461` (`tableSchema`) scrapes `sqlite.push(`CREATE TABLE …`)` lines out of the generated `init.mjs`; `:497` rewrites them to `CREATE TABLE IF NOT EXISTS`'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/db/` builds the statements per table and `IDatabaseSetup` flattens them to `schemas.sqlite: string[]`'
-checked_upstream: 2026-10-22
+  - 'prepared 2026-10-23 as `oblomov-dev/fork-transpiler` branch `feat/database-setup-tables` (40f2e2a) on abaplint/transpiler main 3197186: databaseSetup.tables and .inserts, option databaseSetup.ifNotExists (sqlite tables and views, pg and snowflake tables; hdb and pg views unchanged), CLI write_schema writes schema.json; transpiler suite 411 green, eslint clean. Note: the CLI package compiles against the published transpiler, so its build needs the transpiler release or link-local, as CI does'
+checked_upstream: 2026-10-23
 ---
 
 # transpiler: a per-table schema in `databaseSetup`

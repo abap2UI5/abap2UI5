@@ -9,6 +9,8 @@ evidence:
   - found 2026-10-13 writing the tests of `z2ui5_cl_ui5_srv_monitor` - `monitor_class_lookup( )` raises `cx_sy_dyn_call_illegal_func` out of `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std` under `@abaplint/runtime` 2.14.3 / open-abap-core b2d219d; the service catches it (fail open), so the branches that instantiate and latch a found class never run, and `npm run coverage` reports the class at 62% with the switch, latch and fail-open tested
   - the same read is `z2ui5_cl_ui5_user_exit=>exit_class_lookup( )` - the branches that find an exit class, prefer it over the shipped default and fall back to the superseded `z2ui5_if_exit` are cold for the same reason (user_exit at 87%)
   - open-abap-core b2d219d has no `seo_interface_implem_get_all.fugr`, no `cl_oo_interface` and nothing in `src/oo/` that lists the implementers of an interface; the runtime knows them - every transpiled class carries `static IMPLEMENTED_INTERFACES = [...]` and `abap.Classes` holds every loaded class
+  - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `feat/seo-interface-implem-get-all` (dbfa2ef) on open-abap-core main fde8095: the function module in the OPENABAP group over abap.Classes (IMPLEMENTED_INTERFACES), with SEOCLSKEY / SEOR_IMPLEMENTING_KEYS stand-ins, exceptions NOT_EXISTING and IS_CLASS, five tests; core suite 1177 green, abaplint clean; abap2UI5''s transpiled suite with it in the pinned core: 1558 green. Global classes only, local test classes are registered under prefixed names and skipped, as on a system'
+checked_upstream: 2026-10-23
 ---
 
 # Finding the implementers of an interface in the runtime

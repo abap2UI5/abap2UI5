@@ -10,7 +10,8 @@ evidence:
   - 'read 2026-10-22 in open-abap-core main 239b817 - `src/kernel/call_transformation/kernel_call_transformation.clas.locals_imp.abap:116-145` (`lcl_heap->add_object`): `is_serializable` is set from the interface list; the `ELSE` branch writes `|<prg:{ lv_name } … id="o{ mv_counter }"/>|` and returns an id, no exception'
   - 'abap2UI5 `src/01/02/z2ui5_cl_ui5_client.clas.locals_imp.abap:189-193` (2026-09): the vendored ajson AND-filter ''does not compose if_serializable_object, so every filter class'' passed every check and failed only on a real system with APP_SERIALIZATION_ERROR; `src/01/02/z2ui5_cl_ui5_serializer.clas.abap:1-5` (''open-abap skips what a system refuses'' - the class is non-FINAL only so a test can inject the failure); `z2ui5_cl_ui5_client.clas.testclasses.abap:29-33`, `:1380-1382`, `:1505-1507`'
   - 'the workaround in abap2UI5: `rtti_check_serializable` at bind time (`z2ui5_cl_ui5_util_context`), which re-implements the check the transformation should make'
-checked_upstream: 2026-10-22
+  - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `fix/call-transformation-serializable` (4a4c8c9, not pushed): lcl_heap->add_object raises cx_xslt_serialization_error for a class without IF_SERIALIZABLE_OBJECT, two tests replaced; core suite 1172 green, abaplint clean. HELD: abap2UI5''s own transpiled suite then fails at the first roundtrip because every app holds `client`, a z2ui5_cl_ui5_client that does not implement the interface, and that serializes fine on real systems - so a system must treat a nested reference to a plain object differently from the SOURCE object itself; the system check ZTEST_SERIALIZABLE (cases C1 to C3) decides what the branch must do before it is filed'
+checked_upstream: 2026-10-23
 ---
 
 # core: refuse a non-serializable object in `CALL TRANSFORMATION id`

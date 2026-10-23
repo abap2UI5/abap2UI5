@@ -9,7 +9,8 @@ upstream: open-abap/open-abap-core
 evidence:
   - 'read 2026-10-22 in open-abap-core main 239b817 - `src/sxml/cl_sxml_string_writer.clas.abap:83-101`: `if_sxml_writer~new_close_element`, `write_attribute_raw`, `new_value`, `new_open_element`, `write_value_raw` each `ASSERT 1 = ''todo''`; 89 ASSERT statements under `src/sxml` altogether'
   - 'abap2UI5 `src/01/02/z2ui5_cl_ui5_app_cont.clas.testclasses.abap:853-854`: a test feeds plain text instead of malformed markup because ''a system answers either with a catchable exception, the NodeJS parser ASSERTs on broken markup'''
-checked_upstream: 2026-10-22
+  - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `fix/sxml-writer-node-api` (b5ba783) on open-abap-core main fde8095: new_open_element / new_close_element / new_value / write_node / write_attribute_raw / write_value_raw implemented over the existing writer and node classes, five tests; core suite 1177 green, abaplint clean. Open: the raw methods write the bytes decoded as text, a system writes RAW values Base64 - decide before filing; the reader-side ASSERTs are not touched'
+checked_upstream: 2026-10-23
 ---
 
 # core: the node API of `cl_sxml_string_writer`
