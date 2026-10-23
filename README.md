@@ -30,6 +30,7 @@
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/playground/samples/">Samples</a> •
+  <a href="https://abap2ui5.github.io/playground/ai/">AI Studio</a> •
   <a href="#build-with-ai">Build with AI</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
@@ -69,6 +70,8 @@ One thing stays yours: the framework performs no authority check of its own, so 
 Next stop: the [sample catalogue](https://abap2ui5.github.io/playground/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration, searchable by control and by the UI5 release your system runs, and most of them one click from running in the browser – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
 ## Build with AI
+
+No setup at all: the [**AI Studio**](https://abap2ui5.github.io/playground/ai/) builds an app from a description in the browser – describe it, watch the class being written, run and fixed against the real framework, then download it for abapGit. Bring your own API key (Anthropic, or any OpenAI-compatible server such as Ollama); nothing leaves your browser but the request to the model.
 
 Working with Claude Code? Two commands install the abap2UI5 plugin – the agent skills for writing an app (template, view builder, and the ABAP and UI5 traps a green lint misses) plus the [MCP server](https://github.com/abap2UI5/mcp-server), which validates, deploys, runs and screenshots apps without an SAP system:
 
