@@ -1,7 +1,7 @@
 ---
 target: open-abap
-title: 'runtime: LOOP AT … USING KEY on a sorted secondary key whose component is a REF TO data / REF TO object finds nothing, while READ TABLE WITH KEY over the same key finds the row'
-summary: 'a secondary sorted key over a reference component is kept in an index the runtime sorts by comparing references; `LOOP AT tab USING KEY k WHERE ref = r` iterates nothing, whereas `READ TABLE tab WITH KEY k COMPONENTS ref = r` answers subrc 0 and the primary-key `LOOP … WHERE ref = r` finds the row - abap2UI5''s binding index does without the secondary key and scans'
+title: 'runtime: a hashed secondary key over a REF TO data / REF TO object component is kept as an unordered sorted index - the keyed LOOP finds nothing and READ TABLE WITH TABLE KEY misses every row but the last inserted'
+summary: 'a secondary key over a reference component (a HASHED one - a SORTED key over a reference is not valid ABAP, as the maintainer noted on #2017) is kept in an index the runtime sorts by comparing references, which gt( ) could not order; `LOOP AT tab USING KEY k WHERE ref = r` iterates nothing, whereas `READ TABLE tab WITH KEY k COMPONENTS ref = r` answers subrc 0 and the primary-key `LOOP … WHERE ref = r` finds the row - abap2UI5''s binding index does without the secondary key and scans'
 priority: medium
 state: filed
 filed: https://github.com/abaplint/transpiler/pull/2017
@@ -13,6 +13,7 @@ evidence:
   - 'the shape, read in the same checkout - `packages/runtime/src/statements/loop.ts:190-196` takes `table.getSecondaryIndex(usingKey)` and `determineFromTo( )` narrows by `topEquals`, which compares key values with the sorted-table comparator; references have no order on a system (a sorted key over a reference is allowed and compares identity)'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/keyed-loop-ref-component` (b29d7a4) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
   - 'filed 2026-10-22 as abaplint/transpiler#2017, open on 2026-10-23; the branch merges cleanly onto main after #2012, #2015, #2016 and #2018'
+  - 'review on abaplint/transpiler#2017 (larshp, 2026-10-23): the test''s `NON-UNIQUE SORTED KEY k COMPONENTS ref` is a syntax error on a system - a reference has no order, only a HASHED key may have one as a component. Re-measured 2026-10-23 on main at #2018 with `UNIQUE HASHED KEY k COMPONENTS ref`: `LOOP … USING KEY k WHERE ref = r2` finds the row, but `READ TABLE … WITH TABLE KEY k COMPONENTS ref = r1` answers sy-subrc 8 for the first inserted row - the runtime keeps a hashed secondary key as a sorted index with a binary search too, so the same fix applies; the branch got a second commit (00a44d2) with the tests on hashed keys, the gt( ) change unchanged'
 checked_upstream: 2026-10-23
 ---
 
