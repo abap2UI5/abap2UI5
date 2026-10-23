@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler: databaseSetup hands out the CREATE TABLE statements as one SQL string list - hosts regex the table name back out of it and rewrite it to IF NOT EXISTS'
 summary: '`IDatabaseSetup.schemas.sqlite` is `string[]` of CREATE TABLE statements in no declared order and with no table name attached; the playground matches `/^CREATE TABLE ''([^'']+)''/` to attach DDL to `abap.DDIC`, and the MCP server scrapes the same lines out of the generated `init.mjs` and rewrites them to `CREATE TABLE IF NOT EXISTS` for a database that persists across runs'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2033
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs:441-461` (`tableSchema`) scrapes `sqlite.push(`CREATE TABLE …`)` lines out of the generated `init.mjs`; `:497` rewrites them to `CREATE TABLE IF NOT EXISTS`'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/db/` builds the statements per table and `IDatabaseSetup` flattens them to `schemas.sqlite: string[]`'
   - 'prepared 2026-10-23 as `oblomov-dev/fork-transpiler` branch `feat/database-setup-tables` (40f2e2a) on abaplint/transpiler main 3197186: databaseSetup.tables and .inserts, option databaseSetup.ifNotExists (sqlite tables and views, pg and snowflake tables; hdb and pg views unchanged), CLI write_schema writes schema.json; transpiler suite 411 green, eslint clean. Note: the CLI package compiles against the published transpiler, so its build needs the transpiler release or link-local, as CI does'
+  - 'filed 2026-10-23 as abaplint/transpiler#2033, open, awaiting review'
 checked_upstream: 2026-10-23
 ---
 

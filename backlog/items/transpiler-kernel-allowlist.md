@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler: an option that refuses WRITE ''@KERNEL …'' outside allow-listed objects - today any ABAP file can emit raw JavaScript into the host'
 summary: 'a character literal starting with `@KERNEL ` is emitted verbatim as JavaScript, which is how open-abap-core reaches Node; the same door is open to every object the transpiler sees, so a host that compiles foreign ABAP (the MCP server, the playground) must scan the source itself and refuse - a transpiler option `kernel: { allow: ["open-abap-core"] }` (by lib or by object name pattern) would make the refusal a compile error'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2034
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,6 +12,7 @@ evidence:
   - 'abap2UI5/playground `src/runtime/lockdown.mjs:1-47` deletes `caches`, `indexedDB`, `Worker`, `SharedWorker` in the worker that runs user code, for the same reason'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/statements/write.ts` emits the literal after `@KERNEL ` as code with no option to restrict it'
   - 'prepared 2026-10-23 as `oblomov-dev/fork-transpiler` branch `feat/kernel-allowlist` (41e8631) on abaplint/transpiler main 3197186: option kernel.allow (regex list over object names, case-insensitive), a WRITE ''@KERNEL'' elsewhere is the validation issue kernel_not_allowed with file and row; option absent changes nothing; five tests, transpiler suite 413 green, CLI build and eslint clean'
+  - 'filed 2026-10-23 as abaplint/transpiler#2034, open, awaiting review'
 checked_upstream: 2026-10-23
 ---
 

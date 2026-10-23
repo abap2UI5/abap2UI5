@@ -3,13 +3,15 @@ target: open-abap
 title: 'core: cl_sxml_string_writer answers new_open_element, new_close_element, new_value, write_attribute_raw and write_value_raw with ASSERT 1 = ''todo'' - a writer written against the node API dies uncatchably'
 summary: 'five methods of `if_sxml_writer` in `cl_sxml_string_writer` are `ASSERT 1 = ''todo''`, so an sXML writer that uses the node-object API (`new_open_element( )` + `write_node( )`) rather than the convenience `open_element( )` ends in an uncatchable assertion in the transpiled runtime; the same class on a system supports both'
 priority: low
-state: open
+state: filed
+filed: https://github.com/open-abap/open-abap-core/pull/1328
 first_seen: 2026-10-22
 upstream: open-abap/open-abap-core
 evidence:
   - 'read 2026-10-22 in open-abap-core main 239b817 - `src/sxml/cl_sxml_string_writer.clas.abap:83-101`: `if_sxml_writer~new_close_element`, `write_attribute_raw`, `new_value`, `new_open_element`, `write_value_raw` each `ASSERT 1 = ''todo''`; 89 ASSERT statements under `src/sxml` altogether'
   - 'abap2UI5 `src/01/02/z2ui5_cl_ui5_app_cont.clas.testclasses.abap:853-854`: a test feeds plain text instead of malformed markup because ''a system answers either with a catchable exception, the NodeJS parser ASSERTs on broken markup'''
   - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `fix/sxml-writer-node-api` (b5ba783) on open-abap-core main fde8095: new_open_element / new_close_element / new_value / write_node / write_attribute_raw / write_value_raw implemented over the existing writer and node classes, five tests; core suite 1177 green, abaplint clean. Open: the raw methods write the bytes decoded as text, a system writes RAW values Base64 - decide before filing; the reader-side ASSERTs are not touched'
+  - 'filed 2026-10-23 as open-abap/open-abap-core#1328, open, awaiting review'
 checked_upstream: 2026-10-23
 ---
 
