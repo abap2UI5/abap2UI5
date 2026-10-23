@@ -129,8 +129,8 @@ Every line below ends with the place that proves it.
 * **Compatibility** – One source for NW 7.02 to ABAP Cloud and for UI5 1.71 to 2.x. The public API is snapshotted, a change to it fails the pull request, and every deprecation is announced in the changelog and tracked until it is removed – [API snapshot](.github/api-snapshot.json) · [changelog.txt](changelog.txt) · [Removal plan](docs/removal-plan.md)
 * **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code. A build in your own namespace is one workflow run – [LICENSE](LICENSE) · [build-rename](.github/workflows/build-rename.yaml)
 * **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md); a security report is acknowledged within three business days – [SECURITY.md](SECURITY.md#response-timeline)
-* **Governance** – Code first: an app is a class, so development, review, transport and release follow the ABAP process you already run; authorization and logon are SAP's, every roundtrip can be logged, and Basis has four settings to change – [What you keep](https://abap2ui5.github.io/playground/evaluate/#what-you-keep)
-* **Fit** – Where abap2UI5 is the right tool, and where RAP and Fiori Elements are – [When to use it, and when not](https://abap2ui5.github.io/playground/evaluate/#when-to-use-it-and-when-not)
+* **Governance** – Code first: an app is a class, so development, review, transport and release follow the ABAP process you already run; authorization and logon are SAP's, every roundtrip can be logged, and Basis has four settings to change – [What you keep](https://abap2ui5.github.io/evaluate/#what-you-keep)
+* **Fit** – Where abap2UI5 is the right tool, and where RAP and Fiori Elements are – [When to use it, and when not](https://abap2ui5.github.io/evaluate/#when-to-use-it-and-when-not)
 
 ## AI Assistants
 

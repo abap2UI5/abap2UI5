@@ -1,7 +1,7 @@
 # abap2UI5 for IT governance
 
-This page moved to the project's site, where it is one section of
-[Evaluate abap2UI5](https://abap2ui5.github.io/playground/evaluate/#what-you-keep):
+This page moved to a site of its own, where it is one section of
+[Evaluate abap2UI5](https://abap2ui5.github.io/evaluate/#what-you-keep):
 code first (an app is a class), authorization and audit, change management
 and upgrades, what Basis does, clean core, vendor risk, and the objections a
 review board raises. It is kept there rather than here so that the decision
