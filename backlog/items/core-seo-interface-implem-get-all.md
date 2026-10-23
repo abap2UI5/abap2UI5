@@ -5,6 +5,7 @@ summary: abap2UI5 looks its user exit and its roundtrip monitor up by interface 
 priority: medium
 state: filed
 filed: https://github.com/open-abap/open-abap-seo/pull/12
+upstream: open-abap/open-abap-seo
 first_seen: 2026-10-13
 evidence:
   - found 2026-10-13 writing the tests of `z2ui5_cl_ui5_srv_monitor` - `monitor_class_lookup( )` raises `cx_sy_dyn_call_illegal_func` out of `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std` under `@abaplint/runtime` 2.14.3 / open-abap-core b2d219d; the service catches it (fail open), so the branches that instantiate and latch a found class never run, and `npm run coverage` reports the class at 62% with the switch, latch and fail-open tested
