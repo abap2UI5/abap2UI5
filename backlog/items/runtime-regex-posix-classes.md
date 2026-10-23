@@ -3,7 +3,8 @@ target: open-abap
 title: 'runtime: POSIX classes other than punct, digit, space and ^print are passed to JS unchanged - [[:cntrl:]] and [[:alpha:]] match nothing'
 summary: '`abap_regex.ts` `convert( )` rewrites `[[:punct:]]`, `[^[:print:]]`, `[[:digit:]]` and `[[:space:]]` and leaves every other POSIX class as JS sees it - a character class of the letters `[`, `:`, `c`, `n`, … - so `REPLACE ALL OCCURRENCES OF REGEX ''[[:cntrl:]]''` leaves every control character in place and abap2UI5 replaces per character instead'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2015
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - 'the cause, read in the same checkout - `packages/runtime/src/abap_regex.ts` `convert( )`: four replacements (`[[:punct:]]`, `[^[:print:]]`, `[[:digit:]]`, `[[:space:]]`, the last one only its first occurrence), nothing for `alpha alnum upper lower xdigit cntrl print graph blank word`'
   - 'abap2UI5 `src/00/03/z2ui5_cl_ui5_util_context.clas.abap:3197-3199`: ''one replace per character, no regex: [[:cntrl:]] is not a class every runtime … knows (the transpiled one left every byte in place)''; `:3235-3236` a `CO` plus a character loop instead of a regex because ''the transpiled runtime knows no character classes'''
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/regex-posix-classes` (cdd4936) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-22 as abaplint/transpiler#2015, merged 2026-10-23 into main, unchanged; it ships with the next @abaplint/runtime release (2.14.11, abaplint/transpiler#2011 pending on 2026-10-23) - bump the pin in abap2UI5 then and delete this item'
+checked_upstream: 2026-10-23
 ---
 
 # runtime: most POSIX character classes are not translated

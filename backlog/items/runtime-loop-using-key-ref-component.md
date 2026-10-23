@@ -3,7 +3,8 @@ target: open-abap
 title: 'runtime: LOOP AT … USING KEY on a sorted secondary key whose component is a REF TO data / REF TO object finds nothing, while READ TABLE WITH KEY over the same key finds the row'
 summary: 'a secondary sorted key over a reference component is kept in an index the runtime sorts by comparing references; `LOOP AT tab USING KEY k WHERE ref = r` iterates nothing, whereas `READ TABLE tab WITH KEY k COMPONENTS ref = r` answers subrc 0 and the primary-key `LOOP … WHERE ref = r` finds the row - abap2UI5''s binding index does without the secondary key and scans'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2017
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - 'abap2UI5 `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap:418-425`: `ty_t_ref_idx` has ''NO secondary key on ref, although the binding search scans this'' - on runtime 2.13.91 the first keyed loop died with a ''table, no header line'' error from compare/lt; ''Re-check on the next runtime bump''. On 2.14.10 it no longer throws, it finds nothing, which is worse'
   - 'the shape, read in the same checkout - `packages/runtime/src/statements/loop.ts:190-196` takes `table.getSecondaryIndex(usingKey)` and `determineFromTo( )` narrows by `topEquals`, which compares key values with the sorted-table comparator; references have no order on a system (a sorted key over a reference is allowed and compares identity)'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/keyed-loop-ref-component` (b29d7a4) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-22 as abaplint/transpiler#2017, open on 2026-10-23; the branch merges cleanly onto main after #2012, #2015, #2016 and #2018'
+checked_upstream: 2026-10-23
 ---
 
 # runtime: a keyed LOOP over a reference component finds nothing

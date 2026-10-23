@@ -3,7 +3,8 @@ target: open-abap
 title: 'runtime: + - * DIV MOD on a packed field go through a JS double - a TIMESTAMPL + ''0.0000001'' answers .1235968, p MOD 100 answers 0'
 summary: '`operators/add.ts` (and mul, div, DIV, MOD) have branches for Integer, Integer8, Float and DecFloat34 but none for `Packed`, so a packed operand falls through to `new Float().set(parse(left) + parse(right))` - a 21-digit `timestampl` loses its last six digits in every arithmetic statement, not only in the copy that abaplint/transpiler#1962 fixes; `20261014103400.1234567 + ''0.0000001''` answers `.1235968`, `p MOD 100` answers `0.0000000`, `p * 1` changes the value'
 priority: high
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2013
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -13,7 +14,8 @@ evidence:
   - 'abap2UI5 `node/setup/abap_transpile.json` skips `Z2UI5_CL_AJSON ltcl_abap_to_json->set_value_timestampl` because `lv_timestampl + ''0.1234567''` answers `.1245184` - an addition, attributed so far to the copy item runtime-packed-copy-precision (#1962), which does not cover it'
   - 'abaplint/transpiler#1962 (open on 2026-10-22) adds the `Packed`-to-`Packed` copy branch in `Packed.set( )` and rescales typed assignments; the operators are untouched by it. Searched the tracker 2026-10-22 for packed arithmetic / DIV / MOD: nothing'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/packed-arithmetic-exact` (6af00ba) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-22 as abaplint/transpiler#2013, open on 2026-10-23; the branch merges cleanly onto main after #2012, #2015, #2016 and #2018'
+checked_upstream: 2026-10-23
 ---
 
 # runtime: arithmetic on a packed field goes through a JS double
