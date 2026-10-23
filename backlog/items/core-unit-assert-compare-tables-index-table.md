@@ -13,6 +13,7 @@ evidence:
   - 'the runtime fix merged upstream on 2026-10-23 as abaplint/transpiler#2018 while open-abap-core main (d8c68eb, 2026-10-23) still has TYPE INDEX TABLE at lines 189 and 191 - the next @abaplint/runtime release breaks open-abap-core''s own equals_hashed and every consumer''s assert_equals of two hashed tables until this lands; no PR exists in open-abap/open-abap-core on 2026-10-23'
   - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `fix/compare-tables-any-table` (0e816e3) on open-abap-core main d8c68eb'
   - 'filed 2026-10-23 as open-abap/open-abap-core#1326, open, awaiting review'
+  - 'open-abap/open-abap-core#1326 merged 2026-10-23, unchanged; the runtime fix #2018 and this are now both on main - bump open-abap-core in abap2UI5 (node/setup/fetch-deps.mjs) past 1326 together with @abaplint/runtime 2.14.11, then delete this item'
 checked_upstream: 2026-10-23
 ---
 
