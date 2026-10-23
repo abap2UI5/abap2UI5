@@ -1,7 +1,7 @@
 # When to use abap2UI5, and when not
 
 This page moved to the documentation site, where it is one section of
-[Evaluate abap2UI5](https://abap2ui5.github.io/docs/get_started/evaluate.html#when-to-use-it-and-when-not):
+[Evaluate abap2UI5](https://abap2ui5.github.io/docs/evaluate.html#when-to-use-it-and-when-not):
 where abap2UI5 is the shorter path, where RAP and Fiori Elements are, what
 it costs either way, and how to test it on one real screen. It is kept there
 rather than here so that the decision is written once, next to the pages
