@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler: INTERFACES … PARTIALLY IMPLEMENTED generates no stubs - the first call of an unimplemented interface method is a JS TypeError, where a system answers initial'
 summary: 'a test double that declares an interface `PARTIALLY IMPLEMENTED` and implements only the methods it needs works on a system (the missing methods exist and return initial values); the transpiler emits nothing for them, so `lo->b( )` dies with `TypeError: lo.get(...).lif$b is not a function` - every test double in abap2UI5 and the app-template implements every interface method by hand because of it'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2024
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - 'read in the same checkout: no handling of the `PARTIALLY IMPLEMENTED` flag anywhere under `packages/transpiler/src` (grep -i partially: nothing); `statements/class_implementation.ts` emits only the methods the implementation has'
   - 'abap2UI5 `src/01/01/z2ui5_cl_ui5_srv_draft.clas.testclasses.abap:1-3` (''the transpiled runtime generates no stubs for a PARTIALLY IMPLEMENTED interface''), `src/01/05/z2ui5_cl_ui5_llm_guide.clas.abap:866`, `docs/agents/building-apps.md:830`; found 2026-09-19 in the app-template''s `ltd_client` (`.claude/skills/abap-check/SKILL.md`, section 4); the vscode-extension writes the warning into every generated `check.yml` (`src/scaffold.ts:503-509`) and the mcp-server README (`:540-543`) repeats it'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/partially-implemented-stubs` (aa05377) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-23 as abaplint/transpiler#2024, open, awaiting review'
+checked_upstream: 2026-10-23
 ---
 
 # transpiler: `PARTIALLY IMPLEMENTED` gets no method stubs

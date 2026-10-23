@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler-cli: libs[] takes a URL and no commit - a build is reproducible only with a pre-materialised clone, which abap2UI5 keeps in sync with a gate of its own'
 summary: '`abap_transpile.json` `libs: [{url}]` clones the default branch at build time, so the same commit of the consumer builds green today and red tomorrow when open-abap-core moves; abap2UI5 pre-clones each lib at a SHA into `node/deps` (`fetch-deps.mjs`), points `libs[].folder` at it, and runs `transpile-pins-gate.mjs` to keep the two lists equal - a `ref` next to `url` is the whole request'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2029
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs` clones open-abap-core ''at a pinned sha'' itself for the same reason; abap2UI5/playground `tools/build-framework.mjs` uses a `deps/` folder'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/cli/src/types.ts` libs: `url?`, `folder?`, `files?`, `exclude_filter?`; `packages/cli/src/git_clone.ts` clones with no revision; `libraries.ts:56-67`'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `feat/cli-libs-ref` (338b6d8) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-23 as abaplint/transpiler#2029, open, awaiting review'
+checked_upstream: 2026-10-23
 ---
 
 # transpiler-cli: pin a library to a commit

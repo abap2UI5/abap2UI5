@@ -3,7 +3,8 @@ target: open-abap
 title: 'transpiler: a variable, parameter or field symbol named abap emits `let abap` and collides with the runtime global - SyntaxError or TDZ ReferenceError for the whole method'
 summary: '`DATA abap TYPE i` becomes `let abap = …` in a scope where the generated code reads the `abap` global (`abap.types`, `abap.statements`); the module fails with `Identifier ''abap'' has already been declared` at top level or `Cannot access ''abap'' before initialization` in a method. Reserved JS words are escaped since #1840; `abap` is not, and samples-controls'' overview app was down a week for a local named `abap`'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/transpiler/pull/2023
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,7 +12,8 @@ evidence:
   - 'samples-controls `scripts/lib/overview-emit.mjs:577-582` and `scripts/pattern-lint.mjs:328-331`, rule `runtime-global-shadow`: `DATA(abap)` in a method made every earlier `abap.` of the method a temporal-dead-zone read, HTTP 500 ''Cannot access ''abap'' before initialization''; the generated overview app was broken from 2026-09-15 to 2026-09-22 before the cause was found'
   - 'the precedent: abaplint/transpiler#1840 escapes every reserved JS word in identifiers (abap2UI5 `.claude/skills/abap-check/SKILL.md:1387-1396` - ''do not start a new list''); `abap` and the other names the generated code relies on (`INPUT`, `unique1…`, `temp1…` are prefixed already) are not in that set'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/identifier-named-abap` (41051a9) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
-checked_upstream: 2026-10-22
+  - 'filed 2026-10-23 as abaplint/transpiler#2023, open, awaiting review'
+checked_upstream: 2026-10-23
 ---
 
 # transpiler: an ABAP identifier named `abap` shadows the runtime
