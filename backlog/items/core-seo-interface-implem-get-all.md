@@ -12,6 +12,7 @@ evidence:
   - open-abap-core b2d219d has no `seo_interface_implem_get_all.fugr`, no `cl_oo_interface` and nothing in `src/oo/` that lists the implementers of an interface; the runtime knows them - every transpiled class carries `static IMPLEMENTED_INTERFACES = [...]` and `abap.Classes` holds every loaded class
   - 'prepared 2026-10-23 as `oblomov-dev/fork-open-abap-core` branch `feat/seo-interface-implem-get-all` (dbfa2ef) on open-abap-core main fde8095: the function module in the OPENABAP group over abap.Classes (IMPLEMENTED_INTERFACES), with SEOCLSKEY / SEOR_IMPLEMENTING_KEYS stand-ins, exceptions NOT_EXISTING and IS_CLASS, five tests; core suite 1177 green, abaplint clean; abap2UI5''s transpiled suite with it in the pinned core: 1558 green. Global classes only, local test classes are registered under prefixed names and skipped, as on a system'
   - 'filed 2026-10-23 as open-abap/open-abap-core#1327, open, awaiting review'
+  - 'review on open-abap/open-abap-core#1327 (larshp, 2026-10-23): add to open-abap/open-abap-seo instead - ported there as `oblomov-dev/fork-open-abap-seo` branch `feat/seo-interface-implem-get-all` (5dbe945): function group SEO, the two missing DDIC types, test class, and the abap_transpile.json that repository lacked; transpile plus unit 5 of 5 green, abaplint 0 issues'
 checked_upstream: 2026-10-23
 ---
 
