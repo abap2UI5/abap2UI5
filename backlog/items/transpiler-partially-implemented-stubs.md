@@ -1,6 +1,6 @@
 ---
 target: open-abap
-title: 'transpiler: INTERFACES … PARTIALLY IMPLEMENTED generates no stubs - the first call of an unimplemented interface method is a JS TypeError, where a system answers initial'
+title: 'transpiler: INTERFACES … PARTIALLY IMPLEMENTED generates no stubs - the first call of an unimplemented interface method is a JS TypeError, where a system raises CX_SY_DYN_CALL_ILLEGAL_METHOD'
 summary: 'a test double that declares an interface `PARTIALLY IMPLEMENTED` and implements only the methods it needs works on a system (the missing methods exist and return initial values); the transpiler emits nothing for them, so `lo->b( )` dies with `TypeError: lo.get(...).lif$b is not a function` - every test double in abap2UI5 and the app-template implements every interface method by hand because of it'
 priority: medium
 state: filed
@@ -14,6 +14,7 @@ evidence:
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/partially-implemented-stubs` (aa05377) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
   - 'filed 2026-10-23 as abaplint/transpiler#2024, open, awaiting review'
   - 'review on #2024 (larshp, 2026-10-23): wrong behaviour - the ABAP documentation (abapinterfaces_partially, 7.52): ''If an interface method that is not implemented is called during a test, an exception from the class CX_SY_DYN_CALL_ILLEGAL_METHOD is raised.'' Not an empty method, as this item and abap2UI5''s abap-check skill (section 4, ''answers initial'') claimed. The stub must raise that exception; reworked on the branch'
+  - 'reworked 2026-10-23 (commit on the PR branch after larshp''s review): the stub raises CX_SY_DYN_CALL_ILLEGAL_METHOD with classname and methodname, as the documentation says; tests catch it, cover static methods, included interfaces and an inherited implementation; abap2UI5''s abap-check skill corrected the same day'
 checked_upstream: 2026-10-23
 ---
 
