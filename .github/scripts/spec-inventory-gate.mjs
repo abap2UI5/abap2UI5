@@ -44,11 +44,8 @@ const WEBAPP = join(ROOT, "app", "webapp");
  * is meant to shrink.
  */
 const NO_SPEC = new Map([
-  [
-    "cc/Title.js",
-    "a 30-line custom control that only renders a heading tag - the four "
-      + "controls with behaviour have specs (see the inventory)",
-  ],
+  // empty since the eight invisible controls (cc/Title.js was the last
+  // entry) left on 2026-10-23 - a module without a spec goes here, with why
 ]);
 
 const onDisk = readdirSync(SPECS)

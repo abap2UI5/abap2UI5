@@ -425,24 +425,24 @@ Rule 7 of AGENTS.md makes the module IDs, properties and events of the custom
 controls a public contract, so these break hand-written view XML. Regenerate
 `src/01/03/` with `npm run app2abap` — never edit it by hand.
 
-- [ ] **8 invisible custom controls (~613 lines)** — each already carries an
-      `// OBSOLETE:` header. Three of them (`Favicon`, `Title`, `LPTitle`)
-      delegate to the action handler that replaced them since 2026-09-25
-      and carry no logic of their own any more; `Timer`, `Focus`, `Scrolling`
-      and `Info` keep theirs, because their behaviour is not the action's
-      (a control that fires an event vs. an action that dispatches one, a
-      caret race guard, a per-item scroll capture, a bound property set):
-
-      | File | Replacement |
-      |---|---|
-      | `cc/Timer.js` (65) | `cs_event-start_timer` |
-      | `cc/Focus.js` (154) | `cs_event-set_focus` |
-      | `cc/Scrolling.js` (125) | `cs_event-scroll_to` / `scroll_into_view` |
-      | `cc/Info.js` (121) | `client->get( )-s_device` / `-s_ui5` |
-      | `cc/LPTitle.js` (56) | `cs_event-set_title_launchpad` |
-      | `cc/Favicon.js` (36) | `cs_event-set_favicon` |
-      | `cc/History.js` (34) | `hash_set( )` |
-      | `cc/Title.js` (22) | `cs_event-set_title` |
+- [x] **8 invisible custom controls (~613 lines)** — removed 2026-10-23
+      (`cc/Timer.js`, `cc/Focus.js`, `cc/Scrolling.js`, `cc/Info.js`,
+      `cc/LPTitle.js`, `cc/Favicon.js`, `cc/History.js`, `cc/Title.js`),
+      with their specs, the `markChanged` writer of `core/ViewSlots.js` that
+      only `cc/Scrolling` used, and the generated `src/01/03/` classes.
+      Announced as deprecated in abap2UI5/abap2UI5#2789 (2026-09-24), each
+      carried an `// OBSOLETE:` header, and none of the three sample
+      catalogues named one any more. The replacements, one frontend action
+      each, are what the issue lists: `cs_event-start_timer`,
+      `cs_event-set_focus`, `cs_event-scroll_to` / `scroll_into_view`,
+      `client->get( )-s_device` / `-s_ui5`, `cs_event-set_title_launchpad`,
+      `cs_event-set_favicon`, `hash_set( )` / `app_state_set_active( )`,
+      `cs_event-set_title`. What breaks: a hand-written view that still
+      names `z2ui5.cc.<Name>`, and the frozen `z2ui5_cl_xml_view=>_z2ui5( )`
+      builders of `src/99` (`timer( )`, `focus( )`, `scrolling( )`,
+      `title( )`, `lp_title( )`, `favicon( )`, `history( )`,
+      `info_frontend( )`), which now emit a control the frontend does not
+      ship - the view fails to load on the first roundtrip that renders it.
 
 - [x] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
       removed with the `z2ui5` global, see §0.

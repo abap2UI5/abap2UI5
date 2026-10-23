@@ -6,7 +6,7 @@
 // and teardown go through here instead of touching ctx.state.oView /
 // oViewPopup / ... directly. Every function that reads the state takes
 // the context first; the ones a control calls on itself (byIdOfOwner,
-// trackedModel, markChanged) resolve it from the control.
+// trackedModel) resolve it from the control.
 sap.ui.define(
   [
     "sap/ui/core/Fragment",
@@ -257,17 +257,6 @@ sap.ui.define(
       return trackedModel(oView) ?? oView.getModel?.();
     }
 
-    // Mark a model path as edited on the framework model `owner` binds to,
-    // so the next roundtrip from that slot ships it in the delta - what the
-    // model's own propertyChange does for a bound control, for a companion
-    // that writes into the model DATA directly (cc/Scrolling). The set
-    // itself belongs to actions/Slots (trackChanges); this is the one
-    // writer outside it, so no control has to know its name. A no-op
-    // without a tracked model (an OData default in switch mode).
-    function markChanged(owner, path) {
-      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);
-    }
-
     // Returns the key of the slot of `ctx` a UI5 element belongs to, by
     // walking up the control tree until a live slot view is hit (innermost
     // slot wins, e.g. nested views). Undefined when the element is in none
@@ -409,7 +398,6 @@ sap.ui.define(
       containingSlotKey,
       trackedModel,
       responseModel,
-      markChanged,
       destroy,
       detach,
     };

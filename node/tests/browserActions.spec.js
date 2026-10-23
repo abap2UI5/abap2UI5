@@ -16,9 +16,13 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //   SYSTEM_LOGOUT      the launchpad logout, the BSP terminate iframe with
 //                      its load / safety-net finish, the ICF logoff fallback
 //   PLAY_AUDIO         protocol guard, a rejected play( ) caught into the log
+//   SET_FAVICON        URL guard, which <link> is written (the one the page
+//                      has, never a second), a page that is not the
+//                      component's left alone
 // `pathname` is the page's path (a BSP path switches SYSTEM_LOGOUT to the
-// iframe terminate), `oLaunchpad` the launchpad record of the context.
-function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
+// iframe terminate), `oLaunchpad` the launchpad record of the context,
+// `head` the <link> elements the page starts with.
+function load({ pathname = "/sap/z2ui5", oLaunchpad = null, head = [] } = {}) {
   // The real Lib: its sandbox origin anchors the same-origin checks.
   const { Lib, state: libState, ctx } = loadLib({ state: { oLaunchpad } });
 
@@ -34,8 +38,27 @@ function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
   const historyBacks = [];
   const navBacks = [];
   const stores = [];
+  const links = head;
+  const createdLinks = [];
   const documentStub = {
+    head: {
+      // ~= matches one entry of the whitespace-separated rel list, which
+      // is the selector SET_FAVICON uses.
+      querySelector: (sel) => {
+        expect(sel).toBe('link[rel~="icon"]');
+        return (
+          links.find((l) => String(l.rel).split(/\s+/).includes("icon")) ?? null
+        );
+      },
+      // appendChild is on the same head object the action queried.
+      appendChild: (el) => links.push(el),
+    },
     createElement: (tag) => {
+      if (tag === "link") {
+        const link = { tagName: "LINK", rel: "", href: "" };
+        createdLinks.push(link);
+        return link;
+      }
       const el = {
         tagName: tag.toUpperCase(),
         href: "",
@@ -158,6 +181,8 @@ function load({ pathname = "/sap/z2ui5", oLaunchpad = null } = {}) {
     location,
     timers,
     audios,
+    links,
+    createdLinks,
     setPlayResult: (fn) => {
       playResult = fn;
     },
@@ -826,7 +851,7 @@ test("CLIPBOARD_COPY of a JSON argument copies the JSON text", () => {
 // The document title names the PAGE: a component that owns it sets it, an
 // embedded one the host did not hand the page to (state.ownsPage false,
 // Component.init) leaves the host's title as it is. SET_FAVICON asks the
-// same (favicon.spec.js, through cc/Favicon).
+// same (below).
 test("SET_TITLE sets the title only for a component that owns the page", () => {
   const { handlers, ctx, document } = load();
   document.title = "Host";
@@ -837,4 +862,112 @@ test("SET_TITLE sets the title only for a component that owns the page", () => {
   ctx.state.ownsPage = false;
   handlers.SET_TITLE(null, ["SET_TITLE", "Other"]);
   expect(document.title).toBe("App");
+});
+
+// SET_FAVICON: the one decision in it is which <link> to write - a page
+// that already declares an icon must have THAT link updated, not a second,
+// competing one appended (which of two the browser honours is up to the
+// browser). The rest is the URL guard (Lib.isSafeDownloadURL - active
+// schemes and empty values refused) and Lib.toText, which turns an unbound
+// argument into "" rather than "undefined".
+test.describe("SET_FAVICON", () => {
+  // rel="icon", the spelling the action creates
+  test("no icon link yet: one is created as rel='icon'", () => {
+    const { handlers, links, createdLinks } = load();
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/img/a.ico"]);
+
+    expect(createdLinks).toHaveLength(1);
+    expect(links).toHaveLength(1);
+    expect(links[0].rel).toBe("icon");
+    expect(links[0].href).toBe("/img/a.ico");
+  });
+
+  test("an existing rel='shortcut icon' is updated, not duplicated", () => {
+    const existing = { rel: "shortcut icon", href: "/old.ico" };
+    const { handlers, links, createdLinks } = load({ head: [existing] });
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/new.ico"]);
+
+    expect(createdLinks).toHaveLength(0);
+    expect(links).toEqual([existing]);
+    expect(existing.href).toBe("/new.ico");
+  });
+
+  // The reason the selector is rel~="icon" rather than rel="shortcut icon":
+  // a page declaring the modern spelling would otherwise keep its own link
+  // and get a second one appended on every app start.
+  test("the modern rel='icon' spelling is matched too", () => {
+    const existing = { rel: "icon", href: "/old.png" };
+    const { handlers, links } = load({ head: [existing] });
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/new.png"]);
+
+    expect(links).toHaveLength(1);
+    expect(existing.href).toBe("/new.png");
+  });
+
+  test("a multi-value rel list is matched on one of its entries", () => {
+    const existing = { rel: "icon shortcut", href: "/old.png" };
+    const { handlers, links } = load({ head: [existing] });
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/new.png"]);
+
+    expect(links).toHaveLength(1);
+    expect(existing.href).toBe("/new.png");
+  });
+
+  // A rel that only CONTAINS the word is not a match - "apple-touch-icon"
+  // is a different link and must keep its own href.
+  test("apple-touch-icon is not treated as the favicon link", () => {
+    const other = { rel: "apple-touch-icon", href: "/touch.png" };
+    const { handlers, links, createdLinks } = load({ head: [other] });
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/new.ico"]);
+
+    expect(other.href).toBe("/touch.png");
+    expect(createdLinks).toHaveLength(1);
+    expect(links).toHaveLength(2);
+  });
+
+  // An unbound argument must not touch the page's icon links - and in
+  // particular never write the string "undefined".
+  test("an unset value is refused - no link is written", () => {
+    const { handlers, links, errors } = load();
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", undefined]);
+
+    expect(links).toHaveLength(0);
+    expect(errors()).toEqual(['SET_FAVICON: refused unsafe URL ""']);
+  });
+
+  // An active scheme is refused and an existing icon link keeps its href.
+  test("a javascript: URL is refused and logged", () => {
+    const existing = { rel: "icon", href: "/keep.png" };
+    const { handlers, links, createdLinks, errors } = load({
+      head: [existing],
+    });
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "javascript:alert(1)"]);
+
+    expect(existing.href).toBe("/keep.png");
+    expect(createdLinks).toHaveLength(0);
+    expect(links).toHaveLength(1);
+    expect(errors().some((m) => m.includes("refused unsafe URL"))).toBe(true);
+  });
+
+  // An embedded component that was not handed the page (state.ownsPage
+  // false, Component.init) leaves the host's icon alone - the favicon names
+  // the host's page, not the area the component got.
+  test("a component that does not own the page writes no icon", () => {
+    const existing = { rel: "icon", href: "/host.ico" };
+    const { handlers, ctx, links, createdLinks } = load({ head: [existing] });
+    ctx.state.ownsPage = false;
+
+    handlers.SET_FAVICON(null, ["SET_FAVICON", "/app.ico"]);
+
+    expect(existing.href).toBe("/host.ico");
+    expect(links).toEqual([existing]);
+    expect(createdLinks).toEqual([]);
+  });
 });

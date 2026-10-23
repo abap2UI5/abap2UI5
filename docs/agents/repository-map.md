@@ -41,7 +41,7 @@ table cell above, unchanged, in a container a reader can actually navigate.
 
 UI5 frontend source — `Component.js`, `index.html`, `manifest.json`,
 `controller/`, `view/`, `model/`, `css/`, `cc/` with one file per custom
-control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`,
+control (`Dirty.js`, `Tree.js`, … — module IDs `z2ui5/cc/<Name>`,
 resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and
 `core/` with the internals: `Server.js` (the JSON POST client that wraps the
 body as `{ "value": <payload> }` — roundtrip, request sequencing, aborts),
