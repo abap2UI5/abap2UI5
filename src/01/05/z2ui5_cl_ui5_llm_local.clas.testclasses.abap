@@ -30,24 +30,44 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD rules.
 
-    result = VALUE #( ( contains = `invoice` answer = `Invoices are in the billing app.` )
-                      ( contains = `order`   answer = `Orders are in the sales app.` )
-                      ( contains = ``        answer = `an empty rule never matches` ) ).
+    DATA temp1 TYPE z2ui5_cl_ui5_llm=>ty_t_rule.
+    DATA temp2 LIKE LINE OF temp1.
+    CLEAR temp1.
+
+    temp2-contains = `invoice`.
+    temp2-answer = `Invoices are in the billing app.`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-contains = `order`.
+    temp2-answer = `Orders are in the sales app.`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-contains = ``.
+    temp2-answer = `an empty rule never matches`.
+    INSERT temp2 INTO TABLE temp1.
+    result = temp1.
 
   ENDMETHOD.
 
   METHOD ask.
 
-    result = VALUE #( ( role = z2ui5_if_ui5_llm=>cs_role-user content = question ) ).
+    DATA temp3 TYPE z2ui5_if_ui5_llm=>ty_t_message.
+    DATA temp4 LIKE LINE OF temp3.
+    CLEAR temp3.
+
+    temp4-role = z2ui5_if_ui5_llm=>cs_role-user.
+    temp4-content = question.
+    INSERT temp4 INTO TABLE temp3.
+    result = temp3.
 
   ENDMETHOD.
 
   METHOD test_rule_matches.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule = rules( ) ).
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ).
 
-    DATA(ls_result) = li_llm->chat( ask( `Where do I find my INVOICE?` ) ).
+
+    ls_result = li_llm->chat( ask( `Where do I find my INVOICE?` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Invoices are in the billing app.`
                                         act = ls_result-text ).
@@ -61,10 +81,12 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_rule_order.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule = rules( ) ).
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ).
 
     " both rules match - the first one in the table answers
-    DATA(ls_result) = li_llm->chat( ask( `the order of an invoice` ) ).
+
+    ls_result = li_llm->chat( ask( `the order of an invoice` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Invoices are in the billing app.`
                                         act = ls_result-text ).
@@ -74,12 +96,25 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_last_user_asks.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule = rules( ) ).
+    DATA temp5 TYPE z2ui5_if_ui5_llm=>ty_t_message.
+    DATA temp6 LIKE LINE OF temp5.
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ).
 
-    DATA(ls_result) = li_llm->chat( VALUE #(
-        ( role = z2ui5_if_ui5_llm=>cs_role-user      content = `about an invoice` )
-        ( role = z2ui5_if_ui5_llm=>cs_role-assistant content = `Invoices are in the billing app.` )
-        ( role = z2ui5_if_ui5_llm=>cs_role-user      content = `and my order?` ) ) ).
+
+    CLEAR temp5.
+
+    temp6-role = z2ui5_if_ui5_llm=>cs_role-user.
+    temp6-content = `about an invoice`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-role = z2ui5_if_ui5_llm=>cs_role-assistant.
+    temp6-content = `Invoices are in the billing app.`.
+    INSERT temp6 INTO TABLE temp5.
+    temp6-role = z2ui5_if_ui5_llm=>cs_role-user.
+    temp6-content = `and my order?`.
+    INSERT temp6 INTO TABLE temp5.
+
+    ls_result = li_llm->chat( temp5 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Orders are in the sales app.`
                                         act = ls_result-text ).
@@ -89,10 +124,11 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_fallback.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule   = rules( )
-                                         fallback = `I do not know.` ).
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ) fallback = `I do not know.`.
 
-    DATA(ls_result) = li_llm->chat( ask( `What is the weather?` ) ).
+
+    ls_result = li_llm->chat( ask( `What is the weather?` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `I do not know.`
                                         act = ls_result-text ).
@@ -102,9 +138,11 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_echo.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( ).
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local.
 
-    DATA(ls_result) = li_llm->chat( ask( `ping` ) ).
+
+    ls_result = li_llm->chat( ask( `ping` ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `ping`
                                         act = ls_result-text ).
@@ -114,9 +152,11 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_usage.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule = rules( ) ).
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ).
 
-    DATA(ls_result) = li_llm->chat( system    = `Be brief.`
+
+    ls_result = li_llm->chat( system    = `Be brief.`
                                     t_message = ask( `my invoice` ) ).
 
     " words of the system prompt and the conversation, words of the answer
@@ -130,10 +170,16 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_max_tokens.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( t_rule = rules( ) ).
+    DATA temp7 TYPE z2ui5_if_ui5_llm=>ty_s_options.
+    DATA ls_result TYPE z2ui5_if_ui5_llm=>ty_s_result.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local EXPORTING t_rule = rules( ).
 
-    DATA(ls_result) = li_llm->chat( t_message = ask( `my invoice` )
-                                    s_options = VALUE #( max_tokens = 2 ) ).
+
+    CLEAR temp7.
+    temp7-max_tokens = 2.
+
+    ls_result = li_llm->chat( t_message = ask( `my invoice` )
+                                    s_options = temp7 ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Invoices are`
                                         act = ls_result-text ).
@@ -147,12 +193,17 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_no_user_message.
 
     DATA li_llm TYPE REF TO z2ui5_if_ui5_llm.
-    li_llm = NEW z2ui5_cl_ui5_llm_local( ).
+        DATA temp8 TYPE z2ui5_if_ui5_llm=>ty_t_message.
+        DATA lx TYPE REF TO z2ui5_cx_ui5_llm.
+    CREATE OBJECT li_llm TYPE z2ui5_cl_ui5_llm_local.
 
     TRY.
-        li_llm->chat( VALUE #( ) ).
+
+        CLEAR temp8.
+        li_llm->chat( temp8 ).
         cl_abap_unit_assert=>fail( `a call without a user message must raise` ).
-      CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
+
+      CATCH z2ui5_cx_ui5_llm INTO lx.
         cl_abap_unit_assert=>assert_char_cp( exp = `*user message*`
                                              act = lx->get_text( ) ).
         cl_abap_unit_assert=>assert_equals( exp = abap_false

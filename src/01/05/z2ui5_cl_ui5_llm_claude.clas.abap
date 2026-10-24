@@ -110,19 +110,33 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
 
   METHOD constructor.
+    DATA temp14 TYPE i.
+      DATA temp15 TYPE string.
 
     mv_model       = model.
     mv_api_key     = api_key.
     mv_url         = url.
     mv_destination = destination.
-    mv_timeout     = COND #( WHEN timeout > 0 THEN timeout ELSE cv_default_timeout ).
+
+    IF timeout > 0.
+      temp14 = timeout.
+    ELSE.
+      temp14 = cv_default_timeout.
+    ENDIF.
+    mv_timeout     = temp14.
     IF mv_url IS INITIAL.
-      mv_url = COND #( WHEN mv_destination IS INITIAL THEN cv_default_url ELSE cv_default_path ).
+
+      IF mv_destination IS INITIAL.
+        temp15 = cv_default_url.
+      ELSE.
+        temp15 = cv_default_path.
+      ENDIF.
+      mv_url = temp15.
     ENDIF.
     IF io_http IS BOUND.
       mi_http = io_http.
     ELSE.
-      mi_http = NEW z2ui5_cl_ui5_llm_http( ).
+      CREATE OBJECT mi_http TYPE z2ui5_cl_ui5_llm_http.
     ENDIF.
 
   ENDMETHOD.
@@ -132,6 +146,10 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
     DATA lv_model TYPE string.
     DATA lv_system TYPE string.
     DATA lv_max_tokens TYPE i.
+        DATA lo_body TYPE REF TO z2ui5_cl_ajson.
+        DATA ls_message LIKE LINE OF t_message.
+          DATA lo_item TYPE REF TO z2ui5_cl_ajson.
+        DATA lx TYPE REF TO z2ui5_cx_ajson_error.
 
     lv_model = s_options-model.
     IF lv_model IS INITIAL.
@@ -167,7 +185,8 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         " the body through the framework's JSON writer - every value escaped
         " by it, the system prompt a top-level field (the Messages API has
         " no system role), each message a nested object
-        DATA(lo_body) = z2ui5_cl_ajson=>create_empty( ).
+
+        lo_body = z2ui5_cl_ajson=>create_empty( ).
         lo_body->set( iv_path = `/model`
                       iv_val  = lv_model ).
         lo_body->set_integer( iv_path = `/max_tokens`
@@ -182,13 +201,15 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
                         iv_node_type = z2ui5_if_ajson_types=>node_type-number ).
         ENDIF.
         lo_body->touch_array( `/messages` ).
-        LOOP AT t_message INTO DATA(ls_message).
+
+        LOOP AT t_message INTO ls_message.
           IF ls_message-content IS INITIAL.
             RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
               EXPORTING
                 text = |message { sy-tabix } has no content - the Messages API refuses an empty message|.
           ENDIF.
-          DATA(lo_item) = z2ui5_cl_ajson=>create_empty( ).
+
+          lo_item = z2ui5_cl_ajson=>create_empty( ).
           lo_item->set( iv_path = `/role`
                         iv_val  = ls_message-role ).
           lo_item->set( iv_path = `/content`
@@ -197,7 +218,8 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
                          iv_val  = lo_item ).
         ENDLOOP.
         result = lo_body->stringify( ).
-      CATCH z2ui5_cx_ajson_error INTO DATA(lx).
+
+      CATCH z2ui5_cx_ajson_error INTO lx.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
           EXPORTING
             text     = `the request body could not be written as JSON`
@@ -207,6 +229,9 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD build_request.
+    DATA temp16 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
+    DATA temp17 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
+      DATA temp18 TYPE z2ui5_if_ui5_llm_http=>ty_s_header.
 
     result-body        = build_body( system    = system
                                      t_message = t_message
@@ -215,13 +240,22 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
     result-destination = mv_destination.
     result-timeout     = mv_timeout.
 
-    INSERT VALUE #( name  = `content-type`
-                    value = `application/json; charset=utf-8` ) INTO TABLE result-t_header.
-    INSERT VALUE #( name  = `anthropic-version`
-                    value = cv_api_version ) INTO TABLE result-t_header.
+
+    CLEAR temp16.
+    temp16-name = `content-type`.
+    temp16-value = `application/json; charset=utf-8`.
+    INSERT temp16 INTO TABLE result-t_header.
+
+    CLEAR temp17.
+    temp17-name = `anthropic-version`.
+    temp17-value = cv_api_version.
+    INSERT temp17 INTO TABLE result-t_header.
     IF mv_api_key IS NOT INITIAL.
-      INSERT VALUE #( name  = `x-api-key`
-                      value = mv_api_key ) INTO TABLE result-t_header.
+
+      CLEAR temp18.
+      temp18-name = `x-api-key`.
+      temp18-value = mv_api_key.
+      INSERT temp18 INTO TABLE result-t_header.
     ENDIF.
 
   ENDMETHOD.
@@ -234,7 +268,8 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
     " loop may overwrite, and rather than the member names, which ajson
     " sorts as text (10 before 2)
     DATA lv_index TYPE i.
-    DATA(lv_count) = lines( io_json->members( `/content` ) ).
+    DATA lv_count TYPE i.
+    lv_count = lines( io_json->members( `/content` ) ).
     WHILE lv_index < lv_count.
       lv_index = lv_index + 1.
       IF io_json->get_string( |/content/{ lv_index }/type| ) = `text`.
@@ -249,6 +284,7 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
 
     DATA lo_json TYPE REF TO z2ui5_if_ajson.
     DATA lv_message TYPE string.
+      DATA temp1 TYPE xsdboolean.
 
     TRY.
         lo_json = z2ui5_cl_ajson=>parse( is_response-body ).
@@ -264,11 +300,13 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
         lv_message = z2ui5_cl_ui5_util_context=>c_truncate( val = is_response-body
                                                            max  = 200 ).
       ENDIF.
+
+      temp1 = boolc( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING
           text        = |the Messages API answered HTTP { is_response-status } { is_response-reason } - { lv_message }|
           http_status = is_response-status
-          retryable   = xsdbool( is_response-status = 408 OR is_response-status = 429 OR is_response-status >= 500 ).
+          retryable   = temp1.
     ENDIF.
 
     IF lo_json IS NOT BOUND.
@@ -303,10 +341,13 @@ CLASS z2ui5_cl_ui5_llm_claude IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_llm~chat.
 
-    DATA(ls_request) = build_request( system    = system
+    DATA ls_request TYPE z2ui5_if_ui5_llm_http=>ty_s_request.
+    DATA ls_response TYPE z2ui5_if_ui5_llm_http=>ty_s_response.
+    ls_request = build_request( system    = system
                                       t_message = t_message
                                       s_options = s_options ).
-    DATA(ls_response) = mi_http->post( ls_request ).
+
+    ls_response = mi_http->post( ls_request ).
     result = parse_response( ls_response ).
 
   ENDMETHOD.

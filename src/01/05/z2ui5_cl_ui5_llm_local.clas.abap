@@ -88,9 +88,12 @@ CLASS z2ui5_cl_ui5_llm_local IMPLEMENTATION.
 
     DATA lv_question TYPE string.
     DATA lv_key TYPE string.
+    DATA ls_rule LIKE LINE OF mt_rule.
+    DATA temp9 TYPE string.
 
     lv_question = to_upper( question ).
-    LOOP AT mt_rule INTO DATA(ls_rule).
+
+    LOOP AT mt_rule INTO ls_rule.
       IF ls_rule-contains = ``.
         CONTINUE.
       ENDIF.
@@ -101,7 +104,13 @@ CLASS z2ui5_cl_ui5_llm_local IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    result = COND #( WHEN mv_fallback IS INITIAL THEN question ELSE mv_fallback ).
+
+    IF mv_fallback IS INITIAL.
+      temp9 = question.
+    ELSE.
+      temp9 = mv_fallback.
+    ENDIF.
+    result = temp9.
 
   ENDMETHOD.
 
@@ -111,7 +120,10 @@ CLASS z2ui5_cl_ui5_llm_local IMPLEMENTATION.
     DATA lv_input TYPE string.
     DATA lv_word TYPE string.
 
-    LOOP AT t_message INTO DATA(ls_message).
+    DATA ls_message LIKE LINE OF t_message.
+    DATA lt_word TYPE string_table.
+        DATA temp10 TYPE z2ui5_if_ui5_llm=>ty_s_result-text.
+    LOOP AT t_message INTO ls_message.
       lv_input = |{ lv_input } { ls_message-content }|.
       IF ls_message-role = z2ui5_if_ui5_llm=>cs_role-user.
         lv_question = ls_message-content.
@@ -129,11 +141,18 @@ CLASS z2ui5_cl_ui5_llm_local IMPLEMENTATION.
     result-text                 = answer( lv_question ).
     result-s_usage-input_tokens = count_words( lv_input ).
 
-    DATA(lt_word) = words( result-text ).
+
+    lt_word = words( result-text ).
     IF s_options-max_tokens > 0 AND lines( lt_word ) > s_options-max_tokens.
       CLEAR result-text.
       LOOP AT lt_word INTO lv_word TO s_options-max_tokens.
-        result-text = COND #( WHEN result-text IS INITIAL THEN lv_word ELSE |{ result-text } { lv_word }| ).
+
+        IF result-text IS INITIAL.
+          temp10 = lv_word.
+        ELSE.
+          temp10 = |{ result-text } { lv_word }|.
+        ENDIF.
+        result-text = temp10.
       ENDLOOP.
       result-stop_reason = z2ui5_if_ui5_llm=>cs_stop-max_tokens.
     ENDIF.

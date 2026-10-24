@@ -27,20 +27,28 @@ CLASS z2ui5_cl_ui5_llm_http IMPLEMENTATION.
 
     DATA ls_req TYPE z2ui5_cl_ui5_util_http=>ty_s_client_req.
     DATA ls_res TYPE z2ui5_cl_ui5_util_http=>ty_s_http_res.
+    DATA ls_header LIKE LINE OF is_request-t_header.
+      DATA temp1 TYPE z2ui5_cl_ui5_util_context=>ty_s_name_value.
+        DATA lx TYPE REF TO cx_root.
 
     ls_req-method      = `POST`.
     ls_req-url         = is_request-url.
     ls_req-destination = is_request-destination.
     ls_req-body        = is_request-body.
     ls_req-timeout     = is_request-timeout.
-    LOOP AT is_request-t_header INTO DATA(ls_header).
-      INSERT VALUE #( n = ls_header-name
-                      v = ls_header-value ) INTO TABLE ls_req-t_header.
+
+    LOOP AT is_request-t_header INTO ls_header.
+
+      CLEAR temp1.
+      temp1-n = ls_header-name.
+      temp1-v = ls_header-value.
+      INSERT temp1 INTO TABLE ls_req-t_header.
     ENDLOOP.
 
     TRY.
         ls_res = z2ui5_cl_ui5_util_http=>client_request( ls_req ).
-      CATCH cx_root INTO DATA(lx).
+
+      CATCH cx_root INTO lx.
         " no answer at all: the destination does not exist, the host cannot
         " be reached, the TLS handshake failed, the timeout ran out - the
         " cause stays in previous, the text is for the person who fixes the

@@ -17,14 +17,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( `Info message` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( `Info message` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_defaults.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( `Hello` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( `Hello` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Hello`
                                         act = lo_pop->question_text ).
@@ -39,7 +41,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_custom.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory(
       i_text        = `Custom Info`
       i_title       = `My Title`
       i_icon        = `sap-icon://hint`
@@ -93,27 +96,39 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD popup_displayed_xml.
 
-    result = VALUE #( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-display ]-xml OPTIONAL ).
+    DATA temp1 TYPE string.
+    DATA temp2 TYPE z2ui5_if_ui5_types=>ty_s_system_action.
+    CLEAR temp1.
+
+    READ TABLE mo_action->ms_next-t_action_front INTO temp2 WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-display.
+    IF sy-subrc = 0.
+      temp1 = temp2-xml.
+    ENDIF.
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD popup_destroy_queued.
 
-    result = xsdbool( line_exists( mo_action->ms_next-t_action_front[
-                          slot   = z2ui5_if_client=>cs_view-popup
-                          method = z2ui5_if_ui5_types=>cs_slot_action-destroy ] ) ).
+    DATA temp3 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mo_action->ms_next-t_action_front WITH KEY slot = z2ui5_if_client=>cs_view-popup method = z2ui5_if_ui5_types=>cs_slot_action-destroy TRANSPORTING NO FIELDS.
+    temp3 = sy-subrc.
+
+    temp1 = boolc( temp3 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_ui5_handler( `` ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_handler.
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp1.
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_ui5_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_ui5_client EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -128,21 +143,31 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_popup.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( i_text  = `All done!`
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    DATA lv_xml TYPE string.
+    DATA temp2 TYPE xsdboolean.
+    DATA temp3 TYPE xsdboolean.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( i_text  = `All done!`
                                                     i_title = `Info Title` ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = popup_displayed_xml( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `All done!` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Info Title` ) ).
+
+    lv_xml = popup_displayed_xml( ).
+
+    temp2 = boolc( lv_xml CS `All done!` ).
+    cl_abap_unit_assert=>assert_true( temp2 ).
+
+    temp3 = boolc( lv_xml CS `Info Title` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( `All done!` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( `All done!` ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 
