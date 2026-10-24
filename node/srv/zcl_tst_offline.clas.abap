@@ -33,7 +33,6 @@ CLASS zcl_tst_offline IMPLEMENTATION.
     ELSEIF client->check_on_event( `SAVE` ).
       saved = COND #( WHEN saved IS INITIAL THEN input ELSE |{ saved },{ input }| ).
       CLEAR input.
-      client->view_model_update( ).
 
     ELSEIF client->check_on_event( `OTHER` ).
       client->message_toast_display( `other` ).
@@ -58,7 +57,7 @@ CLASS zcl_tst_offline IMPLEMENTATION.
 
     page->tag( `Input`
         )->a( n = `id`    v = `inpValue`
-        )->a( n = `value` v = client->_bind_edit( input ) ).
+        )->a( n = `value` v = client->_bind( input ) ).
     page->tag( `Button`
         )->a( n = `id`    v = `btnSave`
         )->a( n = `text`  v = `save`

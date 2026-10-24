@@ -74,6 +74,12 @@ specs `node/tests/offline.spec.js` and `node/tests/e2e/offline-queue.spec.js`.
   A capture view that empties its fields after each SAVE (the usual shape)
   works as expected; a view whose fields depend on the answer to the
   previous event does not belong in the queue.
+- **At most once, not at least once.** An entry leaves the queue when it is
+  sent. If the page dies in that moment - a reload, a closed tab - after the
+  request went out but before the answer came, the entry is gone from the
+  queue whether or not the backend received it; it is never sent twice.
+  Telling the two apart needs an id per event the backend can check (next
+  step 2).
 - **Stateful apps** (`set_session_stateful`) are out: the session the queue
   would be sent into is gone by the time it is sent.
 - The queue is **per browser and per endpoint**, in the user's browser. A
@@ -86,8 +92,10 @@ specs `node/tests/offline.spec.js` and `node/tests/e2e/offline-queue.spec.js`.
 1. **Real use on one capture screen** - the prototype as it is, in a
    development system, with the mobile shell or a phone browser. What breaks
    first decides the next step.
-2. **Mark a late event.** A flag and the time the event was made, in the
-   request (`S_FRONT`), readable through `client->get( )`. A protocol change,
+2. **Mark a late event.** A flag, the time the event was made and an id the
+   backend can check for a second delivery, in the request (`S_FRONT`),
+   readable through `client->get( )` - with the id, an entry can stay in the
+   queue until its answer arrives (at least once, duplicates refused). A protocol change,
    so it goes into abap2UI5/protocol first.
 3. **Load the page without a network** - for the mobile shell first, which
    controls its webview and can cache UI5 and the frontend; a service worker

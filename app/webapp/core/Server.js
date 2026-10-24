@@ -676,9 +676,18 @@ sap.ui.define(
       // any roundtrip. Called when the browser reports the network back and
       // when the app switches the queue on (a start after a reload sends
       // what the last page load kept). Never while a roundtrip is in flight.
-      async replayOffline(ctx) {
+      async replayOffline(ctx, attempt = 0) {
         const rec = ctx.offline;
-        if (rec.replaying || ctx.state.isBusy) return;
+        if (rec.replaying) return;
+        // a roundtrip in flight - the app's start, a click - owns the busy
+        // state: try again shortly instead of dropping the send until the
+        // next "online" event, which a start after a reload never gets
+        if (ctx.state.isBusy) {
+          if (attempt < 50 && Offline.pending(ctx)) {
+            setTimeout(() => this.replayOffline(ctx, attempt + 1), 200);
+          }
+          return;
+        }
         if (typeof navigator !== "undefined" && navigator.onLine === false)
           return;
         const entries = Offline.take(ctx);

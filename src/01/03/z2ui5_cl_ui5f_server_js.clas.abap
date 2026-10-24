@@ -390,9 +390,16 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        return true;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async replayOffline(ctx) {` && |\n| &&
+             `      async replayOffline(ctx, attempt = 0) {` && |\n| &&
              `        const rec = ctx.offline;` && |\n| &&
-             `        if (rec.replaying || ctx.state.isBusy) return;` && |\n| &&
+             `        if (rec.replaying) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (ctx.state.isBusy) {` && |\n| &&
+             `          if (attempt < 50 && Offline.pending(ctx)) {` && |\n| &&
+             `            setTimeout(() => this.replayOffline(ctx, attempt + 1), 200);` && |\n| &&
+             `          }` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        if (typeof navigator !== "undefined" && navigator.onLine === false)` && |\n| &&
              `          return;` && |\n| &&
              `        const entries = Offline.take(ctx);` && |\n| &&
@@ -417,15 +424,15 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            if (Lib.isValidContextId(contextId))` && |\n| &&
              `              ctx.state.contextId = contextId;` && |\n| &&
              `            id = data?.S_FRONT?.ID || id;` && |\n| &&
-             `          } catch (e) {` && |\n| &&
+             `          } catch (e) {` && |\n|.
+    result = result &&
              `            Offline.putBack(ctx, entries.slice(i));` && |\n| &&
              `            rec.replaying = false;` && |\n| &&
              `            hideBusy(ctx);` && |\n| &&
              `            ctx.state.isBusy = false;` && |\n| &&
              `            Lib.logError("offline queue: sending stopped", e);` && |\n| &&
              `            return;` && |\n| &&
-             `          } finally {` && |\n|.
-    result = result &&
+             `          } finally {` && |\n| &&
              `            timeout.cancel();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

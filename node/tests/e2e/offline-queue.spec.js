@@ -98,21 +98,20 @@ test("an event the app did not name fails as before, with Retry", async ({
 
 test("what was queued survives a reload and is sent by the next start", async ({
   page,
-  context,
 }) => {
   const input = await start(page);
-  await context.setOffline(true);
+  // the backend unreachable while the browser still reports a network, so
+  // no "online" event comes to send the queue from this page: the request
+  // fails the way an unreachable host fails, with fetch's TypeError
+  const unreachable = (route) =>
+    route.request().method() === "POST" ? route.abort() : route.continue();
+  await page.route("**/*", unreachable);
   await save(page, input, "B");
   await expect(toast(page).last()).toHaveText("Saved offline - 1 waiting");
 
-  // the network back, but the tab reloaded before the browser said so to
-  // this page: the new start of the app sends what the old page kept
-  await page.evaluate(() => {
-    window.addEventListener("online", (e) => e.stopImmediatePropagation(), {
-      capture: true,
-    });
-  });
-  await context.setOffline(false);
+  // the backend back, and the tab reloaded: the new start of the app sends
+  // what the old page kept
+  await page.unroute("**/*", unreachable);
   await page.reload();
   await expect(saved(page)).toHaveText("B", { timeout: 30000 });
 });
