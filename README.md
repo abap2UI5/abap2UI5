@@ -23,7 +23,7 @@
 
 <!-- facts:start -->
 <p align="center">
-  <sub>1,533 ABAP unit tests · 85 JS unit specs · 16 browser test suites · 51 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
+  <sub>1,533 ABAP unit tests · 85 JS unit specs · 16 browser test suites · 52 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
 </p>
 <!-- facts:end -->
 
@@ -124,7 +124,9 @@ Popups, navigation, messages, and frontend actions travel the same protocol – 
 
 Every line below ends with the place that proves it.
 
-* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store. The default Content Security Policy carries neither `unsafe-eval` nor inline script, and a CI gate holds the shipped policy to that claim – [Security model](docs/security.md) · [SECURITY.md](SECURITY.md) · [CodeQL](.github/workflows/codeql.yaml) · [npm audit, weekly](.github/workflows/npm-audit.yaml)
+* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store. The default Content Security Policy carries neither `unsafe-eval` nor inline script, and a CI gate holds the shipped policy to that claim – [Security model](docs/security.md) · [SECURITY.md](SECURITY.md) · [CodeQL](.github/workflows/codeql.yaml) · [npm audit, weekly](.github/workflows/npm-audit.yaml) · [SBOM on every release](https://github.com/abap2UI5/abap2UI5/releases)
+* **Accessibility** – Views are standard UI5 views, so every control is as accessible as UI5 makes it; the framework keeps the focus across a roundtrip, lets an app announce a change to a screen reader and switch to a high-contrast theme, and its error overlay is a tested alertdialog – [Accessibility](docs/accessibility.md)
+* **Review** – Everything a review board asks for, in one list – [The review pack](docs/review.md)
 * **Stability** – Every change is CI-tested against Standard ABAP and ABAP Cloud, and every merge is downported and linted against NW 7.02 before the `702` branch is published – backed by ABAP unit tests, JS unit tests and browser tests on UI5 1.71 and on the current release – [test](https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml) · [check_gates](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml) · [UI5 2.x](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5_2X.yaml) · [Verified on](docs/verified-on.md)
 * **Compatibility** – One source for NW 7.02 to ABAP Cloud and for UI5 1.71 to 2.x. The public API is snapshotted, a change to it fails the pull request, and every deprecation is announced in the changelog and tracked until it is removed – [API snapshot](.github/api-snapshot.json) · [changelog.txt](changelog.txt) · [Removal plan](docs/removal-plan.md)
 * **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code. A build in your own namespace is one workflow run – [LICENSE](LICENSE) · [build-rename](.github/workflows/build-rename.yaml)

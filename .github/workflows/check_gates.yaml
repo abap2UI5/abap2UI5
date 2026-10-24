@@ -286,6 +286,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/csp-default-gate.mjs # npm run check:csp
 
+      # the release's SBOM lists abap2UI5 and UI5 and nothing else - true only
+      # while no third-party file is copied into src/ or app/webapp/
+      - name: nothing third-party is shipped, so the SBOM is complete
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/sbom-gate.mjs # npm run check:sbom
+
       - name: the chain's indent states the view's depth
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5

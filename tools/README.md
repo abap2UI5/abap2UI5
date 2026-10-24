@@ -21,6 +21,7 @@ whether a pull request may merge.
 | `check-identity.mjs` | every branch keeps the deployment identity of `standard` / `cloud` (objects, ICF nodes, BSP, endpoint, launchpad inbound), so a system can switch between them |
 | `verify-branches.mjs` | compares a local build in `tools/out/` against what abap2UI5/frontend publishes today |
 | `check-v2-sdk.mjs` | the monthly guard on the pinned legacy-free SDK |
+| `sbom.mjs` | the software bill of materials of a release, CycloneDX 1.5 (`npm run sbom`); `release.yaml` attaches it to every release, `check:sbom` holds the tree to "nothing third-party is shipped" |
 
 What these consume besides the webapp — the ABAP artefacts of the delivery
 branches, the files every branch inherits and the embed app of the `_new`
