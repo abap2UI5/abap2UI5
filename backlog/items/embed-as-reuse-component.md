@@ -5,6 +5,7 @@ summary: Stage 2 is done - the frontend state is per component (core/Context.js)
 priority: low
 state: open
 first_seen: 2026-09-23
+checked_upstream: 2026-10-24
 upstream: abap2UI5/abap2UI5
 evidence:
   - frontend audit 2026-09-23 after the z2ui5 global was removed - findings and file references below
