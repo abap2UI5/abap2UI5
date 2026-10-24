@@ -14,6 +14,6 @@ reviewer reads is the version they install.
 | What is it tested against? | [verified-on.md](verified-on.md) — what CI proves on every merge, and what people report from real systems |
 | What will change under us? | [changelog.txt](../changelog.txt) for every release, [removal-plan.md](removal-plan.md) for every deprecation and what replaces it, the [public-API snapshot](../.github/api-snapshot.json) a change to the API fails against |
 | How is a release made? | [RELEASING.md](../RELEASING.md) and [release.yaml](../.github/workflows/release.yaml) — one tag, the full verification on the tagged commit, the 7.02 build tagged beside it |
-| What does it cost, and under which licence? | [LICENSE](../LICENSE) (MIT), and the cost section of [Evaluate abap2UI5](https://abap2ui5.github.io/evaluate/#what-it-costs) |
+| What does it cost, and under which licence? | [LICENSE](../LICENSE) (MIT), and the cost section of [Evaluate abap2UI5](https://abap2ui5.github.io/docs/evaluate.html#what-it-costs) |
 | Who supports it? | [SUPPORT.md](../SUPPORT.md) — the community channels and the commercial offers |
-| How do we evaluate it ourselves? | [Evaluate abap2UI5](https://abap2ui5.github.io/evaluate/#how-to-evaluate-it-in-a-week) — one real screen in a week |
+| How do we evaluate it ourselves? | [Evaluate abap2UI5](https://abap2ui5.github.io/docs/evaluate.html#how-to-evaluate-it-in-a-week) — one real screen in a week |
