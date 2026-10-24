@@ -6,8 +6,19 @@ sap.ui.define(
     "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/Offline",
+    "z2ui5/core/Server",
   ],
-  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots) => {
+  (
+    MessageBox,
+    mobileLibrary,
+    Storage,
+    Router,
+    Lib,
+    ViewSlots,
+    Offline,
+    Server,
+  ) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -435,6 +446,23 @@ sap.ui.define(
       }
     }
 
+    // OFFLINE_QUEUE: the events of this app that wait for the network
+    // instead of failing when the backend cannot be reached (core/Offline.js).
+    // args[1] the toast text shown when one was kept (&1 = how many wait, ""
+    // for none), args[2..] the event names; no event names switches the
+    // queue off. What a page load kept before is sent right away when the
+    // network is there - after the follow-up actions of this response, which
+    // run with the busy state already down.
+    function evOfflineQueue(oController, args) {
+      const ctx = oController?.ctx;
+      if (!ctx) return;
+      const events = args.slice(2).map((a) => Lib.toText(a));
+      Offline.configure(ctx, events, Lib.toText(args[1]), () =>
+        Server.replayOffline(ctx),
+      );
+      setTimeout(() => Server.replayOffline(ctx), 0);
+    }
+
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
@@ -449,6 +477,7 @@ sap.ui.define(
       SET_TITLE: evSetTitle,
       SET_FAVICON: evSetFavicon,
       PLAY_AUDIO: evPlayAudio,
+      OFFLINE_QUEUE: evOfflineQueue,
     };
 
     return { handlers };

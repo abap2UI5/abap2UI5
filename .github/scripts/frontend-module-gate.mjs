@@ -166,6 +166,10 @@ const ALLOWED_REQUIRE = new Set([
   'sap/ui/codeeditor/CodeEditor',  // @since 1.46 - the developer tools' editor
   'sap/ui/codeeditor/library',     // the same library's module, loaded with it
   'sap/ushell/services/AppConfiguration', // FLP only, like sap/ushell/Container
+  'sap/ui/core/Popup',             // every supported release - required before
+                                   // MessageToast by the offline queue's toast
+                                   // (core/Server.js), for the Dock enum
+                                   // core/actions/ControlCall.js explains
 ]);
 
 const findings = [];

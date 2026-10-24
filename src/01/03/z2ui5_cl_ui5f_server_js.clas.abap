@@ -34,6 +34,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    "z2ui5/core/ScrollFocus",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
+             `    "z2ui5/core/Offline",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -43,6 +44,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    ScrollFocus,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
+             `    Offline,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -84,6 +86,8 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `` && |\n| &&
              `        ErrorView.reset(ctx);` && |\n| &&
+             `` && |\n| &&
+             `        Offline.reset(ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      restoreFromRoute(ctx) {` && |\n| &&
@@ -235,6 +239,11 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              reportTimeout();` && |\n| &&
+             `            } else if (` && |\n| &&
+             `              e.name === "TypeError" &&` && |\n| &&
+             `              Offline.canQueue(ctx, oBody) &&` && |\n| &&
+             `              this._keepOffline(ctx, oBody)` && |\n| &&
+             `            ) {` && |\n| &&
              `            } else {` && |\n| &&
              `              const hint =` && |\n| &&
              `                e.name === "TypeError"` && |\n| &&
@@ -363,6 +372,77 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _keepOffline(ctx, oBody) {` && |\n| &&
+             `        const waiting = Offline.queue(ctx, oBody);` && |\n| &&
+             `        if (!waiting) return false;` && |\n| &&
+             `        this._clearSentPaths(ctx.state.oSentModel);` && |\n| &&
+             `        ctx.state.oSentModel = null;` && |\n| &&
+             `        hideBusy(ctx);` && |\n| &&
+             `        ctx.state.isBusy = false;` && |\n| &&
+             `        const text = Offline.text(ctx);` && |\n| &&
+             `        if (text) {` && |\n| &&
+             `          sap.ui.require(` && |\n| &&
+             `            ["sap/ui/core/Popup", "sap/m/MessageToast"],` && |\n| &&
+             `            (_Popup, MessageToast) =>` && |\n| &&
+             `              MessageToast.show(text.replace("&1", String(waiting))),` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        return true;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      async replayOffline(ctx, attempt = 0) {` && |\n| &&
+             `        const rec = ctx.offline;` && |\n| &&
+             `        if (rec.replaying) return;` && |\n| &&
+             `` && |\n| &&
+             `        if (ctx.state.isBusy) {` && |\n| &&
+             `          if (attempt < 50 && Offline.pending(ctx)) {` && |\n| &&
+             `            setTimeout(() => this.replayOffline(ctx, attempt + 1), 200);` && |\n| &&
+             `          }` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (typeof navigator !== "undefined" && navigator.onLine === false)` && |\n| &&
+             `          return;` && |\n| &&
+             `        const entries = Offline.take(ctx);` && |\n| &&
+             `        if (!entries.length) return;` && |\n| &&
+             `        rec.replaying = true;` && |\n| &&
+             `        ctx.state.isBusy = true;` && |\n| &&
+             `        showBusy(ctx, 0);` && |\n| &&
+             `        let id = ctx.state.oResponse?.ID;` && |\n| &&
+             `        for (let i = 0; i < entries.length - 1; i++) {` && |\n| &&
+             `          const body = entries[i].body;` && |\n| &&
+             `          if (id) body.S_FRONT.ID = id;` && |\n| &&
+             `          const timeout = this.createTimeoutSignal(REQUEST_TIMEOUT_MS);` && |\n| &&
+             `          try {` && |\n| &&
+             `            const response = await this._post(` && |\n| &&
+             `              ctx,` && |\n| &&
+             `              JSON.stringify({ value: body }),` && |\n| &&
+             `              timeout.signal,` && |\n| &&
+             `            );` && |\n| &&
+             `            if (!response.ok) throw new Error(``HTTP ${response.status}``);` && |\n| &&
+             `            const data = await response.json();` && |\n| &&
+             `            const contextId = response.headers.get("sap-contextid");` && |\n| &&
+             `            if (Lib.isValidContextId(contextId))` && |\n| &&
+             `              ctx.state.contextId = contextId;` && |\n| &&
+             `            id = data?.S_FRONT?.ID || id;` && |\n| &&
+             `          } catch (e) {` && |\n|.
+    result = result &&
+             `            Offline.putBack(ctx, entries.slice(i));` && |\n| &&
+             `            rec.replaying = false;` && |\n| &&
+             `            hideBusy(ctx);` && |\n| &&
+             `            ctx.state.isBusy = false;` && |\n| &&
+             `            Lib.logError("offline queue: sending stopped", e);` && |\n| &&
+             `            return;` && |\n| &&
+             `          } finally {` && |\n| &&
+             `            timeout.cancel();` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        rec.replaying = false;` && |\n| &&
+             `        const last = entries[entries.length - 1].body;` && |\n| &&
+             `        if (id) last.S_FRONT.ID = id;` && |\n| &&
+             `` && |\n| &&
+             `        this.readHttp(ctx, last);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _post(ctx, body, signal) {` && |\n| &&
              `        const headers = {` && |\n| &&
              `          "Content-Type": "application/json",` && |\n| &&
@@ -424,8 +504,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        if (!sentValues) return;` && |\n| &&
              `        for (const path of Array.from(pending)) {` && |\n| &&
              `          if (` && |\n| &&
-             `            sentValues.has(path) &&` && |\n|.
-    result = result &&
+             `            sentValues.has(path) &&` && |\n| &&
              `            sentValues.get(path) === oModel.getProperty(path)` && |\n| &&
              `          ) {` && |\n| &&
              `            pending.delete(path);` && |\n| &&

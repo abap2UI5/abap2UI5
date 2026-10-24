@@ -120,6 +120,16 @@ jobs:
         echo "--- release notes ---"
         cat release-notes.md
 
+    # What goes into a system with this release, as CycloneDX 1.5: the ABAP
+    # objects, the frontend embedded in them, and UI5 as the one runtime
+    # dependency it does not carry (tools/sbom.mjs; sbom-gate.mjs, part of the
+    # verify above, holds the tree to "nothing third-party is shipped"). Built
+    # on the rehearsal too, so a broken generator shows before a tag does.
+    - name: Bill of materials
+      env:
+        VERSION: ${{ steps.notes.outputs.version }}
+      run: node tools/sbom.mjs "abap2ui5-$VERSION.cdx.json"
+
     - name: Publish the release
       if: github.ref_type == 'tag'
       env:
@@ -129,7 +139,8 @@ jobs:
         gh release create "$VERSION" \
           --title "$VERSION" \
           --notes-file release-notes.md \
-          --verify-tag
+          --verify-tag \
+          "abap2ui5-$VERSION.cdx.json"
 
     # A release created with the workflow's own GITHUB_TOKEN raises no
     # `release: published` run anywhere: GitHub does not start workflows for

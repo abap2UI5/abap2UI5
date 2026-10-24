@@ -327,8 +327,27 @@ function isAdditiveTypeComponents(oldSig, newSig) {
   return /^(?: types [a-z_0-9]+ type [^.]+ \.)+$/.test(appended);
 }
 
+// The same for a constants structure (cs_event, cs_view, ...): a constant
+// appended before `constants end of` adds a name and changes none. Every
+// existing component keeps its name and its value, so a caller that reads
+// one compiles and behaves as before. Until 2026-10 only types structures
+// were recognised, and appending cs_event-offline_queue read as a rule-5
+// violation.
+function isAdditiveConstantComponents(oldSig, newSig) {
+  const END = / constants end of [a-z_0-9]+\.?$/;
+  const oldEnd = oldSig.match(END)?.[0];
+  if (!oldEnd || newSig.match(END)?.[0] !== oldEnd) return false;
+  const oldHead = oldSig.slice(0, oldSig.length - oldEnd.length);
+  const newHead = newSig.slice(0, newSig.length - oldEnd.length);
+  if (!newHead.startsWith(`${oldHead} `)) return false;
+  const appended = newHead.slice(oldHead.length);
+  return /^(?: constants [a-z_0-9]+ type [a-z_0-9]+ value (?:`[^`]*`|'[^']*'|-?\d+) \.)+$/.test(appended);
+}
+
 const isAdditive = (oldSig, newSig) =>
-  isAdditiveOptionalParams(oldSig, newSig) || isAdditiveTypeComponents(oldSig, newSig);
+  isAdditiveOptionalParams(oldSig, newSig) ||
+  isAdditiveTypeComponents(oldSig, newSig) ||
+  isAdditiveConstantComponents(oldSig, newSig);
 
 const removed = Object.keys(snap).filter((k) => !(k in current));
 const differing = Object.keys(snap).filter((k) => k in current && current[k] !== snap[k]);
