@@ -9,8 +9,18 @@ const { specContext } = require("./loadLibModule");
 // fires turns into (the second block): the fetch rejects, readHttp reports
 // the timeout with a Retry, and the Retry re-sends the same request.
 
+// The offline queue (core/Offline.js) is switched off, as for an app that
+// never asked for it: every network failure here reaches the overlay.
+const OFFLINE_OFF = {
+  canQueue: () => false,
+  reset: () => {},
+};
+
 function loadServer(sandbox) {
-  return loadModule("core/Server.js", { sandbox }).module;
+  return loadModule("core/Server.js", {
+    sandbox,
+    deps: { "z2ui5/core/Offline": OFFLINE_OFF },
+  }).module;
 }
 
 test("uses AbortSignal.timeout when available", () => {
@@ -89,6 +99,7 @@ test.describe("the abort -> responseError -> Retry path", () => {
         },
         "z2ui5/core/Session": { confirmSent: () => {} },
         "z2ui5/core/ErrorView": { reset: () => {} },
+        "z2ui5/core/Offline": { canQueue: () => false, reset: () => {} },
       },
       sandbox: {
         AbortSignal: { any: () => ({}), timeout: () => ({}) },

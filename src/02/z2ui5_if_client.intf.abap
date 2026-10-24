@@ -72,6 +72,7 @@ INTERFACE z2ui5_if_client
       hash_attach_changed       TYPE string VALUE `HASH_ATTACH_CHANGED`,
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
+      offline_queue             TYPE string VALUE `OFFLINE_QUEUE`,
 
     END OF cs_event.
 
@@ -1362,6 +1363,16 @@ INTERFACE z2ui5_if_client
   "! same-origin URL, opened with noopener; location_reload - a same-origin
   "! URL the page navigates to; system_logout - an optional same-origin logout
   "! URL, without one the launchpad logout or the ICF logoff.
+  "!
+  "! **cs_event-offline_queue** (experimental) - the events of this app that
+  "! wait in the browser while the backend cannot be reached, instead of
+  "! failing: kept with their model changes across a reload, and sent in
+  "! order, each on the draft the previous one left, once the network is
+  "! back. t_arg = the toast text shown when one was kept (&amp;1 = how many
+  "! wait; empty for no toast), then the event names:
+  "! ``client->follow_up_action( val = client->cs_event-offline_queue t_arg = VALUE #( ( `Saved offline - &amp;1 waiting` ) ( `SAVE` ) ) )``.
+  "! No event name switches the queue off. Every other event fails as before.
+  "! The page itself still needs the network to load.
   "!
   "! **The view actions**, t_arg in order:
   "! set_focus - control id, selection start, selection end (both optional);

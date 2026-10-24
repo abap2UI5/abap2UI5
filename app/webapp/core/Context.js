@@ -89,6 +89,15 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // whether the user's last focus or click went into it, and the
       // document listener that records it (watchFocus)
       focus: { userInside: false, listener: null },
+      // core/Offline.js - the events the app lets queue while the backend
+      // cannot be reached, the toast text, the "online" listener, and
+      // whether Server.replayOffline is sending the queue right now
+      offline: {
+        events: new Set(),
+        text: "",
+        listener: null,
+        replaying: false,
+      },
       // core/ErrorView.js - the last dialog's inputs and the open dialog
       errorView: { title: "", details: "", options: {}, dialog: null },
       // The restart of the app in place, set by Component.init for an

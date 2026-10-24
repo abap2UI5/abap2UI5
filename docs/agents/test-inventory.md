@@ -97,6 +97,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/Server.js` session-constant location cadence | `serverLocation.spec.js` | incl. `HASH` - left off for an embedded component, sent again when its host handed the hash back (`ownsHash`) |
 | `core/Server.js` error routing outside the inner handlers (`readHttp`'s outer catch, `showRenderError`) | `serverRenderError.spec.js` | — |
 | `core/Session.js` | `session.spec.js` | — |
+| `core/Offline.js` | `offline.spec.js`, `offline-queue` e2e | the store - which events may queue, the order under the endpoint, put back in front, a refused storage keeping nothing, one `online` listener gone with the teardown; the e2e drives `Server.readHttp` keeping a request and `Server.replayOffline` sending it in order, across a reload, and an event the app did not name still ending in the overlay with Retry |
 | `core/ScrollFocus.js` focus-info capture | `focusInfo.spec.js` | — |
 | `core/ScrollFocus.js` UI5-element resolution | `scrollFocus.spec.js` | incl. the pre-1.106 fallback for scroll/focus capture |
 | `core/ScrollFocus.js` focus guard of an embedded component | `focusGuard.spec.js`, `embedded` e2e | `mayMoveFocus` - always yes on a page of the app's own; embedded, yes for a focus in the app (its DOM, or a popup its controls own) and no for one in the host's page, and for a focus on the body what the user's last focus or click says (`watchFocus`, capture-phase, embedded only); `S_FOCUS` leaving out a focus in the host's page |

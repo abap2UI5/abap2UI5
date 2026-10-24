@@ -65,6 +65,13 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      focus: { userInside: false, listener: null },` && |\n| &&
              `` && |\n| &&
+             `      offline: {` && |\n| &&
+             `        events: new Set(),` && |\n| &&
+             `        text: "",` && |\n| &&
+             `        listener: null,` && |\n| &&
+             `        replaying: false,` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      errorView: { title: "", details: "", options: {}, dialog: null },` && |\n| &&
              `` && |\n| &&
              `      restart: null,` && |\n| &&
