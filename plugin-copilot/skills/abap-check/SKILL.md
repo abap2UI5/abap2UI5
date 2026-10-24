@@ -1096,7 +1096,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class
+**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1792,6 +1792,10 @@ fix.
 - `RAISE EXCEPTION` or `THROW` in a method or function module that declares
   classic `EXCEPTIONS` - even for a CX_NO_CHECK; raise it in a method of its
   own, from which it passes through.
+- An offset or length on a numeric variable (`lv_int+1(2)`) - only
+  character-like and byte-like data take one. It comes in disguised as date
+  arithmetic declared inline: `DATA(x) = lv_date + 31.` is a number, not a
+  date, so `x+6(2)` does not activate (abaplint types some of these as `d`).
 - A write to a key component of a sorted or hashed line through a field
   symbol (`<line>-key = …` after LOOP/READ … ASSIGNING) — the CHANGING form is
   section 5's.
@@ -1800,7 +1804,7 @@ fix.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-offset-on-numeric, abaplint-inline-date-arithmetic-type, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
 
 ### Security
 
