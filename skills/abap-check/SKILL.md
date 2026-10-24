@@ -1789,6 +1789,9 @@ fix.
 
 - A CATCH of a subclass after the CATCH of its superclass in the same TRY.
 - `RAISE EXCEPTION … MESSAGE` for a class without IF_T100_MESSAGE.
+- `RAISE EXCEPTION` or `THROW` in a method or function module that declares
+  classic `EXCEPTIONS` - even for a CX_NO_CHECK; raise it in a method of its
+  own, from which it passes through.
 - A write to a key component of a sorted or hashed line through a field
   symbol (`<line>-key = …` after LOOP/READ … ASSIGNING) — the CHANGING form is
   section 5's.
@@ -1797,7 +1800,7 @@ fix.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
 
 ### Security
 
