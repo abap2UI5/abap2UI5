@@ -96,7 +96,8 @@ CLASS ltcl_app_conv DEFINITION FINAL
       BEGIN OF ty_s_row,
         dec   TYPE decfloat34,
         numc  TYPE n LENGTH 5,
-        big   TYPE int8,
+        " p, not int8: 7.02 has no int8 - 31 digits still hold 2^53 + 1
+        big   TYPE p LENGTH 16 DECIMALS 0,
         price TYPE p LENGTH 9 DECIMALS 2,
         qty   TYPE i,
         flag  TYPE abap_bool,
@@ -1922,7 +1923,7 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a JSON null in a delta cell clears it - what a null as a whole value
     " does (whole_scalar_typed), for every elementary kind of the row
     METHODS delta_null_clears        FOR TESTING RAISING cx_static_check.
-    " decfloat, NUMC, int8, rounding into a packed cell, a JSON number
+    " decfloat, NUMC, a big integer, rounding into a packed cell, a JSON number
     " node next to a JSON string, a boolean into a number column
     METHODS delta_number_kinds       FOR TESTING RAISING cx_static_check.
     " a delta two __delta levels down: the cell lands, a refused one is
@@ -2875,7 +2876,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = lo_app->mt_row[ 1 ]-dec ).
     cl_abap_unit_assert=>assert_equals( exp = `00042`
                                         act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
-    DATA lv_big TYPE int8.
+    DATA lv_big TYPE p LENGTH 16 DECIMALS 0.
     lv_big = 9007199254740992.
     lv_big = lv_big + 1.
     cl_abap_unit_assert=>assert_equals( exp = lv_big

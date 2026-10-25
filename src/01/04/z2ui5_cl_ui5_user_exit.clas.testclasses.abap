@@ -134,7 +134,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
                                         act = ls_config-theme ).
@@ -154,7 +155,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " 1.82 puts it into script-src, the one directive that needs it
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     " with its quotes: 'wasm-unsafe-eval' contains the bare word, and is not
     " the keyword this test is about (see test_csp_wasm_unsafe_eval)
@@ -175,7 +177,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " and no other directive carries the keyword
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_config-content_security_policy CS `script-src 'self' 'wasm-unsafe-eval' ui5.sap.com` ) ).
@@ -196,7 +199,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     DATA lt_directive TYPE string_table.
     DATA lv_checked TYPE i.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     SPLIT ls_config-content_security_policy AT `;` INTO TABLE lt_directive.
     LOOP AT lt_directive INTO DATA(lv_directive).
@@ -220,7 +224,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
 
     " a secure-context-only header must not be in the shipped defaults: the
     " plain-HTTP on-premise system ignores it and logs a console error on
@@ -237,7 +242,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
     " CSRF on unless an exit opts out, and a positive default expiry
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -261,7 +267,8 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     " immediately - the shipped exit clamps it back to its default
     ls_config-draft_exp_time_in_hours = -1.
 
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = ls_config-draft_exp_time_in_hours ).

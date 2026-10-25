@@ -72,7 +72,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    " ONLY bound data here - PUBLIC attributes are serialized every roundtrip` && |\n| &&
              `    TYPES: BEGIN OF ty_s_item,` && |\n| &&
              `             product  TYPE string,` && |\n| &&
-             `             quantity TYPE i,` && |\n| &&
+             `             quantity TYPE i,` && |\n|.
+    result = result &&
              `           END OF ty_s_item.` && |\n| &&
              `    DATA t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY.` && |\n| &&
              `    DATA name    TYPE string.` && |\n| &&
@@ -118,7 +119,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `                )->tag( ``Input``` && |\n| &&
              `                    )->a( n = ``value`` v = client->_bind( name )` && |\n| &&
              |\n| &&
-             `                )->ele( ``List``` && |\n| &&
+             `                )->ele( ``List``` && |\n|.
+    result = result &&
              `                    )->a( n = ``items`` v = client->_bind( t_items )` && |\n| &&
              |\n| &&
              `                    )->ele( ``items``` && |\n| &&
@@ -164,7 +166,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `**The ``check_on_navigated( )`` branch is part of the canonical dispatcher, not` && |\n| &&
              `an option**: without it the view is only ever built on ``check_on_init``, so` && |\n| &&
              `navigating away (``nav_app_call``) and back leaves the app blank - the` && |\n| &&
-             `framework fires ``check_on_navigated``, nothing re-displays. Always re-run` && |\n| &&
+             `framework fires ``check_on_navigated``, nothing re-displays. Always re-run` && |\n|.
+    result = result &&
              ```view_display( )`` there.` && |\n| &&
              |\n| &&
              `**The dispatcher is ONE ``IF``/``ELSEIF`` chain, so exactly one arm runs per` && |\n| &&
@@ -206,7 +209,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  pair as ``separate-lifecycle-ifs``, without an automatic fix for the` && |\n| &&
              `  seed-then-display pair: folding it into an ``ELSEIF`` as it stands would leave` && |\n| &&
              `  the first screen empty. The one exempt shape is a guard block that leaves` && |\n| &&
-             `  the method (``... RETURN. ENDIF.``).` && |\n| &&
+             `  the method (``... RETURN. ENDIF.``).` && |\n|.
+    result = result &&
              |\n| &&
              `Two more conventions, both about reading the source rather than running it:` && |\n| &&
              |\n| &&
@@ -250,7 +254,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **Aggregations are just tags**: ``)->ele( ``items`` )`` for ``<items>``. An` && |\n| &&
              `  aggregation carries the same prefix as in the XML - ``<m:content>`` under a` && |\n| &&
              `  ``sap.ui.table`` default namespace is ``)->ele( n = ``content`` ns = ``m`` )``.` && |\n| &&
-             `- ``stringify( )`` renders from the root, so trailing ``end( )`` calls before` && |\n| &&
+             `- ``stringify( )`` renders from the root, so trailing ``end( )`` calls before` && |\n|.
+    result = result &&
              `  the final ``).`` are optional - ``end`` only moves the cursor to add siblings.` && |\n| &&
              `  That is also what lets the whole view hang off the ``factory( )`` in one` && |\n| &&
              `  statement (see "Formatting the chain" below).` && |\n| &&
@@ -292,7 +297,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```.github/abaplint/auto_abaplint_fix.jsonc`` excludes the shipped apps from` && |\n| &&
              ```align_parameters`` / ``line_break_multiple_parameters`` so the auto-formatter` && |\n| &&
              `does not undo them.` && |\n| &&
-             |\n| &&
+             |\n|.
+    result = result &&
              `**They are machine-checked.** The abap2UI5-linter's ``chain-house-layout`` rule` && |\n| &&
              `checks one call per line, four spaces per level and the closing call's column;` && |\n| &&
              ```npm run check:abap2ui5`` reports and ``npm run fmt:chains`` applies. It rewrites` && |\n| &&
@@ -334,7 +340,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  continuation reads ``)->``. With the ``a( )`` chain there is no nested ``VALUE``,` && |\n| &&
              `  so the whole view ends in a single ```` ).```` (not ``) ).``).` && |\n| &&
              `- **Indent after every ``ele``.** Each ``ele( )`` shifts its children's ``)->``` && |\n| &&
-             `  one level (4 spaces) to the right, ``end( )`` shifts back left, and the ``)->``` && |\n| &&
+             `  one level (4 spaces) to the right, ``end( )`` shifts back left, and the ``)->``` && |\n|.
+    result = result &&
              `  of an ``end`` sits in the same column as the ``ele`` it closes.` && |\n| &&
              `- **The indent *states* the depth - 4 spaces, never 2.** The column a line` && |\n| &&
              `  starts in is the only place the reader can see where in the tree they are,` && |\n| &&
@@ -374,7 +381,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `     last ``a( )``, before its first child. The attribute lines are the` && |\n| &&
              `     control's own head; the content starts below them;` && |\n| &&
              `  2. **a run of ``tag``s** - a blank before the first one, none between them.` && |\n| &&
-             `     A form's fields, a toolbar's buttons, a list's items belong together and` && |\n| &&
+             `     A form's fields, a toolbar's buttons, a list's items belong together and` && |\n|.
+    result = result &&
              `     are read as one block, whether or not each carries attributes.` && |\n| &&
              |\n| &&
              `  Everything else runs without a blank:` && |\n| &&
@@ -417,7 +425,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `**The blank lines are the part no gate catches.** abaplint's formatting rules` && |\n| &&
              `are deliberately kept off the app chains (``align_parameters`` and` && |\n| &&
              ```line_break_multiple_parameters`` are excluded in the framework repository's` && |\n| &&
-             ```.github/abaplint/auto_abaplint_fix.jsonc``, and ``in_statement_indentation``` && |\n| &&
+             ```.github/abaplint/auto_abaplint_fix.jsonc``, and ``in_statement_indentation``` && |\n|.
+    result = result &&
              `is excluded for the shipped apps - they would` && |\n| &&
              `flatten exactly the layout this section builds), and no linter rule judges` && |\n| &&
              `where a blank line belongs. That stays with the reader.` && |\n| &&
@@ -428,8 +437,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `that a chain keeps its own rhythm), ``chain-element-per-line`` (several controls` && |\n| &&
              `on one line; attributes may share their control's line, and so may the` && |\n| &&
              `container it opens), and ``chain-house-layout``, which judges the step size too` && |\n| &&
-             `and is the one this section describes.` && |\n|.
-    result = result &&
+             `and is the one this section describes.` && |\n| &&
              |\n| &&
              `**All three default to ``hint``, which a config with ``failOn: warning`` does not` && |\n| &&
              `even print - so what decides is the repository you are in, and every repository` && |\n| &&
@@ -461,7 +469,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Three defects, and they compound: the indent steps by 2 and then by 4 and then` && |\n| &&
              `stops moving at all; one line opens ``content`` *and* a ``Label``; and the` && |\n| &&
              ````` )->end( )->end( )->ele( ``footer`` )->ele( ``OverflowToolbar`` ```` at the end of` && |\n| &&
-             `an attribute line leaves the ``ToolbarSpacer`` two levels away from where its` && |\n| &&
+             `an attribute line leaves the ``ToolbarSpacer`` two levels away from where its` && |\n|.
+    result = result &&
              `column claims it is. Nothing here says ``footer`` is a sibling of ``SimpleForm``.` && |\n| &&
              `The same tree, with the subtree held in a variable:` && |\n| &&
              |\n| &&
@@ -504,7 +513,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  (typed bindings, sorters) get the bare path via` && |\n| &&
              `  ``client->_bind( val = t_items path = abap_true )``, e.g.` && |\n| &&
              `  ```` v = |\{ path: '{ client->_bind( val = t_items path = abap_true ) }', sorter: \{ path: 'PRODUCT' \} \}| ````` &&
-             `.` && |\n| &&
+             `.` && |\n|.
+    result = result &&
              `- Typed/complex bindings pass through verbatim (braces escaped):` && |\n| &&
              `  ```` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| ```` - note the` && |\n| &&
              `  ``path:`` uses the upper-cased ABAP field name.` && |\n| &&
@@ -545,7 +555,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  you touch such an app, and never add a new one.` && |\n| &&
              |\n| &&
              `## 5. Events` && |\n| &&
-             |\n| &&
+             |\n|.
+    result = result &&
              `- Wire: ``)->a( n = ``press`` v = client->_event( ``SAVE`` ) )``.` && |\n| &&
              `- Read in ``on_event`` via ``CASE client->get_event( ).``.` && |\n| &&
              `- **Pass values into an event** with ``t_arg``; read them back with` && |\n| &&
@@ -585,7 +596,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  before it had shipped in any release - nothing downstream lost it, and` && |\n| &&
              `  nothing has to be migrated. Do not reach for a substitute: ``/ui2/cl_json``` && |\n| &&
              `  is not released for ABAP Cloud, ``xco_cp_json`` is missing on 7.02, and the` && |\n| &&
-             `  vendored ajson is framework-internal, which the linter's` && |\n| &&
+             `  vendored ajson is framework-internal, which the linter's` && |\n|.
+    result = result &&
              `  ``non-released-api`` rule reports - correctly.` && |\n| &&
              `  - **Outbound** (a control property that must receive an OBJECT, e.g. a` && |\n| &&
              `    ``sap.ui.integration`` Card manifest): compose the JSON as a string in` && |\n| &&
@@ -625,7 +637,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  is supposed to point at (section  *No new dictionary objects* in ``AGENTS.md``), and` && |\n| &&
              `  the framework's own tables (``z2ui5_t_01``) are internals that may change -` && |\n| &&
              `  naming one from an app is borrowing a table, not using an API.` && |\n| &&
-             `- **The per-wire flags (``s_ctrl``, type ``ty_s_event_control``).** By default` && |\n| &&
+             `- **The per-wire flags (``s_ctrl``, type ``ty_s_event_control``).** By default` && |\n|.
+    result = result &&
              `  an event fired while a roundtrip is in flight is DROPPED - right for a` && |\n| &&
              `  click, wrong for a per-keystroke wire (``liveChange``, ``liveSearch``,` && |\n| &&
              `  ``sliderChange``), where it loses every keystroke typed under the running` && |\n| &&
@@ -666,7 +679,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  clipboard, timers, keyboard shortcuts, ``control_by_id`` (call a public` && |\n| &&
              `  method on a control), ``binding_call`` (filter/sort an aggregation binding).` && |\n| &&
              `  The full catalog with per-action ``t_arg`` documentation sits on` && |\n| &&
-             `  ``z2ui5_if_client=>follow_up_action`` and in ``cs_event``.` && |\n| &&
+             `  ``z2ui5_if_client=>follow_up_action`` and in ``cs_event``.` && |\n|.
+    result = result &&
              |\n| &&
              `## 6. Popups, popovers, messages` && |\n| &&
              |\n| &&
@@ -707,7 +721,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  argument is the ``sap.m.MessageToast.show( )`` / ``sap.m.MessageBox.<type>( )``` && |\n| &&
              `  option object 1:1 (the display method IS the box type there, and a ``t_arg``` && |\n| &&
              `  starting with a brace travels as real JSON):` && |\n| &&
-             `  ``client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =` && |\n| &&
+             `  ``client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =` && |\n|.
+    result = result &&
              `  VALUE #( ( ``MESSAGE_BOX`` ) ( ``error`` ) ( ``Not saved.`` ) ( ``{"contentWidth":"30rem","icon":"WARNING"}`` ) ) )``` &&
              `.` && |\n| &&
              `  ``Z2UI5_CL_SMP_APP_381`` and ``Z2UI5_CL_SMP_APP_512`` are the two samples that` && |\n| &&
@@ -749,7 +764,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``hash_attach_changed`` (registers a backend event that fires when the hash` && |\n| &&
              `  changes under the app - Back/Forward, a manual edit; app-owned routing` && |\n| &&
              `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n| &&
-             `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n| &&
+             `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n|.
+    result = result &&
              `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n| &&
              `  hash.` && |\n| &&
              |\n| &&
@@ -791,7 +807,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    IF sy-subrc <> 0.` && |\n| &&
              `      client->message_box_display( text = ``You are not authorized to use this app``` && |\n| &&
              `                                   type = ``error`` ).` && |\n| &&
-             `      RETURN.` && |\n| &&
+             `      RETURN.` && |\n|.
+    result = result &&
              `    ENDIF.` && |\n| &&
              |\n| &&
              `    me->client = client.` && |\n| &&
@@ -832,9 +849,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ships the starter app, abaplint + linter CI, this guide as its AGENTS.md` && |\n| &&
              `  and the agent permission setup preconfigured.` && |\n| &&
              `- **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks` && |\n| &&
-             `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n|.
+             `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n| &&
+             `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n|.
     result = result &&
-             `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
              `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n| &&
              `  available as a GitHub Action and inside the VS Code extension.` && |\n| &&
              `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n| &&
@@ -875,7 +892,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 10. The in-app developer tools (Ctrl+F12)` && |\n| &&
              |\n| &&
-             `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
+             `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n|.
+    result = result &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
              `(``app/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
@@ -923,7 +941,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  click-through: press "Record Journey", use the app, press it again, and` && |\n| &&
              `  "Export ABAP Unit" hands over a local test class that replays the steps on` && |\n| &&
              `  ``z2ui5_cl_frontend_simulator`` ([headless-frontend](https://github.com/abap2UI5/headless-frontend))` && |\n| &&
-             `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n| &&
+             `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n|.
+    result = result &&
              `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n| &&
              `  into the app's test include; record from the app start, because the test` && |\n| &&
              `  starts the app fresh.` && |\n| &&
@@ -966,7 +985,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```````abap` && |\n| &&
              `DATA(li_llm) = z2ui5_cl_ui5_llm=>create_claude( model       = ls_cfg-model` && |\n| &&
              `                                                destination = ls_cfg-destination ).` && |\n| &&
-             `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n| &&
+             `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n|.
+    result = result &&
              `                                t_message = mt_chat ).` && |\n| &&
              ```````` && |\n| &&
              |\n| &&

@@ -1417,6 +1417,30 @@ break one of those four.
   only for the ones it never reaches. abaplint cannot decide it - which calls
   a test reaches is a question of control flow - and the runtime names the
   missing method, so a failing `run_unit_tests` is the gate.
+- **The 702 build did not compile on 7.02 SP13 — six shapes abaplint's v702
+  profile passes** (abap2UI5/abap2UI5#2947, found by a user on ECC 6.0 EHP5,
+  SAP_BASIS 702 SP13, who fixed the 1.148.0 build by hand). `ASSERT_TRUE` /
+  `ASSERT_FALSE` (7.40 - `check_syntax` resolves `cl_abap_unit_assert`
+  against open-abap-core, which has both); `EXPORTING`/`IMPORTING`/`CHANGING`
+  in a chained call `a( )->b( CHANGING … )` (the v702 parser accepts it);
+  `TYPE int8` (7.50); a built-in function as the `INSERT` operand (read as a
+  method call); a line over 255 characters (the downport joins the operands
+  of a multi-line `&&` inside `VALUE #( )` into one, and the 7.02 editor cuts
+  it on import); and a generated statement of ~400 lines, which the 7.02
+  class scanner refuses - abapGit then creates an empty class shell
+  (`generate-guide-class.mjs` now closes the chain every 80 operands).
+  **Gate: this repo** — the downport rewrites `assert_true/false( x )` into
+  `assert_equals( exp = abap_true/abap_false act = x )` (`assert-bool` in
+  `node/setup/downport-fix.mjs`, main keeps the idiomatic call), and
+  `check-702` in the same script fails `npm run downport` on the other four
+  read from the OUTPUT. In `src/`: assign the object to a variable before a
+  call with `CHANGING`, `TYPE p LENGTH 16 DECIMALS 0` for a big integer, the
+  function result to a variable before `INSERT`, a long `&&` chain as a
+  plain statement before the `VALUE #( )`. The seventh finding was a
+  runtime dump on that kernel: offset/length access (`iv_name+lv_off(3)`) on
+  a parameter bound to a component of a dereferenced data reference raised
+  `GETWA_NOT_ASSIGNED` in `check_alias_capable`; `substring( )` does not. No
+  script decides that one - read for it where a `->*` component is passed on.
 - **`xsdbool`, never `boolc`** — the downport converts `xsdbool` to `boolc`
   automatically, so writing `boolc` yourself breaks in the other direction.
   **abaplint — `prefer_xsdbool`** decides it (measured on 2.120.52).

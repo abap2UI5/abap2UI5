@@ -360,7 +360,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " cross-origin request is rejected unless an app opts out via its
             " own exit.
             DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-            z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+            DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+            lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
             IF check_csrf_rejected_request( ls_config_post ) = abap_true.
               ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
@@ -671,7 +672,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD config_http_get.
 
     IF sv_config_http_get_set = abap_false.
-      z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
+      DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+      lo_user_exit->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
       sv_config_http_get_set = abap_true.
     ENDIF.
     result = ss_config_http_get.
@@ -1292,7 +1294,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Default is abap_false -> the real reason is returned as before.
     DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     TRY.
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
       CATCH cx_root ##NO_HANDLER.
         " the exit is customer code and may be what failed in the first place.
         " Falling through leaves check_hide_error_details at its abap_false
