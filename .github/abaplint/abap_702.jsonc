@@ -22,6 +22,12 @@
       "global_class": true,
       "definitions_top": true,
       "implement_methods": true,
+      // the 7.02 editor stores 255 characters a line and cuts the rest on
+      // import - a cut literal fails activation (#2947). The downport is
+      // what makes such lines: it joins a multi-line && chain into one
+      "line_length": {
+        "length": 255
+      },
       "method_implemented_twice": true,
       "parser_error": true,
       "superclass_final": true,
