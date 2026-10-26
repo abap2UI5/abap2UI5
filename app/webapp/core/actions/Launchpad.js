@@ -213,27 +213,44 @@ sap.ui.define(
     // list gets from "sap.ui": { "fullWidth": true } in its manifest - which
     // the one z2ui5 component cannot set per app. args[1]: X or true for full
     // width, anything else for the letterbox - the backend drops a trailing
-    // empty argument, so abap_false arrives as no argument at all. The
-    // AppConfiguration module is required at component start; should the
-    // first roundtrip outrun it, it is required here instead.
+    // empty argument, so abap_false arrives as no argument at all.
+    // ShellUIService has setApplicationFullWidth since UI5 1.133; before
+    // that, and while the service is still resolving, the deprecated
+    // AppConfiguration does the same - required at component start, or here
+    // should the first roundtrip outrun it.
     function evSetAppFullWidth(oController, args) {
       const launchpad = oController?.ctx?.state.oLaunchpad;
       if (!launchpad) return;
       const raw = args[1];
       const fullWidth = raw === true || raw === "X" || raw === "true";
-      const apply = (ac) => {
+      const guarded = (call) => {
         try {
-          ac.setApplicationFullWidth(fullWidth);
+          call();
         } catch (e) {
           Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);
         }
       };
-      if (launchpad.AppConfiguration) {
-        apply(launchpad.AppConfiguration);
+      const shell = launchpad.ShellUIService;
+      if (shell?.setApplicationFullWidth) {
+        guarded(() => shell.setApplicationFullWidth(fullWidth));
         return;
       }
-      sap.ui.require(["sap/ushell/services/AppConfiguration"], apply, (e) =>
-        Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),
+      const viaAppConfiguration = (ac) =>
+        /* ui5lint-disable no-deprecated-api --
+         deliberate fallback for UI5 releases before 1.133, whose
+         ShellUIService has no setApplicationFullWidth; the successor is
+         used in the branch above. */
+        guarded(() => ac.setApplicationFullWidth(fullWidth));
+      /* ui5lint-enable no-deprecated-api */
+      if (launchpad.AppConfiguration) {
+        viaAppConfiguration(launchpad.AppConfiguration);
+        return;
+      }
+      sap.ui.require(
+        ["sap/ushell/services/AppConfiguration"],
+        viaAppConfiguration,
+        (e) =>
+          Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),
       );
     }
 
