@@ -97,6 +97,65 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function splitIntent(sIntent) {` && |\n| &&
+             `      const m = /^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(sIntent || "");` && |\n| &&
+             `      if (!m) return {};` && |\n| &&
+             `      const params = {};` && |\n| &&
+             `      for (const pair of (m[3] || "").split("&")) {` && |\n| &&
+             `        if (!pair) continue;` && |\n| &&
+             `        const i = pair.indexOf("=");` && |\n| &&
+             `        const key = decodeURIComponent(i < 0 ? pair : pair.slice(0, i));` && |\n| &&
+             `        if (key.startsWith("sap-")) continue;` && |\n| &&
+             `        params[key] = i < 0 ? "" : decodeURIComponent(pair.slice(i + 1));` && |\n| &&
+             `      }` && |\n| &&
+             `      return { semanticObject: m[1], action: m[2], params };` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function dispatchWhenIdle(oController, eventArgs) {` && |\n| &&
+             `      const fire = () => {` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
+             `        if (oController.ctx?.state?.isBusy) {` && |\n| &&
+             `          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oController.eB(...eventArgs);` && |\n| &&
+             `      };` && |\n| &&
+             `      fire();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function evCrossAppNavGetLinks(oController, args) {` && |\n| &&
+             `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
+             `        const target = navTarget(oController, args[1]);` && |\n| &&
+             `        if (target === null) return;` && |\n| &&
+             `        const params = boundArg(oController, args[2], "params");` && |\n| &&
+             `        if (params === null) return;` && |\n| &&
+             `        const sEvent = Lib.toText(args[3]);` && |\n| &&
+             `        if (!target?.semanticObject || !sEvent) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            "CROSS_APP_NAV_GET_LINKS: needs a target with a semanticObject and a callback event",` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const query = { semanticObject: target.semanticObject };` && |\n| &&
+             `        if (target.action) query.action = target.action;` && |\n| &&
+             `        if (params) query.params = params;` && |\n| &&
+             `` && |\n| &&
+             `        Promise.resolve(nav.getLinks(query))` && |\n| &&
+             `          .then((links) => {` && |\n| &&
+             `            const result = (links || []).map((l) => ({` && |\n| &&
+             `              intent: l.intent,` && |\n| &&
+             `              text: l.text || "",` && |\n| &&
+             `              subTitle: l.subTitle || "",` && |\n| &&
+             `              ...splitIntent(l.intent),` && |\n| &&
+             `            }));` && |\n| &&
+             `            dispatchWhenIdle(oController, [[sEvent], JSON.stringify(result)]);` && |\n| &&
+             `          })` && |\n| &&
+             `          .catch((e) =>` && |\n| &&
+             `            Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed", e),` && |\n| &&
+             `          );` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
@@ -120,6 +179,7 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `    const handlers = {` && |\n| &&
              `      CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
              `      CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&
+             `      CROSS_APP_NAV_GET_LINKS: evCrossAppNavGetLinks,` && |\n| &&
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
