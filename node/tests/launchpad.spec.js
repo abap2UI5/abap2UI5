@@ -16,7 +16,16 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //                              silent absence (the service resolves async and
 //                              can legitimately still be unset inside the FLP),
 //                              and a rejecting setTitle caught into the log
-function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
+//   SET_APP_FULL_WIDTH         setApplicationFullWidth with the flag read from
+//                              the argument, the module required late when the
+//                              first roundtrip outran component start, a
+//                              silent no-op outside the FLP, a throwing call
+//                              caught into the log
+function load({
+  oLaunchpad,
+  href = "http://localhost:3000/sap/z2ui5",
+  sap,
+} = {}) {
   // The real Lib: its sandbox origin (http://localhost:3000, loadLibModule)
   // anchors the same-origin check of the EXT redirect.
   // the handlers read the launchpad services off the calling controller's
@@ -46,6 +55,7 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
     },
     sandbox: {
       window: { location: { href } },
+      ...(sap ? { sap } : {}),
     },
   });
 
@@ -386,6 +396,89 @@ test.describe("SET_TITLE_LAUNCHPAD", () => {
 
     expect(errors()).toContain(
       "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
+    );
+  });
+});
+
+test.describe("SET_APP_FULL_WIDTH", () => {
+  function appConfiguration() {
+    const widths = [];
+    return {
+      widths,
+      AppConfiguration: { setApplicationFullWidth: (w) => widths.push(w) },
+    };
+  }
+
+  test("full width for X or true", () => {
+    const { widths, AppConfiguration } = appConfiguration();
+    const { handlers, errors } = load({ oLaunchpad: { AppConfiguration } });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "true"]);
+
+    expect(widths).toEqual([true, true]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("no argument (abap_false: the backend drops a trailing empty one) or false gives the letterbox back", () => {
+    const { widths, AppConfiguration } = appConfiguration();
+    const { handlers } = load({ oLaunchpad: { AppConfiguration } });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH"]);
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", ""]);
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "false"]);
+
+    expect(widths).toEqual([false, false, false]);
+  });
+
+  test("requires AppConfiguration itself when component start has not set it yet", () => {
+    // the module is required asynchronously at component start; an app that
+    // asks in its first roundtrip can be faster
+    const { widths, AppConfiguration } = appConfiguration();
+    const required = [];
+    const { handlers, errors } = load({
+      oLaunchpad: {},
+      sap: {
+        ui: {
+          require: (names, ok) => {
+            required.push(...names);
+            ok(AppConfiguration);
+          },
+        },
+      },
+    });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+
+    expect(required).toEqual(["sap/ushell/services/AppConfiguration"]);
+    expect(widths).toEqual([true]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("outside the FLP it is a SILENT no-op", () => {
+    // like SET_TITLE_LAUNCHPAD: without a shell there is no letterbox
+    const { handlers, errors } = load();
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+
+    expect(errors()).toEqual([]);
+  });
+
+  test("a throwing setApplicationFullWidth lands in the error log", () => {
+    const { handlers, errors } = load({
+      oLaunchpad: {
+        AppConfiguration: {
+          setApplicationFullWidth: () => {
+            throw new Error("shell says no");
+          },
+        },
+      },
+    });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+
+    expect(errors()).toContain(
+      "SET_APP_FULL_WIDTH: setApplicationFullWidth failed",
     );
   });
 });

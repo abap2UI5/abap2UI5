@@ -74,6 +74,7 @@ INTERFACE z2ui5_if_client
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
       offline_queue             TYPE string VALUE `OFFLINE_QUEUE`,
       cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
+      set_app_full_width        TYPE string VALUE `SET_APP_FULL_WIDTH`,
 
     END OF cs_event.
 
@@ -1371,7 +1372,11 @@ INTERFACE z2ui5_if_client
   "! **The browser actions**, t_arg in order:
   "! clipboard_copy - the text (a JSON object or array is copied as its JSON
   "! text); set_title - the page title; set_title_launchpad - the shell title
-  "! inside the launchpad (silently nothing outside it); set_favicon - the
+  "! inside the launchpad (silently nothing outside it); set_app_full_width -
+  "! inside the launchpad the app's width: X (abap_true) for the full screen,
+  "! like a Fiori elements app with fullWidth in its manifest, empty or none
+  "! for the shell's letterbox again (silently nothing outside it);
+  "! set_favicon - the
   "! icon URL; play_audio - the audio URL; download_b64_file - the data URL
   "! (data:&lt;mime&gt;;base64,...) and the file name; open_new_tab - a
   "! same-origin URL, opened with noopener; location_reload - a same-origin
