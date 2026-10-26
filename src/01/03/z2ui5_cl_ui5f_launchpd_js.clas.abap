@@ -176,11 +176,33 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function evSetAppFullWidth(oController, args) {` && |\n| &&
+             `      const launchpad = oController?.ctx?.state.oLaunchpad;` && |\n| &&
+             `      if (!launchpad) return;` && |\n| &&
+             `      const raw = args[1];` && |\n| &&
+             `      const fullWidth = raw === true || raw === "X" || raw === "true";` && |\n| &&
+             `      const apply = (ac) => {` && |\n| &&
+             `        try {` && |\n| &&
+             `          ac.setApplicationFullWidth(fullWidth);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      };` && |\n| &&
+             `      if (launchpad.AppConfiguration) {` && |\n| &&
+             `        apply(launchpad.AppConfiguration);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      sap.ui.require(["sap/ushell/services/AppConfiguration"], apply, (e) =>` && |\n| &&
+             `        Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,` && |\n| &&
              `      CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,` && |\n| &&
              `      CROSS_APP_NAV_GET_LINKS: evCrossAppNavGetLinks,` && |\n| &&
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
+             `      SET_APP_FULL_WIDTH: evSetAppFullWidth,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&

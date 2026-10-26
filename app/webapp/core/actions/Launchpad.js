@@ -5,13 +5,14 @@ sap.ui.define(
 
     // ------------------------------------------------------------------
     // Actions against the SAP Fiori Launchpad shell: cross-app navigation,
-    // the links of a semantic object and the shell title. They all resolve
+    // the links of a semantic object, the shell title and the app's width.
+    // They all resolve
     // the launchpad services captured
     // at component start (ctx.state.oLaunchpad, through the controller's
     // context). The cross-app-nav
-    // handlers no-op with a log line outside the FLP; the title handler is
-    // deliberately silent, because ShellUIService resolves asynchronously
-    // and can legitimately still be unset inside the FLP.
+    // handlers no-op with a log line outside the FLP; the title and width
+    // handlers are deliberately silent outside it, as there is no shell to
+    // change.
     // ------------------------------------------------------------------
 
     const _URLHelper = mobileLibrary.URLHelper;
@@ -208,6 +209,34 @@ sap.ui.define(
       }
     }
 
+    // Full width instead of the shell's letterbox, what a Fiori elements
+    // list gets from "sap.ui": { "fullWidth": true } in its manifest - which
+    // the one z2ui5 component cannot set per app. args[1]: X or true for full
+    // width, anything else for the letterbox - the backend drops a trailing
+    // empty argument, so abap_false arrives as no argument at all. The
+    // AppConfiguration module is required at component start; should the
+    // first roundtrip outrun it, it is required here instead.
+    function evSetAppFullWidth(oController, args) {
+      const launchpad = oController?.ctx?.state.oLaunchpad;
+      if (!launchpad) return;
+      const raw = args[1];
+      const fullWidth = raw === true || raw === "X" || raw === "true";
+      const apply = (ac) => {
+        try {
+          ac.setApplicationFullWidth(fullWidth);
+        } catch (e) {
+          Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);
+        }
+      };
+      if (launchpad.AppConfiguration) {
+        apply(launchpad.AppConfiguration);
+        return;
+      }
+      sap.ui.require(["sap/ushell/services/AppConfiguration"], apply, (e) =>
+        Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),
+      );
+    }
+
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
@@ -215,6 +244,7 @@ sap.ui.define(
       CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,
       CROSS_APP_NAV_GET_LINKS: evCrossAppNavGetLinks,
       SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,
+      SET_APP_FULL_WIDTH: evSetAppFullWidth,
     };
 
     return { handlers };

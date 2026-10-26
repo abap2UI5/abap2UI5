@@ -231,6 +231,7 @@ test.describe("runCustom resolves bound arguments", () => {
     "CLIPBOARD_COPY",
     "SET_TITLE",
     "SET_TITLE_LAUNCHPAD",
+    "SET_APP_FULL_WIDTH",
     "SET_FAVICON",
     "SET_FOCUS",
     "SCROLL_TO",
