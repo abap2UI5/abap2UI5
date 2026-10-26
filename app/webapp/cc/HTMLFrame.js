@@ -21,18 +21,25 @@
 //               An app takes them as event arguments:
 //                 `${$parameters>/action}` and so on.
 //
-// SECURITY - the frame runs NO script. The document is the app's own markup,
-// and the page's CSP (AGENTS.md rule 13) is inherited by a srcdoc frame
-// anyway, so a <script> in it, an onclick= or a javascript: URL would be
-// refused by the browser even if the sandbox let it. The sandbox keeps
-// allow-same-origin so THIS control can reach into the document and listen
-// for the clicks and submits - its listeners run in the page, under the
-// page's policy - and allow-forms so a submit fires at all (the browser
-// drops a sandboxed form before its submit event otherwise); every submit
-// is cancelled, the document is never navigated by a form. allow-popups
-// (with -to-escape-sandbox) lets a link with target=_blank open its address
-// in a tab of its own; a link inside the frame navigates the frame only -
-// no allow-top-navigation. A `sapevent:` link is cancelled and becomes the
+// SECURITY - what keeps script out of the frame is the page's CSP, not the
+// sandbox. A srcdoc frame inherits the page's policy (AGENTS.md rule 13), so
+// the document's inline <script>, an onclick= or a javascript: URL is
+// refused by the browser - the same as for HTML in the page itself, which an
+// app can already put there unsanitized with sap.ui.core.HTML; the frame
+// opens nothing the page did not. The sandbox has to allow scripts all the
+// same: WebKit calls no listener at all on a document whose frame forbids
+// them - not even this control's, which run in the page - so without
+// allow-scripts no click and no submit would reach the app in Safari (the
+// html-frame e2e caught it). allow-same-origin lets the control reach into
+// the document for those listeners; together with allow-scripts it no
+// longer confines a script, which is why the policy is the guard. Whoever
+// changes the page's CSP for inline script changes it for the frame too.
+// allow-forms makes a submit fire at all (the browser drops a sandboxed
+// form before its submit event otherwise); every submit is cancelled, the
+// document is never navigated by a form. allow-popups (with
+// -to-escape-sandbox) lets a link with target=_blank open its address in a
+// tab of its own; a link inside the frame navigates the frame only - no
+// allow-top-navigation. A `sapevent:` link is cancelled and becomes the
 // event.
 //
 // The control decides nothing (AGENTS.md rule 10): it fires what was clicked
@@ -43,7 +50,7 @@ sap.ui.define(
     "use strict";
 
     const SANDBOX =
-      "allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
+      "allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox";
     const SCHEME = "sapevent:";
     // the documents the listeners are on - the empty initial one of a frame
     // and the one of its content, each wired once

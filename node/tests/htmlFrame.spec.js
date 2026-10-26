@@ -10,8 +10,10 @@ const { loadLib, classEnv } = require("./loadLibModule");
 //   - every submit is cancelled; a form to a sapevent: action is fired
 //     with its fields urlencoded - postdata for post, getdata for get -
 //     the submitting button included; a form to anything else is logged
-//   - the frame is sandboxed without allow-scripts and gets the content as
-//     srcdoc; the listeners go on each document once
+//   - the frame gets the content as srcdoc, sandboxed with allow-scripts
+//     (WebKit calls no listener in a frame without it - the inherited CSP is
+//     what keeps the document's script out, see the e2e) and without
+//     allow-top-navigation; the listeners go on each document once
 // The real browser behaviour - the srcdoc under the shipped CSP, a click
 // inside the frame - is node/tests/e2e/html-frame.spec.js.
 function load() {
@@ -151,7 +153,7 @@ test("a form to another address is cancelled and logged, not fired", () => {
   expect(errors.join()).toContain("only sapevent: actions are");
 });
 
-test("the renderer writes a sandboxed frame without scripts, the content as srcdoc", () => {
+test("the renderer writes a sandboxed frame, the content as srcdoc", () => {
   const { HTMLFrame, makeInstance } = load();
   const inst = makeInstance({ content: "<p>hi</p>", height: "40rem", title: "Repository" });
   const out = { attrs: {}, styles: {} };
@@ -170,7 +172,8 @@ test("the renderer writes a sandboxed frame without scripts, the content as srcd
   expect(out.attrs.title).toBe("Repository");
   expect(out.attrs.sandbox.split(" ")).toContain("allow-same-origin");
   expect(out.attrs.sandbox.split(" ")).toContain("allow-forms");
-  expect(out.attrs.sandbox.split(" ")).not.toContain("allow-scripts");
+  // WebKit calls no listener of a frame that forbids scripts - see the header
+  expect(out.attrs.sandbox.split(" ")).toContain("allow-scripts");
   expect(out.attrs.sandbox.split(" ")).not.toContain("allow-top-navigation");
   expect(out.styles.height).toBe("40rem");
 });

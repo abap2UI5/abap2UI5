@@ -31,7 +31,7 @@ CLASS z2ui5_cl_ui5f_htmlfrm_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const SANDBOX =` && |\n| &&
-             `      "allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";` && |\n| &&
+             `      "allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox";` && |\n| &&
              `    const SCHEME = "sapevent:";` && |\n| &&
              `` && |\n| &&
              `    const wired = new WeakSet();` && |\n| &&

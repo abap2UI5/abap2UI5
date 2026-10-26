@@ -3,7 +3,9 @@ const { test, expect } = require("@playwright/test");
 
 // cc/HTMLFrame.js in a real browser, on the running app page - under the
 // CSP the page ships (AGENTS.md rule 13): the app's document in a srcdoc
-// frame keeps its <style>, runs none of its scripts, and its sapevent:
+// frame keeps its <style>, runs none of its inline scripts (the inherited
+// policy refuses them - the sandbox allows scripts, WebKit calls no
+// listener otherwise), and its sapevent:
 // links and forms reach the control as the `sapevent` event. The control's
 // logic one piece at a time is node/tests/htmlFrame.spec.js.
 
