@@ -362,7 +362,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
     TRY.
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
     result = ls_config-check_hide_error_details.

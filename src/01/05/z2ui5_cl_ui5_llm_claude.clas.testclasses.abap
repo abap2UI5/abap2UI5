@@ -237,12 +237,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " a thinking block first, which carries no text - the answer is the
     " first block of type text
-    DATA(ls_result) = z2ui5_cl_ui5_llm_claude=>parse_response( VALUE #(
-        status = 200
-        body   = `{"id":"msg_1","type":"message","role":"assistant","model":"test-model",`
-              && `"content":[{"type":"thinking","thinking":"","signature":"x"},`
-              && `{"type":"text","text":"abap2UI5 builds UI5 apps in ABAP."}],`
-              && `"stop_reason":"end_turn","usage":{"input_tokens":21,"output_tokens":9}}` ) ).
+    " the body as a plain statement first: inside VALUE #( ) the 702
+    " downport joins the operands into one line over 255 characters
+    DATA lv_body TYPE string.
+    lv_body = `{"id":"msg_1","type":"message","role":"assistant","model":"test-model",`
+            && `"content":[{"type":"thinking","thinking":"","signature":"x"},`
+            && `{"type":"text","text":"abap2UI5 builds UI5 apps in ABAP."}],`
+            && `"stop_reason":"end_turn","usage":{"input_tokens":21,"output_tokens":9}}`.
+    DATA(ls_result) = z2ui5_cl_ui5_llm_claude=>parse_response( VALUE #( status = 200
+                                                                        body   = lv_body ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `abap2UI5 builds UI5 apps in ABAP.`
                                         act = ls_result-text ).

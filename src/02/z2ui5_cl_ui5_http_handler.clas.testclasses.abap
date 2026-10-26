@@ -1505,7 +1505,8 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     DATA lt_directive TYPE string_table.
     DATA lv_checked TYPE i.
     DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config( ).
-    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+    lo_user_exit->set_config_http_get( CHANGING cs_config = ls_config ).
     DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
 
     DATA(lv_policy) = z2ui5_cl_ui5_http_handler=>_csp_add_script_hash( ls_config-content_security_policy ).

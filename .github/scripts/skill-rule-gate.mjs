@@ -65,6 +65,8 @@ const NOT_A_RULE = new Map([
   ['sy-sysid', 'an ABAP system field'],
   ['unit-tests', 'the abapGit round-trip rule name in this skill\'s own table'],
   ['pattern-lint', 'abap2UI5/samples-controls\' own gate script, not a linter rule'],
+  ['assert-bool', 'a mode of node/setup/downport-fix.mjs, the downport\'s ASSERT_TRUE/ASSERT_FALSE rewrite'],
+  ['check-702', 'a mode of node/setup/downport-fix.mjs, the downport\'s 7.02 output check'],
   ['literal-no-separator', 'a pattern-lint rule that no longer exists — the stopgap for abaplint/abaplint#4289, named in abap-check §2 as history now that 2.120.52 reports it as parser_error'],
 ]);
 

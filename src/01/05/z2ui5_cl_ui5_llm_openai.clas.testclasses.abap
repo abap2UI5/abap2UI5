@@ -211,11 +211,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_parse_answer.
 
-    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-        status = 200
-        body   = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",`
-              && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},`
-              && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}` ) ).
+    " the body as a plain statement first: inside VALUE #( ) the 702
+    " downport joins the operands into one line over 255 characters
+    DATA lv_body TYPE string.
+    lv_body = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",`
+            && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},`
+            && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}`.
+    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #( status = 200
+                                                                        body   = lv_body ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `abap2UI5 builds UI5 apps in ABAP.`
                                         act = ls_result-text ).
