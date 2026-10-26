@@ -181,19 +181,30 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      if (!launchpad) return;` && |\n| &&
              `      const raw = args[1];` && |\n| &&
              `      const fullWidth = raw === true || raw === "X" || raw === "true";` && |\n| &&
-             `      const apply = (ac) => {` && |\n| &&
+             `      const guarded = (call) => {` && |\n| &&
              `        try {` && |\n| &&
-             `          ac.setApplicationFullWidth(fullWidth);` && |\n| &&
+             `          call();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      };` && |\n| &&
-             `      if (launchpad.AppConfiguration) {` && |\n| &&
-             `        apply(launchpad.AppConfiguration);` && |\n| &&
+             `      const shell = launchpad.ShellUIService;` && |\n| &&
+             `      if (shell?.setApplicationFullWidth) {` && |\n| &&
+             `        guarded(() => shell.setApplicationFullWidth(fullWidth));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      sap.ui.require(["sap/ushell/services/AppConfiguration"], apply, (e) =>` && |\n| &&
-             `        Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),` && |\n| &&
+             `      const viaAppConfiguration = (ac) =>` && |\n| &&
+             `        guarded(() => ac.setApplicationFullWidth(fullWidth));` && |\n| &&
+             `` && |\n| &&
+             `      if (launchpad.AppConfiguration) {` && |\n| &&
+             `        viaAppConfiguration(launchpad.AppConfiguration);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      sap.ui.require(` && |\n| &&
+             `        ["sap/ushell/services/AppConfiguration"],` && |\n| &&
+             `        viaAppConfiguration,` && |\n| &&
+             `        (e) =>` && |\n| &&
+             `          Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

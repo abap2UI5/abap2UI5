@@ -15,14 +15,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'aff4d719ee27e729'.
+    CONSTANTS build_hash TYPE string VALUE '034748e87a43c727'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-r/TXGe4n5ynvpRP8mPSVVgJ7pf9bCSZG+xqIp4t0di4='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-A0dI6HpDxydYeZHRVayOvn6NBLSXqoxa5jEWQUVl6ng='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that

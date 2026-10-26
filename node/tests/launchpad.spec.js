@@ -17,7 +17,9 @@ const { loadLib, withSpecController } = require("./loadLibModule");
 //                              can legitimately still be unset inside the FLP),
 //                              and a rejecting setTitle caught into the log
 //   SET_APP_FULL_WIDTH         setApplicationFullWidth with the flag read from
-//                              the argument, the module required late when the
+//                              the argument - on ShellUIService from UI5 1.133,
+//                              on the deprecated AppConfiguration before - the
+//                              module required late when the
 //                              first roundtrip outran component start, a
 //                              silent no-op outside the FLP, a throwing call
 //                              caught into the log
@@ -408,6 +410,38 @@ test.describe("SET_APP_FULL_WIDTH", () => {
       AppConfiguration: { setApplicationFullWidth: (w) => widths.push(w) },
     };
   }
+
+  test("ShellUIService's setApplicationFullWidth (UI5 1.133+) wins over the deprecated AppConfiguration", () => {
+    const viaShell = [];
+    const { widths, AppConfiguration } = appConfiguration();
+    const { handlers, errors } = load({
+      oLaunchpad: {
+        AppConfiguration,
+        ShellUIService: {
+          setTitle: () => {},
+          setApplicationFullWidth: (w) => viaShell.push(w),
+        },
+      },
+    });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH"]);
+
+    expect(viaShell).toEqual([true, false]);
+    expect(widths).toEqual([]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("a ShellUIService without setApplicationFullWidth (before 1.133) falls back to AppConfiguration", () => {
+    const { widths, AppConfiguration } = appConfiguration();
+    const { handlers } = load({
+      oLaunchpad: { AppConfiguration, ShellUIService: { setTitle: () => {} } },
+    });
+
+    handlers.SET_APP_FULL_WIDTH({}, ["SET_APP_FULL_WIDTH", "X"]);
+
+    expect(widths).toEqual([true]);
+  });
 
   test("full width for X or true", () => {
     const { widths, AppConfiguration } = appConfiguration();
