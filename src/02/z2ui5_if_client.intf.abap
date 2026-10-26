@@ -73,6 +73,7 @@ INTERFACE z2ui5_if_client
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
       offline_queue             TYPE string VALUE `OFFLINE_QUEUE`,
+      cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
 
     END OF cs_event.
 
@@ -1345,6 +1346,19 @@ INTERFACE z2ui5_if_client
   "! queued from a handler it is no JSON and is refused, so prefer the JSON
   "! spelling. Outside the launchpad the call is a logged no-op.
   "! **cs_event-cross_app_nav_to_prev_app** - backToPreviousApp( ), no t_arg.
+  "! **cs_event-cross_app_nav_get_links** - the intents the launchpad offers
+  "! the user for a semantic object (CrossApplicationNavigation getLinks) -
+  "! the list a Fiori elements smart link shows in its popover - handed back
+  "! as a backend event, t_arg = target, params, event. Target and params are
+  "! read like those of cross_app_nav_to_ext; the target needs the
+  "! semanticObject, an action narrows the list, and the params drop the
+  "! intents a mandatory parameter of which is missing. The event is raised
+  "! once getLinks has answered, its first argument a JSON array with one
+  "! object per intent - intent (the hash), text, subTitle and the hash split
+  "! into semanticObject, action and params, ready for cross_app_nav_to_ext:
+  "! ``client->follow_up_action( val = client->cs_event-cross_app_nav_get_links t_arg = VALUE #( ( `\{"semanticObject":"BusinessPartner"\}` ) ( `\{"BusinessPartner":"4711"\}` ) ( `LINKS` ) ) )``.
+  "! Outside the launchpad the call is a logged no-op and the event is not
+  "! raised.
   "!
   "! **cs_event-bind_element** - element-bind a whole view slot to one row of
   "! a bound table, the oView.bindElement( ) of a master-detail popup, so the

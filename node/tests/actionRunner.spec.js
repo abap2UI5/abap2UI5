@@ -225,6 +225,7 @@ test.describe("runCustom resolves bound arguments", () => {
   const ACTIONS = [
     "CROSS_APP_NAV_TO_EXT",
     "CROSS_APP_NAV_TO_PREV_APP",
+    "CROSS_APP_NAV_GET_LINKS",
     "SET_SIZE_LIMIT",
     "SET_ODATA_MODEL",
     "CLIPBOARD_COPY",

@@ -52,6 +52,7 @@ function load({ oLaunchpad, href = "http://localhost:3000/sap/z2ui5" } = {}) {
   return {
     handlers: withSpecController(Launchpad.handlers, ctx).handlers,
     redirects,
+    state: libState,
     errors: () => (libState.errors || []).map((e) => e.message),
   };
 }
@@ -386,5 +387,164 @@ test.describe("SET_TITLE_LAUNCHPAD", () => {
     expect(errors()).toContain(
       "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
     );
+  });
+});
+
+// CROSS_APP_NAV_GET_LINKS reads the intents of a semantic object (getLinks)
+// and hands them to a backend event - the list a Fiori elements smart link
+// shows in its popover. getLinks answers asynchronously, so the event is
+// raised on a later tick through the controller's eB, and only while the
+// controller still is the app's.
+test.describe("CROSS_APP_NAV_GET_LINKS", () => {
+  const LINKS = [
+    {
+      intent: "#BusinessPartner-display?BusinessPartner=4711&sap-app-origin-hint=",
+      text: "Display Business Partner",
+      subTitle: "BP",
+    },
+    { intent: "#BusinessPartner-manage?BusinessPartner=4711", text: "Manage" },
+  ];
+
+  function setup({ getLinks, alive = true } = {}) {
+    const queries = [];
+    const env = load({
+      oLaunchpad: {
+        CrossAppNavigator: {
+          getLinks: (q) => {
+            queries.push(q);
+            return getLinks ? getLinks(q) : Promise.resolve(LINKS);
+          },
+        },
+      },
+    });
+    const events = [];
+    const oController = { eB: (...a) => events.push(a) };
+    if (alive) env.state.oController = oController;
+    return { ...env, queries, events, oController };
+  }
+
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  test("asks getLinks and raises the event with the links as JSON", async () => {
+    const { handlers, queries, events, oController, errors } = setup();
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner" },
+      { BusinessPartner: "4711" },
+      "LINKS",
+    ]);
+    await tick();
+
+    expect(queries).toEqual([
+      { semanticObject: "BusinessPartner", params: { BusinessPartner: "4711" } },
+    ]);
+    expect(events.length).toBe(1);
+    expect(events[0][0]).toEqual(["LINKS"]);
+    // the hash split for CROSS_APP_NAV_TO_EXT, the shell's own sap-
+    // parameters left out
+    expect(JSON.parse(events[0][1])).toEqual([
+      {
+        intent: LINKS[0].intent,
+        text: "Display Business Partner",
+        subTitle: "BP",
+        semanticObject: "BusinessPartner",
+        action: "display",
+        params: { BusinessPartner: "4711" },
+      },
+      {
+        intent: LINKS[1].intent,
+        text: "Manage",
+        subTitle: "",
+        semanticObject: "BusinessPartner",
+        action: "manage",
+        params: { BusinessPartner: "4711" },
+      },
+    ]);
+    expect(errors()).toEqual([]);
+  });
+
+  test("an action narrows the query, and a jQuery-style thenable is adopted", async () => {
+    const { handlers, queries, events, oController } = setup({
+      // CrossApplicationNavigation answers with a jQuery promise
+      getLinks: () => ({ then: (ok) => ok([]) }),
+    });
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner", action: "display" },
+      "",
+      "LINKS",
+    ]);
+    await tick();
+
+    expect(queries).toEqual([{ semanticObject: "BusinessPartner", action: "display" }]);
+    expect(events).toEqual([[["LINKS"], "[]"]]);
+  });
+
+  test("a target without semanticObject or a missing event is refused with a log line", async () => {
+    const { handlers, queries, events, oController, errors } = setup();
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { action: "display" },
+      "",
+      "LINKS",
+    ]);
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner" },
+    ]);
+    await tick();
+
+    expect(queries).toEqual([]);
+    expect(events).toEqual([]);
+    expect(errors()).toContain(
+      "CROSS_APP_NAV_GET_LINKS: needs a target with a semanticObject and a callback event",
+    );
+  });
+
+  test("a controller that is no longer the app's gets no event", async () => {
+    const { handlers, events, oController } = setup({ alive: false });
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner" },
+      "",
+      "LINKS",
+    ]);
+    await tick();
+
+    expect(events).toEqual([]);
+  });
+
+  test("a failing getLinks is caught into the log", async () => {
+    const { handlers, events, oController, errors } = setup({
+      getLinks: () => Promise.reject(new Error("no")),
+    });
+
+    handlers.CROSS_APP_NAV_GET_LINKS(oController, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner" },
+      "",
+      "LINKS",
+    ]);
+    await tick();
+
+    expect(events).toEqual([]);
+    expect(errors()).toContain("CROSS_APP_NAV_GET_LINKS: getLinks failed");
+  });
+
+  test("outside the FLP it no-ops with a log line", () => {
+    const { handlers, errors } = load();
+
+    handlers.CROSS_APP_NAV_GET_LINKS({}, [
+      "CROSS_APP_NAV_GET_LINKS",
+      { semanticObject: "BusinessPartner" },
+      "",
+      "LINKS",
+    ]);
+
+    expect(errors()).toContain("CrossAppNav: not running inside Launchpad");
   });
 });
