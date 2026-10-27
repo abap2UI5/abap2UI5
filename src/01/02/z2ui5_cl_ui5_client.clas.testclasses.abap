@@ -84,6 +84,17 @@ CLASS ltcl_test_client DEFINITION FINAL
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! The JSON of the n-th queued custom action. Read through a variable:
+    "! "->" after a table expression is 7.50 syntax, a 7.40 system refuses
+    "! "t_custom[ 1 ]-o_json->stringify( )" (#2956)
+    METHODS custom_action
+      IMPORTING
+        index         TYPE i
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
@@ -171,6 +182,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
         result = result && |\|{ ls_action-options->stringify( ) }|.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD custom_action.
+
+    DATA(lo_json) = mo_action->ms_next-s_action-t_custom[ index ]-o_json.
+    result = lo_json->stringify( ).
 
   ENDMETHOD.
 
@@ -403,7 +421,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","show","Hello World",{"title":"Information"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -417,7 +435,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","error","Error occurred"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -443,7 +461,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
         exp = `["MESSAGE_BOX","show","Table with 1 entry",` &&
               `{"details":"<ol><li><ul><li><strong>CARRID</strong>: LH</li></ul></li></ol>",` &&
               `"title":"Information"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -492,7 +510,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
         exp = `["MESSAGE_BOX","error","2 Messages found:",` &&
               `{"details":"<ul><li>Plant &quot;1000&quot; &amp; more</li>` &&
               `<li>Enter a value for &lt;MATNR&gt;</li></ul>","title":"Error"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
     " one message is the text itself, and a title the app passes wins
     CLEAR mo_action->ms_next-s_action-t_custom.
@@ -502,7 +520,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_BOX","warning","Plant \"1000\" & more",{"title":"Check"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -526,7 +544,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -539,7 +557,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `["MESSAGE_TOAST","show","Saved"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
 
   ENDMETHOD.
 
@@ -733,9 +751,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["SET_TITLE","My Title"]`
-                                        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+                                        act = custom_action( 1 ) ).
     cl_abap_unit_assert=>assert_equals( exp = `["LOCATION_RELOAD"]`
-                                        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+                                        act = custom_action( 2 ) ).
 
   ENDMETHOD.
 
@@ -759,10 +777,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " across every open view and therefore still finds a main-view container
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = custom_action( 2 ) ).
 
   ENDMETHOD.
 
@@ -789,13 +807,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " own build_global_call drops the dispatch constant from the wire
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Hello"]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","","setExpanded","X"]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = custom_action( 2 ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","demoPanel","POPOVER","setExpanded","X"]`
-        act = mo_action->ms_next-s_action-t_custom[ 3 ]-o_json->stringify( ) ).
+        act = custom_action( 3 ) ).
 
   ENDMETHOD.
 
@@ -826,10 +844,10 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " not a string that happens to look like one
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"my":"center center","width":"20em"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = custom_action( 1 ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Not saved.",{"contentWidth":"30rem","icon":"WARNING"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
+        act = custom_action( 2 ) ).
 
   ENDMETHOD.
 

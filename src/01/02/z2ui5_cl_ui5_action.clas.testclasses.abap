@@ -150,9 +150,10 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = 1
         act = lines( lo_result->ms_next-s_action-t_custom ) ).
+    DATA(lo_json) = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `["MESSAGE_TOAST","show","Bookmarked app state expired*`
-        act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = lo_json->stringify( ) ).
 
   ENDMETHOD.
 

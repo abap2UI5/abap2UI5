@@ -480,8 +480,9 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     mv_protected = `protected`.
     mo_hidden = NEW #( ).
 
-    APPEND NEW ltcl_shp_inner( ) TO mt_apps.
-    mt_apps[ 1 ]->mv_inner = `in-table`.
+    DATA(lo_in_table) = NEW ltcl_shp_inner( ).
+    lo_in_table->mv_inner = `in-table`.
+    APPEND lo_in_table TO mt_apps.
 
     mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }second line|.
 
@@ -3251,8 +3252,9 @@ CLASS ltcl_05_draft IMPLEMENTATION.
                                         act = mo_app->ms_with_oref-o_obj->mv_inner ).
     cl_abap_unit_assert=>assert_equals( exp = `cell-ref`
                                         act = mo_app->mt_rows_ref[ 1 ]-r_elem->* ).
+    DATA(lo_cell_obj) = mo_app->mt_rows_ref[ 1 ]-o_obj.
     cl_abap_unit_assert=>assert_equals( exp = `cell-obj`
-                                        act = mo_app->mt_rows_ref[ 1 ]-o_obj->mv_inner ).
+                                        act = lo_cell_obj->mv_inner ).
     cl_abap_unit_assert=>assert_equals( exp = `protected`
                                         act = mo_app->get_protected( ) ).
     " the rows of the descriptor table survive, the descriptors they held do
@@ -3764,8 +3766,9 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     " S29 - the table of objects, row by row
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_app->mt_apps ) ).
+    DATA(lo_in_table) = mo_app->mt_apps[ 1 ].
     cl_abap_unit_assert=>assert_equals( exp = `in-table`
-                                        act = mo_app->mt_apps[ 1 ]->mv_inner ).
+                                        act = lo_in_table->mv_inner ).
     inv_json_unchanged( lv_before ).
     inv_search_finds_bound( ).
 

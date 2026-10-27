@@ -43,6 +43,14 @@
 //                at v750 and the
 //                transpiler runs it, so a test class shipped with it and a
 //                user on SAP_ABA 750 SP33 reported the syntax error (#2722).
+//   arrow_after_ "Unexpected operator "->"" - the object component selector
+//   table_exp    straight after a table expression, `itab[ 1 ]->attr`, or
+//                after a component of its row, `itab[ 1 ]-oref->meth( )`.
+//                It is 7.50 syntax; a 7.40 system refuses the class. Valid at
+//                the v750 abaplint parses at, and the downport rewrites the
+//                table expression away, so only a 7.40 system installing
+//                main saw it - a user on SAP_BASIS 740 SP24, in a test class
+//                (#2956). abaplint 2.120.89 accepts it at v740sp08 as well.
 //   preferred_   'Declare the parameter "VAL" as OPTIONAL. The addition
 //   param        PREFERRED PARAMETER is ignored if non-optional parameters
 //                are used' - the addition only picks the parameter a
@@ -416,6 +424,84 @@ selfTest(
     + "change, so src/ carries no example of the shape.",
 );
 
+// "->" after a table expression - `itab[ 1 ]->attr`, `itab[ 1 ]-oref->meth( )`.
+// The object component selector may follow a table expression only from 7.50
+// on ("ABAP News for 7.50: Object Component Selector After Table
+// Expressions"); a 7.40 system answers "Unexpected operator "->"". abaplint
+// parses it at v750 and the downport removes the table expression for the 702
+// branch, so nothing here sees it: #2956, a user on SAP_BASIS 740 SP24
+// installing main, in the test class of z2ui5_cl_ui5_handler. The fix is the
+// one the keyword documentation gives for 7.40: the reference gets its own
+// variable on the line above.
+//
+// `->*` is left alone - it is the dereferencing operator, not the object
+// component selector. Read per line like deref_call: the house layout never
+// breaks a chain between `]` and `->`.
+const ARROW_AFTER_TABLE_EXP = /\](?:-[\w/]+)*->(?!\*)/;
+function arrowAfterTableExpFindings(file, source) {
+  const out = [];
+  source.split(/\r?\n/).forEach((line, i) => {
+    if (!ARROW_AFTER_TABLE_EXP.test(stripNoise(line))) return;
+    out.push({
+      at: `${file}:${i + 1}`,
+      rule: "arrow_after_table_exp",
+      message: "-> after a table expression is 7.50 syntax, a 7.40 system refuses it; assign the reference to a variable first",
+    });
+  });
+  return out;
+}
+
+const ARROW_AFTER_TABLE_EXP_SELF_TEST = [
+  {
+    name: "the #2956 line itself",
+    source: "        act = lt_js[ 1 ]-o_json->stringify( ) ).",
+    expect: 1,
+  },
+  {
+    name: "directly after the table expression",
+    source: "    mt_apps[ 1 ]->mv_inner = `in-table`.",
+    expect: 1,
+  },
+  {
+    name: "a table expression deeper in an attribute chain",
+    source: "        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).",
+    expect: 1,
+  },
+  {
+    name: "the repaired form - the reference has its own variable",
+    source: "    DATA(lo_json) = lt_js[ 1 ]-o_json.\n        act = lo_json->stringify( ) ).",
+    expect: 0,
+  },
+  {
+    name: "a dereference after a table expression is not the selector",
+    source: "                                        act = mo_app->mt_rows_ref[ 1 ]-r_elem->* ).",
+    expect: 0,
+  },
+  {
+    name: "a plain component of the row",
+    source: "    lv_id = lt_rows[ 1 ]-id.",
+    expect: 0,
+  },
+  {
+    name: "the shape inside a string literal is text, not code",
+    source: "    cl_abap_unit_assert=>assert_equals( exp = `t[ 1 ]-o->m( )` act = lv_name ).",
+    expect: 0,
+  },
+  {
+    name: "the shape inside a comment is not code either",
+    source: "    \" t_custom[ 1 ]-o_json->stringify( ) is what 7.40 refuses",
+    expect: 0,
+  },
+];
+
+selfTest(
+  ARROW_AFTER_TABLE_EXP_SELF_TEST,
+  source => arrowAfterTableExpFindings("selftest.clas.testclasses.abap", source),
+  "The arrow-after-table-expression rule changed. A green run over src/ says\n"
+    + "nothing while this case fails - the 23 sites it was written for were\n"
+    + "repaired in the same change, so src/ carries no example of the shape.",
+);
+
 /* The SELECT rule is decided inside the statement loop below rather than in a
  * function of its own, like the other statement rules - so its self-test runs
  * the same way the gate does: split a snippet into statements and apply the
@@ -551,6 +637,7 @@ for (const file of files) {
   const source = readFileSync(join(ROOT, file), "utf8");
   if (/\.(clas|intf)\.abap$/.test(file)) findings.push(...abapdocFindings(file, source));
   findings.push(...derefCallFindings(file, source));
+  findings.push(...arrowAfterTableExpFindings(file, source));
   findings.push(...textSymbolFindings(file, source));
   const stmts = statements(source);
 

@@ -1799,9 +1799,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
+    DATA(lo_json) = lt_js[ 1 ]-o_json.
     cl_abap_unit_assert=>assert_equals(
         exp = `["VIEW_SLOTS","display","MAIN","<Second/>"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        act = lo_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -1835,9 +1836,10 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lt_js ) ).
+    DATA(lo_json) = lt_js[ 1 ]-o_json.
     cl_abap_unit_assert=>assert_equals(
         exp = `["VIEW_SLOTS","destroy","POPUP"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        act = lo_json->stringify( ) ).
 
   ENDMETHOD.
 
@@ -2122,9 +2124,10 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_bound( lo_handler->mo_action->ms_next-o_app_leave ).
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_handler->mo_action->ms_next-s_action-t_custom ) ).
+    DATA(lo_json) = lo_handler->mo_action->ms_next-s_action-t_custom[ 1 ]-o_json.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `["MESSAGE_TOAST","show","Previous app state expired*`
-        act = lo_handler->mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+        act = lo_json->stringify( ) ).
 
   ENDMETHOD.
 
