@@ -43,7 +43,7 @@
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
-* **Easy Installation** – Install via abapGit – no extra app deployment needed
+* **Easy Installation** – Install via abapGit – no extra app deployment needed. `main` is for 7.50 and higher and ABAP Cloud; on 7.02 to 7.4x install the [`702` branch](https://github.com/abap2UI5/abap2UI5/tree/702) or a `-702` release tag
 * **Seamless Integration** – Runs in Launchpads and on BTP alongside your RAP and Fiori Elements apps
 
 ## Quick Start
