@@ -32,7 +32,7 @@ INTERFACE z2ui5_if_ui5_llm
       role    TYPE string,
       content TYPE string,
     END OF ty_s_message.
-  TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH EMPTY KEY.
+  TYPES ty_t_message TYPE STANDARD TABLE OF ty_s_message WITH DEFAULT KEY.
 
   TYPES:
     "! model: the model id, exactly as the provider spells it; empty takes
