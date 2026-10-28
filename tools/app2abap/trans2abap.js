@@ -461,6 +461,7 @@ const CLASS_NAME_STEMS = {
   "cc/ExcelBridge.js": "excel_js",
   "cc/FileUploader.js": "uploader_js",
   "cc/Geolocation.js": "geoloc_js",
+  "cc/HTMLFrame.js": "htmlfrm_js",
   "cc/MessageManager.js": "msgmgr_js",
   "cc/MultiInputExt.js": "multiinp_js",
   "cc/NativeBridgeScan.js": "natscan_js",

@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
++ custom control z2ui5.cc.HTMLFrame: an app's own HTML document in an iframe under the page's CSP (no inline script runs, its styles do), and the sapevent: links and the forms posted to a sapevent: action in it as the sapevent event with action, getdata and postdata - what cl_gui_html_viewer and its SAPEVENT are in the SAP GUI
 * 702 build: compiles and imports on 7.02 SP13 (#2947) - no ASSERT_TRUE/ASSERT_FALSE (the downport rewrites them into ASSERT_EQUALS), no CHANGING/EXPORTING in a chained method call, no INT8, no built-in function as an INSERT operand, no line over 255 characters, z2ui5_cl_ui5_llm_guide in statements the 7.02 class scanner takes, and no GETWA_NOT_ASSIGNED dump in z2ui5_cl_ui5_srv_model at app start; npm run downport fails on these shapes from now on
 + cs_event-set_app_full_width: the app takes the launchpad's full width instead of the shell's letterbox (ShellUIService.setApplicationFullWidth from UI5 1.133, AppConfiguration before), what a Fiori elements app gets from fullWidth in its manifest - which the one z2ui5 component cannot set per app
 + cs_event-cross_app_nav_get_links: the intents the launchpad offers the user for a semantic object (getLinks), handed back to a backend event as JSON with each intent split into semanticObject, action and params - what a smart-link popover lists, navigated to with cross_app_nav_to_ext
