@@ -15,7 +15,7 @@ evidence:
   - abaplint/transpiler#1962 ("Packed arithmetic: compute typed p assignments exactly", opened 2026-10-03, open on 2026-10-09) adds the missing `instanceof Packed` branch to `Packed.set( )` - it takes the scaled value as it is when the decimals agree and rescales it exactly otherwise; not written for this item, but it is the change this item asks for, so the item waits on that PR instead of a second one
   - re-measured 2026-10-09 - `@abaplint/runtime` 2.14.2 (pinned in abap2UI5 since then) still copies `20240229235959` as `20240229235958.9986304`; the runtime built from abaplint/transpiler#1962 at 467e0402 copies all three values above exactly. The cause and where it bit abap2UI5 (ajson's `to_timestamp`, the whole-hour workaround in `z2ui5_cl_ui5_srv_model`'s test class) are in a comment on the PR, https://github.com/abaplint/transpiler/pull/1962#issuecomment-6084278372
   - re-measured 2026-10-12 on `@abaplint/runtime` 2.14.3 while going through every abap2UI5 unit test that does not run under `npm run unit` - ajson's `ltcl_abap_to_json->set_value_timestampl` (`lv_timestampl = lv_timestampl + '0.1234567'`, skipped in `node/setup/abap_transpile.json`) answers `2022-08-31T12:34:56.1245184Z` instead of `.1234567Z`: the addition goes through the same double. The old skip note blamed millisecond precision of the clock; the clock is not involved
-checked_upstream: 2026-10-08
+checked_upstream: 2026-10-29
 ---
 
 # runtime: a packed field assigned to another packed field goes through a JS double

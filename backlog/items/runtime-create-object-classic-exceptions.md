@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the stand-ins of the SAP GUI controls (z2ui5_cl_cgui_gui*) keep the classic constructors of cl_gui_custom_container and cl_gui_textedit, with EXCEPTIONS cntl_error / error_cntl_create; their unit test of the constructor outside of a report (CREATE OBJECT lo EXPORTING ... EXCEPTIONS error_cntl_create = 1) died with ClassicError instead of sy-subrc = 1, and was dropped'
   - 'measured 2026-10-24 with @abaplint/transpiler 2.14.3 (API) and transpiler-cli 2.14.5: CREATE OBJECT lo EXPORTING fail = abap_true EXCEPTIONS failed = 1 is `lo.set(await (new abap.Classes[...]()).constructor_({fail: ...}))` with no try/catch; build/src/statements/create_object.js has no handling of e.classic, build/src/statements/call.js has'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # CREATE OBJECT ... EXCEPTIONS: the classic exception escapes

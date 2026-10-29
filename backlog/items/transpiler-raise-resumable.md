@@ -10,6 +10,7 @@ evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui, `report2cloud:web --start`) - a class of the open-source web corpus that converted reports depend on raises `RAISE RESUMABLE EXCEPTION TYPE ...`; the transpile of the whole set stopped without naming a file, and the measurement now leaves such objects out before the build (`UNSUPPORTED` in `tools/report2cloud/lib/start.mjs`)'
   - 'reduced 2026-10-24 with @abaplint/transpiler-cli 2.14.5 - a class with `METHODS run RAISING RESUMABLE(cx_static_check).` and `RAISE RESUMABLE EXCEPTION TYPE cx_static_check.` stops the build with "Error: RaiseTranspiler, RESUMABLE not implemented"; abaplint reports no syntax error'
   - 'read 2026-10-24 in @abaplint/transpiler 2.14.5 `build/src/statements/raise.js` - the first lines of `transpile( )`: `if (node.findDirectTokenByText("RESUMABLE")) { throw new Error("RaiseTranspiler, RESUMABLE not implemented"); }`. `CATCH BEFORE UNWIND` parses (`Statements.Catch`) and `RESUME` is a known statement'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # transpiler: `RAISE RESUMABLE EXCEPTION` stops the build

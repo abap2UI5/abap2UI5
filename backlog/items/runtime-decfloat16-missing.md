@@ -12,7 +12,7 @@ evidence:
   - 'the cause, read in the same checkout - `packages/runtime/src/types/` has `decfloat34.ts` and `_decimal.ts` only; `packages/transpiler/src/transpile_types.ts` maps `DecFloat34Type` and lets `DecFloat16Type` fall into the `typeTodo` default'
   - 'abap2UI5 `src/00/03/z2ui5_cl_ui5_util_context.clas.testclasses.abap:945-946` and `src/01/02/z2ui5_cl_ui5_srv_model.clas.testclasses.abap:4783-4785`: the decfloat16 branches of the JSON and binding conversions stay untested because ''the transpiled runtime has no type for the first'''
   - 'abaplint/transpiler#963 ''add type DecFloat16'' (opened 2022-10-30) is open on 2026-10-22 with no PR - this item is the case and the proposal for it'
-checked_upstream: 2026-10-22
+checked_upstream: 2026-10-29
 ---
 
 # runtime: no `decfloat16`

@@ -12,6 +12,7 @@ evidence:
   - 'read 2026-10-24 in @abaplint/runtime 2.14.5 - `build/src/statements/create_data.js`, the `options.name` branch: `abap.DDIC[name]`, then `=>` names, `\TYPE=%` names, then `ABAP_BOOL`, `STRING`, `XSTRING`, `UTCLONG`, `I`, `T`, `D`, `F`, `INT8`, then a class name. No branch for `SYST`. 2.13.99 has none of the built-in names in that function. open-abap-core has no `syst.tabl.xml` at b2d219d nor at 9c1271b (the pins of abap2UI5 before and after 2026-10-23)'
   - 'open-abap-core `cl_abap_typedescr.clas.abap` `describe_by_name( )`: for a name that is no class or interface it runs `CREATE DATA ref TYPE (p_name)` and turns `cx_sy_create_data_error` into `type_not_found` - so the RTTI half fails through the same lookup'
   - 'measured 2026-10-24 with the change below patched into @abaplint/runtime 2.14.5 `create_data.js` (and taken out again) - `cl_abap_typedescr=>describe_by_name( ''SYST'' )` on the transpiled abap2UI5 answers kind `S` with 30 components, `ABCDE`, `DATLO`, `DATUM` first'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # runtime: `SYST` is no type by name

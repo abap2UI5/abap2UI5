@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - z2ui5_cl_cgui_gui_textedit inherits true / false from z2ui5_cl_cgui_gui, as cl_gui_textedit does from cl_gui_control; its parameters DEFAULT false / DEFAULT true threw ReferenceError: $false is not defined in the transpiled unit run. They are written z2ui5_cl_cgui_gui=>false now'
   - 'measured 2026-10-24 with @abaplint/transpiler 2.14.3 (API) and transpiler-cli 2.14.5: METHODS run IMPORTING mode TYPE i DEFAULT false in a subclass of a class with CONSTANTS false TYPE i VALUE 0 gives `if (INPUT === undefined || INPUT.mode === undefined) {mode = $false;}`'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # DEFAULT with a constant of the superclass

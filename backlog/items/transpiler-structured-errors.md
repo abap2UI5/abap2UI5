@@ -13,7 +13,7 @@ evidence:
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `feat/validation-error-issues` (81f3973) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
   - 'filed 2026-10-23 as abaplint/transpiler#2026, open, awaiting review'
   - 'review on #2026 (larshp, 2026-10-23): does this change the output of the CLI? It would have - the CLI prints a failed run with console.log(err), which lists enumerable own properties, the issues among them. Fixed on the branch (fdd2609, fe5c6f5): issues and name are non-enumerable, inspect(e) shows message and stack as before, only the first line reads TranspilerValidationError instead of Error'
-checked_upstream: 2026-10-23
+checked_upstream: 2026-10-29
 ---
 
 # transpiler: throw the issues, not their text

@@ -1091,7 +1091,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, transpiler-value-lines-of, core-abap-matcher-create
+**Backlog:** open-abap · runtime-packed-copy-precision, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, core-abap-matcher-create
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1126,7 +1126,9 @@ break one of those four.
   test. A test that needs a clock should take a literal stamp or a whole hour
   (those copy exactly) rather than `time_get_timestampl( )`, until the two
   fixes land; the production sweep on the node runtime is exposed the same way,
-  about two in sixty thousand sweeps. Backlog item: runtime-get-time-stamp-double.
+  about two in sixty thousand sweeps. The GET TIME STAMP half is fixed upstream
+  (abaplint/transpiler#2012, `@abaplint/runtime` 2.14.11; the lock here is still on
+  2.14.5); the copy half is backlog item runtime-packed-copy-precision.
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a

@@ -12,7 +12,7 @@ evidence:
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/validation.ts:145-156`: `reg.setConfig(conf)` with no restore'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/run-restores-registry-config` (fd69084) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
   - 'filed 2026-10-23 as abaplint/transpiler#2027, open, awaiting review'
-checked_upstream: 2026-10-23
+checked_upstream: 2026-10-29
 ---
 
 # transpiler: `run( )` should leave the registry's config as it found it

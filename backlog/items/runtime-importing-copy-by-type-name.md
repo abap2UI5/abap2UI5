@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the runtime test of a converted dynpro: `screen->checkbox( val = gv_window )` with `DATA gv_window TYPE c LENGTH 1` and `checkbox( IMPORTING val TYPE abap_bool )`; the selection-screen builder binds `client->_bind( val )`, and the transpiled backend answered BINDING_ERROR "No class attribute for binding found". The converter now declares such fields `TYPE abap_bool`'
   - 'read 2026-10-24 in @abaplint/transpiler 2.14.5 (bundled in transpiler-cli) - `build/src/statements/method_implementation.js`: for an IMPORTING parameter without default, not optional, not by value and not generic it writes `if (val?.getQualifiedName === undefined || val.getQualifiedName() !== "ABAP_BOOL") { val = undefined; }` and then `if (val === undefined) { val = new abap.types.Character(1, ...).set(INPUT.val); }`'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # IMPORTING by reference: a copy when the type name differs

@@ -1092,7 +1092,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, transpiler-value-lines-of, core-abap-matcher-create
+**Backlog:** open-abap · runtime-packed-copy-precision, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, core-abap-matcher-create
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1127,7 +1127,9 @@ break one of those four.
   test. A test that needs a clock should take a literal stamp or a whole hour
   (those copy exactly) rather than `time_get_timestampl( )`, until the two
   fixes land; the production sweep on the node runtime is exposed the same way,
-  about two in sixty thousand sweeps. Backlog item: runtime-get-time-stamp-double.
+  about two in sixty thousand sweeps. The GET TIME STAMP half is fixed upstream
+  (abaplint/transpiler#2012, `@abaplint/runtime` 2.14.11; the lock here is still on
+  2.14.5); the copy half is backlog item runtime-packed-copy-precision.
 
 - **Never put a 7.02 built-in function inside a table-expression key.** This is
   the sharpest case in this section, because all four checks were green and a
@@ -1398,11 +1400,14 @@ break one of those four.
   start a new one. A reserved name that still comes out raw is an upstream
   bug and belongs in the transpiler's `DEFAULT_KEYWORDS`, not in a per-project
   option here.
-- **A `PARTIALLY IMPLEMENTED` interface in a test double gets no empty stubs
-  from the transpiler.** On a system, every interface method the double does
-  not implement is generated empty and answers initial; the JS runtime
+- **A `PARTIALLY IMPLEMENTED` interface in a test double gets no stubs from
+  the transpiler.** On a system, calling an interface method the double does
+  not implement raises `CX_SY_DYN_CALL_ILLEGAL_METHOD` (ABAP keyword
+  documentation, INTERFACES - PARTIALLY IMPLEMENTED; an earlier version of
+  this entry claimed "answers initial", which is wrong); the JS runtime
   generates nothing, so the first call to one of them is a
-  `TypeError: ... is not a function` inside the method under test. Found the
+  `TypeError: ... is not a function` inside the method under test instead
+  of that exception (abaplint/transpiler#2024 makes it the exception). Found the
   day the MCP server's `run_unit_tests` first ran app-template's starter test
   in the transpiled backend (2026-09-19): its `ltd_client` implemented the six
   lifecycle and output methods, and `view_display( )` called
