@@ -7,6 +7,7 @@ sap.ui.define(
     "z2ui5/core/ScrollFocus",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
+    "z2ui5/core/Offline",
   ],
   (
     BusyIndicator,
@@ -16,6 +17,7 @@ sap.ui.define(
     ScrollFocus,
     ViewSlots,
     ErrorView,
+    Offline,
   ) => {
     "use strict";
 
@@ -192,6 +194,9 @@ sap.ui.define(
         // the error overlay's record is the same kind of survivor - the
         // last error dump stays referenced across the teardown otherwise
         ErrorView.reset(ctx);
+        // the "online" listener of the offline queue; the queue itself is
+        // in storage and is sent by the next start of the app
+        Offline.reset(ctx);
       },
 
       // Restore the app state a matched hash route points at. Wired into
@@ -446,6 +451,13 @@ sap.ui.define(
             if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               reportTimeout();
+            } else if (
+              e.name === "TypeError" &&
+              Offline.canQueue(ctx, oBody) &&
+              this._keepOffline(ctx, oBody)
+            ) {
+              // kept in the offline queue (core/Offline.js) - the app asked
+              // for this event to wait for the network instead of failing
             } else {
               // fetch rejects with a TypeError when no answer could be read
               // at all ("Failed to fetch", "NetworkError when attempting to
@@ -629,6 +641,96 @@ sap.ui.define(
           ctx.server.inflight.delete(superseder);
           cancel();
         }
+      },
+
+      // An event the app lets queue (core/Offline.js) failed for want of a
+      // network: keep its body, end the roundtrip without the overlay, and
+      // say so in the app's own words. The edits it carried count as sent -
+      // they are in the queue - so the next event does not carry them twice.
+      // False when the body could not be kept: the caller reports the
+      // failure as before.
+      _keepOffline(ctx, oBody) {
+        const waiting = Offline.queue(ctx, oBody);
+        if (!waiting) return false;
+        this._clearSentPaths(ctx.state.oSentModel);
+        ctx.state.oSentModel = null;
+        hideBusy(ctx);
+        ctx.state.isBusy = false;
+        const text = Offline.text(ctx);
+        if (text) {
+          // lazily, like ControlCall's MessageToast: Popup first, so the
+          // Dock enum MessageToast validates against is registered
+          sap.ui.require(
+            ["sap/ui/core/Popup", "sap/m/MessageToast"],
+            (_Popup, MessageToast) =>
+              MessageToast.show(text.replace("&1", String(waiting))),
+          );
+        }
+        return true;
+      },
+
+      // Send what the offline queue holds, in order: each request on the
+      // draft the previous answer left (the body was built on the draft that
+      // was current when it was kept), the answers in between only read for
+      // their draft id, the last one sent through readHttp and rendered like
+      // any roundtrip. Called when the browser reports the network back and
+      // when the app switches the queue on (a start after a reload sends
+      // what the last page load kept). Never while a roundtrip is in flight.
+      async replayOffline(ctx, attempt = 0) {
+        const rec = ctx.offline;
+        if (rec.replaying) return;
+        // a roundtrip in flight - the app's start, a click - owns the busy
+        // state: try again shortly instead of dropping the send until the
+        // next "online" event, which a start after a reload never gets
+        if (ctx.state.isBusy) {
+          if (attempt < 50 && Offline.pending(ctx)) {
+            setTimeout(() => this.replayOffline(ctx, attempt + 1), 200);
+          }
+          return;
+        }
+        if (typeof navigator !== "undefined" && navigator.onLine === false)
+          return;
+        const entries = Offline.take(ctx);
+        if (!entries.length) return;
+        rec.replaying = true;
+        ctx.state.isBusy = true;
+        showBusy(ctx, 0);
+        let id = ctx.state.oResponse?.ID;
+        for (let i = 0; i < entries.length - 1; i++) {
+          const body = entries[i].body;
+          if (id) body.S_FRONT.ID = id;
+          const timeout = this.createTimeoutSignal(REQUEST_TIMEOUT_MS);
+          try {
+            const response = await this._post(
+              ctx,
+              JSON.stringify({ value: body }),
+              timeout.signal,
+            );
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const contextId = response.headers.get("sap-contextid");
+            if (Lib.isValidContextId(contextId))
+              ctx.state.contextId = contextId;
+            id = data?.S_FRONT?.ID || id;
+          } catch (e) {
+            // the network went again, or the backend refused: what is not
+            // sent yet goes back, in order, for the next attempt
+            Offline.putBack(ctx, entries.slice(i));
+            rec.replaying = false;
+            hideBusy(ctx);
+            ctx.state.isBusy = false;
+            Lib.logError("offline queue: sending stopped", e);
+            return;
+          } finally {
+            timeout.cancel();
+          }
+        }
+        rec.replaying = false;
+        const last = entries[entries.length - 1].body;
+        if (id) last.S_FRONT.ID = id;
+        // readHttp owns the busy state from here, and keeps the body again
+        // should the network be gone once more
+        this.readHttp(ctx, last);
       },
 
       // One POST of the roundtrip body - split off so the CSRF re-send in

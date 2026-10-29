@@ -32,7 +32,16 @@ function loadFrontendAction(deps = {}, sandbox = {}) {
         bindingPathOf: loadLib().Lib.bindingPathOf,
       },
       // the framework model of the calling view, as the runner reads it
-      "z2ui5/core/ViewSlots": { trackedModel: (view) => view?.__tracked },
+      "z2ui5/core/ViewSlots": {
+        trackedModel: (view) => view?.__tracked,
+        // no slot owners in this spec: the real resolver falls back to the
+        // calling controller's view exactly like this (viewSlots.spec.js
+        // holds the slot resolution)
+        responseModel: (_ctx, c) => {
+          const v = c?.getView?.();
+          return v?.__tracked ?? v?.getModel?.();
+        },
+      },
       "z2ui5/core/AppState": { state: { onBeforeEventFrontend: [] } },
       ...deps,
     },
@@ -216,11 +225,13 @@ test.describe("runCustom resolves bound arguments", () => {
   const ACTIONS = [
     "CROSS_APP_NAV_TO_EXT",
     "CROSS_APP_NAV_TO_PREV_APP",
+    "CROSS_APP_NAV_GET_LINKS",
     "SET_SIZE_LIMIT",
     "SET_ODATA_MODEL",
     "CLIPBOARD_COPY",
     "SET_TITLE",
     "SET_TITLE_LAUNCHPAD",
+    "SET_APP_FULL_WIDTH",
     "SET_FAVICON",
     "SET_FOCUS",
     "SCROLL_TO",

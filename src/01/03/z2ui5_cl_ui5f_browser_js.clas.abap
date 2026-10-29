@@ -33,8 +33,19 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/Offline",` && |\n| &&
+             `    "z2ui5/core/Server",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, mobileLibrary, Storage, Router, Lib, ViewSlots) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    MessageBox,` && |\n| &&
+             `    mobileLibrary,` && |\n| &&
+             `    Storage,` && |\n| &&
+             `    Router,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    Offline,` && |\n| &&
+             `    Server,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
@@ -83,11 +94,8 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
-             `      const oView = oController?.getView?.();` && |\n| &&
              `` && |\n| &&
-             `      const oModel = oView` && |\n| &&
-             `        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())` && |\n| &&
-             `        : undefined;` && |\n| &&
+             `      const oModel = ViewSlots.responseModel(oController?.ctx, oController);` && |\n| &&
              `      const value = oModel?.getProperty(path);` && |\n| &&
              `      if (value == null) {` && |\n| &&
              `        Lib.logError(``${action}: nothing bound at the model path '${path}'``);` && |\n| &&
@@ -321,6 +329,16 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function evOfflineQueue(oController, args) {` && |\n| &&
+             `      const ctx = oController?.ctx;` && |\n| &&
+             `      if (!ctx) return;` && |\n| &&
+             `      const events = args.slice(2).map((a) => Lib.toText(a));` && |\n| &&
+             `      Offline.configure(ctx, events, Lib.toText(args[1]), () =>` && |\n| &&
+             `        Server.replayOffline(ctx),` && |\n| &&
+             `      );` && |\n| &&
+             `      setTimeout(() => Server.replayOffline(ctx), 0);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
              `      DOWNLOAD_B64_FILE: evDownloadB64File,` && |\n| &&
@@ -333,6 +351,7 @@ CLASS z2ui5_cl_ui5f_browser_js IMPLEMENTATION.
              `      SET_TITLE: evSetTitle,` && |\n| &&
              `      SET_FAVICON: evSetFavicon,` && |\n| &&
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
+             `      OFFLINE_QUEUE: evOfflineQueue,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    return { handlers };` && |\n| &&

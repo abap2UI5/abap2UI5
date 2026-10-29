@@ -81,6 +81,7 @@ const GATES = [
   { npm: "check:pins", script: "transpile-pins-gate.mjs" },
   { npm: "check:draftowner", script: "draft-owner-gate.mjs" },
   { npm: "check:csp", script: "csp-default-gate.mjs" },
+  { npm: "check:sbom", script: "sbom-gate.mjs" },
   { npm: "check:api", script: "api-snapshot.mjs" },
 ];
 

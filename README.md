@@ -23,13 +23,14 @@
 
 <!-- facts:start -->
 <p align="center">
-  <sub>1,529 ABAP unit tests · 92 JS unit specs · 16 browser test suites · 51 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
+  <sub>1,533 ABAP unit tests · 87 JS unit specs · 18 browser test suites · 52 CI gates · 25 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
 </p>
 <!-- facts:end -->
 
 <p align="center">
   <a href="https://abap2UI5.org">Documentation</a> •
   <a href="https://abap2ui5.github.io/playground/samples/">Samples</a> •
+  <a href="https://abap2ui5.github.io/playground/ai/">AI Studio</a> •
   <a href="#build-with-ai">Build with AI</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
@@ -42,7 +43,7 @@
 * **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
 * **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
-* **Easy Installation** – Install via abapGit – no extra app deployment needed
+* **Easy Installation** – Install via abapGit – no extra app deployment needed. `main` is for 7.50 and higher and ABAP Cloud; on 7.02 to 7.4x install the [`702` branch](https://github.com/abap2UI5/abap2UI5/tree/702) or a `-702` release tag
 * **Seamless Integration** – Runs in Launchpads and on BTP alongside your RAP and Fiori Elements apps
 
 ## Quick Start
@@ -69,6 +70,8 @@ One thing stays yours: the framework performs no authority check of its own, so 
 Next stop: the [sample catalogue](https://abap2ui5.github.io/playground/samples/) – hundreds of ready-to-run apps, from data binding basics to OData, RAP, and Launchpad integration, searchable by control and by the UI5 release your system runs, and most of them one click from running in the browser – and the [docs](https://abap2ui5.github.io/docs/) for everything else.
 
 ## Build with AI
+
+No setup at all: the [**AI Studio**](https://abap2ui5.github.io/playground/ai/) builds an app from a description in the browser – describe it, watch the class being written, run and fixed against the real framework, then download it for abapGit. Bring your own API key (Anthropic, or any OpenAI-compatible server such as Ollama); nothing leaves your browser but the request to the model.
 
 Working with Claude Code? Two commands install the abap2UI5 plugin – the agent skills for writing an app (template, view builder, and the ABAP and UI5 traps a green lint misses) plus the [MCP server](https://github.com/abap2UI5/mcp-server), which validates, deploys, runs and screenshots apps without an SAP system:
 
@@ -121,13 +124,15 @@ Popups, navigation, messages, and frontend actions travel the same protocol – 
 
 Every line below ends with the place that proves it.
 
-* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store. The default Content Security Policy carries neither `unsafe-eval` nor inline script, and a CI gate holds the shipped policy to that claim – [Security model](docs/security.md) · [SECURITY.md](SECURITY.md) · [CodeQL](.github/workflows/codeql.yaml) · [npm audit, weekly](.github/workflows/npm-audit.yaml)
+* **Security** – Apps run entirely inside your SAP authentication and authorization: a single HTTP endpoint, standard SAP logon, no separate user store. The default Content Security Policy carries neither `unsafe-eval` nor inline script, and a CI gate holds the shipped policy to that claim – [Security model](docs/security.md) · [SECURITY.md](SECURITY.md) · [CodeQL](.github/workflows/codeql.yaml) · [npm audit, weekly](.github/workflows/npm-audit.yaml) · [SBOM on every release](https://github.com/abap2UI5/abap2UI5/releases)
+* **Accessibility** – Views are standard UI5 views, so every control is as accessible as UI5 makes it; the framework keeps the focus across a roundtrip, lets an app announce a change to a screen reader and switch to a high-contrast theme, and its error overlay is a tested alertdialog – [Accessibility](docs/accessibility.md)
+* **Review** – Everything a review board asks for, in one list – [The review pack](docs/review.md)
 * **Stability** – Every change is CI-tested against Standard ABAP and ABAP Cloud, and every merge is downported and linted against NW 7.02 before the `702` branch is published – backed by ABAP unit tests, JS unit tests and browser tests on UI5 1.71 and on the current release – [test](https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml) · [check_gates](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml) · [UI5 2.x](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5_2X.yaml) · [Verified on](docs/verified-on.md)
 * **Compatibility** – One source for NW 7.02 to ABAP Cloud and for UI5 1.71 to 2.x. The public API is snapshotted, a change to it fails the pull request, and every deprecation is announced in the changelog and tracked until it is removed – [API snapshot](.github/api-snapshot.json) · [changelog.txt](changelog.txt) · [Removal plan](docs/removal-plan.md)
 * **No Lock-In** – MIT license, unlimited users, no per-user fees; apps are plain ABAP classes in your system – versioned, transported and tested like any other ABAP code. A build in your own namespace is one workflow run – [LICENSE](LICENSE) · [build-rename](.github/workflows/build-rename.yaml)
 * **Support** – Community support via Slack and GitHub, commercial options listed in [SUPPORT.md](SUPPORT.md); a security report is acknowledged within three business days – [SECURITY.md](SECURITY.md#response-timeline)
-* **Governance** – Code first: an app is a class, so development, review, transport and release follow the ABAP process you already run; authorization and logon are SAP's, every roundtrip can be logged, and Basis has four settings to change – [abap2UI5 for IT governance](docs/governance.md)
-* **Fit** – Where abap2UI5 is the right tool, and where RAP and Fiori Elements are – [When to use abap2UI5](docs/when-to-use.md)
+* **Governance** – Code first: an app is a class, so development, review, transport and release follow the ABAP process you already run; authorization and logon are SAP's, every roundtrip can be logged, and Basis has four settings to change – [What you keep](https://abap2ui5.github.io/docs/evaluate.html#what-you-keep)
+* **Fit** – Where abap2UI5 is the right tool, and where RAP and Fiori Elements are – [When to use it, and when not](https://abap2ui5.github.io/docs/evaluate.html#when-to-use-it-and-when-not)
 
 ## AI Assistants
 

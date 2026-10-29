@@ -324,6 +324,38 @@ test("an embedded app restarts in place: the app ends, the component stays", () 
   expect(starts).toEqual([true]);
 });
 
+// The page a plain swap replaced waits for the new page's rendering before
+// it is destroyed (actions/Slots leaveOnceRendered, state.mainLeaving). A
+// restart in that window nulled the field with the rest of the state, so
+// the page was never destroyed and its controls' exits never ran.
+test("an embedded restart runs the pending page leave first", () => {
+  const appState = fakeAppState({ oDeviceModel: { destroy() {} } });
+  appState.Context.resetApp = () => {};
+  const order = [];
+  appState.ctx.state.mainLeaving = () => order.push("leave");
+  const destroyedSlots = {
+    push: (key) => order.push(`destroy:${key}`),
+  };
+  const { module: def, sandbox } = loadForExit(appState, {
+    destroyedSlots,
+    shortcutResets: [],
+    sessionResets: [],
+  });
+  sandbox.clearTimeout = () => {};
+  const inst = Object.create(def);
+  inst.ctx = appState.ctx;
+  inst.getRootControl = () => ({ getController: () => ({ startApp() {} }) });
+
+  inst._restartApp();
+
+  expect(order).toEqual([
+    "destroy:POPUP",
+    "destroy:POPOVER",
+    "leave",
+    "destroy:MAIN",
+  ]);
+});
+
 // cc/Dirty owns the FLP dirty flag and re-syncs it on the way out (its
 // reset, from _endApp); an unconditional false written after that cleared
 // the unsaved changes of another component on the page, and an embedded

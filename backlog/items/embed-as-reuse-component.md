@@ -1,10 +1,11 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else (the control's ownsPage property too, abap2UI5/embed-control#29); an embedded component's root is a sap.m.NavContainer instead of the full-screen sap.m.App (2026-10-13), and its messages stay in the page-wide messaging by decision (2026-10-13); the rest of the wire (cc/History, HASH_BACK, PATHNAME/SEARCH) waits for real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else (the control's ownsPage property too, abap2UI5/embed-control#29); an embedded component's root is a sap.m.NavContainer instead of the full-screen sap.m.App (2026-10-13), and its messages stay in the page-wide messaging by decision (2026-10-13); the rest of the wire (HASH_BACK, PATHNAME/SEARCH) waits for real demand
 priority: low
 state: open
 first_seen: 2026-09-23
+checked_upstream: 2026-10-23
 upstream: abap2UI5/abap2UI5
 checked_upstream: 2026-10-23
 evidence:
@@ -72,9 +73,10 @@ object page's route away - and `core/Server.js` sends no `HASH`, whose
 `#/app/<CLASS>` route would win over the host's `app_start`. What drove it:
 the Fiori elements example of abap2UI5/embed-control (an object page custom
 section), which the cleanup sent back to its list after every click.
-Still open of the URL item: `cc/History.js`, an app's explicit HASH_BACK
-(both still act on the host's history, as asked), and `PATHNAME`/`SEARCH`
-on the wire.
+Still open of the URL item: an app's explicit HASH_BACK (it still acts on
+the host's history, as asked), and `PATHNAME`/`SEARCH` on the wire
+(`cc/History.js`, which was open here too, left with the obsolete
+invisible controls on 2026-10-23).
 
 **Done 2026-10-10 - the hash handed back.** A host whose page is the one
 component and nothing else - the abap2UI5/frontend branches `standard_new`
@@ -93,8 +95,7 @@ stays. One such component per page: the hash is page-wide.
 
 **Done 2026-10-12 - the rest of the page, and the switch that hands it
 back.** Asked for by the maintainer. The document title and the favicon
-(`SET_TITLE`, `SET_FAVICON` in `core/actions/Browser.js`, which
-`cc/Title.js` and `cc/Favicon.js` call with their context), the global
+(`SET_TITLE`, `SET_FAVICON` in `core/actions/Browser.js`), the global
 busy indicator (`showBusy`/`hideBusy` in `core/Server.js` and
 `controller/View1.controller.js`) and the browser's "leave page?" prompt
 (`cc/Dirty.js`) ask `state.ownsPage`. An embedded component without it
@@ -107,15 +108,15 @@ hash; `ownsHash: true`, its older name, hands back the same, because its
 host is by contract the same page - so `standard_new` and `cloud_new`
 keep what they had. `state.ownsHash` is now always equal to
 `state.ownsPage`. Pinned by `componentData.spec.js`,
-`browserActions.spec.js`, `favicon.spec.js`, `dirty.spec.js` and
+`browserActions.spec.js`, `dirty.spec.js` and
 `serverReadHttp.spec.js`. What an app calls on the BusyIndicator itself
 (`GLOBAL_TARGETS` in `core/actions/ControlCall.js`) is the app's explicit
 choice and still reaches the global one.
 
 **Done 2026-09-29 - the focus.** An embedded app no longer takes the focus
 from the host page: `sap.m.App` holds its autofocus off until its first page
-has rendered (`controller/App.controller.js`), and SET_FOCUS, a CONTROL_BY_ID
-`focus( )` and `cc/Focus` ask the guard in `core/ScrollFocus.js` first - yes
+has rendered (`controller/App.controller.js`), and SET_FOCUS and a
+CONTROL_BY_ID `focus( )` ask the guard in `core/ScrollFocus.js` first - yes
 while the focus is in the app, or nowhere after the user's last focus or
 click went there. Found by the review of abap2UI5/embed-control, pinned by
 `node/tests/e2e/embedded.spec.js`.
@@ -156,7 +157,7 @@ What else stage 1 needs:
 1. **An `embedded` flag in `componentData`** that switches off what belongs
    to the page, not to an area of it:
    - URL ownership: `core/Router.js` (HashChanger writes, `pushState`,
-     `replaceState`), `cc/History.js`, and `HASH`/`PATHNAME`/`SEARCH` on
+     `replaceState`) and `HASH`/`PATHNAME`/`SEARCH` on
      the wire (`core/Server.js`, `core/Session.js`). The backend then has to
      tolerate a request without them.
    - Document title and favicon: done 2026-10-12 (`state.ownsPage`).

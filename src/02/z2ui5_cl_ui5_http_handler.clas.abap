@@ -360,7 +360,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " cross-origin request is rejected unless an app opts out via its
             " own exit.
             DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-            z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+            DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+            lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
             IF check_csrf_rejected_request( ls_config_post ) = abap_true.
               ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
@@ -513,9 +514,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     result = val.
     DATA(lv_source) = |'{ z2ui5_cl_ui5f_preload=>script_hash }'|.
-    " an exit that listed the hash itself gets no second copy
-    IF val IS INITIAL OR find( val = val
-                               sub = lv_source ) >= 0.
+    DATA(lv_source_lower) = to_lower( lv_source ).
+    IF val IS INITIAL.
       RETURN.
     ENDIF.
 
@@ -545,6 +545,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                     sub = `'sha` ) < 0
           AND find( val = lv_sources
                     sub = `'nonce-` ) < 0.
+        lv_offset = lv_stop.
+        CONTINUE.
+      ENDIF.
+      " an exit that listed the hash itself gets no second copy - decided
+      " per directive: it used to be one find( ) over the whole policy, so a
+      " hash the exit wrote into script-src kept script-src-elem (which
+      " governs <script> elements when present) from getting one, and the
+      " shell did not boot
+      IF find( val = lv_sources
+               sub = lv_source_lower ) >= 0.
         lv_offset = lv_stop.
         CONTINUE.
       ENDIF.
@@ -662,7 +672,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD config_http_get.
 
     IF sv_config_http_get_set = abap_false.
-      z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
+      DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+      lo_user_exit->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
       sv_config_http_get_set = abap_true.
     ENDIF.
     result = ss_config_http_get.
@@ -1212,6 +1223,16 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         IF so_sticky_handler IS BOUND.
           lo_post->mo_action = lo_action_before.
           CLEAR lo_post->mo_action->ms_next.
+          " ... and the sticky flag the app may have switched in this
+          " roundtrip (set_session_stateful) goes back to the request's
+          " start state too: the switch is applied to the ICF session only
+          " on the 200 path (set_response), so after a 500 the session is
+          " still stateful while a flag left at abap_false would clear
+          " so_sticky_handler below - the next event then ran on a fresh
+          " stateless handler against a draft that was never written
+          IF lo_action_before->mo_app IS BOUND.
+            lo_action_before->mo_app->mv_check_sticky = lo_action_before->mv_check_sticky_start.
+          ENDIF.
         ENDIF.
     ENDTRY.
 
@@ -1273,7 +1294,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Default is abap_false -> the real reason is returned as before.
     DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     TRY.
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
       CATCH cx_root ##NO_HANDLER.
         " the exit is customer code and may be what failed in the first place.
         " Falling through leaves check_hide_error_details at its abap_false

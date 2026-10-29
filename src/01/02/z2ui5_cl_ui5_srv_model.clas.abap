@@ -1882,7 +1882,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
     DATA(lv_off) = lv_len - 3.
-    result = xsdbool( iv_name+lv_off(3) = `->*` ).
+    " substring( ), not iv_name+lv_off(3): the caller passes a component of a
+    " dereferenced data reference, and offset/length access on that
+    " parameter dumps with GETWA_NOT_ASSIGNED on 7.02 kernels
+    DATA(lv_tail) = substring( val = iv_name
+                               off = lv_off
+                               len = 3 ).
+    result = xsdbool( lv_tail = `->*` ).
 
   ENDMETHOD.
 
@@ -2357,6 +2363,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     FIELD-SYMBOLS <comp>   TYPE any.
     FIELD-SYMBOLS <before> TYPE any.
     DATA lr_col_kind TYPE REF TO ty_s_col_kind.
+    DATA li_slice TYPE REF TO z2ui5_if_ajson.
     ASSIGN ir_comp->* TO <comp>.
 
     " the column's kind first, asked once per COLUMN (a property of the
@@ -2449,14 +2456,16 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
               " sender of a genuinely PARTIAL object is the obsolete
               " _bind( custom_filter ) dropping a non-initial field - such a
               " field is cleared here, exactly as on the attribute level
-              io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
-                                                   IMPORTING ev_container     = <comp> ).
+              li_slice = io_delta->slice( iv_path ).
+              li_slice->to_abap( EXPORTING iv_corresponding = abap_true
+                                 IMPORTING ev_container     = <comp> ).
             ENDIF.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
-                                                 IMPORTING ev_container     = <comp> ).
+            li_slice = io_delta->slice( iv_path ).
+            li_slice->to_abap( EXPORTING iv_corresponding = abap_true
+                               IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
             delta_apply_scalar( io_delta     = io_delta

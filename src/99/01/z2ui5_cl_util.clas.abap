@@ -1867,8 +1867,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD json_parse.
     TRY.
 
-        z2ui5_cl_ajson=>parse( val )->to_abap( EXPORTING iv_corresponding = abap_true
-                                               IMPORTING ev_container     = data ).
+        DATA(li_json) = z2ui5_cl_ajson=>parse( val ).
+        li_json->to_abap( EXPORTING iv_corresponding = abap_true
+                          IMPORTING ev_container     = data ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -2794,6 +2795,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(lv_pos) = 0.
     DATA(lv_in_quote) = abap_false.
     DATA(lv_in_between) = abap_false.
+    DATA lv_part TYPE string.
 
     IF lv_val IS INITIAL.
       RETURN.
@@ -2861,9 +2863,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
          AND lv_in_between = abap_false
          AND lv_pos + lv_sep_len <= lv_len
          AND lv_val+lv_pos(lv_sep_len) = lv_sep.
-        INSERT substring( val = lv_val
-                          off = lv_start
-                          len = lv_pos - lv_start ) INTO TABLE result.
+        " via a variable: 7.02 reads a built-in function as the INSERT
+        " operand as a method call ("Method SUBSTRING does not exist")
+        lv_part = substring( val = lv_val
+                             off = lv_start
+                             len = lv_pos - lv_start ).
+        INSERT lv_part INTO TABLE result.
         lv_pos = lv_pos + lv_sep_len.
         lv_start = lv_pos.
         CONTINUE.
@@ -2873,8 +2878,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     ENDWHILE.
 
-    INSERT substring( val = lv_val
-                      off = lv_start ) INTO TABLE result.
+    lv_part = substring( val = lv_val
+                         off = lv_start ).
+    INSERT lv_part INTO TABLE result.
 
   ENDMETHOD.
 

@@ -4,13 +4,15 @@ sap.ui.define(
     "use strict";
 
     // ------------------------------------------------------------------
-    // Actions against the SAP Fiori Launchpad shell: cross-app navigation
-    // and the shell title. They all resolve the launchpad services captured
+    // Actions against the SAP Fiori Launchpad shell: cross-app navigation,
+    // the links of a semantic object, the shell title and the app's width.
+    // They all resolve
+    // the launchpad services captured
     // at component start (ctx.state.oLaunchpad, through the controller's
     // context). The cross-app-nav
-    // handlers no-op with a log line outside the FLP; the title handler is
-    // deliberately silent, because ShellUIService resolves asynchronously
-    // and can legitimately still be unset inside the FLP.
+    // handlers no-op with a log line outside the FLP; the title and width
+    // handlers are deliberately silent outside it, as there is no shell to
+    // change.
     // ------------------------------------------------------------------
 
     const _URLHelper = mobileLibrary.URLHelper;
@@ -52,10 +54,9 @@ sap.ui.define(
       if (raw == null || raw === "") return undefined;
       const path = Lib.modelPathOf(raw);
       if (!path) return raw;
-      const oView = oController?.getView?.();
-      const oModel = oView
-        ? (ViewSlots.trackedModel(oView) ?? oView.getModel())
-        : undefined;
+      // the model of the slot the responding app filled (a popup app's
+      // arguments live in POPUP, not in the caller's MAIN)
+      const oModel = ViewSlots.responseModel(oController?.ctx, oController);
       const value = oModel?.getProperty(path);
       if (value == null) {
         Lib.logError(
@@ -114,6 +115,80 @@ sap.ui.define(
       });
     }
 
+    // An intent as getLinks returns it ("#SO-action?A=1&B=2") split into
+    // the parts CROSS_APP_NAV_TO_EXT takes, so the backend can navigate to
+    // an entry without parsing a hash. A malformed one keeps only the hash.
+    function splitIntent(sIntent) {
+      const m = /^#?([^-?&#]+)-([^?&#~]+)(?:\?(.*))?$/.exec(sIntent || "");
+      if (!m) return {};
+      const params = {};
+      for (const pair of (m[3] || "").split("&")) {
+        if (!pair) continue;
+        const i = pair.indexOf("=");
+        const key = decodeURIComponent(i < 0 ? pair : pair.slice(0, i));
+        if (key.startsWith("sap-")) continue; // shell-internal, not the app's
+        params[key] = i < 0 ? "" : decodeURIComponent(pair.slice(i + 1));
+      }
+      return { semanticObject: m[1], action: m[2], params };
+    }
+
+    // A result that arrives after the roundtrip that asked for it waits for
+    // a roundtrip in flight instead of meeting the busy guard, and a
+    // controller gone in between (an app reset, an FLP re-launch) gets
+    // nothing - the same as a message box's close callback
+    // (ControlCall.dispatchWhenIdle).
+    function dispatchWhenIdle(oController, eventArgs) {
+      const fire = () => {
+        if (!Lib.isControllerAlive(oController)) return;
+        if (oController.ctx?.state?.isBusy) {
+          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
+          return;
+        }
+        oController.eB(...eventArgs);
+      };
+      fire();
+    }
+
+    // The links of a semantic object, as getLinks resolves them for the
+    // user's roles - the list a Fiori elements smart link shows in its
+    // popover. args[1] is the target ({ semanticObject, action? }, read like
+    // CROSS_APP_NAV_TO_EXT's), args[2] the intent parameters, args[3] the
+    // backend event that receives the result as its first argument: a JSON
+    // array of { intent, text, subTitle, semanticObject, action, params }.
+    function evCrossAppNavGetLinks(oController, args) {
+      withCrossAppNavigator(oController, (nav) => {
+        const target = navTarget(oController, args[1]);
+        if (target === null) return;
+        const params = boundArg(oController, args[2], "params");
+        if (params === null) return;
+        const sEvent = Lib.toText(args[3]);
+        if (!target?.semanticObject || !sEvent) {
+          Lib.logError(
+            "CROSS_APP_NAV_GET_LINKS: needs a target with a semanticObject and a callback event",
+          );
+          return;
+        }
+        const query = { semanticObject: target.semanticObject };
+        if (target.action) query.action = target.action;
+        if (params) query.params = params;
+        // CrossApplicationNavigation answers with a jQuery promise, which
+        // Promise.resolve adopts like any thenable
+        Promise.resolve(nav.getLinks(query))
+          .then((links) => {
+            const result = (links || []).map((l) => ({
+              intent: l.intent,
+              text: l.text || "",
+              subTitle: l.subTitle || "",
+              ...splitIntent(l.intent),
+            }));
+            dispatchWhenIdle(oController, [[sEvent], JSON.stringify(result)]);
+          })
+          .catch((e) =>
+            Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed", e),
+          );
+      });
+    }
+
     function evSetTitleLaunchpad(oController, args) {
       const title = Lib.toText(args[1]);
       try {
@@ -134,12 +209,59 @@ sap.ui.define(
       }
     }
 
+    // Full width instead of the shell's letterbox, what a Fiori elements
+    // list gets from "sap.ui": { "fullWidth": true } in its manifest - which
+    // the one z2ui5 component cannot set per app. args[1]: X or true for full
+    // width, anything else for the letterbox - the backend drops a trailing
+    // empty argument, so abap_false arrives as no argument at all.
+    // ShellUIService has setApplicationFullWidth since UI5 1.133; before
+    // that, and while the service is still resolving, the deprecated
+    // AppConfiguration does the same - required at component start, or here
+    // should the first roundtrip outrun it.
+    function evSetAppFullWidth(oController, args) {
+      const launchpad = oController?.ctx?.state.oLaunchpad;
+      if (!launchpad) return;
+      const raw = args[1];
+      const fullWidth = raw === true || raw === "X" || raw === "true";
+      const guarded = (call) => {
+        try {
+          call();
+        } catch (e) {
+          Lib.logError("SET_APP_FULL_WIDTH: setApplicationFullWidth failed", e);
+        }
+      };
+      const shell = launchpad.ShellUIService;
+      if (shell?.setApplicationFullWidth) {
+        guarded(() => shell.setApplicationFullWidth(fullWidth));
+        return;
+      }
+      const viaAppConfiguration = (ac) =>
+        /* ui5lint-disable no-deprecated-api --
+         deliberate fallback for UI5 releases before 1.133, whose
+         ShellUIService has no setApplicationFullWidth; the successor is
+         used in the branch above. */
+        guarded(() => ac.setApplicationFullWidth(fullWidth));
+      /* ui5lint-enable no-deprecated-api */
+      if (launchpad.AppConfiguration) {
+        viaAppConfiguration(launchpad.AppConfiguration);
+        return;
+      }
+      sap.ui.require(
+        ["sap/ushell/services/AppConfiguration"],
+        viaAppConfiguration,
+        (e) =>
+          Lib.logError("SET_APP_FULL_WIDTH: AppConfiguration not loaded", e),
+      );
+    }
+
     // The events this module owns in the eF dispatch (see
     // core/FrontendAction.js, which merges the domain modules' handler maps).
     const handlers = {
       CROSS_APP_NAV_TO_PREV_APP: evCrossAppNavToPrevApp,
       CROSS_APP_NAV_TO_EXT: evCrossAppNavToExt,
+      CROSS_APP_NAV_GET_LINKS: evCrossAppNavGetLinks,
       SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,
+      SET_APP_FULL_WIDTH: evSetAppFullWidth,
     };
 
     return { handlers };

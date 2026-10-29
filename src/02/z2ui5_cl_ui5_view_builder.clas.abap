@@ -304,9 +304,14 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
       gv_name_chars = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`.
     ENDIF.
     " an XML name does not start with a digit, `.` or `-`, and a namespace-aware
-    " parser refuses an empty prefix (`:x`)
+    " parser refuses an empty prefix (`:x`), an empty local name (`xmlns:`,
+    " the typo in a namespace declaration) and a second colon (`a::b`) - only
+    " the first character was checked, so those rendered and died in the
+    " browser's XML parser, far from the line that wrote them
     lv_first = val.
-    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-:`.
+    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-:`
+        OR val CP `*:` OR count( val = val
+                                 sub = `:` ) > 1.
       raise( |{ what } '{ val }' is not a valid XML name| ).
     ENDIF.
 

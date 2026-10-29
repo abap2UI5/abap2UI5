@@ -6,10 +6,9 @@ const { specContext } = require("./loadLibModule");
 // The focus guard of an EMBEDDED component (core/ScrollFocus.js): the page
 // is the host's, and so is the keyboard focus on it. A starting app took
 // it out of the host field the user was typing in - its SET_FOCUS as much
-// as sap.m.App's first rendering. mayMoveFocus( ) is what SET_FOCUS, a
-// CONTROL_BY_ID focus( ) and the obsolete cc/Focus control ask right before
-// they move the focus (frontendAction.spec.js and focus.spec.js pin that
-// they do); this spec pins the answer. The real module, with the UI5
+// as sap.m.App's first rendering. mayMoveFocus( ) is what SET_FOCUS and a
+// CONTROL_BY_ID focus( ) ask right before they move the focus
+// (frontendAction.spec.js pins that they do); this spec pins the answer. The real module, with the UI5
 // element registry and the context lookup stubbed: a DOM node carries the
 // UI5 element that owns it (`ui5El`), and an element the context it
 // belongs to (`owner`).

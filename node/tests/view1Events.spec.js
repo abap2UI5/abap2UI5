@@ -455,6 +455,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           // and the view check of _dispatchQueuedEvent compares equal
           keyOfController: () => "MAIN",
           getView: () => undefined,
+          // who filled a slot, as the real one records it on the state
+          getViewApp: (_ctx, key) => state.slotApp[key],
         },
         "z2ui5/core/Router": {
           sync: (_ctx, o) => syncs.push(o),
@@ -490,6 +492,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   test("a response naming another app drops the leaving app's hash listener", async () => {
     const { ctrl, state, destroys } = loadForAfterRendering();
     state.renderedApp = "Z2UI5_CL_APP_A";
+    state.slotApp.MAIN = "Z2UI5_CL_APP_A";
     state.shortcuts = { "ctrl+s": {} };
     state.viewSizeLimits = { MAIN: 20 };
     state.tableStates = { TABLE1: { filters: [] } };
@@ -505,7 +508,13 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       controller: { eB: (...a) => queuedDispatches.push(a) },
       args: [["LIVE_CHANGE", false, false, false, true], "abc"],
     };
-    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B", MODELPRESENT: false };
+    // the switch REPLACES the page: B displays its own main view
+    state.oResponse = {
+      ID: "D2",
+      APP: "Z2UI5_CL_APP_B",
+      MODELPRESENT: false,
+      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+    };
 
     await ctrl._processAfterRendering(1);
 
@@ -520,6 +529,90 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(queuedDispatches).toEqual([]);
     // the standalone slots of the leaving app go with it
     expect(destroys).toEqual(["POPUP", "POPOVER"]);
+  });
+
+  // The counterpart of the drop above: the state an app owns goes with its
+  // PAGE, not with the name on the response. An app called only to open a
+  // dialog (nav_app_call to a popup app, the shape every z2ui5_cl_pop_*
+  // has) answers under its own name twice - the popup_display, then the
+  // nav_app_leave back - while MAIN keeps the caller's view. Resetting on
+  // the name alone left the caller, once the dialog closed, with its
+  // shortcuts dead, its hash listener gone, its tree snapshots lost and
+  // its tables capped by the default size limit.
+  test("a popup-app hop keeps the caller's app-scoped state", async () => {
+    const { ctrl, state, destroys } = loadForAfterRendering();
+    const seed = () => {
+      state.shortcuts = { "ctrl+s": {} };
+      state.viewSizeLimits = { MAIN: 500 };
+      state.tableStates = { TABLE1: { filters: [] } };
+      state.treeStates = { TREE1: { expanded: [1] } };
+      state.hashEvent = "NAV";
+      state.appHash = "/page2";
+      state.pendingAppHash = "/page3";
+    };
+    const unchanged = () => {
+      expect(state.shortcuts).toEqual({ "ctrl+s": {} });
+      expect(state.viewSizeLimits).toEqual({ MAIN: 500 });
+      expect(state.tableStates).toEqual({ TABLE1: { filters: [] } });
+      expect(state.treeStates).toEqual({ TREE1: { expanded: [1] } });
+      expect(state.hashEvent).toBe("NAV");
+      expect(state.appHash).toBe("/page2");
+      expect(state.pendingAppHash).toBe("/page3");
+    };
+    state.renderedApp = "Z2UI5_CL_APP_A";
+    state.slotApp.MAIN = "Z2UI5_CL_APP_A";
+    seed();
+
+    // 1: the popup app answers with its dialog only - MAIN stays A's
+    state.oResponse = {
+      ID: "D2",
+      APP: "Z2UI5_CL_POP_CONFIRM",
+      MODELPRESENT: false,
+      S_ACTION: {
+        T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]],
+      },
+    };
+    await ctrl._processAfterRendering(1);
+    expect(state.renderedApp).toBe("Z2UI5_CL_POP_CONFIRM");
+    unchanged();
+    // the APP switch still tears the standalone slots down (the backend
+    // sends no destroy for it) - here A had none
+    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+
+    // 2: the nav_app_leave back - A answers again, with no MAIN display
+    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_APP_A", MODELPRESENT: false };
+    await ctrl._processAfterRendering(2);
+    expect(state.renderedApp).toBe("Z2UI5_CL_APP_A");
+    unchanged();
+    // ... and the popup app's dialog goes with the switch back
+    expect(destroys).toEqual(["POPUP", "POPOVER", "POPUP", "POPOVER"]);
+  });
+
+  test("a called app that displays MAIN later resets the state on that response", async () => {
+    // the delayed shape: B's first response opens a dialog only, its second
+    // takes the page - the reset follows the page
+    const { ctrl, state } = loadForAfterRendering();
+    state.renderedApp = "Z2UI5_CL_APP_A";
+    state.slotApp.MAIN = "Z2UI5_CL_APP_A";
+    state.shortcuts = { "ctrl+s": {} };
+    state.hashEvent = "NAV";
+    state.oResponse = {
+      ID: "D2",
+      APP: "Z2UI5_CL_APP_B",
+      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]] },
+    };
+    await ctrl._processAfterRendering(1);
+    expect(state.shortcuts).toEqual({ "ctrl+s": {} });
+    expect(state.hashEvent).toBe("NAV");
+
+    state.oResponse = {
+      ID: "D3",
+      APP: "Z2UI5_CL_APP_B",
+      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+    };
+    await ctrl._processAfterRendering(2);
+    expect(state.shortcuts).toEqual({});
+    expect(state.hashEvent).toBe(null);
   });
 
   test("a same-app response still dispatches the queued event", async () => {

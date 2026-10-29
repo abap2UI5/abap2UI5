@@ -53,6 +53,87 @@ function assertSevenBitAscii(content, className) {
           `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
       );
     }
+    // A tab IS 7-bit ASCII, and lands in the backtick literal as a tab -
+    // where abaplint's contains_tab refuses the generated class, naming
+    // the class and not the app/webapp file. Prettier only formats the
+    // .js files, so a tab in an XML or CSS source has nothing else to
+    // stop it before this point.
+    if (line.includes("\t")) {
+      throw new Error(
+        `${className} line ${index + 1}: tab character - frontend source is indented with spaces: ${line.trim()}`,
+      );
+    }
+  });
+}
+
+// The special files (.xml/.html/.json/.css) are embedded with the trailing
+// whitespace of every line stripped and the lines joined WITHOUT a newline
+// (formatAsAbapClass / embeddedValue). For an XML view that is harmless
+// where the line break sits between tags, inside a tag or inside a comment,
+// and nothing but the browser's own XML parser would tell when it is not:
+// a text node written across lines, or an attribute value that spans a
+// line break, loses the break and the spaces in the shipped page while the
+// cloud/BSP delivery ships the file verbatim - a divergence between the two
+// delivery paths no gate sees. The .js twin of this proof is
+// assertSameProgram; here the content is not a program, so the guard
+// refuses the two shapes that lose something instead: a line that ends
+// inside a quoted attribute value, and a line that ends in text content
+// (its last non-blank character is not a `>`), both outside comments.
+// JSON and CSS carry no multi-line strings, and index.html is the
+// standalone dev page whose <style>/<script> bodies are raw text this XML
+// scanner cannot read (and which the GET shell never ships), so only the
+// XML views and fragments are scanned.
+function assertNoLossInSpecialFile(content, className, relPath) {
+  if (!relPath.endsWith(".xml")) return;
+  // the scanner's state at the start of each line
+  let state = "text"; // text | tag | attr | comment
+  let quote = "";
+  content.split("\n").forEach((line, index) => {
+    const stripped = line.replace(/\s+$/, "");
+    let i = 0;
+    while (i < line.length) {
+      const rest = line.slice(i);
+      if (state === "comment") {
+        const end = rest.indexOf("-->");
+        if (end < 0) break;
+        i += end + 3;
+        state = "text";
+      } else if (state === "text") {
+        if (rest.startsWith("<!--")) {
+          state = "comment";
+          i += 4;
+        } else if (rest.startsWith("<")) {
+          state = "tag";
+          i += 1;
+        } else {
+          i += 1;
+        }
+      } else if (state === "tag") {
+        const c = rest[0];
+        if (c === '"' || c === "'") {
+          state = "attr";
+          quote = c;
+        } else if (c === ">") {
+          state = "text";
+        }
+        i += 1;
+      } else {
+        // attr
+        if (rest[0] === quote) state = "tag";
+        i += 1;
+      }
+    }
+    const fail = (what) => {
+      throw new Error(
+        `${className} line ${index + 1} (${relPath}): ${what} - the embedded copy joins the lines ` +
+          `without a newline and strips trailing whitespace, so the page would not ship what the ` +
+          `file says; write it on one line: ${line.trim()}`,
+      );
+    };
+    if (state === "attr") fail(`the attribute value spans a line break`);
+    if (state === "text" && stripped !== "" && !stripped.endsWith(">")) {
+      fail(`text content ends at a line break`);
+    }
   });
 }
 
@@ -150,6 +231,7 @@ async function stripJsComments(source, file, relPath) {
 // Function to format the content into an ABAP class method
 function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
   assertSevenBitAscii(content, className);
+  if (isSpecialFile) assertNoLossInSpecialFile(content, className, sourcePath);
   const lines = content.split("\n");
   const formattedLines = lines.map((line, index) => {
     line = line.replace(/\s+$/, ""); // Remove trailing spaces
@@ -379,10 +461,10 @@ const CLASS_NAME_STEMS = {
   "cc/ExcelBridge.js": "excel_js",
   "cc/FileUploader.js": "uploader_js",
   "cc/Geolocation.js": "geoloc_js",
+  "cc/HTMLFrame.js": "htmlfrm_js",
   "cc/MessageManager.js": "msgmgr_js",
   "cc/MultiInputExt.js": "multiinp_js",
   "cc/NativeBridgeScan.js": "natscan_js",
-  "cc/Scrolling.js": "scroll_js",
   "cc/SmartMultiInputExt.js": "smartinp_js",
   "cc/UITableExt.js": "uitable_js",
   "cc/UploadSetExt.js": "upldset_js",

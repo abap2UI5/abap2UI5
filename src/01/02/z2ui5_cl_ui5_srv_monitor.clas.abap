@@ -118,7 +118,8 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
     TRY.
-        z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
+        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
         result = ls_config-check_monitor_active.
       CATCH cx_root.
         result = abap_false.

@@ -14126,7 +14126,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD stringify.
 
     DATA lt_parts TYPE string_table.
-    get_root( )->xml_get_parts( CHANGING ct_parts = lt_parts ).
+    DATA(lo_root) = get_root( ).
+    lo_root->xml_get_parts( CHANGING ct_parts = lt_parts ).
     result = concat_lines_of( lt_parts ).
 
   ENDMETHOD.

@@ -29,9 +29,13 @@
  *     several literals joined without a newline, so get( ) still answers it
  *     as one line. Trailing whitespace is dropped (the abapGit format gate).
  *
- * Every 400 lines the chain is closed and a new statement starts, as
- * tools/app2abap/trans2abap.js does - ABAP caps the length of one chained
- * expression.
+ * Every 80 operands the chain is closed and a new statement starts
+ * (`result = result && ...`) - ABAP caps the length of one chained
+ * expression. It was 400 guide LINES, as tools/app2abap/trans2abap.js
+ * does, but a long line here is several operands: on 7.02 the class
+ * scanner (CL_OO_SOURCE_SCANNER_CLASS) refused those statements, abapGit
+ * reported "error initializing CLAS scanner" and created an empty class
+ * shell (#2947). 80 operands per statement is the size measured to import.
  *
  *   node .github/scripts/generate-guide-class.mjs          write the class (npm run guide-class)
  *   node .github/scripts/generate-guide-class.mjs --check  fail if stale   (npm run check:guide-class)
@@ -59,7 +63,7 @@ const TRANSLITERATE = [
 // Characters of the guide per literal: a doubled backtick still fits, with
 // the indentation and `&& |\n| &&` around it, under 255.
 const PIECE = 110;
-const STATEMENT_LINES = 400;
+const STATEMENT_OPERANDS = 80;
 const INDENT = "             ";
 
 function ascii(text) {
@@ -96,12 +100,18 @@ function abapLines(line) {
 export function guideClass(markdown) {
   const lines = ascii(markdown.replace(/\r\n/g, "\n")).replace(/\n$/, "").split("\n");
   const body = [];
+  let operands = 0;
   lines.forEach((line, i) => {
-    body.push(...abapLines(line));
-    if ((i + 1) % STATEMENT_LINES === 0 && i + 1 < lines.length) {
+    const next = abapLines(line);
+    body.push(...next);
+    // a piece is one operand, the newline after the line's last piece another
+    operands += next.length + (line.trimEnd() === "" ? 0 : 1);
+    // at a guide line's end only, so one line is never split over two statements
+    if (operands >= STATEMENT_OPERANDS && i + 1 < lines.length) {
       // the statement ends here: its last `&&` becomes the full stop
       body[body.length - 1] = `${body[body.length - 1].slice(0, -" &&".length)}.`;
       body.push("    result = result &&");
+      operands = 0;
     }
   });
   return `* =====================================================================

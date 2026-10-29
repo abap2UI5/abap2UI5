@@ -127,9 +127,10 @@ first child is another `ele( )`, blank before every `end( )`, none after an
 The rule is the abap2UI5-linter's **`chain-house-layout`**. It checks rules 1-4
 and carries fixes, so `--fix` reformats a drifted chain. The rewrite only ever
 touches whitespace *between* chain segments and the indent of a continuation
-line that is not itself content, and it verifies that collapsing every run of
-code-whitespace leaves the source identical — **a layout fix can never change
-what the view builds.** Rules 5-7 and the blank lines stay reviewer-enforced.
+line that is not itself content — **by construction, not by a check**: the
+fixes run to a fixed point and nothing re-parses the result against the
+source, so read the diff of a `--fix` run before committing it. Rules 5-7 and
+the blank lines stay reviewer-enforced.
 
 It is the linter's one **opt-in** rule (`OPT_IN` in its `findings.mjs`): it is
 not emitted at all until a config asks for it, because it encodes one house

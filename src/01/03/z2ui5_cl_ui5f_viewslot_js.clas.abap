@@ -171,8 +171,22 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function markChanged(owner, path) {` && |\n| &&
-             `      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);` && |\n| &&
+             `    function responseModel(ctx, oController) {` && |\n| &&
+             `      const app = ctx?.state?.oResponse?.APP;` && |\n| &&
+             `      let oView;` && |\n| &&
+             `      if (app) {` && |\n| &&
+             `        for (const slot of slots) {` && |\n| &&
+             `          if (getViewApp(ctx, slot.key) !== app) continue;` && |\n| &&
+             `          const candidate = getView(ctx, slot.key);` && |\n| &&
+             `          if (candidate) {` && |\n| &&
+             `            oView = candidate;` && |\n| &&
+             `            break;` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!oView) oView = oController?.getView?.();` && |\n| &&
+             `      if (!oView) return undefined;` && |\n| &&
+             `      return trackedModel(oView) ?? oView.getModel?.();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function containingSlotKey(ctx, element) {` && |\n| &&
@@ -272,7 +286,7 @@ CLASS z2ui5_cl_ui5f_viewslot_js IMPLEMENTATION.
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      trackedModel,` && |\n| &&
-             `      markChanged,` && |\n| &&
+             `      responseModel,` && |\n| &&
              `      destroy,` && |\n| &&
              `      detach,` && |\n| &&
              `    };` && |\n| &&

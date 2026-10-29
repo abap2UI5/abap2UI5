@@ -7,6 +7,7 @@ node_modules
 # which `npm run pack:backend` writes here (node/setup/pack-backend.mjs)
 /backend-manifest.json
 /backend-*.tar.gz
+/backend-*.tar.gz.sha256
 
 # the npm tarball, written by `npm run pack:node-runtime` and uploaded by
 # backend-prebuilt.yaml

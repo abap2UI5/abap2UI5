@@ -15,21 +15,21 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " a digest of the script get( ) returns - every embedded frontend source
     " and the code around them - fixed at generation time. Part of the GET
     " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'edd5e90b2e28500d'.
+    CONSTANTS build_hash TYPE string VALUE '2f9f724ca32120f3'.
 
     " the same digest as a CSP hash source, without the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-7dXpCy4oUA1BqULFxwCQy9xt5WHpQnwpinSE99kw3d8='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-L59yTKMhIPPuMMW6lmF80fCE0upOejvNND0hpn2TFnc='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that
     " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
     " build_hash is taken over the shell's script alone and does not change
     " with them
-    CONSTANTS devtools_hash TYPE string VALUE 'fd73a606a424d4b4'.
+    CONSTANTS devtools_hash TYPE string VALUE 'db1743e39b891581'.
 
     CLASS-METHODS get
       RETURNING
@@ -120,22 +120,15 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/cc/CameraSelector.js": function()\{{ z2ui5_cl_ui5f_camsel_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Dirty.js": function()\{{ z2ui5_cl_ui5f_dirty_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/ExcelBridge.js": function()\{{ z2ui5_cl_ui5f_excel_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Favicon.js": function()\{{ z2ui5_cl_ui5f_favicon_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/FileUploader.js": function()\{{ z2ui5_cl_ui5f_uploader_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Focus.js": function()\{{ z2ui5_cl_ui5f_focus_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Geolocation.js": function()\{{ z2ui5_cl_ui5f_geoloc_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/History.js": function()\{{ z2ui5_cl_ui5f_history_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Info.js": function()\{{ z2ui5_cl_ui5f_info_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/HTMLFrame.js": function()\{{ z2ui5_cl_ui5f_htmlfrm_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/InputExt.js": function()\{{ z2ui5_cl_ui5f_inputext_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/LPTitle.js": function()\{{ z2ui5_cl_ui5f_lptitle_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MessageManager.js": function()\{{ z2ui5_cl_ui5f_msgmgr_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MultiInputExt.js": function()\{{ z2ui5_cl_ui5f_multiinp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/NativeBridgeScan.js": function()\{{ z2ui5_cl_ui5f_natscan_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Scrolling.js": function()\{{ z2ui5_cl_ui5f_scroll_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/SmartMultiInputExt.js": function()\{{ z2ui5_cl_ui5f_smartinp_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Storage.js": function()\{{ z2ui5_cl_ui5f_storage_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Timer.js": function()\{{ z2ui5_cl_ui5f_timer_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Title.js": function()\{{ z2ui5_cl_ui5f_title_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Tree.js": function()\{{ z2ui5_cl_ui5f_tree_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/UITableExt.js": function()\{{ z2ui5_cl_ui5f_uitable_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/UploadSetExt.js": function()\{{ z2ui5_cl_ui5f_upldset_js=>get( ) }\},| && |\n| &&
@@ -148,6 +141,7 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_ui5f_errview_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_ui5f_frontact_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_ui5f_lib_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/Offline.js": function()\{{ z2ui5_cl_ui5f_offline_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/RootSlot.js": function()\{{ z2ui5_cl_ui5f_rootslot_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Router.js": function()\{{ z2ui5_cl_ui5f_router_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ScrollFocus.js": function()\{{ z2ui5_cl_ui5f_scrfocus_js=>get( ) }\},| && |\n| &&

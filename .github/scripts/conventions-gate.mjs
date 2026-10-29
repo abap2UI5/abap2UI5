@@ -16,6 +16,11 @@
  *   1. workflow file names are lower kebab case (§2)
  *   2. a repository with an AGENTS.md has a CLAUDE.md (§6)
  *   3. a repository carrying ABAP or generated trees has a .gitattributes (§6)
+ *   4. every `actions/setup-node@<sha>` under .github/ is the SAME sha -
+ *      `.github/actions/setup/action.yml` is the one place for that pin and
+ *      says that `trigger_local.yaml` (which cannot load the action) has to
+ *      be kept equal to it, and the pins had drifted a minor version apart
+ *      with nothing to say so (2026-10-22)
  *
  * The workflow names that predate this are GRANDFATHERED by name (the gate
  * prints the current count). Renaming a workflow renames its status check and
@@ -121,9 +126,42 @@ if (!has('.gitattributes')) {
     + ' imports the difference.');
 }
 
+// --- one actions/setup-node pin ---------------------------------------------
+/* Every yaml under .github/ - the workflows, the composite action, and the
+ * shared workflows that are mirrored into the sibling repositories. Dependabot
+ * bumps one file per pull request, so a half-done bump is the normal shape of
+ * this drift, and the gate names every file so the bump is finished in the
+ * same change. */
+function yamlFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...yamlFiles(p));
+    else if (/\.ya?ml$/.test(entry.name)) out.push(p);
+  }
+  return out;
+}
+const SETUP_NODE = /uses:\s*actions\/setup-node@([0-9a-f]{40}|[^\s#]+)/g;
+const pins = new Map();
+for (const file of yamlFiles(path.join(ROOT, '.github'))) {
+  const text = fs.readFileSync(file, 'utf8');
+  for (const m of text.matchAll(SETUP_NODE)) {
+    const rel = path.relative(ROOT, file).split(path.sep).join('/');
+    if (!pins.has(m[1])) pins.set(m[1], []);
+    pins.get(m[1]).push(rel);
+  }
+}
+if (pins.size > 1) {
+  err('actions/setup-node is pinned to more than one revision under .github/ -'
+    + ' .github/actions/setup/action.yml is the one place for that pin and every'
+    + ' other occurrence has to equal it (finish the bump in every file):');
+  for (const [sha, files] of pins) console.log(`    ${sha}\n      ${files.join('\n      ')}`);
+}
+
 if (errors) {
   console.log(`conventions-gate: ${errors} error(s).`);
   process.exit(1);
 }
 console.log(`conventions-gate: ok (${files.length} workflow(s), ${grandfathered} grandfathered name(s),`
-  + ` AGENTS.md${has('CLAUDE.md') ? ' + CLAUDE.md' : ''}, .gitattributes)`);
+  + ` AGENTS.md${has('CLAUDE.md') ? ' + CLAUDE.md' : ''}, .gitattributes,`
+  + ` setup-node pinned once in ${[...pins.values()].flat().length} file(s))`);

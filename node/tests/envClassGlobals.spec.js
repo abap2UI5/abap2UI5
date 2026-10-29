@@ -67,9 +67,9 @@ test("on a host's page every class leaves window, and window.z2ui5 with them", (
 
   // ... and a class defined after that, when an app's view first names a
   // custom control, keeps none either
-  const Timer = defineClass(win, "z2ui5.cc.Timer", { renderer });
-  expect(win.z2ui5.cc.Timer).toBe(Timer);
-  expect(Env.ownClass(Timer)).toBe(Timer);
+  const Dirty = defineClass(win, "z2ui5.cc.Dirty", { renderer });
+  expect(win.z2ui5.cc.Dirty).toBe(Dirty);
+  expect(Env.ownClass(Dirty)).toBe(Dirty);
   expect(win.z2ui5).toBeUndefined();
   // the classes themselves are untouched - the modules return them
   expect(Component.getMetadata().getName()).toBe("z2ui5.Component");

@@ -72,6 +72,9 @@ INTERFACE z2ui5_if_client
       hash_attach_changed       TYPE string VALUE `HASH_ATTACH_CHANGED`,
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
+      offline_queue             TYPE string VALUE `OFFLINE_QUEUE`,
+      cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
+      set_app_full_width        TYPE string VALUE `SET_APP_FULL_WIDTH`,
 
     END OF cs_event.
 
@@ -395,6 +398,10 @@ INTERFACE z2ui5_if_client
   "! apps that need GUI-like locking; see the Statefulness chapter. Two calls
   "! in one roundtrip cancel out - the state at the END of the roundtrip is what
   "! the server gets. Pair every switch on with a switch off on every exit path.
+  "! The framework still writes the draft of a stateful app when the URL
+  "! carries the app (hash routing, app state) and on every nav_app_call( ) /
+  "! nav_app_leave( ), and that write is a COMMIT WORK: a LUW the app keeps
+  "! open across roundtrips does not survive those paths.
   "!
   "! @parameter val | abap_true (the default) makes the session stateful,
   "!                  abap_false makes it stateless again.
@@ -601,7 +608,8 @@ INTERFACE z2ui5_if_client
   "! the object main( ) was called on, for a helper that only holds the
   "! client. With an id, the instance that draft holds, loaded from the
   "! database: that is how the previous app on the stack is reached
-  "! (get( )-s_draft-id_prev_app, which get_app_prev( ) does for you).
+  "! (get( )-s_draft-id_prev_app, which get_app_prev( ) does for you). The
+  "! running app's own draft id returns the in-memory instance, not a load.
   "!
   "! @parameter id | the draft id of the instance to load (get( )-s_draft-id,
   "!                  -id_prev_app, -id_prev_app_stack); empty for the
@@ -1339,6 +1347,19 @@ INTERFACE z2ui5_if_client
   "! queued from a handler it is no JSON and is refused, so prefer the JSON
   "! spelling. Outside the launchpad the call is a logged no-op.
   "! **cs_event-cross_app_nav_to_prev_app** - backToPreviousApp( ), no t_arg.
+  "! **cs_event-cross_app_nav_get_links** - the intents the launchpad offers
+  "! the user for a semantic object (CrossApplicationNavigation getLinks) -
+  "! the list a Fiori elements smart link shows in its popover - handed back
+  "! as a backend event, t_arg = target, params, event. Target and params are
+  "! read like those of cross_app_nav_to_ext; the target needs the
+  "! semanticObject, an action narrows the list, and the params drop the
+  "! intents a mandatory parameter of which is missing. The event is raised
+  "! once getLinks has answered, its first argument a JSON array with one
+  "! object per intent - intent (the hash), text, subTitle and the hash split
+  "! into semanticObject, action and params, ready for cross_app_nav_to_ext:
+  "! ``client->follow_up_action( val = client->cs_event-cross_app_nav_get_links t_arg = VALUE #( ( `\{"semanticObject":"BusinessPartner"\}` ) ( `\{"BusinessPartner":"4711"\}` ) ( `LINKS` ) ) )``.
+  "! Outside the launchpad the call is a logged no-op and the event is not
+  "! raised.
   "!
   "! **cs_event-bind_element** - element-bind a whole view slot to one row of
   "! a bound table, the oView.bindElement( ) of a master-detail popup, so the
@@ -1351,12 +1372,26 @@ INTERFACE z2ui5_if_client
   "! **The browser actions**, t_arg in order:
   "! clipboard_copy - the text (a JSON object or array is copied as its JSON
   "! text); set_title - the page title; set_title_launchpad - the shell title
-  "! inside the launchpad (silently nothing outside it); set_favicon - the
+  "! inside the launchpad (silently nothing outside it); set_app_full_width -
+  "! inside the launchpad the app's width: X (abap_true) for the full screen,
+  "! like a Fiori elements app with fullWidth in its manifest, empty or none
+  "! for the shell's letterbox again (silently nothing outside it);
+  "! set_favicon - the
   "! icon URL; play_audio - the audio URL; download_b64_file - the data URL
   "! (data:&lt;mime&gt;;base64,...) and the file name; open_new_tab - a
   "! same-origin URL, opened with noopener; location_reload - a same-origin
   "! URL the page navigates to; system_logout - an optional same-origin logout
   "! URL, without one the launchpad logout or the ICF logoff.
+  "!
+  "! **cs_event-offline_queue** (experimental) - the events of this app that
+  "! wait in the browser while the backend cannot be reached, instead of
+  "! failing: kept with their model changes across a reload, and sent in
+  "! order, each on the draft the previous one left, once the network is
+  "! back. t_arg = the toast text shown when one was kept (&amp;1 = how many
+  "! wait; empty for no toast), then the event names:
+  "! ``client->follow_up_action( val = client->cs_event-offline_queue t_arg = VALUE #( ( `Saved offline - &amp;1 waiting` ) ( `SAVE` ) ) )``.
+  "! No event name switches the queue off. Every other event fails as before.
+  "! The page itself still needs the network to load.
   "!
   "! **The view actions**, t_arg in order:
   "! set_focus - control id, selection start, selection end (both optional);

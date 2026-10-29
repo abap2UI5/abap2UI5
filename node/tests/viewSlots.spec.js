@@ -45,6 +45,7 @@ function load() {
     "setView",
     "getViewXml",
     "getViewApp",
+    "responseModel",
     "getController",
     "byId",
     "resolveById",
@@ -146,6 +147,32 @@ test.describe("view and controller access", () => {
     state.oResponse = { APP: "ZCL_LIST" };
     ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
     expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_LIST");
+  });
+
+  // A handler-queued action resolves its `${/X}` arguments on the MAIN
+  // controller (Server.responseSuccess runs the custom actions there), but
+  // the response carries the model of ONE app: a popup app's lives in the
+  // POPUP it filled while MAIN still shows the caller
+  test("responseModel is the model of the slot the responding app filled", () => {
+    const { ViewSlots, state } = load();
+    const mainModel = { _z2ui5Tracked: true, name: "main" };
+    const popupModel = { _z2ui5Tracked: true, name: "popup" };
+    const view = (model) => ({ setModel() {}, getModel: () => model });
+    state.oResponse = { APP: "ZCL_LIST" };
+    ViewSlots.setView("MAIN", view(mainModel), "<mvc:View/>");
+    state.oResponse = { APP: "ZCL_LIST_POPUP" };
+    ViewSlots.setView("POPUP", view(popupModel), "<Dialog/>");
+    const mainController = { getView: () => view(mainModel) };
+
+    // the popup app's response: its model, not the caller's
+    expect(ViewSlots.responseModel(mainController)).toBe(popupModel);
+    // the caller's response: MAIN, even with the dialog still open
+    state.oResponse = { APP: "ZCL_LIST" };
+    expect(ViewSlots.responseModel(mainController)).toBe(mainModel);
+    // no slot of the responding app: the calling controller's view
+    state.oResponse = { APP: "ZCL_OTHER" };
+    expect(ViewSlots.responseModel(mainController)).toBe(mainModel);
+    expect(ViewSlots.responseModel(undefined)).toBeUndefined();
   });
 
   test("a slot filled before any response named an app has no owner", () => {
@@ -503,24 +530,3 @@ test("every slot's controller field is one Lib.isControllerAlive knows", () => {
   }
 });
 
-// The one writer of the tracked model's change set outside actions/Slots:
-// a companion that writes into the model DATA (cc/Scrolling) marks the path
-// through this, so no control has to know the set's name.
-test.describe("markChanged", () => {
-  test("adds the path to the tracked model's change set", () => {
-    const { ViewSlots } = load();
-    const changed = new Set();
-    const owner = {
-      getModel: () => ({ _z2ui5Tracked: true, _z2ui5ChangedPaths: changed }),
-    };
-    ViewSlots.markChanged(owner, "/SCROLL/0/V");
-    expect([...changed]).toEqual(["/SCROLL/0/V"]);
-  });
-
-  test("is a no-op without a tracked model (an OData default in switch mode)", () => {
-    const { ViewSlots } = load();
-    const owner = { getModel: () => ({ getProperty: () => 1 }) };
-    expect(() => ViewSlots.markChanged(owner, "/x")).not.toThrow();
-    expect(() => ViewSlots.markChanged(null, "/x")).not.toThrow();
-  });
-});

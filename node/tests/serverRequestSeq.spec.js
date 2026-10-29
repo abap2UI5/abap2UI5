@@ -60,6 +60,7 @@ function load() {
       },
       "z2ui5/core/Session": { confirmSent: () => {} },
       "z2ui5/core/ErrorView": { reset: () => {} },
+      "z2ui5/core/Offline": { canQueue: () => false, reset: () => {} },
     },
     sandbox: {
       AbortSignal: { any: () => ({}), timeout: () => ({}) },

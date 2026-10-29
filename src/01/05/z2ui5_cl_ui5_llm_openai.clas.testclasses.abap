@@ -42,6 +42,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_parse_answer      FOR TESTING RAISING cx_static_check.
     METHODS test_parse_length      FOR TESTING RAISING cx_static_check.
     METHODS test_parse_error       FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_refusal     FOR TESTING RAISING cx_static_check.
     METHODS test_chat_through_stub FOR TESTING RAISING cx_static_check.
 
     METHODS conversation
@@ -210,11 +211,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_parse_answer.
 
-    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
-        status = 200
-        body   = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",`
-              && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},`
-              && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}` ) ).
+    " the body as a plain statement first: inside VALUE #( ) the 702
+    " downport joins the operands into one line over 255 characters
+    DATA lv_body TYPE string.
+    lv_body = `{"id":"chatcmpl-1","object":"chat.completion","model":"test-model",`
+            && `"choices":[{"index":0,"message":{"role":"assistant","content":"abap2UI5 builds UI5 apps in ABAP."},`
+            && `"finish_reason":"stop"}],"usage":{"prompt_tokens":25,"completion_tokens":8,"total_tokens":33}}`.
+    DATA(ls_result) = z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #( status = 200
+                                                                        body   = lv_body ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `abap2UI5 builds UI5 apps in ABAP.`
                                         act = ls_result-text ).
@@ -240,6 +244,26 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = ls_result-stop_reason ).
     cl_abap_unit_assert=>assert_equals( exp = `abap2UI5 is`
                                         act = ls_result-text ).
+
+  ENDMETHOD.
+
+  METHOD test_parse_refusal.
+
+    " content null, message.refusal set: a declined answer, not a token
+    " limit
+    TRY.
+        z2ui5_cl_ui5_llm_openai=>parse_response( VALUE #(
+            status = 200
+            body   = `{"model":"test-model","choices":[{"message":{"role":"assistant","content":null,`
+                  && `"refusal":"I cannot help with that."},"finish_reason":"stop"}],`
+                  && `"usage":{"prompt_tokens":5,"completion_tokens":2}}` ) ).
+        cl_abap_unit_assert=>fail( `a refusal must raise` ).
+      CATCH z2ui5_cx_ui5_llm INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*declined*I cannot help with that.*`
+                                             act = lx->get_text( ) ).
+        cl_abap_unit_assert=>assert_equals( exp = 200
+                                            act = lx->http_status ).
+    ENDTRY.
 
   ENDMETHOD.
 

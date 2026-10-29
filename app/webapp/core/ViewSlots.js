@@ -6,7 +6,7 @@
 // and teardown go through here instead of touching ctx.state.oView /
 // oViewPopup / ... directly. Every function that reads the state takes
 // the context first; the ones a control calls on itself (byIdOfOwner,
-// trackedModel, markChanged) resolve it from the control.
+// trackedModel) resolve it from the control.
 sap.ui.define(
   [
     "sap/ui/core/Fragment",
@@ -226,15 +226,35 @@ sap.ui.define(
       return isOurs(owner.getModel()) ?? isOurs(owner.getModel("http"));
     }
 
-    // Mark a model path as edited on the framework model `owner` binds to,
-    // so the next roundtrip from that slot ships it in the delta - what the
-    // model's own propertyChange does for a bound control, for a companion
-    // that writes into the model DATA directly (cc/Scrolling). The set
-    // itself belongs to actions/Slots (trackChanges); this is the one
-    // writer outside it, so no control has to know its name. A no-op
-    // without a tracked model (an OData default in switch mode).
-    function markChanged(owner, path) {
-      trackedModel(owner)?._z2ui5ChangedPaths?.add(path);
+    // The model a HANDLER-queued action of the last response reads its
+    // `${/X}` arguments from: the framework model of the slot the
+    // responding app filled. The custom actions always run on the MAIN
+    // controller (Server.responseSuccess), but a response carries the
+    // model of ONE app, and MAIN need not be its: an app called only to
+    // open a dialog (nav_app_call to a popup app) has its model in POPUP
+    // while MAIN still shows the caller - resolved against MAIN, its
+    // `${/FIELD}` found nothing (or the caller's value of the same name).
+    // MAIN first, so a same-app popup over the app's own page keeps
+    // reading the shared root model; a slot without a recorded owner
+    // never matches. Falls back to the calling controller's view when no
+    // slot is the responding app's (a slot filled before any response
+    // named an app, a stub controller).
+    function responseModel(ctx, oController) {
+      const app = ctx?.state?.oResponse?.APP;
+      let oView;
+      if (app) {
+        for (const slot of slots) {
+          if (getViewApp(ctx, slot.key) !== app) continue;
+          const candidate = getView(ctx, slot.key);
+          if (candidate) {
+            oView = candidate;
+            break;
+          }
+        }
+      }
+      if (!oView) oView = oController?.getView?.();
+      if (!oView) return undefined;
+      return trackedModel(oView) ?? oView.getModel?.();
     }
 
     // Returns the key of the slot of `ctx` a UI5 element belongs to, by
@@ -377,7 +397,7 @@ sap.ui.define(
       resolveById,
       containingSlotKey,
       trackedModel,
-      markChanged,
+      responseModel,
       destroy,
       detach,
     };

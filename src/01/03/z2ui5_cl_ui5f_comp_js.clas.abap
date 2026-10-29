@@ -317,6 +317,8 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        const ctx = this.ctx;` && |\n| &&
              `        if (!ctx?.alive) return;` && |\n| &&
              `        this._endApp();` && |\n| &&
+             `` && |\n| &&
+             `        ctx.state.mainLeaving?.();` && |\n| &&
              `        ViewSlots.destroy(ctx, "MAIN");` && |\n| &&
              `        Context.resetApp(ctx);` && |\n| &&
              `        this.getRootControl()?.getController?.()?.startApp();` && |\n| &&

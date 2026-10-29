@@ -330,6 +330,9 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. Upstream from abaplint 2.120.68 on (abaplint/abaplint#4368): `check_syntax` reports it, also in a method that is no redefinition, while an alias of the same method stays allowed |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 | **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` did not check attribute visibility then and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal. Upstream from abaplint 2.120.67 on (abaplint/abaplint#4362): `check_syntax` reports a PRIVATE/PROTECTED attribute or constant of another class as well |
+| **A local type of the class pool types only the PRIVATE SECTION** | The types, classes and interfaces of `<class>.clas.locals_def.abap` (CCDEF) are read before the global class, but only its PRIVATE SECTION may use them - a PUBLIC or PROTECTED attribute, parameter or type built on one is a syntax error on the system. abaplint 2.120.75 resolves the type and reports nothing (measured 2026-10-24, v750 and ABAP Cloud), and the transpiled unit run is green. abap-cloud-gui's report2cloud met it with the globals of a report typed with its local classes - it makes them private attributes (`planLocalTypes( )`). Move the type into the public section of the global class, or the component into its PRIVATE SECTION |
+
+**Backlog:** abaplint · abaplint-local-type-outside-private
 
 ### Generic types on older releases — the recurring one
 
@@ -1089,7 +1092,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all
+**Backlog:** open-abap · runtime-packed-copy-precision, runtime-get-time-stamp-double, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, transpiler-value-lines-of, core-abap-matcher-create
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1410,6 +1413,30 @@ break one of those four.
   only for the ones it never reaches. abaplint cannot decide it - which calls
   a test reaches is a question of control flow - and the runtime names the
   missing method, so a failing `run_unit_tests` is the gate.
+- **The 702 build did not compile on 7.02 SP13 — six shapes abaplint's v702
+  profile passes** (abap2UI5/abap2UI5#2947, found by a user on ECC 6.0 EHP5,
+  SAP_BASIS 702 SP13, who fixed the 1.148.0 build by hand). `ASSERT_TRUE` /
+  `ASSERT_FALSE` (7.40 - `check_syntax` resolves `cl_abap_unit_assert`
+  against open-abap-core, which has both); `EXPORTING`/`IMPORTING`/`CHANGING`
+  in a chained call `a( )->b( CHANGING … )` (the v702 parser accepts it);
+  `TYPE int8` (7.50); a built-in function as the `INSERT` operand (read as a
+  method call); a line over 255 characters (the downport joins the operands
+  of a multi-line `&&` inside `VALUE #( )` into one, and the 7.02 editor cuts
+  it on import); and a generated statement of ~400 lines, which the 7.02
+  class scanner refuses - abapGit then creates an empty class shell
+  (`generate-guide-class.mjs` now closes the chain every 80 operands).
+  **Gate: this repo** — the downport rewrites `assert_true/false( x )` into
+  `assert_equals( exp = abap_true/abap_false act = x )` (`assert-bool` in
+  `node/setup/downport-fix.mjs`, main keeps the idiomatic call), and
+  `check-702` in the same script fails `npm run downport` on the other four
+  read from the OUTPUT. In `src/`: assign the object to a variable before a
+  call with `CHANGING`, `TYPE p LENGTH 16 DECIMALS 0` for a big integer, the
+  function result to a variable before `INSERT`, a long `&&` chain as a
+  plain statement before the `VALUE #( )`. The seventh finding was a
+  runtime dump on that kernel: offset/length access (`iv_name+lv_off(3)`) on
+  a parameter bound to a component of a dereferenced data reference raised
+  `GETWA_NOT_ASSIGNED` in `check_alias_capable`; `substring( )` does not. No
+  script decides that one - read for it where a `->*` component is passed on.
 - **`xsdbool`, never `boolc`** — the downport converts `xsdbool` to `boolc`
   automatically, so writing `boolc` yourself breaks in the other direction.
   **abaplint — `prefer_xsdbool`** decides it (measured on 2.120.52).
@@ -1782,6 +1809,13 @@ fix.
 
 - A CATCH of a subclass after the CATCH of its superclass in the same TRY.
 - `RAISE EXCEPTION … MESSAGE` for a class without IF_T100_MESSAGE.
+- `RAISE EXCEPTION` or `THROW` in a method or function module that declares
+  classic `EXCEPTIONS` - even for a CX_NO_CHECK; raise it in a method of its
+  own, from which it passes through.
+- An offset or length on a numeric variable (`lv_int+1(2)`) - only
+  character-like and byte-like data take one. It comes in disguised as date
+  arithmetic declared inline: `DATA(x) = lv_date + 31.` is a number, not a
+  date, so `x+6(2)` does not activate (abaplint types some of these as `d`).
 - A write to a key component of a sorted or hashed line through a field
   symbol (`<line>-key = …` after LOOP/READ … ASSIGNING) — the CHANGING form is
   section 5's.
@@ -1790,7 +1824,7 @@ fix.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-offset-on-numeric, abaplint-inline-date-arithmetic-type, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
 
 ### Security
 
