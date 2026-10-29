@@ -1397,11 +1397,14 @@ break one of those four.
   start a new one. A reserved name that still comes out raw is an upstream
   bug and belongs in the transpiler's `DEFAULT_KEYWORDS`, not in a per-project
   option here.
-- **A `PARTIALLY IMPLEMENTED` interface in a test double gets no empty stubs
-  from the transpiler.** On a system, every interface method the double does
-  not implement is generated empty and answers initial; the JS runtime
+- **A `PARTIALLY IMPLEMENTED` interface in a test double gets no stubs from
+  the transpiler.** On a system, calling an interface method the double does
+  not implement raises `CX_SY_DYN_CALL_ILLEGAL_METHOD` (ABAP keyword
+  documentation, INTERFACES - PARTIALLY IMPLEMENTED; an earlier version of
+  this entry claimed "answers initial", which is wrong); the JS runtime
   generates nothing, so the first call to one of them is a
-  `TypeError: ... is not a function` inside the method under test. Found the
+  `TypeError: ... is not a function` inside the method under test instead
+  of that exception (abaplint/transpiler#2024 makes it the exception). Found the
   day the MCP server's `run_unit_tests` first ran app-template's starter test
   in the transpiled backend (2026-09-19): its `ltd_client` implemented the six
   lifecycle and output methods, and `view_display( )` called

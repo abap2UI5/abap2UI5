@@ -7,9 +7,11 @@ state: open
 first_seen: 2026-09-23
 checked_upstream: 2026-10-23
 upstream: abap2UI5/abap2UI5
+checked_upstream: 2026-10-23
 evidence:
   - frontend audit 2026-09-23 after the z2ui5 global was removed - findings and file references below
   - the framework ids are component-prefixed since the same day (ViewSlots.ownId), the one part that needed no embedding mode
+  - 'searched abap2UI5/abap2UI5 issues 2026-10-23 for embed / reuse component / Fiori elements extension: no open issue; the closest, #1985 "Using sap.ui.core.ComponentContainer inside Fiori app" (closed 2025), is the use case this item generalises'
 ---
 
 # Embed abap2UI5 in other UI5 apps as a reuse component
