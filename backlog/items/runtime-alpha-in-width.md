@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui - the report runtime normalized a screen number with `|{ dynnr ALPHA = IN WIDTH = 4 }|` (CALL SCREEN 100 is screen 0100); its transpiled ABAP Unit run answered `100 ` and the test failed. The runtime now moves the number into an `n LENGTH 4` instead'
   - 'read 2026-10-24 in @abaplint/runtime 2.14.5 - `build/src/alpha.js` `alphaIn( source, context )`: length 0 for a String source without a Character context, `txt.padStart( length, "0" )`; `build/src/template_formatting.js` calls it with `options.alphaInContext` only, `options.width` is applied after it as the padding of the text'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # String templates: ALPHA = IN ignores WIDTH

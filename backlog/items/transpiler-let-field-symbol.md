@@ -10,6 +10,7 @@ evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui) - a converted report snippet with `LET <c> = it_carr[ carrid = p_carrid ] IN ...`; the transpile of 257 objects stopped with "Error: LetTranspiler, Expected Field" (@abaplint/transpiler-cli 2.14.5) and no file name, and the measurement now leaves such objects out before the build (`UNSUPPORTED` in `tools/report2cloud/lib/start.mjs`)'
   - 'reduced 2026-10-24 with @abaplint/transpiler 2.14.3 - `DATA(lv) = CONV i( LET <c> = lt[ 1 ] IN <c> + 1 ).` throws "LetTranspiler, Expected Field"; abaplint reports no syntax error'
   - 'read 2026-10-24 in @abaplint/transpiler 2.14.3 `build/src/expressions/let.js` - `def.findDirectExpression(Expressions.Field)` is undefined for a field symbol and the loop throws'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # transpiler: `LET` with a field symbol stops the build

@@ -1,7 +1,7 @@
 ---
 target: open-abap
-title: 'transpiler: `NEW ty( comp = ... )` for a data type assigns the first value to the whole object - the component assignments are lost, and a nested `VALUE #` of a table fails the build'
-summary: 'for a data type, `NewObjectTranspiler` takes the first `Source` below the expression as the value of the new object - in `NEW ty_s( a = 1 b = 2 )` that is `1`, and the reference ends up pointing to an integer; in `NEW ty_box( first = VALUE #( ... ) )` the inner `VALUE #` is applied to `ty_box` itself (a runtime `setField is not a function`), and when that `VALUE #` holds a table `VALUE #( ( ... ) )` the build stops with "TypeNameOrInfer, type not found: #"'
+title: 'transpiler: `NEW ty( comp = VALUE #( ... ) )` for a data type - the inner `VALUE #` is typed as the outer type: a runtime TypeError, and with a table inside the build stops'
+summary: 'since abaplint/transpiler#2030 (2.14.12) `NEW ty_s( a = 1 b = 2 )` builds the structure right; a component given as `VALUE #( ... )` still is not: in `NEW ty_box( first = VALUE #( a = 1 ) )` the inner `VALUE #` is applied to `ty_box` itself (a runtime `setField is not a function`), and when that `VALUE #` holds a table `VALUE #( ( ... ) )` the build stops with "TypeNameOrInfer, type not found: #"'
 priority: medium
 state: open
 first_seen: 2026-10-24
@@ -11,22 +11,16 @@ evidence:
   - 'reduced 2026-10-24 with @abaplint/transpiler-cli 2.14.5 and @abaplint/runtime 2.14.5 - `result = NEW ty_s( a = 1 b = 2 ).` (TYPES ty_s with two integers, result TYPE REF TO data) transpiles to `r.assign(abap.IntegerFactory.get(1))`, and after the call `result->*` is no structure (`result->a` is undefined)'
   - 'reduced 2026-10-24, same versions - `result = NEW ty_box( first = VALUE #( a = 1 b = `x` ) ).` transpiles to `r.assign(new abap.types.DataReference(<ty_box>).setField("a", ...).setField("b", ...))`, which throws "(intermediate value).setField is not a function" when it runs; `NEW ty_box( first = VALUE #( values = VALUE #( ( `+` ) ) ) )` stops the build with "TypeNameOrInfer, type not found: #". The same component list with `VALUE ty_box( ... )` instead of `NEW` transpiles and runs right'
   - 'read 2026-10-24 in @abaplint/transpiler 2.14.5 `build/src/expressions/new_object.js` - the branch for a type that is no object reference: `const source = node.findFirstExpression(abaplint.Expressions.Source)` and `r.assign(sourceCode)`; the `ParameterListS` the statement parses for the component list is transpiled before as method parameters (`para`) and then unused'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - `NEW ty_s( a = 1 b = 2 )` now gives a ty_s with 1 and 2 (fixed by #2030, "NEW of a data type: a new data object with a copy of the value", merged 2026-10-26); `NEW ty_box( first = VALUE #( a = 1 b = `x` ) )` still throws "(intermediate value).setField is not a function", `NEW ty_box( first = VALUE #( values = VALUE #( ( `+` ) ) ) )` still stops the build with "TypeNameOrInfer, type not found: #". `new_object.ts` still traverses the `ParameterListS` as method parameters before `buildValue( )` sets the components'
 ---
 
-# transpiler: `NEW ty( comp = ... )` for a data type loses its components
+# transpiler: `NEW ty( comp = VALUE #( ... ) )` for a data type
 
 ## What happens
 
-```abap
-TYPES: BEGIN OF ty_s, a TYPE i, b TYPE i, END OF ty_s.
-DATA result TYPE REF TO data.
-
-result = NEW ty_s( a = 1 b = 2 ).
-" system:     result->* is a ty_s with a = 1, b = 2
-" transpiled: result points to the integer 1
-```
-
-With a structured component the inner `VALUE #` is applied to the outer type:
+The flat case is fixed upstream since abaplint/transpiler#2030 (2.14.12):
+`NEW ty_s( a = 1 b = 2 )` builds a `ty_s` with both components. With a
+structured component the inner `VALUE #` is still applied to the outer type:
 
 ```abap
 result = NEW ty_box( first = VALUE #( a = 1 ) ).
@@ -42,33 +36,25 @@ usual way to fill a data reference in one expression, for example the
 
 ## Why
 
-`build/src/expressions/new_object.js`, the branch for a type that is no
-object reference:
-
-```js
-const source = node.findFirstExpression(abaplint.Expressions.Source);
-const sourceCode = source === undefined ? typeCode : traversal.traverse(source).getCode();
-ret.appendString("((() => {const r = new abap.types.DataReference(" + typeCode + "); r.assign(" + sourceCode + "); return r; })())");
-```
-
-The first `Source` below the expression is the value of the first
-component, not the value of the object. The component list is parsed as a
-`ParameterListS`, the same expression `NEW zcl( p = 1 )` gives a constructor.
-It is transpiled into `para` as method parameters, and then not used.
+`packages/transpiler/src/expressions/new_object.ts` (main ca16f9f): for a
+data type, `buildValue( )` sets each `name = source` on the new object -
+that is the #2030 change. But before it, `transpile( )` still traverses the
+whole `ParameterListS` as method parameters (`para`, used only for a class).
+The likely cause (not traced further): a `VALUE #` in there infers its type
+from the `NEW` - the outer type, not the component's - which matches both
+symptoms.
 
 ## The change
 
-When the type is no object reference and there is a `ParameterListS`, build
-the value the way `VALUE ty( ... )` does: a new data object of the type with
-each `name = source` set on it. Assign that value, not the first source. Only a
-single unnamed `Source` (`NEW i( 5 )`) keeps today's `r.assign(source)`.
-The inner `VALUE #` then infers the component's type, as it does inside
+For a data type, skip the `para` traversal, and let each component's
+`Source` infer from the component's type, as it does inside
 `VALUE ty_box( ... )`, which transpiles right today.
 
 ## Example
 
 ```abap
-TYPES: BEGIN OF ty_s, a TYPE i, b TYPE i, END OF ty_s.
-DATA(ref) = NEW ty_s( a = 1 b = 2 ).
-cl_abap_unit_assert=>assert_equals( act = ref->b exp = 2 ).
+TYPES: BEGIN OF ty_in, a TYPE i, END OF ty_in.
+TYPES: BEGIN OF ty_box, first TYPE ty_in, END OF ty_box.
+DATA(ref) = NEW ty_box( first = VALUE #( a = 1 ) ).
+cl_abap_unit_assert=>assert_equals( act = ref->first-a exp = 1 ).
 ```

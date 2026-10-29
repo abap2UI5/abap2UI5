@@ -9,6 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'found 2026-10-24 by the start measurement of report2cloud (abap2UI5-addons/abap-cloud-gui) - converted report snippets with `DATA(o_int) = REF data( lv_int ).`; the transpile of the whole set stopped without naming a file, and the measurement now leaves such objects out before the build (`UNSUPPORTED` in `tools/report2cloud/lib/start.mjs`)'
   - 'reduced 2026-10-24 with @abaplint/transpiler 2.14.3 - `REPORT zfoo. DATA lv_int TYPE i. DATA(lo_ref) = REF data( lv_int ).` throws "transpiler: REF # todo1"; abaplint reports no syntax error'
+  - 're-measured 2026-10-29 on abaplint/transpiler main ca16f9f (2.14.15) with the repository''s test harness - unchanged, the repro in the evidence above still fails the same way'
 ---
 
 # transpiler: `REF type( )` with a type stops the build

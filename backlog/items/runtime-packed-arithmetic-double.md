@@ -15,7 +15,7 @@ evidence:
   - 'abaplint/transpiler#1962 (open on 2026-10-22) adds the `Packed`-to-`Packed` copy branch in `Packed.set( )` and rescales typed assignments; the operators are untouched by it. Searched the tracker 2026-10-22 for packed arithmetic / DIV / MOD: nothing'
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/packed-arithmetic-exact` (6af00ba) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests).'
   - 'filed 2026-10-22 as abaplint/transpiler#2013, open on 2026-10-23; the branch merges cleanly onto main after #2012, #2015, #2016 and #2018'
-checked_upstream: 2026-10-23
+checked_upstream: 2026-10-29
 ---
 
 # runtime: arithmetic on a packed field goes through a JS double

@@ -14,7 +14,7 @@ evidence:
   - 'abap2UI5 `src/01/02/z2ui5_cl_ui5_handler.clas.testclasses.abap:680-684`: a conversion test asserts only the exception on a system and not the value, ''the transpiled runtime does not check the range of i'''
   - 'prepared 2026-10-22 as `oblomov-dev/fork-transpiler` branch `fix/integer-overflow-raises` (e883fe1) on abaplint/transpiler main 53a708f: the change plus tests, green in the package suites and the transpiler''s integration tests; the fourteen prepared branches merged together transpile open-abap-core main 239b817 and pass its whole unit suite (1172 tests); abap2UI5 itself, downported and transpiled with that stack (`node/setup/abap_transpile.json`, open-abap-core pinned at 9c1271b with the compare_tables correction), passes `npm run unit` in full (1558 tests). Design note from the implementation: the operators cannot know the target (`f = i * i` is computed in f on a system, and an existing test pins that), so the operator result stays unchecked and `Integer.set( )` raises CX_SY_ARITHMETIC_OVERFLOW for an out-of-range operator result and CX_SY_CONVERSION_OVERFLOW for a conversion; `WRITE i + 1` at the maximum therefore prints instead of raising'
   - 'filed 2026-10-22 as abaplint/transpiler#2014, open on 2026-10-23; the branch merges cleanly onto main after #2012, #2015, #2016 and #2018'
-checked_upstream: 2026-10-23
+checked_upstream: 2026-10-29
 ---
 
 # runtime: an `i` overflows silently

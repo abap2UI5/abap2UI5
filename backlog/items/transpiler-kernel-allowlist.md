@@ -12,8 +12,10 @@ evidence:
   - 'abap2UI5/playground `src/runtime/lockdown.mjs:1-47` deletes `caches`, `indexedDB`, `Worker`, `SharedWorker` in the worker that runs user code, for the same reason'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/statements/write.ts` emits the literal after `@KERNEL ` as code with no option to restrict it'
   - 'prepared 2026-10-23 as `oblomov-dev/fork-transpiler` branch `feat/kernel-allowlist` (41e8631) on abaplint/transpiler main 3197186: option kernel.allow (regex list over object names, case-insensitive), a WRITE ''@KERNEL'' elsewhere is the validation issue kernel_not_allowed with file and row; option absent changes nothing; five tests, transpiler suite 413 green, CLI build and eslint clean'
-  - 'filed 2026-10-23 as abaplint/transpiler#2034, open, awaiting review'
-checked_upstream: 2026-10-23
+  - 'filed 2026-10-23 as abaplint/transpiler#2034'
+  - 'review 2026-10-28: larshp asked to add it in abaplint first. abaplint/abaplint#4499 adds the rule forbidden_kernel_write (allow: regex list over object names, empty = allow all) - merged 2026-10-28, not yet in a release on 2026-10-29 (latest @abaplint/core 2.120.90)'
+  - 'abaplint/transpiler#2034 reworked 2026-10-28 (e51c401): kernel.allow switches the rule on in the validation config, an empty list maps to ["^$"] (allow none); the hand-written scan is gone. Marked in the PR to merge only after the @abaplint/core release; it then needs the core version bump. Suite 416 green against core built from abaplint main'
+checked_upstream: 2026-10-29
 ---
 
 # transpiler: an allowlist for `@KERNEL`
@@ -38,9 +40,10 @@ interface ITranspilerOptions {
 ```
 
 Default: everything allowed (today's behaviour). When set, a `@KERNEL`
-literal in an object outside the list is a validation error
-(`kernel_not_allowed`, with file and line), reported like any other
-issue. The CLI exposes it in `abap_transpile.json`, defaulting to the
+literal in an object outside the list is a validation error, reported
+like any other issue - by the abaplint rule `forbidden_kernel_write`
+(abaplint/abaplint#4499), which the transpiler switches on in its
+validation config. The CLI exposes it in `abap_transpile.json`, defaulting to the
 `libs` when the option is present without a list.
 
 ## How to file
