@@ -3,7 +3,7 @@ target: open-abap
 title: 'transpiler: databaseSetup hands out the CREATE TABLE statements as one SQL string list - hosts regex the table name back out of it and rewrite it to IF NOT EXISTS'
 summary: '`IDatabaseSetup.schemas.sqlite` is `string[]` of CREATE TABLE statements with no table name attached; the MCP server scrapes them out of the generated `init.mjs` and rewrites them to `CREATE TABLE IF NOT EXISTS` for a database that persists across runs (the playground no longer needs the names, abap2UI5/playground#154)'
 priority: low
-state: filed
+state: deferred
 filed: https://github.com/abaplint/transpiler/pull/2033
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
@@ -15,8 +15,22 @@ evidence:
   - 'filed 2026-10-23 as abaplint/transpiler#2033'
   - 'review 2026-10-28: larshp asked for the root cause (https://github.com/abaplint/transpiler/pull/2033#issuecomment-6466364141). Answered: the per-table pairing was a playground design choice, not a need - the playground can run the whole list and take the names from its TABL objects; the MCP server can ignore "already exists". Offered to cut the PR to the ifNotExists option or close it; conflicts with main resolved (54646a9). No answer yet on 2026-10-29'
   - 'abap2UI5/playground#154 (merged 2026-10-28) removed the playground''s regex: the set''s CREATE TABLEs run as one list, the names come from the TABL objects. What remains is only the MCP server''s IF NOT EXISTS rewrite'
+  - 'closed 2026-10-29: abaplint/transpiler#2033 closed after a conversation with the maintainer - a database that outlives one run is to be migrated with sqlite-schema-diff (https://mizuchi.dev/projects/sqlite-schema-diff/, github.com/mizuchilabs/sqlite-schema-diff: diffs a SQLite database against .sql files and applies CREATE / ALTER ADD COLUMN / table recreation with a backup, in one transaction), not with IF NOT EXISTS; the per-table result has no consumer since abap2UI5/playground#154. https://github.com/abaplint/transpiler/pull/2033#issuecomment-6503890106'
 checked_upstream: 2026-10-29
 ---
+
+## Deferred (2026-10-29)
+
+abaplint/transpiler#2033 is closed. The maintainer's direction for a database
+that outlives one run is [sqlite-schema-diff](https://mizuchi.dev/projects/sqlite-schema-diff/):
+it diffs the database against the schema as `.sql` files and migrates it,
+which also covers a table whose definition changed - `IF NOT EXISTS` would
+leave such a table as it was. The per-table result lost its consumer with
+abap2UI5/playground#154. What could still be asked of the transpiler is the
+schema written out as a `.sql` file for that tool to read; caveat: the tool
+is Go (CLI or library), no npm package, nothing for the browser - the MCP
+server would ship or call the binary.
+
 
 # transpiler: a per-table schema in `databaseSetup`
 

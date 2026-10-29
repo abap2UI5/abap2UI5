@@ -3,7 +3,7 @@ target: open-abap
 title: 'transpiler: run( ) always transpiles the whole registry - a host that type-checks one object against 700 cannot ask for that one object, so the playground hides the rest behind a Proxy on IRegistry'
 summary: '`Transpiler.run(reg)` iterates `reg.getObjects()` and emits every object; an editor that holds the framework and open-abap-core in the registry for the type check (684 objects, 18 s measured) and wants the JS of the user''s file only has no option for it - the playground wraps the registry in a `Proxy` that answers `getObjects` with the user''s objects, and the transpiler''s maintainer suggested the same shape on #1999 (''only these objects, against the full registry'')'
 priority: high
-state: open
+state: deferred
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
@@ -11,8 +11,19 @@ evidence:
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/index.ts:72`: `for (const obj of reg.getObjects())`, no filter; `ITranspilerOptions` has no object list'
   - 'the maintainer''s own framing, 2026-10-14 on abaplint/transpiler#1999 (closed): compile the full thing always; abap2UI5 recorded in `backlog/items/transpiler-cli-library-second-copy.md` that ''what could make one transpile of everything fast for an edit loop is a transpiler option "only these objects, against the full registry"'' - this is that option, for the API rather than the CLI'
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs:47-66`: ''737 objects for one app class, measured'' for the CLI path; the full re-transpile after #1999 takes about 16 s per edit (`CHANGELOG.md:24-37`)'
-checked_upstream: 2026-10-22
+  - '2026-10-29: the maintainer wants to build the transpiler more package-based in future - the parts transpiled each for itself. This request is one case of that and waits for its shape rather than a PR of its own; asked on abaplint/transpiler#2033 whether to wait or help (https://github.com/abaplint/transpiler/pull/2033#issuecomment-6503890106)'
+checked_upstream: 2026-10-29
 ---
+
+## Deferred (2026-10-29)
+
+The maintainer plans to make the transpiler more package-based - the parts
+transpiled each for itself. This item is one of four that are cases of that
+(`transpiler-run-object-subset`, `transpiler-cli-library-second-copy`,
+`transpiler-output-manifest`, `transpiler-cli-exclude-from-init`); none gets a
+PR of its own until the structure is there. Asked whether to wait or help:
+https://github.com/abaplint/transpiler/pull/2033#issuecomment-6503890106. The case below stays as the input for that design.
+
 
 # transpiler: `run( )` with an object subset
 

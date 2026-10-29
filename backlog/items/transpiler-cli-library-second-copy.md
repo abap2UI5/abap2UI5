@@ -14,8 +14,22 @@ evidence:
   - re-read 2026-10-09 at abaplint/transpiler main 2e299e61 (2.14.2) - 2.14.0 (abaplint/transpiler#1973) writes every library into a folder of its own under the output folder and the project into `project/`, 2.14.1 (#1980) adds `skip_duplicate_dependencies`; a library is still emitted and still imported by a relative path, and `libs` still has no option that keeps one out of the output - the request stands, only the relative path in the example becomes `../<lib>/…`; abap2UI5's `node/setup/own-apps.mjs` was adapted to it on 2026-10-09 - it keeps `output/project/` and points every other import at the package's module of the same name, `@abap2ui5/node-runtime/output/<folder>/<file>`
   - filed 2026-10-13 as abaplint/transpiler#1999 - a single `libs[].import` (the module specifier) both keeps the lib out of the output and makes its objects imported from below the specifier, in the generated modules and in `init.mjs`; no separate `emit` flag. Checked end to end in the PR's CLI test: after `init.mjs`, `abap.Classes` holds the package's own class, no second copy
   - deferred 2026-10-14 - the transpiler's maintainer asked on #1999 why not compile the full thing always, "yielding consistent and expected results without side effects", performance aside; agreed and closed there. `abap2ui5-transpile` now transpiles the package's `downport/`, both libraries and the host's classes in one run into an output of the host's own, with its own `host.mjs` (abap2UI5#2916) - no library outside the output, nothing rewritten, about ten seconds. The interactive case is the playground's, which compiles in-process against a registry that holds only the editor's objects (abap2UI5/playground `src/editor/transpile-core.mjs`). Not to be re-proposed as an output option; what could make one transpile of everything fast for an edit loop is a transpiler option "only these objects, against the full registry"
-checked_upstream: 2026-10-13
+  - '2026-10-29: the maintainer wants to build the transpiler more package-based in future - the parts transpiled each for itself. This request is one case of that and waits for its shape rather than a PR of its own; asked on abaplint/transpiler#2033 whether to wait or help (https://github.com/abaplint/transpiler/pull/2033#issuecomment-6503890106)'
+checked_upstream: 2026-10-29
 ---
+
+## Deferred (2026-10-29)
+
+The maintainer plans to make the transpiler more package-based - the parts
+transpiled each for itself. This item is one of four that are cases of that
+(`transpiler-run-object-subset`, `transpiler-cli-library-second-copy`,
+`transpiler-output-manifest`, `transpiler-cli-exclude-from-init`); none gets a
+PR of its own until the structure is there. Deferred since 2026-10-14
+for another reason (the maintainer preferred compiling the whole thing
+always, see the evidence); the package-based direction may bring the case
+back as part of that design. Asked whether to wait or help:
+https://github.com/abaplint/transpiler/pull/2033#issuecomment-6503890106. The case below stays as the input for that design.
+
 
 # Transpile against a library without emitting it
 
