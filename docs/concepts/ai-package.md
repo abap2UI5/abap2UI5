@@ -9,7 +9,7 @@ The pieces are there, in five places:
   `build-an-app` skill.
 - **The checks** - abaplint with the framework's rule set, and the abap2UI5
   linter (1.71 names, the house layout, the lifecycle, `missing-accessibility`).
-- **Where a model writes** - the playground's AI Studio, the Claude Code and
+- **Where a model writes** - the playground's AI App Builder, the Claude Code and
   Copilot plugins (`plugin/`, `plugin-copilot/`) with the
   [MCP server](https://github.com/abap2UI5/mcp-server), and the language
   model seam `z2ui5_if_ui5_llm` for an app that calls a model itself.
