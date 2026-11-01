@@ -234,7 +234,7 @@ every `INT4` field `<INTTYPE>I</INTTYPE>`. The tables activated, but a
 user's pull (2026-10-06) listed every table with an `INT4` field as changed:
 the system serializes `INT4` as `<INTTYPE>X</INTTYPE>`. That was 27 fields in
 4 tables, fixed in abap2UI5-addons/admin-cockpit#6. Real exports agree:
-`abap-cloud-gui/tools/report2cloud/test/ddic/spfli.tabl.xml` has `X` as well.
+`abap-cloud-gui/tools/report2ui5/test/ddic/spfli.tabl.xml` has `X` as well.
 The pairs confirmed so far are `CHAR` → `C` (with `INTLEN` = 2 × `LENG`),
 `INT4` → `X`, `DEC` → `P`, `STRG` → `g`. Copy a field from an exported table
 of the same type rather than spelling it out. **Gate: abaplint —
