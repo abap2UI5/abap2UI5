@@ -118,12 +118,18 @@ try {
     const again = await post({ SEARCH: "?app_start=zcl_tst_stack_a" });
     await post({ ID: again.json.S_FRONT.ID, EVENT: "CALL" }, { INPUT: "sweep" });
     const before = { rows: (await draftRows()).length, live: (await zcl_serializer_live.count_entries({ result: 1 })).get() };
-    await db.execute("UPDATE z2ui5_t_01 SET timestampl = timestampl - 10000000");
+    // A fixed stamp, not `timestampl - 10000000`: that subtracts 1 from the
+    // tens digit of the DAY, a real date only from the 10th of a month on -
+    // on the 1st to the 9th it wrote `…10-91…`, the cleanup could not compare
+    // it, the rows stayed, and this test was red for nine days a month
+    await db.execute("UPDATE z2ui5_t_01 SET timestampl = 20000101000000");
     const first = await sweepDrafts();
     const afterRows = (await draftRows()).length;
     const future = new globalThis.abap.types.Packed({ length: 11, decimals: 7 });
-    // the clock a day ahead, in the digits of a timestampl: past any expiry
-    future.set(String(Number(new Date().toISOString().replace(/[-T:]/g, "").slice(0, 14)) + 1000000));
+    // the clock a day ahead, in the digits of a timestampl: past any expiry.
+    // Date arithmetic, not `+ 1000000` on the digits, which is day 32 on the 31st
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    future.set(tomorrow.toISOString().replace(/[-T:]/g, "").slice(0, 14));
     const dropped = (await zcl_serializer_live.sweep({ iv_now: future, result: 1 })).get();
     out.sweep = {
       before,
