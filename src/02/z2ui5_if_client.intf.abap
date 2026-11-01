@@ -95,12 +95,13 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
-    "! One table cell of this roundtrip's delta that could NOT be applied. The
-    "! value DID arrive from the client, it just would not convert into the
-    "! ABAP component behind the cell - `1,250.00` or `12.50 EUR` into a
-    "! packed price, text into an integer. Such a cell is SKIPPED, never
-    "! raised on: one unconvertible cell must not kill a delta that carries
-    "! many good ones. This is the trace of that skip, and the only way an app
+    "! One value of this roundtrip's model that could NOT be applied - a
+    "! table cell, or a bound scalar attribute. The value DID arrive from
+    "! the client, it just would not convert into the ABAP type behind it -
+    "! `1,250.00` or `12.50 EUR` into a packed price, text into an integer.
+    "! Such a value is SKIPPED, never raised on: one unconvertible value must
+    "! not kill a roundtrip that carries many good ones, and the attribute
+    "! keeps its old value. This is the trace of that skip, and the only way an app
     "! can find out it happened - the browser still shows what the user typed,
     "! because the client model was updated before the roundtrip.
     "! Read it unconditionally at the top of main( ), NOT inside a Save
@@ -114,7 +115,8 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_model_skip,
       " the bound attribute that holds the table, spelled as the app declared
       " it (`MT_PRODUCTS`). A cell of a NESTED table names the path to it,
-      " parent first (`MT_TREE-NODES`).
+      " parent first (`MT_TREE-NODES`). For a refused scalar it is the
+      " attribute itself (`MV_DISCOUNT`), with row 0 and no field.
       "
       " NOT the path _bind( ) hands the view: that is `{/MT_PRODUCTS}`, and
       " nothing public converts one spelling into the other. A consumer
@@ -139,8 +141,9 @@ INTERFACE z2ui5_if_client
       " value that would not convert, a broken node)
       value      TYPE string,
     END OF ty_s_model_skip.
-  "! The table of skipped cells get( )-t_model_skipped carries, one
-  "! ty_s_model_skip row per cell this roundtrip's delta could not apply.
+  "! The table of skipped values get( )-t_model_skipped carries, one
+  "! ty_s_model_skip row per table cell or bound scalar this roundtrip
+  "! could not apply.
   TYPES ty_t_model_skip TYPE STANDARD TABLE OF ty_s_model_skip WITH EMPTY KEY.
 
   TYPES:
@@ -230,14 +233,15 @@ INTERFACE z2ui5_if_client
         check_leave TYPE abap_bool,
         check_call  TYPE abap_bool,
       END OF _s_nav,
-      " The table cells this roundtrip's delta could not apply - empty in
-      " the normal case. Only a value that actually ARRIVED and failed to
-      " convert is listed; a field the client never sent is not an error.
-      " An app that writes back what the user edited reads this to tell the
-      " user which cell was refused (and to stay in edit mode) instead of
-      " reporting a success the model does not carry. The scalar-attribute
-      " path is unaffected - a value that will not convert into a non-table
-      " attribute still raises JSON_PARSING_ERROR, as it always has.
+      " The table cells and bound scalars this roundtrip could not apply -
+      " empty in the normal case. Only a value that actually ARRIVED and
+      " failed to convert is listed; a field the client never sent is not an
+      " error. An app that writes back what the user edited reads this to
+      " tell the user which value was refused (and to stay in edit mode)
+      " instead of reporting a success the model does not carry. A scalar
+      " that will not convert is traced the same way (name = the attribute,
+      " row 0, no field) and keeps its old value; it no longer raises
+      " JSON_PARSING_ERROR (z2ui5_cl_ui5_srv_model=>whole_value_trace).
       " It sits AFTER the internal _s_nav block rather than next to the other
       " t_* members because the API gate only accepts a component APPENDED at
       " the end of a public structure as compatible (api-snapshot.mjs,
@@ -575,8 +579,8 @@ INTERFACE z2ui5_if_client
   "! (ty_s_get): the event and its arguments, the device, focus, scroll and
   "! UI5 runtime information, the browser location (s_config), the launchpad
   "! startup parameters (t_comp_params), the draft ids, data a returning app
-  "! handed over (r_event_data) and the table cells this roundtrip's delta
-  "! could not apply (t_model_skipped). Cheap to call more than once - the
+  "! handed over (r_event_data) and the table cells and bound scalars this
+  "! roundtrip could not apply (t_model_skipped). Cheap to call more than once - the
   "! launchpad parameters are parsed once per roundtrip and remembered.
   METHODS get
     RETURNING
