@@ -239,11 +239,12 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_escape_controls.
 
-    " a bound string carrying U+0001 and a form feed, serialized the way
-    " every model is: ajson leaves both raw, which JSON.parse refuses
+    " a JSON text carrying U+0001, a form feed and U+001F raw, which
+    " JSON.parse refuses. Built by hand, not through ajson: ajson escapes
+    " control characters itself since the 2026-11 mirror update, and this
+    " method is the guard for every serializer that does not
     DATA(lv_ctrl) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( CONV xstring( `010C1F` ) ).
-    DATA(lv_json) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/NAME`
-                                                         iv_val   = `a` && lv_ctrl && `b` )->stringify( ).
+    DATA(lv_json) = `{"NAME":"a` && lv_ctrl && `b"}`.
 
     DATA(lv_act) = z2ui5_cl_ui5_util_json_fl=>escape_controls( lv_json ).
 
