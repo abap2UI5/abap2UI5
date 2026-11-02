@@ -286,6 +286,9 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
 - **No new dictionary objects** — no `TABL`, `DTEL`, `DOMA`, `DDLS` or `BDEF`. A type an app needs is a `TYPES` in
   an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
   `z2ui5_t_01` (the drafts); `z2ui5_t_91` moved to abap2UI5-ext. A new one needs a maintainer decision first.
+  The numbers `z2ui5_t_05` - `_06` and `_11` - `_33` belong to the abap2UI5-addons (one numbering all addons
+  share, decided 2026-11; the next free one is `_34`) - never reuse one of them here. `_02` was released once and
+  removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.
 
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 

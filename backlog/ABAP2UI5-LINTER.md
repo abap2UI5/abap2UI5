@@ -15,7 +15,13 @@ that nobody stands behind. See [README](README.md) for the mechanism.
 
 ---
 
-_Empty. Nothing is waiting to be filed against this one._
+## Ready to file
+
+_nothing exists upstream yet — this is the stock_
+
+| Item | What | Priority | In stock since | Upstream |
+|---|---|---|---|---|
+| [`linter-released-api-own-tables`](items/linter-released-api-own-tables.md) | 'the rule reads every z2ui5_t_<n> as the framework''s own table, also when the repository under lint ships the TABL itself - the abap2UI5-addons number their tables in that family (z2ui5_t_05 - _33), so an addon linted with allClasses gets one warning per table access' | medium | 2026-11-02 | abap2UI5/linter |
 
 ---
 
