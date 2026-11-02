@@ -59,7 +59,8 @@ const RELEASED_HEADING = /^\d{4}-\d{2}-\d{2}\s+v\d/;
 // are what a passage is explaining the absence OF. Each needs its reason, so an
 // entry cannot become a silent hole.
 const EXTERNAL = new Map([
-  ["Z2UI5_CL_APP_ICF_CONFIG", "ships in abap2UI5-addons/config-management"],
+  ["Z2UI5_CL_APP_ICF_CONFIG", "the name of Z2UI5_CL_CONFIG_APP in abap2UI5-addons/config-management up to 2026-11"],
+  ["Z2UI5_CL_CONFIG_APP", "ships in abap2UI5-addons/config-management"],
   ["Z2UI5_CL_LOCK_APP_SM12", "ships in abap2UI5-addons/lock-manager"],
   ["Z2UI5_CL_CONFIG_SERVICE", "ships in abap2UI5-addons/config-management"],
   ["Z2UI5_CL_SEL_VAR_DB", "ships in abap2UI5-addons/range-filter"],
