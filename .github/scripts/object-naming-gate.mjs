@@ -40,7 +40,7 @@ const EXEMPT = [
 // than adding the directory to EXEMPT - an exemption is permanent, this is not.
 const PENDING = [];
 
-// DDIC tables carry no layer segment (z2ui5_t_01, z2ui5_t_91): renaming one is a
+// DDIC tables carry no layer segment (z2ui5_t_01): renaming one is a
 // data migration in every installed system, not a rename. Judged by prefix only.
 const TABLE = /^z2ui5_t_[0-9]+$/;
 

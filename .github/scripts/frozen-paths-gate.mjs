@@ -46,14 +46,8 @@ const EXEMPT = [
   // exemption for one migration, not a hole in the freeze. The decision and
   // its closing are recorded in AGENTS.md, "Layered Design".
   //
-  // OPEN for one change (maintainer decision 2026-10-12, recorded in
-  // docs/agents/decisions.md, "The src/99 exemptions"): the two dynamic
-  // WHERE builders the addons still call escape what the browser sends.
-  // These two names come out again in the next change to this file after
-  // that change merged - they are not a standing permission to edit the
-  // classes.
-  ":(exclude)src/99/01/z2ui5_cl_util.clas.abap",
-  ":(exclude)src/99/01/z2ui5_cl_util_ext.clas.abap",
+  // The two src/99/01 exemptions of 2026-10-12 (the dynamic WHERE builders)
+  // went with the package: src/99/01 moved to abap2UI5/abap2UI5-ext.
 ];
 
 const head = process.env.HEAD_SHA || "HEAD";
