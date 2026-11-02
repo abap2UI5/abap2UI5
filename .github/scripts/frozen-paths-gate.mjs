@@ -16,6 +16,11 @@
  *                nothing downstream notices.
  *   never shipped  the object is absent from the latest release tag, so it
  *                has never reached an installation in the first place.
+ *   moved out    the object ships from another REPOSITORY now, named in
+ *                MOVED_OUT below with that repository. An installation that
+ *                still uses it installs that repository next to abap2UI5 and
+ *                keeps compiling. Each entry is a maintainer decision, file by
+ *                file - not a pattern that lets the next deletion through.
  *
  * The same reasoning lets an object move the OTHER way, INTO the package: it
  * shipped from another package before and ships from src/99 now, so no
@@ -49,6 +54,27 @@ const EXEMPT = [
   // The two src/99/01 exemptions of 2026-10-12 (the dynamic WHERE builders)
   // went with the package: src/99/01 moved to abap2UI5/abap2UI5-ext.
 ];
+
+// src/99/01 - the legacy utilities - moved to abap2UI5/abap2UI5-ext
+// (maintainer decision 2026-11-02; layout-management, the one addon still
+// calling them, declares that repository). The production files and the
+// package descriptor - the package itself leaves; test classes and sidecars
+// are exempt anyway.
+const MOVED_OUT = new Map(
+  [
+    "z2ui5_cl_util.clas.abap",
+    "z2ui5_cl_util_db.clas.abap",
+    "z2ui5_cl_util_ext.clas.abap",
+    "z2ui5_cl_util_http.clas.abap",
+    "z2ui5_cl_util_log.clas.abap",
+    "z2ui5_cl_util_msg.clas.abap",
+    "z2ui5_cl_util_range.clas.abap",
+    "z2ui5_cl_util_xml.clas.abap",
+    "z2ui5_cx_util_error.clas.abap",
+    "z2ui5_t_91.tabl.xml",
+    "package.devc.xml",
+  ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]),
+);
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;
@@ -148,6 +174,8 @@ for (const f of deleted) {
   const to = relocatedTo(tree, f);
   if (to) {
     console.log(`relocated, still ships: ${f} -> ${to}`);
+  } else if (MOVED_OUT.has(f)) {
+    console.log(`moved out, ships from ${MOVED_OUT.get(f)}: ${f}`);
   } else if (release && !has(shipped, f)) {
     console.log(`never shipped (absent from ${release}), nothing to break: ${f}`);
   } else {

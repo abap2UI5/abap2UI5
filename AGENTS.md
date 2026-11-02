@@ -136,10 +136,12 @@ the `*.testclasses.abap` files (they run in `npm run unit` and follow the core
 internals they assert on) and the `.clas.xml` sidecars. Moving an object **out**
 of the package is allowed; the gate refuses a deletion only when the object
 name exists nowhere else under `src/` afterwards **and** it shipped in the
-latest release tag. Any other change under `src/99` needs a maintainer decision
-recorded in `docs/agents/decisions.md` first — the popup port's exemption has
-closed again, the one for the two WHERE builders (2026-10-12) closes right
-after its change, and neither is a precedent.
+latest release tag — or when it is listed, file by file, in the gate's
+`MOVED_OUT` with the repository it ships from now (`src/99/01` →
+abap2UI5-ext, 2026-11-02). Any other change under `src/99` needs a maintainer
+decision recorded in `docs/agents/decisions.md` first — the popup port's
+exemption has closed again, the one for the two WHERE builders (2026-10-12)
+went with `src/99/01`, and neither is a precedent.
 
 ### Utilities — the context class is the only door
 
