@@ -371,14 +371,18 @@ breaking change for any downstream app that still references it.
         **not** marked obsolete in the source: `src/99` production code is
         frozen (`check:frozen` / `check_gates.yaml`), and a comment-only
         edit would fail that gate for no gain — the whole class is the entry.
-- [ ] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
-      + table `Z2UI5_T_91`**
-      - **Blocker:** there is no successor API for *app* code. The internal
-        replacement (`z2ui5_cl_ui5_util_context`) is framework-only. Decide first
-        whether apps get a public utility API, get pointed at
-        [abap-util](https://github.com/abap-util/abap-util), or get nothing.
-      - docs still uses them on 3 pages (logon language, lock, spreadsheet).
-      - Dropping a **table** (`Z2UI5_T_91`) needs an explicit note — data loss.
+- [x] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
+      + table `Z2UI5_T_91`** — moved out of the core (2026-11) into
+      [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext), unchanged but
+      for one line. A system whose code still uses them installs that
+      repository next to abap2UI5 and keeps working; the table and its data
+      stay in the system, they only change repository.
+      - The successor question was answered with
+        [abap-util](https://github.com/abap-util/abap-util): every addon but
+        layout-management carries its own renamed copy; layout-management
+        declares abap2UI5-ext as a dependency.
+      - abap2UI5-ext reads nothing `FROZEN-ONLY` from the core, so the
+        FROZEN-ONLY symbols can still leave with the rest of `src/99`.
 - [ ] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
       → [popups addon](https://github.com/abap2UI5-addons/popups)
       - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
@@ -573,8 +577,9 @@ rather than by guessing; each entry names the callers that exist today.
         `docs/agents/building-apps.md` now does, and by the standing rule in
         `AGENTS.md` (*No new dictionary objects*) that keeps the next one from
         being added. The three tables that remain all carry their own reason:
-        `z2ui5_t_01` persists drafts, `z2ui5_t_91` backs the frozen
-        `z2ui5_cl_util_db`, and neither is an anchor for anybody's type.
+        `z2ui5_t_01` persists drafts (`z2ui5_t_91`, which backed the
+        frozen `z2ui5_cl_util_db`, moved to abap2UI5-ext), and it is no
+        anchor for anybody's type.
 
 ## 6. Documentation debt to clear alongside
 

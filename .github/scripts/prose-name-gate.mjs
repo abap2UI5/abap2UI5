@@ -85,6 +85,13 @@ const EXTERNAL = new Map([
 // this repository's to ship.
 const EXTERNAL_PATTERNS = [
   { re: /^Z2UI5_CL_(DEMO|SMP|SMPC|SMPS)_APP_/, why: "app classes of the sample repositories" },
+  // The legacy utilities of the former src/99/01: moved to abap2UI5/abap2UI5-ext
+  // (2026-11). The docs, the changelog and the backlog keep naming them - as the
+  // thing that moved, or as the site an abaplint probe measured.
+  {
+    re: /^Z2UI5_(CL_UTIL(_DB|_EXT|_HTTP|_LOG|_MSG|_RANGE|_XML)?|CX_UTIL_ERROR|T_91)$/,
+    why: "the legacy utilities of abap2UI5/abap2UI5-ext (formerly src/99/01)",
+  },
   // The rest of those repositories' namespaces, not just their app classes.
   // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the
   // demo classes - whole prefixes this repository does not ship and cannot

@@ -16,8 +16,8 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     "
     " The trim is NOT driven by the core engine alone. The symbols marked
     " `FROZEN-ONLY` below have no caller in src/00 - src/02; they survive
-    " purely because the frozen src/99 package (z2ui5_cl_xml_view, the retired
-    " z2ui5_cl_util* classes, the built-in popups) still calls them. They are
+    " purely because the frozen src/99 package (z2ui5_cl_xml_view, the built-in
+    " popups) still calls them. They are
     " not dead code and must not be trimmed away while src/99 ships, but they
     " are also not part of the framework's own utility surface: when src/99 is
     " finally removed, every FROZEN-ONLY symbol goes with it. Do not build new

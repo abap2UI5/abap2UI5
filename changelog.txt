@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+- src/99/01 (z2ui5_cl_util, _db, _ext, _http, _log, _msg, _range, _xml, z2ui5_cx_util_error, table z2ui5_t_91) moved to https://github.com/abap2UI5/abap2UI5-ext - code that still uses these objects keeps working once abap2UI5-ext is installed next to abap2UI5; the table and its data stay in the system
 ! frontend: the ICF handler z2ui5_cl_lp_handler of every delivery branch (standard, cloud, _v2, _new) calls z2ui5_cl_ui5_http_handler instead of the frozen z2ui5_cl_http_handler (#2886) - pulling the frontend now needs a backend from 1.148.0 on; z2ui5_cl_http_handler itself stays for ICF nodes that name it
 + custom control z2ui5.cc.HTMLFrame: an app's own HTML document in an iframe under the page's CSP (no inline script runs, its styles do), and the sapevent: links and the forms posted to a sapevent: action in it as the sapevent event with action, getdata and postdata - what cl_gui_html_viewer and its SAPEVENT are in the SAP GUI
 * 702 build: compiles and imports on 7.02 SP13 (#2947) - no ASSERT_TRUE/ASSERT_FALSE (the downport rewrites them into ASSERT_EQUALS), no CHANGING/EXPORTING in a chained method call, no INT8, no built-in function as an INSERT operand, no line over 255 characters, z2ui5_cl_ui5_llm_guide in statements the 7.02 class scanner takes, and no GETWA_NOT_ASSIGNED dump in z2ui5_cl_ui5_srv_model at app start; npm run downport fails on these shapes from now on

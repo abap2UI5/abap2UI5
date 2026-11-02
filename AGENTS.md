@@ -124,8 +124,11 @@ src/
   the HTTP-config types on the exit) — nothing in `src/00`–`src/02` resolves into the retired `z2ui5_if_types`.
 - **`src/99` — frozen.** The legacy XML view builder (`z2ui5_cl_xml_view`, `_cc`), the `z2ui5_cl_http_handler`
   shim, `z2ui5_if_types`, `z2ui5_if_exit` (the superseded exit name — still looked up, see "Key Design Patterns"),
-  the retired `z2ui5_cl_util*` classes (`99/01`) and the obsolete popups (`99/02`, successor:
-  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)).
+  and the obsolete popups (`99/02`, successor:
+  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)). The retired `z2ui5_cl_util*` classes,
+  `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`) moved to
+  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext): a system whose code still uses them installs it next to
+  abap2UI5.
 
 **For AI assistants: never change the production code under `src/99/` or add
 consumers on it.** The `check_gates` workflow enforces the freeze. Exempt are
@@ -133,10 +136,12 @@ the `*.testclasses.abap` files (they run in `npm run unit` and follow the core
 internals they assert on) and the `.clas.xml` sidecars. Moving an object **out**
 of the package is allowed; the gate refuses a deletion only when the object
 name exists nowhere else under `src/` afterwards **and** it shipped in the
-latest release tag. Any other change under `src/99` needs a maintainer decision
-recorded in `docs/agents/decisions.md` first — the popup port's exemption has
-closed again, the one for the two WHERE builders (2026-10-12) closes right
-after its change, and neither is a precedent.
+latest release tag — or when it is listed, file by file, in the gate's
+`MOVED_OUT` with the repository it ships from now (`src/99/01` →
+abap2UI5-ext, 2026-11-02). Any other change under `src/99` needs a maintainer
+decision recorded in `docs/agents/decisions.md` first — the popup port's
+exemption has closed again, the one for the two WHERE builders (2026-10-12)
+went with `src/99/01`, and neither is a precedent.
 
 ### Utilities — the context class is the only door
 
@@ -166,7 +171,8 @@ So:
   caller genuinely needs it. `z2ui5_cl_ui5_util_json_fl` is framework-owned.
 - **Symbols marked `FROZEN-ONLY`** exist only for `src/99`; `npm run check:frozen-only` keeps them caller-free —
   do not add callers.
-- **`src/99/01/z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are legacy** — never use, call or change them.
+- **`z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are no longer part of the core** — they moved to
+  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext). Never use or reintroduce them here.
 - abap2UI5 does **not** depend on abap-util at install time (abapGit has no dependency management; "clone and
   go"), hence renamed copies.
 
@@ -278,8 +284,8 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
 
 - Classes `Z2UI5_CL_*` / `Z2UI5_CX_*`, interfaces `Z2UI5_IF_*`; object types `CLAS`, `DEVC`, `INTF`, `TABL` only.
 - **No new dictionary objects** — no `TABL`, `DTEL`, `DOMA`, `DDLS` or `BDEF`. A type an app needs is a `TYPES` in
-  an interface, a constant a `CONSTANTS`, a lookup table an internal table. The two remaining tables are
-  `z2ui5_t_01` (the drafts) and the frozen `z2ui5_t_91`. A new one needs a maintainer decision first.
+  an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
+  `z2ui5_t_01` (the drafts); `z2ui5_t_91` moved to abap2UI5-ext. A new one needs a maintainer decision first.
 
 ### Extended-check (SLIN/ATC) pitfalls — not caught by abaplint
 
