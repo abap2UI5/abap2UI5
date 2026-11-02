@@ -13,10 +13,7 @@
 //
 //   abapGit      .abapgit.xml, and every file of src/ that is not a BSP page
 //                - packages, class, ICF nodes, HTTP service, IAM objects -
-//                byte for byte. The one difference allowed: the handler of
-//                the _new branches calls z2ui5_cl_ui5_http_handler, of which
-//                the frozen z2ui5_cl_http_handler the others call is an empty
-//                subclass
+//                byte for byte
 //   BSP          its attributes (name, class, text, ...), not its pages
 //   manifest     sap.app/id, the data source (the endpoint), the inbounds,
 //                sap.cloud, the services, the sibling resource roots
@@ -42,8 +39,6 @@ const PAIRS = [
   ["cloud", ["cloud_v2", "cloud_new"]],
 ];
 
-const HANDLER = "src/01/z2ui5_cl_lp_handler.clas.abap";
-const sameCall = (source) => source.replace("z2ui5_cl_http_handler=>run(", "z2ui5_cl_ui5_http_handler=>run(");
 
 const problems = [];
 const note = (branch, message) => problems.push(`${branch}: ${message}`);
@@ -137,7 +132,7 @@ function checkPair(base, branch) {
     const b = read(dir, f);
     if (f.endsWith(".wapa.xml")) {
       if (bspAttributes(a) !== bspAttributes(b)) note(branch, `the attributes of the BSP (${f}) differ from ${base}'s`);
-    } else if (f === HANDLER ? sameCall(a) !== sameCall(b) : a !== b) {
+    } else if (a !== b) {
       note(branch, `${f} differs from ${base}'s`);
     }
   }

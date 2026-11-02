@@ -140,7 +140,7 @@ test("rejects a broken request body with a framework error", async ({
 }) => {
   const res = await request.post("/", { data: "no json at all" });
 
-  // The single top-level catch in z2ui5_cl_http_handler=>_main turns the
+  // The single top-level catch in z2ui5_cl_ui5_http_handler=>_main turns the
   // parse failure into a 500 carrying the full exception dump, so the frontend
   // shows the real reason instead of the generic SAP ICF 500 page: a header
   // line naming the framework and version, the message, and one block per

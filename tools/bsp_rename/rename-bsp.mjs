@@ -38,10 +38,10 @@
 //
 // WHAT IS DELIBERATELY KEPT (these are protocol contracts with the abap2UI5
 // *backend*; renaming them breaks the app unless you also rebrand the backend):
-//   * z2ui5_cl_http_handler ................... the backend framework class the handler calls
+//   * z2ui5_cl_ui5_http_handler ............... the backend framework class the handler calls
 //     - unless --backend <prefix> names a backend renamed with the
 //       build-rename workflow of abap2UI5/abap2UI5 (prefix zmyui5_ or
-//       /ca2ui5/): then the handler calls <prefix>cl_http_handler, the class
+//       /ca2ui5/): then the handler calls <prefix>cl_ui5_http_handler, the class
 //       that backend ships under
 //   * the UI5 framework namespace `z2ui5` ..... z2ui5/core/*, z2ui5/cc/*, custom controls
 //                                               z2ui5.cc.* and the resourceroots key.
@@ -61,7 +61,7 @@
 //
 // Options:
 //   --dir <paths>        comma-separated roots to process (default: "src")
-//   --backend <prefix>   the handler calls <prefix>cl_http_handler, the backend
+//   --backend <prefix>   the handler calls <prefix>cl_ui5_http_handler, the backend
 //                        renamed to that prefix (zmyui5_, /ca2ui5/ or #ca2ui5#)
 //   --with-namespace     also rewrite the UI5 namespace (advanced, see above)
 //   --dry-run            show what would change, write nothing
@@ -89,7 +89,7 @@ const OLD_LO = "z2ui5";
 const OLD_UP = "Z2UI5";
 const OLD_HANDLER_LO = "z2ui5_cl_lp_handler";
 // The backend class the handler calls. Kept unless --backend says otherwise.
-const OLD_BACKEND_LO = "z2ui5_cl_http_handler";
+const OLD_BACKEND_LO = "z2ui5_cl_ui5_http_handler";
 // The backend's own rename (build-rename.yaml) allows a NAME of at most 10
 // characters: a customer name (whose prefix then adds its "_", up to 11) or
 // a namespace with both slashes (the prefix itself).
@@ -153,7 +153,7 @@ NEW_NAME is a plain name (ZMYUI5) or a name in a registered SAP namespace:
 
 Options:
   --dir <paths>        comma-separated roots to process (default: "src")
-  --backend <prefix>   the handler calls <prefix>cl_http_handler - for a backend
+  --backend <prefix>   the handler calls <prefix>cl_ui5_http_handler - for a backend
                        renamed with abap2UI5's build-rename workflow to the same
                        prefix (zmyui5_, /ca2ui5/; #ca2ui5# is accepted as well)
   --with-namespace     also rewrite the UI5 namespace (advanced; not for /NS/ names)
@@ -165,7 +165,7 @@ Renames the deployment identity (BSP object, SICF nodes, SMIM URL, handler
 class, file names, manifest data source). For /NS/ names the SICF nodes move
 to /sap/bc/<ns>/<name> etc. and the missing namespace-level ICF nodes are
 generated; "/" becomes "#" in file names like abapGit serializes it. The UI5
-framework namespace "z2ui5" and the backend class z2ui5_cl_http_handler are
+framework namespace "z2ui5" and the backend class z2ui5_cl_ui5_http_handler are
 KEPT, because they are protocol contracts with the abap2UI5 backend. A backend
 renamed with the build-rename workflow is named with --backend; use
 --with-namespace only when you are rebranding the backend as well.`;
@@ -235,7 +235,7 @@ export function deriveNames(input) {
 // build-rename workflow of abap2UI5/abap2UI5 to `prefix`: the workflow takes
 // a customer name (ZMYUI5 -> prefix zmyui5_) or a registered namespace
 // (/CA2UI5/ -> prefix /ca2ui5/), each at most 10 characters, and renames
-// z2ui5_cl_http_handler to <prefix>cl_http_handler. Both spellings are
+// z2ui5_cl_ui5_http_handler to <prefix>cl_ui5_http_handler. Both spellings are
 // accepted here, the name without its underscore too, and the abapGit file
 // name spelling #ca2ui5# as well - it is how a namespace travels in a branch
 // name. Returns { prefix, lo, up, branch } - the class, and the branch the
@@ -260,7 +260,7 @@ export function deriveBackend(input) {
   if (prefix === `${OLD_LO}_`) {
     throw new Error(`Backend prefix "${prefix}" is the original name - leave --backend out for an unrenamed backend.`);
   }
-  const lo = `${prefix}cl_http_handler`;
+  const lo = `${prefix}cl_ui5_http_handler`;
   return { prefix, lo, up: lo.toUpperCase(), branch: `rename_${prefix.replace(/\/|_$/g, "")}` };
 }
 
@@ -336,9 +336,9 @@ function transformWapa(content, N) {
 }
 
 // ABAP class source / metadata: rename ONLY our own handler class and KEEP
-// the backend framework class z2ui5_cl_http_handler - unless a renamed
+// the backend framework class z2ui5_cl_ui5_http_handler - unless a renamed
 // backend is named (--backend): then the call goes to its class. The two
-// tokens never overlap (lp_handler / http_handler), so the order is free.
+// tokens never overlap (lp_handler / ui5_http_handler), so the order is free.
 function transformClass(content, N, backend) {
   let out = content.replace(new RegExp(OLD_HANDLER_LO, "gi"), (m) =>
     m === OLD_HANDLER_LO ? N.handlerLo : N.handlerUp);
