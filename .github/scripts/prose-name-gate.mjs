@@ -60,6 +60,16 @@ const RELEASED_HEADING = /^\d{4}-\d{2}-\d{2}\s+v\d/;
 // entry cannot become a silent hole.
 const EXTERNAL = new Map([
   ["Z2UI5_CL_APP_ICF_CONFIG", "ships in abap2UI5-addons/config-management"],
+  ["Z2UI5_CL_APP_SM12", "ships in abap2UI5-addons/lock-manager"],
+  ["Z2UI5_CL_CONFIG_SERVICE", "ships in abap2UI5-addons/config-management"],
+  ["Z2UI5_CL_SEL_VAR_DB", "ships in abap2UI5-addons/range-filter"],
+  ["Z2UI5_CL_TM_001", "ships in abap2UI5-addons/table-maintenance"],
+  ["Z2UI5_CL_LOCK_MANAGER", "ships in abap2UI5-addons/lock-manager"],
+  ["Z2UI5_CL_SEL_MULTISEL", "ships in abap2UI5-addons/range-filter"],
+  ["Z2UI5_CL_SEL_SAMPLE_01", "ships in abap2UI5-addons/range-filter"],
+  ["Z2UI5_CL_TCL_APP_01", "ships in abap2UI5-addons/table-content-loader"],
+  ["Z2UI5_T_06", "table of abap2UI5-addons/lock-manager, used in the downport repros"],
+  ["Z2UI5_T_13", "table of abap2UI5-addons/range-filter"],
   ["Z2UI5_CL_CC_DEMO_OUT", "sample custom control of the samples repository"],
   ["Z2UI5_CL_SMP_CONTEXT", "the samples repository's shared table/context helper"],
   ["Z2UI5_CL_SMP_APP_000", "the samples repository's overview app"],
