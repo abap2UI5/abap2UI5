@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-11-02
 upstream: abaplint/abaplint
 evidence:
-  - 'abap2UI5-addons/lock-manager, 2026-11-02 - `z2ui5_cl_app_sm12=>load_suggestions( )`, a SELECT DISTINCT over a join of DD26S and DD25L with `UP TO 500 ROWS`; the 702 branch could not be built until the statement got an ORDER BY (branch claude/addon-repo-namespaces-dnjqev)'
+  - 'abap2UI5-addons/lock-manager, 2026-11-02 - `z2ui5_cl_lock_app_sm12=>load_suggestions( )`, a SELECT DISTINCT over a join of DD26S and DD25L with `UP TO 500 ROWS`; the 702 branch could not be built until the statement got an ORDER BY (branch claude/addon-repo-namespaces-dnjqev)'
   - 'abap2UI5-addons/se16n and range-filter, 2026-11-02 - the capped read of a dynamic table, `SELECT * FROM (tab) WHERE (where) INTO CORRESPONDING FIELDS OF TABLE @<tab> UP TO @max ROWS`, same failure, same workaround'
   - 'probed 2026-11-02 with @abaplint/cli 2.120.92 - a single class, syntax v702, rules downport, parser_error, check_syntax, unknown_types; `abaplint --fix` then a lint run: all three shapes below fail; adding ORDER BY (PRIMARY KEY or columns) to each makes all three downport with 0 issues'
 checked_upstream: 2026-11-02

@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-11-02
 upstream: abaplint/abaplint
 evidence:
-  - 'abap2UI5-addons/sql-console, 2026-11-02 - `z2ui5_sql_cl_app_01=>history_db_read( )`, `CORRESPONDING #( lr_history->* EXCEPT result_data )`; rewritten as an assignment plus CLEAR so the 702 branch builds (branch claude/addon-repo-namespaces-dnjqev)'
+  - 'abap2UI5-addons/sql-console, 2026-11-02 - `z2ui5_cl_sql_app_01=>history_db_read( )`, `CORRESPONDING #( lr_history->* EXCEPT result_data )`; rewritten as an assignment plus CLEAR so the 702 branch builds (branch claude/addon-repo-namespaces-dnjqev)'
   - 'probed 2026-11-02 with @abaplint/cli 2.120.92 - a single class, syntax v702, rules downport, parser_error, check_syntax, unknown_types; `abaplint --fix` then a lint run: `ls_b = CORRESPONDING #( ls_a EXCEPT value ).` -> `MOVE-CORRESPONDING ls_a EXCEPT value TO temp1.`, parser_error'
 checked_upstream: 2026-11-02
 ---
