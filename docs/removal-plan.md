@@ -402,6 +402,10 @@ breaking change for any downstream app that still references it.
         in ABAP anybody wrote, so "zero callers in the sample repositories"
         says nothing about it. It goes when the handler rename is announced
         in the docs Deprecations page, not before.
+      - The shipped frontend no longer names it: the `z2ui5_cl_lp_handler`
+        of every delivery branch calls `z2ui5_cl_ui5_http_handler` (in a
+        release since 1.148.0), and `tools/bsp_rename --backend` rewrites
+        that call to `<prefix>cl_ui5_http_handler`.
 
 **Falls out automatically when `src/99` goes:**
 

@@ -120,7 +120,7 @@ if (renamed && ownBackend) {
   // delivered tree does not contain and the app answered 404 on its first
   // roundtrip. Rename the backend package with the same tool the BSP went
   // through - it moves the SICF node, its file-name hash and the handler
-  // class, and keeps z2ui5_cl_http_handler, which is the framework class the
+  // class, and keeps z2ui5_cl_ui5_http_handler, which is the framework class the
   // handler calls and is installed once from abap2UI5 itself.
   // resolved: the tool copy is addressed from a DIFFERENT cwd than the
   // steps above run in, and `work` may be a relative path.

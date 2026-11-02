@@ -17,7 +17,7 @@ CLASS Z2UI5_CL_LP_HANDLER IMPLEMENTATION.
 
   METHOD if_http_extension~handle_request.
 
-    z2ui5_cl_http_handler=>run( server ).
+    z2ui5_cl_ui5_http_handler=>run( server ).
 
   ENDMETHOD.
 
