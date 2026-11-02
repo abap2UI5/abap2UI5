@@ -35,15 +35,16 @@
 // tools/bsp_rename). The frontend_deploy workflow builds and pushes
 // such branches on demand.
 //
-// A renamed BSP still calls the backend as z2ui5_cl_http_handler. For a
-// backend that was itself renamed (the build-rename workflow, branch
+// A renamed BSP still calls the backend as z2ui5_cl_ui5_http_handler. For
+// a backend that was itself renamed (the build-rename workflow, branch
 // rename_<name>), the branch name carries the backend's name after a
-// double underscore and the handler calls <prefix>cl_http_handler instead:
+// double underscore and the handler calls <prefix>cl_ui5_http_handler
+// instead:
 //
 //   standard_#abap2ui5#__#abap2ui5#   BSP /ABAP2UI5/UI5, handler calls
-//                                     /abap2ui5/cl_http_handler
+//                                     /abap2ui5/cl_ui5_http_handler
 //   standard_v2_zmyui5__zmyui5        BSP ZMYUI5, handler calls
-//                                     zmyui5_cl_http_handler
+//                                     zmyui5_cl_ui5_http_handler
 //
 // The abaplint config of such a tree takes the backend from the branch the
 // build-rename workflow pushed it to (rename_abap2ui5, rename_zmyui5), so
@@ -303,23 +304,6 @@ function embedControlSources() {
   return join(installed, "src");
 }
 
-// The launchpad handler of the old branches calls the frozen
-// z2ui5_cl_http_handler (src/99), an empty subclass of the public
-// z2ui5_cl_ui5_http_handler. The _new branches need an abap2UI5 that has the
-// public one anyway, so their handler calls it. Guarded: a call the
-// replacement no longer finds would ship the frozen class again in silence.
-const FROZEN_HANDLER = "z2ui5_cl_http_handler=>run(";
-const PUBLIC_HANDLER = "z2ui5_cl_ui5_http_handler=>run(";
-
-function callPublicHandler(dir) {
-  const file = join(dir, "src/01/z2ui5_cl_lp_handler.clas.abap");
-  const source = readFileSync(file, "utf8");
-  if (source.split(FROZEN_HANDLER).length !== 2) {
-    throw new Error(`${relative(core, file)}: expected exactly one ${FROZEN_HANDLER}`);
-  }
-  writeFileSync(file, source.replace(FROZEN_HANDLER, PUBLIC_HANDLER));
-}
-
 // What frontend/embed is developed and checked with here, not what a
 // developer deploying the cloud_new project needs (see DEV_ONLY above) - and
 // .env, git-ignored, which holds a developer's logon to a system
@@ -336,7 +320,6 @@ function buildStandardNew(branch = "standard_new") {
   cpSync(join(embed, "webapp"), work, { recursive: true });
   cpSync(embedControlSources(), join(work, THIRDPARTY), { recursive: true });
   cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
-  callPublicHandler(dir);
   app2bsp({
     webapp: work,
     target: join(dir, "src/02"),
@@ -358,7 +341,6 @@ function buildCloudNew(branch = "cloud_new") {
     filter: (src) => skipBuildArtifacts(src) && skipEmbedDevFiles(src),
   });
   cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
-  callPublicHandler(dir);
   // the endpoint is where cloud has it (sap.app/dataSources/http), and
   // turned to the HTTP service path by the same patch
   const manifest = join(dir, "app/webapp/manifest.json");

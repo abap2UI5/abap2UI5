@@ -16,7 +16,7 @@ CLASS z2ui5_cl_lp_handler IMPLEMENTATION.
 
   METHOD if_http_service_extension~handle_request.
 
-    z2ui5_cl_http_handler=>run( req = request res = response ).
+    z2ui5_cl_ui5_http_handler=>run( req = request res = response ).
 
   ENDMETHOD.
 

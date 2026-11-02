@@ -48,7 +48,7 @@ node tools/bsp_rename/rename-bsp.mjs /abapgit/         # rename into a registere
 | Option | Meaning |
 | --- | --- |
 | `--dir <paths>` | Comma-separated roots to process (default `src`). |
-| `--backend <prefix>` | The handler calls `<prefix>cl_http_handler` — for a backend renamed with `build-rename`, see below. |
+| `--backend <prefix>` | The handler calls `<prefix>cl_ui5_http_handler` — for a backend renamed with `build-rename`, see below. |
 | `--with-namespace` | Also rewrite the UI5 namespace — advanced, see below. |
 | `--dry-run` | Show what would change, write nothing. |
 | `--yes`, `-y` | Skip the confirmation prompt. |
@@ -100,15 +100,15 @@ carry a SAP namespace; the `z2ui5` UI5 namespace is kept as usual).
 The backend has a rename of its own: the
 [`build-rename` workflow](https://github.com/abap2UI5/abap2UI5/actions/workflows/build-rename.yaml)
 of abap2UI5 turns every `z2ui5_*` object into `<prefix>*` (`ZMYUI5` →
-`zmyui5_cl_http_handler`, `/ABAP2UI5/` → `/abap2ui5/cl_http_handler`) and
+`zmyui5_cl_ui5_http_handler`, `/ABAP2UI5/` → `/abap2ui5/cl_ui5_http_handler`) and
 pushes the result to the branch `rename_<name>`. A BSP renamed with this
-script alone still calls `z2ui5_cl_http_handler`, which such a backend no
+script alone still calls `z2ui5_cl_ui5_http_handler`, which such a backend no
 longer ships — the ICF node answers with a class-not-found dump. `--backend`
 takes the same prefix the workflow took and rewrites the call:
 
 ```bash
-node tools/bsp_rename/rename-bsp.mjs /abap2ui5/ --backend /abap2ui5/   # handler calls /abap2ui5/cl_http_handler
-node tools/bsp_rename/rename-bsp.mjs ZMYUI5 --backend zmyui5           # handler calls zmyui5_cl_http_handler
+node tools/bsp_rename/rename-bsp.mjs /abap2ui5/ --backend /abap2ui5/   # handler calls /abap2ui5/cl_ui5_http_handler
+node tools/bsp_rename/rename-bsp.mjs ZMYUI5 --backend zmyui5           # handler calls zmyui5_cl_ui5_http_handler
 ```
 
 Accepted: a customer name with or without its trailing `_` (max. 10
@@ -123,8 +123,8 @@ follows the BSP name after a double underscore:
 
 | Branch | BSP | Handler calls |
 | --- | --- | --- |
-| `standard_#abap2ui5#__#abap2ui5#` | `/ABAP2UI5/UI5` | `/abap2ui5/cl_http_handler` |
-| `standard_v2_zmyui5__zmyui5` | `ZMYUI5` | `zmyui5_cl_http_handler` |
+| `standard_#abap2ui5#__#abap2ui5#` | `/ABAP2UI5/UI5` | `/abap2ui5/cl_ui5_http_handler` |
+| `standard_v2_zmyui5__zmyui5` | `ZMYUI5` | `zmyui5_cl_ui5_http_handler` |
 
 The `abaplint.jsonc` of such a tree reads the backend from the branch
 `rename_<backend>` instead of `main`, so run `build-rename` for that name
@@ -153,7 +153,7 @@ These are **protocol contracts with the abap2UI5 backend** (which lives in a
 different repository). Renaming them breaks the app unless the backend is
 rebranded too:
 
-- `z2ui5_cl_http_handler` — the backend framework class the handler calls
+- `z2ui5_cl_ui5_http_handler` — the backend framework class the handler calls
   (unless `--backend` names a renamed one, see above)
 - the `z2ui5-xapp-state` cross-app-state key
 - the **UI5 framework namespace `z2ui5`** — module paths `z2ui5/core/*`,
@@ -170,4 +170,4 @@ Also rewrites the UI5 namespace (resourceroots, module paths, `.extend(...)`,
 `controllerName`, custom controls `z2ui5.cc.*`, manifest `id`/`viewPath`/
 `viewName`). Only use it when rebranding the whole stack **including the
 backend** — otherwise custom controls and backend-generated views stop working.
-Even in this mode `z2ui5_cl_http_handler` is still preserved.
+Even in this mode `z2ui5_cl_ui5_http_handler` is still preserved.
