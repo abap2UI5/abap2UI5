@@ -64,7 +64,7 @@ const REPOS = [
   { org: 'abap2UI5-addons', repo: 'table-content-loader' },
   { org: 'abap2UI5-addons', repo: 'table-maintenance' },
   { org: 'abap2UI5-addons', repo: 'layout-management' },
-  { org: 'abap2UI5-addons', repo: 'selection-screen' },
+  { org: 'abap2UI5-addons', repo: 'range-filter' },
   { org: 'abap2UI5-addons', repo: 'lock-manager' },
   { org: 'abap2UI5-addons', repo: 'custom-controls' },
   { org: 'abap2UI5-addons', repo: 'rap-ext' },
