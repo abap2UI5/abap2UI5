@@ -1450,6 +1450,26 @@ break one of those four.
   `z2ui5_cl_pop_table` had to derive the label from `absolute_name` plus a
   context helper instead (`bc230abe`). Framework code reaches system
   functionality only through `z2ui5_cl_ui5_util_context` for exactly this reason.
+- **What the downport cannot rewrite - written 7.02-ready in the source.**
+  Giving 15 addons a `702` branch (2026-11-02, a publish-702 workflow in each) turned up
+  constructs `abaplint --fix` leaves unchanged or writes wrong, each reproduced
+  in one class on 2.120.92. Write them the 7.02 way where a source is
+  downported: a cast in a TRY instead of `IS INSTANCE OF` (one of these blocks
+  the whole class, `Expected ENDMETHOD`); an `ORDER BY` in a SELECT that has a
+  WHERE and `UP TO`; `SELECT SINGLE * FROM` instead of `SELECT SINGLE FROM ...
+  FIELDS *`; a row loop instead of `MOVE-CORRESPONDING`/`CORRESPONDING #( )`
+  between tables; an assignment plus CLEAR instead of `CORRESPONDING #( ...
+  EXCEPT )`; READ TABLE ... ASSIGNING instead of `CLEAR itab[ ... ]-comp`;
+  `WITH DEFAULT KEY` in a dynamic `CREATE DATA`; a declared work area instead
+  of `INSERT dbtab FROM @( VALUE #( ... ) )` (the output looks downported and
+  does not compile); no `@` on cursor statements; and an explicit declaration
+  where an inline one has a void type - the downport rule reports nothing
+  there, and v702 `check_syntax` only says `"DATA" not found`. The cast for
+  `CX_SY_ITAB_LINE_NOT_FOUND` the `syfixes` script patches is upstream already
+  (abaplint/abaplint#3735, #3240), and `syfixes` only runs when the `--fix` call
+  before it may fail: `(abaplint --fix ... || true) && npm run syfixes`.
+
+**Backlog:** abaplint · abaplint-downport-select-up-to, abaplint-downport-select-fields, abaplint-downport-is-instance-of, abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-create-data-empty-key, abaplint-downport-insert-host-expression, abaplint-downport-cursor-host-variables, abaplint-downport-void-inline-silent
 
 ## 5. Runtime — green here, wrong there
 

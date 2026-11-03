@@ -32,8 +32,12 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 // one needs the reason, so an entry cannot become a silent hole.
 const EXTERNAL = new Map([
   [
-    "Z2UI5_CL_APP_ICF_CONFIG",
+    "Z2UI5_CL_CONFIG_APP",
     "ships in abap2UI5-addons/config-management - guarded by rtti_check_class_exists",
+  ],
+  [
+    "Z2UI5_CL_APP_ICF_CONFIG",
+    "the name of Z2UI5_CL_CONFIG_APP up to 2026-11 - the fallback for an older config-management install",
   ],
   [
     "Z2UI5_CL_CC_DEMO_OUT",

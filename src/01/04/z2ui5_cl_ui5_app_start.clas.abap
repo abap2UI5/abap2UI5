@@ -117,8 +117,10 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     " lives in abap2UI5-addons/config-management, resolved dynamically (listed
     " in dynamic-name-gate's EXTERNAL) - a constant, because the same name
     " used to exist in two spellings here, which is how a rename gets one of
-    " them wrong
-    CONSTANTS c_class_icf_config TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
+    " them wrong. The addon renamed the class in 2026-11; an install from
+    " before that still has the old name, which is tried second
+    CONSTANTS c_class_icf_config     TYPE string VALUE `Z2UI5_CL_CONFIG_APP`.
+    CONSTANTS c_class_icf_config_old TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
 
     " the class name input of step 4 - the only control on the page that is
     " addressed from the outside, because the cursor is put into it on start
@@ -266,7 +268,11 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         " a message, not to a 500 on the framework's own start page (same
         " guard shape as on_event_check)
         TRY.
-            CREATE OBJECT li_app_config TYPE (c_class_icf_config).
+            TRY.
+                CREATE OBJECT li_app_config TYPE (c_class_icf_config).
+              CATCH cx_sy_create_object_error.
+                CREATE OBJECT li_app_config TYPE (c_class_icf_config_old).
+            ENDTRY.
             client->nav_app_call( li_app_config ).
           CATCH cx_root.
             client->message_box_display(
