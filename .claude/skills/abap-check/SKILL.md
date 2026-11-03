@@ -1091,7 +1091,7 @@ transpiled to JS (`npm run auto_transpile`), and is linted against
 `check:standard` and `check:cloud`. A construct can be valid ABAP and still
 break one of those four.
 
-**Backlog:** open-abap · runtime-packed-copy-precision, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, core-abap-matcher-create
+**Backlog:** open-abap · runtime-packed-copy-precision, core-class-source-not-available, core-seo-interface-implem-get-all, runtime-alpha-in-width, runtime-importing-copy-by-type-name, runtime-create-object-classic-exceptions, runtime-default-inherited-constant, core-serialize-object-identity, core-deserialize-nested-data-ref, transpiler-new-data-type-components, transpiler-case-type-without-into, transpiler-raise-resumable, transpiler-super-constructor-root-class, runtime-absolute-class-name, transpiler-ref-with-type, transpiler-let-field-symbol, core-abap-matcher-create, transpiler-void-superclass
 
 - **A test guarded with `IF sy-sysid = 'ABC'. RETURN.` never runs under `npm run unit`** -
   `ABC` is the fixed `sy-sysid` of `@abaplint/runtime`, so the guard is a Node skip in
@@ -1464,12 +1464,17 @@ break one of those four.
   of `INSERT dbtab FROM @( VALUE #( ... ) )` (the output looks downported and
   does not compile); no `@` on cursor statements; and an explicit declaration
   where an inline one has a void type - the downport rule reports nothing
-  there, and v702 `check_syntax` only says `"DATA" not found`. The cast for
+  there, and v702 `check_syntax` only says `"DATA" not found`. Two more change the
+  code without a word (found transpiling the addons, 2026-11-03): a table
+  expression behind a guard in an `AND`/`OR` chain (`IF n > 0 AND itab[ n ]
+  = x`) is read before the IF, guard or not - write `VALUE #( itab[ n ]
+  OPTIONAL )` or a nested IF; and `CONV #( )` at a generic parameter (`TYPE
+  clike`) is declared `TYPE undefined` - write `CONV string( )`. The cast for
   `CX_SY_ITAB_LINE_NOT_FOUND` the `syfixes` script patches is upstream already
   (abaplint/abaplint#3735, #3240), and `syfixes` only runs when the `--fix` call
   before it may fail: `(abaplint --fix ... || true) && npm run syfixes`.
 
-**Backlog:** abaplint · abaplint-downport-select-up-to, abaplint-downport-select-fields, abaplint-downport-is-instance-of, abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-create-data-empty-key, abaplint-downport-insert-host-expression, abaplint-downport-cursor-host-variables, abaplint-downport-void-inline-silent
+**Backlog:** abaplint · abaplint-downport-select-up-to, abaplint-downport-select-fields, abaplint-downport-is-instance-of, abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-create-data-empty-key, abaplint-downport-insert-host-expression, abaplint-downport-cursor-host-variables, abaplint-downport-void-inline-silent, abaplint-downport-short-circuit-table-expression, abaplint-downport-conv-generic-parameter
 
 ## 5. Runtime — green here, wrong there
 
