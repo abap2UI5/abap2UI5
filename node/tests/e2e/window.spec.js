@@ -212,6 +212,44 @@ test.describe("_bind_tab( ) of the app", () => {
   });
 });
 
+test.describe("_bind_tab_row( )", () => {
+  test("the row a sorted window shows is the table's row it names", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    const sorted = await post(
+      request,
+      windowEvent(first.S_FRONT.ID, "/MT_ROWS", 50, [
+        { PATH: "PRICE", DESCENDING: true },
+      ]),
+    );
+    const third = sorted.MODEL.MT_ROWS[2];
+    const pressed = await post(request, {
+      ID: sorted.S_FRONT.ID,
+      EVENT: "ROW",
+      T_EVENT_ARG: ["/MT_ROWS/2"],
+    });
+    expect(pressed.MODEL.MV_RESULT).toBe(String(third.ID));
+  });
+
+  test("a position past the filter names no row", async ({ request }) => {
+    const first = await start(request);
+    const filtered = await post(
+      request,
+      windowEvent(first.S_FRONT.ID, "/MT_ROWS", 50, [], [
+        [["NAME", "EQ", "Item 7"]],
+      ]),
+    );
+    expect(filtered.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(1);
+    const pressed = await post(request, {
+      ID: filtered.S_FRONT.ID,
+      EVENT: "ROW",
+      T_EVENT_ARG: ["/MT_ROWS/1"],
+    });
+    expect(pressed.MODEL.MV_RESULT).toBe("none");
+  });
+});
+
 test.describe("the browser", () => {
   test("growing asks the server for the next window", async ({ page }) => {
     await page.goto(`/?app_start=${APP}`);

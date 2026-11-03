@@ -86,6 +86,7 @@
   "z2ui5_if_client.intf.abap#types:ty_s_bind_tab_filter": "types begin of ty_s_bind_tab_filter . types group type i . types path type string . types operator type string . types value1 type string . types value2 type string . types end of ty_s_bind_tab_filter",
   "z2ui5_if_client.intf.abap#types:ty_t_bind_tab_filter": "types ty_t_bind_tab_filter type standard table of ty_s_bind_tab_filter with empty key",
   "z2ui5_if_client.intf.abap#methods:_bind_tab": "methods _bind_tab importing val type data window type i default 100 t_sort type ty_t_bind_tab_sort optional t_filter type ty_t_bind_tab_filter optional returning value(result) type string",
+  "z2ui5_if_client.intf.abap#methods:_bind_tab_row": "methods _bind_tab_row importing val type data row type i returning value(result) type i",
   "z2ui5_if_client.intf.abap#methods:follow_up_action": "methods follow_up_action importing val type string view type clike default cs_view-main t_arg type string_table optional returning value(result) type string",
   "z2ui5_if_client.intf.abap#methods:check_on_event": "methods check_on_event importing val type clike optional returning value(result) type abap_bool",
   "z2ui5_if_client.intf.abap#methods:check_on_init": "methods check_on_init returning value(result) type abap_bool",

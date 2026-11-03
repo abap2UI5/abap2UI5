@@ -61,6 +61,18 @@ CLASS zcl_tst_window IMPLEMENTATION.
     " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the view rendered again, the order unchanged
     ELSEIF client->check_on_event( `RERENDER` ).
       view_display( ).
+    ELSEIF client->check_on_event( `ROW` ).
+      " the binding path of the row pressed, /MT_ROWS/5: a position in the
+      " order the browser shows, the table's row from _bind_tab_row( )
+      DATA(lv_path) = client->get_event_arg( ).
+      DATA(lv_slash) = find( val = lv_path
+                             sub = `/`
+                             occ = -1 ).
+      DATA(lv_pos) = CONV i( substring( val = lv_path
+                                        off = lv_slash + 1 ) ).
+      DATA(lv_row) = client->_bind_tab_row( val = mt_rows
+                                            row = lv_pos + 1 ).
+      mv_result = COND #( WHEN lv_row > 0 THEN |{ mt_rows[ lv_row ]-id }| ELSE `none` ).
     ENDIF.
 
   ENDMETHOD.
@@ -154,6 +166,9 @@ CLASS zcl_tst_window IMPLEMENTATION.
                 )->a( n = `text` v = `Selected` ).
     tab->ele( `items`
         )->ele( `ColumnListItem`
+            )->a( n = `type`  v = `Active`
+            )->a( n = `press` v = client->_event( val   = `ROW`
+                                                  t_arg = VALUE #( ( `$event.oSource.getBindingContext().getPath()` ) ) )
             )->ele( `cells`
                 )->tag( `Text`
                     )->a( n = `text` v = `{NAME}`
