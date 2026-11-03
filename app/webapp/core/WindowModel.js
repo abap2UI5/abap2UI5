@@ -1,10 +1,10 @@
 // The framework's JSON model, with the list binding of a WINDOWED table.
 //
-// A table bound with `_bind( val = mt_rows window = 100 )` does not travel
+// A table bound with `_bind_tab( val = mt_rows window = 100 )` does not travel
 // whole: the response carries the first rows of it, in the order the
 // binding asked for, and next to the model's data the state of the window
-// under `/__WINDOW/<NAME>` - TOTAL (the rows the filter lets through), COUNT
-// (the rows sent) and SIZE (one window). A list bound to `/<NAME>` gets a
+// under `/__WINDOW/<path>` - TOTAL (the rows the filter lets through), COUNT
+// (the rows sent) and SIZE (one window). A list bound to that path gets a
 // WindowListBinding, which
 //   - answers getLength( ) with TOTAL, so a growing sap.m.Table shows
 //     "More [100 / 10000]" and a sap.ui.table.Table a scrollbar for all rows;
@@ -43,11 +43,14 @@ sap.ui.define(
     // cv_window_model_key
     const META = "__WINDOW";
 
-    // the name of a windowed list: an absolute path one level deep, the way
-    // the backend writes it (`{/MT_ROWS}`); anything else is no window
+    // the name of a windowed list: its absolute path without the leading
+    // slash, the way the backend writes it - `{/MT_ROWS}`, `{/MR_TAB/*}` for
+    // a table behind a data reference, `{/MS_DATA/T_ROWS}` for one in a
+    // structure. The window state mirrors it: /__WINDOW/MR_TAB/*. A path
+    // relative to a context is no window
     function windowName(sPath, oContext) {
       if (oContext || typeof sPath !== "string") return undefined;
-      const match = /^\/([^/]+)$/.exec(sPath);
+      const match = /^\/([^/].*?)\/?$/.exec(sPath);
       return match ? match[1] : undefined;
     }
 

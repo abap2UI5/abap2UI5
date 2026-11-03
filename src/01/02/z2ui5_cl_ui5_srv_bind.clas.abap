@@ -34,8 +34,8 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " hold JSON text. See the method body.
     METHODS check_raise_json.
 
-    "! _bind( window = n ): a public standard table of the app itself, bound
-    "! whole and plain - refused with the attribute's name otherwise
+    "! _bind_tab( ): a standard table, bound whole and plain - refused with
+    "! the attribute's name otherwise
     METHODS check_raise_window
       IMPORTING
         val TYPE REF TO data.
@@ -317,22 +317,19 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD check_raise_window.
 
     " the window is the order of the rows the browser holds (a list of row
-    " numbers) - it needs the rows themselves, under a name of their own on
-    " the top level of the model, where the frontend's list binding finds
-    " /__WINDOW/<NAME> next to them. A component of a structure, a sorted or
-    " hashed table (no row numbers to write a delta to) or a table the
-    " serializer hands to a mapper or a filter (omit_initial among them)
-    " would each take one of those away
+    " numbers) - it needs a table with row numbers to write a delta to (a
+    " sorted or hashed one has none), whose rows the serializer writes
+    " itself (a mapper or a filter of its own, omit_initial among them,
+    " would see a window instead of the table)
     IF ms_config-window <= 0.
       RETURN.
     ENDIF.
 
     DATA(lv_reason) = COND string(
-      WHEN mr_attri->name CA `->` THEN `it is no attribute of the app itself, but a part of one`
       WHEN mr_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table THEN `it is no internal table`
-      WHEN ms_config-check_json = abap_true THEN `json = abap_true binds a string`
-      WHEN ms_config-custom_filter IS BOUND OR ms_config-custom_mapper IS BOUND
-        THEN `omit_initial and the custom mapper or filter cannot be applied to a window` ).
+      WHEN mr_attri->check_json = abap_true THEN `it is bound with json = abap_true elsewhere`
+      WHEN mr_attri->custom_filter IS BOUND OR mr_attri->custom_mapper IS BOUND
+        THEN `it is bound with omit_initial or a custom mapper or filter elsewhere` ).
     IF lv_reason IS INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
       lv_reason = `it is no STANDARD table`.
     ENDIF.
@@ -342,8 +339,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
-        val = |Binding Error - _bind( window ) needs a public standard table attribute of the app; | &&
-              |'{ mr_attri->name }': { lv_reason }.|.
+        val = |Binding Error - _bind_tab( ) needs a standard table; '{ mr_attri->name }': { lv_reason }.|.
 
   ENDMETHOD.
 
@@ -399,12 +395,6 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main.
-
-    IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ) AND config-window > 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = `Binding Error - _bind( window ) binds a whole table, not a cell: leave tab and tab_index out`.
-    ENDIF.
 
     IF z2ui5_cl_ui5_util_context=>check_bound_a_not_initial( config-tab ).
       result = main_cell( val    = val
@@ -541,16 +531,29 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
   METHOD window_adopt.
 
     " the size follows the latest bind - a view rendered anew may ask for a
-    " bigger window - while what the browser holds, the sorters and the
-    " filter stay: they are the user's, and a re-render must not throw away
-    " a sort the user clicked. A plain _bind( ) of a windowed table (window
-    " = 0) leaves the window as it is, like the other options
+    " bigger window - and what the browser holds stays. The sorters and the
+    " filter the app passes take effect when they differ from the ones it
+    " passed the time before: a view rendered again with the same ones keeps
+    " what the user sorted and filtered in the browser, and a new sort from
+    " the app (a layout, a dialog) replaces it - from the first window. A
+    " plain _bind( ) of the table (window = 0) leaves the window as it is
     IF ms_config-window <= 0.
       RETURN.
     ENDIF.
     mr_attri->window_size  = ms_config-window.
     mr_attri->window_count = nmax( val1 = mr_attri->window_count
                                    val2 = ms_config-window ).
+
+    IF ms_config-check_window_sort = abap_true AND ms_config-t_window_sort <> mr_attri->t_window_sort_set.
+      mr_attri->t_window_sort     = ms_config-t_window_sort.
+      mr_attri->t_window_sort_set = ms_config-t_window_sort.
+      mr_attri->window_count      = ms_config-window.
+    ENDIF.
+    IF ms_config-check_window_filter = abap_true AND ms_config-t_window_filter <> mr_attri->t_window_filter_set.
+      mr_attri->t_window_filter     = ms_config-t_window_filter.
+      mr_attri->t_window_filter_set = ms_config-t_window_filter.
+      mr_attri->window_count        = ms_config-window.
+    ENDIF.
 
   ENDMETHOD.
 

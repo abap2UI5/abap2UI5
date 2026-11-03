@@ -41,7 +41,7 @@ CLASS z2ui5_cl_ui5f_window_js IMPLEMENTATION.
              `` && |\n| &&
              `    function windowName(sPath, oContext) {` && |\n| &&
              `      if (oContext || typeof sPath !== "string") return undefined;` && |\n| &&
-             `      const match = /^\/([^/]+)$/.exec(sPath);` && |\n| &&
+             `      const match = /^\/([^/].*?)\/?$/.exec(sPath);` && |\n| &&
              `      return match ? match[1] : undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

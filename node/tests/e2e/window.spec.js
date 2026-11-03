@@ -1,5 +1,5 @@
 // @ts-check
-// The windowed table: _bind( val = mt_rows window = n ) sends the browser
+// The windowed table: _bind_tab( val = mt_rows window = n ) sends the browser
 // n rows of the table, and its list binding (core/WindowModel.js) asks the
 // backend for more, sorts and filters there. The fixture app is
 // node/srv/zcl_tst_window.clas.abap - 250 rows in a growing sap.m.Table
@@ -159,10 +159,65 @@ test.describe("the wire", () => {
   });
 });
 
+test.describe("_bind_tab( ) of the app", () => {
+  test("a table behind a data reference is windowed under its own path", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    // REF #( mt_grid ) binds the attribute itself
+    expect(first.MODEL.MT_GRID).toHaveLength(30);
+    // an attribute TYPE REF TO data binds what it points to
+    expect(first.MODEL.MR_TAB["*"]).toHaveLength(10);
+    expect(first.MODEL.__WINDOW.MR_TAB["*"]).toEqual({
+      TOTAL: 40,
+      COUNT: 10,
+      SIZE: 10,
+    });
+    const second = await post(
+      request,
+      windowEvent(first.S_FRONT.ID, "/MR_TAB/*", 20),
+    );
+    expect(second.MODEL.MR_TAB["*"]).toHaveLength(20);
+    expect(second.MODEL.MR_TAB["*"][19].ID).toBe(20);
+  });
+
+  test("the app's sort applies, and a render with the same sort keeps the user's", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    // the app passes ID descending
+    const preset = await post(request, {
+      ID: first.S_FRONT.ID,
+      EVENT: "PRESET",
+    });
+    expect(preset.MODEL.MT_ROWS[0].ID).toBe(250);
+
+    // the user sorts by name in the browser
+    const user = await post(
+      request,
+      windowEvent(preset.S_FRONT.ID, "/MT_ROWS", 50, [
+        { PATH: "NAME", DESCENDING: false },
+      ]),
+    );
+    expect(user.MODEL.MT_ROWS[0].NAME).toBe("Item 1");
+    expect(user.MODEL.MT_ROWS[1].NAME).toBe("Item 10");
+
+    // the view rendered again with the app's unchanged sort: the user's stays
+    const again = await post(request, {
+      ID: user.S_FRONT.ID,
+      EVENT: "RERENDER",
+    });
+    expect(again.MODEL.MT_ROWS[0].NAME).toBe("Item 1");
+    expect(again.MODEL.MT_ROWS[1].NAME).toBe("Item 10");
+  });
+});
+
 test.describe("the browser", () => {
   test("growing asks the server for the next window", async ({ page }) => {
     await page.goto(`/?app_start=${APP}`);
-    await expect(page.getByText("Item 20", { exact: true })).toBeVisible({
+    // the texts of the sap.m.Table - the other lists show items too
+    const tab = page.locator("[id$='--tab']");
+    await expect(tab.getByText("Item 20", { exact: true })).toBeVisible({
       timeout: 30000,
     });
     await expect(page.locator("[id$='--total']")).toHaveText("250 rows");
@@ -171,19 +226,20 @@ test.describe("the browser", () => {
     // browser holds, the second needs the next window
     const more = page.locator("[id$='--tab-trigger']");
     await more.click();
-    await expect(page.getByText("Item 40", { exact: true })).toBeVisible();
-    await expect(page.getByText("Item 51", { exact: true })).toHaveCount(0);
+    await expect(tab.getByText("Item 40", { exact: true })).toBeVisible();
+    await expect(tab.getByText("Item 51", { exact: true })).toHaveCount(0);
     const request = page.waitForRequest((r) =>
       (r.postData() ?? "").includes(EVENT),
     );
     await more.click();
     await request;
-    await expect(page.getByText("Item 60", { exact: true })).toBeVisible();
+    await expect(tab.getByText("Item 60", { exact: true })).toBeVisible();
   });
 
   test("a search and a sort run on the server", async ({ page }) => {
     await page.goto(`/?app_start=${APP}`);
-    await expect(page.getByText("Item 20", { exact: true })).toBeVisible({
+    const tab = page.locator("[id$='--tab']");
+    await expect(tab.getByText("Item 20", { exact: true })).toBeVisible({
       timeout: 30000,
     });
 
@@ -192,8 +248,8 @@ test.describe("the browser", () => {
     await search.press("Enter");
     // Item 24, 240-249: eleven rows, counted over the whole table
     await expect(page.locator("[id$='--total']")).toHaveText("11 rows");
-    await expect(page.getByText("Item 245", { exact: true })).toBeVisible();
-    await expect(page.getByText("Item 20", { exact: true })).toHaveCount(0);
+    await expect(tab.getByText("Item 245", { exact: true })).toBeVisible();
+    await expect(tab.getByText("Item 20", { exact: true })).toHaveCount(0);
 
     await page.locator("[id$='--sortPrice']").click();
     const firstRow = page.locator("[id$='--tab-tblBody'] tr").first();

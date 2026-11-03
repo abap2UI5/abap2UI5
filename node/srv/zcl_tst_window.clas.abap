@@ -14,10 +14,15 @@ CLASS zcl_tst_window DEFINITION PUBLIC.
 
     " the sap.m.Table, 50 rows at a time
     DATA mt_rows TYPE ty_t_row.
-    " the sap.ui.table.Table, 30 rows at a time
+    " the sap.ui.table.Table, 30 rows at a time - bound as REF #( mt_grid )
+    " abap2ui5lint-disable-next-line unbound-public-attribute -- bound through _bind_tab( val = REF #( mt_grid ) ), which the linter does not follow yet
     DATA mt_grid TYPE ty_t_row.
     " what CHECK found - the ids of the selected rows
     DATA mv_result TYPE string.
+    " the order the app sets on mt_rows - PRESET puts the highest id first
+    DATA mt_sort TYPE z2ui5_if_client=>ty_t_bind_tab_sort.
+    " a table behind a data reference: 40 rows, 10 at a time
+    DATA mr_tab TYPE REF TO data.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -34,7 +39,8 @@ CLASS zcl_tst_window IMPLEMENTATION.
     me->client = client.
 
     " e2e fixture for the windowed table (window.spec.js): 250 rows in two
-    " tables, bound with _bind( window = n ). The browser holds a window of
+    " tables and 40 behind a data reference, bound with _bind_tab( ). The
+    " browser holds a window of
     " each, grows it, and sorts and filters it on the server; CHECK reads
     " back which rows the user selected - in the table's own row order,
     " whatever order the browser showed them in
@@ -48,6 +54,13 @@ CLASS zcl_tst_window IMPLEMENTATION.
       LOOP AT mt_rows INTO DATA(ls_row) WHERE selected = abap_true.
         mv_result = |{ mv_result }{ ls_row-id };|.
       ENDLOOP.
+    " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the app sets the order of mt_rows
+    ELSEIF client->check_on_event( `PRESET` ).
+      mt_sort = VALUE #( ( path = `ID` descending = abap_true ) ).
+      view_display( ).
+    " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the view rendered again, the order unchanged
+    ELSEIF client->check_on_event( `RERENDER` ).
+      view_display( ).
     ENDIF.
 
   ENDMETHOD.
@@ -62,6 +75,12 @@ CLASS zcl_tst_window IMPLEMENTATION.
                       price = ( sy-index * 37 ) MOD 251 ) TO mt_rows.
     ENDDO.
     mt_grid = mt_rows.
+
+    FIELD-SYMBOLS <tab> TYPE ty_t_row.
+    CREATE DATA mr_tab TYPE ty_t_row.
+    ASSIGN mr_tab->* TO <tab>.
+    <tab> = mt_rows.
+    DELETE <tab> FROM 41.
 
   ENDMETHOD.
 
@@ -116,8 +135,9 @@ CLASS zcl_tst_window IMPLEMENTATION.
 
     tab = page->ele( `Table`
         )->a( n = `id`               v = `tab`
-        )->a( n = `items`            v = client->_bind( val    = mt_rows
-                                                        window = 50 )
+        )->a( n = `items`            v = client->_bind_tab( val    = mt_rows
+                                                            window = 50
+                                                            t_sort = mt_sort )
         )->a( n = `growing`          v = `true`
         )->a( n = `growingThreshold` v = `20` ).
     tab->ele( `columns`
@@ -144,8 +164,8 @@ CLASS zcl_tst_window IMPLEMENTATION.
 
     grid = page->ele( n = `Table` ns = `t`
         )->a( n = `id`              v = `grid`
-        )->a( n = `rows`            v = client->_bind( val    = mt_grid
-                                                       window = 30 )
+        )->a( n = `rows`            v = client->_bind_tab( val    = REF #( mt_grid )
+                                                           window = 30 )
         )->a( n = `visibleRowCount` v = `10` ).
     grid->ele( n = `columns` ns = `t`
         )->ele( n = `Column` ns = `t`
@@ -158,6 +178,17 @@ CLASS zcl_tst_window IMPLEMENTATION.
             )->ele( n = `template` ns = `t`
                 )->tag( `Text`
                     )->a( n = `text` v = `{NAME}` ).
+
+    " the table behind a data reference: bound as what it points to,
+    " /MR_TAB/* in the model
+    page->ele( `List`
+        )->a( n = `id`      v = `list`
+        )->a( n = `items`   v = client->_bind_tab( val    = mr_tab
+                                                   window = 10 )
+        )->a( n = `growing` v = `true`
+        )->ele( `items`
+            )->tag( `StandardListItem`
+                )->a( n = `title` v = `{NAME}` ).
 
     client->view_display( view->stringify( ) ).
   ENDMETHOD.

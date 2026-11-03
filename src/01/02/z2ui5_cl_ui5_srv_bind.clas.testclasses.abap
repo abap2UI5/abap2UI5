@@ -146,7 +146,9 @@ CLASS ltcl_00_base DEFINITION DEFERRED.
 CLASS ltcl_01_path DEFINITION DEFERRED.
 CLASS ltcl_02_cell DEFINITION DEFERRED.
 CLASS ltcl_03_options DEFINITION DEFERRED.
-CLASS z2ui5_cl_ui5_srv_bind DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_path ltcl_02_cell ltcl_03_options.
+CLASS ltcl_04_window DEFINITION DEFERRED.
+CLASS z2ui5_cl_ui5_srv_bind DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_path ltcl_02_cell ltcl_03_options
+                                                     ltcl_04_window.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -986,4 +988,135 @@ CLASS ltcl_03_options IMPLEMENTATION.
         msg = `the refused bind must not have left check_json on` ).
 
   ENDMETHOD.
+ENDCLASS.
+
+
+" _bind_tab( ): the window is stored on the attribute, the sorters and the
+" filter the app passes take effect when they change
+CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS window_stored        FOR TESTING RAISING cx_static_check.
+    METHODS sort_applied_on_change FOR TESTING RAISING cx_static_check.
+    METHODS filter_applied_on_change FOR TESTING RAISING cx_static_check.
+    METHODS plain_bind_keeps     FOR TESTING RAISING cx_static_check.
+    METHODS no_table_refused     FOR TESTING RAISING cx_static_check.
+    METHODS reference_path       FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_04_window IMPLEMENTATION.
+
+  METHOD window_stored.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
+                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
+                                                    is_config = VALUE #( window = 10 ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = mo_bind->mr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = mo_bind->mr_attri->window_count ).
+
+  ENDMETHOD.
+
+  METHOD sort_applied_on_change.
+
+    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
+                          window            = 10
+                          t_window_sort     = VALUE #( ( path = `NAME` ) )
+                          check_window_sort = abap_true ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
+
+    " the user sorts in the browser and grows the window
+    mo_bind->mr_attri->t_window_sort = VALUE #( ( path = `JOB` descending = abap_true ) ).
+    mo_bind->mr_attri->window_count  = 30.
+
+    " rendered again with the same sort: the user's stays
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = `JOB`
+                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
+    cl_abap_unit_assert=>assert_equals( exp = 30
+                                        act = mo_bind->mr_attri->window_count ).
+
+    " a new sort from the app replaces it, from the first window
+    ls_config-t_window_sort = VALUE #( ( path = `NAME` descending = abap_true ) ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-descending ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = mo_bind->mr_attri->window_count ).
+
+    " an empty sort passed is a change too - it clears
+    CLEAR ls_config-t_window_sort.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_initial( mo_bind->mr_attri->t_window_sort ).
+
+  ENDMETHOD.
+
+  METHOD filter_applied_on_change.
+
+    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
+                          window              = 10
+                          t_window_filter     = VALUE #( ( group = 1 path = `NAME` operator = `Contains` value1 = `a` ) )
+                          check_window_filter = abap_true ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( mo_bind->mr_attri->t_window_filter ) ).
+
+    " the user filters in the browser - the same filter from the app keeps it
+    CLEAR mo_bind->mr_attri->t_window_filter.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_initial( mo_bind->mr_attri->t_window_filter ).
+
+  ENDMETHOD.
+
+  METHOD plain_bind_keeps.
+
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = VALUE #( window            = 10
+                               t_window_sort     = VALUE #( ( path = `NAME` ) )
+                               check_window_sort = abap_true ) ).
+    " a plain _bind( ) of the same table elsewhere in the view
+    bind( REF #( mo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = mo_bind->mr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
+
+  ENDMETHOD.
+
+  METHOD no_table_refused.
+
+    expect_bind_error( ir_val    = REF #( mo_app->mv_value )
+                       is_config = VALUE #( window = 10 )
+                       iv_text   = `it is no internal table` ).
+
+  ENDMETHOD.
+
+  METHOD reference_path.
+
+    DATA lr_tab TYPE REF TO data.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    " what _bind_tab( mr_tab ) hands over: the table the reference points to
+    ASSIGN mo_app->mr_tab->* TO <tab>.
+    lr_tab = REF #( <tab> ).
+    cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*}`
+                                        act = bind( ir_val    = lr_tab
+                                                    is_config = VALUE #( window = 5 ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = mo_bind->mr_attri->window_size ).
+
+  ENDMETHOD.
+
 ENDCLASS.

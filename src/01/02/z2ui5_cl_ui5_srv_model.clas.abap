@@ -823,7 +823,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          " _bind( window = n ): the rows of the window instead of the
+          " _bind_tab( ): the rows of the window instead of the
           " table, and the window's state next to them
           IF lr_attri->window_size > 0.
             lr_ref = window_ref( ir_attri  = lr_attri

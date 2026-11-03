@@ -12,7 +12,7 @@ INTERFACE z2ui5_if_ui5_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " The framework's own roundtrip of a WINDOWED table (_bind( window = n )):
+  " The framework's own roundtrip of a WINDOWED table (_bind_tab( )):
   " the frontend's list binding asks for more rows, or sorts or filters,
   " and the handler answers it without calling the app's main( )
   " (z2ui5_cl_ui5_srv_window=>event_apply). Spelled as the frontend sends
@@ -59,19 +59,6 @@ INTERFACE z2ui5_if_ui5_types
       END OF s_stateful,
     END OF ty_s_http_res.
 
-  TYPES:
-    BEGIN OF ty_s_bind_config,
-      path_only            TYPE abap_bool,
-      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
-      tab                  TYPE REF TO data,
-      tab_index            TYPE i,
-      switch_default_model TYPE abap_bool,
-      check_json           TYPE abap_bool,
-      " _bind( window = n ): the table goes to the browser n rows at a time
-      window               TYPE i,
-    END OF ty_s_bind_config.
-
   " One sorter of a windowed table, as the frontend's list binding hands
   " it over: the component of the row and the direction. Applied in order,
   " the first one that tells two rows apart decides
@@ -99,25 +86,45 @@ INTERFACE z2ui5_if_ui5_types
   TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH EMPTY KEY.
 
   TYPES:
+    BEGIN OF ty_s_bind_config,
+      path_only            TYPE abap_bool,
+      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
+      custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
+      tab                  TYPE REF TO data,
+      tab_index            TYPE i,
+      switch_default_model TYPE abap_bool,
+      check_json           TYPE abap_bool,
+      " _bind_tab( ): the table goes to the browser `window` rows at a
+      " time; the sorters and the filter the app passed, and whether it
+      " passed them at all
+      window               TYPE i,
+      t_window_sort        TYPE ty_t_window_sort,
+      t_window_filter      TYPE ty_t_window_filter,
+      check_window_sort    TYPE abap_bool,
+      check_window_filter  TYPE abap_bool,
+    END OF ty_s_bind_config.
+
+
+  TYPES:
     BEGIN OF ty_s_attri,
-      name            TYPE string,
-      name_client     TYPE string,
-      name_parent     TYPE string,
-      name_ref        TYPE string,
-      bind            TYPE abap_bool,
-      srtti_data      TYPE string,
+      name                TYPE string,
+      name_client         TYPE string,
+      name_parent         TYPE string,
+      name_ref            TYPE string,
+      bind                TYPE abap_bool,
+      srtti_data          TYPE string,
       " the S-RTTI descriptor of srtti_data as a document of its own, so the
       " restore parses each once (z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair)
       " instead of lexing one combined document twice. Added 2026-09: a draft
       " written before carries no element for it, deserializes with an empty
       " type, and is restored from the combined document as before
-      srtti_type      TYPE string,
-      check_dissolved TYPE abap_bool,
-      custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
-      custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,
+      srtti_type          TYPE string,
+      check_dissolved     TYPE abap_bool,
+      custom_filter       TYPE REF TO z2ui5_if_ajson_filter,
+      custom_mapper       TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
-      check_json      TYPE abap_bool,
-      o_typedescr     TYPE REF TO cl_abap_typedescr,
+      check_json          TYPE abap_bool,
+      o_typedescr         TYPE REF TO cl_abap_typedescr,
       " the absolute type name as a STRING, next to the descriptor it is
       " taken from: the descriptor is an object reference and does not
       " survive the draft, the name does - so the binding search can
@@ -133,18 +140,22 @@ INTERFACE z2ui5_if_ui5_types
       " hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the window is the
       " upgrade itself; a roundtrip on such a draft answers with the
       " framework's error page once, the next start is a fresh app
-      type_name       TYPE string,
-      type_kind       TYPE string,
-      kind            TYPE string,
-      " _bind( window = n ): the rows go to the browser n at a time
-      " (window_size), the browser holds the first window_count of them in
-      " the order the sorters and the filter give (z2ui5_cl_ui5_srv_window).
+      type_name           TYPE string,
+      type_kind           TYPE string,
+      kind                TYPE string,
+      " _bind_tab( ): the rows go to the browser window_size at a time,
+      " the browser holds the first window_count of them in the order the
+      " sorters and the filter give (z2ui5_cl_ui5_srv_window). The _set
+      " pair is what the app passed the last time - a sort the app passes
+      " again unchanged leaves the one the user picked in the browser.
       " Appended 2026-11 - a draft written before carries none of them and
       " deserializes as a table bound the classic way
-      window_size     TYPE i,
-      window_count    TYPE i,
-      t_window_sort   TYPE ty_t_window_sort,
-      t_window_filter TYPE ty_t_window_filter,
+      window_size         TYPE i,
+      window_count        TYPE i,
+      t_window_sort       TYPE ty_t_window_sort,
+      t_window_filter     TYPE ty_t_window_filter,
+      t_window_sort_set   TYPE ty_t_window_sort,
+      t_window_filter_set TYPE ty_t_window_filter,
     END OF ty_s_attri.
   " the secondary key serves the two reads that walk a row's CHILDREN (the
   " save of a generic reference, the alias pass) - a sequential scan of

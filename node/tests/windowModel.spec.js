@@ -117,9 +117,24 @@ test("a path without a window state keeps the plain binding", () => {
   const WindowModel = load();
   const model = new WindowModel({ MT_ROWS: rows(3) });
   expect(model.bindList("/MT_ROWS")).toEqual({ plain: "/MT_ROWS" });
-  // and a path deeper than one level is never a window
+  // a deeper path is a window when its own state is there - the state of
+  // another path with the same last segment does not count
   const deep = new WindowModel({ __WINDOW: { A: { TOTAL: 1 } }, S: { A: [] } });
   expect(deep.bindList("/S/A")).toEqual({ plain: "/S/A" });
+});
+
+test("a table behind a data reference is windowed under its own path", () => {
+  const WindowModel = load();
+  const model = new WindowModel({
+    MR_TAB: { "*": rows(10) },
+    __WINDOW: { MR_TAB: { "*": { TOTAL: 40, COUNT: 10, SIZE: 10 } } },
+  });
+  const sent = [];
+  model._z2ui5WindowSend = (args) => sent.push(args);
+  const binding = model.bindList("/MR_TAB/*");
+  expect(binding.getLength()).toBe(40);
+  binding.getContexts(0, 15);
+  expect(sent[0].slice(0, 2)).toEqual(["/MR_TAB/*", "20"]);
 });
 
 test("a windowed list counts the rows of the server, not the ones it holds", () => {

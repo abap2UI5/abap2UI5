@@ -1008,32 +1008,6 @@ INTERFACE z2ui5_if_client
   "!                                omit_initial pair are passed on to the
   "!                                table there, like a _bind( ) of the
   "!                                table itself would store them.
-  "! @parameter window             | a LARGE table: the browser gets this many
-  "!                                rows at a time instead of the whole table.
-  "!                                The rows stay in the app's attribute; the
-  "!                                list binding of the control (sap.m.Table
-  "!                                or List with growing, sap.ui.table.Table)
-  "!                                knows the full length and asks the server
-  "!                                for the next rows as the user grows or
-  "!                                scrolls - a roundtrip of the framework
-  "!                                that does not call main( ). Sorting and
-  "!                                filtering the binding (the column menu of
-  "!                                sap.ui.table, a cs_event-binding_call
-  "!                                sort or filter) run on the server over
-  "!                                ALL rows, and the browser gets the first
-  "!                                window of the new order. Edits and the
-  "!                                selection of a row land in the row of the
-  "!                                table they were made in, whatever the
-  "!                                order shown. `\{/__WINDOW/&lt;NAME&gt;/TOTAL\}`
-  "!                                is the number of rows the filter lets
-  "!                                through. A public STANDARD table
-  "!                                attribute of the app itself, bound whole;
-  "!                                not together with tab, json or the
-  "!                                omit_initial pair. Sorters and filters
-  "!                                written into the view's binding info are
-  "!                                not applied - sort and filter through the
-  "!                                binding. 0 (the default): the whole
-  "!                                table travels, as before.
   METHODS _bind
     IMPORTING
       val                  TYPE data
@@ -1075,7 +1049,6 @@ INTERFACE z2ui5_if_client
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
       omit_initial_paths   TYPE string_table                  OPTIONAL
       json                 TYPE abap_bool                     DEFAULT abap_false
-      window               TYPE i                             DEFAULT 0
     RETURNING
       VALUE(result)        TYPE string.
 
@@ -1135,6 +1108,75 @@ INTERFACE z2ui5_if_client
   METHODS _bind_path
     IMPORTING
       val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
+
+  TYPES:
+    "! One sorter of _bind_tab( ): the column (the upper-case component name of
+    "! the row) and the direction. The first sorter that tells two rows apart
+    "! decides.
+    BEGIN OF ty_s_bind_tab_sort,
+      path       TYPE string,
+      descending TYPE abap_bool,
+    END OF ty_s_bind_tab_sort.
+  TYPES ty_t_bind_tab_sort TYPE STANDARD TABLE OF ty_s_bind_tab_sort WITH EMPTY KEY.
+
+  TYPES:
+    "! One condition of the filter of _bind_tab( ). The conditions of one group
+    "! are ORed, the groups ANDed - the conditions on one column ORed, the
+    "! columns ANDed, as UI5 combines a list binding's filters. operator is a
+    "! sap.ui.model.FilterOperator: EQ NE LT LE GT GE BT NB Contains NotContains
+    "! StartsWith NotStartsWith EndsWith NotEndsWith; value2 is the upper bound
+    "! of BT / NB. Numbers, dates (yyyy-MM-dd or yyyyMMdd), times and booleans
+    "! (true / false) compare as such, text without regard to case.
+    BEGIN OF ty_s_bind_tab_filter,
+      group    TYPE i,
+      path     TYPE string,
+      operator TYPE string,
+      value1   TYPE string,
+      value2   TYPE string,
+    END OF ty_s_bind_tab_filter.
+  TYPES ty_t_bind_tab_filter TYPE STANDARD TABLE OF ty_s_bind_tab_filter WITH EMPTY KEY.
+
+  "! Bind a LARGE table to a list control - the browser gets it a window at a
+  "! time instead of whole. Returns the value binding like _bind( )
+  "! (`items = client->_bind_tab( mt_rows )`); the rows of the template bind
+  "! relative (`\{NAME\}`), as with _bind( ).
+  "!
+  "! The rows stay in the app's attribute. The response carries the first
+  "! `window` rows, and next to them the window's state under
+  "! `/__WINDOW/&lt;path&gt;` - TOTAL, the rows the filter lets through, COUNT,
+  "! the rows sent, and SIZE. The control's list binding knows the full
+  "! length and asks the framework for the next window when a growing
+  "! sap.m.Table or List grows or a sap.ui.table.Table scrolls - a roundtrip
+  "! of the framework's own that does NOT call main( ). Sorting and
+  "! filtering the binding - the column menu of sap.ui.table (sortProperty,
+  "! filterProperty), a cs_event-binding_call sort or filter - run on the
+  "! server over ALL rows, and the browser gets the first window of the new
+  "! order. A cell edited or a row ticked lands in the row of the table it
+  "! was made in, whatever order the browser showed.
+  "!
+  "! Sorters and filters written into the binding info of the view are not
+  "! applied - the rows arrive in the order the server gives. The app sets
+  "! that order with t_sort and t_filter: they take effect when they differ
+  "! from the ones the previous _bind_tab( ) of the table passed, so a view
+  "! rendered again keeps what the user sorted and filtered in the browser,
+  "! and a new sort the app passes (from a layout, a dialog) replaces it.
+  "! Passing an empty table clears it the same way.
+  "!
+  "! @parameter val      | the table - a public STANDARD table attribute of
+  "!                       the app, passed by reference like _bind( ), or a
+  "!                       data reference to one (REF #( mt_rows ), or an
+  "!                       attribute TYPE REF TO data pointing to the table).
+  "! @parameter window   | the rows the browser gets at a time; at least 1.
+  "! @parameter t_sort   | the order of the rows - see above when it applies.
+  "! @parameter t_filter | the rows that show - see above when it applies.
+  METHODS _bind_tab
+    IMPORTING
+      val           TYPE data
+      window        TYPE i                    DEFAULT 100
+      t_sort        TYPE ty_t_bind_tab_sort   OPTIONAL
+      t_filter      TYPE ty_t_bind_tab_filter OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
