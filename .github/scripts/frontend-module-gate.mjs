@@ -86,6 +86,7 @@ const ALLOWED = new Set([
   'sap/ui/model/FilterOperator',
   'sap/ui/model/Sorter',
   'sap/ui/model/json/JSONModel',
+  'sap/ui/model/json/JSONListBinding', // core/WindowModel.js - in 1.71 as in today
   'sap/ui/unified/FileUploader',
   'sap/ui/util/Mobile', // @since 1.58 - Component.js, the embedded page's mobile setup
   'sap/ui/util/Storage',

@@ -29,13 +29,13 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/XMLView",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
-             `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/WindowModel",` && |\n| &&
              `  ],` && |\n| &&
-             `  (XMLView, Fragment, JSONModel, Lib, Env, ViewSlots, Context) => {` && |\n| &&
+             `  (XMLView, Fragment, Lib, Env, ViewSlots, Context, WindowModel) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(ctx, viewKey, oModel) {` && |\n| &&
@@ -79,7 +79,19 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      slotKey = "MAIN",` && |\n| &&
              `      data = ctx.state.oResponse?.OVIEWMODEL,` && |\n| &&
              `    ) {` && |\n| &&
-             `      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `      const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));` && |\n| &&
+             `` && |\n| &&
+             `      oModel._z2ui5WindowSend = (args, noBusy) => {` && |\n| &&
+             `        const oController = ViewSlots.getController(ctx, slotKey);` && |\n| &&
+             `        if (typeof oController?.eB !== "function") {` && |\n| &&
+             `          Lib.logError(``WINDOW: slot ${slotKey} has no controller``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oController.eB(` && |\n| &&
+             `          [WindowModel.EVENT, false, false, false, true, !!noBusy],` && |\n| &&
+             `          ...args,` && |\n| &&
+             `        );` && |\n| &&
+             `      };` && |\n| &&
              `` && |\n| &&
              `      if (data && data === ctx.state.oResponse?.OVIEWMODEL) {` && |\n| &&
              `        oModel._z2ui5BuiltFrom = ctx.state.oResponse;` && |\n| &&
@@ -412,7 +424,8 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `            oView.getId(),` && |\n| &&
              `            mOptions.transition || plan.name,` && |\n| &&
              `          );` && |\n| &&
-             `          oApp.backToPage(oView.getId());` && |\n| &&
+             `          oApp.backToPage(oView.getId());` && |\n|.
+    result = result &&
              `        } else {` && |\n| &&
              `          oApp.to(oView.getId(), plan.name);` && |\n| &&
              `        }` && |\n| &&
@@ -424,8 +437,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayPaged(ctx, xml, mOptions, plan) {` && |\n| &&
-             `      const state = ctx.state;` && |\n|.
-    result = result &&
+             `      const state = ctx.state;` && |\n| &&
              `` && |\n| &&
              `      const oOld = ViewSlots.detach(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&

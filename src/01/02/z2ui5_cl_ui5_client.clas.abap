@@ -531,6 +531,37 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~_bind_tab.
+
+    DATA lr_val    TYPE REF TO data.
+    " the public types are the internal ones component for component - a
+    " plain move, CORRESPONDING of a table does not downport to 7.02
+    DATA lt_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
+    DATA lt_filter TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
+
+    lt_sort   = t_sort.
+    lt_filter = t_filter.
+
+    " the table itself, or a data reference to it: REF #( mt_rows ), an
+    " attribute TYPE REF TO data. A reference is bound as what it points
+    " to - REF #( val ) of it would bind the reference variable
+    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+      lr_val ?= val.
+    ELSE.
+      lr_val = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
+    ENDIF.
+
+    result = mo_srv_bind->main( val    = lr_val
+                                config = VALUE #( window              = nmax( val1 = window
+                                                                              val2 = 1 )
+                                                  t_window_sort       = lt_sort
+                                                  t_window_filter     = lt_filter
+                                                  check_window_sort   = xsdbool( t_sort IS SUPPLIED )
+                                                  check_window_filter = xsdbool( t_filter IS SUPPLIED ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_bind_path.
 
     " delegate instead of repeating the _bind( ) call, same reason as
