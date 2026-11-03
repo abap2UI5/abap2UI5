@@ -499,6 +499,28 @@ The same tree, with the subtree held in a variable:
   authors it), and a string that does not parse raises rather than shipping
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
+- A **large table** — more rows than the screen shows — binds with
+  `client->_bind_tab( val = t_rows window = 200 )` instead of `_bind( )`: the
+  rows stay in the app, the browser gets 200 of them, and the list binding asks
+  the framework for the next window when a growing `sap.m.Table`/`List` grows
+  or a `sap.ui.table.Table` scrolls — a roundtrip of the framework's own that
+  does not call `main( )`. Sorting and filtering the binding (the column menu
+  of `sap.ui.table` via `sortProperty`/`filterProperty`, a
+  `cs_event-binding_call` sort or filter, e.g. from a `SearchField`) run on the
+  server over **all** rows; a checkbox ticked or a cell edited lands in the
+  table's own row whatever the order shown. The app sets the order and the
+  filter itself with `t_sort` / `t_filter` (types `ty_t_bind_tab_sort` /
+  `_filter` of `z2ui5_if_client`); they take effect when they differ from the
+  ones passed before, so a view rendered again keeps what the user sorted in
+  the browser. `val` may also be a data reference to the table (`REF #( )`, an
+  attribute `TYPE REF TO data`). The number of rows the filter lets through is
+  `/__WINDOW/<path>/TOTAL` in the model — build it from
+  `client->_bind_path( t_rows )`. Only a STANDARD table, bound whole; sorters
+  and filters written into the binding info are not applied. An event that
+  hands over a row's binding path (`getBindingContext().getPath()` →
+  `/T_ROWS/5`) names a position in the order the browser shows, not a row of
+  the table: `client->_bind_tab_row( val = t_rows row = 5 + 1 )` answers the
+  row of `t_rows` it is.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
   round-trip and, when it differs, sends it to every open view slot (MAIN,

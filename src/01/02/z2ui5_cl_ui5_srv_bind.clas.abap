@@ -14,6 +14,17 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! _bind_tab_row( ): the row of the table val behind position row of
+    "! the order the browser holds - the row number itself for a table
+    "! that is no window, 0 for a position past the rows the filter lets
+    "! through
+    METHODS window_row
+      IMPORTING
+        val           TYPE REF TO data
+        row           TYPE i
+      RETURNING
+        VALUE(result) TYPE i.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     METHODS get_client_name
@@ -28,9 +39,25 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " carry yet. See the method body for what used to be dropped.
     METHODS adopt_new_options.
 
+    METHODS window_adopt.
+
+    "! the attribute val lives in - the row an alias row points to, not the
+    "! alias
+    METHODS attri_resolve
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
     " Raise when json = abap_true is asked for on an attribute that cannot
     " hold JSON text. See the method body.
     METHODS check_raise_json.
+
+    "! _bind_tab( ): a standard table, bound whole and plain - refused with
+    "! the attribute's name otherwise
+    METHODS check_raise_window
+      IMPORTING
+        val TYPE REF TO data.
 
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
@@ -306,6 +333,35 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_raise_window.
+
+    " the window is the order of the rows the browser holds (a list of row
+    " numbers) - it needs a table with row numbers to write a delta to (a
+    " sorted or hashed one has none), whose rows the serializer writes
+    " itself (a mapper or a filter of its own, omit_initial among them,
+    " would see a window instead of the table)
+    IF ms_config-window <= 0.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_reason) = COND string(
+      WHEN mr_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table THEN `it is no internal table`
+      WHEN mr_attri->check_json = abap_true THEN `it is bound with json = abap_true elsewhere`
+      WHEN mr_attri->custom_filter IS BOUND OR mr_attri->custom_mapper IS BOUND
+        THEN `it is bound with omit_initial or a custom mapper or filter elsewhere` ).
+    IF lv_reason IS INITIAL AND z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
+      lv_reason = `it is no STANDARD table`.
+    ENDIF.
+    IF lv_reason IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val = |Binding Error - _bind_tab( ) needs a standard table; '{ mr_attri->name }': { lv_reason }.|.
+
+  ENDMETHOD.
+
   METHOD check_raise_new.
 
     " check the incoming config - mr_attri->custom_* is only filled
@@ -373,28 +429,13 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    mr_attri = get_model( )->main_attri_search( val ).
-
-    IF mr_attri->name_ref IS NOT INITIAL.
-      " name_ref may be a synthetic child name that no longer maps to a row
-      " (e.g. dissolve stopped at max depth); raise the binding error rather
-      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
-      " name is the table's unique primary key - a keyed read, spelled as
-      " one (a free-key table expression reads as a sequential access)
-      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
-           WITH TABLE KEY name = mr_attri->name_ref.
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |Binding Error - referenced attribute '{ mr_attri->name_ref }' not found|.
-      ENDIF.
-      mr_attri = lr_ref_attri.
-    ENDIF.
+    mr_attri = attri_resolve( val ).
 
     " before either branch: check_json can be turned on by a FIRST bind
     " (update_model_attri) and by a later one (adopt_new_options), so the
     " check belongs where both of them pass
     check_raise_json( ).
+    check_raise_window( val ).
 
     IF mr_attri->bind = abap_true.
       check_raise_existing( ).
@@ -404,6 +445,28 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       update_model_attri( ).
     ENDIF.
     result = finalize_path( mr_attri->name_client ).
+
+  ENDMETHOD.
+
+  METHOD attri_resolve.
+
+    result = get_model( )->main_attri_search( val ).
+
+    IF result->name_ref IS NOT INITIAL.
+      " name_ref may be a synthetic child name that no longer maps to a row
+      " (e.g. dissolve stopped at max depth); raise the binding error rather
+      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
+      " name is the table's unique primary key - a keyed read, spelled as
+      " one (a free-key table expression reads as a sequential access)
+      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
+           WITH TABLE KEY name = result->name_ref.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = |Binding Error - referenced attribute '{ result->name_ref }' not found|.
+      ENDIF.
+      result = lr_ref_attri.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -486,6 +549,37 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       mr_attri->check_json = abap_true.
     ENDIF.
 
+    window_adopt( ).
+
+  ENDMETHOD.
+
+  METHOD window_adopt.
+
+    " the size follows the latest bind - a view rendered anew may ask for a
+    " bigger window - and what the browser holds stays. The sorters and the
+    " filter the app passes take effect when they differ from the ones it
+    " passed the time before: a view rendered again with the same ones keeps
+    " what the user sorted and filtered in the browser, and a new sort from
+    " the app (a layout, a dialog) replaces it - from the first window. A
+    " plain _bind( ) of the table (window = 0) leaves the window as it is
+    IF ms_config-window <= 0.
+      RETURN.
+    ENDIF.
+    mr_attri->window_size  = ms_config-window.
+    mr_attri->window_count = nmax( val1 = mr_attri->window_count
+                                   val2 = ms_config-window ).
+
+    IF ms_config-check_window_sort = abap_true AND ms_config-t_window_sort <> mr_attri->t_window_sort_set.
+      mr_attri->t_window_sort     = ms_config-t_window_sort.
+      mr_attri->t_window_sort_set = ms_config-t_window_sort.
+      mr_attri->window_count      = ms_config-window.
+    ENDIF.
+    IF ms_config-check_window_filter = abap_true AND ms_config-t_window_filter <> mr_attri->t_window_filter_set.
+      mr_attri->t_window_filter     = ms_config-t_window_filter.
+      mr_attri->t_window_filter_set = ms_config-t_window_filter.
+      mr_attri->window_count        = ms_config-window.
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD update_model_attri.
@@ -495,6 +589,30 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     mr_attri->custom_mapper = ms_config-custom_mapper.
     mr_attri->check_json    = ms_config-check_json.
     mr_attri->name_client   = get_client_name( ).
+    window_adopt( ).
+
+  ENDMETHOD.
+
+  METHOD window_row.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    DATA(lr_attri) = attri_resolve( val ).
+    IF lr_attri->window_size <= 0.
+      result = row.
+      RETURN.
+    ENDIF.
+    " the order of this roundtrip's response is the one of the request -
+    " the table and the sorters and the filter are what they were, and the
+    " order is computed the same way (z2ui5_cl_ui5_srv_window)
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
+      RETURN.
+    ENDIF.
+    ASSIGN val->* TO <tab>.
+    DATA(lt_index) = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
+                                                     t_sort   = lr_attri->t_window_sort
+                                                     t_filter = lr_attri->t_window_filter ).
+    result = VALUE #( lt_index[ row ] OPTIONAL ).
 
   ENDMETHOD.
 

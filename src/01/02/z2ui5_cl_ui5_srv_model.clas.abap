@@ -312,11 +312,15 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! table attribute iv_name. iv_path is the attribute's node in the
     "! request model (name_client); left initial when io_val_front IS that
     "! node - the shape the tests hand in
+    "! ir_window: the attribute is a windowed table - row n of the delta
+    "! is row n of the order the browser holds, not of the table
+    "! (z2ui5_cl_ui5_srv_window)
     METHODS delta_apply_to_table
       IMPORTING
         io_val_front TYPE REF TO z2ui5_if_ajson
         iv_name      TYPE string
         iv_path      TYPE string OPTIONAL
+        ir_window    TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri OPTIONAL
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -331,6 +335,9 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_base       TYPE string
         iv_table      TYPE string
         iv_row_parent TYPE i OPTIONAL
+        " a windowed table: the row numbers of the order the browser holds
+        it_window     TYPE z2ui5_cl_ui5_srv_window=>ty_t_index OPTIONAL
+        iv_windowed   TYPE abap_bool DEFAULT abap_false
       CHANGING
         ct_tab        TYPE STANDARD TABLE
       RAISING
@@ -590,12 +597,27 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_path  TYPE string
         iv_name  TYPE string.
 
+    "! a windowed table as the response sends it: the rows of the window,
+    "! in the order the sorters and the filter give, as a table of the
+    "! attribute's type - and its state under /__WINDOW/&lt;NAME&gt; of io_result
+    METHODS window_ref
+      IMPORTING
+        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        ir_ref        TYPE REF TO data
+        io_result     TYPE REF TO z2ui5_if_ajson
+      RETURNING
+        VALUE(result) TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
 ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
+
+    DATA lr_window TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
@@ -623,9 +645,24 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
       TRY.
           IF model->exists( |{ lv_node }/__delta| ) = abap_true.
+            " a windowed table maps the rows of the delta through its order
+            CLEAR lr_window.
+            IF lr_attri->window_size > 0.
+              lr_window = lr_attri.
+            ENDIF.
             delta_apply_to_table( io_val_front = model
                                   iv_path      = lv_node
-                                  iv_name      = lr_attri->name ).
+                                  iv_name      = lr_attri->name
+                                  ir_window    = lr_window ).
+            CONTINUE.
+          ENDIF.
+          " a windowed table is never sent back whole: the browser holds a
+          " window of it, and that window written over the table would cut
+          " the table down to it
+          IF lr_attri->window_size > 0.
+            whole_value_trace( io_model = model
+                               iv_path  = lv_node
+                               iv_name  = lr_attri->name ).
             CONTINUE.
           ENDIF.
           DATA(lx_refused) = whole_value_apply( io_model = model
@@ -784,6 +821,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                              CHANGING  ci_default      = li_ajson_default
                                        ct_mapper_cache = lt_mapper_cache ).
             CONTINUE.
+          ENDIF.
+
+          " _bind_tab( ): the rows of the window instead of the
+          " table, and the window's state next to them
+          IF lr_attri->window_size > 0.
+            lr_ref = window_ref( ir_attri  = lr_attri
+                                 ir_ref    = lr_ref
+                                 io_result = li_ajson_result ).
+            ASSIGN lr_ref->* TO <val>.
           ENDIF.
 
           json_fast_set( EXPORTING ir_ref    = lr_ref
@@ -2115,6 +2161,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    IF ir_window IS BOUND.
+      delta_apply_nodes( EXPORTING io_delta    = io_val_front
+                                   iv_base     = lv_delta
+                                   iv_table    = iv_name
+                                   it_window   = z2ui5_cl_ui5_srv_window=>index( tab       = <delta_tab>
+                                                                                  t_sort   = ir_window->t_window_sort
+                                                                                  t_filter = ir_window->t_window_filter )
+                                   iv_windowed = abap_true
+                         CHANGING  ct_tab      = <delta_tab> ).
+      RETURN.
+    ENDIF.
+
     delta_apply_nodes( EXPORTING io_delta = io_val_front
                                  iv_base  = lv_delta
                                  iv_table = iv_name
@@ -2140,6 +2198,14 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       DATA(lv_tabix) = delta_row_index( lv_idx_str ).
       IF lv_tabix = 0.
         CONTINUE.
+      ENDIF.
+      " a windowed table: the browser's row n is the table's row
+      " it_window[ n ]; a row past the window is past the table's end below
+      IF iv_windowed = abap_true.
+        READ TABLE it_window INDEX lv_tabix INTO lv_tabix.
+        IF sy-subrc <> 0.
+          lv_tabix = lines( ct_tab ) + 1.
+        ENDIF.
       ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
       " no slice( ) per row: slicing walks and copies the WHOLE delta tree
@@ -2662,6 +2728,39 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
     APPEND ls_skip TO mt_skipped.
+
+  ENDMETHOD.
+
+  METHOD window_ref.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    result = ir_ref.
+    " decided by RTTI first: ASSIGN to a typed field symbol dumps on a
+    " system when the kinds differ (abap-check, section 5). srv_bind refuses
+    " a window on anything else, so this only guards a draft gone odd
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
+      RETURN.
+    ENDIF.
+    ASSIGN ir_ref->* TO <tab>.
+
+    DATA(lt_index) = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
+                                                     t_sort   = ir_attri->t_window_sort
+                                                     t_filter = ir_attri->t_window_filter ).
+    DATA(lv_count) = nmin( val1 = nmax( val1 = ir_attri->window_count
+                                        val2 = ir_attri->window_size )
+                           val2 = lines( lt_index ) ).
+    result = z2ui5_cl_ui5_srv_window=>rows( tab     = <tab>
+                                            t_index = lt_index
+                                            count   = lv_count ).
+
+    DATA(lv_meta) = |/{ z2ui5_if_ui5_types=>cv_window_model_key }{ ir_attri->name_client }|.
+    io_result->set( iv_path = |{ lv_meta }/TOTAL|
+                    iv_val  = lines( lt_index ) ).
+    io_result->set( iv_path = |{ lv_meta }/COUNT|
+                    iv_val  = lv_count ).
+    io_result->set( iv_path = |{ lv_meta }/SIZE|
+                    iv_val  = ir_attri->window_size ).
 
   ENDMETHOD.
 

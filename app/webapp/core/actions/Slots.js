@@ -2,13 +2,13 @@ sap.ui.define(
   [
     "sap/ui/core/mvc/XMLView",
     "sap/ui/core/Fragment",
-    "sap/ui/model/json/JSONModel",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Context",
+    "z2ui5/core/WindowModel",
   ],
-  (XMLView, Fragment, JSONModel, Lib, Env, ViewSlots, Context) => {
+  (XMLView, Fragment, Lib, Env, ViewSlots, Context, WindowModel) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -96,7 +96,25 @@ sap.ui.define(
       slotKey = "MAIN",
       data = ctx.state.oResponse?.OVIEWMODEL,
     ) {
-      const oModel = trackChanges(new JSONModel(dataForSlot(slotKey, data)));
+      // a WindowModel: a JSONModel whose list bindings of a windowed table
+      // (_bind_tab( )) fetch, sort and filter their rows on the
+      // backend - and plain JSONModel bindings for everything else
+      const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));
+      // the way a windowed list reaches the backend: the eB of the slot the
+      // model belongs to, so the request carries this model's delta like
+      // any roundtrip of the slot. queueLast: a request that comes while
+      // another roundtrip runs is kept and sent after it, not dropped
+      oModel._z2ui5WindowSend = (args, noBusy) => {
+        const oController = ViewSlots.getController(ctx, slotKey);
+        if (typeof oController?.eB !== "function") {
+          Lib.logError(`WINDOW: slot ${slotKey} has no controller`);
+          return;
+        }
+        oController.eB(
+          [WindowModel.EVENT, false, false, false, true, !!noBusy],
+          ...args,
+        );
+      };
       // A model built from THIS response remembers the response record, so
       // the model push the same response carries (updateModelIfRequired)
       // knows the slot is already filled. The backend ships MODEL with every

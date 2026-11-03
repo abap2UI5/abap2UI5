@@ -186,6 +186,9 @@ function load() {
       },
       "sap/ui/core/Fragment": {},
       "sap/ui/model/json/JSONModel": JSONModel,
+      // the framework model of a slot (actions/Slots) - a JSONModel with
+      // the windowed list binding, the same stub stands in for it
+      "z2ui5/core/WindowModel": JSONModel,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/Env": {
         preloadFragmentModules: async () => {},
