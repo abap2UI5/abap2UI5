@@ -1047,6 +1047,9 @@ test.describe("a MAIN display takes the standalone slots with it", () => {
         "z2ui5/core/Env": classEnv,
         "sap/ui/core/mvc/XMLView": { create: async () => oView },
         "sap/ui/model/json/JSONModel": JSONModel,
+        // the framework model of a slot (actions/Slots) - a JSONModel with
+        // the windowed list binding, the same stub stands in for it
+        "z2ui5/core/WindowModel": JSONModel,
         "z2ui5/core/Context": contextStub(ctx),
         "z2ui5/core/Lib": {
           usesXmlTemplating: () => false,
@@ -1216,6 +1219,9 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
         },
         "sap/ui/core/Fragment": {},
         "sap/ui/model/json/JSONModel": JSONModel,
+        // the framework model of a slot (actions/Slots) - a JSONModel with
+        // the windowed list binding, the same stub stands in for it
+        "z2ui5/core/WindowModel": JSONModel,
       },
     });
     const Slots = { action: (...a) => SlotsModule.action(odataCtx, ...a) };

@@ -499,6 +499,20 @@ The same tree, with the subtree held in a variable:
   authors it), and a string that does not parse raises rather than shipping
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
+- A **large table** — more rows than the screen shows — binds with
+  `client->_bind( val = t_rows window = 200 )`: the rows stay in the app, the
+  browser gets 200 of them, and the list binding asks the framework for the
+  next window when a growing `sap.m.Table`/`List` grows or a
+  `sap.ui.table.Table` scrolls — a roundtrip of the framework's own that does
+  not call `main( )`. Sorting and filtering the binding (the column menu of
+  `sap.ui.table` via `sortProperty`/`filterProperty`, a
+  `cs_event-binding_call` sort or filter, e.g. from a `SearchField`) run on
+  the server over **all** rows; a checkbox ticked or a cell edited lands in
+  the table's own row whatever the order shown. The number of rows the filter
+  lets through is `/__WINDOW/<NAME>/TOTAL` in the model — build the path from
+  `client->_bind_path( t_rows )`. Only a public STANDARD table attribute of the
+  app itself, bound whole; sorters and filters written into the binding info
+  are not applied — sort and filter through the binding.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
   round-trip and, when it differs, sends it to every open view slot (MAIN,

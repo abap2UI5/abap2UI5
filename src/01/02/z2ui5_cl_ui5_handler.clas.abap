@@ -1512,17 +1512,28 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " exceptions from main( ) are intentionally not caught here - they bubble up
     " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
     " turns them into a 500 response carrying the exception text
-    IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
-      " no popup/popover teardown is queued here: the standalone slots die on
-      " every app switch anyway - implicitly on the frontend whenever the
-      " response names another app (View1), and through prepare_app_stack for
-      " the one hop the frontend cannot see, to another instance of the SAME
-      " class. Queuing it here on top only made the back-navigation response
-      " carry two destroy actions the frontend had already done itself
-      li_client->nav_app_leave( ).
-    ELSE.
-      li_app->main( li_client ).
-    ENDIF.
+    CASE mo_action->ms_actual-event.
+      WHEN z2ui5_if_ui5_types=>cs_event_nav_app_leave.
+        " no popup/popover teardown is queued here: the standalone slots die on
+        " every app switch anyway - implicitly on the frontend whenever the
+        " response names another app (View1), and through prepare_app_stack for
+        " the one hop the frontend cannot see, to another instance of the SAME
+        " class. Queuing it here on top only made the back-navigation response
+        " carry two destroy actions the frontend had already done itself
+        li_client->nav_app_leave( ).
+      WHEN z2ui5_if_ui5_types=>cs_event_window.
+        " the list binding of a windowed table asked for more rows, or sorted
+        " or filtered: the framework's own roundtrip, answered from the
+        " attribute's window state without the app (z2ui5_cl_ui5_srv_window).
+        " The view stays, the model goes out with the new window - pushed as
+        " a stale one, since no bound VALUE changed
+        IF z2ui5_cl_ui5_srv_window=>event_apply( t_arg = mo_action->ms_actual-t_event_arg
+                                                 attri = mo_action->mo_app->mt_attri ) = abap_true.
+          mo_action->mo_app->mv_model_client_stale = abap_true.
+        ENDIF.
+      WHEN OTHERS.
+        li_app->main( li_client ).
+    ENDCASE.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_ui5_util_context=>db_rollback( ).

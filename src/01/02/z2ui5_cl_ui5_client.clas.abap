@@ -526,7 +526,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                     tab                  = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( tab )
                                     tab_index            = tab_index
                                     switch_default_model = switch_default_model
-                                    check_json           = json ) ).
+                                    check_json           = json
+                                    window               = window ) ).
 
   ENDMETHOD.
 

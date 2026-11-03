@@ -12,6 +12,20 @@ INTERFACE z2ui5_if_ui5_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
+  " The framework's own roundtrip of a WINDOWED table (_bind( window = n )):
+  " the frontend's list binding asks for more rows, or sorts or filters,
+  " and the handler answers it without calling the app's main( )
+  " (z2ui5_cl_ui5_srv_window=>event_apply). Spelled as the frontend sends
+  " it - app/webapp/core/WindowModel.js, EVENT - so never a literal.
+  " Arguments: the model path of the table, the rows wanted, the sorters
+  " and the filter groups as JSON (see ty_t_window_sort / _filter)
+  CONSTANTS cs_event_window TYPE string VALUE `___ZZZ_WIN`.
+
+  " The model key the window state of every windowed table travels under -
+  " /__WINDOW/<NAME>/TOTAL, COUNT and SIZE - read by the frontend's list
+  " binding and bindable by the app (`{/__WINDOW/MT_ROWS/TOTAL}` rows match)
+  CONSTANTS cv_window_model_key TYPE string VALUE `__WINDOW`.
+
   " The VIEW_SLOTS system-action vocabulary, spelled as the frontend's
   " ViewSlots module dispatches it. Every backend-side call (the system
   " actions, the nav-app teardown, the popup_close mapping) uses these -
@@ -54,7 +68,35 @@ INTERFACE z2ui5_if_ui5_types
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
       check_json           TYPE abap_bool,
+      " _bind( window = n ): the table goes to the browser n rows at a time
+      window               TYPE i,
     END OF ty_s_bind_config.
+
+  " One sorter of a windowed table, as the frontend's list binding hands
+  " it over: the component of the row and the direction. Applied in order,
+  " the first one that tells two rows apart decides
+  TYPES:
+    BEGIN OF ty_s_window_sort,
+      path       TYPE string,
+      descending TYPE abap_bool,
+    END OF ty_s_window_sort.
+  TYPES ty_t_window_sort TYPE STANDARD TABLE OF ty_s_window_sort WITH EMPTY KEY.
+
+  " One condition of the filter of a windowed table. The rows of one group
+  " are ORed, the groups ANDed - the shape UI5 gives a list binding's
+  " filters (the conditions of one column ORed, the columns ANDed) and the
+  " compound form of BINDING_CALL. operator is a sap.ui.model.FilterOperator
+  " (EQ NE LT LE GT GE BT NB Contains NotContains StartsWith NotStartsWith
+  " EndsWith NotEndsWith)
+  TYPES:
+    BEGIN OF ty_s_window_filter,
+      group    TYPE i,
+      path     TYPE string,
+      operator TYPE string,
+      value1   TYPE string,
+      value2   TYPE string,
+    END OF ty_s_window_filter.
+  TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_attri,
@@ -94,6 +136,15 @@ INTERFACE z2ui5_if_ui5_types
       type_name       TYPE string,
       type_kind       TYPE string,
       kind            TYPE string,
+      " _bind( window = n ): the rows go to the browser n at a time
+      " (window_size), the browser holds the first window_count of them in
+      " the order the sorters and the filter give (z2ui5_cl_ui5_srv_window).
+      " Appended 2026-11 - a draft written before carries none of them and
+      " deserializes as a table bound the classic way
+      window_size     TYPE i,
+      window_count    TYPE i,
+      t_window_sort   TYPE ty_t_window_sort,
+      t_window_filter TYPE ty_t_window_filter,
     END OF ty_s_attri.
   " the secondary key serves the two reads that walk a row's CHILDREN (the
   " save of a generic reference, the alias pass) - a sequential scan of

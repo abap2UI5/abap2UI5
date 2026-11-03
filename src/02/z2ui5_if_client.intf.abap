@@ -1008,6 +1008,32 @@ INTERFACE z2ui5_if_client
   "!                                omit_initial pair are passed on to the
   "!                                table there, like a _bind( ) of the
   "!                                table itself would store them.
+  "! @parameter window             | a LARGE table: the browser gets this many
+  "!                                rows at a time instead of the whole table.
+  "!                                The rows stay in the app's attribute; the
+  "!                                list binding of the control (sap.m.Table
+  "!                                or List with growing, sap.ui.table.Table)
+  "!                                knows the full length and asks the server
+  "!                                for the next rows as the user grows or
+  "!                                scrolls - a roundtrip of the framework
+  "!                                that does not call main( ). Sorting and
+  "!                                filtering the binding (the column menu of
+  "!                                sap.ui.table, a cs_event-binding_call
+  "!                                sort or filter) run on the server over
+  "!                                ALL rows, and the browser gets the first
+  "!                                window of the new order. Edits and the
+  "!                                selection of a row land in the row of the
+  "!                                table they were made in, whatever the
+  "!                                order shown. `\{/__WINDOW/&lt;NAME&gt;/TOTAL\}`
+  "!                                is the number of rows the filter lets
+  "!                                through. A public STANDARD table
+  "!                                attribute of the app itself, bound whole;
+  "!                                not together with tab, json or the
+  "!                                omit_initial pair. Sorters and filters
+  "!                                written into the view's binding info are
+  "!                                not applied - sort and filter through the
+  "!                                binding. 0 (the default): the whole
+  "!                                table travels, as before.
   METHODS _bind
     IMPORTING
       val                  TYPE data
@@ -1049,6 +1075,7 @@ INTERFACE z2ui5_if_client
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
       omit_initial_paths   TYPE string_table                  OPTIONAL
       json                 TYPE abap_bool                     DEFAULT abap_false
+      window               TYPE i                             DEFAULT 0
     RETURNING
       VALUE(result)        TYPE string.
 

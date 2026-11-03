@@ -79,6 +79,9 @@ function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
       "sap/ui/core/mvc/XMLView": { create: () => Promise.resolve(view) },
       "sap/ui/core/Fragment": { load: () => Promise.resolve(fragment) },
       "sap/ui/model/json/JSONModel": JSONModel,
+      // the framework model of a slot (actions/Slots) - a JSONModel with
+      // the windowed list binding, the same stub stands in for it
+      "z2ui5/core/WindowModel": JSONModel,
       "sap/ui/model/odata/v2/ODataModel": class {},
       "z2ui5/core/Context": contextStub(ctx),
       "z2ui5/core/Lib": {
@@ -241,6 +244,9 @@ test.describe("the fragment slots build through the serialized chain", () => {
           },
         },
         "sap/ui/model/json/JSONModel": JSONModel,
+        // the framework model of a slot (actions/Slots) - a JSONModel with
+        // the windowed list binding, the same stub stands in for it
+        "z2ui5/core/WindowModel": JSONModel,
         "z2ui5/core/Context": contextStub(ctx),
         "z2ui5/core/Lib": {
           logError: () => {},
