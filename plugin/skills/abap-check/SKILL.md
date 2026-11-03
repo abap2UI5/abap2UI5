@@ -1455,8 +1455,9 @@ break one of those four.
   constructs `abaplint --fix` leaves unchanged or writes wrong, each reproduced
   in one class on 2.120.92. Write them the 7.02 way where a source is
   downported: a cast in a TRY instead of `IS INSTANCE OF` (one of these blocks
-  the whole class, `Expected ENDMETHOD`); an `ORDER BY` in a SELECT that has a
-  WHERE and `UP TO`; `SELECT SINGLE * FROM` instead of `SELECT SINGLE FROM ...
+  the whole class, `Expected ENDMETHOD`); an `ORDER BY`, or INTO and `UP TO`
+  ahead of WHERE, in a SELECT that has a WHERE and `UP TO` (the dynamic form
+  blocks the whole class too, without any message); `SELECT SINGLE * FROM` instead of `SELECT SINGLE FROM ...
   FIELDS *`; a row loop instead of `MOVE-CORRESPONDING`/`CORRESPONDING #( )`
   between tables; an assignment plus CLEAR instead of `CORRESPONDING #( ...
   EXCEPT )`; READ TABLE ... ASSIGNING instead of `CLEAR itab[ ... ]-comp`;
