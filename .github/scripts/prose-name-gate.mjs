@@ -61,6 +61,10 @@ const RELEASED_HEADING = /^\d{4}-\d{2}-\d{2}\s+v\d/;
 const EXTERNAL = new Map([
   ["Z2UI5_CL_APP_ICF_CONFIG", "the name of Z2UI5_CL_CONFIG_APP in abap2UI5-addons/config-management up to 2026-11"],
   ["Z2UI5_CL_CONFIG_APP", "ships in abap2UI5-addons/config-management"],
+  ["Z2UI5_CL_RFC_CONNECTOR_HANDLER", "ships in abap2UI5-addons/rfc-connector"],
+  ["Z2UI5_CL_CCI_SPREADSHEET", "ships in abap2UI5-addons/custom-controls"],
+  ["Z2UI5_CL_CCI_JSON_FILTER", "ships in abap2UI5-addons/custom-controls"],
+  ["Z2UI5_CL_SQL_NATIVE_CONSOLE_ST", "ships in abap2UI5-addons/sql-console"],
   ["Z2UI5_CL_LOCK_APP_SM12", "ships in abap2UI5-addons/lock-manager"],
   ["Z2UI5_CL_CONFIG_SERVICE", "ships in abap2UI5-addons/config-management"],
   ["Z2UI5_CL_SEL_VAR_DB", "ships in abap2UI5-addons/range-filter"],
