@@ -19,8 +19,8 @@ name: npm-audit
 # token and a checkout without credentials - it talks to the registry, and a
 # job that talks to the network should hold as little as it can.
 #
-# On pull requests only when a lockfile (or this gate) changes - a Dependabot
-# bump that pulls in a new high advisory is refused right there. Weekly
+# On pull requests only when a lockfile (or this gate) changes - a bump-deps
+# update that pulls in a new high advisory is refused right there. Weekly
 # otherwise, because advisories arrive on their own schedule, not on ours.
 
 on:

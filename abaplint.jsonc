@@ -64,10 +64,29 @@
     // does not have (abaplint/abaplint#4416). Measured on 2.120.75: 0 findings
     // over src, control probe fired
     "abapdoc_parameter_names": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "abapdoc_short_link": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "abapdoc_shorttext_length": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "boolean_flag_via_if": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "bound_check_after_create": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "cast_via_generic_reference": true,
     // A line of a SORTED or HASHED table passed as a CHANGING parameter
     // (abaplint/abaplint#4420). Measured on 2.120.75: 0 findings over src,
     // control probe fired
     "changing_sorted_line": true,
+    // Measured on 2.120.92: 0 findings over src after three CLEARs right after
+    // the declaration left two test classes, control probe fired
+    "clear_after_declaration": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "clear_before_overwrite": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "constant_condition": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "copy_of_initial_variable": true,
     // DELETE itab INDEX sy-tabix in a LOOP over itab after another statement
     // may have overwritten sy-tabix (abaplint/abaplint#4418). Measured on
     // 2.120.75: 0 findings over src, control probe fired
@@ -76,15 +95,26 @@
     // writes it (abaplint/abaplint#4412); check:abapgit enforces it as well.
     // Measured on 2.120.75: 0 findings over src, control probe fired
     "final_newline": true,
+    // WRITE '@KERNEL ...' is raw JavaScript in the transpiled runtime; no
+    // object here may emit it (the default allow list, empty, allows all).
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "forbidden_kernel_write": {
+      "allow": ["^$"]
+    },
     // DATA( ) from a packed computation is P(8,0) on a system
     // (abaplint/abaplint#4413). Measured on 2.120.75: 0 findings over src,
     // control probe fired
     "inline_packed_computation": true,
+    // a failed ASSIGN in a loop keeps the previous binding, so IS ASSIGNED
+    // after it lies. Measured on 2.120.92: 0 findings over src, control probe fired
+    "is_assigned_in_loop": true,
     // A VALUE row of a range table without OPTION, or with a SIGN/OPTION
     // literal outside the domain (abaplint/abaplint#4415). Replaces the
     // `range_row` part of check:atc. Measured on 2.120.75: 0 findings over src,
     // control probe fired
     "range_row_values": true,
+    // Measured on 2.120.92: 0 findings over src, control probe fired
+    "redundant_cast": true,
     // SORT / DELETE ADJACENT DUPLICATES without BY / COMPARING on a table with
     // an empty key (abaplint/abaplint#4419). Measured on 2.120.75: 0 findings
     // over src, control probe fired

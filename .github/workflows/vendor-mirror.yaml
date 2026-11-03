@@ -13,10 +13,10 @@ name: vendor-mirror
 # independent PRs, and a run that finds no change opens nothing, so there is
 # nothing to gain from being able to name one.
 
+# no schedule: bump-deps.yaml does this once a month, in its one
+# pull request; a dispatch still runs it on its own
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 1 1 * *'
 
 # No cancel-in-progress: a run mid-way through opening a mirror PR should
 # finish. The group stops a dispatch and the monthly cron from opening the

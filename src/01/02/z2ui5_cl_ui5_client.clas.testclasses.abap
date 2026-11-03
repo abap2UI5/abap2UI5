@@ -1796,7 +1796,6 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     mo_action = NEW #( val = lo_http ).
     mo_app = NEW #( ).
 
-    CLEAR ls_product.
     ls_product-name  = `Notebook`.
     ls_product-price = '1249.00'.
     APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.

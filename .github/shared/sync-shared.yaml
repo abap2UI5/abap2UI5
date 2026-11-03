@@ -24,13 +24,19 @@ name: sync-shared
 # inside files this repository owns the rest of, and copying a source over them
 # would destroy what it owns. `check:shared` still reports them.
 
+# Once a month, on the last Sunday - the day every repository collects its
+# dependency updates (CONVENTIONS.md, bump-deps.yaml). GitHub's cron cannot
+# say "the last Sunday", so the schedule fires every Sunday and the job
+# `when` picks the last one. A repository that has bump-deps.yaml syncs these
+# copies inside that one monthly pull request, so the scheduled run here
+# stands down there and opens no second one. A dispatch always runs.
 on:
   schedule:
-    - cron: '47 5 * * 2'   # Tuesdays 05:47 UTC - after samples-controls' 05:11 bump-a2ui5, the one consumer that still bumps a framework pin
+    - cron: '47 5 * * 0'   # Sundays 05:47 UTC - `when` picks the last one of the month
   workflow_dispatch:
 
-# one run at a time: a manual dispatch that overlaps the weekly cron would
-# open two pull requests for the same bump
+# one run at a time: a manual dispatch that overlaps the cron would open two
+# pull requests for the same sync
 concurrency:
   group: sync-shared
 
@@ -38,7 +44,31 @@ permissions:
   contents: read
 
 jobs:
+  when:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.when.outputs.go }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+        sparse-checkout: .github/workflows
+    - id: when
+      run: |
+        go=true
+        if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+          if [ "$(date -u -d '+7 days' +%m)" = "$(date -u +%m)" ]; then
+            echo "not the last Sunday of the month"; go=false
+          elif [ -f .github/workflows/bump-deps.yaml ]; then
+            echo "bump-deps.yaml syncs the copies in its monthly pull request"; go=false
+          fi
+        fi
+        echo "go=$go" >> "$GITHUB_OUTPUT"
+
   sync:
+    needs: when
+    if: needs.when.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:

@@ -55,7 +55,7 @@ sap.ui.define([], () => {
     "                and pressed, what each screen showed. 'Record",
     "                Journey' starts and stops it, 'Export ABAP Unit'",
     "                turns it into a local test class that replays the",
-    "                steps on z2ui5_cl_frontend_simulator (the headless",
+    "                steps on z2ui5_cl_frontend_sim (the headless",
     "                frontend, abap2UI5/headless-frontend) - paste it into",
     "                the app's test include",
     "",

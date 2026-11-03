@@ -1,0 +1,109 @@
+name: bump-deps
+
+# Every dependency update of this repository, once a month, in ONE pull
+# request - on the last Sunday of the month. Nothing else updates
+# dependencies on a schedule: no Dependabot version updates, and the bump
+# workflows that used to open a pull request each (where there are any) run
+# only by hand now. Dependabot's security updates are a repository setting
+# and stay as they are.
+#
+# GitHub's cron cannot say "the last Sunday": a day of the month and a day of
+# the week in one expression mean either, not both. So the schedule fires
+# every Sunday and the first step goes on only when a week later is another
+# month. A manual dispatch always goes on.
+#
+# .github/scripts/update-deps.mjs does the npm part (every package.json with
+# a lockfile, latest versions, the lockfile refreshed) and, with --actions,
+# moves every pinned action to its latest release. The default token may not
+# change files under .github/workflows/, so the actions are updated only
+# when the secret DEPS_TOKEN exists (a token that may push workflow files) -
+# without it the pull request carries everything else.
+
+on:
+  schedule:
+    - cron: '17 4 * * 0'   # Sundays 04:17 UTC - the first step picks the last one of the month
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bump-deps
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - name: Only on the last Sunday of the month
+      id: when
+      run: |
+        if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ "$(date -u -d '+7 days' +%m)" = "$(date -u +%m)" ]; then
+          echo "not the last Sunday of the month - nothing to do"
+          echo "go=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      if: steps.when.outputs.go == 'true'
+      with:
+        persist-credentials: false
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      if: steps.when.outputs.go == 'true'
+      with:
+        node-version: '22'
+
+    - name: npm dependencies and GitHub Actions
+      if: steps.when.outputs.go == 'true'
+      env:
+        DEPS_TOKEN: ${{ secrets.DEPS_TOKEN }}
+        GH_TOKEN: ${{ secrets.DEPS_TOKEN || github.token }}
+      run: |
+        flags=""
+        if [ -n "$DEPS_TOKEN" ]; then flags="--actions"; fi
+        node .github/scripts/update-deps.mjs $flags --summary "$RUNNER_TEMP/summary.md"
+
+    # the vendored upstream sources under src/00/ from their mirror
+    # repositories (was vendor-mirror.yaml's schedule)
+    - name: Refresh the vendored mirrors
+      if: steps.when.outputs.go == 'true'
+      run: |
+        set -euo pipefail
+        for m in ajson_mirror:src/00/01 srtti_mirror:src/00/02; do
+          repo=${m%%:*}; path=${m#*:}
+          git clone --quiet --depth 1 "https://github.com/abap2UI5/$repo.git" "$RUNNER_TEMP/$repo"
+          rm "$path"/z*
+          cp "$RUNNER_TEMP/$repo"/src/z* "$path"/
+        done
+        if ! git diff --quiet -- src/00; then
+          printf '**Vendored mirrors**\n\n- `src/00/01` (ajson) and `src/00/02` (srtti) refreshed from their mirror repositories\n\n' >> "$RUNNER_TEMP/summary.md"
+        fi
+
+    # the default token may not push a change to a workflow file - without
+    # DEPS_TOKEN such changes (a shared workflow copy) wait for the next run
+    - name: Without DEPS_TOKEN, leave workflow files out
+      if: steps.when.outputs.go == 'true'
+      env:
+        DEPS_TOKEN: ${{ secrets.DEPS_TOKEN }}
+      run: |
+        if [ -z "$DEPS_TOKEN" ] && ! git diff --quiet -- .github/workflows; then
+          git checkout -- .github/workflows
+          printf -- '- left out: changes to .github/workflows (they need the DEPS_TOKEN secret)\n' >> "$RUNNER_TEMP/summary.md"
+        fi
+
+    - name: Open the monthly pull request
+      if: steps.when.outputs.go == 'true'
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        token: ${{ secrets.DEPS_TOKEN || github.token }}
+        branch: bump-deps
+        delete-branch: true
+        title: Monthly dependency update
+        commit-message: Monthly dependency update
+        body-path: ${{ runner.temp }}/summary.md

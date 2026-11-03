@@ -21,6 +21,7 @@ _nothing exists upstream yet — this is the stock_
 
 | Item | What | Priority | In stock since | Upstream |
 |---|---|---|---|---|
+| [`linter-binding-path-void-component`](items/linter-binding-path-void-component.md) | 'a table row declared `gname TYPE seqg3-gname` - an explicit component whose type the linter cannot resolve (an on-premise DDIC structure outside the dependencies) - is dropped from the row, so every binding to it ({GNAME}) is reported as "the rows have no such field (silently empty)"; the field is there, only its type is unknown' | medium | 2026-11-03 | abap2UI5/linter |
 | [`linter-released-api-own-tables`](items/linter-released-api-own-tables.md) | 'the rule reads every z2ui5_t_<n> as the framework''s own table, also when the repository under lint ships the TABL itself - the abap2UI5-addons number their tables in that family (z2ui5_t_05 - _33), so an addon linted with allClasses gets one warning per table access' | medium | 2026-11-02 | abap2UI5/linter |
 
 ---

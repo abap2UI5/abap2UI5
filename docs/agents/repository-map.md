@@ -85,7 +85,7 @@ do not have to be open), `Recorder.js` (roundtrip history behind the History
 / Model Diff / View Diff views; observes the framework only through the
 `onAfterRendering` callback array and the Resource Timing API), `Journey.js`
 (the journey recorder behind the Journey view - a click-through as steps,
-exported as an ABAP Unit test class for `z2ui5_cl_frontend_simulator` of
+exported as an ABAP Unit test class for `z2ui5_cl_frontend_sim` of
 [headless-frontend](https://github.com/abap2UI5/headless-frontend); the same
 callback array, only while a recording runs), `Inspect.js`
 (the read-only reports behind the Overview / Log / Environment / Registry /

@@ -3,7 +3,7 @@
 //
 // The developer presses "Record Journey", uses the app, presses it again,
 // and "Export ABAP Unit" hands over a local test class that replays the
-// same steps on z2ui5_cl_frontend_simulator - the headless frontend of
+// same steps on z2ui5_cl_frontend_sim - the headless frontend of
 // abap2UI5/headless-frontend, which speaks this frontend's wire protocol
 // from inside an ABAP Unit test: set_value( ) for what the user typed,
 // click( ) for the event, and assertions on what the screen showed
@@ -554,7 +554,7 @@ sap.ui.define(
       const app = journey.app || journey.steps.find((s) => s.app)?.app || "";
       const first = journey.steps[0];
       out.push(
-        `${pad}DATA(sim) = z2ui5_cl_frontend_simulator=>start( ${literal(app, 0) || "``"} ).`,
+        `${pad}DATA(sim) = z2ui5_cl_frontend_sim=>start( ${literal(app, 0) || "``"} ).`,
       );
       if (first && first.event) {
         out.push(
@@ -602,7 +602,7 @@ sap.ui.define(
       const app = journeys[0]?.app || appOf(ctx) || "";
       const out = [
         `" Journey of ${app || "(unknown app)"}, recorded with the abap2UI5 developer tools (Ctrl+F12, Roundtrips > Journey).`,
-        `" Replays it on z2ui5_cl_frontend_simulator - https://github.com/abap2UI5/headless-frontend -`,
+        `" Replays it on z2ui5_cl_frontend_sim - https://github.com/abap2UI5/headless-frontend -`,
         `" in the app's test include: no browser, no HTTP, the real handler and the real main( ).`,
         `" The test starts the app fresh and replays what the user typed (set_value / set_json / set_cell)`,
         `" and pressed (click); the assertions name the messages, layers, ids and events the screens showed.`,
@@ -690,7 +690,7 @@ sap.ui.define(
         "",
         'Press "Record Journey", click through the app, press it again to stop.',
         '"Export ABAP Unit" turns the recorded steps into a local test class that',
-        "replays them on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend):",
+        "replays them on z2ui5_cl_frontend_sim (abap2UI5/headless-frontend):",
         "set_value( ) for what was typed, click( ) for every event, assertions on",
         "the messages, layers, ids and events of the screens reached.",
         "Record from the app start for a replay that reaches the same screens.",

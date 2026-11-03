@@ -61,6 +61,15 @@ const RELEASED_HEADING = /^\d{4}-\d{2}-\d{2}\s+v\d/;
 const EXTERNAL = new Map([
   ["Z2UI5_CL_APP_ICF_CONFIG", "the name of Z2UI5_CL_CONFIG_APP in abap2UI5-addons/config-management up to 2026-11"],
   ["Z2UI5_CL_CONFIG_APP", "ships in abap2UI5-addons/config-management"],
+  ["Z2UI5_CL_TM_POP", "ships in abap2UI5-addons/table-maintenance"],
+  ["Z2UI5_CL_TM_CONTEXT", "ships in abap2UI5-addons/table-maintenance"],
+  ["Z2UI5_CL_SQL_QUERY", "ships in abap2UI5-addons/sql-console"],
+  ["Z2UI5_CL_LP_KPI_DPC", "ships in abap2UI5-addons/launchpad-kpi"],
+  ["Z2UI5_CL_FRONTEND_SIMULATOR", "the name of Z2UI5_CL_FRONTEND_SIM in abap2UI5/headless-frontend up to 2026-11"],
+  ["Z2UI5_CL_RFC_CONNECTOR_HANDLER", "ships in abap2UI5-addons/rfc-connector"],
+  ["Z2UI5_CL_CCI_SPREADSHEET", "ships in abap2UI5-addons/custom-controls"],
+  ["Z2UI5_CL_CCI_JSON_FILTER", "ships in abap2UI5-addons/custom-controls"],
+  ["Z2UI5_CL_SQL_NATIVE_CONSOLE_ST", "ships in abap2UI5-addons/sql-console"],
   ["Z2UI5_CL_LOCK_APP_SM12", "ships in abap2UI5-addons/lock-manager"],
   ["Z2UI5_CL_CONFIG_SERVICE", "ships in abap2UI5-addons/config-management"],
   ["Z2UI5_CL_SEL_VAR_DB", "ships in abap2UI5-addons/range-filter"],
@@ -89,7 +98,7 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_LP_HANDLER", "the launchpad handler of the abap2UI5/frontend branches (frontend/abap)"],
   // the headless frontend: the developer tools' Journey view exports a test
   // class that replays a click-through on it, and the docs say so
-  ["Z2UI5_CL_FRONTEND_SIMULATOR", "the headless frontend of abap2UI5/headless-frontend"],
+  ["Z2UI5_CL_FRONTEND_SIM", "the headless frontend of abap2UI5/headless-frontend"],
 ]);
 
 // Whole families that live in the sample repositories. The removal plan counts

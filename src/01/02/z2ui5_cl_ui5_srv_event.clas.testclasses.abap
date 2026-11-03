@@ -313,7 +313,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-check_queue_last = abap_true.
 
     " the flag rides at position [4] of the event array, behind two reserved
@@ -348,7 +347,6 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_ctrl TYPE z2ui5_if_client=>ty_s_event_control.
     lo_event = NEW #( ).
 
-    CLEAR ls_ctrl.
     ls_ctrl-check_no_busy = abap_true.
 
     " the flag rides at position [5], one behind queueLast - and queueLast

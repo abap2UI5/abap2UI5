@@ -71,8 +71,16 @@ Rules that follow from the role:
 - One concern per workflow file, so one badge means one thing. A workflow that
   bundles unrelated jobs turns every badge into "something, somewhere, is red".
 - Third-party actions are pinned to a commit SHA with the version in a trailing
-  comment: `uses: actions/checkout@3d3c42e5… # v7.0.1`. Dependabot is configured
-  to group updates and to leave deliberately pinned actions alone.
+  comment: `uses: actions/checkout@3d3c42e5… # v7.0.1`.
+- Dependencies move once a month, in one pull request: `bump-deps.yaml` runs on
+  the last Sunday of the month and `.github/scripts/update-deps.mjs` (the same
+  file in every repository) takes every npm dependency to its latest version,
+  the pinned actions to their latest release (with the `DEPS_TOKEN` secret -
+  the default token may not change workflow files), and the repository's own
+  pins along (a core release, a mirror, shared copies). Nothing else updates
+  on a schedule: no Dependabot version updates, no weekly bump pull request -
+  the `bump-*` workflows that move one pin run by hand. A version that must
+  stay is named in package.json, `"updateDeps": { "skip": { "<name>": "<why>" } }`.
 
 ## 3. npm scripts
 

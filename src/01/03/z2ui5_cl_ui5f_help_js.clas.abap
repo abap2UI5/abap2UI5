@@ -74,7 +74,7 @@ CLASS z2ui5_cl_ui5f_help_js IMPLEMENTATION.
              `    "                and pressed, what each screen showed. 'Record",` && |\n| &&
              `    "                Journey' starts and stops it, 'Export ABAP Unit'",` && |\n| &&
              `    "                turns it into a local test class that replays the",` && |\n| &&
-             `    "                steps on z2ui5_cl_frontend_simulator (the headless",` && |\n| &&
+             `    "                steps on z2ui5_cl_frontend_sim (the headless",` && |\n| &&
              `    "                frontend, abap2UI5/headless-frontend) - paste it into",` && |\n| &&
              `    "                the app's test include",` && |\n| &&
              `    "",` && |\n| &&

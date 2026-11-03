@@ -449,7 +449,7 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      const app = journey.app || journey.steps.find((s) => s.app)?.app || "";` && |\n| &&
              `      const first = journey.steps[0];` && |\n| &&
              `      out.push(` && |\n| &&
-             `        ``${pad}DATA(sim) = z2ui5_cl_frontend_simulator=>start( ${literal(app, 0) || "````"} ).``,` && |\n| &&
+             `        ``${pad}DATA(sim) = z2ui5_cl_frontend_sim=>start( ${literal(app, 0) || "````"} ).``,` && |\n| &&
              `      );` && |\n| &&
              `      if (first && first.event) {` && |\n| &&
              `        out.push(` && |\n| &&
@@ -492,7 +492,7 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      const app = journeys[0]?.app || appOf(ctx) || "";` && |\n| &&
              `      const out = [` && |\n| &&
              `        ``" Journey of ${app || "(unknown app)"}, recorded with the abap2UI5 developer tools (Ctrl+F12, Roundtrips > Journey).``,` && |\n| &&
-             `        ``" Replays it on z2ui5_cl_frontend_simulator - https://github.com/abap2UI5/headless-frontend -``,` && |\n| &&
+             `        ``" Replays it on z2ui5_cl_frontend_sim - https://github.com/abap2UI5/headless-frontend -``,` && |\n| &&
              `        ``" in the app's test include: no browser, no HTTP, the real handler and the real main( ).``,` && |\n| &&
              `        ``" The test starts the app fresh and replays what the user typed (set_value / set_json / set_cell)``,` && |\n| &&
              `        ``" and pressed (click); the assertions name the messages, layers, ids and events the screens showed.``,` && |\n| &&
@@ -575,7 +575,7 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `        "",` && |\n| &&
              `        'Press "Record Journey", click through the app, press it again to stop.',` && |\n| &&
              `        '"Export ABAP Unit" turns the recorded steps into a local test class that',` && |\n| &&
-             `        "replays them on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend):",` && |\n| &&
+             `        "replays them on z2ui5_cl_frontend_sim (abap2UI5/headless-frontend):",` && |\n| &&
              `        "set_value( ) for what was typed, click( ) for every event, assertions on",` && |\n| &&
              `        "the messages, layers, ids and events of the screens reached.",` && |\n| &&
              `        "Record from the app start for a replay that reaches the same screens.",` && |\n| &&

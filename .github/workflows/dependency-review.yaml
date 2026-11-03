@@ -15,8 +15,8 @@ name: dependency-review
 # It reports on the DIFF, which is what makes it a pull-request gate rather
 # than a report nobody opens: a known-vulnerable package or a licence change
 # fails the pull request that introduces it, and nothing is said about the
-# hundreds of dependencies that were already there. `dependabot.yml` moves the
-# lockfiles; this is what looks at what it moved.
+# hundreds of dependencies that were already there. `bump-deps.yaml` moves the
+# lockfiles once a month; this is what looks at what it moved.
 #
 # The root lockfile and app/package-lock.json are both read - the Fiori project
 # is a second dependency tree, and it is the one Prettier and the UI5 linter

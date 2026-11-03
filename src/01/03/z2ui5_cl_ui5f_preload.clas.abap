@@ -29,7 +29,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
     " build_hash is taken over the shell's script alone and does not change
     " with them
-    CONSTANTS devtools_hash TYPE string VALUE 'db1743e39b891581'.
+    CONSTANTS devtools_hash TYPE string VALUE '9bc1823968e37660'.
 
     CLASS-METHODS get
       RETURNING
