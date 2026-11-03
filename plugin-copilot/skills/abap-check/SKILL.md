@@ -593,7 +593,7 @@ same class fired. The parameter is called `fallback` now.
 
 It bit again two days later. `abap2UI5-addons/abap-agent-runtime` shipped
 three such parameters - `z2ui5_cl_agent_settings=>check_llm`,
-`z2ui5_cl_agent_session->rows_of`, `z2ui5_cl_agent_llm_anthropic=>setting` -
+`z2ui5_cl_agent_session->rows_of`, `z2ui5_cl_agent_llm_claude=>setting` -
 and a user's pull (2026-10-08) refused 11 classes: the three themselves
 (*"Unable to interpret "DEFAULT""*, *"… "RETURNING""*, *"… "OPTIONAL""* - the
 token after the swallowed `TYPE`), and every class that uses
@@ -764,7 +764,7 @@ and points here, so a new trap is added here and nowhere else.
   - **A blank line, inside the block or between the block and its
     declaration**, detaches it like a comment does. Found in
     abap-cloud-gui (`z2ui5_cl_cgui_layout`, `z2ui5_cl_cgui_report`,
-    `z2ui5_if_cgui_variant_store`, fixed in
+    `z2ui5_if_cgui_variants`, fixed in
     abap2UI5-addons/abap-cloud-gui#9). `check:atc` asserted the opposite
     until that day and then reported the shape itself, until
     `wrong_abapdoc_position` took it over in 2.120.75

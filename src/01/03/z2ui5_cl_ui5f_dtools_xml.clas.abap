@@ -166,7 +166,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                <Button` &&
              `                    text="Export ABAP Unit"` &&
              `                    type="Emphasized"` &&
-             `                    tooltip="The recorded journey as a local test class that replays it on z2ui5_cl_frontend_simulator (abap2UI5/headless-frontend)"` &&
+             `                    tooltip="The recorded journey as a local test class that replays it on z2ui5_cl_frontend_sim (abap2UI5/headless-frontend)"` &&
              `                    press=".onExportJourney"` &&
              `                    visible="{/isJourney}"` &&
              `                />` &&

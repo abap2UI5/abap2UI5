@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-10-24
 upstream: open-abap/open-abap-core
 evidence:
-  - 'abap2UI5-addons/abap-cloud-gui - the report kept the copies of the field catalog of each grid (z2ui5_cl_cgui_gui_alv_grid) as a REF TO data in a line of a table attribute; after the roundtrip, set_fieldcat( ) looped over it and died with TypeError: table.getArrayLength is not a function. The copies are direct attributes of the report now (mr_cgui_grid_fieldcat), which come back'
+  - 'abap2UI5-addons/abap-cloud-gui - the report kept the copies of the field catalog of each grid (z2ui5_cl_cgui_alv_grid) as a REF TO data in a line of a table attribute; after the roundtrip, set_fieldcat( ) looped over it and died with TypeError: table.getArrayLength is not a function. The copies are direct attributes of the report now (mr_cgui_grid_fieldcat), which come back'
   - 'measured 2026-10-24 with @abap2ui5/node-runtime 1.146.0 in a unit test: a structure with a REF TO data component (CREATE DATA ... LIKE a table, filled) and a table of such lines, CALL TRANSFORMATION id SOURCE root = ls_root RESULT XML lv_xml and back RESULT root = ls_back; ASSIGN ls_back-top->* TO <t> raised ASSIGN_TYPE_CONFLICT'
 ---
 

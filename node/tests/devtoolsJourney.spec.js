@@ -6,7 +6,7 @@ const { loadLib } = require("./loadLibModule");
 // Tests the real implementation shipped in
 // app/webapp/devtools/Journey.js (loaded via a stubbed sap.ui.define): a
 // click-through recorded as steps, exported as an ABAP Unit test class
-// that replays it on z2ui5_cl_frontend_simulator.
+// that replays it on z2ui5_cl_frontend_sim.
 //
 // The recorder observes the framework from the outside - through the
 // onAfterRendering callback array of its component context - so the
@@ -216,7 +216,7 @@ test.describe("the exported ABAP Unit class", () => {
     expect(abap).toBe(
       [
         '" Journey of ZCL_APP, recorded with the abap2UI5 developer tools (Ctrl+F12, Roundtrips > Journey).',
-        '" Replays it on z2ui5_cl_frontend_simulator - https://github.com/abap2UI5/headless-frontend -',
+        '" Replays it on z2ui5_cl_frontend_sim - https://github.com/abap2UI5/headless-frontend -',
         "\" in the app's test include: no browser, no HTTP, the real handler and the real main( ).",
         '" The test starts the app fresh and replays what the user typed (set_value / set_json / set_cell)',
         '" and pressed (click); the assertions name the messages, layers, ids and events the screens showed.',
@@ -235,7 +235,7 @@ test.describe("the exported ABAP Unit class", () => {
         "",
         "  METHOD journey_1.",
         "",
-        "    DATA(sim) = z2ui5_cl_frontend_simulator=>start( `ZCL_APP` ).",
+        "    DATA(sim) = z2ui5_cl_frontend_sim=>start( `ZCL_APP` ).",
         "    cl_abap_unit_assert=>assert_equals( exp = `MAIN`",
         "                                        act = sim->get_layer( ) ).",
         "    cl_abap_unit_assert=>assert_true( sim->check_id_exists( `inputName` ) ).",
@@ -305,7 +305,7 @@ test.describe("the exported ABAP Unit class", () => {
     const abap = h.Journey.buildAbapUnit(h.ctx);
     // started with the app of the first step
     expect(abap).toContain(
-      "z2ui5_cl_frontend_simulator=>start( `ZCL_DETAIL` )",
+      "z2ui5_cl_frontend_sim=>start( `ZCL_DETAIL` )",
     );
     expect(abap).toContain(
       "the recording began after roundtrips this test does not replay",
