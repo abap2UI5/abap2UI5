@@ -60,9 +60,9 @@
 # reason: `issues: write` stays off the executing job too.
 name: bump-linter
 
+# no schedule: bump-deps.yaml does this once a month, in its one
+# pull request; a dispatch still runs it on its own
 on:
-  schedule:
-    - cron: '11 6 * * 1'   # Mondays 06:11 UTC - before the three sample corpora
   workflow_dispatch:
 
 # No cancel-in-progress: this workflow opens a pull request, and a cancelled
