@@ -1478,8 +1478,12 @@ break one of those four.
   `CX_SY_ITAB_LINE_NOT_FOUND` the `syfixes` script patches is upstream already
   (abaplint/abaplint#3735, #3240), and `syfixes` only runs when the `--fix` call
   before it may fail: `(abaplint --fix ... || true) && npm run syfixes`.
+  Three of these are fixed in abaplint main after 2.120.92 - `IS INSTANCE OF`
+  (abaplint/abaplint#4507), `FROM @( VALUE #( ... ) )` (#4508) and WHERE with
+  `UP TO` (#4509); keep writing them the 7.02 way until the pinned
+  `@abaplint/cli` is a release that has them.
 
-**Backlog:** abaplint · abaplint-downport-select-up-to, abaplint-downport-select-fields, abaplint-downport-is-instance-of, abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-create-data-empty-key, abaplint-downport-insert-host-expression, abaplint-downport-cursor-host-variables, abaplint-downport-void-inline-silent, abaplint-downport-short-circuit-table-expression, abaplint-downport-conv-generic-parameter
+**Backlog:** abaplint · abaplint-downport-select-fields, abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-create-data-empty-key, abaplint-downport-cursor-host-variables, abaplint-downport-void-inline-silent, abaplint-downport-short-circuit-table-expression, abaplint-downport-conv-generic-parameter
 
 ## 5. Runtime — green here, wrong there
 
