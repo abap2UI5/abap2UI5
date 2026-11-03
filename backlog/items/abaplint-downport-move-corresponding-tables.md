@@ -3,13 +3,14 @@ target: abaplint
 title: 'downport: MOVE-CORRESPONDING between internal tables is not downported'
 summary: 'MOVE-CORRESPONDING itab1 TO itab2 (7.40 SP05) stays as it is, and CORRESPONDING #( itab ) is even lowered INTO that statement - check_syntax then reports "MOVE-CORRESPONDING with tables possible from v740sp05"; a loop with MOVE-CORRESPONDING per row is the 7.02 form'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4515
 first_seen: 2026-11-02
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/table-maintenance, 2026-11-02 - `z2ui5_cl_tm_001`, four `MOVE-CORRESPONDING <tab> TO <tab_org>` on generic field symbols; replaced by a row-by-row helper so the 702 branch builds (branch claude/addon-repo-namespaces-dnjqev)'
   - 'probed 2026-11-02 with @abaplint/cli 2.120.92 - a single class, syntax v702, rules downport, parser_error, check_syntax, unknown_types; `abaplint --fix` then a lint run: `MOVE-CORRESPONDING lt_a TO lt_b.` with two typed standard tables -> unchanged, check_syntax error; the same with `TYPE STANDARD TABLE` field symbols; `lt_b = CORRESPONDING #( lt_a ).` over the same two tables -> `MOVE-CORRESPONDING lt_a TO lt_b.`, same check_syntax error'
-checked_upstream: 2026-11-02
+checked_upstream: 2026-11-03
 ---
 # downport: MOVE-CORRESPONDING between internal tables is not downported
 

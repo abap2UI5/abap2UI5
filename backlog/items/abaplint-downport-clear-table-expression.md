@@ -3,13 +3,14 @@ target: abaplint
 title: 'downport: CLEAR itab[ ... ]-component is not downported'
 summary: 'a table expression as the target of CLEAR (`CLEAR lt[ name = x ]-t_range.`) stays as it is and does not parse at v702; READ TABLE ... ASSIGNING with the CX_SY_ITAB_LINE_NOT_FOUND raise the downport writes elsewhere is the 7.02 form'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4518
 first_seen: 2026-11-02
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/range-filter, 2026-11-02 - `z2ui5_cl_sel_multisel`, `CLEAR ms_result-t_filter[ name = mv_popup_name ]-t_range.` and `-t_token`; rewritten as READ TABLE ... ASSIGNING (branch claude/addon-repo-namespaces-dnjqev)'
   - 'probed 2026-11-02 with @abaplint/cli 2.120.92 - a single class, syntax v702, rules downport, parser_error, check_syntax, unknown_types; `abaplint --fix` then a lint run: `CLEAR lt_f[ name = iv_text ]-t_range.` -> unchanged, parser_error'
-checked_upstream: 2026-11-02
+checked_upstream: 2026-11-03
 ---
 # downport: CLEAR itab[ ... ]-component is not downported
 
