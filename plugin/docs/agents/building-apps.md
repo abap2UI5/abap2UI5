@@ -518,7 +518,11 @@ The same tree, with the subtree held in a variable:
   attribute `TYPE REF TO data`). The number of rows the filter lets through is
   `/__WINDOW/<path>/TOTAL` in the model — build it from
   `client->_bind_path( t_rows )`. Only a STANDARD table, bound whole; sorters
-  and filters written into the binding info are not applied.
+  and filters written into the binding info are not applied. An event that
+  hands over a row's binding path (`getBindingContext().getPath()` →
+  `/T_ROWS/5`) names a position in the order the browser shows, not a row of
+  the table: `client->_bind_tab_row( val = t_rows row = 5 + 1 )` answers the
+  row of `t_rows` it is.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
   round-trip and, when it differs, sends it to every open view slot (MAIN,

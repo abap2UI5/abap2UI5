@@ -562,6 +562,23 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~_bind_tab_row.
+
+    DATA lr_val TYPE REF TO data.
+
+    " the same two forms _bind_tab( ) takes
+    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+      lr_val ?= val.
+    ELSE.
+      lr_val = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
+    ENDIF.
+
+    result = mo_srv_bind->window_row( val = lr_val
+                                      row = row ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_bind_path.
 
     " delegate instead of repeating the _bind( ) call, same reason as

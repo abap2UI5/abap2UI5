@@ -1180,6 +1180,27 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  "! The row of a _bind_tab( ) table that a row of the browser shows. The
+  "! browser holds the rows in the order the server sorted and filtered
+  "! them, so the index in a binding path an event hands over
+  "! (`$event.oSource.getBindingContext().getPath()` -> `/MT_ROWS/5`) is a
+  "! position in THAT order, not the row of the table: row 6 shown may be
+  "! row 4711 of mt_rows. This answers it - the same order the response was
+  "! built with. A table that is no window answers row itself.
+  "!
+  "! @parameter val    | the table, as passed to _bind_tab( ) - the table or
+  "!                     a data reference to it.
+  "! @parameter row    | the position in the browser, counted from 1: the
+  "!                     index of the binding path plus 1.
+  "! @parameter result | the row of the table, counted from 1; 0 when the
+  "!                     position is past the rows the filter lets through.
+  METHODS _bind_tab_row
+    IMPORTING
+      val           TYPE data
+      row           TYPE i
+    RETURNING
+      VALUE(result) TYPE i.
+
   "! Schedule a frontend action to run after the backend response has been
   "! processed: pass a frontend event as val (a cs_event-* constant, e.g.
   "! cs_event-set_title) with its arguments in t_arg, and the framework builds

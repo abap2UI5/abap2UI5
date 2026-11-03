@@ -14,6 +14,17 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! _bind_tab_row( ): the row of the table val behind position row of
+    "! the order the browser holds - the row number itself for a table
+    "! that is no window, 0 for a position past the rows the filter lets
+    "! through
+    METHODS window_row
+      IMPORTING
+        val           TYPE REF TO data
+        row           TYPE i
+      RETURNING
+        VALUE(result) TYPE i.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
     METHODS get_client_name
@@ -29,6 +40,14 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     METHODS adopt_new_options.
 
     METHODS window_adopt.
+
+    "! the attribute val lives in - the row an alias row points to, not the
+    "! alias
+    METHODS attri_resolve
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     " Raise when json = abap_true is asked for on an attribute that cannot
     " hold JSON text. See the method body.
@@ -410,23 +429,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    mr_attri = get_model( )->main_attri_search( val ).
-
-    IF mr_attri->name_ref IS NOT INITIAL.
-      " name_ref may be a synthetic child name that no longer maps to a row
-      " (e.g. dissolve stopped at max depth); raise the binding error rather
-      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
-      " name is the table's unique primary key - a keyed read, spelled as
-      " one (a free-key table expression reads as a sequential access)
-      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
-           WITH TABLE KEY name = mr_attri->name_ref.
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |Binding Error - referenced attribute '{ mr_attri->name_ref }' not found|.
-      ENDIF.
-      mr_attri = lr_ref_attri.
-    ENDIF.
+    mr_attri = attri_resolve( val ).
 
     " before either branch: check_json can be turned on by a FIRST bind
     " (update_model_attri) and by a later one (adopt_new_options), so the
@@ -442,6 +445,28 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       update_model_attri( ).
     ENDIF.
     result = finalize_path( mr_attri->name_client ).
+
+  ENDMETHOD.
+
+  METHOD attri_resolve.
+
+    result = get_model( )->main_attri_search( val ).
+
+    IF result->name_ref IS NOT INITIAL.
+      " name_ref may be a synthetic child name that no longer maps to a row
+      " (e.g. dissolve stopped at max depth); raise the binding error rather
+      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field.
+      " name is the table's unique primary key - a keyed read, spelled as
+      " one (a free-key table expression reads as a sequential access)
+      READ TABLE mo_app->mt_attri->* REFERENCE INTO DATA(lr_ref_attri)
+           WITH TABLE KEY name = result->name_ref.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = |Binding Error - referenced attribute '{ result->name_ref }' not found|.
+      ENDIF.
+      result = lr_ref_attri.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -565,6 +590,29 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     mr_attri->check_json    = ms_config-check_json.
     mr_attri->name_client   = get_client_name( ).
     window_adopt( ).
+
+  ENDMETHOD.
+
+  METHOD window_row.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    DATA(lr_attri) = attri_resolve( val ).
+    IF lr_attri->window_size <= 0.
+      result = row.
+      RETURN.
+    ENDIF.
+    " the order of this roundtrip's response is the one of the request -
+    " the table and the sorters and the filter are what they were, and the
+    " order is computed the same way (z2ui5_cl_ui5_srv_window)
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
+      RETURN.
+    ENDIF.
+    ASSIGN val->* TO <tab>.
+    DATA(lt_index) = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
+                                                     t_sort   = lr_attri->t_window_sort
+                                                     t_filter = lr_attri->t_window_filter ).
+    result = VALUE #( lt_index[ row ] OPTIONAL ).
 
   ENDMETHOD.
 

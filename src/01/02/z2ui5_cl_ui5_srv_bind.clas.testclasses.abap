@@ -1003,6 +1003,8 @@ CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS plain_bind_keeps     FOR TESTING RAISING cx_static_check.
     METHODS no_table_refused     FOR TESTING RAISING cx_static_check.
     METHODS reference_path       FOR TESTING RAISING cx_static_check.
+    METHODS row_of_window        FOR TESTING RAISING cx_static_check.
+    METHODS row_of_plain_table   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1116,6 +1118,43 @@ CLASS ltcl_04_window IMPLEMENTATION.
                                                     is_config = VALUE #( window = 5 ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = 5
                                         act = mo_bind->mr_attri->window_size ).
+
+  ENDMETHOD.
+
+  METHOD row_of_window.
+
+    " sorted by name: John Miller (row 2) shows first, Michael Adams (row 1)
+    " second
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = VALUE #( window            = 10
+                               t_window_sort     = VALUE #( ( path = `NAME` ) )
+                               check_window_sort = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 1 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 2 ) ).
+    " past the rows the browser can show
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 3 ) ).
+
+    " a filter that lets Michael Adams alone through: he is position 1
+    mo_bind->mr_attri->t_window_filter = VALUE #( ( group = 1 path = `NAME` operator = `StartsWith` value1 = `mich` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 1 ) ).
+
+  ENDMETHOD.
+
+  METHOD row_of_plain_table.
+
+    " bound the classic way, the position is the row
+    bind( REF #( mo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 2 ) ).
 
   ENDMETHOD.
 
