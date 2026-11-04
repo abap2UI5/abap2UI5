@@ -1482,11 +1482,12 @@ break one of those four.
   (abaplint/abaplint#4507), `FROM @( VALUE #( ... ) )` (#4508), WHERE with
   `UP TO` (#4509), the guarded table expression (#4512), `SELECT SINGLE FROM
   ... FIELDS` (#4516), the void inline declaration (#4517), `CREATE DATA ...
-  WITH EMPTY KEY` (#4519) and the cursor `@` (#4520); the other four are filed
-  (#4513, #4514, #4515, #4518). Keep writing all of them the 7.02 way until the
-  pinned `@abaplint/cli` is a release that has the fix.
+  WITH EMPTY KEY` (#4519), the cursor `@` (#4520) and MOVE-CORRESPONDING
+  between tables (#4515); the other three are filed (#4513, #4514, #4518).
+  Keep writing all of them the 7.02 way until the pinned `@abaplint/cli` is a
+  release that has the fix.
 
-**Backlog:** abaplint · abaplint-downport-move-corresponding-tables, abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-conv-generic-parameter
+**Backlog:** abaplint · abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-conv-generic-parameter
 
 ## 5. Runtime — green here, wrong there
 
