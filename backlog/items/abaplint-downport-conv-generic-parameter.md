@@ -3,7 +3,8 @@ target: abaplint
 title: 'downport: CONV #( ) for a generic formal parameter (clike) is declared as `TYPE undefined`'
 summary: '`take( CONV #( lt_name[ 1 ] ) )` with `IMPORTING val TYPE clike` is downported into `DATA temp1 TYPE undefined.` - ABAP takes string as the type of # for a clike or csequence parameter; the 7.02 lint stays silent because `undefined` is outside the errorNamespace, and a 7.02 system refuses the class'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4513
 first_seen: 2026-11-03
 upstream: abaplint/abaplint
 evidence:
