@@ -28,6 +28,10 @@
 <!-- facts:end -->
 
 <p align="center">
+  <sub>Pulled by 2,900+ systems in the two weeks to 5 November 2026 (GitHub traffic: every abapGit pull is one clone) · Running it? <a href="https://github.com/abap2UI5/abap2UI5/issues/new?template=who_runs_it.yml">Add your company to Who runs it</a></sub>
+</p>
+
+<p align="center">
   <a href="https://abap2ui5.github.io/why/">For managers</a> •
   <a href="https://abap2ui5.github.io/docs/">Documentation</a> •
   <a href="https://abap2ui5.github.io/samples-site/">Samples</a> •
