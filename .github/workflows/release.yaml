@@ -140,6 +140,7 @@ jobs:
           --title "$VERSION" \
           --notes-file release-notes.md \
           --verify-tag \
+          --latest \
           "abap2ui5-$VERSION.cdx.json"
 
     # A release created with the workflow's own GITHUB_TOKEN raises no
@@ -204,7 +205,12 @@ jobs:
         fi
         git tag "$VERSION-702" "$TARGET"
         git push origin "$VERSION-702"
+        # --latest=false: this release is published after X.Y.Z, and without
+        # the flag GitHub would mark the downport "Latest" on the releases
+        # page and hand it to anyone who follows "pull a release" from the
+        # quickstart on a 7.50+ system. The release of main stays Latest.
         gh release create "$VERSION-702" \
           --title "$VERSION-702" \
           --notes "The 7.02-downported build of [$VERSION](../../releases/tag/$VERSION), generated from \`main\` by \`auto_downport\`. Same content, downported sources; install this one on NW 7.02-7.4x." \
-          --verify-tag
+          --verify-tag \
+          --latest=false
