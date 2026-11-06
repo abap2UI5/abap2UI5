@@ -282,6 +282,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     " a content security policy - the exit's meta tag or a header value -
     " with the shell script's hash added to its script-src (see the method)
+    "! the extra attributes of the bootstrap script tag from the exit's
+    "! t_add_config - a row whose name is no attribute name is left out
+    CLASS-METHODS _bootstrap_attributes
+      IMPORTING
+        t_add_config  TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS _csp_add_script_hash
       IMPORTING
         val           TYPE string
@@ -680,6 +688,28 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _bootstrap_attributes.
+
+    " The escape covers the quote characters only: a NAME with a blank or an
+    " `=` in it (`data-x onload=y data-z`) still rendered as several
+    " attributes of the bootstrap tag. So a name has to be an attribute
+    " name - letters, digits, `_ . - :`, not starting with a digit or one of
+    " `. - :` (the XML name rule the view builder holds its names to) - and
+    " a row whose name is not one is left out
+    LOOP AT t_add_config REFERENCE INTO DATA(lr_config).
+      DATA(lv_name) = CONV string( lr_config->n ).
+      DATA(lv_first) = substring( val = lv_name && ` `
+                                  len = 1 ).
+      IF lv_name IS INITIAL
+         OR lv_name CN `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`
+         OR lv_first CA `0123456789.-:`.
+        CONTINUE.
+      ENDIF.
+      result = |{ result } { lv_name }='{ z2ui5_cl_ui5_util_context=>c_escape_html( lr_config->v ) }'|.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD _http_get.
 
     DATA(ls_config) = config_http_get( ).
@@ -834,10 +864,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " it), and unescaped that is a quote-breakout into the bootstrap script
     " tag. The CSP value stays raw on purpose - it is a whole meta TAG, not
     " an attribute
-    DATA(lv_add_config) = ``.
-    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
-      lv_add_config = |{ lv_add_config } { z2ui5_cl_ui5_util_context=>c_escape_html( lr_config->n ) }='{ z2ui5_cl_ui5_util_context=>c_escape_html( lr_config->v ) }'|.
-    ENDLOOP.
+    DATA(lv_add_config) = _bootstrap_attributes( ls_config-t_add_config ).
 
     result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&

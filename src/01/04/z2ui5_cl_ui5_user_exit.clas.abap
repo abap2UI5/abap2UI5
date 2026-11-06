@@ -436,6 +436,12 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     IF cs_config-draft_exp_time_in_hours <= 0.
       cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
     ENDIF.
+    " and from above: the draft service turns the hours into seconds as an
+    " integer, and more than 596,523 hours overflowed it - every first start
+    " answered 500. Ten years is longer than any draft is worth keeping
+    IF cs_config-draft_exp_time_in_hours > z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
+      cs_config-draft_exp_time_in_hours = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
+    ENDIF.
 
   ENDMETHOD.
 

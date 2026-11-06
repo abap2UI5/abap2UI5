@@ -921,6 +921,21 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                          act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
     cl_abap_unit_assert=>assert_differs( exp = lv_body_base
                                          act = lv_body ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `* data-sap-ui-language='EN'*`
+                                         act = lv_body ).
+
+    " a name that is no attribute name is left out - escaping the quotes
+    " alone let a blank or an `=` split it into several attributes
+    ls_config = ls_base.
+    ls_config-t_add_config = VALUE #( ( n = `data-x onload=alert(1) data-y` v = `1` )
+                                      ( n = `1abc` v = `2` )
+                                      ( n = `data-ok` v = `3` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_body CS `onload=alert(1)` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_body CS ` data-y='1'` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_body CS ` 1abc='2'` ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `* data-ok='3'*`
+                                         act = lv_body ).
 
   ENDMETHOD.
 

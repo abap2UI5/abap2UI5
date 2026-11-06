@@ -268,6 +268,26 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - check the destination/url configuration`.
     ENDIF.
 
+    " No logon popup: the client runs inside an ICF request, a work process
+    " without a dialog, and with the popup left enabled (the default of
+    " create_by_url) a 401 of the remote made RECEIVE fail as a
+    " communication error - the caller saw "could not be reached" instead of
+    " the 401 and the service's own message. 0 is IF_HTTP_CLIENT=>CO_DISABLED,
+    " named by value because this class names no on-premise type statically.
+    " The attribute is reached by its alias on CL_HTTP_CLIENT and by its
+    " interface name otherwise; a stack that has neither keeps its default
+    FIELD-SYMBOLS <popup> TYPE any.
+    TRY.
+        ASSIGN result->(`PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
+        IF <popup> IS NOT ASSIGNED.
+          ASSIGN result->(`IF_HTTP_CLIENT~PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
+        ENDIF.
+        IF <popup> IS ASSIGNED.
+          <popup> = 0.
+        ENDIF.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
   ENDMETHOD.
 
   METHOD client_call.
@@ -328,9 +348,31 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         ENDIF.
         lo_response = <any>.
 
-        CALL METHOD lo_response->(`GET_CDATA`)
+        " The body as text. GET_CDATA decodes by the charset the response
+        " names - and without one in Content-Type (an `application/json`
+        " answer of most APIs, the language model providers' among them) the
+        " ICF falls back to ISO-8859-1, and every UTF-8 multibyte sequence
+        " came back as two or three Latin-1 characters. JSON is
+        " UTF-8 unless it says otherwise (RFC 8259), so a body without a
+        " charset is read as bytes and decoded as UTF-8; one that names its
+        " charset is left to the ICF
+        DATA lv_content_type TYPE string.
+        CALL METHOD lo_response->(`GET_HEADER_FIELD`)
+          EXPORTING
+            name  = `content-type`
           RECEIVING
-            data = result-body.
+            value = lv_content_type.
+        IF to_lower( lv_content_type ) CS `charset=`.
+          CALL METHOD lo_response->(`GET_CDATA`)
+            RECEIVING
+              data = result-body.
+        ELSE.
+          DATA lv_bytes TYPE xstring.
+          CALL METHOD lo_response->(`GET_DATA`)
+            RECEIVING
+              data = lv_bytes.
+          result-body = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_bytes ).
+        ENDIF.
 
         CALL METHOD lo_response->(`GET_STATUS`)
           IMPORTING

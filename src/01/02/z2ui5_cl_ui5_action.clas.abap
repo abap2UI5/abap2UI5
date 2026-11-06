@@ -166,9 +166,29 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           result->mo_app->ms_draft-id_prev = mo_handler->ms_request-s_control-app_start_draft.
           result->mo_app->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
           RETURN.
-        CATCH cx_root.
-          " expired or invalid bookmark draft - fall through to a fresh
-          " app start, but tell the user why the saved state is gone.
+        CATCH cx_root INTO DATA(lx_restore).
+          " A draft that is there, is the user's and still could not be
+          " restored is a broken restore, not an expired bookmark: an
+          " attribute the view reads came back unparseable
+          " (APP_STATE_RESTORE_ERROR, raised loudly by design in
+          " z2ui5_cl_ui5_srv_model), a type the draft names is gone, the app
+          " class changed its layout. Swallowed here it read as "expired" -
+          " no attribute name, no source position, and the monitor saw a
+          " successful roundtrip. The question is asked only on the failure
+          " path, so a restore that works costs no extra read
+          " Raised as the framework's own cx_no_check with the cause as
+          " previous: this method declares nothing, and a static or dynamic
+          " check class re-raised as it is would reach the top-level handler
+          " as CX_SY_NO_HANDLER on a kernel
+          IF z2ui5_cl_ui5_srv_draft=>get_instance( )->check_exists(
+                 mo_handler->ms_request-s_control-app_start_draft ) = abap_true.
+            RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+              EXPORTING
+                val      = |APP_STATE_RESTORE_ERROR - the bookmarked draft { mo_handler->ms_request-s_control-app_start_draft } exists but could not be restored|
+                previous = lx_restore.
+          ENDIF.
+          " expired, cleaned up or another user's draft - fall through to a
+          " fresh app start, but tell the user why the saved state is gone.
           " There is no client object yet at this point in the factory,
           " so the toast is queued directly through the action builder
           " message_toast_display( ) delegates to.

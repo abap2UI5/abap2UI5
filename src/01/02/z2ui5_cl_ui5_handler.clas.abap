@@ -208,6 +208,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       IMPORTING
         ix_error TYPE REF TO cx_root OPTIONAL.
 
+    "! Drop what only the roundtrip just answered needed - a sticky handler
+    "! outlives the request (see the method)
+    METHODS release_roundtrip.
+
     "! What the monitor receives - see z2ui5_if_ui5_monitor=>ty_s_roundtrip
     METHODS monitor_roundtrip
       IMPORTING
@@ -1029,6 +1033,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           z2ui5_cl_ui5_util_context=>db_rollback( ).
         ENDIF.
         monitor_notify( lx_error ).
+        release_roundtrip( ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1045,6 +1050,23 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " the handler may be sticky and answer the next request too - nothing of
     " this roundtrip's queues and intents may leak into it
     CLEAR mo_action->ms_next.
+    release_roundtrip( ).
+
+  ENDMETHOD.
+
+  METHOD release_roundtrip.
+
+    " A sticky handler is pinned to the session and outlives the request:
+    " what only this roundtrip needed - the request body with its deltas,
+    " the response text and structure (view XML and model JSON) and the
+    " snapshot of every bound value - stayed in the roll area until the
+    " next request or the session timeout. The monitor has read them by
+    " now, and the next roundtrip sets every one of them anew
+    CLEAR mv_request_json.
+    CLEAR mv_response.
+    CLEAR ms_response.
+    CLEAR mt_model_before.
+    CLEAR mv_model_before_taken.
 
   ENDMETHOD.
 
@@ -1474,8 +1496,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " a sticky session skips the draft save, but the lifecycle latch must
       " not be skipped with it - db_save is otherwise the only place that
       " sets it, and without it every event roundtrip of a sticky app reads
-      " check_on_init( ) = true and re-runs its init block
+      " check_on_init( ) = true and re-runs its init block. The same holds
+      " for z2ui5_if_app~id_draft: db_save is the other place that makes it
+      " follow ms_draft-id, which is minted anew on every roundtrip, and a
+      " sticky app read the id of its first start for the rest of the
+      " session - one the response, client->get( )-s_draft-id and the
+      " frontend no longer name
       mo_action->mo_app->mv_check_initialized = abap_true.
+      mo_action->mo_app->app_refresh_draft_id( ).
     ENDIF.
 
   ENDMETHOD.

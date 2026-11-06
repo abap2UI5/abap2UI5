@@ -1097,6 +1097,8 @@ CLASS ltcl_01_dissolve DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS interface_ref_followed   FOR TESTING RAISING cx_static_check.
     " a refresh rebuilds the rows and keeps what a bind wrote on them
     METHODS refresh_keeps_bindings   FOR TESTING RAISING cx_static_check.
+    " ... and the window of a _bind_tab( ) table with its sort and filter
+    METHODS refresh_keeps_window     FOR TESTING RAISING cx_static_check.
     " a refresh finds an object that was initial at the first dissolve
     METHODS refresh_finds_late_obj   FOR TESTING RAISING cx_static_check.
     " a refresh drops the rows of an object that is gone
@@ -1324,6 +1326,34 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lr_after->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = row( `MV_STRING` )-check_json ).
+
+  ENDMETHOD.
+
+  METHOD refresh_keeps_window.
+
+    DATA(lr_attri) = bind( REF #( mo_app->mt_std ) ).
+    lr_attri->window_size         = 100.
+    lr_attri->window_count        = 200.
+    lr_attri->t_window_sort       = VALUE #( ( path = `COL1` descending = abap_true ) ).
+    lr_attri->t_window_sort_set   = lr_attri->t_window_sort.
+    lr_attri->t_window_filter     = VALUE #( ( group = 1 path = `COL1` operator = `EQ` value1 = `A` ) ).
+    lr_attri->t_window_filter_set = lr_attri->t_window_filter.
+
+    mo_model->main_attri_refresh( ).
+
+    DATA(lr_after) = row_ref( `MT_STD` ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = lr_after->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = lr_after->window_count ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lr_after->t_window_sort ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lr_after->t_window_sort_set ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lr_after->t_window_filter ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lr_after->t_window_filter_set ) ).
 
   ENDMETHOD.
 

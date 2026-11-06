@@ -275,6 +275,25 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = ls_attri-window_count ).
     cl_abap_unit_assert=>assert_initial( ls_attri-t_window_sort ).
 
+    " a count from the browser that is no number, has a blank inside or is
+    " past the integer range is one window - it raised out of event_apply,
+    " which runs outside every TRY, as a 500
+    LOOP AT VALUE string_table( ( `1 0` ) ( `99999999999` ) ( `-5` ) ( `abc` ) ( ` ` ) ) INTO DATA(lv_count).
+      z2ui5_cl_ui5_srv_window=>event_apply( t_arg = VALUE #( ( `/MT_ROWS` ) ( lv_count ) )
+                                            attri = lr_attri ).
+      ls_attri = lr_attri->*[ name = `MT_ROWS` ].
+      cl_abap_unit_assert=>assert_equals( exp = 50
+                                          act = ls_attri-window_count
+                                          msg = lv_count ).
+    ENDLOOP.
+
+    " surrounding blanks are not part of the number
+    z2ui5_cl_ui5_srv_window=>event_apply( t_arg = VALUE #( ( `/MT_ROWS` ) ( ` 200 ` ) )
+                                          attri = lr_attri ).
+    ls_attri = lr_attri->*[ name = `MT_ROWS` ].
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_attri-window_count ).
+
   ENDMETHOD.
 
   METHOD event_apply_unknown.
