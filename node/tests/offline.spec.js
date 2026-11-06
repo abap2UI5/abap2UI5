@@ -21,10 +21,14 @@ function memoryStorage({ broken = false } = {}) {
       data.set(k, String(v));
     },
     removeItem: (k) => data.delete(k),
+    get length() {
+      return data.size;
+    },
+    key: (i) => [...data.keys()][i] ?? null,
   };
 }
 
-function load(storage = memoryStorage()) {
+function load(storage = memoryStorage(), url = "/sap/bc/z2ui5") {
   const listeners = [];
   const window = {
     localStorage: storage,
@@ -39,7 +43,7 @@ function load(storage = memoryStorage()) {
     deps: { "z2ui5/core/Lib": { logError: (m) => errors.push(m) } },
     sandbox: { window },
   });
-  const ctx = specContext({ url: "/sap/bc/z2ui5" });
+  const ctx = specContext({ url });
   return { Offline, ctx, storage, listeners, errors };
 }
 
@@ -88,4 +92,31 @@ test("one online listener per component, gone with the teardown, the queue kept"
   expect(listeners).toHaveLength(0);
   expect(Offline.canQueue(ctx, body("SAVE"))).toBe(false);
   expect(storage.data.size).toBe(1);
+});
+
+test("the key is the endpoint, not the fragment the hash routing rewrites", () => {
+  const storage = memoryStorage();
+  const first = load(storage, "https://h/sap/bc/z2ui5?sap-client=100");
+  first.Offline.queue(first.ctx, body("SAVE"));
+  // reloaded after the router wrote the app route into the fragment
+  const reloaded = load(storage, "https://h/sap/bc/z2ui5?sap-client=100#/app/ZAPP/D2");
+  expect(reloaded.Offline.pending(reloaded.ctx)).toBe(1);
+  expect([...storage.data.keys()]).toEqual(["z2ui5-offline:https://h/sap/bc/z2ui5?sap-client=100"]);
+});
+
+test("entries kept under a fragment key before are taken over once", () => {
+  const storage = memoryStorage();
+  storage.setItem("z2ui5-offline:/sap/bc/z2ui5#/app/ZAPP/D1", JSON.stringify([{ at: "1", body: body("OLD") }]));
+  const { Offline, ctx } = load(storage);
+  Offline.queue(ctx, body("NEW"));
+  expect(Offline.take(ctx).map((e) => e.body.S_FRONT.EVENT)).toEqual(["OLD", "NEW"]);
+  expect(storage.data.size).toBe(0);
+});
+
+test("a context without an endpoint keeps nothing and reads nothing", () => {
+  const storage = memoryStorage();
+  const { Offline, ctx } = load(storage, "");
+  expect(Offline.queue(ctx, body("SAVE"))).toBe(0);
+  expect(Offline.pending(ctx)).toBe(0);
+  expect(storage.data.size).toBe(0);
 });

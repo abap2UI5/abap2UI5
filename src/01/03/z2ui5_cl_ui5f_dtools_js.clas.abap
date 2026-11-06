@@ -273,9 +273,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      async onReportBug(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const source = await AbapSource.fetchSource(this.ctx);` && |\n| &&
+             `        const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
+             `        const source = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.showStatus(oModel, Report.copyMarkdown(this.ctx, source));` && |\n| &&
+             `        const message = await Report.copyMarkdown(this.ctx, source);` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        this.showStatus(oModel, message);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onExport() {` && |\n| &&
@@ -289,7 +292,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const data = oSource.getModel().getData();` && |\n| &&
              `        let text = data.value || "";` && |\n| &&
              `        if (data.isSourceView) {` && |\n| &&
-             `          text = await AbapSource.fetchSource(this.ctx);` && |\n| &&
+             `          const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
+             `          text = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
              `          if (Lib.isDestroyed(oSource)) return;` && |\n| &&
              `        }` && |\n| &&
              `        Lib.copyToClipboard(text);` && |\n| &&
@@ -420,12 +424,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      backendXml(tabKey) {` && |\n| &&
              `        const current = Tabs.render(this.ctx, tabKey);` && |\n| &&
              `        const record = this._appliedXml?.[tabKey];` && |\n| &&
-             `        if (!record) return current;` && |\n| &&
+             `        if (!record) return current;` && |\n|.
+    result = result &&
              `        if (record.applied !== current) {` && |\n| &&
              `          delete this._appliedXml[tabKey];` && |\n| &&
              `          return current;` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `        return record.original;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

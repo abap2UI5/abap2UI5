@@ -376,11 +376,18 @@ sap.ui.define(
 
       // The most common reason these tools are opened: the whole session
       // state as a GitHub issue body, on the clipboard, in one press.
+      // The copy happens inside the press when the class source is already
+      // in hand (the source view and an earlier press warm it): after an
+      // await on the network the browser may refuse the clipboard, and the
+      // message then says so instead of "copied".
       async onReportBug(oEvent) {
         const oModel = oEvent.getSource().getModel();
-        const source = await AbapSource.fetchSource(this.ctx);
+        const cached = AbapSource.cachedSource?.(this.ctx);
+        const source = cached ?? (await AbapSource.fetchSource(this.ctx));
         if (Lib.isDestroyed(this)) return;
-        this.showStatus(oModel, Report.copyMarkdown(this.ctx, source));
+        const message = await Report.copyMarkdown(this.ctx, source);
+        if (Lib.isDestroyed(this)) return;
+        this.showStatus(oModel, message);
       },
 
       async onExport() {
@@ -407,7 +414,8 @@ sap.ui.define(
           // text the way Report a Bug and Export take it; the fetch is
           // cached and the view warmed it on arrival, so this is normally
           // already in hand.
-          text = await AbapSource.fetchSource(this.ctx);
+          const cached = AbapSource.cachedSource?.(this.ctx);
+          text = cached ?? (await AbapSource.fetchSource(this.ctx));
           if (Lib.isDestroyed(oSource)) return;
         }
         Lib.copyToClipboard(text);

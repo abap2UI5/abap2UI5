@@ -116,8 +116,14 @@ sap.ui.define(
         if (!frame) return;
         // srcdoc loads asynchronously: the document there now is the empty
         // initial one, the content's arrives with load - wire both, the
-        // listeners go with whichever document they were put on
-        frame.addEventListener("load", () => this._wire(frame));
+        // listeners go with whichever document they were put on. The load
+        // listener goes on the FRAME once: the patching renderer keeps the
+        // <iframe> element across renders, and a listener per render piled
+        // up for the life of the view (each one closing over the control)
+        if (!wired.has(frame)) {
+          wired.add(frame);
+          frame.addEventListener("load", () => this._wire(frame));
+        }
         this._wire(frame);
       },
 

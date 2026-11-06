@@ -86,6 +86,12 @@ function loadControlCall(sandbox, layout = "1.120") {
     whenRendered: (_control, _owner, fn) => fn(),
     getElementById: (sId) => dialogs[sId] || null,
     isControllerAlive: () => controllerAlive,
+    // the shipped helper with no roundtrip in flight: eB at once, nothing
+    // for a controller that is gone
+    dispatchWhenIdle: (oController, args) => {
+      if (!controllerAlive) return;
+      oController.eB(...args);
+    },
   };
   // ViewSlots.resolveById maps a control id to its element for the
   // dependentOn option. Only "knownId" resolves here.

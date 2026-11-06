@@ -92,7 +92,10 @@ CLASS z2ui5_cl_ui5f_htmlfrm_js IMPLEMENTATION.
              `        const frame = this.getDomRef();` && |\n| &&
              `        if (!frame) return;` && |\n| &&
              `` && |\n| &&
-             `        frame.addEventListener("load", () => this._wire(frame));` && |\n| &&
+             `        if (!wired.has(frame)) {` && |\n| &&
+             `          wired.add(frame);` && |\n| &&
+             `          frame.addEventListener("load", () => this._wire(frame));` && |\n| &&
+             `        }` && |\n| &&
              `        this._wire(frame);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

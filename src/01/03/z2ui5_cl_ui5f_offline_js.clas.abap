@@ -30,15 +30,50 @@ CLASS z2ui5_cl_ui5f_offline_js IMPLEMENTATION.
              `` && |\n| &&
              `  const PREFIX = "z2ui5-offline:";` && |\n| &&
              `` && |\n| &&
+             `  function endpoint(ctx) {` && |\n| &&
+             `    const url = ctx.state.url || "";` && |\n| &&
+             `    const at = url.indexOf("#");` && |\n| &&
+             `    return at < 0 ? url : url.slice(0, at);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function storageKey(ctx) {` && |\n| &&
-             `    return PREFIX + (ctx.state.url || "");` && |\n| &&
+             `    const base = endpoint(ctx);` && |\n| &&
+             `    return base ? PREFIX + base : "";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function adoptFragmentKeys(storage, key) {` && |\n| &&
+             `    const found = [];` && |\n| &&
+             `    for (let i = storage.length - 1; i >= 0; i--) {` && |\n| &&
+             `      const k = storage.key(i);` && |\n| &&
+             `      if (k && k.startsWith(key + "#")) found.push(k);` && |\n| &&
+             `    }` && |\n| &&
+             `    let adopted = [];` && |\n| &&
+             `    for (const k of found.sort()) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const list = JSON.parse(storage.getItem(k) || "[]");` && |\n| &&
+             `        if (Array.isArray(list)) adopted = adopted.concat(list);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError("offline queue: an old entry could not be read", e);` && |\n| &&
+             `      }` && |\n| &&
+             `      storage.removeItem(k);` && |\n| &&
+             `    }` && |\n| &&
+             `    return adopted;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function read(ctx) {` && |\n| &&
+             `    const key = storageKey(ctx);` && |\n| &&
+             `    if (!key) return [];` && |\n| &&
              `    try {` && |\n| &&
-             `      const raw = window.localStorage.getItem(storageKey(ctx));` && |\n| &&
-             `      const list = raw ? JSON.parse(raw) : [];` && |\n| &&
-             `      return Array.isArray(list) ? list : [];` && |\n| &&
+             `      const storage = window.localStorage;` && |\n| &&
+             `      const raw = storage.getItem(key);` && |\n| &&
+             `      const parsed = raw ? JSON.parse(raw) : [];` && |\n| &&
+             `      const list = Array.isArray(parsed) ? parsed : [];` && |\n| &&
+             `      if (typeof storage.key !== "function") return list;` && |\n| &&
+             `      const adopted = adoptFragmentKeys(storage, key);` && |\n| &&
+             `      if (!adopted.length) return list;` && |\n| &&
+             `      const merged = adopted.concat(list);` && |\n| &&
+             `      storage.setItem(key, JSON.stringify(merged));` && |\n| &&
+             `      return merged;` && |\n| &&
              `    } catch (e) {` && |\n| &&
              `      Lib.logError("offline queue: could not be read", e);` && |\n| &&
              `      return [];` && |\n| &&
@@ -46,11 +81,13 @@ CLASS z2ui5_cl_ui5f_offline_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function write(ctx, list) {` && |\n| &&
+             `    const key = storageKey(ctx);` && |\n| &&
+             `    if (!key) return false;` && |\n| &&
              `    try {` && |\n| &&
              `      if (list.length) {` && |\n| &&
-             `        window.localStorage.setItem(storageKey(ctx), JSON.stringify(list));` && |\n| &&
+             `        window.localStorage.setItem(key, JSON.stringify(list));` && |\n| &&
              `      } else {` && |\n| &&
-             `        window.localStorage.removeItem(storageKey(ctx));` && |\n| &&
+             `        window.localStorage.removeItem(key);` && |\n| &&
              `      }` && |\n| &&
              `      return true;` && |\n| &&
              `    } catch (e) {` && |\n| &&

@@ -1393,6 +1393,27 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(busy).toEqual(["show(0)", "show(0)", "show(0)"]);
   });
 
+  test("a table's window request and a keystroke kept meanwhile do not overwrite each other", async () => {
+    const { ctrl, state, roundtrips } = loadForQueue();
+    const WINDOW = ["___ZZZ_WIN", false, false, false, true, true];
+    state.isBusy = true;
+
+    ctrl.eB(QUEUED, "abc");
+    ctrl.eB(WINDOW, "/MT_ROWS", "200");
+
+    expect(state.oQueuedEvent.args).toEqual([QUEUED, "abc"]);
+    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
+
+    // the response lands: the keystroke goes out first, the window request
+    // meets the busy guard of that roundtrip and is kept again in its slot
+    state.isBusy = false;
+    ctrl._dispatchQueuedEvent();
+    expect(roundtrips).toHaveLength(1);
+    expect(roundtrips[0].ARGUMENTS).toEqual([QUEUED, "abc"]);
+    expect(state.oQueuedEvent).toBeNull();
+    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
+  });
+
   test("a wire without the flag is dropped as before", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
     state.isBusy = true;

@@ -63,6 +63,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // serialised MAIN build chain, the X-CSRF-Token of a layer in front
       server: {
         requestSeq: 0,
+        // the requestSeq of the last Back/Forward restore (Server)
+        restoreSeq: 0,
         inflight: new Set(),
         viewBuild: null,
         csrfToken: "",

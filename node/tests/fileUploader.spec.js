@@ -80,6 +80,7 @@ function load() {
     "enabled",
     "value",
     "placeholder",
+    "maximumFileSize",
   ]) {
     const setter = `set${name[0].toUpperCase()}${name.slice(1)}`;
     InnerUploader.prototype[setter] = function (v) {
@@ -128,6 +129,7 @@ function load() {
       multiple: false,
       visible: true,
       checkDirectUpload: false,
+      maximumFileSize: 0,
       ...props,
     };
     inst.getProperty = (k) => inst._props[k];
@@ -285,11 +287,11 @@ test("with multiple, every selected file is read - one after the other", () => {
 
   // the roundtrip lands: the next file follows
   state.isBusy = false;
-  for (const fn of state.onAfterRendering) fn();
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
   readers[1].finish();
   expect(inst._props.value).toBe("data:mock;base64,b.txt");
   state.isBusy = false;
-  for (const fn of state.onAfterRendering) fn();
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
   readers[2].finish();
   expect(inst._props.value).toBe("data:mock;base64,c.txt");
   expect(inst.uploads).toBe(3);
@@ -484,4 +486,30 @@ test("a second uploadComplete does not re-read the same file", () => {
 
   expect(readers).toHaveLength(1);
   expect(inst.uploads).toBe(1);
+});
+
+test("a file over maximumFileSize is not read - it is reported, the others go on", () => {
+  const { makeInstance, render, readers } = load();
+  const inst = makeInstance({ multiple: true, maximumFileSize: 1 });
+  const exceeded = [];
+  inst.fireFileSizeExceed = (p) => exceeded.push(p);
+  render(inst);
+  // the limit reaches the inner control too, in its own unit (MB)
+  expect(inst.oFileUploader.settings.maximumFileSize).toBe(1);
+
+  const files = [
+    { name: "big.mp4", size: 400 * 1024 * 1024 },
+    { name: "small.txt", size: 10 },
+  ];
+  inst.oFileUploader.settings.value = "big.mp4";
+  inst.oFileUploader.settings.change({
+    getParameter: (name) => (name === "files" ? files : null),
+    getSource: () => inst.oFileUploader,
+  });
+  inst.oUploadButton.settings.press();
+
+  expect(exceeded).toEqual([{ fileName: "big.mp4", fileSize: 400 }]);
+  expect(readers).toHaveLength(1);
+  readers[0].finish();
+  expect(inst._props.value).toBe("data:mock;base64,small.txt");
 });

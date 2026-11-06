@@ -290,8 +290,16 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;` && |\n| &&
+             `` && |\n| &&
              `    function attributeStatements(out, pad, name, value) {` && |\n| &&
              `      const plain = isPlainName(name);` && |\n| &&
+             `      if (typeof value === "string" && SECRET_NAME.test(name)) {` && |\n| &&
+             `        out.push(` && |\n| &&
+             `          ``${pad}" ${name}: the value typed is not exported - put a test value here``,` && |\n| &&
+             `        );` && |\n| &&
+             `        value = "***";` && |\n| &&
+             `      }` && |\n| &&
              `      if (typeof value === "string" && plain) {` && |\n| &&
              `        const lit = literal(value, pad.length + 24);` && |\n| &&
              `        if (lit !== null) {` && |\n| &&
@@ -416,7 +424,8 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      for (const id of ids) {` && |\n| &&
              `        out.push(` && |\n| &&
              `          ...assertTrue(` && |\n| &&
-             `            pad,` && |\n| &&
+             `            pad,` && |\n|.
+    result = result &&
              `            ``sim->check_id_exists( ${literal(id, 0) || "````"} )``,` && |\n| &&
              `          ),` && |\n| &&
              `        );` && |\n| &&
@@ -424,8 +433,7 @@ CLASS z2ui5_cl_ui5f_journey_js IMPLEMENTATION.
              `      if (!ids.length) {` && |\n| &&
              `        for (const event of events) {` && |\n| &&
              `          out.push(` && |\n| &&
-             `            ...assertTrue(` && |\n|.
-    result = result &&
+             `            ...assertTrue(` && |\n| &&
              `              pad,` && |\n| &&
              `              ``sim->check_event_exists( ${literal(event, 0) || "````"} )``,` && |\n| &&
              `            ),` && |\n| &&

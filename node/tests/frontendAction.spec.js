@@ -94,7 +94,7 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
         fn();
         return () => {};
       }
-      const waiting = (AppState.state.onAfterRendering ??= []);
+      const waiting = (AppState.state.onRoundtripEnd ??= []);
       const once = () => {
         waiting.splice(waiting.indexOf(once), 1);
         fn();
@@ -104,6 +104,19 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
         const i = waiting.indexOf(once);
         if (i >= 0) waiting.splice(i, 1);
       };
+    },
+    // the shipped helper: eB right away when idle, else once the roundtrip
+    // in flight ended (afterRoundtrip above), one macrotask later
+    dispatchWhenIdle(oController, args) {
+      const fire = () => {
+        if (!Lib.isControllerAlive(oController)) return;
+        if (oController.ctx?.state?.isBusy) {
+          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
+          return;
+        }
+        oController.eB(...args);
+      };
+      fire();
     },
     cancelTimer: (handle) => {
       if (typeof handle === "function") handle();
@@ -348,7 +361,7 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   // click): eB's busy guard dropped the answer - it waits for that roundtrip
   test("a box answered during another roundtrip is sent once it lands", async () => {
     const { FrontendAction, calls, AppState } = load();
-    AppState.state.onAfterRendering = [];
+    AppState.state.onRoundtripEnd = [];
     const ebCalls = [];
     const oController = {
       ctx: { state: AppState.state },
@@ -368,7 +381,7 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(ebCalls).toEqual([]);
 
     AppState.state.isBusy = false;
-    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    for (const fn of [...AppState.state.onRoundtripEnd]) fn();
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
@@ -3061,7 +3074,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       },
     });
     AppState.state.timers = {};
-    AppState.state.onAfterRendering = [];
+    AppState.state.onRoundtripEnd = [];
     const ebCalls = [];
     const oController = { eB: (a) => ebCalls.push(a) };
 
@@ -3072,13 +3085,13 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(ebCalls).toEqual([]);
     expect(timers).toHaveLength(1);
     expect(typeof AppState.state.timers.START_TIMER).toBe("function");
-    expect(AppState.state.onAfterRendering).toHaveLength(1);
+    expect(AppState.state.onRoundtripEnd).toHaveLength(1);
 
     // the roundtrip landed: the tick fires on the next macrotask, as a
     // background event
     AppState.state.isBusy = false;
-    for (const fn of [...AppState.state.onAfterRendering]) fn();
-    expect(AppState.state.onAfterRendering).toEqual([]);
+    for (const fn of [...AppState.state.onRoundtripEnd]) fn();
+    expect(AppState.state.onRoundtripEnd).toEqual([]);
     expect(timers).toHaveLength(2);
     expect(timers[1].ms).toBe(0);
     expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
@@ -3099,18 +3112,18 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       },
     });
     AppState.state.timers = {};
-    AppState.state.onAfterRendering = [];
+    AppState.state.onRoundtripEnd = [];
     const oController = { eB: () => {} };
 
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
     AppState.state.isBusy = true;
     timers[0].fn();
-    expect(AppState.state.onAfterRendering).toHaveLength(1);
+    expect(AppState.state.onRoundtripEnd).toHaveLength(1);
 
     // the slot holds a cancel function, and a replacing START_TIMER runs it:
     // the old wait must not fire the old tick on top of the new timer
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "500"]);
-    expect(AppState.state.onAfterRendering).toEqual([]);
+    expect(AppState.state.onRoundtripEnd).toEqual([]);
     expect(timers).toHaveLength(2);
     expect(timers[1].ms).toBe(500);
   });
@@ -3134,7 +3147,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       },
     });
     loaded.AppState.state.timers = {};
-    loaded.AppState.state.onAfterRendering = [];
+    loaded.AppState.state.onRoundtripEnd = [];
     const ebCalls = [];
     const oController = { eB: (a) => ebCalls.push(a) };
     return { ...loaded, timers, ebCalls, oController };
@@ -3190,7 +3203,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
 
     // the roundtrip landed: the waited tick goes out silent, not plain
     AppState.state.isBusy = false;
-    for (const fn of [...AppState.state.onAfterRendering]) fn();
+    for (const fn of [...AppState.state.onRoundtripEnd]) fn();
     timers[1].fn();
     expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
   });

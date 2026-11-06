@@ -92,6 +92,11 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `    return source;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function cachedSource(ctx) {` && |\n| &&
+             `    const name = appName(ctx);` && |\n| &&
+             `    return name && cache?.app === name ? cache.source : null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    appName,` && |\n| &&
              `    sourceUrl,` && |\n| &&
@@ -99,6 +104,7 @@ CLASS z2ui5_cl_ui5f_abapsrc_js IMPLEMENTATION.
              `    openInAdt,` && |\n| &&
              `    iframeHtml,` && |\n| &&
              `    fetchSource,` && |\n| &&
+             `    cachedSource,` && |\n| &&
              `` && |\n| &&
              `    _setCache: (value) => {` && |\n| &&
              `      cache = value;` && |\n| &&

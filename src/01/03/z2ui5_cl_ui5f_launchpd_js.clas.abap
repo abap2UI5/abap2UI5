@@ -111,17 +111,8 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      return { semanticObject: m[1], action: m[2], params };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function dispatchWhenIdle(oController, eventArgs) {` && |\n| &&
-             `      const fire = () => {` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `        if (oController.ctx?.state?.isBusy) {` && |\n| &&
-             `          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        oController.eB(...eventArgs);` && |\n| &&
-             `      };` && |\n| &&
-             `      fire();` && |\n| &&
-             `    }` && |\n| &&
+             `    const dispatchWhenIdle = (oController, eventArgs) =>` && |\n| &&
+             `      Lib.dispatchWhenIdle(oController, eventArgs);` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavGetLinks(oController, args) {` && |\n| &&
              `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&

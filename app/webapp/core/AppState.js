@@ -33,6 +33,13 @@
 //                     when the endpoint says there is one (nodePath below)
 //                     (Component.init)
 //   cccResourceRoot   same for the customer frontend-extension BSP
+//   endpointPrefix    what the endpoint puts in front of a path of the
+//                     system: the proxy's prefix, and the endpoint's origin
+//                     when it is not the page's ("" when it is the page's
+//                     own path, null when nothing can be said - see
+//                     Component.resourceRootPrefix). The resource roots are
+//                     rebased with it, and so is the APC path of a
+//                     Websocket control
 //                     ("../z2ui5_ccc/") (Component.init)
 //   nodePath          the path the service node has on the SYSTEM
 //                     (/sap/bc/z2ui5), as the z2ui5/embed module of
@@ -141,6 +148,12 @@
 //                     one slot, last wins. Dispatched by
 //                     View1._dispatchQueuedEvent once the roundtrip has
 //                     landed, dropped by Server.reset / responseError
+//   oQueuedWindow     the same for the window requests of a windowed table
+//                     (WindowModel, sent through actions/Slots): a slot of
+//                     their own, so a table asking for its next rows while
+//                     a response renders and a live-search keystroke kept
+//                     meanwhile no longer overwrite each other, last wins
+//                     per slot. Dispatched right after oQueuedEvent
 //   oSentModel        the JSON model whose edited-path set the in-flight
 //                     request carried; its own _z2ui5ChangedPaths is cleared
 //                     once that request wins (Server), so a stale response
@@ -170,7 +183,7 @@
 //   tableStates       filters/sorters per tableId across rebuilds (UITableExt)
 //   lastError         the last fatal error shown by ErrorView (title/text/
 //                     onRetry), so a details view can re-show it
-//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
+//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering, onRoundtripEnd,
 //   onBeforeEventFrontend, onErrorDetails  callback arrays, see
 //                     Lib.registerCallback. onErrorDetails is the extension
 //                     point behind the fatal-error overlay's Details action:
@@ -193,6 +206,7 @@ sap.ui.define([], () => {
       oConfig: {},
       ccResourceRoot: null,
       cccResourceRoot: null,
+      endpointPrefix: null,
       nodePath: null,
       embedded: false,
       ownsHash: true,
@@ -230,6 +244,7 @@ sap.ui.define([], () => {
       contextId: null,
       isBusy: false,
       oQueuedEvent: null,
+      oQueuedWindow: null,
       oSentModel: null,
       lastRequestBytes: null,
       lastRoundtripMs: null,
@@ -319,6 +334,11 @@ sap.ui.define([], () => {
       onBeforeRoundtrip: [],
       onAfterRoundtrip: [],
       onAfterRendering: [],
+      // the one-shot waiters of Lib.afterRoundtrip: run when a roundtrip
+      // ends, whether its response rendered (View1) or its event was kept
+      // offline (Server._keepOffline) - apart from onAfterRendering, whose
+      // hooks (the recorder, the companion controls) belong to a render
+      onRoundtripEnd: [],
       onBeforeEventFrontend: [],
       onErrorDetails: [],
     };
@@ -338,6 +358,7 @@ sap.ui.define([], () => {
     "oConfig",
     "ccResourceRoot",
     "cccResourceRoot",
+    "endpointPrefix",
     "nodePath",
     "embedded",
     "ownsHash",

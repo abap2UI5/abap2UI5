@@ -42,6 +42,8 @@ CLASS z2ui5_cl_ui5f_context_js IMPLEMENTATION.
              `` && |\n| &&
              `      server: {` && |\n| &&
              `        requestSeq: 0,` && |\n| &&
+             `` && |\n| &&
+             `        restoreSeq: 0,` && |\n| &&
              `        inflight: new Set(),` && |\n| &&
              `        viewBuild: null,` && |\n| &&
              `        csrfToken: "",` && |\n| &&

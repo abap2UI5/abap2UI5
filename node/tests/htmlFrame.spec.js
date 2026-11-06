@@ -197,3 +197,20 @@ test("each document of the frame gets the listeners once; an unreachable one is 
   inst._wire(sealed);
   expect(errors.join()).toContain("out of reach");
 });
+
+test("the frame's own load listener is added once, however often it renders", () => {
+  const { makeInstance } = load();
+  const inst = makeInstance();
+  const loads = [];
+  const frame = {
+    contentDocument: { addEventListener: () => {} },
+    addEventListener: (type) => loads.push(type),
+  };
+  inst.getDomRef = () => frame;
+
+  inst.onAfterRendering();
+  inst.onAfterRendering();
+  inst.onAfterRendering();
+
+  expect(loads).toEqual(["load"]);
+});

@@ -250,19 +250,6 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `      return load;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function loadLibraries(names) {` && |\n| &&
-             `      const wanted = (names || []).filter(` && |\n| &&
-             `        (name) => LIBRARY_NAME.test(name) && !libraryLoads.get(name),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!wanted.length) return;` && |\n| &&
-             `      const loaded = loadedLibraryNames();` && |\n| &&
-             `      await Promise.all(` && |\n| &&
-             `        wanted` && |\n| &&
-             `          .filter((name) => ![...loaded].some((lib) => isUnder(name, lib)))` && |\n| &&
-             `          .map(loadLibrary),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    async function loadViewLibraries(xml) {` && |\n| &&
              `      const namespaces = viewNamespaces(xml).filter(` && |\n| &&
              `        (namespace) => !namespaceLibrary.has(namespace),` && |\n| &&
@@ -361,7 +348,6 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `      fragmentControlModules,` && |\n| &&
              `      preloadFragmentModules,` && |\n| &&
              `      viewNamespaces,` && |\n| &&
-             `      loadLibraries,` && |\n| &&
              `      loadViewLibraries,` && |\n| &&
              `      ownClass,` && |\n| &&
              `      dropClassGlobals,` && |\n| &&

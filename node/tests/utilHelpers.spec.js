@@ -48,41 +48,41 @@ test.describe("isControllerAlive (slot-controller liveness)", () => {
 
 test.describe("afterRoundtrip (one value per roundtrip)", () => {
   test("runs right away when no roundtrip is in flight", () => {
-    const state = { isBusy: false, onAfterRendering: [] };
+    const state = { isBusy: false, onRoundtripEnd: [] };
     const { Lib } = loadLib({ state });
     let ran = 0;
     Lib.afterRoundtrip({}, () => ran++);
     expect(ran).toBe(1);
-    expect(state.onAfterRendering).toEqual([]);
+    expect(state.onRoundtripEnd).toEqual([]);
   });
 
   test("waits for the roundtrip to land, once, and unhooks itself", () => {
-    const state = { isBusy: true, onAfterRendering: [] };
+    const state = { isBusy: true, onRoundtripEnd: [] };
     const { Lib } = loadLib({ state });
     let ran = 0;
     Lib.afterRoundtrip({}, () => ran++);
     expect(ran).toBe(0);
-    expect(state.onAfterRendering).toHaveLength(1);
+    expect(state.onRoundtripEnd).toHaveLength(1);
     // the roundtrip lands (View1 runs the hooks)
-    for (const fn of state.onAfterRendering) fn();
+    for (const fn of state.onRoundtripEnd) fn();
     expect(ran).toBe(1);
-    expect(state.onAfterRendering).toEqual([]);
+    expect(state.onRoundtripEnd).toEqual([]);
   });
 
   test("a destroyed owner is not called, and the wait can be cancelled", () => {
-    const state = { isBusy: true, onAfterRendering: [] };
+    const state = { isBusy: true, onRoundtripEnd: [] };
     const { Lib } = loadLib({ state });
     let ran = 0;
     const owner = { bIsDestroyed: false };
     Lib.afterRoundtrip(owner, () => ran++);
     owner.bIsDestroyed = true;
-    for (const fn of state.onAfterRendering) fn();
+    for (const fn of state.onRoundtripEnd) fn();
     expect(ran).toBe(0);
-    expect(state.onAfterRendering).toEqual([]);
+    expect(state.onRoundtripEnd).toEqual([]);
 
     const cancel = Lib.afterRoundtrip({}, () => ran++);
     cancel();
-    expect(state.onAfterRendering).toEqual([]);
+    expect(state.onRoundtripEnd).toEqual([]);
   });
 });
 
@@ -757,14 +757,6 @@ test.describe("loadViewLibraries (library preloads of a view)", () => {
   test("a bare bootstrap without a loader API does nothing and never throws", async () => {
     const { Env } = loadEnv({ sap: { ui: { require: () => undefined } } });
     await Env.loadViewLibraries(VIEW);
-    await Env.loadLibraries(["sap.ui.table"]);
-  });
-
-  test("loadLibraries takes library names as they are", async () => {
-    const ui = modern();
-    const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
-    await Env.loadLibraries(["sap.ui.table", "sap.m", "not a name/", "sap.uxap"]);
-    expect(ui.loads.sort()).toEqual(["sap.ui.table", "sap.uxap"]);
   });
 });
 

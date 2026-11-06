@@ -67,17 +67,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (!apply()) requestAnimationFrame(apply);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function dispatchWhenIdle(oController, args) {` && |\n| &&
-             `      const fire = () => {` && |\n| &&
-             `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
-             `        if (oController.ctx?.state?.isBusy) {` && |\n| &&
-             `          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        oController.eB(...args);` && |\n| &&
-             `      };` && |\n| &&
-             `      fire();` && |\n| &&
-             `    }` && |\n| &&
+             `    const dispatchWhenIdle = (oController, args) =>` && |\n| &&
+             `      Lib.dispatchWhenIdle(oController, args);` && |\n| &&
              `` && |\n| &&
              `    function showToast(sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
@@ -424,8 +415,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
              `          return Number(raw);` && |\n| &&
-             `        case "bool":` && |\n|.
-    result = result &&
+             `        case "bool":` && |\n| &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
              `          return resolveControl(raw, view, ctx);` && |\n| &&
@@ -434,7 +424,8 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          if (page && typeof page.getId === "function") return page.getId();` && |\n| &&
              `` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n| &&
+             `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `          return raw;` && |\n| &&
              `        }` && |\n| &&

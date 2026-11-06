@@ -149,12 +149,23 @@ sap.ui.define(
         clearTimeout(this._reconnectId);
         this._disconnect();
       },
+      // A path of the system, like the resource roots: rebased on what the
+      // endpoint puts in front of one (state.endpointPrefix - the endpoint's
+      // origin when it is not the page's, a proxy's prefix). An embedded
+      // component talking to a backend on another origin, or behind a
+      // proxy prefix, opened the channel on the HOST page's origin and
+      // gave up after MAX_CONNECT_ATTEMPTS. Without a prefix it is the
+      // page's origin, as before; an absolute ws(s):// URL is left alone.
       _resolveUrl() {
         const path = this.getProperty("path");
         if (!path) return "";
         if (WS_URL.test(path)) return path;
+        const prefix = Context.of(this)?.state.endpointPrefix || "";
+        const base = HTTP_SCHEME.test(prefix)
+          ? prefix
+          : window.location.origin + prefix;
         // https -> wss, http -> ws
-        const origin = window.location.origin.replace(HTTP_SCHEME, "ws");
+        const origin = base.replace(HTTP_SCHEME, "ws");
         return path.charAt(0) === "/" ? origin + path : origin + "/" + path;
       },
       _connect() {
@@ -345,7 +356,7 @@ sap.ui.define(
       // Wait for the roundtrip in flight to land instead of polling for it:
       // a 50 ms retry timer used to wake the main thread up to twenty times
       // a second for the whole roundtrip. Lib.afterRoundtrip calls back
-      // from the after-rendering hooks, which View1 runs BEFORE its finally
+      // from the roundtrip-end hooks, which View1 runs BEFORE its finally
       // clears the busy flag - a synchronous fireReceived from there would
       // be dropped by eB's busy guard again - so the drain is deferred one
       // macrotask past that (setTimeout 0). With no roundtrip in flight the

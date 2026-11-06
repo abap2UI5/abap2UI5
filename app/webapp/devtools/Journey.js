@@ -385,8 +385,20 @@ sap.ui.define(
       );
     }
 
+    // An attribute whose name says it holds a secret: what the user typed
+    // into it is not written into the test class as a literal - the class
+    // is exported to be pasted into a repository or an issue. The test
+    // gets a placeholder and a line that says to put a test value there.
+    const SECRET_NAME = /(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)/i;
+
     function attributeStatements(out, pad, name, value) {
       const plain = isPlainName(name);
+      if (typeof value === "string" && SECRET_NAME.test(name)) {
+        out.push(
+          `${pad}" ${name}: the value typed is not exported - put a test value here`,
+        );
+        value = "***";
+      }
       if (typeof value === "string" && plain) {
         const lit = literal(value, pad.length + 24);
         if (lit !== null) {

@@ -378,23 +378,10 @@ sap.ui.define(
     }
 
     // Load, as preload bundles and in parallel, the libraries a view's XML
-    // names that are not loaded yet - see the block comment above. The
-    // names given explicitly (`names`, for a caller that knows them) are
-    // taken as libraries. Resolves once every load settled; never rejects.
-    /** @returns {Promise<void>} */
-    async function loadLibraries(names) {
-      const wanted = (names || []).filter(
-        (name) => LIBRARY_NAME.test(name) && !libraryLoads.get(name),
-      );
-      if (!wanted.length) return;
-      const loaded = loadedLibraryNames();
-      await Promise.all(
-        wanted
-          .filter((name) => ![...loaded].some((lib) => isUnder(name, lib)))
-          .map(loadLibrary),
-      );
-    }
-
+    // names that are not loaded yet - see the block comment above.
+    // (A loadLibraries( names ) for a caller that knows the names sat here,
+    // exported and called by no module - removed 2026-11; loadLibrary is
+    // the one load, and this is its one caller.)
     /** @returns {Promise<void>} */
     async function loadViewLibraries(xml) {
       const namespaces = viewNamespaces(xml).filter(
@@ -541,7 +528,6 @@ sap.ui.define(
       fragmentControlModules,
       preloadFragmentModules,
       viewNamespaces,
-      loadLibraries,
       loadViewLibraries,
       ownClass,
       dropClassGlobals,

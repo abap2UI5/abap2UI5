@@ -219,15 +219,31 @@ test.describe("buildMarkdown", () => {
 test.describe("copyMarkdown", () => {
   // The one-click path from the dialog footer: an issue body on the
   // clipboard without going through the export popup first.
-  test("puts the markdown report on the clipboard and reports success", () => {
+  test("puts the markdown report on the clipboard and reports success", async () => {
     const { Report, ctx, copied } = loadReport();
-    const result = Report.copyMarkdown(ctx, "");
+    const result = await Report.copyMarkdown(ctx, "");
     expect(copied.length).toBe(1);
     expect(copied[0]).toContain("<summary>ENVIRONMENT</summary>");
     expect(result).toContain("Markdown");
   });
 
-  test("a clipboard failure is reported rather than thrown", () => {
+  test("a clipboard the browser refused is not reported as copied", async () => {
+    const { module: Report } = loadModule("devtools/Report.js", {
+      deps: {
+        "z2ui5/core/Lib": {
+          copyToClipboard: () => Promise.resolve(false),
+          logError() {},
+        },
+        "z2ui5/devtools/Recorder": {},
+        "z2ui5/devtools/Tabs": { exportTabs: () => [], exportTitle: () => "" },
+      },
+    });
+    const result = await Report.copyMarkdown(specContext(), "");
+    expect(result).not.toContain("copied");
+    expect(result).toContain("press again");
+  });
+
+  test("a clipboard failure is reported rather than thrown", async () => {
     const { module: Report } = loadModule("devtools/Report.js", {
       deps: {
         "z2ui5/core/Lib": {
@@ -240,7 +256,7 @@ test.describe("copyMarkdown", () => {
         "z2ui5/devtools/Tabs": { exportTabs: () => [], exportTitle: () => "" },
       },
     });
-    expect(Report.copyMarkdown(specContext(), "")).toContain("no clipboard");
+    expect(await Report.copyMarkdown(specContext(), "")).toContain("no clipboard");
   });
 });
 
@@ -255,5 +271,30 @@ test.describe("exportFileName", () => {
   test("falls back when the class is unknown", () => {
     const { Report } = loadReport();
     expect(Report.exportFileName("", "json")).toMatch(/^abap2ui5_.*\.json$/);
+  });
+});
+
+test.describe("redactForExport", () => {
+  test("masks the session id and every value under a key that names a secret", () => {
+    const { Report } = loadReport();
+    const text = [
+      "  sap-contextid        SID:ANON:host_ABC_00:abcdef",
+      '{ "MV_USER": "alice", "MV_PASSWORD": "hunter2", "S_TOKEN": "x.y.z", "MV_AMOUNT": 12 }',
+      '  "api_key": 12345,',
+    ].join("\n");
+    const out = Report.redactForExport(text);
+    expect(out).not.toContain("SID:ANON");
+    expect(out).toContain("sap-contextid        ***");
+    expect(out).toContain('"MV_USER": "alice"');
+    expect(out).toContain('"MV_PASSWORD": "***"');
+    expect(out).toContain('"S_TOKEN": "***"');
+    expect(out).toContain('"api_key": "***"');
+    expect(out).toContain('"MV_AMOUNT": 12');
+    expect(out).not.toContain("hunter2");
+  });
+
+  test("an empty session id stays a dash", () => {
+    const { Report } = loadReport();
+    expect(Report.redactForExport("  sap-contextid        -")).toBe("  sap-contextid        -");
   });
 });

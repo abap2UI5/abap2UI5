@@ -136,18 +136,9 @@ sap.ui.define(
     // a roundtrip in flight instead of meeting the busy guard, and a
     // controller gone in between (an app reset, an FLP re-launch) gets
     // nothing - the same as a message box's close callback
-    // (ControlCall.dispatchWhenIdle).
-    function dispatchWhenIdle(oController, eventArgs) {
-      const fire = () => {
-        if (!Lib.isControllerAlive(oController)) return;
-        if (oController.ctx?.state?.isBusy) {
-          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
-          return;
-        }
-        oController.eB(...eventArgs);
-      };
-      fire();
-    }
+    // (Lib.dispatchWhenIdle).
+    const dispatchWhenIdle = (oController, eventArgs) =>
+      Lib.dispatchWhenIdle(oController, eventArgs);
 
     // The links of a semantic object, as getLinks resolves them for the
     // user's roles - the list a Fiori elements smart link shows in its

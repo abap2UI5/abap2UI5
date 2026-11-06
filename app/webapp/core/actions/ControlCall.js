@@ -74,22 +74,11 @@ sap.ui.define(
     }
 
     // The close callback of a toast or a box fires when the USER is done -
-    // any time, also while another roundtrip is in flight (a timer poll, a
-    // click). A plain eB( ) then hit the busy guard and the event was
-    // dropped: the answer to "Delete?" never reached the backend. It waits
-    // for that roundtrip instead, the way a START_TIMER tick does
-    // (ViewOps.evStartTimer), and fires one macrotask after it.
-    function dispatchWhenIdle(oController, args) {
-      const fire = () => {
-        if (!Lib.isControllerAlive(oController)) return;
-        if (oController.ctx?.state?.isBusy) {
-          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
-          return;
-        }
-        oController.eB(...args);
-      };
-      fire();
-    }
+    // any time, also while another roundtrip is in flight; it goes through
+    // Lib.dispatchWhenIdle, which waits for that roundtrip instead of
+    // meeting the busy guard.
+    const dispatchWhenIdle = (oController, args) =>
+      Lib.dispatchWhenIdle(oController, args);
 
     function showToast(sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };

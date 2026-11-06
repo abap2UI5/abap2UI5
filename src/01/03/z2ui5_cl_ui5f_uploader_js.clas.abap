@@ -101,9 +101,20 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `            type: "boolean",` && |\n| &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
+             `` && |\n| &&
+             `          maximumFileSize: {` && |\n| &&
+             `            type: "float",` && |\n| &&
+             `            defaultValue: 0,` && |\n| &&
+             `          },` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
              `        events: {` && |\n| &&
+             `          fileSizeExceed: {` && |\n| &&
+             `            parameters: {` && |\n| &&
+             `              fileName: { type: "string" },` && |\n| &&
+             `              fileSize: { type: "float" },` && |\n| &&
+             `            },` && |\n| &&
+             `          },` && |\n| &&
              `          upload: {` && |\n| &&
              `            allowPreventDefault: true,` && |\n| &&
              `            parameters: {},` && |\n| &&
@@ -111,7 +122,17 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _readFiles(files) {` && |\n| &&
+             `      _readFiles(selected) {` && |\n| &&
+             `        const files = Lib.withinFileSize(` && |\n| &&
+             `          selected,` && |\n| &&
+             `          this.getProperty("maximumFileSize"),` && |\n| &&
+             `          (file) =>` && |\n| &&
+             `            this.fireFileSizeExceed({` && |\n| &&
+             `              fileName: file.name,` && |\n| &&
+             `              fileSize: file.size / (1024 * 1024),` && |\n| &&
+             `            }),` && |\n| &&
+             `        );` && |\n| &&
+             `        if (!files.length) return;` && |\n| &&
              `        if (!this._reader) {` && |\n| &&
              `          this._reader = Lib.readFilesInTurn(` && |\n| &&
              `            this,` && |\n| &&
@@ -195,6 +216,7 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `        u.setEnabled(this.getProperty("enabled"));` && |\n| &&
              `        u.setValue(this.getProperty("path"));` && |\n| &&
              `        u.setPlaceholder(this.getProperty("placeholder"));` && |\n| &&
+             `        u.setMaximumFileSize(this.getProperty("maximumFileSize") || undefined);` && |\n| &&
              `        if (this.oUploadButton) {` && |\n| &&
              `          this.oUploadButton.setText(this.getProperty("uploadButtonText"));` && |\n| &&
              `          this.oUploadButton.setEnabled(this.getProperty("path") !== "");` && |\n| &&
