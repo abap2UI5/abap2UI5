@@ -46,8 +46,7 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   METHOD model_for.
 
-    result = NEW z2ui5_cl_ui5_srv_model( attri = container->mt_attri
-                                         app   = container->mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = container->mt_attri app = container->mo_app.
 
   ENDMETHOD.
 
@@ -78,10 +77,14 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_serializer~stringify.
 
-    DATA(lo_cont) = narrow( container ).
-    DATA(lo_model) = model_for( lo_cont ).
-
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
     DATA lx_first TYPE REF TO cx_root.
+    lo_cont = narrow( container ).
+
+    lo_model = model_for( lo_cont ).
+
+
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).

@@ -17,7 +17,7 @@
 CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
-    TYPES ty_t_index TYPE STANDARD TABLE OF i WITH EMPTY KEY.
+    TYPES ty_t_index TYPE STANDARD TABLE OF i WITH DEFAULT KEY.
 
     "! the row numbers of tab in the order the browser sees them: the rows
     "! the filter lets through, sorted by the sorters. A sorter or a
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         num TYPE decfloat34,
         str TYPE string,
       END OF ty_s_key.
-    TYPES ty_t_key TYPE STANDARD TABLE OF ty_s_key WITH EMPTY KEY.
+    TYPES ty_t_key TYPE STANDARD TABLE OF ty_s_key WITH DEFAULT KEY.
 
     " one sorter with the key of every row of the table, by row number
     TYPES:
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         descending TYPE abap_bool,
         t_key      TYPE ty_t_key,
       END OF ty_s_sort_col.
-    TYPES ty_t_sort_col TYPE STANDARD TABLE OF ty_s_sort_col WITH EMPTY KEY.
+    TYPES ty_t_sort_col TYPE STANDARD TABLE OF ty_s_sort_col WITH DEFAULT KEY.
 
     " one condition, its values taken apart once for every row
     TYPES:
@@ -106,7 +106,7 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         text1    TYPE string,
         valid    TYPE abap_bool,
       END OF ty_s_cond.
-    TYPES ty_t_cond TYPE STANDARD TABLE OF ty_s_cond WITH EMPTY KEY.
+    TYPES ty_t_cond TYPE STANDARD TABLE OF ty_s_cond WITH DEFAULT KEY.
 
     CLASS-METHODS kind_of
       IMPORTING
@@ -222,10 +222,14 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE any.
 
-    DATA(lt_cond) = cond_prepare( tab      = tab
+    DATA lt_cond TYPE z2ui5_cl_ui5_srv_window=>ty_t_cond.
+      DATA lv_row LIKE sy-tabix.
+    DATA lt_col TYPE z2ui5_cl_ui5_srv_window=>ty_t_sort_col.
+    lt_cond = cond_prepare( tab      = tab
                                   t_filter = t_filter ).
     LOOP AT tab ASSIGNING <row>.
-      DATA(lv_row) = sy-tabix.
+
+      lv_row = sy-tabix.
       IF lt_cond IS INITIAL OR filter_row( row    = <row>
                                            t_cond = lt_cond ) = abap_true.
         APPEND lv_row TO result.
@@ -235,7 +239,8 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
     IF t_sort IS INITIAL OR lines( result ) < 2.
       RETURN.
     ENDIF.
-    DATA(lt_col) = sort_cols( tab    = tab
+
+    lt_col = sort_cols( tab    = tab
                               t_sort = t_sort ).
     IF lt_col IS INITIAL.
       RETURN.
@@ -249,13 +254,15 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     FIELD-SYMBOLS <result> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row>    TYPE any.
+    DATA lv_row LIKE LINE OF t_index.
 
     CREATE DATA result LIKE tab.
     ASSIGN result->* TO <result>.
     " the transpiled runtime copies the rows along with CREATE DATA ... LIKE
     CLEAR <result>.
 
-    LOOP AT t_index INTO DATA(lv_row) TO count.
+
+    LOOP AT t_index INTO lv_row TO count.
       READ TABLE tab INDEX lv_row ASSIGNING <row>.
       IF sy-subrc = 0.
         INSERT <row> INTO TABLE <result>.
@@ -268,12 +275,59 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     DATA lv_wanted TYPE i.
 
-    DATA(lv_path)   = VALUE string( t_arg[ 1 ] OPTIONAL ).
-    DATA(lv_count)  = VALUE string( t_arg[ 2 ] OPTIONAL ).
-    DATA(lv_sort)   = VALUE string( t_arg[ 3 ] OPTIONAL ).
-    DATA(lv_filter) = VALUE string( t_arg[ 4 ] OPTIONAL ).
+    DATA temp93 TYPE string.
+    DATA temp94 TYPE string.
+    DATA lv_path LIKE temp93.
+    DATA temp95 TYPE string.
+    DATA temp96 TYPE string.
+    DATA lv_count LIKE temp95.
+    DATA temp97 TYPE string.
+    DATA temp98 TYPE string.
+    DATA lv_sort LIKE temp97.
+    DATA temp99 TYPE string.
+    DATA temp100 TYPE string.
+    DATA lv_filter LIKE temp99.
+    DATA temp101 LIKE LINE OF attri->*.
+    DATA lr_attri LIKE REF TO temp101.
+    CLEAR temp93.
 
-    LOOP AT attri->* REFERENCE INTO DATA(lr_attri)      "#EC CI_SORTSEQ
+    READ TABLE t_arg INTO temp94 INDEX 1.
+    IF sy-subrc = 0.
+      temp93 = temp94.
+    ENDIF.
+
+    lv_path = temp93.
+
+    CLEAR temp95.
+
+    READ TABLE t_arg INTO temp96 INDEX 2.
+    IF sy-subrc = 0.
+      temp95 = temp96.
+    ENDIF.
+
+    lv_count = temp95.
+
+    CLEAR temp97.
+
+    READ TABLE t_arg INTO temp98 INDEX 3.
+    IF sy-subrc = 0.
+      temp97 = temp98.
+    ENDIF.
+
+    lv_sort = temp97.
+
+    CLEAR temp99.
+
+    READ TABLE t_arg INTO temp100 INDEX 4.
+    IF sy-subrc = 0.
+      temp99 = temp100.
+    ENDIF.
+
+    lv_filter = temp99.
+
+
+
+    LOOP AT attri->* REFERENCE INTO lr_attri      "#EC CI_SORTSEQ
          WHERE bind = abap_true AND window_size > 0.
       IF lr_attri->name_client <> lv_path.
         CONTINUE.
@@ -304,21 +358,36 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
   METHOD parse_sort.
 
     DATA lv_json TYPE string.
+        DATA li_json TYPE REF TO z2ui5_cl_ajson.
+        DATA temp102 TYPE string_table.
+        DATA lv_member LIKE LINE OF temp102.
+          DATA lv_sorter TYPE string.
+          DATA lv_name TYPE string.
+          DATA temp103 TYPE z2ui5_if_ui5_types=>ty_s_window_sort.
     lv_json = condense( val ).
     IF lv_json IS INITIAL.
       RETURN.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
-        LOOP AT li_json->members( `/` ) INTO DATA(lv_member).
-          DATA(lv_sorter) = |/{ lv_member }|.
-          DATA(lv_name) = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
+
+        li_json = z2ui5_cl_ajson=>parse( lv_json ).
+
+        temp102 = li_json->members( `/` ).
+
+        LOOP AT temp102 INTO lv_member.
+
+          lv_sorter = |/{ lv_member }|.
+
+          lv_name = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
           IF lv_name IS INITIAL.
             CONTINUE.
           ENDIF.
-          APPEND VALUE #( path       = lv_name
-                          descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ) ) TO result.
+
+          CLEAR temp103.
+          temp103-path = lv_name.
+          temp103-descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ).
+          APPEND temp103 TO result.
         ENDLOOP.
       CATCH cx_root.
         " a sort the server cannot read is no sort - the order of the table
@@ -331,22 +400,40 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     DATA lv_json  TYPE string.
     DATA lv_group TYPE i.
+        DATA li_json TYPE REF TO z2ui5_cl_ajson.
+        DATA temp104 TYPE string_table.
+        DATA lv_g LIKE LINE OF temp104.
+          DATA temp105 TYPE string_table.
+          DATA lv_c LIKE LINE OF temp105.
+            DATA lv_cond TYPE string.
+            DATA temp106 TYPE z2ui5_if_ui5_types=>ty_s_window_filter.
     lv_json = condense( val ).
     IF lv_json IS INITIAL.
       RETURN.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
-        LOOP AT li_json->members( `/` ) INTO DATA(lv_g).
+
+        li_json = z2ui5_cl_ajson=>parse( lv_json ).
+
+        temp104 = li_json->members( `/` ).
+
+        LOOP AT temp104 INTO lv_g.
           lv_group = lv_group + 1.
-          LOOP AT li_json->members( |/{ lv_g }| ) INTO DATA(lv_c).
-            DATA(lv_cond) = |/{ lv_g }/{ lv_c }|.
-            APPEND VALUE #( group    = lv_group
-                            path     = to_upper( li_json->get_string( |{ lv_cond }/1| ) )
-                            operator = li_json->get_string( |{ lv_cond }/2| )
-                            value1   = li_json->get( |{ lv_cond }/3| )
-                            value2   = li_json->get( |{ lv_cond }/4| ) ) TO result.
+
+          temp105 = li_json->members( |/{ lv_g }| ).
+
+          LOOP AT temp105 INTO lv_c.
+
+            lv_cond = |/{ lv_g }/{ lv_c }|.
+
+            CLEAR temp106.
+            temp106-group = lv_group.
+            temp106-path = to_upper( li_json->get_string( |{ lv_cond }/1| ) ).
+            temp106-operator = li_json->get_string( |{ lv_cond }/2| ).
+            temp106-value1 = li_json->get( |{ lv_cond }/3| ).
+            temp106-value2 = li_json->get( |{ lv_cond }/4| ).
+            APPEND temp106 TO result.
           ENDLOOP.
         ENDLOOP.
       CATCH cx_root.
@@ -358,7 +445,9 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD kind_of.
 
-    DATA(lo_type) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data( val ).
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA lv_kind TYPE string.
+    lo_type = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data( val ).
     CASE lo_type->absolute_name.
       WHEN `\TYPE-POOL=ABAP\TYPE=ABAP_BOOL` OR `\TYPE=ABAP_BOOLEAN` OR `\TYPE=XSDBOOLEAN`
           OR `\TYPE=FLAG` OR `\TYPE=XFELD`.
@@ -366,7 +455,8 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    DATA(lv_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ).
+
+    lv_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ).
     IF lv_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
       result = `D`.
     ELSEIF lv_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
@@ -397,14 +487,31 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD key_of.
+        DATA temp107 TYPE string.
+        DATA temp7 TYPE z2ui5_cl_ui5_srv_window=>ty_s_key-str.
+        DATA temp108 TYPE z2ui5_cl_ui5_srv_window=>ty_s_key-str.
 
     CASE kind.
       WHEN `N`.
         result-num = val.
       WHEN `D` OR `T`.
-        result-str = COND #( WHEN val IS NOT INITIAL THEN CONV string( val ) ).
+
+        temp107 = val.
+
+        IF val IS NOT INITIAL.
+          temp7 = temp107.
+        ELSE.
+          CLEAR temp7.
+        ENDIF.
+        result-str = temp7.
       WHEN `B`.
-        result-str = COND #( WHEN val IS NOT INITIAL THEN `X` ).
+
+        IF val IS NOT INITIAL.
+          temp108 = `X`.
+        ELSE.
+          CLEAR temp108.
+        ENDIF.
+        result-str = temp108.
       WHEN OTHERS.
         result-str = to_upper( |{ val }| ).
     ENDCASE.
@@ -431,6 +538,7 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD value_key.
+        DATA temp109 TYPE string.
 
     CASE kind.
       WHEN `D`.
@@ -444,7 +552,13 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
                           with = ``
                           occ  = 0 ).
       WHEN `B`.
-        result = COND #( WHEN to_upper( val ) = `TRUE` OR to_upper( val ) = `X` THEN `X` ).
+
+        IF to_upper( val ) = `TRUE` OR to_upper( val ) = `X`.
+          temp109 = `X`.
+        ELSE.
+          CLEAR temp109.
+        ENDIF.
+        result = temp109.
       WHEN OTHERS.
         result = to_upper( val ).
     ENDCASE.
@@ -457,18 +571,41 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD cond_prepare.
 
-    LOOP AT t_filter INTO DATA(ls_filter).
-      DATA(ls_cond) = VALUE ty_s_cond( group    = ls_filter-group
-                                       path     = ls_filter-path
-                                       operator = ls_filter-operator
-                                       kind     = line_kind( tab  = tab
-                                                             path = ls_filter-path )
-                                       text1    = to_upper( ls_filter-value1 ) ).
-      ls_cond-valid = xsdbool( ls_cond-kind IS NOT INITIAL ).
+    DATA ls_filter LIKE LINE OF t_filter.
+      DATA temp110 TYPE ty_s_cond.
+      DATA ls_cond LIKE temp110.
+      DATA temp1 TYPE xsdboolean.
+            DATA temp111 TYPE z2ui5_cl_ui5_srv_window=>ty_s_cond-num1.
+            DATA temp112 TYPE z2ui5_cl_ui5_srv_window=>ty_s_cond-num2.
+    LOOP AT t_filter INTO ls_filter.
+
+      CLEAR temp110.
+      temp110-group = ls_filter-group.
+      temp110-path = ls_filter-path.
+      temp110-operator = ls_filter-operator.
+      temp110-kind = line_kind( tab = tab path = ls_filter-path ).
+      temp110-text1 = to_upper( ls_filter-value1 ).
+
+      ls_cond = temp110.
+
+      temp1 = boolc( ls_cond-kind IS NOT INITIAL ).
+      ls_cond-valid = temp1.
       IF ls_cond-kind = `N`.
         TRY.
-            ls_cond-num1 = COND #( WHEN ls_filter-value1 IS NOT INITIAL THEN ls_filter-value1 ).
-            ls_cond-num2 = COND #( WHEN ls_filter-value2 IS NOT INITIAL THEN ls_filter-value2 ).
+
+            IF ls_filter-value1 IS NOT INITIAL.
+              temp111 = ls_filter-value1.
+            ELSE.
+              CLEAR temp111.
+            ENDIF.
+            ls_cond-num1 = temp111.
+
+            IF ls_filter-value2 IS NOT INITIAL.
+              temp112 = ls_filter-value2.
+            ELSE.
+              CLEAR temp112.
+            ENDIF.
+            ls_cond-num2 = temp112.
           CATCH cx_root.
             " a value that is no number matches no number
             ls_cond-valid = abap_false.
@@ -488,12 +625,14 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     DATA lv_group TYPE i.
     DATA lv_hit   TYPE abap_bool.
+    DATA ls_cond LIKE LINE OF t_cond.
 
     " the conditions arrive ordered by group: a group is decided when the
     " next one starts, and one group without a hit rejects the row
     result = abap_true.
     lv_group = -1.
-    LOOP AT t_cond INTO DATA(ls_cond).
+
+    LOOP AT t_cond INTO ls_cond.
       IF ls_cond-group <> lv_group.
         IF lv_group <> -1 AND lv_hit = abap_false.
           result = abap_false.
@@ -514,6 +653,16 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
   METHOD cond_check.
 
     FIELD-SYMBOLS <cell> TYPE any.
+    DATA ls_key TYPE z2ui5_cl_ui5_srv_window=>ty_s_key.
+    DATA lv_cmp TYPE i.
+        DATA temp2 TYPE xsdboolean.
+        DATA temp3 TYPE xsdboolean.
+        DATA temp4 TYPE xsdboolean.
+        DATA temp5 TYPE xsdboolean.
+        DATA temp6 TYPE xsdboolean.
+        DATA temp7 TYPE xsdboolean.
+        DATA temp8 TYPE xsdboolean.
+          DATA temp9 TYPE xsdboolean.
 
     IF cond-valid = abap_false.
       RETURN.
@@ -531,29 +680,45 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    DATA(ls_key) = key_of( val  = <cell>
+
+    ls_key = key_of( val  = <cell>
                            kind = cond-kind ).
-    DATA(lv_cmp) = cond_compare( key  = ls_key
+
+    lv_cmp = cond_compare( key  = ls_key
                                  cond = cond ).
     CASE cond-operator.
       WHEN `EQ`.
-        result = xsdbool( lv_cmp = 0 ).
+
+        temp2 = boolc( lv_cmp = 0 ).
+        result = temp2.
       WHEN `NE`.
-        result = xsdbool( lv_cmp <> 0 ).
+
+        temp3 = boolc( lv_cmp <> 0 ).
+        result = temp3.
       WHEN `LT`.
-        result = xsdbool( lv_cmp < 0 ).
+
+        temp4 = boolc( lv_cmp < 0 ).
+        result = temp4.
       WHEN `LE`.
-        result = xsdbool( lv_cmp <= 0 ).
+
+        temp5 = boolc( lv_cmp <= 0 ).
+        result = temp5.
       WHEN `GT`.
-        result = xsdbool( lv_cmp > 0 ).
+
+        temp6 = boolc( lv_cmp > 0 ).
+        result = temp6.
       WHEN `GE`.
-        result = xsdbool( lv_cmp >= 0 ).
+
+        temp7 = boolc( lv_cmp >= 0 ).
+        result = temp7.
       WHEN `BT` OR `NB`.
-        result = xsdbool( lv_cmp >= 0 AND cond_compare( key    = ls_key
-                                                        cond   = cond
-                                                        second = abap_true ) <= 0 ).
+
+        temp8 = boolc( lv_cmp >= 0 AND cond_compare( key = ls_key cond = cond second = abap_true ) <= 0 ).
+        result = temp8.
         IF cond-operator = `NB`.
-          result = xsdbool( result = abap_false ).
+
+          temp9 = boolc( result = abap_false ).
+          result = temp9.
         ENDIF.
     ENDCASE.
 
@@ -561,29 +726,52 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD cond_check_text.
 
-    DATA(lv_len) = strlen( cond-text1 ).
-    DATA(lv_text_len) = strlen( text ).
+    DATA lv_len TYPE i.
+    DATA lv_text_len TYPE i.
+        DATA temp10 TYPE xsdboolean.
+        DATA temp11 TYPE xsdboolean.
+        DATA temp12 TYPE xsdboolean.
+      DATA temp13 TYPE xsdboolean.
+    lv_len = strlen( cond-text1 ).
+
+    lv_text_len = strlen( text ).
     CASE cond-operator.
       WHEN `Contains` OR `NotContains`.
-        result = xsdbool( lv_len = 0 OR find( val = text
-                                              sub = cond-text1 ) >= 0 ).
+
+        temp10 = boolc( lv_len = 0 OR find( val = text sub = cond-text1 ) >= 0 ).
+        result = temp10.
       WHEN `StartsWith` OR `NotStartsWith`.
-        result = xsdbool( lv_len <= lv_text_len AND substring( val = text
-                                                               len = lv_len ) = cond-text1 ).
+
+        temp11 = boolc( lv_len <= lv_text_len AND substring( val = text len = lv_len ) = cond-text1 ).
+        result = temp11.
       WHEN `EndsWith` OR `NotEndsWith`.
-        result = xsdbool( lv_len <= lv_text_len AND substring( val = text
-                                                               off = lv_text_len - lv_len ) = cond-text1 ).
+
+        temp12 = boolc( lv_len <= lv_text_len AND substring( val = text off = lv_text_len - lv_len ) = cond-text1 ).
+        result = temp12.
     ENDCASE.
     IF cond-operator CS `Not`.
-      result = xsdbool( result = abap_false ).
+
+      temp13 = boolc( result = abap_false ).
+      result = temp13.
     ENDIF.
 
   ENDMETHOD.
 
   METHOD cond_compare.
+      DATA temp113 TYPE decfloat34.
+      DATA lv_num LIKE temp113.
+    DATA temp114 TYPE string.
+    DATA lv_str LIKE temp114.
 
     IF cond-kind = `N`.
-      DATA(lv_num) = COND decfloat34( WHEN second = abap_true THEN cond-num2 ELSE cond-num1 ).
+
+      IF second = abap_true.
+        temp113 = cond-num2.
+      ELSE.
+        temp113 = cond-num1.
+      ENDIF.
+
+      lv_num = temp113.
       IF key-num < lv_num.
         result = -1.
       ELSEIF key-num > lv_num.
@@ -592,7 +780,14 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_str) = COND string( WHEN second = abap_true THEN cond-str2 ELSE cond-str1 ).
+
+    IF second = abap_true.
+      temp114 = cond-str2.
+    ELSE.
+      temp114 = cond-str1.
+    ENDIF.
+
+    lv_str = temp114.
     IF key-str < lv_str.
       result = -1.
     ELSEIF key-str > lv_str.
@@ -606,10 +801,16 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
     FIELD-SYMBOLS <row>  TYPE any.
     FIELD-SYMBOLS <cell> TYPE any.
 
-    LOOP AT t_sort INTO DATA(ls_sort).
-      DATA(ls_col) = VALUE ty_s_sort_col( kind       = line_kind( tab  = tab
-                                                                  path = ls_sort-path )
-                                          descending = ls_sort-descending ).
+    DATA ls_sort LIKE LINE OF t_sort.
+      DATA temp115 TYPE ty_s_sort_col.
+      DATA ls_col LIKE temp115.
+    LOOP AT t_sort INTO ls_sort.
+
+      CLEAR temp115.
+      temp115-kind = line_kind( tab = tab path = ls_sort-path ).
+      temp115-descending = ls_sort-descending.
+
+      ls_col = temp115.
       IF ls_col-kind IS INITIAL.
         CONTINUE.
       ENDIF.
@@ -633,11 +834,16 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     " bottom up: runs of width 1, 2, 4, ... merged pairwise - stable, so
     " rows the sorters do not tell apart keep the order of the table
-    DATA(lv_lines) = lines( ct_idx ).
-    DATA(lv_width) = 1.
+    DATA lv_lines TYPE i.
+    DATA lv_width TYPE i.
+      DATA lv_left TYPE i.
+    lv_lines = lines( ct_idx ).
+
+    lv_width = 1.
     WHILE lv_width < lv_lines.
       CLEAR lt_merged.
-      DATA(lv_left) = 1.
+
+      lv_left = 1.
       WHILE lv_left <= lv_lines.
         sort_merge( EXPORTING t_col     = t_col
                               it_idx    = ct_idx
@@ -658,16 +864,57 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
     DATA lv_b TYPE i.
 
     " the runs [left, mid) and [mid, end) into one
-    DATA(lv_lines) = lines( it_idx ).
-    DATA(lv_mid) = nmin( val1 = iv_left + iv_width
+    DATA lv_lines TYPE i.
+    DATA lv_mid TYPE i.
+    DATA lv_end TYPE i.
+    DATA lv_i LIKE iv_left.
+    DATA lv_j LIKE lv_mid.
+      DATA temp116 TYPE i.
+      DATA temp117 TYPE i.
+      DATA temp8 TYPE i.
+      DATA temp118 TYPE i.
+      DATA temp119 TYPE i.
+      DATA temp9 TYPE i.
+    lv_lines = lines( it_idx ).
+
+    lv_mid = nmin( val1 = iv_left + iv_width
                          val2 = lv_lines + 1 ).
-    DATA(lv_end) = nmin( val1 = iv_left + 2 * iv_width
+
+    lv_end = nmin( val1 = iv_left + 2 * iv_width
                          val2 = lv_lines + 1 ).
-    DATA(lv_i) = iv_left.
-    DATA(lv_j) = lv_mid.
+
+    lv_i = iv_left.
+
+    lv_j = lv_mid.
     WHILE lv_i < lv_mid OR lv_j < lv_end.
-      lv_a = COND #( WHEN lv_i < lv_mid THEN VALUE #( it_idx[ lv_i ] OPTIONAL ) ).
-      lv_b = COND #( WHEN lv_j < lv_end THEN VALUE #( it_idx[ lv_j ] OPTIONAL ) ).
+
+      CLEAR temp116.
+
+      READ TABLE it_idx INTO temp117 INDEX lv_i.
+      IF sy-subrc = 0.
+        temp116 = temp117.
+      ENDIF.
+
+      IF lv_i < lv_mid.
+        temp8 = temp116.
+      ELSE.
+        CLEAR temp8.
+      ENDIF.
+      lv_a = temp8.
+
+      CLEAR temp118.
+
+      READ TABLE it_idx INTO temp119 INDEX lv_j.
+      IF sy-subrc = 0.
+        temp118 = temp119.
+      ENDIF.
+
+      IF lv_j < lv_end.
+        temp9 = temp118.
+      ELSE.
+        CLEAR temp9.
+      ENDIF.
+      lv_b = temp9.
       " the right one only when the left one really comes after it - stable
       IF lv_j < lv_end AND ( lv_i >= lv_mid OR sort_after( t_col = t_col
                                                           a      = lv_a
@@ -684,12 +931,21 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD sort_after.
 
-    LOOP AT t_col REFERENCE INTO DATA(lr_col).
-      READ TABLE lr_col->t_key INDEX a REFERENCE INTO DATA(lr_a).
+    DATA temp120 LIKE LINE OF t_col.
+    DATA lr_col LIKE REF TO temp120.
+      DATA lr_a TYPE REF TO z2ui5_cl_ui5_srv_window=>ty_s_key.
+      DATA lr_b TYPE REF TO z2ui5_cl_ui5_srv_window=>ty_s_key.
+        DATA temp14 TYPE xsdboolean.
+        DATA temp15 TYPE xsdboolean.
+        DATA temp16 TYPE xsdboolean.
+    LOOP AT t_col REFERENCE INTO lr_col.
+
+      READ TABLE lr_col->t_key INDEX a REFERENCE INTO lr_a.
       IF sy-subrc <> 0.
         RETURN.
       ENDIF.
-      READ TABLE lr_col->t_key INDEX b REFERENCE INTO DATA(lr_b).
+
+      READ TABLE lr_col->t_key INDEX b REFERENCE INTO lr_b.
       IF sy-subrc <> 0.
         RETURN.
       ENDIF.
@@ -697,15 +953,21 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
         IF lr_a->num = lr_b->num.
           CONTINUE.
         ENDIF.
-        result = xsdbool( lr_a->num > lr_b->num ).
+
+        temp14 = boolc( lr_a->num > lr_b->num ).
+        result = temp14.
       ELSE.
         IF lr_a->str = lr_b->str.
           CONTINUE.
         ENDIF.
-        result = xsdbool( lr_a->str > lr_b->str ).
+
+        temp15 = boolc( lr_a->str > lr_b->str ).
+        result = temp15.
       ENDIF.
       IF lr_col->descending = abap_true.
-        result = xsdbool( result = abap_false ).
+
+        temp16 = boolc( result = abap_false ).
+        result = temp16.
       ENDIF.
       RETURN.
     ENDLOOP.
