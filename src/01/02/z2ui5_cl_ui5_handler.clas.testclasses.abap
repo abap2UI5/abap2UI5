@@ -2885,6 +2885,9 @@ CLASS ltcl_05_monitor IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( ls_res-body CS ls_call-draft_id ) ).
     cl_abap_unit_assert=>assert_initial( lo_first->ms_response ).
     cl_abap_unit_assert=>assert_initial( lo_first->mv_request_json ).
+    " ...and the tree the body was parsed into goes with it
+    cl_abap_unit_assert=>assert_not_bound( lo_first->ms_request-o_model ).
+    cl_abap_unit_assert=>assert_initial( lo_first->ms_request-model_path ).
     cl_abap_unit_assert=>assert_equals( exp = sy-uname
                                         act = ls_call-uname ).
     cl_abap_unit_assert=>assert_not_initial( ls_call-timestampl ).

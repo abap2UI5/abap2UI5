@@ -25,7 +25,8 @@ CLASS z2ui5_cl_ui5_llm_local DEFINITION
         t_rule   TYPE z2ui5_cl_ui5_llm=>ty_t_rule OPTIONAL
         fallback TYPE clike OPTIONAL.
 
-    "! the number of blank-separated words of a text
+    "! the number of words of a text - separated by blanks, newlines or
+    "! tabs, any run of them counting as one separator
     CLASS-METHODS count_words
       IMPORTING
         val           TYPE clike

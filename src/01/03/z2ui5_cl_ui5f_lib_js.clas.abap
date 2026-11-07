@@ -648,13 +648,17 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  const MAX_ARG_DEPTH = 4;` && |\n| &&
              `` && |\n| &&
-             `  function isManagedObject(value) {` && |\n| &&
+             `  function isA(value, type) {` && |\n| &&
              `    return (` && |\n| &&
              `      value !== null &&` && |\n| &&
              `      typeof value === "object" &&` && |\n| &&
              `      typeof value.isA === "function" &&` && |\n| &&
-             `      value.isA("sap.ui.base.ManagedObject")` && |\n| &&
+             `      value.isA(type)` && |\n| &&
              `    );` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isManagedObject(value) {` && |\n| &&
+             `    return isA(value, "sap.ui.base.ManagedObject");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const pad = (n, w = 2) => String(n).padStart(w, "0");` && |\n| &&
@@ -685,12 +689,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isContext(value) {` && |\n| &&
-             `    return (` && |\n| &&
-             `      value !== null &&` && |\n| &&
-             `      typeof value === "object" &&` && |\n| &&
-             `      typeof value.isA === "function" &&` && |\n| &&
-             `      value.isA("sap.ui.model.Context")` && |\n| &&
-             `    );` && |\n| &&
+             `    return isA(value, "sap.ui.model.Context");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isPlainObject(value) {` && |\n| &&
@@ -736,12 +735,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function isEvent(value) {` && |\n| &&
-             `    return (` && |\n| &&
-             `      value !== null &&` && |\n| &&
-             `      typeof value === "object" &&` && |\n| &&
-             `      typeof value.isA === "function" &&` && |\n| &&
-             `      value.isA("sap.ui.base.Event")` && |\n| &&
-             `    );` && |\n| &&
+             `    return isA(value, "sap.ui.base.Event");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function projectEvent(event, level, ancestors) {` && |\n| &&
@@ -825,14 +819,14 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    getTextPath,` && |\n| &&
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
-             `    modelPathOf,` && |\n|.
-    result = result &&
+             `    modelPathOf,` && |\n| &&
              `    bindingPathOf,` && |\n| &&
              `    toCaretIndex,` && |\n| &&
              `    deriveSystemType,` && |\n| &&
              `    deriveOsName,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&
-             `    isSafeRedirectProtocol,` && |\n| &&
+             `    isSafeRedirectProtocol,` && |\n|.
+    result = result &&
              `    isSafeDownloadURL,` && |\n| &&
              `    isValidContextId,` && |\n| &&
              `    buildDeltaFromPaths,` && |\n| &&

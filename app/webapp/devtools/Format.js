@@ -9,9 +9,10 @@
 // none of them should have to know whether the value behind a tab
 // started life as an object or as an XML document.
 //
-// Both functions are total: they never throw and never return undefined.
-// A developer tool that dies on a value the app was happy to hold is
-// worse than useless, so a failure degrades to the plain string form.
+// Every function here is total: it never throws and never returns
+// undefined. A developer tool that dies on a value the app was happy to
+// hold is worse than useless, so a failure degrades to the plain string
+// form.
 sap.ui.define([], () => {
   "use strict";
 

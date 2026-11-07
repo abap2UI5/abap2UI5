@@ -967,6 +967,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string VALUE `payload`.
+    FIELD-SYMBOLS <data> TYPE data.
     lo_app = NEW #( ).
     li_client ?= mo_client.
 
@@ -974,7 +975,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
                               event  = `MY_EVENT`
                               r_data = lv_data ).
 
+    " the value travels as a COPY (conv_copy_ref_data): the previous app
+    " reads what was passed, not a reference into this app's variable
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-r_data ).
+    ASSIGN mo_action->ms_next-r_data->* TO <data>.
+    cl_abap_unit_assert=>assert_equals( exp = `payload`
+                                        act = <data> ).
+    lv_data = `changed afterwards`.
+    cl_abap_unit_assert=>assert_equals( exp = `payload`
+                                        act = <data> ).
 
   ENDMETHOD.
 

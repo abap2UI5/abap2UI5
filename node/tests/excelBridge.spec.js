@@ -747,6 +747,21 @@ test("selectionChange subscribes, reports the settled address once, and unsubscr
   expect(office.removed).toBe(1);
 });
 
+// A control destroyed while Office.onReady( ) was still settling must not
+// subscribe at all - it used to add the handler and take it off again.
+test("a control destroyed while subscribing never subscribes", async () => {
+  const office = fakeOffice();
+  const { makeInstance } = load({ office });
+  const inst = makeInstance({ selectionChange: true });
+
+  inst.onAfterRendering();
+  inst._destroyed = true;
+  await flush();
+
+  expect(office.handlers.length).toBe(0);
+  expect(office.removed).toBe(0);
+});
+
 test("exit removes the subscription and the pending report", async () => {
   const office = fakeOffice();
   const { makeInstance, timers } = load({ office });

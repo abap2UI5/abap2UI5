@@ -108,7 +108,11 @@ sap.ui.define(
       // backend can handle it; the control never surfaces UI on its own.
       callbackError(error) {
         if (Lib.isDestroyed(this)) return;
-        Lib.logError(`Geolocation error (${error.code}): ${error.message}`);
+        // the control id too: a view with two of them (a popup's and the
+        // page's) logged the same line for either
+        Lib.logError(
+          `Geolocation error (${error.code}) on ${this.getId()}: ${error.message}`,
+        );
         this.fireError({
           code: String(error.code),
           message: error.message,

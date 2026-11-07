@@ -280,8 +280,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
-    " a content security policy - the exit's meta tag or a header value -
-    " with the shell script's hash added to its script-src (see the method)
     "! the extra attributes of the bootstrap script tag from the exit's
     "! t_add_config - a row whose name is no attribute name is left out
     CLASS-METHODS _bootstrap_attributes
@@ -290,6 +288,13 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " the directive the shell script's hash goes into - and, with -elem,
+    " its element-only twin; _csp_add_script_hash finds it in a policy and
+    " _csp_script_src_end measures past it
+    CONSTANTS c_csp_script_src TYPE string VALUE `script-src`.
+
+    " a content security policy - the exit's meta tag or a header value -
+    " with the shell script's hash added to its script-src (see the method)
     CLASS-METHODS _csp_add_script_hash
       IMPORTING
         val           TYPE string
@@ -530,12 +535,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_lower) = to_lower( result ).
     DO.
       lv_hit = find( val = lv_lower
-                     sub = `script-src`
+                     sub = c_csp_script_src
                      off = lv_offset ).
       IF lv_hit < 0.
         EXIT.
       ENDIF.
-      lv_offset = lv_hit + 10.
+      lv_offset = lv_hit + strlen( c_csp_script_src ).
       lv_end = _csp_script_src_end( iv_lower = lv_lower
                                     iv_hit   = lv_hit ).
       IF lv_end < 0.
@@ -594,7 +599,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    DATA(lv_end) = iv_hit + 10.
+    DATA(lv_end) = iv_hit + strlen( c_csp_script_src ).
     IF strlen( iv_lower ) >= lv_end + 5.
       lv_char = substring( val = iv_lower
                            off = lv_end

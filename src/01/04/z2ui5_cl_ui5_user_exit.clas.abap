@@ -62,8 +62,9 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " the security headers from the GET config on a POST as well - and the
     " tag is a constant, so the seven-fragment template ran per roundtrip
     " for the same string. Lazily filled on first use, not in a class
-    " constructor: a public class_constructor is what abap-check names a
-    " trap, and the view builder's gv_escape_specials takes the same road
+    " constructor: a class_constructor outside the PUBLIC SECTION is the
+    " activation trap abap-check names, and the view builder's
+    " gv_name_chars takes the same road
     CLASS-DATA gv_csp_default TYPE string.
 
     " the exit class the lookup named, instantiated and bound to the

@@ -53,13 +53,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-    " These three configure how the browser URL has to look after this
-    " roundtrip. Router derives ONE outcome from all of them together, so they
-    " are collected here and leave as options of the single ROUTER/sync call
-    " main_end( ) queues - never as actions of their own, which would make the
-    " router run several times and fight over the same hash.
-    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
-
+    " The five navigation branches of the CASE below configure how the
+    " browser URL has to look after this roundtrip. Router derives ONE
+    " outcome from all of them together, so they are collected here and
+    " leave as options of the single ROUTER/sync call main_end( ) queues -
+    " never as actions of their own, which would make the router run
+    " several times and fight over the same hash.
+    "
     " the WIRED form first: `v = client->follow_up_action( ... )` in a view
     " attribute asks for an event wire and nothing else. The navigation
     " options below are roundtrip actions; wired, they used to set their
@@ -73,6 +73,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                                t_arg = t_arg ).
       RETURN.
     ENDIF.
+
+    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
 
     CASE val.
       WHEN z2ui5_if_client=>cs_event-hash_routing.

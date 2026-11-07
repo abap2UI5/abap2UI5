@@ -315,14 +315,6 @@ sap.ui.define(
         }
       },
 
-      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
-      // calls (destroy a slot, display one, push the model into it), in the
-      // order the backend queued them. They run BEFORE anything an app
-      // queued, and one at a time: a display is async, and the next action
-      // may well be about the slot it is still building. The action context
-      // carries the request stamp (so the slot displays can discard a build
-      // a newer parallel request superseded) and the response record (so the
-      // ROUTER action stashes its options on the response they belong to).
       // Does this response put ANOTHER app's page on MAIN? True when it
       // carries a MAIN display and the app answering is not the one that
       // filled MAIN (ViewSlots.getViewApp; before any slot recorded an
@@ -347,6 +339,14 @@ sap.ui.define(
         return owner !== oResponse.APP;
       },
 
+      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
+      // calls (destroy a slot, display one, push the model into it), in the
+      // order the backend queued them. They run BEFORE anything an app
+      // queued, and one at a time: a display is async, and the next action
+      // may well be about the slot it is still building. The action context
+      // carries the request stamp (so the slot displays can discard a build
+      // a newer parallel request superseded) and the response record (so the
+      // ROUTER action stashes its options on the response they belong to).
       async _runSystemActions(oResponse, seq) {
         const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
@@ -367,8 +367,6 @@ sap.ui.define(
         }
       },
 
-      // Execute the follow-up actions stashed by Server.responseSuccess.
-      // Runs once per roundtrip, after the view has rendered.
       // The read side of the queueLast slot in eB: the LAST event a
       // check_queue_last wire fired while the roundtrip that just landed was
       // in flight. Dispatched through eB itself, so it is a roundtrip like
@@ -405,6 +403,8 @@ sap.ui.define(
         }
       },
 
+      // Execute the follow-up actions stashed by Server.responseSuccess.
+      // Runs once per roundtrip, after the view has rendered.
       // Sequential, and an action that hands back a promise (SET_ODATA_MODEL
       // loading its client on first use) is awaited before the next one
       // runs, so the order the backend queued them in is the order their
@@ -423,7 +423,7 @@ sap.ui.define(
         if (!Lib.isControllerAlive(this)) return;
         for (const item of customJs) {
           const result = FrontendAction.runCustom(item, this);
-          if (result && typeof result.then === "function") {
+          if (typeof result?.then === "function") {
             try {
               await result;
             } catch (e) {

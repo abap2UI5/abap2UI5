@@ -157,6 +157,34 @@ test.describe("runCustom structured JSON actions", () => {
 
     expect(oController.calls).toEqual([]);
   });
+
+  test("a throwing dispatch is logged under the action's name", () => {
+    const errors = [];
+    const FrontendAction = loadFrontendAction({
+      "z2ui5/core/Lib": {
+        logError: (msg, e) => errors.push({ msg, e }),
+        runCallbacks: () => {},
+        isControllerAlive: () => true,
+        bindingPathOf: loadLib().Lib.bindingPathOf,
+      },
+    });
+    const boom = new Error("boom");
+    const oController = {
+      eF: () => {
+        throw boom;
+      },
+    };
+
+    expect(() =>
+      FrontendAction.runCustom(["SET_TITLE", "x"], oController),
+    ).not.toThrow();
+
+    // the line says WHICH follow-up action failed - a response carries
+    // several, and the old "customJs: execution failed" named none
+    expect(errors).toEqual([
+      { msg: "FrontendAction: custom action 'SET_TITLE' failed", e: boom },
+    ]);
+  });
 });
 
 // ---------------------------------------------------------------------

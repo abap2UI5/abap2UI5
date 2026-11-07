@@ -593,7 +593,9 @@ sap.ui.define(
         this._subscribing = true;
         excel()
           .then((Excel) => {
-            if (!Excel) return undefined;
+            // destroyed while Office.onReady( ) settled: nothing to
+            // subscribe for (the then below would only take it off again)
+            if (!Excel || Lib.isDestroyed(this)) return undefined;
             return Excel.run(async (context) => {
               const handler = context.workbook.onSelectionChanged.add(() =>
                 this._selectionChanged(Excel),

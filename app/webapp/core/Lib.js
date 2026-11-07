@@ -1082,13 +1082,19 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // - becomes null.
   const MAX_ARG_DEPTH = 4;
 
-  function isManagedObject(value) {
+  // A UI5 object of the given type, asked of its own isA( ) - the one test
+  // behind the three kinds below (a control, a binding context, an event)
+  function isA(value, type) {
     return (
       value !== null &&
       typeof value === "object" &&
       typeof value.isA === "function" &&
-      value.isA("sap.ui.base.ManagedObject")
+      value.isA(type)
     );
+  }
+
+  function isManagedObject(value) {
+    return isA(value, "sap.ui.base.ManagedObject");
   }
 
   /* A Date property carries a CALENDAR DAY the user picked in their own
@@ -1149,12 +1155,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   }
 
   function isContext(value) {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      typeof value.isA === "function" &&
-      value.isA("sap.ui.model.Context")
-    );
+    return isA(value, "sap.ui.model.Context");
   }
 
   // {} or Object.create(null) - and not a class instance (a UI5 object, a
@@ -1212,12 +1213,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   }
 
   function isEvent(value) {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      typeof value.isA === "function" &&
-      value.isA("sap.ui.base.Event")
-    );
+    return isA(value, "sap.ui.base.Event");
   }
 
   // The UI5 event itself - a bare `$event` in t_arg. It holds its source

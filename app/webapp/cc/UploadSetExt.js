@@ -156,7 +156,10 @@ sap.ui.define(
             );
           }
         } catch (e) {
-          Lib.logError("UploadSetExt.setControl: setup failed", e);
+          Lib.logError(
+            `UploadSetExt.setControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'`,
+            e,
+          );
         }
       },
     });

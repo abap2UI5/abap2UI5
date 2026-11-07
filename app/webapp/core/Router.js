@@ -407,7 +407,7 @@ sap.ui.define(
       const appHash = appHashNormalized(sNewHash);
       if (appHash === state.appHash) return;
       const controller = state.oController;
-      if (!controller || !Lib.isControllerAlive(controller)) return;
+      if (!Lib.isControllerAlive(controller)) return;
       // A roundtrip in flight: View1.eB drops an ordinary event on its busy
       // guard. The hash used to be adopted BEFORE that dispatch, so the drop
       // was final - the URL said the new page, the app still showed the old
@@ -429,7 +429,7 @@ sap.ui.define(
     function dispatchPendingAppHash(ctx) {
       const state = ctx.state;
       const pending = state.pendingAppHash;
-      if (pending === null || pending === undefined) return;
+      if (pending == null) return;
       state.pendingAppHash = null;
       dispatchAppHashChange(ctx, pending);
     }

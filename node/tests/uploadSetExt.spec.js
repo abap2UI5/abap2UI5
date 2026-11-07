@@ -151,6 +151,8 @@ test("a throwing attach is logged, never thrown", () => {
   inst.setControl();
 
   expect(errors.some((m) => m.includes("setControl: setup failed"))).toBe(true);
+  // the line names the target, so a view with two companions tells them apart
+  expect(errors.some((m) => m.includes("uploadSetId 'upSet'"))).toBe(true);
 });
 
 test("an added file lands in the bindable properties and fires change", () => {

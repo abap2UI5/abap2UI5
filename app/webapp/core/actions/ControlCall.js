@@ -77,9 +77,6 @@ sap.ui.define(
     // any time, also while another roundtrip is in flight; it goes through
     // Lib.dispatchWhenIdle, which waits for that roundtrip instead of
     // meeting the busy guard.
-    const dispatchWhenIdle = (oController, args) =>
-      Lib.dispatchWhenIdle(oController, args);
-
     function showToast(sText, mOptions, oController) {
       const o = { ...(mOptions || {}) };
       const sClass = o.class;
@@ -91,7 +88,7 @@ sap.ui.define(
         // callback pointing at a dead controller, whose eB( ) would round-
         // trip the old session's event into the app that replaced it. Same
         // guard the timer tick and the SET_FOCUS retry carry.
-        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);
+        o.onClose = () => Lib.dispatchWhenIdle(oController, [[sEvent]]);
       }
       // MessageToast is always resolved here: the only caller is the
       // MESSAGE_TOAST.display hook, and evControlCall refuses the call with
@@ -195,7 +192,7 @@ sap.ui.define(
         // waits for a user, so the app it belongs to may well be gone by the
         // time an action is pressed.
         o.onClose = (sAction) =>
-          dispatchWhenIdle(oController, [
+          Lib.dispatchWhenIdle(oController, [
             [sEvent],
             actionOf.get(sAction) ?? sAction,
           ]);
@@ -397,11 +394,13 @@ sap.ui.define(
     // it, a leading control character or a line break inside "java
     // script:" is dropped before the scheme is read. Unparseable counts as
     // leaving.
-    const URL_PROBE_BASE = "https://z2ui5.invalid/";
+    const URL_PROBE_BASE = new URL("https://z2ui5.invalid/");
     function isAbsoluteUrl(url) {
       try {
-        const base = new URL(URL_PROBE_BASE);
-        return new URL(String(url ?? ""), base).origin !== base.origin;
+        return (
+          new URL(String(url ?? ""), URL_PROBE_BASE).origin !==
+          URL_PROBE_BASE.origin
+        );
       } catch {
         return true;
       }

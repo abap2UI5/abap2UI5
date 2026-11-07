@@ -34,6 +34,8 @@ CLASS z2ui5_cl_ui5_llm_claude DEFINITION
     "! the token limit when the call names none - the Messages API requires
     "! one, and a model that thinks spends from it before the answer starts
     CONSTANTS cv_default_max_tokens TYPE i VALUE 4096.
+    "! seconds a call may take when the app names no timeout - a model that
+    "! thinks can be slow, and a hung call must still end
     CONSTANTS cv_default_timeout TYPE i VALUE 300.
 
     "! @parameter model       | the model id, exactly as the provider spells it

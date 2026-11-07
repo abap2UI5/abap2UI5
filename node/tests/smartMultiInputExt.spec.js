@@ -116,6 +116,8 @@ test("a throwing attach is logged, never thrown", () => {
   makeInstance().setControl();
 
   expect(errors.some((m) => m.includes("setControl: setup failed"))).toBe(true);
+  // the line names the target, so a view with two companions tells them apart
+  expect(errors.some((m) => m.includes("multiInputId 'smart'"))).toBe(true);
 });
 
 test("inputInitialized resolves once the inner controls exist", async () => {

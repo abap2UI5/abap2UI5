@@ -578,7 +578,7 @@ sap.ui.define(
           // Valid JSON, but not an abap2UI5 answer: something else owns the
           // URL - another service on the same ICF path, a proxy or gateway
           // route answering with its own JSON. Say where to look.
-          if (!responseData || !responseData.S_FRONT) {
+          if (!responseData?.S_FRONT) {
             this.responseError(
               ctx,
               "Invalid response: missing S_FRONT - the URL probably does not reach " +
@@ -990,7 +990,7 @@ sap.ui.define(
           this.responseError(ctx, err);
           return;
         }
-        if (!gav || !gav.includes("com.sap.ui5")) {
+        if (!gav?.includes("com.sap.ui5")) {
           // UI5 loader errors do not expose a stable module field; fall back
           // to the quoted module path in the message so the hint stays useful
           // instead of printing "module: undefined".

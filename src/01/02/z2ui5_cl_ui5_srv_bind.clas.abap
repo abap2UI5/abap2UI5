@@ -250,9 +250,12 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ENDLOOP.
 
+    " names the table the cell was looked for in: a view binds cells of
+    " several tables per render, and the text alone did not say which bind
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
-        val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
+        val = |BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found in row { ms_config-tab_index } of '{ iv_name }' | &&
+              |- Please check if the bound values are public attributes of your class|.
 
   ENDMETHOD.
 

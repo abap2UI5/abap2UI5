@@ -119,8 +119,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const index =` && |\n| &&
-             `        typeof args[2] === "number" ? String(args[2]) : String(args[2] ?? "");` && |\n| &&
+             `      const index = String(args[2] ?? "");` && |\n| &&
              `      if (!/^\d+$/.test(index.trim())) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound``,` && |\n| &&
@@ -192,8 +191,7 @@ CLASS z2ui5_cl_ui5f_viewops_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;` && |\n| &&
              `          applyFocus();` && |\n| &&
-             `          const dom = oElement.getDomRef();` && |\n| &&
-             `          if (dom && dom.contains(document.activeElement)) return;` && |\n| &&
+             `          if (oElement.getDomRef()?.contains(document.activeElement)) return;` && |\n| &&
              `` && |\n| &&
              `          const prevActive = document.activeElement;` && |\n| &&
              `` && |\n| &&

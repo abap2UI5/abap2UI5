@@ -275,7 +275,7 @@ INTERFACE z2ui5_if_ui5_types
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
       " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
       " frontend router reads its inputs from that call's options, not from
-      " seven separate response fields.
+      " one response field per component of ty_s_nav.
       s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_ui5_http_handler reads it off the response record to

@@ -226,6 +226,12 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `    const MAIN_VIEW_ID = "mainView";` && |\n| &&
              `    const MAIN_VIEW_ID_ALT = "mainView2";` && |\n| &&
              `` && |\n| &&
+             `    function freeMainViewId(ctx, oOld) {` && |\n| &&
+             `      return oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
+             `        ? MAIN_VIEW_ID_ALT` && |\n| &&
+             `        : MAIN_VIEW_ID;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    async function displayView(` && |\n| &&
              `      ctx,` && |\n| &&
              `      xml,` && |\n| &&
@@ -418,14 +424,14 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `      oApp.addPage(oView);` && |\n| &&
              `      try {` && |\n| &&
-             `        if (plan.back) {` && |\n| &&
+             `        if (plan.back) {` && |\n|.
+    result = result &&
              `          oApp.to(oOld.getId(), plan.name);` && |\n| &&
              `          oApp.insertPreviousPage(` && |\n| &&
              `            oView.getId(),` && |\n| &&
              `            mOptions.transition || plan.name,` && |\n| &&
              `          );` && |\n| &&
-             `          oApp.backToPage(oView.getId());` && |\n|.
-    result = result &&
+             `          oApp.backToPage(oView.getId());` && |\n| &&
              `        } else {` && |\n| &&
              `          oApp.to(oView.getId(), plan.name);` && |\n| &&
              `        }` && |\n| &&
@@ -447,10 +453,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
              `      ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
              `      freezePage(oOld);` && |\n| &&
-             `      const localId =` && |\n| &&
-             `        oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
-             `          ? MAIN_VIEW_ID_ALT` && |\n| &&
-             `          : MAIN_VIEW_ID;` && |\n| &&
+             `      const localId = freeMainViewId(ctx, oOld);` && |\n| &&
              `      let bPlaced;` && |\n| &&
              `      try {` && |\n| &&
              `        bPlaced = await displayView(` && |\n| &&
@@ -502,10 +505,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `` && |\n| &&
              `        ViewSlots.destroy(ctx, "POPUP");` && |\n| &&
              `        ViewSlots.destroy(ctx, "POPOVER");` && |\n| &&
-             `        const localId =` && |\n| &&
-             `          oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)` && |\n| &&
-             `            ? MAIN_VIEW_ID_ALT` && |\n| &&
-             `            : MAIN_VIEW_ID;` && |\n| &&
+             `        const localId = freeMainViewId(ctx, oOld);` && |\n| &&
              `        let bPlaced;` && |\n| &&
              `        try {` && |\n| &&
              `          bPlaced = await displayView(` && |\n| &&

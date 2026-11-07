@@ -224,7 +224,7 @@ CLASS z2ui5_cl_ui5f_view1_js IMPLEMENTATION.
              `        if (!Lib.isControllerAlive(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
              `          const result = FrontendAction.runCustom(item, this);` && |\n| &&
-             `          if (result && typeof result.then === "function") {` && |\n| &&
+             `          if (typeof result?.then === "function") {` && |\n| &&
              `            try {` && |\n| &&
              `              await result;` && |\n| &&
              `            } catch (e) {` && |\n| &&

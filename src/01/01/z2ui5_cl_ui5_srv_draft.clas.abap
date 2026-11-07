@@ -130,7 +130,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       UPDATE z2ui5_t_01 FROM @ls_db.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+          EXPORTING val = |CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED - draft { ls_db-id }|.
       ENDIF.
     ENDIF.
     COMMIT WORK AND WAIT.

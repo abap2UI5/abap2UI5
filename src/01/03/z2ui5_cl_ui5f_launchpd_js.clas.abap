@@ -111,9 +111,6 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `      return { semanticObject: m[1], action: m[2], params };` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const dispatchWhenIdle = (oController, eventArgs) =>` && |\n| &&
-             `      Lib.dispatchWhenIdle(oController, eventArgs);` && |\n| &&
-             `` && |\n| &&
              `    function evCrossAppNavGetLinks(oController, args) {` && |\n| &&
              `      withCrossAppNavigator(oController, (nav) => {` && |\n| &&
              `        const target = navTarget(oController, args[1]);` && |\n| &&
@@ -139,7 +136,11 @@ CLASS z2ui5_cl_ui5f_launchpd_js IMPLEMENTATION.
              `              subTitle: l.subTitle || "",` && |\n| &&
              `              ...splitIntent(l.intent),` && |\n| &&
              `            }));` && |\n| &&
-             `            dispatchWhenIdle(oController, [[sEvent], JSON.stringify(result)]);` && |\n| &&
+             `` && |\n| &&
+             `            Lib.dispatchWhenIdle(oController, [` && |\n| &&
+             `              [sEvent],` && |\n| &&
+             `              JSON.stringify(result),` && |\n| &&
+             `            ]);` && |\n| &&
              `          })` && |\n| &&
              `          .catch((e) =>` && |\n| &&
              `            Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed", e),` && |\n| &&

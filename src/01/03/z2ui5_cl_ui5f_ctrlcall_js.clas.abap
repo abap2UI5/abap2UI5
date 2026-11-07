@@ -67,9 +67,6 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (!apply()) requestAnimationFrame(apply);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const dispatchWhenIdle = (oController, args) =>` && |\n| &&
-             `      Lib.dispatchWhenIdle(oController, args);` && |\n| &&
-             `` && |\n| &&
              `    function showToast(sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
              `      const sClass = o.class;` && |\n| &&
@@ -77,7 +74,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      if (o.onClose) {` && |\n| &&
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
-             `        o.onClose = () => dispatchWhenIdle(oController, [[sEvent]]);` && |\n| &&
+             `        o.onClose = () => Lib.dispatchWhenIdle(oController, [[sEvent]]);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (Object.keys(o).length) MessageToast.show(sText, o);` && |\n| &&
@@ -124,7 +121,7 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `        const sEvent = o.onClose;` && |\n| &&
              `` && |\n| &&
              `        o.onClose = (sAction) =>` && |\n| &&
-             `          dispatchWhenIdle(oController, [` && |\n| &&
+             `          Lib.dispatchWhenIdle(oController, [` && |\n| &&
              `            [sEvent],` && |\n| &&
              `            actionOf.get(sAction) ?? sAction,` && |\n| &&
              `          ]);` && |\n| &&
@@ -223,11 +220,13 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `      "opacity",` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
-             `    const URL_PROBE_BASE = "https://z2ui5.invalid/";` && |\n| &&
+             `    const URL_PROBE_BASE = new URL("https://z2ui5.invalid/");` && |\n| &&
              `    function isAbsoluteUrl(url) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const base = new URL(URL_PROBE_BASE);` && |\n| &&
-             `        return new URL(String(url ?? ""), base).origin !== base.origin;` && |\n| &&
+             `        return (` && |\n| &&
+             `          new URL(String(url ?? ""), URL_PROBE_BASE).origin !==` && |\n| &&
+             `          URL_PROBE_BASE.origin` && |\n| &&
+             `        );` && |\n| &&
              `      } catch {` && |\n| &&
              `        return true;` && |\n| &&
              `      }` && |\n| &&
@@ -424,9 +423,9 @@ CLASS z2ui5_cl_ui5f_ctrlcall_js IMPLEMENTATION.
              `          if (page && typeof page.getId === "function") return page.getId();` && |\n| &&
              `` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n|.
+             `            ``CONTROL_CALL: no control '${raw}' for the page argument``,` && |\n| &&
+             `          );` && |\n|.
     result = result &&
-             `          );` && |\n| &&
              `          return raw;` && |\n| &&
              `        }` && |\n| &&
              `        case "controlIdOrNull":` && |\n| &&

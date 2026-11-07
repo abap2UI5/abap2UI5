@@ -260,8 +260,9 @@ sap.ui.define(
       );
     }
 
-    // The one-click path from the Overview tab: the finished issue body
-    // on the clipboard, without going through the export popup first.
+    // The one-click path of the dialog's "Report a Bug" footer button
+    // (DeveloperTools.onReportBug): the finished issue body on the
+    // clipboard, without going through the export popup first.
     // Resolves with a short result message for the caller to show - the
     // one the clipboard's own answer allows: "copied" said regardless used
     // to stand over a clipboard the browser had refused.

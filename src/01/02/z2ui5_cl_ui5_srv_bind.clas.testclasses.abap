@@ -572,11 +572,12 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
   METHOD foreign_value_refused.
 
-    " mv_other holds the same text as the cell - a value, not the cell
+    " mv_other holds the same text as the cell - a value, not the cell.
+    " The error names the table and the row the cell was looked for in
     expect_bind_error( ir_val    = REF #( mo_app->mv_other )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found in row 1 of '/MT_TAB'` ).
 
   ENDMETHOD.
 

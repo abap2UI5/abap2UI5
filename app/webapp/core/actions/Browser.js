@@ -51,38 +51,39 @@ sap.ui.define(
       );
     }
 
+    // A data: URL carrying active HTML combined with an attacker-chosen
+    // .html/.hta filename is a known drive-by vector; block executable data:
+    // MIME types outright (real downloads are octet-stream, images, pdf, ...).
+    const ACTIVE_DATA_MIME =
+      /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i;
+
+    // Path separators and control characters a download filename must not
+    // carry, so it cannot escape the download directory or mislead.
+    // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here
+    const UNSAFE_FILENAME_CHARS = /[\\/:*?"<>|\x00-\x1f]/g;
+
     function evDownloadB64File(oController, args) {
       if (!Lib.isSafeDownloadURL(args[1])) {
         Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
         return;
       }
-      // A data: URL carrying active HTML combined with an attacker-chosen
-      // .html/.hta filename is a known drive-by vector; block executable data:
-      // MIME types outright (real downloads are octet-stream, images, pdf, ...).
-      // Tested on the URL as the BROWSER reads it, not on the raw argument:
-      // the URL parser drops leading whitespace and every tab or newline, and
-      // the data: URL processor strips the whitespace before the MIME type -
-      // " data:text/html,...", "da\tta:text/html,..." and
-      // "data: text/html,..." all passed a test on the raw string and were
-      // downloaded as the HTML file this guard exists to refuse.
-      // isSafeDownloadURL has just proven that it parses.
+      // The active-MIME guard is tested on the URL as the BROWSER reads it,
+      // not on the raw argument: the URL parser drops leading whitespace and
+      // every tab or newline, and the data: URL processor strips the
+      // whitespace before the MIME type - " data:text/html,...",
+      // "da\tta:text/html,..." and "data: text/html,..." all passed a test
+      // on the raw string and were downloaded as the HTML file this guard
+      // exists to refuse. isSafeDownloadURL has just proven that it parses.
       const href = new URL(args[1], window.location.origin).href;
-      if (
-        /^data:\s*(text\/html|application\/xhtml|text\/xml|image\/svg)/i.test(
-          href,
-        )
-      ) {
+      if (ACTIVE_DATA_MIME.test(href)) {
         Lib.logError("DOWNLOAD_B64_FILE: blocked active data: MIME type");
         return;
       }
       const a = document.createElement("a");
       a.href = args[1];
       // Fall back to an empty download attribute when the backend omits the
-      // filename, so the anchor never carries the literal "undefined". Strip
-      // path separators and control characters so the filename cannot escape
-      // the download directory or carry a misleading name.
-      // eslint-disable-next-line no-control-regex -- control chars are matched on purpose here
-      a.download = String(args[2] || "").replace(/[\\/:*?"<>|\x00-\x1f]/g, "_");
+      // filename, so the anchor never carries the literal "undefined".
+      a.download = String(args[2] || "").replace(UNSAFE_FILENAME_CHARS, "_");
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
       document.body.appendChild(a);

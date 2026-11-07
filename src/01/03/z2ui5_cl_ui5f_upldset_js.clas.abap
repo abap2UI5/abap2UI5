@@ -154,7 +154,10 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``UploadSetExt.setControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

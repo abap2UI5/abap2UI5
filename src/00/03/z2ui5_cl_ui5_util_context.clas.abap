@@ -787,7 +787,9 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " c_escape_xml builds its control-character set with it
+    " c_escape_xml and z2ui5_cl_ui5_util_json_fl=>escape_controls build
+    " their control-character sets with it, and z2ui5_cl_ui5_util_http
+    " decodes a response body without a charset as UTF-8 through it
     CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
         val           TYPE xstring
@@ -923,8 +925,10 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     " the character set c_escape_xml guards against, concatenated once per
     " roll area instead of once per attribute value. Lazily filled on first
-    " use - a public class_constructor is the alternative and abap-check
-    " names it a trap
+    " use, not in class_constructor: the control half needs the codepage
+    " API, and its absence (UNSUPPORTED_CODEPAGE_API) is degraded inside
+    " c_escape_xml - a raise in the class constructor would take the whole
+    " class down with it
     CLASS-DATA gv_xml_escape_specials TYPE string.
     CLASS-DATA gv_xml_escape_controls TYPE string.
 

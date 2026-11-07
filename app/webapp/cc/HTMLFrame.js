@@ -162,7 +162,7 @@ sap.ui.define(
         const parsed = parseSapevent(form.getAttribute("action"));
         if (!parsed) {
           Lib.logError(
-            `HTMLFrame: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are`,
+            `HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are`,
           );
           return;
         }

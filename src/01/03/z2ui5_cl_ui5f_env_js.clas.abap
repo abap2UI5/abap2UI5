@@ -107,18 +107,24 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
-             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
+             `      const version = ui5Version();` && |\n| &&
+             `      if (!version) return true;` && |\n| &&
+             `      const [major, minor] = version;` && |\n| &&
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function fragmentLoadsSync() {` && |\n| &&
+             `    function ui5Version() {` && |\n| &&
              `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
              `` && |\n| &&
              `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return null;` && |\n| &&
+             `      return [major, minor];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function fragmentLoadsSync() {` && |\n| &&
+             `      const version = ui5Version();` && |\n| &&
+             `      if (!version) return false;` && |\n| &&
+             `      const [major, minor] = version;` && |\n| &&
              `      return major === 1 && minor < 84;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -256,13 +262,13 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `      );` && |\n| &&
              `      if (!namespaces.length) return;` && |\n| &&
              `      const libraries = await loadDistributionLibraries();` && |\n| &&
-             `      const loaded = loadedLibraryNames();` && |\n| &&
+             `      const loaded = [...loadedLibraryNames()];` && |\n| &&
              `      const names = new Set();` && |\n| &&
              `      for (const namespace of namespaces) {` && |\n| &&
              `        const library = libraryOf(namespace, libraries);` && |\n| &&
              `        namespaceLibrary.set(namespace, library);` && |\n| &&
              `        if (!library) continue;` && |\n| &&
-             `        if ([...loaded].some((lib) => isUnder(library, lib))) continue;` && |\n| &&
+             `        if (loaded.some((lib) => isUnder(library, lib))) continue;` && |\n| &&
              `        names.add(library);` && |\n| &&
              `      }` && |\n| &&
              `      await Promise.all([...names].map(loadLibrary));` && |\n| &&

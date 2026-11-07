@@ -124,6 +124,40 @@ sap.ui.define(
       });
     }
 
+    // A stretched popup around one TextArea: the help and the exported
+    // journey are shown this way (Report.openDialog builds the export
+    // popup the same way). `buttons(Button, area)` builds the caller's own
+    // buttons once the modules are loaded; Close is added behind them -
+    // emphasized when it is the only one - and the dialog destroys itself
+    // after closing. A modal dialog confirms on its own buttons
+    // (Report.confirmOnButton), a toast behind it would be invisible.
+    function openTextDialog({ title, text, editable, buttons }) {
+      sap.ui.require(
+        ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
+        (Dialog, TextArea, Button) => {
+          const area = new TextArea({
+            editable,
+            width: "100%",
+            rows: 25,
+            growing: false,
+          });
+          area.setValue(text);
+          const own = buttons ? buttons(Button, area) : [];
+          const close = { text: "Close", press: () => dialog.close() };
+          if (!own.length) close.type = "Emphasized";
+          const dialog = new Dialog({
+            title,
+            stretch: true,
+            content: [area],
+            // `buttons`, not beginButton/endButton - see Report.openDialog
+            buttons: own.concat(new Button(close)),
+            afterClose: () => dialog.destroy(),
+          });
+          dialog.open();
+        },
+      );
+    }
+
     const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {
       // The fragment id the dialog's controls are registered under,
       // derived from THIS instance's id: a fixed page-global id would
@@ -480,49 +514,28 @@ sap.ui.define(
 
       // The exported test class in a stretched popup: a TextArea to read
       // it through, Copy for the paste into the test include, Download
-      // for the file. Built the way Report.openDialog builds the export
-      // popup - a modal dialog confirms on its own buttons.
+      // for the file.
       onExportJourney() {
-        const text = Journey.buildAbapUnit(this.ctx);
         const fileName = Journey.exportFileName(this.ctx);
-        sap.ui.require(
-          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
-          (Dialog, TextArea, Button) => {
-            const area = new TextArea({
-              editable: true,
-              width: "100%",
-              rows: 25,
-              growing: false,
-            });
-            area.setValue(text);
-            const dialog = new Dialog({
-              title: "abap2UI5 - Journey as ABAP Unit test",
-              stretch: true,
-              content: [area],
-              // `buttons`, not beginButton/endButton - see Report.openDialog
-              buttons: [
-                new Button({
-                  text: "Copy",
-                  type: "Emphasized",
-                  press: (oEvent) => {
-                    Lib.copyToClipboard(area.getValue());
-                    Report.confirmOnButton(oEvent.getSource());
-                  },
-                }),
-                new Button({
-                  text: "Download",
-                  press: () => Report.downloadText(fileName, area.getValue()),
-                }),
-                new Button({
-                  text: "Close",
-                  press: () => dialog.close(),
-                }),
-              ],
-              afterClose: () => dialog.destroy(),
-            });
-            dialog.open();
-          },
-        );
+        openTextDialog({
+          title: "abap2UI5 - Journey as ABAP Unit test",
+          text: Journey.buildAbapUnit(this.ctx),
+          editable: true,
+          buttons: (Button, area) => [
+            new Button({
+              text: "Copy",
+              type: "Emphasized",
+              press: (oEvent) => {
+                Lib.copyToClipboard(area.getValue());
+                Report.confirmOnButton(oEvent.getSource());
+              },
+            }),
+            new Button({
+              text: "Download",
+              press: () => Report.downloadText(fileName, area.getValue()),
+            }),
+          ],
+        });
       },
 
       // Pop the tools open on the Log as soon as anything logs at error
@@ -619,32 +632,11 @@ sap.ui.define(
       // reached from the info icon in the footer now and opens in its own
       // dialog, so it does not take the current view away.
       onShowHelp() {
-        sap.ui.require(
-          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
-          (Dialog, TextArea, Button) => {
-            const area = new TextArea({
-              editable: false,
-              width: "100%",
-              rows: 25,
-              growing: false,
-            });
-            area.setValue(Inspect.formatHelp());
-            const dialog = new Dialog({
-              title: "abap2UI5 - Developer Tools Help",
-              stretch: true,
-              content: [area],
-              buttons: [
-                new Button({
-                  text: "Close",
-                  type: "Emphasized",
-                  press: () => dialog.close(),
-                }),
-              ],
-              afterClose: () => dialog.destroy(),
-            });
-            dialog.open();
-          },
-        );
+        openTextDialog({
+          title: "abap2UI5 - Developer Tools Help",
+          text: Inspect.formatHelp(),
+          editable: false,
+        });
       },
 
       // ----------------------------------------------------------------

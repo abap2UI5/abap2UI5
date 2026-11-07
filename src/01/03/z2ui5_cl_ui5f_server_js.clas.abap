@@ -328,7 +328,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
              `` && |\n| &&
-             `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
+             `          if (!responseData?.S_FRONT) {` && |\n| &&
              `            this.responseError(` && |\n| &&
              `              ctx,` && |\n| &&
              `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
@@ -589,7 +589,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          this.responseError(ctx, err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             `        if (!gav?.includes("com.sap.ui5")) {` && |\n| &&
              `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
              `          const missingModule =` && |\n| &&
              `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&

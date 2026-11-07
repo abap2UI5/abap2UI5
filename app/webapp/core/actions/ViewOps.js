@@ -144,8 +144,7 @@ sap.ui.define(
       // view to `<path>/` (the TABLE itself, so every relative binding of
       // the fragment resolved to nothing) and `abc` or `1.5` to a row that
       // cannot exist, silently both. The view keeps the binding it has.
-      const index =
-        typeof args[2] === "number" ? String(args[2]) : String(args[2] ?? "");
+      const index = String(args[2] ?? "");
       if (!/^\d+$/.test(index.trim())) {
         Lib.logError(
           `BIND_ELEMENT: '${args[2] ?? ""}' is no row index of '${path}' - the view is not rebound`,
@@ -279,8 +278,7 @@ sap.ui.define(
           // while later, and the user may have gone to the host by then
           if (!ScrollFocus.mayMoveFocus(oController.ctx)) return;
           applyFocus();
-          const dom = oElement.getDomRef();
-          if (dom && dom.contains(document.activeElement)) return;
+          if (oElement.getDomRef()?.contains(document.activeElement)) return;
           // The focus did not stick. A view_model_update in the same response
           // may have changed the control - e.g. re-enabled a locked input via
           // its `enabled` binding: the control already reports the new state,

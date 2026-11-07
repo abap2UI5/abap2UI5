@@ -228,9 +228,11 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " behaviour the framework should not have to lean on. The descriptor
     " lookup loads and instantiates nothing. It is also the honest message:
     " a class that exists but is no app used to be reported as "does not
-    " exist in the system". Either way the raise goes as it is to the single
-    " top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which turns it
-    " into a 500 whose body carries the text for the frontend to display.
+    " exist in the system". Either way the raise goes up through the CATCH
+    " in z2ui5_cl_ui5_handler=>main( ), which annotates it with the request
+    " context, to the top-level catch in z2ui5_cl_ui5_http_handler=>_main( ),
+    " which turns the chain into a 500 whose body carries the text for the
+    " frontend to display.
     " The interface is named through a typed reference, never a literal: a
     " namespace rename rewrites the reference but left the literal behind,
     " and a renamed installation then refused every app it was asked to
