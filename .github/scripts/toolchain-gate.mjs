@@ -49,9 +49,9 @@ const WANT_NVMRC = '22';
  * Every entry here is a repository outside the eleven this workstream can open
  * a pull request against. They are real findings, deliberately not fixed here.
  */
-const EXCEPTIONS = [
-  { repo: 'custom-controls', missing: ['.nvmrc'] },
-];
+// custom-controls carries its .nvmrc since 2026-11 - its entry went, as the
+// rule above asks
+const EXCEPTIONS = [];
 
 const excepted = (repo, what) =>
   EXCEPTIONS.some((e) => e.repo === repo && e.missing.includes(what));
