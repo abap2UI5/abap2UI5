@@ -131,6 +131,10 @@ sap.ui.define(
     // emphasized when it is the only one - and the dialog destroys itself
     // after closing. A modal dialog confirms on its own buttons
     // (Report.confirmOnButton), a toast behind it would be invisible.
+    /**
+     * @param {{ title: string, text: string, editable: boolean,
+     *   buttons?: (Button: any, area: any) => any[] }} options
+     */
     function openTextDialog({ title, text, editable, buttons }) {
       sap.ui.require(
         ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
