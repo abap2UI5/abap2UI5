@@ -33,6 +33,30 @@ sap.ui.define(
     const ABAP_SOURCE_ORDER = 55;
     const ABAP_SOURCE_TITLE = "ABAP SOURCE";
 
+    // What an export must not carry verbatim. The report is made to be
+    // pasted into a public GitHub issue, and it held the session's
+    // sap-contextid (the Environment section) and the last request body
+    // and response model - every value typed in the last roundtrip, a
+    // password bound with _bind( ) included. The live tabs keep them; the
+    // export masks the context id and the value of every JSON key that
+    // names a secret. A key, not a control: the report sees the model and
+    // the body as text, and a name is what it can judge.
+    const SECRET_KEY =
+      /^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;
+    const MASK = "***";
+
+    function redactForExport(text) {
+      return String(text)
+        .replace(/^(\s*sap-contextid\s+)(\S.*)$/gim, (_m, lead, value) =>
+          value === "-" ? lead + value : lead + MASK,
+        )
+        .replace(
+          /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,
+          (match, key, colon) =>
+            SECRET_KEY.test(key) ? `"${key}"${colon}"${MASK}"` : match,
+        );
+    }
+
     // Assemble the plain-text report: every exported tab, in the
     // registry's export order, plus the ABAP class source that was
     // fetched asynchronously and passed in (empty when unavailable).
@@ -59,8 +83,8 @@ sap.ui.define(
         order: tab.exportOrder,
         title: Tabs.exportTitle(tab),
         // Tabs.render is itself guarded, so one throwing source can never
-        // blank the report.
-        body: Tabs.render(ctx, tab.key),
+        // blank the report. Masked - the class source below is not
+        body: redactForExport(Tabs.render(ctx, tab.key)),
       }));
       if (abapSource) {
         entries.push({
@@ -129,9 +153,15 @@ sap.ui.define(
         anchor.download = fileName;
         document.body.appendChild(anchor);
         anchor.click();
-        document.body.removeChild(anchor);
-        // Release the object url once the download has been handed over.
-        setTimeout(() => URL.revokeObjectURL(url), 0);
+        // Release the object url once the download has been handed over -
+        // not on the next tick: Firefox and Safari open the blob
+        // asynchronously, and a URL revoked at 0 ms aborted a large export
+        // (the history with payloads, up to 2 MB) into an empty or failed
+        // download with nothing logged. The delay FileSaver.js uses.
+        setTimeout(() => {
+          URL.revokeObjectURL(url);
+          anchor.remove();
+        }, 40000);
       } catch (e) {
         Lib.logError("DevTools Report: download failed", e);
       }
@@ -230,12 +260,20 @@ sap.ui.define(
       );
     }
 
-    // The one-click path from the Overview tab: the finished issue body
-    // on the clipboard, without going through the export popup first.
-    // Returns a short result message for the caller to show.
-    function copyMarkdown(ctx, abapSource, plain) {
+    // The one-click path of the dialog's "Report a Bug" footer button
+    // (DeveloperTools.onReportBug): the finished issue body on the
+    // clipboard, without going through the export popup first.
+    // Resolves with a short result message for the caller to show - the
+    // one the clipboard's own answer allows: "copied" said regardless used
+    // to stand over a clipboard the browser had refused.
+    async function copyMarkdown(ctx, abapSource, plain) {
       try {
-        Lib.copyToClipboard(buildMarkdown(ctx, abapSource, plain));
+        const copied = await Lib.copyToClipboard(
+          buildMarkdown(ctx, abapSource, plain),
+        );
+        if (copied === false) {
+          return "The browser did not allow the copy - press again.";
+        }
         return "Bug report copied as Markdown - paste it into a GitHub issue.";
       } catch (e) {
         Lib.logError("DevTools Report: markdown export failed", e);
@@ -248,6 +286,7 @@ sap.ui.define(
       buildMarkdown,
       confirmOnButton,
       copyMarkdown,
+      redactForExport,
       downloadText,
       exportFileName,
       openDialog,

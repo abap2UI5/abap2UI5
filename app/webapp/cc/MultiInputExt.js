@@ -216,7 +216,10 @@ sap.ui.define(
           };
           input.addValidator(this._validator);
         } catch (e) {
-          Lib.logError("MultiInputExt.setControl: setup failed", e);
+          Lib.logError(
+            `MultiInputExt.setControl: setup failed for MultiInputId '${this.getProperty("MultiInputId")}'`,
+            e,
+          );
         }
       },
     });

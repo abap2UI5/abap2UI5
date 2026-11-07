@@ -71,7 +71,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
+    " one stateless instance per roll area, as the class doc promises -
+    " the second call answers the same object, not a second one
     cl_abap_unit_assert=>assert_bound( mi_filter ).
+    DATA(li_again) = z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( li_again = mi_filter ) ).
 
   ENDMETHOD.
 

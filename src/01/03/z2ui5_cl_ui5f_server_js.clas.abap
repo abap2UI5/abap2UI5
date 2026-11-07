@@ -35,6 +35,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/Offline",` && |\n| &&
+             `    "z2ui5/core/Router",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    Offline,` && |\n| &&
+             `    Router,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -84,6 +86,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.server.viewBuild = null;` && |\n| &&
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
+             `        ctx.state.oQueuedWindow = null;` && |\n| &&
              `` && |\n| &&
              `        ErrorView.reset(ctx);` && |\n| &&
              `` && |\n| &&
@@ -91,13 +94,21 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      restoreFromRoute(ctx) {` && |\n| &&
+             `        if (ctx.offline?.replaying) {` && |\n| &&
+             `          Lib.afterRoundtrip({ ctx }, () => this.restoreFromRoute(ctx));` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        ctx.state.isBusy = true;` && |\n| &&
              `        showBusy(ctx, 0);` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(ctx);` && |\n| &&
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
+             `        ctx.state.oQueuedWindow = null;` && |\n| &&
              `        this.roundtrip(ctx, {});` && |\n| &&
+             `` && |\n| &&
+             `        ctx.server.restoreSeq = ctx.server.requestSeq;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      roundtrip(ctx, oBody = {}) {` && |\n| &&
@@ -317,7 +328,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
              `` && |\n| &&
-             `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
+             `          if (!responseData?.S_FRONT) {` && |\n| &&
              `            this.responseError(` && |\n| &&
              `              ctx,` && |\n| &&
              `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
@@ -379,6 +390,10 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.state.oSentModel = null;` && |\n| &&
              `        hideBusy(ctx);` && |\n| &&
              `        ctx.state.isBusy = false;` && |\n| &&
+             `` && |\n| &&
+             `        Lib.runCallbacks(ctx.state.onRoundtripEnd);` && |\n| &&
+             `        ViewSlots.getController(ctx, "MAIN")?._dispatchQueuedEvent?.();` && |\n| &&
+             `        Router.dispatchPendingAppHash(ctx);` && |\n| &&
              `        const text = Offline.text(ctx);` && |\n| &&
              `        if (text) {` && |\n| &&
              `          sap.ui.require(` && |\n| &&
@@ -400,43 +415,68 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (typeof navigator !== "undefined" && navigator.onLine === false)` && |\n| &&
-             `          return;` && |\n| &&
+             `` && |\n| &&
              `        const entries = Offline.take(ctx);` && |\n| &&
              `        if (!entries.length) return;` && |\n| &&
+             `` && |\n| &&
+             `        const home = { state: { url: ctx.state.url } };` && |\n| &&
+             `` && |\n| &&
+             `        const seq = ++ctx.server.requestSeq;` && |\n| &&
+             `        const isStale = () => !ctx.alive || seq !== ctx.server.requestSeq;` && |\n| &&
              `        rec.replaying = true;` && |\n| &&
-             `        ctx.state.isBusy = true;` && |\n| &&
+             `        ctx.state.isBusy = true;` && |\n|.
+    result = result &&
              `        showBusy(ctx, 0);` && |\n| &&
              `        let id = ctx.state.oResponse?.ID;` && |\n| &&
              `        for (let i = 0; i < entries.length - 1; i++) {` && |\n| &&
+             `          if (isStale()) {` && |\n| &&
+             `            Offline.putBack(home, entries.slice(i));` && |\n| &&
+             `            rec.replaying = false;` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `          const body = entries[i].body;` && |\n| &&
              `          if (id) body.S_FRONT.ID = id;` && |\n| &&
              `          const timeout = this.createTimeoutSignal(REQUEST_TIMEOUT_MS);` && |\n| &&
+             `` && |\n| &&
+             `          const superseder = new AbortController();` && |\n| &&
+             `          ctx.server.inflight.add(superseder);` && |\n| &&
              `          try {` && |\n| &&
              `            const response = await this._post(` && |\n| &&
              `              ctx,` && |\n| &&
              `              JSON.stringify({ value: body }),` && |\n| &&
-             `              timeout.signal,` && |\n| &&
+             `              this._combineSignals(timeout.signal, superseder.signal),` && |\n| &&
              `            );` && |\n| &&
              `            if (!response.ok) throw new Error(``HTTP ${response.status}``);` && |\n| &&
              `            const data = await response.json();` && |\n| &&
+             `            if (isStale()) {` && |\n| &&
+             `              Offline.putBack(home, entries.slice(i + 1));` && |\n| &&
+             `              rec.replaying = false;` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `            const contextId = response.headers.get("sap-contextid");` && |\n| &&
              `            if (Lib.isValidContextId(contextId))` && |\n| &&
              `              ctx.state.contextId = contextId;` && |\n| &&
              `            id = data?.S_FRONT?.ID || id;` && |\n| &&
-             `          } catch (e) {` && |\n|.
-    result = result &&
-             `            Offline.putBack(ctx, entries.slice(i));` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            Offline.putBack(home, entries.slice(i));` && |\n| &&
              `            rec.replaying = false;` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            hideBusy(ctx);` && |\n| &&
              `            ctx.state.isBusy = false;` && |\n| &&
+             `` && |\n| &&
+             `            Lib.runCallbacks(ctx.state.onRoundtripEnd);` && |\n| &&
              `            Lib.logError("offline queue: sending stopped", e);` && |\n| &&
              `            return;` && |\n| &&
              `          } finally {` && |\n| &&
+             `            ctx.server.inflight.delete(superseder);` && |\n| &&
              `            timeout.cancel();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        rec.replaying = false;` && |\n| &&
+             `        if (isStale()) {` && |\n| &&
+             `          Offline.putBack(home, entries.slice(-1));` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        const last = entries[entries.length - 1].body;` && |\n| &&
              `        if (id) last.S_FRONT.ID = id;` && |\n| &&
              `` && |\n| &&
@@ -549,7 +589,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `          this.responseError(ctx, err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             `        if (!gav?.includes("com.sap.ui5")) {` && |\n| &&
              `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
              `          const missingModule =` && |\n| &&
              `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&
@@ -567,6 +607,7 @@ CLASS z2ui5_cl_ui5f_server_js IMPLEMENTATION.
              `        ctx.state.isBusy = false;` && |\n| &&
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
+             `        ctx.state.oQueuedWindow = null;` && |\n| &&
              `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&

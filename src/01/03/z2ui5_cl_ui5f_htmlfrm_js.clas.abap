@@ -92,7 +92,10 @@ CLASS z2ui5_cl_ui5f_htmlfrm_js IMPLEMENTATION.
              `        const frame = this.getDomRef();` && |\n| &&
              `        if (!frame) return;` && |\n| &&
              `` && |\n| &&
-             `        frame.addEventListener("load", () => this._wire(frame));` && |\n| &&
+             `        if (!wired.has(frame)) {` && |\n| &&
+             `          wired.add(frame);` && |\n| &&
+             `          frame.addEventListener("load", () => this._wire(frame));` && |\n| &&
+             `        }` && |\n| &&
              `        this._wire(frame);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -131,7 +134,7 @@ CLASS z2ui5_cl_ui5f_htmlfrm_js IMPLEMENTATION.
              `        const parsed = parseSapevent(form.getAttribute("action"));` && |\n| &&
              `        if (!parsed) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             `            ``HTMLFrame: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are``,` && |\n| &&
+             `            ``HTMLFrame ${this.getId()}: a form to ${form.getAttribute("action")} is not sent - only sapevent: actions are``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

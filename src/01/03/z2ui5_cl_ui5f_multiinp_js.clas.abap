@@ -189,7 +189,10 @@ CLASS z2ui5_cl_ui5f_multiinp_js IMPLEMENTATION.
              `          };` && |\n| &&
              `          input.addValidator(this._validator);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``MultiInputExt.setControl: setup failed for MultiInputId '${this.getProperty("MultiInputId")}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

@@ -415,6 +415,19 @@ test.describe("the exported ABAP Unit class", () => {
 });
 
 test.describe("the setters for a model delta", () => {
+  test("what was typed into a secret is not written into the test class", () => {
+    const h = loadJourney();
+    const lines = h.Journey._internals.editStatements(
+      { value: { MV_PASSWORD: "hunter2", MV_USER: "alice" } },
+      4,
+    );
+    const text = lines.join("\n");
+    expect(text).not.toContain("hunter2");
+    expect(text).toContain("MV_PASSWORD: the value typed is not exported");
+    expect(text).toContain("value = `***`");
+    expect(text).toContain("value = `alice`");
+  });
+
   test("every shape of the frontend's delta has its simulator call", () => {
     const h = loadJourney();
     const lines = h.Journey._internals.editStatements(

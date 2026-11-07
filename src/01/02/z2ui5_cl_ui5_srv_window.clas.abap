@@ -282,8 +282,15 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
       lr_attri->t_window_sort   = parse_sort( lv_sort ).
       lr_attri->t_window_filter = parse_filter( lv_filter ).
       " never fewer than one window - the browser asks for the first one
-      " again after a sort or a filter changed
-      IF lv_count CO ` 0123456789` AND lv_count IS NOT INITIAL.
+      " again after a sort or a filter changed. The count comes from the
+      " browser: condensed, digits only and nine of them at most, as
+      " z2ui5_cl_ui5_frontend=>set_opt_int reads a number - `1 0` passed a
+      " check that allowed blanks and a longer digit string overflowed, and
+      " either raised out of event_apply, which runs outside every TRY, as
+      " a 500 for a value that only sizes the window. A count past the rows
+      " there are costs nothing: rows( ) stops at the end of the index
+      lv_count = condense( lv_count ).
+      IF lv_count IS NOT INITIAL AND lv_count CO `0123456789` AND strlen( lv_count ) <= 9.
         lv_wanted = lv_count.
       ENDIF.
       lr_attri->window_count = nmax( val1 = lv_wanted

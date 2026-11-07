@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
     "z2ui5/core/Offline",
+    "z2ui5/core/Router",
   ],
   (
     BusyIndicator,
@@ -18,6 +19,7 @@ sap.ui.define(
     ViewSlots,
     ErrorView,
     Offline,
+    Router,
   ) => {
     "use strict";
 
@@ -132,6 +134,12 @@ sap.ui.define(
       //               is committed and stale ones are dropped - a
       //               Back/Forward restore and reset( )'s teardown bump both
       //               land here
+      //   restoreSeq  the stamp of the last Back/Forward restore. A response
+      //               a restore superseded still runs its follow-up actions
+      //               (View1), but a timer it arms there would tick its old
+      //               event into the app the restore brings up - the restore
+      //               cancelled the timers when it went out, before those
+      //               actions ran - so View1 cancels them again after them
       //   inflight    abort controllers of the requests still in flight. A
       //               newly dispatched request aborts them all - it
       //               supersedes them, so there is no point letting the
@@ -189,8 +197,10 @@ sap.ui.define(
         this._abortInflight(ctx);
         ctx.server.viewBuild = null;
         // a keystroke a check_queue_last wire kept for the app being torn
-        // down must never be dispatched into the next one
+        // down must never be dispatched into the next one - nor a window
+        // request of its tables
         ctx.state.oQueuedEvent = null;
+        ctx.state.oQueuedWindow = null;
         // the error overlay's record is the same kind of survivor - the
         // last error dump stays referenced across the teardown otherwise
         ErrorView.reset(ctx);
@@ -206,6 +216,15 @@ sap.ui.define(
       // read the target class + draft from the hash it receives
       // (request_app_start_route[_draft]).
       restoreFromRoute(ctx) {
+        // The offline replay sends its queue on a draft chain of its own;
+        // a restore in the middle of it would answer with the draft it
+        // restores while the replay goes on under the other one. The
+        // replay ends with a readHttp that renders - the restore waits for
+        // it like any event waits for a roundtrip in flight.
+        if (ctx.offline?.replaying) {
+          Lib.afterRoundtrip({ ctx }, () => this.restoreFromRoute(ctx));
+          return;
+        }
         // Participate in the normal busy protocol: without it the app looks
         // idle during the restore, and an ordinary click would dispatch a
         // request that aborts the Back/Forward navigation without any
@@ -223,7 +242,10 @@ sap.ui.define(
         // old app's event under the restored draft id (reset( ) and
         // responseError drop it for the same reason)
         ctx.state.oQueuedEvent = null;
+        ctx.state.oQueuedWindow = null;
         this.roundtrip(ctx, {});
+        // readHttp stamped the restore synchronously, before its first await
+        ctx.server.restoreSeq = ctx.server.requestSeq;
       },
 
       roundtrip(ctx, oBody = {}) {
@@ -556,7 +578,7 @@ sap.ui.define(
           // Valid JSON, but not an abap2UI5 answer: something else owns the
           // URL - another service on the same ICF path, a proxy or gateway
           // route answering with its own JSON. Say where to look.
-          if (!responseData || !responseData.S_FRONT) {
+          if (!responseData?.S_FRONT) {
             this.responseError(
               ctx,
               "Invalid response: missing S_FRONT - the URL probably does not reach " +
@@ -656,6 +678,15 @@ sap.ui.define(
         ctx.state.oSentModel = null;
         hideBusy(ctx);
         ctx.state.isBusy = false;
+        // The roundtrip ends here as it would after a render, minus the
+        // render: what waited for it (Lib.afterRoundtrip - a timer tick, a
+        // MessageBox answer, the next file of a multi-upload) goes now, then
+        // the keystroke a check_queue_last wire kept and a parked hash
+        // change. Before, this path only cleared the busy flag, and every
+        // one of them waited for a render that never came.
+        Lib.runCallbacks(ctx.state.onRoundtripEnd);
+        ViewSlots.getController(ctx, "MAIN")?._dispatchQueuedEvent?.();
+        Router.dispatchPendingAppHash(ctx);
         const text = Offline.text(ctx);
         if (text) {
           // lazily, like ControlCall's MessageToast: Popup first, so the
@@ -688,26 +719,57 @@ sap.ui.define(
           }
           return;
         }
-        if (typeof navigator !== "undefined" && navigator.onLine === false)
-          return;
+        // No navigator.onLine gate: a browser reports "offline" for a host
+        // without a default route - a VPN-only adapter, an intranet - while
+        // the ABAP system answers every ordinary click (eB has no such gate
+        // for the same reason), and there no "online" event ever comes. A
+        // send that fails puts everything back, as below.
         const entries = Offline.take(ctx);
         if (!entries.length) return;
+        // Where the queue lives is fixed now: a teardown (Context.destroy)
+        // rebuilds the state with no url, and putting entries back under
+        // the empty key lost them.
+        const home = { state: { url: ctx.state.url } };
+        // Every request below is stamped like readHttp's: a Back/Forward
+        // restore or a teardown in the middle of the replay moves the stamp,
+        // and the replay stops instead of sending on under a draft chain the
+        // restore no longer stands on.
+        const seq = ++ctx.server.requestSeq;
+        const isStale = () => !ctx.alive || seq !== ctx.server.requestSeq;
         rec.replaying = true;
         ctx.state.isBusy = true;
         showBusy(ctx, 0);
         let id = ctx.state.oResponse?.ID;
         for (let i = 0; i < entries.length - 1; i++) {
+          if (isStale()) {
+            // the newer request owns the screen and the busy state; what is
+            // not sent yet waits for the next attempt
+            Offline.putBack(home, entries.slice(i));
+            rec.replaying = false;
+            return;
+          }
           const body = entries[i].body;
           if (id) body.S_FRONT.ID = id;
           const timeout = this.createTimeoutSignal(REQUEST_TIMEOUT_MS);
+          // in the in-flight set like every roundtrip, so a request that
+          // supersedes the replay - or a teardown - aborts it
+          const superseder = new AbortController();
+          ctx.server.inflight.add(superseder);
           try {
             const response = await this._post(
               ctx,
               JSON.stringify({ value: body }),
-              timeout.signal,
+              this._combineSignals(timeout.signal, superseder.signal),
             );
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
+            if (isStale()) {
+              // sent and answered, but a newer request owns the session now:
+              // its answer is not adopted, the rest waits
+              Offline.putBack(home, entries.slice(i + 1));
+              rec.replaying = false;
+              return;
+            }
             const contextId = response.headers.get("sap-contextid");
             if (Lib.isValidContextId(contextId))
               ctx.state.contextId = contextId;
@@ -715,17 +777,26 @@ sap.ui.define(
           } catch (e) {
             // the network went again, or the backend refused: what is not
             // sent yet goes back, in order, for the next attempt
-            Offline.putBack(ctx, entries.slice(i));
+            Offline.putBack(home, entries.slice(i));
             rec.replaying = false;
+            if (isStale()) return;
             hideBusy(ctx);
             ctx.state.isBusy = false;
+            // the replay was a roundtrip too: what waited for it goes now
+            // (a Back/Forward restore parked above among them)
+            Lib.runCallbacks(ctx.state.onRoundtripEnd);
             Lib.logError("offline queue: sending stopped", e);
             return;
           } finally {
+            ctx.server.inflight.delete(superseder);
             timeout.cancel();
           }
         }
         rec.replaying = false;
+        if (isStale()) {
+          Offline.putBack(home, entries.slice(-1));
+          return;
+        }
         const last = entries[entries.length - 1].body;
         if (id) last.S_FRONT.ID = id;
         // readHttp owns the busy state from here, and keeps the body again
@@ -919,7 +990,7 @@ sap.ui.define(
           this.responseError(ctx, err);
           return;
         }
-        if (!gav || !gav.includes("com.sap.ui5")) {
+        if (!gav?.includes("com.sap.ui5")) {
           // UI5 loader errors do not expose a stable module field; fall back
           // to the quoted module path in the message so the hint stays useful
           // instead of printing "module: undefined".
@@ -950,6 +1021,7 @@ sap.ui.define(
         // it would re-send the failing value under the overlay and answer
         // with a second one.
         ctx.state.oQueuedEvent = null;
+        ctx.state.oQueuedWindow = null;
         ErrorView.show(ctx, response, title, oOptions);
       },
     };

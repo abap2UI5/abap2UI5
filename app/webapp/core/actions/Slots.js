@@ -315,6 +315,15 @@ sap.ui.define(
     const MAIN_VIEW_ID = "mainView";
     const MAIN_VIEW_ID_ALT = "mainView2";
 
+    // The local id the next MAIN view is built under: the one the page
+    // leaving the slot (`oOld`, undefined when the slot was empty) does not
+    // hold, so the build never claims an id that is still registered.
+    function freeMainViewId(ctx, oOld) {
+      return oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)
+        ? MAIN_VIEW_ID_ALT
+        : MAIN_VIEW_ID;
+    }
+
     // Replace the main app view with the XML coming from the backend.
     // Deliberately WITHOUT a request stamp: displayMain has already checked
     // it before it enters the build chain, and the build that starts is
@@ -674,10 +683,7 @@ sap.ui.define(
       ViewSlots.destroy(ctx, "POPUP");
       ViewSlots.destroy(ctx, "POPOVER");
       freezePage(oOld);
-      const localId =
-        oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)
-          ? MAIN_VIEW_ID_ALT
-          : MAIN_VIEW_ID;
+      const localId = freeMainViewId(ctx, oOld);
       let bPlaced;
       try {
         bPlaced = await displayView(
@@ -789,10 +795,7 @@ sap.ui.define(
         // next runs (View1._runSystemActions).
         ViewSlots.destroy(ctx, "POPUP");
         ViewSlots.destroy(ctx, "POPOVER");
-        const localId =
-          oOld && oOld.getId() === ViewSlots.ownId(ctx, MAIN_VIEW_ID)
-            ? MAIN_VIEW_ID_ALT
-            : MAIN_VIEW_ID;
+        const localId = freeMainViewId(ctx, oOld);
         let bPlaced;
         try {
           bPlaced = await displayView(

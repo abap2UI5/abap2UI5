@@ -208,6 +208,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       IMPORTING
         ix_error TYPE REF TO cx_root OPTIONAL.
 
+    "! Drop what only the roundtrip just answered needed - a sticky handler
+    "! outlives the request (see the method)
+    METHODS release_roundtrip.
+
     "! What the monitor receives - see z2ui5_if_ui5_monitor=>ty_s_roundtrip
     METHODS monitor_roundtrip
       IMPORTING
@@ -344,8 +348,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    " the part of iv_val before the first iv_sub, or iv_val when it does not
-    " occur - cuts a route token off at the next separator
     " the class token of a route remainder and what follows it - see the
     " implementation for the namespaced-class shape it exists for
     METHODS route_split
@@ -440,7 +442,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " the request, so the delta was materialized twice. The root tree
     " travels with the path of its MODEL node instead, and the model service
     " reads the attributes below that path (z2ui5_if_ui5_types names the
-    " contract). The S_FRONT slice below still walks the tree once
+    " contract). The one slice left is the launchpad ComponentData, taken
+    " only when a request carries it (request_parse_config)
     DATA(lv_model_path) = lv_root && `/MODEL`.
     IF lo_ajson->exists( lv_model_path ) = abap_true.
       result-o_model    = lo_ajson.
@@ -841,11 +844,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
+        " only the class token is wanted here - the draft segment behind
+        " it is request_app_start_route_draft's question
         DATA lv_class TYPE string.
-        DATA lv_after TYPE string.
         route_split( EXPORTING iv_rest  = lv_rest
-                     IMPORTING ev_class = lv_class
-                               ev_after = lv_after ).
+                     IMPORTING ev_class = lv_class ).
         result = z2ui5_cl_ui5_util_context=>c_trim_upper( lv_class ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -1029,6 +1032,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           z2ui5_cl_ui5_util_context=>db_rollback( ).
         ENDIF.
         monitor_notify( lx_error ).
+        release_roundtrip( ).
         RAISE EXCEPTION lx_error.
     ENDTRY.
 
@@ -1045,6 +1049,27 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " the handler may be sticky and answer the next request too - nothing of
     " this roundtrip's queues and intents may leak into it
     CLEAR mo_action->ms_next.
+    release_roundtrip( ).
+
+  ENDMETHOD.
+
+  METHOD release_roundtrip.
+
+    " A sticky handler is pinned to the session and outlives the request:
+    " what only this roundtrip needed - the request body with its deltas
+    " and the tree it was parsed into (on a mass edit the larger of the
+    " two), the response text and structure (view XML and model JSON) and
+    " the snapshot of every bound value - stayed in the roll area until the
+    " next request or the session timeout. The monitor has read them by
+    " now, and the next roundtrip sets every one of them anew (the rest of
+    " ms_request is small and replaced whole by the next parse, main_begin)
+    CLEAR mv_request_json.
+    CLEAR ms_request-o_model.
+    CLEAR ms_request-model_path.
+    CLEAR mv_response.
+    CLEAR ms_response.
+    CLEAR mt_model_before.
+    CLEAR mv_model_before_taken.
 
   ENDMETHOD.
 
@@ -1474,8 +1499,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " a sticky session skips the draft save, but the lifecycle latch must
       " not be skipped with it - db_save is otherwise the only place that
       " sets it, and without it every event roundtrip of a sticky app reads
-      " check_on_init( ) = true and re-runs its init block
+      " check_on_init( ) = true and re-runs its init block. The same holds
+      " for z2ui5_if_app~id_draft: db_save is the other place that makes it
+      " follow ms_draft-id, which is minted anew on every roundtrip, and a
+      " sticky app read the id of its first start for the rest of the
+      " session - one the response, client->get( )-s_draft-id and the
+      " frontend no longer name
       mo_action->mo_app->mv_check_initialized = abap_true.
+      mo_action->mo_app->app_refresh_draft_id( ).
     ENDIF.
 
   ENDMETHOD.
@@ -1509,9 +1540,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       z2ui5_cl_ui5_util_context=>db_rollback( ).
     ENDIF.
 
-    " exceptions from main( ) are intentionally not caught here - they bubble up
-    " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
-    " turns them into a 500 response carrying the exception text
+    " exceptions from main( ) are intentionally not caught here - they bubble
+    " up to the CATCH in main( ) of this class, which rolls the LUW back,
+    " annotates them with the app, event and draft, tells the monitor and
+    " re-raises for the top-level catch in z2ui5_cl_ui5_http_handler=>_main( ),
+    " which turns them into a 500 response carrying the exception chain
     CASE mo_action->ms_actual-event.
       WHEN z2ui5_if_ui5_types=>cs_event_nav_app_leave.
         " no popup/popover teardown is queued here: the standalone slots die on

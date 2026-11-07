@@ -42,6 +42,9 @@
 //                     documents its fields)
 //   pickReport        the report of the last picked control of this
 //                     context (devtools/Picker.js)
+//   journey           the journey recorder's record - the recordings and
+//                     the hook while one runs (devtools/Journey.js
+//                     documents its fields)
 //
 // The console capture (devtools/Console.js) is the one part that stays
 // PAGE-WIDE: there is one window.console to patch, so Console counts its

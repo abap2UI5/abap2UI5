@@ -119,12 +119,17 @@ CLASS z2ui5_cl_ui5f_websock_js IMPLEMENTATION.
              `        clearTimeout(this._reconnectId);` && |\n| &&
              `        this._disconnect();` && |\n| &&
              `      },` && |\n| &&
+             `` && |\n| &&
              `      _resolveUrl() {` && |\n| &&
              `        const path = this.getProperty("path");` && |\n| &&
              `        if (!path) return "";` && |\n| &&
              `        if (WS_URL.test(path)) return path;` && |\n| &&
+             `        const prefix = Context.of(this)?.state.endpointPrefix || "";` && |\n| &&
+             `        const base = HTTP_SCHEME.test(prefix)` && |\n| &&
+             `          ? prefix` && |\n| &&
+             `          : window.location.origin + prefix;` && |\n| &&
              `` && |\n| &&
-             `        const origin = window.location.origin.replace(HTTP_SCHEME, "ws");` && |\n| &&
+             `        const origin = base.replace(HTTP_SCHEME, "ws");` && |\n| &&
              `        return path.charAt(0) === "/" ? origin + path : origin + "/" + path;` && |\n| &&
              `      },` && |\n| &&
              `      _connect() {` && |\n| &&

@@ -35,6 +35,22 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `    const ABAP_SOURCE_ORDER = 55;` && |\n| &&
              `    const ABAP_SOURCE_TITLE = "ABAP SOURCE";` && |\n| &&
              `` && |\n| &&
+             `    const SECRET_KEY =` && |\n| &&
+             `      /^[A-Za-z0-9_/-]*(PASSW|PWD|SECRET|TOKEN|CREDENTIAL|APIKEY|API_KEY)[A-Za-z0-9_/-]*$/i;` && |\n| &&
+             `    const MASK = "***";` && |\n| &&
+             `` && |\n| &&
+             `    function redactForExport(text) {` && |\n| &&
+             `      return String(text)` && |\n| &&
+             `        .replace(/^(\s*sap-contextid\s+)(\S.*)$/gim, (_m, lead, value) =>` && |\n| &&
+             `          value === "-" ? lead + value : lead + MASK,` && |\n| &&
+             `        )` && |\n| &&
+             `        .replace(` && |\n| &&
+             `          /"([^"\\]{1,120})"(\s*:\s*)("(?:[^"\\]|\\.)*"|-?\d[\d.eE+-]*)/g,` && |\n| &&
+             `          (match, key, colon) =>` && |\n| &&
+             `            SECRET_KEY.test(key) ? ``"${key}"${colon}"${MASK}"`` : match,` && |\n| &&
+             `        );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function buildExport(ctx, abapSource) {` && |\n| &&
              `      const sections = [];` && |\n| &&
              `      const push = (title, content) => {` && |\n| &&
@@ -53,7 +69,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `        order: tab.exportOrder,` && |\n| &&
              `        title: Tabs.exportTitle(tab),` && |\n| &&
              `` && |\n| &&
-             `        body: Tabs.render(ctx, tab.key),` && |\n| &&
+             `        body: redactForExport(Tabs.render(ctx, tab.key)),` && |\n| &&
              `      }));` && |\n| &&
              `      if (abapSource) {` && |\n| &&
              `        entries.push({` && |\n| &&
@@ -112,9 +128,11 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `        anchor.download = fileName;` && |\n| &&
              `        document.body.appendChild(anchor);` && |\n| &&
              `        anchor.click();` && |\n| &&
-             `        document.body.removeChild(anchor);` && |\n| &&
              `` && |\n| &&
-             `        setTimeout(() => URL.revokeObjectURL(url), 0);` && |\n| &&
+             `        setTimeout(() => {` && |\n| &&
+             `          URL.revokeObjectURL(url);` && |\n| &&
+             `          anchor.remove();` && |\n| &&
+             `        }, 40000);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: download failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -197,9 +215,14 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function copyMarkdown(ctx, abapSource, plain) {` && |\n| &&
+             `    async function copyMarkdown(ctx, abapSource, plain) {` && |\n| &&
              `      try {` && |\n| &&
-             `        Lib.copyToClipboard(buildMarkdown(ctx, abapSource, plain));` && |\n| &&
+             `        const copied = await Lib.copyToClipboard(` && |\n| &&
+             `          buildMarkdown(ctx, abapSource, plain),` && |\n| &&
+             `        );` && |\n| &&
+             `        if (copied === false) {` && |\n| &&
+             `          return "The browser did not allow the copy - press again.";` && |\n| &&
+             `        }` && |\n| &&
              `        return "Bug report copied as Markdown - paste it into a GitHub issue.";` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: markdown export failed", e);` && |\n| &&
@@ -212,6 +235,7 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      buildMarkdown,` && |\n| &&
              `      confirmOnButton,` && |\n| &&
              `      copyMarkdown,` && |\n| &&
+             `      redactForExport,` && |\n| &&
              `      downloadText,` && |\n| &&
              `      exportFileName,` && |\n| &&
              `      openDialog,` && |\n| &&

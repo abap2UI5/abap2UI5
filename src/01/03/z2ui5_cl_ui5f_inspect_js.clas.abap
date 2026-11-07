@@ -73,6 +73,7 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      "onBeforeRoundtrip",` && |\n| &&
              `      "onAfterRoundtrip",` && |\n| &&
              `      "onAfterRendering",` && |\n| &&
+             `      "onRoundtripEnd",` && |\n| &&
              `      "onBeforeEventFrontend",` && |\n| &&
              `      "onErrorDetails",` && |\n| &&
              `    ];` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function findEventLine(source, eventName) {` && |\n| &&
-             `      if (!source || !eventName) return 0;` && |\n| &&
-             `      const lines = source.split("\n");` && |\n|.
+             `      if (!source || !eventName) return 0;` && |\n|.
     result = result &&
+             `      const lines = source.split("\n");` && |\n| &&
              `      const needle = eventName.toLowerCase();` && |\n| &&
              `      for (let i = 0; i < lines.length; i++) {` && |\n| &&
              `        const haystack = lines[i].toLowerCase();` && |\n| &&

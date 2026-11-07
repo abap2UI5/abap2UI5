@@ -136,6 +136,7 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `            : null;` && |\n| &&
              `` && |\n| &&
              `        const prefix = resourceRootPrefix(state.endpoint, state.nodePath);` && |\n| &&
+             `        state.endpointPrefix = prefix;` && |\n| &&
              `        state.ccResourceRoot = rebaseResourceRoot(state.ccResourceRoot, prefix);` && |\n| &&
              `        state.cccResourceRoot = rebaseResourceRoot(` && |\n| &&
              `          state.cccResourceRoot,` && |\n| &&

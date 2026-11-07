@@ -32,6 +32,8 @@ CLASS z2ui5_cl_ui5_llm_openai DEFINITION
     CONSTANTS cv_default_url TYPE string VALUE `https://api.openai.com/v1/chat/completions`.
     "! the path below a destination when the app names none
     CONSTANTS cv_default_path TYPE string VALUE `/v1/chat/completions`.
+    "! seconds a call may take when the app names no timeout - the same
+    "! default as the Claude provider's
     CONSTANTS cv_default_timeout TYPE i VALUE 300.
 
     "! @parameter model              | the model id, exactly as the server spells it
@@ -317,7 +319,8 @@ CLASS z2ui5_cl_ui5_llm_openai IMPLEMENTATION.
     " token limit
     DATA(lv_refusal) = lo_json->get_string( `/choices/1/message/refusal` ).
     IF result-text IS INITIAL AND lv_refusal IS NOT INITIAL.
-      result-stop_reason = z2ui5_if_ui5_llm=>cs_stop-refusal.
+      " no result-stop_reason here: a RAISE delivers no RETURNING value, so
+      " the refusal travels in the exception text alone
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
         EXPORTING
           text        = |the model declined to answer (refusal) - { lv_refusal }|

@@ -110,9 +110,16 @@ sap.ui.define(
         this._reader.add([file]);
       },
 
+      // A file over the target's maxFileSize (megabytes, the UploadSet's own
+      // limit, which fires its fileSizeExceeded for it) is not read: read
+      // anyway it went into fileData as a data URL and into the roundtrip
+      // body, whatever its size.
       onItemAdded(oEvent) {
         const file = oEvent.getParameter("item")?.getFileObject?.();
-        if (file) this._readFile(file);
+        if (!file) return;
+        const max = this._target?.getMaxFileSize?.() || 0;
+        if (!Lib.withinFileSize([file], max).length) return;
+        this._readFile(file);
       },
 
       onItemRemoved(oEvent) {
@@ -149,7 +156,10 @@ sap.ui.define(
             );
           }
         } catch (e) {
-          Lib.logError("UploadSetExt.setControl: setup failed", e);
+          Lib.logError(
+            `UploadSetExt.setControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'`,
+            e,
+          );
         }
       },
     });

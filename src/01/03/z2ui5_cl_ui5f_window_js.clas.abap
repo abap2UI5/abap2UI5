@@ -50,9 +50,10 @@ CLASS z2ui5_cl_ui5f_window_js IMPLEMENTATION.
              `      return Array.isArray(value) ? value : [value];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
+             `` && |\n| &&
              `    function wireValue(value) {` && |\n| &&
              `      if (Object.prototype.toString.call(value) === "[object Date]") {` && |\n| &&
-             `        const pad = (n) => String(n).padStart(2, "0");` && |\n| &&
              `        return ``${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}``;` && |\n| &&
              `      }` && |\n| &&
              `      return value ?? null;` && |\n| &&

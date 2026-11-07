@@ -39,8 +39,10 @@ INTERFACE z2ui5_if_ui5_llm_http
       body   TYPE string,
     END OF ty_s_response.
 
-  "! One POST. Raises z2ui5_cx_ui5_llm (retryable, http_status 0) when no
-  "! answer came; an answer with any status is returned.
+  "! One POST. Raises z2ui5_cx_ui5_llm (http_status 0) when no answer came -
+  "! retryable only for a failed SEND or RECEIVE, never for a destination,
+  "! a client or a stack that is not there (see z2ui5_cl_ui5_llm_http); an
+  "! answer with any status is returned.
   METHODS post
     IMPORTING
       is_request    TYPE ty_s_request

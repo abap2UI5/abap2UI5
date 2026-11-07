@@ -18,6 +18,11 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
     TYPES ty_s_db TYPE z2ui5_if_ui5_draft_store=>ty_s_db.
     TYPES ty_s_draft TYPE z2ui5_if_ui5_draft_store=>ty_s_draft.
 
+    "! The longest draft expiry the framework accepts, ten years in hours -
+    "! the cleanup turns hours into seconds as an integer, and the shipped
+    "! exit clamps what an exit hands back to it
+    CONSTANTS c_max_exp_time_in_hours TYPE i VALUE 87600.
+
     "! The store the framework uses. Without set_instance( ) this answers a
     "! fresh instance of this class on every call - which is what the call
     "! sites did before the seam existed, so a system that installs nothing
@@ -39,6 +44,7 @@ CLASS z2ui5_cl_ui5_srv_draft DEFINITION PUBLIC FINAL.
     " default instance: the shipped store holds no state, and answering a
     " fresh one keeps the old per-call NEW semantics exactly.
     CLASS-DATA gi_me TYPE REF TO z2ui5_if_ui5_draft_store.
+
   PRIVATE SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
 
@@ -65,11 +71,17 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
     lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
-    " z2ui5_cl_ui5_user_exit=>set_config_http_post already guarantees a positive
-    " expiry ( <= 0 falls back to its default ), so no second clamp here
+    " z2ui5_cl_ui5_user_exit=>set_config_http_post clamps the expiry into
+    " 1 .. c_max_exp_time_in_hours - but a subclass installed with
+    " set_instance( ) may redefine that method, and an overflow here is a 500
+    " on every first start, so the product is taken in a range that cannot
+    " overflow whatever the exit did
+    DATA(lv_hours) = nmax( val1 = 1
+                           val2 = nmin( val1 = ls_config-draft_exp_time_in_hours
+                                        val2 = c_max_exp_time_in_hours ) ).
     DATA(lv_n_hours_ago) = z2ui5_cl_ui5_util_context=>time_subtract_seconds(
                                time    = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
-                               seconds = c_seconds_per_hour * ls_config-draft_exp_time_in_hours ).
+                               seconds = c_seconds_per_hour * lv_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
     COMMIT WORK.
@@ -118,7 +130,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       UPDATE z2ui5_t_01 FROM @ls_db.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+          EXPORTING val = |CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED - draft { ls_db-id }|.
       ENDIF.
     ENDIF.
     COMMIT WORK AND WAIT.

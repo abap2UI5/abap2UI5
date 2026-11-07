@@ -181,6 +181,8 @@ test("a throwing binding is logged, not propagated", () => {
 
   expect(() => l.instance("tbl").setBackend()).not.toThrow();
   expect(l.errors[0][0]).toContain("Tree.setBackend");
+  // the line names the tree: a page can hold several companions
+  expect(l.errors[0][0]).toContain("tree_id 'tbl'");
   expect(l.errors[0][1]).toBe(boom);
 });
 
@@ -302,5 +304,6 @@ test("a throwing setTreeState is logged, not propagated", () => {
 
   expect(() => l.instance("tbl").onAfterRendering()).not.toThrow();
   expect(l.errors[0][0]).toContain("Tree.onAfterRendering");
+  expect(l.errors[0][0]).toContain("tree_id 'tbl'");
   expect(l.errors[0][1]).toBe(boom);
 });

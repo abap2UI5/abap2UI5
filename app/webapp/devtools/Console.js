@@ -79,10 +79,11 @@ sap.ui.define(["z2ui5/devtools/Persist"], (Persist) => {
   const RELOAD_MAX_ENTRIES = 40;
 
   // Opt-in: announce an error-level entry to whoever subscribed via
-  // addOnError. The developer tools turn that into "open on the Console
-  // tab"; the setting lives HERE because this is where the errors are, and
-  // because the dialog and the lifecycle facade both need to reach it
-  // without importing each other.
+  // addOnError. The developer tools turn that into "open on the Log tab"
+  // (devtools/DevTools.js, the console capture has no tab of its own since
+  // devtools/Log.js merged the three logs); the setting lives HERE because
+  // this is where the errors are, and because the dialog and the lifecycle
+  // facade both need to reach it without importing each other.
   const ALERT_KEY = "z2ui5.devtools.openOnError";
 
   // The console methods that are captured. Kept as a list so uninstall()

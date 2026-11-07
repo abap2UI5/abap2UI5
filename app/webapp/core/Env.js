@@ -148,14 +148,25 @@ sap.ui.define(
     // handleValidation. Only a version we can read AND that is older than
     // 1.118 may switch the warm-load off.
     function hasMessagingModule() {
+      const version = ui5Version();
+      if (!version) return true;
+      const [major, minor] = version;
+      return major > 1 || (major === 1 && minor >= 118);
+    }
+
+    // The running UI5 release as [major, minor], or null when it cannot be
+    // read - absent on the legacy-free build, or not a version at all. The
+    // two probes above and below read it, and each decides for itself what
+    // "unreadable" means.
+    function ui5Version() {
       /* ui5lint-disable no-globals --
        sap.ui.version is the only way to read the running UI5 version; there
        is no injected/module equivalent. Absent on the legacy-free build. */
       const rawVersion = String(sap.ui.version || "");
       /* ui5lint-enable no-globals */
       const [major, minor] = rawVersion.split(".").map(Number);
-      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;
-      return major > 1 || (major === 1 && minor >= 118);
+      if (!Number.isFinite(major) || !Number.isFinite(minor)) return null;
+      return [major, minor];
     }
 
     // True on UI5 1.71 to 1.82, where Fragment.load processes the fragment's
@@ -165,12 +176,9 @@ sap.ui.define(
     // processing is async and the ui5loader loads the library itself. An
     // unreadable version means "modern" (see hasMessagingModule).
     function fragmentLoadsSync() {
-      /* ui5lint-disable no-globals --
-       sap.ui.version is the only way to read the running UI5 version. */
-      const rawVersion = String(sap.ui.version || "");
-      /* ui5lint-enable no-globals */
-      const [major, minor] = rawVersion.split(".").map(Number);
-      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+      const version = ui5Version();
+      if (!version) return false;
+      const [major, minor] = version;
       return major === 1 && minor < 84;
     }
 
@@ -378,23 +386,10 @@ sap.ui.define(
     }
 
     // Load, as preload bundles and in parallel, the libraries a view's XML
-    // names that are not loaded yet - see the block comment above. The
-    // names given explicitly (`names`, for a caller that knows them) are
-    // taken as libraries. Resolves once every load settled; never rejects.
-    /** @returns {Promise<void>} */
-    async function loadLibraries(names) {
-      const wanted = (names || []).filter(
-        (name) => LIBRARY_NAME.test(name) && !libraryLoads.get(name),
-      );
-      if (!wanted.length) return;
-      const loaded = loadedLibraryNames();
-      await Promise.all(
-        wanted
-          .filter((name) => ![...loaded].some((lib) => isUnder(name, lib)))
-          .map(loadLibrary),
-      );
-    }
-
+    // names that are not loaded yet - see the block comment above.
+    // (A loadLibraries( names ) for a caller that knows the names sat here,
+    // exported and called by no module - removed 2026-11; loadLibrary is
+    // the one load, and this is its one caller.)
     /** @returns {Promise<void>} */
     async function loadViewLibraries(xml) {
       const namespaces = viewNamespaces(xml).filter(
@@ -402,13 +397,13 @@ sap.ui.define(
       );
       if (!namespaces.length) return;
       const libraries = await loadDistributionLibraries();
-      const loaded = loadedLibraryNames();
+      const loaded = [...loadedLibraryNames()];
       const names = new Set();
       for (const namespace of namespaces) {
         const library = libraryOf(namespace, libraries);
         namespaceLibrary.set(namespace, library);
         if (!library) continue;
-        if ([...loaded].some((lib) => isUnder(library, lib))) continue;
+        if (loaded.some((lib) => isUnder(library, lib))) continue;
         names.add(library);
       }
       await Promise.all([...names].map(loadLibrary));
@@ -541,7 +536,6 @@ sap.ui.define(
       fragmentControlModules,
       preloadFragmentModules,
       viewNamespaces,
-      loadLibraries,
       loadViewLibraries,
       ownClass,
       dropClassGlobals,

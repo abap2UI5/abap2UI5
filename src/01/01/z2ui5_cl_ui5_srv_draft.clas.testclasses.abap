@@ -45,7 +45,6 @@ CLASS ltcl_test DEFINITION FINAL
 
   PUBLIC SECTION.
 
-    METHODS test_create           FOR TESTING.
     METHODS test_create_and_read  FOR TESTING.
     METHODS test_read_info        FOR TESTING.
     METHODS test_buffer           FOR TESTING.
@@ -241,22 +240,6 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped )
         act = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( li_shipped ) ).
-
-  ENDMETHOD.
-
-  METHOD test_create.
-
-    DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
-    DATA ls_db TYPE z2ui5_t_01.
-    lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
-    lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
-                      model_xml = `my xml` ).
-
-
-    ls_db = lo_draft->read_draft( `TEST_ID` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `my xml`
-                                        act = ls_db-data ).
 
   ENDMETHOD.
 

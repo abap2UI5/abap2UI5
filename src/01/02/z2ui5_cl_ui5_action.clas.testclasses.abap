@@ -21,6 +21,29 @@ CLASS ltcl_test_app2 IMPLEMENTATION.
 ENDCLASS.
 
 
+" a serializer that cannot restore anything - the stand-in for a draft that
+" is there and is broken (a layout the app class no longer has, a type that
+" is gone). A seam rather than a garbled row: what garbled XML does is the
+" parser's business and differs between a kernel and the transpiled runtime
+CLASS ltcl_broken_serializer DEFINITION FINAL FOR TESTING.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_serializer.
+ENDCLASS.
+
+CLASS ltcl_broken_serializer IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_serializer~stringify.
+    result = `<draft/>`.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_serializer~parse.
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING val = `TEST_RESTORE_ERROR - the draft could not be restored`.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -32,6 +55,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_not_an_app FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_draft_broken FOR TESTING RAISING cx_static_check.
     METHODS test_app_start_safe      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
@@ -153,6 +177,38 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_char_cp(
         exp = `["MESSAGE_TOAST","show","Bookmarked app state expired*`
         act = lo_result->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_first_start_draft_broken.
+
+    DATA lv_payload TYPE string.
+    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+
+    " a draft that exists and is the user's, but cannot be restored, is not
+    " an expired bookmark: the error goes out with its chain instead of a
+    " toast and a fresh app that hide what broke
+    DATA(lv_id) = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft     = VALUE #( id = lv_id )
+                                                     model_xml = `<draft/>` ).
+
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
+    lo_http = NEW #( val = lv_payload ).
+    lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
+    lo_http->ms_request-s_control-app_start_draft = lv_id.
+    lo_action = NEW #( val = lo_http ).
+
+    z2ui5_cl_ui5_app_cont=>set_serializer( NEW ltcl_broken_serializer( ) ).
+    TRY.
+        lo_action->factory_first_start( ).
+        z2ui5_cl_ui5_app_cont=>set_serializer( VALUE #( ) ).
+        cl_abap_unit_assert=>fail( `a broken draft was swallowed as an expired one` ).
+      CATCH cx_root INTO DATA(lx).
+        z2ui5_cl_ui5_app_cont=>set_serializer( VALUE #( ) ).
+        cl_abap_unit_assert=>assert_char_cp( exp = `*TEST_RESTORE_ERROR*`
+                                             act = lx->get_text( ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

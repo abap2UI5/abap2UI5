@@ -415,6 +415,27 @@ test.describe("redundancy guard: binding unchanged since read", () => {
 });
 
 test.describe("one deferred re-apply per roundtrip", () => {
+  // Every log line of the companion names its table: a view with two
+  // tables has two companions, and "applyBackend failed" alone said
+  // nothing about whose.
+  test("a throwing apply is logged with the table id, never thrown", () => {
+    const env = load();
+    env.setTable({
+      getBinding: () => {
+        throw new Error("no binding");
+      },
+      getColumns: () => [],
+    });
+    const ext = makeExt(env);
+
+    expect(() => ext.readBackend()).not.toThrow();
+
+    expect(env.errors).toEqual([
+      "UITableExt.readFilter failed for tableId 'TABLE1'",
+      "UITableExt.readSort failed for tableId 'TABLE1'",
+    ]);
+  });
+
   test("a second applyBackend does not queue a second deferral", () => {
     // whenRendered leaves its delegate on a table WITHOUT DOM (a collapsed
     // tab, a closed popup) until that table renders. Two passes over such a

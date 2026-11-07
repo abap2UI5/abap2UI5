@@ -56,10 +56,10 @@ function load({
     const due = timers.splice(0);
     for (const t of due) t.fn();
   };
-  // The roundtrip landing, as View1 runs it: the after-rendering hooks
+  // The roundtrip landing, as View1 runs it: the roundtrip-end hooks
   // (where afterRoundtrip calls back) BEFORE the busy flag clears
   const landRoundtrip = () => {
-    Lib.runCallbacks(state.onAfterRendering);
+    Lib.runCallbacks(state.onRoundtripEnd);
     state.isBusy = false;
   };
   const { module: Websocket } = loadModule("cc/Websocket.js", {
@@ -140,6 +140,20 @@ test("an http origin resolves to ws, a missing leading slash is added", () => {
   makeInstance({ path: "apc/demo" }).onAfterRendering();
 
   expect(sockets[0].url).toBe("ws://localhost:3000/apc/demo");
+});
+
+test("a path of the system goes where the endpoint is - another origin, a proxy prefix", () => {
+  // an embedded component whose backend is on another origin
+  const other = load({ origin: "https://host.example" });
+  other.state.endpointPrefix = "https://sap.example:44300";
+  other.makeInstance({ path: "/sap/bc/apc/sap/demo" }).onAfterRendering();
+  expect(other.sockets[0].url).toBe("wss://sap.example:44300/sap/bc/apc/sap/demo");
+
+  // the page's origin behind a proxy that puts a prefix in front
+  const proxied = load({ origin: "https://host.example" });
+  proxied.state.endpointPrefix = "/backend";
+  proxied.makeInstance({ path: "/sap/bc/apc/sap/demo" }).onAfterRendering();
+  expect(proxied.sockets[0].url).toBe("wss://host.example/backend/sap/bc/apc/sap/demo");
 });
 
 test("a full ws:// or wss:// URL is taken as is", () => {
@@ -417,10 +431,10 @@ test("while the backend is busy nothing is delivered - the queue drains when the
   sockets[0].onmessage({ data: "second" });
 
   // busy: queued, not delivered - and no timer polls for the flag, the
-  // control waits on the after-rendering hook
+  // control waits on the roundtrip-end hook
   expect(inst.received).toHaveLength(0);
   expect(timers).toHaveLength(0);
-  expect(state.onAfterRendering).toHaveLength(1);
+  expect(state.onRoundtripEnd).toHaveLength(1);
 
   // the roundtrip lands: the hook fires while the flag is still set, the
   // deferred drain runs past the reset and delivers exactly one item
@@ -462,7 +476,7 @@ test("in no component the queue never waits for a roundtrip", () => {
   runTimers();
 
   expect(inst.received).toEqual(["hello"]);
-  expect(state.onAfterRendering).toHaveLength(0);
+  expect(state.onRoundtripEnd).toHaveLength(0);
 });
 
 test("messages and errors share the queue and keep their order", () => {
@@ -499,9 +513,9 @@ test("exit() cancels a pending wait for the roundtrip", () => {
   const inst = makeInstance({ path: "/apc" });
   inst.onAfterRendering();
   sockets[0].onmessage({ data: "queued" });
-  expect(state.onAfterRendering).toHaveLength(1);
+  expect(state.onRoundtripEnd).toHaveLength(1);
 
   inst.exit();
 
-  expect(state.onAfterRendering).toHaveLength(0);
+  expect(state.onRoundtripEnd).toHaveLength(0);
 });

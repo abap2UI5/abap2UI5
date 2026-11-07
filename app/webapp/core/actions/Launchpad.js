@@ -132,23 +132,6 @@ sap.ui.define(
       return { semanticObject: m[1], action: m[2], params };
     }
 
-    // A result that arrives after the roundtrip that asked for it waits for
-    // a roundtrip in flight instead of meeting the busy guard, and a
-    // controller gone in between (an app reset, an FLP re-launch) gets
-    // nothing - the same as a message box's close callback
-    // (ControlCall.dispatchWhenIdle).
-    function dispatchWhenIdle(oController, eventArgs) {
-      const fire = () => {
-        if (!Lib.isControllerAlive(oController)) return;
-        if (oController.ctx?.state?.isBusy) {
-          Lib.afterRoundtrip(oController, () => setTimeout(fire, 0));
-          return;
-        }
-        oController.eB(...eventArgs);
-      };
-      fire();
-    }
-
     // The links of a semantic object, as getLinks resolves them for the
     // user's roles - the list a Fiori elements smart link shows in its
     // popover. args[1] is the target ({ semanticObject, action? }, read like
@@ -181,7 +164,15 @@ sap.ui.define(
               subTitle: l.subTitle || "",
               ...splitIntent(l.intent),
             }));
-            dispatchWhenIdle(oController, [[sEvent], JSON.stringify(result)]);
+            // A result that arrives after the roundtrip that asked for it
+            // waits for a roundtrip in flight instead of meeting the busy
+            // guard, and a controller gone in between (an app reset, an FLP
+            // re-launch) gets nothing - the same as a message box's close
+            // callback (Lib.dispatchWhenIdle).
+            Lib.dispatchWhenIdle(oController, [
+              [sEvent],
+              JSON.stringify(result),
+            ]);
           })
           .catch((e) =>
             Lib.logError("CROSS_APP_NAV_GET_LINKS: getLinks failed", e),

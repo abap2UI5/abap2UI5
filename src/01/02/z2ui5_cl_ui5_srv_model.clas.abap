@@ -2097,12 +2097,21 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
-        " attribute unmapped after a refresh
-        lr_attri->bind          = lr_old->bind.
-        lr_attri->name_client   = lr_old->name_client.
-        lr_attri->custom_mapper = lr_old->custom_mapper.
-        lr_attri->custom_filter = lr_old->custom_filter.
-        lr_attri->check_json    = lr_old->check_json.
+        " attribute unmapped after a refresh, and dropping the window of a
+        " _bind_tab( ) table would ship the whole table, ignore the browser's
+        " next window request and apply a row delta by raw index into the
+        " wrong row
+        lr_attri->bind                = lr_old->bind.
+        lr_attri->name_client         = lr_old->name_client.
+        lr_attri->custom_mapper       = lr_old->custom_mapper.
+        lr_attri->custom_filter       = lr_old->custom_filter.
+        lr_attri->check_json          = lr_old->check_json.
+        lr_attri->window_size         = lr_old->window_size.
+        lr_attri->window_count        = lr_old->window_count.
+        lr_attri->t_window_sort       = lr_old->t_window_sort.
+        lr_attri->t_window_filter     = lr_old->t_window_filter.
+        lr_attri->t_window_sort_set   = lr_old->t_window_sort_set.
+        lr_attri->t_window_filter_set = lr_old->t_window_filter_set.
       ENDIF.
     ENDLOOP.
 

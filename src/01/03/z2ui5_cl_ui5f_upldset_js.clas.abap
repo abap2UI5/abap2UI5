@@ -120,7 +120,10 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `` && |\n| &&
              `      onItemAdded(oEvent) {` && |\n| &&
              `        const file = oEvent.getParameter("item")?.getFileObject?.();` && |\n| &&
-             `        if (file) this._readFile(file);` && |\n| &&
+             `        if (!file) return;` && |\n| &&
+             `        const max = this._target?.getMaxFileSize?.() || 0;` && |\n| &&
+             `        if (!Lib.withinFileSize([file], max).length) return;` && |\n| &&
+             `        this._readFile(file);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemRemoved(oEvent) {` && |\n| &&
@@ -151,7 +154,10 @@ CLASS z2ui5_cl_ui5f_upldset_js IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``UploadSetExt.setControl: setup failed for uploadSetId '${this.getProperty("uploadSetId")}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

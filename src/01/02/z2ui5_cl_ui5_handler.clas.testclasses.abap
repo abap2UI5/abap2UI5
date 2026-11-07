@@ -2158,6 +2158,11 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( lo_draft->check_exists( lv_id_plain ) ).
     cl_abap_unit_assert=>assert_true( lo_handler->mo_action->mo_app->mv_check_initialized ).
+    " ... but the app's id_draft follows the id this roundtrip answers with,
+    " as it does where the draft is saved
+    cl_abap_unit_assert=>assert_equals(
+        exp = lv_id_plain
+        act = CAST z2ui5_if_app( lo_handler->mo_action->mo_app->mo_app )->id_draft ).
 
   ENDMETHOD.
 
@@ -2873,9 +2878,16 @@ CLASS ltcl_05_monitor IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( ls_call-event ).
     cl_abap_unit_assert=>assert_initial( ls_call-draft_id_prev ).
     cl_abap_unit_assert=>assert_initial( ls_call-error_text ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_first->ms_response-s_front-id
-                                        act = ls_call-draft_id ).
+    " the id the response carries - read from the body: a handler releases
+    " its response structure once the roundtrip is answered (sticky
+    " handlers outlive the request)
     cl_abap_unit_assert=>assert_not_initial( ls_call-draft_id ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_res-body CS ls_call-draft_id ) ).
+    cl_abap_unit_assert=>assert_initial( lo_first->ms_response ).
+    cl_abap_unit_assert=>assert_initial( lo_first->mv_request_json ).
+    " ...and the tree the body was parsed into goes with it
+    cl_abap_unit_assert=>assert_not_bound( lo_first->ms_request-o_model ).
+    cl_abap_unit_assert=>assert_initial( lo_first->ms_request-model_path ).
     cl_abap_unit_assert=>assert_equals( exp = sy-uname
                                         act = ls_call-uname ).
     cl_abap_unit_assert=>assert_not_initial( ls_call-timestampl ).

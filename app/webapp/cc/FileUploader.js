@@ -87,9 +87,27 @@ sap.ui.define(
             type: "boolean",
             defaultValue: false,
           },
+          // The largest file read, in megabytes - the unit of the inner
+          // sap.ui.unified.FileUploader, which gets it too. 0 reads every
+          // file, as before. A file is read into `value` as a data URL and
+          // travels in the roundtrip body: a 400 MB video froze the tab
+          // building a ~540 MB string, and the ICF refused the request with
+          // no word the app could act on. A bigger file is not read; the
+          // control fires fileSizeExceed and the backend decides.
+          maximumFileSize: {
+            type: "float",
+            defaultValue: 0,
+          },
         },
 
         events: {
+          // a selected file over maximumFileSize, not read - one event each
+          fileSizeExceed: {
+            parameters: {
+              fileName: { type: "string" },
+              fileSize: { type: "float" },
+            },
+          },
           upload: {
             allowPreventDefault: true,
             parameters: {},
@@ -103,7 +121,17 @@ sap.ui.define(
       // sequential read queue is Lib.readFilesInTurn (cc/UploadSetExt uses
       // the same one): all this control keeps is what to do with a file that
       // finished reading.
-      _readFiles(files) {
+      _readFiles(selected) {
+        const files = Lib.withinFileSize(
+          selected,
+          this.getProperty("maximumFileSize"),
+          (file) =>
+            this.fireFileSizeExceed({
+              fileName: file.name,
+              fileSize: file.size / (1024 * 1024),
+            }),
+        );
+        if (!files.length) return;
         if (!this._reader) {
           this._reader = Lib.readFilesInTurn(
             this,
@@ -218,6 +246,7 @@ sap.ui.define(
         u.setEnabled(this.getProperty("enabled"));
         u.setValue(this.getProperty("path"));
         u.setPlaceholder(this.getProperty("placeholder"));
+        u.setMaximumFileSize(this.getProperty("maximumFileSize") || undefined);
         if (this.oUploadButton) {
           this.oUploadButton.setText(this.getProperty("uploadButtonText"));
           this.oUploadButton.setEnabled(this.getProperty("path") !== "");

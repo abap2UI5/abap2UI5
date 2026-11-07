@@ -151,6 +151,8 @@ test("a throwing attach is logged, never thrown", () => {
   inst.setControl();
 
   expect(errors.some((m) => m.includes("setControl: setup failed"))).toBe(true);
+  // the line names the target, so a view with two companions tells them apart
+  expect(errors.some((m) => m.includes("uploadSetId 'upSet'"))).toBe(true);
 });
 
 test("an added file lands in the bindable properties and fires change", () => {
@@ -194,23 +196,23 @@ test("several files picked at once reach the backend one after the other", () =>
   // the roundtrip is in flight: the second file is not even read yet
   expect(readers).toHaveLength(1);
 
-  // the roundtrip lands (View1 runs the onAfterRendering callbacks)
+  // the roundtrip lands (View1 runs the roundtrip-end callbacks)
   state.isBusy = false;
-  for (const fn of state.onAfterRendering) fn();
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
   expect(readers).toHaveLength(2);
   readers[1].finish();
   expect(inst._props.fileName).toBe("b.pdf");
   expect(inst.changes).toBe(2);
 
   state.isBusy = false;
-  for (const fn of state.onAfterRendering) fn();
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
   readers[2].finish();
   expect(inst._props.fileName).toBe("c.pdf");
   expect(inst.changes).toBe(3);
   // the last roundtrip lands: the one-shot hook took itself off again
   state.isBusy = false;
-  for (const fn of state.onAfterRendering) fn();
-  expect(state.onAfterRendering.filter(Boolean).length).toBe(0);
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
+  expect(state.onRoundtripEnd.filter(Boolean).length).toBe(0);
 
   // no roundtrip started (nothing bound to change): the next file follows
   // right away
@@ -331,6 +333,7 @@ test("exit() empties the queue and cancels the pending wait", () => {
 
   // the wait for the roundtrip is gone with the hook it registered ...
   expect(state.onAfterRendering).toHaveLength(0);
+  expect(state.onRoundtripEnd ?? []).toHaveLength(0);
   // ... and the file still queued is never read
   expect(readers).toHaveLength(1);
 });
@@ -381,10 +384,21 @@ test("a file read during another roundtrip is delivered once it lands", async ()
   expect(inst.changes).toBe(0);
 
   // it lands: View1 runs the hooks and clears the flag
-  for (const fn of [...state.onAfterRendering]) fn();
+  for (const fn of [...(state.onRoundtripEnd ?? [])]) fn();
   state.isBusy = false;
   await new Promise((resolve) => setTimeout(resolve, 0));
 
   expect(inst.changes).toBe(1);
   expect(inst._props.fileName).toBe("b.pdf");
+});
+
+test("a file over the upload set's own maxFileSize is not read", () => {
+  const { makeInstance, readers } = load();
+  const inst = makeInstance();
+  inst.init();
+  inst._target = { getMaxFileSize: () => 1 };
+  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "big.bin", type: "x", size: 5 * 1024 * 1024 }) }));
+  expect(readers).toHaveLength(0);
+  inst.onItemAdded(itemEvent({ getFileObject: () => ({ name: "ok.bin", type: "x", size: 5 }) }));
+  expect(readers).toHaveLength(1);
 });

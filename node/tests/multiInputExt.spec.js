@@ -181,6 +181,8 @@ test("a throwing attach is logged, never thrown", () => {
   makeInstance().setControl();
 
   expect(errors.some((m) => m.includes("setControl: setup failed"))).toBe(true);
+  // the line names the target, so a view with two companions tells them apart
+  expect(errors.some((m) => m.includes("MultiInputId 'multi'"))).toBe(true);
 });
 
 test("added tokens are mirrored as {KEY, TEXT} and fire change", () => {

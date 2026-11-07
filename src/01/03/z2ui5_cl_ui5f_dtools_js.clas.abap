@@ -100,6 +100,33 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function openTextDialog({ title, text, editable, buttons }) {` && |\n| &&
+             `      sap.ui.require(` && |\n| &&
+             `        ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
+             `        (Dialog, TextArea, Button) => {` && |\n| &&
+             `          const area = new TextArea({` && |\n| &&
+             `            editable,` && |\n| &&
+             `            width: "100%",` && |\n| &&
+             `            rows: 25,` && |\n| &&
+             `            growing: false,` && |\n| &&
+             `          });` && |\n| &&
+             `          area.setValue(text);` && |\n| &&
+             `          const own = buttons ? buttons(Button, area) : [];` && |\n| &&
+             `          const close = { text: "Close", press: () => dialog.close() };` && |\n| &&
+             `          if (!own.length) close.type = "Emphasized";` && |\n| &&
+             `          const dialog = new Dialog({` && |\n| &&
+             `            title,` && |\n| &&
+             `            stretch: true,` && |\n| &&
+             `            content: [area],` && |\n| &&
+             `` && |\n| &&
+             `            buttons: own.concat(new Button(close)),` && |\n| &&
+             `            afterClose: () => dialog.destroy(),` && |\n| &&
+             `          });` && |\n| &&
+             `          dialog.open();` && |\n| &&
+             `        },` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const DeveloperTools = Control.extend("z2ui5.devtools.DeveloperTools", {` && |\n| &&
              `      fragmentId() {` && |\n| &&
              `        return ``${this.getId()}--${FRAGMENT_SUFFIX}``;` && |\n| &&
@@ -273,9 +300,12 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      async onReportBug(oEvent) {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
-             `        const source = await AbapSource.fetchSource(this.ctx);` && |\n| &&
+             `        const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
+             `        const source = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `        this.showStatus(oModel, Report.copyMarkdown(this.ctx, source));` && |\n| &&
+             `        const message = await Report.copyMarkdown(this.ctx, source);` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        this.showStatus(oModel, message);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onExport() {` && |\n| &&
@@ -289,7 +319,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        const data = oSource.getModel().getData();` && |\n| &&
              `        let text = data.value || "";` && |\n| &&
              `        if (data.isSourceView) {` && |\n| &&
-             `          text = await AbapSource.fetchSource(this.ctx);` && |\n| &&
+             `          const cached = AbapSource.cachedSource?.(this.ctx);` && |\n| &&
+             `          text = cached ?? (await AbapSource.fetchSource(this.ctx));` && |\n| &&
              `          if (Lib.isDestroyed(oSource)) return;` && |\n| &&
              `        }` && |\n| &&
              `        Lib.copyToClipboard(text);` && |\n| &&
@@ -336,46 +367,26 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onExportJourney() {` && |\n| &&
-             `        const text = Journey.buildAbapUnit(this.ctx);` && |\n| &&
              `        const fileName = Journey.exportFileName(this.ctx);` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
-             `          (Dialog, TextArea, Button) => {` && |\n| &&
-             `            const area = new TextArea({` && |\n| &&
-             `              editable: true,` && |\n| &&
-             `              width: "100%",` && |\n| &&
-             `              rows: 25,` && |\n| &&
-             `              growing: false,` && |\n| &&
-             `            });` && |\n| &&
-             `            area.setValue(text);` && |\n| &&
-             `            const dialog = new Dialog({` && |\n| &&
-             `              title: "abap2UI5 - Journey as ABAP Unit test",` && |\n| &&
-             `              stretch: true,` && |\n| &&
-             `              content: [area],` && |\n| &&
-             `` && |\n| &&
-             `              buttons: [` && |\n| &&
-             `                new Button({` && |\n| &&
-             `                  text: "Copy",` && |\n| &&
-             `                  type: "Emphasized",` && |\n| &&
-             `                  press: (oEvent) => {` && |\n| &&
-             `                    Lib.copyToClipboard(area.getValue());` && |\n| &&
-             `                    Report.confirmOnButton(oEvent.getSource());` && |\n| &&
-             `                  },` && |\n| &&
-             `                }),` && |\n| &&
-             `                new Button({` && |\n| &&
-             `                  text: "Download",` && |\n| &&
-             `                  press: () => Report.downloadText(fileName, area.getValue()),` && |\n| &&
-             `                }),` && |\n| &&
-             `                new Button({` && |\n| &&
-             `                  text: "Close",` && |\n| &&
-             `                  press: () => dialog.close(),` && |\n| &&
-             `                }),` && |\n| &&
-             `              ],` && |\n| &&
-             `              afterClose: () => dialog.destroy(),` && |\n| &&
-             `            });` && |\n| &&
-             `            dialog.open();` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
+             `        openTextDialog({` && |\n| &&
+             `          title: "abap2UI5 - Journey as ABAP Unit test",` && |\n| &&
+             `          text: Journey.buildAbapUnit(this.ctx),` && |\n| &&
+             `          editable: true,` && |\n| &&
+             `          buttons: (Button, area) => [` && |\n| &&
+             `            new Button({` && |\n| &&
+             `              text: "Copy",` && |\n| &&
+             `              type: "Emphasized",` && |\n| &&
+             `              press: (oEvent) => {` && |\n| &&
+             `                Lib.copyToClipboard(area.getValue());` && |\n| &&
+             `                Report.confirmOnButton(oEvent.getSource());` && |\n| &&
+             `              },` && |\n| &&
+             `            }),` && |\n| &&
+             `            new Button({` && |\n| &&
+             `              text: "Download",` && |\n| &&
+             `              press: () => Report.downloadText(fileName, area.getValue()),` && |\n| &&
+             `            }),` && |\n| &&
+             `          ],` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onToggleOpenOnError(oEvent) {` && |\n| &&
@@ -413,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          original: before,` && |\n| &&
              `` && |\n| &&
              `          applied: Tabs.render(this.ctx, tabKey),` && |\n| &&
-             `        };` && |\n| &&
+             `        };` && |\n|.
+    result = result &&
              `        this.showStatus(oModel, result);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -424,8 +436,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        if (record.applied !== current) {` && |\n| &&
              `          delete this._appliedXml[tabKey];` && |\n| &&
              `          return current;` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `        return record.original;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -440,32 +451,11 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onShowHelp() {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
-             `          (Dialog, TextArea, Button) => {` && |\n| &&
-             `            const area = new TextArea({` && |\n| &&
-             `              editable: false,` && |\n| &&
-             `              width: "100%",` && |\n| &&
-             `              rows: 25,` && |\n| &&
-             `              growing: false,` && |\n| &&
-             `            });` && |\n| &&
-             `            area.setValue(Inspect.formatHelp());` && |\n| &&
-             `            const dialog = new Dialog({` && |\n| &&
-             `              title: "abap2UI5 - Developer Tools Help",` && |\n| &&
-             `              stretch: true,` && |\n| &&
-             `              content: [area],` && |\n| &&
-             `              buttons: [` && |\n| &&
-             `                new Button({` && |\n| &&
-             `                  text: "Close",` && |\n| &&
-             `                  type: "Emphasized",` && |\n| &&
-             `                  press: () => dialog.close(),` && |\n| &&
-             `                }),` && |\n| &&
-             `              ],` && |\n| &&
-             `              afterClose: () => dialog.destroy(),` && |\n| &&
-             `            });` && |\n| &&
-             `            dialog.open();` && |\n| &&
-             `          },` && |\n| &&
-             `        );` && |\n| &&
+             `        openTextDialog({` && |\n| &&
+             `          title: "abap2UI5 - Developer Tools Help",` && |\n| &&
+             `          text: Inspect.formatHelp(),` && |\n| &&
+             `          editable: false,` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onClose() {` && |\n| &&

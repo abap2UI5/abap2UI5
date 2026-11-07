@@ -379,8 +379,12 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // View1.eB, so the answer is known the moment the event was fired). A
   // control that reports several files/values one roundtrip each hands
   // the next one over from here; firing them back to back lost every one
-  // but the first on the busy guard. The one-shot hook takes itself off
-  // the onAfterRendering list again; `owner` destroyed meanwhile ends it.
+  // but the first on the busy guard. The one-shot hook waits on the
+  // onRoundtripEnd list - run where a rendered response runs its
+  // onAfterRendering hooks, and also when the event was kept in the offline
+  // queue instead (Server._keepOffline), a roundtrip that renders nothing
+  // and used to leave every waiter parked for good - and takes itself off
+  // it again; `owner` destroyed meanwhile ends it.
   // Returns a function that cancels the wait (for the owner's exit).
   // `owner` is the control, and its context is what says "busy": a
   // control that belongs to no context (not in any slot) is never waiting
@@ -392,12 +396,58 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
       return () => {};
     }
     const once = () => {
-      unregisterCallback(ctx, "onAfterRendering", once);
+      unregisterCallback(ctx, "onRoundtripEnd", once);
       if (isDestroyed(owner)) return;
       fn();
     };
-    registerCallback(ctx, "onAfterRendering", once);
-    return () => unregisterCallback(ctx, "onAfterRendering", once);
+    registerCallback(ctx, "onRoundtripEnd", once);
+    return () => unregisterCallback(ctx, "onRoundtripEnd", once);
+  }
+
+  // The files of a selection that are not over `maxMegabytes` - 0, a
+  // negative or a missing limit lets every file through. `onTooBig` is
+  // called with each file left out (the control fires its event there); a
+  // file object without a size counts as small enough. Shared by the
+  // FileUploader and the UploadSetExt, which read a file into the model as
+  // a data URL and send it in the roundtrip body.
+  function withinFileSize(files, maxMegabytes, onTooBig) {
+    const list = Array.from(files || []);
+    const limit = Number(maxMegabytes) * 1024 * 1024;
+    if (!(limit > 0)) return list;
+    return list.filter((file) => {
+      if (!(Number(file?.size) > limit)) return true;
+      logError(
+        `file '${file?.name ?? ""}' is over the limit of ${maxMegabytes} MB - not read`,
+      );
+      try {
+        onTooBig?.(file);
+      } catch (e) {
+        logError("withinFileSize: the size handler failed", e);
+      }
+      return false;
+    });
+  }
+
+  // Dispatch an event through the controller's eB once no roundtrip is in
+  // flight. A callback that fires when the USER is done - the close of a
+  // toast or a box (actions/ControlCall), a launchpad result that arrives
+  // after the roundtrip that asked for it (actions/Launchpad) - came any
+  // time, also while another roundtrip ran, and a plain eB( ) then met the
+  // busy guard: the answer to "Delete?" never reached the backend. It waits
+  // for that roundtrip instead, the way a START_TIMER tick does
+  // (ViewOps.evStartTimer), and fires one macrotask after it; a controller
+  // gone in between (an app reset, an FLP re-launch) gets nothing. One
+  // copy: the two modules each carried this verbatim.
+  function dispatchWhenIdle(oController, args) {
+    const fire = () => {
+      if (!isControllerAlive(oController)) return;
+      if (oController.ctx?.state?.isBusy) {
+        afterRoundtrip(oController, () => setTimeout(fire, 0));
+        return;
+      }
+      oController.eB(...args);
+    };
+    fire();
   }
 
   // Run every callback in `callbacks` (the shared callback arrays above),
@@ -531,17 +581,26 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // reliable one. ErrorView prefers execCommand because it must also work
   // on the insecure on-prem HTTP origins where navigator.clipboard does
   // not exist - and a fatal-error overlay is exactly where that matters.
+  //
+  // Resolves with whether the text reached the clipboard - a caller that
+  // says "copied" asks it first. The async API refuses without a user
+  // activation (Safari, after an await on the network), and the fallback
+  // returns false there too; both used to be logged only, and the status
+  // line said "copied" regardless. Never rejects.
   function copyToClipboard(textToCopy) {
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(textToCopy).catch((err) => {
-        logError("Clipboard: writeText failed, falling back", err);
-        copyToClipboardFallback(textToCopy);
-      });
-      return;
+      return navigator.clipboard.writeText(textToCopy).then(
+        () => true,
+        (err) => {
+          logError("Clipboard: writeText failed, falling back", err);
+          return copyToClipboardFallback(textToCopy);
+        },
+      );
     }
-    copyToClipboardFallback(textToCopy);
+    return Promise.resolve(copyToClipboardFallback(textToCopy));
   }
 
+  // true when execCommand("copy") reported success
   function copyToClipboardFallback(textToCopy) {
     const textarea = document.createElement("textarea");
     textarea.value = textToCopy;
@@ -552,11 +611,12 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     document.body.appendChild(textarea);
     textarea.select();
     try {
-      if (!document.execCommand("copy")) {
-        logError("Clipboard: execCommand('copy') returned false");
-      }
+      if (document.execCommand("copy")) return true;
+      logError("Clipboard: execCommand('copy') returned false");
+      return false;
     } catch (err) {
       logError("Clipboard: execCommand('copy') threw", err);
+      return false;
     } finally {
       document.body.removeChild(textarea);
     }
@@ -1022,13 +1082,19 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // - becomes null.
   const MAX_ARG_DEPTH = 4;
 
-  function isManagedObject(value) {
+  // A UI5 object of the given type, asked of its own isA( ) - the one test
+  // behind the three kinds below (a control, a binding context, an event)
+  function isA(value, type) {
     return (
       value !== null &&
       typeof value === "object" &&
       typeof value.isA === "function" &&
-      value.isA("sap.ui.base.ManagedObject")
+      value.isA(type)
     );
+  }
+
+  function isManagedObject(value) {
+    return isA(value, "sap.ui.base.ManagedObject");
   }
 
   /* A Date property carries a CALENDAR DAY the user picked in their own
@@ -1089,12 +1155,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   }
 
   function isContext(value) {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      typeof value.isA === "function" &&
-      value.isA("sap.ui.model.Context")
-    );
+    return isA(value, "sap.ui.model.Context");
   }
 
   // {} or Object.create(null) - and not a class instance (a UI5 object, a
@@ -1152,12 +1213,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   }
 
   function isEvent(value) {
-    return (
-      value !== null &&
-      typeof value === "object" &&
-      typeof value.isA === "function" &&
-      value.isA("sap.ui.base.Event")
-    );
+    return isA(value, "sap.ui.base.Event");
   }
 
   // The UI5 event itself - a bare `$event` in t_arg. It holds its source
@@ -1254,6 +1310,8 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     isControllerAlive,
     requireODataModel,
     afterRoundtrip,
+    dispatchWhenIdle,
+    withinFileSize,
     isAlive,
     claimOnce,
     isTextInput,

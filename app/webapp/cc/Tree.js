@@ -68,7 +68,10 @@ sap.ui.define(
             treeStates[id] = binding.getCurrentTreeState();
           }
         } catch (e) {
-          Lib.logError("Tree.setBackend: failed", e);
+          Lib.logError(
+            `Tree.setBackend: failed for tree_id '${this.getProperty("tree_id")}'`,
+            e,
+          );
         }
       },
 
@@ -121,7 +124,10 @@ sap.ui.define(
           binding.setTreeState(snapshot);
           binding.refresh(true);
         } catch (e) {
-          Lib.logError("Tree.onAfterRendering: setTreeState failed", e);
+          Lib.logError(
+            `Tree.onAfterRendering: setTreeState failed for tree_id '${this.getProperty("tree_id")}'`,
+            e,
+          );
         }
       },
 

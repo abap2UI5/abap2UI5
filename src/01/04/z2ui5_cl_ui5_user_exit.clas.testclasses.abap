@@ -57,6 +57,30 @@ CLASS ltcl_exit_host IMPLEMENTATION.
 ENDCLASS.
 
 
+" A host exit that asks for an expiry the cleanup could not turn into
+" integer seconds - more than 596,523 hours overflowed it
+CLASS ltcl_exit_long_expiry DEFINITION FINAL.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ui5_exit.
+
+ENDCLASS.
+
+
+CLASS ltcl_exit_long_expiry IMPLEMENTATION.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_get.
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_exit~set_config_http_post.
+
+    cs_config-draft_exp_time_in_hours = 2000000.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " A subclass of the shipped exit that redefines nothing - the shape a host
 " writes to "extend" the defaults. set_instance must install it as the
 " shipped instance, never as a customer exit the shipped body dispatches
@@ -271,6 +295,14 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
 
     cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = ls_config-draft_exp_time_in_hours ).
+
+    " and from above: hours the cleanup cannot turn into integer seconds
+    " come back as the longest expiry the framework accepts
+    z2ui5_cl_ui5_user_exit=>set_instance( NEW ltcl_exit_long_expiry( ) ).
+    CLEAR ls_config.
+    z2ui5_cl_ui5_user_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours
                                         act = ls_config-draft_exp_time_in_hours ).
 
   ENDMETHOD.

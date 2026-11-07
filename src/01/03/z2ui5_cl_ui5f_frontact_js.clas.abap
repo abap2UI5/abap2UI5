@@ -87,7 +87,7 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `      return handler(oController, args, ctx);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function runSystem(item, oController, ctx) {` && |\n| &&
+             `    function parseAction(item) {` && |\n| &&
              `      let args = item;` && |\n| &&
              `      if (typeof item === "string") {` && |\n| &&
              `        try {` && |\n| &&
@@ -96,7 +96,12 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `          args = null;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      if (!Array.isArray(args)) {` && |\n| &&
+             `      return Array.isArray(args) ? args : null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function runSystem(item, oController, ctx) {` && |\n| &&
+             `      const args = parseAction(item);` && |\n| &&
+             `      if (!args) {` && |\n| &&
              `        Lib.logError(``FrontendAction: '${item}' is no system action payload``);` && |\n| &&
              `        return undefined;` && |\n| &&
              `      }` && |\n| &&
@@ -125,20 +130,12 @@ CLASS z2ui5_cl_ui5f_frontact_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function runCustom(item, oController) {` && |\n| &&
+             `      const args = parseAction(item);` && |\n| &&
+             `      if (!args) return undefined;` && |\n| &&
              `      try {` && |\n| &&
-             `        let args = item;` && |\n| &&
-             `        if (typeof item === "string") {` && |\n| &&
-             `          try {` && |\n| &&
-             `            args = JSON.parse(item);` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            args = null;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        if (Array.isArray(args)) {` && |\n| &&
-             `          return oController.eF(...resolveBoundArgs(oController, args));` && |\n| &&
-             `        }` && |\n| &&
+             `        return oController.eF(...resolveBoundArgs(oController, args));` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("customJs: execution failed", e);` && |\n| &&
+             `        Lib.logError(``FrontendAction: custom action '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `      return undefined;` && |\n| &&
              `    }` && |\n| &&

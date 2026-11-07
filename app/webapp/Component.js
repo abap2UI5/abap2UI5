@@ -241,6 +241,7 @@ sap.ui.define(
         // path, the BSP and the launchpad none of the three, so nothing
         // moves there.
         const prefix = resourceRootPrefix(state.endpoint, state.nodePath);
+        state.endpointPrefix = prefix;
         state.ccResourceRoot = rebaseResourceRoot(state.ccResourceRoot, prefix);
         state.cccResourceRoot = rebaseResourceRoot(
           state.cccResourceRoot,

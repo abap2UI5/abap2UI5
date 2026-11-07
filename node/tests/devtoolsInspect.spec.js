@@ -393,11 +393,14 @@ test.describe("Registry", () => {
     expect(out).toMatch(/onAfterRendering\s+2/);
   });
 
-  test("lists every callback array the state declares, five of five", () => {
+  test("lists every callback array the state declares, six of six", () => {
     // onErrorDetails was the one missing here, and it is the one whose
     // absence is a defect worth seeing: with no provider registered the
-    // fatal-error overlay offers no Details button at all.
-    const { Inspect, ctx } = loadInspect({ state: { onErrorDetails: [() => {}] } });
+    // fatal-error overlay offers no Details button at all. onRoundtripEnd
+    // (the waiters of Lib.afterRoundtrip) was the next one missing.
+    const { Inspect, ctx } = loadInspect({
+      state: { onErrorDetails: [() => {}], onRoundtripEnd: [() => {}, () => {}] },
+    });
     const out = Inspect.formatRegistry(ctx);
     for (const name of [
       "onBeforeRoundtrip",
@@ -408,6 +411,7 @@ test.describe("Registry", () => {
       expect(out).toMatch(new RegExp(`${name}\\s+0`));
     }
     expect(out).toMatch(/onErrorDetails\s+1/);
+    expect(out).toMatch(/onRoundtripEnd\s+2/);
   });
 
   test("scrapes the backend event names out of the view XML", () => {

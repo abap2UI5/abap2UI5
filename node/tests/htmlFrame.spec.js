@@ -46,6 +46,7 @@ function load() {
     inst.events = [];
     inst.fireSapevent = (p) => inst.events.push(p);
     inst.isDestroyed = () => false;
+    inst.getId = () => "frame1";
     return inst;
   }
 
@@ -151,6 +152,8 @@ test("a form to another address is cancelled and logged, not fired", () => {
   expect(e.prevented).toBe(true);
   expect(inst.events).toEqual([]);
   expect(errors.join()).toContain("only sapevent: actions are");
+  // the line names the frame: a view can hold more than one
+  expect(errors.join()).toContain("HTMLFrame frame1:");
 });
 
 test("the renderer writes a sandboxed frame, the content as srcdoc", () => {
@@ -196,4 +199,21 @@ test("each document of the frame gets the listeners once; an unreachable one is 
   };
   inst._wire(sealed);
   expect(errors.join()).toContain("out of reach");
+});
+
+test("the frame's own load listener is added once, however often it renders", () => {
+  const { makeInstance } = load();
+  const inst = makeInstance();
+  const loads = [];
+  const frame = {
+    contentDocument: { addEventListener: () => {} },
+    addEventListener: (type) => loads.push(type),
+  };
+  inst.getDomRef = () => frame;
+
+  inst.onAfterRendering();
+  inst.onAfterRendering();
+  inst.onAfterRendering();
+
+  expect(loads).toEqual(["load"]);
 });

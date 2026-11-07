@@ -23,15 +23,60 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
 
   const PREFIX = "z2ui5-offline:";
 
+  // The endpoint the queue belongs to: the request URL without its fragment.
+  // On a page the backend GET served (checkLocal) state.url is the whole
+  // location.href, and the hash routing rewrites its fragment after the
+  // first response (#/app/<CLASS>/<DRAFT>) - keyed by the full href, a
+  // reload or Back/Forward looked under another key, found nothing, and the
+  // queued events stayed in storage for good. A POST never carries the
+  // fragment either. No endpoint (a torn-down context) is no key: the
+  // queue is neither read from nor written under `z2ui5-offline:` alone.
+  function endpoint(ctx) {
+    const url = ctx.state.url || "";
+    const at = url.indexOf("#");
+    return at < 0 ? url : url.slice(0, at);
+  }
+
   function storageKey(ctx) {
-    return PREFIX + (ctx.state.url || "");
+    const base = endpoint(ctx);
+    return base ? PREFIX + base : "";
+  }
+
+  // Entries kept before the key dropped the fragment sit under the endpoint
+  // plus some `#...`: they belong to this endpoint and are taken over once.
+  function adoptFragmentKeys(storage, key) {
+    const found = [];
+    for (let i = storage.length - 1; i >= 0; i--) {
+      const k = storage.key(i);
+      if (k && k.startsWith(key + "#")) found.push(k);
+    }
+    let adopted = [];
+    for (const k of found.sort()) {
+      try {
+        const list = JSON.parse(storage.getItem(k) || "[]");
+        if (Array.isArray(list)) adopted = adopted.concat(list);
+      } catch (e) {
+        Lib.logError("offline queue: an old entry could not be read", e);
+      }
+      storage.removeItem(k);
+    }
+    return adopted;
   }
 
   function read(ctx) {
+    const key = storageKey(ctx);
+    if (!key) return [];
     try {
-      const raw = window.localStorage.getItem(storageKey(ctx));
-      const list = raw ? JSON.parse(raw) : [];
-      return Array.isArray(list) ? list : [];
+      const storage = window.localStorage;
+      const raw = storage.getItem(key);
+      const parsed = raw ? JSON.parse(raw) : [];
+      const list = Array.isArray(parsed) ? parsed : [];
+      if (typeof storage.key !== "function") return list;
+      const adopted = adoptFragmentKeys(storage, key);
+      if (!adopted.length) return list;
+      const merged = adopted.concat(list);
+      storage.setItem(key, JSON.stringify(merged));
+      return merged;
     } catch (e) {
       Lib.logError("offline queue: could not be read", e);
       return [];
@@ -39,11 +84,13 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
   }
 
   function write(ctx, list) {
+    const key = storageKey(ctx);
+    if (!key) return false;
     try {
       if (list.length) {
-        window.localStorage.setItem(storageKey(ctx), JSON.stringify(list));
+        window.localStorage.setItem(key, JSON.stringify(list));
       } else {
-        window.localStorage.removeItem(storageKey(ctx));
+        window.localStorage.removeItem(key);
       }
       return true;
     } catch (e) {

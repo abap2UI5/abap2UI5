@@ -51,6 +51,7 @@ test.describe("create", () => {
     const ctx = Context.create(component("a"));
     expect(ctx.server).toEqual({
       requestSeq: 0,
+      restoreSeq: 0,
       inflight: new Set(),
       viewBuild: null,
       csrfToken: "",

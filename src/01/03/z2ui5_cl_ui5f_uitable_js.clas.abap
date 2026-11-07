@@ -109,7 +109,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          this._applyPending = false;` && |\n| &&
              `          this._pendingTable = null;` && |\n| &&
-             `          Lib.logError("UITableExt.applyBackend failed", e);` && |\n| &&
+             `          Lib.logError(``UITableExt.applyBackend failed${this._forTable()}``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -117,8 +117,12 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          this[method](oTable, aValues);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``UITableExt.${method} failed``, e);` && |\n| &&
+             `          Lib.logError(``UITableExt.${method} failed${this._forTable()}``, e);` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _forTable() {` && |\n| &&
+             `        return `` for tableId '${this.getProperty("tableId")}'``;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTable() {` && |\n| &&
@@ -133,7 +137,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `          this.aFilters = Env.controlFilters(binding);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&
+             `          Lib.logError(``UITableExt.readFilter failed${this._forTable()}``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -195,7 +199,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `` && |\n| &&
              `          this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("UITableExt.readSort failed", e);` && |\n| &&
+             `          Lib.logError(``UITableExt.readSort failed${this._forTable()}``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

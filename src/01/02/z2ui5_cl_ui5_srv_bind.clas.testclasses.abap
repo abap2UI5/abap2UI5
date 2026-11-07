@@ -572,11 +572,12 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
   METHOD foreign_value_refused.
 
-    " mv_other holds the same text as the cell - a value, not the cell
+    " mv_other holds the same text as the cell - a value, not the cell.
+    " The error names the table and the row the cell was looked for in
     expect_bind_error( ir_val    = REF #( mo_app->mv_other )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found in row 1 of '/MT_TAB'` ).
 
   ENDMETHOD.
 
@@ -1005,6 +1006,12 @@ CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS reference_path       FOR TESTING RAISING cx_static_check.
     METHODS row_of_window        FOR TESTING RAISING cx_static_check.
     METHODS row_of_plain_table   FOR TESTING RAISING cx_static_check.
+    " a new sort or filter from the app has to reach the browser in the
+    " same roundtrip: the model is marked for a push; the same one is not
+    METHODS new_order_pushed     FOR TESTING RAISING cx_static_check.
+    " the order is memoized per render, and computed anew when the table
+    " grows or the sort changes
+    METHODS row_memo_follows     FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1145,6 +1152,63 @@ CLASS ltcl_04_window IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
                                                                    row = 1 ) ).
+
+  ENDMETHOD.
+
+  METHOD new_order_pushed.
+
+    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
+                          window            = 10
+                          t_window_sort     = VALUE #( ( path = `NAME` ) )
+                          check_window_sort = abap_true ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    CLEAR mo_cont->mv_model_client_stale.
+
+    " rendered again with the same sort: nothing to push
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_false( mo_cont->mv_model_client_stale ).
+
+    " a new sort from the app: the browser has to get it now
+    ls_config-t_window_sort = VALUE #( ( path = `JOB` ) ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
+
+    " a new filter as well
+    CLEAR mo_cont->mv_model_client_stale.
+    ls_config-t_window_filter     = VALUE #( ( group = 1 path = `NAME` operator = `EQ` value1 = `x` ) ).
+    ls_config-check_window_filter = abap_true.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
+
+  ENDMETHOD.
+
+  METHOD row_memo_follows.
+
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = VALUE #( window            = 10
+                               t_window_sort     = VALUE #( ( path = `NAME` ) )
+                               check_window_sort = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 1 ) ).
+
+    " the same table sorted the other way round: computed anew
+    mo_bind->mr_attri->t_window_sort = VALUE #( ( path = `NAME` descending = abap_true ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                   row = 1 ) ).
+
+    " a row more: the memo of two rows is not the answer for three
+    APPEND mo_app->mt_tab[ 1 ] TO mo_app->mt_tab.
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( z2ui5_cl_ui5_srv_window=>index( tab = mo_app->mt_tab ) ) ).
+    cl_abap_unit_assert=>assert_differs( exp = 0
+                                         act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
+                                                                    row = 3 ) ).
 
   ENDMETHOD.
 

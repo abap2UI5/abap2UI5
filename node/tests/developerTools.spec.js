@@ -1158,21 +1158,84 @@ test.describe("Help", () => {
                   open() {}
                 },
                 class {
+                  constructor(settings) {
+                    opened.push(settings);
+                  }
                   setValue(v) {
                     opened.push(v);
                   }
                 },
-                class {},
+                class {
+                  constructor(settings) {
+                    this.settings = settings;
+                  }
+                },
               ),
           },
         },
       },
     });
     DeveloperTools.onShowHelp();
+    // the TextArea's settings, its value, then the Dialog's settings
     expect(opened).toContain("HELP TEXT");
+    // read-only, and Close is the one (emphasized) button
+    expect(opened[0].editable).toBe(false);
+    expect(opened[2].buttons).toHaveLength(1);
+    expect(opened[2].buttons[0].settings).toMatchObject({
+      text: "Close",
+      type: "Emphasized",
+    });
   });
 });
 
+test.describe("Export ABAP Unit", () => {
+  // The same text popup as the help (openTextDialog), with the journey's
+  // own Copy and Download in front of Close - which is then not emphasized.
+  test("opens the exported test class with Copy, Download and Close", () => {
+    const opened = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      extraSandbox: {
+        sap: {
+          ui: {
+            require: (_names, cb) =>
+              cb(
+                class {
+                  constructor(settings) {
+                    opened.push(settings);
+                  }
+                  open() {}
+                },
+                class {
+                  constructor(settings) {
+                    opened.push(settings);
+                  }
+                  setValue(v) {
+                    opened.push(v);
+                  }
+                },
+                class {
+                  constructor(settings) {
+                    this.settings = settings;
+                  }
+                },
+              ),
+          },
+        },
+      },
+    });
+    DeveloperTools.onExportJourney();
+
+    expect(opened[0].editable).toBe(true);
+    expect(opened[1]).toContain("CLASS ltcl_journey DEFINITION FINAL");
+    expect(opened[2].title).toBe("abap2UI5 - Journey as ABAP Unit test");
+    expect(opened[2].buttons.map((b) => b.settings.text)).toEqual([
+      "Copy",
+      "Download",
+      "Close",
+    ]);
+    expect(opened[2].buttons[2].settings.type).toBeUndefined();
+  });
+});
 test.describe("Close / Escape returns to the error popup", () => {
   // The dialog is loaded once and reused across open/close (destroying and
   // re-loading its fragment each time raced the close animation on UI5 1.71

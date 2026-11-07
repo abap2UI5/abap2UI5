@@ -44,11 +44,25 @@ CLASS z2ui5_cl_ui5_llm_http IMPLEMENTATION.
         " no answer at all: the destination does not exist, the host cannot
         " be reached, the TLS handshake failed, the timeout ran out - the
         " cause stays in previous, the text is for the person who fixes the
-        " setup
+        " setup. Only a failed SEND or RECEIVE is worth another try
+        " (HTTP_COMMUNICATION_ERROR, somewhere in the chain): a destination
+        " that is not there or not allowed, a client that could not be
+        " created, a stack without the client class - "a missing
+        " configuration never does" (z2ui5_cx_ui5_llm), and an app looping
+        " on retryable retried a call that could never succeed
+        DATA(lv_retryable) = abap_false.
+        DATA(lx_walk) = lx.
+        WHILE lx_walk IS BOUND.
+          IF lx_walk->get_text( ) CS `HTTP_COMMUNICATION_ERROR`.
+            lv_retryable = abap_true.
+            EXIT.
+          ENDIF.
+          lx_walk = lx_walk->previous.
+        ENDWHILE.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_llm
           EXPORTING
             text      = `the language model endpoint could not be reached - check the destination, the URL, the TLS trust and the proxy`
-            retryable = abap_true
+            retryable = lv_retryable
             previous  = lx.
     ENDTRY.
 

@@ -47,6 +47,7 @@ function load({ navigator } = {}) {
     };
     inst.getProperty = (k) => inst._props[k];
     inst.setProperty = (k, v) => (inst._props[k] = v);
+    inst.getId = () => "geo1";
     inst.finished = 0;
     inst.errorEvents = [];
     inst.fireFinished = () => inst.finished++;
@@ -128,7 +129,10 @@ test("a geolocation error is logged and fired as event - never thrown, no UI", (
   inst.onAfterRendering();
   calls[0].err({ code: 1, message: "User denied Geolocation" });
 
-  expect(errors.some((m) => m.includes("Geolocation error (1)"))).toBe(true);
+  // the line names the control: a view can hold more than one
+  expect(
+    errors.some((m) => m.includes("Geolocation error (1) on geo1")),
+  ).toBe(true);
   expect(inst.errorEvents).toEqual([
     { code: "1", message: "User denied Geolocation" },
   ]);

@@ -59,12 +59,15 @@ sap.ui.define(
       return Array.isArray(value) ? value : [value];
     }
 
+    // zero-pad a date part - hoisted so wireValue does not build the closure
+    // anew for every Date of every filter it sends
+    const pad = (n) => String(n).padStart(2, "0");
+
     // a filter value as the backend compares it: a Date as the model
     // carries a date (yyyy-MM-dd), everything else as it is
     function wireValue(value) {
       // by its tag, not instanceof: a Date of another realm (a frame) is one
       if (Object.prototype.toString.call(value) === "[object Date]") {
-        const pad = (n) => String(n).padStart(2, "0");
         return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
       }
       return value ?? null;

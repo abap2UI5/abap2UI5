@@ -62,8 +62,9 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " the security headers from the GET config on a POST as well - and the
     " tag is a constant, so the seven-fragment template ran per roundtrip
     " for the same string. Lazily filled on first use, not in a class
-    " constructor: a public class_constructor is what abap-check names a
-    " trap, and the view builder's gv_escape_specials takes the same road
+    " constructor: a class_constructor outside the PUBLIC SECTION is the
+    " activation trap abap-check names, and the view builder's
+    " gv_name_chars takes the same road
     CLASS-DATA gv_csp_default TYPE string.
 
     " the exit class the lookup named, instantiated and bound to the
@@ -435,6 +436,12 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     IF cs_config-draft_exp_time_in_hours <= 0.
       cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
+    ENDIF.
+    " and from above: the draft service turns the hours into seconds as an
+    " integer, and more than 596,523 hours overflowed it - every first start
+    " answered 500. Ten years is longer than any draft is worth keeping
+    IF cs_config-draft_exp_time_in_hours > z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
+      cs_config-draft_exp_time_in_hours = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
     ENDIF.
 
   ENDMETHOD.

@@ -75,6 +75,18 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     DATA mr_cell_tab   TYPE REF TO data.
     DATA mt_cell_names TYPE string_table.
 
+    " the browser order of the windowed table window_row( ) last answered
+    " for - a memo, because a view resolves one row per rendered line
+    " (_bind_tab_row( row = n )) and every call used to filter and sort the
+    " whole table again. Keyed on the table reference, its line count and
+    " the sorters and the filter it was computed with: the service lives one
+    " render, and a change to any of them computes the order anew
+    DATA mr_window_tab    TYPE REF TO data.
+    DATA mv_window_lines  TYPE i.
+    DATA mt_window_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
+    DATA mt_window_filter TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
+    DATA mt_window_index  TYPE z2ui5_cl_ui5_srv_window=>ty_t_index.
+
     " the class name of a mapper or filter the service has already asked
     " for, keyed on the reference - a memo for check_same_impl, which used
     " to describe the STORED implementation again on every re-bind of the
@@ -238,9 +250,12 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     ENDLOOP.
 
+    " names the table the cell was looked for in: a view binds cells of
+    " several tables per render, and the text alone did not say which bind
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
-        val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
+        val = |BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found in row { ms_config-tab_index } of '{ iv_name }' | &&
+              |- Please check if the bound values are public attributes of your class|.
 
   ENDMETHOD.
 
@@ -569,15 +584,29 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     mr_attri->window_count = nmax( val1 = mr_attri->window_count
                                    val2 = ms_config-window ).
 
+    DATA(lv_changed) = abap_false.
     IF ms_config-check_window_sort = abap_true AND ms_config-t_window_sort <> mr_attri->t_window_sort_set.
       mr_attri->t_window_sort     = ms_config-t_window_sort.
       mr_attri->t_window_sort_set = ms_config-t_window_sort.
       mr_attri->window_count      = ms_config-window.
+      lv_changed = abap_true.
     ENDIF.
     IF ms_config-check_window_filter = abap_true AND ms_config-t_window_filter <> mr_attri->t_window_filter_set.
       mr_attri->t_window_filter     = ms_config-t_window_filter.
       mr_attri->t_window_filter_set = ms_config-t_window_filter.
       mr_attri->window_count        = ms_config-window.
+      lv_changed = abap_true.
+    ENDIF.
+
+    " the new order has to reach the browser in this roundtrip: the server
+    " computes every later row delta through it, and an event roundtrip
+    " that re-binds the table with a new sort but displays no view and
+    " changes no bound value would otherwise send no MODEL - the browser
+    " kept the old order and the next cell edit landed in another row.
+    " The window state travels with the model (/__WINDOW/<path>), so a push
+    " is what carries it; a display in the same roundtrip clears the flag
+    IF lv_changed = abap_true AND mo_app IS BOUND.
+      mo_app->mv_model_client_stale = abap_true.
     ENDIF.
 
   ENDMETHOD.
@@ -609,10 +638,19 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       RETURN.
     ENDIF.
     ASSIGN val->* TO <tab>.
-    DATA(lt_index) = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
-                                                     t_sort   = lr_attri->t_window_sort
-                                                     t_filter = lr_attri->t_window_filter ).
-    result = VALUE #( lt_index[ row ] OPTIONAL ).
+    IF mr_window_tab    <> val
+       OR lines( <tab> )   <> mv_window_lines
+       OR mt_window_sort   <> lr_attri->t_window_sort
+       OR mt_window_filter <> lr_attri->t_window_filter.
+      mt_window_index  = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
+                                                         t_sort   = lr_attri->t_window_sort
+                                                         t_filter = lr_attri->t_window_filter ).
+      mr_window_tab    = val.
+      mv_window_lines  = lines( <tab> ).
+      mt_window_sort   = lr_attri->t_window_sort.
+      mt_window_filter = lr_attri->t_window_filter.
+    ENDIF.
+    result = VALUE #( mt_window_index[ row ] OPTIONAL ).
 
   ENDMETHOD.
 

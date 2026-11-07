@@ -46,6 +46,12 @@ sap.ui.define(
       else BusyIndicator.hide();
     }
 
+    // The event a windowed table's WindowModel asks for its rows with -
+    // WindowModel.EVENT, the backend's z2ui5_if_ui5_types=>cs_event_window.
+    // Named here rather than imported: the controller only tells it apart
+    // from an app's event in the queue slot of eB.
+    const WINDOW_EVENT = "___ZZZ_WIN";
+
     const View1Controller = Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
         // _processAfterRendering re-checks _processed itself - only the
@@ -108,6 +114,7 @@ sap.ui.define(
             // send it under the NEW app's draft id, where the backend
             // routes it to an app that never registered the event
             state.oQueuedEvent = null;
+            state.oQueuedWindow = null;
             state.renderedApp = oResponse.APP;
           }
           // The state an app OWNS goes when its PAGE goes - not when the
@@ -208,6 +215,7 @@ sap.ui.define(
             id: oResponse.ID,
           });
           Lib.runCallbacks(this.ctx.state.onAfterRendering);
+          Lib.runCallbacks(this.ctx.state.onRoundtripEnd);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
           // A failure of a response a NEWER request has superseded, or
@@ -277,6 +285,21 @@ sap.ui.define(
             await this.ctx.state.mainTransition;
           }
           if (!replaced) await this._runPendingCustomJs(oResponse);
+          // ... except the timers they arm, when what superseded this
+          // response is a Back/Forward restore: the restore cancelled the
+          // timers of the screen it leaves when it went out - before these
+          // actions ran - and a START_TIMER armed here would tick this
+          // screen's event into the app the restore brings up. A response
+          // an ordinary event superseded keeps them (the first roundtrip's
+          // poll above is exactly that case).
+          if (
+            superseded &&
+            !replaced &&
+            this.ctx.server.restoreSeq === this.ctx.server.requestSeq &&
+            seq !== this.ctx.server.requestSeq
+          ) {
+            Lib.cancelPendingTimers(this.ctx);
+          }
           if (!superseded) {
             // The event a check_queue_last wire kept while this roundtrip ran
             // goes out first: it belongs to the screen this response built.
@@ -292,14 +315,6 @@ sap.ui.define(
         }
       },
 
-      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
-      // calls (destroy a slot, display one, push the model into it), in the
-      // order the backend queued them. They run BEFORE anything an app
-      // queued, and one at a time: a display is async, and the next action
-      // may well be about the slot it is still building. The action context
-      // carries the request stamp (so the slot displays can discard a build
-      // a newer parallel request superseded) and the response record (so the
-      // ROUTER action stashes its options on the response they belong to).
       // Does this response put ANOTHER app's page on MAIN? True when it
       // carries a MAIN display and the app answering is not the one that
       // filled MAIN (ViewSlots.getViewApp; before any slot recorded an
@@ -324,6 +339,14 @@ sap.ui.define(
         return owner !== oResponse.APP;
       },
 
+      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
+      // calls (destroy a slot, display one, push the model into it), in the
+      // order the backend queued them. They run BEFORE anything an app
+      // queued, and one at a time: a display is async, and the next action
+      // may well be about the slot it is still building. The action context
+      // carries the request stamp (so the slot displays can discard a build
+      // a newer parallel request superseded) and the response record (so the
+      // ROUTER action stashes its options on the response they belong to).
       async _runSystemActions(oResponse, seq) {
         const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
         if (!systemJs) return;
@@ -344,8 +367,6 @@ sap.ui.define(
         }
       },
 
-      // Execute the follow-up actions stashed by Server.responseSuccess.
-      // Runs once per roundtrip, after the view has rendered.
       // The read side of the queueLast slot in eB: the LAST event a
       // check_queue_last wire fired while the roundtrip that just landed was
       // in flight. Dispatched through eB itself, so it is a roundtrip like
@@ -363,16 +384,27 @@ sap.ui.define(
       // controller - its keystroke went out with no model, an event for a
       // screen the backend had just closed. The view the event was typed
       // into has to be the one still showing in that slot.
+      //
+      // The keystroke first - it belongs to the screen the response built -
+      // then a window request of a table (oQueuedWindow); when the first one
+      // started a roundtrip the second meets the busy guard and is kept
+      // again, in its own slot, for the end of that one. Also called by
+      // Server._keepOffline, the roundtrip that ends without a render.
       _dispatchQueuedEvent() {
-        const queued = this.ctx.state.oQueuedEvent;
-        if (!queued) return;
-        this.ctx.state.oQueuedEvent = null;
-        if (!Lib.isControllerAlive(queued.controller)) return;
-        const key = ViewSlots.keyOfController(queued.controller);
-        if (ViewSlots.getView(this.ctx, key) !== queued.view) return;
-        queued.controller.eB(...queued.args);
+        const state = this.ctx.state;
+        for (const slot of ["oQueuedEvent", "oQueuedWindow"]) {
+          const queued = state[slot];
+          if (!queued) continue;
+          state[slot] = null;
+          if (!Lib.isControllerAlive(queued.controller)) continue;
+          const key = ViewSlots.keyOfController(queued.controller);
+          if (ViewSlots.getView(this.ctx, key) !== queued.view) continue;
+          queued.controller.eB(...queued.args);
+        }
       },
 
+      // Execute the follow-up actions stashed by Server.responseSuccess.
+      // Runs once per roundtrip, after the view has rendered.
       // Sequential, and an action that hands back a promise (SET_ODATA_MODEL
       // loading its client on first use) is awaited before the next one
       // runs, so the order the backend queued them in is the order their
@@ -391,7 +423,7 @@ sap.ui.define(
         if (!Lib.isControllerAlive(this)) return;
         for (const item of customJs) {
           const result = FrontendAction.runCustom(item, this);
-          if (result && typeof result.then === "function") {
+          if (typeof result?.then === "function") {
             try {
               await result;
             } catch (e) {
@@ -636,14 +668,23 @@ sap.ui.define(
         // for a keystroke, which is why it is a per-wire decision.
         if (this.ctx.state.isBusy) {
           if (queueLast) {
-            this.ctx.state.oQueuedEvent = {
+            const queuedArgs = Lib.normalizeEventArgs(args);
+            // a window request of a windowed table has a slot of its own
+            // (AppState, oQueuedWindow): it and a keystroke kept meanwhile
+            // used to overwrite each other in the one slot, and one of them
+            // was lost without a word
+            const slot =
+              queuedArgs[0]?.[0] === WINDOW_EVENT
+                ? "oQueuedWindow"
+                : "oQueuedEvent";
+            this.ctx.state[slot] = {
               controller: this,
               // the view the event was typed into - see _dispatchQueuedEvent
               view: ViewSlots.getView(
                 this.ctx,
                 ViewSlots.keyOfController(this),
               ),
-              args: Lib.normalizeEventArgs(args),
+              args: queuedArgs,
             };
           }
           if (!noBusy) showBusy(this.ctx, 0);

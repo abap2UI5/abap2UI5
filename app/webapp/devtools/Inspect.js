@@ -65,15 +65,18 @@ sap.ui.define(
       ["Libs", "libs"],
     ];
 
-    // All FIVE callback arrays AppState.createState declares (the state of
-    // a context) - onErrorDetails
-    // was missing here once, and it is the one whose absence is a defect a
-    // reader would want to see: with no provider registered the fatal-error
-    // overlay shows no Details button at all.
+    // All SIX callback arrays AppState.createState declares (the state of
+    // a context). onErrorDetails was missing here once, and it is the one
+    // whose absence is a defect a reader would want to see: with no
+    // provider registered the fatal-error overlay shows no Details button
+    // at all. onRoundtripEnd holds the one-shot waiters of
+    // Lib.afterRoundtrip - a count that does not fall back to zero is a
+    // roundtrip that never ended for them.
     const CALLBACK_ARRAYS = [
       "onBeforeRoundtrip",
       "onAfterRoundtrip",
       "onAfterRendering",
+      "onRoundtripEnd",
       "onBeforeEventFrontend",
       "onErrorDetails",
     ];

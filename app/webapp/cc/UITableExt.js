@@ -122,7 +122,7 @@ sap.ui.define(
         } catch (e) {
           this._applyPending = false;
           this._pendingTable = null;
-          Lib.logError("UITableExt.applyBackend failed", e);
+          Lib.logError(`UITableExt.applyBackend failed${this._forTable()}`, e);
         }
       },
 
@@ -133,8 +133,14 @@ sap.ui.define(
         try {
           this[method](oTable, aValues);
         } catch (e) {
-          Lib.logError(`UITableExt.${method} failed`, e);
+          Lib.logError(`UITableExt.${method} failed${this._forTable()}`, e);
         }
+      },
+
+      // The tail of every log line: which table - a view with two tables
+      // has two companions, and the line has to say whose apply failed.
+      _forTable() {
+        return ` for tableId '${this.getProperty("tableId")}'`;
       },
 
       _getTable() {
@@ -154,7 +160,7 @@ sap.ui.define(
           // aFilters before) lives in core/Env.js like every other one
           this.aFilters = Env.controlFilters(binding);
         } catch (e) {
-          Lib.logError("UITableExt.readFilter failed", e);
+          Lib.logError(`UITableExt.readFilter failed${this._forTable()}`, e);
         }
       },
 
@@ -230,7 +236,7 @@ sap.ui.define(
           // active sorters (unlike getFilters for filters).
           this.aSorters = binding ? binding.aSorters : undefined;
         } catch (e) {
-          Lib.logError("UITableExt.readSort failed", e);
+          Lib.logError(`UITableExt.readSort failed${this._forTable()}`, e);
         }
       },
 

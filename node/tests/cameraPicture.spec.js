@@ -404,8 +404,10 @@ test("exit() stops the camera and destroys the owned controls", () => {
 });
 
 test("exit() before any interaction is a no-op", () => {
-  const { makeInstance } = load();
-  makeInstance().exit();
+  const { makeInstance, errors } = load();
+  // no stream, no button, no dialog yet - nothing to release, nothing to log
+  expect(() => makeInstance().exit()).not.toThrow();
+  expect(errors).toEqual([]);
 });
 
 test("onAfterRendering applies the height to the button DOM, px-defaulted", () => {
@@ -423,6 +425,11 @@ test("onAfterRendering applies the height to the button DOM, px-defaulted", () =
 });
 
 test("onAfterRendering without a rendered button is a no-op", () => {
-  const { makeInstance } = load();
-  makeInstance({ height: "48" }).onAfterRendering();
+  const { makeInstance, errors } = load();
+  // the inner button is created by the renderer; before the first render
+  // there is no DOM to size and the height is simply not applied
+  expect(() =>
+    makeInstance({ height: "48" }).onAfterRendering(),
+  ).not.toThrow();
+  expect(errors).toEqual([]);
 });

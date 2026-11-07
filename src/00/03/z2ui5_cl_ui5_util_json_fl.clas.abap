@@ -15,7 +15,7 @@
 " Filled lazily on first use, never in a class_constructor: a
 " class_constructor has to sit in the PUBLIC SECTION or activation fails on
 " a real system while the transpiler stays green - the trap AGENTS.md rule
-" 20 names, and the road z2ui5_cl_ui5_view_builder=>gv_escape_specials and
+" 20 names, and the road z2ui5_cl_ui5_view_builder=>gv_name_chars and
 " z2ui5_cl_ui5_user_exit=>gv_csp_default take for the same reason.
 "
 " Plain comments, not ABAP Doc: SE24 regenerates the CLASS statement from

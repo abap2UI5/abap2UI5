@@ -130,6 +130,14 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
     return source;
   }
 
+  // The source fetchSource already holds for the current app, or null -
+  // synchronously, for a caller that has to act inside the user's press:
+  // the clipboard refuses a write after an await on the network (Safari)
+  function cachedSource(ctx) {
+    const name = appName(ctx);
+    return name && cache?.app === name ? cache.source : null;
+  }
+
   return {
     appName,
     sourceUrl,
@@ -137,6 +145,7 @@ sap.ui.define(["z2ui5/devtools/Inspect"], (Inspect) => {
     openInAdt,
     iframeHtml,
     fetchSource,
+    cachedSource,
     // exposed for the unit specs: the cache is the reason the deep link
     // can resolve a line at all, so the specs seed and clear it
     _setCache: (value) => {

@@ -401,6 +401,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_bound( lo_client ).
 
+    " and without a logon popup (0 = IF_HTTP_CLIENT=>CO_DISABLED): a 401 of
+    " the remote has to come back as a 401, not as a communication error of
+    " a work process that has no dialog to show the popup in
+    FIELD-SYMBOLS <popup> TYPE any.
+    ASSIGN lo_client->(`PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
+    IF <popup> IS NOT ASSIGNED.
+      ASSIGN lo_client->(`IF_HTTP_CLIENT~PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
+    ENDIF.
+    IF <popup> IS ASSIGNED.
+      cl_abap_unit_assert=>assert_equals( exp = 0
+                                          act = <popup> ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_request_missing.

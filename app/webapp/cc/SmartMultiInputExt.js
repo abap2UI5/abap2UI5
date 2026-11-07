@@ -150,7 +150,10 @@ sap.ui.define(
           input.attachTokenUpdate(this._onTokenUpdate);
           input.attachInnerControlsCreated(this._onInnerControlsCreated);
         } catch (e) {
-          Lib.logError("SmartMultiInputExt.setControl: setup failed", e);
+          Lib.logError(
+            `SmartMultiInputExt.setControl: setup failed for multiInputId '${this.getProperty("multiInputId")}'`,
+            e,
+          );
         }
       },
       // The handlers setControl put on the TARGET input, taken off again:

@@ -99,14 +99,12 @@ sap.ui.define(
       return handler(oController, args, ctx);
     }
 
-    // Run one SYSTEM action from the response's T_SYSTEM list. A system
-    // action is always framework-generated and arrives as a real JSON array
-    // (the backend embeds it into the response - handler actions_serialize);
-    // the string form stays accepted so a skewed backend keeps working.
-    // There are no legacy formats here, and errors propagate: a failing
-    // view display has to reach _processAfterRendering, which turns it
-    // into the fatal overlay instead of leaving the app half-built.
-    function runSystem(item, oController, ctx) {
+    // One action entry of the response as its argument array: a real JSON
+    // array as the backend embeds it (handler actions_serialize), or the
+    // stringified form a skewed backend may still send, parsed once. Null
+    // for anything else - a string that is no JSON, a parsed value that is
+    // no array - so neither runner below ever dispatches on it.
+    function parseAction(item) {
       let args = item;
       if (typeof item === "string") {
         try {
@@ -115,7 +113,19 @@ sap.ui.define(
           args = null;
         }
       }
-      if (!Array.isArray(args)) {
+      return Array.isArray(args) ? args : null;
+    }
+
+    // Run one SYSTEM action from the response's T_SYSTEM list. A system
+    // action is always framework-generated and arrives as a real JSON array
+    // (the backend embeds it into the response - handler actions_serialize);
+    // the string form stays accepted so a skewed backend keeps working.
+    // There are no legacy formats here, and errors propagate: a failing
+    // view display has to reach _processAfterRendering, which turns it
+    // into the fatal overlay instead of leaving the app half-built.
+    function runSystem(item, oController, ctx) {
+      const args = parseAction(item);
+      if (!args) {
         Lib.logError(`FrontendAction: '${item}' is no system action payload`);
         return undefined;
       }
@@ -171,20 +181,16 @@ sap.ui.define(
     // stringified form stays accepted so a skewed backend keeps working.
     // Anything else is not run.
     function runCustom(item, oController) {
+      const args = parseAction(item);
+      if (!args) return undefined;
       try {
-        let args = item;
-        if (typeof item === "string") {
-          try {
-            args = JSON.parse(item);
-          } catch {
-            args = null;
-          }
-        }
-        if (Array.isArray(args)) {
-          return oController.eF(...resolveBoundArgs(oController, args));
-        }
+        return oController.eF(...resolveBoundArgs(oController, args));
       } catch (e) {
-        Lib.logError("customJs: execution failed", e);
+        // named after the action, like every other line this module logs:
+        // "customJs: execution failed" said nothing about WHICH follow-up
+        // action of the response failed, and the custom JS it was named
+        // after has not existed since 2026-09-22
+        Lib.logError(`FrontendAction: custom action '${args[0]}' failed`, e);
       }
       return undefined;
     }

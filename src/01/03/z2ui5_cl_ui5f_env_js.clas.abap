@@ -107,18 +107,24 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
-             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
-             `` && |\n| &&
-             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return true;` && |\n| &&
+             `      const version = ui5Version();` && |\n| &&
+             `      if (!version) return true;` && |\n| &&
+             `      const [major, minor] = version;` && |\n| &&
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function fragmentLoadsSync() {` && |\n| &&
+             `    function ui5Version() {` && |\n| &&
              `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
              `` && |\n| &&
              `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
-             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return null;` && |\n| &&
+             `      return [major, minor];` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function fragmentLoadsSync() {` && |\n| &&
+             `      const version = ui5Version();` && |\n| &&
+             `      if (!version) return false;` && |\n| &&
+             `      const [major, minor] = version;` && |\n| &&
              `      return major === 1 && minor < 84;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -250,32 +256,19 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `      return load;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function loadLibraries(names) {` && |\n| &&
-             `      const wanted = (names || []).filter(` && |\n| &&
-             `        (name) => LIBRARY_NAME.test(name) && !libraryLoads.get(name),` && |\n| &&
-             `      );` && |\n| &&
-             `      if (!wanted.length) return;` && |\n| &&
-             `      const loaded = loadedLibraryNames();` && |\n| &&
-             `      await Promise.all(` && |\n| &&
-             `        wanted` && |\n| &&
-             `          .filter((name) => ![...loaded].some((lib) => isUnder(name, lib)))` && |\n| &&
-             `          .map(loadLibrary),` && |\n| &&
-             `      );` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    async function loadViewLibraries(xml) {` && |\n| &&
              `      const namespaces = viewNamespaces(xml).filter(` && |\n| &&
              `        (namespace) => !namespaceLibrary.has(namespace),` && |\n| &&
              `      );` && |\n| &&
              `      if (!namespaces.length) return;` && |\n| &&
              `      const libraries = await loadDistributionLibraries();` && |\n| &&
-             `      const loaded = loadedLibraryNames();` && |\n| &&
+             `      const loaded = [...loadedLibraryNames()];` && |\n| &&
              `      const names = new Set();` && |\n| &&
              `      for (const namespace of namespaces) {` && |\n| &&
              `        const library = libraryOf(namespace, libraries);` && |\n| &&
              `        namespaceLibrary.set(namespace, library);` && |\n| &&
              `        if (!library) continue;` && |\n| &&
-             `        if ([...loaded].some((lib) => isUnder(library, lib))) continue;` && |\n| &&
+             `        if (loaded.some((lib) => isUnder(library, lib))) continue;` && |\n| &&
              `        names.add(library);` && |\n| &&
              `      }` && |\n| &&
              `      await Promise.all([...names].map(loadLibrary));` && |\n| &&
@@ -361,7 +354,6 @@ CLASS z2ui5_cl_ui5f_env_js IMPLEMENTATION.
              `      fragmentControlModules,` && |\n| &&
              `      preloadFragmentModules,` && |\n| &&
              `      viewNamespaces,` && |\n| &&
-             `      loadLibraries,` && |\n| &&
              `      loadViewLibraries,` && |\n| &&
              `      ownClass,` && |\n| &&
              `      dropClassGlobals,` && |\n| &&
