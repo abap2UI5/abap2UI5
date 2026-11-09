@@ -35,6 +35,20 @@ CLASS z2ui5_cl_ui5_client DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
+    " The val (or tab) of a _bind*( ) call as the data reference the bind
+    " service works on: the data itself, or a data reference TO it - REF #( ),
+    " an attribute TYPE REF TO data. A reference is bound as what it points
+    " to, because REF #( val ) of it would hand the model the reference
+    " variable, which it refuses (NO DATA REFERENCES FOR BINDING ALLOWED).
+    " One place for the four callers, so the whole family takes both forms
+    " alike. Unwraps ONE level: a reference to a reference is what the
+    " model refuses next, as before
+    METHODS val_as_data_ref
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
 ENDCLASS.
 
 
@@ -520,12 +534,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    result = mo_srv_bind->main( val    = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val )
+    " val and tab take the data or a data reference to it, like _bind_tab( )
+    result = mo_srv_bind->main( val    = val_as_data_ref( val )
                                 config = VALUE #(
                                     path_only            = path
                                     custom_filter        = li_filter
                                     custom_mapper        = custom_mapper
-                                    tab                  = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( tab )
+                                    tab                  = val_as_data_ref( tab )
                                     tab_index            = tab_index
                                     switch_default_model = switch_default_model
                                     check_json           = json ) ).
@@ -535,7 +550,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_tab.
 
-    DATA lr_val    TYPE REF TO data.
     " the public types are the internal ones component for component - a
     " plain move, CORRESPONDING of a table does not downport to 7.02
     DATA lt_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
@@ -544,16 +558,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     lt_sort   = t_sort.
     lt_filter = t_filter.
 
-    " the table itself, or a data reference to it: REF #( mt_rows ), an
-    " attribute TYPE REF TO data. A reference is bound as what it points
-    " to - REF #( val ) of it would bind the reference variable
-    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-      lr_val ?= val.
-    ELSE.
-      lr_val = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
-    ENDIF.
-
-    result = mo_srv_bind->main( val    = lr_val
+    " the table itself, or a data reference to it - see val_as_data_ref
+    result = mo_srv_bind->main( val    = val_as_data_ref( val )
                                 config = VALUE #( window              = nmax( val1 = window
                                                                               val2 = 1 )
                                                   t_window_sort       = lt_sort
@@ -566,17 +572,30 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_tab_row.
 
-    DATA lr_val TYPE REF TO data.
+    " the same two forms _bind( ) and _bind_tab( ) take
+    result = mo_srv_bind->window_row( val = val_as_data_ref( val )
+                                      row = row ).
 
-    " the same two forms _bind_tab( ) takes
-    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-      lr_val ?= val.
-    ELSE.
-      lr_val = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
+  ENDMETHOD.
+
+
+  METHOD val_as_data_ref.
+
+    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
+      result = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
+      RETURN.
     ENDIF.
 
-    result = mo_srv_bind->window_row( val = lr_val
-                                      row = row ).
+    result ?= val.
+    " fail here, with the method's name: describe_by_data_ref on an unbound
+    " reference dumps in the model service, far from the _bind( ) that
+    " passed it - an attribute TYPE REF TO data that no CREATE DATA has
+    " filled yet is the usual way to get here
+    IF result IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `BINDING_ERROR - the data reference passed to _bind( ) is initial - create the data or point the reference at an attribute before binding it`.
+    ENDIF.
 
   ENDMETHOD.
 
