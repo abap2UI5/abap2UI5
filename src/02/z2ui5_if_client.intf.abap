@@ -910,7 +910,12 @@ INTERFACE z2ui5_if_client
   "!                  (or a component of one), passed by reference: the
   "!                  framework reaches it by name on the next roundtrip, so
   "!                  a local variable, a copy or a protected attribute cannot
-  "!                  be bound (BINDING_ERROR).
+  "!                  be bound (BINDING_ERROR). Or a DATA REFERENCE to it -
+  "!                  REF #( mt_rows ), an attribute TYPE REF TO data holding
+  "!                  a table typed at runtime - bound as what it points to,
+  "!                  so no ASSIGN is needed to bind it (the same two forms
+  "!                  _bind_tab( ) takes). A reference that points nowhere
+  "!                  yet raises BINDING_ERROR.
   "! @parameter path | abap_true returns the model PATH of val instead of the
   "!                  value binding - what a bound aggregation, a binding_call
   "!                  filter or sorter and bindElement need; _bind_path( ) is
@@ -921,6 +926,7 @@ INTERFACE z2ui5_if_client
   "!                  made an OData service the view's default model.
   "! @parameter tab               | bind ONE CELL of an internal table instead
   "!                                of a whole attribute: pass the table here
+  "!                                (or a data reference to it, as for val)
   "!                                and the row number in tab_index, and the
   "!                                bound value as val - the row component
   "!                                itself, e.g.

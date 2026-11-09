@@ -18,6 +18,8 @@ CLASS ltcl_test_app DEFINITION FINAL.
         job  TYPE string,
       END OF ty_s_emp.
     DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
+    " a table typed at runtime - the attribute _bind( ) takes as a reference
+    DATA mr_tab TYPE REF TO data ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -148,6 +150,11 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_paths_and_filter FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
+    " _bind( ) takes a data reference like _bind_tab( ) does
+    METHODS test_bind_dref_to_attribute FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_dref_attribute  FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_dref_tab_cell   FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_dref_initial    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
@@ -1616,6 +1623,87 @@ CLASS ltcl_test_client IMPLEMENTATION.
         act = li_client->_bind( val       = <emp>-job
                                 tab       = mo_test_app->mt_emp
                                 tab_index = 2 ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_dref_to_attribute.
+
+    " a reference TO an attribute binds the attribute, not the reference -
+    " the model used to refuse it (NO DATA REFERENCES FOR BINDING ALLOWED)
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lr_name   TYPE REF TO data.
+
+    li_client ?= mo_client.
+    lr_name = REF #( mo_test_app->mv_name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MV_NAME}`
+                                        act = li_client->_bind( lr_name ) ).
+    " _bind_path( ) delegates, so it takes the reference too
+    cl_abap_unit_assert=>assert_equals( exp = `/MV_NAME`
+                                        act = li_client->_bind_path( lr_name ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_dref_attribute.
+
+    " an attribute TYPE REF TO data - a table typed at runtime - bound
+    " without the ASSIGN the app used to need: the same path as the
+    " dereferenced form, and the same attribute row behind it
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
+    li_client ?= mo_client.
+    CREATE DATA mo_test_app->mr_tab LIKE mo_test_app->mt_emp.
+    ASSIGN mo_test_app->mr_tab->* TO <tab>.
+    INSERT VALUE ltcl_test_app=>ty_s_emp( name = `Michael Adams`
+                                          job  = `Scrum Master` ) INTO TABLE <tab>.
+
+    DATA(lv_by_ref) = li_client->_bind( mo_test_app->mr_tab ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_by_ref CS `/MR_TAB` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_by_ref
+                                        act = li_client->_bind( <tab> ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_dref_tab_cell.
+
+    " the cell form with the TABLE passed as a reference
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lr_tab    TYPE REF TO data.
+    FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
+
+    li_client ?= mo_client.
+    INSERT VALUE #( name = `Michael Adams`
+                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
+    lr_tab = REF #( mo_test_app->mt_emp ).
+
+    ASSIGN mo_test_app->mt_emp[ 1 ] TO <emp>.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{/MT_EMP/0/NAME}`
+        act = li_client->_bind( val       = <emp>-name
+                                tab       = lr_tab
+                                tab_index = 1 ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_bind_dref_initial.
+
+    " a reference that points nowhere is a BINDING_ERROR naming the cause,
+    " not a dump in describe_by_data_ref
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lr_none   TYPE REF TO data.
+
+    li_client ?= mo_client.
+    TRY.
+        li_client->_bind( lr_none ).
+        cl_abap_unit_assert=>fail( `an initial data reference must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `initial` ) ).
+    ENDTRY.
 
   ENDMETHOD.
 
