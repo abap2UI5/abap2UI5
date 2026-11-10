@@ -11,6 +11,8 @@ Legend
 
 unreleased
 ----------
+! message_box_display( ): an error box is never empty or missing - type = `error` over a value with nothing to show (an empty RAP REPORTED, an empty message table, an unbound reference) shows "The operation failed, no further details available" instead of no box, and an error message without a text shows a standard text with its message class and number; every other type stays silent over empty data
+! the decision what a message box shows moved into one class, z2ui5_cl_ui5_srv_message (box_resolve from z2ui5_cl_ui5_frontend, ui5_msg_box_format from z2ui5_cl_ui5_util_context)
 + _bind( ): val and tab take a data reference as well - REF #( mt_rows ), an attribute TYPE REF TO data holding a table typed at runtime - bound as what it points to, the two forms _bind_tab( ) already takes; a table typed at runtime no longer needs an ASSIGN just to be bound, and a reference that points nowhere raises BINDING_ERROR instead of being refused as a reference
 * error texts name what they are about: a cell binding that finds no attribute names the row and the table, a failed draft update names the draft, and the log lines of the companion controls (Tree, UITableExt, MultiInputExt, SmartMultiInputExt, UploadSetExt, Geolocation, HTMLFrame) and of a failing follow-up action name their control or action
 * a sticky handler releases the parsed request model too, not only the request text, once the roundtrip is answered

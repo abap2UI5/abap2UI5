@@ -105,7 +105,7 @@ src/
 │   └── 03/   z2ui5_cl_ui5_util_context (+ _http, _json_fl, z2ui5_cx_ui5_util_error) — see "Utilities"
 ├── 01/   Layer 1: Core engine
 │   ├── 01/   Draft service (z2ui5_cl_ui5_srv_draft + table z2ui5_t_01)
-│   ├── 02/   handler, client, action, frontend, app_cont, srv_bind/_event/_model/_monitor, z2ui5_if_ui5_types
+│   ├── 02/   handler, client, action, frontend, app_cont, srv_bind/_event/_message/_model/_monitor, z2ui5_if_ui5_types
 │   ├── 03/   Embedded UI5 frontend — GENERATED from app/webapp/, never edit (rule 2)
 │   ├── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
 │   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
