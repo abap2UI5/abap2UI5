@@ -11,6 +11,7 @@ sap.ui.define(
     "z2ui5/core/Context",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/Env",
+    "z2ui5/core/Lib",
   ],
   (
     BaseController,
@@ -21,6 +22,7 @@ sap.ui.define(
     Context,
     ViewSlots,
     Env,
+    Lib,
   ) => {
     "use strict";
 
@@ -73,6 +75,18 @@ sap.ui.define(
       oApp.addEventDelegate(delegate);
     }
 
+    // The client the launchpad was logged on to, undefined outside of one.
+    // The container is asked the way Component._initLaunchpad asks for it -
+    // a module the launchpad has loaded, never a dependency of this one.
+    function launchpadClient() {
+      try {
+        const Container = sap.ui.require("sap/ushell/Container");
+        return Container?.getLogonSystem?.()?.getClient?.();
+      } catch {
+        return undefined;
+      }
+    }
+
     const AppController = BaseController.extend("z2ui5.controller.App", {
       onInit() {
         // the owner component's context - Component.init created it
@@ -88,8 +102,14 @@ sap.ui.define(
         //     chaining keeps a missing entry from blowing up
         const manifest = state.oOwnerComponent.getManifest();
         const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
-        state.url =
-          state.endpoint || (state.checkLocal ? window.location.href : uri);
+        // ... and whichever it is, it names the logon client from here on,
+        // so that no roundtrip is left to the host-wide client cookie
+        // (Lib.withSapClient has the reasoning and what it leaves alone)
+        state.url = Lib.withSapClient(
+          state.endpoint || (state.checkLocal ? window.location.href : uri),
+          window.location.href,
+          launchpadClient(),
+        );
 
         state.oApp = createRoot(ctx, this);
         if (state.embedded) holdFirstAutoFocus(state.oApp);

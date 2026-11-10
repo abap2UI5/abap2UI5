@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { classEnv } = require("./loadLibModule");
+const { classEnv, loadLib } = require("./loadLibModule");
 
 // controller/App.controller.js: the shell controller's one-time startup
 // wiring. Under test: the backend-URL decision (a host's endpoint vs. the
@@ -16,6 +16,7 @@ function load({
   ownsPage = !embedded,
   app = { id: "app" },
   href = "http://localhost:3000/",
+  shellClient = undefined,
 } = {}) {
   // the controller reads the owner component's context (Context.of)
   const state = { checkLocal, endpoint, embedded, ownsPage };
@@ -40,6 +41,8 @@ function load({
   const { module: AppController } = loadModule("controller/App.controller.js", {
     deps: {
       "z2ui5/core/Env": classEnv,
+      // the real one: the client on the URL is its withSapClient
+      "z2ui5/core/Lib": loadLib().Lib,
       "sap/ui/core/mvc/Controller": { extend: (_name, def) => def },
       "sap/m/App": rootClass("sap.m.App"),
       "sap/m/NavContainer": rootClass("sap.m.NavContainer"),
@@ -54,7 +57,18 @@ function load({
       },
       "z2ui5/core/ViewSlots": { slots },
     },
-    sandbox: { window: { location: { href } } },
+    sandbox: {
+      window: { location: { href } },
+      // the launchpad's container, a loaded module inside a launchpad only
+      sap: {
+        ui: {
+          require: (name) =>
+            name === "sap/ushell/Container" && shellClient !== undefined
+              ? { getLogonSystem: () => ({ getClient: () => shellClient }) }
+              : undefined,
+        },
+      },
+    },
   });
 
   const component = { getManifest: () => manifest };
@@ -126,6 +140,45 @@ test("a host's endpoint wins over the page URL of local mode too", () => {
   inst.onInit();
 
   expect(state.url).toBe("/sap/bc/z2ui5_other");
+});
+
+// Without a client on the URL the ICF takes it from a cookie every tab of
+// the host shares, and a tab in another client sends the next roundtrip
+// there (Lib.withSapClient).
+test("launchpad: the roundtrip URL names the client of the page URL", () => {
+  const { inst, state } = load({
+    manifest: MANIFEST,
+    href: "http://localhost:3000/sap/bc/ui2/flp?sap-client=100#Z2UI5-display",
+    shellClient: "200",
+  });
+
+  inst.onInit();
+
+  expect(state.url).toBe("/sap/bc/z2ui5?sap-client=100");
+});
+
+test("launchpad: without one on the page URL it is the client the shell was logged on to", () => {
+  const { inst, state } = load({
+    manifest: MANIFEST,
+    href: "http://localhost:3000/sap/bc/ui2/flp#Z2UI5-display",
+    shellClient: "200",
+  });
+
+  inst.onInit();
+
+  expect(state.url).toBe("/sap/bc/z2ui5?sap-client=200");
+});
+
+test("a host's endpoint on another origin is not given the page's client", () => {
+  const { inst, state } = load({
+    manifest: MANIFEST,
+    endpoint: "https://other.example/sap/bc/z2ui5",
+    href: "http://localhost:3000/host.html?sap-client=100",
+  });
+
+  inst.onInit();
+
+  expect(state.url).toBe("https://other.example/sap/bc/z2ui5");
 });
 
 test("a manifest without the data source does not blow up", () => {

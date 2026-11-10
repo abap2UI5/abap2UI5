@@ -211,6 +211,81 @@ test.describe("isValidContextId", () => {
   });
 });
 
+test.describe("withSapClient", () => {
+  const { Lib } = loadLib();
+  const PAGE = `${ORIGIN}/sap/bc/ui2/flp?sap-client=100#Z2UI5-display`;
+  const PAGE_NO_CLIENT = `${ORIGIN}/sap/bc/ui2/flp#Z2UI5-display`;
+
+  test("adds the client of the page URL to a relative URL, which stays relative", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5", PAGE)).toBe(
+      "/sap/bc/z2ui5?sap-client=100",
+    );
+  });
+
+  test("the page URL's client wins over the shell's", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5", PAGE, "200")).toBe(
+      "/sap/bc/z2ui5?sap-client=100",
+    );
+  });
+
+  test("falls back to the shell's client", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5", PAGE_NO_CLIENT, "200")).toBe(
+      "/sap/bc/z2ui5?sap-client=200",
+    );
+  });
+
+  test("appends to an existing query and keeps the fragment behind it", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5?a=1#/x?y=2", PAGE)).toBe(
+      "/sap/bc/z2ui5?a=1&sap-client=100#/x?y=2",
+    );
+    expect(Lib.withSapClient("/sap/bc/z2ui5?#h", PAGE)).toBe(
+      "/sap/bc/z2ui5?sap-client=100#h",
+    );
+  });
+
+  test("an absolute URL of the page's origin keeps its origin", () => {
+    expect(
+      Lib.withSapClient(`${ORIGIN}/sap/bc/z2ui5?app_start=x`, PAGE_NO_CLIENT, "200"),
+    ).toBe(`${ORIGIN}/sap/bc/z2ui5?app_start=x&sap-client=200`);
+  });
+
+  test("leaves a URL that names a client alone", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5?sap-client=300", PAGE)).toBe(
+      "/sap/bc/z2ui5?sap-client=300",
+    );
+  });
+
+  test("leaves a URL on another origin alone", () => {
+    const other = "https://other.example/sap/bc/z2ui5";
+    expect(Lib.withSapClient(other, PAGE, "200")).toBe(other);
+  });
+
+  test("leaves the URL alone when no client is known", () => {
+    expect(Lib.withSapClient("/sap/bc/z2ui5", PAGE_NO_CLIENT)).toBe(
+      "/sap/bc/z2ui5",
+    );
+  });
+
+  test("takes only three digits for a client", () => {
+    for (const client of ["", "1", "1000", "abc", "10&x=1", 100, null]) {
+      expect(Lib.withSapClient("/sap/bc/z2ui5", PAGE_NO_CLIENT, client)).toBe(
+        "/sap/bc/z2ui5",
+      );
+    }
+    expect(
+      Lib.withSapClient("/sap/bc/z2ui5", `${ORIGIN}/flp?sap-client=1%260`, "200"),
+    ).toBe("/sap/bc/z2ui5");
+  });
+
+  test("hands back what is no URL as it came", () => {
+    expect(Lib.withSapClient(undefined, PAGE)).toBeUndefined();
+    expect(Lib.withSapClient("", PAGE)).toBe("");
+    expect(Lib.withSapClient("/sap/bc/z2ui5", "no page url", "200")).toBe(
+      "/sap/bc/z2ui5",
+    );
+  });
+});
+
 test.describe("toText", () => {
   const { Lib } = loadLib();
 
