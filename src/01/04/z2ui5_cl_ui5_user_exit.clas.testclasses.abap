@@ -164,7 +164,17 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
                                         act = ls_config-theme ).
 
-    cl_abap_unit_assert=>assert_not_initial( ls_config-src ).
+    " the OpenUI5 CDN - except in ABAP Cloud, whose own CSP header refuses
+    " it (reasoning at set_config_http_get)
+    IF z2ui5_cl_ui5_util_context=>check_abap_cloud( ) = abap_true.
+      cl_abap_unit_assert=>assert_equals(
+          exp = `https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js`
+          act = ls_config-src ).
+    ELSE.
+      cl_abap_unit_assert=>assert_equals(
+          exp = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`
+          act = ls_config-src ).
+    ENDIF.
 
     cl_abap_unit_assert=>assert_true( xsdbool( ls_config-content_security_policy CS `Content-Security-Policy` ) ).
 
