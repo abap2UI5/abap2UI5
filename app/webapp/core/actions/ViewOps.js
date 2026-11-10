@@ -252,6 +252,25 @@ sap.ui.define(
           if (start !== null) info.selectionStart = start;
           if (end !== null) info.selectionEnd = end;
           oElement.applyFocusInfo(info);
+          // Only a sap.m.InputBase reads selectionStart/-End out of the
+          // focus info. A text field that is none does not: sap.m.SearchField
+          // restores the `cursorPos` its own getFocusInfo( ) just read - 0 on
+          // a field the view rebuilt - so the caret jumped to the front after
+          // every search, whatever the app asked for. Place it on the field
+          // itself, and only where the control left it somewhere else. An input type
+          // without a text selection (number, date) reports no caret and is
+          // left alone - setSelectionRange throws on it
+          const from = start ?? end;
+          const to = end ?? start;
+          const field = oElement.getFocusDomRef?.();
+          const caret = from === null ? null : Lib.readCaret(field);
+          if (
+            caret &&
+            document.activeElement === field &&
+            (caret.start !== from || caret.end !== to)
+          ) {
+            field.setSelectionRange(from, to);
+          }
         } catch (e) {
           Lib.logError(`SET_FOCUS: failed for '${args[1]}'`, e);
         }

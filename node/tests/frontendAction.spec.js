@@ -72,6 +72,9 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     toText: (val) => (val == null ? "" : String(val)),
     // the shipped parser, not a copy: SET_FOCUS reads its selection with it
     toCaretIndex: loadLib().Lib.toCaretIndex,
+    // shipped as well: SET_FOCUS asks them where the caret of the field is
+    isTextInput: loadLib().Lib.isTextInput,
+    readCaret: loadLib().Lib.readCaret,
     // the shipped parser: runCustom resolves a handler-queued `${/X}` with it
     bindingPathOf: loadLib().Lib.bindingPathOf,
     whenRendered: (_control, _owner, fn) => fn(),
@@ -3280,6 +3283,41 @@ test.describe("SET_FOCUS (focus + caret via follow-up action)", () => {
     FrontendAction.execute(null, ["SET_FOCUS", "inp", "abc", "3"]);
     FrontendAction.execute(null, ["SET_FOCUS", "inp", "-2", "x"]);
     expect(fx.applied).toEqual([{ selectionEnd: 3 }, { selectionStart: 0 }]);
+  });
+
+  // sap.m.SearchField is no InputBase: its applyFocusInfo restores its own
+  // `cursorPos` and ignores selectionStart/-End - the caret of a search
+  // field the view rebuilt sat at 0 after every search
+  function searchFieldFixture(caret) {
+    const fx = focusFixture({ focusable: true });
+    const ranges = [];
+    const field = {
+      tagName: "INPUT",
+      selectionStart: caret,
+      selectionEnd: caret,
+      setSelectionRange: (from, to) => ranges.push([from, to]),
+    };
+    fx.control.getDomRef = () => ({ contains: (el) => el === field });
+    fx.control.getFocusDomRef = () => field;
+    fx.control.applyFocusInfo = () => {
+      fx.doc.activeElement = field;
+    };
+    return { fx, ranges };
+  }
+
+  test("places the caret itself on a text field that ignores the focus info", () => {
+    const { fx, ranges } = searchFieldFixture(0);
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "4", "4"]);
+    expect(ranges).toEqual([[4, 4]]);
+  });
+
+  test("leaves a caret alone that is where the app asked for, or not asked for", () => {
+    const { fx, ranges } = searchFieldFixture(4);
+    const { FrontendAction } = loadWithFocus(fx);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp", "4", "4"]);
+    FrontendAction.execute(null, ["SET_FOCUS", "inp"]);
+    expect(ranges).toEqual([]);
   });
 
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
