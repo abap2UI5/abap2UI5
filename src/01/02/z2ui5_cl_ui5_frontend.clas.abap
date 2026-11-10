@@ -127,24 +127,6 @@ CLASS z2ui5_cl_ui5_frontend DEFINITION PUBLIC FINAL CREATE PUBLIC.
         t_arg TYPE string_table
         opt   TYPE REF TO z2ui5_if_ajson OPTIONAL.
 
-    "! The sap.m.MessageBox display methods, i.e. the box types the
-    "! whitelisted global call accepts. Filled lazily in box_resolve - a
-    "! class_constructor would have to be PUBLIC, widening the API for an
-    "! internal list.
-    CLASS-DATA ct_box_type TYPE string_table.
-
-    "! Resolve what the message box actually shows. The result carries the
-    "! MessageBox display method in `type`, lowercased and guaranteed to be
-    "! one of ct_box_type.
-    METHODS box_resolve
-      IMPORTING
-        text          TYPE any
-        type          TYPE clike
-        title         TYPE clike
-        details       TYPE clike
-      RETURNING
-        VALUE(result) TYPE z2ui5_cl_ui5_util_context=>ty_s_msg_box.
-
     "! Drop everything queued for a slot so far - see the method body.
     METHODS slot_reset
       IMPORTING
@@ -469,10 +451,10 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
 
   METHOD msg_box.
 
-    DATA(ls_msg) = box_resolve( text    = text
-                                type    = type
-                                title   = title
-                                details = details ).
+    DATA(ls_msg) = z2ui5_cl_ui5_srv_message=>box_resolve( text    = text
+                                                          type    = type
+                                                          title   = title
+                                                          details = details ).
     IF ls_msg-skip = abap_true.
       RETURN.
     ENDIF.
@@ -516,77 +498,6 @@ CLASS z2ui5_cl_ui5_frontend IMPLEMENTATION.
             val      = `MESSAGE_BOX_OPTIONS_INVALID`
             previous = lx_json.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD box_resolve.
-
-    IF ct_box_type IS INITIAL.
-      ct_box_type = VALUE #( ( `show` )
-                             ( `alert` )
-                             ( `confirm` )
-                             ( `information` )
-                             ( `warning` )
-                             ( `error` )
-                             ( `success` ) ).
-    ENDIF.
-
-    " MESSAGES FIRST. A BAPIRET2 table, a RAP response, a log object, an
-    " exception, a plain message structure - that is what most apps hand
-    " over, and the formatter is the one place that knows all of their
-    " shapes, their severity and their titles. Only when NOTHING in there is
-    " a message does the generic renderer below get a turn, so nothing about
-    " the message path changes for an app that was already using it
-    DATA(lv_is_msg) = abap_false.
-    IF z2ui5_cl_ui5_util_context=>rtti_check_clike( text ) = abap_false.
-      result = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( text ).
-      lv_is_msg = xsdbool( result-skip = abap_false ).
-    ENDIF.
-
-    IF lv_is_msg = abap_true.
-      IF title IS NOT INITIAL.
-        result-title = title.
-      ENDIF.
-    ELSE.
-      " no messages in there, or a character value, which is its own text:
-      " show the DATA. A table, a nested structure, a tree, an object, an
-      " HTML string, a number - the app throws in what it has and the box
-      " renders it rather than staying empty or not appearing at all
-      result = z2ui5_cl_ui5_util_context=>ui5_data_box_format( text ).
-      IF result-skip = abap_true.
-        RETURN.
-      ENDIF.
-
-      " MessageBox display methods are lowercase (show, error, warning, ...)
-      " and the type arrives however an app spelled it, so it is lowercased
-      " right here - `Information` gets the same show-mapping and default
-      " title as `information` (ui5_msg_box_format lower-cases its own)
-      result-type  = to_lower( type ).
-      result-title = title.
-
-      IF result-type = `information`.
-        result-type = `show`.
-        IF result-title IS INITIAL.
-          result-title = `Information`.
-        ENDIF.
-      ENDIF.
-    ENDIF.
-
-    " the details the app passed fill the slot the resolver left empty -
-    " they never overwrite a rendering, which IS the data the app asked to
-    " see
-    IF result-details IS INITIAL.
-      result-details = details.
-    ENDIF.
-
-    " the type travels as the method of the whitelisted global call, so a type
-    " that is no MessageBox display method would be rejected there and the box
-    " would not appear at all - a requested box is never dropped silently, it
-    " falls back to a plain show( ) like the frontend used to do
-    IF NOT line_exists( ct_box_type[ table_line = result-type ] ). "#EC CI_SORTSEQ
-      result-type = `show`.
-    ENDIF.
 
   ENDMETHOD.
 

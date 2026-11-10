@@ -151,14 +151,8 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS ui5_msg_box_format
-      IMPORTING
-        val           TYPE any
-      RETURNING
-        VALUE(result) TYPE ty_s_msg_box.
-
     "! Everything a message box can be built from that is NOT a message.
-    "! ui5_msg_box_format( ) is asked first and answers `skip` when nothing
+    "! z2ui5_cl_ui5_srv_message=>box_format_msg( ) is asked first and answers `skip` when nothing
     "! it was handed is a message - this is what runs then, so that a box
     "! the app asked for always has something to show: a character value
     "! (its own text, markup moved into the details), a number, a table, a
@@ -2648,64 +2642,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD ui5_msg_box_format.
-
-    DATA(lt_msg) = msg_get_t( val ).
-
-    " a structure that carries none of the message components maps to an
-    " entry with no text at all - that is not a message, it is data, and it
-    " used to reach the box as a popup with a blank line in it. Dropping it
-    " here is what lets `skip` mean "nothing in here is a message" and lets
-    " the caller fall back to ui5_data_box_format( )
-    DELETE lt_msg WHERE text IS INITIAL.
-
-    DATA(lv_lines) = lines( lt_msg ).
-
-    IF lv_lines = 0.
-      result-skip = abap_true.
-      RETURN.
-    ENDIF.
-
-    " the box takes its type/title from the MOST SEVERE message, also when
-    " several are collapsed into one box below: a warning followed by an
-    " error is an error box (it took the first message's type until
-    " 2026-10, which opened [W, E] as a warning). Error over warning over
-    " success and information, which rank the same - the first of them wins
-    DATA(lv_type) = ``.
-    DATA(lv_rank) = -1.
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_type).
-      DATA(lv_type_row) = ui5_get_msg_type( lr_type->type ).
-      DATA(lv_rank_row) = COND i( WHEN lv_type_row = cs_ui5_msg_type-e THEN 2
-                                  WHEN lv_type_row = cs_ui5_msg_type-w THEN 1
-                                  ELSE 0 ).
-      IF lv_rank_row > lv_rank.
-        lv_rank = lv_rank_row.
-        lv_type = lv_type_row.
-      ENDIF.
-    ENDLOOP.
-    result-title = lv_type.
-    result-type  = to_lower( lv_type ).
-
-    IF lv_lines = 1.
-      result-text = lt_msg[ 1 ]-text.
-      RETURN.
-    ENDIF.
-
-    " several messages: a counting headline plus every text as a bullet. No
-    " blank around it - the box shows the text as written, and the template
-    " used to carry one on either side
-    result-text = |{ lv_lines } Messages found:|.
-    DATA lt_detail_items TYPE string_table.
-    " the texts are data inside markup, escaped like every sibling renderer
-    " escapes its values: unescaped, `Enter a value for <MATNR>` lost its
-    " token to the frontend sanitizer, which drops an unknown element
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-      INSERT |<li>{ c_escape_html( lr_msg->text ) }</li>| INTO TABLE lt_detail_items.
-    ENDLOOP.
-    result-details = html_get_list( lt_detail_items ).
-
-  ENDMETHOD.
-
   METHOD ui5_data_box_format.
 
     " a character value is its own text, whatever is in it - an empty one
@@ -2786,7 +2722,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     " IS ASSIGNED, not sy-subrc - the unassign_data rule: on some releases a
     " successful ASSIGN leaves sy-subrc as it was, and the caller chain
-    " (box_resolve -> ui5_msg_box_format's DELETE ... WHERE with no hit ->
+    " (box_resolve -> box_format_msg's DELETE ... WHERE with no hit ->
     " here) arrives with a stale 4, which rendered "Table with N entries"
     " over an empty body. The symbol is declared fresh and assigned once
     ASSIGN val TO <tab>.
@@ -4313,7 +4249,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " z2ui5_cl_ui5_srv_model=>delta_apply_field follows for the same reason
     " - a runtime error cannot be caught after the fact. A skipped component
     " simply is not a message part: the entry ends up without a text,
-    " ui5_msg_box_format drops it, and the caller falls back to the DATA
+    " z2ui5_cl_ui5_srv_message=>box_format_msg drops it, and the caller falls back to the DATA
     " renderer, which shows the whole structure including that component
     IF rtti_check_printable( val ) = abap_false.
       RETURN.

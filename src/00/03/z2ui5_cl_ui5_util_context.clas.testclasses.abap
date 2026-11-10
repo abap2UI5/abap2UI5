@@ -1451,42 +1451,18 @@ CLASS ltcl_itab IMPLEMENTATION.
 ENDCLASS.
 
 
-" a plain object whose public attributes carry a message - what
-" message_box_display( lo_result ) sees in an object that is neither an
-" exception nor a log
-CLASS ltcl_msg_carrier DEFINITION FINAL CREATE PUBLIC.
-  PUBLIC SECTION.
-    " read by name through RTTI (msg_get_by_oref_attri), never statically
-    DATA message TYPE string VALUE `Order 4711 saved` ##NEEDED.
-    DATA type    TYPE c LENGTH 1 VALUE `S` ##NEEDED.
-ENDCLASS.
-
-CLASS ltcl_msg_carrier IMPLEMENTATION.
-ENDCLASS.
-
-
 CLASS ltcl_msg DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
     METHODS test_msg_type_mapping FOR TESTING RAISING cx_static_check.
-    METHODS test_box_empty_skips  FOR TESTING RAISING cx_static_check.
-    METHODS test_box_single       FOR TESTING RAISING cx_static_check.
-    METHODS test_box_multiple     FOR TESTING RAISING cx_static_check.
-    METHODS test_box_multiple_escaped FOR TESTING RAISING cx_static_check.
-    METHODS test_box_unbound_oref_skips FOR TESTING RAISING cx_static_check.
-    METHODS test_box_exception_object FOR TESTING RAISING cx_static_check.
-    METHODS test_box_plain_object     FOR TESTING RAISING cx_static_check.
     METHODS test_token_by_range   FOR TESTING RAISING cx_static_check.
     METHODS test_token_numeric_range FOR TESTING RAISING cx_static_check.
     METHODS test_token_odd_option FOR TESTING RAISING cx_static_check.
     METHODS test_token_dollar_value FOR TESTING RAISING cx_static_check.
-    METHODS test_box_no_msg_skips FOR TESTING RAISING cx_static_check.
     " what msg_get_internal does with a STRUCTURE the caller handed in
     METHODS test_msg_initial_struct   FOR TESTING RAISING cx_static_check.
     METHODS test_msg_item_component   FOR TESTING RAISING cx_static_check.
-    METHODS test_msg_item_plain_field FOR TESTING RAISING cx_static_check.
-    METHODS test_msg_id_key_column FOR TESTING RAISING cx_static_check.
     METHODS test_msg_id_without_text  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -1510,45 +1486,6 @@ CLASS ltcl_msg IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_initial(
         z2ui5_cl_ui5_util_context=>msg_get_t( ls_empty ) ).
-
-  ENDMETHOD.
-
-  METHOD test_msg_id_key_column.
-
-    " an ID column without a message NUMBER is a key, not a T100 message:
-    " a table of business rows is data, and the box falls back to the data
-    " renderer - it showed `2 Messages found` with I:0001: and I:0002:
-    TYPES:
-      BEGIN OF ty_s_row,
-        id   TYPE c LENGTH 4,
-        name TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA(lt_rows) = VALUE ty_t_row( ( id = `0001` name = `Ada` )
-                                    ( id = `0002` name = `Alan` ) ).
-
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_rows )-skip ).
-
-  ENDMETHOD.
-
-  METHOD test_msg_item_plain_field.
-
-    " an ITEM that is a plain field (a position number) is no envelope:
-    " it used to become the whole message, text `0010`, and the structure
-    " was never handed to the data renderer
-    TYPES:
-      BEGIN OF ty_s_row,
-        name TYPE string,
-        item TYPE c LENGTH 4,
-      END OF ty_s_row.
-
-    DATA(ls_row) = VALUE ty_s_row( name = `Ada`
-                                   item = `0010` ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( ls_row ).
-
-    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 
@@ -1649,160 +1586,6 @@ CLASS ltcl_msg IMPLEMENTATION.
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `Z` ) ).
     cl_abap_unit_assert=>assert_equals( exp = `Information`
                                         act = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( `` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_box_empty_skips.
-
-    " no messages means no popup at all, signalled by `skip`
-    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
-
-    cl_abap_unit_assert=>assert_true( ls_box-skip ).
-
-  ENDMETHOD.
-
-  METHOD test_box_single.
-
-    " a single message renders as plain text without a details list
-    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
-
-    lt_msg = VALUE #( ( text = `boom` type = `E` ) ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
-
-    cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `boom`
-                                        act = ls_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `Error`
-                                        act = ls_box-title ).
-    cl_abap_unit_assert=>assert_equals( exp = `error`
-                                        act = ls_box-type ).
-    cl_abap_unit_assert=>assert_initial( ls_box-details ).
-
-  ENDMETHOD.
-
-  METHOD test_box_multiple.
-
-    " several messages collapse into a count plus an HTML list, and the box
-    " takes its severity from the most severe message, not the first
-    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
-
-    lt_msg = VALUE #( ( text = `first`  type = `W` )
-                      ( text = `second` type = `E` ) ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
-
-    cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Error`
-                                        act = ls_box-title ).
-    cl_abap_unit_assert=>assert_equals( exp = `error`
-                                        act = ls_box-type ).
-    cl_abap_unit_assert=>assert_equals( exp = `2 Messages found:`
-                                        act = ls_box-text ).
-
-    " a warning outranks success and information wherever it stands, and
-    " between those two the first one decides
-    lt_msg = VALUE #( ( text = `a` type = `S` )
-                      ( text = `b` type = `I` )
-                      ( text = `c` type = `W` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `warning`
-                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
-    DELETE lt_msg INDEX 3.
-    cl_abap_unit_assert=>assert_equals( exp = `success`
-                                        act = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg )-type ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `<ul><li>first</li><li>second</li></ul>`
-        act = ls_box-details ).
-
-  ENDMETHOD.
-
-  METHOD test_box_multiple_escaped.
-
-    " the texts are DATA inside the HTML list: a token in angle brackets is
-    " shown as written instead of being dropped by the frontend sanitizer
-    " as an unknown element - every sibling renderer escapes, this did not
-    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
-
-    lt_msg = VALUE #( ( text = `Enter a value for <MATNR>` type = `E` )
-                      ( text = `a & b`                    type = `E` ) ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_msg ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `<ul><li>Enter a value for &lt;MATNR&gt;</li><li>a &amp; b</li></ul>`
-        act = ls_box-details ).
-
-  ENDMETHOD.
-
-  METHOD test_box_exception_object.
-
-    " an exception is its text, an error by default
-    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
-    TRY.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = `Posting failed`.
-      CATCH z2ui5_cx_ui5_util_error INTO lx ##NO_HANDLER.
-    ENDTRY.
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lx ).
-
-    cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Error`
-                                        act = ls_box-title ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_box-text CS `Posting failed` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_box_plain_object.
-
-    " neither exception nor log: the public attributes that carry a message
-    " part are mapped - the fourth shape of msg_get_by_oref
-    DATA(lo_carrier) = NEW ltcl_msg_carrier( ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_carrier ).
-
-    cl_abap_unit_assert=>assert_false( ls_box-skip ).
-    cl_abap_unit_assert=>assert_equals( exp = `Order 4711 saved`
-                                        act = ls_box-text ).
-    cl_abap_unit_assert=>assert_equals( exp = `Success`
-                                        act = ls_box-title ).
-
-  ENDMETHOD.
-
-  METHOD test_box_unbound_oref_skips.
-
-    " an unbound object reference carries no message: `skip`, like a
-    " business table - it used to fall through msg_get_by_oref's handlers
-    " into a describe on the null reference and end in a 500
-    DATA lo_unbound TYPE REF TO object.
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lo_unbound ).
-
-    cl_abap_unit_assert=>assert_true( ls_box-skip ).
-
-  ENDMETHOD.
-
-  METHOD test_box_no_msg_skips.
-
-    " a business table has none of the message components, so the message
-    " formatter answers `skip` - it used to answer with one blank message
-    " per row, which is what put an empty popup on the screen. `skip` is
-    " what hands the data to ui5_data_box_format( )
-    TYPES:
-      BEGIN OF ty_s_row,
-        carrid TYPE string,
-        seats  TYPE i,
-      END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    lt_row = VALUE #( ( carrid = `LH` seats = 12 ) ).
-
-    DATA(ls_box) = z2ui5_cl_ui5_util_context=>ui5_msg_box_format( lt_row ).
-
-    cl_abap_unit_assert=>assert_true( ls_box-skip ).
 
   ENDMETHOD.
 
@@ -1941,7 +1724,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION LOCAL FRIENDS ltcl_msg_rap.
 " walks structures built from locally declared types, so it runs under the
 " transpiler like any other test. It is also on a production path every app
 " reaches, since client->message_box_display( ) over a BAPIRET2 or RAP result
-" comes through z2ui5_cl_ui5_frontend=>box_resolve into exactly these methods.
+" comes through z2ui5_cl_ui5_srv_message=>box_resolve into exactly these methods.
 CLASS ltcl_msg_rap DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 

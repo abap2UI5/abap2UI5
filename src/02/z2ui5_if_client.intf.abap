@@ -692,7 +692,15 @@ INTERFACE z2ui5_if_client
   "! success or information); everything else is rendered - a headline in
   "! the box, the data itself in the details.
   "! The one case that shows nothing at all is complex data that is initial
-  "! (an empty message table stays as silent as it always was).
+  "! (an empty message table stays as silent as it always was) - unless the
+  "! app asks for an error box: the type `error` over an empty value shows
+  "! the standard text "The operation failed, no further details available",
+  "! so the usual RAP shape needs no check of its own:
+  "!
+  "! ``IF s_failed-travel IS NOT INITIAL. client->message_box_display( text = s_reported-travel type = `error` ). ENDIF.``
+  "!
+  "! An error MESSAGE without a text gets a standard text as well, naming
+  "! its message class and number where it has them.
   "!
   "! What this method carries is what an ABAP app decides: the data in any
   "! shape it has, the kind of box, the buttons as a table, the backend event
@@ -710,7 +718,10 @@ INTERFACE z2ui5_if_client
   "! @parameter text | what to show - a text, or any of the shapes above.
   "! @parameter type | the kind of box, which decides icon and default title:
   "!                  `information` (the default), `warning`, `error`,
-  "!                  `success`, `confirm`, `alert` or `show`.
+  "!                  `success`, `confirm`, `alert` or `show`. Messages in
+  "!                  `text` bring their own type and this one is not read;
+  "!                  with nothing to show at all, `error` is the one type
+  "!                  that still opens a box (see above).
   "! @parameter title | the title bar text; the type's own title when empty.
   "! @parameter styleclass | one or more CSS classes added to the box.
   "! @parameter onclose | a BACKEND event name raised when the box closes; the
