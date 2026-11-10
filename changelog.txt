@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* set_focus: the selection is applied to a text field that is no sap.m.InputBase as well - a sap.m.SearchField restored its own cursor position instead, so the caret of a search field the view rebuilt jumped to the front after every search
 ! ABAP Cloud: the default bootstrap is https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js (SAPUI5) instead of the OpenUI5 CDN - the platform sends a Content-Security-Policy header of its own whose script-src trusts the SAP hosts only, so sdk.openui5.org was refused and a default installation showed a blank page; every other system keeps sdk.openui5.org, and an exit that sets src is not touched
 * launchpad: every roundtrip names the logon client (sap-client, from the page URL or the launchpad's logon system) - without it the ICF took the client from a cookie all tabs of the host share, and a tab in another client turned the next event into NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND
 ! message_box_display( ): an error box is never empty or missing - type = `error` over a value with nothing to show (an empty RAP REPORTED, an empty message table, an unbound reference) shows "The operation failed, no further details available" instead of no box, and an error message without a text shows a standard text with its message class and number; every other type stays silent over empty data
