@@ -274,6 +274,16 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     cs_config-theme = `sap_horizon`.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+    IF z2ui5_cl_ui5_util_context=>check_abap_cloud( ) = abap_true.
+      " ABAP Cloud answers every HTTP service with a Content-Security-Policy
+      " header of its own, next to the policy below - and a browser enforces
+      " both. The platform's script-src trusts the SAP hosts only, so the
+      " OpenUI5 CDN is refused there and the page never boots. ui5.sap.com is
+      " in both lists. An installation that wants another host names it in
+      " its exit and in the system's trusted sites (app "Maintain Protection
+      " Allowlists")
+      cs_config-src = `https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js`.
+    ENDIF.
 
     IF gv_csp_default IS INITIAL.
       " The UI5 CDN hosts a default installation may bootstrap from or fall

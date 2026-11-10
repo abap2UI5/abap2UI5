@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! ABAP Cloud: the default bootstrap is https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js (SAPUI5) instead of the OpenUI5 CDN - the platform sends a Content-Security-Policy header of its own whose script-src trusts the SAP hosts only, so sdk.openui5.org was refused and a default installation showed a blank page; every other system keeps sdk.openui5.org, and an exit that sets src is not touched
 * launchpad: every roundtrip names the logon client (sap-client, from the page URL or the launchpad's logon system) - without it the ICF took the client from a cookie all tabs of the host share, and a tab in another client turned the next event into NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND
 ! message_box_display( ): an error box is never empty or missing - type = `error` over a value with nothing to show (an empty RAP REPORTED, an empty message table, an unbound reference) shows "The operation failed, no further details available" instead of no box, and an error message without a text shows a standard text with its message class and number; every other type stays silent over empty data
 ! the decision what a message box shows moved into one class, z2ui5_cl_ui5_srv_message (box_resolve from z2ui5_cl_ui5_frontend, ui5_msg_box_format from z2ui5_cl_ui5_util_context)
