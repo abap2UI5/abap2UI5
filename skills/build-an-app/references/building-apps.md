@@ -530,6 +530,16 @@ The same tree, with the subtree held in a variable:
   render stale by forgetting anything: there is nothing to call and nothing
   to switch on. Call `view_display` again only when the view **structure**
   itself changes.
+- **A value the view shows is BOUND, not baked in.** `a( n = `text` t =
+  SWITCH #( edit_mode WHEN abap_true THEN `Display` ELSE `Edit` ) )` writes
+  the text into the view once; when the flag flips, only a rebuild shows it,
+  so the handler ends in a `view_display( )` whose reason no reader can see.
+  Bind an attribute instead (`v = client->_bind( button_text )`) and set it
+  in the handler - the push above does the rest, and scroll position and
+  focus survive. A `view_display( )` in an event handler is for what cannot
+  be bound: other controls or columns, an event option or argument written
+  at render time. Where one stays, a comment above it says which of these
+  it is.
 - `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
   and the two nested variants are **obsolete and do nothing**. They stay in
   the interface so existing apps keep compiling; delete the calls whenever
