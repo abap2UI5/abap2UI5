@@ -470,8 +470,8 @@ The same tree, with the subtree held in a variable:
 - **Never hard-code a model path as text** (`'/T_ITEMS'`): paths come from
   `_bind`, so renames cannot break bindings. For raw binding-info strings
   (typed bindings, sorters) get the bare path via
-  `client->_bind( val = t_items path = abap_true )`, e.g.
-  `` v = |\{ path: '{ client->_bind( val = t_items path = abap_true ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
+  `client->_bind_path( t_items )`, e.g.
+  `` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
 - Typed/complex bindings pass through verbatim (braces escaped):
   `` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| `` — note the
   `path:` uses the upper-cased ABAP field name.
@@ -540,7 +540,7 @@ The same tree, with the subtree held in a variable:
 - **Pass values into an event** with `t_arg`; read them back with
   `client->get_event_arg( )` (index only for position 2+). A value resolved
   on the client must be `$`-prefixed — `` `${PRODUCT}` `` (row field),
-  `` `$event.oSource.sId` `` (the pressed control's id),
+  `` `$event.getSource().getId()` `` (the pressed control's id),
   `` `${$parameters>/selected}` `` (an event parameter). A bare `{…}` arg is
   NOT resolved and arrives empty. Booleans arrive as `abap_bool` (`X`/space).
 - **A control-valued event parameter arrives as JSON.** Several UI5 events
