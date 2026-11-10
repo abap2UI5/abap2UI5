@@ -470,8 +470,8 @@ The same tree, with the subtree held in a variable:
 - **Never hard-code a model path as text** (`'/T_ITEMS'`): paths come from
   `_bind`, so renames cannot break bindings. For raw binding-info strings
   (typed bindings, sorters) get the bare path via
-  `client->_bind( val = t_items path = abap_true )`, e.g.
-  `` v = |\{ path: '{ client->_bind( val = t_items path = abap_true ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
+  `client->_bind_path( t_items )`, e.g.
+  `` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ``.
 - Typed/complex bindings pass through verbatim (braces escaped):
   `` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| `` — note the
   `path:` uses the upper-cased ABAP field name.
@@ -540,9 +540,17 @@ The same tree, with the subtree held in a variable:
 - **Pass values into an event** with `t_arg`; read them back with
   `client->get_event_arg( )` (index only for position 2+). A value resolved
   on the client must be `$`-prefixed — `` `${PRODUCT}` `` (row field),
-  `` `$event.oSource.sId` `` (the pressed control's id),
+  `` `$event.getSource().getId()` `` (the pressed control's id),
   `` `${$parameters>/selected}` `` (an event parameter). A bare `{…}` arg is
   NOT resolved and arrives empty. Booleans arrive as `abap_bool` (`X`/space).
+- **Which row was pressed:** send the row's key field (`` arg = `${ID}` ``)
+  when the handler needs the row's DATA, and look it up with `READ TABLE …
+  WITH KEY`. Send the position
+  (`` `$event.getSource().getBindingContext().getPath().split('/').pop()` ``,
+  0-based) only when the handler needs the POSITION itself: for
+  `cs_event-bind_element`, for `_bind_tab_row( )` behind a windowed table,
+  or for a drag and drop. A nested model passes the whole binding path
+  (`…getBindingContext().getPath()`) the same way.
 - **A control-valued event parameter arrives as JSON.** Several UI5 events
   hand over a control or a whole array of controls rather than a scalar —
   `ViewSettingsDialog.confirm` gives `filterItems`,
@@ -663,7 +671,11 @@ The same tree, with the subtree held in a variable:
   Close button to `client->follow_up_action( val = z2ui5_if_client=>cs_event-popup_close )`
   (round-trip free - the frontend tears the popup slot down without reaching
   your `main`), or call `client->popup_destroy( )` server-side after handling
-  your own event. Not `_event( cs_event-popup_close )`: that is a backend
+  your own event. A button that only closes takes the first form: a backend
+  event whose branch is nothing but `popup_destroy( )` is a whole roundtrip
+  for what the browser does by itself, and the linter's
+  `close-only-roundtrip` reports it (`popover_close` for a popover).
+  Not `_event( cs_event-popup_close )`: that is a backend
   event named `POPUP_CLOSE` like any other, it reaches `main( )` and closes
   nothing by itself.
 - `client->popover_display( xml = … by_id = … )` anchors a popover to a

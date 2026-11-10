@@ -1200,7 +1200,7 @@ INTERFACE z2ui5_if_client
   "! The row of a _bind_tab( ) table that a row of the browser shows. The
   "! browser holds the rows in the order the server sorted and filtered
   "! them, so the index in a binding path an event hands over
-  "! (`$event.oSource.getBindingContext().getPath()` -> `/MT_ROWS/5`) is a
+  "! (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a
   "! position in THAT order, not the row of the table: row 6 shown may be
   "! row 4711 of mt_rows. This answers it - the same order the response was
   "! built with. A table that is no window answers row itself.

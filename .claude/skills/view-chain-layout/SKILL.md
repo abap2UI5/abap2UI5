@@ -42,7 +42,7 @@ the same builder.
    )->a( n = `close` v = client->follow_up_action( val   = client->cs_event-control_by_id
                                                    t_arg = VALUE #( ( `notificationList` )
                                                                     ( `removeItem` )
-                                                                    ( `$event.oSource.getId()` ) ) )
+                                                                    ( `$event.getSource().getId()` ) ) )
    ```
 
 ```abap
