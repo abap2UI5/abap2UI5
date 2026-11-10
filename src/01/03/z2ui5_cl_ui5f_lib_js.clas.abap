@@ -493,6 +493,27 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  function withSapClient(url, pageHref, shellClient) {` && |\n| &&
+             `    if (typeof url !== "string" || !url) return url;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const page = new URL(pageHref);` && |\n| &&
+             `      const parsed = new URL(url, page.href);` && |\n| &&
+             `      if (parsed.origin !== page.origin) return url;` && |\n| &&
+             `      if (parsed.searchParams.has("sap-client")) return url;` && |\n| &&
+             `      const client = page.searchParams.get("sap-client") || shellClient;` && |\n| &&
+             `      if (typeof client !== "string" || !/^[0-9]{3}$/.test(client)) return url;` && |\n| &&
+             `      const hashAt = url.indexOf("#");` && |\n| &&
+             `      const base = hashAt < 0 ? url : url.slice(0, hashAt);` && |\n| &&
+             `      const hash = hashAt < 0 ? "" : url.slice(hashAt);` && |\n| &&
+             `      let separator = "&";` && |\n| &&
+             `      if (!base.includes("?")) separator = "?";` && |\n| &&
+             `      else if (base.endsWith("?") || base.endsWith("&")) separator = "";` && |\n| &&
+             `      return ``${base}${separator}sap-client=${client}${hash}``;` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return url;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function parseDeltaSteps(segs) {` && |\n| &&
              `    const steps = [];` && |\n| &&
              `    let i = 0;` && |\n| &&
@@ -804,7 +825,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    isAlive,` && |\n| &&
              `    claimOnce,` && |\n| &&
              `    isTextInput,` && |\n| &&
-             `    readCaret,` && |\n| &&
+             `    readCaret,` && |\n|.
+    result = result &&
              `    registerCallback,` && |\n| &&
              `    unregisterCallback,` && |\n| &&
              `    readFilesInTurn,` && |\n| &&
@@ -825,10 +847,10 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    deriveSystemType,` && |\n| &&
              `    deriveOsName,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&
-             `    isSafeRedirectProtocol,` && |\n|.
-    result = result &&
+             `    isSafeRedirectProtocol,` && |\n| &&
              `    isSafeDownloadURL,` && |\n| &&
              `    isValidContextId,` && |\n| &&
+             `    withSapClient,` && |\n| &&
              `    buildDeltaFromPaths,` && |\n| &&
              `    sanitizeMessageDetails,` && |\n| &&
              `    isRootModelSlot,` && |\n| &&

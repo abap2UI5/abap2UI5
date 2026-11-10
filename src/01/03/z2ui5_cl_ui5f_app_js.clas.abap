@@ -35,6 +35,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `    "z2ui5/core/Context",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BaseController,` && |\n| &&
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `    Context,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    Env,` && |\n| &&
+             `    Lib,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -72,6 +74,15 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `      oApp.addEventDelegate(delegate);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function launchpadClient() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        const Container = sap.ui.require("sap/ushell/Container");` && |\n| &&
+             `        return Container?.getLogonSystem?.()?.getClient?.();` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        return undefined;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const AppController = BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
              `        const ctx = Context.of(this.getOwnerComponent());` && |\n| &&
@@ -80,8 +91,12 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        const manifest = state.oOwnerComponent.getManifest();` && |\n| &&
              `        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;` && |\n| &&
-             `        state.url =` && |\n| &&
-             `          state.endpoint || (state.checkLocal ? window.location.href : uri);` && |\n| &&
+             `` && |\n| &&
+             `        state.url = Lib.withSapClient(` && |\n| &&
+             `          state.endpoint || (state.checkLocal ? window.location.href : uri),` && |\n| &&
+             `          window.location.href,` && |\n| &&
+             `          launchpadClient(),` && |\n| &&
+             `        );` && |\n| &&
              `` && |\n| &&
              `        state.oApp = createRoot(ctx, this);` && |\n| &&
              `        if (state.embedded) holdFirstAutoFocus(state.oApp);` && |\n| &&

@@ -810,6 +810,49 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return typeof id === "string" && id !== "" && id !== "undefined";
   }
 
+  // The roundtrip URL with the logon client on it ("sap-client").
+  //
+  // A URL without the parameter leaves the client to the ICF, which takes
+  // it from the "sap-usercontext" cookie - and that cookie belongs to the
+  // HOST, not to the tab: any other tab of the same host in another client
+  // (WebGUI, ADT, a second launchpad) rewrites it, the next POST runs over
+  // there, and the draft - z2ui5_t_01 is client-dependent - is not found
+  // (NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND). The launchpad's roundtrips
+  // go to the manifest's data source, which carries no client; UI5 adds it
+  // to the service URL of an OData model, nobody does for a plain fetch.
+  //
+  // `pageHref` is the page's URL, `shellClient` what the launchpad says it
+  // was logged on to - the client of the page's own URL wins, it is the one
+  // the page was served for. The URL comes back as it was
+  //  - when it names a client already,
+  //  - when no client is known (three digits, anything else is not one),
+  //  - when it is on another origin than the page: a host that passes such
+  //    an endpoint talks to another system, whose client is not the page's,
+  //  - when it does not parse.
+  // The parameter is put into the text and the URL is not rebuilt from its
+  // parts: a relative URL stays relative, an absolute one keeps its origin,
+  // and the fragment stays behind the query.
+  function withSapClient(url, pageHref, shellClient) {
+    if (typeof url !== "string" || !url) return url;
+    try {
+      const page = new URL(pageHref);
+      const parsed = new URL(url, page.href);
+      if (parsed.origin !== page.origin) return url;
+      if (parsed.searchParams.has("sap-client")) return url;
+      const client = page.searchParams.get("sap-client") || shellClient;
+      if (typeof client !== "string" || !/^[0-9]{3}$/.test(client)) return url;
+      const hashAt = url.indexOf("#");
+      const base = hashAt < 0 ? url : url.slice(0, hashAt);
+      const hash = hashAt < 0 ? "" : url.slice(hashAt);
+      let separator = "&";
+      if (!base.includes("?")) separator = "?";
+      else if (base.endsWith("?") || base.endsWith("&")) separator = "";
+      return `${base}${separator}sap-client=${client}${hash}`;
+    } catch {
+      return url;
+    }
+  }
+
   // Parse the path segments behind the attribute into (row, field) steps.
   // Returns null when the segments do not follow the alternating
   // <numeric row>/<field name> shape - the caller then ships the whole
@@ -1339,6 +1382,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     isSafeRedirectProtocol,
     isSafeDownloadURL,
     isValidContextId,
+    withSapClient,
     buildDeltaFromPaths,
     sanitizeMessageDetails,
     isRootModelSlot,
