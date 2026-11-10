@@ -66,6 +66,20 @@ That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 One thing stays yours: the framework performs no authority check of its own, so an app that guards business data checks its authorizations at the top of `main`, like a transaction does – see the [security model](docs/security.md#what-the-app-has-to-do).
 
+## How it works
+
+<p align="center">
+  <a href="https://abap2ui5.github.io/insights/07-one-click-one-request/"><img src="https://abap2ui5.github.io/insights/07-roundtrip.svg" width="700" alt="One roundtrip in five steps: the draft is loaded, the user's changes are applied, main( ) runs, the response is built and the draft is saved under a new id"></a>
+</p>
+
+Every click is one request and one call to `main`. The framework restores the
+app instance from its draft, applies what the user changed, runs your code,
+answers with the view and the model, and saves the instance again – no session
+waits on the server in between. [The Insights](https://abap2ui5.github.io/insights/)
+take each step apart, and compare the result with
+[RAP](https://abap2ui5.github.io/insights/36-rap-or-abap2ui5/) and
+[UI5 freestyle](https://abap2ui5.github.io/insights/37-freestyle-or-abap2ui5/).
+
 ## Where to go
 
 | | |
