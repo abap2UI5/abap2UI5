@@ -114,7 +114,7 @@ export function objectKeys(body) {
 /* The exports of a formatter-style module: its object literal's shorthand
  * methods, which the modules write at four spaces. */
 export function moduleExports(src) {
-  return [...src.matchAll(/^    (\w+)\((?:[^)]*)\)?\s*\{?/gm)]
+  return [...src.matchAll(/^ {4}(\w+)\((?:[^)]*)\)?\s*\{?/gm)]
     .map((m) => m[1])
     .filter((n) => !["function", "if", "for", "while", "return", "switch"].includes(n));
 }
