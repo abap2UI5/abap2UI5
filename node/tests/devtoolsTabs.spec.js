@@ -73,23 +73,12 @@ function loadTabs({
       },
     },
     sandbox: {
-      // devtools/Format.js is loaded for real; with these stubs
-      // prettifyXml degrades to the identity function, which is exactly
-      // its documented fallback.
-      XMLSerializer: class {
-        serializeToString() {
-          return "";
-        }
-      },
+      // devtools/Format.js is loaded for real; with this DOMParser stub
+      // (a document without a documentElement) prettifyXml degrades to
+      // the identity function, which is exactly its documented fallback.
       DOMParser: class {
         parseFromString() {
           return {};
-        }
-      },
-      XSLTProcessor: class {
-        importStylesheet() {}
-        transformToDocument() {
-          return null;
         }
       },
     },

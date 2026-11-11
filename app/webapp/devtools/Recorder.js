@@ -831,7 +831,7 @@ sap.ui.define(
 
     // The backend sends a view as one long line, which would make every diff
     // a single "everything changed". Break it at tag boundaries so the walk
-    // has lines to anchor on. Deliberately not the dialog's XSLT prettifier:
+    // has lines to anchor on. Deliberately not the dialog's prettifyXml:
     // this must not depend on a DOM.
     function prettifyForDiff(xml) {
       return xml.replace(/></g, ">\n<");

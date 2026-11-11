@@ -57,52 +57,120 @@ sap.ui.define([], () => {
     }
   }
 
-  // XSL stylesheet used by prettifyXml to reindent any XML string.
-  const PRETTIFY_XSL = `<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-        <xsl:strip-space elements="*" />
-        <xsl:template match="para[content-style][not(text())]">
-          <xsl:value-of select="normalize-space(.)" />
-        </xsl:template>
-        <xsl:template match="node()|@*">
-          <xsl:copy>
-            <xsl:apply-templates select="node()|@*" />
-          </xsl:copy>
-        </xsl:template>
-        <xsl:output indent="yes" />
-      </xsl:stylesheet>`;
+  // prettifyXml() indents with this many spaces per nesting level.
+  const XML_INDENT_UNIT = 2;
 
-  // The XSLT processor and (de)serializers are expensive to construct, so
-  // we keep them as module-level singletons - built on FIRST USE, not at
-  // module load: this module is in every page's preload, and the text
-  // helpers below are used without ever prettifying an XML.
-  let _xmlSerializer = null;
+  // Node types (DOM Level 1 constants, spelled out so the walk does not
+  // depend on a global `Node` - the unit specs hand in a plain tree).
+  const ELEMENT_NODE = 1;
+  const TEXT_NODE = 3;
+  const CDATA_SECTION_NODE = 4;
+  const PROCESSING_INSTRUCTION_NODE = 7;
+  const COMMENT_NODE = 8;
+
+  // The parser is cheap but reused all the same - built on FIRST USE, not
+  // at module load: the text helpers below are used without ever
+  // prettifying an XML.
   let _domParser = null;
-  let _xsltProcessor = null;
 
   function getDomParser() {
     if (!_domParser) _domParser = new DOMParser();
     return _domParser;
   }
 
-  function getXmlSerializer() {
-    if (!_xmlSerializer) _xmlSerializer = new XMLSerializer();
-    return _xmlSerializer;
+  // Escaping. A raw > is legal in text and in an attribute value, so it is
+  // written as is for readability - except where it would close "]]>",
+  // which is illegal in text. & and < are ALWAYS escaped: a raw < is never
+  // legal there, and the view builder escapes every < an attribute carries
+  // (htmlText, core:HTML content, a text with a comparison) - writing it
+  // back raw showed malformed XML and made "Apply to App" fail on a view
+  // the developer had not edited. An attribute additionally escapes its
+  // quote and the whitespace a parser would otherwise normalize to a
+  // space, so the value survives the next parse unchanged.
+  function escapeText(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/]]>/g, "]]&gt;");
   }
 
-  function getXsltProcessor() {
-    if (_xsltProcessor) return _xsltProcessor;
-    const xsltDoc = getDomParser().parseFromString(
-      PRETTIFY_XSL,
-      "application/xml",
-    );
-    _xsltProcessor = new XSLTProcessor();
-    _xsltProcessor.importStylesheet(xsltDoc);
-    return _xsltProcessor;
+  function escapeAttribute(value) {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/"/g, "&quot;")
+      .replace(/\t/g, "&#9;")
+      .replace(/\n/g, "&#10;")
+      .replace(/\r/g, "&#13;");
   }
 
-  // Reformat an XML string with indentation. If anything goes wrong the
-  // original input is returned unchanged - the developer tools must never
-  // crash the host app.
+  function isTextLike(node) {
+    return node.nodeType === TEXT_NODE || node.nodeType === CDATA_SECTION_NODE;
+  }
+
+  function isBlank(node) {
+    return isTextLike(node) && !/\S/.test(node.nodeValue);
+  }
+
+  function serializeNode(node, depth, indented) {
+    const pad = indented ? " ".repeat(depth * XML_INDENT_UNIT) : "";
+    switch (node.nodeType) {
+      case ELEMENT_NODE:
+        return pad + serializeElement(node, depth, indented);
+      case TEXT_NODE:
+        return pad + escapeText(node.nodeValue);
+      case CDATA_SECTION_NODE:
+        return `${pad}<![CDATA[${node.nodeValue}]]>`;
+      case COMMENT_NODE:
+        return `${pad}<!--${node.nodeValue}-->`;
+      case PROCESSING_INSTRUCTION_NODE:
+        return `${pad}<?${node.target} ${node.data}?>`;
+      // A document type declaration is dropped (a UI5 view never has one).
+      // It is not written back on purpose: this module rides in the preload
+      // bundle, and test_main_get_bundle proves that bundle is not the HTML
+      // page by the absence of that very markup.
+      default:
+        return "";
+    }
+  }
+
+  // An element whose children are elements (and comments) puts each child
+  // on a line of its own, one level deeper; whitespace-only text between
+  // them is the old layout and is dropped. As soon as an element holds
+  // real text (mixed content, or just a value) its children are written
+  // inline and verbatim - indenting there would change the text.
+  function serializeElement(el, depth, indented) {
+    let open = `<${el.nodeName}`;
+    const attrs = el.attributes || [];
+    for (let i = 0; i < attrs.length; i++) {
+      open += ` ${attrs[i].name}="${escapeAttribute(attrs[i].value)}"`;
+    }
+    const children = Array.prototype.slice.call(el.childNodes || []);
+    if (children.length === 0) return `${open}/>`;
+    const close = `</${el.nodeName}>`;
+
+    const mixed = children.some((c) => isTextLike(c) && !isBlank(c));
+    if (mixed || !indented) {
+      return `${open}>${children
+        .map((c) => serializeNode(c, 0, false))
+        .join("")}${close}`;
+    }
+    const kept = children.filter((c) => !isBlank(c));
+    if (kept.length === 0) return `${open}/>`;
+    const pad = " ".repeat(depth * XML_INDENT_UNIT);
+    return `${open}>\n${kept
+      .map((c) => serializeNode(c, depth + 1, true))
+      .join("\n")}\n${pad}${close}`;
+  }
+
+  // Reformat an XML string with indentation - a plain walk over the parsed
+  // document. It replaced an XSLT identity transform, which every browser
+  // has deprecated (chromestatus feature 4709671889534976): once the
+  // processor is gone the developer tools would have shown every view as
+  // one long line, silently. If anything goes wrong
+  // the original input is returned unchanged - the developer tools must
+  // never crash the host app. A parse error does not throw in a browser,
+  // it returns a document holding a <parsererror>; that is a failure too.
   function prettifyXml(sourceXml) {
     if (!sourceXml) return "";
     try {
@@ -110,16 +178,18 @@ sap.ui.define([], () => {
         sourceXml,
         "application/xml",
       );
-      const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);
-      if (!resultDoc) return sourceXml;
-      const resultXml = getXmlSerializer().serializeToString(resultDoc);
-      // The serializer escapes > as &gt; in text nodes AND attribute values;
-      // a raw > is legal in both, so it is put back for readability. &lt; is
-      // NOT touched: a raw < is never legal there, and the view builder
-      // escapes every < an attribute carries (htmlText, core:HTML content,
-      // a text with a comparison) - unescaping it showed malformed XML and
-      // made "Apply to App" fail on a view the developer had not edited.
-      return resultXml.replace(/&gt;/g, ">");
+      if (!xmlDoc || !xmlDoc.documentElement) return sourceXml;
+      if (
+        xmlDoc.documentElement.nodeName === "parsererror" ||
+        xmlDoc.getElementsByTagName("parsererror").length > 0
+      ) {
+        return sourceXml;
+      }
+      return Array.prototype.slice
+        .call(xmlDoc.childNodes)
+        .filter((node) => !isBlank(node))
+        .map((node) => serializeNode(node, 0, true))
+        .join("\n");
     } catch {
       return sourceXml;
     }
