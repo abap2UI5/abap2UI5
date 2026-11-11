@@ -646,7 +646,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-sorted-table-sequential-read, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -1050,6 +1050,36 @@ and points here, so a new trap is added here and nowhere else.
   abaplint does not read BDEF sources at all.
 - **ABAP Doc is parsed as HTML.** A literal `<`, `>` or `&` must be escaped as
   `&lt;`, `&gt;`, `&amp;`.
+- **A condition the key cannot serve, on a sorted table.** "Possible
+  sequential read on a sorted table" on `DELETE mt_json_tree WHERE path CP …`
+  in the vendored AJSON (an ABAP Cloud trial system, 2026-11-10). A key access
+  where there is one; `"#EC CI_SORTSEQ` where there is none - a pattern match
+  on the key has none. No abaplint rule reports it, and `check:atc` does not
+  either: it would need the table's type, which a statement scan does not have.
+- **An object ABAP Cloud deprecated, and one it does not have.** The same run
+  reported `IF_AUNIT_CONSTANTS` as deprecated (successor
+  `IF_ABAP_UNIT_CONSTANT`, which 7.02 lacks - so the reference goes, it is not
+  swapped), and a unit test that reached `CL_ABAP_CONV_IN_CE` dynamically
+  ended in a tolerable failure, a warning on every run. Code that must run on
+  both ends falls back dynamically to the Cloud class instead of failing. Not
+  gated: which object is deprecated where is a list no script here holds.
+  All three were fixed in `abap2UI5/mirror-ajson`, not here - `src/00/01` is a
+  mirror (rule 1).
+- **A test that reaches a Standard-only class.** `test_client_create_url`
+  called `z2ui5_cl_ui5_util_http=>client_create`, the `CL_HTTP_CLIENT` half,
+  and an ABAP Unit run in ABAP Cloud reported the exception as an error
+  (2026-11-11). A test of a Standard-only method leaves under
+  `check_abap_cloud( )`. The transpiled suite cannot see it: open-abap has the
+  class.
+- **A literal that is no value of a d or t.** `adate = ``` in a VALUE
+  constructor draws `"" is not an admissible value for type "D"` (same run).
+  Where the empty string IS the test, it comes from a string variable.
+- **`ASSIGN (path)` with selectors in the text is the old variant in ABAP
+  Cloud** - "The old variant of <dynamic-object> should not be used", six
+  times on `z2ui5_cl_ui5_srv_model` (same run). **Left open on purpose:** the
+  six statements are how every binding finds its value, they behave
+  differently per release (#1937, comments at the sites), and a rewrite to
+  `mo_app->(name)` needs a 7.02 and a cloud system to be tested on first.
 
 **Not gated: the BUNDLE.**
 `check:atc` walks this repository's `src/` — that is its stated scope, and

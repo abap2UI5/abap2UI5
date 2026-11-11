@@ -395,6 +395,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_client_create_url.
 
+    " client_create is the Standard half (client_request decides between the
+    " two): ABAP Cloud has no CL_HTTP_CLIENT, so there the method can only
+    " raise, and a unit run reported that as an error of this test
+    IF z2ui5_cl_ui5_util_context=>check_abap_cloud( ) = abap_true.
+      RETURN.
+    ENDIF.
+
     " by url: a client comes back without the call going anywhere - the
     " dynamic CL_HTTP_CLIENT=>create_by_url only builds the object
     DATA(lo_client) = z2ui5_cl_ui5_util_http=>client_create( url = `https://localhost/never-called` ).

@@ -8,6 +8,7 @@ first_seen: 2026-10-11
 checked_upstream: 2026-10-12
 upstream: abaplint/abaplint
 evidence:
+  - 'ATC on an ABAP Cloud trial system, 2026-11-10: "Tolerable Assertion Error: Unicode_Characters: FAIL" on z2ui5_cl_ajson - the test called fail( level = tolerable ) in the CATCH of a class that does not exist there, a warning on every run; replaced by a fallback in abap2UI5/mirror-ajson#34. Probed 2026-11-11 against abaplint 2.120.92, every default rule on: not reported'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
 ---
@@ -42,6 +43,28 @@ ENDTRY.
 **Not reported.** Tests that assert in the TRY part.
 
 **Source.** Clean ABAP 'Use FAIL to check for expected exceptions'.
+
+## Report fail( ) with a tolerable level as the answer to a missing prerequisite
+
+```abap
+TRY.
+    CALL METHOD (lv_class)=>uccpi
+      EXPORTING
+        uccp = 4660
+      RECEIVING
+        char = lv_char.
+  CATCH cx_sy_dyn_call_illegal_class.
+    cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
+ENDTRY.
+```
+
+The test cannot run here, and says so with a failure. ATC lists it as a warning on every run of every system that lacks the prerequisite - a finding nobody can fix in that system.
+
+**Proposal.** Report `cl_abap_unit_assert=>fail( )` (and `abort( )`) with `level = …tolerable` / `…severity-low` when it is the only statement of a CATCH block for a `cx_sy_dyn_call_*` or `cx_sy_create_object_error` class. The message says to provide a fallback or to leave the test quietly.
+
+**Not reported.** A fail( ) of any other level; a tolerable fail( ) outside a CATCH; a CATCH that does anything else.
+
+**Source.** sbcgua/ajson, test `unicode_characters`.
 
 ## Use assert_true / assert_false instead of assert_equals with abap_true
 

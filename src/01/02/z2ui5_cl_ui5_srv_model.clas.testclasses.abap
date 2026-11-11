@@ -1786,11 +1786,17 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
 
   METHOD dates_initial_or_broken.
 
+    " the empty string of row 4 comes from a variable: written as a literal
+    " the extended check reports it on every run ("" is not an admissible
+    " value for type "D" / "T"), and what the row is about - an app moving
+    " an empty string into a date - is a value the compiler never sees
+    DATA lv_empty TYPE string.
+
     DATA(lo_app) = NEW ltcl_app_samples( ).
     lo_app->mt_rows = VALUE #( ( id = 1 descr = `initial` )
                                ( id = 2 descr = `zeros` adate = '00000000' atime = '000000' )
                                ( id = 3 descr = `valid` adate = '20240115' atime = '123045' )
-                               ( id = 4 descr = `empty string moved in` adate = `` atime = `` ) ).
+                               ( id = 4 descr = `empty string moved in` adate = lv_empty atime = lv_empty ) ).
 
     DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
