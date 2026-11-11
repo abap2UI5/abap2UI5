@@ -57,42 +57,87 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  const PRETTIFY_XSL = ``<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">` && |\n| &&
-             `        <xsl:strip-space elements="*" />` && |\n| &&
-             `        <xsl:template match="para[content-style][not(text())]">` && |\n| &&
-             `          <xsl:value-of select="normalize-space(.)" />` && |\n| &&
-             `        </xsl:template>` && |\n| &&
-             `        <xsl:template match="node()|@*">` && |\n| &&
-             `          <xsl:copy>` && |\n| &&
-             `            <xsl:apply-templates select="node()|@*" />` && |\n| &&
-             `          </xsl:copy>` && |\n| &&
-             `        </xsl:template>` && |\n| &&
-             `        <xsl:output indent="yes" />` && |\n| &&
-             `      </xsl:stylesheet>``;` && |\n| &&
+             `  const XML_INDENT_UNIT = 2;` && |\n| &&
              `` && |\n| &&
-             `  let _xmlSerializer = null;` && |\n| &&
+             `  const ELEMENT_NODE = 1;` && |\n| &&
+             `  const TEXT_NODE = 3;` && |\n| &&
+             `  const CDATA_SECTION_NODE = 4;` && |\n| &&
+             `  const PROCESSING_INSTRUCTION_NODE = 7;` && |\n| &&
+             `  const COMMENT_NODE = 8;` && |\n| &&
+             `` && |\n| &&
              `  let _domParser = null;` && |\n| &&
-             `  let _xsltProcessor = null;` && |\n| &&
              `` && |\n| &&
              `  function getDomParser() {` && |\n| &&
              `    if (!_domParser) _domParser = new DOMParser();` && |\n| &&
              `    return _domParser;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function getXmlSerializer() {` && |\n| &&
-             `    if (!_xmlSerializer) _xmlSerializer = new XMLSerializer();` && |\n| &&
-             `    return _xmlSerializer;` && |\n| &&
+             `  function escapeText(text) {` && |\n| &&
+             `    return text` && |\n| &&
+             `      .replace(/&/g, "&amp;")` && |\n| &&
+             `      .replace(/</g, "&lt;")` && |\n| &&
+             `      .replace(/]]>/g, "]]&gt;");` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function getXsltProcessor() {` && |\n| &&
-             `    if (_xsltProcessor) return _xsltProcessor;` && |\n| &&
-             `    const xsltDoc = getDomParser().parseFromString(` && |\n| &&
-             `      PRETTIFY_XSL,` && |\n| &&
-             `      "application/xml",` && |\n| &&
-             `    );` && |\n| &&
-             `    _xsltProcessor = new XSLTProcessor();` && |\n| &&
-             `    _xsltProcessor.importStylesheet(xsltDoc);` && |\n| &&
-             `    return _xsltProcessor;` && |\n| &&
+             `  function escapeAttribute(value) {` && |\n| &&
+             `    return value` && |\n| &&
+             `      .replace(/&/g, "&amp;")` && |\n| &&
+             `      .replace(/</g, "&lt;")` && |\n| &&
+             `      .replace(/"/g, "&quot;")` && |\n| &&
+             `      .replace(/\t/g, "&#9;")` && |\n| &&
+             `      .replace(/\n/g, "&#10;")` && |\n| &&
+             `      .replace(/\r/g, "&#13;");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isTextLike(node) {` && |\n| &&
+             `    return node.nodeType === TEXT_NODE || node.nodeType === CDATA_SECTION_NODE;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function isBlank(node) {` && |\n| &&
+             `    return isTextLike(node) && !/\S/.test(node.nodeValue);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function serializeNode(node, depth, indented) {` && |\n| &&
+             `    const pad = indented ? " ".repeat(depth * XML_INDENT_UNIT) : "";` && |\n| &&
+             `    switch (node.nodeType) {` && |\n| &&
+             `      case ELEMENT_NODE:` && |\n| &&
+             `        return pad + serializeElement(node, depth, indented);` && |\n| &&
+             `      case TEXT_NODE:` && |\n| &&
+             `        return pad + escapeText(node.nodeValue);` && |\n| &&
+             `      case CDATA_SECTION_NODE:` && |\n| &&
+             `        return ``${pad}<![CDATA[${node.nodeValue}]]>``;` && |\n| &&
+             `      case COMMENT_NODE:` && |\n| &&
+             `        return ``${pad}<!--${node.nodeValue}-->``;` && |\n| &&
+             `      case PROCESSING_INSTRUCTION_NODE:` && |\n| &&
+             `        return ``${pad}<?${node.target} ${node.data}?>``;` && |\n| &&
+             `` && |\n| &&
+             `      default:` && |\n| &&
+             `        return "";` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function serializeElement(el, depth, indented) {` && |\n| &&
+             `    let open = ``<${el.nodeName}``;` && |\n| &&
+             `    const attrs = el.attributes || [];` && |\n| &&
+             `    for (let i = 0; i < attrs.length; i++) {` && |\n| &&
+             `      open += `` ${attrs[i].name}="${escapeAttribute(attrs[i].value)}"``;` && |\n| &&
+             `    }` && |\n| &&
+             `    const children = Array.prototype.slice.call(el.childNodes || []);` && |\n| &&
+             `    if (children.length === 0) return ``${open}/>``;` && |\n| &&
+             `    const close = ``</${el.nodeName}>``;` && |\n| &&
+             `` && |\n| &&
+             `    const mixed = children.some((c) => isTextLike(c) && !isBlank(c));` && |\n| &&
+             `    if (mixed || !indented) {` && |\n| &&
+             `      return ``${open}>${children` && |\n| &&
+             `        .map((c) => serializeNode(c, 0, false))` && |\n| &&
+             `        .join("")}${close}``;` && |\n| &&
+             `    }` && |\n| &&
+             `    const kept = children.filter((c) => !isBlank(c));` && |\n| &&
+             `    if (kept.length === 0) return ``${open}/>``;` && |\n| &&
+             `    const pad = " ".repeat(depth * XML_INDENT_UNIT);` && |\n| &&
+             `    return ``${open}>\n${kept` && |\n| &&
+             `      .map((c) => serializeNode(c, depth + 1, true))` && |\n| &&
+             `      .join("\n")}\n${pad}${close}``;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function prettifyXml(sourceXml) {` && |\n| &&
@@ -102,11 +147,18 @@ CLASS z2ui5_cl_ui5f_dtformat_js IMPLEMENTATION.
              `        sourceXml,` && |\n| &&
              `        "application/xml",` && |\n| &&
              `      );` && |\n| &&
-             `      const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);` && |\n| &&
-             `      if (!resultDoc) return sourceXml;` && |\n| &&
-             `      const resultXml = getXmlSerializer().serializeToString(resultDoc);` && |\n| &&
-             `` && |\n| &&
-             `      return resultXml.replace(/&gt;/g, ">");` && |\n| &&
+             `      if (!xmlDoc || !xmlDoc.documentElement) return sourceXml;` && |\n| &&
+             `      if (` && |\n| &&
+             `        xmlDoc.documentElement.nodeName === "parsererror" ||` && |\n| &&
+             `        xmlDoc.getElementsByTagName("parsererror").length > 0` && |\n| &&
+             `      ) {` && |\n| &&
+             `        return sourceXml;` && |\n| &&
+             `      }` && |\n| &&
+             `      return Array.prototype.slice` && |\n| &&
+             `        .call(xmlDoc.childNodes)` && |\n| &&
+             `        .filter((node) => !isBlank(node))` && |\n| &&
+             `        .map((node) => serializeNode(node, 0, true))` && |\n| &&
+             `        .join("\n");` && |\n| &&
              `    } catch {` && |\n| &&
              `      return sourceXml;` && |\n| &&
              `    }` && |\n| &&
