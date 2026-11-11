@@ -17,9 +17,9 @@ const { fakeDocument } = require("./fakeDocument");
 // (devtoolsReport.spec.js), the ABAP class in AbapSource.js
 // (devtoolsAbapSource.spec.js).
 //
-// The browser XML APIs used at module scope are stubbed minimally;
-// prettifyXml degrades to the identity function with these stubs, which is
-// exactly its documented fallback behavior.
+// The browser's DOMParser is stubbed minimally: it parses to a document
+// without a documentElement, so prettifyXml degrades to the identity
+// function, which is exactly its documented fallback behavior.
 //
 // The dialog shows the state of ONE component context (core/Context.js),
 // carried as `ctx` on the instance the way DevTools.get( ) hands it over;
@@ -160,22 +160,9 @@ function loadDeveloperTools({
       ...extraDeps,
     },
     sandbox: {
-      XMLSerializer: class {
-        serializeToString() {
-          return "";
-        }
-      },
       DOMParser: class {
         parseFromString() {
           return {};
-        }
-      },
-      // transformToDocument returning a falsy document makes prettifyXml
-      // return its input unchanged.
-      XSLTProcessor: class {
-        importStylesheet() {}
-        transformToDocument() {
-          return null;
         }
       },
       URLSearchParams,

@@ -101,7 +101,7 @@ sap.ui.define(
 
     // The same content as a GitHub-ready issue body. `plain` is the text
     // buildExport produced - handed in by the export popup, which already
-    // holds it, so the second build (every tab rendered again, the XSLT
+    // holds it, so the second build (every tab rendered again, the prettifier
     // over every slot's XML, the formatted model) does not run a second
     // time for the same string. The one-click path builds it here.
     function buildMarkdown(

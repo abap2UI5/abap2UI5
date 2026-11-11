@@ -52,7 +52,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/actions/BindingCall.js` | `frontendAction.spec.js` (`BINDING_CALL`) | the filter/sorter whitelist through the real dispatch: single and compound filter groups, the operator whitelist, clearing on empty values, the sorter flags |
 | `devtools/DeveloperTools.js` | `developerTools.spec.js` | the dialog, composed with the REAL registry rather than a stub |
 | `devtools/Tabs.js` | `devtoolsTabs.spec.js` | — |
-| `devtools/Format.js` | `devtoolsFormat.spec.js` | — |
+| `devtools/Format.js` | `devtoolsFormat.spec.js` | `prettifyXml` against a test-only DOMParser with no XSLTProcessor/XMLSerializer in the sandbox: indentation of nested elements, `&lt;` kept and `>` raw in attributes, line breaks in attribute values, text-only and mixed content verbatim, comments/CDATA/PIs, a round trip to the same document, a malformed input returned unchanged |
 | `devtools/Report.js` | `devtoolsReport.spec.js` | — |
 | `devtools/AbapSource.js` | `devtoolsAbapSource.spec.js` | — |
 | `devtools/DevTools.js` | `devtoolsFacade.spec.js`, `devtools-bundle` e2e | incl. an embedded component installing its tools without the page-wide console capture - the host's page, console and errors are not the app's; the devtools bundle: loaded with a `<script>` from the endpoint on the first open (the backend's page and an embedded component first, a BSP page after a failed require), once per page, a module loaded already used as it is, a failed load logged and retried on the next open, no endpoint logged, tools torn down while it loads not created; the e2e: a plain start never asks for it, Ctrl+F12 loads it once and opens the dialog without a CSP violation |

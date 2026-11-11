@@ -77,20 +77,9 @@ function loadReport({
       },
     },
     sandbox: {
-      XMLSerializer: class {
-        serializeToString() {
-          return "";
-        }
-      },
       DOMParser: class {
         parseFromString() {
           return {};
-        }
-      },
-      XSLTProcessor: class {
-        importStylesheet() {}
-        transformToDocument() {
-          return null;
         }
       },
     },
