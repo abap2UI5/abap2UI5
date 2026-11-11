@@ -164,6 +164,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/linter-mirror-gate.mjs # npm run check:mirrors
 
+      # the same sets, written down by the side that owns them: the linter
+      # reads .github/shared/linter-manifest.json instead of parsing this
+      # repository from outside, so a set that moves is a change to the
+      # generator HERE, in the pull request that moves it. Stale manifest ->
+      # red, with the keys that changed
+      - name: the linter manifest matches the sources
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/generate-linter-manifest.mjs --check # npm run check:linter-manifest
+
       # the rules in CONVENTIONS.md that a script can decide. This repository
       # declares the organisation's conventions and broke most of them - the
       # workflow naming rule names UI5_2X as its bad example, and UI5_2X.yaml
