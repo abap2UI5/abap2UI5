@@ -610,7 +610,26 @@ CLASS ltcl_parser_test IMPLEMENTATION.
         RECEIVING
           char = lv_uchar.
       CATCH cx_sy_dyn_call_illegal_class.
-        cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
+        " no CL_ABAP_CONV_IN_CE in ABAP Cloud: U+1234 is E188B4 in UTF-8
+        DATA lo_conv TYPE REF TO object.
+        DATA lv_utf8 TYPE xstring.
+        DATA lv_ustr TYPE string.
+        lv_utf8 = 'E188B4'.
+        TRY.
+            lv_fm_name = `CL_ABAP_CONV_CODEPAGE`.
+            CALL METHOD (lv_fm_name)=>create_in
+              RECEIVING
+                instance = lo_conv.
+            CALL METHOD lo_conv->('IF_ABAP_CONV_IN~CONVERT')
+              EXPORTING
+                source = lv_utf8
+              RECEIVING
+                result = lv_ustr.
+            lv_uchar = lv_ustr.
+          CATCH cx_root.
+            " neither converter exists: nothing to build the expectation from
+            RETURN.
+        ENDTRY.
     ENDTRY.
 
     mo_nodes->add( |                 \|                 \|object \|                        \|  \|3| ).
