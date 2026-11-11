@@ -1483,7 +1483,7 @@ break one of those four.
   Giving 15 addons a `702` branch (2026-11-02) turned up twelve constructs
   `abaplint --fix` left unchanged, wrote wrong, or changed in meaning; all
   twelve are fixed upstream (abaplint/abaplint#4507-#4509, #4512-#4520) and
-  in the pinned `@abaplint/cli` 2.120.99: `IS INSTANCE OF`, WHERE with
+  in every `@abaplint/cli` from 2.120.99: `IS INSTANCE OF`, WHERE with
   `UP TO`, `SELECT SINGLE FROM ... FIELDS`, `MOVE-CORRESPONDING` /
   `CORRESPONDING #( )` between tables, `CORRESPONDING #( ... EXCEPT )`,
   `CLEAR itab[ ... ]-comp`, `CREATE DATA ... WITH EMPTY KEY`,
@@ -1866,26 +1866,27 @@ fix.
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
-(A write to a key component of a sorted or hashed line through a field symbol
-or REFERENCE INTO - `<line>-key = …` after LOOP/READ … ASSIGNING - is
-`check_syntax`'s since 2.120.93, abaplint/abaplint#4521; the CHANGING form is
-section 5's.)
+`check_syntax` reports these since 2.120.101/102 (each checked on an S/4HANA
+system, 2026-11-10): a write to a key component of a sorted or hashed line
+through a field symbol or REFERENCE INTO (abaplint/abaplint#4521, the
+CHANGING form is section 5's); a CATCH of a subclass after the CATCH of its
+superclass (#4543); `RAISE EXCEPTION … MESSAGE` for a class without
+IF_T100_MESSAGE / IF_T100_DYN_MSG (#4548); an offset or length on a numeric
+field, `i`, `int8`, `p`, `f`, `decfloat` - "Field type "I" does not permit
+substrings to be accessed" (#4544; a length without offset that covers a
+whole `p` field stays allowed); `DATA(x) = lv_date - lv_start` typed as a
+number, not a date, so `x+6(2)` is caught too (#4546); and `LOOP … USING
+KEY` a sorted secondary key whose WHERE does not compare the first key
+component with `=` joined by AND (#4549). Still open:
 
-- A CATCH of a subclass after the CATCH of its superclass in the same TRY.
-- `RAISE EXCEPTION … MESSAGE` for a class without IF_T100_MESSAGE.
 - `RAISE EXCEPTION` or `THROW` in a method or function module that declares
-  classic `EXCEPTIONS` - even for a CX_NO_CHECK; raise it in a method of its
-  own, from which it passes through.
-- An offset or length on a numeric variable (`lv_int+1(2)`) - only
-  character-like and byte-like data take one. It comes in disguised as date
-  arithmetic declared inline: `DATA(x) = lv_date + 31.` is a number, not a
-  date, so `x+6(2)` does not activate (abaplint types some of these as `d`).
-- `LOOP … USING KEY` a sorted secondary key with a key component under OR or
-  CP in the WHERE.
+  classic `EXCEPTIONS` - even for a CX_NO_CHECK ("Old exceptions and
+  class-based exceptions cannot be used at the same time"); raise it in a
+  method of its own, from which it passes through.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-offset-on-numeric, abaplint-inline-date-arithmetic-type, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-raise-in-classic-procedure, abaplint-release-api-availability
 
 ### Security
 
