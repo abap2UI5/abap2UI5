@@ -305,8 +305,8 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                press=".onShowHelp"` &&
              `            />` &&
              `            <Button` &&
-             `                text="Copy"` &&
-             `                tooltip="Put what is shown on the clipboard"` &&
+             `                text="Copy View"` &&
+             `                tooltip="Put the view that is shown on the clipboard - not the whole report"` &&
              `                press=".onCopyTab"` &&
              `            />` &&
              `            <!-- The most common reason these tools are opened at all, so` &&
@@ -320,7 +320,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `            />` &&
              `            <Button` &&
              `                text="Export"` &&
-             `                tooltip="Read the same report, with downloads"` &&
+             `                tooltip="Read the whole report as text, copy it or download it"` &&
              `                press=".onExport"` &&
              `            />` &&
              `            <Button` &&

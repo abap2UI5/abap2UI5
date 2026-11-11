@@ -191,8 +191,8 @@ sap.ui.define(
     }
 
     // Show the whole export in a stretched popup: a read-through TextArea
-    // for the eye, and the four ways it leaves the browser. Markdown is
-    // the emphasized one because an issue comment is where it is going.
+    // for the eye, and the three ways it leaves the browser - one copy and
+    // two downloads.
     function openDialog(ctx, appName, abapSource) {
       const text = buildExport(ctx, abapSource);
       sap.ui.require(
@@ -214,18 +214,16 @@ sap.ui.define(
             // The `buttons` aggregation, not beginButton/endButton: UI5
             // ignores those two as soon as `buttons` is filled.
             buttons: [
+              // One copy, of the text that is shown. The Markdown form is
+              // not offered here a second time: it is what Report a Bug in
+              // the footer of the tools puts on the clipboard, and two
+              // buttons for one clipboard was the question "which one do I
+              // want" on every export.
               new Button({
-                text: "Copy as Markdown",
+                text: "Copy",
                 type: "Emphasized",
                 // Confirm on the button itself: this dialog is modal, so
                 // a MessageToast behind it would be invisible.
-                press: (oEvent) => {
-                  copyMarkdown(ctx, abapSource, text);
-                  confirmOnButton(oEvent.getSource());
-                },
-              }),
-              new Button({
-                text: "Copy as Text",
                 press: (oEvent) => {
                   Lib.copyToClipboard(text);
                   confirmOnButton(oEvent.getSource());
@@ -292,10 +290,10 @@ sap.ui.define(
     // Resolves with a short result message for the caller to show - the
     // one the clipboard's own answer allows: "copied" said regardless used
     // to stand over a clipboard the browser had refused.
-    async function copyMarkdown(ctx, abapSource, plain) {
+    async function copyMarkdown(ctx, abapSource) {
       try {
         const copied = await Lib.copyToClipboard(
-          buildMarkdown(ctx, abapSource, plain),
+          buildMarkdown(ctx, abapSource),
         );
         if (copied === false) {
           return "The browser did not allow the copy - press again.";

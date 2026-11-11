@@ -114,8 +114,9 @@ CLASS z2ui5_cl_ui5f_help_js IMPLEMENTATION.
              `    "",` && |\n| &&
              `    "Always available",` && |\n| &&
              `    "----------------",` && |\n| &&
-             `    "  Copy             put the current view's content on the clipboard",` && |\n| &&
+             `    "  Copy View        put the current view's content on the clipboard",` && |\n| &&
              `    "  Report a Bug     see below",` && |\n| &&
+             `    "  Export           the whole report as text - read, copy, download",` && |\n| &&
              `    "  (i)              this help",` && |\n| &&
              `    "",` && |\n| &&
              `    "  'Open on Error' (on Overview) pops these tools open on the Log as",` && |\n| &&
@@ -130,7 +131,8 @@ CLASS z2ui5_cl_ui5f_help_js IMPLEMENTATION.
              `    "  repository in a new tab. Paste the report into 'Additional context'.",` && |\n| &&
              `    "  Nothing is sent before you submit that form.",` && |\n| &&
              `    "",` && |\n| &&
-             `    "  'Export' opens the same content for reading, with downloads. With",` && |\n| &&
+             `    "  'Export' opens the same content as plain text, for reading, with one",` && |\n| &&
+             `    "  Copy and two downloads. With",` && |\n| &&
              `    "  Record Payloads on, Download History (JSON) additionally carries",` && |\n| &&
              `    "  the actual request/response bodies.",` && |\n| &&
              `    "",` && |\n| &&

@@ -174,16 +174,9 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `` && |\n| &&
              `            buttons: [` && |\n| &&
              `              new Button({` && |\n| &&
-             `                text: "Copy as Markdown",` && |\n| &&
+             `                text: "Copy",` && |\n| &&
              `                type: "Emphasized",` && |\n| &&
              `` && |\n| &&
-             `                press: (oEvent) => {` && |\n| &&
-             `                  copyMarkdown(ctx, abapSource, text);` && |\n| &&
-             `                  confirmOnButton(oEvent.getSource());` && |\n| &&
-             `                },` && |\n| &&
-             `              }),` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Copy as Text",` && |\n| &&
              `                press: (oEvent) => {` && |\n| &&
              `                  Lib.copyToClipboard(text);` && |\n| &&
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
@@ -230,10 +223,10 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `    const COPIED =` && |\n| &&
              `      "Bug report copied as Markdown - paste it into the issue form on GitHub (Additional context).";` && |\n| &&
              `` && |\n| &&
-             `    async function copyMarkdown(ctx, abapSource, plain) {` && |\n| &&
+             `    async function copyMarkdown(ctx, abapSource) {` && |\n| &&
              `      try {` && |\n| &&
              `        const copied = await Lib.copyToClipboard(` && |\n| &&
-             `          buildMarkdown(ctx, abapSource, plain),` && |\n| &&
+             `          buildMarkdown(ctx, abapSource),` && |\n| &&
              `        );` && |\n| &&
              `        if (copied === false) {` && |\n| &&
              `          return "The browser did not allow the copy - press again.";` && |\n| &&
