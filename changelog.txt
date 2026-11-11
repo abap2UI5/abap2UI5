@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+! the system fields the framework reads for their value (date, time, user, system id, release) are read in one place, z2ui5_cl_ui5_util_context=>sy_get( ) - ABAP for Cloud Development reports the old system fields on every statement that names one, so the extended check now shows one finding per field instead of one per use; no behaviour change
 * set_focus: the selection is applied to a text field that is no sap.m.InputBase as well - a sap.m.SearchField restored its own cursor position instead, so the caret of a search field the view rebuilt jumped to the front after every search
 ! ABAP Cloud: the default bootstrap is https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js (SAPUI5) instead of the OpenUI5 CDN - the platform sends a Content-Security-Policy header of its own whose script-src trusts the SAP hosts only, so sdk.openui5.org was refused and a default installation showed a blank page; every other system keeps sdk.openui5.org, and an exit that sets src is not touched
 * launchpad: every roundtrip names the logon client (sap-client, from the page URL or the launchpad's logon system) - without it the ICF took the client from a cookie all tabs of the host share, and a tab in another client turned the next event into NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND

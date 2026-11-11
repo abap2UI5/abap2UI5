@@ -5,6 +5,7 @@ summary: abap2UI5's `z2ui5_cl_util_ext=>source_get_method( )` reads a method's s
 priority: low
 state: open
 first_seen: 2026-10-12
+checked_upstream: 2026-11-11
 evidence:
   - the test abap2UI5 skips for it - `z2ui5_cl_util_ext` `ltcl_source_ops->source_get_method_basic` (`node/setup/abap_transpile.json`), which reads `Z2UI5_CL_UTIL=>C_TRIM`
   - measured 2026-10-12 on open-abap-core b2d219d with `@abaplint/runtime` 2.14.3 - `cx_sy_dyn_call_illegal_method` out of `dynamicCallLookup` for `XCO_CP_ABAP`, then the same for `CL_OO_FACTORY` in the CATCH
