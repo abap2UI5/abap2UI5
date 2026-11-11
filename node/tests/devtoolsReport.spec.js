@@ -205,6 +205,19 @@ test.describe("buildMarkdown", () => {
   });
 });
 
+test.describe("issueUrl", () => {
+  // the report does not travel in the URL - only the form and the hint
+  // where the clipboard goes
+  test("names the bug report form and where the report is pasted", () => {
+    const { Report } = loadReport();
+    const url = Report.issueUrl();
+    expect(url).toContain("https://github.com/abap2UI5/abap2UI5/issues/new?");
+    expect(url).toContain("template=bug_report.yml");
+    expect(url).toContain("context=Paste%20the%20copied%20report%20here");
+    expect(url.length).toBeLessThan(400);
+  });
+});
+
 test.describe("copyMarkdown", () => {
   // The one-click path from the dialog footer: an issue body on the
   // clipboard without going through the export popup first.

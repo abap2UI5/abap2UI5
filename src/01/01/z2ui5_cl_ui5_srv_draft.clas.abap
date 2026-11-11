@@ -95,11 +95,13 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
         EXPORTING val = `Internal error - cannot persist a draft without an id`.
     ENDIF.
 
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
     DATA(ls_db) = VALUE ty_s_db( id                = draft-id
                                  id_prev           = draft-id_prev
                                  id_prev_app       = draft-id_prev_app
                                  id_prev_app_stack = draft-id_prev_app_stack
-                                 uname             = sy-uname
+                                 uname             = lv_uname
                                  timestampl        = z2ui5_cl_ui5_util_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
@@ -123,7 +125,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       SELECT SINGLE uname FROM z2ui5_t_01
         WHERE id = @ls_db-id
         INTO @DATA(lv_owner).
-      IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> sy-uname.
+      IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> lv_uname.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
       ENDIF.
@@ -160,6 +162,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
     " Owner binding: a draft belongs to the user that created it and may only
     " be restored by that same user, so a leaked or guessed draft id cannot
     " load another user's serialized app state. Fail closed with the same
@@ -176,7 +179,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " tolerances present through the grace version and fails the build once
     " a later release still ships them (the gate names its anchors - update
     " it when this wording changes)
-    IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
+    IF result-uname IS NOT INITIAL AND result-uname <> lv_uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
@@ -200,6 +203,10 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_draft_store~check_exists.
 
+    " read before the SELECT: sy-subrc below is the SELECT's, and a method
+    " call between the two would stand in its way
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
+
     SELECT SINGLE id, uname FROM z2ui5_t_01
       WHERE id = @id
       INTO @DATA(ls_row).
@@ -208,16 +215,17 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " counts as non-existent here. Legacy blank-owner rows stay visible during
     " the upgrade transition.
     result = xsdbool( sy-subrc = 0
-                      AND ( ls_row-uname IS INITIAL OR ls_row-uname = sy-uname ) ).
+                      AND ( ls_row-uname IS INITIAL OR ls_row-uname = lv_uname ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~count_entries.
 
+    DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
     " owner-scoped like read/check_exists ( blank owner = legacy rows from
     " before the UNAME column existed, tolerated during upgrade )
     SELECT COUNT( * ) FROM z2ui5_t_01
-      WHERE uname = @sy-uname OR uname = @space
+      WHERE uname = @lv_uname OR uname = @space
       INTO @result.
 
   ENDMETHOD.

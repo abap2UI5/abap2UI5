@@ -263,9 +263,10 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     " user are recon material (and an audit finding in hardened
     " installations), while what a report actually needs is the release and
     " the time - the server-side logs carry the rest
+    DATA(ls_sy) = z2ui5_cl_ui5_util_context=>sy_get( ).
     result = `--- context ---` && lv_nl &&
-             |    system   : { sy-sysid } / release { sy-saprl }| && lv_nl &&
-             |    time     : { sy-datum } { sy-uzeit }|.
+             |    system   : { ls_sy-sysid } / release { ls_sy-saprl }| && lv_nl &&
+             |    time     : { ls_sy-datum } { ls_sy-uzeit }|.
 
   ENDMETHOD.
 ENDCLASS.

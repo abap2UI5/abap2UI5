@@ -2960,6 +2960,7 @@ CLASS ltcl_coverage DEFINITION FINAL
     METHODS test_timestampl           FOR TESTING RAISING cx_static_check.
     METHODS test_attri_by_oref        FOR TESTING RAISING cx_static_check.
     METHODS test_check_abap_cloud     FOR TESTING RAISING cx_static_check.
+    METHODS test_sy_get               FOR TESTING RAISING cx_static_check.
     METHODS test_classes_impl_intf    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -3159,6 +3160,22 @@ CLASS ltcl_coverage IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_first
                                         act = z2ui5_cl_ui5_util_context=>check_abap_cloud( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_sy_get.
+
+    " the one reader of the system fields hands out what SYST holds - the
+    " user the draft service binds a draft to, and a date and a time the
+    " error context can print
+    DATA(ls_sy) = z2ui5_cl_ui5_util_context=>sy_get( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = sy-uname
+                                        act = ls_sy-uname ).
+    cl_abap_unit_assert=>assert_equals( exp = sy-sysid
+                                        act = ls_sy-sysid ).
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-datum ).
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-saprl ).
 
   ENDMETHOD.
 
