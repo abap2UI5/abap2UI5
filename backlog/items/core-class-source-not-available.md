@@ -5,10 +5,12 @@ summary: abap2UI5's `z2ui5_cl_util_ext=>source_get_method( )` reads a method's s
 priority: low
 state: open
 first_seen: 2026-10-12
+checked_upstream: 2026-11-11
 evidence:
   - the test abap2UI5 skips for it - `z2ui5_cl_util_ext` `ltcl_source_ops->source_get_method_basic` (`node/setup/abap_transpile.json`), which reads `Z2UI5_CL_UTIL=>C_TRIM`
   - measured 2026-10-12 on open-abap-core b2d219d with `@abaplint/runtime` 2.14.3 - `cx_sy_dyn_call_illegal_method` out of `dynamicCallLookup` for `XCO_CP_ABAP`, then the same for `CL_OO_FACTORY` in the CATCH
   - open-abap-core b2d219d has `src/oo/reposrc.tabl.xml` (the table) and no `cl_oo_factory`, `if_oo_clif_source` or `xco_cp_abap`; `@abaplint/transpiler` fills `REPOSRC` with every transpiled class's source when `populateTables.reposrc` is on
+  - 'checked 2026-11-11: open-abap-core main now has `src/oo/cl_oo_factory.clas.abap` and `src/oo/if_oo_clif_source.intf.abap` (code search) - probably resolved upstream; next step is re-enabling `ltcl_source_ops->source_get_method_basic` against the pinned open-abap-core and deleting this item if it passes'
 ---
 
 # Reading a method's source in the runtime

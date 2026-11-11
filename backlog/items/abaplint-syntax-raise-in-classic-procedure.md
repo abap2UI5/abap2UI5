@@ -3,7 +3,8 @@ target: abaplint
 title: 'check_syntax: RAISE EXCEPTION (and a RAISING clause) in a method or function module that declares classic EXCEPTIONS'
 summary: 'a procedure either declares classic EXCEPTIONS or raises class-based ones - RAISE EXCEPTION, THROW and a RAISING clause next to EXCEPTIONS do not activate, and check_syntax accepts all of them on every version'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4547
 first_seen: 2026-10-24
 upstream: abaplint/abaplint
 evidence:
