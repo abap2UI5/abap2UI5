@@ -96,7 +96,7 @@ Working with Claude Code? Two commands install the abap2UI5 plugin – the agent
 /plugin install abap2ui5@abap2ui5
 ```
 
-GitHub Copilot: `copilot plugin install abap2UI5/abap2UI5`. Every other assistant, editor and the full setup: [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai).
+GitHub Copilot: `copilot plugin install abap2UI5/abap2UI5:plugin-copilot`. Every other assistant, editor and the full setup: [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai).
 
 ## Credits
 This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these outstanding open-source projects:

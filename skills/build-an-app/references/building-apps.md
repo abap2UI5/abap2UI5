@@ -317,9 +317,8 @@ and passes.
   `end( )` opens its own line with `)->`. A control does not share its line
   with its own attributes (`` )->tag( `Label` )->a( n = `text` … ``), and a
   container does not hand straight over to the next
-  (`` view->ele( `Shell` )->ele( `Page` ``). Both used to be allowed here as
-  "they hide nothing", and both were dropped when the two sample corpora were
-  unified: the exception is what the worst shape grows out of.
+  (`` view->ele( `Shell` )->ele( `Page` ``): the exception is what the worst
+  shape grows out of.
   `` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the end
   of an attribute line — up two, down two — is four level changes nobody can
   follow, after which every line starts in a column that means nothing. With
@@ -443,16 +442,23 @@ The same tree, with the subtree held in a variable:
     popover->ele( n = `SimpleForm` ns = `form`
         )->a( n = `layout`   v = `ColumnLayout`
         )->a( n = `editable` b = abap_false
-        )->ele( n = `content` ns = `form`
-            )->tag( `Label` )->a( n = `text` v = `Product`
-            )->tag( `Text`  )->a( n = `text` v = mv_product
-            )->tag( `Text`  )->a( n = `text` v = `this is a text` ).
 
-    popover->ele( `footer` )->ele( `OverflowToolbar`
-        )->tag( `ToolbarSpacer`
-        )->tag( `Button`
-            )->a( n = `press` v = client->_event( `BUTTON_DETAILS` )
-            )->a( n = `text`  v = `details` ).
+        )->ele( n = `content` ns = `form`
+
+            )->tag( `Label`
+                )->a( n = `text` v = `Product`
+            )->tag( `Text`
+                )->a( n = `text` v = mv_product
+            )->tag( `Text`
+                )->a( n = `text` v = `this is a text` ).
+
+    popover->ele( `footer`
+        )->ele( `OverflowToolbar`
+
+            )->tag( `ToolbarSpacer`
+            )->tag( `Button`
+                )->a( n = `press` v = client->_event( `BUTTON_DETAILS` )
+                )->a( n = `text`  v = `details` ).
 ```
 
 ## 4. Data binding
@@ -590,9 +596,8 @@ The same tree, with the subtree held in a variable:
   `to_abap( iv_corresponding = abap_true )`, which is the corresponding-only
   mapping this used to reach ajson for, already written and already released.
 - **JSON is built and read BY HAND, and there is no released parser.**
-  `z2ui5_cl_ui5_json` was one for two weeks and was removed on 2026-09-14,
-  before it had shipped in any release — nothing downstream lost it, and
-  nothing has to be migrated. Do not reach for a substitute: `/ui2/cl_json`
+  The framework ships none for apps. Do not reach for a substitute:
+  `/ui2/cl_json`
   is not released for ABAP Cloud, `xco_cp_json` is missing on 7.02, and the
   vendored ajson is framework-internal, which the linter's
   `non-released-api` rule reports — correctly.
@@ -627,11 +632,8 @@ The same tree, with the subtree held in a variable:
 - **A dynamic type names a type the SYSTEM has, not one abap2UI5 ships.**
   `CREATE DATA … TYPE STANDARD TABLE OF (name)` needs a name that exists at
   runtime, and the name belongs to the app's own domain — a DDIC structure of
-  the customer's, a CDS view, whatever the app is browsing. The framework
-  released `z2ui5_t_02` (a `name`/`value` pair) as an anchor for exactly this
-  and **removed it again on 2026-09-22**: in a year not one sample, and no app
-  anybody reported, ever named it. abap2UI5 adds no dictionary object an app
-  is supposed to point at (§ *No new dictionary objects* in `AGENTS.md`), and
+  the customer's, a CDS view, whatever the app is browsing. abap2UI5 ships
+  no dictionary object an app is supposed to point at (§ *No new dictionary objects* in `AGENTS.md`), and
   the framework's own tables (`z2ui5_t_01`) are internals that may change —
   naming one from an app is borrowing a table, not using an API.
 - **The per-wire flags (`s_ctrl`, type `ty_s_event_control`).** By default
@@ -776,8 +778,7 @@ The same tree, with the subtree held in a variable:
   glyph of the loaded theme (`expandInlineIcons`). That is the whole set.
   Rounding a number, joining fields into a string or mapping a status to a
   `ValueState`/icon is your app's job: compute it in ABAP and bind it
-  (`state="{STATUS_STATE}"`). Functions that did those things were shipped
-  once and removed again — the module header states the admission criteria
+  (`state="{STATUS_STATE}"`). The module header states the admission criteria
   and `npm run check:formatter` enforces them.
 - **UI5 1.71 floor**: the framework supports OpenUI5 down to 1.71. Before
   using a control/property/aggregation, check its "available since" in the

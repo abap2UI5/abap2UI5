@@ -353,9 +353,8 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``end( )`` opens its own line with ``)->``. A control does not share its line` && |\n| &&
              `  with its own attributes (```` )->tag( ``Label`` )->a( n = ``text`` ... ````), and a` && |\n| &&
              `  container does not hand straight over to the next` && |\n| &&
-             `  (```` view->ele( ``Shell`` )->ele( ``Page`` ````). Both used to be allowed here as` && |\n| &&
-             `  "they hide nothing", and both were dropped when the two sample corpora were` && |\n| &&
-             `  unified: the exception is what the worst shape grows out of.` && |\n| &&
+             `  (```` view->ele( ``Shell`` )->ele( ``Page`` ````): the exception is what the worst` && |\n| &&
+             `  shape grows out of.` && |\n| &&
              `  ```` )->end( )->end( )->ele( ``footer`` )->ele( ``OverflowToolbar`` ```` at the end` && |\n| &&
              `  of an attribute line - up two, down two - is four level changes nobody can` && |\n| &&
              `  follow, after which every line starts in a column that means nothing. With` && |\n| &&
@@ -381,9 +380,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `     last ``a( )``, before its first child. The attribute lines are the` && |\n| &&
              `     control's own head; the content starts below them;` && |\n| &&
              `  2. **a run of ``tag``s** - a blank before the first one, none between them.` && |\n| &&
-             `     A form's fields, a toolbar's buttons, a list's items belong together and` && |\n|.
+             `     A form's fields, a toolbar's buttons, a list's items belong together and` && |\n| &&
+             `     are read as one block, whether or not each carries attributes.` && |\n|.
     result = result &&
-             `     are read as one block, whether or not each carries attributes.` && |\n| &&
              |\n| &&
              `  Everything else runs without a blank:` && |\n| &&
              `  - **none** between a control and its own ``a( )``s - they are its head, not` && |\n| &&
@@ -425,9 +424,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `**The blank lines are the part no gate catches.** abaplint's formatting rules` && |\n| &&
              `are deliberately kept off the app chains (``align_parameters`` and` && |\n| &&
              ```line_break_multiple_parameters`` are excluded in the framework repository's` && |\n| &&
-             ```.github/abaplint/auto_abaplint_fix.jsonc``, and ``in_statement_indentation``` && |\n|.
+             ```.github/abaplint/auto_abaplint_fix.jsonc``, and ``in_statement_indentation``` && |\n| &&
+             `is excluded for the shipped apps - they would` && |\n|.
     result = result &&
-             `is excluded for the shipped apps - they would` && |\n| &&
              `flatten exactly the layout this section builds), and no linter rule judges` && |\n| &&
              `where a blank line belongs. That stays with the reader.` && |\n| &&
              |\n| &&
@@ -469,9 +468,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Three defects, and they compound: the indent steps by 2 and then by 4 and then` && |\n| &&
              `stops moving at all; one line opens ``content`` *and* a ``Label``; and the` && |\n| &&
              ````` )->end( )->end( )->ele( ``footer`` )->ele( ``OverflowToolbar`` ```` at the end of` && |\n| &&
-             `an attribute line leaves the ``ToolbarSpacer`` two levels away from where its` && |\n|.
+             `an attribute line leaves the ``ToolbarSpacer`` two levels away from where its` && |\n| &&
+             `column claims it is. Nothing here says ``footer`` is a sibling of ``SimpleForm``.` && |\n|.
     result = result &&
-             `column claims it is. Nothing here says ``footer`` is a sibling of ``SimpleForm``.` && |\n| &&
              `The same tree, with the subtree held in a variable:` && |\n| &&
              |\n| &&
              ```````abap` && |\n| &&
@@ -482,16 +481,23 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    popover->ele( n = ``SimpleForm`` ns = ``form``` && |\n| &&
              `        )->a( n = ``layout``   v = ``ColumnLayout``` && |\n| &&
              `        )->a( n = ``editable`` b = abap_false` && |\n| &&
-             `        )->ele( n = ``content`` ns = ``form``` && |\n| &&
-             `            )->tag( ``Label`` )->a( n = ``text`` v = ``Product``` && |\n| &&
-             `            )->tag( ``Text``  )->a( n = ``text`` v = mv_product` && |\n| &&
-             `            )->tag( ``Text``  )->a( n = ``text`` v = ``this is a text`` ).` && |\n| &&
              |\n| &&
-             `    popover->ele( ``footer`` )->ele( ``OverflowToolbar``` && |\n| &&
-             `        )->tag( ``ToolbarSpacer``` && |\n| &&
-             `        )->tag( ``Button``` && |\n| &&
-             `            )->a( n = ``press`` v = client->_event( ``BUTTON_DETAILS`` )` && |\n| &&
-             `            )->a( n = ``text``  v = ``details`` ).` && |\n| &&
+             `        )->ele( n = ``content`` ns = ``form``` && |\n| &&
+             |\n| &&
+             `            )->tag( ``Label``` && |\n| &&
+             `                )->a( n = ``text`` v = ``Product``` && |\n| &&
+             `            )->tag( ``Text``` && |\n| &&
+             `                )->a( n = ``text`` v = mv_product` && |\n| &&
+             `            )->tag( ``Text``` && |\n| &&
+             `                )->a( n = ``text`` v = ``this is a text`` ).` && |\n| &&
+             |\n| &&
+             `    popover->ele( ``footer``` && |\n| &&
+             `        )->ele( ``OverflowToolbar``` && |\n| &&
+             |\n| &&
+             `            )->tag( ``ToolbarSpacer``` && |\n| &&
+             `            )->tag( ``Button``` && |\n| &&
+             `                )->a( n = ``press`` v = client->_event( ``BUTTON_DETAILS`` )` && |\n| &&
+             `                )->a( n = ``text``  v = ``details`` ).` && |\n| &&
              ```````` && |\n| &&
              |\n| &&
              `## 4. Data binding` && |\n| &&
@@ -508,13 +514,13 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  template a relative ``{FIELD}`` resolves against the row and silently renders` && |\n| &&
              `  empty if the row has no such column; bind root values with` && |\n| &&
              `  ``client->_bind( field )`` even inside templates.` && |\n| &&
-             `- **Never hard-code a model path as text** (``'/T_ITEMS'``): paths come from` && |\n| &&
+             `- **Never hard-code a model path as text** (``'/T_ITEMS'``): paths come from` && |\n|.
+    result = result &&
              `  ``_bind``, so renames cannot break bindings. For raw binding-info strings` && |\n| &&
              `  (typed bindings, sorters) get the bare path via` && |\n| &&
              `  ``client->_bind_path( t_items )``, e.g.` && |\n| &&
              `  ```` v = |\{ path: '{ client->_bind_path( t_items ) }', sorter: \{ path: 'PRODUCT' \} \}| ````.` && |\n| &&
-             `- Typed/complex bindings pass through verbatim (braces escaped):` && |\n|.
-    result = result &&
+             `- Typed/complex bindings pass through verbatim (braces escaped):` && |\n| &&
              `  ```` v = |\{ path: 'PRICE', type: 'sap.ui.model.type.Float' \}| ```` - note the` && |\n| &&
              `  ``path:`` uses the upper-cased ABAP field name.` && |\n| &&
              `- Type numeric/boolean model fields as ``i``/``p``/``abap_bool``, not ``string`` -` && |\n| &&
@@ -549,13 +555,13 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  does not call ``main( )``. Sorting and filtering the binding (the column menu` && |\n| &&
              `  of ``sap.ui.table`` via ``sortProperty``/``filterProperty``, a` && |\n| &&
              `  ``cs_event-binding_call`` sort or filter, e.g. from a ``SearchField``) run on the` && |\n| &&
-             `  server over **all** rows; a checkbox ticked or a cell edited lands in the` && |\n| &&
+             `  server over **all** rows; a checkbox ticked or a cell edited lands in the` && |\n|.
+    result = result &&
              `  table's own row whatever the order shown. The app sets the order and the` && |\n| &&
              `  filter itself with ``t_sort`` / ``t_filter`` (types ``ty_t_bind_tab_sort`` /` && |\n| &&
              `  ``_filter`` of ``z2ui5_if_client``); they take effect when they differ from the` && |\n| &&
              `  ones passed before, so a view rendered again keeps what the user sorted in` && |\n| &&
-             `  the browser. ``val`` may also be a data reference to the table (``REF #( )``, an` && |\n|.
-    result = result &&
+             `  the browser. ``val`` may also be a data reference to the table (``REF #( )``, an` && |\n| &&
              `  attribute ``TYPE REF TO data``). The number of rows the filter lets through is` && |\n| &&
              `  ``/__WINDOW/<path>/TOTAL`` in the model - build it from` && |\n| &&
              `  ``client->_bind_path( t_rows )``. Only a STANDARD table, bound whole; sorters` && |\n| &&
@@ -591,13 +597,13 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- Wire: ``)->a( n = ``press`` v = client->_event( ``SAVE`` ) )``.` && |\n| &&
              `- Read in ``on_event`` via ``CASE client->get_event( ).``.` && |\n| &&
              `- **Pass values into an event** with ``t_arg``; read them back with` && |\n| &&
-             `  ``client->get_event_arg( )`` (index only for position 2+). A value resolved` && |\n| &&
+             `  ``client->get_event_arg( )`` (index only for position 2+). A value resolved` && |\n|.
+    result = result &&
              `  on the client must be ``$``-prefixed - ```` ``${PRODUCT}`` ```` (row field),` && |\n| &&
              `  ```` ``$event.getSource().getId()`` ```` (the pressed control's id),` && |\n| &&
              `  ```` ``${$parameters>/selected}`` ```` (an event parameter). A bare ``{...}`` arg is` && |\n| &&
              `  NOT resolved and arrives empty. Booleans arrive as ``abap_bool`` (``X``/space).` && |\n| &&
-             `- **Which row was pressed:** send the row's key field (```` arg = ``${ID}`` ````)` && |\n|.
-    result = result &&
+             `- **Which row was pressed:** send the row's key field (```` arg = ``${ID}`` ````)` && |\n| &&
              `  when the handler needs the row's DATA, and look it up with ``READ TABLE ...` && |\n| &&
              `  WITH KEY``. Send the position` && |\n| &&
              `  (```` ``$event.getSource().getBindingContext().getPath().split('/').pop()`` ````,` && |\n| &&
@@ -632,13 +638,12 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``to_abap( iv_corresponding = abap_true )``, which is the corresponding-only` && |\n| &&
              `  mapping this used to reach ajson for, already written and already released.` && |\n| &&
              `- **JSON is built and read BY HAND, and there is no released parser.**` && |\n| &&
-             `  ``z2ui5_cl_ui5_json`` was one for two weeks and was removed on 2026-09-14,` && |\n| &&
-             `  before it had shipped in any release - nothing downstream lost it, and` && |\n| &&
-             `  nothing has to be migrated. Do not reach for a substitute: ``/ui2/cl_json``` && |\n| &&
+             `  The framework ships none for apps. Do not reach for a substitute:` && |\n|.
+    result = result &&
+             `  ``/ui2/cl_json``` && |\n| &&
              `  is not released for ABAP Cloud, ``xco_cp_json`` is missing on 7.02, and the` && |\n| &&
              `  vendored ajson is framework-internal, which the linter's` && |\n| &&
-             `  ``non-released-api`` rule reports - correctly.` && |\n|.
-    result = result &&
+             `  ``non-released-api`` rule reports - correctly.` && |\n| &&
              `  - **Outbound** (a control property that must receive an OBJECT, e.g. a` && |\n| &&
              `    ``sap.ui.integration`` Card manifest): compose the JSON as a string in` && |\n| &&
              `    ABAP and bind it with ``_bind( val = ... json = abap_true )``, which splices` && |\n| &&
@@ -670,16 +675,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **A dynamic type names a type the SYSTEM has, not one abap2UI5 ships.**` && |\n| &&
              `  ``CREATE DATA ... TYPE STANDARD TABLE OF (name)`` needs a name that exists at` && |\n| &&
              `  runtime, and the name belongs to the app's own domain - a DDIC structure of` && |\n| &&
-             `  the customer's, a CDS view, whatever the app is browsing. The framework` && |\n| &&
-             `  released ``z2ui5_t_02`` (a ``name``/``value`` pair) as an anchor for exactly this` && |\n| &&
-             `  and **removed it again on 2026-09-22**: in a year not one sample, and no app` && |\n| &&
-             `  anybody reported, ever named it. abap2UI5 adds no dictionary object an app` && |\n| &&
-             `  is supposed to point at (section  *No new dictionary objects* in ``AGENTS.md``), and` && |\n| &&
+             `  the customer's, a CDS view, whatever the app is browsing. abap2UI5 ships` && |\n| &&
+             `  no dictionary object an app is supposed to point at (section  *No new dictionary objects* in ``AGENTS.md``), a` &&
+             `nd` && |\n| &&
              `  the framework's own tables (``z2ui5_t_01``) are internals that may change -` && |\n| &&
              `  naming one from an app is borrowing a table, not using an API.` && |\n| &&
-             `- **The per-wire flags (``s_ctrl``, type ``ty_s_event_control``).** By default` && |\n| &&
-             `  an event fired while a roundtrip is in flight is DROPPED - right for a` && |\n|.
+             `- **The per-wire flags (``s_ctrl``, type ``ty_s_event_control``).** By default` && |\n|.
     result = result &&
+             `  an event fired while a roundtrip is in flight is DROPPED - right for a` && |\n| &&
              `  click, wrong for a per-keystroke wire (``liveChange``, ``liveSearch``,` && |\n| &&
              `  ``sliderChange``), where it loses every keystroke typed under the running` && |\n| &&
              `  roundtrip, the last one included, and leaves the backend at the value of` && |\n| &&
@@ -719,9 +722,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  clipboard, timers, keyboard shortcuts, ``control_by_id`` (call a public` && |\n| &&
              `  method on a control), ``binding_call`` (filter/sort an aggregation binding).` && |\n| &&
              `  The full catalog with per-action ``t_arg`` documentation sits on` && |\n| &&
-             `  ``z2ui5_if_client=>follow_up_action`` and in ``cs_event``.` && |\n| &&
-             |\n|.
+             `  ``z2ui5_if_client=>follow_up_action`` and in ``cs_event``.` && |\n|.
     result = result &&
+             |\n| &&
              `## 6. Popups, popovers, messages` && |\n| &&
              |\n| &&
              `- ``client->popup_display( val = ... )`` opens a ``core:FragmentDefinition``` && |\n| &&
@@ -761,9 +764,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  what an ABAP app decides - the data, the kind of box, the buttons as a` && |\n| &&
              `  table, the backend event raised when it closes. Where a toast docks, how` && |\n| &&
              `  wide a box is, which icon it carries, what it is a dependent of: that is` && |\n| &&
-             `  the control, and it is set through the whitelisted global call, whose last` && |\n| &&
-             `  argument is the ``sap.m.MessageToast.show( )`` / ``sap.m.MessageBox.<type>( )``` && |\n|.
+             `  the control, and it is set through the whitelisted global call, whose last` && |\n|.
     result = result &&
+             `  argument is the ``sap.m.MessageToast.show( )`` / ``sap.m.MessageBox.<type>( )``` && |\n| &&
              `  option object 1:1 (the display method IS the box type there, and a ``t_arg``` && |\n| &&
              `  starting with a brace travels as real JSON):` && |\n| &&
              `  ``client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =` && |\n| &&
@@ -804,9 +807,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  that state for the app to copy, show, mail or render as a QR code.` && |\n| &&
              `  The matching ``cs_event`` constants for ``follow_up_action( )`` wires:` && |\n| &&
              `  ``hash_set`` / ``hash_replace`` (the same two writes as frontend actions),` && |\n| &&
-             `  ``hash_back`` (one history step back with an optional fallback hash),` && |\n| &&
-             `  ``hash_attach_changed`` (registers a backend event that fires when the hash` && |\n|.
+             `  ``hash_back`` (one history step back with an optional fallback hash),` && |\n|.
     result = result &&
+             `  ``hash_attach_changed`` (registers a backend event that fires when the hash` && |\n| &&
              `  changes under the app - Back/Forward, a manual edit; app-owned routing` && |\n| &&
              `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n| &&
              `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n| &&
@@ -825,8 +828,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  glyph of the loaded theme (``expandInlineIcons``). That is the whole set.` && |\n| &&
              `  Rounding a number, joining fields into a string or mapping a status to a` && |\n| &&
              `  ``ValueState``/icon is your app's job: compute it in ABAP and bind it` && |\n| &&
-             `  (``state="{STATUS_STATE}"``). Functions that did those things were shipped` && |\n| &&
-             `  once and removed again - the module header states the admission criteria` && |\n| &&
+             `  (``state="{STATUS_STATE}"``). The module header states the admission criteria` && |\n| &&
              `  and ``npm run check:formatter`` enforces them.` && |\n| &&
              `- **UI5 1.71 floor**: the framework supports OpenUI5 down to 1.71. Before` && |\n| &&
              `  using a control/property/aggregation, check its "available since" in the` && |\n| &&
