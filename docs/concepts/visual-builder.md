@@ -15,10 +15,15 @@ Two halves, in two places:
   does not quietly become one with every binding frozen. The result is in
   the house layout the linter checks.
 
-What neither does yet is the whole way: open a class that was **written by
-hand**, change its view by clicking, bind a control to an attribute, add an
-event - and get the same class back, with only the lines that changed
-changed.
+- **The playground's Properties sheet** - the first cut of the loop below,
+  in the View tab: the view's controls as a tree, one picked, its
+  properties in a sheet; a value changed or added there goes through the
+  same patch as an XML edit (step 2), so a value left alone keeps its ABAP.
+
+What none of them does yet is the whole way: open a class that was **written by
+hand**, change its view by clicking in the running app, bind a control to an
+attribute, add an event - and get the same class back, with only the lines
+that changed changed. Steps 1, 3, 4 and 5 below are still open.
 
 ## The first cut
 
