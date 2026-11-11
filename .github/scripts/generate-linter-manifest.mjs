@@ -38,6 +38,10 @@
  *
  *   node .github/scripts/generate-linter-manifest.mjs          write the manifest (npm run linter-manifest)
  *   node .github/scripts/generate-linter-manifest.mjs --check  fail if stale     (npm run check:linter-manifest)
+ *
+ * The readers are exported and tested by generate-linter-manifest.test.mjs
+ * (npm run check:linter-manifest-readers) - the cases the linter's own
+ * parsers were tested with before they moved here.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -51,9 +55,6 @@ const CHECK = process.argv.includes("--check");
  * changes its meaning or goes away - a new key is not a new version. */
 const SCHEMA = 1;
 
-const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
-const exists = (rel) => fs.existsSync(path.join(ROOT, rel));
-const filesIn = (rel, re) => fs.readdirSync(path.join(ROOT, rel)).filter((n) => re.test(n)).sort();
 
 /* ── where each set lives ─────────────────────────────────────────────── */
 
@@ -70,7 +71,7 @@ const XML_VIEW_CC = "src/99/z2ui5_cl_xml_view_cc.clas.abap";
 /* ── small readers ────────────────────────────────────────────────────── */
 
 /* The text between the brace at `open` and its partner. */
-function braceRegion(src, open) {
+export function braceRegion(src, open) {
   let depth = 0;
   for (let i = open; i < src.length; i++) {
     if (src[i] === "{") depth++;
@@ -86,7 +87,7 @@ const noLineComments = (text) => text.replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 /* Where `const NAME =` is DECLARED: at the start of a line. The sources
  * also name these constants in comments ("`const GLOBAL_TARGETS = {` in the
  * embedded carrier"), and a plain search would be free to land on one. */
-function declarationOf(src, name) {
+export function declarationOf(src, name) {
   const m = new RegExp(`^[ \\t]*const ${name} = `, "m").exec(src);
   return m ? m.index + m[0].length : -1;
 }
@@ -94,7 +95,7 @@ function declarationOf(src, name) {
 const quoted = (text) => [...text.matchAll(/["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
 
 /* The top-level keys of an object literal's body. */
-function objectKeys(body) {
+export function objectKeys(body) {
   const out = [];
   let depth = 0;
   const re = /([A-Za-z_$][\w$]*)\s*:|[{}]/g;
@@ -112,13 +113,13 @@ function objectKeys(body) {
 
 /* The exports of a formatter-style module: its object literal's shorthand
  * methods, which the modules write at four spaces. */
-function moduleExports(src) {
+export function moduleExports(src) {
   return [...src.matchAll(/^    (\w+)\((?:[^)]*)\)?\s*\{?/gm)]
     .map((m) => m[1])
     .filter((n) => !["function", "if", "for", "while", "return", "switch"].includes(n));
 }
 
-function boxTypes(abap) {
+export function boxTypes(abap) {
   const at = abap.search(/\bct_box_type\s*=\s*VALUE\s+#\s*\(/i);
   if (at === -1) return [];
   const open = abap.indexOf("(", abap.indexOf("#", at));
@@ -132,7 +133,7 @@ function boxTypes(abap) {
 }
 
 /* Every VALUE of `z2ui5_if_client=>cs_event` - the names an app may wire. */
-function clientEvents(intf) {
+export function clientEvents(intf) {
   const m = intf.match(/BEGIN OF cs_event\b([\s\S]*?)\bEND OF cs_event\b/i);
   if (!m) return [];
   const code = m[1].split("\n").map((line) => line.replace(/^\s*".*$/, "")).join("\n");
@@ -143,7 +144,7 @@ function clientEvents(intf) {
  * metadata literals), the module it extends (the sap.ui.define dependency
  * behind the parameter `.extend("z2ui5.cc.…")` is called on), and its
  * `// OBSOLETE: …` header where it has one. */
-function companionControl(src) {
+export function companionControl(src) {
   const propsAt = src.search(/properties\s*:\s*\{/);
   const properties = propsAt === -1 ? [] : objectKeys(braceRegion(src, src.indexOf("{", propsAt)));
   let events = [];
@@ -157,7 +158,7 @@ function companionControl(src) {
   return { properties, events, base: baseOf(src), obsolete };
 }
 
-function baseOf(src) {
+export function baseOf(src) {
   const define = src.indexOf("sap.ui.define(");
   const open = define === -1 ? -1 : src.indexOf("[", define);
   const close = open === -1 ? -1 : src.indexOf("]", open);
@@ -179,7 +180,7 @@ function baseOf(src) {
 }
 
 /* helper method -> the control its `_generic( name = … ns = `z2ui5` )` writes */
-function frozenBuilderHelpers(abap) {
+export function frozenBuilderHelpers(abap) {
   const out = {};
   for (const m of abap.matchAll(/^\s*METHOD\s+(\w+)\s*\.([\s\S]*?)^\s*ENDMETHOD\s*\./gim)) {
     const call = m[2].match(/_generic\s*\(([\s\S]*?)\)/i);
@@ -192,10 +193,10 @@ function frozenBuilderHelpers(abap) {
 }
 
 /* package -> the abapGit objects in it, from the file names under src/. */
-function objectsByPackage() {
+export function objectsByPackage(root = ROOT) {
   const out = {};
   const walk = (rel) => {
-    for (const e of fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    for (const e of fs.readdirSync(path.join(root, rel), { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1))) {
       if (e.isDirectory()) { walk(`${rel}/${e.name}`); continue; }
       if (e.name.includes(".testclasses.")) continue;
       const m = e.name.match(/^(z2ui5_\w+)\.(?:clas|intf)\.abap$/) || e.name.match(/^(z2ui5_\w+)\.(?:tabl|dtel|doma|ddls|enqu)\.xml$/);
@@ -207,7 +208,7 @@ function objectsByPackage() {
 }
 
 /* NAME: { …, methods: { a: …, b: … } } for every entry of GLOBAL_TARGETS */
-function globalTargets(js) {
+export function globalTargets(js) {
   const out = {};
   const at = declarationOf(js, "GLOBAL_TARGETS");
   if (at === -1) return out;
@@ -229,7 +230,7 @@ function globalTargets(js) {
 
 /* `const NAME = [ … ];` - the string literals of an array (a Set built from
  * one too: `new Set([ … ])`), comments dropped. */
-function stringList(js, name, terminator = "]") {
+export function stringList(js, name, terminator = "]") {
   const at = declarationOf(js, name);
   if (at === -1) return [];
   const end = js.indexOf(terminator, at);
@@ -237,7 +238,7 @@ function stringList(js, name, terminator = "]") {
 }
 
 /* the shorthand-method DEFINITIONS of BINDING_METHODS (`filter(binding, …) {`) */
-function bindingMethods(js) {
+export function bindingMethods(js) {
   const at = declarationOf(js, "BINDING_METHODS");
   if (at === -1) return [];
   const body = braceRegion(js, js.indexOf("{", at));
@@ -245,7 +246,7 @@ function bindingMethods(js) {
 }
 
 /* the keys of EVERY `const handlers = { … }` - one dispatch table per module */
-function frontendEvents(js) {
+export function frontendEvents(js) {
   const out = [];
   for (const m of js.matchAll(/^[ \t]*const handlers = \{/gm)) {
     const body = braceRegion(js, m.index + m[0].length - 1);
@@ -255,14 +256,14 @@ function frontendEvents(js) {
 }
 
 /* an object literal's UPPER_CASE keys, one per line */
-function upperKeys(js, name) {
+export function upperKeys(js, name) {
   const at = declarationOf(js, name);
   if (at === -1) return [];
   const body = braceRegion(js, js.indexOf("{", at));
   return [...body.matchAll(/^\s*([A-Z][A-Z0-9_]*)\s*:/gm)].map((m) => m[1]);
 }
 
-function urlHelperActions(js) {
+export function urlHelperActions(js) {
   const fn = /^[ \t]*function evUrlHelper\b/m.exec(js);
   if (!fn) return [];
   const body = braceRegion(js, js.indexOf("{", fn.index));
@@ -272,7 +273,7 @@ function urlHelperActions(js) {
 }
 
 /* method -> the kinds of its arguments, from CONTROL_METHODS */
-function controlMethodKinds(js) {
+export function controlMethodKinds(js) {
   const at = declarationOf(js, "CONTROL_METHODS");
   if (at === -1) return {};
   const body = braceRegion(js, js.indexOf("{", at));
@@ -281,7 +282,7 @@ function controlMethodKinds(js) {
   return out;
 }
 
-function shortcutAliases(js) {
+export function shortcutAliases(js) {
   const at = declarationOf(js, "SHORTCUT_ALIASES");
   if (at === -1) return {};
   const body = braceRegion(js, js.indexOf("{", at));
@@ -292,69 +293,87 @@ function shortcutAliases(js) {
 
 /* ── the manifest ─────────────────────────────────────────────────────── */
 
-const actions = filesIn(ACTIONS_DIR, /\.js$/).map((n) => read(`${ACTIONS_DIR}/${n}`)).join("\n");
-
-const manifest = {
-  schema: SCHEMA,
-  formatters: moduleExports(read(FORMATTER)),
-  clipboardCallbacks: exists(CLIPBOARD) ? moduleExports(read(CLIPBOARD)) : [],
-  messageBoxTypes: boxTypes(read(BOX_TYPES)),
-  clientEvents: clientEvents(read(CLIENT_INTF)),
-  companionControls: Object.fromEntries(filesIn(CC_DIR, /^\w+\.js$/).map((n) => [n.replace(/\.js$/, ""), companionControl(read(`${CC_DIR}/${n}`))])),
-  frozenBuilderHelpers: exists(XML_VIEW_CC) ? frozenBuilderHelpers(read(XML_VIEW_CC)) : null,
-  objects: objectsByPackage(),
-  globalTargets: globalTargets(actions),
-  cssProperties: stringList(actions, "CSS_PROPERTIES", "];"),
-  controlMethodDenyExact: stringList(actions, "CONTROL_METHOD_DENY_EXACT", "];"),
-  controlMethodDenyPrefixes: stringList(actions, "CONTROL_METHOD_DENY_PREFIXES", "];"),
-  bindingMethods: bindingMethods(actions),
-  frontendEvents: frontendEvents(actions),
-  filterOperators: stringList(actions, "FILTER_OPERATORS"),
-  viewSlots: stringList(actions, "SHORTCUT_SLOTS"),
-  shortcutModifiers: stringList(actions, "SHORTCUT_MODIFIERS"),
-  shortcutAliases: shortcutAliases(actions),
-  urlHelperActions: urlHelperActions(actions),
-  controlMethodKinds: controlMethodKinds(actions),
-  urlPolicies: upperKeys(actions, "URL_POLICIES"),
-};
+/** The manifest of the tree at `root` (this repository by default). */
+export function buildManifest(root = ROOT) {
+  const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
+  const exists = (rel) => fs.existsSync(path.join(root, rel));
+  const filesIn = (rel, re) => fs.readdirSync(path.join(root, rel)).filter((n) => re.test(n)).sort();
+  const actions = filesIn(ACTIONS_DIR, /\.js$/).map((n) => read(`${ACTIONS_DIR}/${n}`)).join("\n");
+  return {
+    schema: SCHEMA,
+    formatters: moduleExports(read(FORMATTER)),
+    clipboardCallbacks: exists(CLIPBOARD) ? moduleExports(read(CLIPBOARD)) : [],
+    messageBoxTypes: boxTypes(read(BOX_TYPES)),
+    clientEvents: clientEvents(read(CLIENT_INTF)),
+    companionControls: Object.fromEntries(filesIn(CC_DIR, /^\w+\.js$/).map((n) => [n.replace(/\.js$/, ""), companionControl(read(`${CC_DIR}/${n}`))])),
+    frozenBuilderHelpers: exists(XML_VIEW_CC) ? frozenBuilderHelpers(read(XML_VIEW_CC)) : null,
+    objects: objectsByPackage(root),
+    globalTargets: globalTargets(actions),
+    cssProperties: stringList(actions, "CSS_PROPERTIES", "];"),
+    controlMethodDenyExact: stringList(actions, "CONTROL_METHOD_DENY_EXACT", "];"),
+    controlMethodDenyPrefixes: stringList(actions, "CONTROL_METHOD_DENY_PREFIXES", "];"),
+    bindingMethods: bindingMethods(actions),
+    frontendEvents: frontendEvents(actions),
+    filterOperators: stringList(actions, "FILTER_OPERATORS"),
+    viewSlots: stringList(actions, "SHORTCUT_SLOTS"),
+    shortcutModifiers: stringList(actions, "SHORTCUT_MODIFIERS"),
+    shortcutAliases: shortcutAliases(actions),
+    urlHelperActions: urlHelperActions(actions),
+    controlMethodKinds: controlMethodKinds(actions),
+    urlPolicies: upperKeys(actions, "URL_POLICIES"),
+  };
+}
 
 /* The sets that may not come out empty: each exists today, and an empty one
  * means its source moved or changed shape - which is this script's to fix,
  * not something to hand the linter as "upstream has none". */
-const REQUIRED = [
+export const REQUIRED = [
   "formatters", "messageBoxTypes", "clientEvents", "companionControls", "objects", "globalTargets",
   "cssProperties", "controlMethodDenyExact", "controlMethodDenyPrefixes", "bindingMethods", "frontendEvents",
   "filterOperators", "viewSlots", "shortcutModifiers", "shortcutAliases", "urlHelperActions",
   "controlMethodKinds", "urlPolicies",
 ];
-const empty = REQUIRED.filter((key) => !Object.keys(manifest[key] ?? {}).length);
-const unreadable = Object.entries(manifest.companionControls).filter(([, cc]) => cc.base === null).map(([name]) => name);
-if (empty.length || unreadable.length) {
-  for (const key of empty) console.error(`linter-manifest: found nothing for '${key}' - its source moved or changed shape; fix the reader in .github/scripts/generate-linter-manifest.mjs`);
-  for (const name of unreadable) console.error(`linter-manifest: cannot read what ${CC_DIR}/${name}.js extends - the sap.ui.define / .extend shape changed`);
-  process.exit(1);
+
+/** What is wrong with a manifest before it may be written: the required sets
+ *  that came out empty, and the companion controls whose base is unreadable. */
+export function problemsOf(manifest) {
+  return [
+    ...REQUIRED.filter((key) => !Object.keys(manifest[key] ?? {}).length)
+      .map((key) => `found nothing for '${key}' - its source moved or changed shape; fix the reader in .github/scripts/generate-linter-manifest.mjs`),
+    ...Object.entries(manifest.companionControls ?? {}).filter(([, cc]) => cc.base === null)
+      .map(([name]) => `cannot read what ${CC_DIR}/${name}.js extends - the sap.ui.define / .extend shape changed`),
+  ];
 }
 
-const text = `${JSON.stringify(manifest, null, 2)}\n`;
-const rel = path.relative(ROOT, OUT).split(path.sep).join("/");
-
-if (CHECK) {
-  const committed = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : null;
-  if (committed === text) {
-    console.log(`linter-manifest: ${rel} matches the sources (${REQUIRED.length} sets, ${Object.keys(manifest.companionControls).length} companion controls)`);
-    process.exit(0);
+const invokedDirectly = process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const manifest = buildManifest();
+  const problems = problemsOf(manifest);
+  if (problems.length) {
+    for (const p of problems) console.error(`linter-manifest: ${p}`);
+    process.exit(1);
   }
-  console.error(`linter-manifest: ${rel} is ${committed === null ? "missing" : "stale"} - a set the linter mirrors changed.`);
-  if (committed !== null) {
-    let was = {};
-    try { was = JSON.parse(committed); } catch { /* reported as stale */ }
-    for (const key of Object.keys(manifest)) {
-      if (JSON.stringify(was[key]) !== JSON.stringify(manifest[key])) console.error(`  changed: ${key}`);
+  const text = `${JSON.stringify(manifest, null, 2)}\n`;
+  const rel = path.relative(ROOT, OUT).split(path.sep).join("/");
+
+  if (CHECK) {
+    const committed = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : null;
+    if (committed === text) {
+      console.log(`linter-manifest: ${rel} matches the sources (${REQUIRED.length} sets, ${Object.keys(manifest.companionControls).length} companion controls)`);
+      process.exit(0);
     }
+    console.error(`linter-manifest: ${rel} is ${committed === null ? "missing" : "stale"} - a set the linter mirrors changed.`);
+    if (committed !== null) {
+      let was = {};
+      try { was = JSON.parse(committed); } catch { /* reported as stale */ }
+      for (const key of Object.keys(manifest)) {
+        if (JSON.stringify(was[key]) !== JSON.stringify(manifest[key])) console.error(`  changed: ${key}`);
+      }
+    }
+    console.error("Run `npm run linter-manifest` and commit the file: the linter reads it, so the change reaches it with this pull request.");
+    process.exit(1);
   }
-  console.error("Run `npm run linter-manifest` and commit the file: the linter reads it, so the change reaches it with this pull request.");
-  process.exit(1);
-}
 
-fs.writeFileSync(OUT, text);
-console.log(`linter-manifest: wrote ${rel}`);
+  fs.writeFileSync(OUT, text);
+  console.log(`linter-manifest: wrote ${rel}`);
+}

@@ -173,6 +173,12 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/generate-linter-manifest.mjs --check # npm run check:linter-manifest
 
+      # ...and that the readers find the right thing: a reader that drops a
+      # member drops it from the manifest and from the check above alike
+      - name: the linter manifest's readers
+        if: ${{ !cancelled() }}
+        run: node .github/scripts/generate-linter-manifest.test.mjs # npm run check:linter-manifest-readers
+
       # the rules in CONVENTIONS.md that a script can decide. This repository
       # declares the organisation's conventions and broke most of them - the
       # workflow naming rule names UI5_2X as its bad example, and UI5_2X.yaml
