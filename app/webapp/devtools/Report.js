@@ -260,6 +260,32 @@ sap.ui.define(
       );
     }
 
+    // Where a copied report goes: the bug report form of the framework's
+    // repository (.github/ISSUE_TEMPLATE/bug_report.yml). An issue form
+    // takes its fields as query parameters by their id, so the one that
+    // says where the report on the clipboard belongs is filled in. The
+    // report itself does NOT travel in the URL:
+    // with the app's class source it is far beyond what a URL carries, and
+    // nothing of the session leaves the browser before the developer has
+    // read the form and pressed its submit button.
+    const ISSUE_FORM = "https://github.com/abap2UI5/abap2UI5/issues/new";
+    function issueUrl() {
+      const fields = [
+        ["template", "bug_report.yml"],
+        ["context", "Paste the copied report here (Ctrl+V / Cmd+V)."],
+      ];
+      const query = fields
+        .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+        .join("&");
+      return `${ISSUE_FORM}?${query}`;
+    }
+
+    // What copyMarkdown answers when the report IS on the clipboard - a
+    // constant, so the footer button can tell that answer from the others
+    // and open the issue form only then
+    const COPIED =
+      "Bug report copied as Markdown - paste it into the issue form on GitHub (Additional context).";
+
     // The one-click path of the dialog's "Report a Bug" footer button
     // (DeveloperTools.onReportBug): the finished issue body on the
     // clipboard, without going through the export popup first.
@@ -274,7 +300,7 @@ sap.ui.define(
         if (copied === false) {
           return "The browser did not allow the copy - press again.";
         }
-        return "Bug report copied as Markdown - paste it into a GitHub issue.";
+        return COPIED;
       } catch (e) {
         Lib.logError("DevTools Report: markdown export failed", e);
         return `Could not build the report: ${e?.message || e}`;
@@ -282,10 +308,12 @@ sap.ui.define(
     }
 
     return {
+      COPIED,
       buildExport,
       buildMarkdown,
       confirmOnButton,
       copyMarkdown,
+      issueUrl,
       redactForExport,
       downloadText,
       exportFileName,

@@ -305,7 +305,17 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        const message = await Report.copyMarkdown(this.ctx, source);` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `        const copied = message === Report.COPIED;` && |\n| &&
+             `        const data = oModel.getData();` && |\n| &&
+             `        data.issueUrl = copied ? Report.issueUrl() : "";` && |\n| &&
+             `        data.hasIssueLink = copied;` && |\n| &&
              `        this.showStatus(oModel, message);` && |\n| &&
+             `        if (!copied) return;` && |\n| &&
+             `        try {` && |\n| &&
+             `          window.open(data.issueUrl, "_blank", "noopener,noreferrer");` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("DevTools: opening the issue form failed", e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async onExport() {` && |\n| &&
@@ -414,7 +424,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          this.showStatus(oModel, "A roundtrip is running - try again.");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        const tabKey = data.selectedTab;` && |\n| &&
+             `        const tabKey = data.selectedTab;` && |\n|.
+    result = result &&
              `` && |\n| &&
              `        const before = this.backendXml(tabKey);` && |\n| &&
              `        const result = await LiveEdit.apply(this.ctx, tabKey, data.value);` && |\n| &&
@@ -424,8 +435,7 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `          original: before,` && |\n| &&
              `` && |\n| &&
              `          applied: Tabs.render(this.ctx, tabKey),` && |\n| &&
-             `        };` && |\n|.
-    result = result &&
+             `        };` && |\n| &&
              `        this.showStatus(oModel, result);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -522,6 +532,8 @@ CLASS z2ui5_cl_ui5f_dtools_js IMPLEMENTATION.
              `            templatingSource: false,` && |\n| &&
              `            statusText: "",` && |\n| &&
              `            hasStatusText: false,` && |\n| &&
+             `            issueUrl: "",` && |\n| &&
+             `            hasIssueLink: false,` && |\n| &&
              `` && |\n| &&
              `            problemCount: this.problemCount(),` && |\n| &&
              `            recordPayloads: Recorder.isRecordingPayloads(),` && |\n| &&

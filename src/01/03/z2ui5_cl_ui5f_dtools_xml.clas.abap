@@ -249,6 +249,17 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `                visible="{/hasStatusText}"` &&
              `                class="sapUiTinyMarginBottom"` &&
              `            />` &&
+             `            <!-- Report a Bug opens the issue form itself; this is the same` &&
+             `                 address for a browser that refused the new tab. It stays` &&
+             `                 after the status line has gone - the report is still on` &&
+             `                 the clipboard then. -->` &&
+             `            <Link` &&
+             `                text="Open the bug report form on GitHub"` &&
+             `                href="{/issueUrl}"` &&
+             `                target="_blank"` &&
+             `                visible="{/hasIssueLink}"` &&
+             `                class="sapUiTinyMarginBottom"` &&
+             `            />` &&
              `            <!-- A definite height from the viewport, not a percentage: the` &&
              `                 editor sits in a VBox whose height is its content, so a` &&
              `                 percentage resolves to nothing and ACE renders zero rows -` &&
@@ -304,7 +315,7 @@ CLASS z2ui5_cl_ui5f_dtools_xml IMPLEMENTATION.
              `            <Button` &&
              `                text="Report a Bug"` &&
              `                type="Emphasized"` &&
-             `                tooltip="Copy the whole session state as a GitHub issue body"` &&
+             `                tooltip="Copy the whole session state as a GitHub issue body and open the bug report form"` &&
              `                press=".onReportBug"` &&
              `            />` &&
              `            <Button` &&
