@@ -63,13 +63,13 @@
  * config, and the proxy variables where there is a proxy. Nothing else it
  * cannot ask for is anything it should have.
  *
- * THE OTHER HALF. generate-linter-manifest.mjs writes the same sets down
- * from their sources here (`.github/shared/linter-manifest.json`), and the
- * linter reads that file once it is on main. This gate stays for as long as
- * the linter also carries its parsers: it is what compares the linter's own
- * reading of the tree with the tree, and so what would notice the two
- * readings parting.
- *
+ * THE MANIFEST. generate-linter-manifest.mjs writes the same sets down from
+ * their sources here (`.github/shared/linter-manifest.json`), and
+ * check-upstream reads only that file from the linter's main on (#3001):
+ * `--local <this tree>` compares the linter's copies with THIS checkout's
+ * manifest, which check:linter-manifest keeps equal to the sources. An
+ * installed release from before then still parses the sources itself; both
+ * answer the same question, and this gate needs no change for either. *
  *   node .github/scripts/linter-mirror-gate.mjs     (npm run check:mirrors)
  */
 import fs from 'fs';
