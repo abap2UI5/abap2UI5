@@ -742,6 +742,29 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH EMPTY KEY.
 
+    " the system fields the framework reads, in the types SYST gives them
+    TYPES:
+      BEGIN OF ty_s_sy,
+        datum TYPE d,
+        uzeit TYPE t,
+        uname TYPE c LENGTH 12,
+        sysid TYPE c LENGTH 8,
+        saprl TYPE c LENGTH 4,
+      END OF ty_s_sy.
+
+    " THE one place that reads a system field for its VALUE - date, time,
+    " user, system id, release. Every other class asks here
+    " (sy_get( )-uname), for two reasons: ABAP for Cloud Development reports
+    " the old system fields on every statement that names one ("The old
+    " variant of SY-DATUM should not be used ..."), so one reader is one
+    " finding per field instead of one per use; and the day one of them
+    " has to come from another API, it changes here and nowhere else.
+    " Not meant: sy-subrc, sy-tabix and sy-index - those are the result of
+    " the statement before them and have to be read where it stands
+    CLASS-METHODS sy_get
+      RETURNING
+        VALUE(result) TYPE ty_s_sy.
+
     CLASS-METHODS check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -2265,7 +2288,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " not an ABAP exception, so the TRY below cannot intercept it and the
     " renderer would take the request down instead of reporting it. sy-saprl
     " is `OPEN` on that runtime and a real release everywhere else.
-    IF sy-saprl = `OPEN`.
+    IF sy_get( )-saprl = `OPEN`.
       RETURN.
     ENDIF.
 
@@ -3405,6 +3428,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       CATCH cx_root.
         result = abap_false.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD sy_get.
+
+    result-datum = sy-datum.
+    result-uzeit = sy-uzeit.
+    result-uname = sy-uname.
+    result-sysid = sy-sysid.
+    result-saprl = sy-saprl.
 
   ENDMETHOD.
 

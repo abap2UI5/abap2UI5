@@ -42,10 +42,10 @@ const GRACE_UNTIL = [1, 149];
 // check_exists( ) and count_entries( ), and the write-side collision guard
 // in create( ) - one anchor each, spelled exactly as the source does
 const MARKERS = [
-  "result-uname IS NOT INITIAL AND result-uname <> sy-uname",
-  "ls_row-uname IS INITIAL OR ls_row-uname = sy-uname",
-  "uname = @sy-uname OR uname = @space",
-  "lv_owner IS NOT INITIAL AND lv_owner <> sy-uname",
+  "result-uname IS NOT INITIAL AND result-uname <> lv_uname",
+  "ls_row-uname IS INITIAL OR ls_row-uname = lv_uname",
+  "uname = @lv_uname OR uname = @space",
+  "lv_owner IS NOT INITIAL AND lv_owner <> lv_uname",
 ];
 
 const version = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version;

@@ -11,6 +11,10 @@ Legend
 
 unreleased
 ----------
+! developer tools: the footer button Copy is called Copy View - it copies the view that is shown, not the report - and the export dialog has one Copy instead of Copy as Markdown and Copy as Text; the Markdown form is what Report a Bug puts on the clipboard
+! developer tools: Report a Bug opens the bug report form of the abap2UI5 repository in a new tab after it has copied the report - paste it into Additional context; a link under the action bar leads to the same form when the browser refused the tab, and nothing of the session travels in the URL
+* the start page names an empty icon, so the browser no longer asks the host for /favicon.ico - a 404, or a 403 in ABAP Cloud, in the console of every start; cs_event-set_favicon replaces it as before
+! the system fields the framework reads for their value (date, time, user, system id, release) are read in one place, z2ui5_cl_ui5_util_context=>sy_get( ) - ABAP for Cloud Development reports the old system fields on every statement that names one, so the extended check now shows one finding per field instead of one per use; no behaviour change
 * developer tools: the view XML is indented by a walk over the parsed document instead of XSLTProcessor, which every browser has deprecated (Chrome logs a [Deprecation] warning on every page that opens the tools) - once the API is gone the tools would have shown every view as one unformatted line; the output stays valid XML for "Apply to App", and malformed XML is shown as it came
 * set_focus: the selection is applied to a text field that is no sap.m.InputBase as well - a sap.m.SearchField restored its own cursor position instead, so the caret of a search field the view rebuilt jumped to the front after every search
 ! ABAP Cloud: the default bootstrap is https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js (SAPUI5) instead of the OpenUI5 CDN - the platform sends a Content-Security-Policy header of its own whose script-src trusts the SAP hosts only, so sdk.openui5.org was refused and a default installation showed a blank page; every other system keeps sdk.openui5.org, and an exit that sets src is not touched
