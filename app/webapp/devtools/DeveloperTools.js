@@ -413,7 +413,13 @@ sap.ui.define(
       },
 
       // The most common reason these tools are opened: the whole session
-      // state as a GitHub issue body, on the clipboard, in one press.
+      // state as a GitHub issue body, on the clipboard, in one press - and
+      // the bug report form of the repository in a new tab, where it is
+      // pasted. The tab opens AFTER the copy, never before: a page that has
+      // lost the focus to a new tab may no longer write the clipboard. A
+      // browser that refuses a window after the awaits above (Safari wants
+      // it inside the press itself) leaves the link under the action bar,
+      // which is the same address behind a press of its own.
       // The copy happens inside the press when the class source is already
       // in hand (the source view and an earlier press warm it): after an
       // await on the network the browser may refuse the clipboard, and the
@@ -425,7 +431,17 @@ sap.ui.define(
         if (Lib.isDestroyed(this)) return;
         const message = await Report.copyMarkdown(this.ctx, source);
         if (Lib.isDestroyed(this)) return;
+        const copied = message === Report.COPIED;
+        const data = oModel.getData();
+        data.issueUrl = copied ? Report.issueUrl() : "";
+        data.hasIssueLink = copied;
         this.showStatus(oModel, message);
+        if (!copied) return;
+        try {
+          window.open(data.issueUrl, "_blank", "noopener,noreferrer");
+        } catch (e) {
+          Lib.logError("DevTools: opening the issue form failed", e);
+        }
       },
 
       async onExport() {
@@ -732,6 +748,8 @@ sap.ui.define(
             templatingSource: false,
             statusText: "",
             hasStatusText: false,
+            issueUrl: "",
+            hasIssueLink: false,
             // The count badge on the Problems tab: the reason to look
             // there at all, visible without opening it.
             problemCount: this.problemCount(),

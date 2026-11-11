@@ -174,16 +174,9 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `` && |\n| &&
              `            buttons: [` && |\n| &&
              `              new Button({` && |\n| &&
-             `                text: "Copy as Markdown",` && |\n| &&
+             `                text: "Copy",` && |\n| &&
              `                type: "Emphasized",` && |\n| &&
              `` && |\n| &&
-             `                press: (oEvent) => {` && |\n| &&
-             `                  copyMarkdown(ctx, abapSource, text);` && |\n| &&
-             `                  confirmOnButton(oEvent.getSource());` && |\n| &&
-             `                },` && |\n| &&
-             `              }),` && |\n| &&
-             `              new Button({` && |\n| &&
-             `                text: "Copy as Text",` && |\n| &&
              `                press: (oEvent) => {` && |\n| &&
              `                  Lib.copyToClipboard(text);` && |\n| &&
              `                  confirmOnButton(oEvent.getSource());` && |\n| &&
@@ -215,15 +208,30 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    async function copyMarkdown(ctx, abapSource, plain) {` && |\n| &&
+             `    const ISSUE_FORM = "https://github.com/abap2UI5/abap2UI5/issues/new";` && |\n| &&
+             `    function issueUrl() {` && |\n| &&
+             `      const fields = [` && |\n| &&
+             `        ["template", "bug_report.yml"],` && |\n| &&
+             `        ["context", "Paste the copied report here (Ctrl+V / Cmd+V)."],` && |\n| &&
+             `      ];` && |\n| &&
+             `      const query = fields` && |\n| &&
+             `        .map(([key, value]) => ``${key}=${encodeURIComponent(value)}``)` && |\n| &&
+             `        .join("&");` && |\n| &&
+             `      return ``${ISSUE_FORM}?${query}``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    const COPIED =` && |\n| &&
+             `      "Bug report copied as Markdown - paste it into the issue form on GitHub (Additional context).";` && |\n| &&
+             `` && |\n| &&
+             `    async function copyMarkdown(ctx, abapSource) {` && |\n| &&
              `      try {` && |\n| &&
              `        const copied = await Lib.copyToClipboard(` && |\n| &&
-             `          buildMarkdown(ctx, abapSource, plain),` && |\n| &&
+             `          buildMarkdown(ctx, abapSource),` && |\n| &&
              `        );` && |\n| &&
              `        if (copied === false) {` && |\n| &&
              `          return "The browser did not allow the copy - press again.";` && |\n| &&
              `        }` && |\n| &&
-             `        return "Bug report copied as Markdown - paste it into a GitHub issue.";` && |\n| &&
+             `        return COPIED;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("DevTools Report: markdown export failed", e);` && |\n| &&
              `        return ``Could not build the report: ${e?.message || e}``;` && |\n| &&
@@ -231,10 +239,12 @@ CLASS z2ui5_cl_ui5f_report_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
+             `      COPIED,` && |\n| &&
              `      buildExport,` && |\n| &&
              `      buildMarkdown,` && |\n| &&
              `      confirmOnButton,` && |\n| &&
              `      copyMarkdown,` && |\n| &&
+             `      issueUrl,` && |\n| &&
              `      redactForExport,` && |\n| &&
              `      downloadText,` && |\n| &&
              `      exportFileName,` && |\n| &&

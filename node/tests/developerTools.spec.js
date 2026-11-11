@@ -17,9 +17,9 @@ const { fakeDocument } = require("./fakeDocument");
 // (devtoolsReport.spec.js), the ABAP class in AbapSource.js
 // (devtoolsAbapSource.spec.js).
 //
-// The browser XML APIs used at module scope are stubbed minimally;
-// prettifyXml degrades to the identity function with these stubs, which is
-// exactly its documented fallback behavior.
+// The browser's DOMParser is stubbed minimally: it parses to a document
+// without a documentElement, so prettifyXml degrades to the identity
+// function, which is exactly its documented fallback behavior.
 //
 // The dialog shows the state of ONE component context (core/Context.js),
 // carried as `ctx` on the instance the way DevTools.get( ) hands it over;
@@ -160,22 +160,9 @@ function loadDeveloperTools({
       ...extraDeps,
     },
     sandbox: {
-      XMLSerializer: class {
-        serializeToString() {
-          return "";
-        }
-      },
       DOMParser: class {
         parseFromString() {
           return {};
-        }
-      },
-      // transformToDocument returning a falsy document makes prettifyXml
-      // return its input unchanged.
-      XSLTProcessor: class {
-        importStylesheet() {}
-        transformToDocument() {
-          return null;
         }
       },
       URLSearchParams,
@@ -1004,6 +991,35 @@ test.describe("Report a Bug", () => {
     expect(copied.length).toBe(1);
     expect(copied[0]).toContain("## abap2UI5 - Developer Tools export");
     expect(data.statusText).toContain("Markdown");
+    // the bug report form of the repository, as the link under the action
+    // bar - the fallback for a browser that refused the new tab
+    expect(data.hasIssueLink).toBe(true);
+    expect(data.issueUrl).toContain(
+      "https://github.com/abap2UI5/abap2UI5/issues/new?template=bug_report.yml",
+    );
+    DeveloperTools.exit();
+  });
+
+  // a report that is NOT on the clipboard must not send the developer to an
+  // issue form with nothing to paste
+  test("a refused copy opens no issue form and shows no link", async () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: {} },
+      extraDeps: {
+        "z2ui5/core/Lib": {
+          isDestroyed: () => false,
+          logError() {},
+          copyToClipboard: () => Promise.resolve(false),
+        },
+      },
+    });
+    const { model, data } = fakeModel();
+    await DeveloperTools.onReportBug({
+      getSource: () => ({ getModel: () => model }),
+    });
+    expect(data.statusText).toContain("press again");
+    expect(data.hasIssueLink).toBe(false);
+    expect(data.issueUrl).toBe("");
     DeveloperTools.exit();
   });
 });

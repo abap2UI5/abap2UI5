@@ -1479,40 +1479,31 @@ break one of those four.
   `z2ui5_cl_pop_table` had to derive the label from `absolute_name` plus a
   context helper instead (`bc230abe`). Framework code reaches system
   functionality only through `z2ui5_cl_ui5_util_context` for exactly this reason.
-- **What the downport cannot rewrite - written 7.02-ready in the source.**
-  Giving 15 addons a `702` branch (2026-11-02, a publish-702 workflow in each) turned up
-  constructs `abaplint --fix` leaves unchanged or writes wrong, each reproduced
-  in one class on 2.120.92. Write them the 7.02 way where a source is
-  downported: a cast in a TRY instead of `IS INSTANCE OF` (one of these blocks
-  the whole class, `Expected ENDMETHOD`); an `ORDER BY`, or INTO and `UP TO`
-  ahead of WHERE, in a SELECT that has a WHERE and `UP TO` (the dynamic form
-  blocks the whole class too, without any message); `SELECT SINGLE * FROM` instead of `SELECT SINGLE FROM ...
-  FIELDS *`; a row loop instead of `MOVE-CORRESPONDING`/`CORRESPONDING #( )`
-  between tables; an assignment plus CLEAR instead of `CORRESPONDING #( ...
-  EXCEPT )`; READ TABLE ... ASSIGNING instead of `CLEAR itab[ ... ]-comp`;
-  `WITH DEFAULT KEY` in a dynamic `CREATE DATA`; a declared work area instead
-  of `INSERT dbtab FROM @( VALUE #( ... ) )` (the output looks downported and
-  does not compile); no `@` on cursor statements; and an explicit declaration
-  where an inline one has a void type - the downport rule reports nothing
-  there, and v702 `check_syntax` only says `"DATA" not found`. Two more change the
-  code without a word (found transpiling the addons, 2026-11-03): a table
-  expression behind a guard in an `AND`/`OR` chain (`IF n > 0 AND itab[ n ]
-  = x`) is read before the IF, guard or not - write `VALUE #( itab[ n ]
-  OPTIONAL )` or a nested IF; and `CONV #( )` at a generic parameter (`TYPE
-  clike`) is declared `TYPE undefined` - write `CONV string( )`. The cast for
-  `CX_SY_ITAB_LINE_NOT_FOUND` the `syfixes` script patches is upstream already
-  (abaplint/abaplint#3735, #3240), and `syfixes` only runs when the `--fix` call
-  before it may fail: `(abaplint --fix ... || true) && npm run syfixes`.
-  Fixed in abaplint main after 2.120.92: `IS INSTANCE OF`
-  (abaplint/abaplint#4507), `FROM @( VALUE #( ... ) )` (#4508), WHERE with
-  `UP TO` (#4509), the guarded table expression (#4512), `SELECT SINGLE FROM
-  ... FIELDS` (#4516), the void inline declaration (#4517), `CREATE DATA ...
-  WITH EMPTY KEY` (#4519), the cursor `@` (#4520) and MOVE-CORRESPONDING
-  between tables (#4515); the other three are filed (#4513, #4514, #4518).
-  Keep writing all of them the 7.02 way until the pinned `@abaplint/cli` is a
-  release that has the fix.
-
-**Backlog:** abaplint · abaplint-downport-corresponding-except, abaplint-downport-clear-table-expression, abaplint-downport-conv-generic-parameter
+- **What the downport rewrites since 2.120.99 - and where it still stops.**
+  Giving 15 addons a `702` branch (2026-11-02) turned up twelve constructs
+  `abaplint --fix` left unchanged, wrote wrong, or changed in meaning; all
+  twelve are fixed upstream (abaplint/abaplint#4507-#4509, #4512-#4520) and
+  in every `@abaplint/cli` from 2.120.99: `IS INSTANCE OF`, WHERE with
+  `UP TO`, `SELECT SINGLE FROM ... FIELDS`, `MOVE-CORRESPONDING` /
+  `CORRESPONDING #( )` between tables, `CORRESPONDING #( ... EXCEPT )`,
+  `CLEAR itab[ ... ]-comp`, `CREATE DATA ... WITH EMPTY KEY`,
+  `INSERT dbtab FROM @( VALUE #( ... ) )`, `@` on cursor statements, an
+  inline READ TABLE target of a void type, a table expression behind a guard
+  in an IF's `AND`/`OR` chain, and `CONV #( )` at a generic parameter. Each
+  fix is scoped, and outside the scope the old form is still the safe one:
+  `CASE TYPE OF` (only IF/ELSEIF/CHECK get the cast); a guarded table
+  expression in `ELSEIF`, `WHILE`, `COND`/`SWITCH` (read before the
+  statement, guard or not - write `VALUE #( itab[ n ] OPTIONAL )` or a
+  nested IF); `EXCEPT` on tables or with `BASE`/`MAPPING`;
+  `MOVE-CORRESPONDING` into a sorted or hashed table or `EXPANDING NESTED
+  TABLES`; `CONV #( )` at a `c`/`n`/`x`/`p` parameter; and an inline
+  declaration of a void type that is no READ TABLE target - the downport
+  now reports it ("Cannot downport, ... is void") instead of staying silent.
+  A repository that pins an older `@abaplint/cli` still needs the 7.02 form
+  for all twelve. The cast for `CX_SY_ITAB_LINE_NOT_FOUND` the `syfixes`
+  script patches is upstream already (abaplint/abaplint#3735, #3240), and
+  `syfixes` only runs when the `--fix` call before it may fail:
+  `(abaplint --fix ... || true) && npm run syfixes`.
 
 ## 5. Runtime — green here, wrong there
 
@@ -1875,24 +1866,27 @@ fix.
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
-- A CATCH of a subclass after the CATCH of its superclass in the same TRY.
-- `RAISE EXCEPTION … MESSAGE` for a class without IF_T100_MESSAGE.
+`check_syntax` reports these since 2.120.101/102 (each checked on an S/4HANA
+system, 2026-11-10): a write to a key component of a sorted or hashed line
+through a field symbol or REFERENCE INTO (abaplint/abaplint#4521, the
+CHANGING form is section 5's); a CATCH of a subclass after the CATCH of its
+superclass (#4543); `RAISE EXCEPTION … MESSAGE` for a class without
+IF_T100_MESSAGE / IF_T100_DYN_MSG (#4548); an offset or length on a numeric
+field, `i`, `int8`, `p`, `f`, `decfloat` - "Field type "I" does not permit
+substrings to be accessed" (#4544; a length without offset that covers a
+whole `p` field stays allowed); `DATA(x) = lv_date - lv_start` typed as a
+number, not a date, so `x+6(2)` is caught too (#4546); and `LOOP … USING
+KEY` a sorted secondary key whose WHERE does not compare the first key
+component with `=` joined by AND (#4549). Still open:
+
 - `RAISE EXCEPTION` or `THROW` in a method or function module that declares
-  classic `EXCEPTIONS` - even for a CX_NO_CHECK; raise it in a method of its
-  own, from which it passes through.
-- An offset or length on a numeric variable (`lv_int+1(2)`) - only
-  character-like and byte-like data take one. It comes in disguised as date
-  arithmetic declared inline: `DATA(x) = lv_date + 31.` is a number, not a
-  date, so `x+6(2)` does not activate (abaplint types some of these as `d`).
-- A write to a key component of a sorted or hashed line through a field
-  symbol (`<line>-key = …` after LOOP/READ … ASSIGNING) — the CHANGING form is
-  section 5's.
-- `LOOP … USING KEY` a sorted secondary key with a key component under OR or
-  CP in the WHERE.
+  classic `EXCEPTIONS` - even for a CX_NO_CHECK ("Old exceptions and
+  class-based exceptions cannot be used at the same time"); raise it in a
+  method of its own, from which it passes through.
 - An SAP API or addition the configured release does not have; GET REFERENCE
   under the Cloud language version.
 
-**Backlog:** abaplint · abaplint-syntax-catch-order, abaplint-syntax-raise-message-t100, abaplint-syntax-raise-in-classic-procedure, abaplint-syntax-offset-on-numeric, abaplint-inline-date-arithmetic-type, abaplint-syntax-sorted-key-write, abaplint-syntax-secondary-key-where, abaplint-release-api-availability
+**Backlog:** abaplint · abaplint-syntax-raise-in-classic-procedure, abaplint-release-api-availability
 
 ### Security
 

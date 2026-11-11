@@ -77,20 +77,9 @@ function loadReport({
       },
     },
     sandbox: {
-      XMLSerializer: class {
-        serializeToString() {
-          return "";
-        }
-      },
       DOMParser: class {
         parseFromString() {
           return {};
-        }
-      },
-      XSLTProcessor: class {
-        importStylesheet() {}
-        transformToDocument() {
-          return null;
         }
       },
     },
@@ -213,6 +202,19 @@ test.describe("buildMarkdown", () => {
     const md = Report.buildMarkdown(ctx, "CLASS zcl_demo DEFINITION.");
     expect(md).toContain("<summary>ABAP SOURCE</summary>");
     expect(md).toContain("```abap");
+  });
+});
+
+test.describe("issueUrl", () => {
+  // the report does not travel in the URL - only the form and the hint
+  // where the clipboard goes
+  test("names the bug report form and where the report is pasted", () => {
+    const { Report } = loadReport();
+    const url = Report.issueUrl();
+    expect(url).toContain("https://github.com/abap2UI5/abap2UI5/issues/new?");
+    expect(url).toContain("template=bug_report.yml");
+    expect(url).toContain("context=Paste%20the%20copied%20report%20here");
+    expect(url.length).toBeLessThan(400);
   });
 });
 

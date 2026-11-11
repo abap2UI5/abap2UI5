@@ -853,6 +853,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
                   lv_preconnect &&
                   |<title>abap2UI5</title>\n| &&
+                  " an empty icon: a page that names none makes the browser ask the
+                  " host for /favicon.ico, which this node cannot serve - a 404 or,
+                  " in ABAP Cloud, a 403 in the console of every start. An app
+                  " sets its own with cs_event-set_favicon, which reuses this link
+                  |<link rel="icon" href="data:,">\n| &&
                   | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
                   |            height: 100%;\n| &&
                   |        \}</style> \n| &&

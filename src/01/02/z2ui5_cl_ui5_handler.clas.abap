@@ -1676,7 +1676,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD monitor_request_info.
 
-    result-uname = sy-uname.
+    result-uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
 
     " the same guards as request_context_info: the request may have died
     " before any of this existed, and before THIS body was parsed a sticky
