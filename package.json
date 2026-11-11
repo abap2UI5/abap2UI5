@@ -27,6 +27,8 @@
     "check:toolchain": "node .github/scripts/toolchain-gate.mjs",
     "check:shared": "node .github/scripts/shared-file-gate.mjs",
     "check:mirrors": "node .github/scripts/linter-mirror-gate.mjs",
+    "linter-manifest": "node .github/scripts/generate-linter-manifest.mjs",
+    "check:linter-manifest": "node .github/scripts/generate-linter-manifest.mjs --check",
     "check:samples-md": "node .github/scripts/samples-md-gate.mjs",
     "check:changelog": "node .github/scripts/changelog-gate.mjs",
     "check:changelog-entry": "node .github/scripts/changelog-entry-gate.mjs",

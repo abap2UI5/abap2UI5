@@ -1,0 +1,781 @@
+{
+  "schema": 1,
+  "formatters": [
+    "DateCreateObject",
+    "DateAbapDateToDateObject",
+    "DateAbapDateTimeToDateObject",
+    "expandInlineIcons"
+  ],
+  "clipboardCallbacks": [
+    "extractData"
+  ],
+  "messageBoxTypes": [
+    "show",
+    "alert",
+    "confirm",
+    "information",
+    "warning",
+    "error",
+    "success"
+  ],
+  "clientEvents": [
+    "POPUP_CLOSE",
+    "POPOVER_CLOSE",
+    "CROSS_APP_NAV_TO_EXT",
+    "CROSS_APP_NAV_TO_PREV_APP",
+    "SET_SIZE_LIMIT",
+    "SET_ODATA_MODEL",
+    "CLIPBOARD_COPY",
+    "SET_TITLE",
+    "SET_TITLE_LAUNCHPAD",
+    "SET_FAVICON",
+    "SET_FOCUS",
+    "SCROLL_TO",
+    "SCROLL_INTO_VIEW",
+    "START_TIMER",
+    "SYSTEM_LOGOUT",
+    "KEYBOARD_SHORTCUT",
+    "OPEN_NEW_TAB",
+    "LOCATION_RELOAD",
+    "DOWNLOAD_B64_FILE",
+    "URLHELPER",
+    "STORE_DATA",
+    "PLAY_AUDIO",
+    "SMART_VARIANT_INIT",
+    "FILTER_BAR_VARIANT_INIT",
+    "CONTROL_BY_ID",
+    "CONTROL_GLOBAL",
+    "BINDING_CALL",
+    "BIND_ELEMENT",
+    "SET_PUSH_STATE",
+    "HASH_REPLACE",
+    "HASH_BACK",
+    "HASH_ATTACH_CHANGED",
+    "SET_NAV_ROUTING",
+    "SET_APP_STATE_ACTIVE",
+    "OFFLINE_QUEUE",
+    "CROSS_APP_NAV_GET_LINKS",
+    "SET_APP_FULL_WIDTH"
+  ],
+  "companionControls": {
+    "CameraPicture": {
+      "properties": [
+        "value",
+        "thumbnail",
+        "width",
+        "height",
+        "autoplay",
+        "facingMode",
+        "deviceId"
+      ],
+      "events": [
+        "OnPhoto",
+        "press"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "CameraSelector": {
+      "properties": [],
+      "events": [],
+      "base": "sap/m/ComboBox",
+      "obsolete": null
+    },
+    "Dirty": {
+      "properties": [
+        "isDirty"
+      ],
+      "events": [],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "ExcelBridge": {
+      "properties": [
+        "rows",
+        "columns",
+        "numberFormats",
+        "target",
+        "sheetName",
+        "asTable",
+        "header",
+        "maxCells",
+        "selection",
+        "selectionAddress",
+        "readText",
+        "selectionChange",
+        "available"
+      ],
+      "events": [
+        "OnWritten",
+        "OnRead",
+        "OnSelectionChange",
+        "OnError"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "FileUploader": {
+      "properties": [
+        "value",
+        "path",
+        "fileType",
+        "placeholder",
+        "buttonText",
+        "style",
+        "uploadButtonText",
+        "enabled",
+        "icon",
+        "iconOnly",
+        "buttonOnly",
+        "multiple",
+        "checkDirectUpload",
+        "maximumFileSize"
+      ],
+      "events": [
+        "fileSizeExceed",
+        "upload"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "Geolocation": {
+      "properties": [
+        "longitude",
+        "latitude",
+        "altitude",
+        "accuracy",
+        "altitudeAccuracy",
+        "speed",
+        "heading",
+        "enableHighAccuracy",
+        "timeout"
+      ],
+      "events": [
+        "finished",
+        "error"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "HTMLFrame": {
+      "properties": [
+        "content",
+        "width",
+        "height",
+        "title"
+      ],
+      "events": [
+        "sapevent"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "InputExt": {
+      "properties": [
+        "inputMode"
+      ],
+      "events": [],
+      "base": "sap/m/Input",
+      "obsolete": null
+    },
+    "MessageManager": {
+      "properties": [
+        "items",
+        "checkInit"
+      ],
+      "events": [
+        "change"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "MultiInputExt": {
+      "properties": [
+        "MultiInputId",
+        "MultiInputName",
+        "addedTokens",
+        "checkInit",
+        "removedTokens",
+        "TokenKeyCell",
+        "TokenTextCells"
+      ],
+      "events": [
+        "change"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "NativeBridgeScan": {
+      "properties": [
+        "value",
+        "text",
+        "icon",
+        "enabled",
+        "showInBrowser"
+      ],
+      "events": [
+        "OnScan",
+        "OnError"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "SmartMultiInputExt": {
+      "properties": [
+        "multiInputId",
+        "addedTokens",
+        "removedTokens",
+        "rangeData",
+        "checkInit"
+      ],
+      "events": [
+        "change"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "Storage": {
+      "properties": [
+        "type",
+        "prefix",
+        "key",
+        "value"
+      ],
+      "events": [
+        "finished"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "Tree": {
+      "properties": [
+        "tree_id"
+      ],
+      "events": [],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "UITableExt": {
+      "properties": [
+        "tableId"
+      ],
+      "events": [],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "UploadSetExt": {
+      "properties": [
+        "uploadSetId",
+        "fileData",
+        "fileName",
+        "mediaType",
+        "fileSize",
+        "removedFileName",
+        "checkInit"
+      ],
+      "events": [
+        "change",
+        "remove"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    },
+    "Websocket": {
+      "properties": [
+        "path",
+        "value",
+        "checkActive",
+        "checkRepeat"
+      ],
+      "events": [
+        "received",
+        "error"
+      ],
+      "base": "sap/ui/core/Control",
+      "obsolete": null
+    }
+  },
+  "frozenBuilderHelpers": {
+    "bwip_js": "bwipjs",
+    "camera_picture": "CameraPicture",
+    "camera_selector": "CameraSelector",
+    "chartjs": "chartjs",
+    "favicon": "Favicon",
+    "file_uploader": "FileUploader",
+    "focus": "Focus",
+    "geolocation": "Geolocation",
+    "storage": "Storage",
+    "history": "History",
+    "info_frontend": "Info",
+    "message_manager": "MessageManager",
+    "messaging": "Messaging",
+    "multiinput_ext": "MultiInputExt",
+    "uploadset_ext": "UploadSetExt",
+    "tree": "Tree",
+    "scrolling": "Scrolling",
+    "spreadsheet_export": "ExportSpreadsheet",
+    "timer": "Timer",
+    "binding_update": "BindingUpdate",
+    "websocket": "Websocket",
+    "lp_title": "LPTitle",
+    "title": "Title",
+    "dirty": "Dirty",
+    "uitableext": "UITableExt",
+    "smartmultiinput_ext": "SmartMultiInputExt"
+  },
+  "objects": {
+    "src/00/01": [
+      "z2ui5_cl_ajson",
+      "z2ui5_cl_ajson_filter_lib",
+      "z2ui5_cl_ajson_mapping",
+      "z2ui5_cl_ajson_refinitlib",
+      "z2ui5_cl_ajson_utilities",
+      "z2ui5_cx_ajson_error",
+      "z2ui5_if_ajson",
+      "z2ui5_if_ajson_filter",
+      "z2ui5_if_ajson_iterator",
+      "z2ui5_if_ajson_mapping",
+      "z2ui5_if_ajson_refinit",
+      "z2ui5_if_ajson_types"
+    ],
+    "src/00/02": [
+      "z2ui5_cl_srt_aunit",
+      "z2ui5_cl_srt_classdescr",
+      "z2ui5_cl_srt_complexdescr",
+      "z2ui5_cl_srt_datadescr",
+      "z2ui5_cl_srt_elemdescr",
+      "z2ui5_cl_srt_intfdescr",
+      "z2ui5_cl_srt_objectdescr",
+      "z2ui5_cl_srt_refdescr",
+      "z2ui5_cl_srt_structdescr",
+      "z2ui5_cl_srt_tabledescr",
+      "z2ui5_cl_srt_typedescr",
+      "z2ui5_cx_srt"
+    ],
+    "src/00/03": [
+      "z2ui5_cl_ui5_util_context",
+      "z2ui5_cl_ui5_util_http",
+      "z2ui5_cl_ui5_util_json_fl",
+      "z2ui5_cx_ui5_util_error"
+    ],
+    "src/01/01": [
+      "z2ui5_cl_ui5_srv_draft",
+      "z2ui5_if_ui5_draft_store",
+      "z2ui5_t_01"
+    ],
+    "src/01/02": [
+      "z2ui5_cl_ui5_action",
+      "z2ui5_cl_ui5_app_cont",
+      "z2ui5_cl_ui5_client",
+      "z2ui5_cl_ui5_frontend",
+      "z2ui5_cl_ui5_handler",
+      "z2ui5_cl_ui5_serializer",
+      "z2ui5_cl_ui5_srv_bind",
+      "z2ui5_cl_ui5_srv_event",
+      "z2ui5_cl_ui5_srv_message",
+      "z2ui5_cl_ui5_srv_model",
+      "z2ui5_cl_ui5_srv_monitor",
+      "z2ui5_cl_ui5_srv_window",
+      "z2ui5_if_ui5_serializer",
+      "z2ui5_if_ui5_types"
+    ],
+    "src/01/03": [
+      "z2ui5_cl_ui5f_abapsrc_js",
+      "z2ui5_cl_ui5f_app_js",
+      "z2ui5_cl_ui5f_app_xml",
+      "z2ui5_cl_ui5f_appstate_js",
+      "z2ui5_cl_ui5f_bindcall_js",
+      "z2ui5_cl_ui5f_bindings_js",
+      "z2ui5_cl_ui5f_browser_js",
+      "z2ui5_cl_ui5f_campic_js",
+      "z2ui5_cl_ui5f_camsel_js",
+      "z2ui5_cl_ui5f_clipbrd_js",
+      "z2ui5_cl_ui5f_comp_js",
+      "z2ui5_cl_ui5f_console_js",
+      "z2ui5_cl_ui5f_context_js",
+      "z2ui5_cl_ui5f_ctrlcall_js",
+      "z2ui5_cl_ui5f_devtools_js",
+      "z2ui5_cl_ui5f_diff_js",
+      "z2ui5_cl_ui5f_dirty_js",
+      "z2ui5_cl_ui5f_dtformat_js",
+      "z2ui5_cl_ui5f_dtools_js",
+      "z2ui5_cl_ui5f_dtools_xml",
+      "z2ui5_cl_ui5f_env_js",
+      "z2ui5_cl_ui5f_errview_js",
+      "z2ui5_cl_ui5f_excel_js",
+      "z2ui5_cl_ui5f_format_js",
+      "z2ui5_cl_ui5f_frontact_js",
+      "z2ui5_cl_ui5f_geoloc_js",
+      "z2ui5_cl_ui5f_help_js",
+      "z2ui5_cl_ui5f_htmlfrm_js",
+      "z2ui5_cl_ui5f_index_html",
+      "z2ui5_cl_ui5f_inputext_js",
+      "z2ui5_cl_ui5f_inspect_js",
+      "z2ui5_cl_ui5f_journey_js",
+      "z2ui5_cl_ui5f_launchpd_js",
+      "z2ui5_cl_ui5f_lib_js",
+      "z2ui5_cl_ui5f_liveedit_js",
+      "z2ui5_cl_ui5f_log_js",
+      "z2ui5_cl_ui5f_manifest",
+      "z2ui5_cl_ui5f_models_js",
+      "z2ui5_cl_ui5f_msgmgr_js",
+      "z2ui5_cl_ui5f_multiinp_js",
+      "z2ui5_cl_ui5f_natscan_js",
+      "z2ui5_cl_ui5f_offline_js",
+      "z2ui5_cl_ui5f_persist_js",
+      "z2ui5_cl_ui5f_picker_js",
+      "z2ui5_cl_ui5f_preload",
+      "z2ui5_cl_ui5f_recorder_js",
+      "z2ui5_cl_ui5f_report_js",
+      "z2ui5_cl_ui5f_rootslot_js",
+      "z2ui5_cl_ui5f_router_js",
+      "z2ui5_cl_ui5f_scrfocus_js",
+      "z2ui5_cl_ui5f_server_js",
+      "z2ui5_cl_ui5f_session_js",
+      "z2ui5_cl_ui5f_shortcut_js",
+      "z2ui5_cl_ui5f_slots_js",
+      "z2ui5_cl_ui5f_slotxml_js",
+      "z2ui5_cl_ui5f_smartinp_js",
+      "z2ui5_cl_ui5f_storage_js",
+      "z2ui5_cl_ui5f_style_css",
+      "z2ui5_cl_ui5f_tabs_js",
+      "z2ui5_cl_ui5f_tree_js",
+      "z2ui5_cl_ui5f_uitable_js",
+      "z2ui5_cl_ui5f_upldset_js",
+      "z2ui5_cl_ui5f_uploader_js",
+      "z2ui5_cl_ui5f_variants_js",
+      "z2ui5_cl_ui5f_view1_js",
+      "z2ui5_cl_ui5f_viewops_js",
+      "z2ui5_cl_ui5f_viewslot_js",
+      "z2ui5_cl_ui5f_websock_js",
+      "z2ui5_cl_ui5f_window_js"
+    ],
+    "src/01/04": [
+      "z2ui5_cl_ui5_app_hi_world",
+      "z2ui5_cl_ui5_app_start",
+      "z2ui5_cl_ui5_user_exit"
+    ],
+    "src/01/05": [
+      "z2ui5_cl_ui5_llm_claude",
+      "z2ui5_cl_ui5_llm_guide",
+      "z2ui5_cl_ui5_llm_http",
+      "z2ui5_cl_ui5_llm_local",
+      "z2ui5_cl_ui5_llm_openai",
+      "z2ui5_if_ui5_llm_http"
+    ],
+    "src/02": [
+      "z2ui5_cl_ui5_http_handler",
+      "z2ui5_cl_ui5_llm",
+      "z2ui5_cl_ui5_view_builder",
+      "z2ui5_cx_ui5_llm",
+      "z2ui5_if_app",
+      "z2ui5_if_client",
+      "z2ui5_if_ui5_exit",
+      "z2ui5_if_ui5_llm",
+      "z2ui5_if_ui5_monitor"
+    ],
+    "src/99/02": [
+      "z2ui5_cl_pop_data",
+      "z2ui5_cl_pop_demo_output",
+      "z2ui5_cl_pop_error",
+      "z2ui5_cl_pop_file_dl",
+      "z2ui5_cl_pop_file_ul",
+      "z2ui5_cl_pop_get_range",
+      "z2ui5_cl_pop_get_range_m",
+      "z2ui5_cl_pop_html",
+      "z2ui5_cl_pop_image_editor",
+      "z2ui5_cl_pop_input_val",
+      "z2ui5_cl_pop_messages",
+      "z2ui5_cl_pop_pdf",
+      "z2ui5_cl_pop_table",
+      "z2ui5_cl_pop_textedit",
+      "z2ui5_cl_pop_to_confirm",
+      "z2ui5_cl_pop_to_inform",
+      "z2ui5_cl_pop_to_select"
+    ],
+    "src/99": [
+      "z2ui5_cl_http_handler",
+      "z2ui5_cl_xml_view",
+      "z2ui5_cl_xml_view_cc",
+      "z2ui5_if_exit",
+      "z2ui5_if_types"
+    ]
+  },
+  "globalTargets": {
+    "MESSAGE_TOAST": [
+      "show"
+    ],
+    "MESSAGE_BOX": [
+      "show",
+      "alert",
+      "confirm",
+      "information",
+      "warning",
+      "error",
+      "success"
+    ],
+    "VIEW_SLOTS": [
+      "destroy",
+      "display",
+      "updateModel"
+    ],
+    "ROUTER": [
+      "sync"
+    ],
+    "BUSY_INDICATOR": [
+      "show",
+      "hide"
+    ],
+    "ICON_POOL": [
+      "registerFont"
+    ],
+    "THEMING": [
+      "setTheme"
+    ],
+    "POPUP": [
+      "setWithinArea"
+    ],
+    "INVISIBLE_MESSAGE": [
+      "announce"
+    ],
+    "FORMATTING": [
+      "setCustomCurrencies",
+      "addCustomCurrencies"
+    ]
+  },
+  "cssProperties": [
+    "width",
+    "min-width",
+    "max-width",
+    "height",
+    "min-height",
+    "max-height",
+    "color",
+    "background-color",
+    "font-size",
+    "opacity"
+  ],
+  "controlMethodDenyExact": [
+    "destroy",
+    "exit",
+    "fireEvent",
+    "clone",
+    "applySettings",
+    "setAggregation",
+    "addAggregation",
+    "insertAggregation",
+    "removeAggregation",
+    "removeAllAggregation",
+    "destroyAggregation",
+    "setAssociation",
+    "addAssociation",
+    "removeAssociation",
+    "removeAllAssociation"
+  ],
+  "controlMethodDenyPrefixes": [
+    "_",
+    "bind",
+    "unbind",
+    "attach",
+    "detach",
+    "addDependent",
+    "placeAt",
+    "rerender",
+    "invalidate",
+    "setModel",
+    "setBinding",
+    "setParent"
+  ],
+  "bindingMethods": [
+    "filter",
+    "sort"
+  ],
+  "frontendEvents": [
+    "BINDING_CALL",
+    "CLIPBOARD_COPY",
+    "DOWNLOAD_B64_FILE",
+    "STORE_DATA",
+    "HASH_BACK",
+    "LOCATION_RELOAD",
+    "SYSTEM_LOGOUT",
+    "OPEN_NEW_TAB",
+    "URLHELPER",
+    "SET_TITLE",
+    "SET_FAVICON",
+    "PLAY_AUDIO",
+    "OFFLINE_QUEUE",
+    "CONTROL_BY_ID",
+    "CONTROL_GLOBAL",
+    "CROSS_APP_NAV_TO_PREV_APP",
+    "CROSS_APP_NAV_TO_EXT",
+    "CROSS_APP_NAV_GET_LINKS",
+    "SET_TITLE_LAUNCHPAD",
+    "SET_APP_FULL_WIDTH",
+    "KEYBOARD_SHORTCUT",
+    "SMART_VARIANT_INIT",
+    "FILTER_BAR_VARIANT_INIT",
+    "SET_SIZE_LIMIT",
+    "SET_ODATA_MODEL",
+    "BIND_ELEMENT",
+    "START_TIMER",
+    "SET_FOCUS",
+    "SCROLL_TO",
+    "SCROLL_INTO_VIEW"
+  ],
+  "filterOperators": [
+    "BT",
+    "Contains",
+    "EndsWith",
+    "EQ",
+    "GE",
+    "GT",
+    "LE",
+    "LT",
+    "NB",
+    "NE",
+    "NotContains",
+    "NotEndsWith",
+    "NotStartsWith",
+    "StartsWith"
+  ],
+  "viewSlots": [
+    "POPOVER",
+    "POPUP",
+    "NEST2",
+    "NEST",
+    "MAIN"
+  ],
+  "shortcutModifiers": [
+    "ctrl",
+    "shift",
+    "alt",
+    "meta"
+  ],
+  "shortcutAliases": {
+    "control": "ctrl",
+    "cmd": "meta",
+    "command": "meta",
+    "option": "alt",
+    "esc": "escape",
+    "del": "delete",
+    "ins": "insert",
+    "return": "enter",
+    "space": " "
+  },
+  "urlHelperActions": [
+    "REDIRECT",
+    "TRIGGER_EMAIL",
+    "TRIGGER_SMS",
+    "TRIGGER_TEL"
+  ],
+  "controlMethodKinds": {
+    "to": [
+      "pageId",
+      "string"
+    ],
+    "back": [],
+    "backToPage": [
+      "pageId"
+    ],
+    "toDetail": [
+      "controlId"
+    ],
+    "toMaster": [
+      "controlId"
+    ],
+    "backDetail": [],
+    "backMaster": [],
+    "setMode": [
+      "string"
+    ],
+    "navigateBack": [],
+    "focus": [],
+    "scrollToIndex": [
+      "int"
+    ],
+    "scrollTo": [
+      "int",
+      "int"
+    ],
+    "open": [
+      "string"
+    ],
+    "close": [],
+    "setExpanded": [
+      "bool"
+    ],
+    "discardProgress": [
+      "controlId"
+    ],
+    "setNextStep": [
+      "controlId"
+    ],
+    "setCurrentStep": [
+      "controlId"
+    ],
+    "goToStep": [
+      "controlId",
+      "bool"
+    ],
+    "openBy": [
+      "anchor"
+    ],
+    "toggleBy": [
+      "anchor"
+    ],
+    "setActivePage": [
+      "controlId"
+    ],
+    "expandToLevel": [
+      "int"
+    ],
+    "collapseAll": [],
+    "expandSelected": [],
+    "collapseSelected": [],
+    "setHiddenInPopin": [
+      "object"
+    ],
+    "setSticky": [
+      "object"
+    ],
+    "setSelectedSection": [
+      "controlIdOrNull"
+    ],
+    "setSelectedItem": [
+      "controlIdOrNull"
+    ],
+    "setP13nData": [
+      "object"
+    ],
+    "setBadgeMinValue": [
+      "int"
+    ],
+    "setBadgeMaxValue": [
+      "int"
+    ],
+    "css": [
+      "string",
+      "string"
+    ],
+    "enablePostButton": [
+      "bool"
+    ],
+    "addStyleClass": [
+      "string"
+    ],
+    "removeStyleClass": [
+      "string"
+    ],
+    "toggleStyleClass": [
+      "string"
+    ],
+    "setAsyncURLHandler": [
+      "string"
+    ]
+  },
+  "urlPolicies": [
+    "ALLOW_ALL",
+    "RELATIVE_ONLY",
+    "DENY_ALL"
+  ]
+}

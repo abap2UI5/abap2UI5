@@ -63,6 +63,13 @@
  * config, and the proxy variables where there is a proxy. Nothing else it
  * cannot ask for is anything it should have.
  *
+ * THE OTHER HALF. generate-linter-manifest.mjs writes the same sets down
+ * from their sources here (`.github/shared/linter-manifest.json`), and the
+ * linter reads that file once it is on main. This gate stays for as long as
+ * the linter also carries its parsers: it is what compares the linter's own
+ * reading of the tree with the tree, and so what would notice the two
+ * readings parting.
+ *
  *   node .github/scripts/linter-mirror-gate.mjs     (npm run check:mirrors)
  */
 import fs from 'fs';
