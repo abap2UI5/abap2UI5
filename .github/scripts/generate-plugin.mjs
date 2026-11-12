@@ -387,7 +387,7 @@ function renderSplitSkill(name, flavour) {
     }
     if (!entry) throw new Error(`${source}: "${heading}" is ${end - at} lines and moves to references/ - add it to SPLIT in generate-plugin.mjs with a file name and when to read it`);
     used.add(entry);
-    rows.push(`| \`references/${entry[1]}\` | ${heading.replace(/\|/g, '\\|')} | ${entry[2]} |`);
+    rows.push(`| \`references/${entry[1]}\` | ${heading.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} | ${entry[2]} |`);
     files.set(entry[1], `${provenance(source)}\n\n${section}\n`);
   });
   for (const entry of table) {
