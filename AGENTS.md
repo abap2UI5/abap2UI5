@@ -38,6 +38,7 @@ Where the rest is:
 | `docs/agents/ci-workflows.md` | a check went red, or you touch a workflow |
 | `docs/agents/architecture-seams.md` | touching the draft store, the serializer, the monitor, the language model seam or the exit lookup |
 | `docs/agents/decisions.md` | you want to argue with a decision below, or need the history behind one |
+| `docs/agents/client-api.md` | you need a signature of `z2ui5_if_client` — the generated index (`npm run client-api`), never edited |
 | `docs/agents/api-snapshot-exceptions.md` | rule 5 — the recorded exceptions to the public-API snapshot |
 | `docs/agents/test-inventory.md` | which spec covers which module |
 | `.claude/skills/abap-check` | before finishing any change under `src/` — what a green CI does not catch in ABAP |

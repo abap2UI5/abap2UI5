@@ -9,7 +9,8 @@ demo-kit samples in
 documentation site is <https://abap2ui5.github.io/docs/> — this file exists so
 an agent without web access has the complete picture in-repo. When this guide
 and the code disagree, the code wins (`src/02/z2ui5_if_client.intf.abap` is
-the contract).
+the contract; `docs/agents/client-api.md` is its generated index — every
+signature in one short file, the obsolete methods apart).
 
 For working **on the framework itself**, read `AGENTS.md` instead.
 
@@ -253,111 +254,60 @@ The legacy fluent builder `z2ui5_cl_xml_view` (one method per control) still
 ships for existing apps but is **frozen** — new apps and new code use
 `z2ui5_cl_ui5_view_builder`.
 
-### Formatting the chain (strict — reviewers check these)
+### Formatting the chain (strict, and machine-checked)
 
 A chain is read far more often than it is written, and its layout is the only
-thing that still makes it legible as the XML tree it stands for. The rules
-below are the ones the sample repositories are ported and reviewed against;
-`.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from
+thing that still makes it legible as the XML tree it stands for. **Write the
+chain, then let the formatter lay it out**: the abap2UI5-linter's
+`chain-house-layout` rule checks one call per line, four spaces per level and
+the closing call's column; `npm run check:abap2ui5` reports and `npm run fmt:chains` applies.
+The fix touches whitespace between chain segments only — read its diff before
+committing. `.github/abaplint/auto_abaplint_fix.jsonc` excludes the shipped apps from
 `align_parameters` / `line_break_multiple_parameters` so the auto-formatter
-does not undo them.
+does not undo the layout. The rule is **opt-in** in the linter: it runs only
+where the project's `abap2ui5lint.jsonc` names it, so check the config before
+you trust a green run.
 
-**They are machine-checked.** The abap2UI5-linter's `chain-house-layout` rule
-checks one call per line, four spaces per level and the closing call's column;
-`npm run check:abap2ui5` reports and `npm run fmt:chains` applies. It rewrites
-whitespace *between* chain segments only and verifies that collapsing every run
-of code-whitespace leaves the file identical, so a layout fix can never change
-what the view builds. The blank-line rules below stay reviewer-enforced.
+The rules — the `view-chain-layout` skill is their single source and has the
+reasoning:
 
-The rule is **opt-in** in the linter, because it encodes one house style — this
-one — and is named in `abap2ui5lint.jsonc` rather than inherited. It is what
-the linter's two older layout rules cannot reach: they judge a chain against
-ITSELF, so a chain whose every level is uniformly wrong keeps its own rhythm
-and passes.
+- **One call per line.** Every `ele( )`, `tag( )`, `a( )` and `end( )` opens
+  its own line with `)->`. A control does not share its line with its own
+  attributes, and a container does not hand straight over to the next.
+- **Four spaces per level, never two.** A child sits one level in from its
+  container, a control's `a( )` lines one level in from the control, and
+  `end( )` stands alone in the column of the `ele( )` it closes.
+- **The closing paren rides with the arrow.** Never a `)` alone at a line
+  end; every continuation reads `)->` and the whole view ends in one `` ).``.
+- **One attribute per line, `v =` column aligned** across a control's block.
+- **The `factory( )` shape follows the chain shape.** A view split into a
+  statement per subtree hangs the chain off the `factory( )` — one statement,
+  so the variable holds the `mvc:View` and a later `view->ele( `Shell` … )`
+  lands inside it:
 
-- **The `factory( )` shape follows the chain shape, and there are two.** The
-  variable has to denote the node you will attach to next:
-  - **A view split into a statement per subtree** (the shape of the apps here
-    and of `abap2UI5/samples`) hangs the chain off the `factory( )` — one
-    statement, not two — so the variable holds the `mvc:View` and a later
-    `view->ele( `Shell` … )` lands inside it:
+  ```abap
+  DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+      )->ele( n = `View` ns = `mvc`
+          )->a( n = `xmlns`     v = `sap.m`
+          )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` ).
+  ```
 
-    ```abap
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n = `View` ns = `mvc`
-            )->a( n = `xmlns`     v = `sap.m`
-            )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` ).
-    ```
-  - **A view built as one chain** (the shape of `abap2UI5/samples-controls`,
-    where a 1:1 port mirrors one original XML file) may take the `factory( ).`
-    as a statement of its own, because nothing attaches to the variable
-    afterwards — `stringify( )` renders from the root either way. It buys two
-    levels of indent back across the whole view, which is worth having in a
-    deeply nested one.
-
-  What is never right is the standalone `factory( ).` *with* the split shape:
-  the variable then holds the root, and `view->ele( `Shell` )` adds a second
-  root next to the `mvc:View` instead of a child inside it.
-- **The closing paren rides with the arrow.** Never leave a `)` alone at the
-  end of a line — carry it to the **start of the next segment**, so every
-  continuation reads `)->`. With the `a( )` chain there is no nested `VALUE`,
-  so the whole view ends in a single `` ).`` (not `) ).`).
-- **Indent after every `ele`.** Each `ele( )` shifts its children's `)->`
-  one level (4 spaces) to the right, `end( )` shifts back left, and the `)->`
-  of an `end` sits in the same column as the `ele` it closes.
-- **The indent *states* the depth — 4 spaces, never 2.** The column a line
-  starts in is the only place the reader can see where in the tree they are,
-  so it has to be true: same depth, same column; one level deeper, exactly
-  four more. A step of two, or a line that changes depth and leaves the next
-  line in the old column, and the layout is no longer describing the XML — it
-  is decorating it.
-- **One call per line — no exceptions.** Every `ele( )`, `tag( )`, `a( )` and
-  `end( )` opens its own line with `)->`. A control does not share its line
-  with its own attributes (`` )->tag( `Label` )->a( n = `text` … ``), and a
-  container does not hand straight over to the next
-  (`` view->ele( `Shell` )->ele( `Page` ``): the exception is what the worst
-  shape grows out of.
-  `` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the end
-  of an attribute line — up two, down two — is four level changes nobody can
-  follow, after which every line starts in a column that means nothing. With
-  one call per line there is no line for it to hide on. This is also the
-  abap2UI5-linter's `chain-element-per-line`.
+  A view built as one chain may take `factory( ).` as a statement of its own.
+  Never the standalone `factory( ).` *with* the split shape: the variable then
+  holds the root, and `view->ele( `Shell` )` adds a second root beside the
+  `mvc:View`.
 - **Come back to a node through a variable, not through a run of `end( )`s.**
-  `end( )` is for closing what you are finished with, one level, at the start
-  of its own line. When you need a node *again* — a page you hang three
-  sections off, a `footer` beside a form — keep it: `` DATA(page) =
-  view->ele( `Shell` )->ele( `Page` … ) ``, then `page->ele( … )` per subtree,
-  each its own statement, each starting at the method's indent. Every app in
-  the framework and in `abap2UI5/samples` is built this way, and it is what
-  keeps the rule above satisfiable: a statement that never unwinds can indent
-  monotonically. A subtree deep enough that its lines drift past the
-  right-hand side of the screen is telling you the same thing — split it.
-- **A control's `a( )` lines sit one level (4 spaces) in from the control's
-  own `)->` line** — one attribute per line, `v =` column aligned across the
-  block.
-- **A blank line opens a block — nothing else in the chain gets one.** A
-  block is a run of lines that is read as one thing, and there are exactly
-  two of them:
-  1. **the content of a control that carries attributes** — a blank after its
-     last `a( )`, before its first child. The attribute lines are the
-     control's own head; the content starts below them;
-  2. **a run of `tag`s** — a blank before the first one, none between them.
-     A form's fields, a toolbar's buttons, a list's items belong together and
-     are read as one block, whether or not each carries attributes.
-
-  Everything else runs without a blank:
-  - **none** between a control and its own `a( )`s — they are its head, not
-    its content;
-  - **none between consecutive `tag`s** — see block 2. This overrules
-    "separate a sibling": only a *container* block is set off from the
-    sibling before it;
-  - **none** after a bare `ele` whose first child is another `ele` — a
-    `Shell` → `Page` scaffold is one path down, not two blocks;
-  - **blank before every `end`**; none after an `end` or between two `end`s.
+  `` DATA(page) = view->ele( `Shell` … `` once, then `page->ele( … )` per
+  subtree, each its own statement. A subtree that drifts past the right-hand
+  side of the screen is telling you to split it.
+- **A blank line opens a block, and nothing else gets one** — the one part no
+  gate checks. There are two blocks: the content of a control that carries
+  attributes (a blank after its last `a( )`, before its first child), and a
+  run of `tag`s (a blank before the first, none between them). No blank
+  between a control and its own `a( )`s, none after a bare `ele` whose first
+  child is another `ele`; a blank before every `end`, none after one.
 - Long text or binding values split with `&&` — an `.abap` line is capped at
   255 characters.
-
-The two blocks, and the scaffold that is neither:
 
 ```abap
     )->ele( `Shell`                        " bare ele into another ele -
@@ -375,88 +325,6 @@ The two blocks, and the scaffold that is neither:
                         )->a( n = `text`  v = `Name`
                     )->tag( `Input`
                         )->a( n = `value` v = client->_bind( name ) ).
-```
-
-The blank above `Title` is what makes the three fields read as the form's
-content rather than as a continuation of the `content` aggregation; the
-missing blanks between them are what keep the three together. Blanks in both
-places, or in neither, and the same view reads as a pile of fragments.
-
-**The blank lines are the part no gate catches.** abaplint's formatting rules
-are deliberately kept off the app chains (`align_parameters` and
-`line_break_multiple_parameters` are excluded in the framework repository's
-`.github/abaplint/auto_abaplint_fix.jsonc`, and `in_statement_indentation`
-is excluded for the shipped apps — they would
-flatten exactly the layout this section builds), and no linter rule judges
-where a blank line belongs. That stays with the reader.
-
-The *shape* around them is judged. The abap2UI5-linter has three layout rules:
-`chain-indentation` (a sibling in a different column than its siblings, a call
-written left of the element it belongs to; the step *size* is not judged, only
-that a chain keeps its own rhythm), `chain-element-per-line` (several controls
-on one line; attributes may share their control's line, and so may the
-container it opens), and `chain-house-layout`, which judges the step size too
-and is the one this section describes.
-
-**All three default to `hint`, which a config with `failOn: warning` does not
-even print — so what decides is the repository you are in, and every repository
-in this ecosystem raises them.** `abap2UI5`, `abap2UI5/samples-stack` and
-`abap2UI5/app-template` enable `chain-house-layout` at `warning`;
-`abap2UI5/samples` raises `chain-indentation` and `chain-element-per-line`
-instead; `abap2UI5/samples-controls` runs its own `chain-format` gate. Check
-the config before you trust a green run — and either way, re-read the chain you
-just wrote against the example above.
-
-#### What a broken chain looks like
-
-From `abap2UI5/samples` `z2ui5_cl_smp_app_052`, after the port to this builder
-— lint-green, and unreadable:
-
-```abap
-    lo_popover->ele( `Popover`
-        )->a( n = `title`        v = |abap2UI5 - Popover - { mv_product }|
-        )->a( n = `contentWidth` v = `20rem` )->ele( n = `SimpleForm` ns = `form`
-          )->a( n = `layout`   v = `ColumnLayout`
-          )->a( n = `editable` b = abap_false )->ele( n = `content` ns = `form` )->tag( `Label`
-              )->a( n = `text` v = `Product` )->tag( `Text`
-              )->a( n = `text` v = mv_product )->tag( `Text`
-              )->a( n = `text` v = `this is a text` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar`
-              )->tag( `ToolbarSpacer` )->tag( `Button`
-                )->a( n = `press` v = client->_event( `BUTTON_DETAILS` ) ).
-```
-
-Three defects, and they compound: the indent steps by 2 and then by 4 and then
-stops moving at all; one line opens `content` *and* a `Label`; and the
-`` )->end( )->end( )->ele( `footer` )->ele( `OverflowToolbar` `` at the end of
-an attribute line leaves the `ToolbarSpacer` two levels away from where its
-column claims it is. Nothing here says `footer` is a sibling of `SimpleForm`.
-The same tree, with the subtree held in a variable:
-
-```abap
-    DATA(popover) = lo_popover->ele( `Popover`
-        )->a( n = `title`        v = |abap2UI5 - Popover - { mv_product }|
-        )->a( n = `contentWidth` v = `20rem` ).
-
-    popover->ele( n = `SimpleForm` ns = `form`
-        )->a( n = `layout`   v = `ColumnLayout`
-        )->a( n = `editable` b = abap_false
-
-        )->ele( n = `content` ns = `form`
-
-            )->tag( `Label`
-                )->a( n = `text` v = `Product`
-            )->tag( `Text`
-                )->a( n = `text` v = mv_product
-            )->tag( `Text`
-                )->a( n = `text` v = `this is a text` ).
-
-    popover->ele( `footer`
-        )->ele( `OverflowToolbar`
-
-            )->tag( `ToolbarSpacer`
-            )->tag( `Button`
-                )->a( n = `press` v = client->_event( `BUTTON_DETAILS` )
-                )->a( n = `text`  v = `details` ).
 ```
 
 ## 4. Data binding
@@ -873,7 +741,86 @@ The same tree, with the subtree held in a variable:
   `abap2UI5/mcp-server` GitHub Action do the same at the terminal and in CI,
   no system involved. Implement every method the app calls in the double:
   the transpiled runtime generates no empty stubs for a `PARTIALLY
-  IMPLEMENTED` interface, a system does.
+  IMPLEMENTED` interface, a system does. The double and one test, for the
+  template of §2:
+
+  ```abap
+  CLASS ltd_client DEFINITION FINAL FOR TESTING.
+    PUBLIC SECTION.
+      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.
+      " what the lifecycle questions are answered with
+      DATA init      TYPE abap_bool.
+      DATA navigated TYPE abap_bool.
+      DATA event     TYPE abap_bool.
+      DATA event_id  TYPE string.
+      " what the app did back, in order
+      DATA t_view  TYPE string_table.
+      DATA t_toast TYPE string_table.
+  ENDCLASS.
+
+  CLASS ltd_client IMPLEMENTATION.
+    METHOD z2ui5_if_client~check_on_init.
+      result = init.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~check_on_navigated.
+      result = navigated.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~check_on_event.
+      result = event.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~get_event.
+      result = event_id.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~view_display.
+      APPEND val TO t_view.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~message_toast_display.
+      APPEND text TO t_toast.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~_bind.
+      result = `bound`.
+    ENDMETHOD.
+    METHOD z2ui5_if_client~_event.
+      result = val.
+    ENDMETHOD.
+  ENDCLASS.
+
+  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+    PRIVATE SECTION.
+      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.
+  ENDCLASS.
+
+  CLASS ltcl_app IMPLEMENTATION.
+    METHOD save_toasts_the_name.
+      DATA(app)    = NEW zcl_my_app( ).
+      DATA(double) = NEW ltd_client( ).
+      " an event roundtrip: the framework has already written the user's
+      " input into the bound attribute when main( ) is called
+      double->event    = abap_true.
+      double->event_id = `SAVE`.
+      app->name        = `World`.
+
+      app->z2ui5_if_app~main( double ).
+
+      cl_abap_unit_assert=>assert_equals( exp = `Saved, World`
+                                          act = double->t_toast[ 1 ] ).
+      " an event does not rebuild the view
+      cl_abap_unit_assert=>assert_initial( double->t_view ).
+    ENDMETHOD.
+  ENDCLASS.
+  ```
+
+  A first-start test sets `init` and `navigated` both (the framework answers
+  both with true on a fresh instance) and asserts on `t_view[ 1 ]`; a
+  navigated test sets `navigated` alone.
+- **Getting the class into a system.** An app is delivered as abapGit files —
+  `zcl_my_app.clas.abap` and its `zcl_my_app.clas.xml` sidecar, in a
+  repository the system pulls with abapGit — or its source is pasted into the
+  class in ADT / SE24. Nothing else is deployed: no BSP application, no
+  service, no frontend artefact. Once the class is active it runs at the
+  framework's endpoint with `?app_start=zcl_my_app`. An agent without a
+  connection to the system stops at the files — say so, and say which of the
+  gates above ran.
 - **`npm run doctor`** in a project made from app-template: the environment
   check — Node, the two gates, Chromium for the render gate, the framework
   pin, the sidecars — that names the remedy for each failure.

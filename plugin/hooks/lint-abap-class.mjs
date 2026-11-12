@@ -19,6 +19,12 @@
  *     prints something this script cannot read: exit 0 without a word. No
  *     `npx`: a download inside a hook would cost every user of a project
  *     without the linter seconds per edit.
+ *     One exception to "without a word": a project that HAS an
+ *     `abap2ui5lint.jsonc` and no linter in `node_modules` declares the
+ *     gate and has not installed it (a fresh clone before `npm ci`). There
+ *     the agent would take the silence for a clean check, so it is told
+ *     once per session - a marker in the temp folder keeps it to once -
+ *     and never again.
  *   - It is fast. The property gate alone takes well under a second for one
  *     class; the render gate (a headless browser) is left to /abap2ui5:check.
  *
@@ -44,6 +50,7 @@
  */
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const MAX_FINDINGS = 15;
@@ -107,6 +114,25 @@ function findLinter(root) {
   }
 }
 
+/* The one message of a project that configures the linter and has not
+ * installed it. Once per session: without a session id there is nothing to
+ * key the marker on, and saying it on every edit would break the promise in
+ * the header, so then it is not said at all. */
+function hintNotInstalled(payload, root) {
+  const session = String(payload.session_id ?? '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (!session) quiet();
+  const marker = path.join(os.tmpdir(), `abap2ui5-lint-hook-${session}`);
+  try {
+    fs.writeFileSync(marker, '', { flag: 'wx' });
+  } catch {
+    quiet();
+  }
+  process.stderr.write('abap2UI5 lint hook: this project has an abap2ui5lint.jsonc, but @abap2ui5/linter is not'
+    + ` installed in ${root} - the class you just edited was NOT checked. Run \`npm ci\` (or \`npm install\`)`
+    + ' there, or check by hand with `npx --yes @abap2ui5/linter <file>`. This is said once per session.\n');
+  process.exit(2);
+}
+
 function oneLine(text) {
   const line = String(text ?? '').split('\n')[0].trim();
   return line.length > MAX_LINE ? `${line.slice(0, MAX_LINE - 3)}...` : line;
@@ -131,7 +157,10 @@ function main() {
   const root = findUp(path.dirname(file), 'package.json');
   if (!root) quiet();
   const cli = findLinter(root);
-  if (!cli) quiet();
+  if (!cli) {
+    if (findUp(path.dirname(file), 'abap2ui5lint.jsonc', root)) hintNotInstalled(payload, root);
+    quiet();
+  }
 
   const args = [cli, file, '--no-render', '--format', 'json', '--fail-on', 'never'];
   const configDir = findUp(path.dirname(file), 'abap2ui5lint.jsonc', root);

@@ -53,7 +53,10 @@ It brings:
   step. The project's `abap2ui5lint.jsonc` applies. It only runs where the
   project already has the linter installed - `@abap2ui5/linter` in
   `node_modules` above the file, as in an app-template project - and is
-  silent everywhere else: no download, no message, no delay. To switch it
+  silent everywhere else: no download, no message, no delay - except that a
+  project with an `abap2ui5lint.jsonc` and no installed linter is told so
+  once per session, because there the silence would read as a clean check.
+  To switch it
   off, set `"env": { "ABAP2UI5_LINT_HOOK": "off" }` in `.claude/settings.json`
   (one project) or `~/.claude/settings.json` (everywhere); `"disableAllHooks":
   true` turns off every hook, `/plugin` disables the whole plugin.

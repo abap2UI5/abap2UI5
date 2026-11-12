@@ -135,6 +135,13 @@ const API_CONTRACT = [
   + ' — when unsure about',
 ];
 
+/* The generated index of the client API (generate-client-api.mjs) travels
+ * with the guide: the skill names it in the framework repository, and a copy
+ * has it next to itself. */
+const CLIENT_API = 'docs/agents/client-api.md';
+const CLIENT_API_SENTENCE = 'the generated index is enough: `docs/agents/client-api.md` in\n'
+  + '  [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/docs/agents/client-api.md),';
+
 /* The skills the plugin ships, each with the sentences its copies reword:
  * `claude` for plugin/, `portable` for skills/ and plugin-copilot/. */
 const SKILLS = {
@@ -145,6 +152,7 @@ const SKILLS = {
         '**Read `${CLAUDE_PLUGIN_ROOT}/docs/agents/building-apps.md` (the framework\'s\nguide, shipped with this plugin: `docs/agents/building-apps.md` two folders\nabove this skill\'s own) — it is the complete\nself-contained guide**',
       ],
       API_CONTRACT,
+      [CLIENT_API_SENTENCE, 'the generated index is enough: `${CLAUDE_PLUGIN_ROOT}/docs/agents/client-api.md`\n  (shipped with this plugin, next to the guide),'],
     ],
     portable: [
       [
@@ -152,11 +160,59 @@ const SKILLS = {
         '**Read `references/building-apps.md` next to this file (the framework\'s\nguide, shipped with this skill) — it is the complete\nself-contained guide**',
       ],
       API_CONTRACT,
+      [CLIENT_API_SENTENCE, 'the generated index is enough: `references/client-api.md` next to this\n  file,'],
     ],
   },
   'view-chain-layout': { claude: [], portable: [] },
   'abap-check': { claude: [], portable: [] },
   'ui5-check': { claude: [], portable: [] },
+};
+
+/* The two catalogues are long - abap-check is ~34k tokens, ui5-check ~10k -
+ * and a skill is loaded whole. An app author who is told to "run abap-check
+ * before you finish" paid for the downport and transpiler traps of the
+ * framework's own pipeline to read the three pages about the abapGit round
+ * trip. So the COPIES are split: `SKILL.md` keeps the frontmatter, the
+ * preamble, every short section and a table saying which file to read when;
+ * each `## ` section longer than SPLIT_MIN_LINES becomes a file under
+ * `references/`, the layout the Agent Skills specification recommends for
+ * exactly this.
+ *
+ * The SOURCE stays one file. abap2UI5/mcp-server's `pitfalls` tool slices
+ * `.claude/skills/<name>/SKILL.md` by its `## ` headings, and
+ * abap2UI5/app-template generates its own copies from it - both read the
+ * whole catalogue from one path, and neither has to change.
+ *
+ * Per moved section: the start of its heading, the file name, and when to
+ * read it. A long section without an entry fails the run, and so does an
+ * entry no long section answers to - the table is the only thing the reader
+ * of a split skill sees first, so it is never guessed. */
+const SPLIT_MIN_LINES = 60;
+const SPLIT = {
+  'abap-check': [
+    ['Why the tooling here is blind', 'why-the-tooling-is-blind.md',
+      'you want to know which gate decides what, or to measure a case against abaplint - tooling work, not app work'],
+    ['1. ', '1-abapgit-round-trip.md',
+      '**every app** - you wrote or touched a `.clas.abap`, a `.clas.xml` or any other file abapGit imports'],
+    ['2. ', '2-activation.md',
+      '**every app** - before a class counts as finished: what passes the lint and is a syntax error on a system'],
+    ['3. ', '3-extended-check.md',
+      'the code will face the extended check (SLIN/ATC) on a system - reads on internal tables, pragmas, unused declarations'],
+    ['4. ', '4-downport-and-transpile.md',
+      'the code has to run on 7.02 or in the transpiled runtime - the framework, the sample repositories, a unit test run without a system'],
+    ['5. ', '5-runtime.md',
+      'something is green in the transpiled run and wrong on a system, or the other way round'],
+    ['7. ', '7-rule-stock.md',
+      'reviewing a change by hand for what abaplint does not decide yet'],
+  ],
+  'ui5-check': [
+    ['1. ', '1-names-the-release-does-not-have.md',
+      '**every view** - an icon, control, property, aggregation, enum value, module or theme you have not seen in UI5 1.71'],
+    ['2. ', '2-layout.md',
+      'a `Bar`, a toolbar or a flex layout that has to look right on an old release'],
+    ['4. ', '4-runtime-and-environment.md',
+      'the frontend\'s runtime behaviour - CSP, bootstrap, the launchpad, custom controls and modules'],
+  ],
 };
 
 /* Skills under .claude/skills/ the plugin deliberately does not ship, each
@@ -300,6 +356,58 @@ function renderSkill(name, flavour) {
   return `${front}${provenance(source)}\n${rewritten.replace(/\s*$/, '')}\n`;
 }
 
+/* A split skill: the SKILL.md the copy gets, and its reference files. */
+function renderSplitSkill(name, flavour) {
+  const source = `.claude/skills/${name}/SKILL.md`;
+  const whole = renderSkill(name, flavour);
+  const lines = whole.split('\n');
+  const starts = lines.map((l, i) => (/^## /.test(l) ? i : -1)).filter((i) => i !== -1);
+  let fence = false;
+  const real = [];
+  lines.forEach((l, i) => {
+    if (/^```/.test(l)) fence = !fence;
+    else if (!fence && /^## /.test(l)) real.push(i);
+  });
+  if (real.length !== starts.length) throw new Error(`${source}: a line starting with "## " inside a code fence - the split cannot tell it from a heading`);
+
+  const table = SPLIT[name];
+  const used = new Set();
+  const keep = [lines.slice(0, real[0] ?? lines.length).join('\n').replace(/\s*$/, '')];
+  const rows = [];
+  const files = new Map();
+  real.forEach((at, n) => {
+    const end = real[n + 1] ?? lines.length;
+    const heading = lines[at].slice(3).trim();
+    const section = lines.slice(at, end).join('\n').replace(/\s*$/, '');
+    const entry = table.find(([prefix]) => heading.startsWith(prefix));
+    if (end - at < SPLIT_MIN_LINES) {
+      if (entry) throw new Error(`${source}: "${heading}" is under ${SPLIT_MIN_LINES} lines and stays in SKILL.md - drop its entry from SPLIT`);
+      keep.push(section);
+      return;
+    }
+    if (!entry) throw new Error(`${source}: "${heading}" is ${end - at} lines and moves to references/ - add it to SPLIT in generate-plugin.mjs with a file name and when to read it`);
+    used.add(entry);
+    rows.push(`| \`references/${entry[1]}\` | ${heading.replace(/\|/g, '\\|')} | ${entry[2]} |`);
+    files.set(entry[1], `${provenance(source)}\n\n${section}\n`);
+  });
+  for (const entry of table) {
+    if (!used.has(entry)) throw new Error(`${source}: SPLIT names a section starting with "${entry[0]}", and no long section does - drop the entry`);
+  }
+  const index = [
+    '## The catalogue - one file per section, read the ones your change touches',
+    '',
+    'The long sections of this catalogue are files next to this one. Do not read',
+    'them all: take the rows that match what you changed. A reference to',
+    '"section 3" anywhere means the file whose name starts with `3-`.',
+    '',
+    '| File | Section | Read it when |',
+    '|---|---|---|',
+    ...rows,
+  ].join('\n');
+  const [preamble, ...short] = keep;
+  return { skill: `${[preamble, index, ...short].join('\n\n')}\n`, files };
+}
+
 function renderGuide() {
   return `${provenance(GUIDE)}\n\n${read(GUIDE).replace(/\s*$/, '')}\n`;
 }
@@ -439,14 +547,21 @@ const expected = new Map();
 try {
   const guide = renderGuide();
   for (const name of Object.keys(SKILLS).filter((n) => present.includes(n))) {
-    expected.set(`${PLUGIN}/skills/${name}/SKILL.md`, renderSkill(name, 'claude'));
-    const portable = renderSkill(name, 'portable');
-    expected.set(`${PORTABLE}/${name}/SKILL.md`, portable);
-    expected.set(`${COPILOT}/skills/${name}/SKILL.md`, portable);
+    for (const [flavour, dirs] of [['claude', [`${PLUGIN}/skills`]], ['portable', [PORTABLE, `${COPILOT}/skills`]]]) {
+      const split = name in SPLIT ? renderSplitSkill(name, flavour) : { skill: renderSkill(name, flavour), files: new Map() };
+      for (const dir of dirs) {
+        expected.set(`${dir}/${name}/SKILL.md`, split.skill);
+        for (const [file, text] of split.files) expected.set(`${dir}/${name}/references/${file}`, text);
+      }
+    }
   }
   expected.set(`${PLUGIN}/${GUIDE}`, guide);
   expected.set(`${PORTABLE}/build-an-app/references/building-apps.md`, guide);
   expected.set(`${COPILOT}/skills/build-an-app/references/building-apps.md`, guide);
+  const api = read(CLIENT_API);
+  expected.set(`${PLUGIN}/${CLIENT_API}`, api);
+  expected.set(`${PORTABLE}/build-an-app/references/client-api.md`, api);
+  expected.set(`${COPILOT}/skills/build-an-app/references/client-api.md`, api);
   const { plugin, mcp } = copilotManifest();
   expected.set(`${COPILOT}/plugin.json`, plugin);
   expected.set(`${COPILOT}/.mcp.json`, mcp);

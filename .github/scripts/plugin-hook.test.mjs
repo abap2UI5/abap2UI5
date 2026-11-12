@@ -147,6 +147,25 @@ test('an ABAP class in a project without the linter: silent exit 0', () => {
   assertSilent(hook(edit(dir, path.join(dir, 'src/zcl_app.clas.abap'))));
 });
 
+test('a project that configures the linter and has not installed it: told once per session', () => {
+  const dir = project('configured-not-installed', { linter: null, config: { rules: {} } });
+  write(dir, 'src/zcl_app.clas.abap', appClass('zcl_app', 'Buton'));
+  const session = `hint-${process.pid}-${Date.now()}`;
+  const marker = path.join(os.tmpdir(), `abap2ui5-lint-hook-${session}`);
+  try {
+    const payload = { ...edit(dir, path.join(dir, 'src/zcl_app.clas.abap')), session_id: session };
+    const first = hook(payload);
+    assert.equal(first.code, 2);
+    assert.match(first.stderr, /@abap2ui5\/linter is not\s+installed/);
+    assert.match(first.stderr, /NOT checked/);
+    assertSilent(hook(payload));
+    // no session id, nothing to key "once" on: not said at all
+    assertSilent(hook({ ...payload, session_id: undefined }));
+  } finally {
+    fs.rmSync(marker, { force: true });
+  }
+});
+
 test('a payload it cannot read, or a file that is gone: silent exit 0', () => {
   const dir = project('garbage');
   assertSilent(hook('not json'));
