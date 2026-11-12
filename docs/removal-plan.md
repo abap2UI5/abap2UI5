@@ -33,6 +33,12 @@ support case.
 
 ## 0. Already done (do not re-litigate)
 
+- [x] `_bind_tab( )` renamed to `window_bind_tab( )` and `_bind_tab_row( )`
+      to `window_get_row( )` on 2026-11-12, before either shipped in a
+      release (both were added after v1.148.0). Signatures unchanged; the
+      windowed table is a special function and carries a prefix of its own.
+      The `ty_*_bind_tab_*` types keep their names. API snapshot regenerated,
+      exception 11 in `docs/agents/api-snapshot-exceptions.md`.
 - [x] `ty_s_event_control-check_allow_multi_req` removed. It sent the event
       while another roundtrip was still running and let the responses land in
       any order — but only the newest response may commit, so every earlier

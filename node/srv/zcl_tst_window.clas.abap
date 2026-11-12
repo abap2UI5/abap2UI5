@@ -15,7 +15,7 @@ CLASS zcl_tst_window DEFINITION PUBLIC.
     " the sap.m.Table, 50 rows at a time
     DATA mt_rows TYPE ty_t_row.
     " the sap.ui.table.Table, 30 rows at a time - bound as REF #( mt_grid )
-    " abap2ui5lint-disable-next-line unbound-public-attribute -- bound through _bind_tab( val = REF #( mt_grid ) ), which the linter does not follow yet
+    " abap2ui5lint-disable-next-line unbound-public-attribute -- bound through window_bind_tab( val = REF #( mt_grid ) ), which the linter does not follow yet
     DATA mt_grid TYPE ty_t_row.
     " what CHECK found - the ids of the selected rows
     DATA mv_result TYPE string.
@@ -39,7 +39,7 @@ CLASS zcl_tst_window IMPLEMENTATION.
     me->client = client.
 
     " e2e fixture for the windowed table (window.spec.js): 250 rows in two
-    " tables and 40 behind a data reference, bound with _bind_tab( ). The
+    " tables and 40 behind a data reference, bound with window_bind_tab( ). The
     " browser holds a window of
     " each, grows it, and sorts and filters it on the server; CHECK reads
     " back which rows the user selected - in the table's own row order,
@@ -63,15 +63,15 @@ CLASS zcl_tst_window IMPLEMENTATION.
       view_display( ).
     ELSEIF client->check_on_event( `ROW` ).
       " the binding path of the row pressed, /MT_ROWS/5: a position in the
-      " order the browser shows, the table's row from _bind_tab_row( )
+      " order the browser shows, the table's row from window_get_row( )
       DATA(lv_path) = client->get_event_arg( ).
       DATA(lv_slash) = find( val = lv_path
                              sub = `/`
                              occ = -1 ).
       DATA(lv_pos) = CONV i( substring( val = lv_path
                                         off = lv_slash + 1 ) ).
-      DATA(lv_row) = client->_bind_tab_row( val = mt_rows
-                                            row = lv_pos + 1 ).
+      DATA(lv_row) = client->window_get_row( val = mt_rows
+                                             row = lv_pos + 1 ).
       mv_result = COND #( WHEN lv_row > 0 THEN |{ mt_rows[ lv_row ]-id }| ELSE `none` ).
     ENDIF.
 
@@ -147,9 +147,9 @@ CLASS zcl_tst_window IMPLEMENTATION.
 
     tab = page->ele( `Table`
         )->a( n = `id`               v = `tab`
-        )->a( n = `items`            v = client->_bind_tab( val    = mt_rows
-                                                            window = 50
-                                                            t_sort = mt_sort )
+        )->a( n = `items`            v = client->window_bind_tab( val    = mt_rows
+                                                                  window = 50
+                                                                  t_sort = mt_sort )
         )->a( n = `growing`          v = `true`
         )->a( n = `growingThreshold` v = `20` ).
     tab->ele( `columns`
@@ -179,8 +179,8 @@ CLASS zcl_tst_window IMPLEMENTATION.
 
     grid = page->ele( n = `Table` ns = `t`
         )->a( n = `id`              v = `grid`
-        )->a( n = `rows`            v = client->_bind_tab( val    = REF #( mt_grid )
-                                                           window = 30 )
+        )->a( n = `rows`            v = client->window_bind_tab( val    = REF #( mt_grid )
+                                                                 window = 30 )
         )->a( n = `visibleRowCount` v = `10` ).
     grid->ele( n = `columns` ns = `t`
         )->ele( n = `Column` ns = `t`
@@ -198,8 +198,8 @@ CLASS zcl_tst_window IMPLEMENTATION.
     " /MR_TAB/* in the model
     page->ele( `List`
         )->a( n = `id`      v = `list`
-        )->a( n = `items`   v = client->_bind_tab( val    = mr_tab
-                                                   window = 10 )
+        )->a( n = `items`   v = client->window_bind_tab( val    = mr_tab
+                                                         window = 10 )
         )->a( n = `growing` v = `true`
         )->ele( `items`
             )->tag( `StandardListItem`

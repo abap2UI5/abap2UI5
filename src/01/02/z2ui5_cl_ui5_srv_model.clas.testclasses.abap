@@ -1097,7 +1097,7 @@ CLASS ltcl_01_dissolve DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS interface_ref_followed   FOR TESTING RAISING cx_static_check.
     " a refresh rebuilds the rows and keeps what a bind wrote on them
     METHODS refresh_keeps_bindings   FOR TESTING RAISING cx_static_check.
-    " ... and the window of a _bind_tab( ) table with its sort and filter
+    " ... and the window of a window_bind_tab( ) table with its sort and filter
     METHODS refresh_keeps_window     FOR TESTING RAISING cx_static_check.
     " a refresh finds an object that was initial at the first dissolve
     METHODS refresh_finds_late_obj   FOR TESTING RAISING cx_static_check.

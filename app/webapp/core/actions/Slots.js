@@ -97,7 +97,7 @@ sap.ui.define(
       data = ctx.state.oResponse?.OVIEWMODEL,
     ) {
       // a WindowModel: a JSONModel whose list bindings of a windowed table
-      // (_bind_tab( )) fetch, sort and filter their rows on the
+      // (window_bind_tab( )) fetch, sort and filter their rows on the
       // backend - and plain JSONModel bindings for everything else
       const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));
       // the way a windowed list reaches the backend: the eB of the slot the
