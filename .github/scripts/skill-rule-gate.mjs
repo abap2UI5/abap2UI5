@@ -88,6 +88,7 @@ const PENDING = new Map([
   // That is the mechanism working, not an accident of timing: an entry here
   // is an exemption the pin has not caught up with, and the loop below FAILS
   // on it the moment it has.
+  ['escape-handler-as-string', 'new in @abap2ui5/linter 0.10.0 (abap2UI5/linter#184); the ui5-check entry it closes says so - the pin bump to 0.10.0 removes this line'],
 ]);
 
 const TOKEN = /`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`/g;
