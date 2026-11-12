@@ -23,7 +23,7 @@
 
 <!-- facts:start -->
 <p align="center">
-  <sub>1,215 ABAP unit tests · 88 JS unit specs · 19 browser test suites · 54 CI gates · 26 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
+  <sub>1,215 ABAP unit tests · 88 JS unit specs · 19 browser test suites · 55 CI gates · 26 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
 </p>
 <!-- facts:end -->
 
@@ -96,7 +96,7 @@ Working with Claude Code? Two commands install the abap2UI5 plugin – the agent
 /plugin install abap2ui5@abap2ui5
 ```
 
-GitHub Copilot: `copilot plugin install abap2UI5/abap2UI5`. Every other assistant, editor and the full setup: [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai).
+GitHub Copilot: `copilot plugin install abap2UI5/abap2UI5:plugin-copilot`. Every other assistant, editor and the full setup: [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai).
 
 ## Credits
 This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these outstanding open-source projects:

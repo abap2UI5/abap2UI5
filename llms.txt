@@ -2,8 +2,9 @@
 
 > Framework for building SAP UI5 applications purely in ABAP - no JavaScript,
 > OData or RAP required. One ABAP class per app; the framework renders UI5 XML
-> views, binds ABAP data and dispatches events over stateless HTTP
-> roundtrips. Supports NW 7.02 to ABAP Cloud, on-premise and cloud.
+> views, binds ABAP data and dispatches events over HTTP roundtrips, keeping
+> the app's state in a draft between them. Supports NW 7.02 to ABAP Cloud,
+> on-premise and cloud.
 
 If you arrived here from a web search rather than from this repository, the
 documentation site publishes its own, and it is the better map of the prose:
@@ -28,12 +29,17 @@ Two audiences, two entry points:
   popups, navigation, validation tooling
 - [Client API contract](src/02/z2ui5_if_client.intf.abap): every method an app
   can call, with inline documentation
+- [Client API index](docs/agents/client-api.md): every method's signature and
+  one paragraph on what it is for, generated from the contract - read this
+  for a signature, the contract for the reasoning
 - [Client API reference](https://abap2ui5.github.io/docs/resources/api.html):
   the same contract as a generated, searchable page — also fetchable as
   [client-api.json](https://abap2ui5.github.io/docs/api/client-api.json)
 - [App interface](src/02/z2ui5_if_app.intf.abap): the one interface an app implements
 - [View builder](src/02/z2ui5_cl_ui5_view_builder.clas.abap): generic 1:1 UI5 XML builder
-- [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete app
+- [Hello world](src/01/04/z2ui5_cl_ui5_app_hi_world.clas.abap): smallest complete
+  app - the full shape, with a model and an event dispatcher, is the template
+  in section 2 of the agent guide
 - [Rendered documentation](https://abap2ui5.github.io/docs/): the human docs site
 - [samples](https://github.com/abap2UI5/samples): the curated example apps,
   one class each. [SAMPLES.md](https://github.com/abap2UI5/samples/blob/main/SAMPLES.md)

@@ -939,7 +939,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF lv_off < 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = `MODEL_FAST_PATH_TOKEN_LOST`.
+            val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
+                  `missing from the document. This is a framework defect, not an app error - please report it`.
       ENDIF.
       DATA(lv_rest) = lv_off + strlen( lv_quoted ).
       cv_json = cv_json(lv_off) && lr_fast->json && cv_json+lv_rest.
@@ -995,7 +996,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " a document missing a column
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
-            val = `MODEL_FAST_PATH_COMPONENT_LOST`.
+            val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
+                  |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
       ENDIF.
       " the one rendering ajson uses for every elementary value: the string
       " template, which decides the sign, the decimals and the exponent by
@@ -1515,7 +1517,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF <attri> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
-          val = `ATTRI_GET_VAL_REF_ERROR`.
+          val = |ATTRI_GET_VAL_REF_ERROR - the bound attribute '{ iv_path }' of the app cannot be reached - check that | &&
+                |it still exists and is PUBLIC, and that a data reference on the way to it is bound|.
     ENDIF.
 
     result = REF #( <attri> ).
@@ -1537,7 +1540,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         OR lo_datadescr->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
-          val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
+          val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST - _bind( ) was handed a reference. ` &&
+                `Bind the data itself: _bind( lr_data->* ) for a data reference, the PUBLIC attributes of an object for an object`.
     ENDIF.
 
     " first the index: a row this instance resolved before that pointed at
