@@ -1,12 +1,13 @@
 // @ts-check
 const { test, expect } = require("./fixtures");
+const { pageComponentId } = require("./pageComponent");
 
 // Two z2ui5.Component instances on ONE page, side by side - the case the
 // per-component context (app/webapp/core/Context.js) exists for. Until
 // 2026-09-23 the frontend state was a module singleton that Component.init
 // reset for whoever came last, so the second instance silently corrupted
 // the first, which failed later with "App Terminated". The served page
-// boots one component (the backend GET page); this spec creates a second
+// runs one component (the backend GET page, in its embed control); this spec creates a second
 // one next to it through UI5's own ComponentContainer, the way a launchpad
 // in keep-alive mode or a host app would, and asks both.
 //
@@ -14,10 +15,9 @@ const { test, expect } = require("./fixtures");
 // page's CSP has no 'unsafe-eval', and Playwright runs a string expression
 // through eval.
 
-// The id the page's own component is created under: ComponentSupport
-// prefixes the settings id "z2ui5" with the container's "container" (see
-// index.html and the backend GET page).
-const FIRST = "container-z2ui5";
+// The page's own component - the one its embed control runs - has a
+// generated id, which every test asks the page for (pageComponentId) and
+// holds as FIRST.
 const SECOND = "z2ui5-second";
 
 // true once the component's main view is built - its context's MAIN slot
@@ -95,6 +95,7 @@ test("two components on one page keep separate contexts and both render", async 
 }) => {
   await page.goto("/");
   // the first app has rendered its main view
+  const FIRST = await pageComponentId(page);
   await waitForMainView(page, FIRST);
   const firstBefore = await describeComponent(page, FIRST);
   expect(firstBefore.hasContext).toBe(true);
@@ -130,6 +131,7 @@ test("destroying the second component leaves the first one running", async ({
   page,
 }) => {
   await page.goto("/");
+  const FIRST = await pageComponentId(page);
   await waitForMainView(page, FIRST);
   await bootSecondComponent(page);
   await waitForMainView(page, SECOND);
@@ -168,6 +170,7 @@ test("a host's componentData.endpoint is where that component's roundtrips go", 
   page,
 }) => {
   await page.goto("/");
+  const FIRST = await pageComponentId(page);
   await waitForMainView(page, FIRST);
 
   const posts = [];
@@ -211,6 +214,7 @@ test("an embedded component leaves the page's hash alone", async ({
   page,
 }) => {
   await page.goto("/");
+  const FIRST = await pageComponentId(page);
   await waitForMainView(page, FIRST);
   await page.evaluate(() => {
     window.location.hash = "#/Customers('1001')";

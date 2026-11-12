@@ -12,17 +12,19 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PUBLIC SECTION.
 
-    " a digest of the script get( ) returns - every embedded frontend source
-    " and the code around them - fixed at generation time. Part of the GET
-    " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'fb2f794ecfad98a9'.
+    " a digest of everything the node serves a browser - the page's script
+    " get( ) returns, the frontend bundle get_bundle( ) returns and the
+    " control's stylesheet - fixed at generation time. Part of the ETag of
+    " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
+    CONSTANTS build_hash TYPE string VALUE '5b9a16361eb133f0'.
 
-    " the same digest as a CSP hash source, without the quotes around it:
+    " the digest of the script get( ) returns as a CSP hash source, without
+    " the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-+y95Ts+tmKm9v7eb5CrqQwmNDSsqTsj+8eCJVKVORZQ='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-+7x84/lx8SoUAWgI5Z6TpOTNSnBJ20vyoMt5wxpjnhI='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that
@@ -31,12 +33,23 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " with them
     CONSTANTS devtools_hash TYPE string VALUE 'c7c03c632a8646de'.
 
+    " the one inline script of the GET page: the page's start module and
+    " the embed control (z2ui5.embed.Container) as a preload, and the call
+    " that starts the page. Nothing of the frontend - the control loads it
+    " from the node, as get_bundle( )
     CLASS-METHODS get
       RETURNING
         VALUE(result) TYPE string.
 
-    " the same entries as a script of its own, for a page that embeds the
-    " component: sap.ui.require.preload( ) and nothing else - no function
+    " the stylesheet of the embed control, which the control includes as a
+    " file (z2ui5_cl_ui5_http_handler=>_http_get_control_css)
+    CLASS-METHODS get_control_css
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the frontend as a script of its own, for a page that embeds the
+    " component - the GET page of this node included:
+    " sap.ui.require.preload( ) and nothing else - no function
     " around it, no start (z2ui5_cl_ui5_http_handler=>_http_get_bundle)
     CLASS-METHODS get_bundle
       RETURNING
@@ -54,8 +67,12 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    " one line per embedded file of the shell - shared by get( ) and
-    " get_bundle( )
+    " one line per file of the GET page's script - get( )
+    CLASS-METHODS entries_page
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one line per embedded file of the frontend - get_bundle( )
     CLASS-METHODS entries
       RETURNING
         VALUE(result) TYPE string.
@@ -81,12 +98,18 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     result = |\n| &&
              |  function onInitComponent()\{\n| &&
              |    sap.ui.require.preload(\{\n| &&
-             entries( ) &&
+             entries_page( ) &&
              |    \});\n| &&
-             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
-             |     ComponentSupport.run();\n| &&
+             |    sap.ui.require(["abap2ui5/page/Host"], function(Host)\{\n| &&
+             |     Host.start();\n| &&
              |    \});\n| &&
              |  \}\n|.
+
+  ENDMETHOD.
+
+  METHOD get_control_css.
+
+    result = z2ui5_cl_ui5f_embed_css=>get( ).
 
   ENDMETHOD.
 
@@ -110,6 +133,13 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
     result = |sap.ui.require.preload(\{\n| &&
              entries_devtools( ) &&
              |\});\n|.
+
+  ENDMETHOD.
+
+  METHOD entries_page.
+
+    result = |      "abap2ui5/page/Host.js": function()\{{ z2ui5_cl_ui5f_host_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/embed/Container.js": function()\{{ z2ui5_cl_ui5f_embed_js=>get( ) }\},| && |\n|.
 
   ENDMETHOD.
 

@@ -121,10 +121,19 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " (the tools open on load), and a GET with it is the page as always.
     CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
 
-    " The sibling BSPs of the frontend (see the settings in _http_get): the
+    " The one path BELOW the node that is not the page: GET
+    " <node>/embed/Container.css is the stylesheet of the embed control. The
+    " GET page maps the control's namespace z2ui5/embed to <node>/embed
+    " (frontend/page/Host.js), so this is where the control's own include of
+    " z2ui5/embed/Container.css ends. A path and not a value of
+    " c_bundle_param: the UI5 loader drops the query of a resource root. As
+    " a pattern for CP, which ignores case
+    CONSTANTS c_control_css_path TYPE string VALUE `*/embed/container.css`.
+
+    " The sibling BSPs of the frontend (see _http_get_bundle): the
     " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
-    " Handed to the component by the page and by the bundle alike.
+    " Handed to the component by the bundle - the GET page loads it too.
     CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
     CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
 
@@ -221,6 +230,19 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    " a GET that asks for the stylesheet of the embed control - its path
+    " ends in c_control_css_path
+    CLASS-METHODS _is_control_css_request
+      IMPORTING
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " the stylesheet of the embed control - see the method
+    CLASS-METHODS _http_get_control_css
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
 
     " the frontend as a script of its own - see the method. iv_path is the
     " path of THIS request as the system saw it (ty_s_http_req-path), which
@@ -784,32 +806,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                           occ  = 0 ) }</style>\n|.
     ENDIF.
 
-    " Custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own frontend artefacts (z2ui5_ccc,
-    " abap2UI5-addons/custom-controls-customer) each live in their own BSP, which
-    " the frontend finds through the reserved resourceRoots in manifest.json
-    " ("z2ui5_cci": "../z2ui5_cci/", "z2ui5_ccc": "../z2ui5_ccc/"). Those paths are
-    " siblings of the FRONTEND BSP, so they are only correct when the app is
-    " served from it. Here the component base is this ICF node and the same
-    " relative path resolves next to /sap/bc/, where nothing is.
+    " The page is a host like any other: one z2ui5.embed.Container
+    " (@abap2ui5/embed-control) that fills it, loads the frontend from this
+    " node (?z2ui5-bundle, _http_get_bundle) and runs the app in it - the way
+    " the abap2UI5/frontend branches standard_new and cloud_new start it. So
+    " the page carries nothing of the frontend and passes it no settings: the
+    " sibling BSP roots (c_cci_root, c_ccc_root) reach the component through
+    " the bundle's z2ui5/embed module, the endpoint is the page's own path
+    " (frontend/page/Host.js), and the page is handed to the app by the control's
+    " ownsPage. It used to embed the whole preload and create the component
+    " itself, with those settings as component data (2026-11).
     "
-    " Hand the absolute BSP paths to the frontend instead, as component data
-    " of the container below together with checkLocal (this page is the
-    " backend endpoint). They cannot be applied here: the manifest registers
-    " its own value during component creation, which happens after everything
-    " this page can run, so it would win. Component.js applies the fields in
-    " init( ), after manifest processing, and keeps them out of the component
-    " data it sends to the backend. In BSP and Launchpad mode the fields are
-    " absent and the manifest entries stand. Registering a path costs nothing
-    " when the BSP is not installed - nothing is requested from it until a
-    " view names the namespace. There is no window.z2ui5 global any more; it
-    " used to carry these fields (removed 2026-09-22).
-    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
-                        |"ccResourceRoot" : "{ c_cci_root }", | &&
-                        |"cccResourceRoot" : "{ c_ccc_root }"\}\}|.
-
-    " The one inline script of the page - onInitComponent and the preload of
-    " every embedded frontend file - is generated from app/webapp together
+    " The one inline script of the page - onInitComponent with the preload of
+    " the page's start module and the control - is generated together
     " with its CSP hash (z2ui5_cl_ui5f_preload, tools/app2abap/trans2abap.js),
     " and _csp_add_script_hash lists that hash in the policy's script-src.
     " Nothing may be added between the two script tags: the browser runs the
@@ -823,10 +832,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " is left here is the name the browser shows while UI5 boots, before any
     " app can speak - and a page whose <title> is empty shows the URL.
     " The UI5 origin, announced before the browser reaches the bootstrap
-    " tag: it sits BELOW the embedded preload - ~300 KB of inline script
-    " the parser executes first - so without the hint the DNS lookup, the
-    " TCP and the TLS handshake to the CDN start only once the parser gets
-    " there. Two hints for the two connection pools the browser keeps: the
+    " tag, so the DNS lookup, the TCP and the TLS handshake to the CDN start
+    " while the parser is still on the lines above it. Two hints for the two connection pools the browser keeps: the
     " bootstrap script, every module and the theme's library.css load
     " without CORS, UI5's own XHRs (sap-ui-version.json, the library
     " manifests, i18n) with it, and a preconnect serves only the pool its
@@ -867,9 +874,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
                   |data-sap-ui-theme="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-theme ) }" src="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-src ) }"|.
 
-    " built apart and appended once: result-body already carries the whole
-    " embedded preload here, so appending per config row re-copied ~400KB
-    " per entry. Name and value are both escaped like theme and src above:
+    " built apart and appended once. Name and value are both escaped like theme and src above:
     " the exit may derive any of them from the request (t_params reaches
     " it), and unescaped that is a quote-breakout into the bootstrap script
     " tag. The CSP value stays raw on purpose - it is a whole meta TAG, not
@@ -879,7 +884,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&
                   |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
-                  |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='{ lv_settings }' data-handle-validation="true"></div>\n| &&
+                  |    <div id="container"></div>\n| &&
                   | </body></html>|.
 
     result-status_code   = 200.
@@ -904,6 +909,44 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the one parameter with the one value - see c_bundle_devtools
     result = xsdbool( line_exists( it_params[ n = c_bundle_param
                                               v = c_bundle_devtools ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
+  METHOD _is_control_css_request.
+
+    " the path as the stack reports it (ty_s_http_req-path). A stack that
+    " reports none answers the request with the page, which the browser
+    " refuses as a stylesheet (nosniff): the control then runs without its
+    " two rules, and nothing else is lost
+    result = xsdbool( iv_path CP c_control_css_path ).
+
+  ENDMETHOD.
+
+  METHOD _http_get_control_css.
+
+    " GET <node>/embed/Container.css - the stylesheet of
+    " z2ui5.embed.Container, which the control includes with a <link> of
+    " the page's origin when its module runs (style-src 'self'). The GET
+    " page is the one host that asks this node for it (see
+    " c_control_css_path); a host app of its own ships the control with
+    " its stylesheet. Served like the bundles: as a file, with nosniff,
+    " under the frontend bundle's tag, which a conditional GET revalidates
+    " to a bodyless 304. No user or app data, the same for everybody.
+    DATA(lv_etag) = _bundle_etag( abap_false ).
+
+    " consumed once - see sv_if_none_match
+    DATA(lv_if_none_match) = sv_if_none_match.
+    CLEAR sv_if_none_match.
+    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
+                                                         etag          = lv_etag ) = abap_true.
+      result-status_code   = 304.
+      result-status_reason = `Not Modified`.
+      RETURN.
+    ENDIF.
+
+    result-body          = z2ui5_cl_ui5f_preload=>get_control_css( ).
+    result-status_code   = 200.
+    result-status_reason = `OK`.
 
   ENDMETHOD.
 
@@ -1094,10 +1137,17 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
+    " ... and so does the stylesheet of the embed control, under the
+    " frontend bundle's
+    DATA(lv_css) = xsdbool( ms_req-method = `GET`
+                            AND lv_bundle = abap_false
+                            AND _is_control_css_request( ms_req-path ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
                             THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
+                            WHEN lv_css = abap_true
+                            THEN _bundle_etag( abap_false )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1116,9 +1166,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Options: nosniff header below, stops a container that defaults to
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
-    " for the bundle and JSON for the POST roundtrip.
+    " for the bundles, CSS for the control's stylesheet and JSON for the
+    " POST roundtrip.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
+        WHEN lv_css = abap_true        THEN `text/css; charset=UTF-8`
         WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
         WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
         ELSE `application/json; charset=UTF-8` ).
@@ -1302,6 +1354,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               result = _http_get_devtools( ).
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
+            ELSEIF _is_control_css_request( is_req-path ) = abap_true.
+              result = _http_get_control_css( ).
             ELSE.
               result = _http_get( ).
             ENDIF.

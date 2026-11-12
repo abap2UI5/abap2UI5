@@ -10,6 +10,36 @@ const xmlTemplate = require("./abapXMLTemplate");
 const sourceDir = path.join(__dirname, "../../app/webapp");
 const targetDir = path.join(__dirname, "../../src/01/03");
 
+// What the GET page itself carries, and nothing of it is the frontend: the
+// page is a host with one z2ui5.embed.Container (@abap2ui5/embed-control)
+// that loads the frontend through ?z2ui5-bundle. Its inline script holds
+// the page's own start module (frontend/page/Host.js) and the control,
+// taken from node_modules at the version package.json pins - the same
+// package the delivery branches standard_new and cloud_new ship
+// (frontend/embed). The control's stylesheet is no module: the handler
+// serves it at <node>/embed/Container.css (get_control_css( ), see Host.js).
+const repoDir = path.join(__dirname, "../..");
+const controlDir = "node_modules/@abap2ui5/embed-control/src";
+const PAGE_SOURCES = [
+  {
+    source: "frontend/page/Host.js",
+    className: "z2ui5_cl_ui5f_host_js",
+    urlPath: "abap2ui5/page/Host.js",
+  },
+  {
+    source: `${controlDir}/Container.js`,
+    className: "z2ui5_cl_ui5f_embed_js",
+    urlPath: "z2ui5/embed/Container.js",
+  },
+  {
+    source: `${controlDir}/Container.css`,
+    className: "z2ui5_cl_ui5f_embed_css",
+    // not preloaded - served as a file
+    urlPath: null,
+  },
+];
+const CONTROL_CSS_CLASS = "z2ui5_cl_ui5f_embed_css";
+
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_DEVC" serializer_version="v1.0.0">
@@ -229,7 +259,13 @@ async function stripJsComments(source, file, relPath) {
 }
 
 // Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
+function formatAsAbapClass(
+  content,
+  className,
+  isSpecialFile,
+  sourcePath,
+  sourceRoot,
+) {
   assertSevenBitAscii(content, className);
   if (isSpecialFile) assertNoLossInSpecialFile(content, className, sourcePath);
   const lines = content.split("\n");
@@ -261,7 +297,12 @@ function formatAsAbapClass(content, className, isSpecialFile, sourcePath) {
     }
     return formattedLine;
   });
-  return abapClassTemplate(className, formattedLines.join("\n"), sourcePath);
+  return abapClassTemplate(
+    className,
+    formattedLines.join("\n"),
+    sourcePath,
+    sourceRoot,
+  );
 }
 
 // The string the class formatAsAbapClass builds hands back from get( ) at run
@@ -290,13 +331,14 @@ function escapeJsLiteral(value) {
     .replace(/</g, "\\x3c");
 }
 
-// The lines around the preload entries in the GET shell's one inline
+// The lines around the preload entries in the GET page's one inline
 // <script>: the global onInitComponent the bootstrap tag names in
-// data-sap-ui-oninit, which registers the preload and starts the component.
-// Each line is followed by a newline, the first one is empty (the script
-// text starts with the newline after <script>). Held once, as data, so the
-// ABAP string template in buildPreloadClass and the hashed JavaScript string
-// in inlineScript cannot drift apart.
+// data-sap-ui-oninit, which registers the page's own modules (PAGE_SOURCES -
+// the start module and the embed control, NOT the frontend) and starts the
+// page. Each line is followed by a newline, the first one is empty (the
+// script text starts with the newline after <script>). Held once, as data,
+// so the ABAP string template in buildPreloadClass and the hashed JavaScript
+// string in inlineScript cannot drift apart.
 const SCRIPT_OPEN = [
   "",
   "  function onInitComponent(){",
@@ -304,8 +346,8 @@ const SCRIPT_OPEN = [
 ];
 const SCRIPT_CLOSE = [
   "    });",
-  '    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){',
-  "     ComponentSupport.run();",
+  '    sap.ui.require(["abap2ui5/page/Host"], function(Host){',
+  "     Host.start();",
   "    });",
   "  }",
 ];
@@ -537,6 +579,7 @@ function generateClassName(filePath) {
 // script (DEVTOOLS_OPEN / DEVTOOLS_CLOSE), with devtools_hash - a digest of that script - as the validator the
 // handler's ETag for it carries, since build_hash does not see those files.
 function buildPreloadClass(
+  pageEntries,
   entries,
   devtoolsEntries,
   buildHash,
@@ -558,7 +601,7 @@ function buildPreloadClass(
   const concat = (parts) => parts.join(" &&\n             ");
   const script = concat([
     ...templateLines(SCRIPT_OPEN),
-    "entries( )",
+    "entries_page( )",
     ...templateLines(SCRIPT_CLOSE),
   ]);
   const bundle = concat([
@@ -572,6 +615,7 @@ function buildPreloadClass(
     ...templateLines(DEVTOOLS_CLOSE),
   ]);
   const joined = concat(entries.map(entryLine));
+  const joinedPage = concat(pageEntries.map(entryLine));
   const joinedDevtools = concat(devtoolsEntries.map(entryLine));
   return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
@@ -587,12 +631,14 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
 
   PUBLIC SECTION.
 
-    " a digest of the script get( ) returns - every embedded frontend source
-    " and the code around them - fixed at generation time. Part of the GET
-    " shell's ETag (z2ui5_cl_ui5_http_handler=>_get_etag)
+    " a digest of everything the node serves a browser - the page's script
+    " get( ) returns, the frontend bundle get_bundle( ) returns and the
+    " control's stylesheet - fixed at generation time. Part of the ETag of
+    " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
     CONSTANTS build_hash TYPE string VALUE '${buildHash}'.
 
-    " the same digest as a CSP hash source, without the quotes around it:
+    " the digest of the script get( ) returns as a CSP hash source, without
+    " the quotes around it:
     " z2ui5_cl_ui5_http_handler=>_http_get lists it in the policy's
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
@@ -606,12 +652,23 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " with them
     CONSTANTS devtools_hash TYPE string VALUE '${devtoolsHash}'.
 
+    " the one inline script of the GET page: the page's start module and
+    " the embed control (z2ui5.embed.Container) as a preload, and the call
+    " that starts the page. Nothing of the frontend - the control loads it
+    " from the node, as get_bundle( )
     CLASS-METHODS get
       RETURNING
         VALUE(result) TYPE string.
 
-    " the same entries as a script of its own, for a page that embeds the
-    " component: sap.ui.require.preload( ) and nothing else - no function
+    " the stylesheet of the embed control, which the control includes as a
+    " file (z2ui5_cl_ui5_http_handler=>_http_get_control_css)
+    CLASS-METHODS get_control_css
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the frontend as a script of its own, for a page that embeds the
+    " component - the GET page of this node included:
+    " sap.ui.require.preload( ) and nothing else - no function
     " around it, no start (z2ui5_cl_ui5_http_handler=>_http_get_bundle)
     CLASS-METHODS get_bundle
       RETURNING
@@ -629,8 +686,12 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    " one line per embedded file of the shell - shared by get( ) and
-    " get_bundle( )
+    " one line per file of the GET page's script - get( )
+    CLASS-METHODS entries_page
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " one line per embedded file of the frontend - get_bundle( )
     CLASS-METHODS entries
       RETURNING
         VALUE(result) TYPE string.
@@ -657,6 +718,12 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_control_css.
+
+    result = ${CONTROL_CSS_CLASS}=>get( ).
+
+  ENDMETHOD.
+
   METHOD get_bundle.
 
     result = ${bundle}.
@@ -666,6 +733,12 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
   METHOD get_devtools.
 
     result = ${devtools}.
+
+  ENDMETHOD.
+
+  METHOD entries_page.
+
+    result = ${joinedPage}.
 
   ENDMETHOD.
 
@@ -848,6 +921,44 @@ async function main() {
       }
     }
 
+    // The page's own sources (PAGE_SOURCES): the same embedding as a file
+    // of app/webapp - a .js comment-stripped, the stylesheet verbatim -
+    // under the class name the list gives them.
+    const pageEntries = [];
+    let controlCss = "";
+    for (const { source, className, urlPath } of PAGE_SOURCES) {
+      const file = path.join(repoDir, source);
+      if (!fs.existsSync(file)) {
+        throw new Error(
+          `${source} is missing - the GET page carries it; run 'npm ci' ` +
+            "(the embed control comes from node_modules)",
+        );
+      }
+      if (seenClassNames.has(className)) {
+        throw new Error(
+          `class name collision: ${source} and ${seenClassNames.get(className)} both map to ${className}`,
+        );
+      }
+      seenClassNames.set(className, file);
+      let sourceContent = await readFile(file);
+      const isJs = file.endsWith(".js");
+      if (isJs) {
+        assertSevenBitAscii(sourceContent, className);
+        sourceContent = await stripJsComments(sourceContent, file, source);
+      }
+      emit(
+        path.join(targetDir, `${className}.clas.abap`),
+        formatAsAbapClass(sourceContent, className, !isJs, source, ""),
+      );
+      emit(
+        path.join(targetDir, `${className}.clas.xml`),
+        `\uFEFF${xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`)}`,
+      );
+      const value = embeddedValue(sourceContent, !isJs);
+      if (urlPath) pageEntries.push({ urlPath, className, isJs, value });
+      else controlCss = value;
+    }
+
     // Generate the preload mapping class (sorted for a stable output).
     // Plain code-unit comparison, not localeCompare: the collation of
     // localeCompare depends on the host locale/ICU build, and the sort
@@ -855,6 +966,7 @@ async function main() {
     const byUrlPath = (a, b) =>
       a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0;
     preloadEntries.sort(byUrlPath);
+    pageEntries.sort(byUrlPath);
     devtoolsEntries.sort(byUrlPath);
     assertNoEagerDependencyOnDeferred(jsSources);
     // One SHA-256 over the script text the page will carry, UTF-8 like the
@@ -862,12 +974,21 @@ async function main() {
     // bytes a browser hashes to decide whether the script may run.
     const digest = crypto
       .createHash("sha256")
-      .update(inlineScript(preloadEntries), "utf8")
+      .update(inlineScript(pageEntries), "utf8")
       .digest();
-    // 16 hex characters: a validator, not a security digest, and the tag
-    // travels in every GET response header
-    const buildHash = digest.toString("hex").slice(0, 16);
     const scriptHash = `sha256-${digest.toString("base64")}`;
+    // The validator covers everything the node serves a browser, not the
+    // page's script alone: the bundle is the frontend now, and its ETag
+    // carries this hash as the page's does. 16 hex characters: a
+    // validator, not a security digest, and the tag travels in every GET
+    // response header
+    const buildHash = crypto
+      .createHash("sha256")
+      .update(inlineScript(pageEntries), "utf8")
+      .update(bundleScript(preloadEntries), "utf8")
+      .update(controlCss, "utf8")
+      .digest("hex")
+      .slice(0, 16);
     // the devtools bundle's own validator - served as a file, no CSP
     // hash is taken over it, the ETag is what it is for
     const devtoolsHash = crypto
@@ -881,6 +1002,7 @@ async function main() {
     emit(
       path.join(targetDir, "z2ui5_cl_ui5f_preload.clas.abap"),
       buildPreloadClass(
+        pageEntries,
         preloadEntries,
         devtoolsEntries,
         buildHash,

@@ -65,7 +65,8 @@ then talks to the ABAP backend exclusively via HTTP POST/JSON roundtrips:
 
 ```
 Browser (UI5 SPA)                          ABAP Backend
-       │──── HTTP GET ─────────────────────────→│  Returns HTML + embedded UI5 app
+       │──── HTTP GET ─────────────────────────→│  Returns HTML: the embed control, which
+       │                                        │  loads the UI5 app (GET ?z2ui5-bundle)
        │←─── HTML page ─────────────────────────│
        │──── POST {S_FRONT, MODEL} ────────────→│  1. Parse JSON request
        │                                        │  2. Load draft (session) from DB
@@ -222,7 +223,8 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
 - **The static gates are one job** (`check_gates.yaml`), one step per rule, each `if: ${{ !cancelled() }}`, so a
   pull request sees every failure at once. `npm run gates` is the local half.
 - **`src/99` is frozen and `src/02` is a contract**, both machine-checked (rules 1, 5).
-- **`src/01/03/` is generated from `app/webapp/`** and drift-gated (rule 2). The delivery trees are not committed:
+- **`src/01/03/` is generated from `app/webapp/`** - plus `frontend/page/Host.js` and the embed control from
+  `node_modules`, what the GET page itself carries - and drift-gated (rule 2). The delivery trees are not committed:
   `frontend_check` builds them into the git-ignored `tools/out/`.
 - **The gates also run on `push: main`** — a merge is a state no pull request tested.
 - **Every job takes its toolchain from `.github/actions/setup`.**

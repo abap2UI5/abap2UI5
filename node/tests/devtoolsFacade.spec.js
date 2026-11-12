@@ -226,6 +226,8 @@ test.describe("install", () => {
   test("an embedded component leaves the page's console and errors alone", () => {
     const h = loadDevTools();
     h.ctx.state.embedded = true;
+    // the host's page, not handed to the app (Component.init)
+    h.ctx.state.ownsPage = false;
     h.DevTools.install(h.ctx);
     expect(h.recorderCalls).toEqual(["install:own"]);
     expect(h.consoleUsers.count).toBe(0);
@@ -240,6 +242,20 @@ test.describe("install", () => {
     h.DevTools.exit(h.ctx);
     expect(h.consoleUsers.count).toBe(0);
     expect(h.recorderCalls).not.toContain("console:uninstall");
+  });
+
+  // ... unless the host handed the page to the app (ownsPage): the
+  // backend's own GET page and the branches standard_new and cloud_new are
+  // one embed control filling the page, and that page's console is the app's
+  test("an embedded component that owns the page captures its console", () => {
+    const h = loadDevTools();
+    h.ctx.state.embedded = true;
+    h.ctx.state.ownsPage = true;
+    h.DevTools.install(h.ctx);
+    expect(h.consoleUsers.count).toBe(1);
+    expect(h.ctx.devtools.console).toBe(true);
+    h.DevTools.exit(h.ctx);
+    expect(h.consoleUsers.count).toBe(0);
   });
 
   test("is idempotent", () => {

@@ -310,7 +310,13 @@ sap.ui.define(
       // tab and bug report, and with "open on error" a host error opened
       // this app's tools over the host. Embedded, the Log tab has the
       // framework's own error log and the backend messages.
-      if (!ctx.state?.embedded) {
+      //
+      // Unless the host handed the page to the app (state.ownsPage): that
+      // page is the component and nothing else - the backend's own GET
+      // page and the branches standard_new and cloud_new, a
+      // z2ui5.embed.Container filling an empty page - so its console is
+      // the app's, as on any page of the app's own.
+      if (!ctx.state?.embedded || ctx.state?.ownsPage) {
         Console.install();
         record.console = true;
 
