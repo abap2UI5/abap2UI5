@@ -36,11 +36,18 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `  (Control, Lib, Env, ViewSlots, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
+             `    const opSymbols = {` && |\n| &&
+             `      EQ: "",` && |\n| &&
+             `      NE: "!=",` && |\n| &&
+             `      LT: "<",` && |\n| &&
+             `      LE: "<=",` && |\n| &&
+             `      GT: ">",` && |\n| &&
+             `      GE: ">=",` && |\n| &&
+             `    };` && |\n| &&
              `    const filterDisplayFns = {` && |\n| &&
              `      Contains: (v) => ``*${v ?? ""}*``,` && |\n| &&
-             `      StartsWith: (v) => ``^${v ?? ""}``,` && |\n| &&
-             `      EndsWith: (v) => ``${v ?? ""}$``,` && |\n| &&
+             `      StartsWith: (v) => ``${v ?? ""}*``,` && |\n| &&
+             `      EndsWith: (v) => ``*${v ?? ""}``,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const UITableExt = Control.extend("z2ui5.cc.UITableExt", {` && |\n| &&
@@ -172,7 +179,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `            displayFn = (v) => {` && |\n| &&
              `              const from = Lib.toText(v);` && |\n| &&
              `              const to = Lib.toText(oFilter.oValue2);` && |\n| &&
-             `              return ``${from}...${to}``;` && |\n| &&
+             `              return ``${from}..${to}``;` && |\n| &&
              `            };` && |\n| &&
              `          } else if (filterDisplayFns[operator]) {` && |\n| &&
              `            displayFn = filterDisplayFns[operator];` && |\n| &&

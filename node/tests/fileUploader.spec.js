@@ -513,3 +513,20 @@ test("a file over maximumFileSize is not read - it is reported, the others go on
   readers[0].finish();
   expect(inst._props.value).toBe("data:mock;base64,small.txt");
 });
+
+// The inner control enforces maximumFileSize itself: it fires its own
+// fileSizeExceed and no change, so the wrapper only hears of the file
+// through the forwarded event.
+test("the inner control's fileSizeExceed is forwarded as this control's", () => {
+  const { makeInstance, render } = load();
+  const inst = makeInstance({ maximumFileSize: 1 });
+  const exceeded = [];
+  inst.fireFileSizeExceed = (p) => exceeded.push(p);
+  render(inst);
+
+  inst.oFileUploader.settings.fileSizeExceed({
+    getParameter: (name) => ({ fileName: "big.mp4", fileSize: 400 })[name],
+  });
+
+  expect(exceeded).toEqual([{ fileName: "big.mp4", fileSize: 400 }]);
+});

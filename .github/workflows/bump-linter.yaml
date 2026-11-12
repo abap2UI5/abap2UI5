@@ -56,8 +56,7 @@
 # over as an artifact; the job that opens the pull request has the write
 # token and runs nothing from npm at all. A stolen npm token for the org
 # is then a bad linter release that fails this workflow, not a push to any
-# branch of this repository. The failure report is a third job for the same
-# reason: `issues: write` stays off the executing job too.
+# branch of this repository.
 name: bump-linter
 
 # no schedule: bump-deps.yaml does this once a month, in its one
@@ -66,9 +65,9 @@ on:
   workflow_dispatch:
 
 # No cancel-in-progress: this workflow opens a pull request, and a cancelled
-# run can have pushed the branch and not opened the PR. The group keeps a
-# hand dispatch and the Monday cron from doing it twice at once - same
-# pattern as auto_abaplint_fix.yaml.
+# run can have pushed the branch and not opened the PR. The group keeps
+# two dispatches from doing it twice at once - same pattern as
+# auto_abaplint_fix.yaml.
 concurrency:
   group: bump-linter
 
@@ -77,8 +76,8 @@ permissions:
 
 jobs:
   bump:
-    # forks get the schedule too, and a fork has no business opening weekly
-    # bump PRs against itself - same guard as every other scheduled workflow
+    # a fork has no business opening bump PRs against itself - same guard
+    # as every other bump workflow
     if: github.repository == 'abap2UI5/abap2UI5'
     permissions:
       contents: read
@@ -138,7 +137,7 @@ jobs:
         npm i --no-save --no-audit --no-fund "$RT@$LINTER_VERSION"
     # version+engine-keyed browser cache, the same pattern as test.yaml's
     # browser matrix - the Chromium download is the slowest part of the run
-    # and identical from one Monday to the next
+    # and identical from one run to the next
     - name: Get Playwright version
       if: steps.pin.outputs.changed == 'true'
       id: playwright-version
@@ -207,24 +206,7 @@ jobs:
         title: 'chore: bump @abap2ui5/linter'
         commit-message: 'chore: bump @abap2ui5/linter to ${{ needs.bump.outputs.version }}'
         body: |
-          Weekly move of `@abap2ui5/linter` to the latest version on npm
+          Move of `@abap2ui5/linter` to the latest version on npm
           (${{ needs.bump.outputs.version }}). Both gates that consume it ran
           over the shipped app classes in the workflow that opened this PR -
           `check:abap2ui5` and `check:render`.
-
-  report-failure:
-    needs: [bump, pull-request]
-    # `failure()` alone reads the whole chain; `pull-request` being skipped
-    # on a quiet Monday is not a failure and must not open an issue
-    if: always() && github.event_name == 'schedule' && (needs.bump.result == 'failure' || needs.pull-request.result == 'failure')
-    permissions:
-      contents: read
-      issues: write  # to report failed scheduled runs
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        persist-credentials: false
-    - name: Report scheduled failure as issue
-      uses: ./.github/actions/report-scheduled-failure

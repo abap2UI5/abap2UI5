@@ -19,8 +19,7 @@ on:
   workflow_dispatch:
 
 # No cancel-in-progress: a run mid-way through opening a mirror PR should
-# finish. The group stops a dispatch and the monthly cron from opening the
-# same PR twice.
+# finish. The group stops two dispatches from opening the same PR twice.
 concurrency:
   group: mirror
 
@@ -34,17 +33,16 @@ jobs:
     permissions:
       contents: write  # for peter-evans/create-pull-request to create branch
       pull-requests: write  # for peter-evans/create-pull-request to create a PR
-      issues: write  # to report failed scheduled runs
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         include:
-          - repo: ajson_mirror
+          - repo: mirror-ajson
             path: src/00/01
             pr: mirror-ajson-update
-          - repo: srtti_mirror
+          - repo: mirror-srtti
             path: src/00/02
             pr: mirror-srtti-update
     steps:
@@ -64,6 +62,3 @@ jobs:
       with:
         title: ${{ matrix.pr }}
         branch: ${{ matrix.pr }}
-    - name: Report scheduled failure as issue
-      if: failure() && github.event_name == 'schedule'
-      uses: ./.github/actions/report-scheduled-failure

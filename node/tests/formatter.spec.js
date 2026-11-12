@@ -73,6 +73,7 @@ test.describe("Formatter module", () => {
     expect(Formatter.DateCreateObject("")).toBeNull();
     expect(Formatter.DateCreateObject(null)).toBeNull();
     expect(Formatter.DateCreateObject(undefined)).toBeNull();
+    expect(Formatter.DateCreateObject("not a date")).toBeNull();
     expect(Formatter.DateAbapDateToDateObject("")).toBeNull();
     expect(Formatter.DateAbapDateTimeToDateObject("")).toBeNull();
     expect(Formatter.DateAbapDateTimeToDateObject("", "134501")).toBeNull();

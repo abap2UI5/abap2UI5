@@ -185,6 +185,13 @@ CLASS z2ui5_cl_ui5f_uploader_js IMPLEMENTATION.
              `              this.oUploadButton.setEnabled(Boolean(value));` && |\n| &&
              `            }` && |\n| &&
              `          },` && |\n| &&
+             `` && |\n| &&
+             `          fileSizeExceed: (oEvent) => {` && |\n| &&
+             `            this.fireFileSizeExceed({` && |\n| &&
+             `              fileName: oEvent.getParameter("fileName"),` && |\n| &&
+             `              fileSize: Number(oEvent.getParameter("fileSize")),` && |\n| &&
+             `            });` && |\n| &&
+             `          },` && |\n| &&
              `          uploadComplete: (oEvent) => {` && |\n| &&
              `            if (!directUpload) return;` && |\n| &&
              `            const source = oEvent.getSource();` && |\n| &&
