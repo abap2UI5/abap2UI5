@@ -19,8 +19,8 @@
 //     node tools/verify-branches.mjs [branch ...]
 //
 // Needs a git remote for the frontend repository; it is added on the fly as a
-// read-only remote when missing. With no branch arguments the four published
-// branches are checked. Exits non-zero on the first difference.
+// read-only remote when missing. With no branch arguments the six published
+// branches are checked (the list frontend_deploy.yaml deploys). Exits non-zero on the first difference.
 
 import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readdirSync, statSync, readFileSync, existsSync } from "node:fs";
@@ -37,7 +37,7 @@ const generated = out;
 
 const REMOTE = "frontend-published";
 const REMOTE_URL = "https://github.com/abap2UI5/frontend.git";
-const DEFAULT = ["cloud", "cloud_v2", "standard", "standard_v2"];
+const DEFAULT = ["cloud", "cloud_v2", "standard", "standard_v2", "cloud_new", "standard_new"];
 
 const git = (...args) => execFileSync("git", args, { cwd: core, encoding: "utf8" }).trim();
 

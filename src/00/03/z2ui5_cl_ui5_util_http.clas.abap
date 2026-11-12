@@ -180,6 +180,14 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
+    CLASS-METHODS client_execute_cloud
+      IMPORTING
+        io_client     TYPE REF TO object
+        method        TYPE any
+        timeout       TYPE i
+      RETURNING
+        VALUE(result) TYPE REF TO object.
+
     CLASS-METHODS client_destination_cloud
       IMPORTING
         is_req        TYPE ty_s_client_req
@@ -609,23 +617,9 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
             EXPORTING val = |HTTP_CLIENT_METHOD_NOT_FOUND - { is_req-method } is no IF_WEB_HTTP_CLIENT method|.
         ENDIF.
 
-        " the timeout only when one is asked for - the parameter's own
-        " default is the client's
-        IF is_req-timeout > 0.
-          DATA(lv_timeout) = is_req-timeout.
-          CALL METHOD lo_client->(`EXECUTE`)
-            EXPORTING
-              i_method   = <method>
-              i_timeout  = lv_timeout
-            RECEIVING
-              r_response = lo_response.
-        ELSE.
-          CALL METHOD lo_client->(`EXECUTE`)
-            EXPORTING
-              i_method   = <method>
-            RECEIVING
-              r_response = lo_response.
-        ENDIF.
+        lo_response = client_execute_cloud( io_client = lo_client
+                                            method    = <method>
+                                            timeout   = is_req-timeout ).
 
         CALL METHOD lo_response->(`GET_STATUS`)
           RECEIVING
@@ -648,6 +642,39 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         ENDIF.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD client_execute_cloud.
+
+    " the timeout only when one is asked for - the parameter's own default is
+    " the client's. A failed EXECUTE (no connection, TLS, timeout) is the
+    " Cloud twin of a failed SEND/RECEIVE in client_send_std and carries the
+    " same HTTP_COMMUNICATION_ERROR text, the marker callers read to tell a
+    " transient failure from a missing configuration (z2ui5_cl_ui5_llm_http,
+    " retryable). The caller closes the client on the way out
+    TRY.
+        IF timeout > 0.
+          DATA(lv_timeout) = timeout.
+          CALL METHOD io_client->(`EXECUTE`)
+            EXPORTING
+              i_method   = method
+              i_timeout  = lv_timeout
+            RECEIVING
+              r_response = result.
+        ELSE.
+          CALL METHOD io_client->(`EXECUTE`)
+            EXPORTING
+              i_method   = method
+            RECEIVING
+              r_response = result.
+        ENDIF.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = `HTTP_COMMUNICATION_ERROR - the request could not be sent or no response came back`
+            previous = x.
     ENDTRY.
 
   ENDMETHOD.

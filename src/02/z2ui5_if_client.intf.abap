@@ -887,12 +887,12 @@ INTERFACE z2ui5_if_client
   "! byte. One method therefore both schedules a frontend action and wires
   "! one, and this one is a second name for half of it.
   "!
-  "! The one difference is follow_up_action( )'s leading CASE, which claims
-  "! cs_event-hash_routing / hash_set / hash_replace / hash_attach_changed /
-  "! app_state_set_active (and their obsolete set_* spellings) before that
-  "! branch. Those are backend-side navigation options rather than frontend
-  "! handlers, so wiring one into a view attribute never dispatched anything
-  "! here either.
+  "! The IF result IS SUPPLIED branch comes first, so a consumed call wires
+  "! every val - cs_event-hash_routing / hash_set / hash_replace /
+  "! hash_attach_changed / app_state_set_active included. follow_up_action( )'s
+  "! CASE, which takes those backend-side navigation options as options of
+  "! the roundtrip, runs only when the result is NOT consumed (a statement
+  "! call) - a form this method never had.
   "!
   "! It stays in the interface so existing apps keep compiling - rename the
   "! calls at your leisure.

@@ -11,6 +11,10 @@ Legend
 
 unreleased
 ----------
+* language model seam: on ABAP Cloud a request that could not be sent or got no answer (a timeout) is retryable, as it is on Standard ABAP
+* FileUploader custom control: fileSizeExceed fires for a file over maximumFileSize - the inner control rejected it without telling the wrapper
+* UITableExt: a restored column filter is shown in the syntax the column reads back (!=v, v*, *v, from..to), so submitting it again keeps the operator
+* formatter DateCreateObject: a string that is no date gives null instead of an Invalid Date
 ! four errors of the model service name the cause and the remedy instead of a bare code: a reference handed to _bind( ), a bound attribute that cannot be reached, and two internal serializer errors that now say they are a framework defect to report
 + docs/agents/client-api.md: the client API as a generated index - every method of z2ui5_if_client with its signature and one paragraph, the obsolete ones apart; shipped with the agent skills as references/client-api.md
 ! agent skills: the plugin and skill copies of abap-check and ui5-check keep a short SKILL.md with a table and carry their long sections as files under references/; build-an-app is a one-rule-per-line checklist; the app guide has the test double as code

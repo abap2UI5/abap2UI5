@@ -265,7 +265,7 @@ test.describe("filter preservation across a binding rebuild", () => {
     {
       name: "NE",
       filter: { sPath: "C", sOperator: "NE", oValue1: "Bob" },
-      display: "!Bob",
+      display: "!=Bob",
     },
     {
       name: "GT",
@@ -280,17 +280,17 @@ test.describe("filter preservation across a binding rebuild", () => {
     {
       name: "StartsWith",
       filter: { sPath: "C", sOperator: "StartsWith", oValue1: "ab" },
-      display: "^ab",
+      display: "ab*",
     },
     {
       name: "EndsWith",
       filter: { sPath: "C", sOperator: "EndsWith", oValue1: "ab" },
-      display: "ab$",
+      display: "*ab",
     },
     {
       name: "BT",
       filter: { sPath: "C", sOperator: "BT", oValue1: "1", oValue2: "9" },
-      display: "1...9",
+      display: "1..9",
     },
   ];
 

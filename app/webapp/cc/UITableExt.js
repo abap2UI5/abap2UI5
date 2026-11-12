@@ -14,11 +14,23 @@ sap.ui.define(
     // roundtrip and re-applies them - including the column indicators -
     // when the response rebuilt the table binding, which would otherwise
     // lose them.
-    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };
+    //
+    // The restored string is the column's filterValue, which
+    // sap.ui.table.Column#_getFilter parses back when the user submits it
+    // again from the column menu - so it is written in that grammar: "!="
+    // for NE, "from..to" for BT, "v*" / "*v" for StartsWith / EndsWith.
+    const opSymbols = {
+      EQ: "",
+      NE: "!=",
+      LT: "<",
+      LE: "<=",
+      GT: ">",
+      GE: ">=",
+    };
     const filterDisplayFns = {
       Contains: (v) => `*${v ?? ""}*`,
-      StartsWith: (v) => `^${v ?? ""}`,
-      EndsWith: (v) => `${v ?? ""}$`,
+      StartsWith: (v) => `${v ?? ""}*`,
+      EndsWith: (v) => `*${v ?? ""}`,
     };
 
     const UITableExt = Control.extend("z2ui5.cc.UITableExt", {
@@ -202,16 +214,16 @@ sap.ui.define(
           // Choose how to format the column header label for this operator.
           let displayFn;
           if (operator === "BT") {
-            // "between" displays "from...to".
+            // "between" displays "from..to" - Column's own BT syntax.
             displayFn = (v) => {
               const from = Lib.toText(v);
               const to = Lib.toText(oFilter.oValue2);
-              return `${from}...${to}`;
+              return `${from}..${to}`;
             };
           } else if (filterDisplayFns[operator]) {
             displayFn = filterDisplayFns[operator];
           } else {
-            // Fallback: optional operator prefix (e.g. "!" for NE) + value.
+            // Fallback: optional operator prefix (e.g. "!=" for NE) + value.
             const prefix = opSymbols[operator] || "";
             displayFn = (v) => `${prefix}${Lib.toText(v)}`;
           }

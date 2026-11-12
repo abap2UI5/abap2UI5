@@ -75,7 +75,7 @@ jobs:
       if: steps.when.outputs.go == 'true'
       run: |
         set -euo pipefail
-        for m in ajson_mirror:src/00/01 srtti_mirror:src/00/02; do
+        for m in mirror-ajson:src/00/01 mirror-srtti:src/00/02; do
           repo=${m%%:*}; path=${m#*:}
           git clone --quiet --depth 1 "https://github.com/abap2UI5/$repo.git" "$RUNNER_TEMP/$repo"
           rm "$path"/z*

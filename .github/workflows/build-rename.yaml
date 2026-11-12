@@ -65,6 +65,15 @@ jobs:
             echo "::error::Name '$NAMESPACE' is the original name - nothing to rename"
             exit 1
           fi
+          # the "_" is appended below; a name that already ends in one would
+          # become a "__" prefix, which tools/bsp_rename (deriveBackend) reads
+          # as the name WITH its separator and so never finds
+          case "$ns" in
+            *_)
+              echo "::error::Name '$NAMESPACE' ends in '_' - give the name without it (ZMYUI5, not ZMYUI5_); the '_' is added"
+              exit 1
+              ;;
+          esac
           prefix="${ns}_"
           name="$ns"
         elif printf '%s' "$ns" | grep -Eq '^/[a-z0-9][a-z0-9_]{0,7}/$'; then
