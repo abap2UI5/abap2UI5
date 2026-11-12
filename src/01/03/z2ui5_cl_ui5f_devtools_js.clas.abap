@@ -167,7 +167,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `` && |\n| &&
              `      Recorder.install(ctx);` && |\n| &&
              `` && |\n| &&
-             `      if (!ctx.state?.embedded) {` && |\n| &&
+             `      if (!ctx.state?.embedded || ctx.state?.ownsPage) {` && |\n| &&
              `        Console.install();` && |\n| &&
              `        record.console = true;` && |\n| &&
              `` && |\n| &&

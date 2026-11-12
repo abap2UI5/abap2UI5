@@ -11,6 +11,8 @@ Legend
 
 unreleased
 ----------
+! the page the HTTP service answers a GET with is a host for the embed control: one z2ui5.embed.Container (@abap2ui5/embed-control) that fills the page and loads the frontend from the node (?z2ui5-bundle), the way the abap2UI5/frontend branches standard_new and cloud_new start it - the page no longer carries the frontend in its inline script (about 14 KB instead of 700 KB; the bundle is a cached file of its own). The node also answers GET <node>/embed/Container.css, the control's stylesheet. An app started this way finds app_start in client->get( )-t_comp_params, its roundtrips go to the page's path without the page's query, and a sap.m.Shell with appWidthLimited fills the window instead of 1280px
+! developer tools: an embedded component that owns the page (componentData.ownsPage) captures the page's console again - the page is the app's
 ! four errors of the model service name the cause and the remedy instead of a bare code: a reference handed to _bind( ), a bound attribute that cannot be reached, and two internal serializer errors that now say they are a framework defect to report
 + docs/agents/client-api.md: the client API as a generated index - every method of z2ui5_if_client with its signature and one paragraph, the obsolete ones apart; shipped with the agent skills as references/client-api.md
 ! agent skills: the plugin and skill copies of abap-check and ui5-check keep a short SKILL.md with a table and carry their long sections as files under references/; build-an-app is a one-rule-per-line checklist; the app guide has the test double as code

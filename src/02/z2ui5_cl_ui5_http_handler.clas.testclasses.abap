@@ -26,6 +26,7 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_get_bundle   FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_bundle_path FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_no_bundle FOR TESTING RAISING cx_static_check.
+    METHODS test_main_get_control_css FOR TESTING RAISING cx_static_check.
     " GET ?z2ui5-bundle=devtools is the developer tools as a script; the
     " page's own ?z2ui5-devtools (the auto open) stays the page
     METHODS test_main_get_devtools  FOR TESTING RAISING cx_static_check.
@@ -353,16 +354,16 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   " The next test exercises z2ui5_cl_ui5f_preload rather than this class.
   " That class is generated (see tools/app2abap/trans2abap.js) and its
   " package is wiped on every regeneration, so it cannot carry a test include
-  " of its own - and _http_get( ) above is the consumer that breaks: it drops
-  " the preload into the one <script> block that defines onInitComponent.
+  " of its own - and _http_get_bundle( ) above is the consumer that breaks: it
+  " answers with the preload as one script, which the GET page's control loads.
 
   METHOD test_preload_literals.
 
     " Every non-.js resource is embedded as a JS single-quoted string literal.
     " On such a line, once the escaped apostrophes are taken out, the only ones
     " left must be the two delimiters - one extra ends its literal early, and
-    " that is a syntax error for the whole <script> block, so onInitComponent
-    " is never defined and the page stays blank. A UI5 expression binding is
+    " that is a syntax error for the whole bundle script, so no module of
+    " the frontend is registered and the page stays blank. A UI5 expression binding is
     " the everyday source of such an apostrophe:
     "   title="{= ${/appName} ? 'a' : 'b' }"
     " The .js entries are skipped on purpose: their content is the function
@@ -372,7 +373,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     DATA lv_rest   TYPE string.
     DATA lv_checked TYPE i.
 
-    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get( ).
+    DATA(lv_preload) = z2ui5_cl_ui5f_preload=>get_bundle( ).
 
     SPLIT lv_preload AT |\n| INTO TABLE lt_lines.
 
@@ -527,18 +528,21 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_devtools_not_in_shell.
 
-    " the shell's inline script and the frontend bundle carry the eager
-    " half of the developer tools and none of the bundled files - and the
-    " devtools bundle carries exactly the rest, under its own digest
+    " the frontend bundle carries the eager half of the developer tools and
+    " none of the bundled files - and the devtools bundle carries exactly
+    " the rest, under its own digest. The page's inline script carries
+    " nothing of the frontend at all: its start module and the control
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/DevTools.js"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/Console.js"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/devtools/Recorder.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/Picker.js"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/Host.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/Component.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/DevTools.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/Console.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/Recorder.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/DeveloperTools.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_bundle CS `"z2ui5/devtools/Picker.js"` ) ).
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_ui5f_preload=>devtools_hash ).
     cl_abap_unit_assert=>assert_differs( exp = z2ui5_cl_ui5f_preload=>build_hash
                                          act = z2ui5_cl_ui5f_preload=>devtools_hash ).
@@ -557,7 +561,38 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `z2ui5/embed` ) ).
+    " ...which is a host with the embed control and its start module, and
+    " carries nothing of the frontend: neither the component nor the module
+    " the bundle is recognised by
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<div id="container"></div>` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/Component.js"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `data-sap-ui-component` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_main_get_control_css.
+
+    " the stylesheet of the embed control, at the path the GET page's
+    " control asks for it - and nothing of the page or a bundle
+    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method = `GET`
+        path   = `/sap/bc/z2ui5/embed/Container.css` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_result-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_control_css( )
+                                        act = ls_result-body ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `.z2ui5EmbedContainer` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.` ) ).
+
+    " any other path below the node is the page, as it always was
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method = `GET`
+        path   = `/sap/bc/z2ui5/embed/Container.js` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
   ENDMETHOD.
 
@@ -817,6 +852,7 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the devtools bundle: the same headers, a tag of its own that is not
     " the frontend bundle's
     METHODS test_devtools_response       FOR TESTING RAISING cx_static_check.
+    METHODS test_control_css_response    FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_304            FOR TESTING RAISING cx_static_check.
     METHODS test_factory_onprem      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_cloud       FOR TESTING RAISING cx_static_check.
@@ -1790,6 +1826,29 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the page's tag and cache are not the bundle's business
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+
+  ENDMETHOD.
+
+  METHOD test_control_css_response.
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `GET`
+                                    path   = `/sap/bc/z2ui5/embed/Container.css` ).
+
+    mo_handler->main( ).
+
+    " a stylesheet, under nosniff - a <link> takes nothing else - and
+    " revalidated under the frontend bundle's tag
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_control_css( )
+                                        act = mo_mock->mv_cdata ).
+    cl_abap_unit_assert=>assert_equals( exp = `text/css; charset=UTF-8`
+                                        act = header_value( `content-type` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `nosniff`
+                                        act = header_value( `x-content-type-options` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_false )
+                                        act = header_value( `etag` ) ).
 
   ENDMETHOD.
 

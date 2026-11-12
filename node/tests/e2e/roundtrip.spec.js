@@ -3,6 +3,7 @@
 // browser-level tests below boot with; the request-level tests are
 // bootstrap-independent and run unchanged in every project.
 const { test, expect } = require("./fixtures");
+const { pageComponentId } = require("./pageComponent");
 
 // End-to-end coverage of the abap2UI5 roundtrip against the transpiled
 // backend (node/srv/express.mjs): the POST wire contract (request parsing,
@@ -237,8 +238,8 @@ test("does not append a dangling '#' to the URL after app start", async ({
   // before that phase - wait for the flag plus a settle tick so the
   // (synchronous) hash rewrite, if any, has happened before asserting.
   // The response sits on the page component's context (Component.init
-  // creates it; "container-z2ui5" is the id ComponentSupport gives the
-  // component of the GET page).
+  // creates it; the component is the one the page's embed control runs).
+  const componentId = await pageComponentId(page);
   await page.waitForFunction((id) => {
     const Component = window.sap?.ui?.require?.("sap/ui/core/Component");
     if (!Component) return false;
@@ -246,7 +247,7 @@ test("does not append a dangling '#' to the URL after app start", async ({
       ? Component.getComponentById(id)
       : Component.get(id);
     return component?.ctx?.state.oResponse?._processed === true;
-  }, "container-z2ui5");
+  }, componentId);
   await page.waitForTimeout(100);
 
   expect(page.url()).not.toContain("#");

@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
+const { pageComponentId } = require("./pageComponent");
 
 // Exercises the fatal-error overlay (core/ErrorView) in a real browser:
 // accessibility semantics, focus management and the optional Retry action.
@@ -14,9 +15,10 @@ let page;
 test.beforeAll(async ({ browser }) => {
   page = await browser.newPage();
   await page.goto("http://localhost:3000/");
-  // The component starts only AFTER sap.ui.require.preload registered the
-  // embedded z2ui5/* modules, and it loads core/AppState - so once that
-  // module is defined, the require below is served from the preload.
+  // The component starts only AFTER the bundle the page's control loads
+  // (?z2ui5-bundle) registered the z2ui5/* modules, and it loads
+  // core/AppState - so once that module is defined, the require below is
+  // served from the preload.
   // Waiting on sap.ui.require alone races the preload and the require
   // would then try (and fail) to fetch the module from the server.
   await page.waitForFunction(
@@ -29,20 +31,20 @@ test.afterAll(async () => {
 });
 
 async function showErrorView(/** @type {boolean} */ withRetry) {
+  // ErrorView.show works on a component's context - the page component's
+  // here, the one the page's embed control runs
+  const componentId = await pageComponentId(page);
   await page.evaluate(
-    (retry) =>
+    ([retry, componentId]) =>
       new Promise((resolve) => {
         document.getElementById("z2ui5ServerErrorContainer")?.remove();
         window["__retried"] = false;
         window["sap"].ui.require(
           ["z2ui5/core/ErrorView", "sap/ui/core/Component"],
           (/** @type {any} */ ErrorView, /** @type {any} */ Component) => {
-            // ErrorView.show works on a component's context - the page
-            // component's here ("container-z2ui5" is the id ComponentSupport
-            // gives the component of the GET page)
             const component = Component.getComponentById
-              ? Component.getComponentById("container-z2ui5")
-              : Component.get("container-z2ui5");
+              ? Component.getComponentById(componentId)
+              : Component.get(componentId);
             const ctx = component.ctx;
             const options = retry
               ? { onRetry: () => (window["__retried"] = true) }
@@ -84,7 +86,7 @@ async function showErrorView(/** @type {boolean} */ withRetry) {
           },
         );
       }),
-    withRetry,
+    /** @type {[boolean, string]} */ ([withRetry, componentId]),
   );
 }
 

@@ -321,7 +321,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " source of script") the moment the camera opens - nothing earlier says so.
       "
       " NO 'unsafe-inline' for scripts either. The page's one inline script -
-      " onInitComponent with the embedded preload - is fixed per build, and
+      " onInitComponent with the embed control - is fixed per build, and
       " z2ui5_cl_ui5_http_handler=>_http_get adds its SHA-256 to script-src
       " (z2ui5_cl_ui5f_preload=>script_hash). Everything else inline - an
       " injected <script>, an onerror= attribute, a javascript: URL - is

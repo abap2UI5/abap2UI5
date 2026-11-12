@@ -170,8 +170,9 @@ sap.ui.define(
         // it, and the bundle does not pass them - only a host does. One such
         // component per page, the hash is page-wide (core/Context.js). What
         // an embedded component does to stay out of a host's window (class
-        // globals, mobile setup, focus guard, restart in place, console
-        // capture) stays either way.
+        // globals, mobile setup, focus guard, restart in place) stays
+        // either way; the developer tools' console capture comes back with
+        // the page (devtools/DevTools.js).
         state.ownsPage =
           !state.embedded || ownsPage === true || ownsHash === true;
         state.ownsHash = state.ownsPage;
