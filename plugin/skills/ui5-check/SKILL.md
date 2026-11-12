@@ -408,11 +408,10 @@ Not about names or layout — these only show up when the app runs.
   `oDialog.setEscapeHandler((p) => this.onEscape(p))`, as
   `core/ErrorView.js` builds its dialog with a function - and assert the
   wire through what the dialog received, not by calling the method
-  (`developerTools.spec.js`). **Linter:** ready to move for a fragment the
-  linter reads: an `escapeHandler="..."` attribute on a `sap.m.Dialog` is
-  the whole detection, and `data/properties.json` already carries the
-  member's type per release; the view half cannot occur, a backend-built
-  view has no controller to name.
+  (`developerTools.spec.js`). **Linter:** **moved — `escape-handler-as-string`**
+  (2026-11), a warning on an `escapeHandler="..."` attribute of a
+  `sap.m.Dialog` in a raw view or fragment below 1.120; the view half
+  cannot occur, a backend-built view has no controller to name.
 - **An enum property REFUSES an empty string, and an EMPTIED aggregation hands
   it one.** Not "falls back to the default" — the control throws:
 
