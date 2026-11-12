@@ -15,10 +15,18 @@ Two halves, in two places:
   does not quietly become one with every binding frozen. The result is in
   the house layout the linter checks.
 
-What neither does yet is the whole way: open a class that was **written by
-hand**, change its view by clicking, bind a control to an attribute, add an
-event - and get the same class back, with only the lines that changed
-changed.
+- **The playground's Properties sheet** - the loop below, in the View tab,
+  on a class written by hand: a control picked by clicking it in the
+  running app (step 1), its properties changed or added in a sheet and
+  written through the same patch as an XML edit (step 2), bound to a public
+  attribute instead of typed (step 3), made to raise an event with an empty
+  `ELSEIF client->check_on_event( … )` arm added to `main( )` (step 4), and
+  a control from a small sap.m palette added after it (step 5).
+
+What is still open: the properties offered from the UI5 metadata of the
+oldest supported release rather than typed by name, the attributes offered
+by type, popups and fragments, and the split shape for the writer - see the
+open questions below.
 
 ## The first cut
 

@@ -19,9 +19,16 @@ The pieces are there, in five places:
 - **Where it runs before a system** - the playground, which transpiles and
   runs the class in the browser, with the checks in its panel.
 
-What is missing is the one path a team can follow and a review board can
-read: a description goes in, a class comes out that has been checked, run
-and tested, with a record of each step.
+In the playground's AI App Builder, steps 3 to 6 below exist now: the model
+writes tables of the app's own (`write_table`) and ABAP Unit tests for its
+logic, every change is checked and run, the model tries the main path in
+the running app, and the download carries a `HANDOVER.md` - asked for,
+checked at which release, tested, tried, left to connect, and what
+"checked" does not mean.
+
+What is missing is the same path outside the browser - in the plugin, with
+the guide of the installed version and a system behind it - so a team can
+follow it and a review board can read it.
 
 ## The first cut
 

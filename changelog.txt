@@ -11,6 +11,10 @@ Legend
 
 unreleased
 ----------
+! four errors of the model service name the cause and the remedy instead of a bare code: a reference handed to _bind( ), a bound attribute that cannot be reached, and two internal serializer errors that now say they are a framework defect to report
++ docs/agents/client-api.md: the client API as a generated index - every method of z2ui5_if_client with its signature and one paragraph, the obsolete ones apart; shipped with the agent skills as references/client-api.md
+! agent skills: the plugin and skill copies of abap-check and ui5-check keep a short SKILL.md with a table and carry their long sections as files under references/; build-an-app is a one-rule-per-line checklist; the app guide has the test double as code
+! the plugin's lint hook says once per session when a project has an abap2ui5lint.jsonc and no installed linter - it stays silent everywhere else
 ! developer tools: the footer button Copy is called Copy View - it copies the view that is shown, not the report - and the export dialog has one Copy instead of Copy as Markdown and Copy as Text; the Markdown form is what Report a Bug puts on the clipboard
 ! developer tools: Report a Bug opens the bug report form of the abap2UI5 repository in a new tab after it has copied the report - paste it into Additional context; a link under the action bar leads to the same form when the browser refused the tab, and nothing of the session travels in the URL
 * the start page names an empty icon, so the browser no longer asks the host for /favicon.ico - a 404, or a 403 in ABAP Cloud, in the console of every start; cs_event-set_favicon replaces it as before

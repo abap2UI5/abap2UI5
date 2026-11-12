@@ -17,10 +17,10 @@ instead - same skills, plus the commands, the reviewer agent and the MCP server.
 
 | Skill | What it is |
 |---|---|
-| `build-an-app` | The checklist for writing an app class - template, lifecycle, view builder, binding, events, popups, navigation, validation. The full guide is its `references/building-apps.md` |
+| `build-an-app` | The checklist for writing an app class - template, lifecycle, view builder, binding, events, popups, navigation, validation. The full guide is its `references/building-apps.md`, the client API as an index its `references/client-api.md` |
 | `view-chain-layout` | The layout rules for a `z2ui5_cl_ui5_view_builder` chain |
-| `abap-check` | The ABAP problems a green lint does not catch - abapGit round trip, activation, extended check, downport, runtime |
-| `ui5-check` | The UI5 problems a green lint does not catch - names missing from UI5 1.71, version-sensitive layout, views that fail to load, CSP traps |
+| `abap-check` | The ABAP problems a green lint does not catch - abapGit round trip, activation, extended check, downport, runtime. Its long sections are files under `references/`, with a table saying which to read when |
+| `ui5-check` | The UI5 problems a green lint does not catch - names missing from UI5 1.71, version-sensitive layout, views that fail to load, CSP traps. Split the same way |
 
 The skills point at the [MCP server](https://github.com/abap2UI5/mcp-server)
 where a tool helps; without a plugin, register it in your agent yourself:
