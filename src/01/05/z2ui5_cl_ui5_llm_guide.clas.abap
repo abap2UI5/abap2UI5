@@ -413,7 +413,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  broken JSON. Where the sample keeps one manifest per file, bind its URL` && |\n| &&
              `  instead - that path needs no flag.` && |\n| &&
              `- A **large table** - more rows than the screen shows - binds with` && |\n| &&
-             `  ``client->_bind_tab( val = t_rows window = 200 )`` instead of ``_bind( )``: the` && |\n| &&
+             `  ``client->window_bind_tab( val = t_rows window = 200 )`` instead of ``_bind( )``: the` && |\n| &&
              `  rows stay in the app, the browser gets 200 of them, and the list binding asks` && |\n| &&
              `  the framework for the next window when a growing ``sap.m.Table``/``List`` grows` && |\n| &&
              `  or a ``sap.ui.table.Table`` scrolls - a roundtrip of the framework's own that` && |\n| &&
@@ -433,7 +433,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  and filters written into the binding info are not applied. An event that` && |\n| &&
              `  hands over a row's binding path (``getBindingContext().getPath()`` ->` && |\n| &&
              `  ``/T_ROWS/5``) names a position in the order the browser shows, not a row of` && |\n| &&
-             `  the table: ``client->_bind_tab_row( val = t_rows row = 5 + 1 )`` answers the` && |\n| &&
+             `  the table: ``client->window_get_row( val = t_rows row = 5 + 1 )`` answers the` && |\n| &&
              `  row of ``t_rows`` it is.` && |\n| &&
              `- **Bound data changed in an event handler is pushed automatically** - the` && |\n| &&
              `  framework compares the model before and after ``main( )`` on every event` && |\n| &&
@@ -473,7 +473,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  WITH KEY``. Send the position` && |\n| &&
              `  (```` ``$event.getSource().getBindingContext().getPath().split('/').pop()`` ````,` && |\n| &&
              `  0-based) only when the handler needs the POSITION itself: for` && |\n| &&
-             `  ``cs_event-bind_element``, for ``_bind_tab_row( )`` behind a windowed table,` && |\n| &&
+             `  ``cs_event-bind_element``, for ``window_get_row( )`` behind a windowed table,` && |\n| &&
              `  or for a drag and drop. A nested model passes the whole binding path` && |\n| &&
              `  (``...getBindingContext().getPath()``) the same way.` && |\n| &&
              `- **A control-valued event parameter arrives as JSON.** Several UI5 events` && |\n| &&

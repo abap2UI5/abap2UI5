@@ -925,7 +925,7 @@ INTERFACE z2ui5_if_client
   "!                  REF #( mt_rows ), an attribute TYPE REF TO data holding
   "!                  a table typed at runtime - bound as what it points to,
   "!                  so no ASSIGN is needed to bind it (the same two forms
-  "!                  _bind_tab( ) takes). A reference that points nowhere
+  "!                  window_bind_tab( ) takes). A reference that points nowhere
   "!                  yet raises BINDING_ERROR.
   "! @parameter path | abap_true returns the model PATH of val instead of the
   "!                  value binding - what a bound aggregation, a binding_call
@@ -1129,7 +1129,7 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   TYPES:
-    "! One sorter of _bind_tab( ): the column (the upper-case component name of
+    "! One sorter of window_bind_tab( ): the column (the upper-case component name of
     "! the row) and the direction. The first sorter that tells two rows apart
     "! decides.
     BEGIN OF ty_s_bind_tab_sort,
@@ -1139,7 +1139,7 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_bind_tab_sort TYPE STANDARD TABLE OF ty_s_bind_tab_sort WITH EMPTY KEY.
 
   TYPES:
-    "! One condition of the filter of _bind_tab( ). The conditions of one group
+    "! One condition of the filter of window_bind_tab( ). The conditions of one group
     "! are ORed, the groups ANDed - the conditions on one column ORed, the
     "! columns ANDed, as UI5 combines a list binding's filters. operator is a
     "! sap.ui.model.FilterOperator: EQ NE LT LE GT GE BT NB Contains NotContains
@@ -1157,7 +1157,7 @@ INTERFACE z2ui5_if_client
 
   "! Bind a LARGE table to a list control - the browser gets it a window at a
   "! time instead of whole. Returns the value binding like _bind( )
-  "! (`items = client->_bind_tab( mt_rows )`); the rows of the template bind
+  "! (`items = client->window_bind_tab( mt_rows )`); the rows of the template bind
   "! relative (`\{NAME\}`), as with _bind( ).
   "!
   "! The rows stay in the app's attribute. The response carries the first
@@ -1176,7 +1176,7 @@ INTERFACE z2ui5_if_client
   "! Sorters and filters written into the binding info of the view are not
   "! applied - the rows arrive in the order the server gives. The app sets
   "! that order with t_sort and t_filter: they take effect when they differ
-  "! from the ones the previous _bind_tab( ) of the table passed, so a view
+  "! from the ones the previous window_bind_tab( ) of the table passed, so a view
   "! rendered again keeps what the user sorted and filtered in the browser,
   "! and a new sort the app passes (from a layout, a dialog) replaces it.
   "! Passing an empty table clears it the same way.
@@ -1188,7 +1188,7 @@ INTERFACE z2ui5_if_client
   "! @parameter window   | the rows the browser gets at a time; at least 1.
   "! @parameter t_sort   | the order of the rows - see above when it applies.
   "! @parameter t_filter | the rows that show - see above when it applies.
-  METHODS _bind_tab
+  METHODS window_bind_tab
     IMPORTING
       val           TYPE data
       window        TYPE i                    DEFAULT 100
@@ -1197,7 +1197,7 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
-  "! The row of a _bind_tab( ) table that a row of the browser shows. The
+  "! The row of a window_bind_tab( ) table that a row of the browser shows. The
   "! browser holds the rows in the order the server sorted and filtered
   "! them, so the index in a binding path an event hands over
   "! (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a
@@ -1205,13 +1205,13 @@ INTERFACE z2ui5_if_client
   "! row 4711 of mt_rows. This answers it - the same order the response was
   "! built with. A table that is no window answers row itself.
   "!
-  "! @parameter val    | the table, as passed to _bind_tab( ) - the table or
+  "! @parameter val    | the table, as passed to window_bind_tab( ) - the table or
   "!                     a data reference to it.
   "! @parameter row    | the position in the browser, counted from 1: the
   "!                     index of the binding path plus 1.
   "! @parameter result | the row of the table, counted from 1; 0 when the
   "!                     position is past the rows the filter lets through.
-  METHODS _bind_tab_row
+  METHODS window_get_row
     IMPORTING
       val           TYPE data
       row           TYPE i

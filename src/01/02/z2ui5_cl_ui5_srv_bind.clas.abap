@@ -14,7 +14,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    "! _bind_tab_row( ): the row of the table val behind position row of
+    "! window_get_row( ): the row of the table val behind position row of
     "! the order the browser holds - the row number itself for a table
     "! that is no window, 0 for a position past the rows the filter lets
     "! through
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " hold JSON text. See the method body.
     METHODS check_raise_json.
 
-    "! _bind_tab( ): a standard table, bound whole and plain - refused with
+    "! window_bind_tab( ): a standard table, bound whole and plain - refused with
     "! the attribute's name otherwise
     METHODS check_raise_window
       IMPORTING
@@ -77,7 +77,7 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
 
     " the browser order of the windowed table window_row( ) last answered
     " for - a memo, because a view resolves one row per rendered line
-    " (_bind_tab_row( row = n )) and every call used to filter and sort the
+    " (window_get_row( row = n )) and every call used to filter and sort the
     " whole table again. Keyed on the table reference, its line count and
     " the sorters and the filter it was computed with: the service lives one
     " render, and a change to any of them computes the order anew
@@ -373,7 +373,7 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
-        val = |Binding Error - _bind_tab( ) needs a standard table; '{ mr_attri->name }': { lv_reason }.|.
+        val = |Binding Error - window_bind_tab( ) needs a standard table; '{ mr_attri->name }': { lv_reason }.|.
 
   ENDMETHOD.
 

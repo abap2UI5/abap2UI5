@@ -992,7 +992,7 @@ CLASS ltcl_03_options IMPLEMENTATION.
 ENDCLASS.
 
 
-" _bind_tab( ): the window is stored on the attribute, the sorters and the
+" window_bind_tab( ): the window is stored on the attribute, the sorters and the
 " filter the app passes take effect when they change
 CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
@@ -1117,7 +1117,7 @@ CLASS ltcl_04_window IMPLEMENTATION.
     DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
-    " what _bind_tab( mr_tab ) hands over: the table the reference points to
+    " what window_bind_tab( mr_tab ) hands over: the table the reference points to
     ASSIGN mo_app->mr_tab->* TO <tab>.
     lr_tab = REF #( <tab> ).
     cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*}`

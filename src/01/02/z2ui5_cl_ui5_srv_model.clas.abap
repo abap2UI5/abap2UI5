@@ -823,7 +823,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          " _bind_tab( ): the rows of the window instead of the
+          " window_bind_tab( ): the rows of the window instead of the
           " table, and the window's state next to them
           IF lr_attri->window_size > 0.
             lr_ref = window_ref( ir_attri  = lr_attri
@@ -2102,7 +2102,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
         " attribute unmapped after a refresh, and dropping the window of a
-        " _bind_tab( ) table would ship the whole table, ignore the browser's
+        " window_bind_tab( ) table would ship the whole table, ignore the browser's
         " next window request and apply a row delta by raw index into the
         " wrong row
         lr_attri->bind                = lr_old->bind.
