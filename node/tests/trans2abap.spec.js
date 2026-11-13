@@ -2,19 +2,21 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 
-// tools/app2abap/trans2abap.js - every bundle/webapp file becomes an ABAP class
-// whose get( ) hands the file back. The value it hands back is what the
-// browser runs and what the CSP hash is taken over, so it has to be the same
-// PROGRAM as the source, byte for byte where it matters.
+// tools/app2abap/trans2abap.js - the texts the node serves (the frontend
+// bundle, the devtools bundle, the page's script, the control's stylesheet)
+// each become ONE ABAP class whose get( ) hands the text back. What it hands
+// back is what the browser runs and what the CSP hash is taken over, so it
+// has to be the text byte for byte.
 
 const GEN = require(
   path.join(__dirname, "..", "..", "tools", "app2abap", "trans2abap.js"),
 );
 
-/** Read the string get( ) builds back out of the generated ABAP: backtick
- * literals (a doubled backtick is one) joined, |\n| as a newline. */
+/** Read the string get( ) builds back out of the generated ABAP: the
+ * backtick literals of every part method (a doubled backtick is one)
+ * joined in order, |\n| as a newline. */
 function abapGetValue(abap) {
-  const body = abap.split("METHOD get.")[1].split("ENDMETHOD.")[0];
+  const body = abap.slice(abap.indexOf("METHOD part_01."));
   const re = /`((?:[^`]|``)*)`|\|\\n\|/g;
   let out = "";
   let m;
@@ -24,11 +26,39 @@ function abapGetValue(abap) {
   return out;
 }
 
+const textClass = (text) =>
+  GEN.abapTextClass("z2ui5_cl_ui5f_x", text, ["a probe"]);
+
 test("backticks, pipes and braces round-trip through the ABAP literal", () => {
   const src = 'const a = `x${1}|{y}|`;\nconst b = "``";\n';
-  const abap = GEN.formatAsAbapClass(src, "z2ui5_cl_ui5f_x", false, "x.js");
-  expect(abapGetValue(abap)).toBe(GEN.embeddedValue(src, false));
-  expect(abapGetValue(abap)).toBe(`${src}\n`);
+  expect(abapGetValue(textClass(src))).toBe(src);
+});
+
+test("a text is handed back byte for byte, whatever its lines look like", () => {
+  const long = `${"x ".repeat(450)}end`;
+  for (const text of [
+    // a line far beyond ABAP's 255, cut into several literals - blanks at
+    // the cuts included
+    `first\n${long}\nlast\n`,
+    // no line break at the end, and none at all
+    "one\ntwo",
+    long,
+    // empty lines, trailing blanks
+    "a  \n\n\n  b\n",
+    "",
+  ]) {
+    expect(abapGetValue(textClass(text))).toBe(text);
+  }
+});
+
+test("no generated line outgrows ABAP's 255, and no method grows with the text", () => {
+  const text = `${"y".repeat(5000)}\n`.repeat(200);
+  const abap = textClass(text);
+  expect(Math.max(...abap.split("\n").map((l) => l.length))).toBeLessThan(255);
+  // 200 lines of 25 literals each: more than one part of 2000
+  expect(abap).toContain("METHOD part_03.");
+  expect(abap).toContain("result = part_01( ) &&");
+  expect(abapGetValue(abap)).toBe(text);
 });
 
 // The proof stripJsComments runs, checked on its own: stripJsComments

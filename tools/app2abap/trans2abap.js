@@ -3,7 +3,6 @@ const path = require("path");
 const crypto = require("crypto");
 const acorn = require("acorn");
 const terser = require("terser");
-const abapClassTemplate = require("./abapClassTemplate");
 const xmlTemplate = require("./abapXMLTemplate");
 
 // Define source and target directories
@@ -25,32 +24,26 @@ const pageDir = "app_source/webapp";
 const PAGE_SOURCES = [
   {
     source: `${pageDir}/Component.js`,
-    className: "z2ui5_cl_ui5f_page_cmp_js",
     urlPath: "abap2ui5/page/Component.js",
   },
   {
     source: `${pageDir}/manifest.json`,
-    className: "z2ui5_cl_ui5f_page_mf",
     urlPath: "abap2ui5/page/manifest.json",
   },
   {
     source: `${pageDir}/view/Main.view.xml`,
-    className: "z2ui5_cl_ui5f_page_xml",
     urlPath: "abap2ui5/page/view/Main.view.xml",
   },
   {
     source: `${pageDir}/embed/Container.js`,
-    className: "z2ui5_cl_ui5f_embed_js",
     urlPath: "z2ui5/embed/Container.js",
   },
   {
     source: `${pageDir}/embed/Container.css`,
-    className: "z2ui5_cl_ui5f_embed_css",
     // not preloaded - served as a file
     urlPath: null,
   },
 ];
-const CONTROL_CSS_CLASS = "z2ui5_cl_ui5f_embed_css";
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
@@ -270,60 +263,122 @@ async function stripJsComments(source, file, relPath) {
   return code;
 }
 
-// Function to format the content into an ABAP class method
-function formatAsAbapClass(
-  content,
-  className,
-  isSpecialFile,
-  sourcePath,
-  sourceRoot,
-) {
-  assertSevenBitAscii(content, className);
-  if (isSpecialFile) assertNoLossInSpecialFile(content, className, sourcePath);
-  const lines = content.split("\n");
-  const formattedLines = lines.map((line, index) => {
-    line = line.replace(/\s+$/, ""); // Remove trailing spaces
+// A text as an ABAP class whose get( ) hands back exactly that text. This is
+// the whole shape of the generated package since 2026-11-13: the node serves
+// a handful of finished texts - the frontend bundle, the devtools bundle, the
+// page's script, the control's stylesheet - so each of them is ONE class,
+// instead of one class per file of bundle/webapp that the backend put together
+// again on every request (about 140 of them).
+//
+// The text is cut into backtick literals of at most CHUNK characters, one per
+// ABAP line, so no line of the source can outgrow ABAP's 255: a line break of
+// the text is |\n| behind the last literal of its line, a longer line simply
+// continues in the next literal. A backtick literal keeps its trailing
+// blanks, so a cut may fall anywhere. Every STATEMENT_LINES lines the
+// expression is closed and continued (ABAP caps the length of a chained
+// expression), and every PART_LINES lines a new private method begins, so no
+// method grows with the bundle: get( ) joins the parts.
+const CHUNK = 200;
+const STATEMENT_LINES = 400;
+const PART_LINES = 2000;
 
-    let formattedLine = `             \`${line.replace(/`/g, "``")}\` && ${isSpecialFile ? "" : "|\\n|  &&"}`;
-    formattedLine = formattedLine.replace(/&&\s+$/, "&&"); // Remove trailing spaces after &&
-
-    // Guard 2: an ABAP source line is capped at 255 characters. A generated
-    // line over the limit breaks the ABAP compile/lint downstream with an
-    // opaque error; surface it here against the source line so it is obvious
-    // which frontend line to shorten.
-    if (formattedLine.length > 255) {
-      throw new Error(
-        `${className} line ${index + 1}: generated ABAP line is ${formattedLine.length} chars ` +
-          `(max 255) - shorten this frontend source line: ${line.trim()}`,
-      );
-    }
-    if ((index + 1) % 400 === 0) {
-      // ABAP caps the length of a chained expression, so the result is
-      // split into several statements every 400 lines. This line
-      // already carries its own separator (|\n| for normal files, none
-      // for special files), so close the statement by turning its
-      // trailing `&&` into `.` rather than appending a second |\n| -
-      // the latter inserted a spurious blank line every 400 lines and
-      // would have corrupted newline-free special files past that size.
-      return `${formattedLine.replace(/\s*&&$/, ".")}\n    result = result &&`;
-    }
-    return formattedLine;
+function abapLiteralLines(text) {
+  const lines = [];
+  const segments = text.split("\n");
+  segments.forEach((segment, index) => {
+    const last = index === segments.length - 1;
+    // the text after the last line break: nothing to write when it is empty
+    if (last && segment === "") return;
+    const chunks = segment.match(new RegExp(`[^]{1,${CHUNK}}`, "g")) || [""];
+    chunks.forEach((chunk, c) => {
+      const literal = `\`${chunk.replace(/`/g, "``")}\``;
+      const breakAfter = c === chunks.length - 1 && !last;
+      lines.push(breakAfter ? `${literal} && |\\n|` : literal);
+    });
   });
-  return abapClassTemplate(
-    className,
-    formattedLines.join("\n"),
-    sourcePath,
-    sourceRoot,
-  );
+  return lines;
 }
 
-// The string the class formatAsAbapClass builds hands back from get( ) at run
-// time - the same line split, the same trailing-whitespace strip, and the
-// same separator (a newline after every line of a .js file, including the
-// empty one after its last newline; none at all for the special files). The
-// CSP hash of the GET shell's inline script is taken over this value at
-// generation time (see inlineScript), so it has to be byte for byte what the
-// ABAP side produces - change one, change the other.
+function abapTextClass(className, text, header) {
+  assertSevenBitAscii(text, className);
+  const lines = abapLiteralLines(text);
+  const parts = [];
+  for (let i = 0; i < lines.length; i += PART_LINES) {
+    parts.push(lines.slice(i, i + PART_LINES));
+  }
+  if (!parts.length) parts.push(["``"]);
+  const partName = (i) => `part_${String(i + 1).padStart(2, "0")}`;
+  const body = (partLines) => {
+    const out = [];
+    for (let i = 0; i < partLines.length; i += STATEMENT_LINES) {
+      const statement = partLines.slice(i, i + STATEMENT_LINES);
+      const first =
+        i === 0 ? "    result = " : "    result = result &&\n             ";
+      out.push(`${first}${statement.join(" &&\n             ")}.`);
+    }
+    return out.join("\n");
+  };
+  return `* =====================================================================
+* GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
+${header.map((line) => `* ${line}`.trimEnd()).join("\n")}
+* Generated by tools/app2abap/trans2abap.js. Change the sources and run
+* 'npm run app2abap' to regenerate; the check_app2abap CI gate fails any
+* manual edit here.
+* =====================================================================
+CLASS ${className} DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+${parts
+  .map(
+    (_, i) => `    CLASS-METHODS ${partName(i)}
+      RETURNING
+        VALUE(result) TYPE string.
+`,
+  )
+  .join("\n")}
+ENDCLASS.
+
+
+CLASS ${className} IMPLEMENTATION.
+
+  METHOD get.
+
+    result = ${parts.map((_, i) => `${partName(i)}( )`).join(" &&\n             ")}.
+
+  ENDMETHOD.
+
+${parts
+  .map(
+    (partLines, i) => `  METHOD ${partName(i)}.
+
+${body(partLines)}
+
+  ENDMETHOD.
+`,
+  )
+  .join("\n")}
+ENDCLASS.
+`;
+}
+
+// A source file as it is embedded: the trailing whitespace of every line
+// stripped, and a newline after every line of a .js file (including the empty
+// one after its last newline) - none at all for the special files
+// (.xml/.json/.css), whose lines are joined. The bundles and the page's
+// script are put together from these values (preloadEntryText), here and
+// nowhere else, so the CSP hash of the inline script is taken over the very
+// text the class hands back.
 function embeddedValue(content, isSpecialFile) {
   const lines = content.split("\n").map((line) => line.replace(/\s+$/, ""));
   return isSpecialFile
@@ -484,159 +539,43 @@ function bundleScript(entries, open = BUNDLE_OPEN, close = BUNDLE_CLOSE) {
     .join("");
 }
 
-// A text as the body of an ABAP string template |...|: the four characters
-// the template itself interprets are escaped. The literal newline after each
-// line is written as \n by the caller.
-function abapTemplateText(text) {
-  return text.replace(/[\\|{}]/g, (c) => `\\${c}`);
-}
-
-// Embedded frontend artefacts carry the `ui5f` segment (UI5 frontend); plain
-// ABAP artefacts use `ui5` (z2ui5_cl_ui5_view_builder).
-const CLASS_NAME_PREFIX = "z2ui5_cl_ui5f_";
-
-// ABAP object names are capped at 30 characters, but a generated name must
-// survive the rename workflow (.github/workflows/build-rename.yaml), which
-// swaps the 5-character `z2ui5` for a namespace of up to 10 characters. So the
-// budget here is 25, not 30 - that is what keeps
-// .github/abaplint/rename.jsonc down to a single catch-all pattern with no
-// per-class truncation entries.
+// The generated classes: one per text the node serves, and the facade the
+// handler talks to. Short names - a generated name must survive the rename
+// workflow (.github/workflows/build-rename.yaml), which swaps the 5-character
+// `z2ui5` for a namespace of up to 10 characters, so the budget is 25, not
+// ABAP's 30.
 const MAX_CLASS_NAME_LENGTH = 25;
-
-// Short stems for the frontend files whose basename does not fit into
-// MAX_CLASS_NAME_LENGTH, keyed by path relative to bundle/webapp. Curated instead
-// of truncated: mechanical shortening is what produced stems like
-// `developertool_xml` (a DeveloperTools fragment that lost its plural) and
-// `smartmultiinpu_js`. Names not listed here keep their basename.
-const CLASS_NAME_STEMS = {
-  "Component.js": "comp_js",
-  "cc/CameraPicture.js": "campic_js",
-  "cc/CameraSelector.js": "camsel_js",
-  "cc/ExcelBridge.js": "excel_js",
-  "cc/FileUploader.js": "uploader_js",
-  "cc/Geolocation.js": "geoloc_js",
-  "cc/HTMLFrame.js": "htmlfrm_js",
-  "cc/MessageManager.js": "msgmgr_js",
-  "cc/MultiInputExt.js": "multiinp_js",
-  "cc/NativeBridgeScan.js": "natscan_js",
-  "cc/SmartMultiInputExt.js": "smartinp_js",
-  "cc/UITableExt.js": "uitable_js",
-  "cc/UploadSetExt.js": "upldset_js",
-  "cc/Websocket.js": "websock_js",
-  "devtools/AbapSource.js": "abapsrc_js",
-  "devtools/DeveloperTools.fragment.xml": "dtools_xml",
-  "devtools/DeveloperTools.js": "dtools_js",
-  // `format_js` is taken by model/formatter.js, and a collision is a hard
-  // error rather than a silent overwrite - so this one carries the folder.
-  "devtools/Format.js": "dtformat_js",
-  "core/ErrorView.js": "errview_js",
-  "core/FrontendAction.js": "frontact_js",
-  "core/ScrollFocus.js": "scrfocus_js",
-  "core/ViewSlots.js": "viewslot_js",
-  "core/WindowModel.js": "window_js",
-  "core/actions/BindingCall.js": "bindcall_js",
-  "core/actions/ControlCall.js": "ctrlcall_js",
-  "core/actions/Launchpad.js": "launchpd_js",
-  "core/actions/Shortcuts.js": "shortcut_js",
-  "manifest.json": "manifest",
-  "model/clipboard.js": "clipbrd_js",
-  "model/formatter.js": "format_js",
+const CLASSES = {
+  bundle: "z2ui5_cl_ui5f_bundle",
+  devtools: "z2ui5_cl_ui5f_devtools",
+  page: "z2ui5_cl_ui5f_page",
+  pageCss: "z2ui5_cl_ui5f_page_css",
+  preload: "z2ui5_cl_ui5f_preload",
 };
 
-// Function to generate a class name from a file path
-function generateClassName(filePath) {
-  const relativePath = path.relative(sourceDir, filePath);
-  const relPath = relativePath.split(path.sep).join("/");
-  const parts = relativePath.split(path.sep);
-  const fileName = parts.pop().split(".");
-  if (fileName.length > 2) {
-    fileName.splice(1, 1); // Remove the middle part
-  }
-  const stem = CLASS_NAME_STEMS[relPath] || fileName.join("_").toLowerCase();
-  const className = `${CLASS_NAME_PREFIX}${stem}`;
-  // Guard 3: fail instead of truncating. A silently shortened name stays
-  // valid ABAP and only surfaces much later, as an opaque "Name not allowed"
-  // out of the rename run - the exact failure mode this cap removes.
-  if (className.length > MAX_CLASS_NAME_LENGTH) {
-    throw new Error(
-      `${relPath}: generated class name '${className}' is ${className.length} chars ` +
-        `(max ${MAX_CLASS_NAME_LENGTH}) - add a short stem for this file to ` +
-        `CLASS_NAME_STEMS in tools/app2abap/trans2abap.js`,
-    );
-  }
-  return className;
-}
-
-// Builds the generated z2ui5_cl_ui5f_preload class. Its get( ) returns the
-// complete text of the GET shell's one inline <script> - onInitComponent and
-// the sap.ui.require.preload entries for every embedded frontend file - so
-// the preload list z2ui5_cl_ui5_http_handler=>_http_get embeds can never run
-// out of sync with the files in bundle/webapp. The text is fixed per build, and
-// that is what the two constants rest on: both are one SHA-256 digest of it,
-// taken here once (inlineScript is its JavaScript twin).
-//   script_hash  the digest as a CSP hash source - _http_get lists it in the
-//                policy's script-src, so the inline script runs without
-//                'unsafe-inline' and nothing else inline does
-//   build_hash   a short hex form - the GET shell's ETag carries it, so a
-//                redeployed frontend with the same version constant still
-//                changes the tag
-// Nothing configurable may enter the text: an exit value in it would make the
-// digest a runtime question. The exit's styles_css used to be embedded here
-// and is written as a <style> element of its own by the handler now.
-// get_bundle( ) returns the same entries as a script of its own (BUNDLE_OPEN
-// / BUNDLE_CLOSE) - served as a file, not inline, so no hash is taken over
-// it. Both methods read the entries from one private method, so the class
-// carries every embedded file once. get_devtools( ) is the devtools bundle
-// (DEVTOOLS_EAGER): the deferred files of devtools/ as a plain preload
-// script (DEVTOOLS_OPEN / DEVTOOLS_CLOSE), with devtools_hash - a digest of that script - as the validator the
-// handler's ETag for it carries, since build_hash does not see those files.
-function buildPreloadClass(
-  pageEntries,
-  entries,
-  devtoolsEntries,
-  buildHash,
-  scriptHash,
-  devtoolsHash,
-) {
-  const templateLines = (lines) =>
-    lines.map((line) => `|${abapTemplateText(line)}\\n|`);
-  const entryLine = ({ urlPath, className, isJs }) => {
-    // A .js entry is a function body - the source is JavaScript and goes in
-    // verbatim. Every other entry is a text resource embedded as a
-    // single-quoted JS string literal, so its content must be escaped for
-    // that literal (see escape_js_literal below).
-    if (isJs) {
-      return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }\\},| && |\\n|`;
-    }
-    return `|      "${urlPath}": '{ escape_js_literal( ${className}=>get( ) ) }',| && |\\n|`;
-  };
-  const concat = (parts) => parts.join(" &&\n             ");
-  const script = concat([
-    ...templateLines(SCRIPT_OPEN),
-    "entries_page( )",
-    ...templateLines(SCRIPT_CLOSE),
-  ]);
-  const bundle = concat([
-    ...templateLines(BUNDLE_OPEN),
-    "entries( )",
-    ...templateLines(BUNDLE_CLOSE),
-  ]);
-  const devtools = concat([
-    ...templateLines(DEVTOOLS_OPEN),
-    "entries_devtools( )",
-    ...templateLines(DEVTOOLS_CLOSE),
-  ]);
-  const joined = concat(entries.map(entryLine));
-  const joinedPage = concat(pageEntries.map(entryLine));
-  const joinedDevtools = concat(devtoolsEntries.map(entryLine));
+// Builds z2ui5_cl_ui5f_preload, the one class z2ui5_cl_ui5_http_handler asks:
+// it hands out the four generated texts and the three constants taken over
+// them at generation time.
+//   script_hash    the SHA-256 of the page's inline script as a CSP hash
+//                  source - _http_get lists it in the policy's script-src, so
+//                  the script runs without 'unsafe-inline' and nothing else
+//                  inline does
+//   build_hash     a short digest of everything the node serves - the ETag of
+//                  the page and of the bundle carries it, so a redeployed
+//                  frontend with the same version constant still changes the
+//                  tag
+//   devtools_hash  the same for the devtools bundle
+// Nothing configurable may enter a text: an exit value in it would make the
+// digests a runtime question.
+function buildPreloadClass(buildHash, scriptHash, devtoolsHash) {
   return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
-* Embedded frontend resource, generated from bundle/webapp/ by
-* tools/app2abap/trans2abap.js. Change the source under bundle/webapp/
+* The texts the HTTP service serves, generated from bundle/webapp/ and
+* app_source/webapp/ by tools/app2abap/trans2abap.js. Change the sources
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 * =====================================================================
-CLASS z2ui5_cl_ui5f_preload DEFINITION
+CLASS ${CLASSES.preload} DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -658,16 +597,15 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     CONSTANTS script_hash TYPE string VALUE '${scriptHash}'.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
-    " of the developer tools the shell does not carry. The ETag of that
-    " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
-    " build_hash is taken over the shell's script alone and does not change
-    " with them
+    " of the developer tools the frontend bundle does not carry. The ETag of
+    " that bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
     CONSTANTS devtools_hash TYPE string VALUE '${devtoolsHash}'.
 
     " the one inline script of the GET page: the page's minimal app (a
     " component with one view) and the embed control that view holds
-    " (z2ui5.embed.Container) as a preload, and the call that starts it. Nothing of the frontend - the control loads it
-    " from the node, as get_bundle( )
+    " (z2ui5.embed.Container) as a preload, and the call that starts it.
+    " Nothing of the frontend - the control loads it from the node, as
+    " get_bundle( )
     CLASS-METHODS get
       RETURNING
         VALUE(result) TYPE string.
@@ -687,126 +625,43 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
         VALUE(result) TYPE string.
 
     " the developer tools as a script of the same shape: the dialog, its
-    " fragment, the inspectors - everything under devtools/ the shell does
-    " not carry (tools/app2abap/trans2abap.js, DEVTOOLS_EAGER). Served on
-    " ?z2ui5-bundle=devtools (z2ui5_cl_ui5_http_handler=>_http_get_devtools)
-    " and loaded by z2ui5/devtools/DevTools.js when the tools are opened
+    " fragment, the inspectors - everything under devtools/ the frontend
+    " bundle does not carry (tools/app2abap/trans2abap.js, DEVTOOLS_EAGER).
+    " Served on ?z2ui5-bundle=devtools
+    " (z2ui5_cl_ui5_http_handler=>_http_get_devtools) and loaded by
+    " z2ui5/devtools/DevTools.js when the tools are opened
     CLASS-METHODS get_devtools
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-
-    " one line per file of the GET page's script - get( )
-    CLASS-METHODS entries_page
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " one line per embedded file of the frontend - get_bundle( )
-    CLASS-METHODS entries
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " one line per file of the devtools bundle - get_devtools( )
-    CLASS-METHODS entries_devtools
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS escape_js_literal
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
 ENDCLASS.
 
 
-CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
+CLASS ${CLASSES.preload} IMPLEMENTATION.
 
   METHOD get.
 
-    result = ${script}.
+    result = ${CLASSES.page}=>get( ).
 
   ENDMETHOD.
 
   METHOD get_control_css.
 
-    result = ${CONTROL_CSS_CLASS}=>get( ).
+    result = ${CLASSES.pageCss}=>get( ).
 
   ENDMETHOD.
 
   METHOD get_bundle.
 
-    result = ${bundle}.
+    result = ${CLASSES.bundle}=>get( ).
 
   ENDMETHOD.
 
   METHOD get_devtools.
 
-    result = ${devtools}.
-
-  ENDMETHOD.
-
-  METHOD entries_page.
-
-    result = ${joinedPage}.
-
-  ENDMETHOD.
-
-  METHOD entries.
-
-    result = ${joined}.
-
-  ENDMETHOD.
-
-  METHOD entries_devtools.
-
-    result = ${joinedDevtools}.
-
-  ENDMETHOD.
-
-  METHOD escape_js_literal.
-
-    " Every non-.js resource in get( ) is embedded as a JavaScript
-    " single-quoted string literal, inside the single <script> block that
-    " defines onInitComponent (z2ui5_cl_ui5_http_handler=>_http_get). Its content
-    " is arbitrary text and does carry apostrophes - a UI5 expression binding
-    " in a fragment (title="{= \${/appName} ? 'a' : 'b' }") writes them. An
-    " unescaped one ends the literal early, which is a syntax error for the whole block: the browser
-    " then never defines onInitComponent, the bootstrap call fails and the page
-    " stays blank. Escape for the literal here instead of banning the
-    " characters in the frontend sources.
-    " Backslash goes first so it cannot escape the backslashes added below it.
-    result = replace( val  = val
-                      sub  = \`\\\`
-                      with = \`\\\\\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = \`'\`
-                      with = \`\\'\`
-                      occ  = 0 ).
-    " a raw line break ends a JS string literal just like an apostrophe does -
-    " the special files are embedded single-line, so this is defence in depth.
-    " char constants come from the context class - the one place allowed to
-    " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
-    result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
-                      with = \`\\r\`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
-                      with = \`\\n\`
-                      occ  = 0 ).
-    " the HTML tokenizer runs BEFORE the JavaScript parser and ends the
-    " script element at the first </script it meets - inside a string
-    " literal or not. An XML fragment is full of <, so every one of them
-    " becomes the JS escape \\x3c, which the literal reads back as the same
-    " character, and neither </script nor <!-- can reach the tokenizer
-    result = replace( val  = result
-                      sub  = \`<\`
-                      with = \`\\x3c\`
-                      occ  = 0 ).
+    result = ${CLASSES.devtools}=>get( ).
 
   ENDMETHOD.
 
@@ -833,174 +688,111 @@ function getAllFiles(dirPath, arrayOfFiles) {
 }
 
 // Main function to read the source files and create new target files
+// One embedded source: read, guarded, and - a .js - comment-stripped.
+// `label` is how the file is named in an error, `asciiName` the name the
+// 7-bit guard reports it under.
+async function readSource(file, label) {
+  let content = await readFile(file);
+  const isJs = file.endsWith(".js");
+  assertSevenBitAscii(content, label);
+  if (isJs) content = await stripJsComments(content, file, label);
+  else assertNoLossInSpecialFile(content, label, label);
+  return { isJs, content, value: embeddedValue(content, !isJs) };
+}
+
+// Main function to read the source files and create new target files
 async function main() {
   try {
     // Everything is generated into memory FIRST and written only once the
-    // whole set is built. The target directory used to be deleted as the
-    // very first statement, before a single guard had run - so a source
-    // file with a non-ASCII character, a class-name collision or an
-    // over-long line left src/01/03 wiped and half-regenerated in the
-    // contributor's working tree, and `git checkout src/01/03` was the
-    // only way back. The drift gate then reported the wreckage instead of
-    // the cause. Nothing below touches the filesystem until `outputs` is
-    // complete.
+    // whole set is built: a source file with a non-ASCII character or a
+    // module that breaks the devtools split leaves the committed tree as it
+    // was, instead of wiped and half-regenerated.
     const outputs = [];
     const emit = (filePath, content) => outputs.push({ filePath, content });
+    const emitClass = (className, abap, text) => {
+      if (className.length > MAX_CLASS_NAME_LENGTH) {
+        throw new Error(
+          `class name '${className}' is ${className.length} chars (max ${MAX_CLASS_NAME_LENGTH})`,
+        );
+      }
+      emit(path.join(targetDir, `${className}.clas.abap`), abap);
+      emit(
+        path.join(targetDir, `${className}.clas.xml`),
+        `\uFEFF${xmlTemplate(className, text)}`,
+      );
+    };
 
     // The initial XML file with BOM
     emit(path.join(targetDir, "package.devc.xml"), initialXMLContent);
 
-    // Sort so the generation order (and console log) is deterministic
-    // regardless of the filesystem's readdir order.
-    const files = getAllFiles(sourceDir).sort();
+    // The frontend: every file of bundle/webapp, sorted so the generation
+    // order (and the output) does not depend on the filesystem's readdir
+    // order.
     const preloadEntries = [];
     const devtoolsEntries = [];
     // the .js sources by relative path, for guard 4
     const jsSources = new Map();
-
-    // Class names ignore folders (cc/Foo.js and Foo.js would both map to
-    // z2ui5_cl_ui5f_foo_js), so duplicate basenames silently overwrite
-    // each other. Fail fast instead.
-    const seenClassNames = new Map();
-    const classNameByFile = new Map();
-    for (const file of files) {
-      const cn = generateClassName(file);
-      if (seenClassNames.has(cn)) {
-        throw new Error(
-          `class name collision: ${file} and ${seenClassNames.get(cn)} both map to ${cn}`,
-        );
-      }
-      seenClassNames.set(cn, file);
-      classNameByFile.set(file, cn);
-    }
-
-    for (const file of files) {
-      let sourceContent = await readFile(file);
-      console.log(`Source file content fetched successfully for ${file}.`);
-
-      const className = classNameByFile.get(file);
+    for (const file of getAllFiles(sourceDir).sort()) {
       const relPath = path.relative(sourceDir, file).split(path.sep).join("/");
-      const isSpecialFile =
-        file.endsWith(".xml") ||
-        file.endsWith(".json") ||
-        file.endsWith(".html") ||
-        file.endsWith(".css");
-      // Only .js is stripped: the special files (.xml/.json/.html/.css)
-      // go in untouched - their comments are structure (fragment
-      // documentation, manifest annotations) and none of them is
-      // JavaScript for terser to reprint.
-      if (file.endsWith(".js")) {
-        // ASCII first, against the author's own line numbers
-        assertSevenBitAscii(sourceContent, className);
-        jsSources.set(relPath, sourceContent);
-        sourceContent = await stripJsComments(sourceContent, file, relPath);
-      }
-      const abapClassContent = formatAsAbapClass(
-        sourceContent,
-        className,
-        isSpecialFile,
-        relPath,
+      if (file.endsWith(".js")) jsSources.set(relPath, await readFile(file));
+      const { isJs, value } = await readSource(
+        file,
+        `bundle/webapp/${relPath}`,
       );
-
-      const targetFilePath = path.join(
-        targetDir,
-        `${className.toLowerCase()}.clas.abap`,
-      );
-      emit(targetFilePath, abapClassContent);
-
-      const xmlContent = xmlTemplate(
-        className,
-        `abap2UI5 - ${path.basename(file)}`,
-      );
-      const xmlFilePath = path.join(
-        targetDir,
-        `${className.toLowerCase()}.clas.xml`,
-      );
-      emit(xmlFilePath, `\uFEFF${xmlContent}`);
-
-      // Collect the preload entry; the deferred files of devtools/ go
-      // into the devtools bundle.
       (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
         urlPath: `z2ui5/${relPath}`,
-        className: className.toLowerCase(),
-        isJs: file.endsWith(".js"),
-        // what the class returns at run time - the preload's
-        // share of the hashed script text
-        value: embeddedValue(sourceContent, isSpecialFile),
+        isJs,
+        value,
       });
     }
 
-    // The page's own sources (PAGE_SOURCES): the same embedding as a file
-    // of bundle/webapp - a .js comment-stripped, the stylesheet verbatim -
-    // under the class name the list gives them.
+    // The page's own sources (PAGE_SOURCES)
     const pageEntries = [];
     let controlCss = "";
-    for (const { source, className, urlPath } of PAGE_SOURCES) {
+    for (const { source, urlPath } of PAGE_SOURCES) {
       const file = path.join(repoDir, source);
       if (!fs.existsSync(file)) {
-        throw new Error(
-          `${source} is missing - the GET page carries it`,
-        );
+        throw new Error(`${source} is missing - the GET page carries it`);
       }
-      if (seenClassNames.has(className)) {
-        throw new Error(
-          `class name collision: ${source} and ${seenClassNames.get(className)} both map to ${className}`,
-        );
-      }
-      seenClassNames.set(className, file);
-      let sourceContent = await readFile(file);
-      const isJs = file.endsWith(".js");
-      if (isJs) {
-        assertSevenBitAscii(sourceContent, className);
-        sourceContent = await stripJsComments(sourceContent, file, source);
-      }
-      emit(
-        path.join(targetDir, `${className}.clas.abap`),
-        formatAsAbapClass(sourceContent, className, !isJs, source, ""),
-      );
-      emit(
-        path.join(targetDir, `${className}.clas.xml`),
-        // "page": the app has a Component.js and a manifest.json like the
-        // frontend, and two objects must not share a description
-        `\uFEFF${xmlTemplate(className, `abap2UI5 - page ${path.basename(file)}`)}`,
-      );
-      if (className.length > MAX_CLASS_NAME_LENGTH) {
-        throw new Error(
-          `${source}: class name '${className}' is ${className.length} chars (max ${MAX_CLASS_NAME_LENGTH})`,
-        );
-      }
-      const value = embeddedValue(sourceContent, !isJs);
-      if (urlPath) pageEntries.push({ urlPath, className, isJs, value });
+      const { isJs, value } = await readSource(file, source);
+      if (urlPath) pageEntries.push({ urlPath, isJs, value });
       else controlCss = value;
     }
 
-    // Generate the preload mapping class (sorted for a stable output).
-    // Plain code-unit comparison, not localeCompare: the collation of
-    // localeCompare depends on the host locale/ICU build, and the sort
-    // order is committed output (src/01/03).
+    // Sorted for a stable output. Plain code-unit comparison, not
+    // localeCompare: the collation of localeCompare depends on the host
+    // locale/ICU build, and the sort order is committed output (src/01/03).
     const byUrlPath = (a, b) =>
       a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0;
     preloadEntries.sort(byUrlPath);
     pageEntries.sort(byUrlPath);
     devtoolsEntries.sort(byUrlPath);
     assertNoEagerDependencyOnDeferred(jsSources);
+
+    // The four texts, as the node serves them
+    const pageText = inlineScript(pageEntries);
+    const bundleText = bundleScript(preloadEntries);
+    const devtoolsText = bundleScript(
+      devtoolsEntries,
+      DEVTOOLS_OPEN,
+      DEVTOOLS_CLOSE,
+    );
+
     // One SHA-256 over the script text the page will carry, UTF-8 like the
     // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
     // bytes a browser hashes to decide whether the script may run.
-    const digest = crypto
+    const scriptHash = `sha256-${crypto
       .createHash("sha256")
-      .update(inlineScript(pageEntries), "utf8")
-      .digest();
-    const scriptHash = `sha256-${digest.toString("base64")}`;
+      .update(pageText, "utf8")
+      .digest("base64")}`;
     // The validator covers everything the node serves a browser, not the
-    // page's script alone: the bundle is the frontend now, and its ETag
-    // carries this hash as the page's does. 16 hex characters: a
-    // validator, not a security digest, and the tag travels in every GET
-    // response header
+    // page's script alone: the bundle is the frontend, and its ETag carries
+    // this hash as the page's does. 16 hex characters: a validator, not a
+    // security digest, and the tag travels in every GET response header
     const buildHash = crypto
       .createHash("sha256")
-      .update(inlineScript(pageEntries), "utf8")
-      .update(bundleScript(preloadEntries), "utf8")
+      .update(pageText, "utf8")
+      .update(bundleText, "utf8")
       .update(controlCss, "utf8")
       .digest("hex")
       .slice(0, 16);
@@ -1008,26 +800,56 @@ async function main() {
     // hash is taken over it, the ETag is what it is for
     const devtoolsHash = crypto
       .createHash("sha256")
-      .update(
-        bundleScript(devtoolsEntries, DEVTOOLS_OPEN, DEVTOOLS_CLOSE),
-        "utf8",
-      )
+      .update(devtoolsText, "utf8")
       .digest("hex")
       .slice(0, 16);
-    emit(
-      path.join(targetDir, "z2ui5_cl_ui5f_preload.clas.abap"),
-      buildPreloadClass(
-        pageEntries,
-        preloadEntries,
-        devtoolsEntries,
-        buildHash,
-        scriptHash,
-        devtoolsHash,
-      ),
+
+    const sourcesOf = (entries) =>
+      `${entries.length} files: ${entries.map((e) => e.urlPath).join(", ")}`;
+    // the list of sources in a class header, wrapped to the comment width
+    const wrap = (text) =>
+      text.match(/.{1,68}(?:\s|$)|\S+/g).map((l) => l.trim());
+    emitClass(
+      CLASSES.bundle,
+      abapTextClass(CLASSES.bundle, bundleText, [
+        "The frontend bundle - what GET <node>?z2ui5-bundle answers with,",
+        "without the z2ui5/embed module the handler appends. Source:",
+        "bundle/webapp/, every file outside the devtools bundle.",
+        ...wrap(sourcesOf(preloadEntries)),
+      ]),
+      "abap2UI5 - frontend bundle",
     );
-    emit(
-      path.join(targetDir, "z2ui5_cl_ui5f_preload.clas.xml"),
-      `\uFEFF${xmlTemplate("z2ui5_cl_ui5f_preload", "abap2UI5 - preload mapping")}`,
+    emitClass(
+      CLASSES.devtools,
+      abapTextClass(CLASSES.devtools, devtoolsText, [
+        "The devtools bundle - what GET <node>?z2ui5-bundle=devtools answers",
+        "with. Source: bundle/webapp/devtools/, the files loaded on demand.",
+        ...wrap(sourcesOf(devtoolsEntries)),
+      ]),
+      "abap2UI5 - devtools bundle",
+    );
+    emitClass(
+      CLASSES.page,
+      abapTextClass(CLASSES.page, pageText, [
+        "The one inline script of the page a GET answers with: the minimal",
+        "app and the embed control. Source: app_source/webapp/.",
+        ...wrap(sourcesOf(pageEntries)),
+      ]),
+      "abap2UI5 - page script",
+    );
+    emitClass(
+      CLASSES.pageCss,
+      abapTextClass(CLASSES.pageCss, controlCss, [
+        "The stylesheet of the embed control - what GET",
+        "<node>/embed/Container.css answers with. Source:",
+        "app_source/webapp/embed/Container.css.",
+      ]),
+      "abap2UI5 - control stylesheet",
+    );
+    emitClass(
+      CLASSES.preload,
+      buildPreloadClass(buildHash, scriptHash, devtoolsHash),
+      "abap2UI5 - preload mapping",
     );
 
     // Every guard has passed and every byte is in hand - only now is the
@@ -1036,7 +858,6 @@ async function main() {
     fs.mkdirSync(targetDir, { recursive: true });
     for (const { filePath, content } of outputs) {
       await createFileInTargetDir(filePath, content);
-      console.log(`Target file created successfully at: ${filePath}`);
     }
     console.log(`${outputs.length} file(s) written to ${targetDir}`);
   } catch (error) {
@@ -1058,7 +879,7 @@ if (require.main === module) {
 }
 
 module.exports = {
-  formatAsAbapClass,
+  abapTextClass,
   embeddedValue,
   stripJsComments,
   assertSameProgram,

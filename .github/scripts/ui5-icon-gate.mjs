@@ -78,13 +78,14 @@ const ICONS = new Set(
   ),
 );
 
-// Where icons can be written: the ABAP sources and the frontend app that
-// src/01/03 is generated from.
-const SCAN = ["src", "bundle/webapp"];
+// Where icons can be written: the ABAP sources, and the frontend and the
+// page app that src/01/03 is generated from.
+const SCAN = ["src", "bundle/webapp", "app_source/webapp", "app_npm/webapp"];
 
 // Directories this gate does not judge, with the reason shown in the report so
 // the exemption is never a silent hole.
 const EXEMPT = [
+  ["src/01/03", "generated from bundle/webapp and app_source/webapp, which are judged themselves - the generated text is cut into literals of 200 characters, so a name can stand in two halves there"],
   ["src/99", "frozen package (AGENTS.md rule 1) - ships as-is until the removal plan retires it"],
 ];
 
