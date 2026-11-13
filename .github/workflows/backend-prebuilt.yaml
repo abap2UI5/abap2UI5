@@ -230,3 +230,50 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-bsp-*.tgz
+
+  # @abap2ui5/embed-control - the UI5 control that runs an abap2UI5 app in
+  # any UI5 app (app_source/webapp/embed, packed by
+  # app_source/embed-control/pack.mjs). Built here since 0.4.0; it was
+  # published from abap2UI5/embed-control up to 0.3.0, so the package's
+  # trusted publisher on npm has to name THIS repository and workflow before
+  # the step below can publish (RELEASING.md, "One-time setup - the npm
+  # packages"). The control has a release line of its own: its version is
+  # the one app_source/embed-control/package.json names, not the tag's, and
+  # a release that does not raise it publishes nothing - npm-publish.mjs
+  # leaves a version that is already on the registry alone.
+  embed_control:
+    if: github.repository == 'abap2UI5/abap2UI5' && !endsWith(github.event.release.tag_name || inputs.tag, '-702')
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Checkout the release tag
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ github.event.release.tag_name || inputs.tag }}
+        persist-credentials: false
+
+    - uses: ./.github/actions/setup
+
+    - name: Pack @abap2ui5/embed-control
+      id: pack_control
+      run: |
+        npm run pack:embed-control -- --out npm-package
+        echo "version=$(node -p "require('./app_source/embed-control/package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: abap2ui5-embed-control-${{ steps.pack_control.outputs.version }}
+        path: npm-package/*.tgz
+        if-no-files-found: error
+
+    # the same pin as the publish steps of the jobs above - raise them together
+    - name: Use an npm that can publish via OIDC
+      run: npm install -g npm@12.0.2
+
+    - name: Publish @abap2ui5/embed-control
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: node .github/scripts/npm-publish.mjs npm-package/abap2ui5-embed-control-*.tgz

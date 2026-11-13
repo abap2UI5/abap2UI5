@@ -40,7 +40,7 @@ system**: `z2ui5_if_app=>version` is what abapGit shows and what
 holds it to `package.json`, and `npm run check:release` holds both to the
 changelog.
 
-## One-time setup — the npm package
+## One-time setup — the npm packages
 
 Every release also publishes the transpiled framework as the npm package
 **`@abap2ui5/node-runtime`** (`docs/agents/ci-workflows.md`, "The transpiled
@@ -81,6 +81,18 @@ published by the job `bsp` of the same workflow and needs the same one-time
 setup: the artefact is `abap2ui5-bsp-<version>` (`npm publish
 ./abap2ui5-bsp-<version>.tgz --access public`), and its Trusted Publisher
 entry names the same workflow file, `backend-prebuilt.yaml`.
+
+`@abap2ui5/embed-control` (the control of `app_source/webapp/embed`) is the
+third. It exists on npm already - abap2UI5/embed-control published it up to
+0.3.0 - so there is no first version to publish by hand, but its trusted
+publisher still names that repository: point it at `abap2UI5/abap2UI5` and
+`backend-prebuilt.yaml` in the package's settings on npmjs.com, once. Until
+then the `embed_control` job fails at its publish step, and the tarball is
+its workflow artefact (`abap2ui5-embed-control-<version>`). The control has
+a release line of its own: raise `version` in
+`app_source/embed-control/package.json` and add the section to its
+`CHANGELOG.md` when the control changed; a release without a new version
+publishes nothing.
 
 ## Cutting a release
 
