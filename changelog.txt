@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* UI table extension: an "equals" column filter is restored as "=value" after a roundtrip, so submitting it again from the column menu keeps it an equals filter instead of turning it into "contains"
 * RAP messages: a FAILED row with a %FAIL-CAUSE no longer ends in the runtime error UC_OBJECTS_NOT_CONVERTIBLE (the cause is an enumeration, read by name now), and the cause texts follow the real IF_ABAP_BEHV=>T_FAIL_CAUSE values (401, 404, 409, 423, 424, 501, 4221, 4222) instead of 1-11
 * language model seam: on ABAP Cloud a request that could not be sent or got no answer (a timeout) is retryable, as it is on Standard ABAP
 * FileUploader custom control: fileSizeExceed fires for a file over maximumFileSize - the inner control rejected it without telling the wrapper

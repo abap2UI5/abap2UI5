@@ -37,7 +37,7 @@ CLASS z2ui5_cl_ui5f_uitable_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const opSymbols = {` && |\n| &&
-             `      EQ: "",` && |\n| &&
+             `      EQ: "=",` && |\n| &&
              `      NE: "!=",` && |\n| &&
              `      LT: "<",` && |\n| &&
              `      LE: "<=",` && |\n| &&
