@@ -11,7 +11,6 @@ const { loadModule } = require("./loadModule");
 const INSTALLATION = {
   componentName: "z2ui5.embed.frontend",
   componentData: {
-    embedded: true,
     nodePath: "/sap/bc/z2ui5",
     ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",
     cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc",

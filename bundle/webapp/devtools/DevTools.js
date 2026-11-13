@@ -165,17 +165,9 @@ sap.ui.define(
       });
     }
 
-    // Whether the modules have to come from the bundle BEFORE they can be
-    // required: in an embedded component the frontend came as the
-    // bundle, and nothing serves its modules one by one (see the header).
-    // Everywhere else the modules are served or preloaded as every other
-    // one.
-    function bundleFirst(ctx) {
-      return Boolean(ctx?.state?.embedded);
-    }
-
-    // The dialog's class: as it is when it is loaded already, else through
-    // the bundle and sap.ui.require( ) in the order bundleFirst decides.
+    // The dialog's class: as it is when it is loaded already, else the
+    // bundle first and then sap.ui.require( ) - the frontend came as a
+    // bundle, and nothing serves its modules one by one.
     // One load per context at a time (record.loading); a failed one is
     // logged, answers null, and the next open tries again.
     /** @returns {Promise<any>} */
@@ -195,10 +187,8 @@ sap.ui.define(
         };
         const plain = () =>
           requireModules([DIALOG_MODULE]).then(([Dialog]) => Dialog);
-        const load = bundleFirst(ctx)
-          ? fromBundle().then(plain)
-          : plain().catch(() => fromBundle().then(plain));
-        record.loading = load
+        record.loading = fromBundle()
+          .then(plain)
           .catch((e) => {
             Lib.logError("DevTools: loading the developer tools failed", e);
             return null;
@@ -314,7 +304,7 @@ sap.ui.define(
       // page and the branches standard_new and cloud_new, a
       // z2ui5.embed.Container filling an empty page - so its console is
       // the app's, as on any page of the app's own.
-      if (!ctx.state?.embedded || ctx.state?.ownsPage) {
+      if (ctx.state?.ownsPage) {
         Console.install();
         record.console = true;
 

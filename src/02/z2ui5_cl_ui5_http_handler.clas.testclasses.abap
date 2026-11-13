@@ -445,10 +445,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         xsdbool( ls_result-body CS `ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc"` ) ).
-    " ...and that the page is the embedding page's, not the component's: the
-    " router leaves its hash alone (a Fiori elements host routes by it)
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `embedded: true,` ) ).
     " ...and the path the node has on the system, for a page that reaches
     " it through a proxy's prefix (Component.init rebases the roots by it)
     cl_abap_unit_assert=>assert_true(

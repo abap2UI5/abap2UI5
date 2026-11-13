@@ -72,7 +72,8 @@ function loadDevTools({
     }
   }
 
-  if (dialogLoaded) modules.set("z2ui5/devtools/DeveloperTools", DeveloperTools);
+  if (dialogLoaded)
+    modules.set("z2ui5/devtools/DeveloperTools", DeveloperTools);
   // the picker, once the bundle is in: exit() stops a pick that may still
   // be running (its capture listeners would survive the teardown otherwise)
   const Picker = {
@@ -117,7 +118,8 @@ function loadDevTools({
         removeOnError: (fn) => errorSubscribers.delete(fn),
       },
       "z2ui5/devtools/Recorder": {
-        install: (c) => recorderCalls.push(`install:${c === ctx ? "own" : "other"}`),
+        install: (c) =>
+          recorderCalls.push(`install:${c === ctx ? "own" : "other"}`),
         uninstall: (c) =>
           recorderCalls.push(`uninstall:${c === ctx ? "own" : "other"}`),
       },
@@ -125,7 +127,9 @@ function loadDevTools({
     sandbox: {
       URLSearchParams,
       URL,
-      window: { location: { search, href: "http://localhost:3000/sap/bc/z2ui5" } },
+      window: {
+        location: { search, href: "http://localhost:3000/sap/bc/z2ui5" },
+      },
       sap: {
         ui: {
           // the one-id probe answers a loaded module synchronously, the
@@ -194,7 +198,8 @@ function loadDevTools({
     },
     // Ctrl+F12 with the bundle arriving right after
     open: async () => {
-      for (const l of listeners.filter((x) => x.type === "keydown")) l.fn(CTRL_F12);
+      for (const l of listeners.filter((x) => x.type === "keydown"))
+        l.fn(CTRL_F12);
       await tick();
       if (!modules.has("z2ui5/devtools/DeveloperTools")) await loadBundle();
       await tick();
@@ -375,36 +380,6 @@ test.describe("the devtools bundle", () => {
     expect(h.requires.length).toBe(0);
     await h.loadBundle();
     expect(h.instances.length).toBe(1);
-  });
-
-  test("a BSP or launchpad page requires the module first, and the bundle only when that fails", async () => {
-    const h = loadDevTools({ embedded: false, url: "/sap/bc/z2ui5" });
-    h.DevTools.install(h.ctx);
-    h.press(CTRL_F12);
-    await h.tick();
-    // the BSP serves the module: the require answers, no bundle
-    expect(h.requires.length).toBe(1);
-    expect(h.scripts.length).toBe(0);
-    h.registerBundle();
-    h.settleRequires();
-    await h.tick();
-    expect(h.instances.length).toBe(1);
-    expect(h.scripts.length).toBe(0);
-
-    // ...and a page where the module is not to be had falls back to the
-    // bundle from the manifest's endpoint
-    const g = loadDevTools({ embedded: false, url: "/sap/bc/z2ui5" });
-    g.DevTools.install(g.ctx);
-    g.press(CTRL_F12);
-    await g.tick();
-    g.settleRequires();
-    await g.tick();
-    expect(g.scripts.length).toBe(1);
-    expect(g.scripts[0].src).toBe(
-      "http://localhost:3000/sap/bc/z2ui5?z2ui5-bundle=devtools",
-    );
-    await g.loadBundle();
-    expect(g.instances.length).toBe(1);
   });
 
   test("a bundle that cannot be loaded is logged, opens nothing, and the next open tries again", async () => {

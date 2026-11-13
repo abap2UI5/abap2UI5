@@ -90,10 +90,10 @@ sap.ui.define(
         if (!active) return undefined;
         const ui5El = closestUi5Element(active);
         if (!ui5El) return undefined;
-        // Embedded, a focus outside this component is the HOST's: the id of
+        // On a host's page a focus outside this component is the HOST's: the id of
         // a host control is none of the app's business, and an app that
         // echoes S_FOCUS back as SET_FOCUS would name the host's field
-        if (ctx?.state?.embedded && !isInComponent(ctx, active)) {
+        if (ctx?.state?.ownsPage === false && !isInComponent(ctx, active)) {
           return undefined;
         }
         const fullId = ui5El.getId();
@@ -125,19 +125,19 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
-    // The focus guard of an EMBEDDED component. The page is the host's, and
+    // The focus guard of a component on a HOST's page (state.ownsPage false). The page is the host's, and
     // so is the keyboard focus on it: a starting app used to take it out of
     // the host field the user was typing in - the root's first rendering
     // (see App.controller) and the app's own SET_FOCUS alike. The framework
     // moves the focus in two places - SET_FOCUS (actions/ViewOps) and a
     // CONTROL_BY_ID focus( ) (actions/ControlCall) - and each asks
     // mayMoveFocus( ) right before it does.
-    // Embedded, the answer is yes while the focus is IN this component, and
+    // There the answer is yes while the focus is IN this component, and
     // while it is nowhere (the body: a rebuild took the focused field away)
     // after the user's last focus or click went into it; a user in the
     // host's page keeps the focus, one working in the app gets every focus
-    // action as on the app's own page. Not embedded, the answer is always
-    // yes: the page is the app's.
+    // action as on the app's own page. When the page is the app's
+    // (state.ownsPage), the answer is always yes.
     // ------------------------------------------------------------------
 
     // Is `node` part of this component: inside its own DOM (the root
@@ -159,7 +159,7 @@ sap.ui.define(
     }
 
     function mayMoveFocus(ctx) {
-      if (!ctx?.state?.embedded) return true;
+      if (ctx?.state?.ownsPage !== false) return true;
       const active = document.activeElement;
       if (!active || active === document.body) {
         return ctx.focus.userInside;
@@ -171,10 +171,10 @@ sap.ui.define(
     // of mayMoveFocus: a focusin or a pointerdown inside the component
     // (keyboard and pointer alike) says the user works in it, one anywhere
     // else says they left it. Capture phase, so a host handler that stops
-    // the event cannot hide it. Only embedded; Component.init installs it,
+    // the event cannot hide it. Only on a host's page; Component.init installs it,
     // unwatchFocus (Component.exit) takes it off again.
     function watchFocus(ctx) {
-      if (!ctx?.state?.embedded || ctx.focus.listener) return;
+      if (ctx?.state?.ownsPage !== false || ctx.focus.listener) return;
       const listener = (event) => {
         ctx.focus.userInside = isInComponent(ctx, event.target);
       };

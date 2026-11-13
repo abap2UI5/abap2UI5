@@ -106,75 +106,66 @@ sap.ui.define(
         state.ccResourceRoot = ccResourceRoot || null;
         state.cccResourceRoot = cccResourceRoot || null;
 
-        // A component inside a page it does not own - a host app that
-        // embeds it, a Fiori elements custom section. The URL is the host's
-        // then (core/Router.js, core/Server.js). The z2ui5/embed module of
-        // ?z2ui5-bundle passes it - a page that loads the frontend that way
-        // embeds it by definition - and a host with a ComponentContainer of
-        // its own may pass it itself; like the endpoint, it is read on the
-        // TOP level only.
-        state.embedded = embedded === true;
-        // ... and so is its window: the frontend's classes keep no global
-        // on it (UI5 1.x exports every class it creates - Env.ownClass)
-        if (state.embedded) Env.dropClassGlobals();
-        // ... and so is a restart: the app restarts in place instead of
-        // reloading the page (core/ErrorView.js restart)
-        if (state.embedded) this.ctx.restart = () => this._restartApp();
-        // ... and so is the page's mobile setup. sap/ui/util/Mobile.init( )
-        // runs once per page, with the settings of whoever calls it first:
-        // html { height: 100% }, a viewport meta tag that disables zooming,
-        // a format-detection meta tag, and on iOS native scrolling off
-        // (position: fixed on <html>) and the browser UI hidden. On a page
-        // of the app's own that is the page the app needs; on a host's page
-        // it took the host's zoom and, on an iPad, its scrolling. An
-        // embedded component's root is a sap.m.NavContainer, which never
-        // calls it (App.controller.js, createRoot), but a sap.m.Shell or a
-        // sap.m.SplitApp in the app's view does, when it is created - the
-        // hello world app has a Shell. A host with a sap.m.App of its own
-        // has made that call already, and this one changes nothing; a host
-        // without one keeps the page it had.
-        if (state.embedded) {
-          Mobile.init({
-            viewport: false,
-            hideBrowser: false,
-            preventScroll: false,
-            preventPhoneNumberDetection: false,
-            useFullScreenHeight: false,
-          });
-        }
+        // The component always runs inside a host's page: the embed control
+        // creates it (core/Embed.js) in a freestyle app, a custom page or
+        // section of Fiori elements and on the backend's own page alike.
+        // There is no page of the component's own any more, so what it used
+        // to do only when a host said `embedded` it always does (the flag
+        // itself is still split off above - a host or an older control may
+        // pass it, and it is no app data):
+        // ... the window is the host's: the frontend's classes keep no
+        // global on it (UI5 1.x exports every class it creates -
+        // Env.ownClass)
+        Env.dropClassGlobals();
+        // ... a restart restarts the app in place instead of reloading the
+        // host's page (core/ErrorView.js restart)
+        this.ctx.restart = () => this._restartApp();
+        // ... and the page's mobile setup is the host's.
+        // sap/ui/util/Mobile.init( ) runs once per page, with the settings
+        // of whoever calls it first: html { height: 100% }, a viewport meta
+        // tag that disables zooming, a format-detection meta tag, and on iOS
+        // native scrolling off (position: fixed on <html>) and the browser
+        // UI hidden. On a host's page that took the host's zoom and, on an
+        // iPad, its scrolling. The component's root is a sap.m.NavContainer,
+        // which never calls it (App.controller.js, createRoot), but a
+        // sap.m.Shell or a sap.m.SplitApp in the app's view does, when it is
+        // created - the hello world app has a Shell. A host with a sap.m.App
+        // or a sap.m.Shell of its own (the backend's page has one) has made
+        // that call already, and this one changes nothing; a host without
+        // one keeps the page it had.
+        Mobile.init({
+          viewport: false,
+          hideBrowser: false,
+          preventScroll: false,
+          preventPhoneNumberDetection: false,
+          useFullScreenHeight: false,
+        });
 
         // What belongs to the PAGE rather than to an area of it - the URL
         // hash, the document title and the favicon, the global busy
-        // indicator, the browser's "leave page?" prompt - is the host's for
-        // an embedded component, unless the host hands the page back with
-        // ownsPage. A host whose page is this one component and nothing else
-        // (the abap2UI5/frontend branches standard_new and cloud_new: a
-        // z2ui5.embed.Container filling an empty page) does, and its app
-        // keeps what it has on a page of its own: hash routing,
+        // indicator, the browser's "leave page?" prompt - is the host's,
+        // unless the host hands the page over with ownsPage. A host whose
+        // page is this one component and nothing else (the backend's own
+        // page: a z2ui5.embed.Container filling it) does, and its app has
+        // what an app has on a page of its own: hash routing,
         // set_push_state / hash_replace, the hash listener, Back and Forward
         // between routed apps, a route restored on reload (core/Router.js,
         // core/Server.js ask state.ownsHash), SET_TITLE / SET_FAVICON
-        // (core/actions/Browser.js), the global busy
-        // indicator (Server / View1 showBusy) and the prompt (cc/Dirty).
-        // Without it the title and the favicon stay the host's, a roundtrip
-        // shows its busy state on the component's own area
-        // (Lib.setComponentBusy), and unsaved changes do not keep the user
-        // on the host's page.
+        // (core/actions/Browser.js), the global busy indicator (Server /
+        // View1 showBusy), the prompt (cc/Dirty), the full-screen root
+        // (App.controller.js) and the developer tools' console capture
+        // (devtools/DevTools.js). Without it the title and the favicon stay
+        // the host's, a roundtrip shows its busy state on the component's
+        // own area (Lib.setComponentBusy), and unsaved changes do not keep
+        // the user on the host's page.
         //
-        // ownsHash is the older name of the same switch: it named only the
-        // hash, but its host is by its contract the same - a page that is
-        // the component and nothing else - so it hands back the whole page
-        // as well, and a host that passes it keeps what it had. Both are
-        // opt-in and read on the TOP level only like the endpoint: a
-        // launchpad link must not take the page from a host that routes by
-        // it, and the bundle does not pass them - only a host does. One such
-        // component per page, the hash is page-wide (core/Context.js). What
-        // an embedded component does to stay out of a host's window (class
-        // globals, mobile setup, focus guard, restart in place) stays
-        // either way; the developer tools' console capture comes back with
-        // the page (devtools/DevTools.js).
-        state.ownsPage =
-          !state.embedded || ownsPage === true || ownsHash === true;
+        // ownsHash is the older name of the same switch, which
+        // @abap2ui5/embed-control 0.3.0 passes next to it. Both are opt-in
+        // and read on the TOP level only like the endpoint: a launchpad link
+        // must not take the page from a host that routes by it, and the
+        // bundle does not pass them - only a host does. One such component
+        // per page, the hash is page-wide (core/Context.js).
+        state.ownsPage = ownsPage === true || ownsHash === true;
         state.ownsHash = state.ownsPage;
 
         // The backend URL of a host app that embeds this component, e.g.

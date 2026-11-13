@@ -216,7 +216,6 @@ sap.ui.define(
       out.push(section("Session"));
       out.push(line("sap-contextid", state.contextId));
       out.push(line("Backend endpoint", state.url));
-      out.push(line("Embedded", yesNo(state.embedded)));
       out.push(line("Owns the page", yesNo(state.ownsPage)));
       out.push(line("Launchpad", yesNo(state.oLaunchpad)));
       out.push(line("Origin", window.location.origin));

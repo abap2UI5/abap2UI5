@@ -45,18 +45,12 @@
 //                     endpoint it says what a proxy put in front of the
 //                     node, which is what the two roots above get
 //                     (Component.init)
-//   embedded          true when the component runs inside a page it does not
-//                     own - the z2ui5/embed module of ?z2ui5-bundle passes
-//                     it as component data, a host with a ComponentContainer
-//                     may pass it itself. The URL is the host's then,
-//                     unless the host hands the page back with ownsPage
-//                     (Component.init)
 //   ownsPage          true when the component may act on the whole page:
 //                     the URL hash, the document title, the favicon, the
 //                     global busy indicator, the browser's "leave page?"
-//                     prompt. Always on a page of its own, embedded only
-//                     when the host passed ownsPage: true (or its older
-//                     name ownsHash: true). Without it SET_TITLE and
+//                     prompt. Only when the host passed ownsPage: true (or
+//                     its older name ownsHash: true) - the backend's own
+//                     page does. Without it SET_TITLE and
 //                     SET_FAVICON change nothing, a roundtrip shows the busy
 //                     state on the component's own area, unsaved changes
 //                     raise no prompt (Component.init)
@@ -65,8 +59,9 @@
 //                     it, and no request reports it (Component.init)
 //
 // Views / controllers / UI5 objects
-//   oApp              the root hosting the main view: a sap.m.App, or a
-//                     sap.m.NavContainer when embedded (App.controller)
+//   oApp              the root hosting the main view: a sap.m.NavContainer,
+//                     or a sap.m.App when the page is the app's
+//                     (App.controller)
 //   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
 //                     the five view slots, written by ViewSlots.setView
@@ -205,7 +200,6 @@ sap.ui.define([], () => {
       cccResourceRoot: null,
       endpointPrefix: null,
       nodePath: null,
-      embedded: false,
       ownsHash: true,
       ownsPage: true,
 
@@ -356,7 +350,6 @@ sap.ui.define([], () => {
     "cccResourceRoot",
     "endpointPrefix",
     "nodePath",
-    "embedded",
     "ownsHash",
     "ownsPage",
     "oApp",

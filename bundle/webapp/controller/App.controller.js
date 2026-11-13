@@ -111,7 +111,7 @@ sap.ui.define(
         );
 
         state.oApp = createRoot(ctx, this);
-        if (state.embedded) holdFirstAutoFocus(state.oApp);
+        if (!state.ownsPage) holdFirstAutoFocus(state.oApp);
 
         this.startApp();
       },

@@ -966,10 +966,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the paths of the sibling BSPs, which the page passes as component data
     " as well (see _http_get) - and a page tells the bundle from anything else
     " by it: a logon page or an older abap2UI5 answering with its shell
-    " defines no such module. Its embedded flag is the one setting the page
-    " does not pass: a page that loads the frontend this way runs it in a
-    " page of its own, whose URL the component leaves alone (Component.init,
-    " core/Router.js) - a Fiori elements host routes by its hash.
+    " defines no such module.
     "
     " Its componentName is the second name the bundle registers the
     " component under (c_bundle_component): a page whose own component is
@@ -1016,7 +1013,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |  var installation = \{\n| &&
                   |    componentName: "{ c_bundle_component }",\n| &&
                   |    componentData: \{\n| &&
-                  |      embedded: true,\n| &&
                   |      nodePath: "{ z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) }",\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&

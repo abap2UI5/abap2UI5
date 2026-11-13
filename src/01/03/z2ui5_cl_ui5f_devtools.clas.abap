@@ -1234,7 +1234,6 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      out.push(section("Session"));` && |\n| &&
              `      out.push(line("sap-contextid", state.contextId));` && |\n| &&
              `      out.push(line("Backend endpoint", state.url));` && |\n| &&
-             `      out.push(line("Embedded", yesNo(state.embedded)));` && |\n| &&
              `      out.push(line("Owns the page", yesNo(state.ownsPage)));` && |\n| &&
              `      out.push(line("Launchpad", yesNo(state.oLaunchpad)));` && |\n| &&
              `      out.push(line("Origin", window.location.origin));` && |\n| &&
@@ -1250,9 +1249,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `` && |\n| &&
              `      out.push(section("UI5"));` && |\n| &&
              `` && |\n| &&
-             `      out.push(line("Version", sap.ui.version));` && |\n|.
+             `      out.push(line("Version", sap.ui.version));` && |\n| &&
+             `` && |\n|.
     result = result &&
-             `` && |\n| &&
              `      out.push(line("Distribution", getDistribution(sUi5)));` && |\n| &&
              `      out.push(line("Build timestamp", sUi5?.BUILDTIMESTAMP));` && |\n| &&
              `` && |\n| &&
@@ -1651,9 +1650,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      let match = pattern.exec(xml || "");` && |\n| &&
              `      while (match !== null) {` && |\n| &&
              `        const id = match[1].replace(/&amp;/g, "&");` && |\n| &&
-             `        if (id && !out.includes(id)) out.push(id);` && |\n|.
+             `        if (id && !out.includes(id)) out.push(id);` && |\n| &&
+             `        match = pattern.exec(xml);` && |\n|.
     result = result &&
-             `        match = pattern.exec(xml);` && |\n| &&
              `      }` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
@@ -2052,14 +2051,14 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `          previousApp = step.app || previousApp;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        out.push("");` && |\n|.
+             `        out.push("");` && |\n| &&
+             `        if (!step.event) {` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_02.
 
-    result = `        if (!step.event) {` && |\n| &&
-             `          out.push(` && |\n| &&
+    result = `          out.push(` && |\n| &&
              `            ``${pad}" step ${step.seq}: a roundtrip without an event (reload, navigation) - not replayed``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
@@ -2457,9 +2456,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const { FRAMEWORK_CALL, describeValue } = Format;` && |\n| &&
-             `` && |\n|.
+             `` && |\n| &&
+             `    const MAX_VALUE_CHARS = 80;` && |\n|.
     result = result &&
-             `    const MAX_VALUE_CHARS = 80;` && |\n| &&
              `` && |\n| &&
              `    const OVERLAY_ID = "z2ui5DevToolsPickerOverlay";` && |\n| &&
              `` && |\n| &&
@@ -2858,9 +2857,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `        (Dialog, TextArea, Button) => {` && |\n| &&
              `          const area = new TextArea({` && |\n| &&
              `            editable: true,` && |\n| &&
-             `            width: "100%",` && |\n|.
+             `            width: "100%",` && |\n| &&
+             `            rows: 25,` && |\n|.
     result = result &&
-             `            rows: 25,` && |\n| &&
              `            growing: false,` && |\n| &&
              `          });` && |\n| &&
              `` && |\n| &&
@@ -3259,9 +3258,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `        slot: "NEST2",` && |\n| &&
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
-             `        kind: "xml",` && |\n|.
+             `        kind: "xml",` && |\n| &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n|.
     result = result &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n| &&
              `        rendered: (ctx) =>` && |\n| &&
              `          Format.prettifyXml(` && |\n| &&
              `            getRenderedContent(ViewSlots.getView(ctx, "NEST2")),` && |\n| &&
