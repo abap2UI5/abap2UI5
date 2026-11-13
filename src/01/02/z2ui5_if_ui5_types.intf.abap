@@ -67,7 +67,7 @@ INTERFACE z2ui5_if_ui5_types
       path       TYPE string,
       descending TYPE abap_bool,
     END OF ty_s_window_sort.
-  TYPES ty_t_window_sort TYPE STANDARD TABLE OF ty_s_window_sort WITH EMPTY KEY.
+  TYPES ty_t_window_sort TYPE STANDARD TABLE OF ty_s_window_sort WITH DEFAULT KEY.
 
   " One condition of the filter of a windowed table. The rows of one group
   " are ORed, the groups ANDed - the shape UI5 gives a list binding's
@@ -83,7 +83,7 @@ INTERFACE z2ui5_if_ui5_types
       value1   TYPE string,
       value2   TYPE string,
     END OF ty_s_window_filter.
-  TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH EMPTY KEY.
+  TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH DEFAULT KEY.
 
   TYPES:
     BEGIN OF ty_s_bind_config,
@@ -179,7 +179,7 @@ INTERFACE z2ui5_if_ui5_types
       " nested view's insert/destroy methods, the MAIN view's model switch
       options TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_system_action.
-  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH EMPTY KEY.
+  TYPES ty_t_system_action TYPE STANDARD TABLE OF ty_s_system_action WITH DEFAULT KEY.
 
   " One QUEUED frontend action, built as JSON right away (o_json, the
   " ["EVENT",...] array) and embedded into the response as-is - no string
@@ -188,7 +188,7 @@ INTERFACE z2ui5_if_ui5_types
     BEGIN OF ty_s_queued_action,
       o_json TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_queued_action.
-  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
+  TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH DEFAULT KEY.
 
   " SYSTEM actions run FIRST, in the display phase, before the view is
   " rendered - they are the framework's own view-lifecycle calls (destroy a

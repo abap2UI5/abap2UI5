@@ -22,9 +22,9 @@ CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
     " with CASE client->get_event( ), which abaplint's short_case refuses
     " here for a single WHEN
     me->client = client.
-    IF client->check_on_navigated( ).
+    IF client->check_on_navigated( ) IS NOT INITIAL.
       view_display( ).
-    ELSEIF client->check_on_event( `BUTTON_POST` ).
+    ELSEIF client->check_on_event( `BUTTON_POST` ) IS NOT INITIAL.
       client->message_box_display( |Your name is { name }| ).
     ENDIF.
 
@@ -32,7 +32,8 @@ CLASS z2ui5_cl_ui5_app_hi_world IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `xmlns`         v = `sap.m`
             )->a( n = `xmlns:mvc`     v = `sap.ui.core.mvc`

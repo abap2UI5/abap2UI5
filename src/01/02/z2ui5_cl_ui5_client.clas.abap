@@ -58,14 +58,19 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD constructor.
 
     mo_action = action.
-    mo_srv_bind = NEW #( mo_action->mo_app ).
-    mo_srv_event = NEW #( ).
-    mo_frontend = NEW #( mo_action ).
+    CREATE OBJECT mo_srv_bind EXPORTING APP = mo_action->mo_app.
+    CREATE OBJECT mo_srv_event.
+    CREATE OBJECT mo_frontend EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~follow_up_action.
+    DATA temp149 TYPE string.
+    DATA temp150 TYPE string.
+    DATA lv_arg LIKE temp149.
+        DATA temp151 TYPE z2ui5_if_ui5_types=>ty_s_nav-set_hash_listener.
+        DATA temp1 TYPE xsdboolean.
 
     " The five navigation branches of the CASE below configure how the
     " browser URL has to look after this roundtrip. Router derives ONE
@@ -88,7 +93,15 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
+
+    CLEAR temp149.
+
+    READ TABLE t_arg INTO temp150 INDEX 1.
+    IF sy-subrc = 0.
+      temp149 = temp150.
+    ENDIF.
+
+    lv_arg = temp149.
 
     CASE val.
       WHEN z2ui5_if_client=>cs_event-hash_routing.
@@ -128,15 +141,21 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " travels as a single space - the app_state_set_active encoding. Not
         " remembered on the app: the registration dies with an app switch,
         " and an app asserts it in view_display( ), so every render carries it
-        mo_action->ms_next-s_nav-set_hash_listener = COND #( WHEN lv_arg IS INITIAL
-                                                             THEN ` `
-                                                             ELSE lv_arg ).
+
+        IF lv_arg IS INITIAL.
+          temp151 = ` `.
+        ELSE.
+          temp151 = lv_arg.
+        ENDIF.
+        mo_action->ms_next-s_nav-set_hash_listener = temp151.
         RETURN.
 
       WHEN z2ui5_if_client=>cs_event-app_state_set_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
-        mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
+
+        temp1 = boolc( lv_arg <> ` ` ).
+        mo_action->ms_next-s_nav-set_app_state_active = temp1.
         " and remember it on the app, so main_end can re-assert it on the
         " next response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
         mo_action->mo_app->mv_app_state_active = mo_action->ms_next-s_nav-set_app_state_active.
@@ -154,32 +173,50 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~check_on_event.
+      DATA temp2 TYPE xsdboolean.
+      DATA temp3 TYPE xsdboolean.
 
     IF val IS NOT INITIAL.
-      result = xsdbool( mo_action->ms_actual-event = val ).
+
+      temp2 = boolc( mo_action->ms_actual-event = val ).
+      result = temp2.
     ELSE.
-      result = xsdbool( mo_action->ms_actual-event IS NOT INITIAL ).
+
+      temp3 = boolc( mo_action->ms_actual-event IS NOT INITIAL ).
+      result = temp3.
     ENDIF.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~get.
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+        DATA lo_comp LIKE mo_action->mo_handler->ms_request-s_front-o_comp_data.
+        DATA lo_params TYPE REF TO z2ui5_if_ajson.
+        DATA temp152 LIKE LINE OF lo_params->mt_json_tree.
+        DATA lr_comp LIKE REF TO temp152.
+          DATA temp153 TYPE z2ui5_if_client=>ty_s_name_value.
 
-    result = VALUE #( event                  = mo_action->ms_actual-event
-                      check_launchpad_active = mo_action->mo_handler->ms_request-s_control-check_launchpad
-                      t_event_arg            = mo_action->ms_actual-t_event_arg
-                      s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
-                      check_on_navigated     = mo_action->ms_actual-check_on_navigated
-                      s_config               = CORRESPONDING #( mo_action->mo_handler->ms_request-s_front )
-                      s_device               = mo_action->mo_handler->ms_request-s_front-s_device
-                      s_focus                = mo_action->mo_handler->ms_request-s_front-s_focus
-                      s_scroll               = mo_action->mo_handler->ms_request-s_front-s_scroll
-                      s_ui5                  = mo_action->mo_handler->ms_request-s_front-s_ui5
-                      r_event_data           = mo_action->ms_actual-r_data
-                      t_model_skipped        = mo_action->ms_actual-t_model_skipped
-                      _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
-                      _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
+    CLEAR result.
+    result-event = mo_action->ms_actual-event.
+    result-check_launchpad_active = mo_action->mo_handler->ms_request-s_control-check_launchpad.
+    result-t_event_arg = mo_action->ms_actual-t_event_arg.
+    MOVE-CORRESPONDING mo_action->mo_app->ms_draft TO result-s_draft.
+    result-check_on_navigated = mo_action->ms_actual-check_on_navigated.
+    MOVE-CORRESPONDING mo_action->mo_handler->ms_request-s_front TO result-s_config.
+    result-s_device = mo_action->mo_handler->ms_request-s_front-s_device.
+    result-s_focus = mo_action->mo_handler->ms_request-s_front-s_focus.
+    result-s_scroll = mo_action->mo_handler->ms_request-s_front-s_scroll.
+    result-s_ui5 = mo_action->mo_handler->ms_request-s_front-s_ui5.
+    result-r_event_data = mo_action->ms_actual-r_data.
+    result-t_model_skipped = mo_action->ms_actual-t_model_skipped.
+
+    temp4 = boolc( mo_action->ms_next-o_app_call IS NOT INITIAL ).
+    result-_s_nav-check_call = temp4.
+
+    temp5 = boolc( mo_action->ms_next-o_app_leave IS NOT INITIAL ).
+    result-_s_nav-check_leave = temp5.
 
     " the slice/walk below runs at most ONCE per roundtrip: the component
     " data is part of the parsed request and cannot change until the next
@@ -198,7 +235,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " every later one keeps it in the session as a string, parsed here
         " on demand - not in session_merge for a reader that may never come
         " (z2ui5_if_ui5_types=>ty_s_request-s_front-o_comp_data)
-        DATA(lo_comp) = mo_action->mo_handler->ms_request-s_front-o_comp_data.
+
+        lo_comp = mo_action->mo_handler->ms_request-s_front-o_comp_data.
         IF lo_comp IS NOT BOUND
             AND mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
           lo_comp = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
@@ -206,7 +244,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
-        DATA(lo_params) = lo_comp->slice( `/startupParameters/` ).
+
+        lo_params = lo_comp->slice( `/startupParameters/` ).
 
         IF lo_params IS NOT BOUND.
           RETURN.
@@ -220,14 +259,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         " entries of a multi-value parameter are deliberately dropped). The
         " element's path is `/foo/` - the parameter name between two slashes,
         " which the two shifts below strip off.
+
+
         LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
-             REFERENCE INTO DATA(lr_comp)
+             REFERENCE INTO lr_comp
              WHERE name = `1`.
 
-          INSERT VALUE #( n = shift_left( val = shift_right( val = lr_comp->path
-                                                             sub = `/` )
-                                          sub = `/` )
-                          v = lr_comp->value ) INTO TABLE mt_comp_params.
+
+          CLEAR temp153.
+          temp153-n = shift_left( val = shift_right( val = lr_comp->path sub = `/` ) sub = `/` ).
+          temp153-v = lr_comp->value.
+          INSERT temp153 INTO TABLE mt_comp_params.
         ENDLOOP.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -246,12 +288,22 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_event_arg.
 
-    result = VALUE #( mo_action->ms_actual-t_event_arg[ v ] OPTIONAL ).
+    DATA temp154 TYPE string.
+    DATA temp155 TYPE string.
+    CLEAR temp154.
+
+    READ TABLE mo_action->ms_actual-t_event_arg INTO temp155 INDEX v.
+    IF sy-subrc = 0.
+      temp154 = temp155.
+    ENDIF.
+    result = temp154.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~get_app.
+      DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_cont.
+      DATA temp156 TYPE REF TO z2ui5_if_app.
 
     " get( )-s_draft-id is the id minted for THIS roundtrip - its draft is
     " written only when the roundtrip ends, so loading it raised
@@ -260,8 +312,11 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     IF id IS INITIAL OR id = mo_action->mo_app->ms_draft-id.
       result = get_if_app( ).
     ELSE.
-      DATA(lo_app) = z2ui5_cl_ui5_app_cont=>db_load( id ).
-      result = CAST #( lo_app->mo_app ).
+
+      lo_app = z2ui5_cl_ui5_app_cont=>db_load( id ).
+
+      temp156 ?= lo_app->mo_app.
+      result = temp156.
     ENDIF.
 
   ENDMETHOD.
@@ -464,14 +519,17 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " screens: the frontend plays navBack only when the page on screen
     " belongs to another app instance, transition_back always. The browser
     " Back button is the frontend's to recognize (core/Router.js).
-    DATA(lv_nav_back) = mo_action->ms_actual-check_nav_back.
+    DATA lv_nav_back LIKE mo_action->ms_actual-check_nav_back.
+    DATA lv_instance TYPE string.
+    lv_nav_back = mo_action->ms_actual-check_nav_back.
 
     " The app INSTANCE the view belongs to - what that comparison reads. An
     " app that never took the MAIN slot, a popup-as-app (the shape of every
     " built-in popup), leaves its caller's page on screen, and the return
     " from it must not animate that page away from itself. Minted only where
     " a transition is in play, so a plain display sends what it always did.
-    DATA(lv_instance) = ``.
+
+    lv_instance = ``.
     IF transition IS NOT INITIAL OR transition_back = abap_true OR lv_nav_back = abap_true.
       lv_instance = nav_app_set_id( get_if_app( ) ).
     ENDIF.
@@ -501,7 +559,10 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    DATA(li_filter) = custom_filter.
+    DATA li_filter LIKE custom_filter.
+      DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+    DATA temp157 TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    li_filter = custom_filter.
 
     " omit_initial wires ajson's empty filter into the slot the serializer
     " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
@@ -511,39 +572,40 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " constructor that can raise, so the CATCH that used to sit here (falling
     " back to the caller's filter) guarded nothing
     IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
-      DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+
       IF omit_initial_paths IS NOT INITIAL.
         " scoped: only the listed columns are dropped when initial, so a
         " boolean that must send abap_false survives
-        li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+        CREATE OBJECT li_omit TYPE lcl_initial_paths_filter EXPORTING IT_PATHS = omit_initial_paths.
       ELSE.
         " NOT the vendored create_empty_filter: that one also drops a
         " table ROW whose fields are all initial, which reindexes the
         " client array against the backend table and corrupts the
         " write-back (whole-table and __delta) - see the local class
-        li_omit = NEW lcl_empty_filter_keep_rows( ).
+        CREATE OBJECT li_omit TYPE lcl_empty_filter_keep_rows.
       ENDIF.
       IF li_filter IS BOUND.
         " NOT the vendored create_and_filter: its class is not
         " serializable and the combined ref ends up in the draft -
         " see the local class
-        li_filter = NEW lcl_and_filter( ii_first  = li_filter
-                                        ii_second = li_omit ).
+        CREATE OBJECT li_filter TYPE lcl_and_filter EXPORTING ii_first = li_filter ii_second = li_omit.
       ELSE.
         li_filter = li_omit.
       ENDIF.
     ENDIF.
 
     " val and tab take the data or a data reference to it, like window_bind_tab( )
+
+    CLEAR temp157.
+    temp157-path_only = path.
+    temp157-custom_filter = li_filter.
+    temp157-custom_mapper = custom_mapper.
+    temp157-tab = val_as_data_ref( tab ).
+    temp157-tab_index = tab_index.
+    temp157-switch_default_model = switch_default_model.
+    temp157-check_json = json.
     result = mo_srv_bind->main( val    = val_as_data_ref( val )
-                                config = VALUE #(
-                                    path_only            = path
-                                    custom_filter        = li_filter
-                                    custom_mapper        = custom_mapper
-                                    tab                  = val_as_data_ref( tab )
-                                    tab_index            = tab_index
-                                    switch_default_model = switch_default_model
-                                    check_json           = json ) ).
+                                config = temp157 ).
 
   ENDMETHOD.
 
@@ -554,18 +616,27 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " plain move, CORRESPONDING of a table does not downport to 7.02
     DATA lt_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
     DATA lt_filter TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
+    DATA temp158 TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
 
     lt_sort   = t_sort.
     lt_filter = t_filter.
 
     " the table itself, or a data reference to it - see val_as_data_ref
+
+    CLEAR temp158.
+    temp158-window = nmax( val1 = window val2 = 1 ).
+    temp158-t_window_sort = lt_sort.
+    temp158-t_window_filter = lt_filter.
+
+    temp6 = boolc( t_sort IS SUPPLIED ).
+    temp158-check_window_sort = temp6.
+
+    temp7 = boolc( t_filter IS SUPPLIED ).
+    temp158-check_window_filter = temp7.
     result = mo_srv_bind->main( val    = val_as_data_ref( val )
-                                config = VALUE #( window              = nmax( val1 = window
-                                                                              val2 = 1 )
-                                                  t_window_sort       = lt_sort
-                                                  t_window_filter     = lt_filter
-                                                  check_window_sort   = xsdbool( t_sort IS SUPPLIED )
-                                                  check_window_filter = xsdbool( t_filter IS SUPPLIED ) ) ).
+                                config = temp158 ).
 
   ENDMETHOD.
 
@@ -635,9 +706,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " two spellings cannot produce different wires. IS SUPPLIED rather than
     " IS NOT INITIAL - an argument passed as empty on purpose is a filled
     " slot, and dropping it would shift every following position.
-    DATA(lt_arg) = t_arg.
+    DATA lt_arg LIKE t_arg.
+      DATA temp159 LIKE LINE OF lt_arg.
+    lt_arg = t_arg.
     IF arg IS SUPPLIED.
-      APPEND CONV string( arg ) TO lt_arg.
+
+      temp159 = arg.
+      APPEND temp159 TO lt_arg.
     ENDIF.
 
     result = mo_srv_event->get_event( val   = val
@@ -697,30 +772,48 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " in ONE backend place, next to its app-part half (see
     " z2ui5_cl_ui5_handler=>hash_get_shell_part, which mirrors
     " Router.splitHash) - never re-implement it here.
-    DATA(ls_front) = mo_action->mo_handler->ms_request-s_front.
-    DATA(lv_state) = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
+    DATA ls_front LIKE mo_action->mo_handler->ms_request-s_front.
+    DATA lv_state TYPE string.
+    DATA lv_shell TYPE string.
+    DATA temp160 TYPE string.
+    ls_front = mo_action->mo_handler->ms_request-s_front.
+
+    lv_state = |z2ui5-xapp-state={ mo_action->mo_app->ms_draft-id }|.
 
     " check_bare_is_shell: s_front-hash is the RAW location hash, so a bare
     " '#So-action' (FLP intent, no app part yet) is all shell - without it
     " the composed link would be FLP-URL#/state, which the launchpad cannot
     " route back into this app
-    DATA(lv_shell) = z2ui5_cl_ui5_handler=>hash_get_shell_part(
+
+    lv_shell = z2ui5_cl_ui5_handler=>hash_get_shell_part(
                          iv_hash             = ls_front-hash
                          check_bare_is_shell = abap_true ).
 
-    result = COND #( WHEN lv_shell IS INITIAL
-                     THEN |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#/{ lv_state }|
-                     ELSE |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#{ lv_shell }&/{ lv_state }| ).
+
+    IF lv_shell IS INITIAL.
+      temp160 = |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#/{ lv_state }|.
+    ELSE.
+      temp160 = |{ ls_front-origin }{ ls_front-pathname }{ ls_front-search }#{ lv_shell }&/{ lv_state }|.
+    ENDIF.
+    result = temp160.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~set_session_stateful.
+    DATA temp161 TYPE z2ui5_if_ui5_types=>ty_s_http_res-s_stateful-active.
+    DATA temp8 TYPE xsdboolean.
 
     IF mo_action->mo_app->mv_check_sticky = val.
       RETURN.
     ENDIF.
-    mo_action->ms_next-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+
+    IF val = abap_true.
+      temp161 = 1.
+    ELSE.
+      temp161 = 0.
+    ENDIF.
+    mo_action->ms_next-s_stateful-active = temp161.
     mo_action->mo_app->mv_check_sticky = val.
 
     " switched says "the state at the END of this roundtrip differs from the
@@ -734,21 +827,27 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " switching on in the same roundtrip toggled back to abap_false - the
     " session never went stateful, B was still marked sticky, its draft was
     " never saved, and the next click was a NO_DRAFT_ENTRY 500
-    mo_action->ms_next-s_stateful-switched = xsdbool( val <> mo_action->mv_check_sticky_start ).
+
+    temp8 = boolc( val <> mo_action->mv_check_sticky_start ).
+    mo_action->ms_next-s_stateful-switched = temp8.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_app_prev_stack.
 
-    result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    DATA temp9 TYPE xsdboolean.
+    temp9 = boolc( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    result = temp9.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( mo_action->mo_app->mv_check_initialized = abap_false ).
+    DATA temp10 TYPE xsdboolean.
+    temp10 = boolc( mo_action->mo_app->mv_check_initialized = abap_false ).
+    result = temp10.
 
   ENDMETHOD.
 
@@ -776,7 +875,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD get_if_app.
 
-    result = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    DATA temp162 TYPE REF TO z2ui5_if_app.
+    temp162 ?= mo_action->mo_app->mo_app.
+    result = temp162.
 
   ENDMETHOD.
 

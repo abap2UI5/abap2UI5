@@ -71,15 +71,23 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
 
   METHOD box_resolve.
+      DATA temp26 TYPE string_table.
+    DATA lv_is_msg LIKE abap_false.
+      DATA temp1 TYPE xsdboolean.
+      DATA lv_type TYPE string.
+    DATA temp28 LIKE sy-subrc.
 
     IF ct_box_type IS INITIAL.
-      ct_box_type = VALUE #( ( `show` )
-                             ( `alert` )
-                             ( `confirm` )
-                             ( `information` )
-                             ( `warning` )
-                             ( `error` )
-                             ( `success` ) ).
+
+      CLEAR temp26.
+      INSERT `show` INTO TABLE temp26.
+      INSERT `alert` INTO TABLE temp26.
+      INSERT `confirm` INTO TABLE temp26.
+      INSERT `information` INTO TABLE temp26.
+      INSERT `warning` INTO TABLE temp26.
+      INSERT `error` INTO TABLE temp26.
+      INSERT `success` INTO TABLE temp26.
+      ct_box_type = temp26.
     ENDIF.
 
     " MESSAGES FIRST. A BAPIRET2 table, a RAP response, a log object, an
@@ -88,10 +96,13 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     " shapes, their severity and their titles. Only when NOTHING in there is
     " a message does the generic renderer below get a turn, so nothing about
     " the message path changes for an app that was already using it
-    DATA(lv_is_msg) = abap_false.
+
+    lv_is_msg = abap_false.
     IF z2ui5_cl_ui5_util_context=>rtti_check_clike( text ) = abap_false.
       result = box_format_msg( text ).
-      lv_is_msg = xsdbool( result-skip = abap_false ).
+
+      temp1 = boolc( result-skip = abap_false ).
+      lv_is_msg = temp1.
     ENDIF.
 
     IF lv_is_msg = abap_true.
@@ -109,7 +120,8 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
       " and the type arrives however an app spelled it, so it is lowercased
       " right here - `Information` gets the same show-mapping and default
       " title as `information` (box_format_msg lower-cases its own)
-      DATA(lv_type) = to_lower( type ).
+
+      lv_type = to_lower( type ).
 
       IF result-skip = abap_true.
         " nothing to show: complex data that is initial - an empty message
@@ -122,7 +134,8 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
         IF lv_type <> `error`.
           RETURN.
         ENDIF.
-        result = VALUE #( text = cs_text-failed ).
+        CLEAR result.
+        result-text = cs_text-failed.
       ENDIF.
 
       result-type  = lv_type.
@@ -147,7 +160,10 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     " that is no MessageBox display method would be rejected there and the box
     " would not appear at all - a requested box is never dropped silently, it
     " falls back to a plain show( ) like the frontend used to do
-    IF NOT line_exists( ct_box_type[ table_line = result-type ] ). "#EC CI_SORTSEQ
+
+    READ TABLE ct_box_type WITH KEY table_line = result-type TRANSPORTING NO FIELDS.
+    temp28 = sy-subrc.
+    IF NOT temp28 = 0. "#EC CI_SORTSEQ
       result-type = `show`.
     ENDIF.
 
@@ -155,11 +171,30 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
 
   METHOD box_format_msg.
 
-    DATA(lt_msg) = z2ui5_cl_ui5_util_context=>msg_get_t( val ).
+    DATA lt_msg TYPE z2ui5_cl_ui5_util_context=>ty_t_msg.
+    DATA temp29 LIKE LINE OF lt_msg.
+    DATA lr_text LIKE REF TO temp29.
+    DATA lv_lines TYPE i.
+    DATA lv_type TYPE string.
+    DATA lv_rank TYPE i.
+    DATA temp30 LIKE LINE OF lt_msg.
+    DATA lr_type LIKE REF TO temp30.
+      DATA lv_type_row TYPE string.
+      DATA temp31 TYPE i.
+      DATA lv_rank_row LIKE temp31.
+      FIELD-SYMBOLS <temp32> LIKE LINE OF lt_msg.
+      DATA temp33 LIKE sy-tabix.
+    DATA lt_detail_items TYPE string_table.
+    DATA temp34 LIKE LINE OF lt_msg.
+    DATA lr_msg LIKE REF TO temp34.
+      DATA temp35 LIKE LINE OF lt_detail_items.
+    lt_msg = z2ui5_cl_ui5_util_context=>msg_get_t( val ).
 
     " an error that names itself as a message and still has no text gets
     " the standard one - before the entries without a text are dropped
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_text) WHERE text IS INITIAL. "#EC CI_SORTSEQ
+
+
+    LOOP AT lt_msg REFERENCE INTO lr_text WHERE text IS INITIAL. "#EC CI_SORTSEQ
       lr_text->text = text_default( lr_text->* ).
     ENDLOOP.
 
@@ -170,7 +205,8 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     " the caller fall back to ui5_data_box_format( )
     DELETE lt_msg WHERE text IS INITIAL.
 
-    DATA(lv_lines) = lines( lt_msg ).
+
+    lv_lines = lines( lt_msg ).
 
     IF lv_lines = 0.
       result-skip = abap_true.
@@ -182,13 +218,25 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     " error is an error box (it took the first message's type until
     " 2026-10, which opened [W, E] as a warning). Error over warning over
     " success and information, which rank the same - the first of them wins
-    DATA(lv_type) = ``.
-    DATA(lv_rank) = -1.
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_type).
-      DATA(lv_type_row) = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( lr_type->type ).
-      DATA(lv_rank_row) = COND i( WHEN lv_type_row = z2ui5_cl_ui5_util_context=>cs_ui5_msg_type-e THEN 2
-                                  WHEN lv_type_row = z2ui5_cl_ui5_util_context=>cs_ui5_msg_type-w THEN 1
-                                  ELSE 0 ).
+
+    lv_type = ``.
+
+    lv_rank = -1.
+
+
+    LOOP AT lt_msg REFERENCE INTO lr_type.
+
+      lv_type_row = z2ui5_cl_ui5_util_context=>ui5_get_msg_type( lr_type->type ).
+
+      IF lv_type_row = z2ui5_cl_ui5_util_context=>cs_ui5_msg_type-e.
+        temp31 = 2.
+      ELSEIF lv_type_row = z2ui5_cl_ui5_util_context=>cs_ui5_msg_type-w.
+        temp31 = 1.
+      ELSE.
+        temp31 = 0.
+      ENDIF.
+
+      lv_rank_row = temp31.
       IF lv_rank_row > lv_rank.
         lv_rank = lv_rank_row.
         lv_type = lv_type_row.
@@ -198,7 +246,15 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     result-type  = to_lower( lv_type ).
 
     IF lv_lines = 1.
-      result-text = lt_msg[ 1 ]-text.
+
+
+      temp33 = sy-tabix.
+      READ TABLE lt_msg INDEX 1 ASSIGNING <temp32>.
+      sy-tabix = temp33.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      result-text = <temp32>-text.
       RETURN.
     ENDIF.
 
@@ -206,12 +262,16 @@ CLASS z2ui5_cl_ui5_srv_message IMPLEMENTATION.
     " blank around it - the box shows the text as written, and the template
     " used to carry one on either side
     result-text = |{ lv_lines } Messages found:|.
-    DATA lt_detail_items TYPE string_table.
+
     " the texts are data inside markup, escaped like every sibling renderer
     " escapes its values: unescaped, `Enter a value for <MATNR>` lost its
     " token to the frontend sanitizer, which drops an unknown element
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-      INSERT |<li>{ z2ui5_cl_ui5_util_context=>c_escape_html( lr_msg->text ) }</li>| INTO TABLE lt_detail_items.
+
+
+    LOOP AT lt_msg REFERENCE INTO lr_msg.
+
+      temp35 = |<li>{ z2ui5_cl_ui5_util_context=>c_escape_html( lr_msg->text ) }</li>|.
+      INSERT temp35 INTO TABLE lt_detail_items.
     ENDLOOP.
     result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
 

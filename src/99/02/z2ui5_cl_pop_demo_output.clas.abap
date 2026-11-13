@@ -41,7 +41,7 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
     r_result->icon                = i_icon.
     r_result->button_text_confirm = i_button_text.
@@ -86,13 +86,16 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD render_popup.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`      v = `sap.m`
             )->a( n = `xmlns:core` v = `sap.ui.core`
             )->a( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` ).
 
-    DATA(popup) = view->ele( `Dialog`
+
+    popup = view->ele( `Dialog`
         )->a( n = `title`         v = title
         )->a( n = `icon`          v = icon
         )->a( n = `stretch`       b = stretch
@@ -124,14 +127,17 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD render_page.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `View` ns = `mvc`
             )->a( n = `xmlns`      v = `sap.m`
             )->a( n = `xmlns:mvc`  v = `sap.ui.core.mvc`
             )->a( n = `xmlns:core` v = `sap.ui.core`
             )->a( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` ).
 
-    DATA(page) = view->ele( `Shell`
+
+    page = view->ele( `Shell`
         )->ele( `Page`
             )->a( n = `title`          v = title
             )->a( n = `navButtonPress` v = client->_event_nav_app_leave( )
@@ -156,26 +162,29 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+      DATA temp1 TYPE xsdboolean.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `TOGGLE_FULLSCREEN` ).
+    IF client->check_on_event( `TOGGLE_FULLSCREEN` ) IS NOT INITIAL.
       IF as_page = abap_true.
         client->view_destroy( ).
       ELSE.
         client->popup_destroy( ).
       ENDIF.
-      as_page = xsdbool( as_page = abap_false ).
+
+      temp1 = boolc( as_page = abap_false ).
+      as_page = temp1.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_CONFIRM` ).
+    IF client->check_on_event( `BUTTON_CONFIRM` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.
