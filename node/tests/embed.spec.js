@@ -138,6 +138,57 @@ test.describe("component data", () => {
   });
 });
 
+// A launchpad tile starts the HOST's component with its parameters. On a
+// page that is the app's they are the app's - the class, and what the app
+// reads as t_comp_params.
+test.describe("the host's own start", () => {
+  const tile = {
+    getComponentData: () => ({
+      startupParameters: {
+        app_start: ["ZCL_FROM_TILE"],
+        plant: ["1000", "2000"],
+        matnr: ["4711"],
+      },
+    }),
+  };
+
+  test("a tile's parameters start the app when the page is the app's", () => {
+    const { Embed } = load({ owner: tile });
+    const settings = Embed.withHostStart({ app: "", ownsPage: true, host: {} });
+    expect(settings.app).toBe("ZCL_FROM_TILE");
+    // of several values the first, as the backend always took them
+    expect(JSON.stringify(settings.params)).toBe(
+      '{"plant":"1000","matnr":"4711"}',
+    );
+  });
+
+  test("what the host set on the control wins", () => {
+    const { Embed } = load({ owner: tile });
+    const settings = Embed.withHostStart({
+      app: "ZCL_SET",
+      params: { matnr: "0815" },
+      ownsPage: true,
+      host: {},
+    });
+    expect(settings.app).toBe("ZCL_SET");
+    expect(settings.params.matnr).toBe("0815");
+    expect(settings.params.plant).toBe("1000");
+  });
+
+  test("on a host's page the host's parameters are the host's", () => {
+    const { Embed } = load({ owner: tile });
+    const given = { app: "ZCL_SECTION", params: { id: "1" }, host: {} };
+    expect(Embed.withHostStart(given)).toBe(given);
+  });
+
+  test("no owner, or one started without parameters, changes nothing but the shape", () => {
+    const { Embed } = load();
+    const settings = Embed.withHostStart({ app: "", ownsPage: true, host: {} });
+    expect(settings.app).toBe("");
+    expect(JSON.stringify(settings.params)).toBe("{}");
+  });
+});
+
 test.describe("create", () => {
   test("a component under the bundle's second name, in a container that owns it", async () => {
     const { Embed, created, containers } = load();

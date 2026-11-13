@@ -413,9 +413,9 @@ test.describe("the sibling BSP roots behind a proxy", () => {
 // mobile app. An embedded component's root (a sap.m.NavContainer) never
 // calls it, but a sap.m.Shell or sap.m.SplitApp in the app's view does when
 // it is created - so the component makes the call first, with everything
-// off, before the root view exists; on a page of the app's own the call
-// stays sap.m.App's.
-test("an embedded component makes the page's Mobile.init( ) call first, with everything off", () => {
+// off, before the root view exists; on a page handed to the app (ownsPage)
+// the call stays sap.m.App's.
+test("on a host's page the component makes the page's Mobile.init( ) call first, with everything off", () => {
   const calls = [];
   initContext({ embedded: true }, { calls });
   expect(calls).toEqual([
@@ -431,6 +431,12 @@ test("an embedded component makes the page's Mobile.init( ) call first, with eve
     ],
     "UIComponent.init",
   ]);
+});
+
+test("on a page handed to the app, Mobile.init( ) is left to the app's sap.m.App", () => {
+  const calls = [];
+  initContext({ ownsPage: true }, { calls });
+  expect(calls).toEqual(["UIComponent.init"]);
 });
 
 // The devtools persist their console and roundtrip history on "pagehide";

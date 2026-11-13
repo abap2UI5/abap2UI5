@@ -1,13 +1,10 @@
 <mvc:View
     xmlns:mvc="sap.ui.core.mvc"
-    xmlns="sap.m"
     xmlns:z2ui5="z2ui5.embed"
     displayBlock="true"
     height="100%">
-    <Shell>
-        <z2ui5:Container
-            endpoint="{start>/endpoint}"
-            ownsPage="true"
-            height="100%"/>
-    </Shell>
+    <z2ui5:Container
+        endpoint="{start>/endpoint}"
+        ownsPage="true"
+        height="100%"/>
 </mvc:View>

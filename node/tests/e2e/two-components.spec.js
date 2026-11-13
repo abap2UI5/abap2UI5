@@ -47,7 +47,10 @@ async function bootSecondComponent(page, componentData) {
           (Container) => {
             try {
               const container = new Container({
-                name: "z2ui5",
+                // the frontend's component under the bundle's second name:
+                // z2ui5 is the page's own component, the app around the
+                // control
+                name: "z2ui5.embed.frontend",
                 id: `${id}-container`,
                 settings: data ? { id, componentData: data } : { id },
                 async: true,
@@ -210,9 +213,7 @@ test("a host's componentData.endpoint is where that component's roundtrips go", 
 // own, the way a Fiori elements object page does: before the flag, the
 // component's first roundtrip ended with a replaceHash("") that took it away,
 // and the host went back to its list.
-test("an embedded component leaves the page's hash alone", async ({
-  page,
-}) => {
+test("an embedded component leaves the page's hash alone", async ({ page }) => {
   await page.goto("/");
   const FIRST = await pageComponentId(page);
   await waitForMainView(page, FIRST);

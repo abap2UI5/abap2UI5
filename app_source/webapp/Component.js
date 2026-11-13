@@ -3,13 +3,19 @@ sap.ui.define(
   (UIComponent, JSONModel) => {
     "use strict";
 
-    // The whole app: one view - a sap.m.Shell with a z2ui5.embed.Container
+    // The whole app: one view with one z2ui5.embed.Container
     // (embed/Container.js) in it. The control loads the abap2UI5 frontend
     // from the backend (?z2ui5-bundle) and runs the app in it; everything
     // else comes from the backend, the class to start included (the
     // backend reads it from the page's URL). Nothing is decided here: the
     // component only says where the backend is.
-    return UIComponent.extend("abap2ui5.page.Component", {
+    // The component is z2ui5 - the name launchpad target mappings and links
+    // have always named. Only this file and the manifest are below z2ui5/;
+    // the view is abap2ui5/page/ (the same folder, sap.ui5/resourceRoots),
+    // because z2ui5/ is the frontend's namespace too: the bundle the control
+    // loads registers its modules there, and creates its own component under
+    // a second name (z2ui5.embed.frontend).
+    return UIComponent.extend("z2ui5.Component", {
       metadata: {
         manifest: "json",
         interfaces: ["sap.ui.core.IAsyncContentCreation"],

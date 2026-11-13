@@ -81,6 +81,35 @@ sap.ui.define(
       return result;
     }
 
+    // What the host itself was started with - a launchpad tile's parameters
+    // (componentData.startupParameters of the host's component, one array of
+    // values per name). They are the app's when the page is the app's
+    // (ownsPage: the host is the control and nothing else - the app every
+    // delivery of abap2UI5 starts with), and only then: the parameters of a
+    // Fiori elements app are that app's, not its section's. app_start picks
+    // the class when the control names none, every other one reaches the app
+    // as client->get( )-t_comp_params - of several values the first, the
+    // launchpad convention the backend has always applied. What the host
+    // set on the control wins.
+    function withHostStart(settings) {
+      if (settings.ownsPage !== true || !settings.host) return settings;
+      const owner = Component.getOwnerComponentFor(settings.host);
+      const data = owner && owner.getComponentData && owner.getComponentData();
+      const startup = (data && data.startupParameters) || {};
+      const first = (name) => [].concat(startup[name])[0];
+      const params = {};
+      for (const name of Object.keys(startup)) {
+        if (name !== "app_start" && first(name) != null) {
+          params[name] = first(name);
+        }
+      }
+      const app = settings.app || first("app_start") || "";
+      return Object.assign({}, settings, {
+        app: String(app),
+        params: Object.assign(params, settings.params),
+      });
+    }
+
     // The component data of the app (Component.init reads it):
     //   the installation's own   embedded, nodePath, the paths of the
     //                            sibling BSPs z2ui5_cci / z2ui5_ccc
@@ -133,6 +162,7 @@ sap.ui.define(
     return {
       startupParameters,
       componentData,
+      withHostStart,
 
       // The app as a control for the host to render: a ComponentContainer
       // around a new component - a new backend session. The component lives
@@ -140,7 +170,9 @@ sap.ui.define(
       // the app, which brings its own.
       create(settings, installation) {
         installStyle();
-        return Promise.resolve(createComponent(settings, installation)).then(
+        return Promise.resolve(
+          createComponent(withHostStart(settings), installation),
+        ).then(
           (component) =>
             new ComponentContainer({
               lifecycle: "Container",

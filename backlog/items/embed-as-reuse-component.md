@@ -330,14 +330,16 @@ the new page, on 1.144 and 1.71, under the shipped CSP.
 `ComponentContainer`, `componentData` and `Component#createId` all exist in
 1.71. No stage is blocked by the floor.
 
-## Decided for the branches, not built yet (2026-11-14)
+## The app is z2ui5, without a Shell (2026-11-14)
 
-The abap2UI5/frontend branches are still `standard_new` and `cloud_new` from
-`frontend/embed` with the control 0.3.0 - the maintainer put the rebuild off
-once more. Decided for it already: the minimal app is called `z2ui5`
-everywhere and carries the launchpad entries in its manifest, the backend's
-own page included, and the startup parameters of a tile are read by the
-bundle (`core/Embed.js`), not by the app. Open: whether the app keeps its
-`sap.m.Shell` - the old frontend had none of its own (its root was a
-`sap.m.App`, a Shell came from an app's view), so an app without a Shell is
-1280px wide on the backend's page since the Shell went into the view.
+Done on the maintainer's word: the minimal app (`app_source`, `app_npm`) is
+the component `z2ui5` with the launchpad inbound, `ShellUIService` and
+`sap.cloud` in its manifest - only `Component.js` and the manifest are below
+`z2ui5/`, the view is `abap2ui5/page/` - and its view is the control alone.
+The `sap.m.Shell` went out again: the old frontend had none of its own (its
+root was a `sap.m.App`, a Shell came from an app's view), and with one in the
+page's view an app without a Shell was 1280px wide. A tile's startup
+parameters are read by the bundle (`core/Embed.js`, `withHostStart`) when
+the page is the app's; the all-off `Mobile.init` is made on a host's page
+only. Still not built: the abap2UI5/frontend branches from this app -
+`standard_new` and `cloud_new` stay `frontend/embed` with the control 0.3.0.

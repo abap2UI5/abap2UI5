@@ -11,7 +11,7 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
 // page is the minimal UI5 app of app_source/webapp - a component with one XML
-// view, a sap.m.Shell with a z2ui5.embed.Container in it, and the control
+// view with one z2ui5.embed.Container in it, and the control
 // itself, whose source lives there (embed/). The control loads the
 // frontend through ?z2ui5-bundle. The page is a variant of that app, not a
 // second one: its inline script holds the app's files as a preload, because
@@ -28,11 +28,11 @@ const pageDir = "app_source/webapp";
 const PAGE_SOURCES = [
   {
     source: `${pageDir}/Component.js`,
-    urlPath: "abap2ui5/page/Component.js",
+    urlPath: "z2ui5/Component.js",
   },
   {
     source: `${pageDir}/manifest.json`,
-    urlPath: "abap2ui5/page/manifest.json",
+    urlPath: "z2ui5/manifest.json",
   },
   {
     source: `${pageDir}/view/Main.view.xml`,

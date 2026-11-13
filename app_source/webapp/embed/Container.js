@@ -125,7 +125,11 @@ sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {
   // window.z2ui5.embed.Container and its renderer. Nothing reads them, so
   // what the extend adds to window is taken off again below: the control
   // puts nothing on a z2ui5 global, which abap2UI5 dropped on purpose.
+  /* ui5lint-disable no-project-globals --
+     the two reads of window.z2ui5 in this file are how the control keeps
+     the global AWAY: it looks at what UI5 put there and takes it off */
   const globalBefore = window.z2ui5;
+  /* ui5lint-enable no-project-globals */
   const embedBefore = globalBefore && globalBefore.embed;
 
   const Container = Control.extend("z2ui5.embed.Container", {
@@ -360,6 +364,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {
     },
   });
 
+  /* ui5lint-disable-next-line no-project-globals -- see globalBefore */
   if (!globalBefore) delete window.z2ui5;
   else if (!embedBefore) delete globalBefore.embed;
   else {

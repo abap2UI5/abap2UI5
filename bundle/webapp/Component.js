@@ -122,27 +122,6 @@ sap.ui.define(
         // ... a restart restarts the app in place instead of reloading the
         // host's page (core/ErrorView.js restart)
         this.ctx.restart = () => this._restartApp();
-        // ... and the page's mobile setup is the host's.
-        // sap/ui/util/Mobile.init( ) runs once per page, with the settings
-        // of whoever calls it first: html { height: 100% }, a viewport meta
-        // tag that disables zooming, a format-detection meta tag, and on iOS
-        // native scrolling off (position: fixed on <html>) and the browser
-        // UI hidden. On a host's page that took the host's zoom and, on an
-        // iPad, its scrolling. The component's root is a sap.m.NavContainer,
-        // which never calls it (App.controller.js, createRoot), but a
-        // sap.m.Shell or a sap.m.SplitApp in the app's view does, when it is
-        // created - the hello world app has a Shell. A host with a sap.m.App
-        // or a sap.m.Shell of its own (the backend's page has one) has made
-        // that call already, and this one changes nothing; a host without
-        // one keeps the page it had.
-        Mobile.init({
-          viewport: false,
-          hideBrowser: false,
-          preventScroll: false,
-          preventPhoneNumberDetection: false,
-          useFullScreenHeight: false,
-        });
-
         // What belongs to the PAGE rather than to an area of it - the URL
         // hash, the document title and the favicon, the global busy
         // indicator, the browser's "leave page?" prompt - is the host's,
@@ -169,6 +148,29 @@ sap.ui.define(
         // per page, the hash is page-wide (core/Context.js).
         state.ownsPage = ownsPage === true || ownsHash === true;
         state.ownsHash = state.ownsPage;
+
+        // The page's mobile setup is the host's as well - unless the page
+        // was handed over. sap/ui/util/Mobile.init( ) runs once per page,
+        // with the settings of whoever calls it first: html { height: 100%
+        // }, a viewport meta tag that disables zooming, a format-detection
+        // meta tag, and on iOS native scrolling off (position: fixed on
+        // <html>) and the browser UI hidden. On a host's page that took the
+        // host's zoom and, on an iPad, its scrolling. The component's root
+        // there is a sap.m.NavContainer, which never calls it
+        // (App.controller.js, createRoot), but a sap.m.Shell or a
+        // sap.m.SplitApp in the app's view does, when it is created - the
+        // hello world app has a Shell - so the call is made here first, with
+        // everything off. On a page of the app's own the root is a
+        // sap.m.App, whose own full setup is the one the page needs.
+        if (!state.ownsPage) {
+          Mobile.init({
+            viewport: false,
+            hideBrowser: false,
+            preventScroll: false,
+            preventPhoneNumberDetection: false,
+            useFullScreenHeight: false,
+          });
+        }
 
         // The backend URL of a host app that embeds this component, e.g.
         // new ComponentContainer({ name: "z2ui5", settings: { componentData:

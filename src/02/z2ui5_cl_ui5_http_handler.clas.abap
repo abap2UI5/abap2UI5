@@ -782,7 +782,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
 
     " The page is the minimal UI5 app of app_source/webapp: a component with one
-    " XML view, a sap.m.Shell with a z2ui5.embed.Container in it. The control
+    " XML view with one z2ui5.embed.Container in it. The control
     " loads the frontend from this node (?z2ui5-bundle, _http_get_bundle) and
     " runs the app in it. So the page carries nothing of the frontend: the
     " sibling BSP roots reach the frontend's component through the bundle's
@@ -867,7 +867,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     result-body = result-body && lv_add_config &&
                   | ></script></head>\n| &&
                   |<body class="sapUiBody sapUiSizeCompact" id="content">\n| &&
-                  |    <div data-sap-ui-component data-name="abap2ui5.page" data-id="container" data-settings='{ lv_settings }' data-handle-validation="true"></div>\n| &&
+                  |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='{ lv_settings }' data-handle-validation="true"></div>\n| &&
                   | </body></html>|.
 
     result-status_code   = 200.

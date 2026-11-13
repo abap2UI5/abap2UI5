@@ -538,9 +538,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " component with one view - and the control that view holds
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/Component.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/Component.js": function()` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/Component.js"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `\x3cz2ui5:Container` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/embed/Container.js": function()` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/core/` ) ).

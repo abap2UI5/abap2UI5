@@ -6,8 +6,8 @@ with the control taken from npm instead of carried as source.
 | Path | |
 |---|---|
 | `webapp/index.html` | a standard UI5 page: the bootstrap and one component |
-| `webapp/Component.js`, `manifest.json` | the component `abap2ui5.page` - it only says where the backend is (`sap.app/dataSources/http/uri`) |
-| `webapp/view/Main.view.xml` | the one view: a `sap.m.Shell` with one `z2ui5.embed.Container` in it |
+| `webapp/Component.js`, `manifest.json` | the component `z2ui5`, the name launchpad tiles and links have always named, with the launchpad entries in its manifest - it only says where the backend is (`sap.app/dataSources/http/uri`) |
+| `webapp/view/Main.view.xml` | the one view: one `z2ui5.embed.Container`, nothing around it - whether an app sits in a `sap.m.Shell` is that app's view's business, as it always was |
 | `package.json` | the control: `@abap2ui5/embed-control` |
 | `ui5.yaml`, `ui5-local.yaml` | `includeDependency`, so that `ui5 build` takes the control into `dist/thirdparty/z2ui5/embed/`; `npm start` against an SAP system, `npm run start-local` against abap2UI5 in Node on `localhost:3000` |
 

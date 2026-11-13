@@ -1,7 +1,7 @@
 {
   "_version": "1.12.0",
   "sap.app": {
-    "id": "abap2ui5.page",
+    "id": "z2ui5",
     "type": "application",
     "applicationVersion": {
       "version": "1.0.0"
@@ -11,6 +11,19 @@
       "http": {
         "uri": "/sap/bc/z2ui5",
         "type": "JSON"
+      }
+    },
+    "crossNavigation": {
+      "inbounds": {
+        "z2ui5-display": {
+          "semanticObject": "z2ui5",
+          "action": "display",
+          "title": "",
+          "signature": {
+            "parameters": {},
+            "additionalParameters": "allowed"
+          }
+        }
       }
     }
   },
@@ -26,12 +39,22 @@
     "dependencies": {
       "minUI5Version": "1.71.0",
       "libs": {
-        "sap.m": {},
         "sap.ui.core": {}
       }
     },
     "resourceRoots": {
-      "z2ui5.embed": "./embed/"
+      "z2ui5.embed": "./embed/",
+      "abap2ui5.page": "./"
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "services": {
+      "ShellUIService": {
+        "factoryName": "sap.ushell.ui5service.ShellUIService",
+        "lazy": true
+      }
     },
     "rootView": {
       "viewName": "abap2ui5.page.view.Main",
@@ -39,5 +62,9 @@
       "async": true,
       "id": "main"
     }
+  },
+  "sap.cloud": {
+    "public": true,
+    "service": "z2ui5"
   }
 }
