@@ -16,7 +16,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " get( ) returns, the frontend bundle get_bundle( ) returns and the
     " control's stylesheet - fixed at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '5b9a16361eb133f0'.
+    CONSTANTS build_hash TYPE string VALUE 'af6a5f2c2159c9e7'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-+7x84/lx8SoUAWgI5Z6TpOTNSnBJ20vyoMt5wxpjnhI='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-BLUutqSZGJCsOSoNgbYxnBcL/sIoIFw3zStDwt+R2y8='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the shell does not carry. The ETag of that
@@ -33,9 +33,9 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " with them
     CONSTANTS devtools_hash TYPE string VALUE 'c7c03c632a8646de'.
 
-    " the one inline script of the GET page: the page's start module and
-    " the embed control (z2ui5.embed.Container) as a preload, and the call
-    " that starts the page. Nothing of the frontend - the control loads it
+    " the one inline script of the GET page: the page's minimal app (a
+    " component with one view) and the embed control that view holds
+    " (z2ui5.embed.Container) as a preload, and the call that starts it. Nothing of the frontend - the control loads it
     " from the node, as get_bundle( )
     CLASS-METHODS get
       RETURNING
@@ -100,8 +100,8 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
              |    sap.ui.require.preload(\{\n| &&
              entries_page( ) &&
              |    \});\n| &&
-             |    sap.ui.require(["abap2ui5/page/Host"], function(Host)\{\n| &&
-             |     Host.start();\n| &&
+             |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{\n| &&
+             |     ComponentSupport.run();\n| &&
              |    \});\n| &&
              |  \}\n|.
 
@@ -138,7 +138,9 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
 
   METHOD entries_page.
 
-    result = |      "abap2ui5/page/Host.js": function()\{{ z2ui5_cl_ui5f_host_js=>get( ) }\},| && |\n| &&
+    result = |      "abap2ui5/page/Component.js": function()\{{ z2ui5_cl_ui5f_page_cmp_js=>get( ) }\},| && |\n| &&
+             |      "abap2ui5/page/manifest.json": '{ escape_js_literal( z2ui5_cl_ui5f_page_mf=>get( ) ) }',| && |\n| &&
+             |      "abap2ui5/page/view/Main.view.xml": '{ escape_js_literal( z2ui5_cl_ui5f_page_xml=>get( ) ) }',| && |\n| &&
              |      "z2ui5/embed/Container.js": function()\{{ z2ui5_cl_ui5f_embed_js=>get( ) }\},| && |\n|.
 
   ENDMETHOD.

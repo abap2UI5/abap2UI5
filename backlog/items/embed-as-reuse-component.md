@@ -271,14 +271,16 @@ its own namespace `z2ui5.embed` sits below it, mapped to the host app's
 Asked for by the maintainer, on a branch: the page the HTTP service answers
 a GET with no longer embeds the frontend and creates the component itself.
 It carries the control (`z2ui5_cl_ui5f_embed_js`, taken from `node_modules`
-by `tools/app2abap/trans2abap.js`) and a start module
-(`frontend/page/Host.js`) in its one inline script, and the control loads
+by `tools/app2abap/trans2abap.js`) and a minimal app
+(`frontend/page/webapp`: a component, a manifest and one XML view whose one
+element is the control) in its one inline script, and the control loads
 the frontend through `?z2ui5-bundle` with `ownsPage` - one way to start the
 frontend on the node, the BSP of `standard_new` and the HTTP service of
 `cloud_new`. The node answers one path below itself for it,
 `<node>/embed/Container.css`. What changed for an app on that page: the
 roundtrips go to the page's path without its query (the control takes no
-query), `app_start` is in `t_comp_params`, the page component has a
+query), the class to start is named by the handler (`_page_app`, component
+data `app` - the page decides nothing), `app_start` is in `t_comp_params`, the page component has a
 generated id, and the control's stylesheet lets a width-limited
 `sap.m.Shell` fill the window. The developer tools capture the console
 again when the component owns the page.

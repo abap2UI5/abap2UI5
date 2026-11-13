@@ -11,20 +11,33 @@ const sourceDir = path.join(__dirname, "../../app/webapp");
 const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
-// page is a host with one z2ui5.embed.Container (@abap2ui5/embed-control)
-// that loads the frontend through ?z2ui5-bundle. Its inline script holds
-// the page's own start module (frontend/page/Host.js) and the control,
-// taken from node_modules at the version package.json pins - the same
-// package the delivery branches standard_new and cloud_new ship
-// (frontend/embed). The control's stylesheet is no module: the handler
-// serves it at <node>/embed/Container.css (get_control_css( ), see Host.js).
+// page is a minimal UI5 app (frontend/page/webapp) - a component with one
+// XML view whose one element is a z2ui5.embed.Container
+// (@abap2ui5/embed-control), which loads the frontend through
+// ?z2ui5-bundle. Its inline script holds that app and the control, taken
+// from node_modules at the version package.json pins - the same package the
+// delivery branches standard_new and cloud_new ship (frontend/embed). The
+// app is abap2ui5.page: z2ui5/ is the frontend's namespace and z2ui5/embed/
+// the control's. The control's stylesheet is no module: the handler serves
+// it at <node>/embed/Container.css (get_control_css( ), see Component.js).
 const repoDir = path.join(__dirname, "../..");
+const pageDir = "frontend/page/webapp";
 const controlDir = "node_modules/@abap2ui5/embed-control/src";
 const PAGE_SOURCES = [
   {
-    source: "frontend/page/Host.js",
-    className: "z2ui5_cl_ui5f_host_js",
-    urlPath: "abap2ui5/page/Host.js",
+    source: `${pageDir}/Component.js`,
+    className: "z2ui5_cl_ui5f_page_cmp_js",
+    urlPath: "abap2ui5/page/Component.js",
+  },
+  {
+    source: `${pageDir}/manifest.json`,
+    className: "z2ui5_cl_ui5f_page_mf",
+    urlPath: "abap2ui5/page/manifest.json",
+  },
+  {
+    source: `${pageDir}/view/Main.view.xml`,
+    className: "z2ui5_cl_ui5f_page_xml",
+    urlPath: "abap2ui5/page/view/Main.view.xml",
   },
   {
     source: `${controlDir}/Container.js`,
@@ -334,8 +347,8 @@ function escapeJsLiteral(value) {
 // The lines around the preload entries in the GET page's one inline
 // <script>: the global onInitComponent the bootstrap tag names in
 // data-sap-ui-oninit, which registers the page's own modules (PAGE_SOURCES -
-// the start module and the embed control, NOT the frontend) and starts the
-// page. Each line is followed by a newline, the first one is empty (the
+// the app of frontend/page and the embed control, NOT the frontend) and
+// starts the component the page declares. Each line is followed by a newline, the first one is empty (the
 // script text starts with the newline after <script>). Held once, as data,
 // so the ABAP string template in buildPreloadClass and the hashed JavaScript
 // string in inlineScript cannot drift apart.
@@ -346,8 +359,8 @@ const SCRIPT_OPEN = [
 ];
 const SCRIPT_CLOSE = [
   "    });",
-  '    sap.ui.require(["abap2ui5/page/Host"], function(Host){',
-  "     Host.start();",
+  '    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){',
+  "     ComponentSupport.run();",
   "    });",
   "  }",
 ];
@@ -652,9 +665,9 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " with them
     CONSTANTS devtools_hash TYPE string VALUE '${devtoolsHash}'.
 
-    " the one inline script of the GET page: the page's start module and
-    " the embed control (z2ui5.embed.Container) as a preload, and the call
-    " that starts the page. Nothing of the frontend - the control loads it
+    " the one inline script of the GET page: the page's minimal app (a
+    " component with one view) and the embed control that view holds
+    " (z2ui5.embed.Container) as a preload, and the call that starts it. Nothing of the frontend - the control loads it
     " from the node, as get_bundle( )
     CLASS-METHODS get
       RETURNING
@@ -952,8 +965,15 @@ async function main() {
       );
       emit(
         path.join(targetDir, `${className}.clas.xml`),
-        `\uFEFF${xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`)}`,
+        // "page": the app has a Component.js and a manifest.json like the
+        // frontend, and two objects must not share a description
+        `\uFEFF${xmlTemplate(className, `abap2UI5 - page ${path.basename(file)}`)}`,
       );
+      if (className.length > MAX_CLASS_NAME_LENGTH) {
+        throw new Error(
+          `${source}: class name '${className}' is ${className.length} chars (max ${MAX_CLASS_NAME_LENGTH})`,
+        );
+      }
       const value = embeddedValue(sourceContent, !isJs);
       if (urlPath) pageEntries.push({ urlPath, className, isJs, value });
       else controlCss = value;

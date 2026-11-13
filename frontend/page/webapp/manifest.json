@@ -1,0 +1,33 @@
+{
+  "_version": "1.12.0",
+  "sap.app": {
+    "id": "abap2ui5.page",
+    "type": "application",
+    "applicationVersion": {
+      "version": "1.0.0"
+    },
+    "title": "abap2UI5"
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "dependencies": {
+      "minUI5Version": "1.71.0",
+      "libs": {
+        "sap.ui.core": {}
+      }
+    },
+    "rootView": {
+      "viewName": "abap2ui5.page.view.Main",
+      "type": "XML",
+      "async": true,
+      "id": "main"
+    }
+  }
+}

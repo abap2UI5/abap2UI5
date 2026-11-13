@@ -531,12 +531,16 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " the frontend bundle carries the eager half of the developer tools and
     " none of the bundled files - and the devtools bundle carries exactly
     " the rest, under its own digest. The page's inline script carries
-    " nothing of the frontend at all: its start module and the control
+    " nothing of the frontend at all: the app of frontend/page - a
+    " component with one view - and the control that view holds
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/Host.js": function()` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/Component.js": function()` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/Component.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `\x3cz2ui5:Container` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_shell CS `"z2ui5/embed/Container.js": function()` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/core/` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_shell CS `"z2ui5/devtools/` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/DevTools.js"` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_bundle CS `"z2ui5/devtools/Console.js"` ) ).
@@ -561,14 +565,29 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
-    " ...which is a host with the embed control and its start module, and
-    " carries nothing of the frontend: neither the component nor the module
-    " the bundle is recognised by
+    " ...which is the app with the one view and the embed control in it,
+    " told by the backend which class to start, and carries nothing of the
+    " frontend: neither its modules nor the module the bundle is recognised by
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"z2ui5/embed/Container.js": function()` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<div id="container"></div>` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/Component.js"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"componentData" : {"app" : "Z2UI5_CL_UI5_APP_HI_WORLD"}}'` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/` ) ).
+
+    " no app_start: the start page, named by the backend
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"componentData" : {"app" : "Z2UI5_CL_UI5_APP_START"}}'` ) ).
+
+    " a name out of the URL cannot leave the attribute or the JSON string
+    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
+        method   = `GET`
+        t_params = VALUE #( ( n = `app_start`
+                              v = `a'b"c<d` ) ) ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `A'B` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `B"C` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `C<D` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `data-sap-ui-component` ) ).
 
   ENDMETHOD.
 
