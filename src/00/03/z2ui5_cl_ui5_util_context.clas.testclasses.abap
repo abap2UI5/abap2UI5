@@ -1788,17 +1788,16 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
   METHOD test_fail_text_known.
 
-    " the cause codes are a RAP contract, so the mapping is asserted by value
+    " the cause codes are the base values of IF_ABAP_BEHV=>T_FAIL_CAUSE, a
+    " RAP contract, so the mapping is asserted by value
     cl_abap_unit_assert=>assert_equals( exp = `Entity not found`
-                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 1 ) ).
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 404 ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `Authorization failure`
-                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 3 ) ).
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 401 ) ).
 
-    " 4 and 5 deliberately share one text - both are a concurrency conflict
-    cl_abap_unit_assert=>assert_equals(
-        exp = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 4 )
-        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 5 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `Entity is read-only`
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( 4222 ) ).
 
   ENDMETHOD.
 
@@ -1818,21 +1817,30 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
   METHOD test_fail_text_all_causes.
 
-    " every mapped cause renders a non-empty text that is not the fallback -
-    " one assert over the whole SWITCH, so a branch dropped by an edit shows
-    DATA lv_cause TYPE i.
-    DO 12 TIMES.
-      lv_cause = sy-index - 1.
-      DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( lv_cause ).
+    " every cause of IF_ABAP_BEHV=>T_FAIL_CAUSE, by name, maps to its base
+    " value and renders a text that is not the fallback - one assert over
+    " both SWITCHes, so a branch dropped by an edit shows
+    DATA lt_name TYPE string_table.
+    lt_name = VALUE #( ( `UNSPECIFIC` ) ( `UNAUTHORIZED` ) ( `NOT_FOUND` ) ( `CONFLICT` )
+                       ( `LOCKED` ) ( `DEPENDENCY` ) ( `NOT_IMPLEMENTED` ) ( `DISABLED` )
+                       ( `READONLY` ) ).
 
-      cl_abap_unit_assert=>assert_not_initial(
-          act = lv_text
-          msg = |cause { lv_cause } renders no text| ).
+    LOOP AT lt_name INTO DATA(lv_name).
+      DATA(lv_cause) = z2ui5_cl_ui5_util_context=>msg_get_rap_cause_value( lv_name ).
+
+      cl_abap_unit_assert=>assert_false(
+          act = xsdbool( lv_cause < 0 )
+          msg = |cause { lv_name } has no base value| ).
+
+      DATA(lv_text) = z2ui5_cl_ui5_util_context=>msg_get_rap_fail_text( lv_cause ).
 
       cl_abap_unit_assert=>assert_false(
           act = xsdbool( lv_text CS `cause code` )
-          msg = |cause { lv_cause } fell through to the ELSE branch| ).
-    ENDDO.
+          msg = |cause { lv_name } fell through to the ELSE branch| ).
+    ENDLOOP.
+
+    cl_abap_unit_assert=>assert_equals( exp = -1
+                                        act = z2ui5_cl_ui5_util_context=>msg_get_rap_cause_value( `NO_SUCH_CAUSE` ) ).
 
   ENDMETHOD.
 
@@ -1960,7 +1968,7 @@ CLASS ltcl_msg_rap IMPLEMENTATION.
 
     ASSIGN COMPONENT `%FAIL-CAUSE` OF STRUCTURE <row> TO <comp>.
     cl_abap_unit_assert=>assert_subrc( ).
-    <comp> = 2.
+    <comp> = 423.
     ASSIGN COMPONENT `%PID` OF STRUCTURE <row> TO <comp>.
     cl_abap_unit_assert=>assert_subrc( ).
     <comp> = `pid-1`.
