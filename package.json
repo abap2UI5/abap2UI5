@@ -95,6 +95,7 @@
     "auto_transpile": "node node/setup/downport-fix.mjs prepare-transpile && abap_transpile ./node/setup/abap_transpile.json",
     "rename": "abaplint .github/abaplint/rename.jsonc --rename && node .github/scripts/rename-literal-gate.mjs --renamed .github/abaplint/output",
     "express": "node node/srv/express.mjs",
+    "express:live": "node node/srv/live.mjs",
     "unit": "node node/setup/require-transpiled.mjs && node node/output/index.mjs",
     "pack:backend": "node node/setup/pack-backend.mjs",
     "pack:node-runtime": "node node/setup/pack-npm.mjs",

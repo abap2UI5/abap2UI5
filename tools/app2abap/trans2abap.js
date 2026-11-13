@@ -673,16 +673,96 @@ function getAllFiles(dirPath, arrayOfFiles) {
   return arrayOfFiles;
 }
 
+// The texts the node serves, put together from the sources: the page's
+// inline script, the frontend bundle (with its tail, the node-path token
+// still in it) and the devtools bundle. main( ) writes them into src/01/03;
+// the live dev server (node/srv/live.mjs) answers a bundle request with them
+// straight from the working tree - with `strip: false`, the comments stay
+// and no Prettier is needed.
+async function buildTexts({ strip = true } = {}) {
+  // The frontend: every file of bundle/webapp, sorted so the generation
+  // order (and the output) does not depend on the filesystem's readdir
+  // order.
+  const preloadEntries = [];
+  const devtoolsEntries = [];
+  // the .js sources by relative path, for guard 4
+  const jsSources = new Map();
+  for (const file of getAllFiles(sourceDir).sort()) {
+    const relPath = path.relative(sourceDir, file).split(path.sep).join("/");
+    if (file.endsWith(".js")) jsSources.set(relPath, await readFile(file));
+    const { isJs, value } = await readSource(
+      file,
+      `bundle/webapp/${relPath}`,
+      strip,
+    );
+    (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
+      urlPath: `z2ui5/${relPath}`,
+      isJs,
+      value,
+    });
+  }
+
+  // The page's own sources (PAGE_SOURCES)
+  const pageEntries = [];
+  for (const { source, urlPath } of PAGE_SOURCES) {
+    const file = path.join(repoDir, source);
+    if (!fs.existsSync(file)) {
+      throw new Error(`${source} is missing - the GET page carries it`);
+    }
+    const { isJs, value } = await readSource(file, source, strip);
+    pageEntries.push({ urlPath, isJs, value });
+  }
+
+  // Sorted for a stable output. Plain code-unit comparison, not
+  // localeCompare: the collation of localeCompare depends on the host
+  // locale/ICU build, and the sort order is committed output (src/01/03).
+  const byUrlPath = (a, b) =>
+    a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0;
+  preloadEntries.sort(byUrlPath);
+  pageEntries.sort(byUrlPath);
+  devtoolsEntries.sort(byUrlPath);
+  assertNoEagerDependencyOnDeferred(jsSources);
+
+  // The four texts, as the node serves them
+  const pageText = inlineScript(pageEntries);
+  // ... the frontend bundle with its tail behind the preload: the
+  // z2ui5/embed module a host finds the bundle by (BUNDLE_TAIL)
+  const tail = await readSource(
+    path.join(repoDir, BUNDLE_TAIL),
+    BUNDLE_TAIL,
+    strip,
+  );
+  if (!tail.value.includes(NODE_PATH_TOKEN)) {
+    throw new Error(
+      `${BUNDLE_TAIL}: ${NODE_PATH_TOKEN} not found - the handler writes the node's path there`,
+    );
+  }
+  const bundleText = bundleScript(preloadEntries) + tail.value;
+  const devtoolsText = bundleScript(
+    devtoolsEntries,
+    DEVTOOLS_OPEN,
+    DEVTOOLS_CLOSE,
+  );
+  return {
+    pageText,
+    bundleText,
+    devtoolsText,
+    pageEntries,
+    preloadEntries,
+    devtoolsEntries,
+  };
+}
+
 // Main function to read the source files and create new target files
 // One embedded source: read, guarded, and - a .js - comment-stripped.
 // `label` is how the file is named in an error, `asciiName` the name the
 // 7-bit guard reports it under.
-async function readSource(file, label) {
+async function readSource(file, label, strip = true) {
   let content = await readFile(file);
   const isJs = file.endsWith(".js");
   assertSevenBitAscii(content, label);
-  if (isJs) content = await stripJsComments(content, file, label);
-  else assertNoLossInSpecialFile(content, label, label);
+  if (isJs && strip) content = await stripJsComments(content, file, label);
+  else if (!isJs) assertNoLossInSpecialFile(content, label, label);
   return { isJs, content, value: embeddedValue(content, !isJs) };
 }
 
@@ -711,64 +791,14 @@ async function main() {
     // The initial XML file with BOM
     emit(path.join(targetDir, "package.devc.xml"), initialXMLContent);
 
-    // The frontend: every file of bundle/webapp, sorted so the generation
-    // order (and the output) does not depend on the filesystem's readdir
-    // order.
-    const preloadEntries = [];
-    const devtoolsEntries = [];
-    // the .js sources by relative path, for guard 4
-    const jsSources = new Map();
-    for (const file of getAllFiles(sourceDir).sort()) {
-      const relPath = path.relative(sourceDir, file).split(path.sep).join("/");
-      if (file.endsWith(".js")) jsSources.set(relPath, await readFile(file));
-      const { isJs, value } = await readSource(
-        file,
-        `bundle/webapp/${relPath}`,
-      );
-      (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
-        urlPath: `z2ui5/${relPath}`,
-        isJs,
-        value,
-      });
-    }
-
-    // The page's own sources (PAGE_SOURCES)
-    const pageEntries = [];
-    for (const { source, urlPath } of PAGE_SOURCES) {
-      const file = path.join(repoDir, source);
-      if (!fs.existsSync(file)) {
-        throw new Error(`${source} is missing - the GET page carries it`);
-      }
-      const { isJs, value } = await readSource(file, source);
-      pageEntries.push({ urlPath, isJs, value });
-    }
-
-    // Sorted for a stable output. Plain code-unit comparison, not
-    // localeCompare: the collation of localeCompare depends on the host
-    // locale/ICU build, and the sort order is committed output (src/01/03).
-    const byUrlPath = (a, b) =>
-      a.urlPath < b.urlPath ? -1 : a.urlPath > b.urlPath ? 1 : 0;
-    preloadEntries.sort(byUrlPath);
-    pageEntries.sort(byUrlPath);
-    devtoolsEntries.sort(byUrlPath);
-    assertNoEagerDependencyOnDeferred(jsSources);
-
-    // The four texts, as the node serves them
-    const pageText = inlineScript(pageEntries);
-    // ... the frontend bundle with its tail behind the preload: the
-    // z2ui5/embed module a host finds the bundle by (BUNDLE_TAIL)
-    const tail = await readSource(path.join(repoDir, BUNDLE_TAIL), BUNDLE_TAIL);
-    if (!tail.value.includes(NODE_PATH_TOKEN)) {
-      throw new Error(
-        `${BUNDLE_TAIL}: ${NODE_PATH_TOKEN} not found - the handler writes the node's path there`,
-      );
-    }
-    const bundleText = bundleScript(preloadEntries) + tail.value;
-    const devtoolsText = bundleScript(
+    const {
+      pageText,
+      bundleText,
+      devtoolsText,
+      pageEntries,
+      preloadEntries,
       devtoolsEntries,
-      DEVTOOLS_OPEN,
-      DEVTOOLS_CLOSE,
-    );
+    } = await buildTexts();
 
     // One SHA-256 over the script text the page will carry, UTF-8 like the
     // page (the text is 7-bit ASCII anyway, see assertSevenBitAscii) - the
@@ -862,6 +892,8 @@ if (require.main === module) {
 }
 
 module.exports = {
+  buildTexts,
+  NODE_PATH_TOKEN,
   abapTextClass,
   embeddedValue,
   stripJsComments,

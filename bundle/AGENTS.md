@@ -30,6 +30,7 @@ does not catch — every 1.71 trap with its evidence — are the `ui5-check` ski
 
 Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
 
+- **While working on the frontend, run `npm run express:live`**: it answers `?z2ui5-bundle` from `bundle/webapp` as it is on disk, so an edit shows on the next reload. It does not replace the regeneration - `npm run app2abap` before the commit.
 - **Prettier governs all of `bundle/webapp/`** — do not add `// prettier-ignore` directives. Just let `npm run app2abap` format and regenerate.
 - **The delivery trees follow the same rule, one step further: they are not committed here at all.** `npm run frontend:build` builds them from `bundle/webapp/`, `frontend/` and `tools/` into the git-ignored `tools/out/`, `frontend_check` proves the build on every pull request, and `frontend_deploy` runs the same build on `main` and ships it into abap2UI5/frontend (`result/<branch>` on its `main`). Never edit a built tree — change the source; the only generated artefact a webapp change commits alongside it is `src/01/03/`.
 
