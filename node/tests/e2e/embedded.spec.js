@@ -1,16 +1,34 @@
 // @ts-check
 const { test, expect } = require("./fixtures");
 
-// The frontend the way @abap2ui5/embed-control runs it: in a page that
-// belongs to a HOST app. The host page below loads UI5 itself, the frontend
-// through ?z2ui5-bundle (a <script>, as the control does) and creates the
-// component with the component data the bundle's z2ui5/embed module hands
-// over - embedded: true - plus the app to start and the endpoint. Nothing
-// of the backend's own GET page is on it: what these specs pin is what an
-// embedded app does to a page it does not own.
+// The frontend in a page that belongs to a HOST app - a freestyle app, a
+// custom page or a custom section of Fiori elements - through the real
+// control: the host page below loads UI5 itself and holds one
+// z2ui5.embed.Container (app_source/webapp/embed/Container.js, served to the
+// page as a host's thirdparty/ folder would). The control loads the frontend
+// through ?z2ui5-bundle and asks the bundle for the app. Nothing of the
+// backend's own GET page is on it: what these specs pin is what an embedded
+// app does to a page it does not own, and what the control does for its
+// host.
 //
 // Everything evaluated in the page is a function, never a string (see
 // two-components.spec.js).
+
+const fs = require("fs");
+const path = require("path");
+
+// where the host page serves the control from, and the file it serves
+const CONTROL_ROOT = "/z2ui5-embed-host/thirdparty/z2ui5/embed";
+const CONTROL_FILE = path.join(
+  __dirname,
+  "..",
+  "..",
+  "..",
+  "app_source",
+  "webapp",
+  "embed",
+  "Container.js",
+);
 
 const HOST_PATH = "/z2ui5-embed-host.html";
 // the service node as the SYSTEM has it - what the dev server answers on
@@ -57,9 +75,10 @@ async function proxyWithPrefix(page) {
   );
 }
 
-// The host page with UI5 booted and the frontend loaded from the backend -
-// from `endpoint`, the node as the PAGE reaches it.
-async function openHost(page, ui5Src, ui5Theme, endpoint = ENDPOINT) {
+// The host page with UI5 booted and the control's namespace registered, the
+// way a host app's manifest registers it. The frontend is not loaded here:
+// the first control that starts loads it.
+async function openHost(page, ui5Src, ui5Theme) {
   await page.route(
     (url) => url.pathname === HOST_PATH,
     (route) =>
@@ -68,64 +87,56 @@ async function openHost(page, ui5Src, ui5Theme, endpoint = ENDPOINT) {
         body: hostHtml(ui5Src, ui5Theme || "sap_horizon"),
       }),
   );
+  await page.route(
+    (url) => url.pathname === `${CONTROL_ROOT}/Container.js`,
+    (route) =>
+      route.fulfill({
+        contentType: "application/javascript",
+        body: fs.readFileSync(CONTROL_FILE, "utf8"),
+      }),
+  );
   await page.goto(HOST_PATH);
   await page.waitForFunction(() => Boolean(window.sap?.ui?.getCore));
   await page.evaluate(
-    () =>
+    (root) =>
       new Promise((resolve) =>
-        window.sap.ui.getCore().attachInit(() => resolve(true)),
+        window.sap.ui.getCore().attachInit(() => {
+          window.sap.ui.loader.config({ paths: { "z2ui5/embed": root } });
+          resolve(true);
+        }),
       ),
-  );
-  // once per page, the way the control loads it
-  await page.evaluate(
-    (endpoint) =>
-      new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = `${endpoint}?z2ui5-bundle`;
-        script.onload = () => resolve(true);
-        script.onerror = () => reject(new Error("no bundle"));
-        document.head.appendChild(script);
-      }),
-    endpoint,
-  );
-  await page.waitForFunction(() =>
-    Boolean(window.sap.ui.require("z2ui5/embed")),
+    CONTROL_ROOT,
   );
 }
 
-// Create the component the way the control does and place it in #host1.
-// Resolves with the component id once Component.create has resolved.
-// `params` are further startup parameters of the app, one value each;
-// `endpoint` is what the control passes as the backend URL; `host` are the
-// further settings a host passes on the top level (ownsHash).
+// Put a z2ui5.embed.Container into #host1 and start `app` in it. Resolves
+// with the id of the app's component once the control reports it created,
+// and rejects with the reason when the control reports the start failed.
+// `params` are further startup parameters of the app; `endpoint` is the
+// control's endpoint property; `host` are further properties a host sets
+// (ownsPage, height).
 function startApp(page, app, params = {}, endpoint = ENDPOINT, host = {}) {
   return page.evaluate(
-    ([appName, extra, endpoint, host]) =>
+    ([appName, params, endpoint, host]) =>
       new Promise((resolve, reject) => {
-        const embed = window.sap.ui.require("z2ui5/embed");
         window.sap.ui.require(
-          ["sap/ui/core/Component", "sap/ui/core/ComponentContainer"],
-          (Component, ComponentContainer) => {
-            const startupParameters = { app_start: [appName] };
-            for (const [name, value] of Object.entries(extra)) {
-              startupParameters[name] = [value];
-            }
-            Component.create({
-              name: "z2ui5",
-              manifest: true,
-              handleValidation: true,
-              componentData: Object.assign({}, embed.componentData, host, {
-                startupParameters,
+          ["z2ui5/embed/Container"],
+          (Container) => {
+            const control = new Container(
+              "hostControl",
+              Object.assign({ height: "100%" }, host, {
+                app: appName,
+                params,
                 endpoint,
+                componentCreated: (event) =>
+                  resolve(event.getParameter("component").getId()),
+                componentFailed: (event) =>
+                  reject(
+                    new Error(String(event.getParameter("reason").message)),
+                  ),
               }),
-            }).then((component) => {
-              new ComponentContainer({
-                component,
-                lifecycle: "Container",
-                height: "100%",
-              }).placeAt("host1");
-              resolve(component.getId());
-            }, reject);
+            );
+            control.placeAt("host1");
           },
           reject,
         );
@@ -133,6 +144,30 @@ function startApp(page, app, params = {}, endpoint = ENDPOINT, host = {}) {
     [app, params, endpoint, host],
   );
 }
+
+// The control of the host page.
+const control = (page, fn, arg) =>
+  page.evaluate(
+    ([source, arg]) => {
+      const Element = window.sap.ui.require("sap/ui/core/Element");
+      const instance = Element.getElementById
+        ? Element.getElementById("hostControl")
+        : window.sap.ui.getCore().byId("hostControl");
+      // a function handed over as its source is a string to evaluate - so
+      // the few things the specs do with the control are named here
+      if (source === "setApp") instance.setApp(arg);
+      if (source === "setHeight") instance.setHeight(arg);
+      if (source === "restart") instance.restart();
+      return {
+        component: instance
+          .getAggregation("_app")
+          ?.getComponentInstance()
+          ?.getId(),
+        height: instance.getDomRef()?.style.height,
+      };
+    },
+    [fn, arg],
+  );
 
 // Where the loader would fetch a module of each sibling BSP from - the
 // path on the page's origin, as the page resolves it.
@@ -286,17 +321,17 @@ test.describe("an embedded app and the sibling BSPs", () => {
   }) => {
     await proxyWithPrefix(page);
     const endpoint = `${PROXY_PREFIX}${ENDPOINT}`;
-    await openHost(page, ui5Src, ui5Theme, endpoint);
+    await openHost(page, ui5Src, ui5Theme);
+    // the app runs through the proxy: the control loads the bundle from the
+    // prefixed endpoint, and the roundtrips go there
+    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world", {}, endpoint);
+    await waitForApp(page, id);
     // the bundle came through the proxy and names the node's own path
     expect(
       await page.evaluate(
         () => window.sap.ui.require("z2ui5/embed").componentData.nodePath,
       ),
     ).toBe(ENDPOINT);
-    // ... and the app runs through the proxy: its roundtrips go to the
-    // prefixed endpoint
-    const id = await startApp(page, "z2ui5_cl_ui5_app_hi_world", {}, endpoint);
-    await waitForApp(page, id);
     expect(await resourceRootPaths(page)).toEqual({
       cci: `${PROXY_PREFIX}${CCI_ROOT}/Control.js`,
       ccc: `${PROXY_PREFIX}${CCC_ROOT}/Control.js`,
@@ -361,7 +396,7 @@ test.describe("an embedded app and the host's page", () => {
 // hash_routing FRESH) neither writes a route nor reads one. A host whose page
 // is the one component and nothing else (the abap2UI5/frontend branches
 // standard_new and cloud_new) hands it
-// back with ownsHash: true, and the app routes as on its own page - a route
+// back with ownsPage, and the app routes as on its own page - a route
 // per app, browser Back and Forward between them (nav-back-forward.spec.js
 // on the backend's own page).
 test.describe("an embedded app and the URL hash", () => {
@@ -382,11 +417,11 @@ test.describe("an embedded app and the URL hash", () => {
     expect(new URL(page.url()).hash).toBe("#Customers('1001')");
   });
 
-  test("handed the hash, a routed app routes as on its own page", async ({
+  test("handed the page, a routed app routes as on its own page", async ({
     page,
   }) => {
     const id = await startApp(page, "zcl_tst_nav_hub", {}, ENDPOINT, {
-      ownsHash: true,
+      ownsPage: true,
     });
     await waitForApp(page, id);
     // the page is the app's: the full-screen root, as on a page of its own
@@ -402,5 +437,92 @@ test.describe("an embedded app and the URL hash", () => {
     await expect(page.getByText("hub-marker")).toBeVisible();
     await page.goForward();
     await expect(page.getByText("detail-marker")).toBeVisible();
+  });
+});
+
+// What the control itself does for its host - the part that is not the
+// bundle's: when an app starts and ends, how much room it has, and what the
+// host hears when it cannot start.
+test.describe("the control", () => {
+  test.beforeEach(async ({ page, ui5Src, ui5Theme }) => {
+    test.skip(!ui5Src, "the host page boots the pinned UI5 build");
+    await openHost(page, ui5Src, ui5Theme);
+  });
+
+  test("another app ends the session and starts a new one in place", async ({
+    page,
+  }) => {
+    const first = await startApp(page, "zcl_tst_nav_hub");
+    await waitForApp(page, first);
+    await expect(page.getByText("hub-marker")).toBeVisible();
+
+    await control(page, "setApp", "zcl_tst_nav_detail");
+    await expect(page.getByText("detail-marker")).toBeVisible();
+    await expect(page.getByText("hub-marker")).toHaveCount(0);
+    const second = (await control(page)).component;
+    expect(second).toBeTruthy();
+    expect(second).not.toBe(first);
+  });
+
+  test("restart starts the same app from scratch", async ({ page }) => {
+    const first = await startApp(page, "zcl_tst_nav_hub");
+    await waitForApp(page, first);
+    await control(page, "restart");
+    await expect
+      .poll(async () => (await control(page)).component)
+      .not.toBe(first);
+    await expect(page.getByText("hub-marker")).toBeVisible();
+  });
+
+  test("a new height goes to the area without a new app", async ({ page }) => {
+    const id = await startApp(page, "zcl_tst_focus");
+    await waitForApp(page, id);
+    const input = page.locator('input[id$="inpDocNum-inner"]');
+    await input.click();
+    await page.keyboard.type("4711");
+    const state = await control(page, "setHeight", "300px");
+    expect(state.height).toBe("300px");
+    // the same session, and what the user typed is still there, focused
+    expect(state.component).toBe(id);
+    await expect(input).toHaveValue(/4711$/);
+    await expect(input).toBeFocused();
+  });
+
+  test("an endpoint on another host is refused, and the host is told", async ({
+    page,
+  }) => {
+    const requests = [];
+    page.on("request", (r) => requests.push(r.url()));
+    const reason = await startApp(
+      page,
+      "z2ui5_cl_ui5_app_hi_world",
+      {},
+      "https://evil.example/sap/bc/z2ui5",
+    ).then(
+      () => null,
+      (e) => e.message,
+    );
+    expect(reason).toContain("is not a path on this server");
+    expect(requests.some((url) => url.includes("evil.example"))).toBe(false);
+  });
+
+  test("a backend without the bundle fails the start with its endpoint", async ({
+    page,
+  }) => {
+    await page.route(
+      (url) => url.pathname === "/sap/bc/none",
+      (route) => route.fulfill({ status: 404, body: "not found" }),
+    );
+    const reason = await startApp(
+      page,
+      "z2ui5_cl_ui5_app_hi_world",
+      {},
+      "/sap/bc/none",
+    ).then(
+      () => null,
+      (e) => e.message,
+    );
+    expect(reason).toContain("no abap2UI5 frontend at");
+    expect(reason).toContain("/sap/bc/none?z2ui5-bundle");
   });
 });
