@@ -25,12 +25,11 @@
 // argument instead - the modules under core/ never resolve it on their own.
 //
 // What stays page-wide by nature, and deliberately: the URL hash (every
-// routed instance reacts to it - an embedded instance, state.embedded,
-// leaves it to the host unless the host hands it back, state.ownsHash),
-// document.title and the favicon, the global BusyIndicator and the
-// unsaved-changes prompt of cc/Dirty (an embedded instance leaves those to
-// the host too unless the host hands the page back, state.ownsPage - it
-// then shows its busy state on its own area), the UI5 messaging facade,
+// routed instance reacts to it), document.title and the favicon, the global
+// BusyIndicator and the unsaved-changes prompt of cc/Dirty. All of them are
+// the host's unless the host handed the page over (state.ownsPage) - a
+// component without it leaves the hash alone and shows its busy state on
+// its own area, the UI5 messaging facade,
 // the devtools' console capture and the raw fatal-error overlay (one at a
 // time). Lib.logError's ring is a page-wide diagnostic for the same
 // reason.
@@ -87,7 +86,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       variants: { activeInits: new Set() },
       // core/ScrollFocus.js - the per-element resolution cache
       scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
-      // core/ScrollFocus.js - the focus guard of an embedded component:
+      // core/ScrollFocus.js - the focus guard of a component on a host's page:
       // whether the user's last focus or click went into it, and the
       // document listener that records it (watchFocus)
       focus: { userInside: false, listener: null },
@@ -102,11 +101,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       },
       // core/ErrorView.js - the last dialog's inputs and the open dialog
       errorView: { title: "", details: "", options: {}, dialog: null },
-      // The restart of the app in place, set by Component.init for an
-      // EMBEDDED component (Component._restartApp): the Restart of the
-      // fatal-error overlay (core/ErrorView.js) calls it instead of
-      // reloading the page, which is the host's. null on a page of the
-      // app's own - a reload is the restart there.
+      // The restart of the app in place, set by Component.init
+      // (Component._restartApp): the Restart of the fatal-error overlay
+      // (core/ErrorView.js) calls it instead of reloading the page, which
+      // is the host's. null until the component has initialised.
       restart: null,
       // devtools/DevTools.js - the tools instance and its listeners
       devtools: {},

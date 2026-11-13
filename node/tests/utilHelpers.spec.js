@@ -245,7 +245,11 @@ test.describe("withSapClient", () => {
 
   test("an absolute URL of the page's origin keeps its origin", () => {
     expect(
-      Lib.withSapClient(`${ORIGIN}/sap/bc/z2ui5?app_start=x`, PAGE_NO_CLIENT, "200"),
+      Lib.withSapClient(
+        `${ORIGIN}/sap/bc/z2ui5?app_start=x`,
+        PAGE_NO_CLIENT,
+        "200",
+      ),
     ).toBe(`${ORIGIN}/sap/bc/z2ui5?app_start=x&sap-client=200`);
   });
 
@@ -273,7 +277,11 @@ test.describe("withSapClient", () => {
       );
     }
     expect(
-      Lib.withSapClient("/sap/bc/z2ui5", `${ORIGIN}/flp?sap-client=1%260`, "200"),
+      Lib.withSapClient(
+        "/sap/bc/z2ui5",
+        `${ORIGIN}/flp?sap-client=1%260`,
+        "200",
+      ),
     ).toBe("/sap/bc/z2ui5");
   });
 
@@ -395,26 +403,6 @@ test.describe("deriveSystemType", () => {
   });
 });
 
-test.describe("deriveOsName", () => {
-  const { Lib } = loadLib();
-
-  test("maps UI5's mixed-case iOS and Android onto the cs_device-os constants", () => {
-    // sap.ui.Device.os.OS.IOS / .ANDROID - z2ui5_if_client=>cs_device-os-ios
-    // and -android are `ios` / `android`
-    expect(Lib.deriveOsName("iOS")).toBe("ios");
-    expect(Lib.deriveOsName("Android")).toBe("android");
-  });
-
-  test("keeps the names that already match and passes any other one unchanged", () => {
-    expect(Lib.deriveOsName("win")).toBe("win");
-    expect(Lib.deriveOsName("mac")).toBe("mac");
-    expect(Lib.deriveOsName("linux")).toBe("linux");
-    expect(Lib.deriveOsName("bb")).toBe("bb");
-    expect(Lib.deriveOsName("winphone")).toBe("winphone");
-    expect(Lib.deriveOsName(undefined)).toBe("");
-  });
-});
-
 test.describe("runCallbacks", () => {
   test("calls every callback with the given arguments", () => {
     const { Lib } = loadLib();
@@ -481,7 +469,9 @@ test.describe("logError", () => {
     const warnings = [];
     const Log = { warning: (...a) => warnings.push(a) };
     const { Lib, state } = loadLib({
-      sap: { ui: { require: (id) => (id === "sap/base/Log" ? Log : undefined) } },
+      sap: {
+        ui: { require: (id) => (id === "sap/base/Log" ? Log : undefined) },
+      },
     });
 
     Lib.logError("plain message");
@@ -776,17 +766,23 @@ test.describe("loadViewLibraries (library preloads of a view)", () => {
     const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
     await Env.loadViewLibraries(VIEW);
     await Env.loadViewLibraries(VIEW);
-    await Env.loadViewLibraries(`<mvc:View xmlns:t="sap.ui.table"><t:Table/></mvc:View>`);
+    await Env.loadViewLibraries(
+      `<mvc:View xmlns:t="sap.ui.table"><t:Table/></mvc:View>`,
+    );
     expect(ui.loads).toHaveLength(2);
     // a namespace of another library is asked - and that library loaded
-    await Env.loadViewLibraries(`<core:FragmentDefinition xmlns:uxap="sap.uxap"/>`);
+    await Env.loadViewLibraries(
+      `<core:FragmentDefinition xmlns:uxap="sap.uxap"/>`,
+    );
     expect(ui.loads).toContain("sap.uxap");
   });
 
   test("a namespace in no library of the distribution is left to the view", async () => {
     const ui = modern();
     const { Env } = loadEnv({ versionInfo: versionInfo(), sap: ui.sap });
-    await Env.loadViewLibraries(`<mvc:View xmlns:my="my.custom.lib"><my:Thing/></mvc:View>`);
+    await Env.loadViewLibraries(
+      `<mvc:View xmlns:my="my.custom.lib"><my:Thing/></mvc:View>`,
+    );
     expect(ui.loads).toEqual([]);
   });
 

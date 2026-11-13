@@ -17,6 +17,9 @@ function specContext(seed = {}) {
   // the seed object IS the state - the spec keeps its own reference and
   // reads its later writes off it - filled up with the defaults it left out
   const state = seed;
+  // a spec's page is the app's unless it says otherwise - the state's own
+  // default is a host's page (Component.init sets what the host handed over)
+  if (!("ownsPage" in state)) state.ownsPage = true;
   for (const [key, value] of Object.entries(AppState.createState())) {
     if (!(key in state)) state[key] = value;
   }
@@ -25,7 +28,12 @@ function specContext(seed = {}) {
     id: "",
     alive: true,
     state,
-    server: { requestSeq: 0, inflight: new Set(), viewBuild: null, csrfToken: "" },
+    server: {
+      requestSeq: 0,
+      inflight: new Set(),
+      viewBuild: null,
+      csrfToken: "",
+    },
     session: {
       configSent: false,
       ui5Sent: false,
@@ -91,7 +99,13 @@ function loadLib(overrides = {}) {
     enumerable: false,
     configurable: true,
   });
-  return { Lib: module, sandbox, state: ctx.state, ctx, Context: contextStub(ctx) };
+  return {
+    Lib: module,
+    sandbox,
+    state: ctx.state,
+    ctx,
+    Context: contextStub(ctx),
+  };
 }
 
 // core/Env.js - the UI5-release compatibility layer - over a real Lib that

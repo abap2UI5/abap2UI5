@@ -31,7 +31,7 @@ sap.ui.define(
     // which sets the page up as a mobile app (sap/ui/util/Mobile), paints
     // the theme's background and gives every ancestor up to <html> a height
     // of 100% (App._adjustParentsHeight). On a host's page all three are the
-    // host's, so an EMBEDDED component gets its base class instead, a
+    // host's, so a component there gets its base class instead, a
     // sap.m.NavContainer: the same pages and navigation API (actions/Slots),
     // the same autoFocus, and nothing beyond its own area - it fills the
     // height its host gives it, and the host gives it one (the
@@ -51,7 +51,7 @@ sap.ui.define(
       return oRoot;
     }
 
-    // An EMBEDDED component's root must not focus the first input of
+    // On a host's page the root must not focus the first input of
     // the first page it renders (sap.m.NavContainer autoFocus): the page is
     // the host's, and on 1.136 every app - hello world included - took the
     // focus out of the host field the user was typing in. The property is
@@ -117,7 +117,7 @@ sap.ui.define(
       },
 
       // The controllers of the app and its first roundtrip - when the
-      // component starts, and again when an embedded app restarts in place
+      // component starts, and again when the app restarts in place
       // (Component._restartApp, the Restart of the fatal-error overlay).
       startApp() {
         const ctx = Context.of(this.getOwnerComponent());

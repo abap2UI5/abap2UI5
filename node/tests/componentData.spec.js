@@ -161,7 +161,6 @@ test("an embedding page's flag is split off, not sent to the backend", () => {
 test("the page is the host's, unless handed over", () => {
   for (const data of [{}, undefined, { embedded: true }]) {
     expect(init(data).ownsPage).toBe(false);
-    expect(init(data).ownsHash).toBe(false);
   }
 
   for (const handed of [{ ownsPage: true }, { ownsHash: true }]) {
@@ -170,7 +169,6 @@ test("the page is the host's, unless handed over", () => {
       startupParameters: { app_start: ["ZCL_APP"] },
     });
     expect(state.ownsPage).toBe(true);
-    expect(state.ownsHash).toBe(true);
     expect(state.oConfig.ComponentData).toEqual({
       startupParameters: { app_start: ["ZCL_APP"] },
     });
@@ -179,17 +177,13 @@ test("the page is the host's, unless handed over", () => {
   expect(init({ ownsPage: "true" }).ownsPage).toBe(false);
   const linked = init({ startupParameters: { ownsPage: ["true"] } });
   expect(linked.ownsPage).toBe(false);
-  expect(linked.ownsHash).toBe(false);
 });
 
-test("only a host's boolean true hands the hash back - not a launchpad link", () => {
-  expect(init({ embedded: true, ownsHash: "true" }).ownsHash).toBe(false);
-  expect(init({ embedded: true, ownsHash: 1 }).ownsHash).toBe(false);
-  const state = init({
-    embedded: true,
-    startupParameters: { ownsHash: ["true"] },
-  });
-  expect(state.ownsHash).toBe(false);
+test("only a host's boolean true hands the page over by the older name - not a launchpad link", () => {
+  expect(init({ ownsHash: "true" }).ownsPage).toBe(false);
+  expect(init({ ownsHash: 1 }).ownsPage).toBe(false);
+  const state = init({ startupParameters: { ownsHash: ["true"] } });
+  expect(state.ownsPage).toBe(false);
   expect(state.oConfig.ComponentData).toEqual({
     startupParameters: { ownsHash: ["true"] },
   });

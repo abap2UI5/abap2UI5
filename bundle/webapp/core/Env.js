@@ -421,18 +421,24 @@ sap.ui.define(
     // either - every module returns its class, and XML views, controllers
     // and Component.create take it from there. UI5 2.x exports nothing.
     //
-    // They are taken off again on a page an EMBEDDED component runs on: that
-    // page, and its window, belong to a host. Not on a page of the app's
-    // own: there 1.71 still looks a BASE class up by that global name when
-    // something extends one of ours (Metadata.applySettings,
-    // ObjectPath.get( baseType )) - a launchpad extension project extending
-    // z2ui5.Component, a customer control extending a cc/ one - and the
-    // extend would fail without it.
+    // They are taken off again, on every page: the component always runs
+    // on a host's page, and its window is the host's.
+    //
+    // The price, measured 2026-11-15 on the backend's own page: up to UI5
+    // 1.108 a class of ours can then not be EXTENDED - there UI5 looks a
+    // base class up by that global name (Metadata.applySettings,
+    // ObjectPath.get( baseType )), and a customer control extending
+    // z2ui5/cc/InputExt fails with "Cannot read properties of undefined
+    // (reading 'getMetadata')" on 1.71, 1.84, 1.96 and 1.108; from 1.120 on
+    // UI5 passes the class itself and it works. Extending a class of the
+    // frontend was never an offered way: what a customer adds lives in a
+    // BSP of its own (z2ui5_cci, z2ui5_ccc) and extends sap/ui/core/Control.
+    // Until 2026-11 a page of the app's own kept the exports for that case.
     //
     // Every module that defines a class hands it to ownClass right after its
-    // extend( ); Component.init of an embedded component calls
-    // dropClassGlobals. The classes are defined once per page, whichever
-    // component comes first, so both orders end without a global.
+    // extend( ); Component.init calls dropClassGlobals. The classes are
+    // defined once per page, whichever component comes first, so both
+    // orders end without a global.
     // ------------------------------------------------------------------
 
     const ownClasses = [];

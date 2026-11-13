@@ -98,8 +98,6 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
   const state = AppState.createState();
   const hook = () => {};
   Object.assign(state, {
-    embedded: true,
-    ownsHash: false,
     url: "/sap/bc/z2ui5",
     oConfig: { ComponentData: { startupParameters: {} } },
     oApp: { id: "app" },
@@ -115,8 +113,6 @@ test("resetApp resets the app's fields in place and keeps the component's", () =
 
   AppState.resetApp(state);
 
-  expect(state.embedded).toBe(true);
-  expect(state.ownsHash).toBe(false);
   expect(state.url).toBe("/sap/bc/z2ui5");
   expect(state.oConfig.ComponentData).toEqual({ startupParameters: {} });
   expect(state.oApp).toEqual({ id: "app" });

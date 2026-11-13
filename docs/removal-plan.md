@@ -454,22 +454,18 @@ controls a public contract, so these break hand-written view XML. Regenerate
 
 - [x] **`bundle/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
       removed with the `z2ui5` global, see §0.
-- [ ] **UI5's own global export of the frontend's classes** —
+- [x] **UI5's own global export of the frontend's classes** —
       `window.z2ui5.Component`, `z2ui5.controller.*`,
       `z2ui5.devtools.DeveloperTools`, `z2ui5.cc.*`: UI5 1.x writes every
       class it creates to `window` under its dotted name, so these came back
-      after the global itself was removed (§0). Since 2026-09-29 every class
-      module hands its class to `Env.ownClass` (`core/Env.js`), and a page an
-      EMBEDDED component runs on - a host's page - keeps none of them
-      (`Env.dropClassGlobals`, from `Component.init`).
-      - **Blocker: 1.71 on a page of the app's own.** There 1.71 looks a
-        BASE class up by that global name when something extends one of ours
-        (`Metadata.applySettings`, `ObjectPath.get( baseType )` - a launchpad
-        extension project extending `z2ui5.Component`, a customer control
-        extending a `cc/` one), and later releases pass the class itself.
-        Take the exports off everywhere once the floor has left that
-        behaviour behind (UI5 2.x exports nothing at all); `Env.ownClass` is
-        then where it happens.
+      after the global itself was removed (§0). Every class module hands its
+      class to `Env.ownClass` (`core/Env.js`), and since 2026-11 no page
+      keeps them: the component is always created by the embed control, on a
+      host's page, and `Component.init` takes the exports off
+      (`Env.dropClassGlobals`). What that costs is written at the code site -
+      up to UI5 1.108 a class of the frontend cannot be extended; that was
+      never an offered way. `Env.ownClass` itself stays while UI5 1.x is
+      supported (UI5 2.x exports nothing at all).
 - [ ] **`destroyPopup` / `destroyPopover` / `destroyNestView` /
       `destroyNestView2` / `destroyView`** — in `View1.controller.js`.
       Thin wrappers around `ViewSlots.destroy()`. Custom JS, the caller

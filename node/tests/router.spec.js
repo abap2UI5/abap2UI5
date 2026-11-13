@@ -191,7 +191,10 @@ test("a namespaced class round-trips through the route", () => {
     app: "/NS/CL_X",
     draft: "D1",
   });
-  expect(Router.parse("#/app//NS/CL_X")).toEqual({ app: "/NS/CL_X", draft: "" });
+  expect(Router.parse("#/app//NS/CL_X")).toEqual({
+    app: "/NS/CL_X",
+    draft: "",
+  });
   expect(Router.parse(`#${FLP_SHELL}&/app//NS/CL_X/D1`).draft).toBe("D1");
   // a lone leading slash names no class
   expect(Router.parse("/app//NS")).toBe(null);
@@ -507,9 +510,7 @@ test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
     href: `https://host/flp#${FLP_SHELL}&/app/X/D1`,
   });
   flp.Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(flp.pushes).toEqual([
-    `/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`,
-  ]);
+  expect(flp.pushes).toEqual([`/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`]);
 
   const standalone = loadRouter({
     state: { navRouting: false },
@@ -693,7 +694,9 @@ test("a listener push of the bare '/' writes the empty hash and its echo dies", 
   // without a section) pushes "/": navTo strips the slash, the URL loses its
   // app hash - and the echo of that write must be swallowed like any other,
   // so both sides normalize to ""
-  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const { Router, state, writes } = loadRouter({
+    state: { navRouting: false },
+  });
   const fired = [];
   state.oController = { eB: (a) => fired.push(a) };
   Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
@@ -716,7 +719,9 @@ test("a hash replace writes in place - no new entry, echo swallowed", () => {
   // the router's navTo( ..., true ): an FCL navigation arrow rewrites the
   // URL without adding a Back step - hashChanger.replaceHash, adopted first
   // so the write's own echo dies like a push's would
-  const { Router, state, writes } = loadRouter({ state: { navRouting: false } });
+  const { Router, state, writes } = loadRouter({
+    state: { navRouting: false },
+  });
   const fired = [];
   state.oController = { eB: (a) => fired.push(a) };
   Router.sync({ setHashEvent: "HASH_CHANGED", id: "D1" });
@@ -844,14 +849,14 @@ test("routes with stacked leading slashes still parse (old history entries)", ()
 
 // ---------------------------------------------------------------------------
 // Embedded - the hash is the host's (state.embedded), unless the host handed
-// it back (state.ownsHash, which Component.init derives from both)
+// it back (state.ownsPage, which Component.init derives from both)
 // ---------------------------------------------------------------------------
 
 test("an embedded component neither listens to the hash nor starts its engine", () => {
   // the host routes by the hash (a Fiori elements object page) or not at
   // all - either way a hash change is none of the component's business
   const { Router, listeners, inits } = loadRouter({
-    state: { embedded: true, ownsHash: false },
+    state: { ownsPage: false },
     hash: "Customers('1001')",
   });
   Router.init(() => {
@@ -871,7 +876,7 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
   // replaceHash("") took the object page's route away after every click
   for (const navRouting of [false, true]) {
     const { Router, writes, pushes, replaces, errors } = loadRouter({
-      state: { embedded: true, ownsHash: false, navRouting },
+      state: { ownsPage: false, navRouting },
       hash: "Customers('1001')",
     });
     Router.sync({ id: "D2" });
@@ -894,7 +899,7 @@ test("an embedded component's roundtrips leave the host's hash alone", () => {
 // its routes as on a page of its own.
 test("an embedded component the host handed the hash to routes as on its own page", () => {
   const { Router, state, listeners, inits, writes } = loadRouter({
-    state: { embedded: true, ownsHash: true },
+    state: { ownsPage: true },
   });
   let restored = 0;
   Router.init(() => {
@@ -921,7 +926,15 @@ test("an embedded component the host handed the hash to routes as on its own pag
 // undefined everywhere and simply do nothing - so pin the set here.
 test("reads exactly the option names the backend writes", () => {
   const src = require("fs").readFileSync(
-    require("path").join(__dirname, "..", "..", "bundle", "webapp", "core", "Router.js"),
+    require("path").join(
+      __dirname,
+      "..",
+      "..",
+      "bundle",
+      "webapp",
+      "core",
+      "Router.js",
+    ),
     "utf8",
   );
   const read = [...src.matchAll(/mOptions\.([a-zA-Z]+)/g)].map((m) => m[1]);

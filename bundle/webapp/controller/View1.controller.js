@@ -73,6 +73,8 @@ sap.ui.define(
         // invalidates this response's own follow-up actions (see the finally).
         let superseded = false;
         let replaced = false;
+        // the build of THIS response failed and the fatal overlay is up
+        let failed = false;
         // The claim happens BEFORE the try: the MAIN rebuild is a system
         // action now, so slots render (and re-enter here via their own
         // onAfterRendering - possibly with a NESTED controller as `this`)
@@ -235,6 +237,13 @@ sap.ui.define(
               !Lib.isControllerAlive(this) ||
               oResponse !== this.ctx.state.oResponse;
           } else {
+            // The overlay ends the app, so nothing of this response runs
+            // after it: a START_TIMER among its follow-up actions would
+            // tick roundtrips under the overlay, and a parked hash change
+            // would send one - for an app declared dead, to render behind
+            // the overlay or raise a second one. Server.responseError drops
+            // the queued event for the same reason.
+            failed = true;
             // Server decides which overlay this failure gets: a view that
             // could not load a sap.com module on openui5 shows the SDK hint,
             // anything else the fatal overlay (see Server.showRenderError).
@@ -284,7 +293,7 @@ sap.ui.define(
           if (!replaced && this.ctx.state.mainTransition) {
             await this.ctx.state.mainTransition;
           }
-          if (!replaced) await this._runPendingCustomJs(oResponse);
+          if (!replaced && !failed) await this._runPendingCustomJs(oResponse);
           // ... except the timers they arm, when what superseded this
           // response is a Back/Forward restore: the restore cancelled the
           // timers of the screen it leaves when it went out - before these
@@ -300,7 +309,7 @@ sap.ui.define(
           ) {
             Lib.cancelPendingTimers(this.ctx);
           }
-          if (!superseded) {
+          if (!superseded && !failed) {
             // The event a check_queue_last wire kept while this roundtrip ran
             // goes out first: it belongs to the screen this response built.
             // A parked hash change is re-parked by the router when that

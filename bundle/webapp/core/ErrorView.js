@@ -304,10 +304,10 @@ sap.ui.define([], () => {
   }
 
   // The Restart of every error surface - the friendly dialog, the raw
-  // overlay, the developer tools' Error view. A page reload on a page of the
-  // app's own. An EMBEDDED component runs on a HOST's page, and reloading it
-  // took everything the user had there with it: the component restarts the
-  // app in place instead (ctx.restart, set by Component.init).
+  // overlay, the developer tools' Error view. The component restarts the app
+  // in place (ctx.restart, set by Component.init): it always runs on a
+  // host's page, and reloading that took everything the user had there with
+  // it. The page reload is what is left for a call without a context.
   function restart(ctx) {
     if (typeof ctx?.restart === "function") {
       ctx.restart();
@@ -384,7 +384,7 @@ sap.ui.define([], () => {
         );
       }
       // Restart is the primary action, so it also gets the initial focus.
-      // The dialog closes first: an embedded app restarts in place, and
+      // The dialog closes first: the app restarts in place, and
       // the page - with this dialog - stays.
       const restartButton = new Button({
         text: "Restart",

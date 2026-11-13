@@ -46,10 +46,9 @@ sap.ui.define(
     // (Component wires both and owns their lifecycle); `hashListener` is
     // this context's hashChanged listener on the page's one HashChanger.
     // The URL itself stays page-wide: every routed instance reacts to a
-    // hash change, which is why an embedded instance (state.embedded) leaves
-    // the hash to its host - it neither listens (init) nor writes (sync) -
-    // unless the host handed it back (state.ownsHash, Component.init). Both
-    // ask ownsHash alone.
+    // hash change, which is why a component leaves the hash to its host - it
+    // neither listens (init) nor writes (sync) - unless the host handed the
+    // page over (state.ownsPage, Component.init). Both ask ownsPage alone.
 
     function hashChanger() {
       return HashChanger.getInstance();
@@ -538,13 +537,13 @@ sap.ui.define(
     // system action, run once per roundtrip. The options object is
     // self-contained: `id` carries the response's draft id.
     function sync(ctx, mOptions) {
-      // Embedded, the hash is the host's (state.embedded, Component.init):
-      // no route, no app hash, and above all not the per-roundtrip cleanup
-      // at the end - its replaceHash("") wipes the host's own route, and a
-      // Fiori elements app answers that by leaving its object page for the
-      // list. An embedded app that asks for routing or a hash gets neither -
-      // unless its host handed the hash back (state.ownsHash).
-      if (!ctx.state.ownsHash) return;
+      // On a host's page the hash is the host's (Component.init): no route,
+      // no app hash, and above all not the per-roundtrip cleanup at the end
+      // - its replaceHash("") wipes the host's own route, and a Fiori
+      // elements app answers that by leaving its object page for the list.
+      // An app there that asks for routing or a hash gets neither - unless
+      // its host handed the page over (state.ownsPage).
+      if (!ctx.state.ownsPage) return;
       const ID = mOptions.id;
       try {
         applyMode(ctx, mOptions);
@@ -641,10 +640,10 @@ sap.ui.define(
       // Embedded, there is no hash of ours to listen to, and the host has
       // initialized the HashChanger itself if it routes at all - a host
       // route change is none of this component's business. A host that
-      // handed the hash back (state.ownsHash) routes by nothing: the
+      // handed the page over (state.ownsPage) routes by nothing: the
       // component listens and initializes the engine as on a page of its
       // own.
-      if (!ctx.state.ownsHash) return;
+      if (!ctx.state.ownsPage) return;
       // Listening to the HashChanger's hashChanged event is what makes the
       // native browser Back/Forward buttons - and the FLP shell's back
       // button, which drives the same history - navigate between apps.

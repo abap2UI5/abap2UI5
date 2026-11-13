@@ -54,9 +54,6 @@
 //                     SET_FAVICON change nothing, a roundtrip shows the busy
 //                     state on the component's own area, unsaved changes
 //                     raise no prompt (Component.init)
-//   ownsHash          the hash part of ownsPage, always equal to it: the
-//                     router neither listens to nor writes the hash without
-//                     it, and no request reports it (Component.init)
 //
 // Views / controllers / UI5 objects
 //   oApp              the root hosting the main view: a sap.m.NavContainer,
@@ -200,8 +197,7 @@ sap.ui.define([], () => {
       cccResourceRoot: null,
       endpointPrefix: null,
       nodePath: null,
-      ownsHash: true,
-      ownsPage: true,
+      ownsPage: false,
 
       // Views / controllers / UI5 objects
       oApp: null,
@@ -350,7 +346,6 @@ sap.ui.define([], () => {
     "cccResourceRoot",
     "endpointPrefix",
     "nodePath",
-    "ownsHash",
     "ownsPage",
     "oApp",
     "oOwnerComponent",

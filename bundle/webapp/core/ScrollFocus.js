@@ -21,7 +21,7 @@ sap.ui.define(
     // Component.init installs per context records only elements inside
     // that context's slots.
     //
-    // And the other direction, for an EMBEDDED component (state.embedded):
+    // And the other direction, for a component on a HOST's page (state.ownsPage false):
     // whether the framework may MOVE the focus at all - see mayMoveFocus.
     // ------------------------------------------------------------------
 

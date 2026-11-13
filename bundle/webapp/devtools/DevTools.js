@@ -76,7 +76,7 @@
 // (comment-stripped, uncompressed).
 //
 // Where the modules come from, by deployment (requireDialog):
-//   - an embedded component (state.embedded, loaded through
+//   - the component (always embedded, loaded through
 //     ?z2ui5-bundle - the page the backend serves included): the bundle
 //     first, from the endpoint the roundtrips go to (state.url), then
 //     sap.ui.require( ) finds the modules registered;
@@ -290,7 +290,7 @@ sap.ui.define(
       // first Ctrl+F12 either. Bounded ring of short strings, page-wide
       // and use-counted (see the module header).
       //
-      // Not for an EMBEDDED component (state.embedded): the capture wraps
+      // Not on a HOST's page (state.ownsPage false): the capture wraps
       // the page's console and listens to the page's window, and that page
       // is a HOST's - a console line names no component, so what the tools
       // caught there was the host's own output and the host's uncaught

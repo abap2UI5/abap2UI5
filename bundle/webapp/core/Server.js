@@ -273,12 +273,12 @@ sap.ui.define(
           EVENT: eventName,
           // the hash is NOT session-constant - it carries the live routing
           // state (route restore, app-state bookmarks) on every request.
-          // Not for an embedded component (state.embedded): the hash is the
-          // host's route then, and one that reads like "#/app/<CLASS>" would
-          // start that class instead of the app the host asked for - unless
-          // the host handed the hash back (state.ownsHash), and a route in
-          // it is the app's own again: a reload restores it
-          HASH: state.ownsHash ? window.location.hash : "",
+          // Not on a host's page: the hash is the host's route there, and
+          // one that reads like "#/app/<CLASS>" would start that class
+          // instead of the app the host asked for. On a page handed to the
+          // app (state.ownsPage) a route in it is the app's own: a reload
+          // restores it
+          HASH: state.ownsPage ? window.location.hash : "",
         };
         const sFront = oBody.S_FRONT;
         // an all-empty CONFIG is left off entirely

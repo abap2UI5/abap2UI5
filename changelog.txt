@@ -11,6 +11,9 @@ Legend
 
 unreleased
 ----------
+* a view that fails to build no longer runs the follow-up actions of its response under the "App Terminated" overlay - a START_TIMER in it kept sending roundtrips for an app that had ended, and a parked hash change sent one
+! the frontend's classes are taken off window on every page; a class of the frontend cannot be extended before UI5 1.120 with that (it could on the backend's own page) - extending them was never a supported way, a customer's own control lives in its own BSP and extends sap/ui/core/Control
+- frontend: Lib.deriveOsName (no caller) and the state field ownsHash (always equal to ownsPage; componentData.ownsHash is still read)
 ! the minimal app of the backend's page (app_source, app_npm) is the component z2ui5 with the launchpad entries in its manifest, and its view is the control alone - the sap.m.Shell around it is gone again: an app without a Shell of its own is as wide as the window, as before the page was changed. A launchpad tile's parameters are read by the bundle (core/Embed.js), and on a page handed to the app the mobile setup is the sap.m.App's again
 + backend-prebuilt.yaml publishes @abap2ui5/embed-control from this repository (job embed_control) when its version was raised - the package's trusted publisher on npm has to be pointed here once (RELEASING.md)
 + npm run express:live: the dev server with the frontend bundle served straight from bundle/webapp - edit a file and reload the page, without app2abap and a transpile in between (the page's own app and the control stay the built ones)

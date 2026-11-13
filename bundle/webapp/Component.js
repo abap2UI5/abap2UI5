@@ -131,7 +131,7 @@ sap.ui.define(
         // what an app has on a page of its own: hash routing,
         // set_push_state / hash_replace, the hash listener, Back and Forward
         // between routed apps, a route restored on reload (core/Router.js,
-        // core/Server.js ask state.ownsHash), SET_TITLE / SET_FAVICON
+        // core/Server.js ask state.ownsPage), SET_TITLE / SET_FAVICON
         // (core/actions/Browser.js), the global busy indicator (Server /
         // View1 showBusy), the prompt (cc/Dirty), the full-screen root
         // (App.controller.js) and the developer tools' console capture
@@ -147,7 +147,6 @@ sap.ui.define(
         // bundle does not pass them - only a host does. One such component
         // per page, the hash is page-wide (core/Context.js).
         state.ownsPage = ownsPage === true || ownsHash === true;
-        state.ownsHash = state.ownsPage;
 
         // The page's mobile setup is the host's as well - unless the page
         // was handed over. sap/ui/util/Mobile.init( ) runs once per page,
@@ -571,10 +570,8 @@ sap.ui.define(
       },
 
       // Restart the app in place - the Restart of the fatal-error overlay of
-      // an EMBEDDED component (ctx.restart, core/ErrorView.js). A page
-      // reload is the restart on a page of the app's own; on a host's page
-      // it reloaded the host, and took everything the user had there with
-      // it. The app that ran ends as it does on exit( ), MAIN goes with it,
+      // (ctx.restart, core/ErrorView.js). A page reload reloaded the host,
+      // and took everything the user had there with it. The app that ran ends as it does on exit( ), MAIN goes with it,
       // every field of the app is back at its default (Context.resetApp),
       // and the App controller starts over: new View1 controllers and the
       // first roundtrip, with the component data the component was created
