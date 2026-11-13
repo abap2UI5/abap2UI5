@@ -21,9 +21,9 @@
     "typescript": "^7.0.2"
   },
   "scripts": {
-    "format": "prettier --write 'webapp/**/*.js' '../app_source/webapp/**/*.js' '../app_npm/webapp/**/*.js' --cache --cache-strategy content",
-    "format:check": "prettier --check 'webapp/**/*.js' '../app_source/webapp/**/*.js' '../app_npm/webapp/**/*.js'",
-    "lint": "eslint 'webapp/**/*.js'",
+    "format": "prettier --write 'webapp/**/*.js' 'tail/**/*.js' '../app_source/webapp/**/*.js' '../app_npm/webapp/**/*.js' --cache --cache-strategy content",
+    "format:check": "prettier --check 'webapp/**/*.js' 'tail/**/*.js' '../app_source/webapp/**/*.js' '../app_npm/webapp/**/*.js'",
+    "lint": "eslint 'webapp/**/*.js' 'tail/**/*.js'",
     "typecheck": "tsc -p ."
   }
 }

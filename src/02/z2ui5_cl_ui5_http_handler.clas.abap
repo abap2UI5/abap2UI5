@@ -121,21 +121,10 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " (the tools open on load), and a GET with it is the page as always.
     CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
 
-    " The sibling BSPs of the frontend (see _http_get_bundle): the
-    " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
-    " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
-    " Handed to the component by the bundle - the GET page loads it too.
-    CONSTANTS c_cci_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_cci`.
-    CONSTANTS c_ccc_root TYPE string VALUE `/sap/bc/ui5_ui5/sap/z2ui5_ccc`.
-
-    " The second name the bundle registers the component under (its
-    " Component.js and manifest.json under z2ui5/embed/frontend/, see
-    " BUNDLE_CLOSE in tools/app2abap/trans2abap.js), for a page whose own
-    " component is z2ui5 - the branches standard_new and cloud_new of
-    " abap2UI5/frontend, the BSP Z2UI5 a launchpad's target mappings name.
-    " The bundle's z2ui5/embed module tells the embedding control which
-    " name to create the component under.
-    CONSTANTS c_bundle_component TYPE string VALUE `z2ui5.embed.frontend`.
+    " The token in the bundle's tail (bundle/tail/embed.js, NODE_PATH_TOKEN
+    " in tools/app2abap/trans2abap.js) that _http_get_bundle replaces with
+    " the path of the request as the system saw it.
+    CONSTANTS c_bundle_node_path TYPE string VALUE `@z2ui5-node-path@`.
 
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
     " and set_response (security headers) need it; without the cache the user
@@ -209,6 +198,14 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     " a GET that asks for the bundle - the c_bundle_param in its URL
     CLASS-METHODS _is_bundle_request
+      IMPORTING
+        it_params     TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " a GET that asks for the frontend bundle by its version - c_bundle_param
+    " with the current build hash as its value
+    CLASS-METHODS _is_bundle_versioned
       IMPORTING
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
@@ -788,8 +785,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " XML view, a sap.m.Shell with a z2ui5.embed.Container in it. The control
     " loads the frontend from this node (?z2ui5-bundle, _http_get_bundle) and
     " runs the app in it. So the page carries nothing of the frontend: the
-    " sibling BSP roots (c_cci_root, c_ccc_root) reach the frontend's
-    " component through the bundle's z2ui5/embed module, and the page is
+    " sibling BSP roots reach the frontend's component through the bundle's
+    " z2ui5/embed module (bundle/tail/embed.js), and the page is
     " handed to the app by the control's ownsPage, set in the view - which
     " also leaves the class to start to the roundtrip, where it always was
     " decided (?app_start= or a route of the page's URL, else the start
@@ -797,7 +794,11 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " service node itself, so its endpoint is the page's path and not the
     " manifest's (its Component.js). The page used to embed the whole
     " preload and create the frontend's component itself (2026-11).
-    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true\}\}|.
+    " bundle is the version the control asks the frontend by (its
+    " bundleVersion), so the browser keeps the bundle without asking again -
+    " see the cache policy in set_response.
+    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true, | &&
+                        |"bundle" : "{ z2ui5_cl_ui5f_preload=>build_hash }"\}\}|.
 
     " The one inline script of the page - onInitComponent with the preload of
     " that app and the control - is generated together
@@ -886,6 +887,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _is_bundle_versioned.
+
+    " the one parameter with the one value - the hash is lower-case hex
+    result = xsdbool( line_exists( it_params[ n = c_bundle_param
+                                              v = z2ui5_cl_ui5f_preload=>build_hash ] ) ). "#EC CI_SORTSEQ
+
+  ENDMETHOD.
+
   METHOD _is_devtools_request.
 
     " the one parameter with the one value - see c_bundle_devtools
@@ -969,7 +978,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " defines no such module.
     "
     " Its componentName is the second name the bundle registers the
-    " component under (c_bundle_component): a page whose own component is
+    " component under: a page whose own component is
     " z2ui5 has the name taken, and the control creates the frontend under
     " this one instead.
     "
@@ -1000,33 +1009,14 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " ... and its create( ) is what the embedding control calls: it hands
-    " the host's settings and the installation's to the bundle's own module
-    " (z2ui5/core/Embed), which makes the app - so how an app is created is
-    " the bundle's, and the control only renders what comes back. The module
-    " is required here and not as a dependency: a module without
-    " dependencies is defined the moment the script has run, which is what
-    " the control looks for.
-    result-body = z2ui5_cl_ui5f_preload=>get_bundle( ) &&
-                  |sap.ui.define("z2ui5/embed", function () \{\n| &&
-                  |  "use strict";\n| &&
-                  |  var installation = \{\n| &&
-                  |    componentName: "{ c_bundle_component }",\n| &&
-                  |    componentData: \{\n| &&
-                  |      nodePath: "{ z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) }",\n| &&
-                  |      ccResourceRoot: "{ c_cci_root }",\n| &&
-                  |      cccResourceRoot: "{ c_ccc_root }"\n| &&
-                  |    \},\n| &&
-                  |    create: function (settings) \{\n| &&
-                  |      return new Promise(function (resolve, reject) \{\n| &&
-                  |        sap.ui.require(["z2ui5/core/Embed"], function (Embed) \{\n| &&
-                  |          resolve(Embed.create(settings, installation));\n| &&
-                  |        \}, reject);\n| &&
-                  |      \});\n| &&
-                  |    \}\n| &&
-                  |  \};\n| &&
-                  |  return installation;\n| &&
-                  |\});\n|.
+    " The module and its create( ) are no text of this class any more: they
+    " are the tail of the generated bundle (bundle/tail/embed.js). The one
+    " thing only this request knows goes into it here.
+    " No occ: the first occurrence is the default, and the transpiled
+    " runtime replaces nothing at all for an occ other than 0.
+    result-body = replace( val  = z2ui5_cl_ui5f_preload=>get_bundle( )
+                           sub  = c_bundle_node_path
+                           with = z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) ).
     result-status_code   = 200.
     result-status_reason = `OK`.
 
@@ -1149,7 +1139,21 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " a 304. Every other response is roundtrip data, a 500 dump or a 403 and
     " stays no-store, exactly the trio the exit default used to carry for
     " ALL responses (z2ui5_cl_ui5_user_exit leaves it to this method now).
-    IF lv_etag_get IS NOT INITIAL.
+    "
+    " A bundle asked for BY ITS VERSION - ?z2ui5-bundle=<build_hash>, which
+    " the GET page hands its control (bundleVersion) - is the same bytes for
+    " as long as that URL exists: a new frontend has a new hash, and the page
+    " that names it is itself revalidated on every load. So it may be kept
+    " without asking again, and a start costs no request for the frontend
+    " at all. A bundle asked for without the version (a host that does not
+    " know it) revalidates as before.
+    IF lv_etag_get IS NOT INITIAL AND lv_bundle = abap_true
+        AND _is_bundle_versioned( ms_req-t_params ) = abap_true.
+      mo_server->set_header_field( n = `cache-control`
+                                   v = `private, max-age=31536000, immutable` ).
+      mo_server->set_header_field( n = `etag`
+                                   v = lv_etag_get ).
+    ELSEIF lv_etag_get IS NOT INITIAL.
       mo_server->set_header_field( n = `cache-control`
                                    v = `private, no-cache` ).
       mo_server->set_header_field( n = `etag`

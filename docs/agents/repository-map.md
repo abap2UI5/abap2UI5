@@ -12,6 +12,7 @@
 |---|---|
 | `bundle/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
 | `bundle/webapp/` | UI5 frontend source — the full module inventory is its own section below: "The frontend module inventory" |
+| `bundle/tail/` | `embed.js`, the end of the frontend bundle: the module `z2ui5/embed` a host finds the bundle by, with the installation's settings and `create( )` - defined by name when the script runs, so it is no preloaded module of `bundle/webapp` |
 | `app_source/` | The minimal UI5 app that runs abap2UI5 - a standard `index.html`, a component, one view (a `sap.m.Shell` with one `z2ui5.embed.Container`) - and the source of that control (`webapp/embed/`). The page the HTTP service answers a GET with is a variant of it, embedded into `src/01/03` by `tools/app2abap/trans2abap.js`; see `app_source/README.md` |
 | `app_source/embed-control/` | The npm package `@abap2ui5/embed-control` around the control's source: manifest, `ui5.yaml`, README, CHANGELOG and `pack.mjs` (`npm run pack:embed-control`) - built from here since 0.4.0, published from abap2UI5/embed-control up to 0.3.0 |
 | `app_npm/` | The same minimal app as `app_source/` with the control taken from npm (`@abap2ui5/embed-control` under `thirdparty/z2ui5/embed/`) instead of carried as source; see `app_npm/README.md` |

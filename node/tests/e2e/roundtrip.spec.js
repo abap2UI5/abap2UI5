@@ -252,3 +252,26 @@ test("does not append a dangling '#' to the URL after app start", async ({
 
   expect(page.url()).not.toContain("#");
 });
+
+test("the page asks for the frontend by its version, and the browser may keep it", async ({
+  page,
+}) => {
+  // The GET page tells its control the version of the frontend it serves
+  // (componentData.bundle -> bundleVersion), the control asks for the bundle
+  // by it, and the backend lets the browser keep that answer: a start costs
+  // no request for the frontend once it is cached. Without the version - a
+  // host that does not know it - the bundle is revalidated on every load.
+  const bundle = page.waitForResponse((r) => r.url().includes("z2ui5-bundle="));
+  await page.goto("/");
+  const response = await bundle;
+  expect(response.status()).toBe(200);
+  expect(new URL(response.url()).searchParams.get("z2ui5-bundle")).toMatch(
+    /^[0-9a-f]{16}$/,
+  );
+  expect(response.headers()["cache-control"]).toBe(
+    "private, max-age=31536000, immutable",
+  );
+
+  const plain = await page.request.get("/?z2ui5-bundle");
+  expect(plain.headers()["cache-control"]).toBe("private, no-cache");
+});

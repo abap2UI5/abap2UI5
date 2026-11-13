@@ -24,12 +24,16 @@ sap.ui.define(
         // (z2ui5_cl_ui5_http_handler=>_http_get) and says so on the top
         // level of the component data (checkLocal). The endpoint is that
         // page's own path then.
-        const local = (this.getComponentData() || {}).checkLocal === true;
+        // It also tells the version of the frontend it serves (bundle), by
+        // which the control asks for the bundle - the browser then keeps it.
+        const data = this.getComponentData() || {};
+        const local = data.checkLocal === true;
 
         const http = this.getManifestEntry("/sap.app/dataSources/http") || {};
         this.setModel(
           new JSONModel({
             endpoint: local ? window.location.pathname : http.uri || "",
+            bundleVersion: local && data.bundle ? String(data.bundle) : "",
           }),
           "start",
         );

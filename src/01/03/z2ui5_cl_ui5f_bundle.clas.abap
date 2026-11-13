@@ -1,8 +1,9 @@
 * =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
 * The frontend bundle - what GET <node>?z2ui5-bundle answers with,
-* without the z2ui5/embed module the handler appends. Source:
-* bundle/webapp/, every file outside the devtools bundle.
+* once the handler has written the node's path into its tail. Source:
+* bundle/webapp/, every file outside the devtools bundle, and
+* bundle/tail/embed.js behind them.
 * 55 files: z2ui5/Component.js, z2ui5/cc/CameraPicture.js,
 * z2ui5/cc/CameraSelector.js, z2ui5/cc/Dirty.js,
 * z2ui5/cc/ExcelBridge.js, z2ui5/cc/FileUploader.js,
@@ -165,12 +166,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          ccResourceRoot,` && |\n| &&
              `          cccResourceRoot,` && |\n| &&
              `          endpoint,` && |\n| &&
-             `          embedded,` && |\n| &&
              `          ownsHash,` && |\n| &&
              `          ownsPage,` && |\n| &&
              `          nodePath,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
+             `` && |\n| &&
+             `        delete componentData.embedded;` && |\n| &&
              `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&
@@ -492,9 +494,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        this._stopCamera();` && |\n| &&
              `        return true;` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
-             `      _stopCamera() {` && |\n|.
+             `` && |\n|.
     result = result &&
+             `      _stopCamera() {` && |\n| &&
              `        if (this._stream) {` && |\n| &&
              `          for (const track of this._stream.getTracks()) track.stop();` && |\n| &&
              `        }` && |\n| &&
@@ -893,9 +895,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              key: k,` && |\n| &&
              `              header: k,` && |\n| &&
              `              format: "",` && |\n| &&
-             `            }))` && |\n| &&
-             `          : [];` && |\n|.
+             `            }))` && |\n|.
     result = result &&
+             `          : [];` && |\n| &&
              `      }` && |\n| &&
              `      return list.map((c) => {` && |\n| &&
              `        if (c && typeof c === "object") {` && |\n| &&
@@ -1294,9 +1296,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      _syncSubscription() {` && |\n| &&
              `        const wanted =` && |\n| &&
-             `          Boolean(this.getProperty("selectionChange")) &&` && |\n| &&
-             `          !Lib.isDestroyed(this);` && |\n|.
+             `          Boolean(this.getProperty("selectionChange")) &&` && |\n|.
     result = result &&
+             `          !Lib.isDestroyed(this);` && |\n| &&
              `        if (wanted && !this._subscription && !this._subscribing) {` && |\n| &&
              `          this._subscribe();` && |\n| &&
              `        } else if (!wanted && this._subscription) {` && |\n| &&
@@ -1695,9 +1697,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      callbackError(error) {` && |\n| &&
-             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
-             `` && |\n|.
+             `        if (Lib.isDestroyed(this)) return;` && |\n|.
     result = result &&
+             `` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``Geolocation error (${error.code}) on ${this.getId()}: ${error.message}``,` && |\n| &&
              `        );` && |\n| &&
@@ -2096,14 +2098,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `},` && |\n| &&
              `      "z2ui5/cc/MultiInputExt.js": function(){sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "sap/m/Token",` && |\n|.
+             `    "sap/ui/core/Control",` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_02.
 
-    result = `    "z2ui5/core/Lib",` && |\n| &&
+    result = `    "sap/m/Token",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
              `  ],` && |\n| &&
@@ -2501,9 +2503,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              out[finalKey] = value;` && |\n| &&
              `            }` && |\n| &&
              `            return out;` && |\n| &&
-             `          });` && |\n| &&
-             `          input.setRangeData(normalizedRangeData);` && |\n|.
+             `          });` && |\n|.
     result = result &&
+             `          input.setRangeData(normalizedRangeData);` && |\n| &&
              `` && |\n| &&
              `          const inputTokens = input.getTokens() || [];` && |\n| &&
              `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
@@ -2902,9 +2904,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      _getTable() {` && |\n| &&
              `        return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
-             `      readFilter(oTable) {` && |\n|.
+             `` && |\n|.
     result = result &&
+             `      readFilter(oTable) {` && |\n| &&
              `        try {` && |\n| &&
              `          const binding = oTable?.getBinding();` && |\n| &&
              `` && |\n| &&
@@ -3303,9 +3305,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          Lib.logError("Websocket: connection error on " + url);` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
-             `        ws.onclose = (event) => {` && |\n| &&
-             `          if (this._ws !== ws) return;` && |\n|.
+             `        ws.onclose = (event) => {` && |\n|.
     result = result &&
+             `          if (this._ws !== ws) return;` && |\n| &&
              `          this._ws = null;` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          const cause = this._opened` && |\n| &&
@@ -3704,9 +3706,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      _dispatchQueuedEvent() {` && |\n| &&
              `        const state = this.ctx.state;` && |\n| &&
              `        for (const slot of ["oQueuedEvent", "oQueuedWindow"]) {` && |\n| &&
-             `          const queued = state[slot];` && |\n| &&
-             `          if (!queued) continue;` && |\n|.
+             `          const queued = state[slot];` && |\n|.
     result = result &&
+             `          if (!queued) continue;` && |\n| &&
              `          state[slot] = null;` && |\n| &&
              `          if (!Lib.isControllerAlive(queued.controller)) continue;` && |\n| &&
              `          const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
@@ -4105,14 +4107,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    const Component = sap.ui.require?.("sap/ui/core/Component");` && |\n| &&
              `    if (Component && typeof Component.getOwnerComponentFor === "function") {` && |\n| &&
              `      const owner = Component.getOwnerComponentFor(anchor);` && |\n| &&
-             `      const found = owner && byComponent.get(owner);` && |\n| &&
-             `      if (found) return found;` && |\n|.
+             `      const found = owner && byComponent.get(owner);` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_03.
 
-    result = `    }` && |\n| &&
+    result = `      if (found) return found;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    let node = anchor;` && |\n| &&
              `    for (let i = 0; node && i < 200; i++) {` && |\n| &&
@@ -4510,9 +4512,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        removeGlobal(metadata.getName(), Class);` && |\n| &&
              `` && |\n| &&
              `        if (typeof metadata.getRendererName === "function") {` && |\n| &&
-             `          removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n| &&
-             `        }` && |\n|.
+             `          removeGlobal(metadata.getRendererName(), metadata.getRenderer());` && |\n|.
     result = result &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("Env: removing a class's global export failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -4911,9 +4913,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  function loadFriendlyDialogAsync(ctx, title, details, options) {` && |\n| &&
-             `    try {` && |\n| &&
-             `      const require = sap?.ui?.require;` && |\n|.
+             `    try {` && |\n|.
     result = result &&
+             `      const require = sap?.ui?.require;` && |\n| &&
              `      if (typeof require !== "function") return false;` && |\n| &&
              `      require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {` && |\n| &&
              `        if (!showFriendlyDialog(ctx, title, details, options)) {` && |\n| &&
@@ -5312,9 +5314,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      onFile(file, result);` && |\n| &&
-             `      step();` && |\n|.
+             `      onFile(file, result);` && |\n|.
     result = result &&
+             `      step();` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const step = () => {` && |\n| &&
@@ -5713,9 +5715,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      for (const { row, field, leaf } of steps) {` && |\n| &&
              `        const rows = node.__delta;` && |\n| &&
              `        if (!rows[row]) rows[row] = {};` && |\n| &&
-             `        const rowDelta = rows[row];` && |\n| &&
-             `        model = model?.[Number(row)]?.[field];` && |\n|.
+             `        const rowDelta = rows[row];` && |\n|.
     result = result &&
+             `        model = model?.[Number(row)]?.[field];` && |\n| &&
              `        if (leaf) {` && |\n| &&
              `          rowDelta[field] = model;` && |\n| &&
              `          break;` && |\n| &&
@@ -6114,14 +6116,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    queue(ctx, oBody) {` && |\n| &&
              `      const list = read(ctx);` && |\n| &&
-             `      list.push({ at: new Date().toISOString(), body: oBody });` && |\n| &&
-             `      return write(ctx, list) ? list.length : 0;` && |\n|.
+             `      list.push({ at: new Date().toISOString(), body: oBody });` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_04.
 
-    result = `    },` && |\n| &&
+    result = `      return write(ctx, list) ? list.length : 0;` && |\n| &&
+             `    },` && |\n| &&
              `` && |\n| &&
              `    pending(ctx) {` && |\n| &&
              `      return read(ctx).length;` && |\n| &&
@@ -6519,9 +6521,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      ctx.router.navigate = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return {` && |\n| &&
-             `      init,` && |\n|.
+             `    return {` && |\n|.
     result = result &&
+             `      init,` && |\n| &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
              `      patternFor,` && |\n| &&
@@ -6920,9 +6922,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        ctx.server.inflight.add(superseder);` && |\n| &&
              `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `` && |\n| &&
-             `        let sentAt;` && |\n| &&
-             `` && |\n|.
+             `        let sentAt;` && |\n|.
     result = result &&
+             `` && |\n| &&
              `        let body;` && |\n| &&
              `        try {` && |\n| &&
              `          body = JSON.stringify({ value: oBody });` && |\n| &&
@@ -7321,9 +7323,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  let deviceStatic;` && |\n| &&
-             `  function getDeviceStatic() {` && |\n| &&
-             `    if (!deviceStatic) {` && |\n|.
+             `  function getDeviceStatic() {` && |\n|.
     result = result &&
+             `    if (!deviceStatic) {` && |\n| &&
              `      deviceStatic = {` && |\n| &&
              `        SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
              `        BROWSER: {` && |\n| &&
@@ -7722,9 +7724,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    function wireValue(value) {` && |\n| &&
              `      if (Object.prototype.toString.call(value) === "[object Date]") {` && |\n| &&
              `        return ``${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}``;` && |\n| &&
-             `      }` && |\n| &&
-             `      return value ?? null;` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `      return value ?? null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function isSimple(oFilter) {` && |\n| &&
@@ -8123,14 +8125,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/Offline",` && |\n| &&
-             `    "z2ui5/core/Server",` && |\n| &&
-             `  ],` && |\n|.
+             `    "z2ui5/core/Server",` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_05.
 
-    result = `  (` && |\n| &&
+    result = `  ],` && |\n| &&
+             `  (` && |\n| &&
              `    MessageBox,` && |\n| &&
              `    mobileLibrary,` && |\n| &&
              `    Storage,` && |\n| &&
@@ -8528,9 +8530,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const escapeSetting = (v) =>` && |\n| &&
-             `      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => ``\\${c}``) : v;` && |\n|.
+             `    const escapeSetting = (v) =>` && |\n|.
     result = result &&
+             `      typeof v === "string" ? v.replace(/[\\{}]/g, (c) => ``\\${c}``) : v;` && |\n| &&
              `` && |\n| &&
              `    function showBox(sType, sText, mOptions, oController) {` && |\n| &&
              `      const o = { ...(mOptions || {}) };` && |\n| &&
@@ -8929,9 +8931,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      registeredIconFonts.add(fontFamily);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function selectedIndicesOf(control) {` && |\n| &&
-             `      if (typeof control.getSelectedIndices === "function") {` && |\n|.
+             `    function selectedIndicesOf(control) {` && |\n|.
     result = result &&
+             `      if (typeof control.getSelectedIndices === "function") {` && |\n| &&
              `        return control.getSelectedIndices();` && |\n| &&
              `      }` && |\n| &&
              `      if (` && |\n| &&
@@ -9330,9 +9332,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        const shell = oController?.ctx?.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (shell?.setTitle) {` && |\n| &&
              `          const result = shell.setTitle(title);` && |\n| &&
-             `          if (result?.catch) {` && |\n| &&
-             `            result.catch((e) =>` && |\n|.
+             `          if (result?.catch) {` && |\n|.
     result = result &&
+             `            result.catch((e) =>` && |\n| &&
              `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                e,` && |\n| &&
@@ -9731,9 +9733,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      );` && |\n| &&
              `      if (!oFragment) return;` && |\n| &&
              `` && |\n| &&
-             `      ViewSlots.setView(ctx, "POPUP", oFragment, xml);` && |\n| &&
-             `      oFragment.open();` && |\n|.
+             `      ViewSlots.setView(ctx, "POPUP", oFragment, xml);` && |\n|.
     result = result &&
+             `      oFragment.open();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    async function displayPopover(ctx, xml, openById, seq) {` && |\n| &&
@@ -10132,14 +10134,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    function updateModelIfRequired(ctx, slotKey) {` && |\n| &&
              `      const oView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
              `      if (!oView) return;` && |\n| &&
-             `` && |\n| &&
-             `      const sSlotApp = ViewSlots.getViewApp(ctx, slotKey);` && |\n|.
+             `` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_06.
 
-    result = `      const sResponseApp = ctx.state.oResponse?.APP;` && |\n| &&
+    result = `      const sSlotApp = ViewSlots.getViewApp(ctx, slotKey);` && |\n| &&
+             `      const sResponseApp = ctx.state.oResponse?.APP;` && |\n| &&
              `      if (sSlotApp && sResponseApp && sSlotApp !== sResponseApp) return;` && |\n| &&
              `` && |\n| &&
              `      const tracked = resolveTrackedModel(oView);` && |\n| &&
@@ -10537,9 +10539,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      let oModel;` && |\n| &&
              `      try {` && |\n| &&
              `        const ODataModel = await Lib.requireODataModel();` && |\n| &&
-             `        oModel = new ODataModel({` && |\n| &&
-             `          serviceUrl: args[1],` && |\n|.
+             `        oModel = new ODataModel({` && |\n|.
     result = result &&
+             `          serviceUrl: args[1],` && |\n| &&
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
              `        const oView = ViewSlots.getView(oController.ctx, "MAIN");` && |\n| &&
@@ -10938,9 +10940,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      pendingUi5Echo = null;` && |\n| &&
              `` && |\n| &&
              `      if (echo && (text === echo || text.startsWith(``${echo} ``))) return;` && |\n| &&
-             `      push(level, "console", text);` && |\n| &&
-             `    } catch {` && |\n|.
+             `      push(level, "console", text);` && |\n|.
     result = result &&
+             `    } catch {` && |\n| &&
              `    } finally {` && |\n| &&
              `      capturing = false;` && |\n| &&
              `    }` && |\n| &&
@@ -11339,9 +11341,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const length = Math.max(before.length, after.length);` && |\n| &&
              `      for (let i = 0; i < length; i++) {` && |\n| &&
              `        walk(before[i], after[i], ``${path}/${i}``, out, depth + 1);` && |\n| &&
-             `      }` && |\n| &&
-             `      return;` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `      return;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    if (before === undefined) {` && |\n| &&
@@ -11740,9 +11742,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function backendUrl(ctx) {` && |\n| &&
-             `      const url = ctx?.state?.url;` && |\n| &&
-             `      if (!url) return "";` && |\n|.
+             `      const url = ctx?.state?.url;` && |\n|.
     result = result &&
+             `      if (!url) return "";` && |\n| &&
              `      try {` && |\n| &&
              `        return new URL(url, window.location.href).href;` && |\n| &&
              `      } catch {` && |\n| &&
@@ -12141,14 +12143,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      lines.push(` && |\n| &&
              `        pad("#", 5) +` && |\n| &&
              `          pad("TIME", 14) +` && |\n| &&
-             `          pad("EVENT", 22) +` && |\n| &&
-             `          pad("TOTAL", 10, true) +` && |\n|.
+             `          pad("EVENT", 22) +` && |\n|.
 
   ENDMETHOD.
 
   METHOD part_07.
 
-    result = `          pad("BACKEND", 10, true) +` && |\n| &&
+    result = `          pad("TOTAL", 10, true) +` && |\n| &&
+             `          pad("BACKEND", 10, true) +` && |\n| &&
              `          pad("RENDER", 10, true) +` && |\n| &&
              `          pad("REQ", 10, true) +` && |\n| &&
              `          pad("RESP", 10, true) +` && |\n| &&
@@ -12546,9 +12548,9 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Device.resize.attachHandler(refresh);` && |\n| &&
              `        Device.orientation.attachHandler(refresh);` && |\n| &&
              `        Device.media.attachHandler(refresh, null, RANGE_SET);` && |\n| &&
-             `        refresh();` && |\n| &&
-             `` && |\n|.
+             `        refresh();` && |\n|.
     result = result &&
+             `` && |\n| &&
              `        oModel.destroy = function () {` && |\n| &&
              `          Device.resize.detachHandler(refresh);` && |\n| &&
              `          Device.orientation.detachHandler(refresh);` && |\n| &&
@@ -12572,7 +12574,34 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    "z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"],` && |\n| &&
              `    "z2ui5/embed/frontend/manifest.json": entries["z2ui5/manifest.json"]` && |\n| &&
              `  });` && |\n| &&
-             `})();` && |\n|.
+             `})();` && |\n| &&
+             `sap.ui.define("z2ui5/embed", function () {` && |\n| &&
+             `  "use strict";` && |\n| &&
+             `` && |\n| &&
+             `  var installation = {` && |\n| &&
+             `    componentName: "z2ui5.embed.frontend",` && |\n| &&
+             `` && |\n| &&
+             `    componentData: {` && |\n| &&
+             `      nodePath: "@z2ui5-node-path@",` && |\n| &&
+             `      ccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_cci",` && |\n| &&
+             `      cccResourceRoot: "/sap/bc/ui5_ui5/sap/z2ui5_ccc",` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    create: function (settings) {` && |\n| &&
+             `      return new Promise(function (resolve, reject) {` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ["z2ui5/core/Embed"],` && |\n| &&
+             `          function (Embed) {` && |\n| &&
+             `            resolve(Embed.create(settings, installation));` && |\n| &&
+             `          },` && |\n| &&
+             `          reject,` && |\n| &&
+             `        );` && |\n| &&
+             `      });` && |\n| &&
+             `    },` && |\n| &&
+             `  };` && |\n| &&
+             `  return installation;` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n|.
 
   ENDMETHOD.
 

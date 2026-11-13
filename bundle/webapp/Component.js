@@ -97,12 +97,14 @@ sap.ui.define(
           ccResourceRoot,
           cccResourceRoot,
           endpoint,
-          embedded,
           ownsHash,
           ownsPage,
           nodePath,
           ...componentData
         } = this.getComponentData() || {};
+        // no setting any more, and no app data either: a host of its own
+        // ComponentContainer or @abap2ui5/embed-control 0.3.0 may pass it
+        delete componentData.embedded;
         state.ccResourceRoot = ccResourceRoot || null;
         state.cccResourceRoot = cccResourceRoot || null;
 

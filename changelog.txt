@@ -11,6 +11,8 @@ Legend
 
 unreleased
 ----------
++ the page asks for the frontend bundle by its version (?z2ui5-bundle=<build hash>, the control's new bundleVersion) and the backend lets the browser keep that answer (max-age, immutable) - a start costs no request for the frontend once it is cached; a bundle asked for without the version revalidates as before
+! the end of the frontend bundle - the z2ui5/embed module and its create( ) - is a file of its own, bundle/tail/embed.js, formatted and linted like the frontend; the handler only writes the request's path into it
 ! the frontend has one mode: its component is always created by the embed control, so the branches for a page of its own are gone (componentData.embedded is no switch any more) - what is left is whether the host handed the page over (ownsPage). A component created without ownsPage no longer takes the hash, the title or the busy indicator of the page
 * on the backend's own page an app's SET_FOCUS and the first page's autofocus work again from the start - the focus guard of a host's page applied there too
 ! the embed control is a shell: it loads the bundle and renders what the bundle's z2ui5/embed module creates (create( ), bundle/webapp/core/Embed.js) - the component, its component data and the style of the area come from the backend, for a freestyle app, a custom page or section of Fiori elements and the backend's own page alike. Its stylesheet is gone, and with it GET <node>/embed/Container.css; ownsHash is gone (ownsPage). @abap2ui5/embed-control 0.4.0 needs this release - 0.3.0 keeps working against it

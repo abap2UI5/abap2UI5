@@ -56,12 +56,14 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `      init() {` && |\n| &&
              `        UIComponent.prototype.init.apply(this, arguments);` && |\n| &&
              `` && |\n| &&
-             `        const local = (this.getComponentData() || {}).checkLocal === true;` && |\n| &&
+             `        const data = this.getComponentData() || {};` && |\n| &&
+             `        const local = data.checkLocal === true;` && |\n| &&
              `` && |\n| &&
              `        const http = this.getManifestEntry("/sap.app/dataSources/http") || {};` && |\n| &&
              `        this.setModel(` && |\n| &&
              `          new JSONModel({` && |\n| &&
              `            endpoint: local ? window.location.pathname : http.uri || "",` && |\n| &&
+             `            bundleVersion: local && data.bundle ? String(data.bundle) : "",` && |\n| &&
              `          }),` && |\n| &&
              `          "start",` && |\n| &&
              `        );` && |\n| &&
@@ -76,7 +78,7 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `ablet": true,      "phone": true    }  },  "sap.ui5": {    "dependencies": {      "minUI5Version": "1.71.0",      "libs": {        "sap.m": {},        "sap.ui.core": {}      }    },    "resourceRoots"` &&
              `: {      "z2ui5.embed": "./embed/"    },    "rootView": {      "viewName": "abap2ui5.page.view.Main",      "type": "XML",      "async": true,      "id": "main"    }  }}',` && |\n| &&
              `      "abap2ui5/page/view/Main.view.xml": '\x3cmvc:View    xmlns:mvc="sap.ui.core.mvc"    xmlns="sap.m"    xmlns:z2ui5="z2ui5.embed"    displayBlock="true"    height="100%">    \x3cShell>        \x3cz` &&
-             `2ui5:Container            endpoint="{start>/endpoint}"            ownsPage="true"            height="100%"/>    \x3c/Shell>\x3c/mvc:View>',` && |\n| &&
+             `2ui5:Container            endpoint="{start>/endpoint}"            bundleVersion="{start>/bundleVersion}"            ownsPage="true"            height="100%"/>    \x3c/Shell>\x3c/mvc:View>',` && |\n| &&
              `      "z2ui5/embed/Container.js": function(){sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -103,13 +105,15 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `` && |\n| &&
              `  let frontend = null;` && |\n| &&
              `` && |\n| &&
-             `  function loadFrontend(endpoint) {` && |\n| &&
+             `  function loadFrontend(endpoint, version) {` && |\n| &&
              `    if (!frontend && loadedFrontend()) {` && |\n| &&
              `      frontend = Promise.resolve(loadedFrontend());` && |\n| &&
              `    }` && |\n| &&
              `    if (!frontend) {` && |\n| &&
              `      frontend = new Promise((resolve, reject) => {` && |\n| &&
-             `        const url = ``${endpoint}?z2ui5-bundle``;` && |\n| &&
+             `        const url =` && |\n| &&
+             `          ``${endpoint}?z2ui5-bundle`` +` && |\n| &&
+             `          (version ? ``=${encodeURIComponent(version)}`` : "");` && |\n| &&
              `        const script = document.createElement("script");` && |\n| &&
              `        const fail = () => {` && |\n| &&
              `          frontend = null;` && |\n| &&
@@ -149,6 +153,8 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `        params: { type: "object", defaultValue: null },` && |\n| &&
              `` && |\n| &&
              `        ownsPage: { type: "boolean", defaultValue: false },` && |\n| &&
+             `` && |\n| &&
+             `        bundleVersion: { type: "string", defaultValue: "" },` && |\n| &&
              `` && |\n| &&
              `        width: { type: "sap.ui.core.CSSSize", defaultValue: "100%" },` && |\n| &&
              `` && |\n| &&
@@ -260,7 +266,7 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `` && |\n| &&
              `      const endpoint = sameOriginUrl(this._endpoint());` && |\n| &&
              `      const load = endpoint` && |\n| &&
-             `        ? loadFrontend(endpoint)` && |\n| &&
+             `        ? loadFrontend(endpoint, this.getBundleVersion())` && |\n| &&
              `        : Promise.reject(` && |\n| &&
              `            new Error(` && |\n| &&
              `              ``endpoint '${this._endpoint()}' is not a path on this server, `` +` && |\n| &&

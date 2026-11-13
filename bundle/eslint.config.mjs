@@ -3,7 +3,7 @@ import globals from "globals";
 
 export default [
   {
-    files: ["webapp/**/*.js"],
+    files: ["webapp/**/*.js", "tail/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",

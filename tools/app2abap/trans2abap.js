@@ -18,6 +18,12 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 // a node serves no files. index.html stays out - the handler writes the
 // page.
 const repoDir = path.join(__dirname, "../..");
+// The end of the frontend bundle, a file of its own: the module z2ui5/embed,
+// defined the moment the script has run (its header says why it is no module
+// of bundle/webapp). It carries one token, which
+// z2ui5_cl_ui5_http_handler=>_http_get_bundle replaces per request.
+const BUNDLE_TAIL = "bundle/tail/embed.js";
+const NODE_PATH_TOKEN = "@z2ui5-node-path@";
 const pageDir = "app_source/webapp";
 const PAGE_SOURCES = [
   {
@@ -749,7 +755,15 @@ async function main() {
 
     // The four texts, as the node serves them
     const pageText = inlineScript(pageEntries);
-    const bundleText = bundleScript(preloadEntries);
+    // ... the frontend bundle with its tail behind the preload: the
+    // z2ui5/embed module a host finds the bundle by (BUNDLE_TAIL)
+    const tail = await readSource(path.join(repoDir, BUNDLE_TAIL), BUNDLE_TAIL);
+    if (!tail.value.includes(NODE_PATH_TOKEN)) {
+      throw new Error(
+        `${BUNDLE_TAIL}: ${NODE_PATH_TOKEN} not found - the handler writes the node's path there`,
+      );
+    }
+    const bundleText = bundleScript(preloadEntries) + tail.value;
     const devtoolsText = bundleScript(
       devtoolsEntries,
       DEVTOOLS_OPEN,
@@ -790,8 +804,9 @@ async function main() {
       CLASSES.bundle,
       abapTextClass(CLASSES.bundle, bundleText, [
         "The frontend bundle - what GET <node>?z2ui5-bundle answers with,",
-        "without the z2ui5/embed module the handler appends. Source:",
-        "bundle/webapp/, every file outside the devtools bundle.",
+        "once the handler has written the node's path into its tail. Source:",
+        "bundle/webapp/, every file outside the devtools bundle, and",
+        "bundle/tail/embed.js behind them.",
         ...wrap(sourcesOf(preloadEntries)),
       ]),
       "abap2UI5 - frontend bundle",

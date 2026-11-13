@@ -7,6 +7,7 @@
     <Shell>
         <z2ui5:Container
             endpoint="{start>/endpoint}"
+            bundleVersion="{start>/bundleVersion}"
             ownsPage="true"
             height="100%"/>
     </Shell>

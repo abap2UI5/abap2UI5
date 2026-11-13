@@ -16,7 +16,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '10511ef2400a614c'.
+    CONSTANTS build_hash TYPE string VALUE '8fcd7da62a79b6ef'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-SMsVy3TsImAoabFAjrK9z6hLlOmFYrupCPWCz6KcE9o='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-hbTimm/tznykGhmG5VE0YPHLP+krJld0eoSxhCxQ9NA='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the frontend bundle does not carry. The ETag of

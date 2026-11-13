@@ -86,13 +86,15 @@ sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {
   // backend again.
   let frontend = null;
 
-  function loadFrontend(endpoint) {
+  function loadFrontend(endpoint, version) {
     if (!frontend && loadedFrontend()) {
       frontend = Promise.resolve(loadedFrontend());
     }
     if (!frontend) {
       frontend = new Promise((resolve, reject) => {
-        const url = `${endpoint}?z2ui5-bundle`;
+        const url =
+          `${endpoint}?z2ui5-bundle` +
+          (version ? `=${encodeURIComponent(version)}` : "");
         const script = document.createElement("script");
         const fail = () => {
           frontend = null;
@@ -154,6 +156,14 @@ sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {
         // around the control (a Fiori elements object page). One such
         // control per page.
         ownsPage: { type: "boolean", defaultValue: false },
+
+        // The version of the frontend bundle, when the host knows it - the
+        // backend's own page does, it is told with the page. The bundle is
+        // then asked for by it (?z2ui5-bundle=<version>), and the backend
+        // lets the browser keep that answer without asking again. Empty,
+        // the browser revalidates the bundle on every page load. It only
+        // names what is loaded: a change starts nothing anew.
+        bundleVersion: { type: "string", defaultValue: "" },
 
         width: { type: "sap.ui.core.CSSSize", defaultValue: "100%" },
 
@@ -297,7 +307,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/base/Log"], (Control, Log) => {
 
       const endpoint = sameOriginUrl(this._endpoint());
       const load = endpoint
-        ? loadFrontend(endpoint)
+        ? loadFrontend(endpoint, this.getBundleVersion())
         : Promise.reject(
             new Error(
               `endpoint '${this._endpoint()}' is not a path on this server, ` +

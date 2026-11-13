@@ -416,7 +416,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " the page's preload registration and nothing of the page around it
     cl_abap_unit_assert=>assert_true(
         xsdbool( find( val = ls_result-body
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+                       sub = `(function () {` ) = 0 ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `"z2ui5/Component.js": function()` ) ).
     " ...the component a second time, under the name the control creates it
@@ -575,7 +575,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"z2ui5/embed/Container.js": function()` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `data-settings='{"id" : "z2ui5", "componentData" : {"checkLocal" : true}}'` ) ).
+        xsdbool( ls_result-body CS `data-settings='{"id" : "z2ui5", "componentData" : {"checkLocal" : true, "bundle" : "` &&
+                                    z2ui5_cl_ui5f_preload=>build_hash && `"}}'` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( to_upper( ls_result-body ) CS `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
@@ -838,6 +839,7 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the devtools bundle: the same headers, a tag of its own that is not
     " the frontend bundle's
     METHODS test_devtools_response       FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_versioned        FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_304            FOR TESTING RAISING cx_static_check.
     METHODS test_factory_onprem      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_cloud       FOR TESTING RAISING cx_static_check.
@@ -1795,7 +1797,7 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                         act = mo_mock->mv_status ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( find( val = mo_mock->mv_cdata
-                       sub = z2ui5_cl_ui5f_preload=>get_bundle( ) ) = 0 ) ).
+                       sub = `(function () {` ) = 0 ) ).
     " the path the stack reported (get_req_info, ~path) is the one the
     " module tells the embedding page
     cl_abap_unit_assert=>assert_true(
@@ -1811,6 +1813,33 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the page's tag and cache are not the bundle's business
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_versioned.
+
+    " asked for by its version, the bundle may be kept without asking again
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #(
+        method   = `GET`
+        path     = `/sap/bc/z2ui5`
+        t_params = VALUE #( ( n = `z2ui5-bundle` v = z2ui5_cl_ui5f_preload=>build_hash ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, max-age=31536000, immutable`
+                                        act = header_value( `cache-control` ) ).
+
+    " any other value is the bundle too, revalidated as without one
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method   = `GET`
+                                    path     = `/sap/bc/z2ui5`
+                                    t_params = VALUE #( ( n = `z2ui5-bundle` v = `0000000000000000` ) ) ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_true( xsdbool( mo_mock->mv_cdata CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `private, no-cache`
+                                        act = header_value( `cache-control` ) ).
 
   ENDMETHOD.
 

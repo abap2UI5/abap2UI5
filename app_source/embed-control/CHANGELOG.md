@@ -18,6 +18,9 @@ own, and nothing may be left under "Unreleased".
   of the area come from the backend. There is no fallback for an older
   abap2UI5 - 0.3.0 stays the version for 1.145.0 to 1.148.0, and keeps
   working against newer backends.
+- `bundleVersion` (string): the bundle is asked for by its version, and the
+  browser may keep it without asking again. For a host that knows the
+  version of the frontend - abap2UI5's own page does.
 - No stylesheet any more: `src/Container.css` is gone, the area's position
   and overflow are set by the renderer, the one rule for `sap.m.Shell`
   comes with the bundle. A host no longer serves or requests a file for it.
