@@ -287,7 +287,7 @@ on (`app_source/embed-control`, `npm run pack:embed-control`; maintainer
 decision 2026-11-13) - packed, not published yet - and `app_npm` is the same
 app with the control from npm. Planned, not done: `frontend/embed` becomes
 a sample of embedding the control in another app, the abap2UI5/frontend
-branches are built from `app_source`, and `app/` stops being a deliverable app
+branches are built from `app_source`, and `bundle/` stops being a deliverable app
 (its `webapp/` stays the source of the bundle).
 
 What changed for an app on that page: the roundtrips go to the page's path
@@ -295,6 +295,20 @@ without its query (the control takes no query), the page component has a
 generated id, and the control's stylesheet applies inside the page's Shell.
 The developer tools capture the console again when the component owns the
 page.
+
+## bundle/, app_source/, app_npm/ (2026-11-13)
+
+Maintainer decisions of the same day: `app/` became `bundle/` and stopped
+being an app (no `index.html`, no launchpad inbound, no `checkLocal`),
+`app_v2` is `app_source` and `app_v3` is `app_npm`. With it the branches
+`cloud`, `cloud_v2`, `standard`, `standard_v2` and the renamed variants left
+`tools/build-branches.mjs` - they shipped `bundle/webapp` as an app. Open:
+building them from `app_npm` (component name `z2ui5`, the launchpad inbound
+and `ShellUIService` then belong into that app's manifest;
+`tools/check-identity.mjs` is out of `check:frontend` until then), publishing
+`@abap2ui5/embed-control` 0.4.0, the lockfile of `app_npm` (needs 0.4.0 on
+npm), and a way to run `bundle/webapp` unbuilt against a backend while
+developing it - `fiori run` on its `index.html` did that.
 
 ## 1.71
 

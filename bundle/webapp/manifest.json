@@ -7,29 +7,11 @@
       "version": "0.0.1"
     },
     "title": "abap2UI5",
-    "description": "Create UI5 apps purely in ABAP",
-    "sourceTemplate": {
-      "id": "@sap/generator-fiori:basic",
-      "version": "1.15.0",
-      "toolsId": "3a966e20-9635-4c28-8861-d1b66f79f1de"
-    },
+    "description": "The abap2UI5 frontend - loaded from the backend as a bundle by the embed control, never started as an app of its own",
     "dataSources": {
       "http": {
         "uri": "/sap/bc/z2ui5",
         "type": "JSON"
-      }
-    },
-    "crossNavigation": {
-      "inbounds": {
-        "z2ui5-display": {
-          "semanticObject": "z2ui5",
-          "action": "display",
-          "title": "",
-          "signature": {
-            "parameters": {},
-            "additionalParameters": "allowed"
-          }
-        }
       }
     }
   },
@@ -70,9 +52,5 @@
       "z2ui5_cci": "../z2ui5_cci/",
       "z2ui5_ccc": "../z2ui5_ccc/"
     }
-  },
-  "sap.cloud": {
-    "public": true,
-    "service": "z2ui5"
   }
 }

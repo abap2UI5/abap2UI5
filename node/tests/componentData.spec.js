@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Component.init splits the frontend settings off the component data: what
-// the backend GET page passes (checkLocal, ccResourceRoot, cccResourceRoot),
+// the bundle's z2ui5/embed module passes (ccResourceRoot, cccResourceRoot),
 // what the z2ui5/embed module of ?z2ui5-bundle passes (embedded, nodePath)
 // and what a host app embedding the component passes (endpoint). They
 // configure the frontend, so they land in the state and never travel to the
@@ -120,14 +120,12 @@ test("an endpoint among the launchpad startup parameters is not taken", () => {
   });
 });
 
-test("the GET page settings are still split off as before", () => {
+test("the resource roots are still split off as before", () => {
   const state = init({
-    checkLocal: true,
     ccResourceRoot: "/cci/",
     cccResourceRoot: "/ccc/",
   });
 
-  expect(state.checkLocal).toBe(true);
   expect(state.ccResourceRoot).toBe("/cci/");
   expect(state.cccResourceRoot).toBe("/ccc/");
   expect(state.endpoint).toBeNull();
@@ -239,7 +237,6 @@ test("only an embedded component offers the in-place restart", () => {
   const embedded = initContext({ embedded: true });
   expect(typeof embedded.restart).toBe("function");
   expect(initContext({}).restart ?? null).toBe(null);
-  expect(initContext({ checkLocal: true }).restart ?? null).toBe(null);
 });
 
 test("an embedded component takes the frontend's class globals off", () => {
@@ -248,7 +245,6 @@ test("an embedded component takes the frontend's class globals off", () => {
   expect(embedded).toEqual([true]);
 
   const own = [];
-  init({ checkLocal: true }, { globalsDropped: own });
   init({}, { globalsDropped: own });
   expect(own).toEqual([]);
 });
@@ -374,7 +370,7 @@ test.describe("the sibling BSP roots behind a proxy", () => {
   // ComponentContainer an endpoint but no node path, and a stack that
   // reported no path an empty one
   test("without an endpoint or a node path nothing moves", () => {
-    const page = init({ checkLocal: true, ...roots }, { location });
+    const page = init({ ...roots }, { location });
     expect(page.ccResourceRoot).toBe(CCI);
     expect(page.cccResourceRoot).toBe(CCC);
     expect(page.nodePath).toBeNull();

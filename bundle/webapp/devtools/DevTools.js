@@ -76,14 +76,13 @@
 // (comment-stripped, uncompressed).
 //
 // Where the modules come from, by deployment (requireDialog):
-//   - the page served by the backend (state.checkLocal) and an embedded
-//     component (state.embedded, loaded through ?z2ui5-bundle): the
-//     bundle first, from the endpoint the roundtrips go to (state.url),
-//     then sap.ui.require( ) finds the modules registered;
-//   - a BSP, the launchpad, `fiori run`, the standalone build: the
-//     modules are there to require (the BSP serves them, the
-//     Component-preload carries them) - sap.ui.require( ) first, and
-//     the bundle from the manifest's endpoint only when that fails.
+//   - an embedded component (state.embedded, loaded through
+//     ?z2ui5-bundle - the page the backend serves included): the bundle
+//     first, from the endpoint the roundtrips go to (state.url), then
+//     sap.ui.require( ) finds the modules registered;
+//   - a host that serves the frontend's files itself: the modules are
+//     there to require - sap.ui.require( ) first, and the bundle from the
+//     endpoint only when that fails.
 // A module that is loaded already (sap.ui.require( id ) answers) is
 // never asked for again. Rule 13 holds either way: the bundle is a file
 // of the backend's origin, allowed by script-src 'self' - no inline
@@ -167,13 +166,12 @@ sap.ui.define(
     }
 
     // Whether the modules have to come from the bundle BEFORE they can be
-    // required: on the page the backend serves and in an embedded
-    // component the resource root is the ICF node, which answers a module
-    // request with the page (see the header). Everywhere else the modules
-    // are served or preloaded as every other one.
+    // required: in an embedded component the frontend came as the
+    // bundle, and nothing serves its modules one by one (see the header).
+    // Everywhere else the modules are served or preloaded as every other
+    // one.
     function bundleFirst(ctx) {
-      const state = ctx?.state;
-      return Boolean(state?.checkLocal || state?.embedded);
+      return Boolean(ctx?.state?.embedded);
     }
 
     // The dialog's class: as it is when it is loaded already, else through

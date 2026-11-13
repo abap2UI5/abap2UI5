@@ -9,7 +9,7 @@
  * advisory published for a package the lockfile has carried for a year
  * fails no pull request, because no pull request added it. Until this gate
  * existed nothing ran `npm audit` here at all - the root tree had four high
- * advisories and app/ six, all in the UI5 build tooling, and nothing said so.
+ * advisories and bundle/ six, all in the UI5 build tooling, and nothing said so.
  *
  * A plain `npm audit --audit-level=high` would say so every Monday and be
  * red until @ui5/project moves, which trains everyone to click past it - the
@@ -45,8 +45,10 @@ import { join } from "node:path";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 /* the dependency trees; "" is the repository root, frontend/embed the
- * project the cloud_new branch ships */
-const TREES = ["", "bundle", "frontend/embed"];
+ * project the cloud_new branch ships, app_source the minimal page app.
+ * app_npm has no lockfile yet: it pins @abap2ui5/embed-control 0.4.0, which
+ * is built here and not published - it joins this list with its lockfile */
+const TREES = ["", "bundle", "frontend/embed", "app_source"];
 
 /* what the gate fails on - moderate and below stay out for the reason
  * dependency-review.yaml gives for its own threshold */
@@ -59,13 +61,13 @@ const LEVELS = new Set(["high", "critical"]);
  * reason has to name why the fix is not simply taken. */
 const ACCEPTED = new Map([
   ["GHSA-w4pp-8pjf-rmxw", {
-    trees: ["", "bundle", "frontend/embed"],
+    trees: ["", "bundle", "frontend/embed", "app_source"],
     reason: "pacote: DoS via addGitSha. Reached only through @ui5/cli -> @ui5/project, "
       + "build-time and fed by the lockfile, never by user input. npm's only fix is "
       + "@ui5/cli 2.x, a major downgrade; waits for @ui5/project to move its pacote range",
   }],
   ["GHSA-52v5-jr5w-gjxr", {
-    trees: ["", "bundle", "frontend/embed"],
+    trees: ["", "bundle", "frontend/embed", "app_source"],
     reason: "sigstore: certificateOIDs constraints not enforced. Same chain (@ui5/project -> "
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",

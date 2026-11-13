@@ -918,19 +918,16 @@ async function main() {
       );
       emit(xmlFilePath, `\uFEFF${xmlContent}`);
 
-      // Collect the preload entry. index.html is the standalone dev
-      // page and is not preloaded by the generated GET response; the
-      // deferred files of devtools/ go into the devtools bundle.
-      if (relPath !== "index.html") {
-        (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
-          urlPath: `z2ui5/${relPath}`,
-          className: className.toLowerCase(),
-          isJs: file.endsWith(".js"),
-          // what the class returns at run time - the preload's
-          // share of the hashed script text
-          value: embeddedValue(sourceContent, isSpecialFile),
-        });
-      }
+      // Collect the preload entry; the deferred files of devtools/ go
+      // into the devtools bundle.
+      (isDeferredDevtools(relPath) ? devtoolsEntries : preloadEntries).push({
+        urlPath: `z2ui5/${relPath}`,
+        className: className.toLowerCase(),
+        isJs: file.endsWith(".js"),
+        // what the class returns at run time - the preload's
+        // share of the hashed script text
+        value: embeddedValue(sourceContent, isSpecialFile),
+      });
     }
 
     // The page's own sources (PAGE_SOURCES): the same embedding as a file

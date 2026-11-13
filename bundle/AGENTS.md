@@ -1,11 +1,13 @@
-# AGENTS.md — the frontend (`app/`)
+# AGENTS.md — the frontend (`bundle/`)
 
 Single source of truth for agents working on the abap2UI5 frontend: `bundle/webapp/`,
-its generated ABAP mirror `src/01/03/`, and the delivery trees built from it.
+its generated ABAP mirror `src/01/03/`. `bundle/webapp/` is the source of the bundle the
+backend serves (`?z2ui5-bundle`), not an app: it has no page, no launchpad inbound and no start
+of its own - the embed control (`app_source/webapp/embed`) loads it and creates the component.
 
 This file adds to the root [`AGENTS.md`](../AGENTS.md); it does not replace it.
-Tools that read nested agent files load it when they work below `app/` (Claude
-Code through `bundle/CLAUDE.md`). It sits in `app/` and not in `bundle/webapp/` on
+Tools that read nested agent files load it when they work below `bundle/` (Claude
+Code through `bundle/CLAUDE.md`). It sits in `bundle/` and not in `bundle/webapp/` on
 purpose: `tools/app2abap/trans2abap.js` embeds **every** file under
 `bundle/webapp/` into an ABAP class, so a Markdown file there would ship.
 

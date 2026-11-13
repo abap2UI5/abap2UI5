@@ -24,12 +24,11 @@ sap.ui.define(["z2ui5/core/Lib"], (Lib) => {
   const PREFIX = "z2ui5-offline:";
 
   // The endpoint the queue belongs to: the request URL without its fragment.
-  // On a page the backend GET served (checkLocal) state.url is the whole
-  // location.href, and the hash routing rewrites its fragment after the
-  // first response (#/app/<CLASS>/<DRAFT>) - keyed by the full href, a
-  // reload or Back/Forward looked under another key, found nothing, and the
-  // queued events stayed in storage for good. A POST never carries the
-  // fragment either. No endpoint (a torn-down context) is no key: the
+  // An endpoint that carried one (the page's own href, when the backend's
+  // GET page still started the component itself) changed with the hash
+  // routing (#/app/<CLASS>/<DRAFT>) - keyed by it, a reload or Back/Forward
+  // looked under another key, found nothing, and the queued events stayed
+  // in storage for good. A POST never carries the fragment either. No endpoint (a torn-down context) is no key: the
   // queue is neither read from nor written under `z2ui5-offline:` alone.
   function endpoint(ctx) {
     const url = ctx.state.url || "";

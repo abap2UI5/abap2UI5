@@ -19,7 +19,6 @@ test.describe("createState", () => {
   test("installs the defaults for every field", () => {
     const { AppState } = load();
     const state = AppState.createState();
-    expect(state.checkLocal).toBe(false);
     expect(state.endpoint).toBeNull();
     expect(state.url).toBeNull();
     expect(state.oConfig).toEqual({});

@@ -182,7 +182,8 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      out.push(section("Session"));` && |\n| &&
              `      out.push(line("sap-contextid", state.contextId));` && |\n| &&
              `      out.push(line("Backend endpoint", state.url));` && |\n| &&
-             `      out.push(line("Served by backend", yesNo(state.checkLocal)));` && |\n| &&
+             `      out.push(line("Embedded", yesNo(state.embedded)));` && |\n| &&
+             `      out.push(line("Owns the page", yesNo(state.ownsPage)));` && |\n| &&
              `      out.push(line("Launchpad", yesNo(state.oLaunchpad)));` && |\n| &&
              `      out.push(line("Origin", window.location.origin));` && |\n| &&
              `      out.push(line("Pathname", window.location.pathname));` && |\n| &&
@@ -423,9 +424,9 @@ CLASS z2ui5_cl_ui5f_inspect_js IMPLEMENTATION.
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function findEventLine(source, eventName) {` && |\n| &&
-             `      if (!source || !eventName) return 0;` && |\n|.
+             `    function findEventLine(source, eventName) {` && |\n|.
     result = result &&
+             `      if (!source || !eventName) return 0;` && |\n| &&
              `      const lines = source.split("\n");` && |\n| &&
              `      const needle = eventName.toLowerCase();` && |\n| &&
              `      for (let i = 0; i < lines.length; i++) {` && |\n| &&

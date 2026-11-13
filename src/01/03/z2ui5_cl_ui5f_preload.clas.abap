@@ -16,7 +16,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " get( ) returns, the frontend bundle get_bundle( ) returns and the
     " control's stylesheet - fixed at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE 'cda9951b22f20ddc'.
+    CONSTANTS build_hash TYPE string VALUE '3153e83d947464a7'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -31,7 +31,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " bundle carries it (z2ui5_cl_ui5_http_handler=>_http_get_devtools):
     " build_hash is taken over the shell's script alone and does not change
     " with them
-    CONSTANTS devtools_hash TYPE string VALUE 'c7c03c632a8646de'.
+    CONSTANTS devtools_hash TYPE string VALUE '9e14c57c71ab7cc8'.
 
     " the one inline script of the GET page: the page's minimal app (a
     " component with one view) and the embed control that view holds

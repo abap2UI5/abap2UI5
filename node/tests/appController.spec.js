@@ -10,7 +10,6 @@ const { classEnv, loadLib } = require("./loadLibModule");
 // list), the root control it creates, and the initial roundtrip kick-off.
 function load({
   manifest,
-  checkLocal = false,
   endpoint = null,
   embedded = false,
   ownsPage = !embedded,
@@ -19,7 +18,7 @@ function load({
   shellClient = undefined,
 } = {}) {
   // the controller reads the owner component's context (Context.of)
-  const state = { checkLocal, endpoint, embedded, ownsPage };
+  const state = { endpoint, embedded, ownsPage };
   const ctx = { state, alive: true };
   const roundtrips = [];
   // the root classes: `new Root(id)` hands the stub back and records which
@@ -105,35 +104,11 @@ test("standalone: the backend URL comes from the manifest data source", () => {
   expect(state.url).toBe("/sap/bc/z2ui5");
 });
 
-test("local mode (checkLocal) uses the page URL instead", () => {
-  const { inst, state } = load({
-    manifest: MANIFEST,
-    checkLocal: true,
-    href: "http://localhost:3000/?app_start=x",
-  });
-
-  inst.onInit();
-
-  expect(state.url).toBe("http://localhost:3000/?app_start=x");
-});
-
 // A host app embedding the component names the backend itself
 // (componentData.endpoint, split off in Component.init).
 test("a host's endpoint wins over the manifest data source", () => {
   const { inst, state } = load({
     manifest: MANIFEST,
-    endpoint: "/sap/bc/z2ui5_other",
-  });
-
-  inst.onInit();
-
-  expect(state.url).toBe("/sap/bc/z2ui5_other");
-});
-
-test("a host's endpoint wins over the page URL of local mode too", () => {
-  const { inst, state } = load({
-    manifest: MANIFEST,
-    checkLocal: true,
     endpoint: "/sap/bc/z2ui5_other",
   });
 

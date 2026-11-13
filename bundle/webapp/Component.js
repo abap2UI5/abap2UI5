@@ -84,15 +84,16 @@ sap.ui.define(
         this.ctx = Context.create(this);
         const state = this.ctx.state;
 
-        // The backend GET page (z2ui5_cl_ui5_http_handler=>_http_get) passes
-        // its settings as component data, and so do the z2ui5/embed module
-        // of ?z2ui5-bundle (embedded, nodePath) and a host app that embeds
-        // this component (endpoint, ownsPage, ownsHash, see below); they
-        // configure the frontend and are not app data, so they are split off
-        // here and never travel to the backend with the rest of the
-        // component data. In BSP and Launchpad mode none of them is present.
+        // The z2ui5/embed module of ?z2ui5-bundle passes its settings as
+        // component data (embedded, nodePath, the two resource roots), and
+        // so does a host app that embeds this component (endpoint, ownsPage,
+        // ownsHash, see below); they configure the frontend and are not app
+        // data, so they are split off here and never travel to the backend
+        // with the rest of the component data. The component is no page of
+        // its own any more: the page the backend answers a GET with runs it
+        // in a z2ui5.embed.Container as every other host does (its direct
+        // start, checkLocal, went 2026-11-13).
         const {
-          checkLocal,
           ccResourceRoot,
           cccResourceRoot,
           endpoint,
@@ -102,7 +103,6 @@ sap.ui.define(
           nodePath,
           ...componentData
         } = this.getComponentData() || {};
-        state.checkLocal = checkLocal === true;
         state.ccResourceRoot = ccResourceRoot || null;
         state.cccResourceRoot = cccResourceRoot || null;
 

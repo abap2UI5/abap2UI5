@@ -93,7 +93,7 @@ CLASS z2ui5_cl_ui5f_app_js IMPLEMENTATION.
              `        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;` && |\n| &&
              `` && |\n| &&
              `        state.url = Lib.withSapClient(` && |\n| &&
-             `          state.endpoint || (state.checkLocal ? window.location.href : uri),` && |\n| &&
+             `          state.endpoint || uri,` && |\n| &&
              `          window.location.href,` && |\n| &&
              `          launchpadClient(),` && |\n| &&
              `        );` && |\n| &&

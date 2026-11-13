@@ -17,8 +17,6 @@
 // Field inventory - writer in parentheses:
 //
 // Configuration
-//   checkLocal        true when served by the backend GET page, which
-//                     passes it as component data (Component.init)
 //   endpoint          backend endpoint a host app passed as component data,
 //                     e.g. through a ComponentContainer, else null
 //                     (Component.init)
@@ -200,7 +198,6 @@ sap.ui.define([], () => {
   function createState() {
     return {
       // Configuration
-      checkLocal: false,
       endpoint: null,
       url: null,
       oConfig: {},
@@ -352,7 +349,6 @@ sap.ui.define([], () => {
   // app before them left waiting reads its controller as gone
   // (Lib.isControllerAlive).
   const COMPONENT_FIELDS = new Set([
-    "checkLocal",
     "endpoint",
     "url",
     "oConfig",

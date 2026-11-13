@@ -29,10 +29,10 @@ function loadDevTools({
   // the dialog's module known to the loader from the start (a BSP that
   // serves it, a page where it was loaded before)
   dialogLoaded = false,
-  // what the page is: the backend's own (checkLocal), an embedded
-  // component, or a BSP/launchpad page (neither)
-  checkLocal = true,
-  embedded = false,
+  // what the page is: an embedded component - the backend's own page is
+  // one too, and owns the page - or a host that serves the frontend's
+  // files itself (not embedded)
+  embedded = true,
   url = "http://localhost:3000/sap/bc/z2ui5?app_start=ZCL_X#/x",
 } = {}) {
   const listeners = [];
@@ -94,7 +94,6 @@ function loadDevTools({
       }
     }
   };
-  ctx.state.checkLocal = checkLocal;
   ctx.state.embedded = embedded;
   ctx.state.url = url;
 
@@ -363,7 +362,6 @@ test.describe("the devtools bundle", () => {
 
   test("an embedded component loads it from its endpoint first, like the backend's page", async () => {
     const h = loadDevTools({
-      checkLocal: false,
       embedded: true,
       url: "/dynamic_dest/ABAP2UI5/sap/bc/z2ui5",
     });
@@ -380,7 +378,7 @@ test.describe("the devtools bundle", () => {
   });
 
   test("a BSP or launchpad page requires the module first, and the bundle only when that fails", async () => {
-    const h = loadDevTools({ checkLocal: false, url: "/sap/bc/z2ui5" });
+    const h = loadDevTools({ embedded: false, url: "/sap/bc/z2ui5" });
     h.DevTools.install(h.ctx);
     h.press(CTRL_F12);
     await h.tick();
@@ -395,7 +393,7 @@ test.describe("the devtools bundle", () => {
 
     // ...and a page where the module is not to be had falls back to the
     // bundle from the manifest's endpoint
-    const g = loadDevTools({ checkLocal: false, url: "/sap/bc/z2ui5" });
+    const g = loadDevTools({ embedded: false, url: "/sap/bc/z2ui5" });
     g.DevTools.install(g.ctx);
     g.press(CTRL_F12);
     await g.tick();
@@ -608,7 +606,7 @@ test.describe("two components on one page", () => {
   test("each context gets its own tools, and exit of one leaves the other's in place", async () => {
     const h = loadDevTools();
     const other = specContext();
-    other.state.checkLocal = true;
+    other.state.embedded = true;
     other.state.url = h.ctx.state.url;
     h.DevTools.install(h.ctx);
     h.DevTools.install(other);

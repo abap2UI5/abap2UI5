@@ -91,7 +91,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `        const state = this.ctx.state;` && |\n| &&
              `` && |\n| &&
              `        const {` && |\n| &&
-             `          checkLocal,` && |\n| &&
              `          ccResourceRoot,` && |\n| &&
              `          cccResourceRoot,` && |\n| &&
              `          endpoint,` && |\n| &&
@@ -101,7 +100,6 @@ CLASS z2ui5_cl_ui5f_comp_js IMPLEMENTATION.
              `          nodePath,` && |\n| &&
              `          ...componentData` && |\n| &&
              `        } = this.getComponentData() || {};` && |\n| &&
-             `        state.checkLocal = checkLocal === true;` && |\n| &&
              `        state.ccResourceRoot = ccResourceRoot || null;` && |\n| &&
              `        state.cccResourceRoot = cccResourceRoot || null;` && |\n| &&
              `` && |\n| &&

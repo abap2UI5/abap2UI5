@@ -5,7 +5,7 @@ import globals from "globals";
  * ESLint for the Node side of this repository.
  *
  * `bundle/eslint.config.mjs` is scoped to `files: ["webapp/**\/*.js"]` and runs
- * from inside `app/`, so it reaches the shipped frontend and nothing else.
+ * from inside `bundle/`, so it reaches the shipped frontend and nothing else.
  * Everything that BUILDS and CHECKS that frontend was uncovered: the CI gates
  * under `.github/scripts/`, the generators under `tools/`, the dev server and
  * the transpiler bootstrap under `node/`, and the JS unit specs under
@@ -28,7 +28,7 @@ export default [
     ignores: [
       // Generated or vendored trees. tools/out/ is written by
       // `npm run frontend:build` and node/downport, node/output and
-      // node/deps by the downport/transpile pipeline; app/ has its own
+      // node/deps by the downport/transpile pipeline; bundle/ has its own
       // config and is linted by `npm --prefix bundle run lint`.
       // (tools/out/ is git-ignored, but ESLint does not read .gitignore.)
       "bundle/**",
@@ -41,6 +41,11 @@ export default [
       "node/open-abap-core/**",
       "node/coverage/**",
       "node_modules/**",
+      // the two page apps' own installs and builds
+      "app_source/node_modules/**",
+      "app_source/dist/**",
+      "app_npm/node_modules/**",
+      "app_npm/dist/**",
     ],
   },
   {
@@ -71,6 +76,27 @@ export default [
     linterOptions: { reportUnusedDisableDirectives: "warn" },
     rules: {
       ...js.configs.recommended.rules,
+      "no-unused-vars": ["error", { caughtErrors: "none", argsIgnorePattern: "^_" }],
+      eqeqeq: ["error", "smart"],
+      "prefer-const": "error",
+    },
+  },
+  {
+    // The two page apps - the minimal UI5 app around the embed control, with
+    // the control's source (app_source) and with the control from npm
+    // (app_npm). Browser code like bundle/webapp, with the same rules as
+    // bundle/eslint.config.mjs; they have no ESLint install of their own, so
+    // they are linted from here.
+    files: ["app_source/webapp/**/*.js", "app_npm/webapp/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: { ...globals.browser, sap: "readonly" },
+    },
+    linterOptions: { reportUnusedDisableDirectives: "warn" },
+    rules: {
+      ...js.configs.recommended.rules,
+      "no-new-func": "error",
       "no-unused-vars": ["error", { caughtErrors: "none", argsIgnorePattern: "^_" }],
       eqeqeq: ["error", "smart"],
       "prefer-const": "error",

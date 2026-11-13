@@ -8,7 +8,7 @@
  *   node .github/scripts/update-deps.mjs [--actions] [--summary <file>]
  *
  * npm - every folder with a package.json and a package-lock.json (the root,
- * app/, ...): each outdated dependency goes to its latest version, keeping
+ * bundle/, ...): each outdated dependency goes to its latest version, keeping
  * the style of its range (^, ~ or exact); then `npm install` and `npm update`
  * refresh the lockfile. Left alone:
  *   - npm aliases (`"ui5-1.71-sap.m": "npm:@openui5/sap.m@1.71.81"`) - a pin

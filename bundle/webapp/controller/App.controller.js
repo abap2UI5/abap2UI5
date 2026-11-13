@@ -95,18 +95,17 @@ sap.ui.define(
         state.oOwnerComponent = this.getOwnerComponent();
 
         // The backend URL, first match wins:
-        //  1. the endpoint a host app passed as component data (Component.init)
-        //  2. the page itself when it was served by the backend GET page
-        //     (checkLocal, see Component.init)
-        //  3. the manifest's data source - BSP and launchpad; optional
-        //     chaining keeps a missing entry from blowing up
+        //  1. the endpoint the host passed as component data
+        //     (Component.init) - the embed control always does
+        //  2. the manifest's data source, for a host that names none;
+        //     optional chaining keeps a missing entry from blowing up
         const manifest = state.oOwnerComponent.getManifest();
         const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
         // ... and whichever it is, it names the logon client from here on,
         // so that no roundtrip is left to the host-wide client cookie
         // (Lib.withSapClient has the reasoning and what it leaves alone)
         state.url = Lib.withSapClient(
-          state.endpoint || (state.checkLocal ? window.location.href : uri),
+          state.endpoint || uri,
           window.location.href,
           launchpadClient(),
         );

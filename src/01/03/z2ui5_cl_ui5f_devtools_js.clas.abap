@@ -75,8 +75,7 @@ CLASS z2ui5_cl_ui5f_devtools_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function bundleFirst(ctx) {` && |\n| &&
-             `      const state = ctx?.state;` && |\n| &&
-             `      return Boolean(state?.checkLocal || state?.embedded);` && |\n| &&
+             `      return Boolean(ctx?.state?.embedded);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function requireDialog(ctx) {` && |\n| &&

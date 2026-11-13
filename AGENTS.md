@@ -31,7 +31,7 @@ Where the rest is:
 
 | File | Read it when |
 |---|---|
-| `bundle/AGENTS.md` | changing anything under `bundle/webapp/` — the frontend rules in full (loaded automatically below `app/`) |
+| `bundle/AGENTS.md` | changing anything under `bundle/webapp/` — the frontend rules in full (loaded automatically below `bundle/`) |
 | `REVIEW.md` | reviewing, auditing or proposing improvements — what is out of scope |
 | `docs/agents/repository-map.md` | placing a change outside `src/`; related repositories, root files, reference files |
 | `docs/agents/commands.md` | you need a command — the complete inventory, gated against `package.json` |

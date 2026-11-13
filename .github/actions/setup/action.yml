@@ -25,7 +25,7 @@ inputs:
     description: "Install the root dependencies (npm ci)"
     default: "false"
   app-npm-ci:
-    description: "Install the dependencies of the Fiori project in app/ as well"
+    description: "Install the dependencies of the Fiori project in bundle/ as well"
     default: "false"
   deps:
     description: >

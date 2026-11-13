@@ -13,7 +13,7 @@ name: frontend_check
 # delivered bytes is this build running identically here and at deploy time.
 
 on:
-  # app/ and not just bundle/webapp/: the cloud branches ship the whole Fiori
+  # bundle/ and not just bundle/webapp/: the cloud branches ship the whole Fiori
   # project, so ui5.yaml or package.json changes what is delivered too.
   pull_request:
     paths:

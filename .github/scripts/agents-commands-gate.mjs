@@ -84,7 +84,7 @@ for (const line of chapter.split("\n")) {
   const first = line.split("|")[1] ?? "";
   for (const m of first.matchAll(ALTERNATIVE)) documentedNames.add(m[1]);
 }
-/* The app/ table documents bundle/package.json's scripts (`npm --prefix bundle run
+/* The bundle/ table documents bundle/package.json's scripts (`npm --prefix bundle run
  * …`), which the root package.json does not have - they are not stale rows. */
 let appScripts = {};
 try {

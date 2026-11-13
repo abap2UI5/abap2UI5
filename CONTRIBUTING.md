@@ -47,7 +47,7 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 
 The repository structure:
 - `src/` - Core ABAP framework classes
-- `app/` - the UI5 frontend as a Fiori project (`bundle/webapp/` plus `ui5.yaml` etc.)
+- `bundle/` - the UI5 frontend: the source of the bundle the backend serves (`bundle/webapp/`) and its tooling. No app of its own - the minimal app that runs it is `app_source/` (with the embed control's source) and `app_npm/` (with the control from npm)
 - `tools/` - generators that build artefacts out of `bundle/webapp/` (embedded ABAP, BSP packaging, delivery branches)
 - `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
 - `node/` - Node.js transpilation setup
