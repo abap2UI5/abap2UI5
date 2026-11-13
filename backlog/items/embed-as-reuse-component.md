@@ -282,9 +282,13 @@ The control's source moved into `app_v2/webapp/embed` on 2026-11-13
 (maintainer decision), from abap2UI5/embed-control 0.3.0. One change since:
 a control that owns the page starts without `app` and hands no `app_start`
 over, so the backend decides the class from the page's URL as it always
-did. Open: the npm package `@abap2ui5/embed-control` and `frontend/embed`
-(the branches `standard_new` and `cloud_new`) still take the control from
-that repository - two sources until one of them is built from the other.
+did. The npm package `@abap2ui5/embed-control` is built from here from 0.4.0
+on (`app_v2/embed-control`, `npm run pack:embed-control`; maintainer
+decision 2026-11-13) - packed, not published yet - and `app_v3` is the same
+app with the control from npm. Planned, not done: `frontend/embed` becomes
+a sample of embedding the control in another app, the abap2UI5/frontend
+branches are built from `app_v2`, and `app/` stops being a deliverable app
+(its `webapp/` stays the source of the bundle).
 
 What changed for an app on that page: the roundtrips go to the page's path
 without its query (the control takes no query), the page component has a
