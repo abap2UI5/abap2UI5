@@ -531,7 +531,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " the frontend bundle carries the eager half of the developer tools and
     " none of the bundled files - and the devtools bundle carries exactly
     " the rest, under its own digest. The page's inline script carries
-    " nothing of the frontend at all: the app of app_v2/webapp - a
+    " nothing of the frontend at all: the app of app_source/webapp - a
     " component with one view - and the control that view holds
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).

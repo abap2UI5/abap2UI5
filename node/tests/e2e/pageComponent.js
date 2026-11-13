@@ -1,6 +1,6 @@
 // @ts-check
 // The id of the FRONTEND's component on the backend GET page. The page is
-// the app of app_v2/webapp - a component with one view and one
+// the app of app_source/webapp - a component with one view and one
 // z2ui5.embed.Container in it - and the control
 // creates the frontend's component without an id of its own - UI5 generates
 // one - so a spec that needs the component asks the control for it: the one

@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 /*
- * pack.mjs - the control of app_v2/webapp/embed as the npm package
+ * pack.mjs - the control of app_source/webapp/embed as the npm package
  * @abap2ui5/embed-control.
  *
  * The package is this folder's manifest, ui5.yaml, README and CHANGELOG
  * around the control's source, which is not kept here a second time: src/
- * of the package is app_v2/webapp/embed as it is. The version is the one
+ * of the package is app_source/webapp/embed as it is. The version is the one
  * package.json names - the control has a release line of its own, apart
  * from the framework's (0.3.0 was the last one published from
  * abap2UI5/embed-control). Assembled in a staging directory, so nothing is
  * written into the checkout but the tarball.
  *
- *   node app_v2/embed-control/pack.mjs               -> npm-package/abap2ui5-embed-control-<version>.tgz
- *   node app_v2/embed-control/pack.mjs --out <dir>   -> somewhere else
+ *   node app_source/embed-control/pack.mjs               -> npm-package/abap2ui5-embed-control-<version>.tgz
+ *   node app_source/embed-control/pack.mjs --out <dir>   -> somewhere else
  *
  * It packs and does not publish.
  */
@@ -32,7 +32,7 @@ for (let i = 0; i < args.length; i += 1) {
   if (args[i] === "--out" && args[i + 1]) outDir = resolve(args[++i]);
   else {
     console.error(`pack: unknown argument ${JSON.stringify(args[i])}`);
-    console.error("  usage: node app_v2/embed-control/pack.mjs [--out <dir>]");
+    console.error("  usage: node app_source/embed-control/pack.mjs [--out <dir>]");
     process.exit(2);
   }
 }

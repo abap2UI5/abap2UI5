@@ -183,7 +183,7 @@ precisely because no gate will catch it.
   and ABAP Cloud (`check:standard`, `check:cloud`, `downport`). A statement
   that only exists in a newer release passes the default target and fails the
   others.
-- **`app/webapp/` source must be 7-bit ASCII** — every frontend file is
+- **`bundle/webapp/` source must be 7-bit ASCII** — every frontend file is
   embedded verbatim into an ABAP class under `src/01/03/`, where abaplint's
   `7bit_ascii` rule applies. Build non-ASCII runtime strings at run time, never
   as a literal.

@@ -44,7 +44,7 @@ Then, for those events only:
 4. **Every other event is untouched.** It fails as it always did, with the
    overlay and Retry.
 
-Where it is: `app/webapp/core/Offline.js` (the store),
+Where it is: `bundle/webapp/core/Offline.js` (the store),
 `Server.readHttp` / `Server.replayOffline` (keeping and sending),
 `OFFLINE_QUEUE` in `core/actions/Browser.js` (the switch), the constant in
 `z2ui5_if_client=>cs_event`, the fixture `node/srv/zcl_tst_offline` and the

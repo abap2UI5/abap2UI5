@@ -1,4 +1,4 @@
-# app_v2/
+# app_source/
 
 The minimal UI5 app that runs abap2UI5, and the source of the control it is
 built on.

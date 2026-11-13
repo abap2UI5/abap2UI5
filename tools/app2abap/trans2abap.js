@@ -7,11 +7,11 @@ const abapClassTemplate = require("./abapClassTemplate");
 const xmlTemplate = require("./abapXMLTemplate");
 
 // Define source and target directories
-const sourceDir = path.join(__dirname, "../../app/webapp");
+const sourceDir = path.join(__dirname, "../../bundle/webapp");
 const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
-// page is the minimal UI5 app of app_v2/webapp - a component with one XML
+// page is the minimal UI5 app of app_source/webapp - a component with one XML
 // view, a sap.m.Shell with a z2ui5.embed.Container in it, and the control
 // itself, whose source lives there (embed/). The control loads the
 // frontend through ?z2ui5-bundle. The page is a variant of that app, not a
@@ -21,7 +21,7 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 // <node>/embed/Container.css (get_control_css( ), see the app's
 // Component.js).
 const repoDir = path.join(__dirname, "../..");
-const pageDir = "app_v2/webapp";
+const pageDir = "app_source/webapp";
 const PAGE_SOURCES = [
   {
     source: `${pageDir}/Component.js`,
@@ -82,7 +82,7 @@ function createFileInTargetDir(targetFilePath, content) {
 // non-ASCII must be built via String.fromCharCode / entity decoding (see
 // AGENTS.md rule 14). For .js files this also runs BEFORE the comment strip
 // below reflows the code, so the reported line number is one the author can
-// find in app/webapp.
+// find in bundle/webapp.
 function assertSevenBitAscii(content, className) {
   content.split("\n").forEach((line, index) => {
     // The range IS ASCII, control characters included: this line is the
@@ -97,7 +97,7 @@ function assertSevenBitAscii(content, className) {
     }
     // A tab IS 7-bit ASCII, and lands in the backtick literal as a tab -
     // where abaplint's contains_tab refuses the generated class, naming
-    // the class and not the app/webapp file. Prettier only formats the
+    // the class and not the bundle/webapp file. Prettier only formats the
     // .js files, so a tab in an XML or CSS source has nothing else to
     // stop it before this point.
     if (line.includes("\t")) {
@@ -207,8 +207,8 @@ function assertSameProgram(before, after, relPath) {
   }
 }
 
-// The app's own Prettier (also what `npm run app2abap` formats app/webapp
-// with) - required from app/node_modules because the root has no prettier
+// The app's own Prettier (also what `npm run app2abap` formats bundle/webapp
+// with) - required from bundle/node_modules because the root has no prettier
 // of its own. Lazy so the error names the fix instead of failing the
 // require at import time when app deps are missing.
 let prettierModule = null;
@@ -216,11 +216,11 @@ function appPrettier() {
   if (!prettierModule) {
     try {
       prettierModule = require(
-        path.join(__dirname, "../../app/node_modules/prettier"),
+        path.join(__dirname, "../../bundle/node_modules/prettier"),
       );
     } catch {
       throw new Error(
-        "comment strip needs the app toolchain - run 'npm --prefix app ci' first " +
+        "comment strip needs the app toolchain - run 'npm --prefix bundle ci' first " +
           "(npm run app2abap and check:app2abap install it for you)",
       );
     }
@@ -229,7 +229,7 @@ function appPrettier() {
 }
 
 // The embedded copy of a .js file is a DELIVERY artefact - the readable
-// source lives in app/webapp, and nobody patches src/01/03 (AGENTS.md
+// source lives in bundle/webapp, and nobody patches src/01/03 (AGENTS.md
 // rule 2). The comments are therefore pure payload on every ICF cold start,
 // and this codebase comments heavily; stripping them keeps the GET response
 // (and the src/01/03 diff noise per frontend change) roughly half the size.
@@ -346,7 +346,7 @@ function escapeJsLiteral(value) {
 // The lines around the preload entries in the GET page's one inline
 // <script>: the global onInitComponent the bootstrap tag names in
 // data-sap-ui-oninit, which registers the page's own modules (PAGE_SOURCES -
-// the app of app_v2/webapp with its control, NOT the frontend) and
+// the app of app_source/webapp with its control, NOT the frontend) and
 // starts the component the page declares. Each line is followed by a newline, the first one is empty (the
 // script text starts with the newline after <script>). Held once, as data,
 // so the ABAP string template in buildPreloadClass and the hashed JavaScript
@@ -504,7 +504,7 @@ const CLASS_NAME_PREFIX = "z2ui5_cl_ui5f_";
 const MAX_CLASS_NAME_LENGTH = 25;
 
 // Short stems for the frontend files whose basename does not fit into
-// MAX_CLASS_NAME_LENGTH, keyed by path relative to app/webapp. Curated instead
+// MAX_CLASS_NAME_LENGTH, keyed by path relative to bundle/webapp. Curated instead
 // of truncated: mechanical shortening is what produced stems like
 // `developertool_xml` (a DeveloperTools fragment that lost its plural) and
 // `smartmultiinpu_js`. Names not listed here keep their basename.
@@ -571,7 +571,7 @@ function generateClassName(filePath) {
 // complete text of the GET shell's one inline <script> - onInitComponent and
 // the sap.ui.require.preload entries for every embedded frontend file - so
 // the preload list z2ui5_cl_ui5_http_handler=>_http_get embeds can never run
-// out of sync with the files in app/webapp. The text is fixed per build, and
+// out of sync with the files in bundle/webapp. The text is fixed per build, and
 // that is what the two constants rest on: both are one SHA-256 digest of it,
 // taken here once (inlineScript is its JavaScript twin).
 //   script_hash  the digest as a CSP hash source - _http_get lists it in the
@@ -631,8 +631,8 @@ function buildPreloadClass(
   const joinedDevtools = concat(devtoolsEntries.map(entryLine));
   return `* =====================================================================
 * GENERATED FILE - DO NOT EDIT (AGENTS.md rule 2)
-* Embedded frontend resource, generated from app/webapp/ by
-* tools/app2abap/trans2abap.js. Change the source under app/webapp/
+* Embedded frontend resource, generated from bundle/webapp/ by
+* tools/app2abap/trans2abap.js. Change the source under bundle/webapp/
 * and run 'npm run app2abap' to regenerate; the check_app2abap CI gate
 * fails any manual edit here.
 * =====================================================================
@@ -934,7 +934,7 @@ async function main() {
     }
 
     // The page's own sources (PAGE_SOURCES): the same embedding as a file
-    // of app/webapp - a .js comment-stripped, the stylesheet verbatim -
+    // of bundle/webapp - a .js comment-stripped, the stylesheet verbatim -
     // under the class name the list gives them.
     const pageEntries = [];
     let controlCss = "";

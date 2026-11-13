@@ -455,7 +455,7 @@ reasoning:
   robust thing to write. Two properties on the same object need two walks,
   which is still less code than a mapping that has to anticipate the rest.
   **Not every such payload is flat.** `projectValue` in
-  `app/webapp/core/Lib.js` passes an object- or array-valued property through
+  `bundle/webapp/core/Lib.js` passes an object- or array-valued property through
   unchanged (up to `MAX_ARG_DEPTH`), so a control with a property typed
   `object`/`any` marshals as a nested node. When that is what you are looking
   at, do not grow the reader: bind the value into the model instead and let
@@ -836,7 +836,7 @@ reasoning:
 Every abap2UI5 page carries its own developer tools: a dialog over the running
 app that shows the roundtrips, the view XML and the model, the log and the
 environment, without the browser's devtools. They are part of the frontend
-(`app/webapp/devtools/`), so they are there on every system and in every
+(`bundle/webapp/devtools/`), so they are there on every system and in every
 app, with nothing to install and nothing to configure.
 
 ### Starting them

@@ -1,4 +1,4 @@
-module.exports = function(className, formattedContent, sourcePath, sourceRoot = "app/webapp/") {
+module.exports = function(className, formattedContent, sourcePath, sourceRoot = "bundle/webapp/") {
     // The class name cannot carry the source path: ABAP object names are
     // capped at 30 characters (25 here, see MAX_CLASS_NAME_LENGTH in
     // trans2abap.js), so the folder is dropped and long basenames are

@@ -11,7 +11,7 @@ sap.ui.define(
     // (the backend reads it from the page's URL). Nothing is decided here:
     // the component only says where the backend is.
     //
-    // The same app as app_v2, which carries the control's source instead.
+    // The same app as app_source, which carries the control's source instead.
     return UIComponent.extend("abap2ui5.page.Component", {
       metadata: {
         manifest: "json",

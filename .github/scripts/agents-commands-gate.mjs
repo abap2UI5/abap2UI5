@@ -49,7 +49,7 @@ try {
 
 /* A script counts as documented when the chapter names it AS A COMMAND: a
  * line of a fenced block that starts with `npm run x`, or a table row holding
- * `npm run x` / `npm x` / `npm --prefix app run x` in code formatting (with or
+ * `npm run x` / `npm x` / `npm --prefix bundle run x` in code formatting (with or
  * without arguments), or - in the row's first cell only - one alternative of
  * a row that lists several (`... / `frontend:cloud_v2` / ...`). A bare
  * backticked token anywhere in the file used to count, which let `test`,
@@ -84,13 +84,13 @@ for (const line of chapter.split("\n")) {
   const first = line.split("|")[1] ?? "";
   for (const m of first.matchAll(ALTERNATIVE)) documentedNames.add(m[1]);
 }
-/* The app/ table documents app/package.json's scripts (`npm --prefix app run
+/* The app/ table documents bundle/package.json's scripts (`npm --prefix bundle run
  * …`), which the root package.json does not have - they are not stale rows. */
 let appScripts = {};
 try {
-  appScripts = JSON.parse(readFileSync(join(ROOT, "app", "package.json"), "utf8")).scripts ?? {};
+  appScripts = JSON.parse(readFileSync(join(ROOT, "bundle", "package.json"), "utf8")).scripts ?? {};
 } catch {
-  // no app/package.json - then no row may name one either
+  // no bundle/package.json - then no row may name one either
 }
 
 const missing = [];
@@ -127,7 +127,7 @@ if (missing.length > 0) {
   console.log("");
 }
 if (gone.length > 0) {
-  console.log(`  named in a table row of ${FILE} but not a script of package.json or app/package.json:`);
+  console.log(`  named in a table row of ${FILE} but not a script of package.json or bundle/package.json:`);
   for (const name of gone) console.log(`    ${name}`);
   console.log("");
   console.log("  Drop or fix the row - a documented command that does not exist sends");

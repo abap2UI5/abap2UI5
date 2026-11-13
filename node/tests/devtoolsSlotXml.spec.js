@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/SlotXml.js
+// Tests the real implementation shipped in bundle/webapp/devtools/SlotXml.js
 // - the one reader of a slot's view XML that the tab registry, the
 // registry inspector and the control picker share. Pinned: the live
 // view's own XML wins over the recorded source, the fallback to the

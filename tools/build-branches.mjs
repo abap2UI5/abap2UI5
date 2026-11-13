@@ -3,10 +3,6 @@
 // Builds the generated output branches of abap2UI5/frontend from this
 // repository (app/ + frontend/ + tools/):
 //
-//   cloud        app/ (webapp) + frontend/abap/cloud (ABAP artefacts), classic bootstrap
-//   cloud_v2     like cloud, webapp patched to legacy-free (UI5 2.0)
-//   standard     BSP Z2UI5 (app2bsp) + ICF handler, classic bootstrap
-//   standard_v2  BSP Z2UI5 legacy-free (build-legacy-free.mjs)
 //   cloud_new    frontend/embed (the embed app) + frontend/abap/cloud
 //   standard_new BSP Z2UI5 of frontend/embed (app2bsp) + ICF handler
 //
@@ -18,41 +14,17 @@
 // split: standard_new the BSP itself, cloud_new the project for a Fiori
 // deployment.
 //
-// The two BSP branches additionally get the minified UI5 component preload
-// bundle (app2bsp/preload.js), which folds the ~50 single requests of an app
-// start into one and boots the app from it. The cloud branches ship the webapp
-// as a source project instead - there the developer runs the build.
-//
-// Renamed BSP variants can be built in addition (for a parallel installation
-// in the same SAP system, see tools/bsp_rename):
-//
-//   standard_<NAME>     like standard,    BSP/SICF/handler renamed to <NAME>
-//   standard_v2_<NAME>  like standard_v2, BSP/SICF/handler renamed to <NAME>
-//
-// e.g. standard_zmyui5 -> BSP ZMYUI5. <NAME> may also be a namespace in
-// abapGit file name notation ("/" -> "#"): standard_#abapgit#
-// -> BSP /ABAPGIT/UI5, standard_#abapgit#x -> BSP /ABAPGIT/X (details in
-// tools/bsp_rename). The frontend_deploy workflow builds and pushes
-// such branches on demand.
-//
-// A renamed BSP still calls the backend as z2ui5_cl_ui5_http_handler. For
-// a backend that was itself renamed (the build-rename workflow, branch
-// rename_<name>), the branch name carries the backend's name after a
-// double underscore and the handler calls <prefix>cl_ui5_http_handler
-// instead:
-//
-//   standard_#abap2ui5#__#abap2ui5#   BSP /ABAP2UI5/UI5, handler calls
-//                                     /abap2ui5/cl_ui5_http_handler
-//   standard_v2_zmyui5__zmyui5        BSP ZMYUI5, handler calls
-//                                     zmyui5_cl_ui5_http_handler
-//
-// The abaplint config of such a tree takes the backend from the branch the
-// build-rename workflow pushed it to (rename_abap2ui5, rename_zmyui5), so
-// the lint of the tree sees the class the handler calls. That branch has to
-// exist - run build-rename first.
+// cloud, cloud_v2, standard and standard_v2 - and the renamed variants
+// standard_<NAME> and standard_v2_<NAME> - are NOT built from this tree any
+// more (2026-11-13). They shipped bundle/webapp as a UI5 app of its own, and
+// it no longer is one: it is the source of the bundle the backend serves
+// (?z2ui5-bundle), without a page, a launchpad inbound or a start of its
+// own. They are to be built from app_npm, the minimal app around the embed
+// control; until then tools/app2bsp, tools/app2app_v2 and tools/bsp_rename
+// are kept as they were for that build to pick up.
 //
 // Usage:  node tools/build-branches.mjs [branch ...]
-// Without arguments the six fixed branches are built; with arguments only
+// Without arguments the two fixed branches are built; with arguments only
 // the named ones (so a frontend_deploy run builds exactly its branch).
 //
 // Everything is built into the gitignored tools/out/<branch>/ - no tree is
@@ -68,36 +40,26 @@
 // commit the tree was built from, which a pull-request build does not have.
 // tools/branch-stamp.mjs writes it at deploy time.
 //
-// The webapp comes from app/webapp of THIS repository - the single source.
-// Everything else an output branch needs lives under frontend/:
+// Everything an output branch needs lives under frontend/:
 //   frontend/abap/        ICF/BSP ABAP artefacts (cloud + standard), together
 //                         with the abaplint config, which is turned to /src/
 //                         in the branch
 //   frontend/common/      files every branch inherits (README, LICENSE, ...)
 //   frontend/embed/       the embed app of the _new branches
 // The scripts themselves live in tools/.
-//
-// The cloud branches deliver the complete Fiori project from app/ - the same
-// project files this repository is developed with, not a second copy.
 
-import { execFileSync } from "node:child_process";
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { patchIndexHtml, patchManifest } from "./app2app_v2/patch-v2.mjs";
 // The banner without the provenance line; branch-stamp.mjs stamps the commit
 // in at deploy time, because it does not exist yet here.
 import { banner } from "./branch-stamp.mjs";
 // The BSP itself is written by @abap2ui5/bsp (tools/bsp) - the same package
 // an app of any other project takes to become a BSP.
-import { writeFrontendBsp } from "./app2bsp/frontend-bsp.mjs";
 import { app2bsp } from "./bsp/index.mjs";
-// The renamed backend a renamed BSP calls, and the branch it is published on.
-import { deriveBackend } from "./bsp_rename/rename-bsp.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const core = join(here, "..");
-const webapp = join(core, "app/webapp");
 // The data the build consumes - ABAP artefacts and the files every branch
 // inherits - lives outside this folder; tools/ holds only what runs.
 const data = join(core, "frontend");
@@ -170,19 +132,6 @@ const posix = (p) => p.split(sep).join("/");
 const skipBuildArtifacts = (src) =>
   !/(^|\/)(node_modules|dist|\.git)(\/|$)/.test(posix(relative(core, src)));
 
-// The cloud branches ship the Fiori project from app/ - the same one this
-// repository is developed with, so the two cannot drift apart. What they do
-// NOT ship is the tooling that project is developed WITH: the linter and
-// formatter configs run here, on a pull request, and a delivery branch is an
-// installation source, not a development checkout. They are named rather than
-// pattern-matched so a new project file has to be decided on, not silently
-// delivered or silently dropped.
-const DEV_ONLY = new Set([".editorconfig", ".prettierrc", "eslint.config.mjs", "ui5lint.config.mjs"]);
-const skipDevProjectFiles = (src) => !DEV_ONLY.has(posix(relative(join(core, "app"), src)));
-
-// abap/cloud carries the abaplint config that lints it in place. It belongs to
-// this repository, not to the delivered package - the output branch gets its
-// own copy at the root (see initBranch), with the glob turned to /src/.
 const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 
 /* Where the backend lives is decided by the kind of deployment - and the two
@@ -192,7 +141,7 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
  *   ABAP Cloud   /sap/bc/http/sap/z2ui5 HTTP service Z2UI5
  *                                       (frontend/abap/cloud/01/z2ui5.http.xml)
  *
- * app/webapp/manifest.json carries the on-premise path, because that is where
+ * bundle/webapp/manifest.json carries the on-premise path, because that is where
  * development happens and where the BSP variant is built from. The cloud
  * branches used to copy it along - and a Fiori deployment on Steampunk then
  * sends its POSTs to an ICF node that does not exist there: 403
@@ -208,7 +157,7 @@ const skipLintConfig = (src) => !src.endsWith("abaplint.jsonc");
 const ONPREM_URI = "/sap/bc/z2ui5";
 const CLOUD_URI = "/sap/bc/http/sap/z2ui5";
 
-function patchCloudBackendUri(manifestJson, source = "app/webapp/manifest.json") {
+function patchCloudBackendUri(manifestJson, source) {
   const m = JSON.parse(manifestJson);
   const ds = m["sap.app"]?.dataSources?.http;
   if (ds?.uri !== ONPREM_URI) {
@@ -225,49 +174,6 @@ function patchCloudBackendUri(manifestJson, source = "app/webapp/manifest.json")
 // Webapp + ABAP cloud artefacts 1:1 from main; the backend URL is turned to
 // the HTTP service path, and for cloud_v2 the webapp bootstrap is patched to
 // legacy-free on top.
-function buildCloudVariant(branch) {
-  const dir = initBranch(branch, ABAPGIT_CLOUD);
-  cpSync(join(core, "app"), join(dir, "app"), {
-    recursive: true,
-    filter: (src) => skipBuildArtifacts(src) && skipDevProjectFiles(src),
-  });
-  cpSync(join(data, "abap/cloud"), join(dir, "src"), { recursive: true, filter: skipLintConfig });
-  const wa = join(dir, "app/webapp");
-  const manifest = join(wa, "manifest.json");
-  writeFileSync(manifest, patchCloudBackendUri(readFileSync(manifest, "utf8")));
-  if (branch === "cloud_v2") {
-    writeFileSync(join(wa, "index.html"), patchIndexHtml(readFileSync(join(wa, "index.html"), "utf8")));
-    writeFileSync(manifest, patchManifest(readFileSync(manifest, "utf8")));
-  }
-}
-
-// Classic BSP via app2bsp/preload.js + @abap2ui5/bsp + ICF handler
-function buildStandard(branch = "standard") {
-  const dir = initBranch(branch, ABAPGIT_STANDARD);
-  const work = join(scratch, "_work_standard");
-  // Leftovers of an aborted run would otherwise be built in as well: cpSync
-  // only merges on top, and a webapp file deleted in the meantime would stay
-  // in the tree as a registered BSP page.
-  rmSync(work, { recursive: true, force: true });
-  cpSync(join(here, "app2bsp"), join(work, ".github/app2bsp"), { recursive: true });
-  cpSync(webapp, join(work, "frontend/app/webapp"), { recursive: true, filter: skipBuildArtifacts });
-  execFileSync("node", [".github/app2bsp/preload.js"], { cwd: work, stdio: "inherit" });
-  writeFrontendBsp(join(work, "frontend/app/webapp"), join(work, "src/02"));
-  cpSync(join(data, "abap/standard"), join(dir, "src"), { recursive: true });
-  cpSync(join(work, "src/02"), join(dir, "src/02"), { recursive: true });
-  rmSync(work, { recursive: true, force: true });
-}
-
-// Legacy-free BSP via build-legacy-free.mjs
-function buildStandardV2(branch = "standard_v2") {
-  const dir = initBranch(branch, ABAPGIT_STANDARD);
-  const work = join(scratch, "_work_standard_v2");
-  execFileSync("node", [join(here, "app2app_v2/build-legacy-free.mjs"), core, webapp, work],
-    { stdio: "inherit" });
-  cpSync(join(work, "src"), join(dir, "src"), { recursive: true });
-  rmSync(work, { recursive: true, force: true });
-}
-
 /* The _new branches: frontend/embed, the app around @abap2ui5/embed-control
  * (formerly the repository abap2UI5/frontend-new). Its BSP holds the app and
  * the control, nothing of the abap2UI5 frontend - the control loads that
@@ -348,10 +254,6 @@ function buildCloudNew(branch = "cloud_new") {
 }
 
 const BUILDERS = {
-  cloud: () => buildCloudVariant("cloud"),
-  cloud_v2: () => buildCloudVariant("cloud_v2"),
-  standard: () => buildStandard(),
-  standard_v2: () => buildStandardV2(),
   cloud_new: () => buildCloudNew(),
   standard_new: () => buildStandardNew(),
 };
@@ -365,47 +267,7 @@ const BUILDERS = {
 // there as well). The abaplint config of the tree is pointed at the branch
 // that carries the renamed backend, so a lint of the tree finds the class
 // the handler calls (frontend_deploy lints the standard trees).
-const BACKEND_DEP = '"url": "https://github.com/abap2UI5/abap2UI5",';
-function pointLintAtBackend(dir, backend) {
-  const file = join(dir, "abaplint.jsonc");
-  const lint = readFileSync(file, "utf8");
-  if (!lint.includes(BACKEND_DEP)) throw new Error(`${file}: ${BACKEND_DEP} not found`);
-  writeFileSync(file, lint.replace(BACKEND_DEP, `${BACKEND_DEP}\n      "branch": "${backend.branch}",`));
-}
-
-function renamedBuilder(branch) {
-  for (const base of ["standard_v2", "standard"]) {
-    const prefix = `${base}_`;
-    if (!branch.startsWith(prefix)) continue;
-    const rest = branch.slice(prefix.length);
-    // An empty name ("standard_v2_") is an error - it must not fall through to
-    // the shorter base and be built there with "v2_" as the name.
-    if (!rest) return null;
-    const [name, backend, ...more] = rest.split("__");
-    // "standard_x__" or "standard_x__y__z": no silent guess at what was meant
-    if (!name || backend === "" || more.length) return null;
-    const buildBase = base === "standard" ? buildStandard : buildStandardV2;
-    // validated before anything is built, so a bad backend name fails fast
-    let dep = null;
-    if (backend) {
-      try {
-        dep = deriveBackend(backend);
-      } catch (error) {
-        console.error(`Invalid branch name '${branch}': ${error.message}`);
-        process.exit(1);
-      }
-    }
-    return () => {
-      buildBase(branch);
-      execFileSync("node",
-        [join(here, "bsp_rename/rename-bsp.mjs"), name, "--yes", "--dir", "src",
-          ...(dep ? ["--backend", dep.prefix] : [])],
-        { cwd: outDir(branch), stdio: "inherit" });
-      if (dep) pointLintAtBackend(outDir(branch), dep);
-    };
-  }
-  return null;
-}
+const RETIRED = /^(cloud|cloud_v2|standard|standard_v2)$|^standard(_v2)?_./;
 
 const requested = process.argv.slice(2);
 const branches = requested.length ? requested : Object.keys(BUILDERS);
@@ -418,9 +280,13 @@ const builds = branches.map((b) => {
     console.error(`Invalid branch name '${b}' - only [A-Za-z0-9_#] is allowed`);
     process.exit(1);
   }
-  const build = BUILDERS[b] ?? renamedBuilder(b);
+  const build = BUILDERS[b];
   if (!build) {
-    console.error(`Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}, standard_<name>, standard_v2_<name> (<name> also in the #ns#name spelling, <name>__<backend> for a renamed backend)`);
+    console.error(
+      RETIRED.test(b)
+        ? `Branch '${b}' is not built from this tree any more - it shipped bundle/webapp as an app of its own (see the header)`
+        : `Unknown branch '${b}' - allowed: ${Object.keys(BUILDERS).join(", ")}`,
+    );
     process.exit(1);
   }
   return build;

@@ -74,7 +74,7 @@ function appFile(dir, name) {
     if (!pages.includes(name)) return null;
     return toFile(readFileSync(join(bsp.dir, pageFileName(prefix, name)), "utf8"));
   }
-  const file = join(dir, "app/webapp", name);
+  const file = join(dir, "bundle/webapp", name);
   return existsSync(file) ? readFileSync(file, "utf8") : null;
 }
 

@@ -75,7 +75,7 @@ sap.ui.define(
       // The ONE apply path. There used to be a second, imperative one -
       // setFilter( )/setSort( ) with their own _applyToTable deferral - and it
       // lost its last caller when the hooks moved to readBackend/applyBackend:
-      // nothing in app/webapp called it, and no backend-driven control call
+      // nothing in bundle/webapp called it, and no backend-driven control call
       // can (it is not in the ControlCall whitelists). All it still pinned was
       // a deferral the app never takes, while the dedupe below - the one the
       // app runs on every roundtrip - went unpinned. Re-apply stays here.

@@ -1,9 +1,9 @@
 // Gate: `npm run app2abap` changed only what it is supposed to change.
 //
-// app2abap regenerates the frontend carriers (src/01/03) from app/webapp and
+// app2abap regenerates the frontend carriers (src/01/03) from bundle/webapp and
 // then runs the repository's autoformatter over src/. The check used to be
 //
-//   npm run app2abap && git diff --exit-code -- src/01/03 app/webapp
+//   npm run app2abap && git diff --exit-code -- src/01/03 bundle/webapp
 //
 // - it looked at the two paths the GENERATOR writes and at nothing else. The
 // autoformatter is not scoped to those two paths, so anything it rewrote

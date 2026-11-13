@@ -1,6 +1,6 @@
 # tools/
 
-Everything that **generates** an artefact out of `app/webapp/`. One folder, so
+Everything that **generates** an artefact out of `bundle/webapp/`. One folder, so
 the answer to "where does this file come from" is always the same place.
 
 Not to be confused with `.github/scripts/`, which is the other kind of script
@@ -10,7 +10,7 @@ whether a pull request may merge.
 
 | | |
 | --- | --- |
-| `app2abap/` | `app/webapp/*` → the embedded ABAP string constants in `src/01/03/` (`npm run app2abap`) |
+| `app2abap/` | `bundle/webapp/*` → the embedded ABAP string constants in `src/01/03/` (`npm run app2abap`) |
 | `bsp/` | **`@abap2ui5/bsp`**, published to npm: any UI5 app folder → an abapGit BSP with its ICF nodes (`app2bsp`), a serialized BSP → an app folder (`bsp2app`), the page rules (`check`). Its own README is the usage; `npm run test:bsp` its tests |
 | `app2bsp/` | `frontend-bsp.mjs` → abap2UI5's webapp as the BSP `Z2UI5`, through `bsp/`; `preload.js` → the minified UI5 component preload bundle it carries. `run.js` is the former generator, unchanged and no longer called here: abap2UI5/embed-control's build copies this folder and runs it, and it goes once that build uses `@abap2ui5/bsp` |
 | `app2app_v2/` | the legacy-free (UI5 2.x) bootstrap patch, and the branch built from it |
@@ -40,7 +40,7 @@ running in the pull-request gate (`frontend_check`) and at deploy time
 ## Running it
 
 ```bash
-npm run app2abap                # regenerate src/01/03 from app/webapp
+npm run app2abap                # regenerate src/01/03 from bundle/webapp
 npm run frontend:build          # all six delivery branches -> tools/out/
 npm run frontend:standard       # just one
 npm run check:frontend          # build all six, check the BSP page invariants and that the branches are interchangeable

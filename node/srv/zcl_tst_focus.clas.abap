@@ -24,7 +24,7 @@ CLASS zcl_tst_focus IMPLEMENTATION.
     " DOM still carries the old disabled input until UI5 re-renders
     " asynchronously - the browser silently ignores focus() on a disabled
     " element, so the frontend has to re-apply the focus after the re-render
-    " (see evSetFocus in app/webapp/core/FrontendAction.js).
+    " (see evSetFocus in bundle/webapp/core/FrontendAction.js).
     IF client->check_on_init( ).
       enabled = abap_true.
       value   = `86801398`.

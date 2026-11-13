@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// app/webapp/model/formatter.js is the ONE place where the framework ships
+// bundle/webapp/model/formatter.js is the ONE place where the framework ships
 // JavaScript that an app's view calls to turn a model value into what the
 // control shows. abap2UI5 is a thin frontend, so that set is a marshalling
 // layer, not a home for logic ABAP could have finished. Every function
@@ -25,7 +25,7 @@
 // Criterion 1 (a function formats exactly the one value handed to it, it does
 // not read other fields or rows) needs a reader and stays reviewer-enforced.
 //
-// The same two criteria hold for app/webapp/model/clipboard.js, the module of
+// The same two criteria hold for bundle/webapp/model/clipboard.js, the module of
 // synchronous control callbacks (CopyProvider.extractData): it is the second
 // place the framework ships JS a view reaches, so it is judged by the same
 // gate against its own manifest rather than by a copy of it.
@@ -38,7 +38,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const MODEL = path.join(ROOT, "app", "webapp", "model");
+const MODEL = path.join(ROOT, "bundle", "webapp", "model");
 
 // The closed set of reasons a formatter may live in the frontend at all.
 // Do not extend it without the same scrutiny as the module itself: a new
@@ -209,7 +209,7 @@ for (const { file, manifest: MANIFEST } of MODULES) {
 
 if (problems.length) {
   console.error(
-    "formatter-scope-gate: a curated module under app/webapp/model/ violates the admission criteria in its header:",
+    "formatter-scope-gate: a curated module under bundle/webapp/model/ violates the admission criteria in its header:",
   );
   for (const p of problems) console.error(`  - ${p}`);
   console.error(

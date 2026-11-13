@@ -6,7 +6,7 @@
  * @abap2ui5/linter carries hand-maintained copies of closed sets defined in
  * this repository:
  *
- *   lib/formatters.mjs        <- app/webapp/model/formatter.js
+ *   lib/formatters.mjs        <- bundle/webapp/model/formatter.js
  *   lib/frontend-actions.mjs  <- src/01/03/z2ui5_cl_ui5f_*_js.clas.abap
  *   lib/released-api.mjs      <- the abapGit object layout of src/
  *

@@ -31,7 +31,7 @@ Where the rest is:
 
 | File | Read it when |
 |---|---|
-| `app/AGENTS.md` | changing anything under `app/webapp/` — the frontend rules in full (loaded automatically below `app/`) |
+| `bundle/AGENTS.md` | changing anything under `bundle/webapp/` — the frontend rules in full (loaded automatically below `app/`) |
 | `REVIEW.md` | reviewing, auditing or proposing improvements — what is out of scope |
 | `docs/agents/repository-map.md` | placing a change outside `src/`; related repositories, root files, reference files |
 | `docs/agents/commands.md` | you need a command — the complete inventory, gated against `package.json` |
@@ -84,14 +84,14 @@ view-lifecycle calls (which carry any view XML) and `T_CUSTOM` follow-up
 actions (including messages). `MODEL` travels only when something bound changed.
 
 **The wire carries its own version.** Every response stamps `S_FRONT.PROTOCOL`
-from `z2ui5_if_ui5_types=>c_protocol`, and `app/webapp/core/Server.js` compares
+from `z2ui5_if_ui5_types=>c_protocol`, and `bundle/webapp/core/Server.js` compares
 it with its own `PROTOCOL`. It is not the product version: **raise both halves
 in the change that breaks the wire** (reasoning at both sites).
 
 **Inside the Fiori Launchpad** the POST body may arrive without its
 `{ "value": … }` envelope (`z2ui5_cl_ui5_handler=>request_parse_body` handles
 both), and the shell owns the front of the URL hash. Exactly two places know
-that split — `app/webapp/core/Router.js` (`splitHash()`) and
+that split — `bundle/webapp/core/Router.js` (`splitHash()`) and
 `z2ui5_cl_ui5_handler` (`hash_get_app_part` / `hash_get_shell_part`). **Do not
 re-implement the split anywhere else, and do not rebuild a URL from
 `location.href.split("#")[0]` plus an app hash** — write the app hash through
@@ -108,7 +108,7 @@ src/
 ├── 01/   Layer 1: Core engine
 │   ├── 01/   Draft service (z2ui5_cl_ui5_srv_draft + table z2ui5_t_01)
 │   ├── 02/   handler, client, action, frontend, app_cont, srv_bind/_event/_message/_model/_monitor, z2ui5_if_ui5_types
-│   ├── 03/   Embedded UI5 frontend — GENERATED from app/webapp/, never edit (rule 2)
+│   ├── 03/   Embedded UI5 frontend — GENERATED from bundle/webapp/, never edit (rule 2)
 │   ├── 04/   Shipped apps + default exit (z2ui5_cl_ui5_app_start, _app_hi_world, _user_exit)
 │   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
 │             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
@@ -223,14 +223,14 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
 - **The static gates are one job** (`check_gates.yaml`), one step per rule, each `if: ${{ !cancelled() }}`, so a
   pull request sees every failure at once. `npm run gates` is the local half.
 - **`src/99` is frozen and `src/02` is a contract**, both machine-checked (rules 1, 5).
-- **`src/01/03/` is generated from `app/webapp/`** - plus `app_v2/webapp/`, the minimal app with the embed control
+- **`src/01/03/` is generated from `bundle/webapp/`** - plus `app_source/webapp/`, the minimal app with the embed control
   that the GET page itself carries - and drift-gated (rule 2). The delivery trees are not committed:
   `frontend_check` builds them into the git-ignored `tools/out/`.
 - **The gates also run on `push: main`** — a merge is a state no pull request tested.
 - **Every job takes its toolchain from `.github/actions/setup`.**
 - **A release carries the prebuilt backend** (`backend-prebuilt.yaml`); its asset name and `backend-manifest.json`
   are read by `abap2UI5/mcp-server` — renaming either is a change over there.
-- **Downstream frontend repositories are generated, never edited** — `app/webapp/` is edited here and nowhere else.
+- **Downstream frontend repositories are generated, never edited** — `bundle/webapp/` is edited here and nowhere else.
 
 ## Language & Code Rules
 
@@ -306,7 +306,7 @@ any change under `src/`, and add the case there when a system reports a new one.
 npm run check        # Fast inner loop: abaplint only (seconds)
 npm run gates        # Every static gate in one process (~4s), reporting EVERY failure
 npm run verify       # The full pre-PR gate: downport -> transpile -> unit -> JS specs -> app2abap drift,
-                     # matching CI (run verify:full when app/webapp/ changed)
+                     # matching CI (run verify:full when bundle/webapp/ changed)
 ```
 
 All three are non-destructive. **Never validate with `npm run auto_downport`** —
@@ -341,14 +341,14 @@ reported, and never let a merge close it** — no `Fixes #NNNN` / `Closes #NNNN`
 
 For **modifying the framework**. Code, tests and gates cite these by number —
 keep the numbers. The frontend rules (2, 7, 8, 10, 12–19, 21) are written out in
-full in **`app/AGENTS.md`**, under the same numbers.
+full in **`bundle/AGENTS.md`**, under the same numbers.
 
 1. **Do not modify `src/00/01/` (AJSON) or `src/00/02/` (S-RTTI)** — mirrored and synced by workflows.
    **Do not change the production code of `src/99/` or add consumers on it** (see "Layered Design").
    All builder work happens in `z2ui5_cl_ui5_view_builder`.
-2. **NEVER edit any file under `src/01/03/` by hand** — it is generated from `app/webapp/`. Change the source there
+2. **NEVER edit any file under `src/01/03/` by hand** — it is generated from `bundle/webapp/`. Change the source there
    and run **`npm run app2abap`** (or comment `/fix app2abap`), then commit what it produced. Never reintroduce a
-   hand-kept preload list, never edit a built delivery tree. Details: `app/AGENTS.md`, rule 2.
+   hand-kept preload list, never edit a built delivery tree. Details: `bundle/AGENTS.md`, rule 2.
 3. **Always run `npx abaplint`** (`npm run check`) before considering a change complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP and ABAP Cloud.
 5. **The public API (`src/02/`) is a stable contract.** Never rename, remove or change the signature of a method
@@ -368,18 +368,18 @@ full in **`app/AGENTS.md`**, under the same numbers.
    `core/Env.js`; state is per component** (`core/Context.js`, shape in `core/AppState.js`) — no singleton, nothing
    on `window`.
 9. **Validate with `npm run verify`, never with `npm run auto_downport`** (see "Build & Validation").
-10. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — no popups/toasts of their own, no `async`
+10. **Custom controls (`bundle/webapp/cc/`) delegate, they never decide** — no popups/toasts of their own, no `async`
     lifecycle hooks, log never throw.
 11. **Never "modernize" `WITH DEFAULT KEY` to `WITH EMPTY KEY` on a table passed to a classic function module** (or
     any typed formal parameter) — see the comment above `lt_impl` in
     `z2ui5_cl_ui5_util_context=>rtti_get_classes_intf_std`.
 12. **A module newer than UI5 1.71 is never a hard `sap.ui.define` dependency** — lazy `sap.ui.require` at the
     point of use. Never run SAP's UI5 Modernization Plugin or an unreviewed `ui5lint --fix` over
-    `app/webapp` — both target 1.136.
+    `bundle/webapp` — both target 1.136.
 13. **Nothing the framework ships may need `'unsafe-eval'` or an inline-script `'unsafe-inline'`** — no second
     inline `<script>`, no inline handler, no `eval`/`new Function`/sync load, no configurable value inside the
     hashed GET script. `check:csp` gates the default.
-14. **`app/webapp/` source is 7-bit ASCII** — every file is embedded into ABAP.
+14. **`bundle/webapp/` source is 7-bit ASCII** — every file is embedded into ABAP.
 15. **A generic aggregation tag (`<ns:name>`, `heading( ns )`, `_generic( … )`) must name an aggregation the parent
     has in UI5 1.71** — otherwise UI5 loads it as a control class and the view dies (Dialog footer → `buttons`).
     This applies to views built in ABAP too.
@@ -399,7 +399,7 @@ full in **`app/AGENTS.md`**, under the same numbers.
 **What a green CI proves:** rules 1 (`src/99` part), 2, 3, 4, 5, 14, 20, the icon
 half of 21 and the formatter half of 19 are gated. The 1.71 cluster (12, 13, 15–18)
 is only partly covered by the `ui5-1.71` Playwright leg — outside the shell and
-roundtrip specs it is reviewer-enforced. Details: `app/AGENTS.md`, last section.
+roundtrip specs it is reviewer-enforced. Details: `bundle/AGENTS.md`, last section.
 
 ## Design Decisions & Known Non-Issues
 

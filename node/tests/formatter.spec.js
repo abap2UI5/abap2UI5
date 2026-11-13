@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the curated formatter module app/webapp/model/formatter.js (loaded
+// Tests the curated formatter module bundle/webapp/model/formatter.js (loaded
 // via a stubbed sap.ui.define). The module backs
 // core:require="{Formatter: 'z2ui5/model/formatter'}" - everything here is
 // a public contract.

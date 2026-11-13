@@ -37,7 +37,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const SCAN = path.join(ROOT, 'app', 'webapp');
+const SCAN = path.join(ROOT, 'bundle', 'webapp');
 const FLOOR = '1.71';
 
 /* Every UI5 module this repository names in a `sap.ui.define` array. All of

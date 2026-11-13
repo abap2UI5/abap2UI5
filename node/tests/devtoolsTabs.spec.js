@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
-// Tests the real registry shipped in app/webapp/devtools/Tabs.js - the ONE
+// Tests the real registry shipped in bundle/webapp/devtools/Tabs.js - the ONE
 // table that says what a developer-tools tab is.
 //
 // It exists because that fact used to be written down four times (a source

@@ -8,7 +8,7 @@ name: trigger_local
 # safety net.
 #
 # abap2UI5/frontend used to be kept in sync the same way (create_frontend,
-# which mirrored app/webapp into its main). It no longer is: the frontend
+# which mirrored bundle/webapp into its main). It no longer is: the frontend
 # build lives here now, and frontend_deploy.yaml pushes finished branches
 # there instead of a source to build from.
 #

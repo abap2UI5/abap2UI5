@@ -310,7 +310,7 @@ jobs:
         run: node .github/scripts/csp-default-gate.mjs # npm run check:csp
 
       # the release's SBOM lists abap2UI5 and UI5 and nothing else - true only
-      # while no third-party file is copied into src/ or app/webapp/
+      # while no third-party file is copied into src/ or bundle/webapp/
       - name: nothing third-party is shipped, so the SBOM is complete
         if: ${{ !cancelled() }}
         run: node .github/scripts/sbom-gate.mjs # npm run check:sbom
@@ -319,7 +319,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: npm run check:abap2ui5
 
-      # app/eslint.config.mjs is scoped to webapp/**, so everything that BUILDS
+      # bundle/eslint.config.mjs is scoped to webapp/**, so everything that BUILDS
       # and CHECKS the frontend - these gates, tools/, node/ - was uncovered.
       # Those scripts decide whether a pull request merges, and a typo in one
       # of them failed as a crash in CI rather than as a finding

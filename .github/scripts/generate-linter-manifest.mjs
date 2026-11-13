@@ -19,7 +19,7 @@
  *   - and in both cases the change was green here and wrong there, days later.
  *
  * So the direction is turned round. This script reads the sets from their
- * SOURCES - app/webapp for everything that is JavaScript, never the embedded
+ * SOURCES - bundle/webapp for everything that is JavaScript, never the embedded
  * copy - and writes them as one JSON file, `.github/shared/linter-manifest.json`.
  * The linter reads that file (`check-upstream --manifest`) instead of finding
  * the sets itself. A layout change is then a change to THIS script, made in
@@ -58,10 +58,10 @@ const SCHEMA = 1;
 
 /* ── where each set lives ─────────────────────────────────────────────── */
 
-const FORMATTER = "app/webapp/model/formatter.js";
-const CLIPBOARD = "app/webapp/model/clipboard.js";
-const ACTIONS_DIR = "app/webapp/core/actions";
-const CC_DIR = "app/webapp/cc";
+const FORMATTER = "bundle/webapp/model/formatter.js";
+const CLIPBOARD = "bundle/webapp/model/clipboard.js";
+const ACTIONS_DIR = "bundle/webapp/core/actions";
+const CC_DIR = "bundle/webapp/cc";
 const CLIENT_INTF = "src/02/z2ui5_if_client.intf.abap";
 /* `ct_box_type` - the MessageBox display methods box_resolve( ) accepts. */
 const BOX_TYPES = "src/01/02/z2ui5_cl_ui5_srv_message.clas.abap";

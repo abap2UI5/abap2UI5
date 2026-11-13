@@ -3,7 +3,7 @@
 //
 // Design-accepted findings are switched off where they occur: in JS files
 // inline via ui5lint-disable comments with a stated reason, whole files
-// (index.html, manifest.json) in app/ui5lint.config.mjs - see the comments
+// (index.html, manifest.json) in bundle/ui5lint.config.mjs - see the comments
 // there. Anything the linter still reports is a new finding and must be
 // fixed or explicitly suppressed with a justification.
 import { execFile } from "node:child_process";
@@ -15,7 +15,7 @@ const appDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
   "..",
-  "app",
+  "bundle",
 );
 
 // ui5lint exits non-zero when it finds anything, so take stdout either way

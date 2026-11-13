@@ -3,7 +3,7 @@ const { test, expect } = require("./fixtures");
 const { pageComponentId } = require("./pageComponent");
 
 // Two z2ui5.Component instances on ONE page, side by side - the case the
-// per-component context (app/webapp/core/Context.js) exists for. Until
+// per-component context (bundle/webapp/core/Context.js) exists for. Until
 // 2026-09-23 the frontend state was a module singleton that Component.init
 // reset for whoever came last, so the second instance silently corrupted
 // the first, which failed later with "App Terminated". The served page

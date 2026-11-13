@@ -27,7 +27,7 @@ import { join } from "node:path";
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const SPECS = join(ROOT, "node", "tests");
 const INVENTORY = "docs/agents/test-inventory.md";
-const WEBAPP = join(ROOT, "app", "webapp");
+const WEBAPP = join(ROOT, "bundle", "webapp");
 
 /*
  * The THIRD direction, and the one the header above describes without
@@ -63,7 +63,7 @@ const named = new Set(text.match(/[A-Za-z0-9_.]+\.spec\.js/g) ?? []);
 const missing = onDisk.filter((f) => !named.has(f));
 const stale = [...named].filter((f) => !onDisk.includes(f)).sort();
 
-/* Every frontend module, relative to app/webapp - the set the inventory is a
+/* Every frontend module, relative to bundle/webapp - the set the inventory is a
  * statement about. */
 function modules(dir, prefix = "") {
   const out = [];
@@ -108,7 +108,7 @@ if (stale.length) {
 }
 if (uncovered.length) {
   console.error("  frontend module(s) the inventory does not mention at all:");
-  for (const f of uncovered) console.error(`    app/webapp/${f}`);
+  for (const f of uncovered) console.error(`    bundle/webapp/${f}`);
   console.error("");
   console.error("  The list answers \"is this module covered?\", so a module");
   console.error("  missing from it answers \"no spec\" by omission rather than");
@@ -119,7 +119,7 @@ if (uncovered.length) {
 }
 if (excused.length) {
   console.error("  NO_SPEC entry/entries that are no longer true:");
-  for (const f of excused) console.error(`    app/webapp/${f}`);
+  for (const f of excused) console.error(`    bundle/webapp/${f}`);
   console.error("");
   console.error("  The module is in the inventory now, or gone. Drop the entry.");
 }

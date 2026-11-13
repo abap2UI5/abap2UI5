@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Picker.js. describe() is the whole payload of
+// bundle/webapp/devtools/Picker.js. describe() is the whole payload of
 // the feature (the DOM pick around it only decides WHICH control it gets),
 // so the specs drive it with UI5-shaped control doubles.
 

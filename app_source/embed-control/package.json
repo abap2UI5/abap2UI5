@@ -12,14 +12,14 @@
     "abap",
     "abap2ui5"
   ],
-  "homepage": "https://github.com/abap2UI5/abap2UI5/tree/main/app_v2/embed-control#readme",
+  "homepage": "https://github.com/abap2UI5/abap2UI5/tree/main/app_source/embed-control#readme",
   "bugs": {
     "url": "https://github.com/abap2UI5/abap2UI5/issues"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/abap2UI5/abap2UI5.git",
-    "directory": "app_v2/embed-control"
+    "directory": "app_source/embed-control"
   },
   "author": "abap2UI5",
   "license": "MIT",

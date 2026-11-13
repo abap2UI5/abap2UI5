@@ -6,7 +6,7 @@
 // roundtrip, after UI5's one-second default delay, so a poll whose backend
 // call took longer flashed the full-screen overlay (samples-controls
 // demo_004's carousel, ticks of 1.1-1.4 s). evStartTimer in
-// app/webapp/core/actions/ViewOps.js has the reasoning.
+// bundle/webapp/core/actions/ViewOps.js has the reasoning.
 //
 // The transpiled backend answers in milliseconds, so the spec makes the
 // tick slow: the TICK request is held back past the default delay before it

@@ -921,7 +921,7 @@ test("an embedded component the host handed the hash to routes as on its own pag
 // undefined everywhere and simply do nothing - so pin the set here.
 test("reads exactly the option names the backend writes", () => {
   const src = require("fs").readFileSync(
-    require("path").join(__dirname, "..", "..", "app", "webapp", "core", "Router.js"),
+    require("path").join(__dirname, "..", "..", "bundle", "webapp", "core", "Router.js"),
     "utf8",
   );
   const read = [...src.matchAll(/mOptions\.([a-zA-Z]+)/g)].map((m) => m[1]);

@@ -13,11 +13,11 @@ name: frontend_check
 # delivered bytes is this build running identically here and at deploy time.
 
 on:
-  # app/ and not just app/webapp/: the cloud branches ship the whole Fiori
+  # app/ and not just bundle/webapp/: the cloud branches ship the whole Fiori
   # project, so ui5.yaml or package.json changes what is delivered too.
   pull_request:
     paths:
-      - 'app/**'
+      - 'bundle/**'
       - 'frontend/**'
       - 'tools/**'
       # the BSP preload bundle is minified with the installed terser, so a
@@ -29,7 +29,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'app/**'
+      - 'bundle/**'
       - 'frontend/**'
       - 'tools/**'
       # the BSP preload bundle is minified with the installed terser, so a
@@ -39,7 +39,7 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
-# The most expensive pull-request job in the repository - six delivery trees,
+# The most expensive pull-request job in the repository - the delivery trees,
 # a renamed BSP variant and four abaplint passes, budgeted at 15 minutes - and
 # the only one that had no concurrency group, so a three-commit push burst ran
 # it three times to completion. Same shape as every other workflow here.
@@ -94,18 +94,13 @@ jobs:
     # artefact rather than on the bundle it was made from: a page line is at
     # most 255 characters, a page name carries no character CREATE_NEW_PAGE
     # rejects, and the preload page is still valid JavaScript once padded.
-    # Then that every branch keeps the deployment identity of standard and
-    # cloud - objects, ICF nodes, BSP, endpoint, launchpad inbound - so a
-    # system can switch between them (tools/check-identity.mjs).
-    # `check:frontend` is `frontend:build` + tools/check-pages.mjs +
-    # tools/check-identity.mjs - the one spelling of this gate, here and in
-    # package.json.
-    - name: Build the six delivery trees and check the BSP page invariants
+    # `check:frontend` is `frontend:build` + tools/check-pages.mjs - the one
+    # spelling of this gate, here and in package.json. The identity check
+    # against standard and cloud (tools/check-identity.mjs) is out of the
+    # gate while those two are not built from this tree
+    # (tools/build-branches.mjs, header).
+    - name: Build the delivery trees and check the BSP page invariants
       run: npm run check:frontend
-
-    # Same abaplint run the standard branch gets in its own repository
-    - name: Lint the generated standard tree
-      run: cd tools/out/standard && npx abaplint
 
     # The _new trees ship the same handler as standard and cloud, but their
     # own trees, so they are linted against main as well

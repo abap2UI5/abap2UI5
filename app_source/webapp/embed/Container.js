@@ -12,7 +12,7 @@
 // The abap2UI5 frontend - the z2ui5 UIComponent the control wraps - is not
 // shipped with the control: it comes from the abap2UI5 service the app talks
 // to anyway. Every abap2UI5 installation carries its frontend (embedded in
-// the ABAP classes generated from app/webapp), so the frontend always has
+// the ABAP classes generated from bundle/webapp), so the frontend always has
 // the version of the backend it runs against, and a host app carries nothing
 // but this file and its stylesheet.
 //
@@ -39,7 +39,7 @@ sap.ui.define(
   (Control, Component, ComponentContainer, includeStylesheet, Log) => {
     "use strict";
 
-    // the component name - "sap.app/id" of abap2UI5's app/webapp/manifest.json.
+    // the component name - "sap.app/id" of abap2UI5's bundle/webapp/manifest.json.
     // A bundle that registers the component under a second name as well
     // names it in its z2ui5/embed module (componentName) - abap2UI5
     // 1.147.0: a page whose own component is z2ui5 (the BSP Z2UI5 of
@@ -567,7 +567,7 @@ sap.ui.define(
       //                      client->get( )-t_comp_params. Both in the
       //                      launchpad's shape, one array of values per name
       //   endpoint           the backend URL, read by the frontend and not
-      //                      sent on (Component.init in abap2UI5 app/webapp)
+      //                      sent on (Component.init in abap2UI5 bundle/webapp)
       //   ownsPage           only when the host set it: the page is the
       //                      app's (Component.init as well) - with ownsHash
       //                      next to it, which a 1.147.0 backend reads

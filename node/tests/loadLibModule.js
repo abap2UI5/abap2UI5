@@ -1,5 +1,5 @@
 // @ts-check
-// Loads the real app/webapp/core/Lib.js (and, via loadEnv, core/Env.js on
+// Loads the real bundle/webapp/core/Lib.js (and, via loadEnv, core/Env.js on
 // top of it) through the generic loadModule helper (stubbed
 // sap.ui.define), so the specs exercise the shipped implementation instead
 // of a copy that could silently drift from the production code.

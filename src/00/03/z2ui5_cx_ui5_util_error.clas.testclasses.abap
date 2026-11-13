@@ -186,7 +186,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     " the message section (both messages), one detail block per chain entry,
     " the class name of every entry and the system context. The `--- error ---`
-    " header is a contract with the frontend: app/webapp/core/ErrorView.js
+    " header is a contract with the frontend: bundle/webapp/core/ErrorView.js
     " lifts exactly that section into the error popup
     cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `--- error ---` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `outer problem` ) ).

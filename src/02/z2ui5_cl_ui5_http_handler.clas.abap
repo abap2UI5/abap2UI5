@@ -124,7 +124,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " The one path BELOW the node that is not the page: GET
     " <node>/embed/Container.css is the stylesheet of the embed control. The
     " GET page maps the control's namespace z2ui5/embed to <node>/embed
-    " (app_v2/webapp/Component.js), so this is where the control's own include of
+    " (app_source/webapp/Component.js), so this is where the control's own include of
     " z2ui5/embed/Container.css ends. A path and not a value of
     " c_bundle_param: the UI5 loader drops the query of a resource root. As
     " a pattern for CP, which ignores case
@@ -806,7 +806,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                           occ  = 0 ) }</style>\n|.
     ENDIF.
 
-    " The page is the minimal UI5 app of app_v2/webapp: a component with one
+    " The page is the minimal UI5 app of app_source/webapp: a component with one
     " XML view, a sap.m.Shell with a z2ui5.embed.Container in it. The control
     " loads the frontend from this node (?z2ui5-bundle, _http_get_bundle) and
     " runs the app in it. So the page carries nothing of the frontend: the
@@ -973,7 +973,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " GET <node>?z2ui5-bundle=devtools - the developer tools as a script of
     " their own: the dialog, its fragment, the inspectors, the tabs, the
-    " picker, the live editor, the report - every file of app/webapp/
+    " picker, the live editor, the report - every file of bundle/webapp/
     " devtools/ the shell's inline script does not carry (the facade, the
     " console capture and the roundtrip recorder stay in the shell: they
     " have to run from the first roundtrip on). The same shape as the

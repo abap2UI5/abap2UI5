@@ -124,13 +124,13 @@ test("a class it cannot read is logged, never thrown", () => {
 });
 
 // ... which only works for a class that is handed over. Every module under
-// app/webapp that defines one - a `.extend("z2ui5.` - has to pass it to
+// bundle/webapp that defines one - a `.extend("z2ui5.` - has to pass it to
 // Env.ownClass, or its global stays on a host's page: read off the sources,
 // so a new custom control cannot forget it.
 test("every class the frontend defines is handed to Env.ownClass", () => {
   const fs = require("fs");
   const path = require("path");
-  const webapp = path.join(__dirname, "..", "..", "app", "webapp");
+  const webapp = path.join(__dirname, "..", "..", "bundle", "webapp");
   const files = [];
   (function walk(dir) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

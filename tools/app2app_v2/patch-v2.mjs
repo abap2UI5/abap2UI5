@@ -5,20 +5,20 @@
 
 export const SDK = "https://sdk.openui5.org/1.142.0-legacy-free/resources/sap-ui-core.js";
 
-// Every replacement is an assumption about app/webapp/index.html. If it no
+// Every replacement is an assumption about bundle/webapp/index.html. If it no
 // longer holds, carrying on silently would be the worst outcome:
 // cloud_v2/standard_v2 would then deliver the classic bootstrap, and no gate
 // would see it - the wrongly built tree is consistent with the sources, after
 // all. Whoever rewords index.html rewords the assumption here along with it.
 function mustPatch(s, re, replacement, what) {
   if (!re.test(s)) {
-    throw new Error(`patch-v2: ${what} not found - the v2 patch no longer matches app/webapp/index.html`);
+    throw new Error(`patch-v2: ${what} not found - the v2 patch no longer matches bundle/webapp/index.html`);
   }
   return s.replace(re, replacement);
 }
 
 export function patchIndexHtml(s) {
-  // Cleaned up if present: app/webapp has lost the IE compat meta line itself
+  // Cleaned up if present: bundle/webapp has lost the IE compat meta line itself
   // in the meantime - its absence is not an error here, only its reappearance
   // would be removed.
   s = s.replace(/^\s*<meta http-equiv="X-UA-Compatible"[^>]*>\n/m, "");

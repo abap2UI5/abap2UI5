@@ -191,7 +191,7 @@ const SHARED = [
      * `tools/build-branches.mjs`), so `main` was the only copy nothing wrote,
      * and it drifted: five paragraphs reworded on one side or the other, and
      * a table naming the reserved resourceRoots `z2ui5cc`/`z2ui5ext` in BOTH,
-     * when `app/webapp/manifest.json` has reserved `z2ui5_cci`/`z2ui5_ccc`
+     * when `bundle/webapp/manifest.json` has reserved `z2ui5_cci`/`z2ui5_ccc`
      * since the day the roots existed. A reader following that table installs
      * a BSP the loader never asks for.
      *

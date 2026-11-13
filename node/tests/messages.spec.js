@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the MESSAGE_TOAST / MESSAGE_BOX display path shipped in
-// app/webapp/core/actions/ControlCall.js, driven through the same
+// bundle/webapp/core/actions/ControlCall.js, driven through the same
 // CONTROL_GLOBAL dispatch a backend action arrives on. The options travel as
 // the call's last argument, a plain object already carrying the UI5 option
 // names: the backend sends only what the app set, so anything absent here is

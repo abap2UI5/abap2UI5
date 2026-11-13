@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Persist.js
+// Tests the real implementation shipped in bundle/webapp/devtools/Persist.js
 // - the developer tools' one sessionStorage access. Three modules used to
 // carry their own copy of the same guarded read and write; what is pinned
 // is the contract they all rely on: a storage that throws or is missing

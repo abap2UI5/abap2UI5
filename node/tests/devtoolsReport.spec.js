@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Report.js -
+// Tests the real implementation shipped in bundle/webapp/devtools/Report.js -
 // the bug report the developer tools produce, assembled from the tab
 // registry (loaded for real here, so the two are tested as they ship).
 //

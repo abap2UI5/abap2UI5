@@ -1,7 +1,7 @@
 # frontend/
 
 The parts of the [abap2UI5/frontend](https://github.com/abap2UI5/frontend)
-delivery branches that are **not** generated from `app/webapp/` — data, not
+delivery branches that are **not** generated from `bundle/webapp/` — data, not
 code. What turns the webapp into a branch lives in [`tools/`](../tools).
 
 | | |

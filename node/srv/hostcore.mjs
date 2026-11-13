@@ -177,10 +177,10 @@
  * THE FRONTEND needs nothing here. The GET branch of
  * z2ui5_cl_ui5_http_handler answers with the page and the whole UI5 component
  * embedded in it - every module, view and stylesheet, carried as ABAP
- * constants (src/01/03, generated from app/webapp) and transpiled with the
+ * constants (src/01/03, generated from bundle/webapp) and transpiled with the
  * backend - so the page and the roundtrips come from the same commit by
  * construction, and the package carries no frontend files of its own. A
- * first cut shipped app/webapp as well; nothing in a Node host read it.
+ * first cut shipped bundle/webapp as well; nothing in a Node host read it.
  */
 import { randomUUID } from "node:crypto";
 import http from "node:http";

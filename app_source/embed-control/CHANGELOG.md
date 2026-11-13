@@ -9,8 +9,8 @@ own, and nothing may be left under "Unreleased".
 ## 0.4.0
 
 - The package is built from the abap2UI5 repository now: the control's
-  source is `app_v2/webapp/embed` there, next to its smallest host app
-  (`node app_v2/embed-control/pack.mjs`). abap2UI5/embed-control published
+  source is `app_source/webapp/embed` there, next to its smallest host app
+  (`node app_source/embed-control/pack.mjs`). abap2UI5/embed-control published
   it up to 0.3.0.
 - A control that owns the page (`ownsPage`) starts without `app` and hands
   no `app_start` over: the page's URL names the class then (`?app_start=`,

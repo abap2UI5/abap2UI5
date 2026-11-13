@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real app/webapp/core/AppState.js: the SHAPE of a component's
+// Tests the real bundle/webapp/core/AppState.js: the SHAPE of a component's
 // state - createState( ) and its defaults. The instance lives on the
 // component's context (core/Context.js, context.spec.js); this module keeps
 // no state of its own and puts nothing on the global object. `window` is

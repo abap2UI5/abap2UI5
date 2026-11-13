@@ -4,7 +4,7 @@
 // (Context.of) - nothing here reaches a singleton. core/AppState.js
 // documents the state's field inventory with its defaults.
 //
-// The language and browser floor of app/webapp/, stated once: the frontend
+// The language and browser floor of bundle/webapp/, stated once: the frontend
 // is written in ES2020+ (optional chaining, nullish coalescing, matchAll,
 // async/await, class fields) and runs on OpenUI5 1.71 and later; there is
 // no IE11 and no transpilation step - the files ship as written, through

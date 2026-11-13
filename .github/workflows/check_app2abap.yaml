@@ -1,7 +1,7 @@
 name: check_app2abap
 
-# Drift gate: a PR that changes app/webapp but forgets to regenerate the
-# embedded ABAP under src/01/03 (or leaves app/webapp un-prettier'd) would make
+# Drift gate: a PR that changes bundle/webapp but forgets to regenerate the
+# embedded ABAP under src/01/03 (or leaves bundle/webapp un-prettier'd) would make
 # main inconsistent (the fix is `npm run app2abap` locally or `/fix app2abap`).
 # Run the exact regeneration pipeline here and fail if anything it owns differs
 # from what was committed, so the drift is caught on the PR instead.
@@ -9,19 +9,19 @@ name: check_app2abap
 on:
   pull_request:
     paths:
-      - 'app/webapp/**'
+      - 'bundle/webapp/**'
       - 'src/01/03/**'
       - 'tools/app2abap/**'
-      # `npm run app2abap` starts with `npm --prefix app run format`, so
+      # `npm run app2abap` starts with `npm --prefix bundle run format`, so
       # Prettier's version and its configuration decide the bytes that end up
       # in src/01/03 just as much as the sources above do. A bump in app's
-      # lockfile or a rule change in .prettierrc reformats app/webapp and
+      # lockfile or a rule change in .prettierrc reformats bundle/webapp and
       # regenerates every carrier - and without these lines the gate that
       # notices that would not have started. Same bug class the comments in
       # render-gate.yaml (package-lock) and frontend_check.yaml (terser) name.
-      - 'app/package.json'
-      - 'app/package-lock.json'
-      - 'app/.prettierrc'
+      - 'bundle/package.json'
+      - 'bundle/package-lock.json'
+      - 'bundle/.prettierrc'
       - '.github/workflows/check_app2abap.yaml'
   # A merge is not a state any pull request tested. Same pattern - paths
   # repeated and all - as frontend_check.yaml. (The create_app2abap workflow
@@ -30,12 +30,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'app/webapp/**'
+      - 'bundle/webapp/**'
       - 'src/01/03/**'
       - 'tools/app2abap/**'
-      - 'app/package.json'
-      - 'app/package-lock.json'
-      - 'app/.prettierrc'
+      - 'bundle/package.json'
+      - 'bundle/package-lock.json'
+      - 'bundle/.prettierrc'
 
 concurrency:
   group: check_app2abap-${{ github.ref }}
@@ -60,7 +60,7 @@ jobs:
           npm-ci: "true"
 
       # The same gate a developer runs locally. Deliberately NOT the scoped
-      # `npm run app2abap` + `git diff -- app/webapp src/01/03` this workflow
+      # `npm run app2abap` + `git diff -- bundle/webapp src/01/03` this workflow
       # used to carry: app2abap ends in the unscoped autoformatter, and a diff
       # limited to the two generated paths is blind to anything it rewrites
       # elsewhere - app2abap-gate.mjs's header documents exactly that failure

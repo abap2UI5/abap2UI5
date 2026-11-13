@@ -16,7 +16,7 @@
  *   ABAP unit tests     `METHODS <name> FOR TESTING` under src/ — every
  *                       package, src/99 included: its test classes are the
  *                       maintained part of it and run in CI
- *   JS unit specs       node/tests/*.spec.js (the real app/webapp modules
+ *   JS unit specs       node/tests/*.spec.js (the real bundle/webapp modules
  *                       through loadModule.js, no browser)
  *   browser suites      node/tests/e2e/*.spec.js (Playwright against the dev
  *                       server, on UI5 1.71 and the pinned 1.144)
@@ -25,7 +25,7 @@
  *   workflows           .github/workflows/*.yaml
  *
  * The ABAP floor is read from .github/abaplint/abap_702.jsonc and the UI5
- * floor from app/AGENTS.md's 1.71 contract is a constant here on purpose:
+ * floor from bundle/AGENTS.md's 1.71 contract is a constant here on purpose:
  * neither is a count, and both are already gated elsewhere (the downport
  * workflow and frontend-module-gate). This script writes between the two
  * markers in README.md and nowhere else; `--check` compares instead of

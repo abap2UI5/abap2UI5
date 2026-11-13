@@ -30,7 +30,7 @@ on:
   pull_request:
     paths:
       - 'package-lock.json'
-      - 'app/package-lock.json'
+      - 'bundle/package-lock.json'
       - '.github/scripts/npm-audit-gate.mjs'
       - '.github/workflows/npm-audit.yaml'
 

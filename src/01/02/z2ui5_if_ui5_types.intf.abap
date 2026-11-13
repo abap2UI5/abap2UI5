@@ -16,7 +16,7 @@ INTERFACE z2ui5_if_ui5_types
   " the frontend's list binding asks for more rows, or sorts or filters,
   " and the handler answers it without calling the app's main( )
   " (z2ui5_cl_ui5_srv_window=>event_apply). Spelled as the frontend sends
-  " it - app/webapp/core/WindowModel.js, EVENT - so never a literal.
+  " it - bundle/webapp/core/WindowModel.js, EVENT - so never a literal.
   " Arguments: the model path of the table, the rows wanted, the sorters
   " and the filter groups as JSON (see ty_t_window_sort / _filter)
   CONSTANTS cs_event_window TYPE string VALUE `___ZZZ_WIN`.
@@ -39,7 +39,7 @@ INTERFACE z2ui5_if_ui5_types
 
   " The other whitelisted global-call targets the backend queues actions
   " against, spelled as the keys of GLOBAL_TARGETS in the frontend's
-  " app/webapp/core/actions/ControlCall.js dispatch - the same cross-repo
+  " bundle/webapp/core/actions/ControlCall.js dispatch - the same cross-repo
   " wire contract as cs_slot_action-target above, so never a literal.
   CONSTANTS:
     BEGIN OF cs_global_target,
@@ -221,7 +221,7 @@ INTERFACE z2ui5_if_ui5_types
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
-      " (see app/webapp/core/Router.js). Opt-in per APP via
+      " (see bundle/webapp/core/Router.js). Opt-in per APP via
       " follow_up_action( cs_event-hash_routing ) - the mode is remembered on the app,
       " travels in its draft and is re-sent whenever the frontend may not
       " still hold it (see z2ui5_cl_ui5_app_cont->mv_nav_mode and the
@@ -237,7 +237,7 @@ INTERFACE z2ui5_if_ui5_types
       " under the app (browser Back/Forward, a manual edit). While registered,
       " set_push_state pushes its value as the whole app hash through the
       " HashChanger and the router's per-response hash cleanup stands down
-      " (see app/webapp/core/Router.js applyHashEvent). Empty = no change; a
+      " (see bundle/webapp/core/Router.js applyHashEvent). Empty = no change; a
       " single space = unregister - the set_app_state_active encoding
       set_hash_listener     TYPE string,
       " Forward app navigation via a backend nav_app_call: tells the frontend to
@@ -302,7 +302,7 @@ INTERFACE z2ui5_if_ui5_types
   "! A number on the wire turns that into a message somebody can read.
   "!
   "! Raise it in the same change that breaks the wire, and raise the
-  "! frontend's expectation with it (app/webapp/core/Server.js).
+  "! frontend's expectation with it (bundle/webapp/core/Server.js).
   CONSTANTS c_protocol TYPE i VALUE 2.
 
   TYPES:

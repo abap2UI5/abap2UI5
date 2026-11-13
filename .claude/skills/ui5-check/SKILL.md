@@ -74,7 +74,7 @@ Five separate holes, worth knowing precisely:
 - **abaplint parses ABAP.** A view built by string concatenation or by a
   builder chain is, to abaplint, a set of valid string literals. There is no
   UI5 in its model at all.
-- **ui5lint only reads `app/webapp/`, and `manifest.json` is excluded** — which
+- **ui5lint only reads `bundle/webapp/`, and `manifest.json` is excluded** — which
   is where `minUI5Version: 1.71` lives. It never sees a view the backend
   builds, which is where nearly every abap2UI5 view comes from.
 - **The abap2UI5 linter only reads what it recognizes.** It now has an icon gate
@@ -125,7 +125,7 @@ Where it bit us: the developer tools' help button and the legacy popups in
 **Linter:** **moved — `unknown-icon`, `icon-too-new`, `icon-removed`** (2026-08).
 Still *also* gated in this repository by `npm run check:icons`
 (`.github/scripts/ui5-icon-gate.mjs`), which stays because it covers the
-framework's own `src/00`–`src/02` and `app/webapp/` — files the linter does
+framework's own `src/00`–`src/02` and `bundle/webapp/` — files the linter does
 not read (`src/99` is exempt as the frozen package; its two known bad icons
 are only printed). It no longer keeps a list
 of its own: the 655 names are **derived** from the linter's `data/icons.json`
@@ -193,7 +193,7 @@ being an *aggregation*, it does not merely get dropped, so it is
 **Linter:** **the module half is gated — in this repository, not in the
 linter.** `npm run check:modules` (`.github/scripts/frontend-module-gate.mjs`,
 gated in check_gates.yaml) holds every module named in a `sap.ui.define`
-dependency array under `app/webapp/` to a reviewed present-on-1.71 list, and
+dependency array under `bundle/webapp/` to a reviewed present-on-1.71 list, and
 both `sap.ui.require` forms (the probing string and the array-plus-callback)
 to a reviewed-id list of their own — that form returns `undefined` for a
 module the release lacks and for a misspelled id, identically and silently.
@@ -208,7 +208,7 @@ records that lesson, and the numbers are deliberately not repeated here —
 they rot, and that measurement already misled once.
 
 What the gate does NOT cover is the **consumer side**: it reads this
-repository's `app/webapp/` only, and the linter reads app classes and view
+repository's `bundle/webapp/` only, and the linter reads app classes and view
 XML — it has no JavaScript input at all — so a consumer repository's own
 frontend modules (custom controls) are checked by nothing. A linter-side rule
 would need that input plus a per-release module inventory; nothing else is

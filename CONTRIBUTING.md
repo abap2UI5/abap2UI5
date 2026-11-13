@@ -47,8 +47,8 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 
 The repository structure:
 - `src/` - Core ABAP framework classes
-- `app/` - the UI5 frontend as a Fiori project (`app/webapp/` plus `ui5.yaml` etc.)
-- `tools/` - generators that build artefacts out of `app/webapp/` (embedded ABAP, BSP packaging, delivery branches)
+- `app/` - the UI5 frontend as a Fiori project (`bundle/webapp/` plus `ui5.yaml` etc.)
+- `tools/` - generators that build artefacts out of `bundle/webapp/` (embedded ABAP, BSP packaging, delivery branches)
 - `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
 - `node/` - Node.js transpilation setup
 - `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory, and holds the design decisions, the architecture seams and the recorded API-snapshot exceptions; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
@@ -211,12 +211,12 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Frontend (`app/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The delivery trees are NOT committed: `npm run check:frontend` builds them into the git-ignored `tools/out/` to prove the build, and `frontend_deploy` builds and ships them from `main`
+   - **Frontend (`bundle/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The delivery trees are NOT committed: `npm run check:frontend` builds them into the git-ignored `tools/out/` to prove the build, and `frontend_deploy` builds and ships them from `main`
 
      > This repository is the **only** place the frontend is edited.
      > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
      > same webapp as installable branches, but it is generated: every branch
-     > there is a tree built here from `app/webapp/`, delivered by
+     > there is a tree built here from `bundle/webapp/`, delivered by
      > `frontend_deploy` into `result/<branch>` on its `main` and fanned out
      > from there by its `deliver` workflow, so a change made in that
      > repository is silently discarded on the next delivery. Its `guard`

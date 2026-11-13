@@ -189,7 +189,7 @@ test("ships only the edited path as the event roundtrip's MODEL delta, within bu
   // The delta-transfer contract as a test: View1.eB collects the edited model
   // paths and Lib.buildDeltaFromPaths turns them into the request MODEL, so an
   // event roundtrip must carry ONLY what the user changed - never the full
-  // view model (see the wire-format docs in app/webapp/core/Server.js).
+  // view model (see the wire-format docs in bundle/webapp/core/Server.js).
   await page.goto("/?app_start=z2ui5_cl_ui5_app_hi_world");
 
   const input = page.locator("input").first();

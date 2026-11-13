@@ -5,7 +5,7 @@ const { specContext } = require("./loadLibModule");
 const { fakeDocument } = require("./fakeDocument");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/AbapSource.js - the running app's ABAP class as the
+// bundle/webapp/devtools/AbapSource.js - the running app's ABAP class as the
 // developer tools reach it: the ADT source endpoint, the deep link at the
 // line of the last event, and the frame for the inline preview.
 

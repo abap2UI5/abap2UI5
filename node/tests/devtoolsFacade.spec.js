@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib, specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/DevTools.js - the lifecycle facade that is the
+// bundle/webapp/devtools/DevTools.js - the lifecycle facade that is the
 // ONLY entry point the framework calls into the developer tools. What it
 // owns (shortcut, instance, recorder install, auto open, the error-details
 // provider) used to be spread over Component.js, AppState.js and

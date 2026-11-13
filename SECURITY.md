@@ -45,7 +45,7 @@ Instead, please use the GitHub Security Advisory ["Report a Vulnerability"](http
 
 This policy applies to the abap2UI5 core framework (`src/` directory). For vulnerabilities in dependencies or related repositories, please report them to the respective maintainers.
 
-Note that the UI5 frontend under `app/webapp/` is **in scope here**, even
+Note that the UI5 frontend under `bundle/webapp/` is **in scope here**, even
 though it looks like a separate deliverable: it is authored in this
 repository and vendored into `src/01/03/` as the embedded frontend every
 installation serves.

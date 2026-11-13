@@ -50,7 +50,7 @@ on:
       # everything the build consumes - the webapp and Fiori project, the
       # ABAP artefacts and common files, the build scripts, and the terser
       # whose version shapes the minified preload bundle
-      - 'app/**'
+      - 'bundle/**'
       - 'frontend/**'
       - 'tools/**'
       - 'package.json'
@@ -63,7 +63,7 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Leave empty to publish the six published branches through frontend's main, or name a renamed variant: standard_<name> | standard_v2_<name> - with __<backend> appended for a backend renamed with build-rename (standard_#abap2ui5#__#abap2ui5#)"
+        description: "Leave empty to publish cloud_new and standard_new through frontend's main. Renamed variants are not built from this tree any more (tools/build-branches.mjs) - formerly: standard_<name> | standard_v2_<name> - with __<backend> appended for a backend renamed with build-rename (standard_#abap2ui5#__#abap2ui5#)"
         required: false
         type: string
 
@@ -117,24 +117,16 @@ jobs:
 
     # The same build the pull-request gate ran (frontend_check) - what it
     # produced there from these sources is what it produces here.
-    - name: Build the six delivery trees
+    - name: Build the delivery trees
       run: npm run frontend:build
 
     - name: Check the BSP page invariants
       run: node tools/check-pages.mjs
 
-    # Every branch keeps the deployment identity of standard / cloud, so a
-    # system can switch between them without a launchpad target mapping or
-    # an external link noticing (tools/check-identity.mjs)
-    - name: Check the branches are interchangeable
-      run: node tools/check-identity.mjs
 
     # In the workspace copy, so npx resolves the installed abaplint. The
     # _new trees call z2ui5_cl_ui5_http_handler, which the old ones do not -
     # cloud_new is linted for that call too.
-    - name: Lint the built standard tree
-      run: cd tools/out/standard && npx abaplint
-
     - name: Lint the built standard_new tree
       run: cd tools/out/standard_new && npx abaplint
 
@@ -166,7 +158,10 @@ jobs:
         git -C "$clone" config user.name 'github-actions[bot]'
         git -C "$clone" config user.email 'github-actions[bot]@users.noreply.github.com'
 
-        for b in cloud cloud_v2 standard standard_v2 cloud_new standard_new; do
+        # cloud, cloud_v2, standard and standard_v2 are not built from this
+        # tree any more (tools/build-branches.mjs, header): their result/
+        # folders stay as they were delivered last
+        for b in cloud_new standard_new; do
           dest="$clone/result/$b"
           published=""
           if [ -f "$dest/VERSION" ]; then

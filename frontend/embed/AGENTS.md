@@ -33,7 +33,7 @@ classic frontend sent it (`client->get( )-t_comp_params`).
 ## Rules
 
 - **No copy of the abap2UI5 frontend, ever.** The control loads it from the
-  system. A limitation of the frontend is fixed in `app/webapp`, one of the
+  system. A limitation of the frontend is fixed in `bundle/webapp`, one of the
   control in abap2UI5/embed-control - not worked around here.
 - **Keep the app thin.** It decides which class starts and with which
   parameters (`model/start.js`) and shows a failed start; everything else

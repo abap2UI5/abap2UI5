@@ -5,7 +5,7 @@ const { specContext } = require("./loadLibModule");
 const { fakeDocument } = require("./fakeDocument");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/DeveloperTools.js - the dialog - composed with the
+// bundle/webapp/devtools/DeveloperTools.js - the dialog - composed with the
 // real devtools/Tabs.js, Format.js, Report.js and AbapSource.js, so what
 // is exercised here is the composition that ships. Only the leaf modules
 // that own their own behaviour (and their own specs) are stubbed.

@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext, contextStub, bindContext } = require("./loadLibModule");
 
-// Tests the real app/webapp/core/ViewSlots.js against a stubbed AppState
+// Tests the real bundle/webapp/core/ViewSlots.js against a stubbed AppState
 // state object, a recording Fragment stub and a recording Lib.logError
 // stub.
 

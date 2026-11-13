@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://sap.github.io/ui5-tooling/schema/ui5.yaml.json
 
 # Build configuration for the Component-preload bundle (.github/app2bsp/preload.js).
-# NOT the configuration a developer works with - that is app/ui5.yaml, which
+# NOT the configuration a developer works with - that is bundle/ui5.yaml, which
 # carries the Fiori dev server middlewares this build has no use for.
 #
 # metadata.name is what the bundler stamps into every module id, so it has to

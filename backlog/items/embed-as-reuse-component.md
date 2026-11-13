@@ -263,31 +263,31 @@ older name.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and
 its own namespace `z2ui5.embed` sits below it, mapped to the host app's
-`thirdparty/` - so the module keeps its name and `app/webapp` gets no
+`thirdparty/` - so the module keeps its name and `bundle/webapp` gets no
 `embed/` folder.
 
 ## The GET page is a host too (2026-11-12)
 
 Asked for by the maintainer, on a branch: the page the HTTP service answers
 a GET with no longer embeds the frontend and creates the component itself.
-It is the minimal UI5 app of `app_v2/webapp` - a component, a manifest and
+It is the minimal UI5 app of `app_source/webapp` - a component, a manifest and
 one XML view, a `sap.m.Shell` with the control in it - carried in the
 page's one inline script (`tools/app2abap/trans2abap.js`), and the control
-loads the frontend through `?z2ui5-bundle` with `ownsPage`. `app_v2` is a
+loads the frontend through `?z2ui5-bundle` with `ownsPage`. `app_source` is a
 UI5 project of its own with a standard `index.html`; the page of the node
 is a variant of it (the files as a preload, `checkLocal`, the stylesheet at
 `<node>/embed/Container.css`).
 
-The control's source moved into `app_v2/webapp/embed` on 2026-11-13
+The control's source moved into `app_source/webapp/embed` on 2026-11-13
 (maintainer decision), from abap2UI5/embed-control 0.3.0. One change since:
 a control that owns the page starts without `app` and hands no `app_start`
 over, so the backend decides the class from the page's URL as it always
 did. The npm package `@abap2ui5/embed-control` is built from here from 0.4.0
-on (`app_v2/embed-control`, `npm run pack:embed-control`; maintainer
-decision 2026-11-13) - packed, not published yet - and `app_v3` is the same
+on (`app_source/embed-control`, `npm run pack:embed-control`; maintainer
+decision 2026-11-13) - packed, not published yet - and `app_npm` is the same
 app with the control from npm. Planned, not done: `frontend/embed` becomes
 a sample of embedding the control in another app, the abap2UI5/frontend
-branches are built from `app_v2`, and `app/` stops being a deliverable app
+branches are built from `app_source`, and `app/` stops being a deliverable app
 (its `webapp/` stays the source of the bundle).
 
 What changed for an app on that page: the roundtrips go to the page's path

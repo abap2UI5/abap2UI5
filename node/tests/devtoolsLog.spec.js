@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Log.js -
+// Tests the real implementation shipped in bundle/webapp/devtools/Log.js -
 // the Log tab. The framework error log, the console capture and the
 // backend messages used to be three tabs. They are three views of one
 // timeline, and splitting them forced the developer to correlate them by

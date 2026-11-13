@@ -9,7 +9,7 @@ talks to - an abap2UI5 update is one abapGit pull, and this branch does not
 have to follow it.
 
 It is the successor of the branches `standard` and `cloud` of this
-repository, which carry a generated copy of abap2UI5's `app/webapp`. Every
+repository, which carry a generated copy of abap2UI5's `bundle/webapp`. Every
 object, package, text and ICF node is named as there, so it replaces that
 installation, and the launchpad component is `z2ui5` as before.
 
@@ -103,7 +103,7 @@ starting an app.
 | | `standard`, `cloud` | `standard_new`, `cloud_new` |
 |---|---|---|
 | objects, packages, ICF nodes | `Z2UI5`, `Z2UI5_CL_LP_HANDLER`, `/sap/bc/z2ui5`, ... | the same |
-| frontend code in the BSP | a generated copy of `app/webapp` (~ the whole frontend) | none - the app, its view and the control (9 pages) |
+| frontend code in the BSP | a generated copy of `bundle/webapp` (~ the whole frontend) | none - the app, its view and the control (9 pages) |
 | after an abap2UI5 update | pull the matching frontend branch as well | nothing to do |
 | component in the launchpad | `z2ui5`, inbound `z2ui5-display` | the same - existing target mappings keep working |
 | URL hash | the app's: hash routing, `set_push_state`, `hash_replace`, browser back between routed apps | the app's as well - the page is the control and nothing else, so it hands the page to the app (`ownsPage`, before it `ownsHash`): the hash, the title, the favicon, the busy indicator, the "leave page?" prompt |

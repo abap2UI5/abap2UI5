@@ -85,7 +85,7 @@ support case.
 - [x] `nest_view_model_update( )` / `nest2_view_model_update( )` delegate to
       `view_model_update( )`; `check_update_model` dropped from `ty_s_view_nest`
 - [x] `cs_event-image_editor_popup_close` removed, with
-      `evImageEditorPopupClose` in `app/webapp/core/actions/ViewOps.js` and the
+      `evImageEditorPopupClose` in `bundle/webapp/core/actions/ViewOps.js` and the
       regenerated `src/01/03/`. This item used to read *"goes when `src/99/02`
       goes"*, and that was the wrong reading: it did not wait on the frozen
       package, it waited on a **missing generic capability**. The handler
@@ -121,7 +121,7 @@ support case.
       the replacement now, one assertion per slot. API snapshot regenerated,
       recorded as BREAKING in `changelog.txt`
 - [x] `cs_event-keyboard_set_mode` removed, with `evKeyboardSetMode` in
-      `app/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
+      `bundle/webapp/core/actions/Shortcuts.js` and the regenerated `src/01/03/`.
       It wrote the HTML `inputmode` attribute onto the input's DOM node — the
       wrong layer: UI5 discards that DOM on every re-render, so any later
       render of the field silently dropped the mode, and an app had no way to
@@ -138,7 +138,7 @@ support case.
       this removal still outstanding, in a repository this checkout does not
       carry
 - [x] `cs_event-wizard_set_next_step` removed, with `evWizardSetNextStep` in
-      `app/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
+      `bundle/webapp/core/actions/ViewOps.js` and the regenerated `src/01/03/`.
       It bundled `discardProgress( oStep )` + `oStep.setNextStep( oNext )`
       into one fixed pair; both methods are on the `CONTROL_METHODS`
       whitelist, so the same flow is two ordinary `control_by_id` calls —
@@ -161,7 +161,7 @@ support case.
       `SET_APP_STATE_ACTIVE` as their values, and have to: a draft can hold a
       queued action, so a value is not renamable the way a constant is. The fourth was not a rename: it composed the share link
       in the BROWSER and could only put it on the clipboard, so its handler
-      (`evClipboardAppState` in `app/webapp/core/actions/Browser.js`) went
+      (`evClipboardAppState` in `bundle/webapp/core/actions/Browser.js`) went
       with it and `src/01/03/` was regenerated. Ecosystem count at removal:
       **0** in code — the samples-controls hits are prose naming the constant
       in an explanation of the bookmark URL. In-repo callers converted: the
@@ -232,7 +232,7 @@ support case.
       - `z2ui5_cl_pop_js_loader` (`src/99/02`), the popup that loaded that
         function. A released object deleted outright, not relocated — the
         decision is recorded in AGENTS.md under "Layered Design"
-      - `app/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
+      - `bundle/webapp/Util.js` and the `z2ui5.Util` / `z2ui5.Formatter`
         globals. The date helpers stay in `z2ui5/model/formatter`, reached
         via `core:require` (UI5 1.69 and later, so every supported
         release); a formatter string naming the global resolves to
@@ -427,7 +427,7 @@ breaking change for any downstream app that still references it.
 
 ---
 
-## 3. Frontend (`app/webapp/`)
+## 3. Frontend (`bundle/webapp/`)
 
 Rule 7 of AGENTS.md makes the module IDs, properties and events of the custom
 controls a public contract, so these break hand-written view XML. Regenerate
@@ -452,7 +452,7 @@ controls a public contract, so these break hand-written view XML. Regenerate
       `info_frontend( )`), which now emit a control the frontend does not
       ship - the view fails to load on the first roundtrip that renders it.
 
-- [x] **`app/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
+- [x] **`bundle/webapp/Util.js` (21 lines) + the `z2ui5.Util` global** —
       removed with the `z2ui5` global, see §0.
 - [ ] **UI5's own global export of the frontend's classes** —
       `window.z2ui5.Component`, `z2ui5.controller.*`,

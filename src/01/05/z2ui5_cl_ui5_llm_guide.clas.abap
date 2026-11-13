@@ -494,7 +494,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  robust thing to write. Two properties on the same object need two walks,` && |\n| &&
              `  which is still less code than a mapping that has to anticipate the rest.` && |\n| &&
              `  **Not every such payload is flat.** ``projectValue`` in` && |\n| &&
-             `  ``app/webapp/core/Lib.js`` passes an object- or array-valued property through` && |\n| &&
+             `  ``bundle/webapp/core/Lib.js`` passes an object- or array-valued property through` && |\n| &&
              `  unchanged (up to ``MAX_ARG_DEPTH``), so a control with a property typed` && |\n| &&
              `  ``object``/``any`` marshals as a nested node. When that is what you are looking` && |\n| &&
              `  at, do not grow the reader: bind the value into the model instead and let` && |\n| &&
@@ -887,7 +887,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
-             `(``app/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
+             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
              |\n| &&
              `### Starting them` && |\n| &&

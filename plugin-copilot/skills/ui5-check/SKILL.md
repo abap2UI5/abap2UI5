@@ -91,7 +91,7 @@ Five separate holes, worth knowing precisely:
 - **abaplint parses ABAP.** A view built by string concatenation or by a
   builder chain is, to abaplint, a set of valid string literals. There is no
   UI5 in its model at all.
-- **ui5lint only reads `app/webapp/`, and `manifest.json` is excluded** — which
+- **ui5lint only reads `bundle/webapp/`, and `manifest.json` is excluded** — which
   is where `minUI5Version: 1.71` lives. It never sees a view the backend
   builds, which is where nearly every abap2UI5 view comes from.
 - **The abap2UI5 linter only reads what it recognizes.** It now has an icon gate

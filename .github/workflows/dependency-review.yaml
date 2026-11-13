@@ -18,7 +18,7 @@ name: dependency-review
 # hundreds of dependencies that were already there. `bump-deps.yaml` moves the
 # lockfiles once a month; this is what looks at what it moved.
 #
-# The root lockfile and app/package-lock.json are both read - the Fiori project
+# The root lockfile and bundle/package-lock.json are both read - the Fiori project
 # is a second dependency tree, and it is the one Prettier and the UI5 linter
 # come from.
 

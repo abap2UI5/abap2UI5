@@ -81,7 +81,7 @@ test("the ICF node file names are abapGit's", () => {
 });
 
 test("abap2UI5's webapp: app2bsp, check, bsp2app and back, byte for byte", () => {
-  const webapp = join(repo, "app/webapp");
+  const webapp = join(repo, "bundle/webapp");
   const work = scratch();
   try {
     const first = join(work, "first");

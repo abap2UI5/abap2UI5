@@ -27,6 +27,6 @@ jobs:
     - name: ui5lint (fails on any error)
       run: npm run check:ui5
     - name: eslint
-      run: cd app && npm run lint
+      run: cd bundle && npm run lint
     - name: tsc (type-checks the frontend, no emit)
       run: npm run check:types

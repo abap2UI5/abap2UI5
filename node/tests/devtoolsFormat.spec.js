@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Format.js -
+// Tests the real implementation shipped in bundle/webapp/devtools/Format.js -
 // the two value formatters the whole tab registry renders through.
 //
 // Both are total on purpose: a developer tool that dies on a value the app

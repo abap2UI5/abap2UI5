@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadLib } = require("./loadLibModule");
 
-// The rendering and timer helpers of app/webapp/core/Lib.js that the
+// The rendering and timer helpers of bundle/webapp/core/Lib.js that the
 // frontend actions share: onNextRendering / whenRendered (one pending
 // delegate per control and key), usesXmlTemplating (whether a view build
 // pays for the XMLPreprocessor at all) and cancelTimer (a slot that holds a

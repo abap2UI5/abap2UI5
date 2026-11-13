@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const path = require("path");
 
-// tools/app2abap/trans2abap.js - every app/webapp file becomes an ABAP class
+// tools/app2abap/trans2abap.js - every bundle/webapp file becomes an ABAP class
 // whose get( ) hands the file back. The value it hands back is what the
 // browser runs and what the CSP hash is taken over, so it has to be the same
 // PROGRAM as the source, byte for byte where it matters.
@@ -32,7 +32,7 @@ test("backticks, pipes and braces round-trip through the ABAP literal", () => {
 });
 
 // The proof stripJsComments runs, checked on its own: stripJsComments
-// itself needs the app toolchain (app/node_modules/prettier), which the
+// itself needs the app toolchain (bundle/node_modules/prettier), which the
 // JS unit job does not install - npm run check:app2abap covers that path
 // over every real file.
 test("trailing whitespace inside a template literal is refused, not silently dropped", () => {
@@ -110,7 +110,7 @@ test.describe("the devtools bundle split", () => {
 
   test("the shipped sources pass the guard", () => {
     const fs = require("fs");
-    const webapp = path.join(__dirname, "..", "..", "app", "webapp");
+    const webapp = path.join(__dirname, "..", "..", "bundle", "webapp");
     const sources = new Map();
     const walk = (dir) => {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

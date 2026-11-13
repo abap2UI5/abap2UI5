@@ -1,12 +1,12 @@
 # JS unit spec inventory
 
 > Extracted from `AGENTS.md`, which points here. The rule an agent has to
-> carry is in that file: a spec loads the REAL `app/webapp` module through a
+> carry is in that file: a spec loads the REAL `bundle/webapp` module through a
 > stubbed `sap.ui.define` and never a copy. WHICH module has WHICH spec is a
 > lookup — and it is the list that grows with every frontend change, so it is
 > also the paragraph that made AGENTS.md's longest line.
 
-The specs under `node/tests/` load the **real** `app/webapp` modules through a
+The specs under `node/tests/` load the **real** `bundle/webapp` modules through a
 stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) —
 never test a copied function. Run them without a browser:
 
@@ -22,7 +22,7 @@ npx playwright test -c node/playwright-unit.config.js   # npm run check:js
 | `core/Lib.js` rendering and timer helpers | `libRendering.spec.js` | `onNextRendering`/`whenRendered` - one pending delegate per control and key (a keyed call replaces, an unkeyed one stacks, a dead owner is dropped), `usesXmlTemplating` - the templating namespace under any prefix or a `template>` binding, and `cancelTimer`/`cancelPendingTimers` - a slot holding a setTimeout handle or an afterRoundtrip cancel |
 | `core/Env.js` Theming/Localization probes | `libEnvProbes.spec.js` | `getThemingModule`/`getTheme`/`getLocale` - the 1.118+ module branch, the 1.71 Configuration fallback, and the never-throw bare-bootstrap answer shared by Component, Inspect and the THEMING action target |
 | `core/Env.js` element registry, messaging, fragment preload and library preloads | `utilHelpers.spec.js` (`loadEnv`), `library-preload` e2e | `getElementById`, `getMessaging`/`hasMessagingModule` (the 1.118 Messaging module vs. the MessageManager fallback, and an unreadable version meaning "modern"), `fragmentLoadsSync`/`fragmentControlModules`/`preloadFragmentModules` (the 1.71-1.82 synchronous-fragment workaround), `viewNamespaces`/`loadLibraries`/`loadViewLibraries` (every xmlns mapped to its library of the distribution through `sap/ui/VersionInfo`, a loaded library skipped, `sap/ui/core/Lib.load` vs. the core's `loadLibraries` on 1.71, once per page, a failed load swallowed; the e2e holds that a view with a `sap.ui.table.Table` asks for `sap/ui/table/library-preload.js` once and for no module of the library on its own) |
-| `core/Env.js` global export of the frontend's classes | `envClassGlobals.spec.js`, `componentData.spec.js`, `embedded` e2e | `ownClass`/`dropClassGlobals` - on a page of the app's own every class keeps UI5's export; once an embedded component runs, every class defined so far and every later one leaves `window`, a namespace object the host had stays with what it held, a value someone else put under the name stays; that every `.extend("z2ui5.` under `app/webapp` is handed to `Env.ownClass` (read off the sources); `Component.init` of an embedded component calling `dropClassGlobals` |
+| `core/Env.js` global export of the frontend's classes | `envClassGlobals.spec.js`, `componentData.spec.js`, `embedded` e2e | `ownClass`/`dropClassGlobals` - on a page of the app's own every class keeps UI5's export; once an embedded component runs, every class defined so far and every later one leaves `window`, a namespace object the host had stays with what it held, a value someone else put under the name stays; that every `.extend("z2ui5.` under `bundle/webapp` is handed to `Env.ownClass` (read off the sources); `Component.init` of an embedded component calling `dropClassGlobals` |
 | `core/Context.js` | `context.spec.js` | one context per component, `of` through a controller, the component, the owner component or the parent chain to a slot view, `destroy` reading dead and rebuilding the state, `runAsOwner` |
 | `core/AppState.js` | `appState.spec.js` | the shape of a component's state: `createState` defaults, fresh containers per call, prototype-less wire-keyed records, no state of its own; `resetApp` - the app's fields back to their defaults in the same object, the component's (`COMPONENT_FIELDS`) kept |
 | `core/ViewSlots.js` | `viewSlots.spec.js` | — |

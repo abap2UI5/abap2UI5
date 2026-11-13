@@ -42,9 +42,9 @@ const PROSE = [
   { dir: "backlog", depth: 9, ext: [".md"] },
   { dir: "frontend", depth: 9, ext: [".md"] },
   // The frontend half of the agent briefing, split out of AGENTS.md - the
-  // same prose, so the same check. Only the file itself: app/webapp holds no
+  // same prose, so the same check. Only the file itself: bundle/webapp holds no
   // Markdown (everything there is embedded into src/01/03).
-  { dir: "app", depth: 0, ext: [".md"] },
+  { dir: "bundle", depth: 0, ext: [".md"] },
 ];
 
 // A changelog is a record of the past, and an entry naming what a class was

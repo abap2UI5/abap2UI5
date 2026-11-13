@@ -292,7 +292,7 @@ jobs:
 
   # The conformance suites of the abap2UI5 protocol (abap2UI5/protocol)
   # against THIS checkout - the backend suite against the npm package this
-  # commit packs, the frontend suite against its app/webapp. The protocol
+  # commit packs, the frontend suite against its bundle/webapp. The protocol
   # is checked out at a pinned commit of its main and drives everything
   # through its own scripts, so nothing of it is copied here: its
   # conformance/hosts/node-runtime builds the conformance apps
@@ -350,7 +350,7 @@ jobs:
 
   conformance_frontend:
     # the frontend suite with the protocol's ui5 adapter: this checkout's
-    # app/webapp in Chromium, booted against the suite's mock backend with
+    # bundle/webapp in Chromium, booted against the suite's mock backend with
     # OpenUI5 from the protocol's npm packages - no transpile needed, so it
     # does not wait for one. About two minutes for the suite itself
     needs: changes
@@ -377,7 +377,7 @@ jobs:
       run: |
         npm ci --no-audit --no-fund
         npx playwright-core install --with-deps chromium
-    - name: Frontend suite against app/webapp (ui5 adapter)
+    - name: Frontend suite against bundle/webapp (ui5 adapter)
       working-directory: protocol
       env:
         ABAP2UI5_HOME: ${{ github.workspace }}
@@ -386,7 +386,7 @@ jobs:
       run: node conformance/backend/bin/abap2ui5-conformance.mjs frontend --adapter ui5
 
   test_unit_js:
-    # The frontend unit specs run against app/webapp directly - no ABAP, so
+    # The frontend unit specs run against bundle/webapp directly - no ABAP, so
     # no transpile to wait for.
     needs: changes
     if: needs.changes.outputs.code == 'true'

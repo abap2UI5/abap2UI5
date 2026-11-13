@@ -23,7 +23,7 @@
  *     arrived, so the entry goes - the list only shrinks on its own accord,
  *     an accepted advisory cannot outlive the reason it was accepted for
  *
- * Every lockfile is read: the root one, app/package-lock.json, which is
+ * Every lockfile is read: the root one, bundle/package-lock.json, which is
  * where @ui5/cli, the UI5 linter and Prettier come from, and
  * frontend/embed/package-lock.json, the project cloud_new ships (@ui5/cli
  * again, and the embed control). `npm audit` needs no node_modules - it
@@ -46,7 +46,7 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
 /* the dependency trees; "" is the repository root, frontend/embed the
  * project the cloud_new branch ships */
-const TREES = ["", "app", "frontend/embed"];
+const TREES = ["", "bundle", "frontend/embed"];
 
 /* what the gate fails on - moderate and below stay out for the reason
  * dependency-review.yaml gives for its own threshold */
@@ -59,13 +59,13 @@ const LEVELS = new Set(["high", "critical"]);
  * reason has to name why the fix is not simply taken. */
 const ACCEPTED = new Map([
   ["GHSA-w4pp-8pjf-rmxw", {
-    trees: ["", "app", "frontend/embed"],
+    trees: ["", "bundle", "frontend/embed"],
     reason: "pacote: DoS via addGitSha. Reached only through @ui5/cli -> @ui5/project, "
       + "build-time and fed by the lockfile, never by user input. npm's only fix is "
       + "@ui5/cli 2.x, a major downgrade; waits for @ui5/project to move its pacote range",
   }],
   ["GHSA-52v5-jr5w-gjxr", {
-    trees: ["", "app", "frontend/embed"],
+    trees: ["", "bundle", "frontend/embed"],
     reason: "sigstore: certificateOIDs constraints not enforced. Same chain (@ui5/project -> "
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",

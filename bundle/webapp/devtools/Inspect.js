@@ -109,7 +109,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     // The bootstrap <script> of the page. Both pages abap2UI5 can run on
-    // give it the id "sap-ui-bootstrap": the standalone app/webapp/index.html
+    // give it the id "sap-ui-bootstrap": the standalone bundle/webapp/index.html
     // and the HTML the backend generates (z2ui5_cl_ui5_http_handler), whose
     // `src` comes from the exit configuration. Which SDK URL a system is
     // actually configured with is the first question when a view fails to

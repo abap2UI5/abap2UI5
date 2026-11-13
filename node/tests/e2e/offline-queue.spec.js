@@ -1,7 +1,7 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 
-// The offline queue (app/webapp/core/Offline.js, cs_event-offline_queue)
+// The offline queue (bundle/webapp/core/Offline.js, cs_event-offline_queue)
 // against the transpiled backend: an event the app lets queue waits in the
 // browser while the backend cannot be reached and is sent once it can, in
 // order, each on the draft the previous one left. Every other event fails as
