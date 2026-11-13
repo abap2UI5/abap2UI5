@@ -717,6 +717,12 @@ reasoning:
 - **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
+- **Need a UI5 fact - which properties a control has, what an aggregation is
+  called?** SAP's own [UI5 MCP server](https://github.com/UI5/mcp-server)
+  gives an agent the official UI5 API documentation, next to the abap2UI5
+  one above. It answers for the CURRENT UI5 release: whether a control,
+  property or icon exists on the oldest release an app has to run on is
+  still the linter's answer, not its.
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**, three catalogues with the same row shape, so one search
