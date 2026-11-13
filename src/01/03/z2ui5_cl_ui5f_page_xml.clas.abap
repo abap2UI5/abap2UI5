@@ -27,14 +27,17 @@ CLASS z2ui5_cl_ui5f_page_xml IMPLEMENTATION.
 
     result = `<mvc:View` &&
              `    xmlns:mvc="sap.ui.core.mvc"` &&
+             `    xmlns="sap.m"` &&
              `    xmlns:z2ui5="z2ui5.embed"` &&
              `    displayBlock="true"` &&
              `    height="100%">` &&
-             `    <z2ui5:Container` &&
-             `        app="{start>/app}"` &&
-             `        endpoint="{start>/endpoint}"` &&
-             `        ownsPage="true"` &&
-             `        height="100%"/>` &&
+             `    <Shell>` &&
+             `        <z2ui5:Container` &&
+             `            app="{start>/app}"` &&
+             `            endpoint="{start>/endpoint}"` &&
+             `            ownsPage="true"` &&
+             `            height="100%"/>` &&
+             `    </Shell>` &&
              `</mvc:View>` &&
              `` &&
               ``.

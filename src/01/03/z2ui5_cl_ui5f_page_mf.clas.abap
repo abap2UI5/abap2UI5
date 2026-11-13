@@ -47,6 +47,7 @@ CLASS z2ui5_cl_ui5f_page_mf IMPLEMENTATION.
              `    "dependencies": {` &&
              `      "minUI5Version": "1.71.0",` &&
              `      "libs": {` &&
+             `        "sap.m": {},` &&
              `        "sap.ui.core": {}` &&
              `      }` &&
              `    },` &&

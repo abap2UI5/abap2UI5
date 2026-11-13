@@ -272,8 +272,8 @@ Asked for by the maintainer, on a branch: the page the HTTP service answers
 a GET with no longer embeds the frontend and creates the component itself.
 It carries the control (`z2ui5_cl_ui5f_embed_js`, taken from `node_modules`
 by `tools/app2abap/trans2abap.js`) and a minimal app
-(`frontend/page/webapp`: a component, a manifest and one XML view whose one
-element is the control) in its one inline script, and the control loads
+(`frontend/page/webapp`: a component, a manifest and one XML view, a
+`sap.m.Shell` with the control in it) in its one inline script, and the control loads
 the frontend through `?z2ui5-bundle` with `ownsPage` - one way to start the
 frontend on the node, the BSP of `standard_new` and the HTTP service of
 `cloud_new`. The node answers one path below itself for it,

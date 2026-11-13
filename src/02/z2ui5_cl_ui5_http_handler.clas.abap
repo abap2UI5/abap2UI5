@@ -827,8 +827,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDIF.
 
     " The page is a minimal UI5 app (frontend/page/webapp): a component with
-    " one XML view whose one element is a z2ui5.embed.Container
-    " (@abap2ui5/embed-control). The control fills the page, loads the
+    " one XML view, a sap.m.Shell with a z2ui5.embed.Container
+    " (@abap2ui5/embed-control) in it. The control fills the Shell, loads the
     " frontend from this node (?z2ui5-bundle, _http_get_bundle) and runs the
     " app in it - the way the abap2UI5/frontend branches standard_new and
     " cloud_new start it. So the page carries nothing of the frontend: the

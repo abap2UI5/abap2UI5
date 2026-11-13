@@ -12,8 +12,8 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
 // page is a minimal UI5 app (frontend/page/webapp) - a component with one
-// XML view whose one element is a z2ui5.embed.Container
-// (@abap2ui5/embed-control), which loads the frontend through
+// XML view, a sap.m.Shell with a z2ui5.embed.Container
+// (@abap2ui5/embed-control) in it, which loads the frontend through
 // ?z2ui5-bundle. Its inline script holds that app and the control, taken
 // from node_modules at the version package.json pins - the same package the
 // delivery branches standard_new and cloud_new ship (frontend/embed). The
