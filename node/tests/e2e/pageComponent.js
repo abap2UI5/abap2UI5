@@ -25,7 +25,7 @@ async function pageComponentId(page) {
       ? Element.closestTo(dom)
       : ui.getCore().byId(dom.id);
     const component = control
-      ?.getAggregation("_container")
+      ?.getAggregation("_app")
       ?.getComponentInstance();
     return component ? component.getId() : false;
   });

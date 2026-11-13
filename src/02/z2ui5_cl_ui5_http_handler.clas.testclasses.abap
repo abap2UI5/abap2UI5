@@ -26,7 +26,6 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_get_bundle   FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_bundle_path FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_no_bundle FOR TESTING RAISING cx_static_check.
-    METHODS test_main_get_control_css FOR TESTING RAISING cx_static_check.
     " GET ?z2ui5-bundle=devtools is the developer tools as a script; the
     " page's own ?z2ui5-devtools (the auto open) stays the page
     METHODS test_main_get_devtools  FOR TESTING RAISING cx_static_check.
@@ -427,6 +426,14 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
         xsdbool( ls_result-body CS `"z2ui5/embed/frontend/Component.js": entries["z2ui5/Component.js"]` ) ).
     cl_abap_unit_assert=>assert_true(
         xsdbool( ls_result-body CS `componentName: "z2ui5.embed.frontend",` ) ).
+    " ...and the one call the embedding control makes: the app is made by
+    " the bundle's own module, with the installation's settings
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `create: function (settings) {` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `resolve(Embed.create(settings, installation));` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( ls_result-body CS `"z2ui5/core/Embed.js": function()` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `onInitComponent` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `ComponentSupport` ) ).
@@ -576,30 +583,6 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( to_upper( ls_result-body ) CS `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_main_get_control_css.
-
-    " the stylesheet of the embed control, at the path the GET page's
-    " control asks for it - and nothing of the page or a bundle
-    DATA(ls_result) = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
-        method = `GET`
-        path   = `/sap/bc/z2ui5/embed/Container.css` ) ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 200
-                                        act = ls_result-status_code ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_control_css( )
-                                        act = ls_result-body ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `.z2ui5EmbedContainer` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `<!DOCTYPE` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.` ) ).
-
-    " any other path below the node is the page, as it always was
-    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
-        method = `GET`
-        path   = `/sap/bc/z2ui5/embed/Container.js` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
 
   ENDMETHOD.
 
@@ -859,7 +842,6 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the devtools bundle: the same headers, a tag of its own that is not
     " the frontend bundle's
     METHODS test_devtools_response       FOR TESTING RAISING cx_static_check.
-    METHODS test_control_css_response    FOR TESTING RAISING cx_static_check.
     METHODS test_devtools_304            FOR TESTING RAISING cx_static_check.
     METHODS test_factory_onprem      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_cloud       FOR TESTING RAISING cx_static_check.
@@ -1833,29 +1815,6 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     " the page's tag and cache are not the bundle's business
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_etag ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>sv_get_cache_body ).
-
-  ENDMETHOD.
-
-  METHOD test_control_css_response.
-
-    handler_create( ).
-    mo_mock->ms_req_info = VALUE #( method = `GET`
-                                    path   = `/sap/bc/z2ui5/embed/Container.css` ).
-
-    mo_handler->main( ).
-
-    " a stylesheet, under nosniff - a <link> takes nothing else - and
-    " revalidated under the frontend bundle's tag
-    cl_abap_unit_assert=>assert_equals( exp = 200
-                                        act = mo_mock->mv_status ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5f_preload=>get_control_css( )
-                                        act = mo_mock->mv_cdata ).
-    cl_abap_unit_assert=>assert_equals( exp = `text/css; charset=UTF-8`
-                                        act = header_value( `content-type` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `nosniff`
-                                        act = header_value( `x-content-type-options` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_http_handler=>_bundle_etag( abap_false )
-                                        act = header_value( `etag` ) ).
 
   ENDMETHOD.
 

@@ -310,7 +310,22 @@ and `ShellUIService` then belong into that app's manifest;
 npm), and a way to run `bundle/webapp` unbuilt against a backend while
 developing it - `fiori run` on its `index.html` did that.
 
-## 1.71
+## The control is a shell (2026-11-14)
+
+Maintainer decision: everything that can come from the bundle does. The
+bundle's `z2ui5/embed` module has `create( settings )`, which hands the
+host's settings and the installation's to `bundle/webapp/core/Embed.js` -
+startup parameters, component data, the component under the bundle's second
+name in the host's owner component, the `ComponentContainer`, the one style
+rule of the area. The control keeps what has to happen before there is a
+bundle: the endpoint check, loading the bundle, when an app starts and ends,
+and the size setters a Fiori elements section needs. No fallback for a
+bundle without `create( )`; `componentName` and `componentData` stay in the
+module, so 0.3.0 keeps running against a new backend. The stylesheet, its
+path below the node and `ownsHash` are gone. Checked against
+abap2UI5-addons/custom-controls: its controls load through `z2ui5_cci` on
+the new page, on 1.144 and 1.71, under the shipped CSP.
+
 
 `ComponentContainer`, `componentData` and `Component#createId` all exist in
 1.71. No stage is blocked by the floor.

@@ -16,9 +16,7 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 // frontend through ?z2ui5-bundle. The page is a variant of that app, not a
 // second one: its inline script holds the app's files as a preload, because
 // a node serves no files. index.html stays out - the handler writes the
-// page. The control's stylesheet is no module: the handler serves it at
-// <node>/embed/Container.css (get_control_css( ), see the app's
-// Component.js).
+// page.
 const repoDir = path.join(__dirname, "../..");
 const pageDir = "app_source/webapp";
 const PAGE_SOURCES = [
@@ -37,11 +35,6 @@ const PAGE_SOURCES = [
   {
     source: `${pageDir}/embed/Container.js`,
     urlPath: "z2ui5/embed/Container.js",
-  },
-  {
-    source: `${pageDir}/embed/Container.css`,
-    // not preloaded - served as a file
-    urlPath: null,
   },
 ];
 
@@ -549,7 +542,6 @@ const CLASSES = {
   bundle: "z2ui5_cl_ui5f_bundle",
   devtools: "z2ui5_cl_ui5f_devtools",
   page: "z2ui5_cl_ui5f_page",
-  pageCss: "z2ui5_cl_ui5f_page_css",
   preload: "z2ui5_cl_ui5f_preload",
 };
 
@@ -583,8 +575,8 @@ CLASS ${CLASSES.preload} DEFINITION
   PUBLIC SECTION.
 
     " a digest of everything the node serves a browser - the page's script
-    " get( ) returns, the frontend bundle get_bundle( ) returns and the
-    " control's stylesheet - fixed at generation time. Part of the ETag of
+    " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
+    " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
     CONSTANTS build_hash TYPE string VALUE '${buildHash}'.
 
@@ -607,12 +599,6 @@ CLASS ${CLASSES.preload} DEFINITION
     " Nothing of the frontend - the control loads it from the node, as
     " get_bundle( )
     CLASS-METHODS get
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the stylesheet of the embed control, which the control includes as a
-    " file (z2ui5_cl_ui5_http_handler=>_http_get_control_css)
-    CLASS-METHODS get_control_css
       RETURNING
         VALUE(result) TYPE string.
 
@@ -644,12 +630,6 @@ CLASS ${CLASSES.preload} IMPLEMENTATION.
   METHOD get.
 
     result = ${CLASSES.page}=>get( ).
-
-  ENDMETHOD.
-
-  METHOD get_control_css.
-
-    result = ${CLASSES.pageCss}=>get( ).
 
   ENDMETHOD.
 
@@ -748,15 +728,13 @@ async function main() {
 
     // The page's own sources (PAGE_SOURCES)
     const pageEntries = [];
-    let controlCss = "";
     for (const { source, urlPath } of PAGE_SOURCES) {
       const file = path.join(repoDir, source);
       if (!fs.existsSync(file)) {
         throw new Error(`${source} is missing - the GET page carries it`);
       }
       const { isJs, value } = await readSource(file, source);
-      if (urlPath) pageEntries.push({ urlPath, isJs, value });
-      else controlCss = value;
+      pageEntries.push({ urlPath, isJs, value });
     }
 
     // Sorted for a stable output. Plain code-unit comparison, not
@@ -793,7 +771,6 @@ async function main() {
       .createHash("sha256")
       .update(pageText, "utf8")
       .update(bundleText, "utf8")
-      .update(controlCss, "utf8")
       .digest("hex")
       .slice(0, 16);
     // the devtools bundle's own validator - served as a file, no CSP
@@ -836,15 +813,6 @@ async function main() {
         ...wrap(sourcesOf(pageEntries)),
       ]),
       "abap2UI5 - page script",
-    );
-    emitClass(
-      CLASSES.pageCss,
-      abapTextClass(CLASSES.pageCss, controlCss, [
-        "The stylesheet of the embed control - what GET",
-        "<node>/embed/Container.css answers with. Source:",
-        "app_source/webapp/embed/Container.css.",
-      ]),
-      "abap2UI5 - control stylesheet",
     );
     emitClass(
       CLASSES.preload,

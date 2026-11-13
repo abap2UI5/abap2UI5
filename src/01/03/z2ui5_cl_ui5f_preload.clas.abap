@@ -13,10 +13,10 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
   PUBLIC SECTION.
 
     " a digest of everything the node serves a browser - the page's script
-    " get( ) returns, the frontend bundle get_bundle( ) returns and the
-    " control's stylesheet - fixed at generation time. Part of the ETag of
+    " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
+    " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '3153e83d947464a7'.
+    CONSTANTS build_hash TYPE string VALUE '50528092073ada76'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " script-src, so this one inline script runs without 'unsafe-inline'.
     " It is the SHA-256 of get( ) byte for byte - a script that differs by one
     " character does not run at all, which the browser e2e legs would show
-    CONSTANTS script_hash TYPE string VALUE 'sha256-22+MK1ZuDqjBH4rzTv5UWcxy82+ga73mCFP99ILnqNY='.
+    CONSTANTS script_hash TYPE string VALUE 'sha256-SMsVy3TsImAoabFAjrK9z6hLlOmFYrupCPWCz6KcE9o='.
 
     " a digest of the devtools bundle get_devtools( ) returns - the files
     " of the developer tools the frontend bundle does not carry. The ETag of
@@ -37,12 +37,6 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " Nothing of the frontend - the control loads it from the node, as
     " get_bundle( )
     CLASS-METHODS get
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the stylesheet of the embed control, which the control includes as a
-    " file (z2ui5_cl_ui5_http_handler=>_http_get_control_css)
-    CLASS-METHODS get_control_css
       RETURNING
         VALUE(result) TYPE string.
 
@@ -74,12 +68,6 @@ CLASS z2ui5_cl_ui5f_preload IMPLEMENTATION.
   METHOD get.
 
     result = z2ui5_cl_ui5f_page=>get( ).
-
-  ENDMETHOD.
-
-  METHOD get_control_css.
-
-    result = z2ui5_cl_ui5f_page_css=>get( ).
 
   ENDMETHOD.
 

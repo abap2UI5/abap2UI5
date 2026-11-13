@@ -121,15 +121,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " (the tools open on load), and a GET with it is the page as always.
     CONSTANTS c_bundle_devtools TYPE string VALUE `devtools`.
 
-    " The one path BELOW the node that is not the page: GET
-    " <node>/embed/Container.css is the stylesheet of the embed control. The
-    " GET page maps the control's namespace z2ui5/embed to <node>/embed
-    " (app_source/webapp/Component.js), so this is where the control's own include of
-    " z2ui5/embed/Container.css ends. A path and not a value of
-    " c_bundle_param: the UI5 loader drops the query of a resource root. As
-    " a pattern for CP, which ignores case
-    CONSTANTS c_control_css_path TYPE string VALUE `*/embed/container.css`.
-
     " The sibling BSPs of the frontend (see _http_get_bundle): the
     " custom controls (z2ui5_cci, abap2UI5-addons/custom-controls) and the
     " customer's own artefacts (z2ui5_ccc, abap2UI5-addons/custom-controls-customer).
@@ -230,19 +221,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         it_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
         VALUE(result) TYPE abap_bool.
-
-    " a GET that asks for the stylesheet of the embed control - its path
-    " ends in c_control_css_path
-    CLASS-METHODS _is_control_css_request
-      IMPORTING
-        iv_path       TYPE string
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    " the stylesheet of the embed control - see the method
-    CLASS-METHODS _http_get_control_css
-      RETURNING
-        VALUE(result) TYPE ty_s_http_res.
 
     " the frontend as a script of its own - see the method. iv_path is the
     " path of THIS request as the system saw it (ty_s_http_req-path), which
@@ -916,44 +894,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _is_control_css_request.
-
-    " the path as the stack reports it (ty_s_http_req-path). A stack that
-    " reports none answers the request with the page, which the browser
-    " refuses as a stylesheet (nosniff): the control then runs without its
-    " two rules, and nothing else is lost
-    result = xsdbool( iv_path CP c_control_css_path ).
-
-  ENDMETHOD.
-
-  METHOD _http_get_control_css.
-
-    " GET <node>/embed/Container.css - the stylesheet of
-    " z2ui5.embed.Container, which the control includes with a <link> of
-    " the page's origin when its module runs (style-src 'self'). The GET
-    " page is the one host that asks this node for it (see
-    " c_control_css_path); a host app of its own ships the control with
-    " its stylesheet. Served like the bundles: as a file, with nosniff,
-    " under the frontend bundle's tag, which a conditional GET revalidates
-    " to a bodyless 304. No user or app data, the same for everybody.
-    DATA(lv_etag) = _bundle_etag( abap_false ).
-
-    " consumed once - see sv_if_none_match
-    DATA(lv_if_none_match) = sv_if_none_match.
-    CLEAR sv_if_none_match.
-    IF z2ui5_cl_ui5_util_context=>http_check_etag_match( if_none_match = lv_if_none_match
-                                                         etag          = lv_etag ) = abap_true.
-      result-status_code   = 304.
-      result-status_reason = `Not Modified`.
-      RETURN.
-    ENDIF.
-
-    result-body          = z2ui5_cl_ui5f_preload=>get_control_css( ).
-    result-status_code   = 200.
-    result-status_reason = `OK`.
-
-  ENDMETHOD.
-
   METHOD _bundle_etag.
 
     " the frontend bundle's tag carries the build hash through _get_etag
@@ -1063,18 +1003,33 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    " ... and its create( ) is what the embedding control calls: it hands
+    " the host's settings and the installation's to the bundle's own module
+    " (z2ui5/core/Embed), which makes the app - so how an app is created is
+    " the bundle's, and the control only renders what comes back. The module
+    " is required here and not as a dependency: a module without
+    " dependencies is defined the moment the script has run, which is what
+    " the control looks for.
     result-body = z2ui5_cl_ui5f_preload=>get_bundle( ) &&
                   |sap.ui.define("z2ui5/embed", function () \{\n| &&
                   |  "use strict";\n| &&
-                  |  return \{\n| &&
+                  |  var installation = \{\n| &&
                   |    componentName: "{ c_bundle_component }",\n| &&
                   |    componentData: \{\n| &&
                   |      embedded: true,\n| &&
                   |      nodePath: "{ z2ui5_cl_ui5_util_context=>c_escape_js( iv_path ) }",\n| &&
                   |      ccResourceRoot: "{ c_cci_root }",\n| &&
                   |      cccResourceRoot: "{ c_ccc_root }"\n| &&
+                  |    \},\n| &&
+                  |    create: function (settings) \{\n| &&
+                  |      return new Promise(function (resolve, reject) \{\n| &&
+                  |        sap.ui.require(["z2ui5/core/Embed"], function (Embed) \{\n| &&
+                  |          resolve(Embed.create(settings, installation));\n| &&
+                  |        \}, reject);\n| &&
+                  |      \});\n| &&
                   |    \}\n| &&
                   |  \};\n| &&
+                  |  return installation;\n| &&
                   |\});\n|.
     result-status_code   = 200.
     result-status_reason = `OK`.
@@ -1141,17 +1096,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " same way, each under its own tag
     DATA(lv_bundle) = xsdbool( ms_req-method = `GET`
                                AND _is_bundle_request( ms_req-t_params ) = abap_true ).
-    " ... and so does the stylesheet of the embed control, under the
-    " frontend bundle's
-    DATA(lv_css) = xsdbool( ms_req-method = `GET`
-                            AND lv_bundle = abap_false
-                            AND _is_control_css_request( ms_req-path ) = abap_true ).
     DATA(lv_etag_get) = ``.
     IF ms_req-method = `GET` AND ( ms_res-status_code = 200 OR ms_res-status_code = 304 ).
       lv_etag_get = COND #( WHEN lv_bundle = abap_true
                             THEN _bundle_etag( _is_devtools_request( ms_req-t_params ) )
-                            WHEN lv_css = abap_true
-                            THEN _bundle_etag( abap_false )
                             ELSE sv_get_etag ).
     ENDIF.
     IF lv_etag_get IS NOT INITIAL AND ms_res-status_code = 200
@@ -1170,11 +1118,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " Options: nosniff header below, stops a container that defaults to
     " text/html from rendering a reflected app name / exception text as markup
     " (reflected-XSS). Success bodies are HTML for the GET shell, JavaScript
-    " for the bundles, CSS for the control's stylesheet and JSON for the
-    " POST roundtrip.
+    " for the bundles and JSON for the POST roundtrip.
     DATA(lv_content_type) = COND string(
         WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
-        WHEN lv_css = abap_true        THEN `text/css; charset=UTF-8`
         WHEN lv_bundle = abap_true     THEN `application/javascript; charset=UTF-8`
         WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
         ELSE `application/json; charset=UTF-8` ).
@@ -1358,8 +1304,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               result = _http_get_devtools( ).
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
-            ELSEIF _is_control_css_request( is_req-path ) = abap_true.
-              result = _http_get_control_css( ).
             ELSE.
               result = _http_get( ).
             ENDIF.

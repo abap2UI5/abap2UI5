@@ -65,6 +65,8 @@ const ALLOWED = new Set([
   'sap/m/MessageBox',
   'sap/m/NavContainer',
   'sap/m/Text',
+  'sap/ui/core/Component',          // Component.create @since 1.56 - core/Embed.js
+  'sap/ui/core/ComponentContainer', // its lifecycle setting @since 1.50
   'sap/m/Token',
   'sap/m/library',
   'sap/ui/Device',
