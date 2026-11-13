@@ -124,7 +124,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " The one path BELOW the node that is not the page: GET
     " <node>/embed/Container.css is the stylesheet of the embed control. The
     " GET page maps the control's namespace z2ui5/embed to <node>/embed
-    " (frontend/page/webapp/Component.js), so this is where the control's own include of
+    " (app_v2/webapp/Component.js), so this is where the control's own include of
     " z2ui5/embed/Container.css ends. A path and not a value of
     " c_bundle_param: the UI5 loader drops the query of a resource root. As
     " a pattern for CP, which ignores case
@@ -215,20 +215,6 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " direct _main( ) call never meets the header of an earlier request.
     " Per request like ss_config_http_get, and reset with it
     CLASS-DATA sv_if_none_match  TYPE string.
-
-    " The class the GET page starts (_page_app), set by _main( ) for
-    " _http_get( ), whose signature is public and takes no request. Empty
-    " on a direct _http_get( ) call - the start page then
-    CLASS-DATA sv_page_app TYPE string.
-
-    " the class the page of this request starts: app_start of its URL as the
-    " roundtrip reads it (z2ui5_cl_ui5_handler=>app_start_normalize), or the
-    " start page when the URL names none
-    CLASS-METHODS _page_app
-      IMPORTING
-        it_params     TYPE z2ui5_if_client=>ty_t_name_value
-      RETURNING
-        VALUE(result) TYPE string.
 
     " a GET that asks for the bundle - the c_bundle_param in its URL
     CLASS-METHODS _is_bundle_request
@@ -759,13 +745,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " different configs can never concatenate to the same key. The embedded
     " frontend needs no key part: it is constant for the life of this class
     " load, and the cache does not outlive it
-    " consumed once, like sv_if_none_match
-    IF sv_page_app IS INITIAL.
-      sv_page_app = _page_app( VALUE #( ) ).
-    ENDIF.
-
-    DATA(lv_cache_key) = |{ strlen( sv_page_app ) }:{ sv_page_app }| &&
-                         |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
+    DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
                          |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
                          |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
                          |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }|.
@@ -826,25 +806,20 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                           occ  = 0 ) }</style>\n|.
     ENDIF.
 
-    " The page is a minimal UI5 app (frontend/page/webapp): a component with
-    " one XML view, a sap.m.Shell with a z2ui5.embed.Container
-    " (@abap2ui5/embed-control) in it. The control fills the Shell, loads the
-    " frontend from this node (?z2ui5-bundle, _http_get_bundle) and runs the
-    " app in it - the way the abap2UI5/frontend branches standard_new and
-    " cloud_new start it. So the page carries nothing of the frontend: the
+    " The page is the minimal UI5 app of app_v2/webapp: a component with one
+    " XML view, a sap.m.Shell with a z2ui5.embed.Container in it. The control
+    " loads the frontend from this node (?z2ui5-bundle, _http_get_bundle) and
+    " runs the app in it. So the page carries nothing of the frontend: the
     " sibling BSP roots (c_cci_root, c_ccc_root) reach the frontend's
     " component through the bundle's z2ui5/embed module, and the page is
-    " handed to the app by the control's ownsPage, set in the view. The page
-    " used to embed the whole preload and create the frontend's component
-    " itself (2026-11).
-    "
-    " Which class starts is decided here and not in the page: the control
-    " starts nothing without one, so the page gets it as component data
-    " (app, see _page_app). The name comes from the request, so it is
-    " escaped twice - as a JSON string, and as the value of the attribute
-    " the settings sit in.
-    DATA(lv_app) = z2ui5_cl_ui5_util_context=>c_escape_html( z2ui5_cl_ui5_util_context=>c_escape_js( sv_page_app ) ).
-    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"app" : "{ lv_app }"\}\}|.
+    " handed to the app by the control's ownsPage, set in the view - which
+    " also leaves the class to start to the roundtrip, where it always was
+    " decided (?app_start= or a route of the page's URL, else the start
+    " page). checkLocal tells the app's component that this page is the
+    " service node itself, so its endpoint is the page's path and not the
+    " manifest's (its Component.js). The page used to embed the whole
+    " preload and create the frontend's component itself (2026-11).
+    DATA(lv_settings) = |\{"id" : "z2ui5", "componentData" : \{"checkLocal" : true\}\}|.
 
     " The one inline script of the page - onInitComponent with the preload of
     " that app and the control - is generated together
@@ -921,21 +896,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     sv_get_cache_key  = lv_cache_key.
     sv_get_cache_body = result-body.
-
-  ENDMETHOD.
-
-  METHOD _page_app.
-
-    " a handful of URL parameters, read sequentially; the names come
-    " lower-cased from url_param_get_tab
-    result = z2ui5_cl_ui5_handler=>app_start_normalize(
-                 VALUE #( it_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
-    IF result IS INITIAL.
-      " by a typed, unbound reference and not a literal - a namespace
-      " rename rewrites the one and not the other
-      DATA lo_start TYPE REF TO z2ui5_cl_ui5_app_start.
-      result = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_start ).
-    ENDIF.
 
   ENDMETHOD.
 
@@ -1401,7 +1361,6 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             ELSEIF _is_control_css_request( is_req-path ) = abap_true.
               result = _http_get_control_css( ).
             ELSE.
-              sv_page_app = _page_app( is_req-t_params ).
               result = _http_get( ).
             ENDIF.
           WHEN `POST`.

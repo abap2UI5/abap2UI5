@@ -17,10 +17,9 @@
 //   - UI5, the one thing it needs at runtime and does not carry: loaded by the
 //     browser from the SAP system or a UI5 CDN, never bundled
 //
-//   - the embed control of abap2UI5/embed-control (npm @abap2ui5/embed-control),
-//     the project's own package and the one npm package that reaches a
-//     system: the page a GET answers with runs the frontend in it, and its
-//     module and stylesheet ship inside two objects of src/01/03
+//   - the page app of app_v2/webapp: the minimal UI5 app the page a GET
+//     answers with consists of, and the control it runs the frontend in
+//     (z2ui5.embed.Container, whose source lives there)
 //
 // and nothing else, because nothing else is shipped: no third-party library is
 // copied into src/ or app/webapp/. `.github/scripts/sbom-gate.mjs` holds the
@@ -92,13 +91,7 @@ export function sbom() {
 
   const abap = filesUnder("src");
   const webapp = filesUnder("app/webapp");
-  // The embed control as it is shipped: the two generated classes that
-  // carry its module and its stylesheet (tools/app2abap/trans2abap.js takes
-  // them from node_modules), at the version the lockfile pins.
-  const control = filesUnder("src/01/03").filter((f) => /z2ui5_cl_ui5f_embed_(js|css)\.clas\.abap$/.test(f));
-  const lock = JSON.parse(fs.readFileSync(path.join(ROOT, "package-lock.json"), "utf8"));
-  const controlVersion = lock.packages?.["node_modules/@abap2ui5/embed-control"]?.version ?? "unknown";
-  const controlRef = `pkg:npm/%40abap2ui5/embed-control@${controlVersion}`;
+  const page = filesUnder("app_v2/webapp");
   const part = (name, description, files, sub) => ({
     type: "library",
     "bom-ref": `${ref}#${sub}`,
@@ -143,23 +136,12 @@ export function sbom() {
     components: [
       part("abap2UI5 ABAP objects", "The ABAP packages Z2UI5 (src/00-99) an abapGit pull imports", abap, "src"),
       part("abap2UI5 frontend", "The UI5 frontend, shipped inside the ABAP objects of src/01/03 as string constants", webapp, "app/webapp"),
-      {
-        type: "library",
-        "bom-ref": controlRef,
-        name: "@abap2ui5/embed-control",
-        version: controlVersion,
-        description:
-          "The UI5 control z2ui5.embed.Container of abap2UI5/embed-control: the page the service answers a GET " +
-          "with runs the frontend in it. Shipped inside two ABAP objects of src/01/03, its comments stripped.",
-        licenses: [{ license: { id: "MIT" } }],
-        purl: controlRef,
-        hashes: [{ alg: "SHA-256", content: treeHash(control) }],
-        externalReferences: [{ type: "vcs", url: "https://github.com/abap2UI5/embed-control" }],
-        properties: [
-          { name: "abap2ui5:path", value: control.join(" ") },
-          { name: "abap2ui5:hash-method", value: "SHA-256 over each file's path, NUL, bytes, NUL, in path order" },
-        ],
-      },
+      part(
+        "abap2UI5 page app",
+        "The minimal UI5 app of the page a GET answers with, and the control z2ui5.embed.Container it runs the frontend in - shipped inside the ABAP objects of src/01/03",
+        page,
+        "app_v2/webapp",
+      ),
       {
         type: "framework",
         "bom-ref": "ui5",
@@ -178,9 +160,9 @@ export function sbom() {
       },
     ],
     dependencies: [
-      { ref, dependsOn: [`${ref}#src`, `${ref}#app/webapp`, "ui5"] },
-      { ref: `${ref}#src`, dependsOn: [`${ref}#app/webapp`, controlRef] },
-      { ref: controlRef, dependsOn: [`${ref}#app/webapp`, "ui5"] },
+      { ref, dependsOn: [`${ref}#src`, `${ref}#app/webapp`, `${ref}#app_v2/webapp`, "ui5"] },
+      { ref: `${ref}#src`, dependsOn: [`${ref}#app/webapp`, `${ref}#app_v2/webapp`] },
+      { ref: `${ref}#app_v2/webapp`, dependsOn: [`${ref}#app/webapp`, "ui5"] },
       { ref: `${ref}#app/webapp`, dependsOn: ["ui5"] },
       { ref: "ui5", dependsOn: [] },
     ],

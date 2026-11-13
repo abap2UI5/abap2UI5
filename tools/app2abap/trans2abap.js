@@ -11,18 +11,17 @@ const sourceDir = path.join(__dirname, "../../app/webapp");
 const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
-// page is a minimal UI5 app (frontend/page/webapp) - a component with one
-// XML view, a sap.m.Shell with a z2ui5.embed.Container
-// (@abap2ui5/embed-control) in it, which loads the frontend through
-// ?z2ui5-bundle. Its inline script holds that app and the control, taken
-// from node_modules at the version package.json pins - the same package the
-// delivery branches standard_new and cloud_new ship (frontend/embed). The
-// app is abap2ui5.page: z2ui5/ is the frontend's namespace and z2ui5/embed/
-// the control's. The control's stylesheet is no module: the handler serves
-// it at <node>/embed/Container.css (get_control_css( ), see Component.js).
+// page is the minimal UI5 app of app_v2/webapp - a component with one XML
+// view, a sap.m.Shell with a z2ui5.embed.Container in it, and the control
+// itself, whose source lives there (embed/). The control loads the
+// frontend through ?z2ui5-bundle. The page is a variant of that app, not a
+// second one: its inline script holds the app's files as a preload, because
+// a node serves no files. index.html stays out - the handler writes the
+// page. The control's stylesheet is no module: the handler serves it at
+// <node>/embed/Container.css (get_control_css( ), see the app's
+// Component.js).
 const repoDir = path.join(__dirname, "../..");
-const pageDir = "frontend/page/webapp";
-const controlDir = "node_modules/@abap2ui5/embed-control/src";
+const pageDir = "app_v2/webapp";
 const PAGE_SOURCES = [
   {
     source: `${pageDir}/Component.js`,
@@ -40,12 +39,12 @@ const PAGE_SOURCES = [
     urlPath: "abap2ui5/page/view/Main.view.xml",
   },
   {
-    source: `${controlDir}/Container.js`,
+    source: `${pageDir}/embed/Container.js`,
     className: "z2ui5_cl_ui5f_embed_js",
     urlPath: "z2ui5/embed/Container.js",
   },
   {
-    source: `${controlDir}/Container.css`,
+    source: `${pageDir}/embed/Container.css`,
     className: "z2ui5_cl_ui5f_embed_css",
     // not preloaded - served as a file
     urlPath: null,
@@ -347,7 +346,7 @@ function escapeJsLiteral(value) {
 // The lines around the preload entries in the GET page's one inline
 // <script>: the global onInitComponent the bootstrap tag names in
 // data-sap-ui-oninit, which registers the page's own modules (PAGE_SOURCES -
-// the app of frontend/page and the embed control, NOT the frontend) and
+// the app of app_v2/webapp with its control, NOT the frontend) and
 // starts the component the page declares. Each line is followed by a newline, the first one is empty (the
 // script text starts with the newline after <script>). Held once, as data,
 // so the ABAP string template in buildPreloadClass and the hashed JavaScript
@@ -943,8 +942,7 @@ async function main() {
       const file = path.join(repoDir, source);
       if (!fs.existsSync(file)) {
         throw new Error(
-          `${source} is missing - the GET page carries it; run 'npm ci' ` +
-            "(the embed control comes from node_modules)",
+          `${source} is missing - the GET page carries it`,
         );
       }
       if (seenClassNames.has(className)) {

@@ -6,7 +6,6 @@
     height="100%">
     <Shell>
         <z2ui5:Container
-            app="{start>/app}"
             endpoint="{start>/endpoint}"
             ownsPage="true"
             height="100%"/>

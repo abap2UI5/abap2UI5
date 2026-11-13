@@ -531,7 +531,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     " the frontend bundle carries the eager half of the developer tools and
     " none of the bundled files - and the devtools bundle carries exactly
     " the rest, under its own digest. The page's inline script carries
-    " nothing of the frontend at all: the app of frontend/page - a
+    " nothing of the frontend at all: the app of app_v2/webapp - a
     " component with one view - and the control that view holds
     DATA(lv_shell)  = z2ui5_cl_ui5f_preload=>get( ).
     DATA(lv_bundle) = z2ui5_cl_ui5f_preload=>get_bundle( ).
@@ -566,28 +566,16 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
                                         act = ls_result-status_code ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `<!DOCTYPE html>` ) ).
     " ...which is the app with the one view and the embed control in it,
-    " told by the backend which class to start, and carries nothing of the
-    " frontend: neither its modules nor the module the bundle is recognised by
+    " told that it runs on the node itself, and carries nothing of the
+    " frontend: neither its modules nor the module the bundle is recognised
+    " by. Which class starts is not the page's business - no name in it
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"z2ui5/embed/Container.js": function()` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( ls_result-body CS `"abap2ui5/page/view/Main.view.xml": '` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `"componentData" : {"app" : "Z2UI5_CL_UI5_APP_HI_WORLD"}}'` ) ).
+        xsdbool( ls_result-body CS `data-settings='{"id" : "z2ui5", "componentData" : {"checkLocal" : true}}'` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `"z2ui5/core/` ) ).
-
-    " no app_start: the start page, named by the backend
-    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET` ) ).
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( ls_result-body CS `"componentData" : {"app" : "Z2UI5_CL_UI5_APP_START"}}'` ) ).
-
-    " a name out of the URL cannot leave the attribute or the JSON string
-    ls_result = z2ui5_cl_ui5_http_handler=>_main( VALUE #(
-        method   = `GET`
-        t_params = VALUE #( ( n = `app_start`
-                              v = `a'b"c<d` ) ) ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `A'B` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `B"C` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `C<D` ) ).
     cl_abap_unit_assert=>assert_false( xsdbool( ls_result-body CS `sap.ui.define("z2ui5/embed"` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( to_upper( ls_result-body ) CS `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
 
   ENDMETHOD.
 

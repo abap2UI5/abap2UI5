@@ -6,7 +6,13 @@
     "applicationVersion": {
       "version": "1.0.0"
     },
-    "title": "abap2UI5"
+    "title": "abap2UI5",
+    "dataSources": {
+      "http": {
+        "uri": "/sap/bc/z2ui5",
+        "type": "JSON"
+      }
+    }
   },
   "sap.ui": {
     "technology": "UI5",
@@ -23,6 +29,9 @@
         "sap.m": {},
         "sap.ui.core": {}
       }
+    },
+    "resourceRoots": {
+      "z2ui5.embed": "./embed/"
     },
     "rootView": {
       "viewName": "abap2ui5.page.view.Main",
