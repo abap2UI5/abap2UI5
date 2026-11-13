@@ -17,10 +17,14 @@ sap.ui.define(
     //
     // The restored string is the column's filterValue, which
     // sap.ui.table.Column#_getFilter parses back when the user submits it
-    // again from the column menu - so it is written in that grammar: "!="
-    // for NE, "from..to" for BT, "v*" / "*v" for StartsWith / EndsWith.
+    // again from the column menu - so it is written in that grammar: "="
+    // for EQ, "!=" for NE, "from..to" for BT, "v*" / "*v" for StartsWith /
+    // EndsWith. EQ needs its "=": a bare value is read as Contains on a
+    // string filter type, which is also the default when the column sets
+    // none (Column._DEFAULT_FILTER_TYPE), and as defaultFilterOperator when
+    // the column sets one - "=v" is EQ for every type, 1.71 included.
     const opSymbols = {
-      EQ: "",
+      EQ: "=",
       NE: "!=",
       LT: "<",
       LE: "<=",
