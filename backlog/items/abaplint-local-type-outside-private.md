@@ -2,13 +2,15 @@
 target: abaplint
 title: 'A local type of the class pool used outside the PRIVATE SECTION of the global class'
 summary: 'the types, classes and interfaces of a class pool''s local definitions (locals_def, the CCDEF include) may only type components of the PRIVATE SECTION of the global class - a PUBLIC or PROTECTED attribute, parameter or type built on one is a syntax error on the system, and check_syntax reports nothing'
-priority: medium
+priority: high
 state: open
 first_seen: 2026-10-24
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5-addons/abap-cloud-gui, report2cloud (tools/report2cloud/lib/convert.mjs, planLocalTypes( )) - a converted report''s globals typed with its local classes became PUBLIC attributes typed with a type of locals_def; every gate (v750, ABAP Cloud, 7.02, the transpiled ABAP Unit run) was green. The converter now moves such globals into the PRIVATE SECTION, which the gates cannot check either'
   - 'measured 2026-10-24 on abaplint 2.120.75, v750 and ABAP Cloud configs of abap-cloud-gui, an isolated class pool: PUBLIC `DATA mt_row TYPE ty_t_row.` and `DATA mo_helper TYPE REF TO lcl_helper.`, PROTECTED `DATA mv_row TYPE ty_s_row.` - all three types from the class''s locals_def - produce no finding but unused_variables'
+  - 'probed 2026-11-14 against abaplint 2.120.107 with every default rule on (v750): a PUBLIC attribute typed with a type of the class''s locals_def still gives no finding; no issue or pull request upstream'
 ---
 
 # A local type of the class pool used outside the PRIVATE SECTION

@@ -2,10 +2,10 @@
 target: abaplint
 title: 'Report DATA( ) declared from a generically typed source'
 summary: '`DATA(lv) = iv` with iv TYPE clike/csequence/any makes the system fix the type ("the fixed type STRING is used for the generic type CLIKE") and SLIN reports it'
-priority: medium
+priority: high
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'a user''s system reported z2ui5_cl_ui5_util_context=>url_param_get_tab (2026-09-02); abap-check §3'

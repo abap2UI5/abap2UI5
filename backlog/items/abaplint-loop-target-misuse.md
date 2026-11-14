@@ -16,7 +16,7 @@ evidence:
 
 # LOOP and READ targets used wrongly: after the loop, reused by an inner loop, INTO <fs>, not typed as the line
 
-All four look at the INTO/ASSIGNING target of LOOP AT and READ TABLE; one rule, one option per check. The stale IS ASSIGNED case stays its own item (abaplint-stale-fs-is-assigned), it has the strongest evidence.
+All four look at the INTO/ASSIGNING target of LOOP AT and READ TABLE; one rule, one option per check. The stale IS ASSIGNED case was its own item and shipped as `is_assigned_in_loop` (abaplint/abaplint#4442).
 
 Merged on 2026-10-12 from the items `abaplint-loop-target-used-after-loop`, `abaplint-nested-loop-same-target`, `abaplint-read-into-field-symbol`, `abaplint-loop-target-not-line-type`.
 
