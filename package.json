@@ -123,10 +123,10 @@
   "devDependencies": {
     "@abap2ui5/embed-control": "^0.3.0",
     "@abap2ui5/linter": "^0.9.0",
-    "@abaplint/cli": "^2.120.103",
+    "@abaplint/cli": "^2.120.107",
     "@abaplint/database-sqlite": "^2.14.12",
-    "@abaplint/runtime": "^2.14.15",
-    "@abaplint/transpiler-cli": "^2.14.15",
+    "@abaplint/runtime": "^2.14.33",
+    "@abaplint/transpiler-cli": "^2.14.33",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.1",
     "@ui5/cli": "^4.0.71",
