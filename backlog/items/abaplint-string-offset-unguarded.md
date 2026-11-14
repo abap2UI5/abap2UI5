@@ -5,7 +5,7 @@ summary: '`lv+0(6) = ''gpgsig''` on a STRING shorter than 6 dumps with STRING_OF
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 3620e12 (#3394), 25f2bf4 (#4371), 4ca6c4a (#6468), c267d2a (#6415)'

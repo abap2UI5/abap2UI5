@@ -5,7 +5,7 @@ summary: 'ASSERT gives the uncatchable ASSERTION_FAILED dump; `ASSERT sy-subrc =
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'about 20 fix commits replace ASSERT by exceptions, e.g. abapGit 0a67f95, 01b8554, ef2b90c, 41b301c; abap2UI5 1e4c2a4 (an ASSERT on the request path bypassed the outer TRY)'

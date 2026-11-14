@@ -5,7 +5,7 @@ summary: 'four checks on the work area or field symbol of a LOOP/READ - read aft
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit d68e4e6 (#2157, dump)'

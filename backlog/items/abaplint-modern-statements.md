@@ -5,10 +5,11 @@ summary: 'three statements with a shorter modern form; abaplint has no finding f
 priority: low
 state: open
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
+  - 'abaplint/abaplint#4552 (open pull request, 2026-11-10, not ours) adds a `translate` option to obsolete_statement with a quick fix to to_upper( )/to_lower( ) - the TRANSLATE part of this item; the += and condense( ) parts are not covered. Seen by the upstream search of 2026-11-14'
 ---
 
 # Modern statements: += instead of x = x + …, to_upper( ) instead of TRANSLATE, condense( ) instead of CONDENSE

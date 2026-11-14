@@ -5,7 +5,7 @@ summary: 'a curated per-release list (generalising forbidden_void_type) would ca
 priority: low
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'sbcgua/ajson 075a09b; abapGit/abapGit c5a6aed, f6ad8c6, 497b432, 1eafca9'
