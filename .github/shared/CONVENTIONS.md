@@ -17,8 +17,8 @@ first paragraph.
 
 | Role | Meaning | Examples |
 | --- | --- | --- |
-| **Source** | Humans and agents edit here. CI gates every change. | `abap2UI5`, `linter`, `web-abap2UI5` |
-| **Channel** | Generated and pushed by a workflow. Never edit. | `frontend`, `web-abap2UI5-build`, `app-template` |
+| **Source** | Humans and agents edit here. CI gates every change. | `abap2UI5`, `linter`, `browser-demo` |
+| **Channel** | Generated and pushed by a workflow. Never edit. | `frontend`, `app-template` |
 | **Product** | Ships on its own release cycle to npm, Marketplace or an action. | `linter`, `vscode-extension`, `mcp-server` |
 | **Corpus** | A body of installable example code, installed on its own. | `samples`, `samples-controls`, `samples-stack` |
 
@@ -101,7 +101,7 @@ Rules that follow from the role:
   quietly means something narrower in one repository than in the next, which is
   the failure this rule exists to prevent. Today: `vscode-extension` omits
   `test:web` (downloads VS Code web + chromium), `samples-controls` omits
-  `gates:full` and the two downport lint configs, `web-abap2UI5` omits the
+  `gates:full` and the two downport lint configs, `browser-demo` omits the
   Playwright e2e run, `playground` and `linter` omit the Chromium download their
   own tests then ask for by name, and `linter` also omits `codeql`, the
   composite-action job and the publish-shaped `package` job.
