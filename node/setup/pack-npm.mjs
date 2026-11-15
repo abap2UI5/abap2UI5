@@ -396,7 +396,9 @@ if (!check) process.exit(0);
  *      of its own (check-own.mjs): the framework's app and the host's start,
  *      the framework catches what the host's app raises, the one CX_ROOT is
  *      the output's, and importing the package's entry point next to it is
- *      refused before it loads a second runtime
+ *      refused before it loads a second runtime; and --unit-tests of the
+ *      same command wrote the runner for the host's own test class, which
+ *      runs it and nothing of the framework's (the package ships none)
  *   5. serve() rejects on a port that is taken instead of resolving
  *   6. the runtime the package pins is linear on large tables: the
  *      "./accelerate" subpath a host that boots itself imports says so, and
@@ -443,6 +445,23 @@ try {
     "ENDCLASS.",
     "",
   ].join("\n"));
+  /* the host's own ABAP Unit test - what --unit-tests of the bin is for: a
+   * repository whose CI runs its test classes on the package (an addon) */
+  fs.writeFileSync(path.join(scratch, "abap/zcl_host_app.clas.testclasses.abap"), [
+    "CLASS ltcl_host DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.",
+    "  PRIVATE SECTION.",
+    "    METHODS builds_a_view FOR TESTING.",
+    "ENDCLASS.",
+    "",
+    "CLASS ltcl_host IMPLEMENTATION.",
+    "  METHOD builds_a_view.",
+    "    DATA(xml) = z2ui5_cl_ui5_view_builder=>factory( )->ele( `Page` )->stringify( ).",
+    "    cl_abap_unit_assert=>assert_char_cp( act = xml",
+    "                                         exp = `*Page*` ).",
+    "  ENDMETHOD.",
+    "ENDCLASS.",
+    "",
+  ].join("\n"));
   /* the host's own exception class: a module that imports what it extends,
    * relatively, from the output - open-abap-core of the same transpile */
   fs.writeFileSync(path.join(scratch, "abap/zcx_host_error.clas.abap"), [
@@ -464,13 +483,23 @@ try {
    * without node/deps records no commits; then a HEAD clone of each is made
    * here and handed over, so the check still runs (and the pack warned
    * about it above). */
-  const transpileArgs = ["abap2ui5-transpile", "abap", "abap2ui5"];
+  const transpileArgs = ["abap2ui5-transpile", "abap", "abap2ui5", "--unit-tests"];
   for (const [commit, name, option] of [[openAbapCore, "open-abap-core", "--core"], [expressIcfShim, "express-icf-shim", "--shim"]]) {
     if (commit) continue;
     run("git", ["clone", "--quiet", "--depth", "1", `https://github.com/open-abap/${name}`, path.join(scratch, "deps", name)]);
     transpileArgs.push(option, `deps/${name}`);
   }
   run(WIN ? "npx.cmd" : "npx", transpileArgs);
+
+  /* --unit-tests: the generated runner holds the host's test class and no
+   * test of the framework - downport/ is packed without its test includes */
+  const unit = spawnSync(process.execPath, ["abap2ui5/index.mjs"], { cwd: scratch, encoding: "utf8" });
+  const ran = (unit.stdout || "").split("\n").filter((line) => line.includes(": running "));
+  if (unit.status !== 0 || ran.length !== 1 || !ran[0].includes("ZCL_HOST_APP: running ltcl_host->builds_a_view")) {
+    console.error(`pack-npm --check: abap2ui5-transpile --unit-tests - the generated runner (abap2ui5/index.mjs) did not run exactly the host's one test (exit ${unit.status}):\n${unit.stdout}${unit.stderr}`);
+    process.exit(1);
+  }
+  console.log("ok  abap2ui5-transpile --unit-tests: abap2ui5/index.mjs runs the host's ABAP Unit test and none of the framework's");
 
   fs.writeFileSync(path.join(scratch, "check.mjs"), `
 import { createRequire } from "node:module";
