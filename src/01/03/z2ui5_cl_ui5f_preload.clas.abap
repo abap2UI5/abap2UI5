@@ -16,7 +16,7 @@ CLASS z2ui5_cl_ui5f_preload DEFINITION
     " get( ) returns and the frontend bundle get_bundle( ) returns - fixed
     " at generation time. Part of the ETag of
     " the page and of the bundle (z2ui5_cl_ui5_http_handler=>_get_etag)
-    CONSTANTS build_hash TYPE string VALUE '317e16907d5f543b'.
+    CONSTANTS build_hash TYPE string VALUE '74a4769a4fe2c105'.
 
     " the digest of the script get( ) returns as a CSP hash source, without
     " the quotes around it:

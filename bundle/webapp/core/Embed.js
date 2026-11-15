@@ -21,8 +21,10 @@ sap.ui.define(
     //   host       the control the app is rendered in - its owner component
     //              becomes the app component's owner
 
-    // The class of the area the control renders (its renderer writes it).
-    const AREA = "z2ui5EmbedContainer";
+    // The class of an app that is a part of its host's page - on the
+    // ComponentContainer create( ) hands back. An app the page belongs to
+    // (ownsPage) does not carry it.
+    const AREA = "z2ui5EmbedArea";
 
     // sap.m.Shell - the root of many abap2UI5 views, the hello world app's
     // too - limits the app width by a media query on the VIEWPORT: from
@@ -33,6 +35,9 @@ sap.ui.define(
     // fills it. The selector has to outweigh sap.m's (0,3,1), hence the
     // doubled Shell class: (0,4,0). It was the control's stylesheet
     // (Container.css) until 2026-11-13.
+    // Not for an app the page belongs to: its area IS the viewport, and the
+    // Shell limits the width there as it does on any page of its own - the
+    // rule took that away from the backend's own page until 2026-11-15.
     const STYLE =
       `.${AREA} .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox ` +
       "{ left: 0; margin-left: 0; width: 100%; }";
@@ -169,19 +174,21 @@ sap.ui.define(
       // and dies with the container, and the models of the host stay out of
       // the app, which brings its own.
       create(settings, installation) {
-        installStyle();
+        const part = settings.ownsPage !== true;
+        if (part) installStyle();
         return Promise.resolve(
           createComponent(withHostStart(settings), installation),
-        ).then(
-          (component) =>
-            new ComponentContainer({
-              lifecycle: "Container",
-              propagateModel: false,
-              width: "100%",
-              height: "100%",
-              component,
-            }),
-        );
+        ).then((component) => {
+          const container = new ComponentContainer({
+            lifecycle: "Container",
+            propagateModel: false,
+            width: "100%",
+            height: "100%",
+            component,
+          });
+          if (part) container.addStyleClass(AREA);
+          return container;
+        });
       },
     };
   },

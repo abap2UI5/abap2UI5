@@ -34,6 +34,8 @@ function load({ owner = null, createFails = false, noSheets = false } = {}) {
   function ComponentContainer(settings) {
     containers.push(settings);
     this.settings = settings;
+    this.classes = [];
+    this.addStyleClass = (name) => this.classes.push(name);
   }
   class CSSStyleSheet {
     replaceSync(text) {
@@ -263,7 +265,7 @@ test.describe("create", () => {
 
 test.describe("the style of the area", () => {
   const RULE =
-    ".z2ui5EmbedContainer .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox";
+    ".z2ui5EmbedArea .sapMShell.sapMShellAppWidthLimited .sapMShellCentralBox";
 
   test("one constructed stylesheet per page, however many apps start", async () => {
     const { Embed, adopted, head } = load();
@@ -281,5 +283,22 @@ test.describe("the style of the area", () => {
     expect(adopted.length).toBe(0);
     expect(head.map((node) => node.tag)).toEqual(["meta", "style"]);
     expect(head[1].textContent).toContain(RULE);
+  });
+
+  test("only an app that is a part of the page carries the class", async () => {
+    const { Embed } = load();
+    const part = await Embed.create({ app: "A", endpoint: "/e" }, INSTALLATION);
+    expect(part.classes).toEqual(["z2ui5EmbedArea"]);
+  });
+
+  test("an app the page belongs to keeps the Shell's width limit", async () => {
+    const { Embed, adopted, head } = load();
+    const own = await Embed.create(
+      { endpoint: "/e", ownsPage: true },
+      INSTALLATION,
+    );
+    expect(own.classes).toEqual([]);
+    expect(adopted.length).toBe(0);
+    expect(head).toEqual([]);
   });
 });
