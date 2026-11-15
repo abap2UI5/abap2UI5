@@ -5,7 +5,7 @@ summary: 'the assignment rounds and can produce second 60; SLIN warns'
 priority: low
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'sbcgua/ajson 5e8de3f, 33d6180 (#128), 075a09b'

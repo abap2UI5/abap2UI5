@@ -5,7 +5,7 @@ summary: 'two statements avoid_use does not cover yet - a table declared with th
 priority: low
 state: open
 first_seen: 2026-09-19
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5/samples-controls app 034 shipped `TYPE TABLE OF` without a key clause; the corpus gate grew a regex for it (`pattern-lint`), promoted 2026-09-12 into the abap2UI5-linter as `default-key-table` — which reads app classes only'

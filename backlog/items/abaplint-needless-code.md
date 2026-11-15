@@ -5,7 +5,7 @@ summary: 'four ''needless'' clean-ups - each removes code that does nothing, eac
 priority: low
 state: open
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'

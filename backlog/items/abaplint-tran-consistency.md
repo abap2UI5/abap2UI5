@@ -3,12 +3,14 @@ target: abaplint
 title: 'Report transactions whose program, class or screen does not exist'
 summary: 'a TRAN pointing at a missing report or class fails at start; abaplint has consistency checks for SMIM/SICF/MSAG/NROB but not TRAN'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/723
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
+  - 'abaplint/abaplint#723 "transaction code consistency" (larshp, 2020, open) asks for exactly this - found by the upstream search of 2026-11-14'
 ---
 
 # Report transactions whose program, class or screen does not exist

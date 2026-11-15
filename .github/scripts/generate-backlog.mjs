@@ -83,8 +83,8 @@ const TARGETS = [
     title: 'abaplint — rules about ABAP itself',
     upstream: 'abaplint/abaplint',
     what:
-      'Defects that are decidable from ABAP source alone and that no rule of '
-      + 'the 188 abaplint ships decides today.',
+      'Defects that are decidable from ABAP source alone and that no rule '
+      + 'abaplint ships decides today.',
     why:
       'Everything here shipped once. An entry is not "a rule that would be '
       + 'nice" but "a rule that would have caught this", with the sites it '

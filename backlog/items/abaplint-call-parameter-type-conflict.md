@@ -5,7 +5,7 @@ summary: 'string passed to a CHAR formal, the wrong length - CALL_FUNCTION_CONFL
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 7ecea07 (#5906, 702), 68ec17a (#3686), 9a85ff4 (#6272), 18cf907 (#7162); abap2UI5/abap2UI5 04958e0 (#1083)'

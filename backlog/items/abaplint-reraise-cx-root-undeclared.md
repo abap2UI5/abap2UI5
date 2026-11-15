@@ -5,7 +5,7 @@ summary: '`CATCH cx_root INTO DATA(lx). … RAISE EXCEPTION lx.` - the static ty
 priority: low
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'a user''s system reported z2ui5_cl_ui5_http_handler=>_http_post (2026-09-02); abap-check §3'

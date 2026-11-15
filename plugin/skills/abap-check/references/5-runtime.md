@@ -80,8 +80,11 @@ precisely because no gate will catch it.
   `abaplint.jsonc`. It replaced the script gate this repository ran for it: on
   2.120.75 it reports the same 16 sites as the detector that gate ran (11 in
   the frozen `src/99`, 5 in the mirrors `src/00/01` and `src/00/02`), and none
-  in the packages the ruleset reports on. The `UNASSIGN` half stays a review
-  point — the rule reports the test, not the missing `UNASSIGN`.
+  in the packages the ruleset reports on. The `UNASSIGN` half is gated inside
+  a loop — `is_assigned_in_loop` (abaplint/abaplint#4442, from the same
+  backlog), on in `abaplint.jsonc`, reports an `IS ASSIGNED` after a
+  `READ … ASSIGNING` or `ASSIGN` in a loop with no `UNASSIGN` before it.
+  Outside a loop, a symbol that was already assigned stays a review point.
 - **An object name inside a string literal is not a reference — a rename sweep
   will get it wrong and nothing will notice.** `#2564` renamed `z2ui5_cl_exit`
   to `z2ui5_cl_ui5_user_exit` and carried the rename into the *interface*

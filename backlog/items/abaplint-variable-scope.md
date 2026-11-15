@@ -3,12 +3,14 @@ target: abaplint
 title: 'Variable scope: shadowed names, a block-local declaration used after the block'
 summary: 'a local that shadows an attribute or global, and a DATA inside IF/LOOP/CASE used after the block, are the two scoping traps of ABAP''s procedure-wide scope'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/603
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
+  - 'abaplint/abaplint#603 "new rule: give error for shadowed variables" (2019, open, no body) asks for the first of the two checks - found by the upstream search of 2026-11-14; the block-local half is not asked for upstream'
 ---
 
 # Variable scope: shadowed names, a block-local declaration used after the block

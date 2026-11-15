@@ -3,12 +3,14 @@ target: abaplint
 title: 'Replace READ TABLE with a table expression'
 summary: 'READ TABLE … INTO plus sy-subrc check can be a table expression; abaplint has use_line_exists for the TRANSPORTING NO FIELDS form only'
 priority: low
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/3333
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on: no rule reports it'
+  - 'abaplint/abaplint#3333 "avoid_use - READ TABLE ..." (2024, open) asks to avoid READ TABLE where a table expression does it - found by the upstream search of 2026-11-14'
 ---
 
 # Replace READ TABLE with a table expression

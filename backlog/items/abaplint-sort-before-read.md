@@ -5,7 +5,7 @@ summary: 'READ TABLE … BINARY SEARCH and DELETE ADJACENT DUPLICATES … COMPAR
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 201560c (''bug fixing'', added the SORT)'

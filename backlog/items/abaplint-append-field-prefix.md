@@ -5,7 +5,7 @@ summary: 'fields of an append to an SAP table should be named ZZ*/YY* so they ne
 priority: low
 state: open
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
