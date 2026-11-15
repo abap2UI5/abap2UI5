@@ -4,15 +4,16 @@ title: 'Report a sequential read on a sorted table'
 summary: 'LOOP/DELETE/MODIFY … WHERE and READ … WITH KEY on a SORTED table whose condition does not start at the first key component (or compares it with CP) scan every row - ATC reports "Possible sequential read on a sorted table" and wants a key access or `"#EC CI_SORTSEQ`'
 priority: high
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/2490
+filed: https://github.com/abaplint/abaplint/pull/4573
 first_seen: 2026-11-11
-checked_upstream: 2026-11-14
+checked_upstream: 2026-11-15
 upstream: abaplint/abaplint
 evidence:
   - 'ATC on an ABAP Cloud trial system, 2026-11-10: "Possible sequential read on a sorted table" (check "Low Performance Operations on Internal Tables") on z2ui5_cl_ajson line 209, `DELETE mt_json_tree WHERE path CP lv_parent_path.` - mt_json_tree is SORTED … WITH UNIQUE KEY path name; silenced with the pseudo comment in abap2UI5/mirror-ajson#34'
   - 'probed 2026-11-11 against abaplint 2.120.92 with every default rule on (abaplint -d, v750 and Cloud): DELETE … WHERE path CP, DELETE … WHERE of a non-key component, LOOP … WHERE of the second key component and READ … WITH KEY of a non-key component on a sorted table - no rule reports any of the four'
   - 'abaplint/abaplint#2490 "new rule: Possible sequential read" (larshp, 2022, label new rule) is open - read 2026-11-11: it asks for the rule on sorted and hashed tables, for LOOP WHERE, READ TABLE and table expressions, with no further design; nothing in 2.120.103 covers it (#4549 makes the secondary-key case a syntax error, not the primary key)'
   - 're-checked 2026-11-14: abaplint/abaplint#2490 is still open with no pull request, and abaplint 2.120.107 ships no rule for the primary key'
+  - 'filed 2026-11-15 as abaplint/abaplint#4573'
 ---
 
 # Report a sequential read on a sorted table

@@ -4,15 +4,16 @@ title: 'Report comparisons that are constant: a = a, x <> A OR x <> B, x = A AND
 summary: 'a comparison of an operand with itself, or a pair of comparisons on one field that is always true (x <> A OR x <> B) or always false (x = A AND x = B), is a copy-paste bug'
 priority: high
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/3567
+filed: https://github.com/abaplint/abaplint/pull/4576
 first_seen: 2026-10-11
-checked_upstream: 2026-11-14
+checked_upstream: 2026-11-15
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5/abap2UI5 7647c26 (#1814): `kind <> c_num OR kind <> c_numeric` made the numeric serialisation wrong'
   - 'abaplint/abaplint#3567 (no_self_compare) and #2040 (always true condition) ask for parts of it'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'probed 2026-11-14 against abaplint 2.120.107 with every default rule on (v750): `IF iv_kind = iv_kind.` gives no finding, identical_conditions included'
+  - 'filed 2026-11-15 as abaplint/abaplint#4576'
 ---
 
 # Report comparisons that are constant: a = a, x <> A OR x <> B, x = A AND x = B
