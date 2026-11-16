@@ -2116,6 +2116,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         lr_attri->t_window_filter     = lr_old->t_window_filter.
         lr_attri->t_window_sort_set   = lr_old->t_window_sort_set.
         lr_attri->t_window_filter_set = lr_old->t_window_filter_set.
+        lr_attri->t_window_filter_ui  = lr_old->t_window_filter_ui.
       ENDIF.
     ENDLOOP.
 

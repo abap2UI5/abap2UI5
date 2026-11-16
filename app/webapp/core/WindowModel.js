@@ -14,6 +14,25 @@
 //     filter( ) - the column menu of sap.ui.table, a BINDING_CALL from the
 //     app - send the sorters and the filter to the backend, which sorts and
 //     filters ALL rows and answers with the first window of the new order.
+//
+// THE ORDER IS THE BACKEND'S, and this binding does not know it. The app
+// sets one with t_sort / t_filter of window_bind_tab( ), a binding of a view
+// rendered before may have set one, and none of that is in aSorters or
+// aFilters here. So a request says only what THIS binding was just told:
+//   - a request for more rows says nothing - more rows of the same order;
+//   - sort( ) names the sorters and nothing else, filter( ) the filters
+//     and nothing else, so a column filter does not undo the app's sort.
+// Every request used to carry aSorters and the filters, and the backend
+// took them as the order: the first "More" after an app sort sent an empty
+// list and the rows came back unsorted and unfiltered. The other way to
+// mend that - the response hands the order over and the binding adopts and
+// re-sends it - was not taken: a request then carries a copy of the order
+// that may be stale by the time it is sent (kept behind a roundtrip in
+// which the app changed the sort, it would undo that), and nothing here
+// reads the order. The backend's half of this is
+// z2ui5_cl_ui5_srv_window=>event_apply.
+// What filter( ) sends is the binding's filter, and the backend ANDs it
+// with the app's t_filter: neither replaces the other.
 // The request is the framework event EVENT through the slot's eB, so it
 // carries the model delta like any roundtrip; the backend answers it without
 // calling the app (z2ui5_cl_ui5_handler, cs_event_window) and pushes the
@@ -250,7 +269,7 @@ sap.ui.define(
         return JSONListBinding.prototype.sort.call(this, aSorters, ...rest);
       }
       this.aSorters = toArray(aSorters);
-      this._z2ui5Restart(meta);
+      this._z2ui5Restart(meta, { sort: true });
       return this;
     };
 
@@ -272,37 +291,57 @@ sap.ui.define(
         this.aFilters = list;
         this.aApplicationFilters = [];
       }
-      this._z2ui5Restart(meta);
+      this._z2ui5Restart(meta, { filter: true });
       return this;
     };
 
-    // a new order: the first window of it
-    WindowListBinding.prototype._z2ui5Restart = function (meta) {
+    // a new order: the first window of it. `said` is the part of the order
+    // the binding was just told - see the header
+    WindowListBinding.prototype._z2ui5Restart = function (meta, said) {
       this._z2ui5Wanted = Number(meta.SIZE) || 0;
-      this._z2ui5Send(this._z2ui5Wanted, false);
+      this._z2ui5Send(this._z2ui5Wanted, false, said);
     };
 
-    WindowListBinding.prototype._z2ui5Send = function (count, noBusy) {
+    // [path, count] asks for rows; a third argument names the sorters, a
+    // fourth the filter groups - an argument left out (or empty, for the
+    // sort of a request that names a filter) says nothing about that part
+    WindowListBinding.prototype._z2ui5Send = function (count, noBusy, said) {
       const send = this.oModel._z2ui5WindowSend;
       if (typeof send !== "function") {
         Lib.logError(`WINDOW: no way to the server for /${this._z2ui5Name}`);
         return;
       }
-      // the control's filters and the app's are ANDed, as UI5 does it
-      const groups = [
-        ...filterGroups(this.aFilters),
-        ...filterGroups(this.aApplicationFilters),
-      ];
-      send(
-        [
-          `/${this._z2ui5Name}`,
-          String(count),
-          JSON.stringify(sortWire(this.aSorters)),
-          JSON.stringify(groups),
-        ],
-        noBusy,
-      );
+      const args = [`/${this._z2ui5Name}`, String(count)];
+      if (said?.sort) args[2] = JSON.stringify(sortWire(this.aSorters));
+      if (said?.filter) {
+        args[2] = args[2] ?? "";
+        // the two filter types of a UI5 binding, Control and Application,
+        // are ANDed as UI5 does it - together they are the binding's
+        // filter, which the backend ANDs with the app's t_filter
+        args[3] = JSON.stringify([
+          ...filterGroups(this.aFilters),
+          ...filterGroups(this.aApplicationFilters),
+        ]);
+      }
+      send(args, noBusy);
     };
+
+    // Two window requests of one table, the first still waiting behind a
+    // roundtrip when the second comes (one slot, the last one wins -
+    // AppState, oQueuedWindow): the second takes over what the first named
+    // and it does not name itself. Since a request names only what the
+    // binding was told, the request for more rows a table sends while its
+    // sort( ) still waits would otherwise replace it, and the sort would be
+    // lost without a word. Requests of two tables share nothing.
+    function keepSaid(args, kept) {
+      if (!Array.isArray(kept) || kept[0] !== args[0]) return args;
+      const sort = args[2] || kept[2] || "";
+      const filter = args[3] || kept[3] || "";
+      const merged = [args[0], args[1]];
+      if (sort || filter) merged[2] = sort;
+      if (filter) merged[3] = filter;
+      return merged;
+    }
 
     const WindowModel = Env.ownClass(
       JSONModel.extend("z2ui5.core.WindowModel", {
@@ -334,6 +373,7 @@ sap.ui.define(
     // for the specs
     WindowModel.filterGroups = filterGroups;
     WindowModel.sortWire = sortWire;
+    WindowModel.keepSaid = keepSaid;
 
     return WindowModel;
   },

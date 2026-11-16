@@ -9,6 +9,14 @@
 // the framework event ___ZZZ_WIN does, and where a delta of a sorted
 // window lands. The second half is the browser: growing, a search and a
 // sort through BINDING_CALL, the column sort of sap.ui.table.
+//
+// The order of a windowed table is kept on the server, and a request
+// names only the part of it the binding was told to change: `grow` is the
+// request for more rows (the path and the count, nothing else), `sortBy`
+// and `filterBy` what sort( ) and filter( ) of the binding send.
+// `windowEvent` names both in every request, an empty list included - the
+// wire of the frontend before that, which a page left open over an update
+// still speaks.
 const { test, expect } = require("./fixtures");
 
 const APP = "zcl_tst_window";
@@ -47,6 +55,42 @@ function windowEvent(id, path, count, sort = [], filter = []) {
       JSON.stringify(filter),
     ],
   };
+}
+
+function grow(id, path, count) {
+  return { ID: id, EVENT: EVENT, T_EVENT_ARG: [path, String(count)] };
+}
+
+function sortBy(id, path, count, sort) {
+  return {
+    ID: id,
+    EVENT: EVENT,
+    T_EVENT_ARG: [path, String(count), JSON.stringify(sort)],
+  };
+}
+
+function filterBy(id, path, count, filter) {
+  return {
+    ID: id,
+    EVENT: EVENT,
+    T_EVENT_ARG: [path, String(count), "", JSON.stringify(filter)],
+  };
+}
+
+// the order the server sorts text in: without regard to case, by code unit
+function byName(a, b) {
+  const x = a.NAME.toUpperCase();
+  const y = b.NAME.toUpperCase();
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
+function expectSorted(rows, compare) {
+  for (let i = 1; i < rows.length; i++) {
+    expect(
+      compare(rows[i - 1], rows[i]),
+      `rows ${i - 1} and ${i}`,
+    ).toBeLessThanOrEqual(0);
+  }
 }
 
 test.describe("the wire", () => {
@@ -212,6 +256,193 @@ test.describe("window_bind_tab( ) of the app", () => {
   });
 });
 
+// Report: #3019 - the order the app passed survived until the first window
+// request: every request carried the binding's own sorters and filters,
+// empty for an order the app had set, and the server took them as the order
+test.describe("the order is the server's, a request for rows keeps it", () => {
+  test("an app-sorted list grows in the app's order, and a row and an edit follow it", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    const preset = await post(request, {
+      ID: first.S_FRONT.ID,
+      EVENT: "PRESET",
+    });
+    expect(preset.MODEL.MT_ROWS.map((row) => row.ID)).toEqual(
+      Array.from({ length: 50 }, (_v, i) => 250 - i),
+    );
+
+    const grown = await post(request, grow(preset.S_FRONT.ID, "/MT_ROWS", 100));
+    // rows 51 to 100 continue the first window: ids 250 down to 151
+    expect(grown.MODEL.MT_ROWS.map((row) => row.ID)).toEqual(
+      Array.from({ length: 100 }, (_v, i) => 250 - i),
+    );
+    expect(grown.MODEL.__WINDOW.MT_ROWS).toEqual({
+      TOTAL: 250,
+      COUNT: 100,
+      SIZE: 50,
+    });
+
+    // window_get_row( ): position 60 of what the browser shows is id 191
+    const pressed = await post(request, {
+      ID: grown.S_FRONT.ID,
+      EVENT: "ROW",
+      T_EVENT_ARG: ["/MT_ROWS/59"],
+    });
+    expect(pressed.MODEL.MV_RESULT).toBe("191");
+
+    // a cell edited in a row past the first window lands in that row
+    const checked = await post(
+      request,
+      { ID: pressed.S_FRONT.ID, EVENT: "CHECK" },
+      { MT_ROWS: { __delta: { 59: { SELECTED: true } } } },
+    );
+    expect(checked.MODEL.MV_RESULT).toBe("191;");
+    expect(checked.MODEL.MT_ROWS[59]).toMatchObject({
+      ID: 191,
+      SELECTED: true,
+    });
+
+    // the view rendered again with the same t_sort: the order and the rows
+    // the browser holds stay
+    const again = await post(request, {
+      ID: checked.S_FRONT.ID,
+      EVENT: "RERENDER",
+    });
+    expect(again.MODEL.MT_ROWS).toHaveLength(100);
+    expect(again.MODEL.MT_ROWS[0].ID).toBe(250);
+    expect(again.MODEL.MT_ROWS[99].ID).toBe(151);
+  });
+
+  test("an app-filtered list grows inside the app's filter", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    // Item 2, 20-29, 200-250: 62 rows
+    const filtered = await post(request, {
+      ID: first.S_FRONT.ID,
+      EVENT: "FILTER",
+      T_EVENT_ARG: ["Item 2"],
+    });
+    expect(filtered.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(62);
+    expect(filtered.MODEL.MT_ROWS).toHaveLength(50);
+
+    const grown = await post(
+      request,
+      grow(filtered.S_FRONT.ID, "/MT_ROWS", 100),
+    );
+    expect(grown.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(62);
+    expect(grown.MODEL.MT_ROWS).toHaveLength(62);
+    for (const row of grown.MODEL.MT_ROWS) expect(row.NAME).toMatch(/^Item 2/);
+
+    // a frontend from before names an empty filter in every request: that
+    // is the binding's filter, not the app's - the app's still holds
+    const old = await post(
+      request,
+      windowEvent(grown.S_FRONT.ID, "/MT_ROWS", 100),
+    );
+    expect(old.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(62);
+  });
+
+  test("the user's sort replaces the app's, grows, and gives way to a new one of the app", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    const preset = await post(request, {
+      ID: first.S_FRONT.ID,
+      EVENT: "PRESET",
+    });
+    // the user sorts by name: sort( ) of the binding names the sort alone
+    const user = await post(
+      request,
+      sortBy(preset.S_FRONT.ID, "/MT_ROWS", 50, [
+        { PATH: "NAME", DESCENDING: false },
+      ]),
+    );
+    expect(user.MODEL.MT_ROWS[0].NAME).toBe("Item 1");
+
+    const grown = await post(request, grow(user.S_FRONT.ID, "/MT_ROWS", 100));
+    expect(grown.MODEL.MT_ROWS).toHaveLength(100);
+    expect(grown.MODEL.MT_ROWS[0].NAME).toBe("Item 1");
+    expectSorted(grown.MODEL.MT_ROWS, byName);
+
+    // the app passes another sort: it replaces the user's, from the first
+    // window
+    const price = await post(request, {
+      ID: grown.S_FRONT.ID,
+      EVENT: "PRESET_PRICE",
+    });
+    expect(price.MODEL.MT_ROWS).toHaveLength(50);
+    expect(price.MODEL.MT_ROWS[0].PRICE).toBe(1);
+    expectSorted(price.MODEL.MT_ROWS, (a, b) => a.PRICE - b.PRICE);
+
+    // and the next rows are rows of the app's new order - the request does
+    // not bring the user's sort back
+    const more = await post(request, grow(price.S_FRONT.ID, "/MT_ROWS", 100));
+    expect(more.MODEL.MT_ROWS).toHaveLength(100);
+    expect(more.MODEL.MT_ROWS[0].PRICE).toBe(1);
+    expectSorted(more.MODEL.MT_ROWS, (a, b) => a.PRICE - b.PRICE);
+  });
+
+  test("the app's filter and the binding's are ANDed, each replaced alone", async ({
+    request,
+  }) => {
+    const first = await start(request);
+    const app = await post(request, {
+      ID: first.S_FRONT.ID,
+      EVENT: "FILTER",
+      T_EVENT_ARG: ["Item 2"],
+    });
+    expect(app.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(62);
+
+    // a column filter of the user narrows it: Item 25, 205, 215, ... 245
+    const user = await post(
+      request,
+      filterBy(app.S_FRONT.ID, "/MT_ROWS", 50, [[["NAME", "EndsWith", "5"]]]),
+    );
+    expect(user.MODEL.MT_ROWS.map((row) => row.ID)).toEqual([
+      25, 205, 215, 225, 235, 245,
+    ]);
+
+    // a sort of the binding names no filter: both stay
+    const sorted = await post(
+      request,
+      sortBy(user.S_FRONT.ID, "/MT_ROWS", 50, [
+        { PATH: "ID", DESCENDING: true },
+      ]),
+    );
+    expect(sorted.MODEL.MT_ROWS.map((row) => row.ID)).toEqual([
+      245, 235, 225, 215, 205, 25,
+    ]);
+
+    // the app passes another filter: its own part changes, the user's
+    // column filter and the user's sort stay - Item 15, 105, 115, ... 195
+    const other = await post(request, {
+      ID: sorted.S_FRONT.ID,
+      EVENT: "FILTER",
+      T_EVENT_ARG: ["Item 1"],
+    });
+    expect(other.MODEL.MT_ROWS.map((row) => row.ID)).toEqual([
+      195, 185, 175, 165, 155, 145, 135, 125, 115, 105, 15,
+    ]);
+
+    // the user clears the column filter: what the app filters is left
+    const cleared = await post(
+      request,
+      filterBy(other.S_FRONT.ID, "/MT_ROWS", 50, []),
+    );
+    expect(cleared.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(111);
+
+    // and the app clears its own
+    const all = await post(request, {
+      ID: cleared.S_FRONT.ID,
+      EVENT: "FILTER",
+    });
+    expect(all.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(250);
+    expect(all.MODEL.MT_ROWS[0].ID).toBe(250);
+  });
+});
+
 test.describe("window_get_row( )", () => {
   test("the row a sorted window shows is the table's row it names", async ({
     request,
@@ -272,6 +503,47 @@ test.describe("the browser", () => {
     await more.click();
     await request;
     await expect(tab.getByText("Item 60", { exact: true })).toBeVisible();
+  });
+
+  test("a list the app sorted grows in the app's order", async ({ page }) => {
+    await page.goto(`/?app_start=${APP}`);
+    const tab = page.locator("[id$='--tab']");
+    await expect(tab.getByText("Item 20", { exact: true })).toBeVisible({
+      timeout: 30000,
+    });
+
+    // the list under the tables asks for its second window as it renders;
+    // a click while that roundtrip runs is dropped, like any click
+    await expect(
+      page.locator("[id$='--list']").getByText("Item 20", { exact: true }),
+    ).toBeVisible();
+
+    // the app passes t_sort: the highest id first
+    await page.locator("[id$='--preset']").click();
+    await expect(tab.getByText("Item 250", { exact: true })).toBeVisible();
+    await expect(tab.getByText("Item 231", { exact: true })).toBeVisible();
+
+    // 20 rows a page: the second More needs the next window. The binding
+    // was told no order, so the request names none - only the rows
+    const more = page.locator("[id$='--tab-trigger']");
+    await more.click();
+    await expect(tab.getByText("Item 211", { exact: true })).toBeVisible();
+    const request = page.waitForRequest((r) =>
+      (r.postData() ?? "").includes(EVENT),
+    );
+    await more.click();
+    const sent = JSON.parse((await request).postData() ?? "{}");
+    expect((sent.value ?? sent).S_FRONT.T_EVENT_ARG).toEqual([
+      "/MT_ROWS",
+      "100",
+    ]);
+
+    // rows 41 to 60 continue the order: ids 210 down to 191 - they came
+    // back as Item 51 to 60 of the table's own order
+    await expect(tab.getByText("Item 191", { exact: true })).toBeVisible();
+    await expect(tab.getByText(/^Item \d+$/)).toHaveText(
+      Array.from({ length: 60 }, (_v, i) => `Item ${250 - i}`),
+    );
   });
 
   test("a search and a sort run on the server", async ({ page }) => {

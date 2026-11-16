@@ -1181,6 +1181,15 @@ INTERFACE z2ui5_if_client
   "! and a new sort the app passes (from a layout, a dialog) replaces it.
   "! Passing an empty table clears it the same way.
   "!
+  "! The server keeps that order and nobody else does: the next window is
+  "! more rows of the SAME order, whoever set it, and window_get_row( ) and
+  "! an edit follow it. There is one sort - the last one set, by t_sort or
+  "! by a sort of the binding. The filter has two parts, which are ANDed:
+  "! t_filter, and the filter of the binding (a column filter the user
+  "! sets, a cs_event-binding_call filter). Each replaces only itself - a
+  "! column filter narrows what t_filter lets through, a new t_filter keeps
+  "! the user's column filter, and clearing one leaves the other.
+  "!
   "! @parameter val      | the table - a public STANDARD table attribute of
   "!                       the app, passed by reference like _bind( ), or a
   "!                       data reference to one (REF #( mt_rows ), or an

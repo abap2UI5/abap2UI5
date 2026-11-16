@@ -195,7 +195,74 @@ test("a sort goes to the server and starts over with one window", () => {
     { PATH: "PRICE", DESCENDING: true },
     { PATH: "ID", DESCENDING: false },
   ]);
-  expect(JSON.parse(last.args[3])).toEqual([]);
+  // the filter is not named: the server keeps the one it has - the app's
+  // t_filter, a column filter of a view rendered before
+  expect(last.args).toHaveLength(3);
+});
+
+test("a request for more rows names no order - the server keeps its own", () => {
+  // the order is the app's (t_sort / t_filter of window_bind_tab( )): this
+  // binding was told nothing, and an empty list sent along was taken as
+  // "no sort, no filter" - the first More undid the app's order
+  const { binding, sent } = windowed(load());
+  binding.getContexts(0, 60);
+  expect(sent[0].args).toEqual(["/MT_ROWS", "100"]);
+});
+
+test("more rows after a sort or a filter of the binding name none either", () => {
+  const { model, binding, sent } = windowed(load());
+  binding.sort([{ sPath: "PRICE", bDescending: true }]);
+  binding.filter([filter("NAME", "Contains", "a")], "Control");
+  // the answer: the first window of the new order
+  model.data.__WINDOW.MT_ROWS.TOTAL = 120;
+  binding.update();
+  binding.getContexts(0, 60);
+  expect(sent).toHaveLength(3);
+  expect(sent[2]).toEqual({ args: ["/MT_ROWS", "100"], noBusy: true });
+});
+
+test("clearing the sort or the filter is said, with an empty list", () => {
+  const { binding, sent } = windowed(load());
+  binding.sort([]);
+  binding.filter([], "Control");
+  expect(sent.map((s) => s.args)).toEqual([
+    ["/MT_ROWS", "50", "[]"],
+    ["/MT_ROWS", "50", "", "[]"],
+  ]);
+});
+
+test("a request kept behind a roundtrip hands what it named to the next one of its table", () => {
+  const { keepSaid } = load();
+  const SORT = '[{"PATH":"PRICE","DESCENDING":true}]';
+  const FILTER = '[[["NAME","Contains","a",null]]]';
+  // more rows while the sort waits: the rows of the new order
+  expect(keepSaid(["/MT_ROWS", "100"], ["/MT_ROWS", "50", SORT])).toEqual([
+    "/MT_ROWS",
+    "100",
+    SORT,
+  ]);
+  // a filter while the sort waits, and the other way round: both
+  expect(
+    keepSaid(["/MT_ROWS", "50", "", FILTER], ["/MT_ROWS", "50", SORT]),
+  ).toEqual(["/MT_ROWS", "50", SORT, FILTER]);
+  expect(
+    keepSaid(["/MT_ROWS", "50", SORT], ["/MT_ROWS", "50", "", FILTER]),
+  ).toEqual(["/MT_ROWS", "50", SORT, FILTER]);
+  // what the later one names itself wins - an empty list is named
+  expect(keepSaid(["/MT_ROWS", "50", "[]"], ["/MT_ROWS", "50", SORT])).toEqual([
+    "/MT_ROWS",
+    "50",
+    "[]",
+  ]);
+  // only a filter kept: the sort stays unnamed
+  expect(keepSaid(["/MT_ROWS", "100"], ["/MT_ROWS", "50", "", FILTER])).toEqual(
+    ["/MT_ROWS", "100", "", FILTER],
+  );
+  // nothing kept, nothing named, another table: the request as it is
+  const grow = ["/MT_ROWS", "100"];
+  expect(keepSaid(grow, undefined)).toBe(grow);
+  expect(keepSaid(grow, ["/MT_ROWS", "50"])).toEqual(grow);
+  expect(keepSaid(grow, ["/MT_GRID", "30", SORT])).toBe(grow);
 });
 
 test("filters: one path ORed, the paths ANDed, control and application ANDed", () => {
@@ -217,8 +284,11 @@ test("filters: one path ORed, the paths ANDed, control and application ANDed", (
     [["PRICE", "GT", 10, null]],
     [["ID", "LE", 100, null]],
   ]);
-  // the sort stays what it was
-  expect(JSON.parse(sent[1].args[2])).toEqual([]);
+  // the sort is not named - an empty list here would clear the one the
+  // server holds, the app's t_sort included
+  expect(sent[1].args[2]).toBe("");
+  // and each call named the filter alone
+  expect(sent[0].args[2]).toBe("");
 });
 
 test("multi-filters of the shapes the wire has", () => {
