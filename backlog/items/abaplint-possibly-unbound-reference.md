@@ -5,7 +5,7 @@ summary: 'the most frequent dump fix in the 18-repository corpus: a reference fr
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'at least 12 fix commits, e.g. abapGit 93597d2, c1e70ce, 8ff0445, df62cb6, 20785fe, b4b3414, 9261028; abap2xlsx 19b3dca; abap2UI5 d92f5ec, 9c28a3a; abaplint-sci-client f88e124'

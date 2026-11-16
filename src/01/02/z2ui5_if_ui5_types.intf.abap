@@ -12,7 +12,7 @@ INTERFACE z2ui5_if_ui5_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " The framework's own roundtrip of a WINDOWED table (_bind_tab( )):
+  " The framework's own roundtrip of a WINDOWED table (window_bind_tab( )):
   " the frontend's list binding asks for more rows, or sorts or filters,
   " and the handler answers it without calling the app's main( )
   " (z2ui5_cl_ui5_srv_window=>event_apply). Spelled as the frontend sends
@@ -94,7 +94,7 @@ INTERFACE z2ui5_if_ui5_types
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
       check_json           TYPE abap_bool,
-      " _bind_tab( ): the table goes to the browser `window` rows at a
+      " window_bind_tab( ): the table goes to the browser `window` rows at a
       " time; the sorters and the filter the app passed, and whether it
       " passed them at all
       window               TYPE i,
@@ -143,7 +143,7 @@ INTERFACE z2ui5_if_ui5_types
       type_name           TYPE string,
       type_kind           TYPE string,
       kind                TYPE string,
-      " _bind_tab( ): the rows go to the browser window_size at a time,
+      " window_bind_tab( ): the rows go to the browser window_size at a time,
       " the browser holds the first window_count of them in the order the
       " sorters and the filter give (z2ui5_cl_ui5_srv_window). The _set
       " pair is what the app passed the last time - a sort the app passes

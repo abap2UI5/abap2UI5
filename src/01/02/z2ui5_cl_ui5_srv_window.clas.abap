@@ -1,4 +1,4 @@
-"! The windowed table of _bind_tab( ): the browser holds the first
+"! The windowed table of window_bind_tab( ): the browser holds the first
 "! rows of the table in the order its list binding asked for - sorted and
 "! filtered here, on the server - and asks for more as it scrolls or grows.
 "!

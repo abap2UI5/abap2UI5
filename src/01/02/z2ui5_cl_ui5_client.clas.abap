@@ -534,7 +534,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " val and tab take the data or a data reference to it, like _bind_tab( )
+    " val and tab take the data or a data reference to it, like window_bind_tab( )
     result = mo_srv_bind->main( val    = val_as_data_ref( val )
                                 config = VALUE #(
                                     path_only            = path
@@ -548,7 +548,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_bind_tab.
+  METHOD z2ui5_if_client~window_bind_tab.
 
     " the public types are the internal ones component for component - a
     " plain move, CORRESPONDING of a table does not downport to 7.02
@@ -570,9 +570,9 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_bind_tab_row.
+  METHOD z2ui5_if_client~window_get_row.
 
-    " the same two forms _bind( ) and _bind_tab( ) take
+    " the same two forms _bind( ) and window_bind_tab( ) take
     result = mo_srv_bind->window_row( val = val_as_data_ref( val )
                                       row = row ).
 

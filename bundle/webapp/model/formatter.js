@@ -158,7 +158,10 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     DateCreateObject(s) {
       if (!s) return null;
       if (ISO_DAY.test(String(s))) return localDay(s);
-      return new Date(s);
+      // an unparsable string is an Invalid Date, which takes the same way
+      // down as the empty value above - it is no date either
+      const date = new Date(s);
+      return Number.isNaN(date.getTime()) ? null : date;
     },
     DateAbapDateToDateObject(d) {
       if (isNoAbapDate(d)) return null;

@@ -150,7 +150,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_omit_paths_and_filter FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
-    " _bind( ) takes a data reference like _bind_tab( ) does
+    " _bind( ) takes a data reference like window_bind_tab( ) does
     METHODS test_bind_dref_to_attribute FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_attribute  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_tab_cell   FOR TESTING RAISING cx_static_check.

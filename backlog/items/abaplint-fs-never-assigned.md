@@ -5,7 +5,7 @@ summary: 'a local field symbol that is never the target of ASSIGN, ASSIGNING or 
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit f603147 (#2577): `LOOP AT t ASSIGNING <type>. CLEAR <attr>-author.`'

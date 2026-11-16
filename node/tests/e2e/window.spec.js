@@ -1,5 +1,5 @@
 // @ts-check
-// The windowed table: _bind_tab( val = mt_rows window = n ) sends the browser
+// The windowed table: window_bind_tab( val = mt_rows window = n ) sends the browser
 // n rows of the table, and its list binding (core/WindowModel.js) asks the
 // backend for more, sorts and filters there. The fixture app is
 // node/srv/zcl_tst_window.clas.abap - 250 rows in a growing sap.m.Table
@@ -159,7 +159,7 @@ test.describe("the wire", () => {
   });
 });
 
-test.describe("_bind_tab( ) of the app", () => {
+test.describe("window_bind_tab( ) of the app", () => {
   test("a table behind a data reference is windowed under its own path", async ({
     request,
   }) => {
@@ -212,7 +212,7 @@ test.describe("_bind_tab( ) of the app", () => {
   });
 });
 
-test.describe("_bind_tab_row( )", () => {
+test.describe("window_get_row( )", () => {
   test("the row a sorted window shows is the table's row it names", async ({
     request,
   }) => {

@@ -26,9 +26,9 @@ export /* Every repository in the ecosystem that carries a package.json, this on
  * than exempting it is one line cheaper than the exemption.
  *
  * A list rather than a discovery call: the organisation also holds generated
- * channel repositories (`frontend`, `web-abap2UI5-build`) that have no
- * package.json and no contributor to type a command, and an API listing would
- * pull those in and then need an exclusion list anyway. */
+ * channel repositories (`frontend`) that have no package.json and no
+ * contributor to type a command, and an API listing would pull those in and
+ * then need an exclusion list anyway. */
 const REPOS = [
   'abap2UI5',
   'samples',
@@ -44,7 +44,9 @@ const REPOS = [
    * The identify check tells them apart before the checkout is trusted;
    * mcp-server's repo-dirs carries the same check for the same collision. */
   { org: 'abap2UI5', repo: 'docs', identify: { file: 'package.json', key: 'name', equals: 'abap2ui5-docs' } },
-  'web-abap2UI5',
+  /* Called web-abap2UI5 until 2026-11; it now publishes its own Pages and
+   * the separate web-abap2UI5-build channel repository is archived. */
+  'browser-demo',
   /* Added 2026-08-28. It was missing, and the omission is what the rule is
    * about: `playground` is a source repository with an AGENTS.md, a test
    * suite, its own `check.yml` and a contributor - and it had no `check`

@@ -3,14 +3,16 @@ target: abaplint
 title: 'Duplicate code: identical WHEN bodies, copied statement blocks'
 summary: 'identical WHEN branches of one CASE (merge the conditions or a copy-paste bug) and repeated statement sequences across methods are the same token comparison at two scopes'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/issues/432
 first_seen: 2026-10-12
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'identical_contents compares the start/end of IF branches, not whole WHEN bodies'
   - 'checked 2026-10-12 against the rule sources of abaplint main after v2.120.75 (an XML or cross-object check, not probed with a snippet): no rule decides it'
+  - 'abaplint/abaplint#432 "code duplication" (2019, open, no body) asks for the repository-wide half - found by the upstream search of 2026-11-14; the identical WHEN bodies are not asked for upstream'
 ---
 
 # Duplicate code: identical WHEN bodies, copied statement blocks

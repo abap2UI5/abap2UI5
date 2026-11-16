@@ -67,6 +67,13 @@ export const GUIDE_DEVIATIONS = [
     'and `npm run check:formatter` enforces them.',
     "and the framework's own `check:formatter` gate enforces them there.",
   ],
+  /* §8, "Rules that keep apps portable": the link is relative to the framework's `docs/agents/`
+   * folder. In a project's AGENTS.md it would point outside the repository,
+   * so the template carries the absolute address of the same section. */
+  [
+    '([security model](../security.md#what-the-app-has-to-do))',
+    '([security model](https://github.com/abap2UI5/abap2UI5/blob/main/docs/security.md#what-the-app-has-to-do))',
+  ],
 ];
 
 /* Applies the list to the framework's text, so what comes out is what the

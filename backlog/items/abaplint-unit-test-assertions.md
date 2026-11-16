@@ -5,12 +5,13 @@ summary: 'assertions that cannot fail (act = exp, two literals), assert_equals w
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'ATC on an ABAP Cloud trial system, 2026-11-10: "Tolerable Assertion Error: Unicode_Characters: FAIL" on z2ui5_cl_ajson - the test called fail( level = tolerable ) in the CATCH of a class that does not exist there, a warning on every run; replaced by a fallback in abap2UI5/mirror-ajson#34. Probed 2026-11-11 against abaplint 2.120.92, every default rule on: not reported'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
+  - 'abaplint/abaplint#874 "unit tests, assert true inside IF" (2020, open) asks for one narrow shape of an assertion that cannot fail; nothing upstream covers the rest of this item (upstream search 2026-11-14)'
 ---
 
 # Unit-test assertions: pointless, imprecise or missing

@@ -2,15 +2,18 @@
 target: abaplint
 title: 'Report CONV whose target already has the type (redundant_conversion option)'
 summary: '`lv_i = CONV i( x )` into lv_i TYPE i is "Redundant conversion for type I" in SLIN; redundant_conversion only reports a CONV whose OPERAND already has the type'
-priority: low
-state: open
+priority: high
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4574
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-15
 upstream: abaplint/abaplint
 evidence:
   - 'a user''s system reported nine findings in abap2UI5/samples-controls (2026-08-23); abap2ui5lint''s redundant-conv-i reproduced them and found four more'
   - 'a user''s system reported CONV string( ) in z2ui5_cl_ui5_util_context (2026-09-03)'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
+  - 'probed 2026-11-14 against abaplint 2.120.107 with every default rule on (v750): redundant_conversion reports `rv = CONV string( iv )` with iv TYPE string (the operand case), not `lv_i = CONV i( lv_s )` into lv_i TYPE i (the target case)'
+  - 'filed 2026-11-15 as abaplint/abaplint#4574'
 ---
 
 # Report CONV whose target already has the type (redundant_conversion option)

@@ -227,7 +227,7 @@ test.describe("filter preservation across a binding rebuild", () => {
     expect(b1.calls.lastFilters).toEqual([
       { sPath: "NAME", sOperator: "EQ", oValue1: "Bob" },
     ]);
-    expect(col.state.filterValue).toBe("Bob");
+    expect(col.state.filterValue).toBe("=Bob");
     expect(col.state.filtered).toBe(true);
   });
 
@@ -260,12 +260,17 @@ test.describe("filter preservation across a binding rebuild", () => {
     {
       name: "EQ",
       filter: { sPath: "C", sOperator: "EQ", oValue1: "Bob" },
-      display: "Bob",
+      display: "=Bob",
+    },
+    {
+      name: "EQ on a number",
+      filter: { sPath: "C", sOperator: "EQ", oValue1: 5 },
+      display: "=5",
     },
     {
       name: "NE",
       filter: { sPath: "C", sOperator: "NE", oValue1: "Bob" },
-      display: "!Bob",
+      display: "!=Bob",
     },
     {
       name: "GT",
@@ -280,17 +285,17 @@ test.describe("filter preservation across a binding rebuild", () => {
     {
       name: "StartsWith",
       filter: { sPath: "C", sOperator: "StartsWith", oValue1: "ab" },
-      display: "^ab",
+      display: "ab*",
     },
     {
       name: "EndsWith",
       filter: { sPath: "C", sOperator: "EndsWith", oValue1: "ab" },
-      display: "ab$",
+      display: "*ab",
     },
     {
       name: "BT",
       filter: { sPath: "C", sOperator: "BT", oValue1: "1", oValue2: "9" },
-      display: "1...9",
+      display: "1..9",
     },
   ];
 
@@ -461,7 +466,7 @@ test.describe("one deferred re-apply per roundtrip", () => {
     table._binding = b1;
     env.flushRenders();
     expect(b1.calls.filter).toBe(1);
-    expect(col.state.filterValue).toBe("Bob");
+    expect(col.state.filterValue).toBe("=Bob");
   });
 
   test("the next roundtrip defers again once the pending one has run", () => {
@@ -509,7 +514,7 @@ test.describe("a deferral on a table that never rendered", () => {
     // the new table renders: its deferral applies, once
     env.pendingRenders[1]();
     expect(b1.calls.filter).toBe(1);
-    expect(col.state.filterValue).toBe("Bob");
+    expect(col.state.filterValue).toBe("=Bob");
 
     // the dead table's deferral firing after all applies nothing - the
     // pending one is the newer table's

@@ -1,6 +1,6 @@
 // The framework's JSON model, with the list binding of a WINDOWED table.
 //
-// A table bound with `_bind_tab( val = mt_rows window = 100 )` does not travel
+// A table bound with `window_bind_tab( val = mt_rows window = 100 )` does not travel
 // whole: the response carries the first rows of it, in the order the
 // binding asked for, and next to the model's data the state of the window
 // under `/__WINDOW/<path>` - TOTAL (the rows the filter lets through), COUNT

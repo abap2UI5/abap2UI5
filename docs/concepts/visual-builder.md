@@ -23,10 +23,11 @@ Two halves, in two places:
   `ELSEIF client->check_on_event( … )` arm added to `main( )` (step 4), and
   a control from a small sap.m palette added after it (step 5).
 
-What is still open: the properties offered from the UI5 metadata of the
-oldest supported release rather than typed by name, the attributes offered
-by type, popups and fragments, and the split shape for the writer - see the
-open questions below.
+The sheet offers the picked control's properties and events from the UI5
+metadata of the reader's floor (the linter's own snapshot), and only the
+attributes whose type fits a property for a binding. What is still open:
+popups and fragments, and the split shape for the writer - see the open
+questions below.
 
 ## The first cut
 

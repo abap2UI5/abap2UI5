@@ -282,10 +282,10 @@ _bind_path(
 
 The PATH form of _bind( ) under a name of its own: returns the model PATH of val instead of its value - what a bound aggregation, a binding_call filter/sorter and bindElement need. Identical to `_bind( val = ...
 
-### `_bind_tab`
+### `window_bind_tab`
 
 ```abap
-_bind_tab(
+window_bind_tab(
     val TYPE data
     window TYPE i DEFAULT 100
     t_sort TYPE ty_t_bind_tab_sort OPTIONAL
@@ -293,18 +293,18 @@ _bind_tab(
     -> string
 ```
 
-Bind a LARGE table to a list control - the browser gets it a window at a time instead of whole. Returns the value binding like _bind( ) (`items = client->_bind_tab( mt_rows )`); the rows of the template bind relative (`\{NAME\}`), as with _bind( ).
+Bind a LARGE table to a list control - the browser gets it a window at a time instead of whole. Returns the value binding like _bind( ) (`items = client->window_bind_tab( mt_rows )`); the rows of the template bind relative (`\{NAME\}`), as with _bind( ).
 
-### `_bind_tab_row`
+### `window_get_row`
 
 ```abap
-_bind_tab_row(
+window_get_row(
     val TYPE data
     row TYPE i )
     -> i
 ```
 
-The row of a _bind_tab( ) table that a row of the browser shows. The browser holds the rows in the order the server sorted and filtered them, so the index in a binding path an event hands over (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a position in THAT order, not the row of the table:
+The row of a window_bind_tab( ) table that a row of the browser shows. The browser holds the rows in the order the server sorted and filtered them, so the index in a binding path an event hands over (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a position in THAT order, not the row of the …
 
 ### `follow_up_action`
 

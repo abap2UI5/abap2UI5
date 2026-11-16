@@ -5,7 +5,7 @@ summary: 'xml_bom requires the BOM on XML files; an .abap file that starts with 
 priority: low
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-10-11
+checked_upstream: 2026-11-14
 upstream: abaplint/abaplint
 evidence:
   - 'abap2UI5 check:abapgit decides it today (abap-check §1, bom row); no abaplint rule covers the .abap half'

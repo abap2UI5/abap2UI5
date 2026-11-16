@@ -376,7 +376,7 @@ reasoning:
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
 - A **large table** — more rows than the screen shows — binds with
-  `client->_bind_tab( val = t_rows window = 200 )` instead of `_bind( )`: the
+  `client->window_bind_tab( val = t_rows window = 200 )` instead of `_bind( )`: the
   rows stay in the app, the browser gets 200 of them, and the list binding asks
   the framework for the next window when a growing `sap.m.Table`/`List` grows
   or a `sap.ui.table.Table` scrolls — a roundtrip of the framework's own that
@@ -395,7 +395,7 @@ reasoning:
   and filters written into the binding info are not applied. An event that
   hands over a row's binding path (`getBindingContext().getPath()` →
   `/T_ROWS/5`) names a position in the order the browser shows, not a row of
-  the table: `client->_bind_tab_row( val = t_rows row = 5 + 1 )` answers the
+  the table: `client->window_get_row( val = t_rows row = 5 + 1 )` answers the
   row of `t_rows` it is.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
@@ -434,7 +434,7 @@ reasoning:
   WITH KEY`. Send the position
   (`` `$event.getSource().getBindingContext().getPath().split('/').pop()` ``,
   0-based) only when the handler needs the POSITION itself: for
-  `cs_event-bind_element`, for `_bind_tab_row( )` behind a windowed table,
+  `cs_event-bind_element`, for `window_get_row( )` behind a windowed table,
   or for a drag and drop. A nested model passes the whole binding path
   (`…getBindingContext().getPath()`) the same way.
 - **A control-valued event parameter arrives as JSON.** Several UI5 events

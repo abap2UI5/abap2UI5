@@ -1585,8 +1585,11 @@ precisely because no gate will catch it.
   `abaplint.jsonc`. It replaced the script gate this repository ran for it: on
   2.120.75 it reports the same 16 sites as the detector that gate ran (11 in
   the frozen `src/99`, 5 in the mirrors `src/00/01` and `src/00/02`), and none
-  in the packages the ruleset reports on. The `UNASSIGN` half stays a review
-  point — the rule reports the test, not the missing `UNASSIGN`.
+  in the packages the ruleset reports on. The `UNASSIGN` half is gated inside
+  a loop — `is_assigned_in_loop` (abaplint/abaplint#4442, from the same
+  backlog), on in `abaplint.jsonc`, reports an `IS ASSIGNED` after a
+  `READ … ASSIGNING` or `ASSIGN` in a loop with no `UNASSIGN` before it.
+  Outside a loop, a symbol that was already assigned stays a review point.
 - **An object name inside a string literal is not a reference — a rename sweep
   will get it wrong and nothing will notice.** `#2564` renamed `z2ui5_cl_exit`
   to `z2ui5_cl_ui5_user_exit` and carried the rename into the *interface*
@@ -1800,10 +1803,6 @@ fix.
 
 ### Wrong results and dumps — read every change for these
 
-- **A stale field symbol behind `IS ASSIGNED`.** `READ TABLE … ASSIGNING <fs>`
-  in a loop, then `IF <fs> IS ASSIGNED` — a failed READ leaves `<fs>` on the
-  previous row. `UNASSIGN <fs>` before the READ (section 5 has the #1937
-  half of this).
 - **A stale system field.** A sy-subrc test after a statement that does not
   set sy-subrc (a method call without EXCEPTIONS, an assignment, CLEAR); an
   `INDEX sy-tabix` after a nested READ or LOOP overwrote sy-tabix. Read the
@@ -1862,7 +1861,7 @@ fix.
   COMMIT, SUBMIT or RFC in a FOR TESTING class; ASSERT in production code
   (a dump, not an error) and in tests (dumps the run instead of failing it).
 
-**Backlog:** abaplint · abaplint-stale-fs-is-assigned, abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-literal-blanks, abaplint-self-comparison, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-inline-generic-source, abaplint-fs-never-assigned, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-literal-blanks, abaplint-self-comparison, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-inline-generic-source, abaplint-fs-never-assigned, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 

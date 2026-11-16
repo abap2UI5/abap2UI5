@@ -209,6 +209,17 @@ sap.ui.define(
               this.oUploadButton.setEnabled(Boolean(value));
             }
           },
+          // maximumFileSize is synced onto the inner control, which rejects
+          // an oversized selection itself: it resets the input, fires its
+          // own fileSizeExceed and no change - so _readFiles never sees the
+          // file. Forward the event, or this control's fileSizeExceed
+          // never fires.
+          fileSizeExceed: (oEvent) => {
+            this.fireFileSizeExceed({
+              fileName: oEvent.getParameter("fileName"),
+              fileSize: Number(oEvent.getParameter("fileSize")),
+            });
+          },
           uploadComplete: (oEvent) => {
             if (!directUpload) return;
             const source = oEvent.getSource();
