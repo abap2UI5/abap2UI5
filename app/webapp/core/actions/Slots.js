@@ -110,9 +110,16 @@ sap.ui.define(
           Lib.logError(`WINDOW: slot ${slotKey} has no controller`);
           return;
         }
+        // a request of the same table that still waits in the slot hands
+        // over what it named - WindowModel.keepSaid has the reasoning
+        const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;
+        const send =
+          kept?.controller === oController
+            ? WindowModel.keepSaid(args, kept.args.slice(1))
+            : args;
         oController.eB(
           [WindowModel.EVENT, false, false, false, true, !!noBusy],
-          ...args,
+          ...send,
         );
       };
       // A model built from THIS response remembers the response record, so

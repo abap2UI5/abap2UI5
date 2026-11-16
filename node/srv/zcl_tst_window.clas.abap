@@ -21,6 +21,9 @@ CLASS zcl_tst_window DEFINITION PUBLIC.
     DATA mv_result TYPE string.
     " the order the app sets on mt_rows - PRESET puts the highest id first
     DATA mt_sort TYPE z2ui5_if_client=>ty_t_bind_tab_sort.
+    " the filter the app sets on mt_rows - FILTER, the names that contain
+    " its argument
+    DATA mt_filter TYPE z2ui5_if_client=>ty_t_bind_tab_filter.
     " a table behind a data reference: 40 rows, 10 at a time
     DATA mr_tab TYPE REF TO data.
 
@@ -54,9 +57,19 @@ CLASS zcl_tst_window IMPLEMENTATION.
       LOOP AT mt_rows INTO DATA(ls_row) WHERE selected = abap_true.
         mv_result = |{ mv_result }{ ls_row-id };|.
       ENDLOOP.
-    " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the app sets the order of mt_rows
     ELSEIF client->check_on_event( `PRESET` ).
       mt_sort = VALUE #( ( path = `ID` descending = abap_true ) ).
+      view_display( ).
+    " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the app changes the order of mt_rows again
+    ELSEIF client->check_on_event( `PRESET_PRICE` ).
+      mt_sort = VALUE #( ( path = `PRICE` ) ).
+      view_display( ).
+    " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the app sets the filter of mt_rows, or clears it
+    ELSEIF client->check_on_event( `FILTER` ).
+      CLEAR mt_filter.
+      IF client->get_event_arg( ) IS NOT INITIAL.
+        mt_filter = VALUE #( ( group = 1 path = `NAME` operator = `Contains` value1 = client->get_event_arg( ) ) ).
+      ENDIF.
       view_display( ).
     " abap2ui5lint-disable-next-line handler-without-event -- posted by window.spec.js: the view rendered again, the order unchanged
     ELSEIF client->check_on_event( `RERENDER` ).
@@ -135,6 +148,10 @@ CLASS zcl_tst_window IMPLEMENTATION.
                                                                              ( `PRICE` )
                                                                              ( `X` ) ) )
         )->tag( `Button`
+            )->a( n = `id`    v = `preset`
+            )->a( n = `text`  v = `Highest id first`
+            )->a( n = `press` v = client->_event( `PRESET` )
+        )->tag( `Button`
             )->a( n = `id`    v = `check`
             )->a( n = `text`  v = `Check`
             )->a( n = `press` v = client->_event( `CHECK` )
@@ -147,9 +164,10 @@ CLASS zcl_tst_window IMPLEMENTATION.
 
     tab = page->ele( `Table`
         )->a( n = `id`               v = `tab`
-        )->a( n = `items`            v = client->window_bind_tab( val    = mt_rows
-                                                                  window = 50
-                                                                  t_sort = mt_sort )
+        )->a( n = `items`            v = client->window_bind_tab( val      = mt_rows
+                                                                  window   = 50
+                                                                  t_sort   = mt_sort
+                                                                  t_filter = mt_filter )
         )->a( n = `growing`          v = `true`
         )->a( n = `growingThreshold` v = `20` ).
     tab->ele( `columns`
