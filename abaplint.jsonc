@@ -83,7 +83,9 @@
     "clear_after_declaration": true,
     // Measured on 2.120.92: 0 findings over src, control probe fired
     "clear_before_overwrite": true,
-    // Measured on 2.120.92: 0 findings over src, control probe fired
+    // Measured on 2.120.92: 0 findings over src, control probe fired. From
+    // 2.120.108 also x <> a OR x <> b with different character constants
+    // (option exclusiveValues, abaplint/abaplint#4576): 0 findings, probe fired
     "constant_condition": true,
     // Measured on 2.120.92: 0 findings over src, control probe fired
     "copy_of_initial_variable": true,
@@ -105,6 +107,11 @@
     // (abaplint/abaplint#4413). Measured on 2.120.75: 0 findings over src,
     // control probe fired
     "inline_packed_computation": true,
+    // DATA( ) / FINAL( ) from a clike, csequence or xsequence parameter or
+    // field symbol: the system fixes the type to STRING / XSTRING and warns
+    // (abaplint/abaplint#4575). Measured on 2.120.108: 0 findings over src,
+    // control probe fired
+    "inline_generic_source": true,
     // a failed ASSIGN in a loop keeps the previous binding, so IS ASSIGNED
     // after it lies. Measured on 2.120.92: 0 findings over src, control probe fired
     "is_assigned_in_loop": true,
@@ -115,6 +122,11 @@
     "range_row_values": true,
     // Measured on 2.120.92: 0 findings over src, control probe fired
     "redundant_cast": true,
+    // LOOP / DELETE / MODIFY ... WHERE, READ ... WITH KEY or a table expression
+    // on a SORTED table that cannot use the primary key - ATC's "possible
+    // sequential read", silenced by "#EC CI_SORTSEQ (abaplint/abaplint#4573).
+    // Measured on 2.120.108: 0 findings over src, control probe fired
+    "sequential_read_sorted": true,
     // SORT / DELETE ADJACENT DUPLICATES without BY / COMPARING on a table with
     // an empty key (abaplint/abaplint#4419). Measured on 2.120.75: 0 findings
     // over src, control probe fired
@@ -280,6 +292,8 @@
       "ignoreExceptions": true
     },
     "global_class": true,
+    // From 2.120.108 also an operand compared with itself (option
+    // selfComparison, abaplint/abaplint#4576): 0 findings over src, probe fired
     "identical_conditions": true,
     "identical_contents": true,
     "identical_descriptions": true,
@@ -408,6 +422,8 @@
     // right-hand side of an assignment, the operand's type notwithstanding),
     // so this rule is a floor, not the gate for that finding. Measured on
     // 2.120.38: 0 findings over src, control probe fired
+    // From 2.120.108 also a CONV into a target of its own type (option
+    // assignmentTarget, abaplint/abaplint#4574): 0 findings over src, probe fired
     "redundant_conversion": true,
     "release_idoc": true,
     "remove_descriptions": {
