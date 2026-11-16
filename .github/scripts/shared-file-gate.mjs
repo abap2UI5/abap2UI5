@@ -423,10 +423,10 @@ if (manifestArg !== -1) {
 /* Files this repository owns that a downstream repository does not COPY but
  * READS, straight out of a clone of this one.
  *
- * web-abap2UI5 clones abap2UI5 every night, downports it, transpiles it and
- * publishes the result as the in-browser demo. It used to keep its own
- * transcription of two of these files and paid for it twice: its nightly went
- * red on 2026-08-03 and again on 2026-09-02, both times because a test landed
+ * browser-demo (web-abap2UI5 until 2026-11) clones abap2UI5 at the commit its
+ * ci/pins.json names, downports it, transpiles it and publishes the result as
+ * the in-browser demo. It used to keep its own transcription of two of these
+ * files and paid for it twice: its then-nightly build went red on 2026-08-03 and again on 2026-09-02, both times because a test landed
  * here together with the `skip` entry saying it cannot run under the
  * transpiler, and only the test reached the copy. It now reads both files out
  * of the clone instead, which ends the drift — and creates a new obligation
@@ -448,10 +448,10 @@ const CONSUMED = [
   {
     file: 'node/setup/abap_transpile.json',
     key: 'options.skip',
-    consumer: 'web-abap2UI5',
+    consumer: 'browser-demo',
     why: 'the unit tests that cannot run under the transpiler — declared here,'
       + ' in the same commit as the test, and read from the clone by the'
-      + " nightly that transpiles these same sources",
+      + " build that transpiles these same sources",
     shape: (text) => {
       const skip = parseJsonc(text)?.options?.skip;
       if (!Array.isArray(skip)) throw new Error('options.skip is not an array');
@@ -460,7 +460,7 @@ const CONSUMED = [
   {
     file: '.github/abaplint/abap_702.jsonc',
     key: 'rules / syntax',
-    consumer: 'web-abap2UI5',
+    consumer: 'browser-demo',
     why: 'the downport rule set and syntax version — the consumer downports the'
       + ' same sources and has to be judged by the same rules',
     shape: (text) => {
