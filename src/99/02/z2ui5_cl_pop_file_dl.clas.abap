@@ -44,8 +44,9 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
   METHOD factory.
 
     DATA lv_size_kb TYPE p LENGTH 8 DECIMALS 2.
+    DATA temp4 TYPE string.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
 
     r_result->question_text       = i_text.
@@ -57,7 +58,9 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     " packed target avoids the integer division that displayed 0 for small
     " files, condense drops the trailing sign blank of the conversion
     lv_size_kb                    = strlen( i_file ) / 1000.
-    r_result->mv_size             = condense( CONV string( lv_size_kb ) ).
+
+    temp4 = lv_size_kb.
+    r_result->mv_size             = condense( temp4 ).
 
   ENDMETHOD.
 
@@ -69,22 +72,31 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA dialog TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA popup TYPE REF TO z2ui5_cl_ui5_view_builder.
+      DATA lv_csv_x TYPE xstring.
+      DATA lv_base64 TYPE string.
+    view = z2ui5_cl_ui5_view_builder=>factory(
         )->ele( n = `FragmentDefinition` ns = `core`
             )->a( n = `xmlns`       v = `sap.m`
             )->a( n = `xmlns:core`  v = `sap.ui.core`
             )->a( n = `xmlns:html`  v = `http://www.w3.org/1999/xhtml`
             )->a( n = `xmlns:z2ui5` v = `z2ui5.cc` ).
 
-    DATA(dialog) = view->ele( `Dialog`
+
+    dialog = view->ele( `Dialog`
         )->a( n = `title`      v = title
         )->a( n = `afterClose` v = client->_event( `BUTTON_CANCEL` ) ).
 
-    DATA(popup) = dialog->ele( `content` ).
+
+    popup = dialog->ele( `content` ).
 
     IF mv_check_download = abap_true.
-      DATA(lv_csv_x) = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( mv_value ).
-      DATA(lv_base64) = z2ui5_cl_ui5_util_context=>conv_encode_x_base64( lv_csv_x ).
+
+      lv_csv_x = z2ui5_cl_ui5_util_context=>conv_get_xstring_by_string( mv_value ).
+
+      lv_base64 = z2ui5_cl_ui5_util_context=>conv_encode_x_base64( lv_csv_x ).
 
       " the hidden iframe IS the download: the browser fetches the data URI
       " and the Timer below reports back once it has
@@ -131,7 +143,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
