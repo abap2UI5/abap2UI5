@@ -388,7 +388,8 @@ reasoning:
   filter itself with `t_sort` / `t_filter` (types `ty_t_bind_tab_sort` /
   `_filter` of `z2ui5_if_client`); they take effect when they differ from the
   ones passed before, so a view rendered again keeps what the user sorted in
-  the browser. `val` may also be a data reference to the table (`REF #( )`, an
+  the browser. There is one sort, the last one set; `t_filter` and a filter of
+  the binding are ANDed, each replaced only by its own side. `val` may also be a data reference to the table (`REF #( )`, an
   attribute `TYPE REF TO data`). The number of rows the filter lets through is
   `/__WINDOW/<path>/TOTAL` in the model — build it from
   `client->_bind_path( t_rows )`. Only a STANDARD table, bound whole; sorters

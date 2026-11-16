@@ -87,9 +87,15 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `          Lib.logError(``WINDOW: slot ${slotKey} has no controller``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;` && |\n| &&
+             `        const send =` && |\n| &&
+             `          kept?.controller === oController` && |\n| &&
+             `            ? WindowModel.keepSaid(args, kept.args.slice(1))` && |\n| &&
+             `            : args;` && |\n| &&
              `        oController.eB(` && |\n| &&
              `          [WindowModel.EVENT, false, false, false, true, !!noBusy],` && |\n| &&
-             `          ...args,` && |\n| &&
+             `          ...send,` && |\n| &&
              `        );` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
@@ -418,14 +424,14 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `      timer = setTimeout(finish, TRANSITION_TIMEOUT);` && |\n| &&
              `` && |\n| &&
              `      state.mainArrival = plan.back` && |\n| &&
-             `        ? String(mOptions.transition || "")` && |\n| &&
+             `        ? String(mOptions.transition || "")` && |\n|.
+    result = result &&
              `        : plan.name;` && |\n| &&
              `      state.mainInstance = mOptions.appInstance || "";` && |\n| &&
              `` && |\n| &&
              `      oApp.addPage(oView);` && |\n| &&
              `      try {` && |\n| &&
-             `        if (plan.back) {` && |\n|.
-    result = result &&
+             `        if (plan.back) {` && |\n| &&
              `          oApp.to(oOld.getId(), plan.name);` && |\n| &&
              `          oApp.insertPreviousPage(` && |\n| &&
              `            oView.getId(),` && |\n| &&

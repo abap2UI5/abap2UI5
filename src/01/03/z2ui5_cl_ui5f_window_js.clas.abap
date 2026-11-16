@@ -219,7 +219,7 @@ CLASS z2ui5_cl_ui5f_window_js IMPLEMENTATION.
              `        return JSONListBinding.prototype.sort.call(this, aSorters, ...rest);` && |\n| &&
              `      }` && |\n| &&
              `      this.aSorters = toArray(aSorters);` && |\n| &&
-             `      this._z2ui5Restart(meta);` && |\n| &&
+             `      this._z2ui5Restart(meta, { sort: true });` && |\n| &&
              `      return this;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -241,36 +241,43 @@ CLASS z2ui5_cl_ui5f_window_js IMPLEMENTATION.
              `        this.aFilters = list;` && |\n| &&
              `        this.aApplicationFilters = [];` && |\n| &&
              `      }` && |\n| &&
-             `      this._z2ui5Restart(meta);` && |\n| &&
+             `      this._z2ui5Restart(meta, { filter: true });` && |\n| &&
              `      return this;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Restart = function (meta) {` && |\n| &&
+             `    WindowListBinding.prototype._z2ui5Restart = function (meta, said) {` && |\n| &&
              `      this._z2ui5Wanted = Number(meta.SIZE) || 0;` && |\n| &&
-             `      this._z2ui5Send(this._z2ui5Wanted, false);` && |\n| &&
+             `      this._z2ui5Send(this._z2ui5Wanted, false, said);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Send = function (count, noBusy) {` && |\n| &&
+             `    WindowListBinding.prototype._z2ui5Send = function (count, noBusy, said) {` && |\n| &&
              `      const send = this.oModel._z2ui5WindowSend;` && |\n| &&
              `      if (typeof send !== "function") {` && |\n| &&
              `        Lib.logError(``WINDOW: no way to the server for /${this._z2ui5Name}``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      const args = [``/${this._z2ui5Name}``, String(count)];` && |\n| &&
+             `      if (said?.sort) args[2] = JSON.stringify(sortWire(this.aSorters));` && |\n| &&
+             `      if (said?.filter) {` && |\n| &&
+             `        args[2] = args[2] ?? "";` && |\n| &&
              `` && |\n| &&
-             `      const groups = [` && |\n| &&
-             `        ...filterGroups(this.aFilters),` && |\n| &&
-             `        ...filterGroups(this.aApplicationFilters),` && |\n| &&
-             `      ];` && |\n| &&
-             `      send(` && |\n| &&
-             `        [` && |\n| &&
-             `          ``/${this._z2ui5Name}``,` && |\n| &&
-             `          String(count),` && |\n| &&
-             `          JSON.stringify(sortWire(this.aSorters)),` && |\n| &&
-             `          JSON.stringify(groups),` && |\n| &&
-             `        ],` && |\n| &&
-             `        noBusy,` && |\n| &&
-             `      );` && |\n| &&
+             `        args[3] = JSON.stringify([` && |\n| &&
+             `          ...filterGroups(this.aFilters),` && |\n| &&
+             `          ...filterGroups(this.aApplicationFilters),` && |\n| &&
+             `        ]);` && |\n| &&
+             `      }` && |\n| &&
+             `      send(args, noBusy);` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    function keepSaid(args, kept) {` && |\n| &&
+             `      if (!Array.isArray(kept) || kept[0] !== args[0]) return args;` && |\n| &&
+             `      const sort = args[2] || kept[2] || "";` && |\n| &&
+             `      const filter = args[3] || kept[3] || "";` && |\n| &&
+             `      const merged = [args[0], args[1]];` && |\n| &&
+             `      if (sort || filter) merged[2] = sort;` && |\n| &&
+             `      if (filter) merged[3] = filter;` && |\n| &&
+             `      return merged;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    const WindowModel = Env.ownClass(` && |\n| &&
              `      JSONModel.extend("z2ui5.core.WindowModel", {` && |\n| &&
@@ -302,6 +309,7 @@ CLASS z2ui5_cl_ui5f_window_js IMPLEMENTATION.
              `` && |\n| &&
              `    WindowModel.filterGroups = filterGroups;` && |\n| &&
              `    WindowModel.sortWire = sortWire;` && |\n| &&
+             `    WindowModel.keepSaid = keepSaid;` && |\n| &&
              `` && |\n| &&
              `    return WindowModel;` && |\n| &&
              `  },` && |\n| &&
