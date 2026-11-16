@@ -130,6 +130,27 @@ inside the tree it ships - a CAP project's `cds build`, for one, copies
 srv/abap2ui5`, and `import { serve } from "./abap2ui5/host.mjs"` from a module
 in `srv/`).
 
+### Your own unit tests
+
+`--unit-tests` has the transpiler write its ABAP Unit runner as well: the
+test include of each of your classes (`zcl_my_app.clas.testclasses.abap`,
+next to the class) and `abap2ui5/index.mjs`, which runs them - on the SQLite
+database, so a `RISK LEVEL DANGEROUS` class that reaches the draft table runs
+too:
+
+```bash
+npx abap2ui5-transpile abap abap2ui5 --unit-tests
+node abap2ui5/index.mjs     # one line per test method, exit code 1 on a failure
+```
+
+The package carries the framework's sources without their test classes, so
+the runner holds your tests and nothing else. That is the whole of a CI job
+for a repository of ABAP classes built on abap2UI5 - an addon, a set of apps
+- without a checkout of the framework: `npm ci`, the two lines above.
+(`import { transpile } from "@abap2ui5/node-runtime/setup/transpile.mjs"`
+takes the same as `unitTests: true`; with `--config`, your config says
+`"write_unit_tests": true` itself.)
+
 ### By hand
 
 What the command does, step by step - for a build that cannot run it, or to
@@ -372,7 +393,7 @@ z2ui5_if_ui5_exit`, transpiled with the framework like any other.
 | `srv/compress.mjs` | `compress()` alone (`@abap2ui5/node-runtime/compress`) - `node:zlib` and nothing else |
 | `output/` | The transpiled framework: `init.mjs` boots the runtime, one `.mjs` per ABAP object in a folder per origin - `project/` the framework, the ICF handler `zcl_sicf` and the live-container serializer `zcl_serializer_live`, `open-abap-core/` the ABAP standard library, `express-icf-shim/` the ICF layer (the layout of `@abaplint/transpiler-cli` 2.14; up to 1.146.0 every module sat directly in `output/`). The UI5 frontend is in here too, as the constants the GET page is built from. Not in the package: the framework's own unit tests (`*.testclasses.mjs` and their runners) and the source maps - nothing a host loads, a third of the tarball |
 | `setup/setup.mjs` | The database hook `init.mjs` imports - SQLite, schema, initial data |
-| `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core and express-icf-shim at the recorded commits, the framework and your classes in one transpile, the output's `host.mjs` |
+| `setup/transpile.mjs` | The bin `abap2ui5-transpile` - the whole of [Your own apps](#your-own-apps) in one command: the transpiler at the recorded version, open-abap-core and express-icf-shim at the recorded commits, the framework and your classes in one transpile, the output's `host.mjs`; `--unit-tests` adds the ABAP Unit runner for your test classes |
 | `setup/own-apps.mjs` | The bin `abap2ui5-own-apps`, deprecated - the way your classes were loaded on the package's `output/` until 1.147.0 (see [Your own apps](#your-own-apps)) |
 | `srv/*.d.ts` | TypeScript declarations for the three entry points - `types` in `package.json` and on every export, nothing to install |
 | `downport/` | The framework's ABAP, downported to 7.02 - what the transpile read, and what your own apps are transpiled with (without its local test classes) |
