@@ -134,6 +134,43 @@ test.describe("the wire", () => {
     expect(checked.MODEL.MT_ROWS[0].SELECTED).toBe(true);
   });
 
+  test("a draft parsed back holds the rows its roundtrip left", async ({
+    request,
+  }) => {
+    // The draft carries the table next to the app, and a roundtrip that
+    // leaves the rows alone reuses their asXML from the draft before. This
+    // host hands out the live app the first time a draft id comes in; the
+    // same id once more is parsed from the draft - the path every request
+    // takes on a system, so it is the one that proves what was written.
+    const first = await start(request);
+    const checked = await post(
+      request,
+      { ID: first.S_FRONT.ID, EVENT: "CHECK" },
+      { MT_ROWS: { __delta: { 0: { SELECTED: true }, 2: { SELECTED: true } } } },
+    );
+    expect(checked.MODEL.MV_RESULT).toBe("1;3;");
+    // the rows unchanged: their asXML is the one the CHECK draft wrote
+    const calm = await post(
+      request,
+      windowEvent(checked.S_FRONT.ID, "/MT_ROWS", 50),
+    );
+    await post(request, windowEvent(calm.S_FRONT.ID, "/MT_ROWS", 50));
+    const parsed = await post(
+      request,
+      windowEvent(calm.S_FRONT.ID, "/MT_ROWS", 50),
+    );
+    expect(parsed.MODEL.__WINDOW.MT_ROWS.TOTAL).toBe(250);
+    expect(parsed.MODEL.MT_ROWS.map((row) => row.SELECTED).slice(0, 3)).toEqual(
+      [true, false, true],
+    );
+    // and the draft before the edit is still the table before it - Back
+    const back = await post(
+      request,
+      windowEvent(first.S_FRONT.ID, "/MT_ROWS", 50),
+    );
+    expect(back.MODEL.MT_ROWS[0].SELECTED).toBe(false);
+  });
+
   test("a whole table sent back is refused, not written", async ({
     request,
   }) => {

@@ -25,6 +25,36 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! load clears them. Only valid on the instance the save ran on.
     METHODS main_attri_reattach.
 
+    "! The windowed tables of the app (window_bind_tab( )) taken OUT of the
+    "! container before its transformation: each comes back in ct_kept as
+    "! asXML of its own, and the attribute is left EMPTY until
+    "! main_kept_reattach( ) puts the same rows back. ct_kept holds what the
+    "! previous draft carried: a table whose rows still equal the copy
+    "! there keeps its asXML - one compare instead of serializing the table
+    "! again - and every other one is serialized and copied anew. On return
+    "! ct_kept holds exactly the tables taken now. A table behind a data
+    "! reference (`->*`) is not taken: it travels in the S-RTTI payload of
+    "! its reference (main_attri_db_save_srtti), which the save has written
+    "! before this runs
+    METHODS main_kept_detach
+      CHANGING
+        ct_kept TYPE z2ui5_if_ui5_types=>ty_t_kept.
+
+    "! The rows main_kept_detach( ) took, back into their attributes - the
+    "! same rows, no parse. Called on success and on failure alike
+    METHODS main_kept_reattach.
+
+    "! The rows a draft carried outside the container, parsed back into the
+    "! attributes of the app they were taken from; answers the tables with
+    "! a copy of their rows, for the next main_kept_detach( ). A table whose
+    "! attribute the app does not have any more is skipped - the draft
+    "! outlives the class it was taken from
+    METHODS main_kept_load
+      IMPORTING
+        it_kept       TYPE z2ui5_if_ui5_types=>ty_t_kept
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_kept.
+
     "! iv_prefix is the node the bound attributes sit below - the MODEL
     "! path of the request tree (z2ui5_if_ui5_types=>ty_s_request-model_path),
     "! so the request is read in place instead of its model being sliced
@@ -444,6 +474,37 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " the references main_attri_db_save_srtti cleared, by attribute path -
     " what main_attri_reattach puts back
     DATA mt_detached TYPE ty_t_ref_idx.
+
+    " the rows main_kept_detach took out of the windowed tables, by
+    " attribute path - what main_kept_reattach puts back
+    DATA mt_kept_held TYPE ty_t_ref_idx.
+
+    "! one windowed table out of the app for main_kept_detach: its entry
+    "! for ct_kept (the one of it_before while the rows are the same), or
+    "! nothing when the attribute is no standard table that can be reached
+    METHODS kept_take
+      IMPORTING
+        iv_name       TYPE string
+        it_before     TYPE z2ui5_if_ui5_types=>ty_t_kept
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_kept.
+
+    "! the reference to a windowed table of the app, or none when the
+    "! attribute cannot be reached or is no standard table
+    METHODS kept_ref
+      IMPORTING
+        iv_name       TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    "! whether ir_val holds exactly the rows the copy of is_kept holds -
+    "! the same type and the same content
+    METHODS kept_check_same
+      IMPORTING
+        is_kept       TYPE z2ui5_if_ui5_types=>ty_s_kept
+        ir_val        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     METHODS ref_idx_put
       IMPORTING
@@ -1447,6 +1508,152 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
       CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_kept_detach.
+
+    " what an earlier detach on this instance held went back with
+    " main_kept_reattach - kept, it would be put back a second time
+    CLEAR mt_kept_held.
+    DATA(lt_before) = ct_kept.
+    CLEAR ct_kept.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE window_size > 0.
+      " behind a data reference the rows are in the reference's S-RTTI
+      " payload already, and the reference itself is detached by now
+      IF contains( val = lr_attri->name
+                   sub = `->*` ).
+        CONTINUE.
+      ENDIF.
+      DATA(ls_kept) = kept_take( iv_name   = lr_attri->name
+                                 it_before = lt_before ).
+      IF ls_kept-name IS NOT INITIAL.
+        APPEND ls_kept TO ct_kept.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD kept_take.
+
+    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
+    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
+    FIELD-SYMBOLS <held> TYPE ANY TABLE.
+    DATA lr_held TYPE REF TO data.
+
+    DATA(lr_ref) = kept_ref( iv_name ).
+    IF lr_ref IS NOT BOUND.
+      RETURN.
+    ENDIF.
+    ASSIGN lr_ref->* TO <tab>.
+
+    READ TABLE it_before INTO result WITH KEY name = iv_name. "#EC CI_SORTSEQ
+    IF sy-subrc <> 0 OR kept_check_same( is_kept = result
+                                         ir_val  = lr_ref ) = abap_false.
+      " changed, or not kept before: serialized once, here, and copied - an
+      " assignment that shares the rows until either side is written
+      result-name = iv_name.
+      result-xml  = z2ui5_cl_ui5_util_context=>xml_stringify( <tab> ).
+      CREATE DATA result-o_copy LIKE <tab>.
+      ASSIGN result-o_copy->* TO <copy>.
+      <copy> = <tab>.
+    ENDIF.
+
+    " the rows go aside and the attribute stays empty for the transformation
+    " of the container; main_kept_reattach puts the same rows back
+    CREATE DATA lr_held LIKE <tab>.
+    ASSIGN lr_held->* TO <held>.
+    <held> = <tab>.
+    CLEAR <tab>.
+    INSERT VALUE #( name = iv_name
+                    ref  = lr_held ) INTO TABLE mt_kept_held.
+
+  ENDMETHOD.
+
+  METHOD kept_ref.
+
+    TRY.
+        DATA(lr_ref) = attri_get_val_ref( iv_name ).
+      CATCH cx_root.
+        " the draft outlives the class it was taken from - an attribute
+        " renamed or deleted since has no address any more
+        RETURN.
+    ENDTRY.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( lr_ref ) = abap_false.
+      RETURN.
+    ENDIF.
+    result = lr_ref.
+
+  ENDMETHOD.
+
+  METHOD kept_check_same.
+
+    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
+    FIELD-SYMBOLS <val>  TYPE ANY TABLE.
+
+    IF is_kept-o_copy IS NOT BOUND OR is_kept-xml IS INITIAL.
+      RETURN.
+    ENDIF.
+    " the same type first: two tables of different row types cannot be
+    " compared, and a copy taken before the app's class changed has another
+    IF z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( is_kept-o_copy )->absolute_name
+       <> z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( ir_val )->absolute_name.
+      RETURN.
+    ENDIF.
+    ASSIGN is_kept-o_copy->* TO <copy>.
+    ASSIGN ir_val->* TO <val>.
+    result = xsdbool( <copy> = <val> ).
+
+  ENDMETHOD.
+
+  METHOD main_kept_reattach.
+
+    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
+    FIELD-SYMBOLS <held> TYPE ANY TABLE.
+
+    LOOP AT mt_kept_held REFERENCE INTO DATA(lr_held).
+      DATA(lr_ref) = kept_ref( lr_held->name ).
+      IF lr_ref IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+      ASSIGN lr_ref->* TO <tab>.
+      ASSIGN lr_held->ref->* TO <held>.
+      <tab> = <held>.
+    ENDLOOP.
+    CLEAR mt_kept_held.
+
+  ENDMETHOD.
+
+  METHOD main_kept_load.
+
+    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
+    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
+
+    LOOP AT it_kept INTO DATA(ls_kept).
+      DATA(lr_ref) = kept_ref( ls_kept-name ).
+      IF lr_ref IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+      ASSIGN lr_ref->* TO <tab>.
+      " the rows of a bound table - a failure here must not leave the app
+      " running on an empty table, see main_attri_db_load_resolve
+      TRY.
+          z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = ls_kept-xml
+                                                IMPORTING any = <tab> ).
+        CATCH cx_root INTO DATA(x).
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING
+              val      = |APP_STATE_RESTORE_ERROR - the rows of the windowed table '{ ls_kept-name }' | &&
+                         |could not be restored from the draft|
+              previous = x.
+      ENDTRY.
+      CREATE DATA ls_kept-o_copy LIKE <tab>.
+      ASSIGN ls_kept-o_copy->* TO <copy>.
+      <copy> = <tab>.
+      APPEND ls_kept TO result.
     ENDLOOP.
 
   ENDMETHOD.

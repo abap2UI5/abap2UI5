@@ -143,6 +143,34 @@ CLASS ltcl_ser_app_deep IMPLEMENTATION.
 ENDCLASS.
 
 
+" an app with a windowed table (window_bind_tab( )): the rows travel next to
+" the container's asXML, in the frame of the draft, not inside it
+CLASS ltcl_ser_app_win DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        id   TYPE i,
+        name TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mt_rows TYPE ty_t_row.
+    DATA mv_text TYPE string.
+ENDCLASS.
+
+
+CLASS ltcl_ser_app_win IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " the shipped serializer whose transformation fails the first N times -
 " the seam the class is not FINAL for (see its class comment)
 CLASS ltcl_ser_failing DEFINITION INHERITING FROM z2ui5_cl_ui5_serializer
@@ -241,6 +269,26 @@ CLASS ltcl_test DEFINITION FINAL
     " the live instance after a stringify is the same instance with the
     " same data - nothing parsed, nothing copied
     METHODS live_instance_untouched    FOR TESTING RAISING cx_static_check.
+    " a windowed table goes into the frame of the draft, not into the
+    " container's asXML; the live instance keeps its rows, and the parse
+    " brings them back and seeds the container's cache with them
+    METHODS kept_roundtrip             FOR TESTING RAISING cx_static_check.
+    " while the rows equal the copy the cache holds, the next draft reuses
+    " the asXML of the cache instead of serializing the table again; a
+    " changed row is serialized anew
+    METHODS kept_reused_until_changed  FOR TESTING RAISING cx_static_check.
+    " every attempt of the transformation fails: the rows of the windowed
+    " table are back on the live instance, and so is the cache
+    METHODS kept_back_on_failure       FOR TESTING RAISING cx_static_check.
+    " a draft written without the frame - before it existed, or of an app
+    " without a windowed table - parses as it always did, and a frame that
+    " is not closed raises instead of parsing half a draft
+    METHODS kept_frame_absent_or_broken FOR TESTING RAISING cx_static_check.
+
+    "! a container around an app with three rows in a windowed MT_ROWS
+    METHODS win_cont
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
 
     METHODS load
       IMPORTING
@@ -470,6 +518,137 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_deep->mr_alias_tab ).
     cl_abap_unit_assert=>assert_equals( exp = lt_head
                                         act = lo_deep->mt_head ).
+
+  ENDMETHOD.
+
+  METHOD win_cont.
+
+    DATA(lo_app) = NEW ltcl_ser_app_win( ).
+    lo_app->mv_text = `text`.
+    lo_app->mt_rows = VALUE #( ( id = 1 name = `first` )
+                               ( id = 2 name = `second` )
+                               ( id = 3 name = `third` ) ).
+    result = NEW #( ).
+    result->mo_app      = lo_app.
+    result->ms_draft-id = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
+    " the rows of the attributes, and MT_ROWS made a window - what
+    " window_bind_tab( ) leaves on the row
+    NEW z2ui5_cl_ui5_srv_model( attri = result->mt_attri
+                                app   = result->mo_app )->main_attri_refresh( ).
+    READ TABLE result->mt_attri->* REFERENCE INTO DATA(lr_attri)
+         WITH TABLE KEY name = `MT_ROWS`.
+    cl_abap_unit_assert=>assert_subrc( msg = `no row for MT_ROWS` ).
+    lr_attri->bind        = abap_true.
+    lr_attri->window_size = 2.
+
+  ENDMETHOD.
+
+  METHOD kept_roundtrip.
+
+    DATA(lo_cont) = win_cont( ).
+    DATA(lo_app) = CAST ltcl_ser_app_win( lo_cont->mo_app ).
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+
+    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `<!--z2ui5-kept MT_ROWS=`
+                                        act = substring( val = lv_xml
+                                                         len = 23 ) ).
+    " the rows once - in the frame, not a second time in the container
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = count( val = lv_xml
+                                                     sub = `second` ) ).
+    " the live instance goes on with its rows
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_app->mt_rows ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_cont->mt_kept ) ).
+
+    DATA(lo_parsed) = CAST z2ui5_cl_ui5_app_cont( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ) ).
+    DATA(lo_back) = CAST ltcl_ser_app_win( lo_parsed->mo_app ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_app->mt_rows
+                                        act = lo_back->mt_rows ).
+    cl_abap_unit_assert=>assert_equals( exp = `text`
+                                        act = lo_back->mv_text ).
+    " the cache of the parsed container, seeded for its next save
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_parsed->mt_kept ) ).
+    cl_abap_unit_assert=>assert_bound( lo_parsed->mt_kept[ 1 ]-o_copy ).
+
+  ENDMETHOD.
+
+  METHOD kept_reused_until_changed.
+
+    DATA(lo_cont) = win_cont( ).
+    DATA(lo_app) = CAST ltcl_ser_app_win( lo_cont->mo_app ).
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+    lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+
+    " the asXML of the cache swapped for the asXML of other rows - a draft
+    " that carries them was NOT serialized from the table
+    DATA(lt_other) = VALUE ltcl_ser_app_win=>ty_t_row( ( id = 9 name = `from_cache` ) ).
+    lo_cont->mt_kept[ 1 ]-xml = z2ui5_cl_ui5_util_context=>xml_stringify( lt_other ).
+
+    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `from_cache` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `second` ) ).
+
+    " a row changed: serialized anew, and the cache follows
+    lo_app->mt_rows[ 2 ]-name = `changed`.
+    lv_xml = lo_serializer->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `from_cache` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `changed` ) ).
+    DATA(lo_back) = CAST ltcl_ser_app_win(
+        CAST z2ui5_cl_ui5_app_cont( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ) )->mo_app ).
+    cl_abap_unit_assert=>assert_equals( exp = lo_app->mt_rows
+                                        act = lo_back->mt_rows ).
+
+  ENDMETHOD.
+
+  METHOD kept_back_on_failure.
+
+    DATA(lo_cont) = win_cont( ).
+    DATA(lo_app) = CAST ltcl_ser_app_win( lo_cont->mo_app ).
+    DATA(lt_rows) = lo_app->mt_rows.
+    NEW z2ui5_cl_ui5_serializer( )->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+    DATA(lt_kept) = lo_cont->mt_kept.
+
+    DATA(lo_failing) = NEW ltcl_ser_failing( ).
+    lo_failing->mv_fail_count = 2.
+    TRY.
+        lo_failing->z2ui5_if_ui5_serializer~stringify( lo_cont ).
+        cl_abap_unit_assert=>fail( `a container that cannot be serialized must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->previous->get_text( ) CS `TRANSFORMATION_FAILURE_1` ) ).
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_equals( exp = lt_rows
+                                        act = lo_app->mt_rows ).
+    cl_abap_unit_assert=>assert_equals( exp = lines( lt_kept )
+                                        act = lines( lo_cont->mt_kept ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_kept[ 1 ]-xml
+                                        act = lo_cont->mt_kept[ 1 ]-xml ).
+
+  ENDMETHOD.
+
+  METHOD kept_frame_absent_or_broken.
+
+    DATA(lo_serializer) = NEW z2ui5_cl_ui5_serializer( ).
+
+    " no windowed table, no frame: the container's asXML as it always was
+    DATA(lv_xml) = lo_serializer->z2ui5_if_ui5_serializer~stringify( mo_cont ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `z2ui5-kept` ) ).
+    DATA(lo_parsed) = CAST z2ui5_cl_ui5_app_cont( lo_serializer->z2ui5_if_ui5_serializer~parse( lv_xml ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `text`
+                                        act = CAST ltcl_ser_app( lo_parsed->mo_app )->mv_text ).
+    cl_abap_unit_assert=>assert_initial( lo_parsed->mt_kept ).
+
+    TRY.
+        lo_serializer->z2ui5_if_ui5_serializer~parse( `<!--z2ui5-kept MT_ROWS=12 <asx:abap/>` ).
+        cl_abap_unit_assert=>fail( `a frame that is not closed must raise` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `APP_STATE_RESTORE_ERROR` ) ).
+    ENDTRY.
 
   ENDMETHOD.
 
