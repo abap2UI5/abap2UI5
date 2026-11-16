@@ -87,6 +87,19 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_window_filter.
   TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH EMPTY KEY.
 
+  " One windowed table (window_bind_tab( )) the draft carries OUTSIDE the
+  " transformation of the container (z2ui5_cl_ui5_serializer): its rows as
+  " asXML of their own, and a copy of the rows that asXML was written from.
+  " While the rows equal the copy, the next draft reuses the asXML instead
+  " of serializing the table again (z2ui5_cl_ui5_srv_model=>main_kept_detach)
+  TYPES:
+    BEGIN OF ty_s_kept,
+      name   TYPE string,
+      xml    TYPE string,
+      o_copy TYPE REF TO data,
+    END OF ty_s_kept.
+  TYPES ty_t_kept TYPE STANDARD TABLE OF ty_s_kept WITH EMPTY KEY.
+
   TYPES:
     BEGIN OF ty_s_bind_config,
       path_only            TYPE abap_bool,

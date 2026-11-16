@@ -1173,6 +1173,12 @@ INTERFACE z2ui5_if_client
   "! order. A cell edited or a row ticked lands in the row of the table it
   "! was made in, whatever order the browser showed.
   "!
+  "! In the draft the table travels next to the app, not inside its
+  "! serialization, and while its rows stay the same from one roundtrip to
+  "! the next it is not serialized again - a table of 10,000 rows costs its
+  "! serialization only on the roundtrips that change it. A table behind a
+  "! data reference is serialized with the reference on every roundtrip.
+  "!
   "! Sorters and filters written into the binding info of the view are not
   "! applied - the rows arrive in the order the server gives. The app sets
   "! that order with t_sort and t_filter: they take effect when they differ
