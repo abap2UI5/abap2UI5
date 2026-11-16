@@ -7,7 +7,7 @@
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-sorted-table-sequential-read, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -240,6 +240,9 @@ and points here, so a new trap is added here and nowhere else.
   pick. Declare the variable (`DATA lv TYPE string.`) and assign. Found by a
   user's system in `z2ui5_cl_ui5_util_context=>url_param_get_tab` (2026-09-02).
   Deciding it needs the parameter's type, which the statement does not carry.
+  Gated by abaplint — `inline_generic_source` (abaplint/abaplint#4575), on in
+  `abaplint.jsonc` from the 2.120.108 pin; its quick fix is the `CONV string( )`
+  this repository already uses.
 - **Re-raising a variable typed `cx_root`** (`CATCH cx_root INTO DATA(lx).
   … RAISE EXCEPTION lx.`) in a method whose signature declares no exception is
   "CX_STATIC_CHECK is not caught or declared in the RAISING clause" - the
@@ -272,7 +275,11 @@ and points here, so a new trap is added here and nowhere else.
   `slider_value = CONV i( client->get_event_arg( ) )` in
   `abap2UI5/samples-controls`. abaplint's `value_conversion` /
   `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
-  fired).
+  fired). From the 2.120.108 pin abaplint does: `redundant_conversion`'s
+  option `assignmentTarget` (abaplint/abaplint#4574), on by default, takes the
+  target's type from the syntax check, so it also sees components and
+  attributes. On `samples-controls` before its hand-fix it reported 16 sites,
+  `redundant-conv-i` 5.
 
   **Now gated, and the earlier claim here was wrong.** This entry used to end
   "the type inference makes it undecidable for a text-level gate". It is
@@ -415,8 +422,10 @@ and points here, so a new trap is added here and nowhere else.
   sequential read on a sorted table" on `DELETE mt_json_tree WHERE path CP …`
   in the vendored AJSON (an ABAP Cloud trial system, 2026-11-10). A key access
   where there is one; `"#EC CI_SORTSEQ` where there is none - a pattern match
-  on the key has none. No abaplint rule reports it, and `check:atc` does not
-  either: it would need the table's type, which a statement scan does not have.
+  on the key has none. `check:atc` cannot decide it: it would need the
+  table's type, which a statement scan does not have. Gated by abaplint —
+  `sequential_read_sorted` (abaplint/abaplint#4573, written from this
+  repository's backlog), on in `abaplint.jsonc` from the 2.120.108 pin.
 - **An object ABAP Cloud deprecated, and one it does not have.** The same run
   reported `IF_AUNIT_CONSTANTS` as deprecated (successor
   `IF_ABAP_UNIT_CONSTANT`, which 7.02 lacks - so the reference goes, it is not

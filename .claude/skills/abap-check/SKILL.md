@@ -329,9 +329,8 @@ in the abap2UI5 linter (which keeps the abap2UI5-specific checks).
 | **`super->` calls only the method it stands in** | *SUPER-> can only be used to call the previous implementation of the same method.* `z2ui5_cl_rap_worklist->load_data` called `super->get_where_clause( )` to get the WHERE without its own redefinition of that method (2026-10-04, 7.58, fixed in abap2UI5-addons/rap-ext#19). Give the superclass a second, non-redefined method that returns the base value, and call that instead. Upstream from abaplint 2.120.68 on (abaplint/abaplint#4368): `check_syntax` reports it, also in a method that is no redefinition, while an alias of the same method stays allowed |
 | **A test class touching PRIVATE/PROTECTED members needs `CLASS <global> DEFINITION LOCAL FRIENDS <ltcl>.`** | Same failure mode, and it reaches users: `ltcl_rtti` got to `main` without it and had to be repaired (`cadfb7ae`), and #2146 is a user reporting a shipped test class that calls the PROTECTED `request_json_to_abap`. The transpiler makes every member a plain JS property, so `npm run unit` is green on a class pool the system rejects. Gated by `npm run check_visibility` |
 | **A PRIVATE/PROTECTED member is out of reach for every OTHER class** | *Field "MV_SESSION_STICKY" is unknown* — four times on a user's system (2026-09-23): the attribute sat in the PRIVATE SECTION of `z2ui5_cl_ui5_handler` while `z2ui5_cl_ui5_http_handler` wrote it, `z2ui5_cl_ui5_action` read it and the action's test class set it. abaplint's `check_syntax` did not check attribute visibility then and the transpiler makes every member a JS property, so `npm run check`, `npm run unit` and every gate were green; `check_visibility` only compares a test class with its OWN class under test. Make the member PUBLIC (`READ-ONLY` where only the owner writes it) — `LOCAL FRIENDS` is no fix here, it only reaches local classes of the owner's own pool. Gated by `npm run check:members`: `ref->member` resolved through a method-local declaration, a parameter or an attribute, and `class=>member`; friends, subclasses and friend interfaces are legal. Upstream from abaplint 2.120.67 on (abaplint/abaplint#4362): `check_syntax` reports a PRIVATE/PROTECTED attribute or constant of another class as well |
-| **A local type of the class pool types only the PRIVATE SECTION** | The types, classes and interfaces of `<class>.clas.locals_def.abap` (CCDEF) are read before the global class, but only its PRIVATE SECTION may use them - a PUBLIC or PROTECTED attribute, parameter or type built on one is a syntax error on the system. abaplint 2.120.75 resolves the type and reports nothing (measured 2026-10-24, v750 and ABAP Cloud), and the transpiled unit run is green. abap-cloud-gui's report2cloud met it with the globals of a report typed with its local classes - it makes them private attributes (`planLocalTypes( )`). Move the type into the public section of the global class, or the component into its PRIVATE SECTION |
+| **A local type of the class pool types only the PRIVATE SECTION** | The types, classes and interfaces of `<class>.clas.locals_def.abap` (CCDEF) are read before the global class, but only its PRIVATE SECTION may use them - a PUBLIC or PROTECTED attribute, parameter or type built on one is a syntax error on the system. abaplint 2.120.75 resolves the type and reports nothing (measured 2026-10-24, v750 and ABAP Cloud), and the transpiled unit run is green. abap-cloud-gui's report2cloud met it with the globals of a report typed with its local classes - it makes them private attributes (`planLocalTypes( )`). Move the type into the public section of the global class, or the component into its PRIVATE SECTION. Upstream from abaplint 2.120.108 on (abaplint/abaplint#4572): `check_syntax` reports a type, class or interface of the class pool's locals in the PUBLIC or PROTECTED SECTION |
 
-**Backlog:** abaplint · abaplint-local-type-outside-private
 
 ### Generic types on older releases — the recurring one
 
@@ -645,7 +644,7 @@ called on the wrong system.
 decide. The rest is **open** by construction: SLIN and ATC run in a system,
 and no gate outside one can stand in for them.
 
-**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-sorted-table-sequential-read, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
+**Backlog:** abaplint · abaplint-avoid-use-extensions, abaplint-get-reference-obsolete, abaplint-cloud-deprecated-api, abaplint-unit-test-assertions, abaplint-cloud-dynamic-assign-path, abaplint-literal-exceeds-target
 
 Partly gated by `npm run check:atc`
 (`.github/scripts/extended-check-gate.mjs`). Prose was tried first and did not
@@ -878,6 +877,9 @@ and points here, so a new trap is added here and nowhere else.
   pick. Declare the variable (`DATA lv TYPE string.`) and assign. Found by a
   user's system in `z2ui5_cl_ui5_util_context=>url_param_get_tab` (2026-09-02).
   Deciding it needs the parameter's type, which the statement does not carry.
+  Gated by abaplint — `inline_generic_source` (abaplint/abaplint#4575), on in
+  `abaplint.jsonc` from the 2.120.108 pin; its quick fix is the `CONV string( )`
+  this repository already uses.
 - **Re-raising a variable typed `cx_root`** (`CATCH cx_root INTO DATA(lx).
   … RAISE EXCEPTION lx.`) in a method whose signature declares no exception is
   "CX_STATIC_CHECK is not caught or declared in the RAISING clause" - the
@@ -910,7 +912,11 @@ and points here, so a new trap is added here and nowhere else.
   `slider_value = CONV i( client->get_event_arg( ) )` in
   `abap2UI5/samples-controls`. abaplint's `value_conversion` /
   `unnecessary_pragma` do not cover it (measured on 2.120.24, control probe
-  fired).
+  fired). From the 2.120.108 pin abaplint does: `redundant_conversion`'s
+  option `assignmentTarget` (abaplint/abaplint#4574), on by default, takes the
+  target's type from the syntax check, so it also sees components and
+  attributes. On `samples-controls` before its hand-fix it reported 16 sites,
+  `redundant-conv-i` 5.
 
   **Now gated, and the earlier claim here was wrong.** This entry used to end
   "the type inference makes it undecidable for a text-level gate". It is
@@ -1053,8 +1059,10 @@ and points here, so a new trap is added here and nowhere else.
   sequential read on a sorted table" on `DELETE mt_json_tree WHERE path CP …`
   in the vendored AJSON (an ABAP Cloud trial system, 2026-11-10). A key access
   where there is one; `"#EC CI_SORTSEQ` where there is none - a pattern match
-  on the key has none. No abaplint rule reports it, and `check:atc` does not
-  either: it would need the table's type, which a statement scan does not have.
+  on the key has none. `check:atc` cannot decide it: it would need the
+  table's type, which a statement scan does not have. Gated by abaplint —
+  `sequential_read_sorted` (abaplint/abaplint#4573, written from this
+  repository's backlog), on in `abaplint.jsonc` from the 2.120.108 pin.
 - **An object ABAP Cloud deprecated, and one it does not have.** The same run
   reported `IF_AUNIT_CONSTANTS` as deprecated (successor
   `IF_ABAP_UNIT_CONSTANT`, which 7.02 lacks - so the reference goes, it is not
@@ -1820,13 +1828,10 @@ fix.
 - **Blanks a character literal loses.** `REPLACE ALL OCCURRENCES OF ' '` has an
   empty pattern and raises `CX_SY_REPLACE_INFINITE_LOOP`; `'Hello '` loses its
   blank in CONCATENATE and `&&`. Backtick literals keep the blank.
-- **Constant comparisons.** `a = a`, `x <> A OR x <> B` (always true),
-  `x = A AND x = B` (always false) — copy-paste bugs (abap2UI5 `7647c26`).
 - **Implicit conversions.** A character field compared with a number, a d/t
   field with a formatted literal (`'2024-01-01'`); a literal or constant longer
   than its target; TIMESTAMPL assigned to TIMESTAMP (the fraction is cut); a
-  constant offset/length on a string without a length check; `DATA( )` from a
-  generically typed parameter (the type is decided at runtime).
+  constant offset/length on a string without a length check.
 - **Field symbols and references.** A field symbol read that nothing in the
   method assigns; a data reference dereferenced on a path where it can be
   initial.
@@ -1861,7 +1866,7 @@ fix.
   COMMIT, SUBMIT or RFC in a FOR TESTING class; ASSERT in production code
   (a dump, not an error) and in tests (dumps the run instead of failing it).
 
-**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-literal-blanks, abaplint-self-comparison, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-inline-generic-source, abaplint-fs-never-assigned, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-literal-blanks, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-fs-never-assigned, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
@@ -1918,9 +1923,9 @@ These are Clean ABAP clean-ups, not defects. AGENTS.md
 | Magic numbers, sy-uname/sy-sysid compared with a literal, `'@00@'` icon literals | name them as constants |
 | MESSAGE TYPE E/A/X or WRITE in a global class; MESSAGE ID sy-msgid … TYPE sy-msgty | no dialog in classes — raise an exception |
 | COLLECT; a table with the implicit default key | avoid (AGENTS.md: no default key) |
-| A CONV whose target already has the type; `"#EC CI_SUBRC` where sy-subrc is checked; an OPTIONAL parameter no caller supplies; a message nothing uses | remove |
+| `"#EC CI_SUBRC` where sy-subrc is checked; an OPTIONAL parameter no caller supplies; a message nothing uses | remove |
 
-**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-redundant-conv-target, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message
+**Backlog:** abaplint · abaplint-comment-style, abaplint-guard-clauses, abaplint-method-signature-style, abaplint-class-design, abaplint-size-metrics, abaplint-modern-statements, abaplint-needless-code, abaplint-prefer-final, abaplint-read-table-to-expression, abaplint-sort-explicit-order, abaplint-magic-number, abaplint-hardcoded-values, abaplint-message-usage, abaplint-avoid-use-extensions, abaplint-unnecessary-ec-ci-subrc, abaplint-unused-method-parameter-global, abaplint-unused-message
 
 ### Objects and files
 
