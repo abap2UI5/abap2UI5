@@ -61,7 +61,7 @@ const PINS = [
   {
     name: "embed-control",
     url: "https://github.com/abap2UI5/embed-control",
-    sha: "d5684c175a070677d2d3603272cb4cd95eebcdf2",
+    sha: "2d8dd2bf9ff75fdf7a7881ec03e75ef703fe6531",
     dir: "tools/deps",
   },
 ];
