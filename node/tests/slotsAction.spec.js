@@ -12,7 +12,14 @@ const { specContext, contextStub, bindContext } = require("./loadLibModule");
 // nested display destructured `mOptions` right away.
 // `byIdBySlot`: per-slot answers of ViewSlots.byId (key -> control), for
 // the lookups that depend on which slot is asked; `byId` answers every slot
-function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
+// `controller`: what ViewSlots.getController answers for every slot - the
+// way a windowed list's request leaves a slot's model (_z2ui5WindowSend)
+function load({
+  resolveById = null,
+  byId = null,
+  byIdBySlot = null,
+  controller = null,
+} = {}) {
   const errors = [];
   const destroyed = [];
   const setViews = [];
@@ -32,10 +39,16 @@ function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
     }
     destroy() {}
   }
+  // the one static of core/WindowModel the slots call: the real merge of
+  // two window requests of one table is windowModel.spec.js's - here a
+  // marker shows that it was asked, and with what
+  JSONModel.keepSaid = (args, kept) => [...args, { kept }];
 
   const fragment = {
     destroyed: false,
-    setModel() {},
+    setModel(oModel) {
+      fragment.model = oModel;
+    },
     destroy() {
       fragment.destroyed = true;
     },
@@ -110,7 +123,7 @@ function load({ resolveById = null, byId = null, byIdBySlot = null } = {}) {
         // page stays up while the new one is built); nothing is open here
         detach: () => undefined,
         setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
-        getController: () => null,
+        getController: () => controller,
         getView: () => null,
         getViewApp: () => undefined,
         getViewXml: () => "",
@@ -441,5 +454,55 @@ test.describe("displayNestedView: the parent's destroy and insert methods", () =
     ]);
     expect(errors).toEqual([]);
     expect(setViews.map((entry) => entry.key)).toEqual(["NEST"]);
+  });
+});
+
+test.describe("a slot's model sends the window requests of its tables", () => {
+  const EVENT = [undefined, false, false, false, true, true];
+
+  async function popupModel() {
+    const sent = [];
+    const controller = { eB: (...args) => sent.push(args) };
+    const loaded = load({ controller });
+    await loaded.Slots.action("display", "POPUP", "<core:FragmentDefinition/>");
+    return { ...loaded, controller, sent, model: loaded.fragment.model };
+  }
+
+  test("through the eB of the slot, kept behind a running roundtrip", async () => {
+    const { model, sent } = await popupModel();
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+  });
+
+  test("a request waiting in the slot hands over what it named", async () => {
+    const { model, sent, state, controller } = await popupModel();
+    // sort( ) came while a roundtrip ran: View1.eB kept it in the slot
+    state.isBusy = true;
+    state.oQueuedWindow = {
+      controller,
+      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
+    };
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    expect(sent).toEqual([
+      [EVENT, "/MT_ROWS", "100", { kept: ["/MT_ROWS", "50", "[SORT]"] }],
+    ]);
+  });
+
+  test("nothing is handed over from another slot's model or once the roundtrip is over", async () => {
+    const { model, sent, state, controller } = await popupModel();
+    state.isBusy = true;
+    state.oQueuedWindow = {
+      controller: { eB() {} },
+      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
+    };
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    // a slot left filled is not read without a roundtrip in flight
+    state.isBusy = false;
+    state.oQueuedWindow.controller = controller;
+    model._z2ui5WindowSend(["/MT_ROWS", "150"], true);
+    expect(sent).toEqual([
+      [EVENT, "/MT_ROWS", "100"],
+      [EVENT, "/MT_ROWS", "150"],
+    ]);
   });
 });

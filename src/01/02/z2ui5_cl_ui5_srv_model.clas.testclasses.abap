@@ -1338,6 +1338,7 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     lr_attri->t_window_sort_set   = lr_attri->t_window_sort.
     lr_attri->t_window_filter     = VALUE #( ( group = 1 path = `COL1` operator = `EQ` value1 = `A` ) ).
     lr_attri->t_window_filter_set = lr_attri->t_window_filter.
+    lr_attri->t_window_filter_ui  = VALUE #( ( group = 1 path = `COL1` operator = `NE` value1 = `B` ) ).
 
     mo_model->main_attri_refresh( ).
 
@@ -1354,6 +1355,10 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
                                         act = lines( lr_after->t_window_filter ) ).
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lr_after->t_window_filter_set ) ).
+    " the binding's part of the filter as well - without it the next filter
+    " the app passes would merge with nothing and drop the user's
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lr_after->t_window_filter_ui ) ).
 
   ENDMETHOD.
 

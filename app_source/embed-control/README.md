@@ -136,10 +136,10 @@ GET  /sap/bc/z2ui5                abap2UI5's own page - this control, in a minim
 what the bundle's `z2ui5/embed` module creates (`create( )`). How an app is
 created - its component, its component data, its styles - comes from the
 backend, so it always fits the backend it came from. That needs **the
-abap2UI5 release after 1.148.0**, whose bundle has `create( )`; against an
+abap2UI5 release after 1.149.0**, whose bundle has `create( )`; against an
 older abap2UI5 the control fires `componentFailed` ("no abap2UI5 frontend
 at ...") instead of starting, and there is no fallback. For abap2UI5 1.145.0
-to 1.148.0 stay on `@abap2ui5/embed-control` 0.3.0, which keeps working
+to 1.149.0 stay on `@abap2ui5/embed-control` 0.3.0, which keeps working
 against newer backends too. The package records the floor in its
 `package.json` (`abap2ui5.minBackend`).
 

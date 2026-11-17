@@ -1173,6 +1173,12 @@ INTERFACE z2ui5_if_client
   "! order. A cell edited or a row ticked lands in the row of the table it
   "! was made in, whatever order the browser showed.
   "!
+  "! In the draft the table travels next to the app, not inside its
+  "! serialization, and while its rows stay the same from one roundtrip to
+  "! the next it is not serialized again - a table of 10,000 rows costs its
+  "! serialization only on the roundtrips that change it. A table behind a
+  "! data reference is serialized with the reference on every roundtrip.
+  "!
   "! Sorters and filters written into the binding info of the view are not
   "! applied - the rows arrive in the order the server gives. The app sets
   "! that order with t_sort and t_filter: they take effect when they differ
@@ -1180,6 +1186,15 @@ INTERFACE z2ui5_if_client
   "! rendered again keeps what the user sorted and filtered in the browser,
   "! and a new sort the app passes (from a layout, a dialog) replaces it.
   "! Passing an empty table clears it the same way.
+  "!
+  "! The server keeps that order and nobody else does: the next window is
+  "! more rows of the SAME order, whoever set it, and window_get_row( ) and
+  "! an edit follow it. There is one sort - the last one set, by t_sort or
+  "! by a sort of the binding. The filter has two parts, which are ANDed:
+  "! t_filter, and the filter of the binding (a column filter the user
+  "! sets, a cs_event-binding_call filter). Each replaces only itself - a
+  "! column filter narrows what t_filter lets through, a new t_filter keeps
+  "! the user's column filter, and clearing one leaves the other.
   "!
   "! @parameter val      | the table - a public STANDARD table attribute of
   "!                       the app, passed by reference like _bind( ), or a

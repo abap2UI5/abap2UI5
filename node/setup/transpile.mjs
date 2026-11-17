@@ -11,6 +11,9 @@
  * package - they run on it:
  *   import { serve } from "./abap2ui5/host.mjs";
  *
+ *   npx abap2ui5-transpile abap abap2ui5 --unit-tests
+ *   node abap2ui5/index.mjs                     # the host's own ABAP Unit tests
+ *
  * WHY ONE TRANSPILE. The package ships the framework transpiled (output/),
  * and a host's classes could be transpiled on their own against its sources
  * and loaded next to it. But the transpiler writes every library it reads
@@ -54,6 +57,12 @@
  *      --config <file> runs the host's own config instead; a library in it
  *      with the open-abap-core or express-icf-shim url and a folder that
  *      does not exist is filled at the recorded commit all the same.
+ *      --unit-tests has the transpiler write its ABAP Unit runner as well
+ *      (index.mjs in the output, and each class's test include): the
+ *      package ships the framework's sources without their test classes,
+ *      so the runner holds the host's tests and nothing else. A repository
+ *      whose only reason to transpile is its unit tests (an addon's CI)
+ *      needed a config of its own for that one switch.
  *
  * Every path the transpiler reads has to be below the project (it joins the
  * folders to its working directory), so the package has to be installed in
@@ -104,12 +113,13 @@ function below(cwd, dir) {
  * The transpile config for the framework and a host's classes: the
  * package's own build (abap2UI5's node/setup/abap_transpile.json without the
  * unit tests), with the host's folder as a second input. Pure.
- * @param {{ cwd: string, abap: string, output: string, packageDir?: string, core: string, shim: string }} options
+ * @param {{ cwd: string, abap: string, output: string, packageDir?: string, core: string, shim: string, unitTests?: boolean }} options
  *   every path absolute; `abap` the host's classes, `output` where the
- *   transpiler writes, `core` and `shim` the two library checkouts
+ *   transpiler writes, `core` and `shim` the two library checkouts;
+ *   `unitTests` the transpiler's ABAP Unit runner (index.mjs) as well
  * @returns {object} the config, as abap_transpile.json holds it
  */
-export function transpileConfig({ cwd, abap, output, packageDir = PACKAGE_DIR, core, shim }) {
+export function transpileConfig({ cwd, abap, output, packageDir = PACKAGE_DIR, core, shim, unitTests = false }) {
   const folders = [["the ABAP folder", abap], ["the output folder", output], ["the package", packageDir], ["open-abap-core", core], ["express-icf-shim", shim]];
   for (const [what, dir] of folders) {
     if (!below(cwd, dir)) {
@@ -128,7 +138,7 @@ export function transpileConfig({ cwd, abap, output, packageDir = PACKAGE_DIR, c
       { url: OPEN_ABAP_CORE_URL, folder: libFolder(cwd, core) },
       { url: EXPRESS_ICF_SHIM_URL, folder: libFolder(cwd, shim) },
     ],
-    write_unit_tests: false,
+    write_unit_tests: unitTests === true,
     options: {
       ignoreSyntaxCheck: false,
       addFilenames: true,
@@ -260,14 +270,19 @@ export function writeEntry(dir) {
 
 /**
  * Transpile the framework and a host's classes into one runtime.
- * @param {{ abap: string, output: string, cwd?: string, config?: string, core?: string, shim?: string, log?: (line: string) => void }} options
+ * @param {{ abap: string, output: string, cwd?: string, config?: string, core?: string, shim?: string, unitTests?: boolean, log?: (line: string) => void }} options
  *   `abap` the host's ABAP folder, `output` the folder the runtime goes to
  *   (its host.mjs is what the host imports); `config` the host's own
  *   abap_transpile.json instead of the generated one (its output_folder
- *   wins); `core` and `shim` checkouts of the two libraries to use
+ *   wins, and so does its write_unit_tests); `core` and `shim` checkouts of
+ *   the two libraries to use; `unitTests` the transpiler's ABAP Unit runner
+ *   for the host's test classes as well (<output>/index.mjs)
  * @returns {{ output: string, config: string }}
  */
-export function transpile({ abap, output, cwd = process.cwd(), config, core, shim, log = () => {} }) {
+export function transpile({ abap, output, cwd = process.cwd(), config, core, shim, unitTests = false, log = () => {} }) {
+  if (config && unitTests) {
+    throw new Error("abap2ui5-transpile: --unit-tests and --config do not go together - a config of your own says it itself (\"write_unit_tests\": true)");
+  }
   const cache = path.join(cwd, CACHE);
   const built = manifest().abap2ui5 || {};
   const checkout = (key, given) => {
@@ -296,7 +311,7 @@ export function transpile({ abap, output, cwd = process.cwd(), config, core, shi
     const abapDir = path.resolve(cwd, abap);
     if (!fs.existsSync(abapDir)) throw new Error(`abap2ui5-transpile: ${abapDir} does not exist`);
     outputDir = path.resolve(cwd, output);
-    const generated = transpileConfig({ cwd, abap: abapDir, output: outputDir, core: checkout("core", core), shim: checkout("shim", shim) });
+    const generated = transpileConfig({ cwd, abap: abapDir, output: outputDir, core: checkout("core", core), shim: checkout("shim", shim), unitTests });
     fs.mkdirSync(cache, { recursive: true });
     configPath = path.join(cache, "abap_transpile.json");
     fs.writeFileSync(configPath, JSON.stringify(generated, null, 2) + "\n");
@@ -323,13 +338,14 @@ export function transpile({ abap, output, cwd = process.cwd(), config, core, shi
 /* Run as the bin, not when imported. */
 const invoked = process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
 if (invoked) {
-  const usage = "usage: abap2ui5-transpile <abap folder> <output folder> [--config <abap_transpile.json>] [--core <open-abap-core checkout>] [--shim <express-icf-shim checkout>]";
+  const usage = "usage: abap2ui5-transpile <abap folder> <output folder> [--unit-tests] [--config <abap_transpile.json>] [--core <open-abap-core checkout>] [--shim <express-icf-shim checkout>]";
   const positional = [];
   const opts = {};
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (["--config", "--core", "--shim"].includes(arg) && argv[i + 1]) opts[arg.slice(2)] = argv[++i];
+    else if (arg === "--unit-tests") opts.unitTests = true;
     else if (arg.startsWith("--")) {
       console.error(`abap2ui5-transpile: unknown option ${arg}\n${usage}`);
       process.exit(2);
@@ -344,7 +360,8 @@ if (invoked) {
     const result = transpile({ abap, output, ...opts, log: (line) => console.error(line) });
     const rel = posixRelative(process.cwd(), result.output);
     console.log(`abap2ui5-transpile: the framework and your classes in ${rel}/ - import the package's exports from there:\n`
-      + `  import { serve } from "./${rel}/host.mjs";`);
+      + `  import { serve } from "./${rel}/host.mjs";`
+      + (opts.unitTests ? `\nand run your ABAP Unit tests:\n  node ${rel}/index.mjs` : ""));
   } catch (e) {
     console.error(e.message);
     process.exit(1);

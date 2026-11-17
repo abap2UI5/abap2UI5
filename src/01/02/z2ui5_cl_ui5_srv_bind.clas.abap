@@ -576,6 +576,12 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " passed the time before: a view rendered again with the same ones keeps
     " what the user sorted and filtered in the browser, and a new sort from
     " the app (a layout, a dialog) replaces it - from the first window. A
+    " new filter from the app replaces the app's filter and leaves the one
+    " the list binding was given (a column menu, a binding_call): the two
+    " are ANDed, and neither side drops the other's. What is written here is
+    " all there is - the order is kept on the attribute alone, and a window
+    " request that asks for more rows does not touch it
+    " (z2ui5_cl_ui5_srv_window, header and event_apply). A
     " plain _bind( ) of the table (window = 0) leaves the window as it is
     IF ms_config-window <= 0.
       RETURN.
@@ -592,8 +598,9 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
       lv_changed = abap_true.
     ENDIF.
     IF ms_config-check_window_filter = abap_true AND ms_config-t_window_filter <> mr_attri->t_window_filter_set.
-      mr_attri->t_window_filter     = ms_config-t_window_filter.
       mr_attri->t_window_filter_set = ms_config-t_window_filter.
+      mr_attri->t_window_filter     = z2ui5_cl_ui5_srv_window=>filter_merge( t_app = ms_config-t_window_filter
+                                                                             t_ui  = mr_attri->t_window_filter_ui ).
       mr_attri->window_count        = ms_config-window.
       lv_changed = abap_true.
     ENDIF.

@@ -12,11 +12,11 @@ own, and nothing may be left under "Unreleased".
   source is `app_source/webapp/embed` there, next to its smallest host app
   (`node app_source/embed-control/pack.mjs`). abap2UI5/embed-control published
   it up to 0.3.0.
-- **The control is a shell, and needs the abap2UI5 release after 1.148.0.**
+- **The control is a shell, and needs the abap2UI5 release after 1.149.0.**
   It loads the bundle and renders what the bundle's `z2ui5/embed` module
   creates (`create( )`); the component, its component data and the style
   of the area come from the backend. There is no fallback for an older
-  abap2UI5 - 0.3.0 stays the version for 1.145.0 to 1.148.0, and keeps
+  abap2UI5 - 0.3.0 stays the version for 1.145.0 to 1.149.0, and keeps
   working against newer backends.
 - `bundleVersion` (string): the bundle is asked for by its version, and the
   browser may keep it without asking again. For a host that knows the

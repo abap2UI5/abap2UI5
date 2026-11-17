@@ -1,7 +1,7 @@
 {
   "name": "abap2UI5",
   "private": true,
-  "version": "1.148.0",
+  "version": "1.149.0",
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "deps": "node node/setup/fetch-deps.mjs",
@@ -115,7 +115,7 @@
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abap2ui5/linter": "^0.9.0",
-    "@abaplint/cli": "^2.120.107",
+    "@abaplint/cli": "^2.120.108",
     "@abaplint/database-sqlite": "^2.14.12",
     "@abaplint/runtime": "^2.14.33",
     "@abaplint/transpiler-cli": "^2.14.33",

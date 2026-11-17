@@ -65,8 +65,12 @@ version, open-abap-core and express-icf-shim at the recorded commits, the
 framework's `downport/` and the host's classes in ONE transpile into an
 output of the host's own, and that output's `host.mjs`; one transpile, one
 transpiler version, nothing rewritten, as the transpiler's maintainer asked
-for in abaplint/transpiler#1999; `--check` runs the host's classes through
-it), **`node/srv/host.mjs`** (the entry point, below - `node/srv/hostcore.mjs`
+for in abaplint/transpiler#1999; `--unit-tests` switches the transpiler's
+ABAP Unit runner on for the host's own test classes - `<output>/index.mjs`,
+which holds nothing of the framework's, whose test includes are not packed -
+so a repository that only wants its unit tests run on the package needs no
+config of its own; `--check` runs the host's classes and one test class
+through it), **`node/srv/host.mjs`** (the entry point, below - `node/srv/hostcore.mjs`
 bound to `output/` through `node/srv/framework.mjs`, first claiming the
 process with `node/srv/claim.mjs`), `node/srv/*.d.ts` (hand-written TypeScript declarations
 for the three entry points, named by `types` in the manifest and on every

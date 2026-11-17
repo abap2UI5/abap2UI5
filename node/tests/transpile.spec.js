@@ -72,6 +72,18 @@ test.describe("transpileConfig", () => {
     expect(own.libs.map((/** @type {{ url: string }} */ l) => l.url)).toEqual(config.libs.map((/** @type {{ url: string }} */ l) => l.url));
   });
 
+  test("unitTests switches the transpiler's ABAP Unit runner on, and nothing else", () => {
+    const plain = mod.transpileConfig({ cwd, abap: inside("abap"), output: inside("out"), ...folders });
+    const tested = mod.transpileConfig({ cwd, abap: inside("abap"), output: inside("out"), ...folders, unitTests: true });
+    expect(tested.write_unit_tests).toBe(true);
+    // the package ships downport/ without its test classes, so the runner holds the host's tests only -
+    // the skip list of abap2UI5's own build (unit tests of the framework) has nothing to skip here
+    expect(tested.options.skip).toBeUndefined();
+    expect({ ...tested, write_unit_tests: false }).toEqual(plain);
+    // only `true` is a yes: a string from a careless caller does not switch it on
+    expect(mod.transpileConfig({ cwd, abap: inside("abap"), output: inside("out"), ...folders, unitTests: "no" }).write_unit_tests).toBe(false);
+  });
+
   test("refuses a folder outside the project, naming it", () => {
     const outside = path.resolve("/elsewhere");
     expect(() => mod.transpileConfig({ cwd, abap: path.join(outside, "abap"), output: inside("out"), ...folders }))
@@ -156,6 +168,23 @@ test.describe("the bin", () => {
     const unknown = spawnSync(process.execPath, [MODULE, "abap", "apps", "--bogus"], { encoding: "utf8" });
     expect(unknown.status).toBe(2);
     expect(unknown.stderr).toMatch(/unknown option --bogus/);
+  });
+
+  test("--unit-tests is an option of the bin, and refused next to a config of the host's own", () => {
+    const { spawnSync } = require("child_process");
+    // past the option parsing: the missing folder is what stops it, not the flag
+    const r = spawnSync(process.execPath, [MODULE, "no-such-folder", "abap2ui5", "--unit-tests"], { encoding: "utf8", cwd: os.tmpdir() });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toMatch(/no-such-folder does not exist/);
+    expect(r.stderr).not.toMatch(/unknown option/);
+    const usage = spawnSync(process.execPath, [MODULE], { encoding: "utf8" });
+    expect(usage.stderr).toMatch(/\[--unit-tests\]/);
+    // a config of the host's own says write_unit_tests itself - both together would be two answers
+    const both = spawnSync(process.execPath, [MODULE, "abap", "abap2ui5", "--unit-tests", "--config", "abap_transpile.json"], { encoding: "utf8", cwd: os.tmpdir() });
+    expect(both.status).toBe(1);
+    expect(both.stderr).toMatch(/--unit-tests and --config do not go together/);
+    expect(() => mod.transpile({ abap: "abap", output: "out", cwd: os.tmpdir(), config: "abap_transpile.json", unitTests: true }))
+      .toThrow(/--unit-tests and --config do not go together/);
   });
 
   test("a missing ABAP folder is reported, exit code 1", () => {

@@ -10,6 +10,17 @@
 "! stable, so both see the same order. Row n of the client array is row
 "! index[ n + 1 ] of the table.
 "!
+"! The sorters and the filter are kept HERE, on the attribute, and nowhere
+"! else - one order per windowed table. Who may change it: the app, with
+"! t_sort / t_filter of window_bind_tab( ) when they differ from the ones it
+"! passed before (z2ui5_cl_ui5_srv_bind=>window_adopt), and the list binding
+"! in the browser, when sort( ) or filter( ) is called on it (event_apply).
+"! A request that asks for more rows is neither: it means more rows of the
+"! SAME order. The sort has one owner at a time - the last one to set it.
+"! The filter has two parts, the app's and the binding's, which are ANDed
+"! (filter_merge): a column filter the user sets narrows what the app
+"! filtered, and neither side drops the other's.
+"!
 "! The sort is a merge sort of the row numbers and the comparison is done
 "! on keys taken from the rows once: SORT ... BY (name) sorts nothing in
 "! the transpiled runtime, and a comparison per pair that reads the cells
@@ -42,7 +53,8 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         VALUE(result) TYPE REF TO data.
 
     "! the window event (z2ui5_if_ui5_types=>cs_event_window): t_arg is the
-    "! model path of the table, the rows wanted, the sorters and the filter
+    "! model path of the table and the rows wanted, then - only when the
+    "! binding was told to sort or to filter - the sorters and the filter
     "! groups as JSON. Applied to the windowed attribute with that path;
     "! abap_false when there is none
     CLASS-METHODS event_apply
@@ -51,6 +63,16 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         attri         TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    "! the filter index( ) reads: the app's conditions and the ones of the
+    "! list binding, ANDed - the groups of both, numbered anew from 1 in the
+    "! order they come, so a group of one never runs into a group of the other
+    CLASS-METHODS filter_merge
+      IMPORTING
+        t_app         TYPE z2ui5_if_ui5_types=>ty_t_window_filter
+        t_ui          TYPE z2ui5_if_ui5_types=>ty_t_window_filter
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
 
     "! the sorters as the frontend sends them:
     "! `[{"PATH":"NAME","DESCENDING":true}, ...]`
@@ -107,6 +129,21 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
         valid    TYPE abap_bool,
       END OF ty_s_cond.
     TYPES ty_t_cond TYPE STANDARD TABLE OF ty_s_cond WITH EMPTY KEY.
+
+    "! abap_true when a window request names this part of the order - a
+    "! JSON array, `[]` included. Missing, empty or `null` it says nothing
+    CLASS-METHODS arg_is_said
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS filter_append
+      IMPORTING
+        t_filter  TYPE z2ui5_if_ui5_types=>ty_t_window_filter
+      CHANGING
+        cv_group  TYPE i
+        ct_result TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
 
     CLASS-METHODS kind_of
       IMPORTING
@@ -279,8 +316,32 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      lr_attri->t_window_sort   = parse_sort( lv_sort ).
-      lr_attri->t_window_filter = parse_filter( lv_filter ).
+      " A request changes the part of the order it NAMES, and a request
+      " for more rows names none: the order lives on the attribute, the
+      " browser is not told it, so it has nothing to send back. Every
+      " request used to carry the binding's own sorters and filters and
+      " they replaced what was kept here - an order the app had set with
+      " t_sort / t_filter never reached the binding, so the first "More"
+      " sent an empty list and the rows came back in the table's own order,
+      " unfiltered, and window_get_row( ) and the next cell edit followed
+      " that. Handing the order to the binding instead, to have it sent
+      " back, was the alternative: it makes every request carry a copy
+      " that can be stale (a request built before the response of a
+      " roundtrip in which the app changed the sort would undo it) and
+      " sends the filter through two conversions for nothing.
+      " A sort replaces the sort, whoever set it. A filter replaces the
+      " binding's part and leaves the app's, which stays ANDed. A frontend
+      " from before this (a page still open over an update) names both in
+      " every request: its sort still replaces, as it did, its filter is
+      " only ever the binding's part
+      IF arg_is_said( lv_sort ) = abap_true.
+        lr_attri->t_window_sort = parse_sort( lv_sort ).
+      ENDIF.
+      IF arg_is_said( lv_filter ) = abap_true.
+        lr_attri->t_window_filter_ui = parse_filter( lv_filter ).
+        lr_attri->t_window_filter    = filter_merge( t_app = lr_attri->t_window_filter_set
+                                                     t_ui  = lr_attri->t_window_filter_ui ).
+      ENDIF.
       " never fewer than one window - the browser asks for the first one
       " again after a sort or a filter changed. The count comes from the
       " browser: condensed, digits only and nine of them at most, as
@@ -297,6 +358,44 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
                                      val2 = lr_attri->window_size ).
       result = abap_true.
       RETURN.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD arg_is_said.
+
+    DATA(lv_val) = condense( val ).
+    result = xsdbool( lv_val IS NOT INITIAL AND lv_val <> `null` ).
+
+  ENDMETHOD.
+
+  METHOD filter_merge.
+
+    DATA lv_group TYPE i.
+
+    filter_append( EXPORTING t_filter  = t_app
+                   CHANGING  cv_group  = lv_group
+                             ct_result = result ).
+    filter_append( EXPORTING t_filter  = t_ui
+                   CHANGING  cv_group  = lv_group
+                             ct_result = result ).
+
+  ENDMETHOD.
+
+  METHOD filter_append.
+
+    DATA lv_last TYPE i.
+
+    " a group is the run of conditions with one number, as filter_row( )
+    " reads it - the app numbers its groups as it likes, the binding's
+    " start at 1 again
+    LOOP AT t_filter INTO DATA(ls_filter).
+      IF sy-tabix = 1 OR ls_filter-group <> lv_last.
+        cv_group = cv_group + 1.
+      ENDIF.
+      lv_last = ls_filter-group.
+      ls_filter-group = cv_group.
+      APPEND ls_filter TO ct_result.
     ENDLOOP.
 
   ENDMETHOD.

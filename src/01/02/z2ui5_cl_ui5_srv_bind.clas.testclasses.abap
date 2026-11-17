@@ -1081,11 +1081,46 @@ CLASS ltcl_04_window IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_bind->mr_attri->t_window_filter ) ).
 
-    " the user filters in the browser - the same filter from the app keeps it
-    CLEAR mo_bind->mr_attri->t_window_filter.
+    " the user filters a column in the browser (z2ui5_cl_ui5_srv_window=>
+    " event_apply): the binding's part, ANDed with the app's
+    DATA(lt_ui) = VALUE z2ui5_if_ui5_types=>ty_t_window_filter(
+                      ( group = 1 path = `JOB` operator = `EQ` value1 = `x` ) ).
+    mo_bind->mr_attri->t_window_filter_ui = lt_ui.
+    mo_bind->mr_attri->t_window_filter    = z2ui5_cl_ui5_srv_window=>filter_merge(
+                                                t_app = ls_config-t_window_filter
+                                                t_ui  = lt_ui ).
+    DATA(lt_both) = mo_bind->mr_attri->t_window_filter.
+    mo_bind->mr_attri->window_count = 30.
+
+    " the same filter from the app keeps it, and the rows the browser holds
     bind( ir_val    = REF #( mo_app->mt_tab )
           is_config = ls_config ).
-    cl_abap_unit_assert=>assert_initial( mo_bind->mr_attri->t_window_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_both
+                                        act = mo_bind->mr_attri->t_window_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = 30
+                                        act = mo_bind->mr_attri->window_count ).
+
+    " a new filter from the app replaces the app's part and leaves the
+    " user's column filter - from the first window
+    ls_config-t_window_filter = VALUE #( ( group = 7 path = `NAME` operator = `StartsWith` value1 = `b` ) ).
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = VALUE z2ui5_if_ui5_types=>ty_t_window_filter(
+                  ( group = 1 path = `NAME` operator = `StartsWith` value1 = `b` )
+                  ( group = 2 path = `JOB`  operator = `EQ`         value1 = `x` ) )
+        act = mo_bind->mr_attri->t_window_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_ui
+                                        act = mo_bind->mr_attri->t_window_filter_ui ).
+    cl_abap_unit_assert=>assert_equals( exp = 10
+                                        act = mo_bind->mr_attri->window_count ).
+
+    " an empty one clears the app's part alone
+    CLEAR ls_config-t_window_filter.
+    bind( ir_val    = REF #( mo_app->mt_tab )
+          is_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = lt_ui
+                                        act = mo_bind->mr_attri->t_window_filter ).
 
   ENDMETHOD.
 

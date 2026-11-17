@@ -426,7 +426,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``_filter`` of ``z2ui5_if_client``); they take effect when they differ from the` && |\n| &&
              `  ones passed before, so a view rendered again keeps what the user sorted in` && |\n|.
     result = result &&
-             `  the browser. ``val`` may also be a data reference to the table (``REF #( )``, an` && |\n| &&
+             `  the browser. There is one sort, the last one set; ``t_filter`` and a filter of` && |\n| &&
+             `  the binding are ANDed, each replaced only by its own side. ``val`` may also be a data reference to the table (` &&
+             ```REF #( )``, an` && |\n| &&
              `  attribute ``TYPE REF TO data``). The number of rows the filter lets through is` && |\n| &&
              `  ``/__WINDOW/<path>/TOTAL`` in the model - build it from` && |\n| &&
              `  ``client->_bind_path( t_rows )``. Only a STANDARD table, bound whole; sorters` && |\n| &&
@@ -465,9 +467,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``client->get_event_arg( )`` (index only for position 2+). A value resolved` && |\n| &&
              `  on the client must be ``$``-prefixed - ```` ``${PRODUCT}`` ```` (row field),` && |\n| &&
              `  ```` ``$event.getSource().getId()`` ```` (the pressed control's id),` && |\n| &&
-             `  ```` ``${$parameters>/selected}`` ```` (an event parameter). A bare ``{...}`` arg is` && |\n| &&
-             `  NOT resolved and arrives empty. Booleans arrive as ``abap_bool`` (``X``/space).` && |\n|.
+             `  ```` ``${$parameters>/selected}`` ```` (an event parameter). A bare ``{...}`` arg is` && |\n|.
     result = result &&
+             `  NOT resolved and arrives empty. Booleans arrive as ``abap_bool`` (``X``/space).` && |\n| &&
              `- **Which row was pressed:** send the row's key field (```` arg = ``${ID}`` ````)` && |\n| &&
              `  when the handler needs the row's DATA, and look it up with ``READ TABLE ...` && |\n| &&
              `  WITH KEY``. Send the position` && |\n| &&
@@ -506,9 +508,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  The framework ships none for apps. Do not reach for a substitute:` && |\n| &&
              `  ``/ui2/cl_json``` && |\n| &&
              `  is not released for ABAP Cloud, ``xco_cp_json`` is missing on 7.02, and the` && |\n| &&
-             `  vendored ajson is framework-internal, which the linter's` && |\n| &&
-             `  ``non-released-api`` rule reports - correctly.` && |\n|.
+             `  vendored ajson is framework-internal, which the linter's` && |\n|.
     result = result &&
+             `  ``non-released-api`` rule reports - correctly.` && |\n| &&
              `  - **Outbound** (a control property that must receive an OBJECT, e.g. a` && |\n| &&
              `    ``sap.ui.integration`` Card manifest): compose the JSON as a string in` && |\n| &&
              `    ABAP and bind it with ``_bind( val = ... json = abap_true )``, which splices` && |\n| &&
@@ -548,9 +550,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **The per-wire flags (``s_ctrl``, type ``ty_s_event_control``).** By default` && |\n| &&
              `  an event fired while a roundtrip is in flight is DROPPED - right for a` && |\n| &&
              `  click, wrong for a per-keystroke wire (``liveChange``, ``liveSearch``,` && |\n| &&
-             `  ``sliderChange``), where it loses every keystroke typed under the running` && |\n| &&
-             `  roundtrip, the last one included, and leaves the backend at the value of` && |\n|.
+             `  ``sliderChange``), where it loses every keystroke typed under the running` && |\n|.
     result = result &&
+             `  roundtrip, the last one included, and leaves the backend at the value of` && |\n| &&
              `  the last completed roundtrip while the control shows the current one.` && |\n| &&
              `  ``check_queue_last = abap_true`` keeps the LAST event fired on the wire and` && |\n| &&
              `  dispatches it once the response has landed - one roundtrip in flight at a` && |\n| &&
@@ -591,9 +593,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `## 6. Popups, popovers, messages` && |\n| &&
              |\n| &&
-             `- ``client->popup_display( val = ... )`` opens a ``core:FragmentDefinition``` && |\n| &&
-             `  string (build it with ``z2ui5_cl_ui5_view_builder`` too) as a dialog. Closing: wire a` && |\n|.
+             `- ``client->popup_display( val = ... )`` opens a ``core:FragmentDefinition``` && |\n|.
     result = result &&
+             `  string (build it with ``z2ui5_cl_ui5_view_builder`` too) as a dialog. Closing: wire a` && |\n| &&
              `  Close button to ``client->follow_up_action( val = z2ui5_if_client=>cs_event-popup_close )``` && |\n| &&
              `  (round-trip free - the frontend tears the popup slot down without reaching` && |\n| &&
              `  your ``main``), or call ``client->popup_destroy( )`` server-side after handling` && |\n| &&
@@ -632,9 +634,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  the control, and it is set through the whitelisted global call, whose last` && |\n| &&
              `  argument is the ``sap.m.MessageToast.show( )`` / ``sap.m.MessageBox.<type>( )``` && |\n| &&
              `  option object 1:1 (the display method IS the box type there, and a ``t_arg``` && |\n| &&
-             `  starting with a brace travels as real JSON):` && |\n| &&
-             `  ``client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =` && |\n|.
+             `  starting with a brace travels as real JSON):` && |\n|.
     result = result &&
+             `  ``client->follow_up_action( val = z2ui5_if_client=>cs_event-control_global t_arg =` && |\n| &&
              `  VALUE #( ( ``MESSAGE_BOX`` ) ( ``error`` ) ( ``Not saved.`` ) ( ``{"contentWidth":"30rem","icon":"WARNING"}`` ) ) )``` &&
              `.` && |\n| &&
              `  ``Z2UI5_CL_SMP_APP_381`` and ``Z2UI5_CL_SMP_APP_512`` are the two samples that` && |\n| &&
@@ -675,9 +677,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``hash_back`` (one history step back with an optional fallback hash),` && |\n| &&
              `  ``hash_attach_changed`` (registers a backend event that fires when the hash` && |\n| &&
              `  changes under the app - Back/Forward, a manual edit; app-owned routing` && |\n| &&
-             `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n| &&
-             `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n|.
+             `  with ``hash_routing`` off), ``hash_routing`` (the routing modes above) and` && |\n|.
     result = result &&
+             `  ``app_state_set_active``. ``hash_routing``, ``hash_attach_changed`` and` && |\n| &&
              `  ``app_state_set_active`` are mutually exclusive - each claims the whole app` && |\n| &&
              `  hash.` && |\n| &&
              |\n| &&
@@ -718,9 +720,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    IF sy-subrc <> 0.` && |\n| &&
              `      client->message_box_display( text = ``You are not authorized to use this app``` && |\n| &&
              `                                   type = ``error`` ).` && |\n| &&
-             `      RETURN.` && |\n| &&
-             `    ENDIF.` && |\n|.
+             `      RETURN.` && |\n|.
     result = result &&
+             `    ENDIF.` && |\n| &&
              |\n| &&
              `    me->client = client.` && |\n| &&
              `    IF client->check_on_init( ).` && |\n| &&
@@ -761,9 +763,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  and the agent permission setup preconfigured.` && |\n| &&
              `- **[abap2UI5-linter](https://github.com/abap2UI5/linter)** checks` && |\n| &&
              `  app classes statically (unknown/deprecated/too-new controls and members,` && |\n| &&
-             `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n| &&
-             `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n|.
+             `  binding mistakes, builder-tree defects) and can render the view headless:` && |\n|.
     result = result &&
+             `  ``npx --yes @abap2ui5/linter my_app.clas.abap`` - also` && |\n| &&
              `  available as a GitHub Action and inside the VS Code extension.` && |\n| &&
              `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n| &&
              `  the full loop without a SAP system: ``capabilities`` -> ``deploy_app`` ->` && |\n| &&
@@ -803,9 +805,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `  ``````abap` && |\n| &&
              `  CLASS ltd_client DEFINITION FINAL FOR TESTING.` && |\n| &&
-             `    PUBLIC SECTION.` && |\n| &&
-             `      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` && |\n|.
+             `    PUBLIC SECTION.` && |\n|.
     result = result &&
+             `      INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.` && |\n| &&
              `      " what the lifecycle questions are answered with` && |\n| &&
              `      DATA init      TYPE abap_bool.` && |\n| &&
              `      DATA navigated TYPE abap_bool.` && |\n| &&
@@ -845,9 +847,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
              `    PRIVATE SECTION.` && |\n| &&
-             `      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.` && |\n| &&
-             `  ENDCLASS.` && |\n|.
+             `      METHODS save_toasts_the_name FOR TESTING RAISING cx_static_check.` && |\n|.
     result = result &&
+             `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app IMPLEMENTATION.` && |\n| &&
              `    METHOD save_toasts_the_name.` && |\n| &&
@@ -889,9 +891,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  headless app and look at the result - the event branch, not just the boot.` && |\n| &&
              |\n| &&
              `## 10. The in-app developer tools (Ctrl+F12)` && |\n| &&
-             |\n| &&
-             `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n|.
+             |\n|.
     result = result &&
+             `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
              `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
@@ -938,9 +940,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
              `  click-through: press "Record Journey", use the app, press it again, and` && |\n| &&
              `  "Export ABAP Unit" hands over a local test class that replays the steps on` && |\n| &&
-             `  ``z2ui5_cl_frontend_sim`` ([headless-frontend](https://github.com/abap2UI5/headless-frontend))` && |\n| &&
-             `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n|.
+             `  ``z2ui5_cl_frontend_sim`` ([headless-frontend](https://github.com/abap2UI5/headless-frontend))` && |\n|.
     result = result &&
+             `  - ``set_value( )`` for what was typed, ``click( )`` for every event, assertions` && |\n| &&
              `  on the messages, layers, control ids and events the screens showed. Paste it` && |\n| &&
              `  into the app's test include; record from the app start, because the test` && |\n| &&
              `  starts the app fresh.` && |\n| &&
@@ -982,9 +984,9 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              ```````abap` && |\n| &&
              `DATA(li_llm) = z2ui5_cl_ui5_llm=>create_claude( model       = ls_cfg-model` && |\n| &&
-             `                                                destination = ls_cfg-destination ).` && |\n| &&
-             `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n|.
+             `                                                destination = ls_cfg-destination ).` && |\n|.
     result = result &&
+             `DATA(ls_answer) = li_llm->chat( system    = ``Answer briefly.``` && |\n| &&
              `                                t_message = mt_chat ).` && |\n| &&
              ```````` && |\n| &&
              |\n| &&
