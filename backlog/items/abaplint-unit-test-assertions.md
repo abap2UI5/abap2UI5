@@ -3,8 +3,7 @@ target: abaplint
 title: 'Unit-test assertions: pointless, imprecise or missing'
 summary: 'assertions that cannot fail (act = exp, two literals), assert_equals where assert_true/assert_subrc says it, ASSERT instead of cl_abap_unit_assert in tests, exp before act, and an expected exception without fail( ) - one rule over FOR TESTING code'
 priority: medium
-state: filed
-filed: https://github.com/abaplint/abaplint/pull/4583
+state: open
 first_seen: 2026-10-11
 checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
@@ -14,6 +13,7 @@ evidence:
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'abaplint/abaplint#874 "unit tests, assert true inside IF" (2020, open) asks for one narrow shape of an assertion that cannot fail; nothing upstream covers the rest of this item (upstream search 2026-11-14)'
   - 'filed 2026-11-17 as abaplint/abaplint#4583, the rule `unit_test_assertions` with the options cannotFail and assertStatement; the tolerable fail( ), exp before act, assert_equals where assert_true/assert_subrc says it and the expected exception without fail( ) are follow-ups'
+  - 'the options cannotFail and assertStatement shipped in abaplint 2.120.109 as unit_test_assertions (abaplint/abaplint#4583), on in abaplint.jsonc. What is left: the tolerable fail( ), assert_equals where assert_true/assert_subrc says it, exp passed before act, and an expected exception without fail( )'
 ---
 
 # Unit-test assertions: pointless, imprecise or missing

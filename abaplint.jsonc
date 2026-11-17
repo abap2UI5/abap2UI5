@@ -78,6 +78,11 @@
     // (abaplint/abaplint#4420). Measured on 2.120.75: 0 findings over src,
     // control probe fired
     "changing_sorted_line": true,
+    // '...' or space where its blanks are dropped: an empty FIND/REPLACE
+    // pattern, an operand of && / CONCATENATE / a string template
+    // (abaplint/abaplint#4582). Measured on 2.120.109: 0 findings over src,
+    // control probe fired
+    "character_field_literal_blanks": true,
     // Measured on 2.120.92: 0 findings over src after three CLEARs right after
     // the declaration left two test classes, control probe fired
     "clear_after_declaration": true,
@@ -93,6 +98,10 @@
     // may have overwritten sy-tabix (abaplint/abaplint#4418). Measured on
     // 2.120.75: 0 findings over src, control probe fired
     "delete_index_in_loop": true,
+    // a field symbol read in a procedure that never binds it - always
+    // GETWA_NOT_ASSIGNED (abaplint/abaplint#4584). Measured on 2.120.109: 0
+    // findings over src, control probe fired
+    "field_symbol_never_assigned": true,
     // Every .abap and .xml file ends with exactly one newline, as abapGit
     // writes it (abaplint/abaplint#4412); check:abapgit enforces it as well.
     // Measured on 2.120.75: 0 findings over src, control probe fired
@@ -115,6 +124,10 @@
     // a failed ASSIGN in a loop keeps the previous binding, so IS ASSIGNED
     // after it lies. Measured on 2.120.92: 0 findings over src, control probe fired
     "is_assigned_in_loop": true,
+    // an inner LOOP reusing the outer target, INTO <fs> where ASSIGNING was
+    // meant (abaplint/abaplint#4585). Measured on 2.120.109: 0 findings over
+    // src, control probe fired
+    "loop_target_misuse": true,
     // A VALUE row of a range table without OPTION, or with a SIGN/OPTION
     // literal outside the domain (abaplint/abaplint#4415). Replaces the
     // `range_row` part of check:atc. Measured on 2.120.75: 0 findings over src,
@@ -131,6 +144,14 @@
     // an empty key (abaplint/abaplint#4419). Measured on 2.120.75: 0 findings
     // over src, control probe fired
     "sort_empty_key": true,
+    // a sy-subrc check right after a method call without EXCEPTIONS, which
+    // does not set it (abaplint/abaplint#4581). Measured on 2.120.109: 0
+    // findings over src, control probe fired
+    "stale_subrc": true,
+    // an assertion that cannot fail, ASSERT in a FOR TESTING class
+    // (abaplint/abaplint#4583). Measured on 2.120.109: 0 findings over src,
+    // control probe fired
+    "unit_test_assertions": true,
     "sql_value_conversion": true,
     "select_single_full_key": true,
     "strict_sql": true,

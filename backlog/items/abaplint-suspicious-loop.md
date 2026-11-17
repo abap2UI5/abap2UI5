@@ -3,14 +3,16 @@ target: abaplint
 title: 'Suspicious loops: a body that always leaves, a WHILE condition the body never changes'
 summary: 'a loop whose body ends with RETURN/EXIT/RAISE on every path runs once, and a WHILE whose condition variables the body never writes runs zero times or forever - both are loops that do not loop'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4588
 first_seen: 2026-10-11
-checked_upstream: 2026-11-14
+checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
 evidence:
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'abap2UI5/abap2UI5 c4e9ac8 (''Fix endless LOOP'')'
   - 'abap2xlsx/abap2xlsx 11b47ec (#1044)'
+  - 'filed 2026-11-17 as abaplint/abaplint#4588, the rule suspicious_loop with the option unchangedCondition: reports the pre-fix shape of abap2UI5 c4e9ac8 (abap2UI5/abap2UI5#2105), not abap2xlsx 11b47ec (an endless loop through a 40-character truncation, which needs value analysis); the loop-runs-once check is left out, every hit in the corpora was the find-first-and-exit idiom'
 ---
 
 # Suspicious loops: a body that always leaves, a WHILE condition the body never changes

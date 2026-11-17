@@ -3,8 +3,7 @@ target: abaplint
 title: 'A sy-subrc or sy-tabix that is stale where it is read'
 summary: 'a sy-subrc test after a statement that does not set sy-subrc, and an INDEX sy-tabix in a LOOP after another statement overwrote sy-tabix, both read a system field that no longer means what the author assumes - one data-flow walk over the statements'
 priority: medium
-state: filed
-filed: https://github.com/abaplint/abaplint/pull/4581
+state: open
 first_seen: 2026-10-11
 checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
@@ -16,6 +15,7 @@ evidence:
   - 'abaplint/abaplint#3260 (sy-tabix in DO/WHILE) asks for part of it'
   - 'abaplint/abaplint#4418 (delete_index_in_loop, merged) covers DELETE only'
   - 'filed 2026-11-17 as abaplint/abaplint#4581, the rule `stale_subrc`: a sy-subrc check right after a method call without EXCEPTIONS or an assignment from a call. One real finding in abapGit (zcl_abapgit_sap_package, a check after read_parent( ) that is always true). The check after a plain assignment or CLEAR was dropped (a false positive in abapGit zcl_abapgit_object_ttyp), and the sy-tabix half is a follow-up'
+  - 'the method-call half shipped in abaplint 2.120.109 as stale_subrc (abaplint/abaplint#4581), on in abaplint.jsonc. What is left: the sy-subrc check after a plain assignment or CLEAR (dropped from #4581 after a false positive in abapGit zcl_abapgit_object_ttyp, where the assignment sits inside a branch that already tested sy-subrc) and the sy-tabix half'
 ---
 
 # A sy-subrc or sy-tabix that is stale where it is read
