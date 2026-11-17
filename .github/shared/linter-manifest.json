@@ -383,7 +383,7 @@
       "z2ui5_if_ui5_monitor"
     ],
     "src/03/01": [
-      "z2ui5_cl_lp_handler"
+      "z2ui5_cl_ui5_icf_handler"
     ]
   },
   "globalTargets": {

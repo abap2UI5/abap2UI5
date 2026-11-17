@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_lp_handler DEFINITION
+CLASS z2ui5_cl_ui5_icf_handler DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -11,7 +11,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_lp_handler IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_icf_handler IMPLEMENTATION.
 
 
   METHOD if_http_service_extension~handle_request.

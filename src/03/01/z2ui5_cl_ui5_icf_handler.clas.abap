@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_lp_handler DEFINITION
+CLASS z2ui5_cl_ui5_icf_handler DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -10,9 +10,9 @@ CLASS z2ui5_cl_lp_handler DEFINITION
     " if_http_extension is no released API, so the branch for ABAP Cloud
     " carries a class of the same name on if_http_service_extension instead,
     " behind an HTTP service (cloud/src/03/01).
-    " Everything it does is hand the request to the public entry point. The
-    " name is the one installations have had since the node shipped from
-    " abap2UI5/frontend, and their node names it - do not rename it.
+    " Everything it does is hand the request to the public entry point.
+    " Until 2026-11-17 it was z2ui5_cl_lp_handler, delivered from
+    " abap2UI5/frontend; the node of this package names it by this name.
     INTERFACES if_http_extension.
 
   PROTECTED SECTION.
@@ -20,7 +20,7 @@ CLASS z2ui5_cl_lp_handler DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_lp_handler IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_icf_handler IMPLEMENTATION.
 
   METHOD if_http_extension~handle_request.
 

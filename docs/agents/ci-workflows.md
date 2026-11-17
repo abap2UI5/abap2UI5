@@ -237,6 +237,7 @@ Until 2026-11 the ICF node, the BSP and the cloud service were not in this
 repository's `src/` at all: they were built here and pushed into branches of
 [abap2UI5/frontend](https://github.com/abap2UI5/frontend) (`standard_new`,
 `cloud_new`), which an installation pulled as a second repository. They are
-`src/03` and the branch `cloud` now, with every object name unchanged, and
+`src/03` and the branch `cloud` now - the node, the BSP and the HTTP service
+under the names they had, the handler as `z2ui5_cl_ui5_icf_handler` - and
 that repository is the extension - it holds the legacy classes that left
 `src/99`.

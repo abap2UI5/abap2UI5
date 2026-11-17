@@ -415,7 +415,7 @@ breaking change for any downstream app that still references it.
 - [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
       — **deleted 2026-11-17**, not moved: an ICF node or a handler class
       that still names it names `z2ui5_cl_ui5_http_handler` instead, or uses
-      the node and handler of `src/03/01` (`z2ui5_cl_lp_handler`)
+      the node and handler of `src/03/01` (`z2ui5_cl_ui5_icf_handler`)
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
         places; it had no box here, which made `src/99` look like three items
@@ -425,7 +425,7 @@ breaking change for any downstream app that still references it.
         in ABAP anybody wrote, so "zero callers in the sample repositories"
         says nothing about it. It goes when the handler rename is announced
         in the docs Deprecations page, not before.
-      - The shipped service no longer names it: `z2ui5_cl_lp_handler`
+      - The shipped service no longer names it: `z2ui5_cl_ui5_icf_handler`
         (`src/03/01`, and `cloud/src/03/01` on the branch `cloud`) calls
         `z2ui5_cl_ui5_http_handler` (in a release since 1.148.0), and
         `tools/bsp_rename --backend` rewrites that call to

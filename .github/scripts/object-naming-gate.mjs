@@ -15,9 +15,6 @@
 //             cannot be changed to satisfy a convention
 //   src/99  - frozen production code (rule 1); it ships as-is until the
 //             removal plan retires it
-//   src/03  - the ICF node, its handler and the BSP: a deployment identity
-//             existing installations have (z2ui5_cl_lp_handler is named in
-//             their ICF node), taken over from abap2UI5/frontend as it was
 //   MIRRORED - src/00/01 (ajson) and src/00/02 (S-RTTI) are force-synced from
 //             their mirror repositories by vendor-mirror.yaml, which does
 //             `rm <target>/z*` + `cp <mirror>/src/z*`. A rename here is reverted
@@ -34,7 +31,6 @@ const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const EXEMPT = [
   ["src/02", "public API - a stable contract, see AGENTS.md rule 5"],
   ["src/99", "frozen package - ships as-is until the removal plan retires it"],
-  ["src/03", "the ICF node's handler - installations have it under this name since it shipped from abap2UI5/frontend, and their node names it"],
   ["src/00/01", "mirrored from abap2UI5/mirror-ajson by vendor-mirror.yaml"],
   ["src/00/02", "mirrored from abap2UI5/mirror-srtti by vendor-mirror.yaml"],
 ];

@@ -159,7 +159,7 @@ an empty subclass of `z2ui5_cl_ui5_http_handler` that kept the former name
 of the HTTP entry point resolving, and the one object of the package a
 customer names rather than calls - in an ICF node, or in a handler class of
 their own. The node and the handler this repository delivers do not name it
-(`z2ui5_cl_lp_handler` calls `z2ui5_cl_ui5_http_handler`, in a release since
+(`z2ui5_cl_ui5_icf_handler` calls `z2ui5_cl_ui5_http_handler`, in a release since
 1.148.0), so nothing shipped depends on it; an installation that still does
 changes that one name. It is a released object, so this is a break - the
 changelog says so.
@@ -190,16 +190,21 @@ they had to match.
 
 So the objects came home:
 
-- `src/03/01` - the ICF node `/sap/bc/z2ui5` and `z2ui5_cl_lp_handler`,
+- `src/03/01` - the ICF node `/sap/bc/z2ui5` and `z2ui5_cl_ui5_icf_handler`,
   `src/03/02` - the BSP `Z2UI5`, generated from `app_source/webapp/`. One
   pull of `main` is a running installation on Standard ABAP.
 - The branch `cloud` is generated from `main` (`tools/build-cloud.mjs`,
   `auto-cloud.yaml`) with `cloud/src/03` in place of `src/03`. It is the
   third generated flavour next to `main` and `702`, not a branch anybody
   maintains.
-- Every object name is the one the frontend repository's branches delivered,
-  so an installation keeps its node, its BSP and its launchpad target
-  mapping.
+- The node, the BSP and the HTTP service carry the names the frontend
+  repository's branches delivered, so an installation keeps its node, its
+  BSP and its launchpad target mapping. The handler class is the exception:
+  `z2ui5_cl_lp_handler` became `z2ui5_cl_ui5_icf_handler` with the move -
+  "lp" said launchpad, and the class is the handler of the node, whatever
+  starts the app. The node this repository delivers names the new class;
+  the old one stays behind in the package of the removed repository until
+  somebody deletes it.
 
 Declined on the way: keeping the handler out of `src/` because it is the one
 class that is not portable (it would have left "one pull" a two-step

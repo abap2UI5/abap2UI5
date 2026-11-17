@@ -3,7 +3,7 @@
       "files": "/../../src/**/*.*",
       // the one class on an API this dependency does not hold
       // (if_http_extension) - abap_service.jsonc lints it
-      "exclude": ["/src/03/01/z2ui5_cl_lp_handler\\."]
+      "exclude": ["/src/03/01/z2ui5_cl_ui5_icf_handler\\."]
     },
     "dependencies": [
       {

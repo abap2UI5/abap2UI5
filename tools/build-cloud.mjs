@@ -17,8 +17,9 @@
 // same code on both, which `npm run check:cloud` holds.
 //
 // Until 2026-11 this was the branch cloud_new of abap2UI5/frontend, a
-// repository of its own next to the backend. Every object keeps the name it
-// had there.
+// repository of its own next to the backend. The HTTP service and the IAM
+// objects keep the names they had there; the handler is
+// z2ui5_cl_ui5_icf_handler, as on main (z2ui5_cl_lp_handler until then).
 //
 // The tree is built into the git-ignored tools/out/cloud - nothing generated
 // is committed here. auto-cloud.yaml builds it on every push to main and

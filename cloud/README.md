@@ -8,7 +8,7 @@ later) pull the branch `main`, for NetWeaver 7.02 to 7.4x the branch `702`.
 |---|---|---|
 | the framework (`src/00` to `src/02`) | the same code | the same code |
 | the service | the ICF node `/sap/bc/z2ui5` | the HTTP service `Z2UI5`, `/sap/bc/http/sap/z2ui5` |
-| its handler `Z2UI5_CL_LP_HANDLER` | on `if_http_extension` | on `if_http_service_extension` |
+| its handler `Z2UI5_CL_UI5_ICF_HANDLER` | on `if_http_extension` | on `if_http_service_extension` |
 | the app | the BSP `Z2UI5`, pulled with the rest | the Fiori project in `app/`, deployed |
 | around it | - | the IAM app and the business catalog of `src/03` |
 

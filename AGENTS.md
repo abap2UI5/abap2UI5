@@ -114,7 +114,7 @@ src/
 │             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
 ├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
 └── 03/   The service and the launchpad app — Standard ABAP only
-    ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_lp_handler
+    ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_ui5_icf_handler
     └── 02/   BSP Z2UI5 — GENERATED from app_source/webapp/, never edit (rule 2)
 ```
 
@@ -132,9 +132,10 @@ There is no `src/99` any more: the frozen legacy package left the core on 2026-1
   platform. On `main` it is Standard ABAP: the ICF node, its handler on `if_http_extension`, and the BSP for the
   launchpad. The branch `cloud` is generated from `main` with `cloud/src/03` in its place — an HTTP service, the
   same handler name on `if_http_service_extension`, the IAM objects — and `app_source/` as a Fiori project to
-  deploy (`tools/build-cloud.mjs`, `auto-cloud.yaml`). Every name in both is the one installations have had since
-  these objects shipped from abap2UI5/frontend (until 2026-11): **do not rename an object of `src/03` or
-  `cloud/src/03`.** The handler has lint configs of its own (`npm run check:service`).
+  deploy (`tools/build-cloud.mjs`, `auto-cloud.yaml`). The node, the BSP and the HTTP service carry the names
+  installations have had since these objects shipped from abap2UI5/frontend (until 2026-11), and an ICF node or
+  a launchpad target mapping names them: **do not rename an object of `src/03` or `cloud/src/03`.** (The handler
+  was renamed once, with the move: `z2ui5_cl_lp_handler` became `z2ui5_cl_ui5_icf_handler`.) The handler has lint configs of its own (`npm run check:service`).
 - **`src/99`, the frozen legacy package, is gone** (2026-11-17). The legacy XML view builder
   (`z2ui5_cl_xml_view`, `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
   [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository** —

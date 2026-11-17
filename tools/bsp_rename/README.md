@@ -60,8 +60,8 @@ Instead of a plain name you can rename into a **registered SAP namespace**:
 
 | Input | BSP application | ICF handler class |
 | --- | --- | --- |
-| `/ABAPGIT/` | `/ABAPGIT/UI5` | `/ABAPGIT/CL_LP_HANDLER` |
-| `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP_CL_LP_HANDLER` |
+| `/ABAPGIT/` | `/ABAPGIT/UI5` | `/ABAPGIT/CL_UI5_ICF_HANDLER` |
+| `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP` | `/ABAPGIT/MYAPP_CL_UI5_ICF_HANDLER` |
 
 (The abapGit file-name spelling `#abapgit#myapp` is accepted as input too.)
 
@@ -69,7 +69,7 @@ Namespace max. 8 characters between the slashes, full BSP name max. 15
 characters including the slashes. What happens on top of a plain rename:
 
 - **File names** use the abapGit `#` escaping: `#abapgit#ui5.wapa.*`,
-  `#abapgit#cl_lp_handler.clas.*`.
+  `#abapgit#cl_ui5_icf_handler.clas.*`.
 - **SICF paths** follow the SAP convention for namespaced BSPs — the
   namespace replaces the `sap` path segment and is an ICF node of its own:
   `/sap/bc/abapgit/ui5`, `/sap/bc/bsp/abapgit/ui5`,
@@ -123,9 +123,9 @@ system:
 - **SICF service nodes** (3×): `/sap/bc/z2ui5`, `/sap/bc/bsp/sap/z2ui5`,
   `/sap/bc/ui5_ui5/sap/z2ui5`
 - **SMIM** folder URL (`/SAP/BC/BSP/SAP/Z2UI5`)
-- **ICF handler class** `Z2UI5_CL_LP_HANDLER` → `<NEW>_CL_LP_HANDLER`
+- **ICF handler class** `Z2UI5_CL_UI5_ICF_HANDLER` → `<NEW>_CL_UI5_ICF_HANDLER`
 - **manifest.json** data source `/sap/bc/z2ui5` (points at the handler above)
-- **all on-disk file names** (`z2ui5.wapa.*`, `z2ui5_cl_lp_handler.*`, and the
+- **all on-disk file names** (`z2ui5.wapa.*`, `z2ui5_cl_ui5_icf_handler.*`, and the
   SICF files — both the 15-char name field and the 25-char hash. The hash is
   the first 25 hex chars of `sha1(<ICF URL>)`, so it changes with the rename;
   keeping the old hash would make abapGit re-serialize the service under a
