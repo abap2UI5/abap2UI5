@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* @abap2ui5/node-runtime: abap2ui5-own-apps keeps the host's DDIC that transpiler 2.14 on writes into output/project/_ddic.mjs and imports it before the host's classes - 1.149.0 took the file for a class named like one of the package's and refused every host with a table or data element of its own
 
 
 2026-11-16 v1.149.0

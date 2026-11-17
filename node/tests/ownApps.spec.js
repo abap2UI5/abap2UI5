@@ -144,6 +144,44 @@ test("stops on a class of the host's that has the name of one of the package's",
   }
 });
 
+test("keeps the host's DDIC (project/_ddic.mjs) and imports it before the classes - no class of the package's name", async () => {
+  // transpiler 2.14 on writes a _ddic.mjs into every origin folder - the
+  // package's output/ has one in project/ too - and the host's holds the
+  // DDIC of its own tables and data elements: 1.149.0 refused it as a class
+  // that would replace the package's, so no host with a table could build
+  const { ownApps } = await load();
+  const runtimeOutput = tree({ ...PACKAGE_OUTPUT, "project/_ddic.mjs": 'abap.DDIC["Z2UI5_T_01"] = {};\n',
+    "open-abap-core/_ddic.mjs": 'abap.DDIC["T100"] = {};\n' });
+  const output = tree({
+    "open-abap-core/_ddic.mjs": "// a second copy",
+    "init.mjs": 'await import("./open-abap-core/_ddic.mjs");\nawait import("./project/_ddic.mjs");\nawait import("./project/zcl_app.clas.mjs");\n',
+    "project/_ddic.mjs": 'abap.DDIC["ZAPP_T_01"] = {};\n',
+    "project/zcl_app.clas.mjs": 'const {cx_root} = await import("../open-abap-core/cx_root.clas.mjs");\nexport {};\n',
+  });
+  const apps = path.join(os.tmpdir(), `own-apps-out-${process.pid}-${Date.now()}-ddic`);
+  try {
+    const { files, modules } = ownApps({ output, apps, runtimeOutput });
+    expect(files.sort()).toEqual(["_ddic.mjs", "index.mjs", "zcl_app.clas.mjs"]);
+    expect(modules).toEqual(["zcl_app.clas.mjs"]);
+    expect(fs.readFileSync(path.join(apps, "_ddic.mjs"), "utf8")).toBe('abap.DDIC["ZAPP_T_01"] = {};\n');
+    expect(fs.readFileSync(path.join(apps, "index.mjs"), "utf8").split("\n").filter((l) => l.startsWith("await")))
+      .toEqual(['await import("./_ddic.mjs");', 'await import("./zcl_app.clas.mjs");']);
+  } finally {
+    for (const dir of [runtimeOutput, output, apps]) fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("a project/ with nothing but the DDIC holds none of the host's classes", async () => {
+  const { ownApps } = await load();
+  const runtimeOutput = tree({ ...PACKAGE_OUTPUT, "project/_ddic.mjs": "" });
+  const output = tree({ "init.mjs": "", "project/_ddic.mjs": 'abap.DDIC["ZAPP_T_01"] = {};\n' });
+  try {
+    expect(() => ownApps({ output, apps: path.join(output, "apps"), runtimeOutput })).toThrow(/is empty - which of the classes are yours/);
+  } finally {
+    for (const dir of [runtimeOutput, output]) fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("says so when nothing in the output is the host's", async () => {
   const { ownApps } = await load();
   const runtimeOutput = tree(PACKAGE_OUTPUT);
