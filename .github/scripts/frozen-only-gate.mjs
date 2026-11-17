@@ -3,15 +3,17 @@
  * Gate: nothing in src/00 - src/02 may call a symbol marked FROZEN-ONLY.
  *
  * `z2ui5_cl_ui5_util_context` is the single door to every system and platform
- * call (AGENTS.md, "Utilities"), and 23 of its public symbols exist for one
- * reason only: the frozen `src/99` package still calls them on real systems.
- * They carry
+ * call (AGENTS.md, "Utilities"), and some of its public symbols exist for one
+ * reason only: the frozen legacy classes still call them on real systems -
+ * z2ui5_cl_xml_view and the popups, this repository's `src/99` until
+ * 2026-11-17 and the extension repository's since. They carry
  *
- *     " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+ *     " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
  *
- * and the class header says what that buys - when `src/99` finally goes, every
- * FROZEN-ONLY symbol goes with it, in one change, without reading 2,600 lines
- * again to work out which. AGENTS.md says "do not add new callers on them".
+ * and the class header says what that buys - when those classes stop calling
+ * them, every FROZEN-ONLY symbol goes, in one change, without reading 2,600
+ * lines again to work out which. AGENTS.md says "do not add new callers on
+ * them".
  *
  * Nothing enforced it. A framework method reaching for `conv_encode_x_base64`
  * or `itab_filter_by_val` compiles, lints, transpiles and passes every gate -
@@ -33,7 +35,8 @@
  *
  * What is not:
  *
- *   - `src/99`, which is the whole point of the markers.
+ *   - the legacy classes themselves, which are the whole point of the
+ *     markers - they are not in this repository any more.
  *   - the declaration itself and the METHOD line that implements it.
  *   - `class_constructor`, which fills every CLASS-DATA of the class including
  *     the marked ones. That is the declaration's own initialisation, not a
@@ -57,7 +60,7 @@
  * checked the other way round: without a live caller in src/00 - src/02 (a
  * test class, a frozen method of the class itself and the method's own
  * declaration and implementation do not count) it has to carry the marker.
- * Mark it when src/99 still calls it; otherwise remove it, or move it to the
+ * Mark it when the extension's legacy classes still call it; otherwise remove it, or move it to the
  * test class that uses it.
  *
  * Run: node .github/scripts/frozen-only-gate.mjs   (npm run check:frozen-only)
@@ -306,8 +309,8 @@ if (orphans.length > 0) {
   console.error(
     "\nA public method of the context class is either part of the framework's"
     + "\nutility surface - then something in src/00 - src/02 calls it - or it survives"
-    + "\nfor the frozen src/99 package and says so with the FROZEN-ONLY marker. Mark it"
-    + "\nwhen src/99 calls it; otherwise remove it, or move it into the test class"
+    + "\nfor the frozen legacy classes of the extension repository and says so with the\nFROZEN-ONLY marker. Mark it"
+    + "\nwhen those classes call it; otherwise remove it, or move it into the test class"
     + "\nthat uses it (the abap-util sync harvests this class into a catalog).",
   );
   if (findings.length === 0) process.exit(1);
@@ -320,8 +323,8 @@ for (const f of findings) {
   console.error(`    ${f.why}`);
 }
 console.error(
-  "\nA FROZEN-ONLY symbol survives only because the frozen src/99 package still"
-  + "\ncalls it, and goes when src/99 goes (AGENTS.md, \"Utilities\"). Solve the"
+  "\nA FROZEN-ONLY symbol survives only because the frozen legacy classes of the\nextension repository still"
+  + "\ncall it, and goes when they stop (AGENTS.md, \"Utilities\"). Solve the"
   + "\nproblem without it, or - if the framework genuinely needs it - drop the"
   + "\nmarker in the same change and say in the pull request why the symbol is"
   + "\npart of the utility surface after all.",

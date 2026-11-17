@@ -1580,7 +1580,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " parsed and saved twice. A leave with nowhere to go is the end of the
     " roundtrip instead; check_app_prev_stack( ) is the question an app with
     " a back button asks first. The intent stays recorded on ms_next (the
-    " shipped src/99 popups assert on it), only the hop is not taken
+    " popups of the extension repository assert on it), only the hop is not taken
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL
         AND mo_action->ms_next-o_app_leave = mo_action->mo_app->mo_app
         AND mo_action->mo_app->ms_draft-id_prev_app_stack IS INITIAL.

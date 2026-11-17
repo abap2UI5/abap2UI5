@@ -92,10 +92,12 @@ const EXEMPT = [
 // Icons that are already wrong inside an EXEMPT directory. Listed so the
 // exemption does not hide them: the gate prints them as known findings and
 // they are fixed when the frozen package is retired or unfrozen.
-const KNOWN = [
-  ["src/99/02/z2ui5_cl_pop_to_inform.clas.abap", "information", "message-information"],
-  ["src/99/02/z2ui5_cl_pop_demo_output.clas.abap", "textFormatting", "text-formatting"],
-];
+// None left: the two it held were popups of the frozen package
+// (z2ui5_cl_pop_to_inform with sap-icon://information, z2ui5_cl_pop_demo_output
+// with sap-icon://textFormatting), which left for the extension repository
+// with src/99/02 on 2026-11-17 - unchanged, so both still render no icon on
+// 1.71 there.
+const KNOWN = [];
 
 const SOURCE = /\.(abap|xml|js|html|json)$/;
 const ICON_URI = /sap-icon:\/\/([A-Za-z0-9_/-]+)/g;

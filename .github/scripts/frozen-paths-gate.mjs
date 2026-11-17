@@ -60,21 +60,57 @@ const EXEMPT = [
 // calling them, declares that repository). The production files and the
 // package descriptor - the package itself leaves; test classes and sidecars
 // are exempt anyway.
-const MOVED_OUT = new Map(
-  [
-    "z2ui5_cl_util.clas.abap",
-    "z2ui5_cl_util_db.clas.abap",
-    "z2ui5_cl_util_ext.clas.abap",
-    "z2ui5_cl_util_http.clas.abap",
-    "z2ui5_cl_util_log.clas.abap",
-    "z2ui5_cl_util_msg.clas.abap",
-    "z2ui5_cl_util_range.clas.abap",
-    "z2ui5_cl_util_xml.clas.abap",
-    "z2ui5_cx_util_error.clas.abap",
-    "z2ui5_t_91.tabl.xml",
-    "package.devc.xml",
-  ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]),
-);
+const UTILITIES = [
+  "z2ui5_cl_util.clas.abap",
+  "z2ui5_cl_util_db.clas.abap",
+  "z2ui5_cl_util_ext.clas.abap",
+  "z2ui5_cl_util_http.clas.abap",
+  "z2ui5_cl_util_log.clas.abap",
+  "z2ui5_cl_util_msg.clas.abap",
+  "z2ui5_cl_util_range.clas.abap",
+  "z2ui5_cl_util_xml.clas.abap",
+  "z2ui5_cx_util_error.clas.abap",
+  "z2ui5_t_91.tabl.xml",
+  "package.devc.xml",
+].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]);
+
+// The rest of the package but one object - the XML view builder, the
+// handler shim, z2ui5_if_types and the seventeen popups - moved to the
+// extension repository (maintainer decision 2026-11-17, docs/agents/
+// decisions.md): abap2UI5/frontend, which stopped being a delivery
+// repository when the ICF node and the BSP came here (src/03) and holds what
+// abap2UI5-ext held plus these classes, unchanged. What stays is
+// z2ui5_if_exit: z2ui5_cl_ui5_user_exit is typed on it.
+const EXTENSION = "abap2UI5/frontend (the extension repository)";
+const LEGACY = [
+  "z2ui5_cl_http_handler.clas.abap",
+  "z2ui5_cl_xml_view.clas.abap",
+  "z2ui5_cl_xml_view_cc.clas.abap",
+  "z2ui5_if_types.intf.abap",
+  "z2ui5_if_types.intf.xml",
+].map((f) => [`src/99/${f}`, EXTENSION]);
+const POPUPS = [
+  "z2ui5_cl_pop_data.clas.abap",
+  "z2ui5_cl_pop_demo_output.clas.abap",
+  "z2ui5_cl_pop_error.clas.abap",
+  "z2ui5_cl_pop_file_dl.clas.abap",
+  "z2ui5_cl_pop_file_ul.clas.abap",
+  "z2ui5_cl_pop_get_range.clas.abap",
+  "z2ui5_cl_pop_get_range_m.clas.abap",
+  "z2ui5_cl_pop_html.clas.abap",
+  "z2ui5_cl_pop_image_editor.clas.abap",
+  "z2ui5_cl_pop_input_val.clas.abap",
+  "z2ui5_cl_pop_messages.clas.abap",
+  "z2ui5_cl_pop_pdf.clas.abap",
+  "z2ui5_cl_pop_table.clas.abap",
+  "z2ui5_cl_pop_textedit.clas.abap",
+  "z2ui5_cl_pop_to_confirm.clas.abap",
+  "z2ui5_cl_pop_to_inform.clas.abap",
+  "z2ui5_cl_pop_to_select.clas.abap",
+  "package.devc.xml",
+].map((f) => [`src/99/02/${f}`, EXTENSION]);
+
+const MOVED_OUT = new Map([...UTILITIES, ...LEGACY, ...POPUPS]);
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;
