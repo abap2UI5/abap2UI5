@@ -161,7 +161,7 @@ Beyond the must-know files in `AGENTS.md`, "Key Files" - consult as needed:
 
 | File | Why |
 |---|---|
-| `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (`z2ui5_if_exit` is its superseded name) |
+| `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (its former name `z2ui5_if_exit` was deleted 2026-11-17) |
 | `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | Default exit + user-exit class support |
 | `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
 | `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |

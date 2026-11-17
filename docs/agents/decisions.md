@@ -136,7 +136,7 @@ an installation naming it stops compiling — the entry in `changelog.txt`
 and `docs/removal-plan.md` §0 says so. The deletion went through the
 popup pathspec above while it was open; it widened nothing else.
 
-**The package left the core but for one object** (maintainer decision
+**The package left the core** (maintainer decision
 2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, `z2ui5_if_types`
 and the seventeen `z2ui5_cl_pop_*` popups moved, unchanged, to the extension
 repository -
@@ -149,18 +149,10 @@ ship thirty thousand lines of frozen code stops paying for them in every
 downport, transpile and lint. Each file is named in `MOVED_OUT` of
 `.github/scripts/frozen-paths-gate.mjs`.
 
-Two things did **not** move, and both are deliberate:
-
-- **`z2ui5_if_exit` stays in `src/99`.** `z2ui5_cl_ui5_user_exit` is typed
-  on it (`gi_user_exit_dep`), and the exit fails closed: an installation
-  whose exit class implements the old name and that updates the core
-  without installing the extension would have a class that no longer
-  compiles, and with it no Content-Security-Policy configuration at all.
-  The old exit name goes by the removal plan, not with the package.
-- **The `FROZEN-ONLY` symbols of `z2ui5_cl_ui5_util_context` stay.** The
-  moved classes call them and are compiled against a release of this
-  repository. They go when the extension stops calling them - which means a
-  change over there first.
+One thing did **not** move, and it is deliberate: **the `FROZEN-ONLY`
+symbols of `z2ui5_cl_ui5_util_context` stay.** The moved classes call them
+and are compiled against a release of this repository. They go when the
+extension stops calling them - which means a change over there first.
 
 One object moved nowhere: **`z2ui5_cl_http_handler` was deleted.** It was
 an empty subclass of `z2ui5_cl_ui5_http_handler` that kept the former name
@@ -171,6 +163,18 @@ their own. The node and the handler this repository delivers do not name it
 1.148.0), so nothing shipped depends on it; an installation that still does
 changes that one name. It is a released object, so this is a break - the
 changelog says so.
+
+**`z2ui5_if_exit` was deleted as well**, the same day, and `src/99` with
+it. It was first kept - `z2ui5_cl_ui5_user_exit` was typed on it, and the
+exit fails closed - and then removed for the reason the package left: the
+core is not to carry a second way of doing one thing, and it is not to
+depend on anything outside itself. The second lookup, `gi_user_exit_dep`
+and the two delegating branches went with it. This one is not free: an
+installation whose exit class still implements the old name has a class
+that no longer compiles after the update, and with it no exit at all - the
+shipped Content-Security-Policy, theme and bootstrap instead of its own -
+until the class implements `z2ui5_if_ui5_exit`. The changelog names the
+one-line fix first.
 
 What the move costs: the test classes of the moved objects no longer run in
 `npm run unit` (the extension lints, it does not transpile).

@@ -3,7 +3,7 @@
     // (tools/build-cloud.mjs): the HTTP service, its handler on
     // if_http_service_extension and the IAM objects. Linted where it lives,
     // against the framework for the one call the handler makes; the rest of
-    // that branch is src/00 to src/02 and src/99, which abap_cloud.jsonc
+    // that branch is src/00 to src/02, which abap_cloud.jsonc
     // lints. open-abap-core carries the interface and is pinned already - the
     // released-API dependency of the other configs is its intersection with
     // 7.02, where an HTTP service does not exist.

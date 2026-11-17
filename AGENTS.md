@@ -113,11 +113,12 @@ src/
 │   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
 │             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
 ├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
-├── 03/   The service and the launchpad app — Standard ABAP only
-│   ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_lp_handler
-│   └── 02/   BSP Z2UI5 — GENERATED from app_source/webapp/, never edit (rule 2)
-└── 99/   FROZEN — one object left: z2ui5_if_exit, the superseded exit name
+└── 03/   The service and the launchpad app — Standard ABAP only
+    ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_lp_handler
+    └── 02/   BSP Z2UI5 — GENERATED from app_source/webapp/, never edit (rule 2)
 ```
+
+There is no `src/99` any more: the frozen legacy package left the core on 2026-11-17 (below).
 
 - **Layer 0** — self-contained utilities. `noIssues` in `abaplint.jsonc` suppresses lint for all of `src/00`.
 - **Layer 1** — the engine. `z2ui5_cl_ui5f_*` (**f**rontend) are the generated classes in `src/01/03`; the bare
@@ -134,25 +135,19 @@ src/
   deploy (`tools/build-cloud.mjs`, `auto-cloud.yaml`). Every name in both is the one installations have had since
   these objects shipped from abap2UI5/frontend (until 2026-11): **do not rename an object of `src/03` or
   `cloud/src/03`.** The handler has lint configs of its own (`npm run check:service`).
-- **`src/99` — frozen, and nearly empty.** It holds `z2ui5_if_exit`, the superseded exit name — still looked up, see
-  "Key Design Patterns". Everything else it held left the core: the legacy XML view builder (`z2ui5_cl_xml_view`,
-  `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
-  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository**
-  since 2026-11-17 — [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery
-  repository and also holds what [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) held: the retired
-  `z2ui5_cl_util*` classes, `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`). A system whose code still
-  uses one of them installs that repository next to abap2UI5. **`z2ui5_cl_http_handler` was deleted** in the same
-  step and ships nowhere: what named it names `z2ui5_cl_ui5_http_handler`.
+- **`src/99`, the frozen legacy package, is gone** (2026-11-17). The legacy XML view builder
+  (`z2ui5_cl_xml_view`, `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
+  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository** —
+  [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery repository and also
+  holds what [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) held: the retired `z2ui5_cl_util*` classes,
+  `z2ui5_cx_util_error` and `z2ui5_t_91`. A system whose code still uses one of them installs that repository
+  next to abap2UI5. **Two names were deleted and ship nowhere:** `z2ui5_cl_http_handler` (what named it names
+  `z2ui5_cl_ui5_http_handler`) and `z2ui5_if_exit` (an exit class implements `z2ui5_if_ui5_exit`).
 
-**For AI assistants: never change the production code under `src/99/` or add
-consumers on it, and never bring one of the moved classes back.** The
-`check_gates` workflow enforces the freeze. Moving an object **out** of the
-package is allowed; the gate refuses a deletion only when the object name
-exists nowhere else under `src/` afterwards **and** it shipped in the latest
-release tag — or when it is listed, file by file, in the gate's `MOVED_OUT`
-with the repository it ships from now (`src/99/01`, 2026-11-02; the rest but
-`z2ui5_if_exit`, 2026-11-17). Any other change under `src/99` needs a
-maintainer decision recorded in `docs/agents/decisions.md` first.
+**For AI assistants: never bring one of these objects back, and never add a file under `src/99/`.** The core
+does not depend on the extension — the dependency runs the other way, and `check:frozen` in the `check_gates`
+workflow refuses a new `src/99` and records in `MOVED_OUT` what went where. A decision to change that is the
+maintainer's, recorded in `docs/agents/decisions.md` first.
 
 ### Utilities — the context class is the only door
 
@@ -216,9 +211,8 @@ seams; see `docs/agents/architecture-seams.md`.
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops
 - **Multi-View:** main view, nested views (nest/nest2), popups and popovers at once
 - **Exit Pattern:** `z2ui5_if_ui5_exit`, implemented by `z2ui5_cl_ui5_user_exit` (themes, CSP headers, …).
-  The superseded `z2ui5_if_exit` (`src/99`) is still looked up and honoured during the rename — how, and what goes
-  when it goes, is in `docs/agents/architecture-seams.md`. It is the one object left in `src/99`, and
-  `abaplint.jsonc` lists it in the strict ruleset.
+  It is the one exit interface: its former name `z2ui5_if_exit` and the second lookup that honoured it were
+  deleted on 2026-11-17 (`docs/agents/architecture-seams.md`).
 - **Monitor seam:** `z2ui5_if_ui5_monitor`, called once per POST roundtrip. **It fails open, the exit fails
   closed** — a broken monitor must never break an app.
 - **`@abap2ui5/node-runtime`:** the transpiled tree as an npm package; its manifest is
@@ -232,7 +226,7 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
 
 - **The static gates are one job** (`check_gates.yaml`), one step per rule, each `if: ${{ !cancelled() }}`, so a
   pull request sees every failure at once. `npm run gates` is the local half.
-- **`src/99` is frozen and `src/02` is a contract**, both machine-checked (rules 1, 5).
+- **`src/02` is a contract and `src/99` stays gone**, both machine-checked (rules 1, 5).
 - **`src/01/03/` is generated from `bundle/webapp/`** - plus `app_source/webapp/`, the minimal app with the embed control
   that the GET page itself carries - **and `src/03/02/` from `app_source/webapp/`**, the same app as a BSP; both are
   written by `npm run app2abap` and drift-gated (rule 2).
@@ -360,7 +354,7 @@ keep the numbers. The frontend rules (2, 7, 8, 10, 12–19, 21) are written out 
 full in **`bundle/AGENTS.md`**, under the same numbers.
 
 1. **Do not modify `src/00/01/` (AJSON) or `src/00/02/` (S-RTTI)** — mirrored and synced by workflows.
-   **Do not change the production code of `src/99/` or add consumers on it** (see "Layered Design").
+   **Do not bring back an object of the former `src/99/`** (see "Layered Design").
    All builder work happens in `z2ui5_cl_ui5_view_builder`.
 2. **NEVER edit any file under `src/01/03/` or `src/03/02/` by hand** — they are generated from `bundle/webapp/`
    and `app_source/webapp/`. Change the source there and run **`npm run app2abap`** (or comment `/fix app2abap`),

@@ -9,9 +9,9 @@
 "! (the CSRF gate, the monitor switch, the error response), so both must be
 "! cheap and idempotent - read configuration, do not write state.
 "!
-"! Supersedes z2ui5_if_exit, which carries the same two methods under the old
-"! name and is still found and still called. Nothing has to change today; new
-"! code implements this interface.
+"! The one exit interface. Its former name z2ui5_if_exit, with the same two
+"! methods and types, was deleted on 2026-11-17: an exit class written against
+"! it implements this interface instead.
 INTERFACE z2ui5_if_ui5_exit
   PUBLIC.
 

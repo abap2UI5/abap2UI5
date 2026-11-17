@@ -13,7 +13,7 @@
 // There the same service is an HTTP service with a handler on
 // if_http_service_extension and the IAM objects around it (cloud/src/03), and
 // the app is deployed instead of pulled, because abapGit brings no UI5 app
-// into such a system. Everything else - src/00 to src/02 and src/99 - is the
+// into such a system. Everything else - src/00 to src/02 - is the
 // same code on both, which `npm run check:cloud` holds.
 //
 // Until 2026-11 this was the branch cloud_new of abap2UI5/frontend, a

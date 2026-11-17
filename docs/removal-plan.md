@@ -259,21 +259,18 @@ Every entry here is a **rule-5 break**: it needs `node .github/scripts/api-snaps
 a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
-- [ ] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`, kept
-      so that no existing exit breaks on the rename. It ships from `src/99` and
-      `z2ui5_cl_ui5_user_exit` still looks it up, so a class implementing it is
-      found and called exactly as before; its three types are references to the
-      new interface's rather than copies, so there is one definition and it
-      cannot drift. Before the old name can go: the new one has to be in a
-      release, the documentation has to teach it — the examples on the Setup,
-      Security, Style/CSS, Bootstrap-Attributes and Logon-Language pages still
-      write `z2ui5_if_exit`, and they are compiled against the RELEASE, so they
-      can only follow after one — and the deprecation has to have stood long
-      enough to be seen. Deleting it is then four things: the second lookup in
-      `get_user_exit_class( )`, `gi_user_exit_dep` and the two delegating
-      methods in `z2ui5_cl_ui5_user_exit`, and the `/src/99/z2ui5_if_exit.intf.*`
-      line that puts this one frozen object into `abaplint.jsonc`'s strict
-      ruleset
+- [x] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`.
+      **Deleted 2026-11-17** (maintainer decision), with the second lookup in
+      `exit_class_lookup( )`, `gi_user_exit_dep` and the two delegating
+      branches in `z2ui5_cl_ui5_user_exit`, and the line that put it into
+      `abaplint.jsonc`'s strict ruleset. It was the last object of `src/99`,
+      so the package went with it. What breaks: an exit class that still
+      writes `INTERFACES z2ui5_if_exit` does not compile after the update -
+      it implements `z2ui5_if_ui5_exit` instead, same methods, same types -
+      and until it does, the installation has NO exit: no custom
+      Content-Security-Policy, theme or bootstrap. Still owed: the examples
+      on the Setup, Security, Style/CSS, Bootstrap-Attributes and
+      Logon-Language pages of `abap2UI5/docs` write the old name.
 - [ ] **`_bind_edit( )`** of `z2ui5_if_client` — alias of `_bind`, identical
       behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
       - Former blocker resolved: per-direction mapping was dropped —
@@ -331,7 +328,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 ## 2. `src/99/` — the frozen package (~30,800 ABAP lines)
 
-> **2026-11-17: the package left the core but for `z2ui5_if_exit` (§1).**
+> **2026-11-17: the package left the core.**
 > Everything below with a box is not deleted but **moved**, unchanged, to the
 > extension repository ([abap2UI5/frontend](https://github.com/abap2UI5/frontend),
 > which holds what abap2UI5-ext held as well) - the decision and what did not
@@ -446,15 +443,15 @@ repository further:**
       while the file carried 25, because a marker is added by whoever needs one
       and nothing tells this page. `grep -c FROZEN-ONLY` is the answer, and it
       is the same command that does the work.)
-- [ ] `npm run check:frozen` + its step in the `check_gates` workflow — still
-      guarding the one object left, and `MOVED_OUT` in it is the record of
-      what went where. Goes with `z2ui5_if_exit` (§1).
+- [ ] `npm run check:frozen` + its step in the `check_gates` workflow — kept:
+      it refuses a new `src/99`, and `MOVED_OUT` in it is the record of what
+      went where. It can go whenever that record is not wanted any more.
 - [x] the `src/99` test skips in `node/setup/abap_transpile.json` — none
       left, the test classes moved with their objects
 - [x] the `/src/99/` ignore in `abap2ui5lint.jsonc` and the two known icon
       findings in `check:icons` — gone with the popups
-- [ ] the `/src/99/z2ui5_if_exit.intf.*` line in `abaplint.jsonc` — with the
-      interface
+- [x] the `/src/99/z2ui5_if_exit.intf.*` line in `abaplint.jsonc` — gone
+      with the interface
 
 ---
 

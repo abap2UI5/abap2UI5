@@ -1,15 +1,5 @@
 {
   "global": {
-    // src/99 holds ONE object since 2026-11-17, and it is listed below on
-    // purpose: z2ui5_if_exit, the superseded name of z2ui5_if_ui5_exit. It
-    // is retired but not yet dead - z2ui5_cl_ui5_user_exit looks it up and
-    // calls it, so that no exit written against the old name breaks on the
-    // rename, and a src/01 class naming a type this parser cannot see is 37
-    // unresolvable-type errors. The line goes when the interface does.
-    // Everything else the frozen package held - the XML view builder, the
-    // popups, z2ui5_if_types - ships from the extension repository now and
-    // is linted there.
-    //
     // src/03 - the ICF node, its handler and the BSP - is NOT listed: the
     // handler implements if_http_extension, which the dependency below (the
     // released APIs) does not hold. .github/abaplint/abap_service.jsonc lints
@@ -18,7 +8,6 @@
       "/src/00/**/*.*",
       "/src/01/**/*.*",
       "/src/02/**/*.*",
-      "/src/99/z2ui5_if_exit.intf.*",
       "/src/*.*"
     ],
     // Only the two mirrors are exempt: src/00/01 (AJSON) and src/00/02

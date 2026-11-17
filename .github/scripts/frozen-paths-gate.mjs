@@ -79,15 +79,25 @@ const UTILITIES = [
 // extension repository (maintainer decision 2026-11-17, docs/agents/
 // decisions.md): abap2UI5/frontend, which stopped being a delivery
 // repository when the ICF node and the BSP came here (src/03) and holds what
-// abap2UI5-ext held plus these classes, unchanged. What stays is
-// z2ui5_if_exit: z2ui5_cl_ui5_user_exit is typed on it.
+// abap2UI5-ext held plus these classes, unchanged.
 const EXTENSION = "abap2UI5/frontend (the extension repository)";
 // z2ui5_cl_http_handler is the one object that moved nowhere: the empty
 // subclass that kept the former handler name alive was deleted in the same
 // decision. It is listed because it is released and gone - an ICF node or a
 // handler class that named it names z2ui5_cl_ui5_http_handler now.
+//
+// z2ui5_if_exit followed the same day, and the package with it: the
+// superseded exit name, which z2ui5_cl_ui5_user_exit looked up next to
+// z2ui5_if_ui5_exit, is deleted with that second lookup. An exit class
+// written against it implements z2ui5_if_ui5_exit - same methods, same
+// types. src/99 does not exist any more; this gate keeps it that way (a file
+// added there is "changed in place") and stays as the record of what went
+// where.
 const DELETED = [
   ["src/99/z2ui5_cl_http_handler.clas.abap", "nowhere - deleted, z2ui5_cl_ui5_http_handler is the name"],
+  ["src/99/z2ui5_if_exit.intf.abap", "nowhere - deleted, z2ui5_if_ui5_exit is the name"],
+  ["src/99/z2ui5_if_exit.intf.xml", "nowhere - deleted, z2ui5_if_ui5_exit is the name"],
+  ["src/99/package.devc.xml", "nowhere - the package is empty and gone"],
 ];
 const LEGACY = [
   "z2ui5_cl_xml_view.clas.abap",
