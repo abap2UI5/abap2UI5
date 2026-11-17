@@ -4,9 +4,9 @@ title: 'A sy-subrc or sy-tabix that is stale where it is read'
 summary: 'a sy-subrc test after a statement that does not set sy-subrc, and an INDEX sy-tabix in a LOOP after another statement overwrote sy-tabix, both read a system field that no longer means what the author assumes - one data-flow walk over the statements'
 priority: medium
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/3260
+filed: https://github.com/abaplint/abaplint/pull/4581
 first_seen: 2026-10-11
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit 11a7e58 introduced `read_progdir( )` followed by `IF sy-subrc = 0`, e2c625f replaced it two PRs later'
@@ -15,6 +15,7 @@ evidence:
   - 'sbcgua/ajson fedc4e3: sy-tabix in a LOOP over a hashed table made every array index 0 (ITAB_DUPLICATE_KEY)'
   - 'abaplint/abaplint#3260 (sy-tabix in DO/WHILE) asks for part of it'
   - 'abaplint/abaplint#4418 (delete_index_in_loop, merged) covers DELETE only'
+  - 'filed 2026-11-17 as abaplint/abaplint#4581, the rule `stale_subrc`: a sy-subrc check right after a method call without EXCEPTIONS or an assignment from a call. One real finding in abapGit (zcl_abapgit_sap_package, a check after read_parent( ) that is always true). The check after a plain assignment or CLEAR was dropped (a false positive in abapGit zcl_abapgit_object_ttyp), and the sy-tabix half is a follow-up'
 ---
 
 # A sy-subrc or sy-tabix that is stale where it is read

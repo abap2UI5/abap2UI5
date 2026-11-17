@@ -3,13 +3,15 @@ target: abaplint
 title: 'Character literals whose blanks are dropped'
 summary: 'trailing blanks of a ''…'' literal are ignored - so ''Hello '' loses its blank in CONCATENATE/&&, and '' '' as REPLACE/FIND ALL OCCURRENCES pattern is empty and raises CX_SY_REPLACE_INFINITE_LOOP'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4582
 first_seen: 2026-10-11
-checked_upstream: 2026-11-14
+checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
 evidence:
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'ABAP keyword documentation, REPLACE pattern: an empty pattern with ALL OCCURRENCES raises CX_SY_REPLACE_INFINITE_LOOP'
+  - 'filed 2026-11-17 as abaplint/abaplint#4582, the rule `text_field_literal_blanks` (options searchPattern and concatenation, quick fix to a backquote literal). One finding in abap2UI5 src: the AJSON mirror''s test class, line 648, harmless there'
 ---
 
 # Character literals whose blanks are dropped

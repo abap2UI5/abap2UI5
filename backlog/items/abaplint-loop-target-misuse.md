@@ -3,15 +3,17 @@ target: abaplint
 title: 'LOOP and READ targets used wrongly: after the loop, reused by an inner loop, INTO <fs>, not typed as the line'
 summary: 'four checks on the work area or field symbol of a LOOP/READ - read after ENDLOOP, reused by a nested LOOP/READ, an INTO <fs> that overwrites the row (ASSIGNING was meant), and a target not typed as the line type'
 priority: medium
-state: open
+state: filed
+filed: https://github.com/abaplint/abaplint/pull/4585
 first_seen: 2026-10-11
-checked_upstream: 2026-11-14
+checked_upstream: 2026-11-17
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit d68e4e6 (#2157, dump)'
   - '15 sites in current trees, one a real risk: abap2xlsx src/not_cloud/zcl_excel_converter.clas.abap:1470 reads <fs_sfcat>-totals_function after its loop'
   - 'the 2026-10-11 harvest (other linters, 18 ABAP repositories'' fix history, the abaplint tracker): checked against abaplint 2.120.74 - most examples probed with every rule on, the rest against the rule sources; no rule covers the shape'
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
+  - 'filed 2026-11-17 as abaplint/abaplint#4585, the rule `loop_target_misuse` with checks 2 (an inner LOOP reusing the outer target, used after the inner ENDLOOP) and 3 (INTO <fs> where ASSIGNING was meant). No finding in abap2UI5, open-abap-core, abapGit or abap2xlsx. Check 1 (read after ENDLOOP or after a failed READ) is the one the real fixes need - abapGit d68e4e6 is that shape, not a nested reuse, and so is abapGit f603147 - and stays open, with check 4'
 ---
 
 # LOOP and READ targets used wrongly: after the loop, reused by an inner loop, INTO <fs>, not typed as the line
