@@ -60,6 +60,12 @@ jobs:
     - name: Lint the framework for ABAP Cloud and the cloud service package
       run: npm run check:cloud && npm run check:service
 
+    # and the tree itself, with the abaplint.jsonc it carries - the config
+    # somebody who clones the branch lints with
+    - name: Lint the built tree with its own config
+      working-directory: tools/out/cloud
+      run: npx abaplint
+
     # Plumbing instead of a checkout: the tree is written from tools/out/cloud
     # through an index of its own, so the working tree and its index are never
     # touched and nothing that is not in the built tree can end up in the

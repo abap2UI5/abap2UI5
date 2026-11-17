@@ -188,7 +188,7 @@ in untouched code as a possible upstream move only in that fallback case.
 | `npm run auto_app2abap` | Generate ABAP string constants from `bundle/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
 | `npm run auto_abaplint` | Run the auto-fix config directly |
 | `npm run rename` | Test namespace-rename transformation via abaplint, then scan the renamed output for a literal still naming an object by its original name (`rename-literal-gate.mjs --renamed`) |
-| `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch. Never run this to validate work (AGENTS.md rule 9) |
+| `npm run auto_downport` | **CI only** — destructive variant that rewrites `src/` in place to produce the `702` branch, and leaves the BSP `src/03/02` out of it (`downport-fix.mjs drop-bsp`): 7.02 to 7.4x get the ICF node and its handler only. Never run this to validate work (AGENTS.md rule 9) |
 | `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` in `node/downport/` (compatibility step for 7.02 downport; `node/setup/downport-fix.mjs`) |
 | `npm run strip_trailing_ws` | Strip trailing whitespace from all `node/downport/**/*.abap` files (runs as part of `downport`; `node/setup/downport-fix.mjs`) |
 | `npm run downport_config` | Generate the gitignored `.github/abaplint/downport_run.jsonc` from `abap_702.jsonc` (same rules, retargeted at `node/downport/`) |

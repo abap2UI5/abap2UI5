@@ -6,7 +6,7 @@
 //   src/     src/ of main without src/03, and cloud/src/03 in its place
 //   app/     app_source/ as a Fiori project to deploy, its backend URL
 //            turned to the HTTP service
-//   .abapgit.xml, README.md, LICENSE
+//   .abapgit.xml, abaplint.jsonc, README.md, LICENSE
 //
 // main is Standard ABAP in exactly one package: src/03 holds an ICF node, its
 // handler on if_http_extension and a BSP, none of which exists on ABAP Cloud.
@@ -116,6 +116,48 @@ if (backend?.uri !== ONPREM_URI) {
 }
 backend.uri = CLOUD_URI;
 writeFileSync(manifestFile, JSON.stringify(manifest, null, 2) + "\n");
+
+// ---------------------------------------------------------------- abaplint.jsonc
+
+// The branch's own lint configuration, for whoever works on the branch and
+// for auto-cloud, which lints the tree with it before publishing: all of
+// src/ in the Cloud syntax, against the released APIs - and the three
+// interfaces of the HTTP service handler (if_http_service_extension and the
+// request and response it takes), which that dependency, the intersection
+// with 7.02, does not have. open-abap-core carries them; only those three
+// files are read from it, so nothing else of a second API definition
+// resolves.
+const ABAPLINT = {
+  global: { files: "/src/**/*.*" },
+  dependencies: [
+    {
+      url: "https://github.com/abapedia/steampunk-2305-api-intersect-702",
+      folder: "/deps",
+      files: "/src/**/*.*",
+    },
+    {
+      url: "https://github.com/open-abap/open-abap-core",
+      folder: "/deps-http",
+      files: "/src/http/if_{http_service_extension,web_http_request,web_http_response}.intf.*",
+    },
+  ],
+  syntax: { version: "Cloud", errorNamespace: "." },
+  rules: {
+    begin_end_names: true,
+    check_ddic: true,
+    check_include: true,
+    check_syntax: true,
+    global_class: true,
+    implement_methods: true,
+    method_implemented_twice: true,
+    parser_error: true,
+    superclass_final: true,
+    unknown_types: true,
+    xml_bom: true,
+    xml_consistency: true,
+  },
+};
+writeFileSync(join(out, "abaplint.jsonc"), JSON.stringify(ABAPLINT, null, 2) + "\n");
 
 // ---------------------------------------------------------------- the rest
 

@@ -230,7 +230,7 @@ disappears without a trace. A fix belongs on `main`.
 
 | Branch | For | Built by | What differs from `main` |
 |---|---|---|---|
-| `702` | NetWeaver 7.02 to 7.4x | `auto_downport.yaml` | `src/` downported by abaplint, in place |
+| `702` | NetWeaver 7.02 to 7.4x | `auto_downport.yaml` | `src/` downported by abaplint, in place, without the BSP `src/03/02` - the ICF node and its handler only |
 | `cloud` | BTP ABAP environment, S/4HANA Public Cloud | `auto-cloud.yaml` | `cloud/src/03` in place of `src/03`, `app_source/` as the Fiori project `app/`, the ABAP language version in `.abapgit.xml`; nothing else of the repository |
 
 Until 2026-11 the ICF node, the BSP and the cloud service were not in this

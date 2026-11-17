@@ -231,7 +231,8 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
 - **`src/01/03/` is generated from `bundle/webapp/`** - plus `app_source/webapp/`, the minimal app with the embed control
   that the GET page itself carries - **and `src/03/02/` from `app_source/webapp/`**, the same app as a BSP; both are
   written by `npm run app2abap` and drift-gated (rule 2).
-- **The branches `702` and `cloud` are generated from `main`** (`auto_downport.yaml`, `auto-cloud.yaml`) — nobody
+- **The branches `702` and `cloud` are generated from `main`** (`auto_downport.yaml`, `auto-cloud.yaml`; `702` without the
+  BSP, `cloud` with `cloud/src/03` in place of `src/03`) — nobody
   commits to them. The tree of `cloud` is not committed here: `delivery-check` builds it into the git-ignored
   `tools/out/`.
 - **The gates also run on `push: main`** — a merge is a state no pull request tested.
