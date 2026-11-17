@@ -43,7 +43,7 @@
       }
     },
     "resourceRoots": {
-      "z2ui5.embed": "./embed/",
+      "z2ui5.embed": "./thirdparty/z2ui5/embed/",
       "abap2ui5.page": "./"
     },
     "contentDensities": {

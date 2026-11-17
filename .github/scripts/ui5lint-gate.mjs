@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 // Runs the UI5 linter and fails on ANY error - there is no error budget.
 //
-// Three UI5 projects are linted: bundle/ (the frontend, the source of the
-// bundle the backend serves) and the two page apps around the embed control,
-// app_source/ and app_npm/. The linter is the one installed in bundle/ - the
-// page apps carry no lint tooling of their own - run with each project as
-// its working directory.
+// Two UI5 projects are linted: bundle/ (the frontend, the source of the
+// bundle the backend serves) and the page app around the embed control,
+// app_source/ (the control itself is abap2UI5/embed-control's, linted
+// there). The linter is the one installed in bundle/ - the page app carries
+// no lint tooling of its own - run with each project as its working
+// directory.
 //
 // Design-accepted findings are switched off where they occur: in JS files
 // inline via ui5lint-disable comments with a stated reason, whole files
@@ -19,7 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-const PROJECTS = ["bundle", "app_source", "app_npm"];
+const PROJECTS = ["bundle", "app_source"];
 const ui5lint = path.join(
   root,
   "bundle",

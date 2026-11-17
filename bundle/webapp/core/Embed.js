@@ -5,7 +5,7 @@ sap.ui.define(
 
     // How the frontend is put into a host - a freestyle app, a custom page or
     // a custom section of Fiori elements, the backend's own page: all of them
-    // hold one z2ui5.embed.Container (app_source/webapp/embed), and all of it
+    // hold one z2ui5.embed.Container (abap2UI5/embed-control), and all of it
     // is decided here, in the bundle, so that the control stays a shell that
     // loads the bundle and renders what create( ) hands back. The control
     // reaches this module through the z2ui5/embed module of the bundle

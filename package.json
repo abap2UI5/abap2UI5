@@ -97,7 +97,6 @@
     "bsp": "node tools/bsp/cli.mjs",
     "test:bsp": "node --test tools/bsp/test/bsp.test.mjs",
     "pack:bsp": "node tools/bsp/pack.mjs",
-    "pack:embed-control": "node app_source/embed-control/pack.mjs",
     "test": "npm run unit && npm run check:js",
     "check:guide": "node .github/scripts/check-guide-api.mjs"
   },

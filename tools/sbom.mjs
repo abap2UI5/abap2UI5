@@ -18,8 +18,10 @@
 //     browser from the SAP system or a UI5 CDN, never bundled
 //
 //   - the page app of app_source/webapp: the minimal UI5 app the page a GET
-//     answers with consists of, and the control it runs the frontend in
-//     (z2ui5.embed.Container, whose source lives there)
+//     answers with consists of. The control it runs the frontend in
+//     (z2ui5.embed.Container) is copied in by the generator from
+//     abap2UI5/embed-control, the same project's own repository and MIT
+//     licence, at the commit node/setup/fetch-deps.mjs pins
 //
 // and nothing else, because nothing else is shipped: no third-party library is
 // copied into src/ or bundle/webapp/. `.github/scripts/sbom-gate.mjs` holds the

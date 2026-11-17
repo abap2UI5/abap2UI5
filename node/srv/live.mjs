@@ -13,8 +13,9 @@
 // page. The same for the developer tools (?z2ui5-bundle=devtools).
 //
 // Everything else - the page, the roundtrips - is the built backend, as in
-// `npm run express`. So the page's own app and the control
-// (app_source/webapp) are NOT live: they sit in the page's inline script,
+// `npm run express`. So the page's own app (app_source/webapp) and the
+// control (abap2UI5/embed-control, pinned) are NOT live: they sit in the
+// page's inline script,
 // whose text the page's Content-Security-Policy names by its hash. And a
 // change that is live here still needs `npm run app2abap` before it is
 // committed.

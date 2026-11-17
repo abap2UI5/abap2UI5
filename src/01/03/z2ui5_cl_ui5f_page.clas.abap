@@ -329,9 +329,9 @@ CLASS z2ui5_cl_ui5f_page IMPLEMENTATION.
              `taSources": {      "http": {        "uri": "/sap/bc/z2ui5",        "type": "JSON"      }    },    "crossNavigation": {      "inbounds": {        "z2ui5-display": {          "semanticObject": "z2ui5", ` &&
              `         "action": "display",          "title": "",          "signature": {            "parameters": {},            "additionalParameters": "allowed"          }        }      }    }  },  "sap.ui": {  ` &&
              `  "technology": "UI5",    "deviceTypes": {      "desktop": true,      "tablet": true,      "phone": true    }  },  "sap.ui5": {    "dependencies": {      "minUI5Version": "1.71.0",      "libs": {     ` &&
-             `   "sap.ui.core": {}      }    },    "resourceRoots": {      "z2ui5.embed": "./embed/",      "abap2ui5.page": "./"    },    "contentDensities": {      "compact": true,      "cozy": true    },    "serv` &&
-             `ices": {      "ShellUIService": {        "factoryName": "sap.ushell.ui5service.ShellUIService",        "lazy": true      }    },    "rootView": {      "viewName": "abap2ui5.page.view.Main",      "type` &&
-             `": "XML",      "async": true,      "id": "main"    }  },  "sap.cloud": {    "public": true,    "service": "z2ui5"  }}',` && |\n| &&
+             `   "sap.ui.core": {}      }    },    "resourceRoots": {      "z2ui5.embed": "./thirdparty/z2ui5/embed/",      "abap2ui5.page": "./"    },    "contentDensities": {      "compact": true,      "cozy": tr` &&
+             `ue    },    "services": {      "ShellUIService": {        "factoryName": "sap.ushell.ui5service.ShellUIService",        "lazy": true      }    },    "rootView": {      "viewName": "abap2ui5.page.view.` &&
+             `Main",      "type": "XML",      "async": true,      "id": "main"    }  },  "sap.cloud": {    "public": true,    "service": "z2ui5"  }}',` && |\n| &&
              `    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
              `     ComponentSupport.run();` && |\n| &&

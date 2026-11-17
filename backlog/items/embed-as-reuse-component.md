@@ -345,3 +345,16 @@ only. Built from this app since 2026-11-17: the BSP `Z2UI5` (`src/03/02`,
 with the ICF node and its handler in `src/03/01`) and the app of the
 generated branch `cloud` - the delivery into abap2UI5/frontend ended, and
 `frontend/embed` with the control 0.3.0 went with it.
+
+## The control lives in abap2UI5/embed-control again (2026-11-17)
+
+On the maintainer's word the control, its tests and its npm package went
+back to [abap2UI5/embed-control](https://github.com/abap2UI5/embed-control),
+which publishes 0.4.0 - the shell - from there, with its examples. This
+repository keeps the app around it (`app_source`, the control as an npm
+dependency) and copies the control from a pinned commit of that repository
+into what it serves: the GET page (`src/01/03`) and the BSP `Z2UI5`
+(`src/03/02`) - `node/setup/fetch-deps.mjs`, `tools/deps/`. `app_npm` went:
+with the source gone, `app_source` is that app. The contract between the
+two repositories is the bundle's `z2ui5/embed` module and what its
+`create( )` takes.

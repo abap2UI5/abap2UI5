@@ -10,7 +10,7 @@
 // preload and run when somebody requires them; this one is DEFINED the
 // moment the script has run, by name and without dependencies, because that
 // is what the embedding control looks for (z2ui5.embed.Container,
-// app_source/webapp/embed): it looks the module up and never asks the loader
+// abap2UI5/embed-control): it looks the module up and never asks the loader
 // for it - a loader asked for a module nobody defined fetches z2ui5/embed.js,
 // which no host has, and remembers the module as failed for the page's life.
 // A logon page, or an abap2UI5 without the bundle, defines no such module.

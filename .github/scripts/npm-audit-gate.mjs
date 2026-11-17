@@ -23,10 +23,9 @@
  *     arrived, so the entry goes - the list only shrinks on its own accord,
  *     an accepted advisory cannot outlive the reason it was accepted for
  *
- * Every lockfile is read: the root one, bundle/package-lock.json, which is
- * where @ui5/cli, the UI5 linter and Prettier come from, and
- * app_source/package-lock.json, the project the branch `cloud` ships as its
- * app/ (@ui5/cli again). `npm audit` needs no node_modules - it
+ * Every lockfile is read: the root one and bundle/package-lock.json, which
+ * is where @ui5/cli, the UI5 linter and Prettier come from. `npm audit`
+ * needs no node_modules - it
  * sends the lockfile to the registry's bulk advisory endpoint - which is
  * why the workflow around this runs no install.
  *
@@ -44,11 +43,11 @@ import { join } from "node:path";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
-/* the dependency trees; "" is the repository root, app_source the minimal
- * page app, which the branch `cloud` ships as its Fiori project.
- * app_npm has no lockfile yet: it pins @abap2ui5/embed-control 0.4.0, which
- * is built here and not published - it joins this list with its lockfile */
-const TREES = ["", "bundle", "app_source"];
+/* the dependency trees; "" is the repository root. app_source - the page
+ * app, which the branch `cloud` ships as its Fiori project - has no lockfile
+ * while the control it names (@abap2ui5/embed-control 0.4.0) is not on npm;
+ * it joins this list with its lockfile */
+const TREES = ["", "bundle"];
 
 /* what the gate fails on - moderate and below stay out for the reason
  * dependency-review.yaml gives for its own threshold */
@@ -61,13 +60,13 @@ const LEVELS = new Set(["high", "critical"]);
  * reason has to name why the fix is not simply taken. */
 const ACCEPTED = new Map([
   ["GHSA-w4pp-8pjf-rmxw", {
-    trees: ["", "bundle", "app_source"],
+    trees: ["", "bundle"],
     reason: "pacote: DoS via addGitSha. Reached only through @ui5/cli -> @ui5/project, "
       + "build-time and fed by the lockfile, never by user input. npm's only fix is "
       + "@ui5/cli 2.x, a major downgrade; waits for @ui5/project to move its pacote range",
   }],
   ["GHSA-52v5-jr5w-gjxr", {
-    trees: ["", "bundle", "app_source"],
+    trees: ["", "bundle"],
     reason: "sigstore: certificateOIDs constraints not enforced. Same chain (@ui5/project -> "
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",

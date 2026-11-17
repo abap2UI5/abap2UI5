@@ -73,7 +73,7 @@ if (full) {
     { cmd: "npm run check:ui5", argv: [NPM, "run", "check:ui5"] },
     { cmd: "npm run check:types", argv: [NPM, "run", "check:types"] },
     { cmd: "npm --prefix bundle run lint", argv: [NPM, "--prefix", "bundle", "run", "lint"] },
-    // the page apps (app_source, app_npm) have no drift gate that would
+    // the page app (app_source) has no drift gate that would
     // reformat them, so their format is asked for here
     { cmd: "npm --prefix bundle run format:check", argv: [NPM, "--prefix", "bundle", "run", "format:check"] },
   );

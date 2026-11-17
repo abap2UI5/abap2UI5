@@ -44,8 +44,6 @@ export default [
       // the two page apps' own installs and builds
       "app_source/node_modules/**",
       "app_source/dist/**",
-      "app_npm/node_modules/**",
-      "app_npm/dist/**",
     ],
   },
   {
@@ -83,11 +81,11 @@ export default [
   },
   {
     // The two page apps - the minimal UI5 app around the embed control, with
-    // the control's source (app_source) and with the control from npm
-    // (app_npm). Browser code like bundle/webapp, with the same rules as
+    // the control from npm (app_source; the control's own source is
+    // abap2UI5/embed-control). Browser code like bundle/webapp, with the same rules as
     // bundle/eslint.config.mjs; they have no ESLint install of their own, so
     // they are linted from here.
-    files: ["app_source/webapp/**/*.js", "app_npm/webapp/**/*.js"],
+    files: ["app_source/webapp/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",

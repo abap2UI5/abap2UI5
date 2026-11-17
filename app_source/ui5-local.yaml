@@ -21,6 +21,12 @@ framework:
     - name: sap.ui.table
     - name: sap.ui.unified
     - name: themelib_sap_horizon
+# The control comes from npm; `ui5 build` copies it into
+# dist/thirdparty/z2ui5/embed/ because it is named here.
+builder:
+  settings:
+    includeDependency:
+      - "@abap2ui5/embed-control"
 server:
   customMiddleware:
     # /sap/** goes to abap2UI5 running locally in Node - no SAP system needed

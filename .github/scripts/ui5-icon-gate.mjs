@@ -80,7 +80,7 @@ const ICONS = new Set(
 
 // Where icons can be written: the ABAP sources, and the frontend and the
 // page app that src/01/03 is generated from.
-const SCAN = ["src", "bundle/webapp", "app_source/webapp", "app_npm/webapp"];
+const SCAN = ["src", "bundle/webapp", "app_source/webapp"];
 
 // Directories this gate does not judge, with the reason shown in the report so
 // the exemption is never a silent hole.

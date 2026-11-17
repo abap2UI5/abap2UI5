@@ -97,7 +97,7 @@ const CLOUD_URI = "/sap/bc/http/sap/z2ui5";
 // What app_source is developed and checked with here, not what somebody
 // deploying the app needs - and .env, git-ignored, which holds a developer's
 // logon to a system.
-const APP_DEV_ONLY = new Set(["embed-control", "node_modules", "dist", "README.md", "ui5lint.config.mjs", ".prettierrc", ".env"]);
+const APP_DEV_ONLY = new Set(["node_modules", "dist", "README.md", "ui5lint.config.mjs", ".prettierrc", ".env"]);
 const app = join(core, "app_source");
 cpSync(app, join(out, "app"), {
   recursive: true,

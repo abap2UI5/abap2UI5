@@ -12,8 +12,9 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 
 // What the GET page itself carries, and nothing of it is the frontend: the
 // page is the minimal UI5 app of app_source/webapp - a component with one XML
-// view with one z2ui5.embed.Container in it, and the control
-// itself, whose source lives there (embed/). The control loads the
+// view with one z2ui5.embed.Container in it - and the control itself, from
+// abap2UI5/embed-control at the commit node/setup/fetch-deps.mjs pins
+// (checked out into tools/deps/, see CONTROL). The control loads the
 // frontend through ?z2ui5-bundle. The page is a variant of that app, not a
 // second one: its inline script holds the app's files as a preload, because
 // a node serves no files. index.html stays out - the handler writes the
@@ -26,6 +27,11 @@ const repoDir = path.join(__dirname, "../..");
 const BUNDLE_TAIL = "bundle/tail/embed.js";
 const NODE_PATH_TOKEN = "@z2ui5-node-path@";
 const pageDir = "app_source/webapp";
+// The control: its source is abap2UI5/embed-control, pinned. Where the app
+// registers it (sap.ui5/resourceRoots of its manifest) - the BSP carries it
+// there, the page's preload under its module name.
+const CONTROL = "tools/deps/embed-control/packages/embed-control/src/Container.js";
+const CONTROL_PATH = "thirdparty/z2ui5/embed/";
 const PAGE_SOURCES = [
   {
     source: `${pageDir}/Component.js`,
@@ -40,7 +46,7 @@ const PAGE_SOURCES = [
     urlPath: "abap2ui5/page/view/Main.view.xml",
   },
   {
-    source: `${pageDir}/embed/Container.js`,
+    source: CONTROL,
     urlPath: "z2ui5/embed/Container.js",
   },
 ];
@@ -783,6 +789,13 @@ async function readSource(file, label, strip = true) {
 // Main function to read the source files and create new target files
 async function main() {
   try {
+    // the control is a pinned checkout - materialised (or confirmed) first,
+    // so the copy the backend serves is always the pinned one
+    require("child_process").execFileSync(
+      process.execPath,
+      [path.join(repoDir, "node/setup/fetch-deps.mjs")],
+      { stdio: ["ignore", "ignore", "inherit"] },
+    );
     // Everything is generated into memory FIRST and written only once the
     // whole set is built: a source file with a non-ASCII character or a
     // module that breaks the devtools split leaves the committed tree as it
@@ -884,10 +897,28 @@ async function main() {
     // writes anything, so a refusal leaves both generated trees as they were.
     // Into a folder of its own, which takes the place of the committed one
     // in the write phase below - app2bsp writes into an empty folder only.
+    // The app as git has it plus the control where the manifest registers
+    // it - what `ui5 build` makes of app_source with the control from npm.
     const { app2bsp, checkBspFolder } = await import("../bsp/index.mjs");
     const bspWork = fs.mkdtempSync(path.join(os.tmpdir(), "z2ui5-bsp-"));
+    const manifest = fs.readFileSync(
+      path.join(repoDir, pageDir, "manifest.json"),
+      "utf8",
+    );
+    if (!manifest.includes(`"z2ui5.embed": "./${CONTROL_PATH}"`)) {
+      throw new Error(
+        `${pageDir}/manifest.json registers z2ui5.embed elsewhere than ./${CONTROL_PATH} - the BSP carries the control there`,
+      );
+    }
+    const bspApp = path.join(bspWork, "webapp");
+    fs.cpSync(path.join(repoDir, pageDir), bspApp, { recursive: true });
+    fs.mkdirSync(path.join(bspApp, CONTROL_PATH), { recursive: true });
+    fs.copyFileSync(
+      path.join(repoDir, CONTROL),
+      path.join(bspApp, CONTROL_PATH, "Container.js"),
+    );
     const bsp = app2bsp({
-      webapp: path.join(repoDir, pageDir),
+      webapp: bspApp,
       target: path.join(bspWork, "bsp"),
       ...BSP,
     });
