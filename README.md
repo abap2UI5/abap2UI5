@@ -1,123 +1,34 @@
-<p align="center"><a href="https://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
+> ⚙️ **Generated branch `cloud`** — built from `main` of [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5) by its `auto-cloud` workflow. Do not commit here; change the source on `main`.
 
-<p align="center">
-  <strong>Build UI5 Apps Purely in ABAP – no JavaScript, OData, or RAP needed.</strong>
-</p>
+# abap2UI5 for ABAP Cloud
 
-<p align="center">
-  Just like the good old days when Selection Screens and ALVs delivered full UIs from a few lines of ABAP. Designed with a minimal system footprint, it runs in both on-premise and cloud environments.
-</p>
+abap2UI5 for the **BTP ABAP environment** and **S/4HANA Public Cloud**. For
+Standard ABAP (S/4HANA on-premise and private cloud, NetWeaver 7.50 and
+later) pull the branch `main`, for NetWeaver 7.02 to 7.4x the branch `702`.
 
-<p align="center">
-  <a href="https://github.com/abap2UI5/abap2UI5/stargazers"><img src="https://img.shields.io/github/stars/abap2UI5/abap2UI5?style=flat&color=blue" alt="GitHub stars"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/abap2UI5/abap2UI5?color=blue" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/ABAP-NW%207.02%20%E2%86%92%20Cloud-blue" alt="ABAP NW 7.02 to ABAP Cloud">
-  <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-abap2UI5-blue?style=flat&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-</p>
+| | `main` | `cloud` |
+|---|---|---|
+| the framework (`src/00` to `src/02`) | the same code | the same code |
+| the service | the ICF node `/sap/bc/z2ui5` | the HTTP service `Z2UI5`, `/sap/bc/http/sap/z2ui5` |
+| its handler `Z2UI5_CL_UI5_ICF_HANDLER` | on `if_http_extension` | on `if_http_service_extension` |
+| the app | the BSP `Z2UI5`, pulled with the rest | the Fiori project in `app/`, deployed |
+| around it | - | the IAM app and the business catalog of `src/03` |
 
-<p align="center">
-  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yaml/badge.svg?branch=main" alt="test"></a>
-  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/check_gates.yaml/badge.svg?branch=main" alt="check_gates"></a>
-  <a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/abaplint.yaml"><img src="https://github.com/abap2UI5/abap2UI5/actions/workflows/abaplint.yaml/badge.svg?branch=main" alt="abaplint"></a>
-</p>
+## Install
 
-<!-- facts:start -->
-<p align="center">
-  <sub>1,027 ABAP unit tests · 88 JS unit specs · 19 browser test suites · 55 CI gates · 26 workflows · ABAP 7.02 → Cloud · UI5 1.71 → 2.x — counted from this repository by <code>npm run facts</code></sub>
-</p>
-<!-- facts:end -->
+1. Pull this branch with abapGit (ADT) into a package of your own. `src/03`
+   holds the HTTP service, its handler and the IAM objects.
+2. Open `/sap/bc/http/sap/z2ui5` - abap2UI5 runs, the page is served by the
+   HTTP service itself.
+3. For the launchpad, deploy the Fiori project in `app/` to the system (SAP
+   Business Application Studio or VS Code with the SAP Fiori tools:
+   `npm install`, then add a deployment configuration and deploy). The app is
+   one view with one control, which loads the abap2UI5 frontend from the
+   HTTP service - it does not have to be deployed again after an abap2UI5
+   update.
 
-<p align="center">
-  <sub>Pulled by 2,900+ systems in the two weeks to 5 November 2026 (GitHub traffic: every abapGit pull is one clone) · Running it? <a href="https://github.com/abap2UI5/abap2UI5/issues/new?template=who_runs_it.yml">Add your company to Who runs it</a></sub>
-</p>
+The launchpad component is `z2ui5` with the inbound `z2ui5-display`
+(semantic object `z2ui5`, action `display`).
 
-<p align="center">
-  <a href="https://abap2ui5.github.io/why/">For managers</a> •
-  <a href="https://abap2ui5.github.io/docs/">Documentation</a> •
-  <a href="https://abap2ui5.github.io/samples-site/">Samples</a> •
-  <a href="https://abap2ui5.github.io/playground/">Playground</a> •
-  <a href="https://abap2ui5-addons.github.io/">Addons &amp; Tools</a> •
-  <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
-  <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
-  <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">Sponsor</a>
-</p>
-
-## What it is
-
-One ABAP class is one UI5 app. No JavaScript, no OData, no frontend project:
-the class builds a UI5 view and binds its data, the framework carries every
-roundtrip, and the app runs in a browser tab, a Fiori launchpad tile or SAP
-Build Work Zone. Installed with abapGit, from NetWeaver 7.02 to ABAP Cloud.
-
-```abap
-CLASS zcl_my_app DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-ENDCLASS.
-
-CLASS zcl_my_app IMPLEMENTATION.
-  METHOD z2ui5_if_app~main.
-    client->message_box_display( `Hello World` ).
-  ENDMETHOD.
-ENDCLASS.
-```
-
-That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
-
-One thing stays yours: the framework performs no authority check of its own, so an app that guards business data checks its authorizations at the top of `main`, like a transaction does – see the [security model](docs/security.md#what-the-app-has-to-do).
-
-## How it works
-
-<p align="center">
-  <a href="https://abap2ui5.github.io/insights/07-one-click-one-request/"><img src="https://abap2ui5.github.io/insights/07-roundtrip.svg" width="700" alt="One roundtrip in five steps: the draft is loaded, the user's changes are applied, main( ) runs, the response is built and the draft is saved under a new id"></a>
-</p>
-
-Every click is one request and one call to `main`. The framework restores the
-app instance from its draft, applies what the user changed, runs your code,
-answers with the view and the model, and saves the instance again – no session
-waits on the server in between. [The Insights](https://abap2ui5.github.io/insights/)
-take each step apart, and compare the result with
-[RAP](https://abap2ui5.github.io/insights/36-rap-or-abap2ui5/) and
-[UI5 freestyle](https://abap2ui5.github.io/insights/37-freestyle-or-abap2ui5/).
-
-## Where to go
-
-| | |
-| --- | --- |
-| **For managers** | [What abap2UI5 means for an organization](https://abap2ui5.github.io/why/) – what it can build, how it compares, what it costs, who runs it |
-| **For developers** | [The documentation](https://abap2ui5.github.io/docs/) – quickstart, tutorial, cookbook, production, [developing with AI](https://abap2ui5.github.io/docs/get_started/ai) |
-| **Try it** | [The playground](https://abap2ui5.github.io/playground/) – ABAP in the editor, the running app beside it, nothing installed; [the samples](https://abap2ui5.github.io/samples-site/) – hundreds of ready-to-run apps |
-| **Around it** | [Addons & Tools](https://abap2ui5-addons.github.io/) – what to install beside it, and the tools for your editor, pipeline and agent |
-
-Working with Claude Code? Two commands install the abap2UI5 plugin – the agent skills, the MCP server and the lint hook:
-
-```
-/plugin marketplace add abap2UI5/abap2UI5
-/plugin install abap2ui5@abap2ui5
-```
-
-GitHub Copilot: `copilot plugin install abap2UI5/abap2UI5:plugin-copilot`. Every other assistant, editor and the full setup: [Developing with AI](https://abap2ui5.github.io/docs/get_started/ai).
-
-## Credits
-This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these outstanding open-source projects:
-* Code versioning & distribution via [abapGit](https://abapgit.org/) [(contributors)](https://abapgit.org/sponsor.html)
-* Static Code Checks via [abaplint](https://abaplint.org/) [(contributors)](https://github.com/abaplint/abaplint/graphs/contributors)
-* Unit Testing via [open-abap](https://github.com/open-abap) [(contributors)](https://github.com/open-abap/open-abap-core/graphs/contributors)
-* JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* ABAP Cloud & Standard compatibility with [Steampunkification](https://github.com/heliconialabs/steampunkification) [(contributors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
-* Syntax downporting via the [downport branch](https://github.com/abap2UI5/abap2UI5/tree/702) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Namespace renaming with [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Browser testing with [Playwright](https://playwright.dev/) [(contributors)](https://github.com/microsoft/playwright/graphs/contributors)
-* [Live demo](https://abap2ui5.github.io/browser-demo/) built from [browser-demo](https://github.com/abap2UI5/browser-demo) [(larshp)](https://github.com/larshp)
-* Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
-* Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
-
-## Get Involved
-We welcome all contributions! Here's how you can help:
-* [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
-* [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation ([CONTRIBUTING.md](CONTRIBUTING.md) is the in-repo guide)
-* [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates and community highlights
-* [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
-
-_Share your knowledge, hunt for bugs, submit a PR, give us a ⭐, or tell your colleagues about abap2UI5. Every contribution counts!_
+Everything else - building apps, the API, the samples - is the same as on
+`main`: [abap2UI5.org](https://abap2UI5.org).
