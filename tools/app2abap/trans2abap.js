@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 const crypto = require("crypto");
 const acorn = require("acorn");
 const terser = require("terser");
@@ -43,6 +44,19 @@ const PAGE_SOURCES = [
     urlPath: "z2ui5/embed/Container.js",
   },
 ];
+
+// The same app once more, as the files a launchpad loads: the BSP Z2UI5 of
+// src/03/02, written by @abap2ui5/bsp (tools/bsp) from the whole folder,
+// index.html included. Until 2026-11 it was built into a branch of
+// abap2UI5/frontend (standard_new) and installed from there; its names -
+// the BSP, its two ICF nodes - are the ones those installations have.
+const bspDir = path.join(repoDir, "src/03/02");
+const BSP = {
+  name: "Z2UI5",
+  text: "abap2UI5 frontend (generated)",
+  icfText: "abap2UI5 - Frontend",
+  packageText: "abap2UI5 - launchpad app (generated)",
+};
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
@@ -865,6 +879,25 @@ async function main() {
       "abap2UI5 - preload mapping",
     );
 
+    // The BSP first: app2bsp refuses a folder that cannot become one (a
+    // line over 255 characters, a file name the system rejects) before it
+    // writes anything, so a refusal leaves both generated trees as they were.
+    // Into a folder of its own, which takes the place of the committed one
+    // in the write phase below - app2bsp writes into an empty folder only.
+    const { app2bsp, checkBspFolder } = await import("../bsp/index.mjs");
+    const bspWork = fs.mkdtempSync(path.join(os.tmpdir(), "z2ui5-bsp-"));
+    const bsp = app2bsp({
+      webapp: path.join(repoDir, pageDir),
+      target: path.join(bspWork, "bsp"),
+      ...BSP,
+    });
+    // ... and what it wrote is checked as stored - the page format pads
+    // every line, and a .js page has to parse with the padding in it
+    const stored = checkBspFolder(path.join(bspWork, "bsp"));
+    if (stored.problems.length) {
+      throw new Error(`BSP ${BSP.name}:\n  ${stored.problems.join("\n  ")}`);
+    }
+
     // Every guard has passed and every byte is in hand - only now is the
     // committed tree replaced.
     fs.rmSync(targetDir, { recursive: true, force: true });
@@ -872,7 +905,11 @@ async function main() {
     for (const { filePath, content } of outputs) {
       await createFileInTargetDir(filePath, content);
     }
+    fs.rmSync(bspDir, { recursive: true, force: true });
+    fs.cpSync(path.join(bspWork, "bsp"), bspDir, { recursive: true });
+    fs.rmSync(bspWork, { recursive: true, force: true });
     console.log(`${outputs.length} file(s) written to ${targetDir}`);
+    console.log(`BSP ${BSP.name}: ${bsp.pages.length} page(s) written to ${bspDir}`);
   } catch (error) {
     // Signal failure so CI (check_app2abap.yaml, autofix.yaml) does not
     // treat a broken generation run as success and commit a partial

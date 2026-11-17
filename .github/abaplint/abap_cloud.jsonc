@@ -1,6 +1,10 @@
 {
     "global": {
-      "files": "/../../src/**/*.*"
+      "files": "/../../src/**/*.*",
+      // src/03 is Standard ABAP: an ICF node, its handler and a BSP. The
+      // branch for ABAP Cloud carries cloud/src/03 in its place
+      // (tools/cloud/build.mjs), which check:cloud-tree lints
+      "exclude": ["/src/03/"]
     },
     "dependencies": [
       {

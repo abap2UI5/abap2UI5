@@ -6,6 +6,7 @@
       "/../../src/00/**/*.*",
       "/../../src/01/**/*.*",
       "/../../src/02/**/*.*",
+      "/../../src/03/01/**/*.*",
       "/../../src/*.*"
     ],
     // Same narrowing as abaplint.jsonc: only the two upstream mirrors are
