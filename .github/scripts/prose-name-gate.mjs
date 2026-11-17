@@ -37,10 +37,10 @@ const PROSE = [
   // `backlog/` is the sharper of the two: an item is written to be pasted into
   // ANOTHER project's tracker as it stands, so a name that no longer exists
   // goes out to a maintainer who has no way to check it, under this project's
-  // name. `frontend/common/` is published onto abap2UI5/frontend's `main` and
-  // is the first page somebody installing the frontend reads.
+  // name. `cloud/` holds the README of the branch `cloud`, the first page
+  // somebody installing abap2UI5 on ABAP Cloud reads.
   { dir: "backlog", depth: 9, ext: [".md"] },
-  { dir: "frontend", depth: 9, ext: [".md"] },
+  { dir: "cloud", depth: 9, ext: [".md"] },
   // The frontend half of the agent briefing, split out of AGENTS.md - the
   // same prose, so the same check. Only the file itself: bundle/webapp holds no
   // Markdown (everything there is embedded into src/01/03).
@@ -93,9 +93,6 @@ const EXTERNAL = new Map([
   // its "Local Implementations" are where SLIN reports findings that are
   // annotated away on this side, which is the abap-check entry naming it
   ["Z2UI5_CL_ABAP2UI5_LOCAL", "the bundled class abap2UI5/abap2UI5-local builds"],
-  // frontend/abap holds it, outside src/: it ships in the branches of
-  // abap2UI5/frontend, whose READMEs (frontend/common) name it
-  ["Z2UI5_CL_LP_HANDLER", "the launchpad handler of the abap2UI5/frontend branches (frontend/abap)"],
   // the headless frontend: the developer tools' Journey view exports a test
   // class that replays a click-through on it, and the docs say so
   ["Z2UI5_CL_FRONTEND_SIM", "the headless frontend of abap2UI5/headless-frontend"],
@@ -112,6 +109,15 @@ const EXTERNAL_PATTERNS = [
   {
     re: /^Z2UI5_(CL_UTIL(_DB|_EXT|_HTTP|_LOG|_MSG|_RANGE|_XML)?|CX_UTIL_ERROR|T_91)$/,
     why: "the legacy utilities of abap2UI5/abap2UI5-ext (formerly src/99/01)",
+  },
+  // The rest of the frozen package but z2ui5_if_exit: moved to the extension
+  // repository on 2026-11-17 (abap2UI5/frontend, which holds what
+  // abap2UI5-ext held as well). Named all over the docs, the removal plan and
+  // the abap-check catalogue - as what an app migrates away from, or as the
+  // site a rule was measured on.
+  {
+    re: /^Z2UI5_(CL_XML_VIEW(_CC)?|CL_HTTP_HANDLER|IF_TYPES|CL_POP_[A-Z0-9_]+)$/,
+    why: "the legacy view builder, handler shim, types and popups of the extension repository (formerly src/99)",
   },
   // The rest of those repositories' namespaces, not just their app classes.
   // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the

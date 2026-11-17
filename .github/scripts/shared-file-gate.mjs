@@ -186,34 +186,6 @@ const SHARED = [
       + " compare, and by app-template's generator to write",
   },
   {
-    /* The frontend repository's front page. It is the same document as this
-     * one — the build copies THIS file into every generated branch (see
-     * `tools/build-branches.mjs`), so `main` was the only copy nothing wrote,
-     * and it drifted: five paragraphs reworded on one side or the other, and
-     * a table naming the reserved resourceRoots `z2ui5cc`/`z2ui5ext` in BOTH,
-     * when `bundle/webapp/manifest.json` has reserved `z2ui5_cci`/`z2ui5_ccc`
-     * since the day the roots existed. A reader following that table installs
-     * a BSP the loader never asks for.
-     *
-     * Wrong in both copies is what an unchecked mirror looks like: nobody
-     * compares them, so nobody reads them side by side, so nobody reads them
-     * against the manifest either. Gating it does not make the text true, but
-     * it makes the next divergence a failing check instead of a discovery.
-     */
-    file: 'frontend/common/README.md',
-    consumers: ['frontend'],
-    consumerFile: 'README.md',
-    why: "the frontend repository's front page — this file is what the build"
-      + ' copies into every generated branch, so `main` must say the same',
-    /* Whole file, no deviations. There used to be one — the `frontend_deploy`
-     * badge, dropped from `main`'s copy while `main` carried no generated
-     * tree. Since the deploy writes the finished trees into `result/` on
-     * `main`, the badge reports on exactly the thing that page fronts, and
-     * the two copies are byte-equal again. */
-    section: (text) => text,
-    mine: (text) => text,
-  },
-  {
     /* The metadata convention — what belongs on the class (`DESCRIPT`,
      * `@summary`, `@keywords`) and what belongs in a `meta/` sidecar. It says
      * so itself, in its first line: "Shared across abap2UI5/samples,

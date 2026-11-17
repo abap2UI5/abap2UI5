@@ -65,6 +65,7 @@ const CHECKS = [
   "check:format",
   "check:standard",
   "check:cloud",
+  "check:service",
 ].map((script) => ({ cmd: `npm run ${script}`, argv: [NPM, "run", script] }));
 
 if (full) {
@@ -85,7 +86,7 @@ const BUILD = [
   "unit",
   "check:js",
   "check:app2abap",
-  "check:frontend",
+  "cloud:build",
 ];
 
 const runSync = (label, argv) => {

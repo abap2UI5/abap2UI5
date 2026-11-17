@@ -52,6 +52,15 @@ jobs:
         if: ${{ !cancelled() }}
         run: node .github/scripts/run-concurrent.mjs "npm run check:standard" "npm run check:cloud"
 
+      # src/03 and cloud/src/03 - the service package of main and the one the
+      # branch `cloud` carries in its place. Their handlers implement an ICF
+      # interface the dependency of the two configs above does not hold, so
+      # each has a config of its own (abap_service.jsonc,
+      # abap_service_cloud.jsonc). Twelve and fifteen files, a few seconds.
+      - name: The service package, Standard ABAP and ABAP Cloud
+        if: ${{ !cancelled() }}
+        run: npm run check:service
+
       # The formatting rules - indentation, keyword_case, line_length,
       # align_parameters, whitespace_end, sequential_blank, space_before_colon
       # and _dot - are `false` in abaplint.jsonc and `true` only in the autofix
@@ -63,8 +72,10 @@ jobs:
       #
       # The rename rides in the same step: it writes a full renamed copy of
       # the sources to .github/abaplint/output/, which no other check reads.
-      # Same config build-rename uses for the real rename_<name> branches,
-      # against the placeholder namespace.
+      # Same config and the same second half (rename-service.mjs, which
+      # renames src/03 and lints it against the renamed framework) build-rename
+      # uses for the real rename_<name> branches, against the placeholder
+      # namespace.
       - name: House format and namespace rename
         if: ${{ !cancelled() }}
         run: node .github/scripts/run-concurrent.mjs "npm run check:format" "npm run rename"

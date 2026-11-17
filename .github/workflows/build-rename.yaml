@@ -13,12 +13,12 @@ name: build-rename
 # checked-in config .github/abaplint/rename.jsonc; this workflow only sets
 # the chosen prefix in the config (placeholder "znamespace_") and stores
 # the result.
-# The frontend BSP that goes with it is built by frontend_deploy with the
-# branch name standard_<name>__<name> (standard_#abap2ui5#__#abap2ui5#,
-# standard_zmyui5__zmyui5): its ICF handler then calls the renamed backend
-# class <prefix>cl_ui5_http_handler instead of z2ui5_cl_ui5_http_handler (see
-# tools/bsp_rename). Run this workflow first - the lint of that build
-# reads the backend from the branch rename_<name> pushed here.
+# The branch carries the whole installation: src/03 - the ICF node, its
+# handler and the BSP - is renamed with the rest, by tools/bsp_rename, which
+# knows the object types abaplint does not (.github/scripts/
+# rename-service.mjs). The node becomes /sap/bc/<name>, the BSP <NAME>, and
+# the handler calls <prefix>cl_ui5_http_handler. Until 2026-11 the BSP came
+# from a second repository, built by its own workflow run.
 # Re-running with the same name updates the branch to the current main
 # state; without content changes nothing is pushed. The main commit is
 # carried as second parent so GitHub shows the branch as "ahead" instead
@@ -90,7 +90,9 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - uses: ./.github/actions/setup
       with:
-        npm-ci: "true"
+        # the pinned abaplint dependencies: the rename resolves against the
+        # released APIs, the lint of the renamed src/03 against open-abap-core
+        deps: "true"
 
     # set the chosen prefix in the rename config and run the abaplint
     # rename; it writes the renamed sources to
@@ -108,6 +110,12 @@ jobs:
     # proves it on the tree that is about to be pushed
     - name: No literal kept the original name
       run: node .github/scripts/rename-literal-gate.mjs --renamed .github/abaplint/output
+
+    # src/03, which the abaplint rename leaves out (rename.jsonc): renamed by
+    # tools/bsp_rename into the output tree and linted there against the
+    # renamed framework - the handler's one call has to resolve
+    - name: Rename the service package
+      run: node .github/scripts/rename-service.mjs "$NAMESPACE"
 
     # branch content: the renamed src tree plus the abapGit descriptor
     # (version constant turned to the renamed interface) and the license
