@@ -416,9 +416,9 @@ breaking change for any downstream app that still references it.
         are still frozen — it only means the popups no longer hold the
         retired builder in place.
 - [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
-      — out of the core since 2026-11-17, ships from the extension
-      repository. An ICF node that still names it needs the extension, or
-      the handler of `src/03/01`, `z2ui5_cl_lp_handler`
+      — **deleted 2026-11-17**, not moved: an ICF node or a handler class
+      that still names it names `z2ui5_cl_ui5_http_handler` instead, or uses
+      the node and handler of `src/03/01` (`z2ui5_cl_lp_handler`)
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
         places; it had no box here, which made `src/99` look like three items

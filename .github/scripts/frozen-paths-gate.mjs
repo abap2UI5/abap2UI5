@@ -74,16 +74,22 @@ const UTILITIES = [
   "package.devc.xml",
 ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]);
 
-// The rest of the package but one object - the XML view builder, the
-// handler shim, z2ui5_if_types and the seventeen popups - moved to the
+// The rest of the package but one object - the XML view builder,
+// z2ui5_if_types and the seventeen popups - moved to the
 // extension repository (maintainer decision 2026-11-17, docs/agents/
 // decisions.md): abap2UI5/frontend, which stopped being a delivery
 // repository when the ICF node and the BSP came here (src/03) and holds what
 // abap2UI5-ext held plus these classes, unchanged. What stays is
 // z2ui5_if_exit: z2ui5_cl_ui5_user_exit is typed on it.
 const EXTENSION = "abap2UI5/frontend (the extension repository)";
+// z2ui5_cl_http_handler is the one object that moved nowhere: the empty
+// subclass that kept the former handler name alive was deleted in the same
+// decision. It is listed because it is released and gone - an ICF node or a
+// handler class that named it names z2ui5_cl_ui5_http_handler now.
+const DELETED = [
+  ["src/99/z2ui5_cl_http_handler.clas.abap", "nowhere - deleted, z2ui5_cl_ui5_http_handler is the name"],
+];
 const LEGACY = [
-  "z2ui5_cl_http_handler.clas.abap",
   "z2ui5_cl_xml_view.clas.abap",
   "z2ui5_cl_xml_view_cc.clas.abap",
   "z2ui5_if_types.intf.abap",
@@ -110,7 +116,7 @@ const POPUPS = [
   "package.devc.xml",
 ].map((f) => [`src/99/02/${f}`, EXTENSION]);
 
-const MOVED_OUT = new Map([...UTILITIES, ...LEGACY, ...POPUPS]);
+const MOVED_OUT = new Map([...UTILITIES, ...DELETED, ...LEGACY, ...POPUPS]);
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;

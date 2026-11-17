@@ -137,9 +137,9 @@ and `docs/removal-plan.md` §0 says so. The deletion went through the
 popup pathspec above while it was open; it widened nothing else.
 
 **The package left the core but for one object** (maintainer decision
-2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, the
-`z2ui5_cl_http_handler` shim, `z2ui5_if_types` and the seventeen
-`z2ui5_cl_pop_*` popups moved, unchanged, to the extension repository -
+2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, `z2ui5_if_types`
+and the seventeen `z2ui5_cl_pop_*` popups moved, unchanged, to the extension
+repository -
 [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped
 being a delivery repository in the same step (next entry) and holds what
 abap2UI5-ext held as well. The reasoning is the one behind `src/99/01` two
@@ -162,12 +162,18 @@ Two things did **not** move, and both are deliberate:
   repository. They go when the extension stops calling them - which means a
   change over there first.
 
+One object moved nowhere: **`z2ui5_cl_http_handler` was deleted.** It was
+an empty subclass of `z2ui5_cl_ui5_http_handler` that kept the former name
+of the HTTP entry point resolving, and the one object of the package a
+customer names rather than calls - in an ICF node, or in a handler class of
+their own. The node and the handler this repository delivers do not name it
+(`z2ui5_cl_lp_handler` calls `z2ui5_cl_ui5_http_handler`, in a release since
+1.148.0), so nothing shipped depends on it; an installation that still does
+changes that one name. It is a released object, so this is a break - the
+changelog says so.
+
 What the move costs: the test classes of the moved objects no longer run in
-`npm run unit` (the extension lints, it does not transpile), and
-`z2ui5_cl_http_handler` is the one object a customer names in an ICF node
-rather than calls - an installation whose node still points at the old
-handler name needs the extension, or the node switched to
-`z2ui5_cl_lp_handler`.
+`npm run unit` (the extension lints, it does not transpile).
 
 ### The ICF node, the BSP and the cloud service are part of this repository
 

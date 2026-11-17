@@ -117,7 +117,7 @@ const EXTERNAL_PATTERNS = [
   // site a rule was measured on.
   {
     re: /^Z2UI5_(CL_XML_VIEW(_CC)?|CL_HTTP_HANDLER|IF_TYPES|CL_POP_[A-Z0-9_]+)$/,
-    why: "the legacy view builder, handler shim, types and popups of the extension repository (formerly src/99)",
+    why: "the legacy view builder, types and popups of the extension repository, and the deleted handler shim (formerly src/99)",
   },
   // The rest of those repositories' namespaces, not just their app classes.
   // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the

@@ -136,12 +136,13 @@ src/
   `cloud/src/03`.** The handler has lint configs of its own (`npm run check:service`).
 - **`src/99` — frozen, and nearly empty.** It holds `z2ui5_if_exit`, the superseded exit name — still looked up, see
   "Key Design Patterns". Everything else it held left the core: the legacy XML view builder (`z2ui5_cl_xml_view`,
-  `_cc`), the `z2ui5_cl_http_handler` shim, `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
+  `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
   [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository**
   since 2026-11-17 — [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery
   repository and also holds what [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) held: the retired
   `z2ui5_cl_util*` classes, `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`). A system whose code still
-  uses one of them installs that repository next to abap2UI5.
+  uses one of them installs that repository next to abap2UI5. **`z2ui5_cl_http_handler` was deleted** in the same
+  step and ships nowhere: what named it names `z2ui5_cl_ui5_http_handler`.
 
 **For AI assistants: never change the production code under `src/99/` or add
 consumers on it, and never bring one of the moved classes back.** The
