@@ -136,6 +136,68 @@ an installation naming it stops compiling — the entry in `changelog.txt`
 and `docs/removal-plan.md` §0 says so. The deletion went through the
 popup pathspec above while it was open; it widened nothing else.
 
+**The package left the core but for one object** (maintainer decision
+2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, the
+`z2ui5_cl_http_handler` shim, `z2ui5_if_types` and the seventeen
+`z2ui5_cl_pop_*` popups moved, unchanged, to the extension repository -
+[abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped
+being a delivery repository in the same step (next entry) and holds what
+abap2UI5-ext held as well. The reasoning is the one behind `src/99/01` two
+weeks earlier: an installation that still names one of them installs that
+repository next to abap2UI5 and keeps compiling, and a core that does not
+ship thirty thousand lines of frozen code stops paying for them in every
+downport, transpile and lint. Each file is named in `MOVED_OUT` of
+`.github/scripts/frozen-paths-gate.mjs`.
+
+Two things did **not** move, and both are deliberate:
+
+- **`z2ui5_if_exit` stays in `src/99`.** `z2ui5_cl_ui5_user_exit` is typed
+  on it (`gi_user_exit_dep`), and the exit fails closed: an installation
+  whose exit class implements the old name and that updates the core
+  without installing the extension would have a class that no longer
+  compiles, and with it no Content-Security-Policy configuration at all.
+  The old exit name goes by the removal plan, not with the package.
+- **The `FROZEN-ONLY` symbols of `z2ui5_cl_ui5_util_context` stay.** The
+  moved classes call them and are compiled against a release of this
+  repository. They go when the extension stops calling them - which means a
+  change over there first.
+
+What the move costs: the test classes of the moved objects no longer run in
+`npm run unit` (the extension lints, it does not transpile), and
+`z2ui5_cl_http_handler` is the one object a customer names in an ICF node
+rather than calls - an installation whose node still points at the old
+handler name needs the extension, or the node switched to
+`z2ui5_cl_lp_handler`.
+
+### The ICF node, the BSP and the cloud service are part of this repository
+
+Maintainer decision 2026-11-17, with the question put to the community
+first. abap2UI5 started on the BTP ABAP trial, where it ran through a plain
+HTTP handler; BSP support for on-premise launchpads came later, as a second
+repository (abap2UI5/frontend) whose branches were built here and pushed
+there with a deploy key. By 2026 nearly every installation pulled both, and
+they had to match.
+
+So the objects came home:
+
+- `src/03/01` - the ICF node `/sap/bc/z2ui5` and `z2ui5_cl_lp_handler`,
+  `src/03/02` - the BSP `Z2UI5`, generated from `app_source/webapp/`. One
+  pull of `main` is a running installation on Standard ABAP.
+- The branch `cloud` is generated from `main` (`tools/build-cloud.mjs`,
+  `auto-cloud.yaml`) with `cloud/src/03` in place of `src/03`. It is the
+  third generated flavour next to `main` and `702`, not a branch anybody
+  maintains.
+- Every object name is the one the frontend repository's branches delivered,
+  so an installation keeps its node, its BSP and its launchpad target
+  mapping.
+
+Declined on the way: keeping the handler out of `src/` because it is the one
+class that is not portable (it would have left "one pull" a two-step
+installation again), and resolving it against a wider dependency in the
+existing lint configs (the released-API intersection those configs check
+against is the guarantee rule 4 rests on - the handler has configs of its
+own instead, `npm run check:service`).
+
 ### `z2ui5_t_02` and the dictionary objects
 
 `z2ui5_t_02` used to be the third: a released `name`/`value` structure added

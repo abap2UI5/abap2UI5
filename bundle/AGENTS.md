@@ -32,7 +32,7 @@ Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small
 
 - **While working on the frontend, run `npm run express:live`**: it answers `?z2ui5-bundle` from `bundle/webapp` as it is on disk, so an edit shows on the next reload. It does not replace the regeneration - `npm run app2abap` before the commit.
 - **Prettier governs all of `bundle/webapp/`** — do not add `// prettier-ignore` directives. Just let `npm run app2abap` format and regenerate.
-- **The delivery trees follow the same rule, one step further: they are not committed here at all.** `npm run frontend:build` builds them from `bundle/webapp/`, `frontend/` and `tools/` into the git-ignored `tools/out/`, `frontend_check` proves the build on every pull request, and `frontend_deploy` runs the same build on `main` and ships it into abap2UI5/frontend (`result/<branch>` on its `main`). Never edit a built tree — change the source; the only generated artefact a webapp change commits alongside it is `src/01/03/`.
+- **`src/03/02/` follows the same rule: it is the BSP `Z2UI5`, the minimal app of `app_source/webapp/` as the files a launchpad loads**, written by the same `npm run app2abap` through `tools/bsp` (every file a page, lines padded to 255 characters - the format abapGit reads) and checked as stored before it replaces the committed one. Never edit a page there; change `app_source/webapp/`. **The branch `cloud` goes one step further and is not committed here at all:** `npm run cloud:build` builds its tree into the git-ignored `tools/out/`, `delivery-check` proves the build on every pull request, and `auto-cloud` runs the same build on `main` and publishes it. Until 2026-11 both were branches of abap2UI5/frontend.
 
 ### Rule 7
 

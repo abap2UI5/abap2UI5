@@ -1,7 +1,7 @@
 # tools/
 
-Everything that **generates** an artefact out of `bundle/webapp/`. One folder, so
-the answer to "where does this file come from" is always the same place.
+Everything that **generates** an artefact. One folder, so the answer to
+"where does this file come from" is always the same place.
 
 Not to be confused with `.github/scripts/`, which is the other kind of script
 entirely: those are CI gates: they read the repository and answer yes or no.
@@ -10,91 +10,68 @@ whether a pull request may merge.
 
 | | |
 | --- | --- |
-| `app2abap/` | `bundle/webapp/*` → the embedded ABAP string constants in `src/01/03/` (`npm run app2abap`) |
-| `bsp/` | **`@abap2ui5/bsp`**, published to npm: any UI5 app folder → an abapGit BSP with its ICF nodes (`app2bsp`), a serialized BSP → an app folder (`bsp2app`), the page rules (`check`). Its own README is the usage; `npm run test:bsp` its tests |
-| `app2bsp/` | `frontend-bsp.mjs` → abap2UI5's webapp as the BSP `Z2UI5`, through `bsp/`; `preload.js` → the minified UI5 component preload bundle it carries. `run.js` is the former generator, unchanged and no longer called here: abap2UI5/embed-control's build copies this folder and runs it, and it goes once that build uses `@abap2ui5/bsp` |
-| `app2app_v2/` | the legacy-free (UI5 2.x) bootstrap patch, and the branch built from it |
-| `bsp_rename/` | rewrites the deployment identity (BSP, SICF, handler) for a parallel install |
-| `build-branches.mjs` | drives the above into one delivery branch |
-| `branch-stamp.mjs` | the provenance of a branch (`VERSION`, README banner), written at deploy time |
-| `check-pages.mjs` | the BSP page invariants, checked on the built artefact |
-| `check-identity.mjs` | every branch keeps the deployment identity of `standard` / `cloud` (objects, ICF nodes, BSP, endpoint, launchpad inbound), so a system can switch between them |
-| `verify-branches.mjs` | compares a local build in `tools/out/` against what abap2UI5/frontend publishes today |
-| `check-v2-sdk.mjs` | the monthly guard on the pinned legacy-free SDK |
+| `app2abap/` | `bundle/webapp/*` and `app_source/webapp/*` → the embedded ABAP string constants in `src/01/03/`, and `app_source/webapp/*` → the BSP `Z2UI5` in `src/03/02/` (`npm run app2abap`) |
+| `bsp/` | **`@abap2ui5/bsp`**, published to npm: any UI5 app folder → an abapGit BSP with its ICF nodes (`app2bsp`), a serialized BSP → an app folder (`bsp2app`), the page rules (`check`). What `app2abap` writes the BSP with. Its own README is the usage; `npm run test:bsp` its tests |
+| `build-cloud.mjs` | the tree of the branch `cloud` → the git-ignored `tools/out/cloud` (`npm run cloud:build`); its header says what the branch carries and why |
+| `bsp_rename/` | rewrites the deployment identity of `src/03` (BSP, SICF, handler) for a parallel install - the second half of `build-rename` (`.github/scripts/rename-service.mjs`) |
 | `sbom.mjs` | the software bill of materials of a release, CycloneDX 1.5 (`npm run sbom`); `release.yaml` attaches it to every release, `check:sbom` holds the tree to "nothing third-party is shipped" |
 
-What these consume besides the webapp — the ABAP artefacts of the delivery
-branches, the files every branch inherits and the embed app of the `_new`
-branches (`frontend/embed`, around `@abap2ui5/embed-control`) — lives in
-[`frontend/`](../frontend). Tools here, data there.
+Without a caller since 2026-11-17, when the delivery into abap2UI5/frontend
+ended - kept until somebody decides whether the legacy-free (UI5 2.x) variant
+comes back:
 
-## Where a build lands
+| | |
+| --- | --- |
+| `app2bsp/` | the classic webapp as a BSP with a minified component preload bundle. `bsp/`'s tests still read its `static_files` as the reference for the path mapping and the ICF node names |
+| `app2app_v2/` | the legacy-free bootstrap patch |
+| `check-v2-sdk.mjs` | the monthly guard on the SDK that patch pins (`check-v2-sdk.yaml`) |
 
-Every build — published branch or renamed variant — lands in the git-ignored
-`tools/out/<branch>/`. No tree is committed in this repository: the durable
-copies are the `result/<branch>` folders on abap2UI5/frontend's `main`, and
-what ties the reviewed sources to the delivered bytes is the same build
-running in the pull-request gate (`frontend_check`) and at deploy time
-(`frontend_deploy`).
+What these consume besides the two app folders - the ABAP artefacts of the
+branch `cloud` and its README - lives in [`cloud/`](../cloud). Tools here,
+data there.
+
+## What is committed, and what is not
+
+| Artefact | Committed? | Held to its source by |
+| --- | --- | --- |
+| `src/01/03/` - the frontend as ABAP classes | yes | `check:app2abap` (`check_app2abap.yaml`) |
+| `src/03/02/` - the BSP `Z2UI5` | yes | the same gate: one `npm run app2abap` writes both |
+| the branch `702` | no, generated on `main` | `auto_downport.yaml`, which lints what it publishes |
+| the branch `cloud` | no, built into `tools/out/cloud` | `delivery-check.yaml` on the pull request, `auto-cloud.yaml` on `main` |
+
+`main` has to be installable as it stands, so what an installation pulls from
+it is committed. The two generated branches are a function of `main` and
+nobody commits to them.
 
 ## Running it
 
 ```bash
-npm run app2abap                # regenerate src/01/03 from bundle/webapp
-npm run frontend:build          # all six delivery branches -> tools/out/
-npm run frontend:standard       # just one
-npm run check:frontend          # build all six, check the BSP page invariants and that the branches are interchangeable
-npm run frontend:lint           # abaplint over frontend/abap/cloud (the standard handler is linted in the built tree)
-node tools/check-pages.mjs      # BSP invariants on what was built
-npm run frontend:verify         # diff a local build against the published branches
+npm run app2abap       # regenerate src/01/03 and the BSP of src/03/02
+npm run cloud:build    # the tree of the branch cloud -> tools/out/cloud
+npm run check:service  # abaplint over src/03 and cloud/src/03
+npm run test:bsp       # the tests of @abap2ui5/bsp
+npm run rename         # the namespace rename against the placeholder name, src/03 included
 ```
 
-A change under `bundle/`, `frontend/` or `tools/` needs no generated tree
-committed alongside it — `frontend_check` builds and checks it on the pull
-request, `frontend_deploy` builds and ships it from `main`. (`src/01/03/`
-keeps its own rule: it stays committed, regenerated by `npm run app2abap`.)
-
-## Why the delivery branches may not drift
+## Why the generated branches may not drift
 
 They are an **installation source**: abapGit repositories out there point at
-`standard`, `cloud` and the renamed variants. A change to what a branch carries
+`main`, `702`, `cloud` and the renamed variants. A change to what one carries
 reaches every one of them on the next pull.
 
-`frontend_check.yaml` builds every variant on every pull request that touches
-`bundle/`, `frontend/`, `tools/` or the npm dependencies, lints the generated ABAP and checks the
-BSP page invariants — a page line over 255 characters, a page name
-`CREATE_NEW_PAGE` rejects, a content file missing from the page directory, a
-`.js` page that stops being valid JavaScript once padded. Each of those is a
-failure that reached a real system, or came within a step of it.
+The BSP has rules of its own, each of which stands for a failure that reached
+a real system or came within a step of it: a page line over 255 characters, a
+page name `CREATE_NEW_PAGE` rejects, a content file missing from the page
+directory, a `.js` page that stops being valid JavaScript once padded.
+`app2bsp` refuses the first two before it writes anything, and `app2abap`
+checks the BSP as stored before it replaces the committed one.
 
-`verify-branches.mjs` compares a local build of a branch (`tools/out/`)
-against the published one byte for byte. It is the acceptance test for
-anything that changes *how* the branches are built rather than what is in
-them.
+## History
 
-## Deployment
-
-`frontend_deploy.yaml` publishes the delivery trees into abap2UI5/frontend: the
-six published ones on every push to `main` that touches what the build
-consumes (`bundle/`, `frontend/`, `tools/`, the npm dependencies) or the
-`VERSION` stamp inputs (the framework version constant), a renamed
-`standard_<name>` on dispatch, and everything again on a monthly safety-net
-cron.
-
-For the six it runs the same `npm run frontend:build` the pull-request gate
-ran, stamps the provenance and ships the result as `result/<branch>` folders
-in ONE commit on the delivery repository's `main`. From there that repository's own `deliver` workflow fans
-each folder out into its branch: one commit per branch, parented on the `main`
-commit, tree = the folder's content — so every published branch is always
-exactly one commit ahead of `main`, and `main`'s history over there shows
-every delivered change as one diff. A run whose content matches what `result/`
-already carries pushes nothing: the comparison stamps the candidate with the
-commit the published `VERSION` names, so a run that would only move the
-provenance forward is not a commit. The commit that *is* written carries the
-subject of the `main` commit behind it, so the history over there reads like
-the history here.
-
-The delivery repository builds nothing itself any more — its `main` carries
-its own docs plus the machine-written `result/` trees, and each of its
-branches is fanned out from them (a renamed `standard_<name>` is pushed onto
-its branch directly, parented on `main` like the rest).
+Until 2026-11 the ICF node, the BSP and the cloud service were not part of
+`src/`: `build-branches.mjs` built them into delivery trees, `frontend_deploy`
+pushed those into branches of abap2UI5/frontend (`standard_new`, `cloud_new`,
+and before them `standard`, `cloud` and their `_v2` twins with a copy of the
+whole frontend), and an installation pulled that repository next to this one.
+The embed control made the BSP four small files that never change with the
+frontend, which is what made it reasonable to commit it here.

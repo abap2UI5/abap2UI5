@@ -48,8 +48,8 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 The repository structure:
 - `src/` - Core ABAP framework classes
 - `bundle/` - the UI5 frontend: the source of the bundle the backend serves (`bundle/webapp/`) and its tooling. No app of its own - the minimal app that runs it is `app_source/` (with the embed control's source) and `app_npm/` (with the control from npm)
-- `tools/` - generators that build artefacts out of `bundle/webapp/` (embedded ABAP, BSP packaging, delivery branches)
-- `frontend/` - the non-generated parts of the delivery branches (ICF/BSP ABAP artefacts, common files)
+- `tools/` - generators that build artefacts (embedded ABAP, the BSP, the tree of the branch `cloud`)
+- `cloud/` - what the branch `cloud` carries in place of `src/03` (the HTTP service, its handler, the IAM objects)
 - `node/` - Node.js transpilation setup
 - `docs/` - documentation for contributors and agents (`docs/agents/` maps the directories, the workflows and the test inventory, and holds the design decisions, the architecture seams and the recorded API-snapshot exceptions; `docs/removal-plan.md` is what to read before removing any compatibility symbol)
 - `backlog/` - findings that belong in ANOTHER repository of the ecosystem (abaplint, the transpiler, the linter). Found a defect that is not ours to fix? It goes here rather than getting lost - see [`backlog/README.md`](backlog/README.md)
@@ -211,17 +211,12 @@ Look for issues labeled:
 
 2. **Make Your Changes:**
    - **ABAP Changes:** Use abapGit workflow (recommended)
-   - **Frontend (`bundle/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The delivery trees are NOT committed: `npm run check:frontend` builds them into the git-ignored `tools/out/` to prove the build, and `frontend_deploy` builds and ships them from `main`
+   - **Frontend (`bundle/webapp/`) Changes:** Edit files directly, validate with `npm run check:js` (JS unit specs), then regenerate the embedded frontend in `src/01/03/` with `npm run app2abap` and commit it with your change — `npm run check:app2abap` is the gate that fails otherwise. The same command writes the BSP of `src/03/02/` from `app_source/webapp/`.
 
-     > This repository is the **only** place the frontend is edited.
-     > [abap2UI5/frontend](https://github.com/abap2UI5/frontend) publishes the
-     > same webapp as installable branches, but it is generated: every branch
-     > there is a tree built here from `bundle/webapp/`, delivered by
-     > `frontend_deploy` into `result/<branch>` on its `main` and fanned out
-     > from there by its `deliver` workflow, so a change made in that
-     > repository is silently discarded on the next delivery. Its `guard`
-     > workflow rejects manual pull requests for exactly that reason — see its
-     > [CONTRIBUTING.md](https://github.com/abap2UI5/frontend/blob/main/CONTRIBUTING.md).
+     > This repository is the **only** place the frontend is edited, and
+     > `main` the only branch: `702` and `cloud` are generated from it on
+     > every push (`auto_downport`, `auto-cloud`), so a change made on one of
+     > them is silently discarded.
 
 3. **Test Your Changes:**
    ```bash

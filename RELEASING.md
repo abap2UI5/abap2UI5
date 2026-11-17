@@ -35,8 +35,8 @@ somebody's CI, and abapGit users install by tag — so treat a published version
 as final and fix forward with the next one.
 
 The one thing that cannot be fixed forward is a **wrong version number in a
-system**: `z2ui5_if_app=>version` is what abapGit shows and what
-`frontend_deploy` stamps into the delivered frontend. `npm run check:version`
+system**: `z2ui5_if_app=>version` is what abapGit shows and what the
+generated branches carry with the source. `npm run check:version`
 holds it to `package.json`, and `npm run check:release` holds both to the
 changelog.
 

@@ -54,7 +54,7 @@ to ABAP Cloud, on-premise and cloud.
 - **Version:** the `version` constant in `src/02/z2ui5_if_app.intf.abap` — read it there, never repeat it here
 - **License:** MIT · **Homepage:** https://abap2UI5.org
 - **Language:** English — all code, comments, commit messages, PRs, issues, documentation, and communication
-- **Related repositories** (samples, linter, mcp-server, frontend, abap-util, …): `docs/agents/repository-map.md`
+- **Related repositories** (samples, linter, mcp-server, the extension, abap-util, …): `docs/agents/repository-map.md`
 
 ## Architecture
 
@@ -113,7 +113,10 @@ src/
 │   └── 05/   Language model providers behind z2ui5_if_ui5_llm (z2ui5_cl_ui5_llm_claude, _openai, _local, _http),
 │             and z2ui5_cl_ui5_llm_guide — GENERATED from docs/agents/building-apps.md (`npm run guide-class`), never edit
 ├── 02/   Layer 2: Public API — the whole contract, nine objects (rule 5)
-└── 99/   FROZEN legacy code — ships for downstream installations, zero in-repo consumers
+├── 03/   The service and the launchpad app — Standard ABAP only
+│   ├── 01/   ICF node /sap/bc/z2ui5 and its handler z2ui5_cl_lp_handler
+│   └── 02/   BSP Z2UI5 — GENERATED from app_source/webapp/, never edit (rule 2)
+└── 99/   FROZEN — one object left: z2ui5_if_exit, the superseded exit name
 ```
 
 - **Layer 0** — self-contained utilities. `noIssues` in `abaplint.jsonc` suppresses lint for all of `src/00`.
@@ -124,26 +127,31 @@ src/
   `z2ui5_cx_ui5_llm`, `z2ui5_cl_ui5_llm`. Recorded symbol for symbol in
   `.github/api-snapshot.json`. **A type lives on the object that uses it** (`ty_s_get` on `z2ui5_if_client`,
   the HTTP-config types on the exit) — nothing in `src/00`–`src/02` resolves into the retired `z2ui5_if_types`.
-- **`src/99` — frozen.** The legacy XML view builder (`z2ui5_cl_xml_view`, `_cc`), the `z2ui5_cl_http_handler`
-  shim, `z2ui5_if_types`, `z2ui5_if_exit` (the superseded exit name — still looked up, see "Key Design Patterns"),
-  and the obsolete popups (`99/02`, successor:
-  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)). The retired `z2ui5_cl_util*` classes,
-  `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`) moved to
-  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext): a system whose code still uses them installs it next to
-  abap2UI5.
+- **`src/03` — what makes one pull a running installation**, and the one package that is not the same on every
+  platform. On `main` it is Standard ABAP: the ICF node, its handler on `if_http_extension`, and the BSP for the
+  launchpad. The branch `cloud` is generated from `main` with `cloud/src/03` in its place — an HTTP service, the
+  same handler name on `if_http_service_extension`, the IAM objects — and `app_source/` as a Fiori project to
+  deploy (`tools/build-cloud.mjs`, `auto-cloud.yaml`). Every name in both is the one installations have had since
+  these objects shipped from abap2UI5/frontend (until 2026-11): **do not rename an object of `src/03` or
+  `cloud/src/03`.** The handler has lint configs of its own (`npm run check:service`).
+- **`src/99` — frozen, and nearly empty.** It holds `z2ui5_if_exit`, the superseded exit name — still looked up, see
+  "Key Design Patterns". Everything else it held left the core: the legacy XML view builder (`z2ui5_cl_xml_view`,
+  `_cc`), the `z2ui5_cl_http_handler` shim, `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
+  [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository**
+  since 2026-11-17 — [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery
+  repository and also holds what [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) held: the retired
+  `z2ui5_cl_util*` classes, `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`). A system whose code still
+  uses one of them installs that repository next to abap2UI5.
 
 **For AI assistants: never change the production code under `src/99/` or add
-consumers on it.** The `check_gates` workflow enforces the freeze. Exempt are
-the `*.testclasses.abap` files (they run in `npm run unit` and follow the core
-internals they assert on) and the `.clas.xml` sidecars. Moving an object **out**
-of the package is allowed; the gate refuses a deletion only when the object
-name exists nowhere else under `src/` afterwards **and** it shipped in the
-latest release tag — or when it is listed, file by file, in the gate's
-`MOVED_OUT` with the repository it ships from now (`src/99/01` →
-abap2UI5-ext, 2026-11-02). Any other change under `src/99` needs a maintainer
-decision recorded in `docs/agents/decisions.md` first — the popup port's
-exemption has closed again, the one for the two WHERE builders (2026-10-12)
-went with `src/99/01`, and neither is a precedent.
+consumers on it, and never bring one of the moved classes back.** The
+`check_gates` workflow enforces the freeze. Moving an object **out** of the
+package is allowed; the gate refuses a deletion only when the object name
+exists nowhere else under `src/` afterwards **and** it shipped in the latest
+release tag — or when it is listed, file by file, in the gate's `MOVED_OUT`
+with the repository it ships from now (`src/99/01`, 2026-11-02; the rest but
+`z2ui5_if_exit`, 2026-11-17). Any other change under `src/99` needs a
+maintainer decision recorded in `docs/agents/decisions.md` first.
 
 ### Utilities — the context class is the only door
 
@@ -171,10 +179,11 @@ So:
   (framework-specific logic belongs in the core `z2ui5_cl_ui5_*` classes).
 - `z2ui5_cl_ui5_util_http` and `z2ui5_cx_ui5_util_error` are vendored too — change them only when a fix or a
   caller genuinely needs it. `z2ui5_cl_ui5_util_json_fl` is framework-owned.
-- **Symbols marked `FROZEN-ONLY`** exist only for `src/99`; `npm run check:frozen-only` keeps them caller-free —
-  do not add callers.
-- **`z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are no longer part of the core** — they moved to
-  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext). Never use or reintroduce them here.
+- **Symbols marked `FROZEN-ONLY`** exist only for the legacy classes of the extension repository, which are
+  compiled against this class; `npm run check:frozen-only` keeps them caller-free here — do not add callers, and
+  do not remove one without that repository.
+- **`z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are no longer part of the core** — they ship from the
+  extension repository. Never use or reintroduce them here.
 - abap2UI5 does **not** depend on abap-util at install time (abapGit has no dependency management; "clone and
   go"), hence renamed copies.
 
@@ -207,8 +216,8 @@ seams; see `docs/agents/architecture-seams.md`.
 - **Multi-View:** main view, nested views (nest/nest2), popups and popovers at once
 - **Exit Pattern:** `z2ui5_if_ui5_exit`, implemented by `z2ui5_cl_ui5_user_exit` (themes, CSP headers, …).
   The superseded `z2ui5_if_exit` (`src/99`) is still looked up and honoured during the rename — how, and what goes
-  when it goes, is in `docs/agents/architecture-seams.md`. It is the one `src/99` object `abaplint.jsonc` lists in
-  the strict ruleset.
+  when it goes, is in `docs/agents/architecture-seams.md`. It is the one object left in `src/99`, and
+  `abaplint.jsonc` lists it in the strict ruleset.
 - **Monitor seam:** `z2ui5_if_ui5_monitor`, called once per POST roundtrip. **It fails open, the exit fails
   closed** — a broken monitor must never break an app.
 - **`@abap2ui5/node-runtime`:** the transpiled tree as an npm package; its manifest is
@@ -224,13 +233,18 @@ What every workflow does is `docs/agents/ci-workflows.md`. Worth carrying:
   pull request sees every failure at once. `npm run gates` is the local half.
 - **`src/99` is frozen and `src/02` is a contract**, both machine-checked (rules 1, 5).
 - **`src/01/03/` is generated from `bundle/webapp/`** - plus `app_source/webapp/`, the minimal app with the embed control
-  that the GET page itself carries - and drift-gated (rule 2). The delivery trees are not committed:
-  `frontend_check` builds them into the git-ignored `tools/out/`.
+  that the GET page itself carries - **and `src/03/02/` from `app_source/webapp/`**, the same app as a BSP; both are
+  written by `npm run app2abap` and drift-gated (rule 2).
+- **The branches `702` and `cloud` are generated from `main`** (`auto_downport.yaml`, `auto-cloud.yaml`) — nobody
+  commits to them. The tree of `cloud` is not committed here: `delivery-check` builds it into the git-ignored
+  `tools/out/`.
 - **The gates also run on `push: main`** — a merge is a state no pull request tested.
 - **Every job takes its toolchain from `.github/actions/setup`.**
 - **A release carries the prebuilt backend** (`backend-prebuilt.yaml`); its asset name and `backend-manifest.json`
   are read by `abap2UI5/mcp-server` — renaming either is a change over there.
-- **Downstream frontend repositories are generated, never edited** — `bundle/webapp/` is edited here and nowhere else.
+- **Nothing is delivered into another repository any more.** Until 2026-11 the ICF node, the BSP and the cloud
+  service were built here and pushed into branches of abap2UI5/frontend; they are `src/03` and the branch `cloud`
+  now, and that repository is the extension.
 
 ## Language & Code Rules
 
@@ -285,10 +299,11 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
 
 ### Naming and object types
 
-- Classes `Z2UI5_CL_*` / `Z2UI5_CX_*`, interfaces `Z2UI5_IF_*`; object types `CLAS`, `DEVC`, `INTF`, `TABL` only.
+- Classes `Z2UI5_CL_*` / `Z2UI5_CX_*`, interfaces `Z2UI5_IF_*`; object types `CLAS`, `DEVC`, `INTF`, `TABL` only —
+  plus the `SICF` nodes and the `WAPA` (BSP) of `src/03`, which are that package's whole point and stay there.
 - **No new dictionary objects** — no `TABL`, `DTEL`, `DOMA`, `DDLS` or `BDEF`. A type an app needs is a `TYPES` in
   an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
-  `z2ui5_t_01` (the drafts); `z2ui5_t_91` moved to abap2UI5-ext. A new one needs a maintainer decision first.
+  `z2ui5_t_01` (the drafts); `z2ui5_t_91` ships from the extension repository. A new one needs a maintainer decision first.
   The numbers `z2ui5_t_05` - `_06` and `_11` - `_33` belong to the abap2UI5-addons (one numbering all addons
   share, decided 2026-11; the next free one is `_34`) - never reuse one of them here. `_02` was released once and
   removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.
@@ -346,11 +361,13 @@ full in **`bundle/AGENTS.md`**, under the same numbers.
 1. **Do not modify `src/00/01/` (AJSON) or `src/00/02/` (S-RTTI)** — mirrored and synced by workflows.
    **Do not change the production code of `src/99/` or add consumers on it** (see "Layered Design").
    All builder work happens in `z2ui5_cl_ui5_view_builder`.
-2. **NEVER edit any file under `src/01/03/` by hand** — it is generated from `bundle/webapp/`. Change the source there
-   and run **`npm run app2abap`** (or comment `/fix app2abap`), then commit what it produced. Never reintroduce a
-   hand-kept preload list, never edit a built delivery tree. Details: `bundle/AGENTS.md`, rule 2.
+2. **NEVER edit any file under `src/01/03/` or `src/03/02/` by hand** — they are generated from `bundle/webapp/`
+   and `app_source/webapp/`. Change the source there and run **`npm run app2abap`** (or comment `/fix app2abap`),
+   then commit what it produced. Never reintroduce a hand-kept preload list, never edit a generated branch.
+   Details: `bundle/AGENTS.md`, rule 2.
 3. **Always run `npx abaplint`** (`npm run check`) before considering a change complete.
-4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP and ABAP Cloud.
+4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP and ABAP Cloud. The one
+   exception is `src/03`, which the branch `cloud` replaces (see "Layered Design") — nothing else may follow it.
 5. **The public API (`src/02/`) is a stable contract.** Never rename, remove or change the signature of a method
    of `z2ui5_if_client`, `z2ui5_if_app`, `z2ui5_if_ui5_exit` or `z2ui5_if_ui5_monitor`; never remove or rename
    public `DATA`, `CONSTANTS` or `TYPES` in `src/02`; never change the type or default of an existing parameter.
@@ -425,4 +442,5 @@ again:
 - **No app base class and no lifecycle hooks on `z2ui5_if_app`**; the repeated dispatcher is not duplication.
 - **No named frontend-action wrappers on `z2ui5_if_client`** — `follow_up_action` stays the only API.
 - **Embedding as a reuse component goes as far as demand asked** — do not re-propose the rest as cleanup.
-- **`z2ui5_cl_xml_view` is not extended, refactored or split**, and its size is not a finding.
+- **`z2ui5_cl_xml_view` is not extended, refactored or split**, and its size is not a finding — it is frozen, and
+  since 2026-11-17 it is not in this repository at all.

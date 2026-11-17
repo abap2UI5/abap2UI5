@@ -301,7 +301,7 @@ sap.ui.define(
       //
       // Unless the host handed the page to the app (state.ownsPage): that
       // page is the component and nothing else - the backend's own GET
-      // page and the branches standard_new and cloud_new, a
+      // page, the BSP and the app of the branch cloud, a
       // z2ui5.embed.Container filling an empty page - so its console is
       // the app's, as on any page of the app's own.
       if (ctx.state?.ownsPage) {

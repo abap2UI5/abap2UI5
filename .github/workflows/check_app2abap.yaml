@@ -10,29 +10,37 @@ on:
   pull_request:
     paths:
       - 'bundle/webapp/**'
+      - 'bundle/tail/**'
+      - 'app_source/webapp/**'
       - 'src/01/03/**'
+      - 'src/03/02/**'
       - 'tools/app2abap/**'
+      - 'tools/bsp/**'
       # `npm run app2abap` starts with `npm --prefix bundle run format`, so
       # Prettier's version and its configuration decide the bytes that end up
       # in src/01/03 just as much as the sources above do. A bump in app's
       # lockfile or a rule change in .prettierrc reformats bundle/webapp and
       # regenerates every carrier - and without these lines the gate that
       # notices that would not have started. Same bug class the comments in
-      # render-gate.yaml (package-lock) and frontend_check.yaml (terser) name.
+      # render-gate.yaml (package-lock) names.
       - 'bundle/package.json'
       - 'bundle/package-lock.json'
       - 'bundle/.prettierrc'
       - '.github/workflows/check_app2abap.yaml'
   # A merge is not a state any pull request tested. Same pattern - paths
-  # repeated and all - as frontend_check.yaml. (The create_app2abap workflow
+  # repeated and all - as delivery-check.yaml. (The create_app2abap workflow
   # that used to regenerate from main after every push is gone: with this
   # gate green on the PR and on main it could only ever open an empty PR.)
   push:
     branches: [main]
     paths:
       - 'bundle/webapp/**'
+      - 'bundle/tail/**'
+      - 'app_source/webapp/**'
       - 'src/01/03/**'
+      - 'src/03/02/**'
       - 'tools/app2abap/**'
+      - 'tools/bsp/**'
       - 'bundle/package.json'
       - 'bundle/package-lock.json'
       - 'bundle/.prettierrc'

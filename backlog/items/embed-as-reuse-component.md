@@ -341,5 +341,7 @@ root was a `sap.m.App`, a Shell came from an app's view), and with one in the
 page's view an app without a Shell was 1280px wide. A tile's startup
 parameters are read by the bundle (`core/Embed.js`, `withHostStart`) when
 the page is the app's; the all-off `Mobile.init` is made on a host's page
-only. Still not built: the abap2UI5/frontend branches from this app -
-`standard_new` and `cloud_new` stay `frontend/embed` with the control 0.3.0.
+only. Built from this app since 2026-11-17: the BSP `Z2UI5` (`src/03/02`,
+with the ICF node and its handler in `src/03/01`) and the app of the
+generated branch `cloud` - the delivery into abap2UI5/frontend ended, and
+`frontend/embed` with the control 0.3.0 went with it.

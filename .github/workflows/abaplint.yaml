@@ -14,7 +14,7 @@ name: abaplint
 
 # Pull requests AND pushes to main - `auto_downport.yaml` rebuilds the 702
 # branch from every push to main, so main being lintable is what that rebuild
-# assumes. Same pattern as frontend_check.yaml.
+# assumes. Same pattern as delivery-check.yaml.
 on:
   pull_request:
   push:

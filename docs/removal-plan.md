@@ -331,11 +331,23 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 
 ## 2. `src/99/` — the frozen package (~30,800 ABAP lines)
 
+> **2026-11-17: the package left the core but for `z2ui5_if_exit` (§1).**
+> Everything below with a box is not deleted but **moved**, unchanged, to the
+> extension repository ([abap2UI5/frontend](https://github.com/abap2UI5/frontend),
+> which holds what abap2UI5-ext held as well) - the decision and what did not
+> move are in `docs/agents/decisions.md`, "The `src/99` exemptions". For this
+> repository the items are done: the core no longer ships them. For an
+> installation nothing is removed yet - it pulls the extension and keeps
+> compiling - so the blockers written under each item are now the
+> **extension's** blockers for deleting the class there, and they are kept
+> here because this is where the migration was measured.
+
 The single biggest item. All of it is public and shipped, so removal is a
 breaking change for any downstream app that still references it.
 
-- [ ] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
-      → `z2ui5_cl_ui5_view_builder` (`src/02/`)
+- [x] **`z2ui5_cl_xml_view` (15,884 lines) + `z2ui5_cl_xml_view_cc` (742)**
+      → `z2ui5_cl_ui5_view_builder` (`src/02/`) — out of the core since
+      2026-11-17, ships from the extension repository
       - **Blocker A: cleared 2026-08-15.** Zero callers across `samples` (150
         classes on the successor), `samples-controls` (431), `samples-stack`
         (32) and `app-template` (1). The last fourteen were
@@ -389,8 +401,9 @@ breaking change for any downstream app that still references it.
         declares abap2UI5-ext as a dependency.
       - abap2UI5-ext reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
-- [ ] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
-      → [popups addon](https://github.com/abap2UI5-addons/popups)
+- [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
+      → [popups addon](https://github.com/abap2UI5-addons/popups) — out of
+      the core since 2026-11-17, ship from the extension repository
       - **Blocker:** verify the addon actually covers all 17. `z2ui5_cl_pop_bal`
         was already dropped in 1.142.0 without a replacement — do not repeat
         that silently. (The eighteenth, `z2ui5_cl_pop_js_loader`, went on
@@ -402,7 +415,10 @@ breaking change for any downstream app that still references it.
         This does not move the removal itself — the classes still ship and
         are still frozen — it only means the popups no longer hold the
         retired builder in place.
-- [ ] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
+- [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
+      — out of the core since 2026-11-17, ships from the extension
+      repository. An ICF node that still names it needs the extension, or
+      the handler of `src/03/01`, `z2ui5_cl_lp_handler`
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
         places; it had no box here, which made `src/99` look like three items
@@ -412,24 +428,33 @@ breaking change for any downstream app that still references it.
         in ABAP anybody wrote, so "zero callers in the sample repositories"
         says nothing about it. It goes when the handler rename is announced
         in the docs Deprecations page, not before.
-      - The shipped frontend no longer names it: the `z2ui5_cl_lp_handler`
-        of every delivery branch calls `z2ui5_cl_ui5_http_handler` (in a
-        release since 1.148.0), and `tools/bsp_rename --backend` rewrites
-        that call to `<prefix>cl_ui5_http_handler`.
+      - The shipped service no longer names it: `z2ui5_cl_lp_handler`
+        (`src/03/01`, and `cloud/src/03/01` on the branch `cloud`) calls
+        `z2ui5_cl_ui5_http_handler` (in a release since 1.148.0), and
+        `tools/bsp_rename --backend` rewrites that call to
+        `<prefix>cl_ui5_http_handler`.
 
-**Falls out automatically when `src/99` goes:**
+**Did not fall out with the move, because the classes still exist - one
+repository further:**
 
 - [ ] the `FROZEN-ONLY` methods in `z2ui5_cl_ui5_util_context` (`src/00/03/`) — they
-      exist solely because the shipped `src/99` still calls them. Grep the
+      exist solely because the legacy classes still call them, and those are
+      compiled against a release of this repository. They go when the
+      extension stops calling them (its own copies in `z2ui5_cl_util`, or the
+      classes deleted there) - a change over there first. Then: grep the
       marker, delete the marked block. (No count here on purpose: this said 23
       while the file carried 25, because a marker is added by whoever needs one
       and nothing tells this page. `grep -c FROZEN-ONLY` is the answer, and it
       is the same command that does the work.)
-- [ ] `npm run check:frozen` + the `check_gates` workflow
-- [ ] the three `src/99` test skips in `node/setup/abap_transpile.json`
-      and the `src/99` testclass/sidecar exemptions in `check:frozen` +
-      `check_gates.yaml`
-- [ ] the `src/99` exclusions in `abaplint.jsonc`
+- [ ] `npm run check:frozen` + its step in the `check_gates` workflow — still
+      guarding the one object left, and `MOVED_OUT` in it is the record of
+      what went where. Goes with `z2ui5_if_exit` (§1).
+- [x] the `src/99` test skips in `node/setup/abap_transpile.json` — none
+      left, the test classes moved with their objects
+- [x] the `/src/99/` ignore in `abap2ui5lint.jsonc` and the two known icon
+      findings in `check:icons` — gone with the popups
+- [ ] the `/src/99/z2ui5_if_exit.intf.*` line in `abaplint.jsonc` — with the
+      interface
 
 ---
 

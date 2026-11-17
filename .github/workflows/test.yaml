@@ -27,12 +27,12 @@ name: test
 # `test_browser` could not be required if it were the matrix itself.
 
 # Pull requests AND pushes to main. The push leg is not redundant with the
-# pull-request one: `auto_downport`, `frontend_deploy` and
-# `trigger_local` all fire on `push: main` and rebuild or deploy from the
+# pull-request one: `auto_downport`, `auto-cloud` and
+# `trigger_local` all fire on `push: main` and rebuild or publish from the
 # merged state, and a merge is not the state any pull request tested - two
 # individually green branches can merge into a red main. Without this leg the
-# first thing that touches the merge result is a deployment. Same pattern as
-# `frontend_check.yaml` and `render-gate.yaml`, which already had it.
+# first thing that touches the merge result is a published branch. Same
+# pattern as `delivery-check.yaml` and `render-gate.yaml`.
 on:
   pull_request:
   push:

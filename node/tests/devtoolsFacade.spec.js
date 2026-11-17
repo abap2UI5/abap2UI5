@@ -249,7 +249,7 @@ test.describe("install", () => {
   });
 
   // ... unless the host handed the page to the app (ownsPage): the
-  // backend's own GET page and the branches standard_new and cloud_new are
+  // backend's own GET page, the BSP and the app of the branch cloud are
   // one embed control filling the page, and that page's console is the app's
   test("an embedded component that owns the page captures its console", () => {
     const h = loadDevTools();

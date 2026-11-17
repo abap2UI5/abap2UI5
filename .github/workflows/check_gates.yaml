@@ -24,8 +24,8 @@ name: check_gates
 
 # Pull requests AND pushes to main - a merge is not a state any pull request
 # tested, and the workflows that fire on `push: main` (auto_downport,
-# frontend_deploy, trigger_local) rebuild and deploy from it.
-# Same pattern as frontend_check.yaml.
+# auto-cloud, trigger_local) rebuild and publish from it.
+# Same pattern as delivery-check.yaml.
 on:
   pull_request:
   push:

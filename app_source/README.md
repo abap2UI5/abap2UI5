@@ -32,3 +32,16 @@ embeds `Component.js`, `manifest.json`, the view and the control into
 
 `index.html` is not part of that page - the handler writes its own, with
 the exit's theme, bootstrap and Content-Security-Policy.
+
+## The BSP and the cloud app are this app too
+
+The same run of `npm run app2abap` writes the whole folder, `index.html`
+included, as the BSP `Z2UI5` of `src/03/02` - the files a launchpad on
+Standard ABAP loads, pulled with the rest of `main`. Never edit a page there;
+change the file here.
+
+The branch `cloud` carries this project as `app/`, to be deployed with the
+SAP Fiori tools, with one change the build makes: the backend URL of the
+manifest is the HTTP service's (`/sap/bc/http/sap/z2ui5`) instead of the ICF
+node's (`tools/build-cloud.mjs`). `embed-control/`, the lint configuration
+and this README stay behind.
