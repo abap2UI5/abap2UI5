@@ -26,7 +26,10 @@
   // Not collected, the guide class: docs/agents/building-apps.md as string literals
   // (.github/scripts/generate-guide-class.mjs). The builder calls in it are the
   // guide's examples, text for a reader - not a view this class builds.
-  "ignore": ["/src/01/05/z2ui5_cl_ui5_llm_guide."],
+  // And the BSP of src/03/02: the minimal app of app_source/webapp as pages,
+  // generated - its view names the embed control, a dependency of that app
+  // the render gate cannot load.
+  "ignore": ["/src/01/05/z2ui5_cl_ui5_llm_guide.", "/src/03/02/"],
 
   // The oldest release abap2UI5 supports — the same floor the samples are held
   // to, and the reason it matters here is that a shipped app demonstrating a
