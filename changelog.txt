@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* window_bind_tab( ) on a table behind a data reference: an edit in the browser (a checkbox, a cell, the selection of a TableSelectDialog) reaches the app - the frontend shipped the whole /<attr>/* node instead of its row delta, and the backend never writes a windowed table back whole, so the edit was dropped
 * @abap2ui5/node-runtime: abap2ui5-own-apps keeps the host's DDIC that transpiler 2.14 on writes into output/project/_ddic.mjs and imports it before the host's classes - 1.149.0 took the file for a class named like one of the package's and refused every host with a table or data element of its own
 
 

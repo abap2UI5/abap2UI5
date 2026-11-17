@@ -887,12 +887,24 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // the whole outer table.
   function buildDeltaFromPaths(paths, modelData) {
     const delta = {};
+    // the objects this function created to hold a delta below a data
+    // reference - anything else under `delta` is a whole value of the model
+    const nests = new WeakSet();
     for (const path of paths) {
       // path looks like "/<attr>" or "/<attr>/<row>/<field>" with
       // arbitrarily deep <row>/<subtable> repetitions for nested tables
       const parts = path.slice(1).split("/");
       const attr = parts[0];
-      const steps = parseDeltaSteps(parts.slice(1));
+      // A table behind a data reference (an attribute TYPE REF TO data,
+      // bound dereferenced) is the node <attr>/* of the model, so its cell
+      // edit is "/<attr>/*/<row>/<field>": the __delta goes on that node,
+      // where the backend looks for it (z2ui5_cl_ui5_srv_model, the
+      // attribute's client name). Shipping the whole <attr> instead lost the
+      // edit of a windowed table (window_bind_tab) - the backend never
+      // writes back a table the browser holds only a window of.
+      let depth = 1;
+      while (parts[depth] === "*") depth += 1;
+      const steps = parseDeltaSteps(parts.slice(depth));
       if (!steps) {
         // Scalar or unrecognized shape -> ship the whole attribute. The
         // full value always wins over any queued delta: both read the
@@ -903,10 +915,27 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
       // A full attribute queued by another path already carries every
       // cell (both read the same current model data) - never downgrade
       // it to a partial delta, regardless of Set iteration order.
-      if (attr in delta && !delta[attr]?.__delta) continue;
-      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };
-      let node = delta[attr];
-      let model = modelData[attr];
+      const keys = parts.slice(0, depth);
+      let holder = delta;
+      let model = modelData;
+      let whole = false;
+      for (const key of keys.slice(0, -1)) {
+        if (!(key in holder)) {
+          holder[key] = {};
+          nests.add(holder[key]);
+        } else if (!nests.has(holder[key])) {
+          whole = true;
+          break;
+        }
+        holder = holder[key];
+        model = model?.[key];
+      }
+      if (whole) continue;
+      const tableKey = keys[keys.length - 1];
+      if (tableKey in holder && !holder[tableKey]?.__delta) continue;
+      if (!holder[tableKey]?.__delta) holder[tableKey] = { __delta: {} };
+      let node = holder[tableKey];
+      model = model?.[tableKey];
       for (const { row, field, leaf } of steps) {
         const rows = node.__delta;
         if (!rows[row]) rows[row] = {};
