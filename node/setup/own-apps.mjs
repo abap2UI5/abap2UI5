@@ -51,6 +51,15 @@
  * package's cannot be told from a copy - it is left out, as it was before
  * 2.14. abap2UI5/protocol's conformance host transpiles with 2.13.
  *
+ * From 2.14 on project/ holds one generated file beside the host's classes:
+ * _ddic.mjs, the abap.DDIC entries of the host's tables and data elements
+ * (each origin folder has one; the package's project/_ddic.mjs registers
+ * the framework's). It is no class and replaces nothing - it adds the host's
+ * keys to abap.DDIC - so it is kept, never taken for a class of the
+ * package's name, and apps/index.mjs imports it before the classes, as the
+ * transpile's init.mjs does. Refused as a shadowing class up to 1.149.0,
+ * which stopped every host with a table or a data element of its own.
+ *
  * Also a module: import { ownApps } from "@abap2ui5/node-runtime/setup/own-apps.mjs".
  */
 import fs from "node:fs";
@@ -63,7 +72,8 @@ const RUNTIME_OUTPUT = fileURLToPath(new URL("../output/", import.meta.url));
 /* The folder the transpiler writes the transpile's own input into (2.14 on). */
 const PROJECT = "project";
 
-/* The transpile's generated files in a flat output: its boot, its unit-test runner. Never the host's. */
+/* The transpile's generated files: its boot, its unit-test runner, its DDIC. In a flat output never the
+ * host's; in project/ the one there is (_ddic.mjs, the host's DDIC - see the header). */
 const GENERATED = (file) => file.startsWith("_") || /^(init|index)\.mjs(\.map)?$/.test(file);
 
 /* An import of another transpiled file, the shapes the transpiler writes -
@@ -113,12 +123,14 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   const own = fs.readdirSync(projectDir).filter((f) => /\.mjs(\.map)?$/.test(f))
     .filter((f) => !flat || !library(f)).sort();
   const local = new Set(own);
-  if (!own.some((f) => f.endsWith(".mjs"))) {
+  if (!own.some((f) => f.endsWith(".mjs") && !GENERATED(f))) {
     throw new Error(`own-apps: ${flat ? `every file in ${output} is the package's own` : `${projectDir} is empty`}`
       + " - which of the classes are yours? "
       + "(the transpile's input_folder holds your classes, and it has to be a different folder from the libs)");
   }
-  const shadowing = own.filter((f) => index.has(f));
+  // the generated files of project/ (_ddic.mjs) are the host's too, and no class: they share the
+  // package's file name in every origin folder and replace nothing (see the header)
+  const shadowing = own.filter((f) => !GENERATED(f) && index.has(f));
   if (shadowing.length) {
     throw new Error(`own-apps: ${shadowing.length} of your class(es) have the name of one of the package's - `
       + `loaded, each would replace the package's in the runtime: ${shadowing.slice(0, 10).join(", ")}`);
@@ -162,6 +174,8 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
     }
   }
   for (const file of main) if (!order.includes(file)) order.push(file);
+  // the host's DDIC before its classes, as init.mjs imports it (only project/ has one of the host's)
+  const ddic = flat ? [] : own.filter((f) => GENERATED(f) && f.endsWith(".mjs"));
 
   fs.rmSync(apps, { recursive: true, force: true });
   fs.mkdirSync(apps, { recursive: true });
@@ -169,7 +183,7 @@ export function ownApps({ output, apps, runtimeOutput = RUNTIME_OUTPUT }) {
   fs.writeFileSync(path.join(apps, "index.mjs"), [
     `// Written by ${PACKAGE}'s abap2ui5-own-apps (setup/own-apps.mjs) - do not edit, it is`,
     "// written again with the classes. Import it after the runtime has booted (initialize()).",
-    ...order.map((file) => `await import(${JSON.stringify(`./${encodeURI(file).replace(/#/g, "%23")}`)});`),
+    ...[...ddic, ...order].map((file) => `await import(${JSON.stringify(`./${encodeURI(file).replace(/#/g, "%23")}`)});`),
     "",
   ].join("\n"));
   return { files: [...texts.keys(), "index.mjs"], modules: order };

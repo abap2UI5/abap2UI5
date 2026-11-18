@@ -403,3 +403,40 @@ test.describe("Overwrite / priority behavior", () => {
     });
   });
 });
+
+// ── 8. A table behind a data reference ──────────────────────────────────
+test.describe("Table behind a data reference (/<attr>/*) → __delta on its node", () => {
+  // an attribute TYPE REF TO data bound dereferenced is the node <attr>/*
+  // of the model; the backend looks for the delta there. Shipped whole, the
+  // edit of a windowed table (window_bind_tab) was dropped by the backend -
+  // the pick of abap-cloud-gui's value help (a TableSelectDialog over a
+  // data reference) selected nothing
+  const REF_MODEL = {
+    MR_VIEW: { "*": [{ WERKS: "1000", ZZSELKZ: false }, { WERKS: "3000", ZZSELKZ: true }] },
+    MR_STRUC: { "*": { TAB: [{ F: "a" }] } },
+    MR_VALUE: { "*": "x" },
+  };
+
+  test("a cell edit is a __delta under the * node", () => {
+    const result = _buildDeltaFromPaths(new Set(["/MR_VIEW/*/1/ZZSELKZ"]), REF_MODEL);
+    expect(result).toEqual({ MR_VIEW: { "*": { __delta: { 1: { ZZSELKZ: true } } } } });
+  });
+
+  test("two cells of two rows share the node", () => {
+    const result = _buildDeltaFromPaths(new Set(["/MR_VIEW/*/1/ZZSELKZ", "/MR_VIEW/*/0/WERKS"]), REF_MODEL);
+    expect(result).toEqual({ MR_VIEW: { "*": { __delta: { 1: { ZZSELKZ: true }, 0: { WERKS: "1000" } } } } });
+  });
+
+  test("the whole attribute wins in either order, and the model is not written", () => {
+    const before = JSON.stringify(REF_MODEL);
+    for (const order of [["/MR_VIEW", "/MR_VIEW/*/1/ZZSELKZ"], ["/MR_VIEW/*/1/ZZSELKZ", "/MR_VIEW"]]) {
+      expect(_buildDeltaFromPaths(new Set(order), REF_MODEL)).toEqual({ MR_VIEW: REF_MODEL.MR_VIEW });
+    }
+    expect(JSON.stringify(REF_MODEL)).toBe(before);
+  });
+
+  test("a structure or a value behind a reference still ships whole", () => {
+    expect(_buildDeltaFromPaths(new Set(["/MR_STRUC/*/TAB/0/F"]), REF_MODEL)).toEqual({ MR_STRUC: REF_MODEL.MR_STRUC });
+    expect(_buildDeltaFromPaths(new Set(["/MR_VALUE/*"]), REF_MODEL)).toEqual({ MR_VALUE: REF_MODEL.MR_VALUE });
+  });
+});

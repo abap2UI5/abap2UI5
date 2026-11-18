@@ -103,6 +103,7 @@ CLASS zcl_tst_sub_a IMPLEMENTATION.
                         )->a( n = `text`  v = `Close`
                         )->a( n = `press` v = client->_event( `POPUP_CLOSE` ) ).
         client->popup_display( popup->stringify( ) ).
+      " abap2ui5lint-disable-next-line close-only-roundtrip -- the roundtrip is the point: subapp-roundtrip.spec.js posts POPUP_CLOSE and asserts the sub-app's popup_destroy( )
       WHEN `POPUP_CLOSE`.
         client->popup_destroy( ).
       WHEN `SELECTION_CHANGE`.

@@ -122,7 +122,7 @@
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abap2ui5/embed-control": "^0.3.0",
-    "@abap2ui5/linter": "^0.9.0",
+    "@abap2ui5/linter": "^0.11.0",
     "@abaplint/cli": "^2.120.108",
     "@abaplint/database-sqlite": "^2.14.12",
     "@abaplint/runtime": "^2.14.33",
