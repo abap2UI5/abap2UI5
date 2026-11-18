@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-10-22
 upstream: open-abap/open-abap-core
 evidence:
-  - 'abap2UI5/playground `src/runtime/node-crypto-shim.mjs:1-18` (2026-10-14, bump-sources): from abap2UI5 1.147.0 every roundtrip hashes through `crypto.createHash(…)`, every app answered ''Network error: crypto.createHash is not available''; the shim implements SHA-256 in JS (`:46-186`) and `randomUUID` over `getRandomValues` for non-secure contexts (`:28-40`); `docs/design/build-traps.md:60-67`; abap2UI5/web-abap2UI5-build bundles the feross `buffer` and a crypto polyfill'
+  - 'abap2UI5/browser-playground `src/runtime/node-crypto-shim.mjs:1-18` (2026-10-14, bump-sources): from abap2UI5 1.147.0 every roundtrip hashes through `crypto.createHash(…)`, every app answered ''Network error: crypto.createHash is not available''; the shim implements SHA-256 in JS (`:46-186`) and `randomUUID` over `getRandomValues` for non-secure contexts (`:28-40`); `docs/design/build-traps.md:60-67`; abap2UI5/web-abap2UI5-build bundles the feross `buffer` and a crypto polyfill'
   - 'read 2026-10-22 in open-abap-core main 239b817 - `src/abap/hash/cl_abap_message_digest.clas.abap:239-240`, `src/abap/hash/cl_abap_hmac.clas.abap:54-56`, `src/fugr/openabap.fugr.generate_sec_random.abap:5`: `WRITE ''@KERNEL const crypto = await import("crypto");''` followed by `crypto.createHash(…)`; `cl_system_uuid` falls back to `window.crypto.randomUUID` only when the import fails'
 checked_upstream: 2026-10-22
 ---

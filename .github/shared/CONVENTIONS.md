@@ -102,9 +102,9 @@ Rules that follow from the role:
   the failure this rule exists to prevent. Today: `vscode-extension` omits
   `test:web` (downloads VS Code web + chromium), `samples-controls` omits
   `gates:full` and the two downport lint configs, `browser-demo` omits the
-  Playwright e2e run, `playground` and `linter` omit the Chromium download their
-  own tests then ask for by name, and `linter` also omits `codeql`, the
-  composite-action job and the publish-shaped `package` job.
+  Playwright e2e run, `browser-playground` and `linter` omit the Chromium
+  download their own tests then ask for by name, and `linter` also omits
+  `codeql`, the composite-action job and the publish-shaped `package` job.
 - `test` runs the repository's own tests. Where there is no separate test suite
   — the corpora are checked, not unit-tested — `test` is `npm run check`, so
   that the universal command still answers.

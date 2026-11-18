@@ -128,7 +128,7 @@ src/
   and the obsolete popups (`99/02`, successor:
   [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)). The retired `z2ui5_cl_util*` classes,
   `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`) moved to
-  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext): a system whose code still uses them installs it next to
+  [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet): a system whose code still uses them installs it next to
   abap2UI5.
 
 **For AI assistants: never change the production code under `src/99/` or add
@@ -139,7 +139,7 @@ of the package is allowed; the gate refuses a deletion only when the object
 name exists nowhere else under `src/` afterwards **and** it shipped in the
 latest release tag — or when it is listed, file by file, in the gate's
 `MOVED_OUT` with the repository it ships from now (`src/99/01` →
-abap2UI5-ext, 2026-11-02). Any other change under `src/99` needs a maintainer
+abap2UI5-obsolet, 2026-11-02). Any other change under `src/99` needs a maintainer
 decision recorded in `docs/agents/decisions.md` first — the popup port's
 exemption has closed again, the one for the two WHERE builders (2026-10-12)
 went with `src/99/01`, and neither is a precedent.
@@ -173,7 +173,7 @@ So:
 - **Symbols marked `FROZEN-ONLY`** exist only for `src/99`; `npm run check:frozen-only` keeps them caller-free —
   do not add callers.
 - **`z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` are no longer part of the core** — they moved to
-  [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext). Never use or reintroduce them here.
+  [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet). Never use or reintroduce them here.
 - abap2UI5 does **not** depend on abap-util at install time (abapGit has no dependency management; "clone and
   go"), hence renamed copies.
 
@@ -286,7 +286,7 @@ needs it, inline declarations used selectively (`prefer_inline: false`), no abap
 - Classes `Z2UI5_CL_*` / `Z2UI5_CX_*`, interfaces `Z2UI5_IF_*`; object types `CLAS`, `DEVC`, `INTF`, `TABL` only.
 - **No new dictionary objects** — no `TABL`, `DTEL`, `DOMA`, `DDLS` or `BDEF`. A type an app needs is a `TYPES` in
   an interface, a constant a `CONSTANTS`, a lookup table an internal table. The one remaining table is
-  `z2ui5_t_01` (the drafts); `z2ui5_t_91` moved to abap2UI5-ext. A new one needs a maintainer decision first.
+  `z2ui5_t_01` (the drafts); `z2ui5_t_91` moved to abap2UI5-obsolet. A new one needs a maintainer decision first.
   The numbers `z2ui5_t_05` - `_06` and `_11` - `_33` belong to the abap2UI5-addons (one numbering all addons
   share, decided 2026-11; the next free one is `_34`) - never reuse one of them here. `_02` was released once and
   removed again (2026-09-22); `_03`/`_04` and `_07` - `_10` are left free.

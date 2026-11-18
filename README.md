@@ -32,10 +32,10 @@
 </p>
 
 <p align="center">
-  <a href="https://abap2ui5.github.io/why/">For managers</a> •
+  <a href="https://abap2ui5.github.io/docs-manager/">For managers</a> •
   <a href="https://abap2ui5.github.io/docs/">Documentation</a> •
   <a href="https://abap2ui5.github.io/samples-site/">Samples</a> •
-  <a href="https://abap2ui5.github.io/playground/">Playground</a> •
+  <a href="https://abap2ui5.github.io/browser-playground/">Playground</a> •
   <a href="https://abap2ui5-addons.github.io/">Addons &amp; Tools</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">Issues</a> •
   <a href="https://join.slack.com/t/abapgit/shared_invite/zt-46tqufaht-QlrxTzlDqlx85CWbeUnOqg">Slack</a> •
@@ -69,24 +69,24 @@ One thing stays yours: the framework performs no authority check of its own, so 
 ## How it works
 
 <p align="center">
-  <a href="https://abap2ui5.github.io/insights/07-one-click-one-request/"><img src="https://abap2ui5.github.io/insights/07-roundtrip.svg" width="700" alt="One roundtrip in five steps: the draft is loaded, the user's changes are applied, main( ) runs, the response is built and the draft is saved under a new id"></a>
+  <a href="https://abap2ui5.github.io/docs-insights/07-one-click-one-request/"><img src="https://abap2ui5.github.io/docs-insights/07-roundtrip.svg" width="700" alt="One roundtrip in five steps: the draft is loaded, the user's changes are applied, main( ) runs, the response is built and the draft is saved under a new id"></a>
 </p>
 
 Every click is one request and one call to `main`. The framework restores the
 app instance from its draft, applies what the user changed, runs your code,
 answers with the view and the model, and saves the instance again – no session
-waits on the server in between. [The Insights](https://abap2ui5.github.io/insights/)
+waits on the server in between. [The Insights](https://abap2ui5.github.io/docs-insights/)
 take each step apart, and compare the result with
-[RAP](https://abap2ui5.github.io/insights/36-rap-or-abap2ui5/) and
-[UI5 freestyle](https://abap2ui5.github.io/insights/37-freestyle-or-abap2ui5/).
+[RAP](https://abap2ui5.github.io/docs-insights/36-rap-or-abap2ui5/) and
+[UI5 freestyle](https://abap2ui5.github.io/docs-insights/37-freestyle-or-abap2ui5/).
 
 ## Where to go
 
 | | |
 | --- | --- |
-| **For managers** | [What abap2UI5 means for an organization](https://abap2ui5.github.io/why/) – what it can build, how it compares, what it costs, who runs it |
+| **For managers** | [What abap2UI5 means for an organization](https://abap2ui5.github.io/docs-manager/) – what it can build, how it compares, what it costs, who runs it |
 | **For developers** | [The documentation](https://abap2ui5.github.io/docs/) – quickstart, tutorial, cookbook, production, [developing with AI](https://abap2ui5.github.io/docs/get_started/ai) |
-| **Try it** | [The playground](https://abap2ui5.github.io/playground/) – ABAP in the editor, the running app beside it, nothing installed; [the samples](https://abap2ui5.github.io/samples-site/) – hundreds of ready-to-run apps |
+| **Try it** | [The playground](https://abap2ui5.github.io/browser-playground/) – ABAP in the editor, the running app beside it, nothing installed; [the samples](https://abap2ui5.github.io/samples-site/) – hundreds of ready-to-run apps |
 | **Around it** | [Addons & Tools](https://abap2ui5-addons.github.io/) – what to install beside it, and the tools for your editor, pipeline and agent |
 
 Working with Claude Code? Two commands install the abap2UI5 plugin – the agent skills, the MCP server and the lint hook:

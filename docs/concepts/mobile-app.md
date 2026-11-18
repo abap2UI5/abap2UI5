@@ -2,7 +2,7 @@
 
 ## What exists
 
-[abap2UI5/mobile-shell](https://github.com/abap2UI5/mobile-shell) is a
+[abap2UI5-addons/embed-mobile](https://github.com/abap2UI5-addons/embed-mobile) is a
 proof of concept: a generic native app for iOS and Android that knows one
 URL, shows the regular frontend in a webview and offers a small bridge
 (`window.abap2ui5Native`) to the barcode scanner, push notifications and a

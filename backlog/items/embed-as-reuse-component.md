@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Embed abap2UI5 in other UI5 apps as a reuse component (freestyle views, Fiori elements extensions)'
-summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5/embed-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else (the control's ownsPage property too, abap2UI5/embed-control#29); an embedded component's root is a sap.m.NavContainer instead of the full-screen sap.m.App (2026-10-13), and its messages stay in the page-wide messaging by decision (2026-10-13); the rest of the wire (HASH_BACK, PATHNAME/SEARCH) waits for real demand
+summary: Stage 2 is done - the frontend state is per component (core/Context.js) and several z2ui5.Component instances run side by side on one page - and the control that wraps it exists (z2ui5.embed.Container, abap2UI5-addons/embed-ui5-control, loading the frontend through ?z2ui5-bundle); of stage 1 the embedded flag leaves the page to the host - the URL, the title, the favicon, the global busy indicator and the leave-page prompt - and ownsPage hands it back to a host that is the component and nothing else (the control's ownsPage property too, abap2UI5-addons/embed-ui5-control#29); an embedded component's root is a sap.m.NavContainer instead of the full-screen sap.m.App (2026-10-13), and its messages stay in the page-wide messaging by decision (2026-10-13); the rest of the wire (HASH_BACK, PATHNAME/SEARCH) waits for real demand
 priority: low
 state: open
 first_seen: 2026-09-23
@@ -250,7 +250,7 @@ instance.
 
 The wrapper around the `ComponentContainer` came before stage 1 after all:
 `z2ui5.embed.Container` in
-[abap2UI5/embed-control](https://github.com/abap2UI5/embed-control), the
+[abap2UI5-addons/embed-ui5-control](https://github.com/abap2UI5-addons/embed-ui5-control), the
 npm package `@abap2ui5/embed-control`, with `app`, `endpoint` and `params`
 properties. It ships no frontend - it loads the bundle above from the
 backend it talks to, so it needs abap2UI5 1.145.0 or later - and it is what
@@ -258,7 +258,7 @@ asked for `componentData.endpoint` and the bundle. The stage 1 items above
 are done except for the rest of the wire: the URL (2026-09-28), the title,
 the favicon, the busy indicator and the prompt (2026-10-12), and the root,
 a `sap.m.NavContainer` (2026-10-13). Its `ownsPage` property
-(abap2UI5/embed-control#29) hands the whole page back, `ownsHash` is its
+(abap2UI5-addons/embed-ui5-control#29) hands the whole page back, `ownsHash` is its
 older name.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and

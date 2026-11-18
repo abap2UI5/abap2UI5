@@ -8,7 +8,7 @@
 // @abap2ui5/bsp would generate: it lists files the webapp no longer has, and
 // replacing it is a change to every delivered branch of its own.
 //
-// run.js itself stays, unchanged and self-contained: abap2UI5/embed-control's
+// run.js itself stays, unchanged and self-contained: abap2UI5-addons/embed-ui5-control's
 // scripts/build-bsp.mjs copies this folder into a working directory and runs
 // it there, where tools/bsp is not next to it. It goes once that build calls
 // @abap2ui5/bsp.
