@@ -52,10 +52,10 @@ const EXEMPT = [
   // its closing are recorded in AGENTS.md, "Layered Design".
   //
   // The two src/99/01 exemptions of 2026-10-12 (the dynamic WHERE builders)
-  // went with the package: src/99/01 moved to abap2UI5/abap2UI5-ext.
+  // went with the package: src/99/01 moved to abap2UI5/abap2UI5-obsolet.
 ];
 
-// src/99/01 - the legacy utilities - moved to abap2UI5/abap2UI5-ext
+// src/99/01 - the legacy utilities - moved to abap2UI5/abap2UI5-obsolet
 // (maintainer decision 2026-11-02; layout-management, the one addon still
 // calling them, declares that repository). The production files and the
 // package descriptor - the package itself leaves; test classes and sidecars
@@ -73,7 +73,7 @@ const MOVED_OUT = new Map(
     "z2ui5_cx_util_error.clas.abap",
     "z2ui5_t_91.tabl.xml",
     "package.devc.xml",
-  ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-ext"]),
+  ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-obsolet"]),
 );
 
 const head = process.env.HEAD_SHA || "HEAD";

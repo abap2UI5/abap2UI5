@@ -28,7 +28,7 @@ gated, rendered and downported.
   control. Read the best hit with `read_example { class }`.
   When the request needs a control you are unsure of,
   `capabilities` says whether abap2UI5 can express it at all.
-- Without MCP: fetch https://abap2ui5.github.io/playground/samples/apps.json
+- Without MCP: fetch https://abap2ui5.github.io/browser-playground/samples/apps.json
   (title, summary and keywords of every sample of the three catalogues) and
   read the hit's source on GitHub. If that host is unreachable, the same
   catalogues are `catalogue.json` at the root of

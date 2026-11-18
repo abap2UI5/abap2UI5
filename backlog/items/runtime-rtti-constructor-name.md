@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
-  - 'abap2UI5/playground `tools/build-framework.mjs:329-334` (2026-10): `keepNames: true` with the comment that `abap.types.String` ''collides with the global String on sight''; `docs/design/build-traps.md:44-50`: wrong DESCRIBE results that surfaced as `CONVT_NO_NUMBER` before the flag was set; the web build (abap2UI5/web-abap2UI5-build) carries the same flag'
+  - 'abap2UI5/browser-playground `tools/build-framework.mjs:329-334` (2026-10): `keepNames: true` with the comment that `abap.types.String` ''collides with the global String on sight''; `docs/design/build-traps.md:44-50`: wrong DESCRIBE results that surfaced as `CONVT_NO_NUMBER` before the flag was set; the web build (abap2UI5/web-abap2UI5-build) carries the same flag'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `grep -rn "constructor.name" packages/runtime/src` finds the dispatch in the RTTI and conversion helpers'
 checked_upstream: 2026-10-22
 ---

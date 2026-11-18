@@ -1,12 +1,12 @@
 name: Who runs it - add your company
-description: Running abap2UI5? Add your company to "Who runs it" on abap2ui5.github.io/why - one row, public, checked by a maintainer before it goes live.
+description: Running abap2UI5? Add your company to "Who runs it" on abap2ui5.github.io/docs-manager - one row, public, checked by a maintainer before it goes live.
 title: "Who runs it: <company>"
 labels: ["who-runs-it"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you. Every row on [Who runs it](https://abap2ui5.github.io/why/#who-runs-it) tells the next reader that abap2UI5 runs in their industry too. Only what you write here is published; nothing is looked up or added.
+        Thank you. Every row on [Who runs it](https://abap2ui5.github.io/docs-manager/#who-runs-it) tells the next reader that abap2UI5 runs in their industry too. Only what you write here is published; nothing is looked up or added.
   - type: input
     id: company
     attributes:
@@ -48,5 +48,5 @@ body:
     attributes:
       label: Permission
       options:
-        - label: I am allowed to speak for this company and agree to the row above being published on abap2ui5.github.io/why.
+        - label: I am allowed to speak for this company and agree to the row above being published on abap2ui5.github.io/docs-manager.
           required: true

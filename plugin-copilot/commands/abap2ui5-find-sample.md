@@ -24,7 +24,7 @@ The three catalogues:
   or the UI5 control name; `repo: "samples-controls"` when the
   request names a control. If nothing fits a control question,
   `capabilities` says whether abap2UI5 can express it at all.
-- **Without MCP**: fetch https://abap2ui5.github.io/playground/samples/apps.json
+- **Without MCP**: fetch https://abap2ui5.github.io/browser-playground/samples/apps.json
   (every sample of the three catalogues, with title, summary and keywords).
   If that host is unreachable, fetch `catalogue.json` from
   `https://raw.githubusercontent.com/abap2UI5/<repo>/main/catalogue.json`
@@ -43,7 +43,7 @@ The best three, each as:
 - **`CLASS_NAME`** (repository) - what it shows, in one sentence; what it
   needs from the system when that is more than abap2UI5.
   Source: `https://github.com/abap2UI5/<repo>/blob/main/<file>`; running
-  version: `https://abap2ui5.github.io/playground/samples/<class in lower case>/`
+  version: `https://abap2ui5.github.io/browser-playground/samples/<class in lower case>/`
   only when you fetched `apps.json` and it lists the class - the MCP
   `examples` entries do not say, so leave the line out rather than writing
   that it is not listed.

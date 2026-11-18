@@ -9,7 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5/mcp-server `lib/runtime.mjs:3159-3166` (2026-10): ''It takes no filter … the patch is refused … when that line is not where the template put it''; `RUNNER_LOOP = ''for (const st of getData()) {''` is replaced textually (`:3236-3240`); `:3177-3195` guesses a fixture failure from stack frames; `:3299-3302` raises `--stack-trace-limit=100` because V8''s ten frames lose the test class'
   - 'abap2UI5-addons/abap-agent-runtime `.github/scripts/unit.mjs:129-237`: cuts the generated `index.mjs` at `"async function run"` (`:131`) and appends a runner with a prefix filter (`UNIT_FILTER`), a try around `class_setup` and PASS/FAIL/SKIP tallies'
-  - 'abap2UI5/playground `src/runtime/index.mjs:153-158`: runs one test class at a time because ''The runner calls class_setup and setup outside its own TRY … every test of every class came back failed'''
+  - 'abap2UI5/browser-playground `src/runtime/index.mjs:153-158`: runs one test class at a time because ''The runner calls class_setup and setup outside its own TRY … every test of every class came back failed'''
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/unit_test.ts:231`: `if (localClass.class_setup) await localClass.class_setup();` with no try; the runner reads no arguments; JSON output exists only in `unitTestScriptOpen`'
 checked_upstream: 2026-10-22
 ---
