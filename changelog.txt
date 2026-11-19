@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+- BREAKING (unreleased API): the offline queue - cs_event-offline_queue, the frontend's core/Offline.js and the replay in core/Server.js. An edge case the framework does not carry: an event that cannot reach the backend ends in the error overlay with its Retry, as every other one. Sample 543 is removed with it
 ! BREAKING (unreleased API): the windowed table is app-driven - window_bind_tab( val total event window ): the app holds the rows it has loaded and loads, sorts, filters and counts them itself, the way an OData service answers $skip, $top, $orderby and $filter. The browser's requests (more rows, a sort, a filter) arrive as the app's event with z2ui5_if_client=>ty_s_window_request in get( )-r_event_data (cs_window_reason MORE / SORT / FILTER). t_sort and t_filter of window_bind_tab( ) and window_get_row( ) are removed - val is what the browser shows, a row index is its row
 - the server-side sort and filter of windowed tables, the window index of a row delta and the draft's frame of kept tables (z2ui5_cl_ui5_srv_window is the request parser now)
 ! one pull is a running installation: the ICF node /sap/bc/z2ui5, its handler z2ui5_cl_ui5_icf_handler and the BSP Z2UI5 for the launchpad are part of this repository (src/03) - they were the branch standard_new of abap2UI5/frontend, a second repository to pull. The node and the BSP keep their names, the handler is renamed (it was z2ui5_cl_lp_handler); an installation that has that repository removes it from abapGit WITHOUT deleting its objects and pulls this one

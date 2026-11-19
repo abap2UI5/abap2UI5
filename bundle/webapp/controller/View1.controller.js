@@ -397,8 +397,7 @@ sap.ui.define(
       // The keystroke first - it belongs to the screen the response built -
       // then a window request of a table (oQueuedWindow); when the first one
       // started a roundtrip the second meets the busy guard and is kept
-      // again, in its own slot, for the end of that one. Also called by
-      // Server._keepOffline, the roundtrip that ends without a render.
+      // again, in its own slot, for the end of that one.
       _dispatchQueuedEvent() {
         const state = this.ctx.state;
         for (const slot of ["oQueuedEvent", "oQueuedWindow"]) {

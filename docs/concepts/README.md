@@ -15,7 +15,6 @@ of these.
 
 | Concept | In one sentence | State |
 |---|---|---|
-| [Offline queue](offline.md) | Events an app names wait in the browser while the network is gone and are sent in order when it is back | first cut on a branch: `cs_event-offline_queue`, experimental |
 | [Visual builder, both ways](visual-builder.md) | Build a view by clicking, and click through a view that was written by hand - the class stays the source | proposal |
 | [App catalog](app-catalog.md) | Every app of an installation with its owner, version, transport and tiles, as an app | proposal |
 | [Approvals](approvals.md) | A small add-on for the status-and-inbox kind of workflow most apps need | proposal |

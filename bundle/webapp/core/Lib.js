@@ -381,10 +381,8 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // the next one over from here; firing them back to back lost every one
   // but the first on the busy guard. The one-shot hook waits on the
   // onRoundtripEnd list - run where a rendered response runs its
-  // onAfterRendering hooks, and also when the event was kept in the offline
-  // queue instead (Server._keepOffline), a roundtrip that renders nothing
-  // and used to leave every waiter parked for good - and takes itself off
-  // it again; `owner` destroyed meanwhile ends it.
+  // onAfterRendering hooks - and takes itself off it again; `owner`
+  // destroyed meanwhile ends it.
   // Returns a function that cancels the wait (for the owner's exit).
   // `owner` is the control, and its context is what says "busy": a
   // control that belongs to no context (not in any slot) is never waiting

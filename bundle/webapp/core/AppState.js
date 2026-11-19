@@ -325,9 +325,8 @@ sap.ui.define([], () => {
       onAfterRoundtrip: [],
       onAfterRendering: [],
       // the one-shot waiters of Lib.afterRoundtrip: run when a roundtrip
-      // ends, whether its response rendered (View1) or its event was kept
-      // offline (Server._keepOffline) - apart from onAfterRendering, whose
-      // hooks (the recorder, the companion controls) belong to a render
+      // ends (View1) - apart from onAfterRendering, whose hooks (the
+      // recorder, the companion controls) belong to a render
       onRoundtripEnd: [],
       onBeforeEventFrontend: [],
       onErrorDetails: [],
