@@ -550,31 +550,16 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~window_bind_tab.
 
-    " the public types are the internal ones component for component - a
-    " plain move, CORRESPONDING of a table does not downport to 7.02
-    DATA lt_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
-    DATA lt_filter TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
-
-    lt_sort   = t_sort.
-    lt_filter = t_filter.
-
     " the table itself, or a data reference to it - see val_as_data_ref
     result = mo_srv_bind->main( val    = val_as_data_ref( val )
-                                config = VALUE #( window              = nmax( val1 = window
-                                                                              val2 = 1 )
-                                                  t_window_sort       = lt_sort
-                                                  t_window_filter     = lt_filter
-                                                  check_window_sort   = xsdbool( t_sort IS SUPPLIED )
-                                                  check_window_filter = xsdbool( t_filter IS SUPPLIED ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~window_get_row.
-
-    " the same two forms _bind( ) and window_bind_tab( ) take
-    result = mo_srv_bind->window_row( val = val_as_data_ref( val )
-                                      row = row ).
+                                config = VALUE #( window           = nmax( val1 = window
+                                                                       val2     = 1 )
+                                                  window_total     = nmax( val1 = total
+                                                                       val2     = 0 )
+                                                  " the attribute the total is - read
+                                                  " anew on every response
+                                                  window_total_ref = REF #( total )
+                                                  window_event     = event ) ).
 
   ENDMETHOD.
 

@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (35)
+## Methods (34)
 
 ### `view_destroy`
 
@@ -287,24 +287,13 @@ The PATH form of _bind( ) under a name of its own: returns the model PATH of val
 ```abap
 window_bind_tab(
     val TYPE data
-    window TYPE i DEFAULT 100
-    t_sort TYPE ty_t_bind_tab_sort OPTIONAL
-    t_filter TYPE ty_t_bind_tab_filter OPTIONAL )
+    total TYPE i
+    event TYPE clike
+    window TYPE i DEFAULT 100 )
     -> string
 ```
 
-Bind a LARGE table to a list control - the browser gets it a window at a time instead of whole. Returns the value binding like _bind( ) (`items = client->window_bind_tab( mt_rows )`); the rows of the template bind relative (`\{NAME\}`), as with _bind( ).
-
-### `window_get_row`
-
-```abap
-window_get_row(
-    val TYPE data
-    row TYPE i )
-    -> i
-```
-
-The row of a window_bind_tab( ) table that a row of the browser shows. The browser holds the rows in the order the server sorted and filtered them, so the index in a binding path an event hands over (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a position in THAT order, not the row of the …
+Bind a LARGE result to a list control that the APP loads a window at a time - the way an OData service answers $skip, $top, $orderby and $filter.
 
 ### `follow_up_action`
 
@@ -386,3 +375,5 @@ The app instance on the other side of the last navigation: inside a called app, 
   `default`, `fresh`, `keep`
 - **`cs_transition`** — the page transitions `view_display( transition = … )` takes:
   `slide`, `base_slide`, `fade`, `flip`, `show`
+- **`cs_window_reason`** — why the list binding of a windowed table asks (`ty_s_window_request-reason`): more rows, or the first window of a new sort or filter:
+  `more`, `sort`, `filter`

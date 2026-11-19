@@ -992,26 +992,19 @@ CLASS ltcl_03_options IMPLEMENTATION.
 ENDCLASS.
 
 
-" window_bind_tab( ): the window is stored on the attribute, the sorters and the
-" filter the app passes take effect when they change
+" window_bind_tab( ): the window, the total and the app's event are stored on
+" the attribute; a new total is pushed in the same roundtrip
 CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
     METHODS window_stored        FOR TESTING RAISING cx_static_check.
-    METHODS sort_applied_on_change FOR TESTING RAISING cx_static_check.
-    METHODS filter_applied_on_change FOR TESTING RAISING cx_static_check.
     METHODS plain_bind_keeps     FOR TESTING RAISING cx_static_check.
     METHODS no_table_refused     FOR TESTING RAISING cx_static_check.
     METHODS reference_path       FOR TESTING RAISING cx_static_check.
-    METHODS row_of_window        FOR TESTING RAISING cx_static_check.
-    METHODS row_of_plain_table   FOR TESTING RAISING cx_static_check.
-    " a new sort or filter from the app has to reach the browser in the
-    " same roundtrip: the model is marked for a push; the same one is not
-    METHODS new_order_pushed     FOR TESTING RAISING cx_static_check.
-    " the order is memoized per render, and computed anew when the table
-    " grows or the sort changes
-    METHODS row_memo_follows     FOR TESTING RAISING cx_static_check.
+    " a new total from the app has to reach the browser in the same
+    " roundtrip: the model is marked for a push; the same one is not
+    METHODS new_total_pushed     FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1022,120 +1015,32 @@ CLASS ltcl_04_window IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
                                         act = bind( ir_val    = REF #( mo_app->mt_tab )
-                                                    is_config = VALUE #( window = 10 ) ) ).
+                                                    is_config = VALUE #( window       = 10
+                                                                         window_total = 500
+                                                                         window_event = `ROWS` ) ) ).
     cl_abap_unit_assert=>assert_equals( exp = 10
                                         act = mo_bind->mr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = mo_bind->mr_attri->window_count ).
-
-  ENDMETHOD.
-
-  METHOD sort_applied_on_change.
-
-    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
-                          window            = 10
-                          t_window_sort     = VALUE #( ( path = `NAME` ) )
-                          check_window_sort = abap_true ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = `NAME`
-                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
-
-    " the user sorts in the browser and grows the window
-    mo_bind->mr_attri->t_window_sort = VALUE #( ( path = `JOB` descending = abap_true ) ).
-    mo_bind->mr_attri->window_count  = 30.
-
-    " rendered again with the same sort: the user's stays
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = `JOB`
-                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
-    cl_abap_unit_assert=>assert_equals( exp = 30
-                                        act = mo_bind->mr_attri->window_count ).
-
-    " a new sort from the app replaces it, from the first window
-    ls_config-t_window_sort = VALUE #( ( path = `NAME` descending = abap_true ) ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-descending ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = mo_bind->mr_attri->window_count ).
-
-    " an empty sort passed is a change too - it clears
-    CLEAR ls_config-t_window_sort.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_initial( mo_bind->mr_attri->t_window_sort ).
-
-  ENDMETHOD.
-
-  METHOD filter_applied_on_change.
-
-    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
-                          window              = 10
-                          t_window_filter     = VALUE #( ( group = 1 path = `NAME` operator = `Contains` value1 = `a` ) )
-                          check_window_filter = abap_true ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_bind->mr_attri->t_window_filter ) ).
-
-    " the user filters a column in the browser (z2ui5_cl_ui5_srv_window=>
-    " event_apply): the binding's part, ANDed with the app's
-    DATA(lt_ui) = VALUE z2ui5_if_ui5_types=>ty_t_window_filter(
-                      ( group = 1 path = `JOB` operator = `EQ` value1 = `x` ) ).
-    mo_bind->mr_attri->t_window_filter_ui = lt_ui.
-    mo_bind->mr_attri->t_window_filter    = z2ui5_cl_ui5_srv_window=>filter_merge(
-                                                t_app = ls_config-t_window_filter
-                                                t_ui  = lt_ui ).
-    DATA(lt_both) = mo_bind->mr_attri->t_window_filter.
-    mo_bind->mr_attri->window_count = 30.
-
-    " the same filter from the app keeps it, and the rows the browser holds
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = lt_both
-                                        act = mo_bind->mr_attri->t_window_filter ).
-    cl_abap_unit_assert=>assert_equals( exp = 30
-                                        act = mo_bind->mr_attri->window_count ).
-
-    " a new filter from the app replaces the app's part and leaves the
-    " user's column filter - from the first window
-    ls_config-t_window_filter = VALUE #( ( group = 7 path = `NAME` operator = `StartsWith` value1 = `b` ) ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = VALUE z2ui5_if_ui5_types=>ty_t_window_filter(
-                  ( group = 1 path = `NAME` operator = `StartsWith` value1 = `b` )
-                  ( group = 2 path = `JOB`  operator = `EQ`         value1 = `x` ) )
-        act = mo_bind->mr_attri->t_window_filter ).
-    cl_abap_unit_assert=>assert_equals( exp = lt_ui
-                                        act = mo_bind->mr_attri->t_window_filter_ui ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = mo_bind->mr_attri->window_count ).
-
-    " an empty one clears the app's part alone
-    CLEAR ls_config-t_window_filter.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_equals( exp = lt_ui
-                                        act = mo_bind->mr_attri->t_window_filter ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = mo_bind->mr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
+                                        act = mo_bind->mr_attri->window_event ).
 
   ENDMETHOD.
 
   METHOD plain_bind_keeps.
 
     bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window            = 10
-                               t_window_sort     = VALUE #( ( path = `NAME` ) )
-                               check_window_sort = abap_true ) ).
+          is_config = VALUE #( window       = 10
+                               window_total = 500
+                               window_event = `ROWS` ) ).
     " a plain _bind( ) of the same table elsewhere in the view
     bind( REF #( mo_app->mt_tab ) ).
     cl_abap_unit_assert=>assert_equals( exp = 10
                                         act = mo_bind->mr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = `NAME`
-                                        act = mo_bind->mr_attri->t_window_sort[ 1 ]-path ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = mo_bind->mr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
+                                        act = mo_bind->mr_attri->window_event ).
 
   ENDMETHOD.
 
@@ -1163,97 +1068,25 @@ CLASS ltcl_04_window IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD row_of_window.
+  METHOD new_total_pushed.
 
-    " sorted by name: John Miller (row 2) shows first, Michael Adams (row 1)
-    " second
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window            = 10
-                               t_window_sort     = VALUE #( ( path = `NAME` ) )
-                               check_window_sort = abap_true ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 1 ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 2 ) ).
-    " past the rows the browser can show
-    cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 3 ) ).
-
-    " a filter that lets Michael Adams alone through: he is position 1
-    mo_bind->mr_attri->t_window_filter = VALUE #( ( group = 1 path = `NAME` operator = `StartsWith` value1 = `mich` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 1 ) ).
-
-  ENDMETHOD.
-
-  METHOD new_order_pushed.
-
-    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config(
-                          window            = 10
-                          t_window_sort     = VALUE #( ( path = `NAME` ) )
-                          check_window_sort = abap_true ).
+    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config( window       = 10
+                                                                  window_total = 500
+                                                                  window_event = `ROWS` ).
     bind( ir_val    = REF #( mo_app->mt_tab )
           is_config = ls_config ).
     CLEAR mo_cont->mv_model_client_stale.
 
-    " rendered again with the same sort: nothing to push
+    " rendered again with the same total: nothing to push
     bind( ir_val    = REF #( mo_app->mt_tab )
           is_config = ls_config ).
     cl_abap_unit_assert=>assert_false( mo_cont->mv_model_client_stale ).
 
-    " a new sort from the app: the browser has to get it now
-    ls_config-t_window_sort = VALUE #( ( path = `JOB` ) ).
+    " a new total - a filter in the app: the browser has to get it now
+    ls_config-window_total = 42.
     bind( ir_val    = REF #( mo_app->mt_tab )
           is_config = ls_config ).
     cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
-
-    " a new filter as well
-    CLEAR mo_cont->mv_model_client_stale.
-    ls_config-t_window_filter     = VALUE #( ( group = 1 path = `NAME` operator = `EQ` value1 = `x` ) ).
-    ls_config-check_window_filter = abap_true.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
-
-  ENDMETHOD.
-
-  METHOD row_memo_follows.
-
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window            = 10
-                               t_window_sort     = VALUE #( ( path = `NAME` ) )
-                               check_window_sort = abap_true ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 1 ) ).
-
-    " the same table sorted the other way round: computed anew
-    mo_bind->mr_attri->t_window_sort = VALUE #( ( path = `NAME` descending = abap_true ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 1 ) ).
-
-    " a row more: the memo of two rows is not the answer for three
-    APPEND mo_app->mt_tab[ 1 ] TO mo_app->mt_tab.
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( z2ui5_cl_ui5_srv_window=>index( tab = mo_app->mt_tab ) ) ).
-    cl_abap_unit_assert=>assert_differs( exp = 0
-                                         act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                    row = 3 ) ).
-
-  ENDMETHOD.
-
-  METHOD row_of_plain_table.
-
-    " bound the classic way, the position is the row
-    bind( REF #( mo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = mo_bind->window_row( val = REF #( mo_app->mt_tab )
-                                                                   row = 2 ) ).
 
   ENDMETHOD.
 

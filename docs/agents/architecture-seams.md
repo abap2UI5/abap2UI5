@@ -77,29 +77,13 @@ transformation rebuilds the object from the class named in the asXML and needs
 a concretely typed target, so a `REF TO object` there would give it nothing to
 build into.
 
-**The windowed tables travel next to the container, not inside it.** A
-table bound with `window_bind_tab( )` is the one part of an app that can
-outweigh everything else in it by orders of magnitude - 10,000 rows of which
-the browser holds 100 - and most roundtrips leave it untouched. So the
-shipped serializer takes each such table out of the app before the
-transformation (`z2ui5_cl_ui5_srv_model=>main_kept_detach`), writes its rows
-as asXML of their own in a frame in front of the container's asXML
-(`<!--z2ui5-kept MT_ROWS=<length>-->`, then the rows, then the container), and
-puts the same rows back. The container keeps the asXML of each table and a
-copy of the rows it was written from (`mt_kept`, a cache the serializer
-clears around the transformation, so it never enters a draft); the next save
-compares the rows with the copy and reuses the asXML when they are equal. A
-parse seeds the same cache, so on a system the saving half of an unchanged
-table is one compare instead of a transformation. On the Node host, where
-the live container survives between requests, nothing of the table is
-serialized or parsed at all - a roundtrip on 10,000 rows went from 650 ms to
-70-80 ms. Every draft still carries all rows: Back/Forward, a bookmark and
-the expiry behave as before, and a draft without the frame (written before
-it existed, or of an app without a windowed table) parses as it always did.
-A table behind a data reference (`->*`) is not taken out - it travels in the
-S-RTTI payload of its reference. Host serializers that transform the
-container themselves see `mt_kept` like any other attribute; clearing it
-first keeps the copies out of their drafts.
+**The windowed tables travel inside the container like every other
+attribute.** Since 2026-11-19 a table bound with `window_bind_tab( )` holds
+only the rows the app has loaded (the app loads windows of its source the way
+an OData service does), so it is no larger than what the browser shows and
+needs no path of its own. The frame of kept tables in front of the
+container's asXML (`<!--z2ui5-kept ...-->`), its cache and the detach and
+reattach around the transformation were removed with the server-side window.
 
 What an implementation has to keep is a round trip, not a format:
 `parse( stringify( container ) )` must answer a container the framework can go

@@ -1,49 +1,36 @@
 // The framework's JSON model, with the list binding of a WINDOWED table.
 //
-// A table bound with `window_bind_tab( val = mt_rows window = 100 )` does not travel
-// whole: the response carries the first rows of it, in the order the
-// binding asked for, and next to the model's data the state of the window
-// under `/__WINDOW/<path>` - TOTAL (the rows the filter lets through), COUNT
-// (the rows sent) and SIZE (one window). A list bound to that path gets a
-// WindowListBinding, which
+// A table bound with `window_bind_tab( val = mt_rows total = mv_total
+// event = `ROWS` )` holds the rows the APP has loaded, in the order it loaded
+// them; next to the model's data the state of the window sits under
+// `/__WINDOW/<path>` - TOTAL (the rows there are in all, as the app says),
+// COUNT (the rows loaded), SIZE (one window) and EVENT (the app's event). A
+// list bound to that path gets a WindowListBinding, which
 //   - answers getLength( ) with TOTAL, so a growing sap.m.Table shows
 //     "More [100 / 10000]" and a sap.ui.table.Table a scrollbar for all rows;
-//   - asks the backend for more rows when a control asks it for contexts
-//     past the ones it holds (getContexts) - whole windows, at most TOTAL;
-//   - sorts and filters on the backend instead of in the browser: sort( ) and
-//     filter( ) - the column menu of sap.ui.table, a BINDING_CALL from the
-//     app - send the sorters and the filter to the backend, which sorts and
-//     filters ALL rows and answers with the first window of the new order.
+//   - asks the APP for more rows when a control asks for contexts past the
+//     ones it holds (getContexts): reason MORE, skip = the rows loaded,
+//     top = whole windows up to the need, at most TOTAL;
+//   - neither sorts nor filters in the browser: sort( ) and filter( ) - the
+//     column menu of sap.ui.table, a BINDING_CALL from the app - ask the app
+//     (reason SORT / FILTER) for the first window in the new order, with the
+//     binding's sorters AND filters, so the app sees the whole state of the
+//     columns in one request.
 //
-// THE ORDER IS THE BACKEND'S, and this binding does not know it. The app
-// sets one with t_sort / t_filter of window_bind_tab( ), a binding of a view
-// rendered before may have set one, and none of that is in aSorters or
-// aFilters here. So a request says only what THIS binding was just told:
-//   - a request for more rows says nothing - more rows of the same order;
-//   - sort( ) names the sorters and nothing else, filter( ) the filters
-//     and nothing else, so a column filter does not undo the app's sort.
-// Every request used to carry aSorters and the filters, and the backend
-// took them as the order: the first "More" after an app sort sent an empty
-// list and the rows came back unsorted and unfiltered. The other way to
-// mend that - the response hands the order over and the binding adopts and
-// re-sends it - was not taken: a request then carries a copy of the order
-// that may be stale by the time it is sent (kept behind a roundtrip in
-// which the app changed the sort, it would undo that), and nothing here
-// reads the order. The backend's half of this is
-// z2ui5_cl_ui5_srv_window=>event_apply.
-// What filter( ) sends is the binding's filter, and the backend ANDs it
-// with the app's t_filter: neither replaces the other.
-// The request is the framework event EVENT through the slot's eB, so it
-// carries the model delta like any roundtrip; the backend answers it without
-// calling the app (z2ui5_cl_ui5_handler, cs_event_window) and pushes the
-// model. Everything here is a thin executor (AGENTS.md rule 19): the binding
-// says what it was asked, the backend decides what the rows are.
+// A request is the app's event (EVENT) behind the framework event
+// ___ZZZ_WIN through the slot's eB, so it carries the model delta like any
+// roundtrip. The backend (z2ui5_cl_ui5_handler, cs_event_window) hands the
+// request to the app as get( )-r_event_data
+// (z2ui5_if_client=>ty_s_window_request) and calls main( ): the APP loads,
+// sorts, filters and counts. Arguments: [path, event, reason, skip, top,
+// sorters, filter groups] - the last two as JSON, for SORT and FILTER only.
+// Everything here is a thin executor (AGENTS.md rule 19).
 //
 // Not windowed - the default, and a path without its `/__WINDOW` entry - the
 // model and its bindings are JSONModel's own, unchanged.
 //
 // Sorters and filters written into the binding info of the view are not
-// applied to a windowed list: the rows arrive in the order the backend gives,
+// applied to a windowed list: the rows arrive in the order the app gives,
 // and the binding's sort( ) and filter( ) are the way to change it.
 sap.ui.define(
   [
@@ -58,6 +45,8 @@ sap.ui.define(
     // the framework event of a window request - z2ui5_if_ui5_types=>
     // cs_event_window on the backend, which dispatches on it
     const EVENT = "___ZZZ_WIN";
+    // why the binding asks - z2ui5_if_client=>cs_window_reason
+    const REASON = { MORE: "MORE", SORT: "SORT", FILTER: "FILTER" };
     // the model key of the window states - z2ui5_if_ui5_types=>
     // cv_window_model_key
     const META = "__WINDOW";
@@ -111,7 +100,7 @@ sap.ui.define(
     }
 
     // The filters of a binding as the backend takes them: groups ANDed, the
-    // conditions of a group ORed (z2ui5_if_ui5_types=>ty_t_window_filter).
+    // conditions of a group ORed (z2ui5_if_client=>ty_t_bind_tab_filter).
     // UI5's own rule for a list of filters is kept: the ones on one path are
     // ORed, the paths ANDed. A multi-filter is taken apart when it has that
     // shape - an AND of single conditions or of ORs of them, an OR of single
@@ -204,7 +193,7 @@ sap.ui.define(
       return this.oModel.getProperty(`/${META}/${this._z2ui5Name}`);
     };
 
-    // the rows the backend sorted and filtered arrive in that order: the
+    // the rows the app sorted and filtered arrive in that order: the
     // browser applies neither
     WindowListBinding.prototype.applyFilter = function (...args) {
       if (!this._z2ui5Meta()) {
@@ -260,7 +249,7 @@ sap.ui.define(
       const wanted = Math.min(total, Math.ceil(need / size) * size);
       if (wanted <= this._z2ui5Wanted) return;
       this._z2ui5Wanted = wanted;
-      this._z2ui5Send(wanted, true);
+      this._z2ui5Send(meta, REASON.MORE, loaded, wanted - loaded, true);
     };
 
     WindowListBinding.prototype.sort = function (aSorters, ...rest) {
@@ -269,7 +258,7 @@ sap.ui.define(
         return JSONListBinding.prototype.sort.call(this, aSorters, ...rest);
       }
       this.aSorters = toArray(aSorters);
-      this._z2ui5Restart(meta, { sort: true });
+      this._z2ui5Restart(meta, REASON.SORT);
       return this;
     };
 
@@ -291,56 +280,70 @@ sap.ui.define(
         this.aFilters = list;
         this.aApplicationFilters = [];
       }
-      this._z2ui5Restart(meta, { filter: true });
+      this._z2ui5Restart(meta, REASON.FILTER);
       return this;
     };
 
-    // a new order: the first window of it. `said` is the part of the order
-    // the binding was just told - see the header
-    WindowListBinding.prototype._z2ui5Restart = function (meta, said) {
+    // a new order: the first window of it
+    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {
       this._z2ui5Wanted = Number(meta.SIZE) || 0;
-      this._z2ui5Send(this._z2ui5Wanted, false, said);
+      this._z2ui5Send(meta, reason, 0, this._z2ui5Wanted, false);
     };
 
-    // [path, count] asks for rows; a third argument names the sorters, a
-    // fourth the filter groups - an argument left out (or empty, for the
-    // sort of a request that names a filter) says nothing about that part
-    WindowListBinding.prototype._z2ui5Send = function (count, noBusy, said) {
+    // [path, event, reason, skip, top] - and for SORT and FILTER the
+    // binding's sorters and filter groups, both, so the app has the whole
+    // state of the columns
+    WindowListBinding.prototype._z2ui5Send = function (
+      meta,
+      reason,
+      skip,
+      top,
+      noBusy,
+    ) {
       const send = this.oModel._z2ui5WindowSend;
       if (typeof send !== "function") {
         Lib.logError(`WINDOW: no way to the server for /${this._z2ui5Name}`);
         return;
       }
-      const args = [`/${this._z2ui5Name}`, String(count)];
-      if (said?.sort) args[2] = JSON.stringify(sortWire(this.aSorters));
-      if (said?.filter) {
-        args[2] = args[2] ?? "";
+      const event = typeof meta.EVENT === "string" ? meta.EVENT : "";
+      if (!event) {
+        Lib.logError(`WINDOW: no app event for /${this._z2ui5Name}`);
+        return;
+      }
+      const args = [
+        `/${this._z2ui5Name}`,
+        event,
+        reason,
+        String(skip),
+        String(top),
+      ];
+      if (reason !== REASON.MORE) {
+        args.push(JSON.stringify(sortWire(this.aSorters)));
         // the two filter types of a UI5 binding, Control and Application,
-        // are ANDed as UI5 does it - together they are the binding's
-        // filter, which the backend ANDs with the app's t_filter
-        args[3] = JSON.stringify([
-          ...filterGroups(this.aFilters),
-          ...filterGroups(this.aApplicationFilters),
-        ]);
+        // are ANDed as UI5 does it
+        args.push(
+          JSON.stringify([
+            ...filterGroups(this.aFilters),
+            ...filterGroups(this.aApplicationFilters),
+          ]),
+        );
       }
       send(args, noBusy);
     };
 
     // Two window requests of one table, the first still waiting behind a
     // roundtrip when the second comes (one slot, the last one wins -
-    // AppState, oQueuedWindow): the second takes over what the first named
-    // and it does not name itself. Since a request names only what the
-    // binding was told, the request for more rows a table sends while its
-    // sort( ) still waits would otherwise replace it, and the sort would be
-    // lost without a word. Requests of two tables share nothing.
-    function keepSaid(args, kept) {
+    // AppState, oQueuedWindow): a request for more rows does not replace a
+    // waiting SORT or FILTER of the same table - the restart loads from the
+    // first row anyway, and the skip of the MORE counts rows of the old
+    // order. Everything else - a SORT or FILTER carries the whole state of
+    // the columns - is the last one. Requests of two tables share nothing.
+    function keepRestart(args, kept) {
       if (!Array.isArray(kept) || kept[0] !== args[0]) return args;
-      const sort = args[2] || kept[2] || "";
-      const filter = args[3] || kept[3] || "";
-      const merged = [args[0], args[1]];
-      if (sort || filter) merged[2] = sort;
-      if (filter) merged[3] = filter;
-      return merged;
+      if (args[2] === REASON.MORE && kept[2] && kept[2] !== REASON.MORE) {
+        return kept;
+      }
+      return args;
     }
 
     const WindowModel = Env.ownClass(
@@ -373,7 +376,8 @@ sap.ui.define(
     // for the specs
     WindowModel.filterGroups = filterGroups;
     WindowModel.sortWire = sortWire;
-    WindowModel.keepSaid = keepSaid;
+    WindowModel.keepRestart = keepRestart;
+    WindowModel.REASON = REASON;
 
     return WindowModel;
   },

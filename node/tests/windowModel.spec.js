@@ -7,7 +7,7 @@ const { classEnv } = require("./loadLibModule");
 // classes are stood in for by the few members the module overrides or
 // reads - a JSONListBinding that holds the array behind its path and hands
 // out its rows as contexts - so what is pinned is the module's own part:
-// which binding a path gets, when the backend is asked for rows, and what
+// which binding a path gets, when the app is asked for rows, and what
 // a sort or a filter sends. The browser half (growing, sap.ui.table, the
 // real UI5 classes on 1.71 and today) is the `window` e2e.
 
@@ -97,7 +97,9 @@ function rows(n) {
 function windowed(WindowModel, { loaded = 50, total = 250, size = 50 } = {}) {
   const model = new WindowModel({
     MT_ROWS: rows(loaded),
-    __WINDOW: { MT_ROWS: { TOTAL: total, COUNT: loaded, SIZE: size } },
+    __WINDOW: {
+      MT_ROWS: { TOTAL: total, COUNT: loaded, SIZE: size, EVENT: "ROWS" },
+    },
   });
   const sent = [];
   model._z2ui5WindowSend = (args, noBusy) => sent.push({ args, noBusy });
@@ -127,32 +129,35 @@ test("a table behind a data reference is windowed under its own path", () => {
   const WindowModel = load();
   const model = new WindowModel({
     MR_TAB: { "*": rows(10) },
-    __WINDOW: { MR_TAB: { "*": { TOTAL: 40, COUNT: 10, SIZE: 10 } } },
+    __WINDOW: {
+      MR_TAB: { "*": { TOTAL: 40, COUNT: 10, SIZE: 10, EVENT: "TAB" } },
+    },
   });
   const sent = [];
   model._z2ui5WindowSend = (args) => sent.push(args);
   const binding = model.bindList("/MR_TAB/*");
   expect(binding.getLength()).toBe(40);
   binding.getContexts(0, 15);
-  expect(sent[0].slice(0, 2)).toEqual(["/MR_TAB/*", "20"]);
+  expect(sent[0]).toEqual(["/MR_TAB/*", "TAB", "MORE", "10", "10"]);
 });
 
-test("a windowed list counts the rows of the server, not the ones it holds", () => {
+test("a windowed list counts the rows the app reports, not the ones it holds", () => {
   const { binding } = windowed(load());
   expect(binding.getLength()).toBe(250);
   expect(binding.isLengthFinal()).toBe(true);
-  // the browser neither filters nor sorts what the server ordered
+  // the browser neither filters nor sorts what the app ordered
   expect(binding.baseCalls).toEqual([]);
 });
 
-test("contexts past the window ask for whole windows, once", () => {
+test("contexts past the loaded rows ask the app for whole windows, once", () => {
   const { binding, sent } = windowed(load());
   expect(binding.getContexts(0, 40)).toHaveLength(40);
   expect(sent).toEqual([]);
 
   expect(binding.getContexts(0, 60)).toHaveLength(50);
   expect(sent).toHaveLength(1);
-  expect(sent[0].args.slice(0, 2)).toEqual(["/MT_ROWS", "100"]);
+  // the app's event, MORE, skip = the rows loaded, top = one window
+  expect(sent[0].args).toEqual(["/MT_ROWS", "ROWS", "MORE", "50", "50"]);
   // growing is no reason for the busy overlay
   expect(sent[0].noBusy).toBe(true);
 
@@ -163,7 +168,7 @@ test("contexts past the window ask for whole windows, once", () => {
   // a threshold counts as needed rows; never past the total
   binding.getContexts(200, 40, 100);
   expect(sent).toHaveLength(2);
-  expect(sent[1].args[1]).toBe("250");
+  expect(sent[1].args.slice(2)).toEqual(["MORE", "50", "200"]);
 });
 
 test("a model push lets the binding ask again", () => {
@@ -174,7 +179,10 @@ test("a model push lets the binding ask again", () => {
   binding.update();
   expect(binding.getContexts(0, 60)).toHaveLength(60);
   binding.getContexts(0, 120);
-  expect(sent.map((s) => s.args[1])).toEqual(["100", "150"]);
+  expect(sent.map((s) => s.args.slice(3))).toEqual([
+    ["50", "50"],
+    ["100", "50"],
+  ]);
 });
 
 test("nothing is asked when the table holds all rows", () => {
@@ -183,86 +191,60 @@ test("nothing is asked when the table holds all rows", () => {
   expect(sent).toEqual([]);
 });
 
-test("a sort goes to the server and starts over with one window", () => {
+test("nothing is sent without the app's event", () => {
+  const { model, binding, sent } = windowed(load());
+  model.data.__WINDOW.MT_ROWS.EVENT = "";
+  binding.getContexts(0, 60);
+  binding.sort([{ sPath: "ID" }]);
+  expect(sent).toEqual([]);
+});
+
+test("a sort asks the app for the first window, with sorters and filters", () => {
   const { binding, sent } = windowed(load());
   binding.getContexts(0, 60);
+  binding.filter([filter("NAME", "Contains", "a")], "Control");
   binding.sort([{ sPath: "PRICE", bDescending: true }, { sPath: "ID" }]);
   expect(binding.baseCalls).toEqual([]);
   const last = sent[sent.length - 1];
   expect(last.noBusy).toBe(false);
-  expect(last.args[1]).toBe("50");
-  expect(JSON.parse(last.args[2])).toEqual([
+  expect(last.args.slice(0, 5)).toEqual(["/MT_ROWS", "ROWS", "SORT", "0", "50"]);
+  expect(JSON.parse(last.args[5])).toEqual([
     { PATH: "PRICE", DESCENDING: true },
     { PATH: "ID", DESCENDING: false },
   ]);
-  // the filter is not named: the server keeps the one it has - the app's
-  // t_filter, a column filter of a view rendered before
-  expect(last.args).toHaveLength(3);
+  // the column filter comes along: the app gets the whole state at once
+  expect(JSON.parse(last.args[6])).toEqual([[["NAME", "Contains", "a", null]]]);
 });
 
-test("a request for more rows names no order - the server keeps its own", () => {
-  // the order is the app's (t_sort / t_filter of window_bind_tab( )): this
-  // binding was told nothing, and an empty list sent along was taken as
-  // "no sort, no filter" - the first More undid the app's order
+test("a filter asks the app for the first window, with filters and sorters", () => {
   const { binding, sent } = windowed(load());
-  binding.getContexts(0, 60);
-  expect(sent[0].args).toEqual(["/MT_ROWS", "100"]);
-});
-
-test("more rows after a sort or a filter of the binding name none either", () => {
-  const { model, binding, sent } = windowed(load());
-  binding.sort([{ sPath: "PRICE", bDescending: true }]);
-  binding.filter([filter("NAME", "Contains", "a")], "Control");
-  // the answer: the first window of the new order
-  model.data.__WINDOW.MT_ROWS.TOTAL = 120;
-  binding.update();
-  binding.getContexts(0, 60);
-  expect(sent).toHaveLength(3);
-  expect(sent[2]).toEqual({ args: ["/MT_ROWS", "100"], noBusy: true });
-});
-
-test("clearing the sort or the filter is said, with an empty list", () => {
-  const { binding, sent } = windowed(load());
-  binding.sort([]);
+  binding.sort([{ sPath: "ID" }]);
   binding.filter([], "Control");
-  expect(sent.map((s) => s.args)).toEqual([
-    ["/MT_ROWS", "50", "[]"],
-    ["/MT_ROWS", "50", "", "[]"],
-  ]);
-});
-
-test("a request kept behind a roundtrip hands what it named to the next one of its table", () => {
-  const { keepSaid } = load();
-  const SORT = '[{"PATH":"PRICE","DESCENDING":true}]';
-  const FILTER = '[[["NAME","Contains","a",null]]]';
-  // more rows while the sort waits: the rows of the new order
-  expect(keepSaid(["/MT_ROWS", "100"], ["/MT_ROWS", "50", SORT])).toEqual([
+  expect(sent[1].args).toEqual([
     "/MT_ROWS",
-    "100",
-    SORT,
-  ]);
-  // a filter while the sort waits, and the other way round: both
-  expect(
-    keepSaid(["/MT_ROWS", "50", "", FILTER], ["/MT_ROWS", "50", SORT]),
-  ).toEqual(["/MT_ROWS", "50", SORT, FILTER]);
-  expect(
-    keepSaid(["/MT_ROWS", "50", SORT], ["/MT_ROWS", "50", "", FILTER]),
-  ).toEqual(["/MT_ROWS", "50", SORT, FILTER]);
-  // what the later one names itself wins - an empty list is named
-  expect(keepSaid(["/MT_ROWS", "50", "[]"], ["/MT_ROWS", "50", SORT])).toEqual([
-    "/MT_ROWS",
+    "ROWS",
+    "FILTER",
+    "0",
     "50",
+    '[{"PATH":"ID","DESCENDING":false}]',
     "[]",
   ]);
-  // only a filter kept: the sort stays unnamed
-  expect(keepSaid(["/MT_ROWS", "100"], ["/MT_ROWS", "50", "", FILTER])).toEqual(
-    ["/MT_ROWS", "100", "", FILTER],
-  );
-  // nothing kept, nothing named, another table: the request as it is
-  const grow = ["/MT_ROWS", "100"];
-  expect(keepSaid(grow, undefined)).toBe(grow);
-  expect(keepSaid(grow, ["/MT_ROWS", "50"])).toEqual(grow);
-  expect(keepSaid(grow, ["/MT_GRID", "30", SORT])).toBe(grow);
+});
+
+test("more rows do not replace a sort or a filter kept behind a roundtrip", () => {
+  const { keepRestart } = load();
+  const sort = ["/MT_ROWS", "ROWS", "SORT", "0", "50", "[]", "[]"];
+  const more = ["/MT_ROWS", "ROWS", "MORE", "50", "50"];
+  // the restart loads from the first row anyway - the MORE counts old rows
+  expect(keepRestart(more, sort)).toBe(sort);
+  // a later sort or filter carries the whole state: it wins
+  const filter = ["/MT_ROWS", "ROWS", "FILTER", "0", "50", "[]", "[]"];
+  expect(keepRestart(filter, sort)).toBe(filter);
+  expect(keepRestart(sort, more)).toBe(sort);
+  // nothing kept, more after more, another table: the request as it is
+  expect(keepRestart(more, undefined)).toBe(more);
+  expect(keepRestart(more, ["/MT_ROWS", "ROWS", "MORE", "0", "50"])).toBe(more);
+  expect(keepRestart(more, ["/MT_GRID", "GRID", "SORT", "0", "50"])).toBe(more);
 });
 
 test("filters: one path ORed, the paths ANDed, control and application ANDed", () => {
@@ -276,7 +258,7 @@ test("filters: one path ORed, the paths ANDed, control and application ANDed", (
     "Control",
   );
   binding.filter([filter("ID", "LE", 100)], "Application");
-  expect(JSON.parse(sent[1].args[3])).toEqual([
+  expect(JSON.parse(sent[1].args[6])).toEqual([
     [
       ["NAME", "Contains", "ab", null],
       ["NAME", "Contains", "cd", null],
@@ -284,11 +266,8 @@ test("filters: one path ORed, the paths ANDed, control and application ANDed", (
     [["PRICE", "GT", 10, null]],
     [["ID", "LE", 100, null]],
   ]);
-  // the sort is not named - an empty list here would clear the one the
-  // server holds, the app's t_sort included
-  expect(sent[1].args[2]).toBe("");
-  // and each call named the filter alone
-  expect(sent[0].args[2]).toBe("");
+  // the sorters come along, empty - the binding has none
+  expect(sent[1].args[5]).toBe("[]");
 });
 
 test("multi-filters of the shapes the wire has", () => {
@@ -303,7 +282,7 @@ test("multi-filters of the shapes the wire has", () => {
     ),
     multi([filter("C", "StartsWith", "x"), filter("D", "EQ", "y")], false),
   ]);
-  expect(JSON.parse(sent[0].args[3])).toEqual([
+  expect(JSON.parse(sent[0].args[6])).toEqual([
     [["A", "EQ", 1, null]],
     [
       ["B", "EQ", 2, null],
@@ -322,7 +301,7 @@ test("a filter of no wire form is left out, a Date goes as the model's date", ()
     { sPath: "X", sOperator: "EQ", fnTest: () => true },
     filter("DATE", "BT", new Date(2026, 0, 5), new Date(2026, 1, 28)),
   ]);
-  expect(JSON.parse(sent[0].args[3])).toEqual([
+  expect(JSON.parse(sent[0].args[6])).toEqual([
     [["DATE", "BT", "2026-01-05", "2026-02-28"]],
   ]);
 });
