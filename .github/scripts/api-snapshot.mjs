@@ -331,7 +331,7 @@ function isAdditiveTypeComponents(oldSig, newSig) {
 // appended before `constants end of` adds a name and changes none. Every
 // existing component keeps its name and its value, so a caller that reads
 // one compiles and behaves as before. Until 2026-10 only types structures
-// were recognised, and appending cs_event-offline_queue read as a rule-5
+// were recognised, and appending a constant to cs_event read as a rule-5
 // violation.
 function isAdditiveConstantComponents(oldSig, newSig) {
   const END = / constants end of [a-z_0-9]+\.?$/;
