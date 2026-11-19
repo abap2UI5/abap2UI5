@@ -143,9 +143,9 @@
 //                     their own, so a table asking for its next rows while
 //                     a response renders and a live-search keystroke kept
 //                     meanwhile no longer overwrite each other, last wins
-//                     per slot - a later request of the same table takes
-//                     over the sort or filter the kept one named
-//                     (WindowModel.keepSaid). Dispatched right after
+//                     per slot - except that a request for more rows does
+//                     not replace a kept sort or filter of the same table
+//                     (WindowModel.keepRestart). Dispatched right after
 //                     oQueuedEvent
 //   oSentModel        the JSON model whose edited-path set the in-flight
 //                     request carried; its own _z2ui5ChangedPaths is cleared

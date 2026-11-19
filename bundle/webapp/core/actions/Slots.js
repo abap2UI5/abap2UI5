@@ -97,8 +97,8 @@ sap.ui.define(
       data = ctx.state.oResponse?.OVIEWMODEL,
     ) {
       // a WindowModel: a JSONModel whose list bindings of a windowed table
-      // (window_bind_tab( )) fetch, sort and filter their rows on the
-      // backend - and plain JSONModel bindings for everything else
+      // (window_bind_tab( )) ask the app for their rows, sorted and
+      // filtered - and plain JSONModel bindings for everything else
       const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));
       // the way a windowed list reaches the backend: the eB of the slot the
       // model belongs to, so the request carries this model's delta like
@@ -110,12 +110,12 @@ sap.ui.define(
           Lib.logError(`WINDOW: slot ${slotKey} has no controller`);
           return;
         }
-        // a request of the same table that still waits in the slot hands
-        // over what it named - WindowModel.keepSaid has the reasoning
+        // a request of the same table that still waits in the slot may win
+        // over this one - WindowModel.keepRestart has the reasoning
         const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;
         const send =
           kept?.controller === oController
-            ? WindowModel.keepSaid(args, kept.args.slice(1))
+            ? WindowModel.keepRestart(args, kept.args.slice(1))
             : args;
         oController.eB(
           [WindowModel.EVENT, false, false, false, true, !!noBusy],

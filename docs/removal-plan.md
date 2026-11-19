@@ -33,6 +33,17 @@ support case.
 
 ## 0. Already done (do not re-litigate)
 
+- [x] The windowed table made app-driven on 2026-11-19, before it shipped in
+      a release: `window_bind_tab( val total event window )` - the app loads,
+      sorts, filters and counts the rows itself; the browser's requests
+      arrive as the app's `event` with `z2ui5_if_client=>ty_s_window_request`
+      in `get( )-r_event_data` (`cs_window_reason` MORE / SORT / FILTER).
+      `t_sort` / `t_filter` of `window_bind_tab( )` and `window_get_row( )`
+      removed - `val` is what the browser shows, a row index is its row. The
+      server-side sort and filter engine (`z2ui5_cl_ui5_srv_window` is now
+      the request parser), the window index of a row delta and the draft's
+      frame of kept tables went with it. API snapshot regenerated, exception
+      12 in `docs/agents/api-snapshot-exceptions.md`.
 - [x] `_bind_tab( )` renamed to `window_bind_tab( )` and `_bind_tab_row( )`
       to `window_get_row( )` on 2026-11-12, before either shipped in a
       release (both were added after v1.148.0). Signatures unchanged; the

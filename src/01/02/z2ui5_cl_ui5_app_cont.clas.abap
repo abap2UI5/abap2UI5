@@ -67,16 +67,6 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_model_client_stale TYPE abap_bool.
 
     " The windowed tables of the app as the last draft carried them - their
-    " asXML and a copy of the rows it was written from (see
-    " z2ui5_if_ui5_types=>ty_s_kept). Filled when a draft is parsed and
-    " when one is written, so a save finds out with one compare whether a
-    " table of 10,000 rows has to be serialized again or not. It is a
-    " CACHE, never state: the serializer clears it around the container's
-    " own transformation (z2ui5_cl_ui5_serializer=>xml_kept_of), so it
-    " never enters a draft - it holds data references - and an empty one
-    " only means the next save serializes the tables once more
-    DATA mt_kept TYPE z2ui5_if_ui5_types=>ty_t_kept.
-
     "! the pre-main( ) snapshot of the bound values - see
     "! z2ui5_cl_ui5_srv_model=>main_snapshot
     METHODS model_snapshot

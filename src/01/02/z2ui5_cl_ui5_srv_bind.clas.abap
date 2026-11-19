@@ -14,17 +14,6 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    "! window_get_row( ): the row of the table val behind position row of
-    "! the order the browser holds - the row number itself for a table
-    "! that is no window, 0 for a position past the rows the filter lets
-    "! through
-    METHODS window_row
-      IMPORTING
-        val           TYPE REF TO data
-        row           TYPE i
-      RETURNING
-        VALUE(result) TYPE i.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
     METHODS get_client_name
@@ -74,18 +63,6 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
     " it, and the service lives one render, so it cannot go stale
     DATA mr_cell_tab   TYPE REF TO data.
     DATA mt_cell_names TYPE string_table.
-
-    " the browser order of the windowed table window_row( ) last answered
-    " for - a memo, because a view resolves one row per rendered line
-    " (window_get_row( row = n )) and every call used to filter and sort the
-    " whole table again. Keyed on the table reference, its line count and
-    " the sorters and the filter it was computed with: the service lives one
-    " render, and a change to any of them computes the order anew
-    DATA mr_window_tab    TYPE REF TO data.
-    DATA mv_window_lines  TYPE i.
-    DATA mt_window_sort   TYPE z2ui5_if_ui5_types=>ty_t_window_sort.
-    DATA mt_window_filter TYPE z2ui5_if_ui5_types=>ty_t_window_filter.
-    DATA mt_window_index  TYPE z2ui5_cl_ui5_srv_window=>ty_t_index.
 
     " the class name of a mapper or filter the service has already asked
     " for, keyed on the reference - a memo for check_same_impl, which used
@@ -570,50 +547,33 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
 
   METHOD window_adopt.
 
-    " the size follows the latest bind - a view rendered anew may ask for a
-    " bigger window - and what the browser holds stays. The sorters and the
-    " filter the app passes take effect when they differ from the ones it
-    " passed the time before: a view rendered again with the same ones keeps
-    " what the user sorted and filtered in the browser, and a new sort from
-    " the app (a layout, a dialog) replaces it - from the first window. A
-    " new filter from the app replaces the app's filter and leaves the one
-    " the list binding was given (a column menu, a binding_call): the two
-    " are ANDed, and neither side drops the other's. What is written here is
-    " all there is - the order is kept on the attribute alone, and a window
-    " request that asks for more rows does not touch it
-    " (z2ui5_cl_ui5_srv_window, header and event_apply). A
-    " plain _bind( ) of the table (window = 0) leaves the window as it is
+    " window_bind_tab( ): the size, the total and the app's event follow the
+    " latest bind. The rows are the app's - the framework keeps no order of
+    " its own. The state travels with the model (/__WINDOW/<path>), so a
+    " total that changes while the rows do not (a filter that matches the
+    " same first rows) still has to reach the browser: the model is pushed.
+    " A plain _bind( ) of the table (window = 0) leaves the window as it is
     IF ms_config-window <= 0.
       RETURN.
     ENDIF.
-    mr_attri->window_size  = ms_config-window.
-    mr_attri->window_count = nmax( val1 = mr_attri->window_count
-                                   val2 = ms_config-window ).
-
-    DATA(lv_changed) = abap_false.
-    IF ms_config-check_window_sort = abap_true AND ms_config-t_window_sort <> mr_attri->t_window_sort_set.
-      mr_attri->t_window_sort     = ms_config-t_window_sort.
-      mr_attri->t_window_sort_set = ms_config-t_window_sort.
-      mr_attri->window_count      = ms_config-window.
-      lv_changed = abap_true.
-    ENDIF.
-    IF ms_config-check_window_filter = abap_true AND ms_config-t_window_filter <> mr_attri->t_window_filter_set.
-      mr_attri->t_window_filter_set = ms_config-t_window_filter.
-      mr_attri->t_window_filter     = z2ui5_cl_ui5_srv_window=>filter_merge( t_app = ms_config-t_window_filter
-                                                                             t_ui  = mr_attri->t_window_filter_ui ).
-      mr_attri->window_count        = ms_config-window.
-      lv_changed = abap_true.
-    ENDIF.
-
-    " the new order has to reach the browser in this roundtrip: the server
-    " computes every later row delta through it, and an event roundtrip
-    " that re-binds the table with a new sort but displays no view and
-    " changes no bound value would otherwise send no MODEL - the browser
-    " kept the old order and the next cell edit landed in another row.
-    " The window state travels with the model (/__WINDOW/<path>), so a push
-    " is what carries it; a display in the same roundtrip clears the flag
-    IF lv_changed = abap_true AND mo_app IS BOUND.
+    IF ms_config-window_total <> mr_attri->window_total AND mo_app IS BOUND.
       mo_app->mv_model_client_stale = abap_true.
+    ENDIF.
+    mr_attri->window_size  = ms_config-window.
+    mr_attri->window_total = ms_config-window_total.
+    mr_attri->window_event = ms_config-window_event.
+
+    " the total as an attribute of the app (`total = mv_total`): the
+    " response reads it anew, so a window event that loads, sorts or
+    " filters only sets it - no view rendered again. A value that is no
+    " attribute (`total = lines( lt_all )`) stays the value of this render
+    CLEAR mr_attri->window_total_name.
+    IF ms_config-window_total_ref IS BOUND.
+      TRY.
+          DATA(lr_total) = get_model( )->main_attri_search( ms_config-window_total_ref ).
+          mr_attri->window_total_name = lr_total->name.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDIF.
 
   ENDMETHOD.
@@ -626,38 +586,6 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     mr_attri->check_json    = ms_config-check_json.
     mr_attri->name_client   = get_client_name( ).
     window_adopt( ).
-
-  ENDMETHOD.
-
-  METHOD window_row.
-
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-
-    DATA(lr_attri) = attri_resolve( val ).
-    IF lr_attri->window_size <= 0.
-      result = row.
-      RETURN.
-    ENDIF.
-    " the order of this roundtrip's response is the one of the request -
-    " the table and the sorters and the filter are what they were, and the
-    " order is computed the same way (z2ui5_cl_ui5_srv_window)
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( val ) = abap_false.
-      RETURN.
-    ENDIF.
-    ASSIGN val->* TO <tab>.
-    IF mr_window_tab    <> val
-       OR lines( <tab> )   <> mv_window_lines
-       OR mt_window_sort   <> lr_attri->t_window_sort
-       OR mt_window_filter <> lr_attri->t_window_filter.
-      mt_window_index  = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
-                                                         t_sort   = lr_attri->t_window_sort
-                                                         t_filter = lr_attri->t_window_filter ).
-      mr_window_tab    = val.
-      mv_window_lines  = lines( <tab> ).
-      mt_window_sort   = lr_attri->t_window_sort.
-      mt_window_filter = lr_attri->t_window_filter.
-    ENDIF.
-    result = VALUE #( mt_window_index[ row ] OPTIONAL ).
 
   ENDMETHOD.
 

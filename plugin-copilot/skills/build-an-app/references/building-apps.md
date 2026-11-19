@@ -376,28 +376,40 @@ reasoning:
   broken JSON. Where the sample keeps one manifest per file, bind its URL
   instead — that path needs no flag.
 - A **large table** — more rows than the screen shows — binds with
-  `client->window_bind_tab( val = t_rows window = 200 )` instead of `_bind( )`: the
-  rows stay in the app, the browser gets 200 of them, and the list binding asks
-  the framework for the next window when a growing `sap.m.Table`/`List` grows
-  or a `sap.ui.table.Table` scrolls — a roundtrip of the framework's own that
-  does not call `main( )`. Sorting and filtering the binding (the column menu
-  of `sap.ui.table` via `sortProperty`/`filterProperty`, a
-  `cs_event-binding_call` sort or filter, e.g. from a `SearchField`) run on the
-  server over **all** rows; a checkbox ticked or a cell edited lands in the
-  table's own row whatever the order shown. The app sets the order and the
-  filter itself with `t_sort` / `t_filter` (types `ty_t_bind_tab_sort` /
-  `_filter` of `z2ui5_if_client`); they take effect when they differ from the
-  ones passed before, so a view rendered again keeps what the user sorted in
-  the browser. There is one sort, the last one set; `t_filter` and a filter of
-  the binding are ANDed, each replaced only by its own side. `val` may also be a data reference to the table (`REF #( )`, an
-  attribute `TYPE REF TO data`). The number of rows the filter lets through is
-  `/__WINDOW/<path>/TOTAL` in the model — build it from
-  `client->_bind_path( t_rows )`. Only a STANDARD table, bound whole; sorters
-  and filters written into the binding info are not applied. An event that
-  hands over a row's binding path (`getBindingContext().getPath()` →
-  `/T_ROWS/5`) names a position in the order the browser shows, not a row of
-  the table: `client->window_get_row( val = t_rows row = 5 + 1 )` answers the
-  row of `t_rows` it is.
+  `client->window_bind_tab( val = t_rows total = mv_total event = `ROWS` window = 100 )`
+  instead of `_bind( )`. The **app** loads the rows a window at a time, the
+  way an OData service answers `$skip`, `$top`, `$orderby` and `$filter`:
+  `t_rows` holds the rows loaded so far, in the order the browser shows them,
+  and `mv_total` how many there are in all (a growing `sap.m.Table` shows
+  "More [100 / 5000]", a `sap.ui.table.Table` a scrollbar for all of them).
+  When the browser needs more rows, or the binding is sorted or filtered (the
+  column menu of `sap.ui.table` via `sortProperty`/`filterProperty`, a
+  `cs_event-binding_call` sort or filter, e.g. from a `SearchField`), the app's
+  `main( )` runs with the event `ROWS` and the request in `get( )-r_event_data`:
+
+  ```abap
+  WHEN `ROWS`.
+    FIELD-SYMBOLS <req> TYPE z2ui5_if_client=>ty_s_window_request.
+    DATA(lr_req) = client->get( )-r_event_data.
+    ASSIGN lr_req->* TO <req>.
+    CASE <req>-reason.
+      WHEN z2ui5_if_client=>cs_window_reason-more.
+        " append <req>-top rows after the lines( t_rows ) the browser has
+      WHEN OTHERS.
+        " SORT / FILTER: <req>-t_sort and <req>-t_filter are the binding's
+        " whole state - load from the first row again and set mv_total
+    ENDCASE.
+  ```
+
+  The framework neither sorts nor filters nor counts, and no view is rendered
+  again: change `t_rows` and `mv_total` and the push does the rest
+  (`mv_total` is read anew on every response when it is an attribute of the
+  app). Because `t_rows` is exactly what the browser shows, a row index, a
+  cell edit or a selection is the row of `t_rows` with that index. `val` may
+  also be a data reference to the table (`REF #( )`, an attribute `TYPE REF
+  TO data`). The total is `/__WINDOW/<path>/TOTAL` in the model — build it
+  from `client->_bind_path( t_rows )`. Only a STANDARD table, bound whole;
+  sorters and filters written into the binding info are not applied.
 - **Bound data changed in an event handler is pushed automatically** — the
   framework compares the model before and after `main( )` on every event
   round-trip and, when it differs, sends it to every open view slot (MAIN,
@@ -435,8 +447,7 @@ reasoning:
   WITH KEY`. Send the position
   (`` `$event.getSource().getBindingContext().getPath().split('/').pop()` ``,
   0-based) only when the handler needs the POSITION itself: for
-  `cs_event-bind_element`, for `window_get_row( )` behind a windowed table,
-  or for a drag and drop. A nested model passes the whole binding path
+  `cs_event-bind_element`, or for a drag and drop. A nested model passes the whole binding path
   (`…getBindingContext().getPath()`) the same way.
 - **A control-valued event parameter arrives as JSON.** Several UI5 events
   hand over a control or a whole array of controls rather than a scalar —
