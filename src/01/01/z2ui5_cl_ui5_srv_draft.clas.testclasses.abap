@@ -60,9 +60,9 @@ CLASS ltcl_test DEFINITION FINAL
     " an id nobody wrote: both reads raise, check_exists answers false
     METHODS test_missing_draft     FOR TESTING RAISING cx_static_check.
     METHODS test_create_without_id FOR TESTING RAISING cx_static_check.
-    " a row from before the UNAME column - readable during the upgrade
-    " transition, and a write over it claims it for the writer
-    METHODS test_legacy_blank_owner FOR TESTING RAISING cx_static_check.
+    " a row from before the UNAME column - its tolerance ended with 1.149.x:
+    " nobody reads, finds or overwrites it
+    METHODS test_blank_owner_refused FOR TESTING RAISING cx_static_check.
     " set_instance( ) is what get_instance( ) answers; unbound restores
     METHODS test_instance_seam     FOR TESTING RAISING cx_static_check.
 
@@ -186,7 +186,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_legacy_blank_owner.
+  METHOD test_blank_owner_refused.
 
     " a row from before the UNAME column existed: no owner at all
     DATA ls_db TYPE z2ui5_t_01.
@@ -199,22 +199,27 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_if_ui5_draft_store.
     lo_draft = z2ui5_cl_ui5_srv_draft=>get_instance( ).
 
-    " readable by anyone during the upgrade transition - see read( )
-    cl_abap_unit_assert=>assert_true( lo_draft->check_exists( `TEST_LEGACY_ROW` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `legacy state`
-                                        act = lo_draft->read_draft( `TEST_LEGACY_ROW` )-data ).
-    cl_abap_unit_assert=>assert_equals( exp = `LEGACY_PREV`
-                                        act = lo_draft->read_info( `TEST_LEGACY_ROW` )-id_prev ).
+    " a blank owner is no owner - the row is nobody's, like a foreign one
+    cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_LEGACY_ROW` ) ).
+    TRY.
+        lo_draft->read_draft( `TEST_LEGACY_ROW` ).
+        cl_abap_unit_assert=>fail( `a blank-owner row must not be readable` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
 
-    " a write over it is allowed and makes the writer its owner - the row
-    " leaves the blank-owner tolerance with that write
-    lo_draft->create( draft     = VALUE #( id = `TEST_LEGACY_ROW` )
-                      model_xml = `claimed state` ).
-    DATA(ls_claimed) = lo_draft->read_draft( `TEST_LEGACY_ROW` ).
-    cl_abap_unit_assert=>assert_equals( exp = `claimed state`
-                                        act = ls_claimed-data ).
-    cl_abap_unit_assert=>assert_equals( exp = sy-uname
-                                        act = ls_claimed-uname ).
+    " and it is not claimed by a write over it
+    TRY.
+        lo_draft->create( draft     = VALUE #( id = `TEST_LEGACY_ROW` )
+                          model_xml = `claimed state` ).
+        cl_abap_unit_assert=>fail( `a blank-owner row must not be overwritten` ).
+      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
+    ENDTRY.
+    SELECT SINGLE data FROM z2ui5_t_01
+      WHERE id = @( `TEST_LEGACY_ROW` )
+      INTO @DATA(lv_data).
+    cl_abap_unit_assert=>assert_subrc( exp = 0 ).
+    cl_abap_unit_assert=>assert_equals( exp = `legacy state`
+                                        act = lv_data ).
 
   ENDMETHOD.
 
