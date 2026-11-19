@@ -197,7 +197,10 @@ jobs:
 
   browser:
     needs: transpile
-    runs-on: ubuntu-latest
+    # 24.04, not ubuntu-latest: ubuntu 26.04 (2026-11-19) has no libicu74, and
+    # Playwright's WebKit build loads libicudata.so.74 - the webkit leg cannot
+    # launch there. Move on once Playwright ships a WebKit for 26.04
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       # One engine failing is a fact about that engine - the other three
