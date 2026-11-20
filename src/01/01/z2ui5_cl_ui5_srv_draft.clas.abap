@@ -111,21 +111,15 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " an empty row on every user click, one database roundtrip for a
     " collision that does not happen there. The guard itself is unchanged
     " (defense in depth: a row another user owns must not be overwritable
-    " by re-using its id; blank-owner legacy rows stay writable during the
-    " upgrade transition, like on the read side) - it runs on the collision
-    " path now. A duplicate key answers sy-subrc 4 on every target, the
-    " transpiled runtime included (a UNIQUE constraint failure is 4 there).
-    " The blank-owner half of that guard is the FOURTH tolerance covered by
-    " the REMOVAL CONDITION in read( ) - the write side of the same fail-open
-    " branch, and the one that would otherwise outlive the three read
-    " tolerances unnoticed, since npm run check:draftowner only holds what it
-    " names. It names this branch too, so all four go in one change.
+    " by re-using its id) - it runs on the collision path now. A duplicate
+    " key answers sy-subrc 4 on every target, the transpiled runtime
+    " included (a UNIQUE constraint failure is 4 there).
     INSERT z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
       SELECT SINGLE uname FROM z2ui5_t_01
         WHERE id = @ls_db-id
         INTO @DATA(lv_owner).
-      IF sy-subrc = 0 AND lv_owner IS NOT INITIAL AND lv_owner <> lv_uname.
+      IF sy-subrc = 0 AND lv_owner <> lv_uname.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
       ENDIF.
@@ -168,18 +162,10 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " load another user's serialized app state. Fail closed with the same
     " exception as 'not found', so callers degrade identically - a shared
     " bookmark id falls through to a fresh app start instead of erroring.
-    " Legacy rows written before the UNAME column existed carry a blank owner
-    " and stay readable during the upgrade transition (they expire in hours).
-    " REMOVAL CONDITION for the blank-owner tolerance (here, check_exists,
-    " count_entries and the collision guard in create( ) - four branches,
-    " three reads and one write): one release after every installation has
-    " passed a draft-expiry window on a version that writes UNAME - create( )
-    " always fills it, so no new blank row can appear and cleanup( ) drains the old
-    " ones. npm run check:draftowner enforces the deadline: it holds these
-    " tolerances present through the grace version and fails the build once
-    " a later release still ships them (the gate names its anchors - update
-    " it when this wording changes)
-    IF result-uname IS NOT INITIAL AND result-uname <> lv_uname.
+    " A blank owner (a row from before the UNAME column, tolerated through
+    " 1.149.x) is no owner: such rows expired long ago and cleanup( ) drains
+    " any left.
+    IF result-uname <> lv_uname.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
@@ -212,20 +198,18 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
       INTO @DATA(ls_row).
 
     " existence is owner-scoped (see read( )): a draft owned by another user
-    " counts as non-existent here. Legacy blank-owner rows stay visible during
-    " the upgrade transition.
+    " counts as non-existent here.
     result = xsdbool( sy-subrc = 0
-                      AND ( ls_row-uname IS INITIAL OR ls_row-uname = lv_uname ) ).
+                      AND ls_row-uname = lv_uname ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_draft_store~count_entries.
 
     DATA(lv_uname) = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
-    " owner-scoped like read/check_exists ( blank owner = legacy rows from
-    " before the UNAME column existed, tolerated during upgrade )
+    " owner-scoped like read/check_exists
     SELECT COUNT( * ) FROM z2ui5_t_01
-      WHERE uname = @lv_uname OR uname = @space
+      WHERE uname = @lv_uname
       INTO @result.
 
   ENDMETHOD.

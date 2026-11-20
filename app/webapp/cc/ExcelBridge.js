@@ -44,9 +44,9 @@
 // Hosting: Office.js only works in the top document of the task pane, and
 // this control looks for it in its own window - so that document has to
 // run abap2UI5 itself and load Office.js: a host page of the add-in that
-// embeds the component (?z2ui5-bundle, abap2UI5/embed-control) or a page
-// of the system that loads it. What the add-in provides is described in
-// abap2UI5-addons/office-addin.
+// embeds the component (?z2ui5-bundle, abap2UI5-addons/embed-ui5-control)
+// or a page of the system that loads it. What the add-in provides is
+// described in abap2UI5-addons/embed-excel.
 sap.ui.define(
   ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/Env"],
   (Control, Lib, Env) => {

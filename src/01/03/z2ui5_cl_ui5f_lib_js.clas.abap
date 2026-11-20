@@ -537,19 +537,41 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
              `    const delta = {};` && |\n| &&
+             `` && |\n| &&
+             `    const nests = new WeakSet();` && |\n| &&
              `    for (const path of paths) {` && |\n| &&
              `      const parts = path.slice(1).split("/");` && |\n| &&
              `      const attr = parts[0];` && |\n| &&
-             `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
+             `` && |\n| &&
+             `      let depth = 1;` && |\n| &&
+             `      while (parts[depth] === "*") depth += 1;` && |\n| &&
+             `      const steps = parseDeltaSteps(parts.slice(depth));` && |\n| &&
              `      if (!steps) {` && |\n| &&
              `        delta[attr] = modelData[attr];` && |\n| &&
              `        continue;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
-             `      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
-             `      let node = delta[attr];` && |\n| &&
-             `      let model = modelData[attr];` && |\n| &&
+             `      const keys = parts.slice(0, depth);` && |\n| &&
+             `      let holder = delta;` && |\n| &&
+             `      let model = modelData;` && |\n| &&
+             `      let whole = false;` && |\n| &&
+             `      for (const key of keys.slice(0, -1)) {` && |\n| &&
+             `        if (!(key in holder)) {` && |\n| &&
+             `          holder[key] = {};` && |\n| &&
+             `          nests.add(holder[key]);` && |\n| &&
+             `        } else if (!nests.has(holder[key])) {` && |\n| &&
+             `          whole = true;` && |\n| &&
+             `          break;` && |\n| &&
+             `        }` && |\n| &&
+             `        holder = holder[key];` && |\n| &&
+             `        model = model?.[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      if (whole) continue;` && |\n| &&
+             `      const tableKey = keys[keys.length - 1];` && |\n| &&
+             `      if (tableKey in holder && !holder[tableKey]?.__delta) continue;` && |\n| &&
+             `      if (!holder[tableKey]?.__delta) holder[tableKey] = { __delta: {} };` && |\n| &&
+             `      let node = holder[tableKey];` && |\n| &&
+             `      model = model?.[tableKey];` && |\n| &&
              `      for (const { row, field, leaf } of steps) {` && |\n| &&
              `        const rows = node.__delta;` && |\n| &&
              `        if (!rows[row]) rows[row] = {};` && |\n| &&
@@ -803,7 +825,8 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    if (typeof Blob === "function") return new Blob([text]).size;` && |\n| &&
              `    return text.length;` && |\n| &&
              `  }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `  function lazyByteLength(text) {` && |\n| &&
              `    let bytes;` && |\n| &&
              `    return () => {` && |\n| &&
@@ -825,8 +848,7 @@ CLASS z2ui5_cl_ui5f_lib_js IMPLEMENTATION.
              `    isAlive,` && |\n| &&
              `    claimOnce,` && |\n| &&
              `    isTextInput,` && |\n| &&
-             `    readCaret,` && |\n|.
-    result = result &&
+             `    readCaret,` && |\n| &&
              `    registerCallback,` && |\n| &&
              `    unregisterCallback,` && |\n| &&
              `    readFilesInTurn,` && |\n| &&

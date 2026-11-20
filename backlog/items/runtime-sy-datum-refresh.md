@@ -7,7 +7,7 @@ state: open
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
-  - 'abap2UI5/playground `src/runtime/index.mjs:47-52` (2026-10): ''The runtime sets sy-datum and sy-uzeit only when it starts and as a side effect of GET TIME … a click after UTC midnight got yesterday''; the playground runs `abap.statements.getTime()` before every roundtrip'
+  - 'abap2UI5/browser-playground `src/runtime/index.mjs:47-52` (2026-10): ''The runtime sets sy-datum and sy-uzeit only when it starts and as a side effect of GET TIME … a click after UTC midnight got yesterday''; the playground runs `abap.statements.getTime()` before every roundtrip'
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/runtime/src/index.ts` constructor calls `this.statements.getTime(…)` once; `sy` is a plain `Structure`'
   - 'abaplint/transpiler#690 ''Set sy-datum, uzeit, etc'' (closed 2022-05-01) introduced the one-time set; the long-lived host case was not part of it'
 checked_upstream: 2026-10-22

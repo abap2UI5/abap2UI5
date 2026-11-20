@@ -960,7 +960,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " GET <node>?z2ui5-bundle - the frontend of THIS installation as a script
     " of its own, for a UI5 app that embeds the z2ui5 component instead of
-    " opening the page: z2ui5.embed.Container (abap2UI5/embed-control) loads
+    " opening the page: z2ui5.embed.Container (abap2UI5-addons/embed-ui5-control) loads
     " it with a <script> and then creates the component. The frontend then
     " always has the version of the backend it talks to, and the host ships
     " none. Everything else about the node stays as it is - without the

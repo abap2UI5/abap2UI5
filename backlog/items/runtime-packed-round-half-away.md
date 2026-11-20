@@ -9,7 +9,7 @@ upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5/samples z2ui5_cl_smp_app_503 (Basics VI, the unit-test lesson): `gross_amount( net = -10 percent = 5 )` computes `gross_p = net + net * percent / 100` into `TYPE p LENGTH 16 DECIMALS 0` and must answer -11; its own ABAP Unit test `test_negative_half_away` fails in the abap2UI5 playground (@abaplint/runtime 2.14.15) with "Expected ''-11'', got ''-10''". The three positive cases of the same class pass, 10.5 included'
   - 'read 2026-11-11 in @abaplint/runtime 2.14.15 - `build/src/types/packed.js` `numberToScaled( value )`: `BigInt(Math.round(value * factor))`; `Math.round(-10.5)` is -10 and `Math.round(10.5)` is 11. The same file''s `rescale( )`, used for strings and packed sources, already rounds half away from zero on the magnitude - only the number path does not'
-  - 'abap2UI5/playground tests/onboarding.spec.js marks the Basics VI exercise as failing for this reason (test.fail), so a runtime bump that fixes it turns that test red'
+  - 'abap2UI5/browser-playground tests/onboarding.spec.js marks the Basics VI exercise as failing for this reason (test.fail), so a runtime bump that fixes it turns that test red'
 checked_upstream: 2026-11-11
 ---
 
