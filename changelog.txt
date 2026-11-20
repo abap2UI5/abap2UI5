@@ -11,6 +11,10 @@ Legend
 
 unreleased
 ----------
+
+
+2026-11-20 v1.150.0
+-------------------
 ! drafts: a blank owner (a row from before the UNAME column) is no longer read, found, counted or overwritten as anyone's - the tolerance kept through 1.149.x for the upgrade window is gone, as planned
 ! Repositories moved and renamed: the embed control is abap2UI5-addons/embed-ui5-control, the mobile shell abap2UI5-addons/embed-mobile, the web component frontend abap2UI5-addons/embed-webcomponent, the Excel add-in abap2UI5-addons/embed-excel, the playground abap2UI5/browser-playground, the legacy utilities abap2UI5/abap2UI5-obsolet; comments and docs follow
 * window_bind_tab( ) on a table behind a data reference: an edit in the browser (a checkbox, a cell, the selection of a TableSelectDialog) reaches the app - the frontend shipped the whole /<attr>/* node instead of its row delta, and the backend never writes a windowed table back whole, so the edit was dropped
