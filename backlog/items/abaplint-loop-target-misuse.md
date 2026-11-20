@@ -5,7 +5,7 @@ summary: 'four checks on the work area or field symbol of a LOOP/READ - read aft
 priority: medium
 state: open
 first_seen: 2026-10-11
-checked_upstream: 2026-11-17
+checked_upstream: 2026-11-20
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit d68e4e6 (#2157, dump)'
@@ -14,6 +14,7 @@ evidence:
   - 'probed 2026-10-12 against abaplint main after v2.120.75 with every default rule on (Config.getDefault, v750): no rule reports the bad example'
   - 'filed 2026-11-17 as abaplint/abaplint#4585, the rule `loop_target_misuse` with checks 2 (an inner LOOP reusing the outer target, used after the inner ENDLOOP) and 3 (INTO <fs> where ASSIGNING was meant). No finding in abap2UI5, open-abap-core, abapGit or abap2xlsx. Check 1 (read after ENDLOOP or after a failed READ) is the one the real fixes need - abapGit d68e4e6 is that shape, not a nested reuse, and so is abapGit f603147 - and stays open, with check 4'
   - 'checks 2 (an inner LOOP reusing the outer target) and 3 (INTO <fs> where ASSIGNING was meant) shipped in abaplint 2.120.109 as loop_target_misuse (abaplint/abaplint#4585), on in abaplint.jsonc. Check 1 is written as the option usedAfterLoop on oblomov-dev/fork-abaplint branch loop-target-after-loop (reports abapGit f603147 and d68e4e6, no false positive over abap2UI5, abapGit, abap2xlsx; the abap2xlsx converter site it reports is safe through its caller) but not filed; check 4 is open'
+  - 'check 1 shipped as the option usedAfterLoop of loop_target_misuse (abaplint/abaplint#4595, merged 2026-11-19, in the release after 2.120.111); check 4 is the one left'
 ---
 
 # LOOP and READ targets used wrongly: after the loop, reused by an inner loop, INTO <fs>, not typed as the line
