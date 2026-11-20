@@ -38,10 +38,12 @@ support case.
       frontend's `core/Offline.js`, the keep and replay paths of
       `core/Server.js`, the fixture `zcl_tst_offline`, its specs, the concept
       page `docs/concepts/offline.md` and sample 543 of abap2UI5/samples. It
-      had not shipped in a release. API snapshot regenerated, exception 13 in
+      shipped in 1.149.0 as experimental and goes without a deprecation
+      period. API snapshot regenerated, exception 13 in
       `docs/agents/api-snapshot-exceptions.md`.
-- [x] The windowed table made app-driven on 2026-11-19, before it shipped in
-      a release: `window_bind_tab( val total event window )` - the app loads,
+- [x] The windowed table made app-driven on 2026-11-19, three days after it
+      shipped in 1.149.0, without a deprecation period (maintainer decision -
+      the server-side window was too large for the framework): `window_bind_tab( val total event window )` - the app loads,
       sorts, filters and counts the rows itself; the browser's requests
       arrive as the app's `event` with `z2ui5_if_client=>ty_s_window_request`
       in `get( )-r_event_data` (`cs_window_reason` MORE / SORT / FILTER).
