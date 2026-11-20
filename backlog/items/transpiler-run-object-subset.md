@@ -7,7 +7,7 @@ state: deferred
 first_seen: 2026-10-22
 upstream: abaplint/transpiler
 evidence:
-  - 'abap2UI5/playground `src/editor/transpile-core.mjs:4-13` and `:28-37` (2026-10): ''the transpiler is handed a view of the registry in which those are the only objects there are'' - `new Proxy(reg, { get(...) { if (prop === "getObjects") return () => objects; …`; `docs/design/build-traps.md:208-218`: a full `run( )` over the corpus is ''684 objects, **18 seconds**. Useless behind a Run button'''
+  - 'abap2UI5/browser-playground `src/editor/transpile-core.mjs:4-13` and `:28-37` (2026-10): ''the transpiler is handed a view of the registry in which those are the only objects there are'' - `new Proxy(reg, { get(...) { if (prop === "getObjects") return () => objects; …`; `docs/design/build-traps.md:208-218`: a full `run( )` over the corpus is ''684 objects, **18 seconds**. Useless behind a Run button'''
   - 'read 2026-10-22 in abaplint/transpiler main 53a708f - `packages/transpiler/src/index.ts:72`: `for (const obj of reg.getObjects())`, no filter; `ITranspilerOptions` has no object list'
   - 'the maintainer''s own framing, 2026-10-14 on abaplint/transpiler#1999 (closed): compile the full thing always; abap2UI5 recorded in `backlog/items/transpiler-cli-library-second-copy.md` that ''what could make one transpile of everything fast for an edit loop is a transpiler option "only these objects, against the full registry"'' - this is that option, for the API rather than the CLI'
   - 'abap2UI5/mcp-server `lib/npm-backend.mjs:47-66`: ''737 objects for one app class, measured'' for the CLI path; the full re-transpile after #1999 takes about 16 s per edit (`CHANGELOG.md:24-37`)'

@@ -10,7 +10,7 @@ whether a pull request may merge.
 
 | | |
 | --- | --- |
-| `app2abap/` | `bundle/webapp/*` and `app_source/webapp/*` → the embedded ABAP string constants in `src/01/03/`, and `app_source/webapp/*` → the BSP `Z2UI5` in `src/03/02/` (`npm run app2abap`) - both with the embed control from the pinned checkout of abap2UI5/embed-control in `tools/deps/` |
+| `app2abap/` | `bundle/webapp/*` and `app_source/webapp/*` → the embedded ABAP string constants in `src/01/03/`, and `app_source/webapp/*` → the BSP `Z2UI5` in `src/03/02/` (`npm run app2abap`) - both with the embed control from the pinned checkout of abap2UI5-addons/embed-ui5-control in `tools/deps/` |
 | `bsp/` | **`@abap2ui5/bsp`**, published to npm: any UI5 app folder → an abapGit BSP with its ICF nodes (`app2bsp`), a serialized BSP → an app folder (`bsp2app`), the page rules (`check`). What `app2abap` writes the BSP with. Its own README is the usage; `npm run test:bsp` its tests |
 | `build-cloud.mjs` | the tree of the branch `cloud` → the git-ignored `tools/out/cloud` (`npm run cloud:build`); its header says what the branch carries and why |
 | `bsp_rename/` | rewrites the deployment identity of `src/03` (BSP, SICF, handler) for a parallel install - the second half of `build-rename` (`.github/scripts/rename-service.mjs`) |

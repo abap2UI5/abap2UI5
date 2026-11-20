@@ -4,7 +4,7 @@
 
 Two halves, in two places:
 
-- **[abap2UI5/layout-editor](https://github.com/abap2UI5/layout-editor)** - a
+- **[abap2UI5/browser-layout-editor](https://github.com/abap2UI5/browser-layout-editor)** - a
   view put together by clicking, written out as an app class; it opens a
   class by URL or pasted, and hands it to the playground with "Open in
   Playground".

@@ -2,7 +2,7 @@
 
 The minimal UI5 app that runs abap2UI5: one view with one
 `z2ui5.embed.Container` - the control of
-[abap2UI5/embed-control](https://github.com/abap2UI5/embed-control), npm
+[abap2UI5-addons/embed-ui5-control](https://github.com/abap2UI5-addons/embed-ui5-control), npm
 `@abap2ui5/embed-control` - and nothing else.
 
 | Path | |
@@ -19,7 +19,7 @@ reads `?app_start=` or a route from the page's URL, and starts its start
 page without one.
 
 **The control is not developed here.** Its source, its tests and its npm
-package are abap2UI5/embed-control. This app needs `@abap2ui5/embed-control`
+package are abap2UI5-addons/embed-ui5-control. This app needs `@abap2ui5/embed-control`
 0.4.0 or later, the first version whose control is a shell the bundle
 creates the app for; until 0.4.0 is on npm, `npm install` here fails, and
 the folder has no lockfile for that reason.
@@ -42,7 +42,7 @@ a launchpad on Standard ABAP loads. Never edit a page there; change the file
 here and run `npm run app2abap`.
 
 The control both take is the one `node/setup/fetch-deps.mjs` pins (a commit
-of abap2UI5/embed-control, checked out into `tools/deps/`), not the one npm
+of abap2UI5-addons/embed-ui5-control, checked out into `tools/deps/`), not the one npm
 would install: what the backend serves does not depend on a registry.
 Moving the pin is the way a new control reaches the backend.
 

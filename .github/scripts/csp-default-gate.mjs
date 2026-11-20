@@ -14,8 +14,7 @@
 // <script src="data:...">), which is why script-src is explicit rather than
 // left to the default-src fallback that carries data:/blob: for images.
 //
-// So this gate reads the ABAP textually (the way draft-owner-gate reads its
-// source) and holds three things:
+// So this gate reads the ABAP textually and holds three things:
 //
 //   1. every source in lv_ui5_hosts is one of the REVIEWED UI5 CDN hosts -
 //      a new host is one line here and a look, which is the whole ratchet

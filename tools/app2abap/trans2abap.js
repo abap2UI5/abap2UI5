@@ -13,7 +13,7 @@ const targetDir = path.join(__dirname, "../../src/01/03");
 // What the GET page itself carries, and nothing of it is the frontend: the
 // page is the minimal UI5 app of app_source/webapp - a component with one XML
 // view with one z2ui5.embed.Container in it - and the control itself, from
-// abap2UI5/embed-control at the commit node/setup/fetch-deps.mjs pins
+// abap2UI5-addons/embed-ui5-control at the commit node/setup/fetch-deps.mjs pins
 // (checked out into tools/deps/, see CONTROL). The control loads the
 // frontend through ?z2ui5-bundle. The page is a variant of that app, not a
 // second one: its inline script holds the app's files as a preload, because
@@ -27,7 +27,7 @@ const repoDir = path.join(__dirname, "../..");
 const BUNDLE_TAIL = "bundle/tail/embed.js";
 const NODE_PATH_TOKEN = "@z2ui5-node-path@";
 const pageDir = "app_source/webapp";
-// The control: its source is abap2UI5/embed-control, pinned. Where the app
+// The control: its source is abap2UI5-addons/embed-ui5-control, pinned. Where the app
 // registers it (sap.ui5/resourceRoots of its manifest) - the BSP carries it
 // there, the page's preload under its module name.
 const CONTROL = "tools/deps/embed-control/packages/embed-control/src/Container.js";

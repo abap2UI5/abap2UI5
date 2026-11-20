@@ -51,8 +51,10 @@ const REPOS = [
    * about: `playground` is a source repository with an AGENTS.md, a test
    * suite, its own `check.yml` and a contributor - and it had no `check`
    * script at all, which is precisely the state this gate exists to refuse.
-   * Nothing found that, because nothing was looking. */
-  'playground',
+   * Nothing found that, because nothing was looking. Renamed
+   * browser-playground on 2026-11-17; the raw reads below take the name, and
+   * a sibling checkout is looked for under it. */
+  'browser-playground',
 
   /* The addons, which sit in a second organisation and were outside every
    * ecosystem gate until 2026-08-20 - which is how eleven repositories came to

@@ -84,7 +84,7 @@ entry names the same workflow file, `backend-prebuilt.yaml`.
 
 `@abap2ui5/embed-control` is not published from here: its source, its
 release line and its publish workflow are
-[abap2UI5/embed-control](https://github.com/abap2UI5/embed-control). What
+[abap2UI5-addons/embed-ui5-control](https://github.com/abap2UI5-addons/embed-ui5-control). What
 abap2UI5 serves of it - the page's inline script and the BSP `Z2UI5` - is the
 commit `node/setup/fetch-deps.mjs` pins; a new control reaches a release by
 moving that pin and `npm run app2abap`.

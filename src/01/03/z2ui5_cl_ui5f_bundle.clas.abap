@@ -5727,19 +5727,41 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `  function buildDeltaFromPaths(paths, modelData) {` && |\n| &&
              `    const delta = {};` && |\n| &&
+             `` && |\n| &&
+             `    const nests = new WeakSet();` && |\n| &&
              `    for (const path of paths) {` && |\n| &&
              `      const parts = path.slice(1).split("/");` && |\n| &&
              `      const attr = parts[0];` && |\n| &&
-             `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
+             `` && |\n| &&
+             `      let depth = 1;` && |\n| &&
+             `      while (parts[depth] === "*") depth += 1;` && |\n| &&
+             `      const steps = parseDeltaSteps(parts.slice(depth));` && |\n| &&
              `      if (!steps) {` && |\n| &&
              `        delta[attr] = modelData[attr];` && |\n| &&
              `        continue;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
-             `      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
-             `      let node = delta[attr];` && |\n| &&
-             `      let model = modelData[attr];` && |\n| &&
+             `      const keys = parts.slice(0, depth);` && |\n| &&
+             `      let holder = delta;` && |\n| &&
+             `      let model = modelData;` && |\n| &&
+             `      let whole = false;` && |\n| &&
+             `      for (const key of keys.slice(0, -1)) {` && |\n| &&
+             `        if (!(key in holder)) {` && |\n| &&
+             `          holder[key] = {};` && |\n| &&
+             `          nests.add(holder[key]);` && |\n| &&
+             `        } else if (!nests.has(holder[key])) {` && |\n| &&
+             `          whole = true;` && |\n| &&
+             `          break;` && |\n| &&
+             `        }` && |\n| &&
+             `        holder = holder[key];` && |\n| &&
+             `        model = model?.[key];` && |\n| &&
+             `      }` && |\n| &&
+             `      if (whole) continue;` && |\n| &&
+             `      const tableKey = keys[keys.length - 1];` && |\n| &&
+             `      if (tableKey in holder && !holder[tableKey]?.__delta) continue;` && |\n| &&
+             `      if (!holder[tableKey]?.__delta) holder[tableKey] = { __delta: {} };` && |\n| &&
+             `      let node = holder[tableKey];` && |\n| &&
+             `      model = model?.[tableKey];` && |\n| &&
              `      for (const { row, field, leaf } of steps) {` && |\n| &&
              `        const rows = node.__delta;` && |\n| &&
              `        if (!rows[row]) rows[row] = {};` && |\n| &&
@@ -6094,8 +6116,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function splitHash(sHash) {` && |\n| &&
              `      const raw = String(sHash || "").replace(/^#/, "");` && |\n| &&
-             `` && |\n| &&
-             `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
+             `` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_04.
+
+    result = `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
              `      const i = raw.indexOf(SHELL_SEPARATOR);` && |\n| &&
              `      if (i < 0) return { shell: "", app: raw };` && |\n| &&
              `      let app = raw.slice(i + SHELL_SEPARATOR.length).replace(/^\/+/, "");` && |\n| &&
@@ -6116,13 +6143,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      if (app === "/") return "";` && |\n| &&
              `      return app && !app.startsWith("/") ? ``/${app}`` : app;` && |\n| &&
-             `    }` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_04.
-
-    result = `` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function getRawHash() {` && |\n| &&
              `      return String(window.location.hash || "").replace(/^#/, "");` && |\n| &&
              `    }` && |\n| &&
@@ -6499,7 +6521,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const info = { ID: id };` && |\n| &&
+             `        const info = { ID: id };` && |\n|.
+    result = result &&
              `        const caret = Lib.readCaret(focusTextInput(active, ui5El));` && |\n| &&
              `        if (caret) {` && |\n| &&
              `          info.SELECTION_START = caret.start;` && |\n| &&
@@ -6521,8 +6544,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        return Boolean(ui5El) && Context.of(ui5El) === ctx;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("isInComponent: resolving the node failed", e);` && |\n| &&
-             `        return false;` && |\n|.
-    result = result &&
+             `        return false;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -6900,7 +6922,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              reportTimeout();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `            const type = response.headers.get("content-type") || "";` && |\n| &&
              `            if (type.toLowerCase().includes("text/html")) {` && |\n| &&
              `              this.responseError(` && |\n| &&
@@ -6922,8 +6945,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              ctx,` && |\n| &&
              `              "Invalid response: missing S_FRONT - the URL probably does not reach " +` && |\n| &&
              `                "the abap2UI5 handler. Check that the ICF service (or route) of this " +` && |\n| &&
-             `                "page calls z2ui5_cl_ui5_http_handler.",` && |\n|.
-    result = result &&
+             `                "page calls z2ui5_cl_ui5_http_handler.",` && |\n| &&
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -7301,7 +7323,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewApp(ctx, key) {` && |\n| &&
-             `      return slotAppStore(ctx)[key];` && |\n| &&
+             `      return slotAppStore(ctx)[key];` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function slotAppStore(ctx) {` && |\n| &&
@@ -7323,8 +7346,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    function getController(ctx, key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      return slot ? ctx?.state[slot.controllerProp] : undefined;` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function keyOfController(controller) {` && |\n| &&
              `      const state = controller?.ctx?.state;` && |\n| &&
@@ -7702,7 +7724,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      return this;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {` && |\n| &&
+             `    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {` && |\n|.
+    result = result &&
              `      this._z2ui5Wanted = Number(meta.SIZE) || 0;` && |\n| &&
              `      this._z2ui5Send(meta, reason, 0, this._z2ui5Wanted, false);` && |\n| &&
              `    };` && |\n| &&
@@ -7724,8 +7747,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Lib.logError(``WINDOW: no app event for /${this._z2ui5Name}``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const args = [` && |\n|.
-    result = result &&
+             `      const args = [` && |\n| &&
              `        ``/${this._z2ui5Name}``,` && |\n| &&
              `        event,` && |\n| &&
              `        reason,` && |\n| &&
@@ -8103,8 +8125,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      } else {` && |\n| &&
              `        MessageBox.error(` && |\n| &&
              `          "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `        );` && |\n| &&
-             `      }` && |\n| &&
+             `        );` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_05.
+
+    result = `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evOpenNewTab(oController, args) {` && |\n| &&
@@ -8125,13 +8152,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          : (args[2] ?? {});` && |\n| &&
              `      if (params == null) return;` && |\n| &&
              `` && |\n| &&
-             `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_05.
-
-    result = `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&
+             `      const hasCrLf = (v) => typeof v === "string" && /[\r\n]/.test(v);` && |\n| &&
+             `      if (Object.values(params).some(hasCrLf)) {` && |\n| &&
              `        Lib.logError("URLHELPER: blocked CR/LF in parameters");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -8508,7 +8530,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        methods: { show: ["string"] },` && |\n| &&
              `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
              `          showToast(aArgs[0], mOptions, oController),` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `      MESSAGE_BOX: {` && |\n| &&
              `        get: () => MessageBox,` && |\n| &&
              `` && |\n| &&
@@ -8530,8 +8553,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        methods: {` && |\n| &&
              `          destroy: ["string"],` && |\n| &&
-             `          display: ["string", "string"],` && |\n|.
-    result = result &&
+             `          display: ["string", "string"],` && |\n| &&
              `` && |\n| &&
              `          updateModel: [],` && |\n| &&
              `        },` && |\n| &&
@@ -8909,7 +8931,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](` && |\n| &&
-             `        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),` && |\n| &&
+             `        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),` && |\n|.
+    result = result &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -8931,8 +8954,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      let raw = args.slice(3);` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      let mOptions;` && |\n| &&
              `      if (target.display) {` && |\n| &&
              `        const last = raw[raw.length - 1];` && |\n| &&
@@ -9310,7 +9332,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Lib.logError(` && |\n| &&
              `          "KEYBOARD_SHORTCUT: committing the focused field failed",` && |\n| &&
              `          e,` && |\n| &&
-             `        );` && |\n| &&
+             `        );` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -9332,8 +9355,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          commitFocusedValue();` && |\n| &&
              `` && |\n| &&
              `          if (!wasBusy && ctx.state.isBusy) {` && |\n| &&
-             `            const controller = entry.controller;` && |\n|.
-    result = result &&
+             `            const controller = entry.controller;` && |\n| &&
              `            Lib.afterRoundtrip(controller, () =>` && |\n| &&
              `              setTimeout(() => {` && |\n| &&
              `                if (Lib.isControllerAlive(controller)) {` && |\n| &&
@@ -9711,7 +9733,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    const TRANSITION_OPTIONS = [` && |\n| &&
              `      "transition",` && |\n| &&
-             `      "transitionBack",` && |\n| &&
+             `      "transitionBack",` && |\n|.
+    result = result &&
              `      "navBack",` && |\n| &&
              `      "appInstance",` && |\n| &&
              `    ];` && |\n| &&
@@ -9733,8 +9756,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const oCurrent = ViewSlots.getView(ctx, "MAIN");` && |\n| &&
              `` && |\n| &&
              `      if (!oCurrent?.getDomRef?.() || !state.oApp?.getDomRef?.()) return null;` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      const explicitBack = options.transitionBack === true;` && |\n| &&
              `      const recognizedBack =` && |\n| &&
              `        options.navBack === true ||` && |\n| &&
@@ -10112,8 +10134,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      finish();` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n| &&
-             `    run();` && |\n| &&
+             `` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_06.
+
+    result = `    run();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const FILTER_BAR_WIRED = "_z2ui5FilterBarVariantWired";` && |\n| &&
@@ -10134,13 +10161,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `  function registerFilterBarCallbacks(oFilterBar) {` && |\n| &&
              `    oFilterBar.registerFetchData(() =>` && |\n| &&
              `      oFilterBar.getAllFilterItems().map((item) => ({` && |\n| &&
-             `        groupName: item.getGroupName(),` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_06.
-
-    result = `        fieldName: item.getName(),` && |\n| &&
+             `        groupName: item.getGroupName(),` && |\n| &&
+             `        fieldName: item.getName(),` && |\n| &&
              `        fieldData: filterItemValue(item),` && |\n| &&
              `      })),` && |\n| &&
              `    );` && |\n| &&
@@ -10517,7 +10539,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
-             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
+             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n|.
+    result = result &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
              `            dom.scrollLeft = x;` && |\n| &&
@@ -10539,8 +10562,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        );` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
-             `        if (!dom || !dom.scrollIntoView) return;` && |\n|.
-    result = result &&
+             `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
              `        dom.scrollIntoView({` && |\n| &&
              `          behavior: args[2] || "smooth",` && |\n| &&
              `          block: args[3] || "start",` && |\n| &&
@@ -10918,7 +10940,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const base = ctx?.state?.url;` && |\n| &&
              `      if (!base) return null;` && |\n| &&
              `      try {` && |\n| &&
-             `        const url = new URL(base, window.location.href);` && |\n| &&
+             `        const url = new URL(base, window.location.href);` && |\n|.
+    result = result &&
              `        url.hash = "";` && |\n| &&
              `        url.searchParams.set(BUNDLE_PARAM, BUNDLE_DEVTOOLS);` && |\n| &&
              `        return url.href;` && |\n| &&
@@ -10940,8 +10963,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function requireModules(names) {` && |\n| &&
-             `      return new Promise((resolve, reject) => {` && |\n|.
-    result = result &&
+             `      return new Promise((resolve, reject) => {` && |\n| &&
              `        sap.ui.require(names, (...modules) => resolve(modules), reject);` && |\n| &&
              `      });` && |\n| &&
              `    }` && |\n| &&
@@ -11319,7 +11341,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `  function serializeElement(el, depth, indented) {` && |\n| &&
              `    let open = ``<${el.nodeName}``;` && |\n| &&
-             `    const attrs = el.attributes || [];` && |\n| &&
+             `    const attrs = el.attributes || [];` && |\n|.
+    result = result &&
              `    for (let i = 0; i < attrs.length; i++) {` && |\n| &&
              `      open += `` ${attrs[i].name}="${escapeAttribute(attrs[i].value)}"``;` && |\n| &&
              `    }` && |\n| &&
@@ -11341,8 +11364,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      .join("\n")}\n${pad}${close}``;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function prettifyXml(sourceXml) {` && |\n|.
-    result = result &&
+             `  function prettifyXml(sourceXml) {` && |\n| &&
              `    if (!sourceXml) return "";` && |\n| &&
              `    try {` && |\n| &&
              `      const xmlDoc = getDomParser().parseFromString(` && |\n| &&
@@ -11720,7 +11742,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function onAfterRendering(ctx) {` && |\n| &&
-             `      try {` && |\n| &&
+             `      try {` && |\n|.
+    result = result &&
              `        const rec = recorderOf(ctx);` && |\n| &&
              `        if (!rec) return;` && |\n| &&
              `        const state = ctx.state;` && |\n| &&
@@ -11742,8 +11765,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          respBytes: net?.bytes ?? null,` && |\n| &&
              `          backendMs: net ? Math.round(net.end - net.start) : null,` && |\n| &&
              `          renderMs: net ? Math.round(tRendered - net.end) : null,` && |\n| &&
-             `          totalMs: net ? Math.round(tRendered - net.start) : null,` && |\n|.
-    result = result &&
+             `          totalMs: net ? Math.round(tRendered - net.start) : null,` && |\n| &&
              `          systemActions: sFront?.S_ACTION?.T_SYSTEM?.length || 0,` && |\n| &&
              `          customActions: sFront?.S_ACTION?.T_CUSTOM?.length || 0,` && |\n| &&
              `` && |\n| &&
@@ -12121,8 +12143,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      }` && |\n| &&
              `      header.push(` && |\n| &&
              `        ``${out.length}${out.length >= MAX_DIFF_ENTRIES ? "+" : ""}`` +` && |\n| &&
-             `          `` differing path(s):``,` && |\n| &&
-             `      );` && |\n| &&
+             `          `` differing path(s):``,` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_07.
+
+    result = `      );` && |\n| &&
              `      header.push("");` && |\n| &&
              `      for (const entry of out) {` && |\n| &&
              `        const path = entry.path || "/";` && |\n| &&
@@ -12143,13 +12170,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (out.length >= MAX_DIFF_ENTRIES) {` && |\n| &&
-             `        header.push("");` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_07.
-
-    result = `        header.push(``(stopped after ${MAX_DIFF_ENTRIES} differences)``);` && |\n| &&
+             `        header.push("");` && |\n| &&
+             `        header.push(``(stopped after ${MAX_DIFF_ENTRIES} differences)``);` && |\n| &&
              `      }` && |\n| &&
              `      return header.join("\n");` && |\n| &&
              `    }` && |\n| &&

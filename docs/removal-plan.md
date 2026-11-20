@@ -38,11 +38,11 @@ support case.
       frontend's `core/Offline.js`, the keep and replay paths of
       `core/Server.js`, the fixture `zcl_tst_offline`, its specs, the concept
       page `docs/concepts/offline.md` and sample 543 of abap2UI5/samples. It
-      shipped in 1.149.0 as experimental and goes without a deprecation
-      period. API snapshot regenerated, exception 13 in
+      shipped in 1.149.0 and 1.150.0 as experimental and goes without a
+      deprecation period. API snapshot regenerated, exception 13 in
       `docs/agents/api-snapshot-exceptions.md`.
 - [x] The windowed table made app-driven on 2026-11-19, three days after it
-      shipped in 1.149.0, without a deprecation period (maintainer decision -
+      shipped in 1.149.0 (and still in 1.150.0), without a deprecation period (maintainer decision -
       the server-side window was too large for the framework): `window_bind_tab( val total event window )` - the app loads,
       sorts, filters and counts the rows itself; the browser's requests
       arrive as the app's `event` with `z2ui5_if_client=>ty_s_window_request`
@@ -351,7 +351,7 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 > **2026-11-17: the package left the core.**
 > Everything below with a box is not deleted but **moved**, unchanged, to the
 > extension repository ([abap2UI5/frontend](https://github.com/abap2UI5/frontend),
-> which holds what abap2UI5-ext held as well) - the decision and what did not
+> which holds what abap2UI5-obsolet held as well) - the decision and what did not
 > move are in `docs/agents/decisions.md`, "The `src/99` exemptions". For this
 > repository the items are done: the core no longer ships them. For an
 > installation nothing is removed yet - it pulls the extension and keeps
@@ -408,15 +408,15 @@ breaking change for any downstream app that still references it.
         edit would fail that gate for no gain — the whole class is the entry.
 - [x] **`src/99/01/` — 9 utility classes (11,925 lines) + `z2ui5_cx_util_error`
       + table `Z2UI5_T_91`** — moved out of the core (2026-11) into
-      [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext), unchanged but
+      [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet), unchanged but
       for one line. A system whose code still uses them installs that
       repository next to abap2UI5 and keeps working; the table and its data
       stay in the system, they only change repository.
       - The successor question was answered with
         [abap-util](https://github.com/abap-util/abap-util): every addon but
         layout-management carries its own renamed copy; layout-management
-        declares abap2UI5-ext as a dependency.
-      - abap2UI5-ext reads nothing `FROZEN-ONLY` from the core, so the
+        declares abap2UI5-obsolet as a dependency.
+      - abap2UI5-obsolet reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
 - [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
       → [popups addon](https://github.com/abap2UI5-addons/popups) — out of
@@ -622,7 +622,7 @@ rather than by guessing; each entry names the callers that exist today.
         `AGENTS.md` (*No new dictionary objects*) that keeps the next one from
         being added. The three tables that remain all carry their own reason:
         `z2ui5_t_01` persists drafts (`z2ui5_t_91`, which backed the
-        frozen `z2ui5_cl_util_db`, moved to abap2UI5-ext), and it is no
+        frozen `z2ui5_cl_util_db`, moved to abap2UI5-obsolet), and it is no
         anchor for anybody's type.
 
 ## 6. Documentation debt to clear alongside

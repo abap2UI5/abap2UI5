@@ -1,7 +1,7 @@
 {
   "name": "abap2UI5",
   "private": true,
-  "version": "1.149.0",
+  "version": "1.150.0",
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "deps": "node node/setup/fetch-deps.mjs",
@@ -57,7 +57,6 @@
     "check:specs": "node .github/scripts/spec-inventory-gate.mjs",
     "check:downport": "node .github/scripts/downport-operand-gate.mjs",
     "check:pins": "node .github/scripts/transpile-pins-gate.mjs",
-    "check:draftowner": "node .github/scripts/draft-owner-gate.mjs",
     "check:csp": "node .github/scripts/csp-default-gate.mjs",
     "check:sbom": "node .github/scripts/sbom-gate.mjs",
     "sbom": "node tools/sbom.mjs",
@@ -113,8 +112,8 @@
   },
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
-    "@abap2ui5/linter": "^0.9.0",
-    "@abaplint/cli": "^2.120.108",
+    "@abap2ui5/linter": "^0.11.0",
+    "@abaplint/cli": "^2.120.111",
     "@abaplint/database-sqlite": "^2.14.12",
     "@abaplint/runtime": "^2.14.33",
     "@abaplint/transpiler-cli": "^2.14.33",

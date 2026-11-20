@@ -3,7 +3,7 @@
 //
 // Two UI5 projects are linted: bundle/ (the frontend, the source of the
 // bundle the backend serves) and the page app around the embed control,
-// app_source/ (the control itself is abap2UI5/embed-control's, linted
+// app_source/ (the control itself is abap2UI5-addons/embed-ui5-control's, linted
 // there). The linter is the one installed in bundle/ - the page app carries
 // no lint tooling of its own - run with each project as its working
 // directory.

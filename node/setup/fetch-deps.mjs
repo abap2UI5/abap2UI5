@@ -51,7 +51,7 @@ const PINS = [
     sha: "c1fc36026f69eb0ae7d1830d304e1e1923e9a9a3",
   },
   // The UI5 control z2ui5.embed.Container (npm @abap2ui5/embed-control).
-  // Its source lives in abap2UI5/embed-control; abap2UI5 carries a copy of
+  // Its source lives in abap2UI5-addons/embed-ui5-control; abap2UI5 carries a copy of
   // it in what it serves - the GET page's inline script (src/01/03) and the
   // BSP of src/03/02 - and tools/app2abap reads it from here
   // (packages/embed-control/src/Container.js). Not a lib of the backend, so
@@ -60,7 +60,7 @@ const PINS = [
   // it, then `npm run app2abap` and commit what that regenerates.
   {
     name: "embed-control",
-    url: "https://github.com/abap2UI5/embed-control",
+    url: "https://github.com/abap2UI5-addons/embed-ui5-control",
     sha: "2d8dd2bf9ff75fdf7a7881ec03e75ef703fe6531",
     dir: "tools/deps",
   },

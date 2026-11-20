@@ -4,7 +4,7 @@ const { test, expect } = require("./fixtures");
 // The frontend in a page that belongs to a HOST app - a freestyle app, a
 // custom page or a custom section of Fiori elements - through the real
 // control: the host page below loads UI5 itself and holds one
-// z2ui5.embed.Container (the pinned copy of abap2UI5/embed-control in
+// z2ui5.embed.Container (the pinned copy of abap2UI5-addons/embed-ui5-control in
 // tools/deps/, which npm run deps fetches - served to the page as a host's
 // thirdparty/ folder would). The control loads the frontend
 // through ?z2ui5-bundle and asks the bundle for the app. Nothing of the

@@ -82,7 +82,7 @@ export default [
   {
     // The two page apps - the minimal UI5 app around the embed control, with
     // the control from npm (app_source; the control's own source is
-    // abap2UI5/embed-control). Browser code like bundle/webapp, with the same rules as
+    // abap2UI5-addons/embed-ui5-control). Browser code like bundle/webapp, with the same rules as
     // bundle/eslint.config.mjs; they have no ESLint install of their own, so
     // they are linted from here.
     files: ["app_source/webapp/**/*.js"],

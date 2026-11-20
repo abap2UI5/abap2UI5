@@ -39,7 +39,7 @@ It brings:
 
   Each works with the MCP server and without it (then through
   `npx @abap2ui5/linter` and the catalogue at
-  <https://abap2ui5.github.io/playground/samples/apps.json>).
+  <https://abap2ui5.github.io/browser-playground/samples/apps.json>).
 - **A subagent, `abap2ui5-reviewer`** - reviews an app class against the
   four skills (names missing from UI5 1.71, binding rules, roundtrip and
   state pitfalls, chain layout, abapGit sidecar format) with read-only

@@ -4,9 +4,9 @@ title: 'Classic EXCEPTIONS: OTHERS missing, an exception mapped to 0, sy-subrc n
 summary: 'the four ways a CALL FUNCTION/CALL METHOD … EXCEPTIONS goes wrong - no OTHERS, an exception mapped to 0, the sy-subrc set by EXCEPTIONS never read, and a method with classic exceptions called functionally - share one statement shape'
 priority: medium
 state: filed
-filed: https://github.com/abaplint/abaplint/issues/391
+filed: https://github.com/abaplint/abaplint/pull/4605
 first_seen: 2026-10-11
-checked_upstream: 2026-10-12
+checked_upstream: 2026-11-20
 upstream: abaplint/abaplint
 evidence:
   - 'abapGit/abapGit d31627d (#7093) and 40efc56 added OTHERS after a dump'
@@ -17,6 +17,10 @@ evidence:
   - 'abaplint/abaplint#391 (''todo: CALL FUNCTION'' for check_subrc)'
   - 'abapGit/abapGit e3c1623 (#3724); abap2UI5/abap2UI5 79c0780'
   - '24 functional describe_by_name( <variable> ) calls in current trees, e.g. abapGit zcl_abapgit_gui_page_data:213/220, abap2xlsx zcl_excel_converter:956/1178'
+  - 'checks 1 (no OTHERS) and 4 (classic exceptions called functionally) shipped in abaplint 2.120.111 as unhandled_classic_exception (abaplint/abaplint#4594, options missingOthers and missingExceptions); it found the pre-fix shapes of abapGit d31627d and 40efc56. abapGit/abapGit#8014 adds OTHERS at 50 sites and switches missingOthers on there'
+  - 'check 3 (sy-subrc not read after EXCEPTIONS) filed 2026-11-20 as abaplint/abaplint#4605, options callFunction and callMethod of check_subrc - what abaplint/abaplint#391 asks for; it reports the pre-fix shapes of abapGit 12d6b480, 6f0dfc5a, b588daf5 and abap2UI5 c6366a8, b7ffcb5'
+  - 'check 2 (a named exception mapped to 0) needs no rule: the cited MBT-Base 3492028 only satisfied classic_exceptions_overlap, which abaplint already has, and the 13 other named = 0 mappings in seven trees (about 1100 EXCEPTIONS lists) are all deliberate'
+  - 'missingExceptions needs the callee signature: abaplint/deps#346 (2026-11-20) adds the RTTI classes and cl_oo_classname_service with their classic exceptions, which makes 16 abapGit sites visible (describe_by_name in gui_page_data, cts_api, data_utils, aifc among them)'
 ---
 
 # Classic EXCEPTIONS: OTHERS missing, an exception mapped to 0, sy-subrc not read, functional call

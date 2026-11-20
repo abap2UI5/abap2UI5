@@ -140,7 +140,7 @@ There is no `src/99` any more: the frozen legacy package left the core on 2026-1
   (`z2ui5_cl_xml_view`, `_cc`), `z2ui5_if_types` and the obsolete popups (`z2ui5_cl_pop_*`, successor:
   [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)) ship from the **extension repository** —
   [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped being a delivery repository and also
-  holds what [abap2UI5-ext](https://github.com/abap2UI5/abap2UI5-ext) held: the retired `z2ui5_cl_util*` classes,
+  holds what [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet) held: the retired `z2ui5_cl_util*` classes,
   `z2ui5_cx_util_error` and `z2ui5_t_91`. A system whose code still uses one of them installs that repository
   next to abap2UI5. **Two names were deleted and ship nowhere:** `z2ui5_cl_http_handler` (what named it names
   `z2ui5_cl_ui5_http_handler`) and `z2ui5_if_exit` (an exit class implements `z2ui5_if_ui5_exit`).

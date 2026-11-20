@@ -322,6 +322,7 @@ CLASS zcl_tst_window IMPLEMENTATION.
             )->a( n = `press` v = client->_event( `CHECK` )
         )->tag( `Text`
             )->a( n = `id`   v = `total`
+            " abap2ui5lint-disable-next-line unknown-binding-path -- /__WINDOW is the window model window_bind_tab( ) writes, which the linter does not know
             )->a( n = `text` v = |\{/__WINDOW{ client->_bind_path( mt_rows ) }/TOTAL\} rows|
         )->tag( `Text`
             )->a( n = `id`   v = `result`
@@ -350,8 +351,8 @@ CLASS zcl_tst_window IMPLEMENTATION.
     tab->ele( `items`
         )->ele( `ColumnListItem`
             )->a( n = `type`  v = `Active`
-            )->a( n = `press` v = client->_event( val   = `ROW`
-                                                  t_arg = VALUE #( ( `$event.oSource.getBindingContext().getPath()` ) ) )
+            )->a( n = `press` v = client->_event( val = `ROW`
+                                                  arg = `$event.getSource().getBindingContext().getPath()` )
             )->ele( `cells`
                 )->tag( `Text`
                     )->a( n = `text` v = `{NAME}`
