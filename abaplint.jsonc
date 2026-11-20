@@ -152,6 +152,16 @@
     // (abaplint/abaplint#4583). Measured on 2.120.109: 0 findings over src,
     // control probe fired
     "unit_test_assertions": true,
+    // EXCEPTIONS without OTHERS: an exception not in the list is a runtime
+    // error no CATCH reaches (abaplint/abaplint#4594). missingExceptions stays
+    // off: it would report the describe_by_*_ref calls of util_context, which
+    // test for an initial reference first because the open-abap runtime of the
+    // transpiled build declares no EXCEPTIONS for them. Measured on 2.120.111:
+    // 0 findings over src, control probe fired
+    "unhandled_classic_exception": {
+      "missingOthers": true,
+      "missingExceptions": false
+    },
     "sql_value_conversion": true,
     "select_single_full_key": true,
     "strict_sql": true,
