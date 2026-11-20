@@ -1818,6 +1818,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_oref.
 
+    " describe_by_object_ref raises the classic exception REFERENCE_IS_INITIAL
+    " for an initial reference - called functionally that is a runtime error no
+    " CATCH reaches. The open-abap runtime of the transpiled build declares no
+    " EXCEPTIONS for it, so the reference is tested here instead
+    IF val IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `RTTI_REFERENCE_IS_INITIAL`.
+    ENDIF.
     result = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( val ) )->attributes.
 
   ENDMETHOD.
@@ -1836,6 +1845,13 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " a data object is no type name
     lo_type = cl_abap_typedescr=>describe_by_data( val ).
     IF lo_type->kind = cl_abap_typedescr=>kind_ref.
+      " an initial reference would be REFERENCE_IS_INITIAL, a runtime error -
+      " see rtti_get_t_attri_by_oref
+      IF val IS INITIAL.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val = `RTTI_REFERENCE_IS_INITIAL`.
+      ENDIF.
       lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
     ENDIF.
 
@@ -2508,12 +2524,23 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_typedescr_by_data_ref.
 
+    " an initial reference would be REFERENCE_IS_INITIAL, a runtime error -
+    " see rtti_get_t_attri_by_oref
+    IF val IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `RTTI_REFERENCE_IS_INITIAL`.
+    ENDIF.
     result = cl_abap_typedescr=>describe_by_data_ref( val ).
 
   ENDMETHOD.
 
   METHOD rtti_check_table_standard.
 
+    " the CATCH below cannot catch REFERENCE_IS_INITIAL, a classic exception
+    IF val IS INITIAL.
+      RETURN.
+    ENDIF.
     TRY.
         DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( val ).
         IF lo_type->kind <> cl_abap_typedescr=>kind_table.
@@ -2528,6 +2555,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_flat_components.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
+    " the CATCH below cannot catch REFERENCE_IS_INITIAL, a classic exception
+    IF val IS INITIAL.
+      RETURN.
+    ENDIF.
     TRY.
         lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
         IF lo_type->kind = cl_abap_typedescr=>kind_table.
@@ -4016,9 +4047,19 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
           CATCH cx_root.
 
             lv_fm = `GUID_CREATE`.
+            " error_message: a message the module sends would otherwise end
+            " the HTTP request, which no CATCH reaches
             CALL FUNCTION lv_fm
               IMPORTING
-                ev_guid_32 = lv_uuid.
+                ev_guid_32    = lv_uuid
+              EXCEPTIONS
+                error_message = 1
+                OTHERS        = 2.
+            IF sy-subrc <> 0.
+              RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+                EXPORTING
+                  val = `GUID_CREATE_FAILED`.
+            ENDIF.
 
         ENDTRY.
 
