@@ -88,8 +88,7 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   METHOD model_for.
 
-    result = NEW z2ui5_cl_ui5_srv_model( attri = container->mt_attri
-                                         app   = container->mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_ui5_srv_model EXPORTING attri = container->mt_attri app = container->mo_app.
 
   ENDMETHOD.
 
@@ -114,7 +113,9 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
     DATA lt_kept TYPE z2ui5_if_ui5_types=>ty_t_kept.
     DATA lv_xml  TYPE string.
 
-    kept_split( EXPORTING val     = CONV string( val )
+    DATA temp45 TYPE string.
+    temp45 = val.
+    kept_split( EXPORTING val     = temp45
                 IMPORTING et_kept = lt_kept
                           ev_xml  = lv_xml ).
     z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_xml
@@ -135,7 +136,8 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
     " the cache holds data references to copies of the rows - it stays out
     " of the transformation like everything else that is no state
-    DATA(lt_kept) = container->mt_kept.
+    DATA lt_kept LIKE container->mt_kept.
+    lt_kept = container->mt_kept.
     CLEAR container->mt_kept.
 
     TRY.
@@ -155,14 +157,20 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD kept_frame.
+    DATA lv_head LIKE c_kept_open.
+    DATA lv_body TYPE string.
+    DATA ls_kept LIKE LINE OF it_kept.
 
     IF it_kept IS INITIAL.
       RETURN.
     ENDIF.
 
-    DATA(lv_head) = c_kept_open.
-    DATA(lv_body) = ``.
-    LOOP AT it_kept INTO DATA(ls_kept).
+
+    lv_head = c_kept_open.
+
+    lv_body = ``.
+
+    LOOP AT it_kept INTO ls_kept.
       lv_head = |{ lv_head } { ls_kept-name }={ strlen( ls_kept-xml ) }|.
       lv_body = lv_body && ls_kept-xml.
     ENDLOOP.
@@ -175,10 +183,18 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
     DATA lt_part TYPE string_table.
     DATA lv_name TYPE string.
     DATA lv_len  TYPE string.
+    DATA lv_open TYPE i.
+    DATA lv_end TYPE i.
+    DATA lv_off TYPE i.
+    DATA lv_part LIKE LINE OF lt_part.
+      DATA temp46 TYPE i.
+      DATA lv_chars LIKE temp46.
+      DATA temp47 TYPE z2ui5_if_ui5_types=>ty_s_kept.
 
     CLEAR et_kept.
     ev_xml = val.
-    DATA(lv_open) = strlen( c_kept_open ).
+
+    lv_open = strlen( c_kept_open ).
     IF strlen( val ) < lv_open.
       RETURN.
     ENDIF.
@@ -187,7 +203,8 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_end) = find( val = val
+
+    lv_end = find( val = val
                          sub = c_kept_close ).
     IF lv_end < 0.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -197,14 +214,20 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
                                off = lv_open
                                len = lv_end - lv_open ) ) AT ` ` INTO TABLE lt_part.
 
-    DATA(lv_off) = lv_end + strlen( c_kept_close ).
-    LOOP AT lt_part INTO DATA(lv_part).
+
+    lv_off = lv_end + strlen( c_kept_close ).
+
+    LOOP AT lt_part INTO lv_part.
       SPLIT lv_part AT `=` INTO lv_name lv_len.
-      DATA(lv_chars) = CONV i( lv_len ).
-      APPEND VALUE #( name = lv_name
-                      xml  = substring( val = val
-                                        off = lv_off
-                                        len = lv_chars ) ) TO et_kept.
+
+      temp46 = lv_len.
+
+      lv_chars = temp46.
+
+      CLEAR temp47.
+      temp47-name = lv_name.
+      temp47-xml = substring( val = val off = lv_off len = lv_chars ).
+      APPEND temp47 TO et_kept.
       lv_off = lv_off + lv_chars.
     ENDLOOP.
     ev_xml = substring( val = val
@@ -214,10 +237,14 @@ CLASS z2ui5_cl_ui5_serializer IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_serializer~stringify.
 
-    DATA(lo_cont) = narrow( container ).
-    DATA(lo_model) = model_for( lo_cont ).
-
+    DATA lo_cont TYPE REF TO z2ui5_cl_ui5_app_cont.
+    DATA lo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
     DATA lx_first TYPE REF TO cx_root.
+    lo_cont = narrow( container ).
+
+    lo_model = model_for( lo_cont ).
+
+
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).

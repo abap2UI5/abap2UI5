@@ -80,6 +80,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " can veto one row/column and let the rest through.
     DATA lv_func TYPE string.
     DATA lv_event_arg TYPE string.
+    DATA temp113 TYPE string.
+      DATA temp114 TYPE string.
     IF s_cnt-prevent_default_expr IS NOT INITIAL.
       lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_prevent.
       lv_event_arg = |$event,{ s_cnt-prevent_default_expr },|.
@@ -90,7 +92,9 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
       lv_func = z2ui5_if_ui5_types=>cs_ui5-event_backend_function.
     ENDIF.
 
-    result = |{ lv_func }({ lv_event_arg }['{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( CONV string( val ) ) }'|.
+
+    temp113 = val.
+    result = |{ lv_func }({ lv_event_arg }['{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( temp113 ) }'|.
 
     " The event array is read by POSITION in View1.eB: [0] the name, [1] a
     " reserved placeholder (always false), [2] reserved (always false), [3]
@@ -106,7 +110,13 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " false rather than closing the gap, because a position is only a
     " position if nothing ever moves into it.
     IF s_cnt-check_queue_last = abap_true OR s_cnt-check_no_busy = abap_true.
-      result = |{ result },false,false,false,{ COND string( WHEN s_cnt-check_queue_last = abap_true THEN `true` ELSE `false` ) }|.
+
+      IF s_cnt-check_queue_last = abap_true.
+        temp114 = `true`.
+      ELSE.
+        temp114 = `false`.
+      ENDIF.
+      result = |{ result },false,false,false,{ temp114 }|.
       IF s_cnt-check_no_busy = abap_true.
         result = |{ result },true|.
       ENDIF.
@@ -119,7 +129,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   METHOD get_event_client.
 
-    DATA(ls_event) = map_client_event( val   = val
+    DATA ls_event TYPE z2ui5_cl_ui5_srv_event=>ty_s_client_event.
+    ls_event = map_client_event( val   = val
                                        view  = view
                                        t_arg = t_arg ).
 
@@ -129,8 +140,26 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   METHOD map_client_event.
 
-    DATA(lv_val) = CONV string( val ).
-    DATA(lt_arg) = t_arg.
+    DATA temp115 TYPE string.
+    DATA lv_val LIKE temp115.
+    DATA lt_arg LIKE t_arg.
+        DATA temp116 TYPE string_table.
+        DATA temp5 TYPE string.
+        DATA temp118 TYPE string.
+        DATA temp6 TYPE string.
+        DATA lv_view_slot LIKE temp6.
+        DATA temp119 TYPE string.
+        DATA temp120 TYPE string.
+        DATA lv_bind_path LIKE temp119.
+        DATA temp121 TYPE string_table.
+        DATA temp7 LIKE LINE OF temp121.
+        DATA temp8 TYPE string.
+        DATA temp9 TYPE string.
+    temp115 = val.
+
+    lv_val = temp115.
+
+    lt_arg = t_arg.
 
     " The five cs_event-*_nav_container_to constants were remapped to a
     " control_by_id `to` call right here, and were removed on 2026-09-22: an
@@ -147,11 +176,18 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " the whole point of them ), but they are formatted as the one
         " VIEW_SLOTS call here, so the frontend has a single teardown path
         " rather than a second handler that happens to do the same thing.
-        lt_arg = VALUE #( ( z2ui5_if_ui5_types=>cs_slot_action-target )
-                          ( z2ui5_if_ui5_types=>cs_slot_action-destroy )
-                          ( COND #( WHEN lv_val = z2ui5_if_client=>cs_event-popup_close
-                                    THEN z2ui5_if_client=>cs_view-popup
-                                    ELSE z2ui5_if_client=>cs_view-popover ) ) ).
+
+        CLEAR temp116.
+        INSERT z2ui5_if_ui5_types=>cs_slot_action-target INTO TABLE temp116.
+        INSERT z2ui5_if_ui5_types=>cs_slot_action-destroy INTO TABLE temp116.
+
+        IF lv_val = z2ui5_if_client=>cs_event-popup_close.
+          temp5 = z2ui5_if_client=>cs_view-popup.
+        ELSE.
+          temp5 = z2ui5_if_client=>cs_view-popover.
+        ENDIF.
+        INSERT temp5 INTO TABLE temp116.
+        lt_arg = temp116.
         lv_val = z2ui5_if_client=>cs_event-control_global.
 
       WHEN z2ui5_if_client=>cs_event-control_by_id.
@@ -160,8 +196,16 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " args = id, view, method, ... . cs_view-main maps to the empty slot,
         " keeping the default where the id resolves across all open views
         " (resolveById); a concrete view scopes the lookup to that slot.
-        DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
-                                          ELSE CONV string( view ) ).
+
+        temp118 = view.
+
+        IF view = z2ui5_if_client=>cs_view-main.
+          temp6 = ``.
+        ELSE.
+          temp6 = temp118.
+        ENDIF.
+
+        lv_view_slot = temp6.
         " an INSERT at index 2 into an EMPTY table is a no-op (sy-subrc 4)
         " and the view went missing from the wire; a wire without an id
         " keeps the empty id slot in front of the view instead
@@ -177,12 +221,32 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " argument, so strip the braces here to a plain path ('/MT_TAB') that
         " get_t_arg then quotes. The slot is the follow_up_action view
         " parameter.
-        DATA(lv_bind_path) = VALUE string( t_arg[ 2 ] OPTIONAL ).
+
+        CLEAR temp119.
+
+        READ TABLE t_arg INTO temp120 INDEX 2.
+        IF sy-subrc = 0.
+          temp119 = temp120.
+        ENDIF.
+
+        lv_bind_path = temp119.
         REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
         REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
-        lt_arg = VALUE #( ( CONV string( view ) )
-                          ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
-                          ( lv_bind_path ) ).
+
+        CLEAR temp121.
+
+        temp7 = view.
+        INSERT temp7 INTO TABLE temp121.
+
+        CLEAR temp8.
+
+        READ TABLE t_arg INTO temp9 INDEX 1.
+        IF sy-subrc = 0.
+          temp8 = temp9.
+        ENDIF.
+        INSERT temp8 INTO TABLE temp121.
+        INSERT lv_bind_path INTO TABLE temp121.
+        lt_arg = temp121.
 
       WHEN OTHERS.
         " every other event travels as the app wrote it
@@ -203,16 +267,34 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " runSystem), so no code is built here or parsed there on this path. The
     " XML-bound handler strings (get_event_client) keep the JS form - they
     " live inside view XML, where UI5 itself parses the handler expression.
-    DATA(ls_event) = map_client_event( val   = val
+    DATA ls_event TYPE z2ui5_cl_ui5_srv_event=>ty_s_client_event.
+    DATA lv_index TYPE i.
+      FIELD-SYMBOLS <temp123> LIKE LINE OF ls_event-t_arg.
+      DATA temp124 LIKE sy-tabix.
+        DATA temp125 TYPE REF TO z2ui5_if_ajson.
+        DATA li_json LIKE temp125.
+        DATA lv_arg LIKE LINE OF ls_event-t_arg.
+          DATA lv_is_embedded LIKE abap_false.
+        DATA lx_error TYPE REF TO cx_root.
+    ls_event = map_client_event( val   = val
                                        view  = view
                                        t_arg = t_arg ).
 
     " same contract as get_t_arg: an empty argument between filled ones keeps
     " its position, trailing empties are dropped - the frontend only casts the
     " args that were sent, so a trailing `` would turn open() into open('')
-    DATA(lv_index) = lines( ls_event-t_arg ).
+
+    lv_index = lines( ls_event-t_arg ).
     WHILE lv_index > 0.
-      IF ls_event-t_arg[ lv_index ] IS NOT INITIAL.
+
+
+      temp124 = sy-tabix.
+      READ TABLE ls_event-t_arg INDEX lv_index ASSIGNING <temp123>.
+      sy-tabix = temp124.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      IF <temp123> IS NOT INITIAL.
         EXIT.
       ENDIF.
       DELETE ls_event-t_arg INDEX lv_index.
@@ -220,13 +302,18 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     ENDWHILE.
 
     TRY.
-        DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        temp125 ?= z2ui5_cl_ajson=>create_empty( ).
+
+        li_json = temp125.
         li_json->touch_array( `/` ).
         li_json->push( iv_path = `/`
                        iv_val  = ls_event-val ).
 
-        LOOP AT ls_event-t_arg INTO DATA(lv_arg).
-          DATA(lv_is_embedded) = abap_false.
+
+        LOOP AT ls_event-t_arg INTO lv_arg.
+
+          lv_is_embedded = abap_false.
           IF lv_arg IS NOT INITIAL AND ( lv_arg(1) = `{` OR lv_arg(1) = `[` ).
             " a JSON object/array argument (the STORE_DATA payload, the
             " compound filter groups, ...) is embedded as real JSON so the
@@ -249,7 +336,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         ENDLOOP.
 
         result = li_json.
-      CATCH cx_root INTO DATA(lx_error).
+
+      CATCH cx_root INTO lx_error.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = lx_error.
@@ -292,6 +380,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_arg_raw.
+      DATA lv_len TYPE i.
+      DATA lv_off TYPE i.
 
     IF val IS INITIAL.
       RETURN.
@@ -314,8 +404,10 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " per binding argument of every _event( ) on every render, and the POSIX
     " regex it replaced was compiled on each of those calls
     IF val(1) = `{`.
-      DATA(lv_len) = strlen( val ).
-      DATA(lv_off) = 1.
+
+      lv_len = strlen( val ).
+
+      lv_off = 1.
       WHILE lv_off < lv_len AND val+lv_off(1) CO `0123456789`.
         lv_off = lv_off + 1.
       ENDWHILE.

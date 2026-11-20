@@ -15,7 +15,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_create.
 
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app_hi_world( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_hi_world.
+    CREATE OBJECT lo_app TYPE z2ui5_cl_ui5_app_hi_world.
     cl_abap_unit_assert=>assert_bound( lo_app ).
 
   ENDMETHOD.
@@ -28,25 +29,37 @@ CLASS ltcl_test IMPLEMENTATION.
     " z2ui5_if_app and asserted the reference was bound, which the compiler
     " already guarantees for a class that implements the interface
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_hi_world.
+    DATA temp1 TYPE REF TO z2ui5_cl_ui5_client.
+    DATA lv_json TYPE string.
+    DATA ls_action LIKE LINE OF lo_handler->mo_action->ms_next-s_action-t_custom.
+    DATA temp2 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->mo_action->ms_actual-event = `BUTTON_POST`.
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app_hi_world( ).
+
+    CREATE OBJECT lo_app TYPE z2ui5_cl_ui5_app_hi_world.
     lo_app->name = `Ada`.
 
-    lo_app->z2ui5_if_app~main( NEW z2ui5_cl_ui5_client( lo_handler->mo_action ) ).
 
-    DATA lv_json TYPE string.
-    LOOP AT lo_handler->mo_action->ms_next-s_action-t_custom INTO DATA(ls_action).
+    CREATE OBJECT temp1 TYPE z2ui5_cl_ui5_client EXPORTING ACTION = lo_handler->mo_action.
+    lo_app->z2ui5_if_app~main( temp1 ).
+
+
+
+    LOOP AT lo_handler->mo_action->ms_next-s_action-t_custom INTO ls_action.
       lv_json = lv_json && ls_action-o_json->stringify( ).
     ENDLOOP.
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS `Your name is Ada` )
+
+    temp2 = boolc( lv_json CS `Your name is Ada` ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true act = temp2
                                       msg = lv_json ).
 
   ENDMETHOD.
 
   METHOD test_name_attribute.
 
-    DATA(lo_app) = NEW z2ui5_cl_ui5_app_hi_world( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_ui5_app_hi_world.
+    CREATE OBJECT lo_app TYPE z2ui5_cl_ui5_app_hi_world.
     lo_app->name = `Test Name`.
     cl_abap_unit_assert=>assert_equals( exp = `Test Name`
                                         act = lo_app->name ).
