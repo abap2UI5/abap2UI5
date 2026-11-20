@@ -333,7 +333,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 5592ada1843f91a4094572786e9cf34eb21a392c   # branch claude/brave-lovelace-kzlhdf (bundle/webapp), spec revision 0.3 - move to its merge on main
+        ref: 26d79089cf93da2904ce02b5b3757627a24110a4   # branch claude/brave-lovelace-kzlhdf (bundle/webapp, the app-driven window) - move to its merge on main
         path: protocol
         persist-credentials: false
     - name: The protocol package, with the runtime packed here
@@ -376,7 +376,7 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: 5592ada1843f91a4094572786e9cf34eb21a392c   # branch claude/brave-lovelace-kzlhdf (bundle/webapp), spec revision 0.3 - move to its merge on main - keep equal to conformance_backend
+        ref: 26d79089cf93da2904ce02b5b3757627a24110a4   # branch claude/brave-lovelace-kzlhdf (bundle/webapp, the app-driven window) - move to its merge on main - keep equal to conformance_backend
         path: protocol
         persist-credentials: false
     - uses: ./.github/actions/setup
