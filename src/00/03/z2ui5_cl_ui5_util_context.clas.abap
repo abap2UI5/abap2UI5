@@ -1824,7 +1824,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " for an initial reference - called functionally that is a runtime error no
     " CATCH reaches
     cl_abap_objectdescr=>describe_by_object_ref( EXPORTING  p_object_ref         = val
-                                                 RECEIVING  p_descr_ref          = lo_descr
+                                                 RECEIVING p_descr_ref           = lo_descr
                                                  EXCEPTIONS reference_is_initial = 1
                                                             OTHERS               = 2 ).
     IF sy-subrc <> 0.
@@ -1852,7 +1852,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     IF lo_type->kind = cl_abap_typedescr=>kind_ref.
       " REFERENCE_IS_INITIAL - see rtti_get_t_attri_by_oref
       cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
-                                               RECEIVING  p_descr_ref          = lo_type
+                                               RECEIVING p_descr_ref           = lo_type
                                                EXCEPTIONS reference_is_initial = 1
                                                           OTHERS               = 2 ).
       IF sy-subrc <> 0.
@@ -2533,7 +2533,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     " REFERENCE_IS_INITIAL - see rtti_get_t_attri_by_oref
     cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
-                                             RECEIVING  p_descr_ref          = result
+                                             RECEIVING p_descr_ref           = result
                                              EXCEPTIONS reference_is_initial = 1
                                                         OTHERS               = 2 ).
     IF sy-subrc <> 0.
@@ -2550,7 +2550,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
     " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
     cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
-                                             RECEIVING  p_descr_ref          = lo_type
+                                             RECEIVING p_descr_ref           = lo_type
                                              EXCEPTIONS reference_is_initial = 1
                                                         OTHERS               = 2 ).
     IF sy-subrc <> 0.
@@ -2571,7 +2571,7 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     DATA lo_type TYPE REF TO cl_abap_typedescr.
     " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
     cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
-                                             RECEIVING  p_descr_ref          = lo_type
+                                             RECEIVING p_descr_ref           = lo_type
                                              EXCEPTIONS reference_is_initial = 1
                                                         OTHERS               = 2 ).
     IF sy-subrc <> 0.
