@@ -105,11 +105,12 @@ const EXTERNAL = new Map([
 const EXTERNAL_PATTERNS = [
   { re: /^Z2UI5_CL_(DEMO|SMP|SMPC|SMPS)_APP_/, why: "app classes of the sample repositories" },
   // The legacy utilities of the former src/99/01: moved to abap2UI5/abap2UI5-obsolet
-  // (2026-11). The docs, the changelog and the backlog keep naming them - as the
+  // (2026-11-02), whose content the extension repository abap2UI5/frontend
+  // holds now. The docs, the changelog and the backlog keep naming them - as the
   // thing that moved, or as the site an abaplint probe measured.
   {
     re: /^Z2UI5_(CL_UTIL(_DB|_EXT|_HTTP|_LOG|_MSG|_RANGE|_XML)?|CX_UTIL_ERROR|T_91)$/,
-    why: "the legacy utilities of abap2UI5/abap2UI5-obsolet (formerly src/99/01)",
+    why: "the legacy utilities of the extension repository abap2UI5/frontend (formerly src/99/01, then abap2UI5-obsolet)",
   },
   // The rest of the frozen package: moved to the extension
   // repository on 2026-11-17 (abap2UI5/frontend, which holds what

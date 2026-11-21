@@ -416,6 +416,9 @@ breaking change for any downstream app that still references it.
         [abap-util](https://github.com/abap-util/abap-util): every addon but
         layout-management carries its own renamed copy; layout-management
         declares abap2UI5-obsolet as a dependency.
+      - Since 2026-11-17 they ship from the extension repository
+        [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which
+        holds what abap2UI5-obsolet held and the rest of `src/99`.
       - abap2UI5-obsolet reads nothing `FROZEN-ONLY` from the core, so the
         FROZEN-ONLY symbols can still leave with the rest of `src/99`.
 - [x] **`src/99/02/` — 17 `z2ui5_cl_pop_*` classes**
