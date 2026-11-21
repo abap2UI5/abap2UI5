@@ -77,29 +77,13 @@ transformation rebuilds the object from the class named in the asXML and needs
 a concretely typed target, so a `REF TO object` there would give it nothing to
 build into.
 
-**The windowed tables travel next to the container, not inside it.** A
-table bound with `window_bind_tab( )` is the one part of an app that can
-outweigh everything else in it by orders of magnitude - 10,000 rows of which
-the browser holds 100 - and most roundtrips leave it untouched. So the
-shipped serializer takes each such table out of the app before the
-transformation (`z2ui5_cl_ui5_srv_model=>main_kept_detach`), writes its rows
-as asXML of their own in a frame in front of the container's asXML
-(`<!--z2ui5-kept MT_ROWS=<length>-->`, then the rows, then the container), and
-puts the same rows back. The container keeps the asXML of each table and a
-copy of the rows it was written from (`mt_kept`, a cache the serializer
-clears around the transformation, so it never enters a draft); the next save
-compares the rows with the copy and reuses the asXML when they are equal. A
-parse seeds the same cache, so on a system the saving half of an unchanged
-table is one compare instead of a transformation. On the Node host, where
-the live container survives between requests, nothing of the table is
-serialized or parsed at all - a roundtrip on 10,000 rows went from 650 ms to
-70-80 ms. Every draft still carries all rows: Back/Forward, a bookmark and
-the expiry behave as before, and a draft without the frame (written before
-it existed, or of an app without a windowed table) parses as it always did.
-A table behind a data reference (`->*`) is not taken out - it travels in the
-S-RTTI payload of its reference. Host serializers that transform the
-container themselves see `mt_kept` like any other attribute; clearing it
-first keeps the copies out of their drafts.
+**The windowed tables travel inside the container like every other
+attribute.** Since 2026-11-19 a table bound with `window_bind_tab( )` holds
+only the rows the app has loaded (the app loads windows of its source the way
+an OData service does), so it is no larger than what the browser shows and
+needs no path of its own. The frame of kept tables in front of the
+container's asXML (`<!--z2ui5-kept ...-->`), its cache and the detach and
+reattach around the transformation were removed with the server-side window.
 
 What an implementation has to keep is a round trip, not a format:
 `parse( stringify( container ) )` must answer a container the framework can go
@@ -251,6 +235,6 @@ stays empty, the `CA` scan matches no control character, and `&`, `<`, `>`,
 bytes repairs legacy long texts; it is not a correctness requirement of the
 view, so losing it must not cost the render.
 
-## The exit interface during the rename (`z2ui5_if_ui5_exit` / `z2ui5_if_exit`)
+## The exit interface (`z2ui5_if_ui5_exit`)
 
-**Exit Pattern:** `z2ui5_if_ui5_exit` (the public extension point) implemented by `z2ui5_cl_ui5_user_exit` for custom themes, CSP headers, etc. **A host installs the exit without the lookup:** `z2ui5_cl_ui5_user_exit=>set_instance( )` takes the shipped exit (the defaults, latched as "no exit installed") or any other implementation of `z2ui5_if_ui5_exit`, which is then called through the shipped exit exactly as a customer exit the lookup found - the defaults seeded first - and named by `get_user_exit_class( )`; an unbound reference restores the lookup. It exists because the lookup is a repository read that RAISES in a runtime without a class repository, and a raised lookup is deliberately not latched (a transient repository error on a system must not leave a sticky session on the shipped defaults for good) - so the transpiled runtime paid the RTTI walk and the dynamic call on every `get_instance( )`, three times per POST. `node/srv/host.mjs` calls it from `initialize()`; the no-latch contract for a system is untouched. **Two interfaces are honoured during the rename:** `z2ui5_if_exit` is the superseded name and carries the same two methods, its types being references to the ones on `z2ui5_if_ui5_exit` rather than copies. It lives in `src/99` and is the **one** object of that package `abaplint.jsonc` lists in the strict ruleset by name — a `src/01` class naming a type the strict parser cannot see is 37 unresolvable-type errors, so the line stays until the interface goes. `get_user_exit_class( )` looks the current interface up first and the superseded one only when that names nothing, so a class implementing both is found under the current name; `get_instance( )` casts to the current interface first, so such a class is called once, through `z2ui5_if_ui5_exit`. The shipped exit implements `z2ui5_if_ui5_exit` only — `gi_user_exit_dep`, the reference of the superseded type, holds nothing but a customer class written against that name. When `z2ui5_if_exit` goes, what goes with it is the second lookup, the second class-data reference and the two delegating methods — all in `z2ui5_cl_ui5_user_exit`.
+**Exit Pattern:** `z2ui5_if_ui5_exit` (the public extension point) implemented by `z2ui5_cl_ui5_user_exit` for custom themes, CSP headers, etc. **A host installs the exit without the lookup:** `z2ui5_cl_ui5_user_exit=>set_instance( )` takes the shipped exit (the defaults, latched as "no exit installed") or any other implementation of `z2ui5_if_ui5_exit`, which is then called through the shipped exit exactly as a customer exit the lookup found - the defaults seeded first - and named by `get_user_exit_class( )`; an unbound reference restores the lookup. It exists because the lookup is a repository read that RAISES in a runtime without a class repository, and a raised lookup is deliberately not latched (a transient repository error on a system must not leave a sticky session on the shipped defaults for good) - so the transpiled runtime paid the RTTI walk and the dynamic call on every `get_instance( )`, three times per POST. `node/srv/host.mjs` calls it from `initialize()`; the no-latch contract for a system is untouched. **One interface since 2026-11-17:** the superseded name `z2ui5_if_exit` was deleted, and with it the second lookup in `get_user_exit_class( )`, the class-data reference `gi_user_exit_dep` and the two delegating branches in `z2ui5_cl_ui5_user_exit`. An exit class written against the old name implements `z2ui5_if_ui5_exit` - same methods, same types.

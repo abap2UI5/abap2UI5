@@ -38,7 +38,6 @@ function specContext(seed = {}) {
     variants: { activeInits: new Set() },
     scroll: { target: undefined, ui5El: undefined, slotKey: undefined },
     focus: { userInside: false, listener: null },
-    offline: { events: new Set(), text: "", listener: null, replaying: false },
     errorView: { title: "", details: "", options: {}, dialog: null },
     devtools: {},
   };

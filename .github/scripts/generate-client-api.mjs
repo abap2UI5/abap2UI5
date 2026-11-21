@@ -39,6 +39,7 @@ const CONSTANTS = new Map([
   ['cs_nav_mode', 'the modes of `cs_event-hash_routing`'],
   ['cs_transition', 'the page transitions `view_display( transition = … )` takes'],
   ['cs_device', 'the values the device facts take (system, browser, operating system, orientation)'],
+  ['cs_window_reason', 'why the list binding of a windowed table asks (`ty_s_window_request-reason`): more rows, or the first window of a new sort or filter'],
 ]);
 
 const lines = fs.readFileSync(path.join(ROOT, SOURCE), 'utf8').split('\n');

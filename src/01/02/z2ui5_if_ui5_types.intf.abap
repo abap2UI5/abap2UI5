@@ -12,20 +12,21 @@ INTERFACE z2ui5_if_ui5_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  " The framework's own roundtrip of a WINDOWED table (window_bind_tab( )):
-  " the frontend's list binding asks for more rows, or sorts or filters,
-  " and the handler answers it without calling the app's main( )
-  " (z2ui5_cl_ui5_srv_window=>event_apply). Spelled as the frontend sends
-  " it - app/webapp/core/WindowModel.js, EVENT - so never a literal.
-  " Arguments: the model path of the table and the rows wanted - and, only
-  " when sort( ) or filter( ) was called on the binding, the sorters and
-  " the filter groups as JSON (see ty_t_window_sort / _filter). One that is
-  " missing or empty leaves what the attribute holds, `[]` clears it
+  " The transport of a WINDOWED table's request (window_bind_tab( )): the
+  " frontend's list binding wants more rows, or was sorted or filtered. The
+  " handler turns it into the APP's event - the one window_bind_tab( ) named -
+  " with the request as get( )-r_event_data (z2ui5_cl_ui5_srv_window=>request)
+  " and calls main( ), which loads, sorts and filters. Spelled as the
+  " frontend sends it - app/webapp/core/WindowModel.js, EVENT - so never a
+  " literal. Arguments: the model path of the table, the app's event, the
+  " reason (MORE / SORT / FILTER), skip, top - and for SORT the sorters,
+  " for FILTER the filter groups, as JSON (z2ui5_cl_ui5_srv_window=>parse_sort
+  " and parse_filter)
   CONSTANTS cs_event_window TYPE string VALUE `___ZZZ_WIN`.
 
   " The model key the window state of every windowed table travels under -
-  " /__WINDOW/<NAME>/TOTAL, COUNT and SIZE - read by the frontend's list
-  " binding and bindable by the app (`{/__WINDOW/MT_ROWS/TOTAL}` rows match)
+  " /__WINDOW/<NAME>/TOTAL, COUNT, SIZE and EVENT - read by the frontend's
+  " list binding and bindable by the app (`{/__WINDOW/MT_ROWS/TOTAL}` rows)
   CONSTANTS cv_window_model_key TYPE string VALUE `__WINDOW`.
 
   " The VIEW_SLOTS system-action vocabulary, spelled as the frontend's
@@ -61,45 +62,6 @@ INTERFACE z2ui5_if_ui5_types
       END OF s_stateful,
     END OF ty_s_http_res.
 
-  " One sorter of a windowed table, as the frontend's list binding hands
-  " it over: the component of the row and the direction. Applied in order,
-  " the first one that tells two rows apart decides
-  TYPES:
-    BEGIN OF ty_s_window_sort,
-      path       TYPE string,
-      descending TYPE abap_bool,
-    END OF ty_s_window_sort.
-  TYPES ty_t_window_sort TYPE STANDARD TABLE OF ty_s_window_sort WITH EMPTY KEY.
-
-  " One condition of the filter of a windowed table. The rows of one group
-  " are ORed, the groups ANDed - the shape UI5 gives a list binding's
-  " filters (the conditions of one column ORed, the columns ANDed) and the
-  " compound form of BINDING_CALL. operator is a sap.ui.model.FilterOperator
-  " (EQ NE LT LE GT GE BT NB Contains NotContains StartsWith NotStartsWith
-  " EndsWith NotEndsWith)
-  TYPES:
-    BEGIN OF ty_s_window_filter,
-      group    TYPE i,
-      path     TYPE string,
-      operator TYPE string,
-      value1   TYPE string,
-      value2   TYPE string,
-    END OF ty_s_window_filter.
-  TYPES ty_t_window_filter TYPE STANDARD TABLE OF ty_s_window_filter WITH EMPTY KEY.
-
-  " One windowed table (window_bind_tab( )) the draft carries OUTSIDE the
-  " transformation of the container (z2ui5_cl_ui5_serializer): its rows as
-  " asXML of their own, and a copy of the rows that asXML was written from.
-  " While the rows equal the copy, the next draft reuses the asXML instead
-  " of serializing the table again (z2ui5_cl_ui5_srv_model=>main_kept_detach)
-  TYPES:
-    BEGIN OF ty_s_kept,
-      name   TYPE string,
-      xml    TYPE string,
-      o_copy TYPE REF TO data,
-    END OF ty_s_kept.
-  TYPES ty_t_kept TYPE STANDARD TABLE OF ty_s_kept WITH EMPTY KEY.
-
   TYPES:
     BEGIN OF ty_s_bind_config,
       path_only            TYPE abap_bool,
@@ -109,37 +71,36 @@ INTERFACE z2ui5_if_ui5_types
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
       check_json           TYPE abap_bool,
-      " window_bind_tab( ): the table goes to the browser `window` rows at a
-      " time; the sorters and the filter the app passed, and whether it
-      " passed them at all
+      " window_bind_tab( ): the rows the browser asks for at a time, the
+      " rows there are in all - its value, and a reference to it to find the
+      " attribute it is - and the app's event for the browser's requests
       window               TYPE i,
-      t_window_sort        TYPE ty_t_window_sort,
-      t_window_filter      TYPE ty_t_window_filter,
-      check_window_sort    TYPE abap_bool,
-      check_window_filter  TYPE abap_bool,
+      window_total         TYPE i,
+      window_total_ref     TYPE REF TO data,
+      window_event         TYPE string,
     END OF ty_s_bind_config.
 
 
   TYPES:
     BEGIN OF ty_s_attri,
-      name                TYPE string,
-      name_client         TYPE string,
-      name_parent         TYPE string,
-      name_ref            TYPE string,
-      bind                TYPE abap_bool,
-      srtti_data          TYPE string,
+      name              TYPE string,
+      name_client       TYPE string,
+      name_parent       TYPE string,
+      name_ref          TYPE string,
+      bind              TYPE abap_bool,
+      srtti_data        TYPE string,
       " the S-RTTI descriptor of srtti_data as a document of its own, so the
       " restore parses each once (z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair)
       " instead of lexing one combined document twice. Added 2026-09: a draft
       " written before carries no element for it, deserializes with an empty
       " type, and is restored from the combined document as before
-      srtti_type          TYPE string,
-      check_dissolved     TYPE abap_bool,
-      custom_filter       TYPE REF TO z2ui5_if_ajson_filter,
-      custom_mapper       TYPE REF TO z2ui5_if_ajson_mapping,
+      srtti_type        TYPE string,
+      check_dissolved   TYPE abap_bool,
+      custom_filter     TYPE REF TO z2ui5_if_ajson_filter,
+      custom_mapper     TYPE REF TO z2ui5_if_ajson_mapping,
       " the bound string carries JSON - serialize it as a node, not as text
-      check_json          TYPE abap_bool,
-      o_typedescr         TYPE REF TO cl_abap_typedescr,
+      check_json        TYPE abap_bool,
+      o_typedescr       TYPE REF TO cl_abap_typedescr,
       " the absolute type name as a STRING, next to the descriptor it is
       " taken from: the descriptor is an object reference and does not
       " survive the draft, the name does - so the binding search can
@@ -155,33 +116,26 @@ INTERFACE z2ui5_if_ui5_types
       " hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the window is the
       " upgrade itself; a roundtrip on such a draft answers with the
       " framework's error page once, the next start is a fresh app
-      type_name           TYPE string,
-      type_kind           TYPE string,
-      kind                TYPE string,
-      " window_bind_tab( ): the rows go to the browser window_size at a time,
-      " the browser holds the first window_count of them in the order the
-      " sorters and the filter give (z2ui5_cl_ui5_srv_window). This is the
-      " ONE place the order of a windowed table is kept: the browser is told
-      " nothing of it and a window request that only asks for more rows
-      " names none (z2ui5_cl_ui5_srv_window=>event_apply has the reasoning).
-      " t_window_sort and t_window_filter are what index( ) reads - every
-      " reader of the order takes these two and nothing else.
-      " The sort has one owner at a time: the _set one is what the app
-      " passed the last time - a sort the app passes again unchanged leaves
-      " the one the user picked in the browser, a new one replaces it.
-      " The filter has two parts that are ANDed: _set, what the app passed
-      " the last time, and _ui, what filter( ) on the list binding said (a
-      " column menu, a binding_call). Each is replaced by its owner alone
-      " and t_window_filter is the two merged (filter_merge( )).
-      " Appended 2026-11 - a draft written before carries none of them and
-      " deserializes as a table bound the classic way
-      window_size         TYPE i,
-      window_count        TYPE i,
-      t_window_sort       TYPE ty_t_window_sort,
-      t_window_filter     TYPE ty_t_window_filter,
-      t_window_sort_set   TYPE ty_t_window_sort,
-      t_window_filter_set TYPE ty_t_window_filter,
-      t_window_filter_ui  TYPE ty_t_window_filter,
+      type_name         TYPE string,
+      type_kind         TYPE string,
+      kind              TYPE string,
+      " window_bind_tab( ): the table is the rows the app has loaded, in the
+      " order the browser shows them; window_total is how many there are in
+      " all - read anew from the app's attribute window_total_name on every
+      " response when the app passed one, so a window event that changes it
+      " needs no new view - window_size how many the browser asks for at a
+      " time, and window_event the app's event its requests arrive as. The framework
+      " neither sorts nor filters nor keeps an order - the app does, in
+      " main( ) (z2ui5_cl_ui5_srv_window=>request).
+      " Replaced 2026-11-19 the seven components of the server-side window
+      " (count, sort and filter with their owners) - a draft written with
+      " those carries surplus elements and does not deserialize; drafts
+      " expire within hours (z2ui5_cl_ui5_srv_draft=>cleanup), so the
+      " window is the upgrade itself
+      window_size       TYPE i,
+      window_total      TYPE i,
+      window_total_name TYPE string,
+      window_event      TYPE string,
     END OF ty_s_attri.
   " the secondary key serves the two reads that walk a row's CHILDREN (the
   " save of a generic reference, the alias pass) - a sequential scan of

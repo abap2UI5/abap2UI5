@@ -1555,15 +1555,17 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         " carry two destroy actions the frontend had already done itself
         li_client->nav_app_leave( ).
       WHEN z2ui5_if_ui5_types=>cs_event_window.
-        " the list binding of a windowed table asked for more rows, or sorted
-        " or filtered: the framework's own roundtrip, answered from the
-        " attribute's window state without the app (z2ui5_cl_ui5_srv_window).
-        " The view stays, the model goes out with the new window - pushed as
-        " a stale one, since no bound VALUE changed
-        IF z2ui5_cl_ui5_srv_window=>event_apply( t_arg = mo_action->ms_actual-t_event_arg
-                                                 attri = mo_action->mo_app->mt_attri ) = abap_true.
-          mo_action->mo_app->mv_model_client_stale = abap_true.
-        ENDIF.
+        " the list binding of a windowed table wants more rows, or was sorted
+        " or filtered: the APP's event - the one window_bind_tab( ) named -
+        " with the request as get( )-r_event_data. The app loads the rows;
+        " the framework only hands the request over (z2ui5_cl_ui5_srv_window)
+        DATA(ls_window) = z2ui5_cl_ui5_srv_window=>request( mo_action->ms_actual-t_event_arg ).
+        mo_action->ms_actual-event = z2ui5_cl_ui5_srv_window=>event( mo_action->ms_actual-t_event_arg ).
+        mo_action->ms_actual-t_event_arg = VALUE #( ( ls_window-reason )
+                                                    ( |{ ls_window-skip }| )
+                                                    ( |{ ls_window-top }| ) ).
+        mo_action->ms_actual-r_data = z2ui5_cl_ui5_util_context=>conv_copy_ref_data( ls_window ).
+        li_app->main( li_client ).
       WHEN OTHERS.
         li_app->main( li_client ).
     ENDCASE.

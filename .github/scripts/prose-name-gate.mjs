@@ -113,6 +113,13 @@ const EXTERNAL_PATTERNS = [
     re: /^Z2UI5_(CL_UTIL(_DB|_EXT|_HTTP|_LOG|_MSG|_RANGE|_XML)?|CX_UTIL_ERROR|T_91)$/,
     why: "the legacy utilities of abap2UI5/abap2UI5-obsolet (formerly src/99/01)",
   },
+  // The two superseded names deleted on 2026-11-17: the docs, the changelog
+  // and the removal plan keep naming them - as what an installation migrates
+  // away from.
+  {
+    re: /^Z2UI5_(CL_HTTP_HANDLER|IF_EXIT)$/,
+    why: "deleted superseded names (z2ui5_cl_ui5_http_handler / z2ui5_if_ui5_exit are the names)",
+  },
   // The rest of those repositories' namespaces, not just their app classes.
   // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the
   // demo classes - whole prefixes this repository does not ship and cannot

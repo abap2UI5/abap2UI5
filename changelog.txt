@@ -11,6 +11,11 @@ Legend
 
 unreleased
 ----------
+! BREAKING: the windowed table of 1.149.0 and 1.150.0 is app-driven - window_bind_tab( val total event window ): the app holds the rows it has loaded and loads, sorts, filters and counts them itself, the way an OData service answers $skip, $top, $orderby and $filter. The browser's requests (more rows, a sort, a filter) arrive as the app's event with z2ui5_if_client=>ty_s_window_request in get( )-r_event_data (cs_window_reason MORE / SORT / FILTER). t_sort and t_filter of window_bind_tab( ) and window_get_row( ) are removed - val is what the browser shows, a row index is its row
+- the server-side sort and filter of windowed tables, the window index of a row delta and the draft's frame of kept tables (z2ui5_cl_ui5_srv_window is the request parser now)
+- BREAKING: the offline queue (experimental in 1.149.0 and 1.150.0) - cs_event-offline_queue, the frontend's core/Offline.js and the replay in core/Server.js. An edge case the framework does not carry: an event that cannot reach the backend ends in the error overlay with its Retry, as every other one. Sample 543 is removed with it
+- BREAKING: z2ui5_if_exit, the former name of the exit interface, is deleted, and the framework no longer looks it up - an exit class that writes INTERFACES z2ui5_if_exit writes INTERFACES z2ui5_if_ui5_exit instead and names its two methods z2ui5_if_ui5_exit~set_config_http_get / ~set_config_http_post (same parameters, same types). Until it does, it does not compile and the installation runs on the shipped defaults: no custom Content-Security-Policy, theme or bootstrap
+- BREAKING: z2ui5_cl_http_handler, the former name of the HTTP entry point, is deleted - an ICF node or a handler class that still names it names z2ui5_cl_ui5_http_handler (the same methods, it was an empty subclass)
 
 
 2026-11-20 v1.150.0

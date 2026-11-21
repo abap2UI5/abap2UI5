@@ -91,7 +91,7 @@ CLASS z2ui5_cl_ui5f_slots_js IMPLEMENTATION.
              `        const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;` && |\n| &&
              `        const send =` && |\n| &&
              `          kept?.controller === oController` && |\n| &&
-             `            ? WindowModel.keepSaid(args, kept.args.slice(1))` && |\n| &&
+             `            ? WindowModel.keepRestart(args, kept.args.slice(1))` && |\n| &&
              `            : args;` && |\n| &&
              `        oController.eB(` && |\n| &&
              `          [WindowModel.EVENT, false, false, false, true, !!noBusy],` && |\n| &&

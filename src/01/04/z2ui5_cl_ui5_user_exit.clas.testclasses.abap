@@ -1,34 +1,6 @@
 CLASS ltcl_test_user_exit DEFINITION DEFERRED.
-" the double below is put where the class lookup would put it, which needs
-" access to the protected reference - see test_superseded_intf
+" the tests own the protected references the class lookup fills - see setup
 CLASS z2ui5_cl_ui5_user_exit DEFINITION LOCAL FRIENDS ltcl_test_user_exit.
-
-" A customer exit written against the SUPERSEDED interface: what the rename
-" promises to keep working.
-CLASS ltcl_exit_dep DEFINITION FINAL.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_exit.
-
-ENDCLASS.
-
-
-CLASS ltcl_exit_dep IMPLEMENTATION.
-
-  METHOD z2ui5_if_exit~set_config_http_get.
-
-    cs_config-theme = `sap_belize`.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_exit~set_config_http_post.
-
-    cs_config-draft_exp_time_in_hours = 9.
-
-  ENDMETHOD.
-
-ENDCLASS.
-
 
 " A host's own exit, handed in through set_instance - what a Node host
 " passes in its options instead of a class the lookup would find.
@@ -111,7 +83,6 @@ CLASS ltcl_test_user_exit DEFINITION FINAL
     METHODS test_no_secure_ctx_header FOR TESTING RAISING cx_static_check.
     METHODS test_defaults_http_post  FOR TESTING RAISING cx_static_check.
     METHODS test_expiry_clamped      FOR TESTING RAISING cx_static_check.
-    METHODS test_superseded_intf     FOR TESTING RAISING cx_static_check.
     METHODS test_broken_exit_closed  FOR TESTING RAISING cx_static_check.
     METHODS test_lookup_fail_no_latch FOR TESTING RAISING cx_static_check.
     METHODS test_set_instance_shipped FOR TESTING RAISING cx_static_check.
@@ -130,18 +101,15 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD setup.
 
     " get_instance( ) binds gi_user_exit to the exit class it FINDS on the
-    " system, and the dispatch prefers it: IF gi_user_exit ... ELSEIF
-    " gi_user_exit_dep. Every test here asserts either the shipped defaults or
-    " the superseded-interface fallback, so an installed customer exit changes
-    " what they measure - test_superseded_intf failed on a system with one
-    " while passing in CI, because its double sat in the branch the installed
-    " exit had already won. The statics are owned here and put back in
-    " teardown; they are class-wide, so leaving them changed would leak into
+    " system, and the shipped exit dispatches to it. Every test here asserts
+    " the shipped defaults or an exit it installs itself, so an installed
+    " customer exit changes what they measure - a test failed on a system
+    " with one while passing in CI. The static is owned here and put back in
+    " teardown; it is class-wide, so leaving it changed would leak into
     " whatever runs next.
     z2ui5_cl_ui5_user_exit=>get_instance( ).
     installed_exit = z2ui5_cl_ui5_user_exit=>gi_user_exit.
     CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit.
-    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit_dep.
 
   ENDMETHOD.
 
@@ -149,7 +117,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
   METHOD teardown.
 
     z2ui5_cl_ui5_user_exit=>gi_user_exit = installed_exit.
-    CLEAR z2ui5_cl_ui5_user_exit=>gi_user_exit_dep.
 
   ENDMETHOD.
 
@@ -317,35 +284,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_superseded_intf.
-
-    " The compatibility promise of the rename: an exit written against the
-    " superseded z2ui5_if_exit is still called. What finds such a class is a
-    " class-registry lookup that needs SEOCLASS or XCO and has neither here, so
-    " the double is placed where that lookup would place it - which leaves the
-    " dispatch under test, the part that decides whether the old interface is
-    " honoured at all.
-
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
-    DATA ls_post   TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
-
-    DATA(li_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-
-    z2ui5_cl_ui5_user_exit=>gi_user_exit_dep = NEW ltcl_exit_dep( ).
-
-    li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
-    li_exit->set_config_http_post( CHANGING cs_config = ls_post ).
-
-    " both seeded by the shipped exit first, then overwritten by the exit it
-    " found - `sap_horizon` or 4 here would mean the old interface was skipped
-    cl_abap_unit_assert=>assert_equals( exp = `sap_belize`
-                                        act = ls_config-theme ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 9
-                                        act = ls_post-draft_exp_time_in_hours ).
-
-  ENDMETHOD.
-
   METHOD test_context_app_start.
 
     " the exit sees the app the way the handler resolves it: a case change
@@ -388,7 +326,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     ENDTRY.
 
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
-    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit_dep ).
 
   ENDMETHOD.
 
@@ -406,7 +343,6 @@ CLASS ltcl_test_user_exit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>gv_exit_class ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
     cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit ).
-    cl_abap_unit_assert=>assert_not_bound( z2ui5_cl_ui5_user_exit=>gi_user_exit_dep ).
 
     " the one instance, on every call - the early return of get_instance( )
     DATA(li_first) = z2ui5_cl_ui5_user_exit=>get_instance( ).

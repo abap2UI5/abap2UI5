@@ -25,36 +25,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! load clears them. Only valid on the instance the save ran on.
     METHODS main_attri_reattach.
 
-    "! The windowed tables of the app (window_bind_tab( )) taken OUT of the
-    "! container before its transformation: each comes back in ct_kept as
-    "! asXML of its own, and the attribute is left EMPTY until
-    "! main_kept_reattach( ) puts the same rows back. ct_kept holds what the
-    "! previous draft carried: a table whose rows still equal the copy
-    "! there keeps its asXML - one compare instead of serializing the table
-    "! again - and every other one is serialized and copied anew. On return
-    "! ct_kept holds exactly the tables taken now. A table behind a data
-    "! reference (`->*`) is not taken: it travels in the S-RTTI payload of
-    "! its reference (main_attri_db_save_srtti), which the save has written
-    "! before this runs
-    METHODS main_kept_detach
-      CHANGING
-        ct_kept TYPE z2ui5_if_ui5_types=>ty_t_kept.
-
-    "! The rows main_kept_detach( ) took, back into their attributes - the
-    "! same rows, no parse. Called on success and on failure alike
-    METHODS main_kept_reattach.
-
-    "! The rows a draft carried outside the container, parsed back into the
-    "! attributes of the app they were taken from; answers the tables with
-    "! a copy of their rows, for the next main_kept_detach( ). A table whose
-    "! attribute the app does not have any more is skipped - the draft
-    "! outlives the class it was taken from
-    METHODS main_kept_load
-      IMPORTING
-        it_kept       TYPE z2ui5_if_ui5_types=>ty_t_kept
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_t_kept.
-
     "! iv_prefix is the node the bound attributes sit below - the MODEL
     "! path of the request tree (z2ui5_if_ui5_types=>ty_s_request-model_path),
     "! so the request is read in place instead of its model being sliced
@@ -342,15 +312,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! table attribute iv_name. iv_path is the attribute's node in the
     "! request model (name_client); left initial when io_val_front IS that
     "! node - the shape the tests hand in
-    "! ir_window: the attribute is a windowed table - row n of the delta
-    "! is row n of the order the browser holds, not of the table
-    "! (z2ui5_cl_ui5_srv_window)
     METHODS delta_apply_to_table
       IMPORTING
         io_val_front TYPE REF TO z2ui5_if_ajson
         iv_name      TYPE string
         iv_path      TYPE string OPTIONAL
-        ir_window    TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri OPTIONAL
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -365,9 +331,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_base       TYPE string
         iv_table      TYPE string
         iv_row_parent TYPE i OPTIONAL
-        " a windowed table: the row numbers of the order the browser holds
-        it_window     TYPE z2ui5_cl_ui5_srv_window=>ty_t_index OPTIONAL
-        iv_windowed   TYPE abap_bool DEFAULT abap_false
       CHANGING
         ct_tab        TYPE STANDARD TABLE
       RAISING
@@ -474,37 +437,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     " the references main_attri_db_save_srtti cleared, by attribute path -
     " what main_attri_reattach puts back
     DATA mt_detached TYPE ty_t_ref_idx.
-
-    " the rows main_kept_detach took out of the windowed tables, by
-    " attribute path - what main_kept_reattach puts back
-    DATA mt_kept_held TYPE ty_t_ref_idx.
-
-    "! one windowed table out of the app for main_kept_detach: its entry
-    "! for ct_kept (the one of it_before while the rows are the same), or
-    "! nothing when the attribute is no standard table that can be reached
-    METHODS kept_take
-      IMPORTING
-        iv_name       TYPE string
-        it_before     TYPE z2ui5_if_ui5_types=>ty_t_kept
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_kept.
-
-    "! the reference to a windowed table of the app, or none when the
-    "! attribute cannot be reached or is no standard table
-    METHODS kept_ref
-      IMPORTING
-        iv_name       TYPE string
-      RETURNING
-        VALUE(result) TYPE REF TO data.
-
-    "! whether ir_val holds exactly the rows the copy of is_kept holds -
-    "! the same type and the same content
-    METHODS kept_check_same
-      IMPORTING
-        is_kept       TYPE z2ui5_if_ui5_types=>ty_s_kept
-        ir_val        TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE abap_bool.
 
     METHODS ref_idx_put
       IMPORTING
@@ -658,16 +590,14 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_path  TYPE string
         iv_name  TYPE string.
 
-    "! a windowed table as the response sends it: the rows of the window,
-    "! in the order the sorters and the filter give, as a table of the
-    "! attribute's type - and its state under /__WINDOW/&lt;NAME&gt; of io_result
-    METHODS window_ref
+    "! the state of a window_bind_tab( ) table next to its rows, under
+    "! /__WINDOW/&lt;NAME&gt; of io_result: the total the app reported, the
+    "! rows it loaded, the size of a page and the app event that loads more
+    METHODS window_meta
       IMPORTING
-        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        ir_ref        TYPE REF TO data
-        io_result     TYPE REF TO z2ui5_if_ajson
-      RETURNING
-        VALUE(result) TYPE REF TO data
+        ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
+        ir_ref    TYPE REF TO data
+        io_result TYPE REF TO z2ui5_if_ajson
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -677,8 +607,6 @@ ENDCLASS.
 CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
-
-    DATA lr_window TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
@@ -706,24 +634,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
       TRY.
           IF model->exists( |{ lv_node }/__delta| ) = abap_true.
-            " a windowed table maps the rows of the delta through its order
-            CLEAR lr_window.
-            IF lr_attri->window_size > 0.
-              lr_window = lr_attri.
-            ENDIF.
             delta_apply_to_table( io_val_front = model
                                   iv_path      = lv_node
-                                  iv_name      = lr_attri->name
-                                  ir_window    = lr_window ).
-            CONTINUE.
-          ENDIF.
-          " a windowed table is never sent back whole: the browser holds a
-          " window of it, and that window written over the table would cut
-          " the table down to it
-          IF lr_attri->window_size > 0.
-            whole_value_trace( io_model = model
-                               iv_path  = lv_node
-                               iv_name  = lr_attri->name ).
+                                  iv_name      = lr_attri->name ).
             CONTINUE.
           ENDIF.
           DATA(lx_refused) = whole_value_apply( io_model = model
@@ -884,13 +797,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          " window_bind_tab( ): the rows of the window instead of the
-          " table, and the window's state next to them
+          " window_bind_tab( ): the rows the app loaded, and the window's
+          " state next to them
           IF lr_attri->window_size > 0.
-            lr_ref = window_ref( ir_attri  = lr_attri
-                                 ir_ref    = lr_ref
-                                 io_result = li_ajson_result ).
-            ASSIGN lr_ref->* TO <val>.
+            window_meta( ir_attri  = lr_attri
+                         ir_ref    = lr_ref
+                         io_result = li_ajson_result ).
           ENDIF.
 
           json_fast_set( EXPORTING ir_ref    = lr_ref
@@ -1508,152 +1420,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
       CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD main_kept_detach.
-
-    " what an earlier detach on this instance held went back with
-    " main_kept_reattach - kept, it would be put back a second time
-    CLEAR mt_kept_held.
-    DATA(lt_before) = ct_kept.
-    CLEAR ct_kept.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE window_size > 0.
-      " behind a data reference the rows are in the reference's S-RTTI
-      " payload already, and the reference itself is detached by now
-      IF contains( val = lr_attri->name
-                   sub = `->*` ).
-        CONTINUE.
-      ENDIF.
-      DATA(ls_kept) = kept_take( iv_name   = lr_attri->name
-                                 it_before = lt_before ).
-      IF ls_kept-name IS NOT INITIAL.
-        APPEND ls_kept TO ct_kept.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD kept_take.
-
-    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
-    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
-    FIELD-SYMBOLS <held> TYPE ANY TABLE.
-    DATA lr_held TYPE REF TO data.
-
-    DATA(lr_ref) = kept_ref( iv_name ).
-    IF lr_ref IS NOT BOUND.
-      RETURN.
-    ENDIF.
-    ASSIGN lr_ref->* TO <tab>.
-
-    READ TABLE it_before INTO result WITH KEY name = iv_name. "#EC CI_SORTSEQ
-    IF sy-subrc <> 0 OR kept_check_same( is_kept = result
-                                         ir_val  = lr_ref ) = abap_false.
-      " changed, or not kept before: serialized once, here, and copied - an
-      " assignment that shares the rows until either side is written
-      result-name = iv_name.
-      result-xml  = z2ui5_cl_ui5_util_context=>xml_stringify( <tab> ).
-      CREATE DATA result-o_copy LIKE <tab>.
-      ASSIGN result-o_copy->* TO <copy>.
-      <copy> = <tab>.
-    ENDIF.
-
-    " the rows go aside and the attribute stays empty for the transformation
-    " of the container; main_kept_reattach puts the same rows back
-    CREATE DATA lr_held LIKE <tab>.
-    ASSIGN lr_held->* TO <held>.
-    <held> = <tab>.
-    CLEAR <tab>.
-    INSERT VALUE #( name = iv_name
-                    ref  = lr_held ) INTO TABLE mt_kept_held.
-
-  ENDMETHOD.
-
-  METHOD kept_ref.
-
-    TRY.
-        DATA(lr_ref) = attri_get_val_ref( iv_name ).
-      CATCH cx_root.
-        " the draft outlives the class it was taken from - an attribute
-        " renamed or deleted since has no address any more
-        RETURN.
-    ENDTRY.
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( lr_ref ) = abap_false.
-      RETURN.
-    ENDIF.
-    result = lr_ref.
-
-  ENDMETHOD.
-
-  METHOD kept_check_same.
-
-    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
-    FIELD-SYMBOLS <val>  TYPE ANY TABLE.
-
-    IF is_kept-o_copy IS NOT BOUND OR is_kept-xml IS INITIAL.
-      RETURN.
-    ENDIF.
-    " the same type first: two tables of different row types cannot be
-    " compared, and a copy taken before the app's class changed has another
-    IF z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( is_kept-o_copy )->absolute_name
-       <> z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( ir_val )->absolute_name.
-      RETURN.
-    ENDIF.
-    ASSIGN is_kept-o_copy->* TO <copy>.
-    ASSIGN ir_val->* TO <val>.
-    result = xsdbool( <copy> = <val> ).
-
-  ENDMETHOD.
-
-  METHOD main_kept_reattach.
-
-    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
-    FIELD-SYMBOLS <held> TYPE ANY TABLE.
-
-    LOOP AT mt_kept_held REFERENCE INTO DATA(lr_held).
-      DATA(lr_ref) = kept_ref( lr_held->name ).
-      IF lr_ref IS NOT BOUND.
-        CONTINUE.
-      ENDIF.
-      ASSIGN lr_ref->* TO <tab>.
-      ASSIGN lr_held->ref->* TO <held>.
-      <tab> = <held>.
-    ENDLOOP.
-    CLEAR mt_kept_held.
-
-  ENDMETHOD.
-
-  METHOD main_kept_load.
-
-    FIELD-SYMBOLS <tab>  TYPE ANY TABLE.
-    FIELD-SYMBOLS <copy> TYPE ANY TABLE.
-
-    LOOP AT it_kept INTO DATA(ls_kept).
-      DATA(lr_ref) = kept_ref( ls_kept-name ).
-      IF lr_ref IS NOT BOUND.
-        CONTINUE.
-      ENDIF.
-      ASSIGN lr_ref->* TO <tab>.
-      " the rows of a bound table - a failure here must not leave the app
-      " running on an empty table, see main_attri_db_load_resolve
-      TRY.
-          z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = ls_kept-xml
-                                                IMPORTING any = <tab> ).
-        CATCH cx_root INTO DATA(x).
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING
-              val      = |APP_STATE_RESTORE_ERROR - the rows of the windowed table '{ ls_kept-name }' | &&
-                         |could not be restored from the draft|
-              previous = x.
-      ENDTRY.
-      CREATE DATA ls_kept-o_copy LIKE <tab>.
-      ASSIGN ls_kept-o_copy->* TO <copy>.
-      <copy> = <tab>.
-      APPEND ls_kept TO result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -2309,21 +2075,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
         " attribute unmapped after a refresh, and dropping the window of a
-        " window_bind_tab( ) table would ship the whole table, ignore the browser's
-        " next window request and apply a row delta by raw index into the
-        " wrong row
+        " window_bind_tab( ) table would send it without its total and the
+        " app event that loads more
         lr_attri->bind                = lr_old->bind.
         lr_attri->name_client         = lr_old->name_client.
         lr_attri->custom_mapper       = lr_old->custom_mapper.
         lr_attri->custom_filter       = lr_old->custom_filter.
         lr_attri->check_json          = lr_old->check_json.
         lr_attri->window_size         = lr_old->window_size.
-        lr_attri->window_count        = lr_old->window_count.
-        lr_attri->t_window_sort       = lr_old->t_window_sort.
-        lr_attri->t_window_filter     = lr_old->t_window_filter.
-        lr_attri->t_window_sort_set   = lr_old->t_window_sort_set.
-        lr_attri->t_window_filter_set = lr_old->t_window_filter_set.
-        lr_attri->t_window_filter_ui  = lr_old->t_window_filter_ui.
+        lr_attri->window_total        = lr_old->window_total.
+        lr_attri->window_total_name   = lr_old->window_total_name.
+        lr_attri->window_event        = lr_old->window_event.
       ENDIF.
     ENDLOOP.
 
@@ -2382,18 +2144,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF ir_window IS BOUND.
-      delta_apply_nodes( EXPORTING io_delta    = io_val_front
-                                   iv_base     = lv_delta
-                                   iv_table    = iv_name
-                                   it_window   = z2ui5_cl_ui5_srv_window=>index( tab       = <delta_tab>
-                                                                                  t_sort   = ir_window->t_window_sort
-                                                                                  t_filter = ir_window->t_window_filter )
-                                   iv_windowed = abap_true
-                         CHANGING  ct_tab      = <delta_tab> ).
-      RETURN.
-    ENDIF.
-
     delta_apply_nodes( EXPORTING io_delta = io_val_front
                                  iv_base  = lv_delta
                                  iv_table = iv_name
@@ -2419,14 +2169,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       DATA(lv_tabix) = delta_row_index( lv_idx_str ).
       IF lv_tabix = 0.
         CONTINUE.
-      ENDIF.
-      " a windowed table: the browser's row n is the table's row
-      " it_window[ n ]; a row past the window is past the table's end below
-      IF iv_windowed = abap_true.
-        READ TABLE it_window INDEX lv_tabix INTO lv_tabix.
-        IF sy-subrc <> 0.
-          lv_tabix = lines( ct_tab ) + 1.
-        ENDIF.
       ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
       " no slice( ) per row: slicing walks and copies the WHOLE delta tree
@@ -2952,36 +2694,38 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD window_ref.
+  METHOD window_meta.
 
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
 
-    result = ir_ref.
-    " decided by RTTI first: ASSIGN to a typed field symbol dumps on a
-    " system when the kinds differ (abap-check, section 5). srv_bind refuses
-    " a window on anything else, so this only guards a draft gone odd
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
-      RETURN.
+    DATA(lv_count) = 0.
+    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_true.
+      ASSIGN ir_ref->* TO <tab>.
+      lv_count = lines( <tab> ).
     ENDIF.
-    ASSIGN ir_ref->* TO <tab>.
 
-    DATA(lt_index) = z2ui5_cl_ui5_srv_window=>index( tab      = <tab>
-                                                     t_sort   = ir_attri->t_window_sort
-                                                     t_filter = ir_attri->t_window_filter ).
-    DATA(lv_count) = nmin( val1 = nmax( val1 = ir_attri->window_count
-                                        val2 = ir_attri->window_size )
-                           val2 = lines( lt_index ) ).
-    result = z2ui5_cl_ui5_srv_window=>rows( tab     = <tab>
-                                            t_index = lt_index
-                                            count   = lv_count ).
+    " the total as the app holds it now - read from its attribute when it
+    " passed one, the value of the last render otherwise
+    DATA(lv_total) = ir_attri->window_total.
+    IF ir_attri->window_total_name IS NOT INITIAL.
+      TRY.
+          DATA(lr_total) = attri_get_val_ref( ir_attri->window_total_name ).
+          ASSIGN lr_total->* TO FIELD-SYMBOL(<total>).
+          lv_total = <total>.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
 
     DATA(lv_meta) = |/{ z2ui5_if_ui5_types=>cv_window_model_key }{ ir_attri->name_client }|.
     io_result->set( iv_path = |{ lv_meta }/TOTAL|
-                    iv_val  = lines( lt_index ) ).
+                    iv_val  = nmax( val1 = lv_total
+                                    val2 = lv_count ) ).
     io_result->set( iv_path = |{ lv_meta }/COUNT|
                     iv_val  = lv_count ).
     io_result->set( iv_path = |{ lv_meta }/SIZE|
                     iv_val  = ir_attri->window_size ).
+    io_result->set( iv_path = |{ lv_meta }/EVENT|
+                    iv_val  = ir_attri->window_event ).
 
   ENDMETHOD.
 
