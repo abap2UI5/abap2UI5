@@ -1818,16 +1818,21 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_oref.
 
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+
     " describe_by_object_ref raises the classic exception REFERENCE_IS_INITIAL
     " for an initial reference - called functionally that is a runtime error no
-    " CATCH reaches. The open-abap runtime of the transpiled build declares no
-    " EXCEPTIONS for it, so the reference is tested here instead
-    IF val IS INITIAL.
+    " CATCH reaches
+    cl_abap_objectdescr=>describe_by_object_ref( EXPORTING  p_object_ref         = val
+                                                 RECEIVING p_descr_ref           = lo_descr
+                                                 EXCEPTIONS reference_is_initial = 1
+                                                            OTHERS               = 2 ).
+    IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `RTTI_REFERENCE_IS_INITIAL`.
     ENDIF.
-    result = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( val ) )->attributes.
+    result = CAST cl_abap_classdescr( lo_descr )->attributes.
 
   ENDMETHOD.
 
@@ -1845,14 +1850,16 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
     " a data object is no type name
     lo_type = cl_abap_typedescr=>describe_by_data( val ).
     IF lo_type->kind = cl_abap_typedescr=>kind_ref.
-      " an initial reference would be REFERENCE_IS_INITIAL, a runtime error -
-      " see rtti_get_t_attri_by_oref
-      IF val IS INITIAL.
+      " REFERENCE_IS_INITIAL - see rtti_get_t_attri_by_oref
+      cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                               RECEIVING p_descr_ref           = lo_type
+                                               EXCEPTIONS reference_is_initial = 1
+                                                          OTHERS               = 2 ).
+      IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = `RTTI_REFERENCE_IS_INITIAL`.
       ENDIF.
-      lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
     ENDIF.
 
     CASE lo_type->kind.
@@ -2524,25 +2531,32 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
 
   METHOD rtti_get_typedescr_by_data_ref.
 
-    " an initial reference would be REFERENCE_IS_INITIAL, a runtime error -
-    " see rtti_get_t_attri_by_oref
-    IF val IS INITIAL.
+    " REFERENCE_IS_INITIAL - see rtti_get_t_attri_by_oref
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = result
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
           val = `RTTI_REFERENCE_IS_INITIAL`.
     ENDIF.
-    result = cl_abap_typedescr=>describe_by_data_ref( val ).
 
   ENDMETHOD.
 
   METHOD rtti_check_table_standard.
 
-    " the CATCH below cannot catch REFERENCE_IS_INITIAL, a classic exception
-    IF val IS INITIAL.
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+
+    " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = lo_type
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
       RETURN.
     ENDIF.
     TRY.
-        DATA(lo_type) = cl_abap_typedescr=>describe_by_data_ref( val ).
         IF lo_type->kind <> cl_abap_typedescr=>kind_table.
           RETURN.
         ENDIF.
@@ -2555,12 +2569,15 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
   METHOD rtti_get_flat_components.
 
     DATA lo_type TYPE REF TO cl_abap_typedescr.
-    " the CATCH below cannot catch REFERENCE_IS_INITIAL, a classic exception
-    IF val IS INITIAL.
+    " REFERENCE_IS_INITIAL is a classic exception, the CATCH below cannot see it
+    cl_abap_typedescr=>describe_by_data_ref( EXPORTING  p_data_ref           = val
+                                             RECEIVING p_descr_ref           = lo_type
+                                             EXCEPTIONS reference_is_initial = 1
+                                                        OTHERS               = 2 ).
+    IF sy-subrc <> 0.
       RETURN.
     ENDIF.
     TRY.
-        lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
         IF lo_type->kind = cl_abap_typedescr=>kind_table.
           DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
           IF lo_table->table_kind <> cl_abap_tabledescr=>tablekind_std.

@@ -16,6 +16,7 @@ unreleased
 - BREAKING: the offline queue (experimental in 1.149.0 and 1.150.0) - cs_event-offline_queue, the frontend's core/Offline.js and the replay in core/Server.js. An edge case the framework does not carry: an event that cannot reach the backend ends in the error overlay with its Retry, as every other one. Sample 543 is removed with it
 - BREAKING: z2ui5_if_exit, the former name of the exit interface, is deleted, and the framework no longer looks it up - an exit class that writes INTERFACES z2ui5_if_exit writes INTERFACES z2ui5_if_ui5_exit instead and names its two methods z2ui5_if_ui5_exit~set_config_http_get / ~set_config_http_post (same parameters, same types). Until it does, it does not compile and the installation runs on the shipped defaults: no custom Content-Security-Policy, theme or bootstrap
 - BREAKING: z2ui5_cl_http_handler, the former name of the HTTP entry point, is deleted - an ICF node or a handler class that still names it names z2ui5_cl_ui5_http_handler (the same methods, it was an empty subclass)
+* @abap2ui5/node-runtime: open-abap-core moves to 1e83502 - cl_abap_typedescr=>describe_by_data_ref raises REFERENCE_IS_INITIAL instead of a JavaScript TypeError, so the RTTI helpers of z2ui5_cl_ui5_util_context call it with EXCEPTIONS on every target
 
 
 2026-11-20 v1.150.0
