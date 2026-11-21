@@ -798,14 +798,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
              `  calls ``main( )`` and asserts.` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
-             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n|.
-    result = result &&
+             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
              `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
              `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
              `  no system involved. Implement every method the app calls in the double:` && |\n| &&
              `  the transpiled runtime generates no empty stubs for a ``PARTIALLY` && |\n| &&
-             `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n| &&
+             `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n|.
+    result = result &&
              `  template of section 2:` && |\n| &&
              |\n| &&
              `  ``````abap` && |\n| &&
@@ -816,8 +816,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `      DATA init      TYPE abap_bool.` && |\n| &&
              `      DATA navigated TYPE abap_bool.` && |\n| &&
              `      DATA event     TYPE abap_bool.` && |\n| &&
-             `      DATA event_id  TYPE string.` && |\n|.
-    result = result &&
+             `      DATA event_id  TYPE string.` && |\n| &&
              `      " what the app did back, in order` && |\n| &&
              `      DATA t_view  TYPE string_table.` && |\n| &&
              `      DATA t_toast TYPE string_table.` && |\n| &&
@@ -841,14 +840,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~message_toast_display.` && |\n| &&
              `      APPEND text TO t_toast.` && |\n| &&
-             `    ENDMETHOD.` && |\n|.
-    result = result &&
+             `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
              `      result = ``bound``.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~_event.` && |\n| &&
              `      result = val.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
+             `    ENDMETHOD.` && |\n|.
+    result = result &&
              `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
@@ -860,8 +859,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    METHOD save_toasts_the_name.` && |\n| &&
              `      DATA(app)    = NEW zcl_my_app( ).` && |\n| &&
              `      DATA(double) = NEW ltd_client( ).` && |\n| &&
-             `      " an event roundtrip: the framework has already written the user's` && |\n|.
-    result = result &&
+             `      " an event roundtrip: the framework has already written the user's` && |\n| &&
              `      " input into the bound attribute when main( ) is called` && |\n| &&
              `      double->event    = abap_true.` && |\n| &&
              `      double->event_id = ``SAVE``.` && |\n| &&
@@ -886,14 +884,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
              `  service, no frontend artefact. Once the class is active it runs at the` && |\n| &&
              `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
-             `  connection to the system stops at the files - say so, and say which of the` && |\n|.
-    result = result &&
+             `  connection to the system stops at the files - say so, and say which of the` && |\n| &&
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
              `  check - Node, the two gates, Chromium for the render gate, the framework` && |\n| &&
              `  pin, the sidecars - that names the remedy for each failure.` && |\n| &&
              `- **``npm create abap2ui5-app@latest my-app -- --class zcl_my_app``**: the` && |\n| &&
-             `  project scaffold without a GitHub template button or an editor.` && |\n| &&
+             `  project scaffold without a GitHub template button or an editor.` && |\n|.
+    result = result &&
              `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n| &&
              `  headless app and look at the result - the event branch, not just the boot.` && |\n| &&
              |\n| &&
@@ -905,8 +903,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `(``app/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
              |\n| &&
-             `### Starting them` && |\n|.
-    result = result &&
+             `### Starting them` && |\n| &&
              |\n| &&
              `| How | What it does |` && |\n| &&
              `|---|---|` && |\n| &&
@@ -937,14 +934,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `### What you find there` && |\n| &&
              |\n| &&
              `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n| &&
-             `  go next. The landing tab, with the "Open on Error" switch.` && |\n|.
-    result = result &&
+             `  go next. The landing tab, with the "Open on Error" switch.` && |\n| &&
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
              `  UI5's log, uncaught errors, rejections, every ``console.*`` call and the` && |\n| &&
              `  messages the user was shown.` && |\n| &&
              `- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes` && |\n| &&
-             `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n| &&
+             `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n|.
+    result = result &&
              `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
              `  click-through: press "Record Journey", use the app, press it again, and` && |\n| &&
              `  "Export ABAP Unit" hands over a local test class that replays the steps on` && |\n| &&
@@ -954,8 +951,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  into the app's test include; record from the app start, because the test` && |\n| &&
              `  starts the app fresh.` && |\n| &&
              `- **View & Data**: the XML of the main view, the popup, the popover and the` && |\n| &&
-             `  nested views as the backend sent it, the model that fills each, and the` && |\n|.
-    result = result &&
+             `  nested views as the backend sent it, the model that fills each, and the` && |\n| &&
              `  bindings with a missing-path check and a size ranking. The picker marks a` && |\n| &&
              `  control on screen and jumps to its XML.` && |\n| &&
              `- **System**: UI5 version, theme, device, the running app's ABAP class.` && |\n| &&
@@ -981,14 +977,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `## 11. Calling a language model` && |\n| &&
              |\n| &&
              ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n| &&
-             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n|.
-    result = result &&
+             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n| &&
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
              `for the user, ``retryable`` for a 408/429/5xx or a timeout). Get a provider from` && |\n| &&
              ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n| &&
              `(Chat Completions - OpenAI, Azure with ``auth_header`` set to ``api-key``, Ollama,` && |\n| &&
-             `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n| &&
+             `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n|.
+    result = result &&
              `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n| &&
              |\n| &&
              ```````abap` && |\n| &&
@@ -999,8 +995,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              ```````` && |\n| &&
              |\n| &&
              `- **No key, model or endpoint in the class.** Read them from your own` && |\n| &&
-             `  configuration and pass a destination (SM59 on Standard, a communication` && |\n|.
-    result = result &&
+             `  configuration and pass a destination (SM59 on Standard, a communication` && |\n| &&
              `  arrangement or BTP destination on Cloud) or a URL plus key; there is no` && |\n| &&
              `  default model.` && |\n| &&
              `- Create the provider in the method that calls it - never keep it in an` && |\n| &&
