@@ -35,9 +35,6 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
   PROTECTED SECTION.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
     CLASS-DATA gi_user_exit     TYPE REF TO z2ui5_if_ui5_exit.
-    " the same exit found under the superseded interface - only one of the two
-    " is ever bound, see exit_instantiate
-    CLASS-DATA gi_user_exit_dep TYPE REF TO z2ui5_if_exit.
     CLASS-DATA gs_context       TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
     " the class name the lookup answered, remembered together with gi_me:
     " get_user_exit_class is asked again after get_instance in the same
@@ -67,9 +64,9 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
     " gv_name_chars takes the same road
     CLASS-DATA gv_csp_default TYPE string.
 
-    " the exit class the lookup named, instantiated and bound to the
-    " reference of the interface it implements - or a chained exception,
-    " never a silent fall-back to the shipped defaults (see there)
+    " the exit class the lookup named, instantiated and bound - or a
+    " chained exception, never a silent fall-back to the shipped defaults
+    " (see there)
     CLASS-METHODS exit_instantiate
       IMPORTING
         iv_class_name TYPE string.
@@ -128,7 +125,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
     CLEAR gi_me.
     CLEAR gi_user_exit.
-    CLEAR gi_user_exit_dep.
     CLEAR gv_exit_class.
     CLEAR gv_exit_class_known.
 
@@ -182,15 +178,10 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
         DATA lo_exit TYPE REF TO object.
         CREATE OBJECT lo_exit TYPE (iv_class_name).
 
-        " Which interface the class implements decides how it is called, and
-        " the cast is what asks the object rather than the class list. A
-        " class implementing BOTH lands in gi_user_exit and is therefore
-        " called once, through the current interface - never twice.
-        TRY.
-            gi_user_exit ?= lo_exit.
-          CATCH cx_sy_move_cast_error.
-            gi_user_exit_dep ?= lo_exit.
-        ENDTRY.
+        " the cast asks the object rather than the class list: a class the
+        " lookup named that does not implement the interface after all fails
+        " here, closed, like every other class that cannot be used
+        gi_user_exit ?= lo_exit.
       CATCH cx_root INTO DATA(lx).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
@@ -226,34 +217,21 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " names and found no exit. So every name here comes from a typed,
     " unbound reference (rtti_get_ref_type_name), which both the compiler
     " and the rename see; .github/scripts/rename-literal-gate.mjs keeps it so
-    DATA li_exit       TYPE REF TO z2ui5_if_ui5_exit.
-    DATA li_exit_dep   TYPE REF TO z2ui5_if_exit.
-    DATA lo_shipped    TYPE REF TO z2ui5_cl_ui5_user_exit.
-    DATA lv_intf       TYPE string.
-    DATA lv_shipped    TYPE string.
+    DATA li_exit    TYPE REF TO z2ui5_if_ui5_exit.
+    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
+    DATA lv_intf    TYPE string.
+    DATA lv_shipped TYPE string.
 
     lv_intf    = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_exit ).
     lv_shipped = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped ).
     DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
     DELETE exit_classes WHERE classname = lv_shipped.
 
-    " The superseded interface is looked up too, for as long as it ships -
-    " but only when the current one names nothing. Each lookup is a
-    " repository read (SEO_INTERFACE_IMPLEM_GET_ALL on standard ABAP, XCO
-    " on cloud), and gi_me does not outlive a request on stateless ICF, so
-    " both were paid on every request. An exit written against
-    " Z2UI5_IF_EXIT is still found exactly as before; a class implementing
-    " both is found under the current name (the cast order in
-    " exit_instantiate calls it once, through that interface). A system that
-    " carries one class per interface - a configuration the class doc
-    " rules out, only one exit can be active - gets the current one
-    " instead of whichever sorted first across both lists.
-    " no self-exclusion on this list: the shipped exit implements
-    " z2ui5_if_ui5_exit only, so it is never in it
-    IF lines( exit_classes ) = 0.
-      lv_intf = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_exit_dep ).
-      exit_classes = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
-    ENDIF.
+    " One interface, one lookup. Until 2026-11-17 the superseded name
+    " Z2UI5_IF_EXIT was looked up as well when this one named nothing; the
+    " interface is deleted, and a class that still implements it no longer
+    " compiles - it implements Z2UI5_IF_UI5_EXIT instead, the same two
+    " methods and types.
 
     " only one user exit can be active, so the pick must not depend on the
     " order the class lookup happens to return (SEOCLASS select order on
@@ -321,7 +299,7 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
       " source of script") the moment the camera opens - nothing earlier says so.
       "
       " NO 'unsafe-inline' for scripts either. The page's one inline script -
-      " onInitComponent with the embedded preload - is fixed per build, and
+      " onInitComponent with the embed control - is fixed per build, and
       " z2ui5_cl_ui5_http_handler=>_http_get adds its SHA-256 to script-src
       " (z2ui5_cl_ui5f_preload=>script_hash). Everything else inline - an
       " injected <script>, an onerror= attribute, a javascript: URL - is
@@ -410,9 +388,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_get( EXPORTING is_context = gs_context
                                          CHANGING  cs_config  = cs_config ).
-    ELSEIF gi_user_exit_dep IS BOUND.
-      gi_user_exit_dep->set_config_http_get( EXPORTING is_context = gs_context
-                                             CHANGING  cs_config  = cs_config ).
     ENDIF.
 
   ENDMETHOD.
@@ -439,9 +414,6 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_post( EXPORTING is_context = gs_context
                                           CHANGING  cs_config  = cs_config ).
-    ELSEIF gi_user_exit_dep IS BOUND.
-      gi_user_exit_dep->set_config_http_post( EXPORTING is_context = gs_context
-                                              CHANGING  cs_config  = cs_config ).
     ENDIF.
 
     IF cs_config-draft_exp_time_in_hours <= 0.

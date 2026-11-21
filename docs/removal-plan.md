@@ -38,11 +38,11 @@ support case.
       frontend's `core/Offline.js`, the keep and replay paths of
       `core/Server.js`, the fixture `zcl_tst_offline`, its specs, the concept
       page `docs/concepts/offline.md` and sample 543 of abap2UI5/samples. It
-      shipped in 1.149.0 as experimental and goes without a deprecation
-      period. API snapshot regenerated, exception 13 in
+      shipped in 1.149.0 and 1.150.0 as experimental and goes without a
+      deprecation period. API snapshot regenerated, exception 13 in
       `docs/agents/api-snapshot-exceptions.md`.
 - [x] The windowed table made app-driven on 2026-11-19, three days after it
-      shipped in 1.149.0, without a deprecation period (maintainer decision -
+      shipped in 1.149.0 (and still in 1.150.0), without a deprecation period (maintainer decision -
       the server-side window was too large for the framework): `window_bind_tab( val total event window )` - the app loads,
       sorts, filters and counts the rows itself; the browser's requests
       arrive as the app's `event` with `z2ui5_if_client=>ty_s_window_request`
@@ -279,21 +279,12 @@ Every entry here is a **rule-5 break**: it needs `node .github/scripts/api-snaps
 a `- BREAKING:` line in `changelog.txt`, and a note in the docs
 [Deprecations](https://abap2ui5.github.io/docs/resources/deprecations) page.
 
-- [ ] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`, kept
-      so that no existing exit breaks on the rename. It ships from `src/99` and
-      `z2ui5_cl_ui5_user_exit` still looks it up, so a class implementing it is
-      found and called exactly as before; its three types are references to the
-      new interface's rather than copies, so there is one definition and it
-      cannot drift. Before the old name can go: the new one has to be in a
-      release, the documentation has to teach it — the examples on the Setup,
-      Security, Style/CSS, Bootstrap-Attributes and Logon-Language pages still
-      write `z2ui5_if_exit`, and they are compiled against the RELEASE, so they
-      can only follow after one — and the deprecation has to have stood long
-      enough to be seen. Deleting it is then four things: the second lookup in
+- [x] **`z2ui5_if_exit`** — the superseded name of `z2ui5_if_ui5_exit`,
+      deleted on 2026-11-17 (maintainer decision) with the second lookup in
       `get_user_exit_class( )`, `gi_user_exit_dep` and the two delegating
-      methods in `z2ui5_cl_ui5_user_exit`, and the `/src/99/z2ui5_if_exit.intf.*`
-      line that puts this one frozen object into `abaplint.jsonc`'s strict
-      ruleset
+      branches in `z2ui5_cl_ui5_user_exit`, and the line that put it into
+      `abaplint.jsonc`'s strict ruleset. An exit class written against the old
+      name implements `z2ui5_if_ui5_exit` - same methods, same types.
 - [ ] **`_bind_edit( )`** of `z2ui5_if_client` — alias of `_bind`, identical
       behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
       - Former blocker resolved: per-direction mapping was dropped —
@@ -422,7 +413,9 @@ breaking change for any downstream app that still references it.
         This does not move the removal itself — the classes still ship and
         are still frozen — it only means the popups no longer hold the
         retired builder in place.
-- [ ] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler`
+- [x] **`src/99/z2ui5_cl_http_handler` (11 lines)** → `z2ui5_cl_ui5_http_handler` -
+      deleted on 2026-11-17 (maintainer decision); what named it names
+      `z2ui5_cl_ui5_http_handler`
       - An empty subclass that exists so an ICF node pointing at the old
         handler name keeps resolving. AGENTS.md names it deprecated in two
         places; it had no box here, which made `src/99` look like three items

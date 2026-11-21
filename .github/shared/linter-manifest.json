@@ -493,10 +493,8 @@
       "z2ui5_cl_pop_to_select"
     ],
     "src/99": [
-      "z2ui5_cl_http_handler",
       "z2ui5_cl_xml_view",
       "z2ui5_cl_xml_view_cc",
-      "z2ui5_if_exit",
       "z2ui5_if_types"
     ]
   },

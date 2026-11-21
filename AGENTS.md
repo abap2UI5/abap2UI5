@@ -123,8 +123,7 @@ src/
   `z2ui5_cx_ui5_llm`, `z2ui5_cl_ui5_llm`. Recorded symbol for symbol in
   `.github/api-snapshot.json`. **A type lives on the object that uses it** (`ty_s_get` on `z2ui5_if_client`,
   the HTTP-config types on the exit) — nothing in `src/00`–`src/02` resolves into the retired `z2ui5_if_types`.
-- **`src/99` — frozen.** The legacy XML view builder (`z2ui5_cl_xml_view`, `_cc`), the `z2ui5_cl_http_handler`
-  shim, `z2ui5_if_types`, `z2ui5_if_exit` (the superseded exit name — still looked up, see "Key Design Patterns"),
+- **`src/99` — frozen.** The legacy XML view builder (`z2ui5_cl_xml_view`, `_cc`), `z2ui5_if_types`
   and the obsolete popups (`99/02`, successor:
   [abap2UI5-addons/popups](https://github.com/abap2UI5-addons/popups)). The retired `z2ui5_cl_util*` classes,
   `z2ui5_cx_util_error` and `z2ui5_t_91` (formerly `99/01`) moved to
@@ -205,9 +204,9 @@ seams; see `docs/agents/architecture-seams.md`.
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops
 - **Multi-View:** main view, nested views (nest/nest2), popups and popovers at once
 - **Exit Pattern:** `z2ui5_if_ui5_exit`, implemented by `z2ui5_cl_ui5_user_exit` (themes, CSP headers, …).
-  The superseded `z2ui5_if_exit` (`src/99`) is still looked up and honoured during the rename — how, and what goes
-  when it goes, is in `docs/agents/architecture-seams.md`. It is the one `src/99` object `abaplint.jsonc` lists in
-  the strict ruleset.
+  The superseded names `z2ui5_if_exit` and `z2ui5_cl_http_handler` were deleted on 2026-11-17, together with
+  the second exit lookup: an exit class implements `z2ui5_if_ui5_exit`, an ICF node names
+  `z2ui5_cl_ui5_http_handler`.
 - **Monitor seam:** `z2ui5_if_ui5_monitor`, called once per POST roundtrip. **It fails open, the exit fails
   closed** — a broken monitor must never break an app.
 - **`@abap2ui5/node-runtime`:** the transpiled tree as an npm package; its manifest is
