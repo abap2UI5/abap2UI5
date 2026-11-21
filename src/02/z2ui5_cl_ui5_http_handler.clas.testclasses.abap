@@ -716,7 +716,6 @@ CLASS ltcl_exit_injector IMPLEMENTATION.
   METHOD reset.
     CLEAR gi_me.
     CLEAR gi_user_exit.
-    CLEAR gi_user_exit_dep.
   ENDMETHOD.
 
 ENDCLASS.

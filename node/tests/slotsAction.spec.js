@@ -42,7 +42,7 @@ function load({
   // the one static of core/WindowModel the slots call: the real merge of
   // two window requests of one table is windowModel.spec.js's - here a
   // marker shows that it was asked, and with what
-  JSONModel.keepSaid = (args, kept) => [...args, { kept }];
+  JSONModel.keepRestart = (args, kept) => [...args, { kept }];
 
   const fragment = {
     destroyed: false,
@@ -474,7 +474,7 @@ test.describe("a slot's model sends the window requests of its tables", () => {
     expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
   });
 
-  test("a request waiting in the slot hands over what it named", async () => {
+  test("a request waiting in the slot is weighed against the new one", async () => {
     const { model, sent, state, controller } = await popupModel();
     // sort( ) came while a roundtrip ran: View1.eB kept it in the slot
     state.isBusy = true;

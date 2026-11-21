@@ -72,7 +72,6 @@ INTERFACE z2ui5_if_client
       hash_attach_changed       TYPE string VALUE `HASH_ATTACH_CHANGED`,
       hash_routing              TYPE string VALUE `SET_NAV_ROUTING`,
       app_state_set_active      TYPE string VALUE `SET_APP_STATE_ACTIVE`,
-      offline_queue             TYPE string VALUE `OFFLINE_QUEUE`,
       cross_app_nav_get_links   TYPE string VALUE `CROSS_APP_NAV_GET_LINKS`,
       set_app_full_width        TYPE string VALUE `SET_APP_FULL_WIDTH`,
 
@@ -1129,9 +1128,9 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   TYPES:
-    "! One sorter of window_bind_tab( ): the column (the upper-case component name of
-    "! the row) and the direction. The first sorter that tells two rows apart
-    "! decides.
+    "! One sorter of a window request (ty_s_window_request): the column (the
+    "! upper-case component name of the row) and the direction, in the order
+    "! the browser listed them.
     BEGIN OF ty_s_bind_tab_sort,
       path       TYPE string,
       descending TYPE abap_bool,
@@ -1139,13 +1138,13 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_bind_tab_sort TYPE STANDARD TABLE OF ty_s_bind_tab_sort WITH EMPTY KEY.
 
   TYPES:
-    "! One condition of the filter of window_bind_tab( ). The conditions of one group
-    "! are ORed, the groups ANDed - the conditions on one column ORed, the
-    "! columns ANDed, as UI5 combines a list binding's filters. operator is a
-    "! sap.ui.model.FilterOperator: EQ NE LT LE GT GE BT NB Contains NotContains
-    "! StartsWith NotStartsWith EndsWith NotEndsWith; value2 is the upper bound
-    "! of BT / NB. Numbers, dates (yyyy-MM-dd or yyyyMMdd), times and booleans
-    "! (true / false) compare as such, text without regard to case.
+    "! One condition of the filter of a window request (ty_s_window_request).
+    "! The conditions of one group are ORed, the groups ANDed - the conditions
+    "! on one column ORed, the columns ANDed, as UI5 combines a list binding's
+    "! filters. operator is a sap.ui.model.FilterOperator: EQ NE LT LE GT GE
+    "! BT NB Contains NotContains StartsWith NotStartsWith EndsWith
+    "! NotEndsWith; value2 is the upper bound of BT / NB. The values are the
+    "! browser's text - a date as yyyy-MM-dd. Applying them is the app's.
     BEGIN OF ty_s_bind_tab_filter,
       group    TYPE i,
       path     TYPE string,
@@ -1155,83 +1154,75 @@ INTERFACE z2ui5_if_client
     END OF ty_s_bind_tab_filter.
   TYPES ty_t_bind_tab_filter TYPE STANDARD TABLE OF ty_s_bind_tab_filter WITH EMPTY KEY.
 
-  "! Bind a LARGE table to a list control - the browser gets it a window at a
-  "! time instead of whole. Returns the value binding like _bind( )
-  "! (`items = client->window_bind_tab( mt_rows )`); the rows of the template bind
-  "! relative (`\{NAME\}`), as with _bind( ).
+  CONSTANTS:
+    "! Why the browser asks (ty_s_window_request-reason).
+    BEGIN OF cs_window_reason,
+      "! more rows: append top rows after the skip the browser has
+      more   TYPE string VALUE `MORE`,
+      "! the binding was sorted - load from the start in t_sort / t_filter
+      sort   TYPE string VALUE `SORT`,
+      "! the binding was filtered - load from the start in t_sort / t_filter
+      filter TYPE string VALUE `FILTER`,
+    END OF cs_window_reason.
+
+  TYPES:
+    "! A request of a windowed table's list binding (window_bind_tab( )), as
+    "! the app's event finds it in client->get( )-r_event_data - a reference
+    "! to this type: `ASSIGN lr_data->* TO &lt;req&gt;` with &lt;req&gt; TYPE
+    "! z2ui5_if_client=>ty_s_window_request.
+    BEGIN OF ty_s_window_request,
+      "! the model path of the table, `/MT_ROWS` - which table asks, when
+      "! several share one event
+      path     TYPE string,
+      "! a cs_window_reason value
+      reason   TYPE string,
+      "! the rows the browser holds - for MORE where to go on; 0 otherwise
+      skip     TYPE i,
+      "! the rows the browser wants now
+      top      TYPE i,
+      "! the binding's sorters - for SORT and FILTER; empty for MORE
+      t_sort   TYPE ty_t_bind_tab_sort,
+      "! the binding's filter - for SORT and FILTER; empty for MORE
+      t_filter TYPE ty_t_bind_tab_filter,
+    END OF ty_s_window_request.
+
+  "! Bind a LARGE result to a list control that the APP loads a window at a
+  "! time - the way an OData service answers $skip, $top, $orderby and
+  "! $filter. Returns the value binding like _bind( )
+  "! (`items = client->window_bind_tab( val = mt_rows total = mv_total
+  "! event = `ROWS` )`); the rows of the template bind relative (`\{NAME\}`).
   "!
-  "! The rows stay in the app's attribute. The response carries the first
-  "! `window` rows, and next to them the window's state under
-  "! `/__WINDOW/&lt;path&gt;` - TOTAL, the rows the filter lets through, COUNT,
-  "! the rows sent, and SIZE. The control's list binding knows the full
-  "! length and asks the framework for the next window when a growing
-  "! sap.m.Table or List grows or a sap.ui.table.Table scrolls - a roundtrip
-  "! of the framework's own that does NOT call main( ). Sorting and
-  "! filtering the binding - the column menu of sap.ui.table (sortProperty,
-  "! filterProperty), a cs_event-binding_call sort or filter - run on the
-  "! server over ALL rows, and the browser gets the first window of the new
-  "! order. A cell edited or a row ticked lands in the row of the table it
-  "! was made in, whatever order the browser showed.
+  "! val holds the rows the app has loaded so far, in the order the browser
+  "! shows them, and total says how many there are in all - so a growing
+  "! sap.m.Table shows "More [100 / 5000]" and a sap.ui.table.Table a
+  "! scrollbar for all of them. When the browser needs more rows, or the
+  "! binding is sorted or filtered (the column menu of sap.ui.table, a
+  "! cs_event-binding_call sort or filter), the app's main( ) runs with
+  "! event and the request in get( )-r_event_data
+  "! (ty_s_window_request): for MORE it appends top rows after skip, for
+  "! SORT and FILTER it starts again from the first row in the new order.
+  "! The framework neither sorts nor filters nor counts - where the rows
+  "! come from (a SELECT with OFFSET, a CDS view, an RFC, an internal
+  "! table) is the app's, and so is what a sort or a filter means.
   "!
-  "! In the draft the table travels next to the app, not inside its
-  "! serialization, and while its rows stay the same from one roundtrip to
-  "! the next it is not serialized again - a table of 10,000 rows costs its
-  "! serialization only on the roundtrips that change it. A table behind a
-  "! data reference is serialized with the reference on every roundtrip.
+  "! Because val is exactly what the browser shows, a row, a cell edit or a
+  "! selection is the row of val with the same index - nothing to map.
   "!
-  "! Sorters and filters written into the binding info of the view are not
-  "! applied - the rows arrive in the order the server gives. The app sets
-  "! that order with t_sort and t_filter: they take effect when they differ
-  "! from the ones the previous window_bind_tab( ) of the table passed, so a view
-  "! rendered again keeps what the user sorted and filtered in the browser,
-  "! and a new sort the app passes (from a layout, a dialog) replaces it.
-  "! Passing an empty table clears it the same way.
-  "!
-  "! The server keeps that order and nobody else does: the next window is
-  "! more rows of the SAME order, whoever set it, and window_get_row( ) and
-  "! an edit follow it. There is one sort - the last one set, by t_sort or
-  "! by a sort of the binding. The filter has two parts, which are ANDed:
-  "! t_filter, and the filter of the binding (a column filter the user
-  "! sets, a cs_event-binding_call filter). Each replaces only itself - a
-  "! column filter narrows what t_filter lets through, a new t_filter keeps
-  "! the user's column filter, and clearing one leaves the other.
-  "!
-  "! @parameter val      | the table - a public STANDARD table attribute of
-  "!                       the app, passed by reference like _bind( ), or a
-  "!                       data reference to one (REF #( mt_rows ), or an
-  "!                       attribute TYPE REF TO data pointing to the table).
-  "! @parameter window   | the rows the browser gets at a time; at least 1.
-  "! @parameter t_sort   | the order of the rows - see above when it applies.
-  "! @parameter t_filter | the rows that show - see above when it applies.
+  "! @parameter val    | the loaded rows - a public STANDARD table attribute
+  "!                     of the app, passed by reference like _bind( ), or a
+  "!                     data reference to one.
+  "! @parameter total  | the rows there are in all - what the list shows as
+  "!                     its length.
+  "! @parameter event  | the app's event the browser's requests arrive as.
+  "! @parameter window | the rows the browser asks for at a time; at least 1.
   METHODS window_bind_tab
     IMPORTING
       val           TYPE data
-      window        TYPE i                    DEFAULT 100
-      t_sort        TYPE ty_t_bind_tab_sort   OPTIONAL
-      t_filter      TYPE ty_t_bind_tab_filter OPTIONAL
+      total         TYPE i
+      event         TYPE clike
+      window        TYPE i DEFAULT 100
     RETURNING
       VALUE(result) TYPE string.
-
-  "! The row of a window_bind_tab( ) table that a row of the browser shows. The
-  "! browser holds the rows in the order the server sorted and filtered
-  "! them, so the index in a binding path an event hands over
-  "! (`$event.getSource().getBindingContext().getPath()` -> `/MT_ROWS/5`) is a
-  "! position in THAT order, not the row of the table: row 6 shown may be
-  "! row 4711 of mt_rows. This answers it - the same order the response was
-  "! built with. A table that is no window answers row itself.
-  "!
-  "! @parameter val    | the table, as passed to window_bind_tab( ) - the table or
-  "!                     a data reference to it.
-  "! @parameter row    | the position in the browser, counted from 1: the
-  "!                     index of the binding path plus 1.
-  "! @parameter result | the row of the table, counted from 1; 0 when the
-  "!                     position is past the rows the filter lets through.
-  METHODS window_get_row
-    IMPORTING
-      val           TYPE data
-      row           TYPE i
-    RETURNING
-      VALUE(result) TYPE i.
 
   "! Schedule a frontend action to run after the backend response has been
   "! processed: pass a frontend event as val (a cs_event-* constant, e.g.
@@ -1508,16 +1499,6 @@ INTERFACE z2ui5_if_client
   "! same-origin URL, opened with noopener; location_reload - a same-origin
   "! URL the page navigates to; system_logout - an optional same-origin logout
   "! URL, without one the launchpad logout or the ICF logoff.
-  "!
-  "! **cs_event-offline_queue** (experimental) - the events of this app that
-  "! wait in the browser while the backend cannot be reached, instead of
-  "! failing: kept with their model changes across a reload, and sent in
-  "! order, each on the draft the previous one left, once the network is
-  "! back. t_arg = the toast text shown when one was kept (&amp;1 = how many
-  "! wait; empty for no toast), then the event names:
-  "! ``client->follow_up_action( val = client->cs_event-offline_queue t_arg = VALUE #( ( `Saved offline - &amp;1 waiting` ) ( `SAVE` ) ) )``.
-  "! No event name switches the queue off. Every other event fails as before.
-  "! The page itself still needs the network to load.
   "!
   "! **The view actions**, t_arg in order:
   "! set_focus - control id, selection start, selection end (both optional);

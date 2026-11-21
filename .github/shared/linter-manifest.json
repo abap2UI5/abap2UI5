@@ -53,7 +53,6 @@
     "HASH_ATTACH_CHANGED",
     "SET_NAV_ROUTING",
     "SET_APP_STATE_ACTIVE",
-    "OFFLINE_QUEUE",
     "CROSS_APP_NAV_GET_LINKS",
     "SET_APP_FULL_WIDTH"
   ],
@@ -421,7 +420,6 @@
       "z2ui5_cl_ui5f_msgmgr_js",
       "z2ui5_cl_ui5f_multiinp_js",
       "z2ui5_cl_ui5f_natscan_js",
-      "z2ui5_cl_ui5f_offline_js",
       "z2ui5_cl_ui5f_persist_js",
       "z2ui5_cl_ui5f_picker_js",
       "z2ui5_cl_ui5f_preload",
@@ -494,10 +492,8 @@
       "z2ui5_cl_pop_to_select"
     ],
     "src/99": [
-      "z2ui5_cl_http_handler",
       "z2ui5_cl_xml_view",
       "z2ui5_cl_xml_view_cc",
-      "z2ui5_if_exit",
       "z2ui5_if_types"
     ]
   },
@@ -603,7 +599,6 @@
     "SET_TITLE",
     "SET_FAVICON",
     "PLAY_AUDIO",
-    "OFFLINE_QUEUE",
     "CONTROL_BY_ID",
     "CONTROL_GLOBAL",
     "CROSS_APP_NAV_TO_PREV_APP",

@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_UI5_SRV_WINDOW</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - windowed table</DESCRIPT>
+    <DESCRIPT>abap2UI5 - window request</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

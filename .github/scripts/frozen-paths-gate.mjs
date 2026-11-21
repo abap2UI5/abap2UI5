@@ -75,6 +75,18 @@ const MOVED_OUT = new Map(
     "package.devc.xml",
   ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-obsolet"]),
 );
+// Two objects that moved nowhere (maintainer decision 2026-11-17): the
+// superseded names z2ui5_cl_http_handler (the empty subclass that kept the
+// former handler name alive - an ICF node or a handler class names
+// z2ui5_cl_ui5_http_handler now) and z2ui5_if_exit (an exit class implements
+// z2ui5_if_ui5_exit - same methods, same types), deleted with the second exit
+// lookup in z2ui5_cl_ui5_user_exit. Listed because they are released and gone.
+for (const f of ["z2ui5_cl_http_handler.clas.abap"]) {
+  MOVED_OUT.set(`src/99/${f}`, "nowhere - deleted, z2ui5_cl_ui5_http_handler is the name");
+}
+for (const f of ["z2ui5_if_exit.intf.abap", "z2ui5_if_exit.intf.xml"]) {
+  MOVED_OUT.set(`src/99/${f}`, "nowhere - deleted, z2ui5_if_ui5_exit is the name");
+}
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;
