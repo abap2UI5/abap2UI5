@@ -62,17 +62,70 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD request.
 
-    result-path   = VALUE string( t_arg[ 1 ] OPTIONAL ).
-    result-reason = to_upper( condense( VALUE string( t_arg[ 3 ] OPTIONAL ) ) ).
-    result-skip   = count_of( VALUE string( t_arg[ 4 ] OPTIONAL ) ).
-    result-top    = count_of( VALUE string( t_arg[ 5 ] OPTIONAL ) ).
+    DATA temp28 TYPE string.
+    DATA temp29 TYPE string.
+    DATA temp30 TYPE string.
+    DATA temp31 TYPE string.
+    DATA temp32 TYPE string.
+    DATA temp33 TYPE string.
+    DATA temp34 TYPE string.
+    DATA temp35 TYPE string.
+      DATA temp36 TYPE string.
+      DATA temp37 TYPE string.
+      DATA temp38 TYPE string.
+      DATA temp39 TYPE string.
+    CLEAR temp28.
+
+    READ TABLE t_arg INTO temp29 INDEX 1.
+    IF sy-subrc = 0.
+      temp28 = temp29.
+    ENDIF.
+    result-path   = temp28.
+
+    CLEAR temp30.
+
+    READ TABLE t_arg INTO temp31 INDEX 3.
+    IF sy-subrc = 0.
+      temp30 = temp31.
+    ENDIF.
+    result-reason = to_upper( condense( temp30 ) ).
+
+    CLEAR temp32.
+
+    READ TABLE t_arg INTO temp33 INDEX 4.
+    IF sy-subrc = 0.
+      temp32 = temp33.
+    ENDIF.
+    result-skip   = count_of( temp32 ).
+
+    CLEAR temp34.
+
+    READ TABLE t_arg INTO temp35 INDEX 5.
+    IF sy-subrc = 0.
+      temp34 = temp35.
+    ENDIF.
+    result-top    = count_of( temp34 ).
 
     " a SORT and a FILTER carry the binding's sorters AND filter - the
     " whole state of the columns - and start again from the first row
     IF result-reason = z2ui5_if_client=>cs_window_reason-sort
         OR result-reason = z2ui5_if_client=>cs_window_reason-filter.
-      result-t_sort   = parse_sort( VALUE string( t_arg[ 6 ] OPTIONAL ) ).
-      result-t_filter = parse_filter( VALUE string( t_arg[ 7 ] OPTIONAL ) ).
+
+      CLEAR temp36.
+
+      READ TABLE t_arg INTO temp37 INDEX 6.
+      IF sy-subrc = 0.
+        temp36 = temp37.
+      ENDIF.
+      result-t_sort   = parse_sort( temp36 ).
+
+      CLEAR temp38.
+
+      READ TABLE t_arg INTO temp39 INDEX 7.
+      IF sy-subrc = 0.
+        temp38 = temp39.
+      ENDIF.
+      result-t_filter = parse_filter( temp38 ).
       CLEAR result-skip.
     ELSE.
       result-reason = z2ui5_if_client=>cs_window_reason-more.
@@ -82,13 +135,22 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
   METHOD event.
 
-    result = VALUE string( t_arg[ 2 ] OPTIONAL ).
+    DATA temp40 TYPE string.
+    DATA temp41 TYPE string.
+    CLEAR temp40.
+
+    READ TABLE t_arg INTO temp41 INDEX 2.
+    IF sy-subrc = 0.
+      temp40 = temp41.
+    ENDIF.
+    result = temp40.
 
   ENDMETHOD.
 
   METHOD count_of.
 
-    DATA(lv_val) = condense( val ).
+    DATA lv_val TYPE string.
+    lv_val = condense( val ).
     IF lv_val IS NOT INITIAL AND lv_val CO `0123456789` AND strlen( lv_val ) <= 9.
       result = lv_val.
     ENDIF.
@@ -98,21 +160,36 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
   METHOD parse_sort.
 
     DATA lv_json TYPE string.
+        DATA li_json TYPE REF TO z2ui5_cl_ajson.
+        DATA temp42 TYPE string_table.
+        DATA lv_member LIKE LINE OF temp42.
+          DATA lv_sorter TYPE string.
+          DATA lv_name TYPE string.
+          DATA temp43 TYPE z2ui5_if_client=>ty_s_bind_tab_sort.
     lv_json = condense( val ).
     IF lv_json IS INITIAL.
       RETURN.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
-        LOOP AT li_json->members( `/` ) INTO DATA(lv_member).
-          DATA(lv_sorter) = |/{ lv_member }|.
-          DATA(lv_name) = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
+
+        li_json = z2ui5_cl_ajson=>parse( lv_json ).
+
+        temp42 = li_json->members( `/` ).
+
+        LOOP AT temp42 INTO lv_member.
+
+          lv_sorter = |/{ lv_member }|.
+
+          lv_name = to_upper( li_json->get_string( |{ lv_sorter }/PATH| ) ).
           IF lv_name IS INITIAL.
             CONTINUE.
           ENDIF.
-          APPEND VALUE #( path       = lv_name
-                          descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ) ) TO result.
+
+          CLEAR temp43.
+          temp43-path = lv_name.
+          temp43-descending = li_json->get_boolean( |{ lv_sorter }/DESCENDING| ).
+          APPEND temp43 TO result.
         ENDLOOP.
       CATCH cx_root.
         " a sort that cannot be read is no sort - the app's own order
@@ -125,22 +202,40 @@ CLASS z2ui5_cl_ui5_srv_window IMPLEMENTATION.
 
     DATA lv_json  TYPE string.
     DATA lv_group TYPE i.
+        DATA li_json TYPE REF TO z2ui5_cl_ajson.
+        DATA temp44 TYPE string_table.
+        DATA lv_g LIKE LINE OF temp44.
+          DATA temp45 TYPE string_table.
+          DATA lv_c LIKE LINE OF temp45.
+            DATA lv_cond TYPE string.
+            DATA temp46 TYPE z2ui5_if_client=>ty_s_bind_tab_filter.
     lv_json = condense( val ).
     IF lv_json IS INITIAL.
       RETURN.
     ENDIF.
 
     TRY.
-        DATA(li_json) = z2ui5_cl_ajson=>parse( lv_json ).
-        LOOP AT li_json->members( `/` ) INTO DATA(lv_g).
+
+        li_json = z2ui5_cl_ajson=>parse( lv_json ).
+
+        temp44 = li_json->members( `/` ).
+
+        LOOP AT temp44 INTO lv_g.
           lv_group = lv_group + 1.
-          LOOP AT li_json->members( |/{ lv_g }| ) INTO DATA(lv_c).
-            DATA(lv_cond) = |/{ lv_g }/{ lv_c }|.
-            APPEND VALUE #( group    = lv_group
-                            path     = to_upper( li_json->get_string( |{ lv_cond }/1| ) )
-                            operator = li_json->get_string( |{ lv_cond }/2| )
-                            value1   = li_json->get( |{ lv_cond }/3| )
-                            value2   = li_json->get( |{ lv_cond }/4| ) ) TO result.
+
+          temp45 = li_json->members( |/{ lv_g }| ).
+
+          LOOP AT temp45 INTO lv_c.
+
+            lv_cond = |/{ lv_g }/{ lv_c }|.
+
+            CLEAR temp46.
+            temp46-group = lv_group.
+            temp46-path = to_upper( li_json->get_string( |{ lv_cond }/1| ) ).
+            temp46-operator = li_json->get_string( |{ lv_cond }/2| ).
+            temp46-value1 = li_json->get( |{ lv_cond }/3| ).
+            temp46-value2 = li_json->get( |{ lv_cond }/4| ).
+            APPEND temp46 TO result.
           ENDLOOP.
         ENDLOOP.
       CATCH cx_root.
