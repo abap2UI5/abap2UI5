@@ -11,6 +11,7 @@ Legend
 
 unreleased
 ----------
+* @abap2ui5/node-runtime: open-abap-core moves to 1e83502 - cl_abap_typedescr=>describe_by_data_ref raises REFERENCE_IS_INITIAL instead of a JavaScript TypeError, so the RTTI helpers of z2ui5_cl_ui5_util_context call it with EXCEPTIONS on every target
 
 
 2026-11-20 v1.150.0

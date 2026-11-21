@@ -140,10 +140,18 @@
     // sequential read", silenced by "#EC CI_SORTSEQ (abaplint/abaplint#4573).
     // Measured on 2.120.108: 0 findings over src, control probe fired
     "sequential_read_sorted": true,
+    // READ ... BINARY SEARCH / DELETE ADJACENT DUPLICATES ... COMPARING on a
+    // table no SORT put in that order (abaplint/abaplint#4587). Measured on
+    // 2.120.112: 0 findings over src, control probe fired
+    "sort_required": true,
     // SORT / DELETE ADJACENT DUPLICATES without BY / COMPARING on a table with
     // an empty key (abaplint/abaplint#4419). Measured on 2.120.75: 0 findings
     // over src, control probe fired
     "sort_empty_key": true,
+    // a WHILE whose condition the body never changes - zero runs or endless
+    // (abaplint/abaplint#4588). Measured on 2.120.112: 0 findings over src,
+    // control probe fired
+    "suspicious_loop": true,
     // a sy-subrc check right after a method call without EXCEPTIONS, which
     // does not set it (abaplint/abaplint#4581). Measured on 2.120.109: 0
     // findings over src, control probe fired
@@ -152,15 +160,19 @@
     // (abaplint/abaplint#4583). Measured on 2.120.109: 0 findings over src,
     // control probe fired
     "unit_test_assertions": true,
-    // EXCEPTIONS without OTHERS: an exception not in the list is a runtime
-    // error no CATCH reaches (abaplint/abaplint#4594). missingExceptions stays
-    // off: it would report the describe_by_*_ref calls of util_context, which
-    // test for an initial reference first because the open-abap runtime of the
-    // transpiled build declares no EXCEPTIONS for them. Measured on 2.120.111:
-    // 0 findings over src, control probe fired
+    // classic exceptions (abaplint/abaplint#4594, #4597): missingOthers - an
+    // EXCEPTIONS list without OTHERS; missingExceptions - a method with classic
+    // EXCEPTIONS called without them (the open-abap runtime declares them since
+    // open-abap/open-abap-core#1340); missingErrorMessage - every CALL FUNCTION
+    // lists error_message, the policy for code that runs only in an HTTP
+    // handler, where a type E or A message ends the request. Measured on
+    // 2.120.112: 0 findings over src, control probe fired
     "unhandled_classic_exception": {
       "missingOthers": true,
-      "missingExceptions": false
+      "missingExceptions": true,
+      "missingErrorMessage": true,
+      // describe_by_name( 'T100' ) cannot fail: literal arguments stay allowed
+      "allowLiteralArguments": true
     },
     "sql_value_conversion": true,
     "select_single_full_key": true,
