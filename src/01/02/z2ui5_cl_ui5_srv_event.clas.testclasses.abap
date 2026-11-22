@@ -315,17 +315,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_ctrl-check_queue_last = abap_true.
 
-    " the flag rides at position [4] of the event array, behind two reserved
-    " placeholders and useMainModel - View1.eB reads the array by index, so
-    " the earlier positions keep their place and their value
+    " the flag rides in the options object behind the name - View1.eB reads
+    " it by key
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,false,false,true])`
+        exp = `.eB(['LIVE_CHANGE',{queueLast:true}])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
     " the arguments follow the array unchanged
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,false,false,true], ${$parameters>/value})`
+        exp = `.eB(['LIVE_CHANGE',{queueLast:true}], ${$parameters>/value})`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    t_arg = VALUE #( ( `${$parameters>/value}` ) )
                                    s_cnt = ls_ctrl ) ).
@@ -335,7 +334,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_ctrl-check_queue_last      = abap_true.
     ls_ctrl-check_prevent_default = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,true])`
+        exp = `.eBP($event,true,['LIVE_CHANGE',{queueLast:true}])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
@@ -349,24 +348,23 @@ CLASS ltcl_test IMPLEMENTATION.
 
     ls_ctrl-check_no_busy = abap_true.
 
-    " the flag rides at position [5], one behind queueLast - and queueLast
-    " is written as FALSE rather than left out, so [5] stays [5] for a wire
-    " that carries only this flag
+    " the flag rides in the same options object - and only the flag that is
+    " set: a wire that carries only this one names no queueLast
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,false,false,false,true])`
+        exp = `.eB(['LIVE_CHANGE',{noBusy:true}])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
     " the pair a per-keystroke wire wants: nothing lost, nothing blinking
     ls_ctrl-check_queue_last = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,false,false,true,true])`
+        exp = `.eB(['LIVE_CHANGE',{queueLast:true,noBusy:true}])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
     " the arguments still follow the array unchanged
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eB(['LIVE_CHANGE',false,false,false,true,true], ${$parameters>/newValue})`
+        exp = `.eB(['LIVE_CHANGE',{queueLast:true,noBusy:true}], ${$parameters>/newValue})`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    t_arg = VALUE #( ( `${$parameters>/newValue}` ) )
                                    s_cnt = ls_ctrl ) ).
@@ -376,7 +374,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_ctrl-check_no_busy         = abap_true.
     ls_ctrl-check_prevent_default = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,true,['LIVE_CHANGE',false,false,false,false,true])`
+        exp = `.eBP($event,true,['LIVE_CHANGE',{noBusy:true}])`
         act = lo_event->get_event( val   = `LIVE_CHANGE`
                                    s_cnt = ls_ctrl ) ).
 
@@ -415,7 +413,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " both flags together stay independent
     ls_ctrl-check_queue_last = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,true,['ITEM_PRESS',false,false,false,true])`
+        exp = `.eBP($event,true,['ITEM_PRESS',{queueLast:true}])`
         act = lo_event->get_event( val   = `ITEM_PRESS`
                                    s_cnt = ls_ctrl ) ).
 
@@ -457,7 +455,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ls_ctrl-prevent_default_expr = `${$parameters>/on}`.
     ls_ctrl-check_queue_last     = abap_true.
     cl_abap_unit_assert=>assert_equals(
-        exp = `.eBP($event,${$parameters>/on},['COLUMN_RESIZE',false,false,false,true])`
+        exp = `.eBP($event,${$parameters>/on},['COLUMN_RESIZE',{queueLast:true}])`
         act = lo_event->get_event( val   = `COLUMN_RESIZE`
                                    s_cnt = ls_ctrl ) ).
 

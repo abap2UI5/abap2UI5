@@ -3047,7 +3047,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[0].ms).toBe(1000);
     timers[0].fn();
     // alive: fired as a background event (ignore-busy flag set), slot freed
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL"]]);
     expect(AppState.state.timers).toEqual({});
 
     // re-armed, then the app is torn down (FLP close / re-launch): the
@@ -3099,7 +3099,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     expect(timers[1].ms).toBe(0);
     expect(AppState.state.timers).toEqual({ START_TIMER: 2 });
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL"]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3136,7 +3136,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
   // 1 s default delay, and a poll whose backend call took longer flashed the
   // full-screen overlay (samples-controls demo_004's carousel, ticks of
   // 1.1-1.4 s against the transpiled backend). The flag travels where
-  // View1.eB reads a check_no_busy wire's - position [5] - and eB's side of
+  // View1.eB reads a check_no_busy wire's - the options object - and eB's side of
   // it is pinned in view1Events.spec.js.
   function loadTimer() {
     const timers = [];
@@ -3166,7 +3166,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
 
     // [5] set, with useMainModel [3] and queueLast [4] written as false in
     // front of it rather than closing the gap; the reserved [2] as ever
-    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
     expect(AppState.state.timers).toEqual({});
   });
 
@@ -3177,7 +3177,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
       const { FrontendAction, timers, ebCalls, oController } = loadTimer();
       FrontendAction.execute(oController, ["START_TIMER", "POLL", "10", on]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+      expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
     }
     // ... and everything else - abap_false, which never reaches the wire as
     // a trailing empty, among them - dispatches the array a two-argument
@@ -3191,7 +3191,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
         ...off,
       ]);
       timers[0].fn();
-      expect(ebCalls).toEqual([["POLL", false, true]]);
+      expect(ebCalls).toEqual([["POLL"]]);
     }
   });
 
@@ -3208,7 +3208,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     AppState.state.isBusy = false;
     for (const fn of [...AppState.state.onRoundtripEnd]) fn();
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true, false, false, true]]);
+    expect(ebCalls).toEqual([["POLL", { noBusy: true }]]);
   });
 
   test("a replacing START_TIMER decides the flag afresh", () => {
@@ -3219,7 +3219,7 @@ test.describe("START_TIMER (backend timer liveness)", () => {
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000", "X"]);
     FrontendAction.execute(oController, ["START_TIMER", "POLL", "1000"]);
     timers[1].fn();
-    expect(ebCalls).toEqual([["POLL", false, true]]);
+    expect(ebCalls).toEqual([["POLL"]]);
   });
 });
 

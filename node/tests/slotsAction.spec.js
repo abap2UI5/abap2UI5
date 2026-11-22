@@ -458,7 +458,7 @@ test.describe("displayNestedView: the parent's destroy and insert methods", () =
 });
 
 test.describe("a slot's model sends the window requests of its tables", () => {
-  const EVENT = [undefined, false, false, false, true, true];
+  const EVENT = [undefined, { queueLast: true, noBusy: true }];
 
   async function popupModel() {
     const sent = [];

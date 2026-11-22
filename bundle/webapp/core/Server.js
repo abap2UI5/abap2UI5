@@ -94,7 +94,7 @@ sap.ui.define(
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "APP": "<app class name>",     // rendered app, for the router
-    //       "PROTOCOL": 2,                 // the wire the backend speaks;
+    //       "PROTOCOL": 3,                 // the wire the backend speaks;
     //                                      // a mismatch is reported, not ignored
     //       "S_ACTION": {
     //           // SYSTEM: the framework's own view-lifecycle calls, run
@@ -121,7 +121,7 @@ sap.ui.define(
       // backend stamps on every response (z2ui5_if_ui5_types=>c_protocol).
       // Raise BOTH in the change that breaks the wire - they ship together,
       // and the number exists for the pairings where they do not.
-      PROTOCOL: 2,
+      PROTOCOL: 3,
 
       // The per-component request bookkeeping is `ctx.server`:
       //   requestSeq  monotonic id stamped on every dispatched request (see

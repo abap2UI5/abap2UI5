@@ -595,26 +595,27 @@ sap.ui.define(
       //
       // args[0] is the event array built by the backend (get_event):
       //   [0] event name
-      //   [1] reserved placeholder, always false
-      //   [2] reserved, always false. The slot keeps its place rather than
-      //       closing up, so the positions behind it never move: custom JS
-      //       builds these arrays against the same protocol.
-      //   [3] "use main view model" flag - events fired from a popup or
-      //       popover controller that still target the main app's model;
-      //       not emitted by the framework today, only by custom JS
-      //   [4] "queue last" flag (s_ctrl-check_queue_last) - while a roundtrip
-      //       is in flight the LAST event fired on this wire is kept and
-      //       dispatched once the response has landed (see the busy guard
-      //       below and _dispatchQueuedEvent); for per-keystroke wires
-      //   [5] "no busy" flag (s_ctrl-check_no_busy) - the roundtrip runs
-      //       exactly as it otherwise would, state.isBusy included, but the
-      //       global busy indicator is not raised for it (both show() calls
-      //       below are skipped); for the same per-keystroke wires, and for
-      //       a START_TIMER tick armed with its no-busy argument, which
-      //       actions/ViewOps dispatches with this slot set
-      // A new flag goes BEHIND the existing ones - the backend (get_event)
-      // and this destructuring agree on the positions, and a wire rendered
-      // by an older backend must keep reading the same.
+      //   [1] the flags of the wire, as ONE object read by key - absent on a
+      //       wire without one:
+      //         queueLast  (s_ctrl-check_queue_last) - while a roundtrip is
+      //                    in flight the LAST event fired on this wire is
+      //                    kept and dispatched once the response has landed
+      //                    (see the busy guard below and
+      //                    _dispatchQueuedEvent); for per-keystroke wires
+      //         noBusy     (s_ctrl-check_no_busy) - the roundtrip runs
+      //                    exactly as it otherwise would, state.isBusy
+      //                    included, but the global busy indicator is not
+      //                    raised for it (both show() calls below are
+      //                    skipped); for the same per-keystroke wires, and
+      //                    for a START_TIMER tick armed with its no-busy
+      //                    argument (actions/ViewOps)
+      //         useMainModel  an event fired from a popup or popover
+      //                    controller that carries the MAIN model's edits;
+      //                    nothing the framework renders sets it
+      // Until protocol 3 the flags were POSITIONS [3], [4] and [5] of this
+      // array behind two slots that were always false. They are not read
+      // any more; a wire that still carries one says so in the log
+      // (Lib.eventOptions) instead of quietly losing its flag.
       // ------------------------------------------------------------------
       eB(...args) {
         // The first argument is the event ARRAY. A string there - a wire
@@ -638,7 +639,7 @@ sap.ui.define(
           );
           return;
         }
-        const [, , , useMainModel, queueLast, noBusy] = args[0];
+        const { useMainModel, queueLast, noBusy } = Lib.eventOptions(args[0]);
 
         // No navigator.onLine gate here: a browser reports "offline" for a
         // host without a default route (a VPN-only adapter, an intranet

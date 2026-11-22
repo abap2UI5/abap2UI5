@@ -169,8 +169,7 @@ sap.ui.define(
       // any roundtrip, after UI5's default 1 s delay, so a poll whose
       // backend call takes longer flashes the full-screen overlay over a
       // screen nobody is waiting on. The flag goes where eB reads a
-      // check_no_busy wire's: position [5], behind useMainModel [3] and
-      // queueLast [4], which go out as false rather than closing the gap.
+      // check_no_busy wire's: the options object behind the event name.
       // It suppresses the overlay and nothing else - the tick is still THE
       // roundtrip in flight, so a click that lands meanwhile meets the busy
       // guard exactly as under any silent roundtrip: dropped, with its own
@@ -209,13 +208,10 @@ sap.ui.define(
         }
         // dispatch: between the check above and the dispatch nothing can
         // start a roundtrip, and a tick that lands during one waits on
-        // afterRoundtrip instead of being dropped. Slot [2] of the event
-        // array is the reserved placeholder View1.eB ignores (view1Events
-        // spec) - it is kept for the wire shape, it switches nothing
+        // afterRoundtrip instead of being dropped. The tick's no-busy
+        // argument rides as the wire's own flag (View1.eB, slot [1])
         oController.eB(
-          noBusy
-            ? [callbackEvent, false, true, false, false, true]
-            : [callbackEvent, false, true],
+          noBusy ? [callbackEvent, { noBusy: true }] : [callbackEvent],
         );
       };
       timers[timerKey] = setTimeout(fire, delay);

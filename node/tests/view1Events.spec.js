@@ -511,7 +511,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const queuedDispatches = [];
     state.oQueuedEvent = {
       controller: { eB: (...a) => queuedDispatches.push(a) },
-      args: [["LIVE_CHANGE", false, false, false, true], "abc"],
+      args: [["LIVE_CHANGE", { queueLast: true }], "abc"],
     };
     // the switch REPLACES the page: B displays its own main view
     state.oResponse = {
@@ -1325,9 +1325,9 @@ test.describe("framework-created OData clients die with the MAIN view", () => {
 
 test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // The wire of client->_event( s_ctrl-check_queue_last ): the event array
-  // carries the flag at position [4], behind two reserved placeholders and
-  // useMainModel (z2ui5_cl_ui5_srv_event=>get_event).
-  const QUEUED = ["LIVE_CHANGE", false, false, false, true];
+  // carries the flag in the options object behind the name
+  // (z2ui5_cl_ui5_srv_event=>get_event).
+  const QUEUED = ["LIVE_CHANGE", { queueLast: true }];
   const PLAIN = ["PRESS"];
 
   // One harness for BOTH sides of the slot: eB (the write side - the busy
@@ -1373,6 +1373,16 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
           // the shipped helper returns a fresh array and leaves plain data
           // alone - which is all a queued event holds
           normalizeEventArgs: (args) => args.slice(),
+          // the real reader of the wire's flags, minus its log line
+          eventOptions: (aEvent) => {
+            const opt = aEvent?.[1];
+            const set = opt !== null && typeof opt === "object" ? opt : {};
+            return {
+              useMainModel: Boolean(set.useMainModel),
+              queueLast: Boolean(set.queueLast),
+              noBusy: Boolean(set.noBusy),
+            };
+          },
           buildDeltaFromPaths: (paths, data) => {
             const delta = {};
             for (const p of paths) delta[p.slice(1)] = data[p.slice(1)];
@@ -1437,7 +1447,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
 
   test("a table's window request and a keystroke kept meanwhile do not overwrite each other", async () => {
     const { ctrl, state, roundtrips } = loadForQueue();
-    const WINDOW = ["___ZZZ_WIN", false, false, false, true, true];
+    const WINDOW = ["___ZZZ_WIN", { queueLast: true, noBusy: true }];
     state.isBusy = true;
 
     ctrl.eB(QUEUED, "abc");
@@ -1559,16 +1569,16 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(state.oQueuedEvent).toBeNull();
   });
 
-  test("the reserved slot [2] is ignored - a truthy value there never bypasses the busy guard", () => {
+  test("a flag written by POSITION is not read any more - the event is dropped like a click", () => {
     const { ctrl, state, roundtrips } = loadForQueue();
     state.isBusy = true;
 
-    // a wire rendered by an older backend can still carry true here; eB must
-    // read straight past it and queue on the flag at [4] as usual
-    ctrl.eB(["LIVE_CHANGE", false, true, false, true], "abc");
+    // the shape of protocol 2: queueLast at [4]. Read as a wire without a
+    // flag (Lib.eventOptions says so in the log), so the busy guard drops it
+    ctrl.eB(["LIVE_CHANGE", false, false, false, true], "abc");
 
     expect(roundtrips).toEqual([]);
-    expect(state.oQueuedEvent).not.toBeNull();
+    expect(state.oQueuedEvent).toBeNull();
   });
 
   // ------------------------------------------------------------------
@@ -1576,10 +1586,9 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // suppressed is ONLY the two BusyIndicator.show calls; the roundtrip,
   // the busy state, the guard and the queue behave exactly as above.
   // ------------------------------------------------------------------
-  // position [5], behind queueLast - which is written as false rather than
-  // left out, so [5] is [5] for a wire that carries only this flag
-  const SILENT = ["LIVE_CHANGE", false, false, false, false, true];
-  const SILENT_QUEUED = ["LIVE_CHANGE", false, false, false, true, true];
+  // the same options object - and only the flag that is set travels
+  const SILENT = ["LIVE_CHANGE", { noBusy: true }];
+  const SILENT_QUEUED = ["LIVE_CHANGE", { queueLast: true, noBusy: true }];
 
   test("a check_no_busy wire round-trips without raising the indicator", () => {
     const { ctrl, state, roundtrips, busy, type } = loadForQueue();
@@ -1639,7 +1648,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   // third argument (abap_true), actions/ViewOps dispatches this array - the
   // reserved slot [2] set as every tick sends it, the flag behind two
   // falses. frontendAction.spec.js pins that the handler emits exactly this.
-  const SILENT_TICK = ["TICK", false, true, false, false, true];
+  const SILENT_TICK = ["TICK", { noBusy: true }];
 
   test("a no-busy START_TIMER tick round-trips without raising the indicator", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
@@ -1656,7 +1665,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
   test("a plain START_TIMER tick raises the indicator as it always did", () => {
     const { ctrl, busy } = loadForQueue();
 
-    ctrl.eB(["TICK", false, true]);
+    ctrl.eB(["TICK"]);
 
     expect(busy).toEqual(["show"]);
   });

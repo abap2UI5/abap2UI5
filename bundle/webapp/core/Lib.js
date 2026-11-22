@@ -1320,6 +1320,36 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     return projectValue(value);
   }
 
+  // The flags of an event wire: the object in slot [1] of the event array
+  // View1.eB is called with - ['NAME', { queueLast: true, noBusy: true }] -
+  // or an empty one for the bare ['NAME']. Never the caller's own object,
+  // and always one with the three keys, so the reader destructures without
+  // a guard. Until protocol 3 the flags were positions [3] to [5] of the
+  // array; such a wire - a view written by hand against the old shape -
+  // is reported once per call and read as flagless, which is what an old
+  // frontend made of an unknown position too.
+  const NO_EVENT_OPTIONS = Object.freeze({
+    useMainModel: false,
+    queueLast: false,
+    noBusy: false,
+  });
+  function eventOptions(aEvent) {
+    const opt = aEvent?.[1];
+    if (opt !== null && typeof opt === "object" && !Array.isArray(opt)) {
+      return {
+        useMainModel: Boolean(opt.useMainModel),
+        queueLast: Boolean(opt.queueLast),
+        noBusy: Boolean(opt.noBusy),
+      };
+    }
+    if (Array.isArray(aEvent) && aEvent.slice(3).some(Boolean)) {
+      logError(
+        `eB: the event '${aEvent[0]}' carries positional flags, which are not read any more - write them as an object in slot [1], ['${aEvent[0]}', { queueLast: true }]`,
+      );
+    }
+    return NO_EVENT_OPTIONS;
+  }
+
   // Always returns a fresh top-level array: Server.roundtrip shifts
   // oBody.ARGUMENTS, which must not reach the caller's own rest-parameter
   // array.
@@ -1402,6 +1432,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
     EMPTY_RENDERER,
     hookCallback,
     normalizeEventArgs,
+    eventOptions,
     byteLength,
     lazyByteLength,
   };

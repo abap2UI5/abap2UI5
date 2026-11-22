@@ -3839,7 +3839,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        const [, , , useMainModel, queueLast, noBusy] = args[0];` && |\n| &&
+             `        const { useMainModel, queueLast, noBusy } = Lib.eventOptions(args[0]);` && |\n| &&
              `` && |\n| &&
              `        if (this.ctx.state.isBusy) {` && |\n| &&
              `          if (queueLast) {` && |\n| &&
@@ -6004,6 +6004,28 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    return projectValue(value);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  const NO_EVENT_OPTIONS = Object.freeze({` && |\n| &&
+             `    useMainModel: false,` && |\n| &&
+             `    queueLast: false,` && |\n| &&
+             `    noBusy: false,` && |\n| &&
+             `  });` && |\n| &&
+             `  function eventOptions(aEvent) {` && |\n| &&
+             `    const opt = aEvent?.[1];` && |\n| &&
+             `    if (opt !== null && typeof opt === "object" && !Array.isArray(opt)) {` && |\n| &&
+             `      return {` && |\n| &&
+             `        useMainModel: Boolean(opt.useMainModel),` && |\n| &&
+             `        queueLast: Boolean(opt.queueLast),` && |\n| &&
+             `        noBusy: Boolean(opt.noBusy),` && |\n| &&
+             `      };` && |\n| &&
+             `    }` && |\n| &&
+             `    if (Array.isArray(aEvent) && aEvent.slice(3).some(Boolean)) {` && |\n| &&
+             `      logError(` && |\n| &&
+             `        ``eB: the event '${aEvent[0]}' carries positional flags, which are not read any more - write them as an object in slot [1], ['${aEvent[0]}', { queueLast: true }]``,` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `    return NO_EVENT_OPTIONS;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function normalizeEventArgs(args) {` && |\n| &&
              `    return args.map((arg) => normalizeEventArg(arg, 0, new Set()));` && |\n| &&
              `  }` && |\n| &&
@@ -6069,6 +6091,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    EMPTY_RENDERER,` && |\n| &&
              `    hookCallback,` && |\n| &&
              `    normalizeEventArgs,` && |\n| &&
+             `    eventOptions,` && |\n| &&
              `    byteLength,` && |\n| &&
              `    lazyByteLength,` && |\n| &&
              `  };` && |\n| &&
@@ -6093,8 +6116,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        rm.openEnd();` && |\n| &&
              `        const oRoot = oSlot.getAggregation("root");` && |\n| &&
              `        if (oRoot) rm.renderControl(oRoot);` && |\n| &&
-             `        rm.close("div");` && |\n| &&
-             `      },` && |\n| &&
+             `        rm.close("div");` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_04.
+
+    result = `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `  return Env.ownClass(RootSlot);` && |\n| &&
@@ -6116,13 +6144,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function splitHash(sHash) {` && |\n| &&
              `      const raw = String(sHash || "").replace(/^#/, "");` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_04.
-
-    result = `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
+             `` && |\n| &&
+             `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
              `      const i = raw.indexOf(SHELL_SEPARATOR);` && |\n| &&
              `      if (i < 0) return { shell: "", app: raw };` && |\n| &&
              `      let app = raw.slice(i + SHELL_SEPARATOR.length).replace(/^\/+/, "");` && |\n| &&
@@ -6498,7 +6521,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      if (Lib.isTextInput(focusRef)) return focusRef;` && |\n| &&
              `      const root = ui5El?.getDomRef?.();` && |\n| &&
              `      const inner = root?.querySelector?.("input, textarea");` && |\n| &&
-             `      return Lib.isTextInput(inner) ? inner : null;` && |\n| &&
+             `      return Lib.isTextInput(inner) ? inner : null;` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getFocusInfo(ctx) {` && |\n| &&
@@ -6521,8 +6545,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const info = { ID: id };` && |\n|.
-    result = result &&
+             `        const info = { ID: id };` && |\n| &&
              `        const caret = Lib.readCaret(focusTextInput(active, ui5El));` && |\n| &&
              `        if (caret) {` && |\n| &&
              `          info.SELECTION_START = caret.start;` && |\n| &&
@@ -6686,7 +6709,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      PROTOCOL: 2,` && |\n| &&
+             `      PROTOCOL: 3,` && |\n| &&
              `` && |\n| &&
              `      endSession(ctx) {` && |\n| &&
              `        if (!Lib.isValidContextId(ctx.state.contextId)) return;` && |\n| &&
@@ -6899,7 +6922,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              if (timeoutSignal.aborted) {` && |\n| &&
              `                reportTimeout();` && |\n| &&
              `                return;` && |\n| &&
-             `              }` && |\n| &&
+             `              }` && |\n|.
+    result = result &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
              `            if (isStale()) return;` && |\n| &&
@@ -6922,8 +6946,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `              reportTimeout();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `            const type = response.headers.get("content-type") || "";` && |\n| &&
              `            if (type.toLowerCase().includes("text/html")) {` && |\n| &&
              `              this.responseError(` && |\n| &&
@@ -7300,7 +7323,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    function getView(ctx, key) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
              `      return slot ? ctx?.state[slot.prop] : undefined;` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function setView(ctx, key, view, xml) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
@@ -7323,8 +7347,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewApp(ctx, key) {` && |\n| &&
-             `      return slotAppStore(ctx)[key];` && |\n|.
-    result = result &&
+             `      return slotAppStore(ctx)[key];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function slotAppStore(ctx) {` && |\n| &&
@@ -7701,7 +7724,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      this._z2ui5Restart(meta, REASON.SORT);` && |\n| &&
              `      return this;` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    WindowListBinding.prototype.filter = function (aFilters, sFilterType) {` && |\n| &&
              `      const meta = this._z2ui5Meta();` && |\n| &&
              `      if (!meta) {` && |\n| &&
@@ -7724,8 +7748,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      return this;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {` && |\n|.
-    result = result &&
+             `    WindowListBinding.prototype._z2ui5Restart = function (meta, reason) {` && |\n| &&
              `      this._z2ui5Wanted = Number(meta.SIZE) || 0;` && |\n| &&
              `      this._z2ui5Send(meta, reason, 0, this._z2ui5Wanted, false);` && |\n| &&
              `    };` && |\n| &&
@@ -8102,8 +8125,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          } catch {}` && |\n| &&
              `          frame = null;` && |\n| &&
              `        }` && |\n| &&
-             `        redirectToLogout(logoutUrl);` && |\n| &&
-             `      };` && |\n| &&
+             `        redirectToLogout(logoutUrl);` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_05.
+
+    result = `      };` && |\n| &&
              `      try {` && |\n| &&
              `        frame = document.createElement("iframe");` && |\n| &&
              `        frame.style.display = "none";` && |\n| &&
@@ -8125,13 +8153,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      } else {` && |\n| &&
              `        MessageBox.error(` && |\n| &&
              `          "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `        );` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_05.
-
-    result = `      }` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evOpenNewTab(oController, args) {` && |\n| &&
@@ -8507,7 +8530,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "setModel",` && |\n| &&
              `      "setBinding",` && |\n| &&
              `      "setParent",` && |\n| &&
-             `    ];` && |\n| &&
+             `    ];` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    const CONTROL_METHOD_DENY = new RegExp(` && |\n| &&
              `      "^(" + CONTROL_METHOD_DENY_PREFIXES.join("|") + ")",` && |\n| &&
@@ -8530,8 +8554,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        methods: { show: ["string"] },` && |\n| &&
              `        display: (oController, method, aArgs, mOptions) =>` && |\n| &&
              `          showToast(aArgs[0], mOptions, oController),` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `      MESSAGE_BOX: {` && |\n| &&
              `        get: () => MessageBox,` && |\n| &&
              `` && |\n| &&
@@ -8908,7 +8931,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      const ctx = oController?.ctx;` && |\n| &&
              `` && |\n| &&
-             `      if (method === "focus" && !ScrollFocus.mayMoveFocus(ctx)) return;` && |\n| &&
+             `      if (method === "focus" && !ScrollFocus.mayMoveFocus(ctx)) return;` && |\n|.
+    result = result &&
              `      const control = resolveControl(id, view, ctx);` && |\n| &&
              `      const pseudo = PSEUDO_METHODS[method];` && |\n| &&
              `      if (pseudo) {` && |\n| &&
@@ -8931,8 +8955,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](` && |\n| &&
-             `        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),` && |\n|.
-    result = result &&
+             `        ...castArgs(kinds, args.slice(4), view, { control, method }, ctx),` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -9309,7 +9332,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
              `        if (scopes[key] && ViewSlots.getView(ctx, key)) {` && |\n| &&
-             `          const own = ViewSlots.getController(ctx, key);` && |\n| &&
+             `          const own = ViewSlots.getController(ctx, key);` && |\n|.
+    result = result &&
              `          return own ? { ...scopes[key], controller: own } : scopes[key];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
@@ -9332,8 +9356,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Lib.logError(` && |\n| &&
              `          "KEYBOARD_SHORTCUT: committing the focused field failed",` && |\n| &&
              `          e,` && |\n| &&
-             `        );` && |\n|.
-    result = result &&
+             `        );` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -9504,7 +9527,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            ? WindowModel.keepRestart(args, kept.args.slice(1))` && |\n| &&
              `            : args;` && |\n| &&
              `        oController.eB(` && |\n| &&
-             `          [WindowModel.EVENT, false, false, false, true, !!noBusy],` && |\n| &&
+             `          [WindowModel.EVENT, { queueLast: true, noBusy: !!noBusy }],` && |\n| &&
              `          ...send,` && |\n| &&
              `        );` && |\n| &&
              `      };` && |\n| &&
@@ -9710,7 +9733,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const oApp = ctx.state.oApp;` && |\n| &&
              `      oApp.removeAllPages();` && |\n| &&
              `      oApp.insertPage(oView);` && |\n| &&
-             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n| &&
+             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n|.
+    result = result &&
              `      return true;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -9733,8 +9757,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    const TRANSITION_OPTIONS = [` && |\n| &&
              `      "transition",` && |\n| &&
-             `      "transitionBack",` && |\n|.
-    result = result &&
+             `      "transitionBack",` && |\n| &&
              `      "navBack",` && |\n| &&
              `      "appInstance",` && |\n| &&
              `    ];` && |\n| &&
@@ -10111,8 +10134,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          : [];` && |\n| &&
              `        if (!registered.length) {` && |\n| &&
              `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
-             `            return;` && |\n| &&
+             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_06.
+
+    result = `            return;` && |\n| &&
              `          }` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
@@ -10134,13 +10162,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      finish();` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_06.
-
-    result = `    run();` && |\n| &&
+             `` && |\n| &&
+             `    run();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  const FILTER_BAR_WIRED = "_z2ui5FilterBarVariantWired";` && |\n| &&
@@ -10436,9 +10459,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        oController.eB(` && |\n| &&
-             `          noBusy` && |\n| &&
-             `            ? [callbackEvent, false, true, false, false, true]` && |\n| &&
-             `            : [callbackEvent, false, true],` && |\n| &&
+             `          noBusy ? [callbackEvent, { noBusy: true }] : [callbackEvent],` && |\n| &&
              `        );` && |\n| &&
              `      };` && |\n| &&
              `      timers[timerKey] = setTimeout(fire, delay);` && |\n| &&
@@ -10518,7 +10539,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n| &&
+             `        const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n|.
+    result = result &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
@@ -10539,8 +10561,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
-             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n|.
-    result = result &&
+             `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
              `            dom.scrollLeft = x;` && |\n| &&
@@ -10919,7 +10940,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/DevTools.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
+             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n|.
+    result = result &&
              `  (Lib, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -10940,8 +10962,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const base = ctx?.state?.url;` && |\n| &&
              `      if (!base) return null;` && |\n| &&
              `      try {` && |\n| &&
-             `        const url = new URL(base, window.location.href);` && |\n|.
-    result = result &&
+             `        const url = new URL(base, window.location.href);` && |\n| &&
              `        url.hash = "";` && |\n| &&
              `        url.searchParams.set(BUNDLE_PARAM, BUNDLE_DEVTOOLS);` && |\n| &&
              `        return url.href;` && |\n| &&
@@ -11320,7 +11341,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    return isTextLike(node) && !/\S/.test(node.nodeValue);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function serializeNode(node, depth, indented) {` && |\n| &&
+             `  function serializeNode(node, depth, indented) {` && |\n|.
+    result = result &&
              `    const pad = indented ? " ".repeat(depth * XML_INDENT_UNIT) : "";` && |\n| &&
              `    switch (node.nodeType) {` && |\n| &&
              `      case ELEMENT_NODE:` && |\n| &&
@@ -11341,8 +11363,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `  function serializeElement(el, depth, indented) {` && |\n| &&
              `    let open = ``<${el.nodeName}``;` && |\n| &&
-             `    const attrs = el.attributes || [];` && |\n|.
-    result = result &&
+             `    const attrs = el.attributes || [];` && |\n| &&
              `    for (let i = 0; i < attrs.length; i++) {` && |\n| &&
              `      open += `` ${attrs[i].name}="${escapeAttribute(attrs[i].value)}"``;` && |\n| &&
              `    }` && |\n| &&
@@ -11721,7 +11742,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function dropAllPayloads(rec) {` && |\n| &&
-             `      if (!rec) return;` && |\n| &&
+             `      if (!rec) return;` && |\n|.
+    result = result &&
              `      for (const record of rec.records) {` && |\n| &&
              `        record.request = null;` && |\n| &&
              `        record.response = null;` && |\n| &&
@@ -11742,8 +11764,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function onAfterRendering(ctx) {` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        const rec = recorderOf(ctx);` && |\n| &&
              `        if (!rec) return;` && |\n| &&
              `        const state = ctx.state;` && |\n| &&
@@ -12122,8 +12143,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const pair = lastTwoResponses(ctx);` && |\n| &&
              `      if (!pair) {` && |\n| &&
              `        return (` && |\n| &&
-             `          "Not enough recorded responses yet - the diff needs two.\n\n" +` && |\n| &&
-             `          "Trigger another roundtrip and reopen this tab."` && |\n| &&
+             `          "Not enough recorded responses yet - the diff needs two.\n\n" +` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_07.
+
+    result = `          "Trigger another roundtrip and reopen this tab."` && |\n| &&
              `        );` && |\n| &&
              `      }` && |\n| &&
              `      const [previous, current] = pair;` && |\n| &&
@@ -12143,13 +12169,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      }` && |\n| &&
              `      header.push(` && |\n| &&
              `        ``${out.length}${out.length >= MAX_DIFF_ENTRIES ? "+" : ""}`` +` && |\n| &&
-             `          `` differing path(s):``,` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_07.
-
-    result = `      );` && |\n| &&
+             `          `` differing path(s):``,` && |\n| &&
+             `      );` && |\n| &&
              `      header.push("");` && |\n| &&
              `      for (const entry of out) {` && |\n| &&
              `        const path = entry.path || "/";` && |\n| &&

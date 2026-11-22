@@ -271,7 +271,12 @@ INTERFACE z2ui5_if_ui5_types
   "! with a release: it moves only when a response can no longer be read by a
   "! frontend written for the previous number - the S_ACTION envelope
   "! replacing S_FRONT.PARAMS was such a change, and the flattening of the
-  "! two-way bindings out of MODEL.XX was another.
+  "! two-way bindings out of MODEL.XX was another (both protocol 2).
+  "!
+  "! Protocol 3: the flags of an event wire travel as one object in slot [1]
+  "! of the event array, .eB(['NAME',{queueLast:true}]), no longer as
+  "! positions [3] to [5] (z2ui5_cl_ui5_srv_event=&gt;get_event) - a frontend
+  "! of protocol 2 reads such a wire as one without a flag.
   "!
   "! Why it exists: backend and frontend ship together here, but they do not
   "! ship together everywhere. A port of this framework, a pinned webapp, a
@@ -283,7 +288,7 @@ INTERFACE z2ui5_if_ui5_types
   "!
   "! Raise it in the same change that breaks the wire, and raise the
   "! frontend's expectation with it (bundle/webapp/core/Server.js).
-  CONSTANTS c_protocol TYPE i VALUE 2.
+  CONSTANTS c_protocol TYPE i VALUE 3.
 
   TYPES:
     BEGIN OF ty_s_response,

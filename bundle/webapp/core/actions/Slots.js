@@ -118,7 +118,7 @@ sap.ui.define(
             ? WindowModel.keepRestart(args, kept.args.slice(1))
             : args;
         oController.eB(
-          [WindowModel.EVENT, false, false, false, true, !!noBusy],
+          [WindowModel.EVENT, { queueLast: true, noBusy: !!noBusy }],
           ...send,
         );
       };
