@@ -1405,8 +1405,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     " the action list and the sections leave as REAL nested JSON, not as
     " escaped strings - and an empty-string positional placeholder inside an
-    " action survives, as an empty view does, because both are written AFTER
-    " the no-empty-values filter ran
+    " action survives, as an empty view does
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
@@ -1428,6 +1427,11 @@ CLASS ltcl_02_response IMPLEMENTATION.
     CLEAR: ls_response-s_front-o_views, ls_response-s_front-o_nav.
     lv_json = lo_handler->response_abap_to_json( ls_response ).
     cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `"VIEWS"` OR lv_json CS `"NAV"` ) ).
+    " ... and nothing else of the structure it is built from: the two
+    " references used to leave as "O_VIEWS":null,"O_NAV":null
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"S_FRONT":{"ACTIONS":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]],"ID":"ID123","PROTOCOL":3}}`
+        act = lv_json ).
 
   ENDMETHOD.
 

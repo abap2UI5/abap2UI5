@@ -752,30 +752,28 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
         " the shared upper-case mapping, not one built here: it is stateless,
         " and this method runs once per response - see
-        " z2ui5_cl_ui5_util_json_fl, which holds the one instance and the
-        " no-empty-values filter below with it
+        " z2ui5_cl_ui5_util_json_fl, which holds the one instance
         DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
 
-        " the sections and the action list are written explicitly below - the
-        " generic conversion would render the references as objects of their
-        " own. Only the scalar fields are taken over
-        DATA ls_front LIKE val-s_front.
-        ls_front-id  = val-s_front-id.
-        ls_front-app = val-s_front-app.
+        " Every field by name. The generic conversion of the structure wrote
+        " its two references as well - "O_VIEWS":null,"O_NAV":null on every
+        " response, next to the sections written below - and needed the
+        " no-empty-values filter for the fields that were not set; set( )
+        " leaves an empty ID or APP off by itself.
+        li_ajson_result->set( iv_path = `/ID`
+                              iv_val  = val-s_front-id ).
+        li_ajson_result->set( iv_path = `/APP`
+                              iv_val  = val-s_front-app ).
         " Every response declares the wire it speaks - see
         " z2ui5_if_ui5_types=>c_protocol. Stamped here rather than by each
         " caller so no response can leave without it.
-        ls_front-protocol = z2ui5_if_ui5_types=>c_protocol.
+        li_ajson_result->set_integer( iv_path = `/PROTOCOL`
+                                      iv_val  = z2ui5_if_ui5_types=>c_protocol ).
 
-        li_ajson_result->set( iv_path = `/`
-                           iv_val     = ls_front ).
-        li_ajson_result = li_ajson_result->filter( z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ) ).
-
-        " AFTER the filter, never before: an action array carries empty
-        " strings as positional placeholders and a display may carry an
-        " empty view, which the no-empty-values filter would silently drop.
-        " A section that says nothing is left off
+        " The sections are taken over as they are: an action array carries
+        " empty strings as positional placeholders and a display may carry
+        " an empty view. A section that says nothing is left off
         IF val-s_front-o_views IS BOUND AND val-s_front-o_views->is_empty( ) = abap_false.
           li_ajson_result->set( iv_path = `/VIEWS`
                                 iv_val  = val-s_front-o_views ).
