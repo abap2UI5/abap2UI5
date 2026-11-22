@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Inspect.js. Every inspector is a pure renderer
+// bundle/webapp/devtools/Inspect.js. Every inspector is a pure renderer
 // over the state of one component context (core/Context.js, taken
 // first), so the harness seeds that context's state and asserts on the
 // rendered report.

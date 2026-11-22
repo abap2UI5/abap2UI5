@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Journey.js (loaded via a stubbed sap.ui.define): a
+// bundle/webapp/devtools/Journey.js (loaded via a stubbed sap.ui.define): a
 // click-through recorded as steps, exported as an ABAP Unit test class
 // that replays it on z2ui5_cl_frontend_sim.
 //

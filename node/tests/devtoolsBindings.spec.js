@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Bindings.js
+// Tests the real implementation shipped in bundle/webapp/devtools/Bindings.js
 // - the Bindings tab, and its three checks that answer the most common
 // developer questions: empty field, huge response, change does not
 // arrive. devtools/Inspect.js re-exports formatBindings for the tab

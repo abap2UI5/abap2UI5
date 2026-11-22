@@ -1,11 +1,14 @@
 {
   "global": {
-    // src/99 is deliberately NOT listed: its production code is frozen
-    // (check_gates.yaml) - an autofix touching it could never merge
+    // src/99 is deliberately NOT listed: its production code - one
+    // interface since 2026-11-17 - is frozen (check_gates.yaml), an autofix
+    // touching it could never merge. Of src/03 only the hand-written half:
+    // 03/02 is the generated BSP
     "files": [
       "/../../src/00/**/*.*",
       "/../../src/01/**/*.*",
       "/../../src/02/**/*.*",
+      "/../../src/03/01/**/*.*",
       "/../../src/*.*"
     ],
     // Same narrowing as abaplint.jsonc: only the two upstream mirrors are

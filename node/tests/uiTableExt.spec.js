@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { loadEnv } = require("./loadLibModule");
 
-// Tests the real app/webapp/cc/UITableExt.js. The control reads the active
+// Tests the real bundle/webapp/cc/UITableExt.js. The control reads the active
 // filters/sorters of a sap.ui.table before a roundtrip (onBeforeRoundtrip)
 // and re-applies them after the re-render (onAfterRendering - only there
 // does the rebuilt binding exist), so a view rebuild does not drop the

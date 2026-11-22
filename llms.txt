@@ -73,7 +73,7 @@ Two audiences, two entry points:
   and declined - AGENTS.md keeps only the one-line prohibitions
 - [API-snapshot exceptions](docs/agents/api-snapshot-exceptions.md): the
   recorded times the public-API snapshot was regenerated over a change
-- [JS unit spec inventory](docs/agents/test-inventory.md): which app/webapp
+- [JS unit spec inventory](docs/agents/test-inventory.md): which bundle/webapp
   module has which spec under node/tests/
 - [CONTRIBUTING.md](CONTRIBUTING.md): human contributor workflow
 - [abaplint.jsonc](abaplint.jsonc): machine-checked code standards

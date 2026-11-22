@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadLib } = require("./loadLibModule");
 
-// Tests the shared size-limit helpers in app/webapp/core/Lib.js. They encode
+// Tests the shared size-limit helpers in bundle/webapp/core/Lib.js. They encode
 // the nested-views model architecture: MAIN, NEST and NEST2 share ONE root
 // JSON model (the nested views inherit MAIN's default model via UI5 model
 // propagation), so a per-view size limit collapses onto that single model and

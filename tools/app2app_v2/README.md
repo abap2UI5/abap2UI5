@@ -5,7 +5,7 @@ classic webapp coding over **1:1** and adapting only the bootstrap layer so it
 runs on the legacy-free OpenUI5 build.
 
 ```
-app/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, only with --name] ──▶ src/
+bundle/webapp ──▶ patchIndexHtml + patchManifest (patch-v2.mjs) ──▶ tools/app2bsp (preload.js + run.js) ──▶ [bsp_rename, only with --name] ──▶ src/
 ```
 
 The output uses the same package layout as the `standard` branch:
@@ -26,7 +26,7 @@ deploy time. The `cloud_v2` branch applies the same bootstrap patch
 ## Run
 
 ```bash
-node tools/app2app_v2/build-legacy-free.mjs . app/webapp tools/out/_v2
+node tools/app2app_v2/build-legacy-free.mjs . bundle/webapp tools/out/_v2
 npm run frontend:build         # all four; one on its own: node tools/build-branches.mjs standard_v2
 ```
 

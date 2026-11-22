@@ -78,23 +78,26 @@ const ICONS = new Set(
   ),
 );
 
-// Where icons can be written: the ABAP sources and the frontend app that
-// src/01/03 is generated from.
-const SCAN = ["src", "app/webapp"];
+// Where icons can be written: the ABAP sources, and the frontend and the
+// page app that src/01/03 is generated from.
+const SCAN = ["src", "bundle/webapp", "app_source/webapp"];
 
 // Directories this gate does not judge, with the reason shown in the report so
 // the exemption is never a silent hole.
 const EXEMPT = [
+  ["src/01/03", "generated from bundle/webapp and app_source/webapp, which are judged themselves - the generated text is cut into literals of 200 characters, so a name can stand in two halves there"],
   ["src/99", "frozen package (AGENTS.md rule 1) - ships as-is until the removal plan retires it"],
 ];
 
 // Icons that are already wrong inside an EXEMPT directory. Listed so the
 // exemption does not hide them: the gate prints them as known findings and
 // they are fixed when the frozen package is retired or unfrozen.
-const KNOWN = [
-  ["src/99/02/z2ui5_cl_pop_to_inform.clas.abap", "information", "message-information"],
-  ["src/99/02/z2ui5_cl_pop_demo_output.clas.abap", "textFormatting", "text-formatting"],
-];
+// None left: the two it held were popups of the frozen package
+// (z2ui5_cl_pop_to_inform with sap-icon://information, z2ui5_cl_pop_demo_output
+// with sap-icon://textFormatting), which left for the extension repository
+// with src/99/02 on 2026-11-17 - unchanged, so both still render no icon on
+// 1.71 there.
+const KNOWN = [];
 
 const SOURCE = /\.(abap|xml|js|html|json)$/;
 const ICON_URI = /sap-icon:\/\/([A-Za-z0-9_/-]+)/g;

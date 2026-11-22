@@ -428,7 +428,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
     " standalone requests arrive wrapped as { "value": <payload> } (see
-    " app/webapp/core/Server.js), launchpad/gateway proxies may strip the
+    " bundle/webapp/core/Server.js), launchpad/gateway proxies may strip the
     " envelope - a keyed lookup detects it, slicing the whole tree only to
     " unwrap it would walk and copy every node of the request
     DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
@@ -863,7 +863,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " at the first slash answered an EMPTY class for every namespaced app:
     " the route was ignored, the `?app_start=` query took over and a
     " bookmark, a reload or Back restarted the app fresh instead of
-    " restoring the draft. app/webapp/core/Router.js (parse) mirrors this
+    " restoring the draft. bundle/webapp/core/Router.js (parse) mirrors this
     CLEAR: ev_class, ev_after.
     DATA(lv_rest) = z2ui5_cl_ui5_util_context=>c_cut_at( val = iv_rest
                                                          sub = `&` ).
@@ -1430,9 +1430,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
-      " push - send the model only when main( ) itself changed it, exactly as
-      " an explicit view_model_update( ) would; an unchanged model still
-      " responds `{}` as before. The compare is value against snapshot
+      " push - send the model only when main( ) itself changed it; an
+      " unchanged model still responds `{}` as before. The compare is value against snapshot
       " (main_snapshot_changed): the model is serialized only when it will
       " be sent. A change this app made and never pushed - it left through
       " nav_app_call, see mv_model_client_stale - counts as changed too
@@ -1582,7 +1581,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " parsed and saved twice. A leave with nowhere to go is the end of the
     " roundtrip instead; check_app_prev_stack( ) is the question an app with
     " a back button asks first. The intent stays recorded on ms_next (the
-    " shipped src/99 popups assert on it), only the hop is not taken
+    " popups of the extension repository assert on it), only the hop is not taken
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL
         AND mo_action->ms_next-o_app_leave = mo_action->mo_app->mo_app
         AND mo_action->mo_app->ms_draft-id_prev_app_stack IS INITIAL.

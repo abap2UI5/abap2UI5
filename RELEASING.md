@@ -35,12 +35,12 @@ somebody's CI, and abapGit users install by tag — so treat a published version
 as final and fix forward with the next one.
 
 The one thing that cannot be fixed forward is a **wrong version number in a
-system**: `z2ui5_if_app=>version` is what abapGit shows and what
-`frontend_deploy` stamps into the delivered frontend. `npm run check:version`
+system**: `z2ui5_if_app=>version` is what abapGit shows and what the
+generated branches carry with the source. `npm run check:version`
 holds it to `package.json`, and `npm run check:release` holds both to the
 changelog.
 
-## One-time setup — the npm package
+## One-time setup — the npm packages
 
 Every release also publishes the transpiled framework as the npm package
 **`@abap2ui5/node-runtime`** (`docs/agents/ci-workflows.md`, "The transpiled
@@ -81,6 +81,13 @@ published by the job `bsp` of the same workflow and needs the same one-time
 setup: the artefact is `abap2ui5-bsp-<version>` (`npm publish
 ./abap2ui5-bsp-<version>.tgz --access public`), and its Trusted Publisher
 entry names the same workflow file, `backend-prebuilt.yaml`.
+
+`@abap2ui5/embed-control` is not published from here: its source, its
+release line and its publish workflow are
+[abap2UI5-addons/embed-ui5-control](https://github.com/abap2UI5-addons/embed-ui5-control). What
+abap2UI5 serves of it - the page's inline script and the BSP `Z2UI5` - is the
+commit `node/setup/fetch-deps.mjs` pins; a new control reaches a release by
+moving that pin and `npm run app2abap`.
 
 ## Cutting a release
 

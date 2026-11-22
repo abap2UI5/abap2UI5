@@ -370,7 +370,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- ``client->_bind( var )`` binds a PUBLIC attribute: the value renders into` && |\n| &&
              `  the view, and user input is written back into the attribute` && |\n| &&
              `  before your event handler runs. Use it for everything, display-only` && |\n| &&
-             `  included (``_bind_edit`` is an obsolete alias - do not use it in new code).` && |\n| &&
+             `  included (``_bind_edit``, its former alias, is removed - write ``_bind``).` && |\n| &&
              `- Inside a bound aggregation (a table/list template), child properties bind` && |\n| &&
              `  **relative to the row** with braces on the upper-cased field name:` && |\n| &&
              `  ```` ``{PRODUCT}`` ````. A camelCase ABAP field ``supplierName`` becomes` && |\n| &&
@@ -466,10 +466,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  at render time. Where one stays, a comment above it says which of these` && |\n| &&
              `  it is.` && |\n| &&
              `- ``view_model_update( )``, ``popup_model_update( )``, ``popover_model_update( )``` && |\n| &&
-             `  and the two nested variants are **obsolete and do nothing**. They stay in` && |\n| &&
-             `  the interface so existing apps keep compiling; delete the calls whenever` && |\n|.
+             `  and the two nested variants are **removed** - they had done nothing since` && |\n| &&
+             `  the push became automatic. An app written for an older release deletes` && |\n|.
     result = result &&
-             `  you touch such an app, and never add a new one.` && |\n| &&
+             `  the calls; nothing changes at runtime.` && |\n| &&
              |\n| &&
              `## 5. Events` && |\n| &&
              |\n| &&
@@ -506,7 +506,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  robust thing to write. Two properties on the same object need two walks,` && |\n| &&
              `  which is still less code than a mapping that has to anticipate the rest.` && |\n| &&
              `  **Not every such payload is flat.** ``projectValue`` in` && |\n| &&
-             `  ``app/webapp/core/Lib.js`` passes an object- or array-valued property through` && |\n| &&
+             `  ``bundle/webapp/core/Lib.js`` passes an object- or array-valued property through` && |\n| &&
              `  unchanged (up to ``MAX_ARG_DEPTH``), so a control with a property typed` && |\n| &&
              `  ``object``/``any`` marshals as a nested node. When that is what you are looking` && |\n| &&
              `  at, do not grow the reader: bind the value into the model instead and let` && |\n|.
@@ -780,6 +780,12 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents` && |\n| &&
              `  the full loop without a SAP system: ``capabilities`` -> ``deploy_app`` ->` && |\n| &&
              `  ``build_backend`` -> ``run_app`` (headless screenshot + errors).` && |\n| &&
+             `- **Need a UI5 fact - which properties a control has, what an aggregation is` && |\n| &&
+             `  called?** SAP's own [UI5 MCP server](https://github.com/UI5/mcp-server)` && |\n| &&
+             `  gives an agent the official UI5 API documentation, next to the abap2UI5` && |\n| &&
+             `  one above. It answers for the CURRENT UI5 release: whether a control,` && |\n| &&
+             `  property or icon exists on the oldest release an app has to run on is` && |\n| &&
+             `  still the linter's answer, not its.` && |\n| &&
              `- **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:` && |\n| &&
              `  F9 launches the class in an embedded preview against a real system.` && |\n| &&
              `- **Worked examples**, three catalogues with the same row shape, so one search` && |\n| &&
@@ -798,14 +804,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
              `  calls ``main( )`` and asserts.` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
-             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&
+             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n|.
+    result = result &&
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
              `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
              `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
              `  no system involved. Implement every method the app calls in the double:` && |\n| &&
              `  the transpiled runtime generates no empty stubs for a ``PARTIALLY` && |\n| &&
-             `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n|.
-    result = result &&
+             `  IMPLEMENTED`` interface, a system does. The double and one test, for the` && |\n| &&
              `  template of section 2:` && |\n| &&
              |\n| &&
              `  ``````abap` && |\n| &&
@@ -840,14 +846,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~message_toast_display.` && |\n| &&
              `      APPEND text TO t_toast.` && |\n| &&
-             `    ENDMETHOD.` && |\n| &&
+             `    ENDMETHOD.` && |\n|.
+    result = result &&
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
              `      result = ``bound``.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~_event.` && |\n| &&
              `      result = val.` && |\n| &&
-             `    ENDMETHOD.` && |\n|.
-    result = result &&
+             `    ENDMETHOD.` && |\n| &&
              `  ENDCLASS.` && |\n| &&
              |\n| &&
              `  CLASS ltcl_app DEFINITION FINAL FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.` && |\n| &&
@@ -884,14 +890,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
              `  service, no frontend artefact. Once the class is active it runs at the` && |\n| &&
              `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
-             `  connection to the system stops at the files - say so, and say which of the` && |\n| &&
+             `  connection to the system stops at the files - say so, and say which of the` && |\n|.
+    result = result &&
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
              `  check - Node, the two gates, Chromium for the render gate, the framework` && |\n| &&
              `  pin, the sidecars - that names the remedy for each failure.` && |\n| &&
              `- **``npm create abap2ui5-app@latest my-app -- --class zcl_my_app``**: the` && |\n| &&
-             `  project scaffold without a GitHub template button or an editor.` && |\n|.
-    result = result &&
+             `  project scaffold without a GitHub template button or an editor.` && |\n| &&
              `- **``interact_app``** in the MCP server: click, type and fire events in the` && |\n| &&
              `  headless app and look at the result - the event branch, not just the boot.` && |\n| &&
              |\n| &&
@@ -900,7 +906,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `Every abap2UI5 page carries its own developer tools: a dialog over the running` && |\n| &&
              `app that shows the roundtrips, the view XML and the model, the log and the` && |\n| &&
              `environment, without the browser's devtools. They are part of the frontend` && |\n| &&
-             `(``app/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
+             `(``bundle/webapp/devtools/``), so they are there on every system and in every` && |\n| &&
              `app, with nothing to install and nothing to configure.` && |\n| &&
              |\n| &&
              `### Starting them` && |\n| &&
@@ -934,14 +940,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `### What you find there` && |\n| &&
              |\n| &&
              `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n| &&
-             `  go next. The landing tab, with the "Open on Error" switch.` && |\n| &&
+             `  go next. The landing tab, with the "Open on Error" switch.` && |\n|.
+    result = result &&
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
              `  UI5's log, uncaught errors, rejections, every ``console.*`` call and the` && |\n| &&
              `  messages the user was shown.` && |\n| &&
              `- **Roundtrips**: every roundtrip with backend vs. render time, payload sizes` && |\n| &&
-             `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n|.
-    result = result &&
+             `  and draft ids, the raw request and response JSON, the follow-up actions and` && |\n| &&
              `  a diff of the model between two roundtrips. The **Journey** view records a` && |\n| &&
              `  click-through: press "Record Journey", use the app, press it again, and` && |\n| &&
              `  "Export ABAP Unit" hands over a local test class that replays the steps on` && |\n| &&
@@ -977,14 +983,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `## 11. Calling a language model` && |\n| &&
              |\n| &&
              ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n| &&
-             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n| &&
+             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n|.
+    result = result &&
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
              `for the user, ``retryable`` for a 408/429/5xx or a timeout). Get a provider from` && |\n| &&
              ```z2ui5_cl_ui5_llm``: ``create_claude( )`` (Messages API), ``create_openai( )``` && |\n| &&
              `(Chat Completions - OpenAI, Azure with ``auth_header`` set to ``api-key``, Ollama,` && |\n| &&
-             `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n|.
-    result = result &&
+             `LM Studio, gateways) or ``create_local( t_rule = ... )``, a deterministic` && |\n| &&
              `rule-based provider without HTTP for 7.02, unit tests and demos.` && |\n| &&
              |\n| &&
              ```````abap` && |\n| &&

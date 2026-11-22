@@ -55,7 +55,7 @@ are in any UI5 app:
   declare, and this page does not declare one.
 - **No audit by a third party** of the framework's own parts has been made.
   The guarantees above are what its tests hold it to on every merge.
-- **Custom controls** (`app/webapp/cc/`) are mostly non-visual bridges
+- **Custom controls** (`bundle/webapp/cc/`) are mostly non-visual bridges
   (storage, geolocation, websocket, the message manager) or extensions of a
   standard control that keep its renderer (`InputExt`, `CameraSelector`).
   The ones that render something build it from standard controls — the

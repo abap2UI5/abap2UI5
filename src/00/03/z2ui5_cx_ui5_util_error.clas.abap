@@ -184,7 +184,7 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     " The messages first, one per line: this section is what the frontend
-    " lifts out for the error popup (app/webapp/core/ErrorView.js reads it by
+    " lifts out for the error popup (bundle/webapp/core/ErrorView.js reads it by
     " its `--- error ---` header, everything after the next `--- ` header
     " stays behind Details) - keep the header spelling in sync with it.
     " get_text( ) on a z2ui5 error already renders the whole concise chain,

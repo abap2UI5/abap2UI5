@@ -60,33 +60,73 @@ const EXEMPT = [
 // calling them, declares that repository). The production files and the
 // package descriptor - the package itself leaves; test classes and sidecars
 // are exempt anyway.
-const MOVED_OUT = new Map(
-  [
-    "z2ui5_cl_util.clas.abap",
-    "z2ui5_cl_util_db.clas.abap",
-    "z2ui5_cl_util_ext.clas.abap",
-    "z2ui5_cl_util_http.clas.abap",
-    "z2ui5_cl_util_log.clas.abap",
-    "z2ui5_cl_util_msg.clas.abap",
-    "z2ui5_cl_util_range.clas.abap",
-    "z2ui5_cl_util_xml.clas.abap",
-    "z2ui5_cx_util_error.clas.abap",
-    "z2ui5_t_91.tabl.xml",
-    "package.devc.xml",
-  ].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-obsolet"]),
-);
-// Two objects that moved nowhere (maintainer decision 2026-11-17): the
-// superseded names z2ui5_cl_http_handler (the empty subclass that kept the
-// former handler name alive - an ICF node or a handler class names
-// z2ui5_cl_ui5_http_handler now) and z2ui5_if_exit (an exit class implements
-// z2ui5_if_ui5_exit - same methods, same types), deleted with the second exit
-// lookup in z2ui5_cl_ui5_user_exit. Listed because they are released and gone.
-for (const f of ["z2ui5_cl_http_handler.clas.abap"]) {
-  MOVED_OUT.set(`src/99/${f}`, "nowhere - deleted, z2ui5_cl_ui5_http_handler is the name");
-}
-for (const f of ["z2ui5_if_exit.intf.abap", "z2ui5_if_exit.intf.xml"]) {
-  MOVED_OUT.set(`src/99/${f}`, "nowhere - deleted, z2ui5_if_ui5_exit is the name");
-}
+const UTILITIES = [
+  "z2ui5_cl_util.clas.abap",
+  "z2ui5_cl_util_db.clas.abap",
+  "z2ui5_cl_util_ext.clas.abap",
+  "z2ui5_cl_util_http.clas.abap",
+  "z2ui5_cl_util_log.clas.abap",
+  "z2ui5_cl_util_msg.clas.abap",
+  "z2ui5_cl_util_range.clas.abap",
+  "z2ui5_cl_util_xml.clas.abap",
+  "z2ui5_cx_util_error.clas.abap",
+  "z2ui5_t_91.tabl.xml",
+  "package.devc.xml",
+].map((f) => [`src/99/01/${f}`, "abap2UI5/abap2UI5-obsolet"]);
+
+// The rest of the package but one object - the XML view builder,
+// z2ui5_if_types and the seventeen popups - moved to the
+// extension repository (maintainer decision 2026-11-17, docs/agents/
+// decisions.md): abap2UI5/frontend, which stopped being a delivery
+// repository when the ICF node and the BSP came here (src/03) and holds what
+// abap2UI5-obsolet held plus these classes, unchanged.
+const EXTENSION = "abap2UI5/frontend (the extension repository)";
+// z2ui5_cl_http_handler is the one object that moved nowhere: the empty
+// subclass that kept the former handler name alive was deleted in the same
+// decision. It is listed because it is released and gone - an ICF node or a
+// handler class that named it names z2ui5_cl_ui5_http_handler now.
+//
+// z2ui5_if_exit followed the same day, and the package with it: the
+// superseded exit name, which z2ui5_cl_ui5_user_exit looked up next to
+// z2ui5_if_ui5_exit, is deleted with that second lookup. An exit class
+// written against it implements z2ui5_if_ui5_exit - same methods, same
+// types. src/99 does not exist any more; this gate keeps it that way (a file
+// added there is "changed in place") and stays as the record of what went
+// where.
+const DELETED = [
+  ["src/99/z2ui5_cl_http_handler.clas.abap", "nowhere - deleted, z2ui5_cl_ui5_http_handler is the name"],
+  ["src/99/z2ui5_if_exit.intf.abap", "nowhere - deleted, z2ui5_if_ui5_exit is the name"],
+  ["src/99/z2ui5_if_exit.intf.xml", "nowhere - deleted, z2ui5_if_ui5_exit is the name"],
+  ["src/99/package.devc.xml", "nowhere - the package is empty and gone"],
+];
+const LEGACY = [
+  "z2ui5_cl_xml_view.clas.abap",
+  "z2ui5_cl_xml_view_cc.clas.abap",
+  "z2ui5_if_types.intf.abap",
+  "z2ui5_if_types.intf.xml",
+].map((f) => [`src/99/${f}`, EXTENSION]);
+const POPUPS = [
+  "z2ui5_cl_pop_data.clas.abap",
+  "z2ui5_cl_pop_demo_output.clas.abap",
+  "z2ui5_cl_pop_error.clas.abap",
+  "z2ui5_cl_pop_file_dl.clas.abap",
+  "z2ui5_cl_pop_file_ul.clas.abap",
+  "z2ui5_cl_pop_get_range.clas.abap",
+  "z2ui5_cl_pop_get_range_m.clas.abap",
+  "z2ui5_cl_pop_html.clas.abap",
+  "z2ui5_cl_pop_image_editor.clas.abap",
+  "z2ui5_cl_pop_input_val.clas.abap",
+  "z2ui5_cl_pop_messages.clas.abap",
+  "z2ui5_cl_pop_pdf.clas.abap",
+  "z2ui5_cl_pop_table.clas.abap",
+  "z2ui5_cl_pop_textedit.clas.abap",
+  "z2ui5_cl_pop_to_confirm.clas.abap",
+  "z2ui5_cl_pop_to_inform.clas.abap",
+  "z2ui5_cl_pop_to_select.clas.abap",
+  "package.devc.xml",
+].map((f) => [`src/99/02/${f}`, EXTENSION]);
+
+const MOVED_OUT = new Map([...UTILITIES, ...DELETED, ...LEGACY, ...POPUPS]);
 
 const head = process.env.HEAD_SHA || "HEAD";
 let base = process.env.BASE_SHA;

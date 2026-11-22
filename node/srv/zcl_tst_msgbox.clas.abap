@@ -19,7 +19,7 @@ CLASS zcl_tst_msgbox IMPLEMENTATION.
     " e2e fixture for message_box_display( details = ... ) (message-box-
     " details spec). The frontend shows the details unfolded - no "Show
     " details" link to press first (expandBoxDetails in
-    " app/webapp/core/actions/ControlCall.js). sap.m.MessageBox fills that
+    " bundle/webapp/core/actions/ControlCall.js). sap.m.MessageBox fills that
     " text at creation on 1.71 and only in the link's press handler from
     " 1.120 on, so the spec runs on both pinned releases and asks for the
     " TEXT on screen, not for a visible control.

@@ -23,7 +23,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " it has to be: the intent is re-asserted on every response, but
     " ms_next-s_nav is per-request (z2ui5_cl_ui5_handler=>main clears it) and
     " the frontend reads a missing setAppStateActive as "clear the hash"
-    " (app/webapp/core/Router.js). Held only on ms_next, the flag survived
+    " (bundle/webapp/core/Router.js). Held only on ms_next, the flag survived
     " exactly one response: opening a bookmarked app-state URL restored the
     " draft, and the first button click then wiped z2ui5-xapp-state from the
     " address bar - the bookmark stopped tracking the app it was made for.

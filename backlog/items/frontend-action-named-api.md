@@ -175,7 +175,7 @@ METHODS _event_client    IMPORTING val TYPE clike
 ```
 
 The per-kind argument contracts live only in the (long) ABAP Doc comment and
-in `app/webapp/core/FrontendAction.js`.
+in `bundle/webapp/core/FrontendAction.js`.
 
 ## Proposed change
 

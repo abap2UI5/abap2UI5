@@ -263,10 +263,98 @@ older name.
 
 The control requires the bundle's `z2ui5/embed` module by that name, and
 its own namespace `z2ui5.embed` sits below it, mapped to the host app's
-`thirdparty/` - so the module keeps its name and `app/webapp` gets no
+`thirdparty/` - so the module keeps its name and `bundle/webapp` gets no
 `embed/` folder.
 
-## 1.71
+## The GET page is a host too (2026-11-12)
+
+Asked for by the maintainer, on a branch: the page the HTTP service answers
+a GET with no longer embeds the frontend and creates the component itself.
+It is the minimal UI5 app of `app_source/webapp` - a component, a manifest and
+one XML view, a `sap.m.Shell` with the control in it - carried in the
+page's one inline script (`tools/app2abap/trans2abap.js`), and the control
+loads the frontend through `?z2ui5-bundle` with `ownsPage`. `app_source` is a
+UI5 project of its own with a standard `index.html`; the page of the node
+is a variant of it (the files as a preload, `checkLocal`, the stylesheet at
+`<node>/embed/Container.css`).
+
+The control's source moved into `app_source/webapp/embed` on 2026-11-13
+(maintainer decision), from abap2UI5/embed-control 0.3.0. One change since:
+a control that owns the page starts without `app` and hands no `app_start`
+over, so the backend decides the class from the page's URL as it always
+did. The npm package `@abap2ui5/embed-control` is built from here from 0.4.0
+on (`app_source/embed-control`, `npm run pack:embed-control`; maintainer
+decision 2026-11-13) - packed, not published yet - and `app_npm` is the same
+app with the control from npm. Planned, not done: `frontend/embed` becomes
+a sample of embedding the control in another app, the abap2UI5/frontend
+branches are built from `app_source`, and `bundle/` stops being a deliverable app
+(its `webapp/` stays the source of the bundle).
+
+What changed for an app on that page: the roundtrips go to the page's path
+without its query (the control takes no query), the page component has a
+generated id, and the control's stylesheet applies inside the page's Shell.
+The developer tools capture the console again when the component owns the
+page.
+
+## bundle/, app_source/, app_npm/ (2026-11-13)
+
+Maintainer decisions of the same day: `app/` became `bundle/` and stopped
+being an app (no `index.html`, no launchpad inbound, no `checkLocal`),
+`app_v2` is `app_source` and `app_v3` is `app_npm`. With it the branches
+`cloud`, `cloud_v2`, `standard`, `standard_v2` and the renamed variants left
+`tools/build-branches.mjs` - they shipped `bundle/webapp` as an app. Open:
+building them from `app_npm` (component name `z2ui5`, the launchpad inbound
+and `ShellUIService` then belong into that app's manifest;
+`tools/check-identity.mjs` is out of `check:frontend` until then), publishing
+`@abap2ui5/embed-control` 0.4.0, the lockfile of `app_npm` (needs 0.4.0 on
+npm), and a way to run `bundle/webapp` unbuilt against a backend while
+developing it - `fiori run` on its `index.html` did that.
+
+## The control is a shell (2026-11-14)
+
+Maintainer decision: everything that can come from the bundle does. The
+bundle's `z2ui5/embed` module has `create( settings )`, which hands the
+host's settings and the installation's to `bundle/webapp/core/Embed.js` -
+startup parameters, component data, the component under the bundle's second
+name in the host's owner component, the `ComponentContainer`, the one style
+rule of the area. The control keeps what has to happen before there is a
+bundle: the endpoint check, loading the bundle, when an app starts and ends,
+and the size setters a Fiori elements section needs. No fallback for a
+bundle without `create( )`; `componentName` and `componentData` stay in the
+module, so 0.3.0 keeps running against a new backend. The stylesheet, its
+path below the node and `ownsHash` are gone. Checked against
+abap2UI5-addons/custom-controls: its controls load through `z2ui5_cci` on
+the new page, on 1.144 and 1.71, under the shipped CSP.
+
 
 `ComponentContainer`, `componentData` and `Component#createId` all exist in
 1.71. No stage is blocked by the floor.
+
+## The app is z2ui5, without a Shell (2026-11-14)
+
+Done on the maintainer's word: the minimal app (`app_source`, `app_npm`) is
+the component `z2ui5` with the launchpad inbound, `ShellUIService` and
+`sap.cloud` in its manifest - only `Component.js` and the manifest are below
+`z2ui5/`, the view is `abap2ui5/page/` - and its view is the control alone.
+The `sap.m.Shell` went out again: the old frontend had none of its own (its
+root was a `sap.m.App`, a Shell came from an app's view), and with one in the
+page's view an app without a Shell was 1280px wide. A tile's startup
+parameters are read by the bundle (`core/Embed.js`, `withHostStart`) when
+the page is the app's; the all-off `Mobile.init` is made on a host's page
+only. Built from this app since 2026-11-17: the BSP `Z2UI5` (`src/03/02`,
+with the ICF node and its handler in `src/03/01`) and the app of the
+generated branch `cloud` - the delivery into abap2UI5/frontend ended, and
+`frontend/embed` with the control 0.3.0 went with it.
+
+## The control lives in abap2UI5/embed-control again (2026-11-17)
+
+On the maintainer's word the control, its tests and its npm package went
+back to [abap2UI5/embed-control](https://github.com/abap2UI5/embed-control),
+which publishes 0.4.0 - the shell - from there, with its examples. This
+repository keeps the app around it (`app_source`, the control as an npm
+dependency) and copies the control from a pinned commit of that repository
+into what it serves: the GET page (`src/01/03`) and the BSP `Z2UI5`
+(`src/03/02`) - `node/setup/fetch-deps.mjs`, `tools/deps/`. `app_npm` went:
+with the source gone, `app_source` is that app. The contract between the
+two repositories is the bundle's `z2ui5/embed` module and what its
+`create( )` takes.

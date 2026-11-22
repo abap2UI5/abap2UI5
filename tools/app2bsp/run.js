@@ -7,7 +7,7 @@ const targetDir = './src/02';
 const prefix = 'z2ui5.wapa.';
 
 // Pages that belong to the BSP application but have no source under
-// app/webapp; their content files live in static_files.
+// bundle/webapp; their content files live in static_files.
 const extraPages = ['UI5RepositoryPathMapping.xml'];
 const startPage = 'index.html';
 

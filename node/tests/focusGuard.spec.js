@@ -24,7 +24,8 @@ function node(name, { ui5El = null, inside = [] } = {}) {
 }
 
 function load({ embedded = true } = {}) {
-  const ctx = specContext({ embedded });
+  // on a host's page, unless the host handed the page over
+  const ctx = specContext({ ownsPage: !embedded });
   const body = { nodeType: 1, name: "body" };
   const listeners = [];
   const doc = {

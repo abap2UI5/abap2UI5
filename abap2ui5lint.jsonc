@@ -10,40 +10,26 @@
   // ships to be imitated is checked with the tool it ships for imitators.
   //
   // This is NOT a gate over the framework's engine: `src/01/01`–`src/01/03`,
-  // `src/00` and `src/99` build no views and the linter has nothing to say
+  // `src/00`, `src/03` and `src/99` build no views and the linter has nothing to say
   // about them. abaplint (`npm run check`) remains the ABAP gate for all of it.
   "$schema": "./node_modules/@abap2ui5/linter/data/abap2ui5lint.schema.json",
 
   "paths": ["src", "node/srv"],
 
-  // src/99 is FROZEN (AGENTS.md, "Layered Design"): it ships so existing
-  // downstream installations keep compiling, its production code is not
-  // changed, and it "is out of scope for reviews and audits". This gate is an
-  // audit, so it stops at the boundary — not collected at all, rather than
-  // collected and then excused rule by rule.
+  // The 17 popup classes of the frozen package were collected here once
+  // they were ported onto z2ui5_cl_ui5_view_builder, arrived with 16
+  // findings nobody could act on in frozen code, and were excused as a
+  // package (`ignore: /src/99/`). They left for the extension repository on
+  // 2026-11-17 and the excuse with them: what is left of src/99 is one
+  // interface, which builds no view.
   //
-  // It became visible only when the 17 popup classes in src/99/02 were ported
-  // off the retired builder onto z2ui5_cl_ui5_view_builder: the linter can
-  // read a view built with the current builder, so a package it previously had
-  // nothing to say about arrived with 16 findings in one run (3 errors, 12
-  // warnings, 1 hint). They are real and none of them is actionable HERE:
-  //
-  //   pop_demo_output     unknown-icon        sap-icon://textFormatting
-  //   pop_image_editor    sapui5-only-control sap.suite.ui.commons.imageeditor.*
-  //   pop_get_range(_m)   member-too-new      sap.m.List noData @1.101
-  //   pop_to_inform       icon-too-new        sap-icon://information @1.80
-  //   pop_file_ul, pop_get_range(_m), pop_to_select
-  //                       obsolete-model-update  popup_model_update( )
-  //   5x missing-on-navigated-branch, 1x missing-accessibility
-  //
-  // Fixing any of them edits frozen production code and changes behaviour on
-  // systems that installed it; the port did not (it builds the same XML). So
-  // the findings are recorded here instead. Drop this `ignore` the day src/99
-  // stops being frozen, and fix the list.
-  // And the guide class: docs/agents/building-apps.md as string literals
+  // Not collected, the guide class: docs/agents/building-apps.md as string literals
   // (.github/scripts/generate-guide-class.mjs). The builder calls in it are the
   // guide's examples, text for a reader - not a view this class builds.
-  "ignore": ["/src/99/", "/src/01/05/z2ui5_cl_ui5_llm_guide."],
+  // And the BSP of src/03/02: the minimal app of app_source/webapp as pages,
+  // generated - its view names the embed control, a dependency of that app
+  // the render gate cannot load.
+  "ignore": ["/src/01/05/z2ui5_cl_ui5_llm_guide.", "/src/03/02/"],
 
   // The oldest release abap2UI5 supports — the same floor the samples are held
   // to, and the reason it matters here is that a shipped app demonstrating a

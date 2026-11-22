@@ -16,12 +16,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     "
     " The trim is NOT driven by the core engine alone. The symbols marked
     " `FROZEN-ONLY` below have no caller in src/00 - src/02; they survive
-    " purely because the frozen src/99 package (z2ui5_cl_xml_view, the built-in
-    " popups) still calls them. They are
-    " not dead code and must not be trimmed away while src/99 ships, but they
-    " are also not part of the framework's own utility surface: when src/99 is
-    " finally removed, every FROZEN-ONLY symbol goes with it. Do not build new
-    " callers on them.
+    " purely because the frozen legacy classes (z2ui5_cl_xml_view, the
+    " built-in popups) still call them - this repository's src/99 until
+    " 2026-11-17, the extension repository's since, compiled against this
+    " class. They are not dead code and must not be trimmed away while an
+    " installation can have those classes next to a release, but they are
+    " also not part of the framework's own utility surface: when the
+    " extension stops calling them, every FROZEN-ONLY symbol goes. Do not
+    " build new callers on them.
     CONSTANTS:
       BEGIN OF cs_ui5_msg_type,
         e TYPE string VALUE `Error` ##NO_TEXT,
@@ -41,7 +43,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
 
     CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-DATA cv_format_e_xml_attr        TYPE i          READ-ONLY.
 
     " RTTI type-kind / kind / visibility constants, so callers can branch on
@@ -207,7 +209,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_data_element_text_l
       IMPORTING
         !val          TYPE any
@@ -217,7 +219,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " Extracts the DDIC data element name (`\TYPE=...` part of the absolute
     " name) from a component's elementary type, so callers do not reference
     " cl_abap_elemdescr directly.
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_ddic_type_name
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -295,12 +297,12 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " flag column named sel_field_name (default `ZZSELKZ`) is inserted.
     " Keeps the dynamic RTTI type construction (describe_by_data / create) in
     " one place so it can be ported once for non-ABAP runtimes.
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     " `ir_tab` keeps its Hungarian name against the `val` convention used by
-    " the rest of this class: z2ui5_cl_pop_to_select (src/99/02) passes it as
-    " a NAMED argument, and src/99 is frozen, so renaming the parameter would
-    " break a package this repository is not allowed to edit. Rename it only
-    " together with the removal of src/99.
+    " the rest of this class: z2ui5_cl_pop_to_select (the extension
+    " repository, src/99/02 here until 2026-11-17) passes it as a NAMED
+    " argument, and that class is frozen, so renaming the parameter would
+    " break code this repository does not hold. It goes with the symbol.
     CLASS-METHODS rtti_create_sel_tab_type
       IMPORTING
         ir_tab         TYPE REF TO data
@@ -403,14 +405,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RAISING
         cx_xslt_serialization_error.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_check_by_data
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_abap_2_json
       IMPORTING
         val           TYPE any
@@ -651,33 +653,33 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS boolean_check_by_name
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS filter_get_token_t_by_range_t
       IMPORTING
         val           TYPE ANY TABLE
       RETURNING
         VALUE(result) TYPE ty_t_token ##NEEDED.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
         VALUE(result) TYPE ty_t_name_value.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_corresponding
       IMPORTING
         val  TYPE STANDARD TABLE
       CHANGING
         !tab TYPE STANDARD TABLE.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_filter_by_val
       IMPORTING
         val         TYPE clike
@@ -686,7 +688,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       CHANGING
         !tab        TYPE STANDARD TABLE.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_get_by_struc
       IMPORTING
         val           TYPE any
@@ -699,7 +701,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_get_xstring_by_data_uri
       IMPORTING
         val           TYPE clike
@@ -712,14 +714,14 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_check_table
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_check_structure
       IMPORTING
         val           TYPE any
@@ -783,21 +785,21 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_s_data_element_text.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS conv_encode_x_base64
       IMPORTING
         val           TYPE xstring
@@ -846,7 +848,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
     " abap_true when one component of a row holds the search text - the
     " per-field half of itab_filter_by_val. A component that is not printable
     " (a table of children, a reference) holds no text and answers false
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS itab_filter_check_field
       IMPORTING
         field         TYPE any
@@ -915,7 +917,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         is_bool   TYPE abap_bool,
       END OF ty_s_bool_cache.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY typedescr.
 
     TYPES:
@@ -987,7 +989,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result)    TYPE ty_t_classes.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_dtel_texts_by_ddic
       IMPORTING
         name        TYPE string
@@ -995,7 +997,7 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
         texts       TYPE ty_s_data_element_text
         do_fallback TYPE abap_bool.
 
-    " FROZEN-ONLY: no caller in src/00 - src/02, kept for src/99
+    " FROZEN-ONLY: no caller in src/00 - src/02, kept for the extension
     CLASS-METHODS rtti_get_dtel_texts_by_xco
       IMPORTING
         name        TYPE string

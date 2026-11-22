@@ -23,7 +23,7 @@ CLASS zcl_tst_timer IMPLEMENTATION.
     " text. The spec holds the TICK roundtrip back past UI5's one-second
     " busy delay and asks the global busy indicator whether it opened: the
     " flagged tick leaves it down, the plain one raises it as it always did
-    " (see evStartTimer in app/webapp/core/actions/ViewOps.js). The flag
+    " (see evStartTimer in bundle/webapp/core/actions/ViewOps.js). The flag
     " is an ABAP boolean spelled as it travels, `X` - the way t_arg carries
     " every boolean (binding_call's sort flags, a control_by_id setter).
     " check_on_init( ) implies check_on_navigated( ), so one arm displays.

@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/LiveEdit.js - the local, roundtrip-free
+// bundle/webapp/devtools/LiveEdit.js - the local, roundtrip-free
 // re-render of a view slot from the developer tools editor.
 
 // The REAL tab registry, with the modules it renders from stubbed away:

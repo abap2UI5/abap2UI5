@@ -334,7 +334,7 @@ reasoning:
 - `client->_bind( var )` binds a PUBLIC attribute: the value renders into
   the view, and user input is written back into the attribute
   before your event handler runs. Use it for everything, display-only
-  included (`_bind_edit` is an obsolete alias — do not use it in new code).
+  included (`_bind_edit`, its former alias, is removed — write `_bind`).
 - Inside a bound aggregation (a table/list template), child properties bind
   **relative to the row** with braces on the upper-cased field name:
   `` `{PRODUCT}` ``. A camelCase ABAP field `supplierName` becomes
@@ -428,9 +428,9 @@ reasoning:
   at render time. Where one stays, a comment above it says which of these
   it is.
 - `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
-  and the two nested variants are **obsolete and do nothing**. They stay in
-  the interface so existing apps keep compiling; delete the calls whenever
-  you touch such an app, and never add a new one.
+  and the two nested variants are **removed** - they had done nothing since
+  the push became automatic. An app written for an older release deletes
+  the calls; nothing changes at runtime.
 
 ## 5. Events
 
@@ -467,7 +467,7 @@ reasoning:
   robust thing to write. Two properties on the same object need two walks,
   which is still less code than a mapping that has to anticipate the rest.
   **Not every such payload is flat.** `projectValue` in
-  `app/webapp/core/Lib.js` passes an object- or array-valued property through
+  `bundle/webapp/core/Lib.js` passes an object- or array-valued property through
   unchanged (up to `MAX_ARG_DEPTH`), so a control with a property typed
   `object`/`any` marshals as a nested node. When that is what you are looking
   at, do not grow the reader: bind the value into the model instead and let
@@ -731,6 +731,12 @@ reasoning:
 - **[mcp-server](https://github.com/abap2UI5/mcp-server)** gives MCP-capable agents
   the full loop without a SAP system: `capabilities` → `deploy_app` →
   `build_backend` → `run_app` (headless screenshot + errors).
+- **Need a UI5 fact - which properties a control has, what an aggregation is
+  called?** SAP's own [UI5 MCP server](https://github.com/UI5/mcp-server)
+  gives an agent the official UI5 API documentation, next to the abap2UI5
+  one above. It answers for the CURRENT UI5 release: whether a control,
+  property or icon exists on the oldest release an app has to run on is
+  still the linter's answer, not its.
 - **[vscode-extension](https://github.com/abap2UI5/vscode-extension)**:
   F9 launches the class in an embedded preview against a real system.
 - **Worked examples**, three catalogues with the same row shape, so one search
@@ -848,7 +854,7 @@ reasoning:
 Every abap2UI5 page carries its own developer tools: a dialog over the running
 app that shows the roundtrips, the view XML and the model, the log and the
 environment, without the browser's devtools. They are part of the frontend
-(`app/webapp/devtools/`), so they are there on every system and in every
+(`bundle/webapp/devtools/`), so they are there on every system and in every
 app, with nothing to install and nothing to configure.
 
 ### Starting them

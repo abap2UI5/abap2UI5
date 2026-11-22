@@ -10,7 +10,7 @@ The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
 - **Draft cleanup (`z2ui5_cl_ui5_srv_draft=>cleanup`) is deliberately not throttled or debounced** — it runs a single `DELETE ... WHERE timestampl < ...` on each app cold-start (`factory_first_start`). A per-work-process throttle (a `CLASS-DATA` "last run" timestamp that skips a sweep if the previous one ran seconds ago) was considered and **rejected**: deployments are overwhelmingly **stateless ICF**, where such a static resets between requests and never takes effect — it would only help the rare long-lived / stateful work process, a too-narrow edge case not worth the state. A **secondary index on `TIMESTAMPL`** to make each sweep cheaper was also considered and **rejected**: the `DELETE` runs only **once per app cold-start**, never per roundtrip, so a rarely-executed scan does not justify the index-maintenance overhead paid on **every** draft write (`Z2UI5_T_01` takes one `INSERT` per roundtrip). Do not add a secondary index on `TIMESTAMPL`, and do not (re-)introduce a cleanup throttle.
-- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm --prefix app run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
+- **No `componentPreload` declaration in `bundle/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `bundle/webapp` file via the generated `z2ui5_cl_ui5f_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm --prefix bundle run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
 - **No central app-start authorization hook — authorization is the app's responsibility, by design.** `app_start` is client-controlled (URL query / hash route) and lands in `CREATE OBJECT TYPE (app_start)` (`z2ui5_cl_ui5_action`), constrained only to classes implementing `z2ui5_if_app`. The framework deliberately performs **no** `AUTHORITY-CHECK` and exposes **no** `check_app_start_allowed` exit: like a SAP transaction or an ICF node, reachability is governed by the surrounding authorization concept (ICF node auth, `S_TCODE`/`S_SERVICE`/app-specific authorization objects), and any per-app access decision belongs **in the app implementation's `z2ui5_if_app~main`** — the app checks its own authorizations and, if denied, renders an error/leaves. This keeps authorization where the app author has the domain context, and matches how every other ABAP UI dispatches. A proposal to add a framework-level `check_app_start_allowed` exit or a central `AUTHORITY-CHECK` before instantiation is **rejected**: it would offer a false sense of central security (the meaningful check is always app-specific) while every app must still guard `main( )` anyway. Treat "any user who can reach the ICF node can instantiate any `z2ui5_if_app` class" as **by design** — the app, not the framework, owns the authority check. Nothing needs to be added here. What the framework does check is the **type**, not the user: `z2ui5_cl_ui5_action=>app_create` refuses a name whose class does not implement `z2ui5_if_app` from its RTTI descriptor (`rtti_check_class_impl_intf`) before anything is instantiated, so a URL cannot make the system load an arbitrary class pool — and the error says "does not implement" instead of "does not exist". That is a type check on the way to `CREATE OBJECT`, not an authorization hook, and it does not change the decision above.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
 - **The draft of a sticky app is committed on the paths that write it, and that stays so.** `set_session_stateful( )` pins the work process so an app can hold enqueue locks and uncommitted database work across roundtrips, and on an ordinary event roundtrip the framework leaves that LUW alone (no draft save, no rollback). On three paths it does not: when the URL carries the draft id (`cs_nav_mode-keep` routing, the app-state link) `main_end_save` writes the draft, and `z2ui5_cl_ui5_action=>prepare_app_stack` writes it on every `nav_app_call( )` / `nav_app_leave( )`; `z2ui5_cl_ui5_srv_draft` ends every write with `COMMIT WORK AND WAIT`, and `cleanup( )` on a first start (a restore included) with `COMMIT WORK`. Until 2026-10-22 the monitor interface, `architecture-seams.md` and a handler comment promised that a sticky app's LUW is "not touched on any path", which was false on exactly those paths. Reviewed then and **decided to document rather than change**: (1) the writes exist so the URL, Back/Forward and a hop to another app survive — a sticky app that asked for KEEP routing or app state asked for a bookmarkable draft, and a hop has to persist the caller; (2) writing the draft over a secondary database connection would move every store access, the collision path and the cleanup onto that connection and make the shipped store depend on a DBCON entry that ABAP Cloud and the transpiled runtime do not have; (3) the store is a seam (`z2ui5_if_ui5_draft_store`, `set_instance( )`), so an installation whose sticky apps must keep their LUW across hops can install a store of its own on a connection of its own, which is where that cost belongs. The contract is now stated where an app author reads it (`z2ui5_if_client=>set_session_stateful`), where a monitor author reads it (`z2ui5_if_ui5_monitor`), at the two save sites and here. Do not re-propose a secondary connection in the shipped store, and do not report the commit on those paths as a bug.
@@ -136,6 +136,83 @@ an installation naming it stops compiling — the entry in `changelog.txt`
 and `docs/removal-plan.md` §0 says so. The deletion went through the
 popup pathspec above while it was open; it widened nothing else.
 
+**The package left the core** (maintainer decision
+2026-11-17). `z2ui5_cl_xml_view`, `z2ui5_cl_xml_view_cc`, `z2ui5_if_types`
+and the seventeen `z2ui5_cl_pop_*` popups moved, unchanged, to the extension
+repository -
+[abap2UI5/frontend](https://github.com/abap2UI5/frontend), which stopped
+being a delivery repository in the same step (next entry) and holds what
+abap2UI5-obsolet held as well. The reasoning is the one behind `src/99/01` two
+weeks earlier: an installation that still names one of them installs that
+repository next to abap2UI5 and keeps compiling, and a core that does not
+ship thirty thousand lines of frozen code stops paying for them in every
+downport, transpile and lint. Each file is named in `MOVED_OUT` of
+`.github/scripts/frozen-paths-gate.mjs`.
+
+One thing did **not** move, and it is deliberate: **the `FROZEN-ONLY`
+symbols of `z2ui5_cl_ui5_util_context` stay.** The moved classes call them
+and are compiled against a release of this repository. They go when the
+extension stops calling them - which means a change over there first.
+
+One object moved nowhere: **`z2ui5_cl_http_handler` was deleted.** It was
+an empty subclass of `z2ui5_cl_ui5_http_handler` that kept the former name
+of the HTTP entry point resolving, and the one object of the package a
+customer names rather than calls - in an ICF node, or in a handler class of
+their own. The node and the handler this repository delivers do not name it
+(`z2ui5_cl_ui5_icf_handler` calls `z2ui5_cl_ui5_http_handler`, in a release since
+1.148.0), so nothing shipped depends on it; an installation that still does
+changes that one name. It is a released object, so this is a break - the
+changelog says so.
+
+**`z2ui5_if_exit` was deleted as well**, the same day, and `src/99` with
+it. It was first kept - `z2ui5_cl_ui5_user_exit` was typed on it, and the
+exit fails closed - and then removed for the reason the package left: the
+core is not to carry a second way of doing one thing, and it is not to
+depend on anything outside itself. The second lookup, `gi_user_exit_dep`
+and the two delegating branches went with it. This one is not free: an
+installation whose exit class still implements the old name has a class
+that no longer compiles after the update, and with it no exit at all - the
+shipped Content-Security-Policy, theme and bootstrap instead of its own -
+until the class implements `z2ui5_if_ui5_exit`. The changelog names the
+one-line fix first.
+
+What the move costs: the test classes of the moved objects no longer run in
+`npm run unit` (the extension lints, it does not transpile).
+
+### The ICF node, the BSP and the cloud service are part of this repository
+
+Maintainer decision 2026-11-17, with the question put to the community
+first. abap2UI5 started on the BTP ABAP trial, where it ran through a plain
+HTTP handler; BSP support for on-premise launchpads came later, as a second
+repository (abap2UI5/frontend) whose branches were built here and pushed
+there with a deploy key. By 2026 nearly every installation pulled both, and
+they had to match.
+
+So the objects came home:
+
+- `src/03/01` - the ICF node `/sap/bc/z2ui5` and `z2ui5_cl_ui5_icf_handler`,
+  `src/03/02` - the BSP `Z2UI5`, generated from `app_source/webapp/`. One
+  pull of `main` is a running installation on Standard ABAP.
+- The branch `cloud` is generated from `main` (`tools/build-cloud.mjs`,
+  `auto-cloud.yaml`) with `cloud/src/03` in place of `src/03`. It is the
+  third generated flavour next to `main` and `702`, not a branch anybody
+  maintains.
+- The node, the BSP and the HTTP service carry the names the frontend
+  repository's branches delivered, so an installation keeps its node, its
+  BSP and its launchpad target mapping. The handler class is the exception:
+  `z2ui5_cl_lp_handler` became `z2ui5_cl_ui5_icf_handler` with the move -
+  "lp" said launchpad, and the class is the handler of the node, whatever
+  starts the app. The node this repository delivers names the new class;
+  the old one stays behind in the package of the removed repository until
+  somebody deletes it.
+
+Declined on the way: keeping the handler out of `src/` because it is the one
+class that is not portable (it would have left "one pull" a two-step
+installation again), and resolving it against a wider dependency in the
+existing lint configs (the released-API intersection those configs check
+against is the guarantee rule 4 rests on - the handler has configs of its
+own instead, `npm run check:service`).
+
 ### `z2ui5_t_02` and the dictionary objects
 
 `z2ui5_t_02` used to be the third: a released `name`/`value` structure added
@@ -153,7 +230,8 @@ the problem (`docs/agents/building-apps.md`, `docs/removal-plan.md` §5).
 > node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
 > back, while `_bind` wrote read-only data to the root. Delta handling made that
 > separation obsolete: everything is now written to the root model the same way and
-> `_bind`/`_bind_edit` behave identically. That split is where the old
+> `_bind`/`_bind_edit` behaved identically, until `_bind_edit` was removed on
+> 2026-11-22. That split is where the old
 > "one-way/two-way" wording came from — it has no meaning in the current framework.
 
 ### The vendored utility classes
@@ -167,4 +245,4 @@ What each class under `src/00/03` is, and the one addition the vendored HTTP cla
 | `src/00/03/z2ui5_cl_ui5_util_http` | Vendored from `zabaputil_cl_util_http` — leave it alone unless a fix or a caller genuinely needs it. The one addition so far is the raw query (`get_query`, the `query` of `get_req_info` and `client_call`) for the two connector addons, which read and forward their requests through this class (maintainer decision 2026-09-30); the second is `client_request` - header fields, a timeout and the ABAP Cloud client (`CL_WEB_HTTP_CLIENT_MANAGER`, by name) - for the language model providers in `src/01/05`, which `client_call` now wraps (2026-10-15). The sync carries both back to abap-util |
 | `src/00/03/z2ui5_cx_ui5_util_error` | Vendored from `zabaputil_cx_error`, copied as-is — same |
 | `src/00/03/z2ui5_cl_ui5_util_json_fl` | Framework-owned, no abap-util master |
-| `z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Moved out** (formerly `src/99/01`) to [abap2UI5-obsolet](https://github.com/abap2UI5/abap2UI5-obsolet), which a system still using them installs next to abap2UI5. Superseded by the classes above |
+| `z2ui5_cl_util*`, `z2ui5_cx_util_error`, `z2ui5_t_91` | **Moved out** (formerly `src/99/01`; to abap2UI5-obsolet on 2026-11-02) - they ship from the extension repository [abap2UI5/frontend](https://github.com/abap2UI5/frontend), which holds what abap2UI5-obsolet held and which a system still using them installs next to abap2UI5. Superseded by the classes above |

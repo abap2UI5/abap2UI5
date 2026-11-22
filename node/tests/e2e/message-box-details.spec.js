@@ -2,7 +2,7 @@
 // message_box_display( details = ... ) in a real browser, against the
 // transpiled backend: the details arrive unfolded, their TEXT on screen and no
 // "Show details" link left to press (expandBoxDetails in
-// app/webapp/core/actions/ControlCall.js).
+// bundle/webapp/core/actions/ControlCall.js).
 //
 // Asked for the text, not for a visible control, because that is where it
 // broke: sap.m.MessageBox put the details into its FormattedText when it built

@@ -9,7 +9,7 @@
  * advisory published for a package the lockfile has carried for a year
  * fails no pull request, because no pull request added it. Until this gate
  * existed nothing ran `npm audit` here at all - the root tree had four high
- * advisories and app/ six, all in the UI5 build tooling, and nothing said so.
+ * advisories and bundle/ six, all in the UI5 build tooling, and nothing said so.
  *
  * A plain `npm audit --audit-level=high` would say so every Monday and be
  * red until @ui5/project moves, which trains everyone to click past it - the
@@ -23,10 +23,9 @@
  *     arrived, so the entry goes - the list only shrinks on its own accord,
  *     an accepted advisory cannot outlive the reason it was accepted for
  *
- * Every lockfile is read: the root one, app/package-lock.json, which is
- * where @ui5/cli, the UI5 linter and Prettier come from, and
- * frontend/embed/package-lock.json, the project cloud_new ships (@ui5/cli
- * again, and the embed control). `npm audit` needs no node_modules - it
+ * Every lockfile is read: the root one and bundle/package-lock.json, which
+ * is where @ui5/cli, the UI5 linter and Prettier come from. `npm audit`
+ * needs no node_modules - it
  * sends the lockfile to the registry's bulk advisory endpoint - which is
  * why the workflow around this runs no install.
  *
@@ -44,9 +43,11 @@ import { join } from "node:path";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 
-/* the dependency trees; "" is the repository root, frontend/embed the
- * project the cloud_new branch ships */
-const TREES = ["", "app", "frontend/embed"];
+/* the dependency trees; "" is the repository root. app_source - the page
+ * app, which the branch `cloud` ships as its Fiori project - has no lockfile
+ * while the control it names (@abap2ui5/embed-control 0.4.0) is not on npm;
+ * it joins this list with its lockfile */
+const TREES = ["", "bundle"];
 
 /* what the gate fails on - moderate and below stay out for the reason
  * dependency-review.yaml gives for its own threshold */
@@ -58,14 +59,23 @@ const LEVELS = new Set(["high", "critical"]);
  * entry needs the reason, so an entry cannot become a silent hole - and the
  * reason has to name why the fix is not simply taken. */
 const ACCEPTED = new Map([
+  ["GHSA-fc5q-39xc-vjpf", {
+    trees: ["", "bundle"],
+    reason: "picomatch: ReDoS through single-branch repeated extglobs. Reached only through "
+      + "@ui5/cli (@ui5/fs -> micromatch, @ui5/project -> pacote -> node-gyp -> tinyglobby), "
+      + "build-time, and the globs it matches come from the projects' own ui5.yaml and file "
+      + "names, never from user input. Every published picomatch is affected (<=4.0.7, "
+      + "2026-11-17) and npm's only fix is @ui5/cli 2.x; accepted by the maintainer "
+      + "2026-11-17 - drop this entry when a fixed picomatch is out",
+  }],
   ["GHSA-w4pp-8pjf-rmxw", {
-    trees: ["", "app", "frontend/embed"],
+    trees: ["", "bundle"],
     reason: "pacote: DoS via addGitSha. Reached only through @ui5/cli -> @ui5/project, "
       + "build-time and fed by the lockfile, never by user input. npm's only fix is "
       + "@ui5/cli 2.x, a major downgrade; waits for @ui5/project to move its pacote range",
   }],
   ["GHSA-52v5-jr5w-gjxr", {
-    trees: ["", "app", "frontend/embed"],
+    trees: ["", "bundle"],
     reason: "sigstore: certificateOIDs constraints not enforced. Same chain (@ui5/project -> "
       + "pacote -> sigstore); the provenance verification it weakens is not something the "
       + "build relies on - the lockfile pins by integrity hash. Same fix path as above",

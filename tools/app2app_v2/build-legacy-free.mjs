@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // build-legacy-free.mjs
 // Produces the legacy-free (UI5 2.0) BSP state 1:1 from the classic abap2UI5
-// frontend (app/webapp) + a minimal bootstrap patch.
+// frontend (bundle/webapp) + a minimal bootstrap patch.
 //
-//   app/webapp -> [bootstrap patch] -> app2bsp/preload.js -> @abap2ui5/bsp [-> bsp_rename(--name)]
+//   bundle/webapp -> [bootstrap patch] -> app2bsp/preload.js -> @abap2ui5/bsp [-> bsp_rename(--name)]
 //
 // Only index.html + manifest.json are adjusted (everything else stays 1:1).
 // The result has the same package structure as the standard branch:

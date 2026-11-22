@@ -1,7 +1,12 @@
 // @ts-check
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
-const { loadLib, specContext, contextStub, classEnv } = require("./loadLibModule");
+const {
+  loadLib,
+  specContext,
+  contextStub,
+  classEnv,
+} = require("./loadLibModule");
 
 // Tests the two event-side helpers on View1.controller that the backend binds
 // into a view attribute:
@@ -649,7 +654,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
     state.oResponse = {
       ID: "D1",
-      _pendingCustomJs: [["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]],
+      _pendingCustomJs: [
+        ["SET_ODATA_MODEL", "/svc"],
+        ["SET_FOCUS", "inp"],
+      ],
     };
     hooks.onRunCustom = (item) =>
       item[0] === "SET_ODATA_MODEL"
@@ -658,7 +666,10 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
     await ctrl._processAfterRendering(1);
 
-    expect(customs).toEqual([["SET_ODATA_MODEL", "/svc"], ["SET_FOCUS", "inp"]]);
+    expect(customs).toEqual([
+      ["SET_ODATA_MODEL", "/svc"],
+      ["SET_FOCUS", "inp"],
+    ]);
     expect(
       logged.some((m) => m.includes("async action 'SET_ODATA_MODEL' failed")),
     ).toBe(true);
@@ -738,6 +749,27 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     ]);
     expect(busy).toEqual(["hide"]);
     expect(state.isBusy).toBe(false);
+  });
+
+  test("after the overlay of a failed build nothing of the response runs any more", async () => {
+    const { ctrl, state, hooks, pendingHash, customs, renderErrors } =
+      loadForAfterRendering();
+    // a START_TIMER among the follow-up actions would tick roundtrips under
+    // the overlay, a parked hash change would send one
+    state.oResponse = {
+      ID: "D1",
+      S_ACTION: { T_SYSTEM: [{}] },
+      _pendingCustomJs: [["START_TIMER", "TICK", "1000"]],
+    };
+    hooks.onRunSystem = () => {
+      throw new Error("view XML broken");
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(renderErrors.length).toBe(1);
+    expect(customs).toEqual([]);
+    expect(pendingHash).toEqual([]);
   });
 
   test("a REPLACED response leaves busy, custom JS and the parked hash to the newer one", async () => {
@@ -1375,7 +1407,17 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       values.VALUE = text;
       model._z2ui5ChangedPaths.add("/VALUE");
     };
-    return { ctrl, state, roundtrips, busy, pendingHash, model, type, app, slot };
+    return {
+      ctrl,
+      state,
+      roundtrips,
+      busy,
+      pendingHash,
+      model,
+      type,
+      app,
+      slot,
+    };
   }
 
   test("a queued wire fired while busy keeps the LAST event only, and shows the indicator", () => {

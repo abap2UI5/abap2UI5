@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib, specContext } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/DevTools.js - the lifecycle facade that is the
+// bundle/webapp/devtools/DevTools.js - the lifecycle facade that is the
 // ONLY entry point the framework calls into the developer tools. What it
 // owns (shortcut, instance, recorder install, auto open, the error-details
 // provider) used to be spread over Component.js, AppState.js and
@@ -29,10 +29,10 @@ function loadDevTools({
   // the dialog's module known to the loader from the start (a BSP that
   // serves it, a page where it was loaded before)
   dialogLoaded = false,
-  // what the page is: the backend's own (checkLocal), an embedded
-  // component, or a BSP/launchpad page (neither)
-  checkLocal = true,
-  embedded = false,
+  // what the page is: an embedded component - the backend's own page is
+  // one too, and owns the page - or a host that serves the frontend's
+  // files itself (not embedded)
+  embedded = true,
   url = "http://localhost:3000/sap/bc/z2ui5?app_start=ZCL_X#/x",
 } = {}) {
   const listeners = [];
@@ -72,7 +72,8 @@ function loadDevTools({
     }
   }
 
-  if (dialogLoaded) modules.set("z2ui5/devtools/DeveloperTools", DeveloperTools);
+  if (dialogLoaded)
+    modules.set("z2ui5/devtools/DeveloperTools", DeveloperTools);
   // the picker, once the bundle is in: exit() stops a pick that may still
   // be running (its capture listeners would survive the teardown otherwise)
   const Picker = {
@@ -94,7 +95,6 @@ function loadDevTools({
       }
     }
   };
-  ctx.state.checkLocal = checkLocal;
   ctx.state.embedded = embedded;
   ctx.state.url = url;
 
@@ -118,7 +118,8 @@ function loadDevTools({
         removeOnError: (fn) => errorSubscribers.delete(fn),
       },
       "z2ui5/devtools/Recorder": {
-        install: (c) => recorderCalls.push(`install:${c === ctx ? "own" : "other"}`),
+        install: (c) =>
+          recorderCalls.push(`install:${c === ctx ? "own" : "other"}`),
         uninstall: (c) =>
           recorderCalls.push(`uninstall:${c === ctx ? "own" : "other"}`),
       },
@@ -126,7 +127,9 @@ function loadDevTools({
     sandbox: {
       URLSearchParams,
       URL,
-      window: { location: { search, href: "http://localhost:3000/sap/bc/z2ui5" } },
+      window: {
+        location: { search, href: "http://localhost:3000/sap/bc/z2ui5" },
+      },
       sap: {
         ui: {
           // the one-id probe answers a loaded module synchronously, the
@@ -195,7 +198,8 @@ function loadDevTools({
     },
     // Ctrl+F12 with the bundle arriving right after
     open: async () => {
-      for (const l of listeners.filter((x) => x.type === "keydown")) l.fn(CTRL_F12);
+      for (const l of listeners.filter((x) => x.type === "keydown"))
+        l.fn(CTRL_F12);
       await tick();
       if (!modules.has("z2ui5/devtools/DeveloperTools")) await loadBundle();
       await tick();
@@ -226,6 +230,8 @@ test.describe("install", () => {
   test("an embedded component leaves the page's console and errors alone", () => {
     const h = loadDevTools();
     h.ctx.state.embedded = true;
+    // the host's page, not handed to the app (Component.init)
+    h.ctx.state.ownsPage = false;
     h.DevTools.install(h.ctx);
     expect(h.recorderCalls).toEqual(["install:own"]);
     expect(h.consoleUsers.count).toBe(0);
@@ -240,6 +246,20 @@ test.describe("install", () => {
     h.DevTools.exit(h.ctx);
     expect(h.consoleUsers.count).toBe(0);
     expect(h.recorderCalls).not.toContain("console:uninstall");
+  });
+
+  // ... unless the host handed the page to the app (ownsPage): the
+  // backend's own GET page, the BSP and the app of the branch cloud are
+  // one embed control filling the page, and that page's console is the app's
+  test("an embedded component that owns the page captures its console", () => {
+    const h = loadDevTools();
+    h.ctx.state.embedded = true;
+    h.ctx.state.ownsPage = true;
+    h.DevTools.install(h.ctx);
+    expect(h.consoleUsers.count).toBe(1);
+    expect(h.ctx.devtools.console).toBe(true);
+    h.DevTools.exit(h.ctx);
+    expect(h.consoleUsers.count).toBe(0);
   });
 
   test("is idempotent", () => {
@@ -347,7 +367,6 @@ test.describe("the devtools bundle", () => {
 
   test("an embedded component loads it from its endpoint first, like the backend's page", async () => {
     const h = loadDevTools({
-      checkLocal: false,
       embedded: true,
       url: "/dynamic_dest/ABAP2UI5/sap/bc/z2ui5",
     });
@@ -361,36 +380,6 @@ test.describe("the devtools bundle", () => {
     expect(h.requires.length).toBe(0);
     await h.loadBundle();
     expect(h.instances.length).toBe(1);
-  });
-
-  test("a BSP or launchpad page requires the module first, and the bundle only when that fails", async () => {
-    const h = loadDevTools({ checkLocal: false, url: "/sap/bc/z2ui5" });
-    h.DevTools.install(h.ctx);
-    h.press(CTRL_F12);
-    await h.tick();
-    // the BSP serves the module: the require answers, no bundle
-    expect(h.requires.length).toBe(1);
-    expect(h.scripts.length).toBe(0);
-    h.registerBundle();
-    h.settleRequires();
-    await h.tick();
-    expect(h.instances.length).toBe(1);
-    expect(h.scripts.length).toBe(0);
-
-    // ...and a page where the module is not to be had falls back to the
-    // bundle from the manifest's endpoint
-    const g = loadDevTools({ checkLocal: false, url: "/sap/bc/z2ui5" });
-    g.DevTools.install(g.ctx);
-    g.press(CTRL_F12);
-    await g.tick();
-    g.settleRequires();
-    await g.tick();
-    expect(g.scripts.length).toBe(1);
-    expect(g.scripts[0].src).toBe(
-      "http://localhost:3000/sap/bc/z2ui5?z2ui5-bundle=devtools",
-    );
-    await g.loadBundle();
-    expect(g.instances.length).toBe(1);
   });
 
   test("a bundle that cannot be loaded is logged, opens nothing, and the next open tries again", async () => {
@@ -592,7 +581,7 @@ test.describe("two components on one page", () => {
   test("each context gets its own tools, and exit of one leaves the other's in place", async () => {
     const h = loadDevTools();
     const other = specContext();
-    other.state.checkLocal = true;
+    other.state.embedded = true;
     other.state.url = h.ctx.state.url;
     h.DevTools.install(h.ctx);
     h.DevTools.install(other);

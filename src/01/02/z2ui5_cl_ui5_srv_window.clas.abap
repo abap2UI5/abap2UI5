@@ -10,7 +10,7 @@ CLASS z2ui5_cl_ui5_srv_window DEFINITION PUBLIC FINAL CREATE PUBLIC.
   PUBLIC SECTION.
 
     "! the arguments of cs_event_window as the frontend sends them
-    "! (app/webapp/core/WindowModel.js): the model path of the table, the
+    "! (bundle/webapp/core/WindowModel.js): the model path of the table, the
     "! app's event, the reason, skip, top - then, for SORT and FILTER, the
     "! sorters and the filter groups as JSON
     CLASS-METHODS request

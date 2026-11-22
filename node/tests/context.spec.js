@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real app/webapp/core/Context.js - one context per
+// Tests the real bundle/webapp/core/Context.js - one context per
 // z2ui5.Component, and how a module finds it (Context.of): a controller
 // carries it, the component maps to it, a control resolves it through its
 // owner component or its parent chain up to a slot view. Two contexts on

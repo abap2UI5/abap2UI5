@@ -19,7 +19,11 @@
   // by review. 25 + 5 (znamespace_ is 11 chars, z2ui5_ is 6) = the 30-character
   // ABAP limit, hit exactly. A namespace prefix adds 4 at most (10 for 6).
   "global": {
-    "files": "/../../src/**/*.*"
+    "files": "/../../src/**/*.*",
+    // src/03 - the ICF node, its handler and the BSP - is renamed by
+    // tools/bsp_rename, which knows the object types abaplint does not
+    // (SICF, WAPA) and the names inside them
+    "exclude": ["/src/03/"]
   },
   "dependencies": [
     {

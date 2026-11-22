@@ -6,7 +6,7 @@ const { loadModule } = require("./loadModule");
 const { specContext } = require("./loadLibModule");
 const { fakeDocument } = require("./fakeDocument");
 
-// Checks app/webapp/devtools/DeveloperTools.fragment.xml against the
+// Checks bundle/webapp/devtools/DeveloperTools.fragment.xml against the
 // control that backs it.
 //
 // This is the gap the other specs cannot close: a fragment is data, so a
@@ -17,7 +17,7 @@ const { fakeDocument } = require("./fakeDocument");
 // specs looks at the pair.
 
 const FRAGMENT = fs.readFileSync(
-  path.join(__dirname, "..", "..", "app", "webapp", "devtools", "DeveloperTools.fragment.xml"),
+  path.join(__dirname, "..", "..", "bundle", "webapp", "devtools", "DeveloperTools.fragment.xml"),
   "utf8",
 );
 

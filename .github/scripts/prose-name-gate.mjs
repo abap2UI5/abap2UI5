@@ -37,14 +37,14 @@ const PROSE = [
   // `backlog/` is the sharper of the two: an item is written to be pasted into
   // ANOTHER project's tracker as it stands, so a name that no longer exists
   // goes out to a maintainer who has no way to check it, under this project's
-  // name. `frontend/common/` is published onto abap2UI5/frontend's `main` and
-  // is the first page somebody installing the frontend reads.
+  // name. `cloud/` holds the README of the branch `cloud`, the first page
+  // somebody installing abap2UI5 on ABAP Cloud reads.
   { dir: "backlog", depth: 9, ext: [".md"] },
-  { dir: "frontend", depth: 9, ext: [".md"] },
+  { dir: "cloud", depth: 9, ext: [".md"] },
   // The frontend half of the agent briefing, split out of AGENTS.md - the
-  // same prose, so the same check. Only the file itself: app/webapp holds no
+  // same prose, so the same check. Only the file itself: bundle/webapp holds no
   // Markdown (everything there is embedded into src/01/03).
-  { dir: "app", depth: 0, ext: [".md"] },
+  { dir: "bundle", depth: 0, ext: [".md"] },
 ];
 
 // A changelog is a record of the past, and an entry naming what a class was
@@ -87,15 +87,13 @@ const EXTERNAL = new Map([
   ["Z2UI5_CL_SMPC_APP_000", "the samples-controls overview app"],
   ["Z2UI5_CL_SMPS_APP_000", "the samples-stack overview app"],
   ["Z2UI5_CL_SMPS_EVT_TCK", "the samples-stack ticket event handler - an abap-check case"],
+  ["Z2UI5_CL_LP_HANDLER", "the name of Z2UI5_CL_UI5_ICF_HANDLER until 2026-11-17, when it shipped from abap2UI5/frontend"],
   ["Z2UI5_CL_MY_CLASS", "placeholder in an AGENTS.md example"],
   ["Z2UI5_CL_MY_APP", "placeholder in an example"],
   // the single class abap2UI5-local folds this repository's sources into -
   // its "Local Implementations" are where SLIN reports findings that are
   // annotated away on this side, which is the abap-check entry naming it
   ["Z2UI5_CL_ABAP2UI5_LOCAL", "the bundled class abap2UI5/abap2UI5-local builds"],
-  // frontend/abap holds it, outside src/: it ships in the branches of
-  // abap2UI5/frontend, whose READMEs (frontend/common) name it
-  ["Z2UI5_CL_LP_HANDLER", "the launchpad handler of the abap2UI5/frontend branches (frontend/abap)"],
   // the headless frontend: the developer tools' Journey view exports a test
   // class that replays a click-through on it, and the docs say so
   ["Z2UI5_CL_FRONTEND_SIM", "the headless frontend of abap2UI5/headless-frontend"],
@@ -107,18 +105,21 @@ const EXTERNAL = new Map([
 const EXTERNAL_PATTERNS = [
   { re: /^Z2UI5_CL_(DEMO|SMP|SMPC|SMPS)_APP_/, why: "app classes of the sample repositories" },
   // The legacy utilities of the former src/99/01: moved to abap2UI5/abap2UI5-obsolet
-  // (2026-11). The docs, the changelog and the backlog keep naming them - as the
+  // (2026-11-02), whose content the extension repository abap2UI5/frontend
+  // holds now. The docs, the changelog and the backlog keep naming them - as the
   // thing that moved, or as the site an abaplint probe measured.
   {
     re: /^Z2UI5_(CL_UTIL(_DB|_EXT|_HTTP|_LOG|_MSG|_RANGE|_XML)?|CX_UTIL_ERROR|T_91)$/,
-    why: "the legacy utilities of abap2UI5/abap2UI5-obsolet (formerly src/99/01)",
+    why: "the legacy utilities of the extension repository abap2UI5/frontend (formerly src/99/01, then abap2UI5-obsolet)",
   },
-  // The two superseded names deleted on 2026-11-17: the docs, the changelog
-  // and the removal plan keep naming them - as what an installation migrates
-  // away from.
+  // The rest of the frozen package: moved to the extension
+  // repository on 2026-11-17 (abap2UI5/frontend, which holds what
+  // abap2UI5-obsolet held as well). Named all over the docs, the removal plan and
+  // the abap-check catalogue - as what an app migrates away from, or as the
+  // site a rule was measured on.
   {
-    re: /^Z2UI5_(CL_HTTP_HANDLER|IF_EXIT)$/,
-    why: "deleted superseded names (z2ui5_cl_ui5_http_handler / z2ui5_if_ui5_exit are the names)",
+    re: /^Z2UI5_(CL_XML_VIEW(_CC)?|CL_HTTP_HANDLER|IF_EXIT|IF_TYPES|CL_POP_[A-Z0-9_]+)$/,
+    why: "the legacy view builder, types and popups of the extension repository, and the two deleted names - the handler shim and the old exit interface (formerly src/99)",
   },
   // The rest of those repositories' namespaces, not just their app classes.
   // `smp` is samples, `smpc` samples-controls, `smps` samples-stack, `dmo` the

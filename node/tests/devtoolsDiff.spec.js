@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real implementation shipped in app/webapp/devtools/Diff.js -
+// Tests the real implementation shipped in bundle/webapp/devtools/Diff.js -
 // the two pure diff walks behind the Model Diff and View Diff tabs. The
 // rendering around them, and the choice of the two inputs, is
 // devtools/Recorder.js's (devtoolsRecorder.spec.js); what is pinned here

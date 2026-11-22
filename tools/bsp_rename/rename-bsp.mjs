@@ -6,9 +6,9 @@
 //
 // The new name is either a plain name in the customer namespace (ZMYUI5) or
 // a name in a registered /NS/ namespace:
-//   * ZMYUI5      ->  BSP ZMYUI5,        handler ZMYUI5_CL_LP_HANDLER
-//   * /ABAPGIT/   ->  BSP /ABAPGIT/UI5,  handler /ABAPGIT/CL_LP_HANDLER
-//   * /ABAPGIT/X  ->  BSP /ABAPGIT/X,    handler /ABAPGIT/X_CL_LP_HANDLER
+//   * ZMYUI5      ->  BSP ZMYUI5,        handler ZMYUI5_CL_UI5_ICF_HANDLER
+//   * /ABAPGIT/   ->  BSP /ABAPGIT/UI5,  handler /ABAPGIT/CL_UI5_ICF_HANDLER
+//   * /ABAPGIT/X  ->  BSP /ABAPGIT/X,    handler /ABAPGIT/X_CL_UI5_ICF_HANDLER
 // (the abapGit file-name spelling #abapgit#ui5 is accepted as input too)
 //
 // WHAT IS RENAMED (the deployment identity - the things that collide in the
@@ -17,9 +17,9 @@
 //   * SICF service nodes (3x) ................. /sap/bc/z2ui5, /sap/bc/bsp/sap/z2ui5,
 //                                               /sap/bc/ui5_ui5/sap/z2ui5
 //   * SMIM folder URL ......................... /SAP/BC/BSP/SAP/Z2UI5
-//   * ICF handler class ....................... Z2UI5_CL_LP_HANDLER -> <NEW handler>
+//   * ICF handler class ....................... Z2UI5_CL_UI5_ICF_HANDLER -> <NEW handler>
 //   * manifest.json data source ............... /sap/bc/z2ui5  (points at the handler above)
-//   * all on-disk file names .................. z2ui5.wapa.*, z2ui5_cl_lp_handler.*,
+//   * all on-disk file names .................. z2ui5.wapa.*, z2ui5_cl_ui5_icf_handler.*,
 //                                               the SICF files (name field + URL hash);
 //                                               "/" in namespaced object names becomes
 //                                               "#" like abapGit serializes it
@@ -87,7 +87,7 @@ import { stdin, stdout, argv, exit } from "node:process";
 // ---------------------------------------------------------------------------
 const OLD_LO = "z2ui5";
 const OLD_UP = "Z2UI5";
-const OLD_HANDLER_LO = "z2ui5_cl_lp_handler";
+const OLD_HANDLER_LO = "z2ui5_cl_ui5_icf_handler";
 // The backend class the handler calls. Kept unless --backend says otherwise.
 const OLD_BACKEND_LO = "z2ui5_cl_ui5_http_handler";
 // The backend's own rename (build-rename.yaml) allows a NAME of at most 10
@@ -147,8 +147,8 @@ Usage:
   node rename-bsp.mjs [NEW_NAME] [options]
 
 NEW_NAME is a plain name (ZMYUI5) or a name in a registered SAP namespace:
-  /ABAPGIT/     ->  BSP /ABAPGIT/UI5, handler class /ABAPGIT/CL_LP_HANDLER
-  /ABAPGIT/X    ->  BSP /ABAPGIT/X,   handler class /ABAPGIT/X_CL_LP_HANDLER
+  /ABAPGIT/     ->  BSP /ABAPGIT/UI5, handler class /ABAPGIT/CL_UI5_ICF_HANDLER
+  /ABAPGIT/X    ->  BSP /ABAPGIT/X,   handler class /ABAPGIT/X_CL_UI5_ICF_HANDLER
 (#abapgit#ui5, the abapGit file-name spelling, is accepted as well)
 
 Options:
@@ -194,7 +194,7 @@ export function deriveNames(input) {
       throw new Error(`Name "${up}" is ${up.length} chars; max ${MAX_NAME_LEN} (ICF service / BSP name limit, incl. namespace).`);
     }
     // /NS/ alone: the handler is the only class, so it needs no BSP prefix
-    const handlerUp = nsMatch[2] ? `/${ns}/${leafUp}_CL_LP_HANDLER` : `/${ns}/CL_LP_HANDLER`;
+    const handlerUp = nsMatch[2] ? `/${ns}/${leafUp}_CL_UI5_ICF_HANDLER` : `/${ns}/CL_UI5_ICF_HANDLER`;
     if (handlerUp.length > MAX_CLASS_LEN) {
       throw new Error(`Handler class "${handlerUp}" is ${handlerUp.length} chars; max ${MAX_CLASS_LEN} (ABAP class name limit).`);
     }
@@ -219,6 +219,11 @@ export function deriveNames(input) {
   }
   const up = name.toUpperCase();
   const lo = name.toLowerCase();
+  // the handler is <NAME>_CL_UI5_ICF_HANDLER: a BSP name may be 15
+  // characters, the class it would give 34 - four more than a class name has
+  if (`${up}_CL_UI5_ICF_HANDLER`.length > MAX_CLASS_LEN) {
+    throw new Error(`Handler class "${up}_CL_UI5_ICF_HANDLER" is ${up.length + 19} chars; max ${MAX_CLASS_LEN} (ABAP class name limit) - a name of at most ${MAX_CLASS_LEN - 19} characters.`);
+  }
   if (!/^[ZY]/.test(up)) {
     warnings.push(`"${up}" does not start with Z or Y - that is outside the SAP customer namespace.`);
   }
@@ -226,7 +231,7 @@ export function deriveNames(input) {
     ns: null, nsLo: null,
     up, lo,
     leafUp: up, leafLo: lo,
-    handlerUp: `${up}_CL_LP_HANDLER`, handlerLo: `${lo}_cl_lp_handler`,
+    handlerUp: `${up}_CL_UI5_ICF_HANDLER`, handlerLo: `${lo}_cl_ui5_icf_handler`,
     warnings,
   };
 }
@@ -290,8 +295,8 @@ const tokenPairs = (N, up, lo) => [
 // only while the new handler name does not itself contain the old BSP token,
 // and for the documented `ZMYUI5` / `/ABAPGIT/` cases it does not. For a name
 // that KEEPS the prefix it does: Z2UI5 -> Z2UI5_V2 makes the handler
-// Z2UI5_V2_CL_LP_HANDLER, whose leading `Z2UI5` the second pass renamed
-// again, and the SICF node shipped pointing at Z2UI5_V2_V2_CL_LP_HANDLER - a
+// Z2UI5_V2_CL_UI5_ICF_HANDLER, whose leading `Z2UI5` the second pass renamed
+// again, and the SICF node shipped pointing at Z2UI5_V2_V2_CL_UI5_ICF_HANDLER - a
 // class that exists nowhere, so the renamed ICF node answers 500 on the first
 // request. `Z2UI5_V2` is the name this repository's own README hands out.
 //
@@ -338,7 +343,7 @@ function transformWapa(content, N) {
 // ABAP class source / metadata: rename ONLY our own handler class and KEEP
 // the backend framework class z2ui5_cl_ui5_http_handler - unless a renamed
 // backend is named (--backend): then the call goes to its class. The two
-// tokens never overlap (lp_handler / ui5_http_handler), so the order is free.
+// tokens never overlap (ui5_icf_handler / ui5_http_handler), so the order is free.
 function transformClass(content, N, backend) {
   let out = content.replace(new RegExp(OLD_HANDLER_LO, "gi"), (m) =>
     m === OLD_HANDLER_LO ? N.handlerLo : N.handlerUp);

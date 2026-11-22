@@ -16,6 +16,11 @@
 // would silently lint, transpile and RUN the floating HEAD of three upstream
 // repositories, which is exactly what the pins exist to prevent.
 //
+// A fourth pin is no lib of either tool: the embed control, which
+// tools/app2abap copies into what the backend serves - in tools/deps/, see
+// its entry below. The generator calls this script itself, so the copy it
+// takes is always the pinned one.
+//
 //   node node/setup/fetch-deps.mjs                 fetch/refresh the pins
 //   node node/setup/fetch-deps.mjs --print-latest  show upstream HEADs (to bump)
 //
@@ -45,6 +50,20 @@ const PINS = [
     url: "https://github.com/open-abap/express-icf-shim",
     sha: "c1fc36026f69eb0ae7d1830d304e1e1923e9a9a3",
   },
+  // The UI5 control z2ui5.embed.Container (npm @abap2ui5/embed-control).
+  // Its source lives in abap2UI5-addons/embed-ui5-control; abap2UI5 carries a copy of
+  // it in what it serves - the GET page's inline script (src/01/03) and the
+  // BSP of src/03/02 - and tools/app2abap reads it from here
+  // (packages/embed-control/src/Container.js). Not a lib of the backend, so
+  // it lands in tools/deps/ rather than node/deps/, which the prebuilt
+  // backend ships. Moving the pin moves the control abap2UI5 serves: bump
+  // it, then `npm run app2abap` and commit what that regenerates.
+  {
+    name: "embed-control",
+    url: "https://github.com/abap2UI5-addons/embed-ui5-control",
+    sha: "2d8dd2bf9ff75fdf7a7881ec03e75ef703fe6531",
+    dir: "tools/deps",
+  },
 ];
 
 // git with an ARGUMENT ARRAY, never a shell string: the URLs and SHAs above
@@ -64,7 +83,7 @@ if (process.argv.includes("--print-latest")) {
 
 let failures = 0;
 for (const p of PINS) {
-  const dir = path.join(DEPS_DIR, p.name);
+  const dir = path.join(p.dir ? path.join(ROOT, p.dir) : DEPS_DIR, p.name);
   try {
     if (fs.existsSync(path.join(dir, ".git")) && run(["rev-parse", "HEAD"], dir) === p.sha) {
       continue; // already at the pin

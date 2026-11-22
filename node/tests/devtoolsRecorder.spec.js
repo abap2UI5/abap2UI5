@@ -4,7 +4,7 @@ const { loadModule } = require("./loadModule");
 const { loadLib } = require("./loadLibModule");
 
 // Tests the real implementation shipped in
-// app/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
+// bundle/webapp/devtools/Recorder.js (loaded via a stubbed sap.ui.define).
 // The recorder observes the framework from the outside - through the
 // onAfterRendering callback array of its component context and the
 // browser's Resource Timing API - so the harness below builds one spec

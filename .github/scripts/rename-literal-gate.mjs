@@ -39,7 +39,7 @@
  *
  * Scope: src/00-src/02 production code. Not test classes (the unit suite is
  * not what a renamed installation runs), not src/99 (frozen, never changed),
- * not src/01/03 (generated from app/webapp, where "z2ui5/..." module ids are
+ * not src/01/03 (generated from bundle/webapp, where "z2ui5/..." module ids are
  * frontend names, not ABAP objects).
  *
  *   node .github/scripts/rename-literal-gate.mjs                    the sources

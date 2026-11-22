@@ -58,3 +58,5 @@ tools/out/
 # incremental transpile copies into node/downport. Owned by the mcp-server,
 # removed by its remove_app.
 /node/zz_dev/
+.github/abaplint/rename_service_run.jsonc
+tools/deps/

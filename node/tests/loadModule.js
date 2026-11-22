@@ -1,14 +1,14 @@
 // @ts-check
-// Loads a real app/webapp module in Node by stubbing sap.ui.define, so the
+// Loads a real bundle/webapp module in Node by stubbing sap.ui.define, so the
 // specs exercise the shipped implementation instead of a copy that could
 // silently drift from the production code.
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const WEBAPP_DIR = path.join(__dirname, "..", "..", "app", "webapp");
+const WEBAPP_DIR = path.join(__dirname, "..", "..", "bundle", "webapp");
 
-// Loads `relPath` (relative to app/webapp, e.g. "core/Lib.js").
+// Loads `relPath` (relative to bundle/webapp, e.g. "core/Lib.js").
 //  - `deps`     stubs for the module's sap.ui.define dependencies, keyed by
 //               dependency name (e.g. "z2ui5/core/Lib"); unstubbed
 //               dependencies resolve to undefined
@@ -18,7 +18,7 @@ const WEBAPP_DIR = path.join(__dirname, "..", "..", "app", "webapp");
 // Returns { module, sandbox } - the module's export and the live sandbox.
 //
 // With `autoLoad: true`, a z2ui5/* dependency that is NOT stubbed in `deps`
-// is loaded for real from app/webapp (recursively, sharing this call's deps
+// is loaded for real from bundle/webapp (recursively, sharing this call's deps
 // and sandbox), so a module composed from submodules - core/FrontendAction.js
 // and its core/actions/* - is tested as the composition that ships. Without
 // the flag (and for sap/* dependencies always), an unstubbed dependency
