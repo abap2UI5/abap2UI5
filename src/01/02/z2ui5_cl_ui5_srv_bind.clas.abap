@@ -48,6 +48,12 @@ CLASS z2ui5_cl_ui5_srv_bind DEFINITION PUBLIC FINAL.
       IMPORTING
         val TYPE REF TO data.
 
+    " the row of the attribute this bind works on - a reference INTO the
+    " attribute table, valid only as long as the table is not rebuilt.
+    " get_model( )->main_attri_search may rebuild it (main_attri_refresh
+    " clears the table and dissolves anew), so between attri_resolve and
+    " the end of bind_attri nothing calls it; a lookup that may miss uses
+    " main_attri_find (window_adopt)
     DATA mr_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_ui5_types=>ty_s_bind_config.
     " one model service for the life of this bind service - the client
@@ -566,14 +572,21 @@ CLASS z2ui5_cl_ui5_srv_bind IMPLEMENTATION.
     " the total as an attribute of the app (`total = mv_total`): the
     " response reads it anew, so a window event that loads, sorts or
     " filters only sets it - no view rendered again. A value that is no
-    " attribute (`total = lines( lt_all )`) stays the value of this render
+    " attribute (`total = lines( lt_all )`) stays the value of this render.
+    " Asked with main_attri_find, NOT main_attri_search: the client hands
+    " over a reference to whatever the app passed, so a value that is no
+    " attribute is the ordinary case, on every render - and the binding
+    " search answers a miss with a dissolve and a main_attri_refresh before
+    " it raises. That rebuilt the whole attribute table per call for an
+    " answer that was thrown away, and it took the row mr_attri points at
+    " with it: the refresh clears the table, so bind_attri went on reading
+    " its path from a row that was no longer one (see mr_attri)
     CLEAR mr_attri->window_total_name.
     IF ms_config-window_total_ref IS BOUND.
-      TRY.
-          DATA(lr_total) = get_model( )->main_attri_search( ms_config-window_total_ref ).
-          mr_attri->window_total_name = lr_total->name.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
+      DATA(lr_total) = get_model( )->main_attri_find( ms_config-window_total_ref ).
+      IF lr_total IS BOUND.
+        mr_attri->window_total_name = lr_total->name.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.

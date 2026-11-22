@@ -13,6 +13,22 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
+    "! The row of the attribute val points at, or nothing - the search of
+    "! main_attri_search WITHOUT its second and third attempt: no dissolve,
+    "! no main_attri_refresh, no exception. For a caller that asks whether a
+    "! value IS an attribute and takes "no" for an answer
+    "! (window_bind_tab( total = lines( lt_all ) )): a miss costs one scan
+    "! and leaves the attribute table exactly as it was, so a row reference
+    "! the caller holds stays valid. What it cannot find is an attribute
+    "! that only a rebuilt table would show - one behind a reference bound
+    "! since the table was last dissolved; such a caller is answered as if
+    "! the value were none
+    METHODS main_attri_find
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
+
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
@@ -1522,6 +1538,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
+
+  ENDMETHOD.
+
+  METHOD main_attri_find.
+
+    " attri_search refuses a reference to a reference with an exception -
+    " that is "no attribute" here as well
+    TRY.
+        result = attri_search( val ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 

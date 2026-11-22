@@ -20,6 +20,8 @@ CLASS ltcl_test_app DEFINITION FINAL.
     DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
     " a table typed at runtime - the attribute _bind( ) takes as a reference
     DATA mr_tab TYPE REF TO data ##NEEDED.
+    " the total of a windowed table, as an attribute
+    DATA mv_total TYPE i ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -151,6 +153,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_bind_dref_attribute  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_tab_cell   FOR TESTING RAISING cx_static_check.
     METHODS test_bind_dref_initial    FOR TESTING RAISING cx_static_check.
+    " window_bind_tab( ): the total as a value and as an attribute
+    METHODS test_window_total_value   FOR TESTING RAISING cx_static_check.
+    METHODS test_window_total_attri   FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
@@ -1566,6 +1571,82 @@ CLASS ltcl_test_client IMPLEMENTATION.
         act = li_client->_bind( val       = <emp>-job
                                 tab       = mo_test_app->mt_emp
                                 tab_index = 2 ) ).
+
+  ENDMETHOD.
+
+
+  METHOD test_window_total_value.
+
+    " `total = lines( lt_all )` - the form the interface documents next to
+    " the attribute: the binding holds the value of this render and names
+    " no attribute to read it from
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lt_all    LIKE mo_test_app->mt_emp.
+
+    li_client ?= mo_client.
+    lt_all = VALUE #( ( name = `a` ) ( name = `b` ) ( name = `c` ) ).
+    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
+                                                                          total  = lines( lt_all )
+                                                                          event  = `ROWS`
+                                                                          window = 2 ) ).
+
+    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
+                                        act = lr_attri->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
+                                        act = lr_attri->window_event ).
+    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
+
+    " and the same call again, as every render makes it
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
+                                                                          total  = lines( lt_all ) + 1
+                                                                          event  = `ROWS`
+                                                                          window = 2 ) ).
+    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO lr_attri WITH TABLE KEY name = `MT_EMP`.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
+
+  ENDMETHOD.
+
+
+  METHOD test_window_total_attri.
+
+    " `total = mv_total`: the binding names the attribute, so a response
+    " reads the total anew without the view being rendered again
+    DATA li_client TYPE REF TO z2ui5_if_client.
+
+    li_client ?= mo_client.
+    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
+    mo_test_app->mv_total = 500.
+
+    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
+                                        act = li_client->window_bind_tab( val   = mo_test_app->mt_emp
+                                                                          total = mo_test_app->mv_total
+                                                                          event = `ROWS` ) ).
+
+    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
+    cl_abap_unit_assert=>assert_subrc( ).
+    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
+    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
+                                        act = lr_attri->name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = 100
+                                        act = lr_attri->window_size ).
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = lr_attri->window_total ).
+    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
+                                        act = lr_attri->window_total_name ).
 
   ENDMETHOD.
 
