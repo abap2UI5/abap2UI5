@@ -88,6 +88,71 @@ sap.ui.define(
       return JSON.parse(JSON.stringify(data));
     }
 
+    // A window request of a windowed table that comes while a roundtrip
+    // runs - the list asking for its second window while the response that
+    // built it is still being processed, the user scrolling during a
+    // roundtrip. Kept by TABLE, by its model path (the request's first
+    // argument), the last one winning - except that a request for more rows
+    // does not replace a kept sort or filter of the same table
+    // (WindowModel.keepRestart) - and with the MODEL that asked: what says
+    // at dispatch time whether the table is still there is its model being
+    // the slot's, not a view kept at the time, since a list asks for rows
+    // while its view is still being built and has reached no slot yet.
+    //
+    // Until 2026-11 these went through View1.eB's busy guard into ONE place
+    // for all tables, with the view of the slot at that moment: the lists
+    // of one page overwrote each other, and a request of a view that was
+    // still being built was dropped when it was due, because the slot held
+    // another view by then. On a page's first roundtrip nobody saw either -
+    // it was not busy, so the first request simply went out.
+    function keepWindowRequest(ctx, oModel, slotKey, args, noBusy) {
+      const path = String(args[0]);
+      const windows = ctx.state.oQueuedWindow || {};
+      const kept = windows[path];
+      windows[path] = {
+        model: oModel,
+        slotKey,
+        args:
+          kept?.model === oModel
+            ? WindowModel.keepRestart(args, kept.args)
+            : args,
+        noBusy: !!noBusy,
+      };
+      ctx.state.oQueuedWindow = windows;
+    }
+
+    // The model a slot's own events ship - the tracked root model for MAIN
+    // and the nested views, the default model of a popup or popover.
+    function slotModel(ctx, slotKey) {
+      const oView = ViewSlots.getView(ctx, slotKey);
+      if (!oView) return undefined;
+      return Lib.isRootModelSlot(slotKey)
+        ? resolveTrackedModel(oView)
+        : oView.getModel();
+    }
+
+    // Send the kept window requests, as long as the app is idle: the first
+    // one is the roundtrip, the others stay for the end of it. A request
+    // whose table is gone - the popup closed, the view replaced by one with
+    // a model of its own - is dropped.
+    function dispatchQueuedWindows(ctx) {
+      const windows = ctx.state.oQueuedWindow;
+      if (!windows) return;
+      for (const path of Object.keys(windows)) {
+        if (ctx.state.isBusy) break;
+        const queued = windows[path];
+        delete windows[path];
+        const oController = ViewSlots.getController(ctx, queued.slotKey);
+        if (!Lib.isControllerAlive(oController)) continue;
+        if (slotModel(ctx, queued.slotKey) !== queued.model) continue;
+        oController.eB(
+          [WindowModel.EVENT, { noBusy: queued.noBusy }],
+          ...queued.args,
+        );
+      }
+      if (!Object.keys(windows).length) ctx.state.oQueuedWindow = null;
+    }
+
     // The tracked framework model for a response's data - the ONE place
     // that makes one (displayView's MAIN model included), so the copy
     // policy above applies to every slot or to none.
@@ -102,25 +167,20 @@ sap.ui.define(
       const oModel = trackChanges(new WindowModel(dataForSlot(slotKey, data)));
       // the way a windowed list reaches the backend: the eB of the slot the
       // model belongs to, so the request carries this model's delta like
-      // any roundtrip of the slot. queueLast: a request that comes while
-      // another roundtrip runs is kept and sent after it, not dropped
+      // any roundtrip of the slot. A request that comes while another
+      // roundtrip runs is kept and sent after it, not dropped
+      // (keepWindowRequest)
       oModel._z2ui5WindowSend = (args, noBusy) => {
         const oController = ViewSlots.getController(ctx, slotKey);
         if (typeof oController?.eB !== "function") {
           Lib.logError(`WINDOW: slot ${slotKey} has no controller`);
           return;
         }
-        // a request of the same table that still waits in the slot may win
-        // over this one - WindowModel.keepRestart has the reasoning
-        const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;
-        const send =
-          kept?.controller === oController
-            ? WindowModel.keepRestart(args, kept.args.slice(1))
-            : args;
-        oController.eB(
-          [WindowModel.EVENT, { queueLast: true, noBusy: !!noBusy }],
-          ...send,
-        );
+        if (ctx.state.isBusy) {
+          keepWindowRequest(ctx, oModel, slotKey, args, noBusy);
+          return;
+        }
+        oController.eB([WindowModel.EVENT, { noBusy: !!noBusy }], ...args);
       };
       // A model built from THIS response remembers the response record, so
       // the model push the same response carries (updateModelIfRequired)
@@ -981,6 +1041,7 @@ sap.ui.define(
     return {
       action,
       resolveTrackedModel,
+      dispatchQueuedWindows,
     };
   },
 );

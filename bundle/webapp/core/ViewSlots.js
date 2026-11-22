@@ -125,6 +125,10 @@ sap.ui.define(
       // every z2ui5_cl_pop_* has) displays no main view, so MAIN keeps the
       // CALLER's view while POPUP holds the callee's.
       slotAppStore(ctx)[key] = ctx.state.oResponse?.APP;
+      // ...and the response itself: an event a control of this view fires
+      // while that response is still being processed comes from the screen
+      // it is building, not from a click on the one before (View1.eB)
+      ctx.state.slotResponse[key] = ctx.state.oResponse;
       attachSharedModels(ctx, view);
     }
 
@@ -148,6 +152,12 @@ sap.ui.define(
 
     function slotAppStore(ctx) {
       return ctx.state.slotApp;
+    }
+
+    // The response that built the view a slot holds, undefined once it was
+    // torn down.
+    function getViewResponse(ctx, key) {
+      return ctx.state.slotResponse[key];
     }
 
     // Attach the models every slot shares: the one device model (created
@@ -311,6 +321,7 @@ sap.ui.define(
       // this record.
       delete slotXmlStore(ctx)[key];
       delete slotAppStore(ctx)[key];
+      delete ctx.state.slotResponse[key];
       const view = ctx.state[slot.prop];
       if (!view) return;
       // a slot that sits inside this view goes down with it - asked of the
@@ -371,6 +382,7 @@ sap.ui.define(
       for (const dep of slot.dependentSlots ?? []) detach(ctx, dep);
       delete slotXmlStore(ctx)[key];
       delete slotAppStore(ctx)[key];
+      delete ctx.state.slotResponse[key];
       const view = ctx.state[slot.prop];
       if (!view) return undefined;
       try {
@@ -387,6 +399,7 @@ sap.ui.define(
       getView,
       getViewXml,
       getViewApp,
+      getViewResponse,
       setView,
       getController,
       keyOfController,

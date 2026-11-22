@@ -46,11 +46,13 @@ sap.ui.define(
       else BusyIndicator.hide();
     }
 
-    // The event a windowed table's WindowModel asks for its rows with -
-    // WindowModel.EVENT, the backend's z2ui5_if_ui5_types=>cs_event_window.
-    // Named here rather than imported: the controller only tells it apart
-    // from an app's event in the queue slot of eB.
-    const WINDOW_EVENT = "___ZZZ_WIN";
+    // How many events fired while a view was being built may go out in a
+    // row with no other event in between (eB keeps them, aRenderEvents). A
+    // page with a handful of controls that answer from their rendering - a
+    // Storage control per stored value - stays far below it; an app that
+    // answers such an event with a view that fires it again would otherwise
+    // roundtrip for as long as the page stays open.
+    const RENDER_EVENT_CHAIN_MAX = 25;
 
     const View1Controller = Controller.extend("z2ui5.controller.View1", {
       onAfterRendering() {
@@ -86,6 +88,10 @@ sap.ui.define(
         const oResponse = this.ctx.state.oResponse;
         if (!oResponse || oResponse._processed) return;
         oResponse._processed = true;
+        // ... and it is being processed from here to the finally below: an
+        // event a control fires meanwhile, out of a view this response
+        // built, is kept instead of dropped (eB, _firedWhileBuilding)
+        oResponse._processing = true;
         // Stamp of the request this response belongs to: every await in
         // the display phase re-checks it, so a response superseded by a
         // parallel request (a Back/Forward restore, or a teardown that
@@ -111,6 +117,9 @@ sap.ui.define(
           if (oResponse.APP && previousApp !== oResponse.APP) {
             state.oQueuedEvent = null;
             state.oQueuedWindow = null;
+            // ... and what a control of the leaving app fired while its
+            // view was built and that has not gone out yet
+            state.aRenderEvents = [];
             state.renderedApp = oResponse.APP;
           }
           // The state an app OWNS goes when its PAGE goes - not when the
@@ -256,6 +265,7 @@ sap.ui.define(
           // never showed it: the indicator is a singleton, not a counter, and
           // a wire that opted out may still have to take the overlay down -
           // a CLICK dropped while its roundtrip ran raised it at 0 delay.
+          oResponse._processing = false;
           if (!superseded) {
             hideBusy(this.ctx);
             this.ctx.state.isBusy = false;
@@ -386,20 +396,53 @@ sap.ui.define(
       // into has to be the one still showing in that slot.
       //
       // The keystroke first - it belongs to the screen the response built -
-      // then a window request of a table (oQueuedWindow); when the first one
-      // started a roundtrip the second meets the busy guard and is kept
-      // again, in its own slot, for the end of that one.
+      // then the window requests of the tables (oQueuedWindow, kept by
+      // actions/Slots, one per table); when the keystroke started a
+      // roundtrip they stay where they are, for the end of that one.
+      //
+      // Ahead of both goes the oldest event a control fired while its view
+      // was being built (aRenderEvents): one per landed roundtrip, the rest
+      // wait for the next one, in the order they fired. The chain counter
+      // is what ends an app that answers such an event with a view that
+      // fires it again - eB resets it for every other event, so only an
+      // unbroken run of them counts.
       _dispatchQueuedEvent() {
         const state = this.ctx.state;
-        for (const slot of ["oQueuedEvent", "oQueuedWindow"]) {
-          const queued = state[slot];
-          if (!queued) continue;
-          state[slot] = null;
+        while (state.aRenderEvents.length) {
+          const queued = state.aRenderEvents.shift();
           if (!Lib.isControllerAlive(queued.controller)) continue;
+          // the slot has to show the view THAT response built - asked of the
+          // slot's record, not of a view kept at the time: a control can
+          // fire before its view has reached the slot at all
           const key = ViewSlots.keyOfController(queued.controller);
-          if (ViewSlots.getView(this.ctx, key) !== queued.view) continue;
+          if (ViewSlots.getViewResponse(this.ctx, key) !== queued.response) {
+            continue;
+          }
+          const chain = state.renderEventChain + 1;
+          if (chain > RENDER_EVENT_CHAIN_MAX) {
+            Lib.logError(
+              `eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering event with a new view fires it again`,
+            );
+            state.aRenderEvents = [];
+            break;
+          }
           queued.controller.eB(...queued.args);
+          // eB counts every dispatch as the end of a chain - this one
+          // continues it
+          state.renderEventChain = chain;
+          break;
         }
+        const queued = state.oQueuedEvent;
+        state.oQueuedEvent = null;
+        if (queued && Lib.isControllerAlive(queued.controller)) {
+          const key = ViewSlots.keyOfController(queued.controller);
+          if (ViewSlots.getView(this.ctx, key) === queued.view) {
+            queued.controller.eB(...queued.args);
+          }
+        }
+        // the window requests of the tables wait in a place of their own,
+        // one per table, and go out whenever the app is idle
+        Slots.dispatchQueuedWindows(this.ctx);
       },
 
       // Execute the follow-up actions stashed by Server.responseSuccess.
@@ -668,28 +711,43 @@ sap.ui.define(
         // for a keystroke, which is why it is a per-wire decision.
         if (this.ctx.state.isBusy) {
           if (queueLast) {
-            const queuedArgs = Lib.normalizeEventArgs(args);
-            // a window request of a windowed table has a slot of its own
-            // (AppState, oQueuedWindow): it and a keystroke kept meanwhile
-            // used to overwrite each other in the one slot, and one of them
-            // was lost without a word
-            const slot =
-              queuedArgs[0]?.[0] === WINDOW_EVENT
-                ? "oQueuedWindow"
-                : "oQueuedEvent";
-            this.ctx.state[slot] = {
+            this.ctx.state.oQueuedEvent = {
               controller: this,
               // the view the event was typed into - see _dispatchQueuedEvent
               view: ViewSlots.getView(
                 this.ctx,
                 ViewSlots.keyOfController(this),
               ),
-              args: queuedArgs,
+              args: Lib.normalizeEventArgs(args),
             };
+          } else if (this._firedWhileBuilding()) {
+            // Not a click on a screen that is being replaced, but a control
+            // of the view this very response is building, answering from
+            // its rendering - a Storage control with the value it found, an
+            // afterRendering an app wired. It belongs to the screen the
+            // response builds, so it is kept, whatever its wire's flags, and
+            // goes out once the response is done (_dispatchQueuedEvent). No
+            // overlay: there is no user to tell.
+            // Until 2026-11 the same event was sent at once on the first
+            // roundtrip - which was not busy, and whose response it
+            // superseded - and dropped on every later one.
+            this.ctx.state.aRenderEvents.push({
+              controller: this,
+              // the response that builds the view the event comes from -
+              // see _dispatchQueuedEvent
+              response: this.ctx.state.oResponse,
+              args: Lib.normalizeEventArgs(args),
+            });
+            return;
           }
           if (!noBusy) showBusy(this.ctx, 0);
           return;
         }
+
+        // an event that is dispatched ends a run of render events - only an
+        // unbroken run of them counts (_dispatchQueuedEvent sets the counter
+        // again when the event was one of them)
+        this.ctx.state.renderEventChain = 0;
 
         // A new roundtrip overrides any pending timer - the shared helper,
         // because the OTHER path that starts one (Server.restoreFromRoute,
@@ -763,6 +821,24 @@ sap.ui.define(
         // synchronously once the request went out. A hook that needs the
         // response or the re-rendered view belongs on onAfterRendering.
         Lib.runCallbacks(this.ctx.state.onAfterRoundtrip);
+      },
+
+      // Was this event fired by a control of a view the response IN PROCESS
+      // is building? A response is in process from the moment View1 claims
+      // it until its finally (_processAfterRendering), and the slot records
+      // the response that built its view (ViewSlots.setView). A control can
+      // fire before its view has reached the slot - while XMLView.create is
+      // still building it - and then the slot tells nothing: when it is
+      // EMPTY the event cannot be a click on a screen being replaced, there
+      // is none (the first response of a page, a popup being opened); when
+      // it still shows the view of an earlier response the event is taken
+      // for a click on that one, and dropped as before.
+      _firedWhileBuilding() {
+        const oResponse = this.ctx.state.oResponse;
+        if (!oResponse?._processing) return false;
+        const key = ViewSlots.keyOfController(this);
+        if (!ViewSlots.getView(this.ctx, key)) return true;
+        return ViewSlots.getViewResponse(this.ctx, key) === oResponse;
       },
 
       _pickModelForRoundtrip(useMainModel) {

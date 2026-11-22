@@ -462,6 +462,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
             applied.push(`${method} ${key}`);
             return hooks.onRunSystem?.();
           },
+          dispatchQueuedWindows: () => {},
         },
         "z2ui5/core/ViewSlots": {
           // the order the VIEWS entries are applied in
@@ -1377,6 +1378,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     const roundtrips = [];
     const busy = [];
     const pendingHash = [];
+    const windowDispatches = [];
     const ctx = specContext();
     ctx.server.requestSeq = 1;
     const state = ctx.state;
@@ -1435,10 +1437,15 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
         "z2ui5/core/actions/Slots": {
           action: () => {},
           resolveTrackedModel: () => model,
+          // the window requests have a place of their own, kept and sent by
+          // actions/Slots (slotsAction.spec.js) - here only that View1 asks
+          dispatchQueuedWindows: () => windowDispatches.push("asked"),
         },
         "z2ui5/core/ViewSlots": {
           keyOfController: () => "MAIN",
           getView: () => slot.view,
+          // the response that built the view in the slot (ViewSlots.setView)
+          getViewResponse: () => slot.response,
           destroy: () => {},
         },
         "z2ui5/core/Router": {
@@ -1461,12 +1468,153 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       roundtrips,
       busy,
       pendingHash,
+      windowDispatches,
       model,
       type,
       app,
       slot,
     };
   }
+
+  // An event a control fires WHILE the response in process builds its view
+  // - a Storage control answering from its onAfterRendering, an
+  // afterRendering an app wired - is no click on a screen being replaced.
+  // Measured in Chromium before this was written: such an event reached the
+  // backend on the first roundtrip (which was not busy, and whose response
+  // it superseded) and was dropped on every later one.
+  test.describe("an event fired while its view is being built", () => {
+    // the response in process, and the slot's view built by it
+    function building(h) {
+      h.state.isBusy = true;
+      h.state.oResponse = { ID: "D1", _processing: true };
+      h.slot.response = h.state.oResponse;
+    }
+
+    test("is kept, whatever its wire's flags, and raises no overlay", () => {
+      const h = loadForQueue();
+      building(h);
+
+      h.ctrl.eB(PLAIN, "stored value");
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+      expect(h.state.aRenderEvents[0].args).toEqual([PLAIN, "stored value"]);
+      expect(h.busy).toEqual([]);
+    });
+
+    test("a click on a view the response did not build is dropped as before", () => {
+      const h = loadForQueue();
+      building(h);
+      // the slot still shows the view of an EARLIER response
+      h.slot.response = { ID: "D0" };
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.state.aRenderEvents).toEqual([]);
+      expect(h.roundtrips).toEqual([]);
+      expect(h.busy).toEqual(["show(0)"]);
+    });
+
+    test("outside the processing of a response nothing is kept", () => {
+      const h = loadForQueue();
+      building(h);
+      // the request is still in flight: no response is being processed
+      h.state.oResponse = { ID: "D0" };
+      h.slot.response = h.state.oResponse;
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("the kept events go out one per landed roundtrip, in the order they fired", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["FIRST"]);
+      h.ctrl.eB(["SECOND"]);
+      h.state.oResponse._processing = false;
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      // the first one is the roundtrip in flight now, the second waits
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual(["FIRST"]);
+      expect(h.state.isBusy).toBe(true);
+      expect(h.state.aRenderEvents).toHaveLength(1);
+
+      h.state.oResponse = { ID: "D2" };
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips.map((b) => b.ARGUMENTS[0][0])).toEqual([
+        "FIRST",
+        "SECOND",
+      ]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("a control that fires before its view has reached the slot is kept too", () => {
+      const h = loadForQueue();
+      building(h);
+      // XMLView.create is still building: the slot holds no view at all,
+      // so this cannot be a click on a screen being replaced
+      h.slot.view = undefined;
+      h.slot.response = undefined;
+
+      h.ctrl.eB(["EARLY"]);
+
+      expect(h.state.aRenderEvents).toHaveLength(1);
+    });
+
+    test("a kept event whose view is gone by then is not sent", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["FIRST"]);
+      // a later response replaced the view the event came from
+      h.slot.response = { ID: "D9" };
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("an unbroken run of them ends at the limit - a view that fires on every build", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.ctrl.eB(["LOOP"]);
+      h.state.renderEventChain = 25;
+      h.state.oResponse._processed = false;
+
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+
+    test("any other event ends the run", () => {
+      const h = loadForQueue();
+      h.state.renderEventChain = 7;
+
+      h.ctrl.eB(PLAIN);
+
+      expect(h.roundtrips).toHaveLength(1);
+      expect(h.state.renderEventChain).toBe(0);
+    });
+
+    test("a response of another app drops what the leaving app's view fired", async () => {
+      const h = loadForQueue();
+      building(h);
+      h.state.renderedApp = "Z2UI5_CL_APP_A";
+      h.ctrl.eB(["FIRST"]);
+
+      h.state.oResponse = { ID: "D2", APP: "Z2UI5_CL_APP_B" };
+      await h.ctrl._processAfterRendering(1);
+
+      expect(h.roundtrips).toEqual([]);
+      expect(h.state.aRenderEvents).toEqual([]);
+    });
+  });
 
   test("a queued wire fired while busy keeps the LAST event only, and shows the indicator", () => {
     const { ctrl, state, roundtrips, busy } = loadForQueue();
@@ -1483,25 +1631,20 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     expect(busy).toEqual(["show(0)", "show(0)", "show(0)"]);
   });
 
-  test("a table's window request and a keystroke kept meanwhile do not overwrite each other", async () => {
-    const { ctrl, state, roundtrips } = loadForQueue();
-    const WINDOW = ["___ZZZ_WIN", { queueLast: true, noBusy: true }];
+  test("the window requests of the tables are sent after the keystroke, by actions/Slots", () => {
+    const { ctrl, state, roundtrips, windowDispatches } = loadForQueue();
     state.isBusy = true;
-
     ctrl.eB(QUEUED, "abc");
-    ctrl.eB(WINDOW, "/MT_ROWS", "200");
 
-    expect(state.oQueuedEvent.args).toEqual([QUEUED, "abc"]);
-    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
-
-    // the response lands: the keystroke goes out first, the window request
-    // meets the busy guard of that roundtrip and is kept again in its slot
+    // the response lands: the keystroke goes out, then Slots is asked for
+    // the window requests it kept (it sends none while that one runs)
     state.isBusy = false;
     ctrl._dispatchQueuedEvent();
+
     expect(roundtrips).toHaveLength(1);
     expect(roundtrips[0].ARGUMENTS).toEqual([QUEUED, "abc"]);
     expect(state.oQueuedEvent).toBeNull();
-    expect(state.oQueuedWindow.args).toEqual([WINDOW, "/MT_ROWS", "200"]);
+    expect(windowDispatches).toEqual(["asked"]);
   });
 
   test("a wire without the flag is dropped as before", () => {

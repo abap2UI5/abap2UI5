@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open'
-summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; three ideas are open with what was measured for them, and the busy guard treats an event fired while a view renders differently on the first roundtrip and on every later one
+summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, and three ideas are open with what was measured for them
 priority: high
 state: open
 first_seen: 2026-11-22
@@ -11,7 +11,7 @@ evidence:
   - 'baseline on DEV 1af8c19 (2026-11-22): 1031 ABAP unit test methods and 1867 JS specs green, abap2UI5/protocol f592b16 backend suite 88 of 88 and frontend suite 83 passed / 4 skipped; `check:api` and `check:shared` red before any change of this item (the snapshot and the app-template mirror of #3040)'
   - 'after the protocol-3 changes: 1026 ABAP unit test methods, 1874 JS specs, and in Chromium against the transpiled backend 92 e2e specs on OpenUI5 1.144.0 and 49 on 1.71.80'
   - 'OpenUI5 1.71.80 in Chromium: a handler wired as `.eB([''LIVE'',{queueLast:true,noBusy:true}], ''arg'', ${$source>/text})` is called with `[["LIVE",{"queueLast":true,"noBusy":true}],"arg","x"]`; on 1.153.0 a view with XML templating reads the object too'
-  - 'browser experiment through the protocol suite''s mock backend: a `core:HTML` whose `afterRendering` is wired to `.eB` reaches the backend on the FIRST response (POSTs: start, R1) and is dropped on a LATER one (POSTs: start, NEXT); with the queue-last flag the later one arrives (start, NEXT, R2)'
+  - 'browser experiment through the protocol suite''s mock backend, before the fix: a `core:HTML` whose `afterRendering` is wired to `.eB` reached the backend on the FIRST response (POSTs: start, R1) and was dropped on a LATER one (POSTs: start, NEXT); after it: start, NEXT, R2, and an app that answers the event with the same view again stops at 26 POSTs'
   - 'usage counted in abap2UI5/samples-controls (9f3378a, 690 classes) and abap2UI5/samples-stack (4e268b9, 84 classes); abap2UI5/samples could not be read'
 ---
 
@@ -65,6 +65,22 @@ the commit `test.yaml` pins.
    every request (an app reads `client->get( )-s_config-hash`).
 5. **One implementation of the empty-argument rule**
    (`z2ui5_cl_ui5_srv_event=>args_trim_trailing`). No wire change.
+6. **Events fired while a view is being built are kept** (2026-11-22, no
+   wire change). A control that fires from its rendering - `cc/Storage.js`
+   with the value it found, an `afterRendering` an app wired - used to reach
+   the backend on the first roundtrip only (it was not busy, and the event
+   superseded the response that was building the screen) and was dropped on
+   every later one. `View1.eB` keeps such an event (`aRenderEvents`), the
+   first roundtrip is busy like every other (`App.controller` `startApp`),
+   and the events go out one per landed roundtrip. An unbroken run of 25
+   ends with a line in the log - an app that answers a rendering event with
+   a view that fires it again. Measured in Chromium through the protocol
+   suite's mock backend: first response POSTs `start, R1`, a later one
+   `start, NEXT, R2` (before: `start, NEXT`), the looping app stops at 26.
+7. **Window requests are kept per table** (`actions/Slots.js`
+   `keepWindowRequest`, `dispatchQueuedWindows`), by the model that asked.
+   One place for all tables lost every request but the last, and a request
+   sent while its view was being built was dropped when it was due.
 
 ## What the protocol repository has to follow
 
@@ -85,27 +101,20 @@ Then move the pinned commit in `test.yaml` (both jobs).
 
 ## Open - decide first
 
-### Events fired while a view renders
+### Park a Back/Forward, then remove the stale checks
 
-`bundle/webapp/controller/App.controller.js` `startApp` starts the first
-roundtrip without setting `state.isBusy`; every later roundtrip sets it in
-`View1.eB`. Measured in Chromium (evidence above): an event a control fires
-from its `onAfterRendering` is SENT on the first response and DROPPED on
-every later one, unless its wire carries `check_queue_last`. `cc/Storage.js`
-(`finished`) does this, and so does whatever an app wires to a rendering
-event. Two ways to make it one behaviour:
-
-- **Drop it on the first roundtrip too** (set `isBusy` in `startApp`): an app
-  that reads a stored value on its first screen stops getting it.
-- **Keep it on later roundtrips too:** an app that answers such an event with
-  a new `view_display( )` renders again, fires again, and loops; today the
-  drop is what ends that loop.
-
-Until this is decided a first response can be superseded, and the
-"superseded but not replaced" handling in `View1._processAfterRendering` and
-the stale checks in `core/Server.js` (`isStale( )` eight times) stay. With
-it decided, a Back/Forward can be parked like an app-owned hash change
-already is (`Router.dispatchPendingAppHash`) and those checks can go.
+A first response can no longer be superseded by an event of its own view
+(below, "Events fired while a view is being built"). Two paths still
+dispatch a request while another is in flight or being processed:
+`Server.restoreFromRoute` (Back/Forward aborts the request in flight), and
+any event after `isBusy` went false while the follow-up actions of the
+response still await (`View1._processAfterRendering` ends the busy state
+BEFORE the actions, so that `SET_FOCUS` finds its control under no
+overlay). While both exist, the "superseded but not replaced" handling there
+and the stale checks in `core/Server.js` (`isStale( )` eight times) stay.
+Parking the restore like an app-owned hash change
+(`Router.dispatchPendingAppHash`) removes the first; the second needs the
+busy STATE to outlast the overlay.
 
 ### One model per app instead of one per slot
 

@@ -3531,6 +3531,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          state[slot.controllerProp] = oController;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        state.isBusy = true;` && |\n| &&
              `        Server.roundtrip(ctx);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
@@ -3574,7 +3575,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      else BusyIndicator.hide();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const WINDOW_EVENT = "___ZZZ_WIN";` && |\n| &&
+             `    const RENDER_EVENT_CHAIN_MAX = 25;` && |\n| &&
              `` && |\n| &&
              `    const View1Controller = Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
@@ -3591,6 +3592,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        if (!oResponse || oResponse._processed) return;` && |\n| &&
              `        oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
+             `        oResponse._processing = true;` && |\n| &&
+             `` && |\n| &&
              `        const seq = reqSeq ?? this.ctx.server.requestSeq;` && |\n| &&
              `        try {` && |\n| &&
              `          const state = this.ctx.state;` && |\n| &&
@@ -3598,6 +3601,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          if (oResponse.APP && previousApp !== oResponse.APP) {` && |\n| &&
              `            state.oQueuedEvent = null;` && |\n| &&
              `            state.oQueuedWindow = null;` && |\n| &&
+             `` && |\n| &&
+             `            state.aRenderEvents = [];` && |\n| &&
              `            state.renderedApp = oResponse.APP;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -3658,6 +3663,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } finally {` && |\n| &&
+             `          oResponse._processing = false;` && |\n| &&
              `          if (!superseded) {` && |\n| &&
              `            hideBusy(this.ctx);` && |\n| &&
              `            this.ctx.state.isBusy = false;` && |\n| &&
@@ -3700,14 +3706,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
              `          if (` && |\n| &&
-             `            !Lib.isControllerAlive(this) ||` && |\n| &&
+             `            !Lib.isControllerAlive(this) ||` && |\n|.
+    result = result &&
              `            seq !== this.ctx.server.requestSeq` && |\n| &&
              `          )` && |\n| &&
              `            return;` && |\n| &&
              `          await Slots.action(` && |\n| &&
              `            this.ctx,` && |\n| &&
-             `            entry.DESTROY ? "destroy" : "display",` && |\n|.
-    result = result &&
+             `            entry.DESTROY ? "destroy" : "display",` && |\n| &&
              `            slot.key,` && |\n| &&
              `            entry.XML,` && |\n| &&
              `            entry.OPT,` && |\n| &&
@@ -3718,15 +3724,38 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      _dispatchQueuedEvent() {` && |\n| &&
              `        const state = this.ctx.state;` && |\n| &&
-             `        for (const slot of ["oQueuedEvent", "oQueuedWindow"]) {` && |\n| &&
-             `          const queued = state[slot];` && |\n| &&
-             `          if (!queued) continue;` && |\n| &&
-             `          state[slot] = null;` && |\n| &&
+             `        while (state.aRenderEvents.length) {` && |\n| &&
+             `          const queued = state.aRenderEvents.shift();` && |\n| &&
              `          if (!Lib.isControllerAlive(queued.controller)) continue;` && |\n| &&
+             `` && |\n| &&
              `          const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
-             `          if (ViewSlots.getView(this.ctx, key) !== queued.view) continue;` && |\n| &&
+             `          if (ViewSlots.getViewResponse(this.ctx, key) !== queued.response) {` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
+             `          const chain = state.renderEventChain + 1;` && |\n| &&
+             `          if (chain > RENDER_EVENT_CHAIN_MAX) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``eB: ${RENDER_EVENT_CHAIN_MAX} events fired while a view was being built went out in a row - '${queued.args[0]?.[0]}' and the ones behind it are dropped. An app that answers a rendering ` &&
+             `event with a new view fires it again``,` && |\n| &&
+             `            );` && |\n| &&
+             `            state.aRenderEvents = [];` && |\n| &&
+             `            break;` && |\n| &&
+             `          }` && |\n| &&
              `          queued.controller.eB(...queued.args);` && |\n| &&
+             `` && |\n| &&
+             `          state.renderEventChain = chain;` && |\n| &&
+             `          break;` && |\n| &&
              `        }` && |\n| &&
+             `        const queued = state.oQueuedEvent;` && |\n| &&
+             `        state.oQueuedEvent = null;` && |\n| &&
+             `        if (queued && Lib.isControllerAlive(queued.controller)) {` && |\n| &&
+             `          const key = ViewSlots.keyOfController(queued.controller);` && |\n| &&
+             `          if (ViewSlots.getView(this.ctx, key) === queued.view) {` && |\n| &&
+             `            queued.controller.eB(...queued.args);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        Slots.dispatchQueuedWindows(this.ctx);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _runPendingActions(oResponse) {` && |\n| &&
@@ -3836,25 +3865,29 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        if (this.ctx.state.isBusy) {` && |\n| &&
              `          if (queueLast) {` && |\n| &&
-             `            const queuedArgs = Lib.normalizeEventArgs(args);` && |\n| &&
-             `` && |\n| &&
-             `            const slot =` && |\n| &&
-             `              queuedArgs[0]?.[0] === WINDOW_EVENT` && |\n| &&
-             `                ? "oQueuedWindow"` && |\n| &&
-             `                : "oQueuedEvent";` && |\n| &&
-             `            this.ctx.state[slot] = {` && |\n| &&
+             `            this.ctx.state.oQueuedEvent = {` && |\n| &&
              `              controller: this,` && |\n| &&
              `` && |\n| &&
              `              view: ViewSlots.getView(` && |\n| &&
              `                this.ctx,` && |\n| &&
              `                ViewSlots.keyOfController(this),` && |\n| &&
              `              ),` && |\n| &&
-             `              args: queuedArgs,` && |\n| &&
+             `              args: Lib.normalizeEventArgs(args),` && |\n| &&
              `            };` && |\n| &&
+             `          } else if (this._firedWhileBuilding()) {` && |\n| &&
+             `            this.ctx.state.aRenderEvents.push({` && |\n| &&
+             `              controller: this,` && |\n| &&
+             `` && |\n| &&
+             `              response: this.ctx.state.oResponse,` && |\n| &&
+             `              args: Lib.normalizeEventArgs(args),` && |\n| &&
+             `            });` && |\n| &&
+             `            return;` && |\n| &&
              `          }` && |\n| &&
              `          if (!noBusy) showBusy(this.ctx, 0);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        this.ctx.state.renderEventChain = 0;` && |\n| &&
              `` && |\n| &&
              `        Lib.cancelPendingTimers(this.ctx);` && |\n| &&
              `` && |\n| &&
@@ -3892,6 +3925,14 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Server.roundtrip(this.ctx, oBody);` && |\n| &&
              `` && |\n| &&
              `        Lib.runCallbacks(this.ctx.state.onAfterRoundtrip);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _firedWhileBuilding() {` && |\n| &&
+             `        const oResponse = this.ctx.state.oResponse;` && |\n| &&
+             `        if (!oResponse?._processing) return false;` && |\n| &&
+             `        const key = ViewSlots.keyOfController(this);` && |\n| &&
+             `        if (!ViewSlots.getView(this.ctx, key)) return true;` && |\n| &&
+             `        return ViewSlots.getViewResponse(this.ctx, key) === oResponse;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
@@ -3942,6 +3983,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      oControllerPopover: null,` && |\n| &&
              `      slotXml: {},` && |\n| &&
              `      slotApp: {},` && |\n| &&
+             `      slotResponse: {},` && |\n| &&
              `      oLaunchpad: null,` && |\n| &&
              `` && |\n| &&
              `      mainArrival: "",` && |\n| &&
@@ -3957,6 +3999,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      isBusy: false,` && |\n| &&
              `      oQueuedEvent: null,` && |\n| &&
              `      oQueuedWindow: null,` && |\n| &&
+             `      aRenderEvents: [],` && |\n| &&
+             `      renderEventChain: 0,` && |\n| &&
              `      oSentModel: null,` && |\n| &&
              `      lastRequestBytes: null,` && |\n| &&
              `      lastRoundtripMs: null,` && |\n| &&
@@ -4063,8 +4107,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        trail: [],` && |\n| &&
              `        trailPos: -1,` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
-             `      shortcuts: { listener: null },` && |\n| &&
+             `` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_03.
+
+    result = `      shortcuts: { listener: null },` && |\n| &&
              `` && |\n| &&
              `      variants: { activeInits: new Set() },` && |\n| &&
              `` && |\n| &&
@@ -4107,13 +4156,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `  function of(anchor) {` && |\n| &&
              `    if (!anchor || typeof anchor !== "object") return null;` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_03.
-
-    result = `    if (anchor.ctx && anchor.ctx.state) return anchor.ctx;` && |\n| &&
+             `` && |\n| &&
+             `    if (anchor.ctx && anchor.ctx.state) return anchor.ctx;` && |\n| &&
              `` && |\n| &&
              `    const own = byComponent.get(anchor);` && |\n| &&
              `    if (own) return own;` && |\n| &&
@@ -4468,7 +4512,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const core = sap.ui.getCore?.();` && |\n| &&
+             `          const core = sap.ui.getCore?.();` && |\n|.
+    result = result &&
              `          if (core?.loadLibraries) {` && |\n| &&
              `            core.loadLibraries([name], { async: true }).then(` && |\n| &&
              `              () => resolve(true),` && |\n| &&
@@ -4512,8 +4557,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      hostNamespaces.add(object);` && |\n| &&
              `      for (const key of Object.keys(object)) {` && |\n| &&
              `        collectHostNamespaces(object[key], depth + 1);` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    collectHostNamespaces(window.z2ui5, 0);` && |\n| &&
@@ -4869,7 +4913,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        buttons.push(` && |\n| &&
              `          new Button({` && |\n| &&
              `            text: "Details",` && |\n| &&
-             `            press: () => {` && |\n| &&
+             `            press: () => {` && |\n|.
+    result = result &&
              `              dialog.close();` && |\n| &&
              `              openErrorDetails(ctx);` && |\n| &&
              `            },` && |\n| &&
@@ -4913,8 +4958,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      return true;` && |\n| &&
              `    } catch (e) {` && |\n| &&
              `      window.console?.error?.("ErrorView: friendly dialog failed", e);` && |\n| &&
-             `      return false;` && |\n|.
-    result = result &&
+             `      return false;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
@@ -5270,7 +5314,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    if (typeof obj.isDestroyed === "function") return obj.isDestroyed();` && |\n| &&
              `    return Boolean(obj.bIsDestroyed);` && |\n| &&
              `  }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `  function claimOnce(owner, target) {` && |\n| &&
              `    if (!target || owner.getProperty("checkInit")) return false;` && |\n| &&
              `    owner.setProperty("checkInit", true, true);` && |\n| &&
@@ -5314,8 +5359,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    let deliverId = null;` && |\n| &&
              `` && |\n| &&
              `    const deliver = (file, result) => {` && |\n| &&
-             `      if (isDestroyed(owner)) {` && |\n|.
-    result = result &&
+             `      if (isDestroyed(owner)) {` && |\n| &&
              `        reading = false;` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -5671,7 +5715,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      if (parsed.searchParams.has("sap-client")) return url;` && |\n| &&
              `      const client = page.searchParams.get("sap-client") || shellClient;` && |\n| &&
              `      if (typeof client !== "string" || !/^[0-9]{3}$/.test(client)) return url;` && |\n| &&
-             `      const hashAt = url.indexOf("#");` && |\n| &&
+             `      const hashAt = url.indexOf("#");` && |\n|.
+    result = result &&
              `      const base = hashAt < 0 ? url : url.slice(0, hashAt);` && |\n| &&
              `      const hash = hashAt < 0 ? "" : url.slice(hashAt);` && |\n| &&
              `      let separator = "&";` && |\n| &&
@@ -5715,8 +5760,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      let depth = 1;` && |\n| &&
              `      while (parts[depth] === "*") depth += 1;` && |\n| &&
              `      const steps = parseDeltaSteps(parts.slice(depth));` && |\n| &&
-             `      if (!steps) {` && |\n|.
-    result = result &&
+             `      if (!steps) {` && |\n| &&
              `        delta[attr] = modelData[attr];` && |\n| &&
              `        continue;` && |\n| &&
              `      }` && |\n| &&
@@ -6072,8 +6116,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    hookCallback,` && |\n| &&
              `    normalizeEventArgs,` && |\n| &&
              `    eventOptions,` && |\n| &&
-             `    byteLength,` && |\n| &&
-             `    lazyByteLength,` && |\n| &&
+             `    byteLength,` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_04.
+
+    result = `    lazyByteLength,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -6116,13 +6165,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    function hashChanger() {` && |\n| &&
              `      return HashChanger.getInstance();` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_04.
-
-    result = `    function splitHash(sHash) {` && |\n| &&
+             `` && |\n| &&
+             `    function splitHash(sHash) {` && |\n| &&
              `      const raw = String(sHash || "").replace(/^#/, "");` && |\n| &&
              `` && |\n| &&
              `      if (!raw || raw.startsWith("/")) return { shell: "", app: raw };` && |\n| &&
@@ -6477,7 +6521,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      init,` && |\n| &&
+             `      init,` && |\n|.
+    result = result &&
              `      exit,` && |\n| &&
              `      splitHash,` && |\n| &&
              `      patternFor,` && |\n| &&
@@ -6521,8 +6566,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      if (!view) return fullId;` && |\n| &&
              `      const prefix = slot.fragmentId` && |\n| &&
              `        ? ``${ViewSlots.fragmentIdOf(ctx, slot)}--``` && |\n| &&
-             `        : ``${view.getId()}--``;` && |\n|.
-    result = result &&
+             `        : ``${view.getId()}--``;` && |\n| &&
              `      return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -6743,6 +6787,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        ctx.state.oQueuedWindow = null;` && |\n| &&
+             `        ctx.state.aRenderEvents = [];` && |\n| &&
              `` && |\n| &&
              `        ErrorView.reset(ctx);` && |\n| &&
              `      },` && |\n| &&
@@ -6755,6 +6800,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        ctx.state.oQueuedWindow = null;` && |\n| &&
+             `        ctx.state.aRenderEvents = [];` && |\n| &&
              `        this.roundtrip(ctx, {});` && |\n| &&
              `` && |\n| &&
              `        ctx.server.restoreSeq = ctx.server.requestSeq;` && |\n| &&
@@ -6876,7 +6922,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        let body;` && |\n| &&
              `        try {` && |\n| &&
-             `          body = JSON.stringify({ value: oBody });` && |\n| &&
+             `          body = JSON.stringify({ value: oBody });` && |\n|.
+    result = result &&
              `        } catch (e) {` && |\n| &&
              `          ctx.server.inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
@@ -6922,8 +6969,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (isStale()) return;` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
              `          if (Lib.isValidContextId(contextId)) {` && |\n| &&
              `            ctx.state.contextId = contextId;` && |\n| &&
@@ -7159,6 +7205,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `        ctx.state.oQueuedEvent = null;` && |\n| &&
              `        ctx.state.oQueuedWindow = null;` && |\n| &&
+             `        ctx.state.aRenderEvents = [];` && |\n| &&
              `        ErrorView.show(ctx, response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
@@ -7276,7 +7323,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/Env",` && |\n| &&
-             `    "z2ui5/core/Context",` && |\n| &&
+             `    "z2ui5/core/Context",` && |\n|.
+    result = result &&
              `  ],` && |\n| &&
              `  (Fragment, Lib, Env, Context) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -7323,8 +7371,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function ownId(ctx, localId) {` && |\n| &&
              `      const owner = ctx?.component;` && |\n| &&
-             `      return owner?.createId ? owner.createId(localId) : localId;` && |\n|.
-    result = result &&
+             `      return owner?.createId ? owner.createId(localId) : localId;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function fragmentIdOf(ctx, slot) {` && |\n| &&
@@ -7351,6 +7398,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      slotXmlStore(ctx)[key] = xml;` && |\n| &&
              `` && |\n| &&
              `      slotAppStore(ctx)[key] = ctx.state.oResponse?.APP;` && |\n| &&
+             `` && |\n| &&
+             `      ctx.state.slotResponse[key] = ctx.state.oResponse;` && |\n| &&
              `      attachSharedModels(ctx, view);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -7368,6 +7417,10 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function slotAppStore(ctx) {` && |\n| &&
              `      return ctx.state.slotApp;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getViewResponse(ctx, key) {` && |\n| &&
+             `      return ctx.state.slotResponse[key];` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function attachSharedModels(ctx, view) {` && |\n| &&
@@ -7463,6 +7516,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      delete slotXmlStore(ctx)[key];` && |\n| &&
              `      delete slotAppStore(ctx)[key];` && |\n| &&
+             `      delete ctx.state.slotResponse[key];` && |\n| &&
              `      const view = ctx.state[slot.prop];` && |\n| &&
              `      if (!view) return;` && |\n| &&
              `` && |\n| &&
@@ -7507,6 +7561,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      for (const dep of slot.dependentSlots ?? []) detach(ctx, dep);` && |\n| &&
              `      delete slotXmlStore(ctx)[key];` && |\n| &&
              `      delete slotAppStore(ctx)[key];` && |\n| &&
+             `      delete ctx.state.slotResponse[key];` && |\n| &&
              `      const view = ctx.state[slot.prop];` && |\n| &&
              `      if (!view) return undefined;` && |\n| &&
              `      try {` && |\n| &&
@@ -7523,6 +7578,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      getView,` && |\n| &&
              `      getViewXml,` && |\n| &&
              `      getViewApp,` && |\n| &&
+             `      getViewResponse,` && |\n| &&
              `      setView,` && |\n| &&
              `      getController,` && |\n| &&
              `      keyOfController,` && |\n| &&
@@ -7668,7 +7724,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `            undefined,` && |\n| &&
              `            undefined,` && |\n| &&
              `            mParameters,` && |\n| &&
-             `          );` && |\n| &&
+             `          );` && |\n|.
+    result = result &&
              `        },` && |\n| &&
              `      }),` && |\n| &&
              `    );` && |\n| &&
@@ -7724,8 +7781,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const loaded = this.aIndices.length;` && |\n| &&
              `      const total = Number(meta.TOTAL) || 0;` && |\n| &&
              `      const size = Number(meta.SIZE) || 1;` && |\n| &&
-             `      if (need <= loaded || loaded >= total) return;` && |\n|.
-    result = result &&
+             `      if (need <= loaded || loaded >= total) return;` && |\n| &&
              `      const wanted = Math.min(total, Math.ceil(need / size) * size);` && |\n| &&
              `      if (wanted <= this._z2ui5Wanted) return;` && |\n| &&
              `      this._z2ui5Wanted = wanted;` && |\n| &&
@@ -8069,8 +8125,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        }` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      const { TYPE, PREFIX, VALUE, KEY } = payload;` && |\n| &&
-             `      try {` && |\n| &&
+             `      const { TYPE, PREFIX, VALUE, KEY } = payload;` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_05.
+
+    result = `      try {` && |\n| &&
              `        const storageType = Lib.resolveStorageType(` && |\n| &&
              `          Storage,` && |\n| &&
              `          TYPE,` && |\n| &&
@@ -8125,13 +8186,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const path = window.location.pathname;` && |\n| &&
              `      if (!path.startsWith("/sap/bc/bsp/")) {` && |\n| &&
              `        redirectToLogout(logoutUrl);` && |\n| &&
-             `        return;` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_05.
-
-    result = `      }` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `` && |\n| &&
              `      const bspKill = ``${path}?sap-sessioncmd=logoff``;` && |\n| &&
              `      let done = false;` && |\n| &&
@@ -8474,7 +8530,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      setBadgeMaxValue: ["int"],` && |\n| &&
              `` && |\n| &&
              `      css: ["string", "string"],` && |\n| &&
-             `      enablePostButton: ["bool"],` && |\n| &&
+             `      enablePostButton: ["bool"],` && |\n|.
+    result = result &&
              `      addStyleClass: ["string"],` && |\n| &&
              `      removeStyleClass: ["string"],` && |\n| &&
              `      toggleStyleClass: ["string"],` && |\n| &&
@@ -8530,8 +8587,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      "setAssociation",` && |\n| &&
              `      "addAssociation",` && |\n| &&
              `      "removeAssociation",` && |\n| &&
-             `      "removeAllAssociation",` && |\n|.
-    result = result &&
+             `      "removeAllAssociation",` && |\n| &&
              `    ];` && |\n| &&
              `` && |\n| &&
              `    const CONTROL_METHOD_DENY_PREFIXES = [` && |\n| &&
@@ -8875,7 +8931,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' - control '${id}' exposes no selection``,` && |\n| &&
              `        );` && |\n| &&
-             `        return;` && |\n| &&
+             `        return;` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      if (indices.length) control[op](indices);` && |\n| &&
@@ -8931,8 +8988,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      if (!kinds) {` && |\n| &&
              `        if (!isSafeControlMethod(method)) {` && |\n| &&
              `          Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
-             `          return;` && |\n|.
-    result = result &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
              `        kinds = null;` && |\n| &&
              `      }` && |\n| &&
@@ -9276,7 +9332,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const mods = [];` && |\n| &&
              `      if (oEvent.ctrlKey) mods.push("ctrl");` && |\n| &&
              `      if (oEvent.shiftKey) mods.push("shift");` && |\n| &&
-             `      if (oEvent.altKey) mods.push("alt");` && |\n| &&
+             `      if (oEvent.altKey) mods.push("alt");` && |\n|.
+    result = result &&
              `      if (oEvent.metaKey) mods.push("meta");` && |\n| &&
              `      return [...mods, key].join("+");` && |\n| &&
              `    }` && |\n| &&
@@ -9332,8 +9389,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `      for (const key of SHORTCUT_SLOTS) {` && |\n| &&
              `        if (scopes[key] && ViewSlots.getView(ctx, key)) {` && |\n| &&
-             `          const own = ViewSlots.getController(ctx, key);` && |\n|.
-    result = result &&
+             `          const own = ViewSlots.getController(ctx, key);` && |\n| &&
              `          return own ? { ...scopes[key], controller: own } : scopes[key];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
@@ -9507,6 +9563,48 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      return JSON.parse(JSON.stringify(data));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function keepWindowRequest(ctx, oModel, slotKey, args, noBusy) {` && |\n| &&
+             `      const path = String(args[0]);` && |\n| &&
+             `      const windows = ctx.state.oQueuedWindow || {};` && |\n| &&
+             `      const kept = windows[path];` && |\n| &&
+             `      windows[path] = {` && |\n| &&
+             `        model: oModel,` && |\n| &&
+             `        slotKey,` && |\n| &&
+             `        args:` && |\n| &&
+             `          kept?.model === oModel` && |\n| &&
+             `            ? WindowModel.keepRestart(args, kept.args)` && |\n| &&
+             `            : args,` && |\n| &&
+             `        noBusy: !!noBusy,` && |\n| &&
+             `      };` && |\n| &&
+             `      ctx.state.oQueuedWindow = windows;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function slotModel(ctx, slotKey) {` && |\n| &&
+             `      const oView = ViewSlots.getView(ctx, slotKey);` && |\n| &&
+             `      if (!oView) return undefined;` && |\n| &&
+             `      return Lib.isRootModelSlot(slotKey)` && |\n| &&
+             `        ? resolveTrackedModel(oView)` && |\n| &&
+             `        : oView.getModel();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function dispatchQueuedWindows(ctx) {` && |\n| &&
+             `      const windows = ctx.state.oQueuedWindow;` && |\n| &&
+             `      if (!windows) return;` && |\n| &&
+             `      for (const path of Object.keys(windows)) {` && |\n| &&
+             `        if (ctx.state.isBusy) break;` && |\n| &&
+             `        const queued = windows[path];` && |\n| &&
+             `        delete windows[path];` && |\n| &&
+             `        const oController = ViewSlots.getController(ctx, queued.slotKey);` && |\n| &&
+             `        if (!Lib.isControllerAlive(oController)) continue;` && |\n| &&
+             `        if (slotModel(ctx, queued.slotKey) !== queued.model) continue;` && |\n| &&
+             `        oController.eB(` && |\n| &&
+             `          [WindowModel.EVENT, { noBusy: queued.noBusy }],` && |\n| &&
+             `          ...queued.args,` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!Object.keys(windows).length) ctx.state.oQueuedWindow = null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function createViewModel(` && |\n| &&
              `      ctx,` && |\n| &&
              `      slotKey = "MAIN",` && |\n| &&
@@ -9520,16 +9618,11 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          Lib.logError(``WINDOW: slot ${slotKey} has no controller``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n| &&
-             `        const kept = ctx.state.isBusy ? ctx.state.oQueuedWindow : null;` && |\n| &&
-             `        const send =` && |\n| &&
-             `          kept?.controller === oController` && |\n| &&
-             `            ? WindowModel.keepRestart(args, kept.args.slice(1))` && |\n| &&
-             `            : args;` && |\n| &&
-             `        oController.eB(` && |\n| &&
-             `          [WindowModel.EVENT, { queueLast: true, noBusy: !!noBusy }],` && |\n| &&
-             `          ...send,` && |\n| &&
-             `        );` && |\n| &&
+             `        if (ctx.state.isBusy) {` && |\n| &&
+             `          keepWindowRequest(ctx, oModel, slotKey, args, noBusy);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oController.eB([WindowModel.EVENT, { noBusy: !!noBusy }], ...args);` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
              `      if (data && data === ctx.state.oResponse?.OVIEWMODEL) {` && |\n| &&
@@ -9640,7 +9733,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        );` && |\n| &&
              `        oView.destroy();` && |\n| &&
              `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      if (METHOD_DESTROY) {` && |\n| &&
              `        try {` && |\n| &&
@@ -9733,8 +9827,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const oApp = ctx.state.oApp;` && |\n| &&
              `      oApp.removeAllPages();` && |\n| &&
              `      oApp.insertPage(oView);` && |\n| &&
-             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n|.
-    result = result &&
+             `      if (oOld) leaveOnceRendered(ctx, oView, oOld, aOldClients);` && |\n| &&
              `      return true;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -10041,9 +10134,15 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      return displayNestedView(ctx, xml, slotKey, options, seq);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    return {` && |\n| &&
-             `      action,` && |\n| &&
+             `    return {` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_06.
+
+    result = `      action,` && |\n| &&
              `      resolveTrackedModel,` && |\n| &&
+             `      dispatchQueuedWindows,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
@@ -10134,13 +10233,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `          : [];` && |\n| &&
              `        if (!registered.length) {` && |\n| &&
              `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
-             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_06.
-
-    result = `            return;` && |\n| &&
+             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
+             `            return;` && |\n| &&
              `          }` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
@@ -10445,7 +10539,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      const noBusy = ControlCall.castArg("bool", args[3]);` && |\n| &&
              `      const timers = oController.ctx.state.timers;` && |\n| &&
              `      Lib.cancelTimer(timers[timerKey]);` && |\n| &&
-             `      const fire = () => {` && |\n| &&
+             `      const fire = () => {` && |\n|.
+    result = result &&
              `        delete timers[timerKey];` && |\n| &&
              `` && |\n| &&
              `        if (!Lib.isControllerAlive(oController)) return;` && |\n| &&
@@ -10539,8 +10634,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n|.
-    result = result &&
+             `        const oElement = resolveTarget(oController, "SCROLL_TO", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
@@ -10846,7 +10940,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      ui5Listener = null;` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `  function uninstallUi5Log() {` && |\n| &&
              `    if (!ui5Listener) return;` && |\n| &&
              `    const Log = sap.ui.require("sap/base/Log");` && |\n| &&
@@ -10940,8 +11035,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `` && |\n| &&
              `},` && |\n| &&
              `      "z2ui5/devtools/DevTools.js": function(){sap.ui.define(` && |\n| &&
-             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n|.
-    result = result &&
+             `  ["z2ui5/core/Lib", "z2ui5/devtools/Console", "z2ui5/devtools/Recorder"],` && |\n| &&
              `  (Lib, Console, Recorder) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -11247,7 +11341,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        i += removedRun;` && |\n| &&
              `      } else {` && |\n| &&
              `        if (i < a.length) {` && |\n| &&
-             `          out.push({ type: "-", line: a[i], number: i + 1 });` && |\n| &&
+             `          out.push({ type: "-", line: a[i], number: i + 1 });` && |\n|.
+    result = result &&
              `          i += 1;` && |\n| &&
              `        }` && |\n| &&
              `        if (j < b.length) {` && |\n| &&
@@ -11341,8 +11436,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    return isTextLike(node) && !/\S/.test(node.nodeValue);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  function serializeNode(node, depth, indented) {` && |\n|.
-    result = result &&
+             `  function serializeNode(node, depth, indented) {` && |\n| &&
              `    const pad = indented ? " ".repeat(depth * XML_INDENT_UNIT) : "";` && |\n| &&
              `    switch (node.nodeType) {` && |\n| &&
              `      case ELEMENT_NODE:` && |\n| &&
@@ -11648,7 +11742,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (index === -1) return null;` && |\n| &&
-             `      const stale = unpaired.slice(0, index);` && |\n| &&
+             `      const stale = unpaired.slice(0, index);` && |\n|.
+    result = result &&
              `      const match = unpaired[index];` && |\n| &&
              `      rec.unpaired = unpaired.slice(index + 1);` && |\n| &&
              `      for (const entry of stale) pushUnrendered(rec, entry);` && |\n| &&
@@ -11742,8 +11837,7 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function dropAllPayloads(rec) {` && |\n| &&
-             `      if (!rec) return;` && |\n|.
-    result = result &&
+             `      if (!rec) return;` && |\n| &&
              `      for (const record of rec.records) {` && |\n| &&
              `        record.request = null;` && |\n| &&
              `        record.response = null;` && |\n| &&
@@ -12049,8 +12143,13 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function displayedXml(response, slotKey) {` && |\n| &&
-             `      const xml = response?.S_FRONT?.VIEWS?.[slotKey]?.XML;` && |\n| &&
-             `      return typeof xml === "string" ? xml : "";` && |\n| &&
+             `      const xml = response?.S_FRONT?.VIEWS?.[slotKey]?.XML;` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_07.
+
+    result = `      return typeof xml === "string" ? xml : "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function lastTwoViews(ctx, slotKey) {` && |\n| &&
@@ -12143,13 +12242,8 @@ CLASS z2ui5_cl_ui5f_bundle IMPLEMENTATION.
              `      }` && |\n| &&
              `      const [previous, current] = pair;` && |\n| &&
              `      const out = collectDiff(` && |\n| &&
-             `        previous.response?.MODEL,` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_07.
-
-    result = `        current.response?.MODEL,` && |\n| &&
+             `        previous.response?.MODEL,` && |\n| &&
+             `        current.response?.MODEL,` && |\n| &&
              `      );` && |\n| &&
              `` && |\n| &&
              `      const header = [` && |\n| &&

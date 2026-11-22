@@ -204,6 +204,7 @@ sap.ui.define(
         // request of its tables
         ctx.state.oQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
+        ctx.state.aRenderEvents = [];
         // the error overlay's record is the same kind of survivor - the
         // last error dump stays referenced across the teardown otherwise
         ErrorView.reset(ctx);
@@ -234,6 +235,7 @@ sap.ui.define(
         // responseError drop it for the same reason)
         ctx.state.oQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
+        ctx.state.aRenderEvents = [];
         this.roundtrip(ctx, {});
         // readHttp stamped the restore synchronously, before its first await
         ctx.server.restoreSeq = ctx.server.requestSeq;
@@ -881,6 +883,7 @@ sap.ui.define(
         // with a second one.
         ctx.state.oQueuedEvent = null;
         ctx.state.oQueuedWindow = null;
+        ctx.state.aRenderEvents = [];
         ErrorView.show(ctx, response, title, oOptions);
       },
     };

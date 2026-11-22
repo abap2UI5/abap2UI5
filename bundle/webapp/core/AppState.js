@@ -75,6 +75,11 @@
 //                     carries the model of ONE app, so this is what says
 //                     which open slots it may be pushed into
 //                     (actions/Slots.updateModelIfRequired)
+//   slotResponse      the response each slot was BUILT by, per slot key -
+//                     recorded and dropped alongside slotXml. It is how
+//                     View1.eB tells an event a control fires while its view
+//                     is being built (kept, aRenderEvents) from a click on a
+//                     screen the response in process did not build (dropped)
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -138,15 +143,28 @@
 //                     one slot, last wins. Dispatched by
 //                     View1._dispatchQueuedEvent once the roundtrip has
 //                     landed, dropped by Server.reset / responseError
-//   oQueuedWindow     the same for the window requests of a windowed table
-//                     (WindowModel, sent through actions/Slots): a slot of
-//                     their own, so a table asking for its next rows while
-//                     a response renders and a live-search keystroke kept
-//                     meanwhile no longer overwrite each other, last wins
-//                     per slot - except that a request for more rows does
-//                     not replace a kept sort or filter of the same table
-//                     (WindowModel.keepRestart). Dispatched right after
-//                     oQueuedEvent
+//   oQueuedWindow     the window requests of windowed tables that came
+//                     while a roundtrip ran (WindowModel), null or
+//                     { <model path of the table>: { model, slotKey, args,
+//                     noBusy } } - kept and dispatched by actions/Slots
+//                     (keepWindowRequest, dispatchQueuedWindows), one per
+//                     table, the last one winning unless it is a request
+//                     for more rows behind a kept sort or filter
+//                     (WindowModel.keepRestart). Sent after oQueuedEvent
+//   aRenderEvents     [{ controller, response, args }] - the events controls
+//                     fired WHILE the response in process was building their
+//                     view (a Storage control answering from its
+//                     onAfterRendering, an afterRendering an app wired).
+//                     Kept in the order they fired, whatever their wire's
+//                     flags, and dispatched one per landed roundtrip by
+//                     View1._dispatchQueuedEvent, ahead of oQueuedEvent.
+//                     Until 2026-11 such an event was sent at once on the
+//                     first roundtrip (which was not busy) and dropped on
+//                     every later one
+//   renderEventChain  how many of them went out in a row with no other
+//                     event in between - what ends an app that answers a
+//                     render event with a view that fires it again
+//                     (View1.RENDER_EVENT_CHAIN_MAX)
 //   oSentModel        the JSON model whose edited-path set the in-flight
 //                     request carried; its own _z2ui5ChangedPaths is cleared
 //                     once that request wins (Server), so a stale response
@@ -218,6 +236,7 @@ sap.ui.define([], () => {
       oControllerPopover: null,
       slotXml: {},
       slotApp: {},
+      slotResponse: {},
       oLaunchpad: null,
 
       // Page transitions of the MAIN view (see the inventory above)
@@ -235,6 +254,8 @@ sap.ui.define([], () => {
       isBusy: false,
       oQueuedEvent: null,
       oQueuedWindow: null,
+      aRenderEvents: [],
+      renderEventChain: 0,
       oSentModel: null,
       lastRequestBytes: null,
       lastRoundtripMs: null,

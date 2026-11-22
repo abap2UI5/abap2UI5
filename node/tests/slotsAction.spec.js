@@ -19,6 +19,9 @@ function load({
   byId = null,
   byIdBySlot = null,
   controller = null,
+  // the views ViewSlots.getView answers per slot key - none unless a spec
+  // fills it (the window requests ask whether their table is still there)
+  openViews = {},
 } = {}) {
   const errors = [];
   const destroyed = [];
@@ -102,6 +105,7 @@ function load({
         // no view in this spec uses XML templating (Slots.templatePreprocessors)
         usesXmlTemplating: () => false,
         isAlive: () => true,
+        isControllerAlive: (c) => Boolean(c),
         isRootModelSlot: (key) => ["MAIN", "NEST", "NEST2"].includes(key),
         effectiveSizeLimit: () => undefined,
         whenRendered: (control, _owner, fn) => fn(control),
@@ -124,7 +128,7 @@ function load({
         detach: () => undefined,
         setView: (_ctx, key, oView, xml) => setViews.push({ key, oView, xml }),
         getController: () => controller,
-        getView: () => null,
+        getView: (_ctx, key) => openViews[key] ?? null,
         getViewApp: () => undefined,
         getViewXml: () => "",
         trackedModel: () => undefined,
@@ -133,7 +137,7 @@ function load({
       },
     },
   });
-  const Slots = bindContext(module, ctx, ["action"]);
+  const Slots = bindContext(module, ctx, ["action", "dispatchQueuedWindows"]);
 
   return {
     Slots,
@@ -283,7 +287,7 @@ test.describe("the fragment slots build through the serialized chain", () => {
         },
       },
     });
-    const Slots = bindContext(module, ctx, ["action"]);
+    const Slots = bindContext(module, ctx, ["action", "dispatchQueuedWindows"]);
     return { Slots, ctx, destroyed, setViews, loads, fragment, flush };
   }
 
@@ -458,51 +462,101 @@ test.describe("displayNestedView: the parent's destroy and insert methods", () =
 });
 
 test.describe("a slot's model sends the window requests of its tables", () => {
-  const EVENT = [undefined, { queueLast: true, noBusy: true }];
+  // the request's own flag - a window request never shows the overlay
+  const EVENT = [undefined, { noBusy: true }];
 
   async function popupModel() {
     const sent = [];
     const controller = { eB: (...args) => sent.push(args) };
-    const loaded = load({ controller });
+    const openViews = {};
+    const loaded = load({ controller, openViews });
     await loaded.Slots.action("display", "POPUP", "<core:FragmentDefinition/>");
-    return { ...loaded, controller, sent, model: loaded.fragment.model };
+    const model = loaded.fragment.model;
+    // the popup is open, and its model is the slot's
+    openViews.POPUP = { getModel: () => model };
+    return { ...loaded, controller, sent, model, openViews };
   }
 
-  test("through the eB of the slot, kept behind a running roundtrip", async () => {
-    const { model, sent } = await popupModel();
+  test("through the eB of the slot while the app is idle", async () => {
+    const { model, sent, state } = await popupModel();
     model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
     expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(state.oQueuedWindow).toBeNull();
   });
 
-  test("a request waiting in the slot is weighed against the new one", async () => {
-    const { model, sent, state, controller } = await popupModel();
-    // sort( ) came while a roundtrip ran: View1.eB kept it in the slot
+  test("kept behind a running roundtrip, and sent once the app is idle", async () => {
+    const { Slots, model, sent, state } = await popupModel();
     state.isBusy = true;
-    state.oQueuedWindow = {
-      controller,
-      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
-    };
-    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
-    expect(sent).toEqual([
-      [EVENT, "/MT_ROWS", "100", { kept: ["/MT_ROWS", "50", "[SORT]"] }],
-    ]);
-  });
 
-  test("nothing is handed over from another slot's model or once the roundtrip is over", async () => {
-    const { model, sent, state, controller } = await popupModel();
-    state.isBusy = true;
-    state.oQueuedWindow = {
-      controller: { eB() {} },
-      args: [EVENT, "/MT_ROWS", "50", "[SORT]"],
-    };
     model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
-    // a slot left filled is not read without a roundtrip in flight
+
+    expect(sent).toEqual([]);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_ROWS"]);
+
+    // still busy: nothing goes out
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([]);
+
     state.isBusy = false;
-    state.oQueuedWindow.controller = controller;
-    model._z2ui5WindowSend(["/MT_ROWS", "150"], true);
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(state.oQueuedWindow).toBeNull();
+  });
+
+  // Three windowed lists on one page, all asking for their rows while a
+  // response renders (the window e2e): with ONE place for every table the
+  // last list's request was the only one kept.
+  test("the requests of two tables do not overwrite each other - one roundtrip each", async () => {
+    const { Slots, model, sent, state, controller } = await popupModel();
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    model._z2ui5WindowSend(["/MT_LIST", "20"], true);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_ROWS", "/MT_LIST"]);
+
+    // the first one is the roundtrip, the second waits for its end
+    state.isBusy = false;
+    controller.eB = (...args) => {
+      sent.push(args);
+      state.isBusy = true;
+    };
+    Slots.dispatchQueuedWindows();
+    expect(sent).toEqual([[EVENT, "/MT_ROWS", "100"]]);
+    expect(Object.keys(state.oQueuedWindow)).toEqual(["/MT_LIST"]);
+
+    state.isBusy = false;
+    Slots.dispatchQueuedWindows();
     expect(sent).toEqual([
       [EVENT, "/MT_ROWS", "100"],
-      [EVENT, "/MT_ROWS", "150"],
+      [EVENT, "/MT_LIST", "20"],
     ]);
+    expect(state.oQueuedWindow).toBeNull();
+  });
+
+  test("a request waiting for the same table is weighed against the new one", async () => {
+    const { model, state } = await popupModel();
+    // sort( ) came while a roundtrip ran, then a request for more rows
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "50", "[SORT]"], true);
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+    // what stays is WindowModel.keepRestart's answer (stubbed: both)
+    expect(state.oQueuedWindow["/MT_ROWS"].args).toEqual([
+      "/MT_ROWS",
+      "100",
+      { kept: ["/MT_ROWS", "50", "[SORT]"] },
+    ]);
+  });
+
+  test("a request whose table is gone by then is dropped", async () => {
+    const { Slots, model, sent, state, openViews } = await popupModel();
+    state.isBusy = true;
+    model._z2ui5WindowSend(["/MT_ROWS", "100"], true);
+
+    // the response closed the popup - or put another model into the slot
+    openViews.POPUP = { getModel: () => ({}) };
+    state.isBusy = false;
+    Slots.dispatchQueuedWindows();
+
+    expect(sent).toEqual([]);
+    expect(state.oQueuedWindow).toBeNull();
   });
 });

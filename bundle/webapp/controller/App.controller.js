@@ -145,6 +145,17 @@ sap.ui.define(
         // rejects the classic routing options), so the shell controller
         // starts the app directly. When the URL carries an app-state hash,
         // the backend restores that state from S_FRONT.
+        //
+        // It is THE roundtrip in flight, like every later one: the state is
+        // busy until its response has been processed (View1.
+        // _processAfterRendering ends it). Until 2026-11 it was the one
+        // roundtrip that did not say so - an event a control fired while the
+        // first view was being built went out at once and superseded the
+        // response that was building it, where on every later roundtrip the
+        // same event was dropped. Both are kept now and sent after the
+        // response (View1.eB, aRenderEvents). Only the STATE is set: the
+        // overlay stays down, a page that is still loading shows none.
+        state.isBusy = true;
         Server.roundtrip(ctx);
       },
     });

@@ -231,6 +231,18 @@ test("onInit kicks off exactly one initial roundtrip", () => {
   expect(roundtrips).toHaveLength(1);
 });
 
+// The first roundtrip is THE roundtrip in flight like every later one. It
+// used to be the one that did not say so, and an event a control fired
+// while the first view was being built went out at once and superseded the
+// response that was building it (View1.eB keeps such an event now).
+test("the initial roundtrip marks the app busy", () => {
+  const { inst, state } = load({ manifest: MANIFEST });
+
+  inst.onInit();
+
+  expect(state.isBusy).toBe(true);
+});
+
 // Every View1 controller carries the context: it is how each event handler
 // and action reaches the state, and what Lib.isControllerAlive tests.
 test("the controllers carry the component's context, and the roundtrip gets it", () => {

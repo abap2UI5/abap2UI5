@@ -304,6 +304,13 @@ test.describe("the browser", () => {
     await expect(
       page.locator("[id$='--list']").getByText("Item 20", { exact: true }),
     ).toBeVisible();
+    // ... and so do the tables, on a release whose controls ask for more
+    // rows than the first window as they render (1.71: the table and the
+    // grid). Every table's request is its own roundtrip, one after the
+    // other, and none of them is lost any more - there was one place for
+    // all of them, the last one winning - so the page is busy for as long
+    // as they take. Wait for the last one before the click.
+    await page.waitForLoadState("networkidle");
 
     // the app sorts: the highest id first
     await page.locator("[id$='--preset']").click();
