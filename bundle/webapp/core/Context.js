@@ -79,7 +79,13 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       // core/Router.js - the restore callback, the hashChanged listener and
       // the trail of app hashes this page load wrote (with the position the
       // browser stands on), which tells a Back from a Forward
-      router: { navigate: null, hashListener: null, trail: [], trailPos: -1 },
+      router: {
+        navigate: null,
+        startRoute: null,
+        hashListener: null,
+        trail: [],
+        trailPos: -1,
+      },
       // core/actions/Shortcuts.js - the document keydown listener
       shortcuts: { listener: null },
       // core/actions/Variants.js - the variant-init wait chains in flight

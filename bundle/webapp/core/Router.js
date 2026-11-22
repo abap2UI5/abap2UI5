@@ -149,7 +149,7 @@ sap.ui.define(
       // is three segments long - ["", "NS", "CL_X", draft]. Reading only
       // the first segment answered an empty app and no route at all, so
       // Back/Forward between namespaced apps was inert. The backend's
-      // route_split reads the same shape.
+      // route_split read the same shape, until this became the one reader.
       if (parts[0] === "") {
         if (parts.length < 3 || !parts[1] || !parts[2]) return null;
         return {
@@ -159,6 +159,46 @@ sap.ui.define(
       }
       if (!parts[0]) return null;
       return { app: parts[0], draft: parts.length > 1 ? parts[1] : "" };
+    }
+
+    // What a hash asks an app START to restore - what the frontend sends as
+    // S_FRONT.ROUTE with every request that names no draft (the page load,
+    // a Back/Forward restore): the route's class and draft, or the draft of
+    // an app-state link, or null when the hash names neither (a normal boot,
+    // an app-owned hash, a bare launchpad intent).
+    //
+    // Until protocol 3 the backend read the same three values out of the raw
+    // hash itself (z2ui5_cl_ui5_handler: hash_get_app_part, route_split and
+    // four more), a second parser kept equal to this one by hand - the
+    // launchpad separator, the stacked leading slashes of older URLs and the
+    // namespaced class each had to be taught to both.
+    //
+    // The app-state link is `#/z2ui5-xapp-state=<id>` (sync below writes it,
+    // z2ui5_cl_ui5_client=>app_state_get_href composes it): the id is a
+    // parameter of the app hash, so it is found among its `&`-separated
+    // parts, behind a `?` when there is one.
+    const APP_STATE_PARAM = "z2ui5-xapp-state=";
+
+    function appStateOf(sHash) {
+      const app = appHashOf(sHash).replace(/^\/+/, "");
+      const query = app.includes("?") ? app.slice(app.indexOf("?") + 1) : app;
+      for (const part of query.split("&")) {
+        if (part.toLowerCase().startsWith(APP_STATE_PARAM)) {
+          return part.slice(APP_STATE_PARAM.length);
+        }
+      }
+      return "";
+    }
+
+    function startRoute(sHash) {
+      const route = parse(sHash);
+      if (route) {
+        return route.draft
+          ? { APP: route.app, DRAFT: route.draft }
+          : { APP: route.app };
+      }
+      const appState = appStateOf(sHash);
+      return appState ? { APP_STATE: appState } : null;
     }
 
     // ------------------------------------------------------------------
@@ -637,6 +677,13 @@ sap.ui.define(
 
     function init(ctx, fnNavigate) {
       ctx.router.navigate = fnNavigate;
+      // what the hash asks an app start to restore, for the request builder
+      // (Server.roundtrip): handed over like `navigate`, so Server does not
+      // depend on this module either. Not on a host's page - the hash is the
+      // host's route there, and nothing in it is this component's to read
+      ctx.router.startRoute = ctx.state.ownsPage
+        ? () => startRoute(window.location.hash)
+        : null;
       // Embedded, there is no hash of ours to listen to, and the host has
       // initialized the HashChanger itself if it routes at all - a host
       // route change is none of this component's business. A host that
@@ -670,6 +717,7 @@ sap.ui.define(
         ctx.router.hashListener = null;
       }
       ctx.router.navigate = null;
+      ctx.router.startRoute = null;
     }
 
     return {
@@ -678,6 +726,7 @@ sap.ui.define(
       splitHash,
       patternFor,
       parse,
+      startRoute,
       navTo,
       navBack,
       onHashChanged,

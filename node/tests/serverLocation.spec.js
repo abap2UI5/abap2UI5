@@ -82,7 +82,7 @@ function loadServer(stateOverrides = {}) {
   const dropNext = (v = true) => {
     drop = v;
   };
-  return { Server, bodies, dropNext, cancels };
+  return { Server, bodies, dropNext, cancels, ctx };
 }
 
 test("the first roundtrip carries the location, an event roundtrip omits it", () => {
@@ -192,4 +192,41 @@ test("the previous roundtrip's duration travels as MS_CLIENT_PREV", () => {
   const measured = loadServer({ lastRoundtripMs: 312 });
   measured.Server.roundtrip({ ID: "DRAFT1" });
   expect(measured.bodies[0].S_FRONT.MS_CLIENT_PREV).toBe(312);
+});
+
+// What the hash asks an app start to restore travels PARSED: the router is
+// the one reader of the hash's structure (Router.startRoute, handed over on
+// ctx.router by Router.init), and the backend takes the values as they are.
+test.describe("the route of an app start (S_FRONT.ROUTE)", () => {
+  test("a request without a draft id carries what the router read", () => {
+    const { Server, bodies, ctx } = loadServer();
+    ctx.router.startRoute = () => ({ APP: "ZCL_X", DRAFT: "ABC123" });
+
+    Server.roundtrip({});
+
+    expect(bodies[0].S_FRONT.ROUTE).toEqual({ APP: "ZCL_X", DRAFT: "ABC123" });
+    // the raw hash still travels - an app reads it
+    expect(bodies[0].S_FRONT.HASH).toBe("#/route");
+  });
+
+  test("an event roundtrip carries none - the draft id says where it continues", () => {
+    const { Server, bodies, ctx } = loadServer();
+    ctx.router.startRoute = () => ({ APP: "ZCL_X" });
+
+    Server.roundtrip({ ID: "DRAFT1" });
+
+    expect(bodies[0].S_FRONT.ROUTE).toBeUndefined();
+  });
+
+  test("a hash that names nothing, and a host's page, leave the key off", () => {
+    const named = loadServer();
+    named.ctx.router.startRoute = () => null;
+    named.Server.roundtrip({});
+    expect(named.bodies[0].S_FRONT.ROUTE).toBeUndefined();
+
+    // on a host's page Router.init hands over no reader at all
+    const embedded = loadServer();
+    embedded.Server.roundtrip({});
+    expect(embedded.bodies[0].S_FRONT.ROUTE).toBeUndefined();
+  });
 });

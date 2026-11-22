@@ -34,15 +34,10 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request.
 
-    " The two halves of the FLP hash split (see the method bodies) - public
-    " because z2ui5_cl_ui5_client->app_state_get_href needs the shell part;
-    " together with Router.splitHash they are the only owners of the rule.
-    CLASS-METHODS hash_get_app_part
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
+    " The launchpad's part of a browser hash - public because
+    " z2ui5_cl_ui5_client->app_state_get_href needs it. What a hash asks an
+    " app START to restore is not read here any more: the frontend sends it
+    " parsed, as S_FRONT.ROUTE (core/Router.js startRoute).
     " check_bare_is_shell decides the one ambiguous shape: a hash with
     " neither a leading '/' nor a '&/' separator. Coming from the FLP's
     " HashChanger the shell was already stripped, so the bare form is an app
@@ -146,8 +141,7 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    " the shared prologue of hash_get_app_part / hash_get_shell_part - see
-    " the method body
+    " the prologue of hash_get_shell_part - see the method body
     CLASS-METHODS hash_split
       IMPORTING
         iv_hash      TYPE string
@@ -324,38 +318,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
-    METHODS request_app_start_draft
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS request_app_start_route
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS request_app_start_route_draft
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS parse_app_route_rest
-      IMPORTING
-        iv_hash       TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the class token of a route remainder and what follows it - see the
-    " implementation for the namespaced-class shape it exists for
-    METHODS route_split
-      IMPORTING
-        iv_rest  TYPE string
-      EXPORTING
-        ev_class TYPE string
-        ev_after TYPE string.
 ENDCLASS.
 
 
@@ -369,23 +331,27 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        " Hash-based app routing (UI5 Router style) takes precedence: once a
-        " session runs with routing on, the live hash '#/app/<CLASS>/<DRAFTID>'
-        " is the navigation state (browser Back/Forward, bookmark, reload),
-        " while the '?app_start=' query is only the initial boot value and would
-        " otherwise always win over it. The route's <DRAFTID> segment restores
-        " the exact preserved app state; when it is absent or expired the app
-        " starts fresh from <CLASS>. Fall back to the query / legacy app-state
-        " hash when the hash carries no app route (normal boot / non-routing).
-        DATA(lv_route_class) = request_app_start_route( result-s_front-hash ).
-        IF lv_route_class IS NOT INITIAL.
-          result-s_control-app_start       = lv_route_class.
-          result-s_control-app_start_draft = request_app_start_route_draft( result-s_front-hash ).
+        " What the URL hash asks this start to restore arrives PARSED, as
+        " S_FRONT.ROUTE (core/Router.js startRoute) - the backend reads no
+        " hash structure of its own. A route (UI5 Router style) takes
+        " precedence: once a session runs with routing on, the live hash
+        " '#/app/<CLASS>/<DRAFTID>' is the navigation state (browser
+        " Back/Forward, bookmark, reload), while the '?app_start=' query is
+        " only the initial boot value and would otherwise always win over
+        " it. The route's draft restores the exact preserved app state; when
+        " it is absent or expired the app starts fresh from the class.
+        " Without a route the app comes from the query, and the draft from
+        " an app-state link ('#/z2ui5-xapp-state=<DRAFTID>') if the hash was
+        " one - only that one is the app's opt-in to the app-state hash.
+        IF result-s_front-s_route-app IS NOT INITIAL.
+          result-s_control-app_start       = z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-app ).
+          result-s_control-app_start_draft = z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-draft ).
         ELSE.
           result-s_control-app_start       =
             request_app_start( iv_search    = result-s_front-search
                                io_comp_data = result-s_front-o_comp_data ).
-          result-s_control-app_start_draft = request_app_start_draft( result-s_front-hash ).
+          result-s_control-app_start_draft =
+            z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-app_state ).
           result-s_control-check_app_state = xsdbool( result-s_control-app_start_draft IS NOT INITIAL ).
         ENDIF.
 
@@ -477,6 +443,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     result-s_front-origin      = lo_ajson->get_string( lv_front && `/ORIGIN` ).
     result-s_front-pathname    = lo_ajson->get_string( lv_front && `/PATHNAME` ).
     result-s_front-search      = lo_ajson->get_string( lv_front && `/SEARCH` ).
+    " what the hash asks an app start to restore, as the frontend parsed it
+    " - absent on an event roundtrip and whenever the hash names nothing
+    result-s_front-s_route-app       = lo_ajson->get_string( lv_front && `/ROUTE/APP` ).
+    result-s_front-s_route-draft     = lo_ajson->get_string( lv_front && `/ROUTE/DRAFT` ).
+    result-s_front-s_route-app_state = lo_ajson->get_string( lv_front && `/ROUTE/APP_STATE` ).
     result-s_front-t_event_arg = request_parse_event_args( io_json  = lo_ajson
                                                            iv_front = lv_front ).
 
@@ -690,9 +661,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD hash_split.
 
-    " The prologue both halves of the split share - once, so the two
-    " cannot drift apart (their comments used to ask the reader to keep
-    " them in lockstep by hand). Strip the leading '#'; then decide the
+    " The prologue of the split (it had a second caller, the app half, until
+    " the frontend took over reading routes). Strip the leading '#'; then decide the
     " one shape that needs no search: an app hash starts with '/', a shell
     " hash never does, and checking this BEFORE the '&/' search matters,
     " because an app hash may itself contain '&/' in a parameter and
@@ -726,29 +696,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD hash_get_app_part.
-    " Reduce a browser hash to the part that belongs to the running app - the
-    " "app hash". Inside the SAP Fiori Launchpad the shell owns everything
-    " before '&/' ('#<SemanticObject>-<action>&/<app hash>'), standalone the
-    " whole hash is the app hash. This mirrors Router.splitHash in the
-    " frontend and is the single place the backend knows about the shell hash;
-    " without it every launchpad hash looks like "no route" and Back / reload /
-    " a bookmark fall back to the '?app_start=' query.
-    hash_split( EXPORTING iv_hash = iv_hash
-                IMPORTING ev_hash = result
-                          ev_off  = DATA(lv_off) ).
-
-    " no separator - a leading '/', a bare hash, nothing at all: all app
-    IF lv_off < 0.
-      RETURN.
-    ENDIF.
-
-    result = substring( val = result
-                        off = lv_off + 2 ).
-  ENDMETHOD.
-
   METHOD hash_get_shell_part.
-    " The complement of hash_get_app_part: the part of a browser hash the
+    " The part of a browser hash the
     " launchpad SHELL owns - everything in front of '&/'
     " ('#<SemanticObject>-<action>&/<app hash>'). Standalone, or when the
     " hash is all app, there is no shell part and the result is empty.
@@ -796,131 +745,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     result = |{ origin }{ pathname }?| && z2ui5_cl_ui5_util_context=>url_param_create_url( lt_param ) && lv_hash.
 
-  ENDMETHOD.
-
-  METHOD request_app_start_draft.
-    TRY.
-        DATA(lv_hash) = hash_get_app_part( iv_hash ).
-        " strip the leading slashes (see parse_app_route_rest for why they
-        " stack); url_param_get matches parameter names verbatim
-        SHIFT lv_hash LEFT DELETING LEADING `/`.
-        result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-            z2ui5_cl_ui5_util_context=>url_param_get( val = `z2ui5-xapp-state`
-                                                      url = lv_hash ) ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-  ENDMETHOD.
-
-  METHOD parse_app_route_rest.
-    " Shared prologue for request_app_start_route / _route_draft: return the
-    " route remainder after 'app/' when the hash carries a real app route, or
-    " empty when it does not (normal boot, an app-owned hash, an 'app/'
-    " occurring mid-hash). The route must be the START of the APP hash - the
-    " launchpad shell hash in front of it is stripped by hash_get_app_part, so
-    " '#/app/X' and '#Z2UI5-display&/app/X' resolve identically.
-    DATA(lv_hash) = hash_get_app_part( iv_hash ).
-
-    " leading slashes are optional AND may stack: the launchpad convention
-    " writes the app hash without one ('&/app/X'), our own routes carry one
-    " ('#/app/X'), and URLs written through the UI5 HashChanger before navTo
-    " stripped its slash carry two ('#//app/X' - hasher prepends a '/' of its
-    " own); those live on in bookmarks and browser history, so strip them all
-    SHIFT lv_hash LEFT DELETING LEADING `/`.
-
-    IF strlen( lv_hash ) < 4 OR lv_hash(4) <> `app/`.
-      RETURN.
-    ENDIF.
-
-    result = substring( val = lv_hash
-                        off = 4 ).
-  ENDMETHOD.
-
-  METHOD request_app_start_route.
-    " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
-    " Returns empty when the hash carries no app route, so a normal boot or an
-    " app that manages its own hash falls through to the '?app_start=' query.
-    TRY.
-        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
-        IF lv_rest IS INITIAL.
-          RETURN.
-        ENDIF.
-        " only the class token is wanted here - the draft segment behind
-        " it is request_app_start_route_draft's question
-        DATA lv_class TYPE string.
-        route_split( EXPORTING iv_rest  = lv_rest
-                     IMPORTING ev_class = lv_class ).
-        result = z2ui5_cl_ui5_util_context=>c_trim_upper( lv_class ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-  ENDMETHOD.
-
-  METHOD route_split.
-    " The class token of a route remainder '<CLASS>[/<DRAFT>][&...][?...]', and
-    " what follows it. A namespaced class (/NS/CL_X) carries the route
-    " separator in its own name - Router.patternFor writes it as
-    " 'app//NS/CL_X/<DRAFT>' - so its token is three segments long and the
-    " class ends at the slash after the second one, not at the first. Cutting
-    " at the first slash answered an EMPTY class for every namespaced app:
-    " the route was ignored, the `?app_start=` query took over and a
-    " bookmark, a reload or Back restarted the app fresh instead of
-    " restoring the draft. bundle/webapp/core/Router.js (parse) mirrors this
-    CLEAR: ev_class, ev_after.
-    DATA(lv_rest) = z2ui5_cl_ui5_util_context=>c_cut_at( val = iv_rest
-                                                         sub = `&` ).
-    lv_rest = z2ui5_cl_ui5_util_context=>c_cut_at( val = lv_rest
-                                                   sub = `?` ).
-    DATA(lv_off) = 0.
-    IF strlen( lv_rest ) > 1 AND lv_rest(1) = `/`.
-      DATA(lv_tail) = substring( val = lv_rest
-                                 off = 1 ).
-      DATA(lv_ns_end) = find( val = lv_tail
-                              sub = `/` ).
-      " a lone leading slash names no class
-      IF lv_ns_end < 0.
-        RETURN.
-      ENDIF.
-      lv_off = lv_ns_end + 2.
-    ENDIF.
-    DATA(lv_head) = substring( val = lv_rest
-                               off = lv_off ).
-    DATA(lv_end) = find( val = lv_head
-                         sub = `/` ).
-    IF lv_end < 0.
-      ev_class = lv_rest.
-      RETURN.
-    ENDIF.
-    lv_end = lv_end + lv_off.
-    ev_class = substring( val = lv_rest
-                          len = lv_end ).
-    ev_after = substring( val = lv_rest
-                          off = lv_end + 1 ).
-  ENDMETHOD.
-
-  METHOD request_app_start_route_draft.
-    " Parse the draft id (app state) from a hash route
-    " '#/app/<CLASS>/<DRAFTID>'. Returns empty when the route carries no draft
-    " segment (fresh navigation / bookmark without state), so the app starts
-    " fresh from <CLASS>.
-    TRY.
-        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
-        IF lv_rest IS INITIAL.
-          RETURN.
-        ENDIF.
-        " the draft is the segment after the class token (route_split knows
-        " how long that token is), and it carries no further separator
-        DATA lv_class TYPE string.
-        DATA lv_after TYPE string.
-        route_split( EXPORTING iv_rest  = lv_rest
-                     IMPORTING ev_class = lv_class
-                               ev_after = lv_after ).
-        IF lv_after IS INITIAL.
-          RETURN.
-        ENDIF.
-        result = z2ui5_cl_ui5_util_context=>c_trim_upper(
-            z2ui5_cl_ui5_util_context=>c_cut_at( val = lv_after
-                                                 sub = `/` ) ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
   ENDMETHOD.
 
   METHOD response_abap_to_json.

@@ -438,13 +438,9 @@ CLASS ltcl_01_request DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS test_app_start_normalize FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_capped FOR TESTING RAISING cx_static_check.
     METHODS test_context_info_url_safe FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_app_part FOR TESTING RAISING cx_static_check.
     METHODS test_hash_shell_part FOR TESTING RAISING cx_static_check.
     METHODS test_app_get_url FOR TESTING RAISING cx_static_check.
-    METHODS test_route_standalone FOR TESTING RAISING cx_static_check.
-    METHODS test_route_launchpad FOR TESTING RAISING cx_static_check.
-    METHODS test_route_no_route FOR TESTING RAISING cx_static_check.
-    METHODS test_app_state_hash FOR TESTING RAISING cx_static_check.
+    METHODS test_route_from_request FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -1163,29 +1159,6 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_hash_app_part.
-
-    " standalone - the whole hash belongs to the app
-    cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1`
-                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#/app/ZCL_X/D1` ) ).
-
-    " launchpad - the shell owns everything before '&/'
-    cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X/D1`
-                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
-
-    " ... including a shell hash that carries its own parameters
-    cl_abap_unit_assert=>assert_equals( exp = `app/ZCL_X`
-                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#Z2UI5-display?a=b&c=d&/app/ZCL_X` ) ).
-
-    " an app hash containing '&/' must not be split
-    cl_abap_unit_assert=>assert_equals( exp = `/app/ZCL_X/D1?next=&/y`
-                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `#/app/ZCL_X/D1?next=&/y` ) ).
-
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = z2ui5_cl_ui5_handler=>hash_get_app_part( `` ) ).
-
-  ENDMETHOD.
-
   METHOD test_hash_shell_part.
 
     " launchpad - the shell part is everything before '&/'
@@ -1272,109 +1245,53 @@ CLASS ltcl_01_request IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_route_standalone.
+  METHOD test_route_from_request.
 
+    " What the hash asks an app start to restore arrives parsed, as
+    " S_FRONT.ROUTE - the frontend's Router is the one reader of the hash
+    " (node/tests/router.spec.js has the shapes the backend's own parsers
+    " were tested with until protocol 3). A route names the class and the
+    " draft, and wins over the query
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
+    DATA(ls_request) = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"SEARCH":"?app_start=zcl_other","HASH":"#/app/zcl_x/abc123",` &&
+        `"ROUTE":{"APP":"zcl_x","DRAFT":"abc123"}}}}` ).
     cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = lo_handler->request_app_start_route( `#/app/ZCL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `D1`
-                                        act = lo_handler->request_app_start_route_draft( `#/app/ZCL_X/D1` ) ).
+                                        act = ls_request-s_control-app_start ).
+    cl_abap_unit_assert=>assert_equals( exp = `ABC123`
+                                        act = ls_request-s_control-app_start_draft ).
+    " a route restore is not the app's opt-in to the app-state hash
+    cl_abap_unit_assert=>assert_false( ls_request-s_control-check_app_state ).
 
-    " class-only route (routing mode FRESH) carries no draft
-    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = lo_handler->request_app_start_route( `#/app/ZCL_X` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route_draft( `#/app/ZCL_X` ) ).
-
-    " the double-slash form the UI5 HashChanger wrote before navTo stripped
-    " its slash (hasher prepends one of its own) - lives on in bookmarks and
-    " browser history entries, and Back/Forward sends exactly this
-    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = lo_handler->request_app_start_route( `#//app/ZCL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `D1`
-                                        act = lo_handler->request_app_start_route_draft( `#//app/ZCL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = lo_handler->request_app_start_route( `#//app/ZCL_X` ) ).
-
-    " a namespaced class carries the route separator in its own name: the
-    " token is three segments long and the draft is the fourth - cutting at
-    " the first slash used to answer an empty class, so the route was
-    " ignored and the app restarted fresh on every reload and Back
+    " a namespaced class travels with its slashes
+    ls_request = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"ROUTE":{"APP":"/NS/CL_X"}}}}` ).
     cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
-                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `D1`
-                                        act = lo_handler->request_app_start_route_draft( `#/app//NS/CL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
-                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route_draft( `#/app//NS/CL_X` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `/NS/CL_X`
-                                        act = lo_handler->request_app_start_route( `#/app//NS/CL_X/D1?x=1` ) ).
-    " a lone leading slash names no class
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route( `#/app//NS` ) ).
+                                        act = ls_request-s_control-app_start ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_control-app_start_draft ).
 
-  ENDMETHOD.
+    " an app-state link names the draft only: the app comes from the query
+    " (or from nowhere), and the hash stays the app's opt-in
+    ls_request = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"SEARCH":"?app_start=zcl_other","ROUTE":{"APP_STATE":"abc123"}}}}` ).
+    cl_abap_unit_assert=>assert_equals( exp = `ZCL_OTHER`
+                                        act = ls_request-s_control-app_start ).
+    cl_abap_unit_assert=>assert_equals( exp = `ABC123`
+                                        act = ls_request-s_control-app_start_draft ).
+    cl_abap_unit_assert=>assert_true( ls_request-s_control-check_app_state ).
 
-  METHOD test_route_launchpad.
+    " the raw hash alone starts nothing - the backend parses none
+    ls_request = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"HASH":"#/app/zcl_x/abc123"}}}` ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_control-app_start ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_control-app_start_draft ).
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-
-    " the same routes, but reached through the launchpad shell hash - the
-    " browser Back button inside the FLP sends exactly this
-    cl_abap_unit_assert=>assert_equals(
-        exp = `ZCL_X`
-        act = lo_handler->request_app_start_route( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `D1`
-        act = lo_handler->request_app_start_route_draft( `#Z2UI5-display&/app/ZCL_X/D1` ) ).
-
-    " our slash-prefixed routes appended verbatim by older shells
-    cl_abap_unit_assert=>assert_equals(
-        exp = `ZCL_X`
-        act = lo_handler->request_app_start_route( `#Z2UI5-display&//app/ZCL_X/D1` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_route_no_route.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-
-    " no hash at all (normal boot), an app-owned hash, a bare shell hash and
-    " an 'app/' occurring mid-hash must all resolve to "no route", so the
-    " '?app_start=' query keeps winning
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route( `` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route( `#/head/pos/42` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route( `#Z2UI5-display` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ``
-                                        act = lo_handler->request_app_start_route( `#/head/app/ZCL_X` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_app_state_hash.
-
-    DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
-    lo_handler = NEW #( val = `` ).
-
-    " the app-state link format, standalone and inside the launchpad
-    cl_abap_unit_assert=>assert_equals(
-        exp = `ABC123`
-        act = lo_handler->request_app_start_draft( `#/z2ui5-xapp-state=ABC123` ) ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `ABC123`
-        act = lo_handler->request_app_start_draft( `#Z2UI5-display&/z2ui5-xapp-state=ABC123` ) ).
-
-    " the double-slash form older HashChanger-written live URLs carry
-    cl_abap_unit_assert=>assert_equals(
-        exp = `ABC123`
-        act = lo_handler->request_app_start_draft( `#//z2ui5-xapp-state=ABC123` ) ).
+    " ... and an event roundtrip reads no route at all
+    ls_request = lo_handler->request_json_to_abap(
+        `{"value":{"S_FRONT":{"ID":"D1","ROUTE":{"APP":"zcl_x"}}}}` ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_control-app_start ).
 
   ENDMETHOD.
 

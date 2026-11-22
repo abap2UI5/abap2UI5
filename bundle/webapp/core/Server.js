@@ -72,6 +72,11 @@ sap.ui.define(
     //         "EVENT": "SAVE",             // event name
     //         "T_EVENT_ARG": ["arg1"],     // further event arguments
     //         "HASH": "#...",              // live routing state, every request
+    //         "ROUTE": { "APP": "ZCL_X", "DRAFT": "<id>" },
+    //                                      // what the hash asks an app start to
+    //                                      // restore, parsed (Router.startRoute);
+    //                                      // or { "APP_STATE": "<id>" }. Only on
+    //                                      // a request without ID
     //         "MS_CLIENT_PREV": 312,       // the previous roundtrip's duration
     //                                      // as the browser saw it, in ms -
     //                                      // for the backend's roundtrip
@@ -207,9 +212,9 @@ sap.ui.define(
       // Restore the app state a matched hash route points at. Wired into
       // core/Router by Component.js and called when the browser Back/Forward
       // buttons (or a manual URL edit / bookmark) select a different route.
-      // An empty body (no ID) makes the backend take the first-start path and
-      // read the target class + draft from the hash it receives
-      // (request_app_start_route[_draft]).
+      // An empty body (no ID) makes the backend take the first-start path,
+      // with the target class + draft the request names as its ROUTE
+      // (roundtrip below, Router.startRoute).
       restoreFromRoute(ctx) {
         // Participate in the normal busy protocol: without it the app looks
         // idle during the restore, and an ordinary click would dispatch a
@@ -267,6 +272,17 @@ sap.ui.define(
           HASH: state.ownsPage ? window.location.hash : "",
         };
         const sFront = oBody.S_FRONT;
+        // A request that names no draft starts an app, and what the hash
+        // asks it to restore - a route's class and draft, the draft of an
+        // app-state link - travels PARSED, as ROUTE: the router is the one
+        // reader of the hash's structure (core/Router.js startRoute), the
+        // backend takes the three values as they are. The raw HASH above
+        // still travels with every request - an app reads it
+        // (client->get( )-s_config-hash). No ROUTE when the hash names none.
+        if (!oBody.ID) {
+          const route = ctx.router?.startRoute?.();
+          if (route) sFront.ROUTE = route;
+        }
         // an all-empty CONFIG is left off entirely
         if (Object.values(config).some((v) => v !== undefined)) {
           sFront.CONFIG = config;

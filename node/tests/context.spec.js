@@ -65,6 +65,7 @@ test.describe("create", () => {
     });
     expect(ctx.router).toEqual({
       navigate: null,
+      startRoute: null,
       hashListener: null,
       trail: [],
       trailPos: -1,

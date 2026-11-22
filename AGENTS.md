@@ -94,10 +94,12 @@ in the change that breaks the wire** (reasoning at both sites).
 `{ "value": … }` envelope (`z2ui5_cl_ui5_handler=>request_parse_body` handles
 both), and the shell owns the front of the URL hash. Exactly two places know
 that split — `bundle/webapp/core/Router.js` (`splitHash()`) and
-`z2ui5_cl_ui5_handler` (`hash_get_app_part` / `hash_get_shell_part`). **Do not
-re-implement the split anywhere else, and do not rebuild a URL from
-`location.href.split("#")[0]` plus an app hash** — write the app hash through
-`Router.navTo()`.
+`z2ui5_cl_ui5_handler` (`hash_get_shell_part`, for the links it composes). What a
+hash asks an app start to restore is read by the router alone and travels parsed,
+as `S_FRONT.ROUTE` (`Router.startRoute`). **Do not re-implement the split anywhere
+else, do not parse a route out of `S_FRONT.HASH` on the backend, and do not
+rebuild a URL from `location.href.split("#")[0]` plus an app hash** — write the
+app hash through `Router.navTo()`.
 
 ### Layered Design
 

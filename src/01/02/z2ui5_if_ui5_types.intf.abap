@@ -281,7 +281,9 @@ INTERFACE z2ui5_if_ui5_types
   "! of protocol 2 reads such a wire as one without a flag. And the response
   "! carries the view lifecycle and the URL intent as the sections VIEWS and
   "! NAV and the app's follow-up actions as ACTIONS, where S_ACTION carried
-  "! the lists T_SYSTEM and T_CUSTOM (ty_s_response, ty_s_action).
+  "! the lists T_SYSTEM and T_CUSTOM (ty_s_response, ty_s_action). And a
+  "! request that starts an app names what the hash asks it to restore as
+  "! S_FRONT.ROUTE - the backend no longer parses the hash for it.
   "!
   "! Why it exists: backend and frontend ship together here, but they do not
   "! ship together everywhere. A port of this framework, a pinned webapp, a
@@ -354,6 +356,16 @@ INTERFACE z2ui5_if_ui5_types
         pathname       TYPE string,
         search         TYPE string,
         hash           TYPE string,
+        " what the hash asks an app START to restore, as the frontend parsed
+        " it (core/Router.js startRoute): the class and draft of a route
+        " '#/app/<CLASS>/<DRAFT>', or the draft of an app-state link
+        " '#/z2ui5-xapp-state=<DRAFT>'. Filled on a request without a draft
+        " id only, and not at all when the hash names neither
+        BEGIN OF s_route,
+          app       TYPE string,
+          draft     TYPE string,
+          app_state TYPE string,
+        END OF s_route,
         " the previous roundtrip's duration as the browser measured it, in
         " ms (core/Server.js, MS_CLIENT_PREV) - for the roundtrip monitor
         " only (z2ui5_if_ui5_monitor=>ty_s_roundtrip-ms_client_prev); 0

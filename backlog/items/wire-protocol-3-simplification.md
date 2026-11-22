@@ -1,37 +1,160 @@
 ---
 target: abap2ui5
-title: 'Simplify the frontend/backend wire: what protocol 2 allows and what needs a protocol revision'
-summary: Fifteen ideas to remove coupled special cases from the roundtrip, checked against DEV and against the written protocol (abap2UI5/protocol) - one is implemented, eleven change a rule the protocol states and tests and so start as a revision there, three were dropped on measurement, and the busy guard treats an event fired while a view renders differently on the first roundtrip and on every later one
-priority: medium
+title: 'Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open'
+summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; three ideas are open with what was measured for them, and the busy guard treats an event fired while a view renders differently on the first roundtrip and on every later one
+priority: high
 state: open
 first_seen: 2026-11-22
 checked_upstream: 2026-11-22
 upstream: abap2UI5/abap2UI5
 evidence:
-  - 'baseline on DEV 1af8c19 (2026-11-22): 1031 ABAP unit test methods and 1867 JS specs green; `check:api` and `check:shared` red before any change of this item (the snapshot and the app-template mirror of #3040)'
-  - 'abap2UI5/protocol f592b16 run against that checkout: backend suite 88 of 88, frontend suite (ui5 adapter, Chromium, OpenUI5 1.153.0) 83 passed and 4 skipped'
+  - 'baseline on DEV 1af8c19 (2026-11-22): 1031 ABAP unit test methods and 1867 JS specs green, abap2UI5/protocol f592b16 backend suite 88 of 88 and frontend suite 83 passed / 4 skipped; `check:api` and `check:shared` red before any change of this item (the snapshot and the app-template mirror of #3040)'
+  - 'after the protocol-3 changes: 1026 ABAP unit test methods, 1874 JS specs, and in Chromium against the transpiled backend 92 e2e specs on OpenUI5 1.144.0 and 49 on 1.71.80'
+  - 'OpenUI5 1.71.80 in Chromium: a handler wired as `.eB([''LIVE'',{queueLast:true,noBusy:true}], ''arg'', ${$source>/text})` is called with `[["LIVE",{"queueLast":true,"noBusy":true}],"arg","x"]`; on 1.153.0 a view with XML templating reads the object too'
   - 'browser experiment through the protocol suite''s mock backend: a `core:HTML` whose `afterRendering` is wired to `.eB` reaches the backend on the FIRST response (POSTs: start, R1) and is dropped on a LATER one (POSTs: start, NEXT); with the queue-last flag the later one arrives (start, NEXT, R2)'
-  - 'real roundtrips of the transpiled backend: hello world 356 B request / 657 B response, an event with a delta 120 / 204 B, an event that changes nothing 103 / 100 B'
   - 'usage counted in abap2UI5/samples-controls (9f3378a, 690 classes) and abap2UI5/samples-stack (4e268b9, 84 classes); abap2UI5/samples could not be read'
-  - 'searched abap2UI5/abap2UI5 open issues 2026-11-22 for protocol / wire / S_ACTION / follow_up_action / hash routing: nothing overlapping'
 ---
 
-# Simplify the frontend/backend wire: what protocol 2 allows and what needs a protocol revision
+# Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open
 
-**Read this before proposing a change to the roundtrip.** The first version
-of this item was written against `main` without knowing that the protocol is
-a written contract. It is: [abap2UI5/protocol](https://github.com/abap2UI5/protocol)
+The roundtrip is a written contract - [abap2UI5/protocol](https://github.com/abap2UI5/protocol)
 holds the specification, the JSON Schemas and two conformance suites, and
-`test.yaml` runs both against every pull request here (`conformance_backend`,
-`conformance_frontend`). Three backends and six frontends speak it - cap2UI5,
-the MCP server's agent client, the terminal and Adaptive Cards renderers
-among them. `spec/versioning.md` there says what keeps protocol 2 (a new
-optional key, action, slot option or `ROUTER` option) and what does not
-(renaming or removing a key, changing a key's meaning or the shape of an
-action array, a system action a frontend must run).
+`test.yaml` runs both against every pull request here. The maintainer decided
+on 2026-11-22 to break it: the changes below are in this repository, **the
+protocol repository, cap2UI5 and the other frontends are not updated yet**.
+Until they are, `conformance_backend` and `conformance_frontend` fail against
+the commit `test.yaml` pins.
 
-So most of what follows cannot be done in this repository alone. Each entry
-names the rule it meets.
+## Implemented here (protocol 3)
+
+`z2ui5_if_ui5_types=>c_protocol` and `PROTOCOL` in
+`bundle/webapp/core/Server.js` are 3.
+
+1. **The flags of an event wire are one object.**
+   `.eB(['LIVE_CHANGE',{queueLast:true,noBusy:true}], args)` where positions
+   `[4]` and `[5]` of the event array carried them behind three slots that
+   were always `false`. Writer: `z2ui5_cl_ui5_srv_event=>get_event`. Reader:
+   `Lib.eventOptions` (a positional flag is logged and not read).
+2. **The response says what the screen is, and what to do on it.**
+
+   ```json
+   { "S_FRONT": { "ID": "...", "APP": "...", "PROTOCOL": 3,
+       "VIEWS": { "MAIN":  { "XML": "<mvc:View/>", "OPT": { "transition": "slide" } },
+                  "POPUP": { "DESTROY": true } },
+       "NAV": { "setNavRouting": "KEEP" },
+       "ACTIONS": [["SET_FOCUS","id1"]] },
+     "MODEL": { } }
+   ```
+
+   `S_ACTION.T_SYSTEM` and `S_ACTION.T_CUSTOM` are gone. A section that says
+   nothing is absent. The frontend applies `VIEWS` in its own order (MAIN,
+   NEST, NEST2, POPUP, POPOVER - `View1._applyViews`); the backend sorts
+   nothing (`z2ui5_cl_ui5_frontend=>slots_serialize`, `nav_serialize`).
+3. **One owner per teardown rule.** The backend queues the teardown of
+   POPUP and POPOVER for every app hop and every app start
+   (`z2ui5_cl_ui5_action=>prepare_app_stack`, `factory_first_start`). The
+   frontend no longer takes them down when a response names another class.
+   That a new MAIN view takes the standalone slots down is the frontend's
+   rule alone (`actions/Slots.js` `displayMain`); the backend no longer drops
+   a `popup_destroy( )` next to a `view_display( )`.
+4. **The route of an app start travels parsed.** A request without a draft
+   id carries `S_FRONT.ROUTE` - `{ "APP", "DRAFT" }` for
+   `#/app/<CLASS>/<DRAFT>`, `{ "APP_STATE" }` for an app-state link - read by
+   `Router.startRoute`. The backend's six route parsers are deleted; it keeps
+   `hash_get_shell_part` for the links it composes. `HASH` still travels with
+   every request (an app reads `client->get( )-s_config-hash`).
+5. **One implementation of the empty-argument rule**
+   (`z2ui5_cl_ui5_srv_event=>args_trim_trailing`). No wire change.
+
+## What the protocol repository has to follow
+
+| There | Change |
+|---|---|
+| `spec/versioning.md` | protocol 3 and what broke; open question 15 (the window and the number) is answered with it |
+| `spec/response.md` | `VIEWS` / `NAV` / `ACTIONS` in place of `T_SYSTEM` / `T_CUSTOM`; no slot order for the backend; the two teardown rules with their new owners |
+| `spec/request.md` | `ROUTE`; `HASH` is no longer what an app start is resolved from |
+| `spec/navigation.md` | app start resolution reads `ROUTE`; the `ROUTER` action is the `NAV` section |
+| `spec/actions.md`, `profiles/ui5.md` | `ACTIONS`; the `.eB` wire form with the options object |
+| `schema/request.schema.json`, `response.schema.json` | the keys above |
+| backend checks | `slots.*`, `response.*`, `route.*`, `ui5.event-wire`: read the sections; send `ROUTE` where they sent a hash; a hop and an app start carry both teardowns |
+| frontend checks | `slots.app-change` turns round (the frontend must NOT tear down on the name); `ui5.wire-queue-last` and the mock's responses in the new shape; `router.*` |
+| `conformance/apps`, `traffic/` | record again; cap2UI5's twins and `@cap2ui5/cds-plugin` |
+| the other frontends | the agent client of abap2UI5/mcp-server, the terminal and Adaptive Cards renderers, the Web Components frontend: read `VIEWS` / `NAV` / `ACTIONS`, parse the options object out of a view, send `ROUTE` |
+
+Then move the pinned commit in `test.yaml` (both jobs).
+
+## Open - decide first
+
+### Events fired while a view renders
+
+`bundle/webapp/controller/App.controller.js` `startApp` starts the first
+roundtrip without setting `state.isBusy`; every later roundtrip sets it in
+`View1.eB`. Measured in Chromium (evidence above): an event a control fires
+from its `onAfterRendering` is SENT on the first response and DROPPED on
+every later one, unless its wire carries `check_queue_last`. `cc/Storage.js`
+(`finished`) does this, and so does whatever an app wires to a rendering
+event. Two ways to make it one behaviour:
+
+- **Drop it on the first roundtrip too** (set `isBusy` in `startApp`): an app
+  that reads a stored value on its first screen stops getting it.
+- **Keep it on later roundtrips too:** an app that answers such an event with
+  a new `view_display( )` renders again, fires again, and loops; today the
+  drop is what ends that loop.
+
+Until this is decided a first response can be superseded, and the
+"superseded but not replaced" handling in `View1._processAfterRendering` and
+the stale checks in `core/Server.js` (`isStale( )` eight times) stay. With
+it decided, a Back/Forward can be parked like an app-owned hash change
+already is (`Router.dispatchPendingAppHash`) and those checks can go.
+
+### One model per app instead of one per slot
+
+POPUP and POPOVER get a deep copy of the response model (`dataForSlot` in
+`actions/Slots.js`), their own changed-path set, the fan-out of every
+response into every open slot with the re-application of unsent edits
+(`updateModelIfRequired`) and an ownership check per slot. A response carries
+the model of exactly one app, and MAIN and the nested views already share
+one. Changes what a popup's event sends (it would carry MAIN's pending edits
+too - the protocol's `model.slot-model` check). Risks to test:
+`SET_SIZE_LIMIT` is per slot (one sample sets it for `cs_view-popup`), and a
+popup's bindings re-evaluate with MAIN's.
+
+### Fewer ways to own the URL hash
+
+Five mechanisms share one hash in `Router.sync`: KEEP routing, FRESH
+routing, the app-state hash, the app-owned listener, and a suffix written
+with `history.pushState`. In samples-controls all 10 apps that write a hash
+register the listener; `hash_routing` and `app_state_set_active` have no
+caller in either corpus, `app_state_get_href` has 11. Candidates:
+`hash_set( )` / `hash_replace( )` only with a listener (drops
+`writeLegacyUrl`), and one URL format for the app-state link and the KEEP
+route (old links die with their draft within hours).
+
+## Checked and dropped - do not re-propose
+
+- **Navigation options: absent means "no change"** for `setAppStateActive`.
+  The backend re-asserts the flag in three lines of `main_end_nav`; making
+  the frontend remember it needs a tri-state on the wire (off has to be
+  said), a reset on the app switch and the same send conditions the routing
+  mode already has (`nav_mode_sent`). More code on both sides for 34 B per
+  response of an app that uses the hash.
+- **Send the live device fields with every request** to save one latch in
+  `core/Session.js`. The block is 77 B, a typical event request 103 to 120 B.
+- **Outbound model as a per-attribute patch.** A second model path next to
+  the full one; only with a measured case.
+- **Slot state as one map.** 17 of the 20 direct accesses to the five view
+  and controller fields are already inside `core/ViewSlots.js`.
+- **The app stack as a list in the draft.** `id_prev_app_stack` is a column of
+  `z2ui5_t_01`, a field of the public `z2ui5_if_client=>ty_s_get-s_draft` and
+  of the draft-store seam.
+- **Typed arguments in the action list.** `t_arg` is a `string_table`, so
+  `castArgAuto` in `core/actions/ControlCall.js` has to keep guessing. This
+  belongs to the action object - see `frontend-action-named-api`.
+- **The shell part of the hash from the frontend as well.** It is needed on
+  every roundtrip (`app_state_get_href( )`, the start page's links) and
+  `client->get( )-s_config` has no field for it; `hash_get_shell_part` stays.
+- **`z2ui5_cl_ui5_srv_model`'s binding search** and the pre-`main( )`
+  snapshot: decided in `docs/agents/decisions.md`.
 
 ## How to check a change here
 
@@ -47,100 +170,4 @@ ABAP2UI5_HOME=<here> CHROMIUM_BIN=<chrome> node conformance/backend/bin/abap2ui5
 
 The frontend suite's mock backend is also the quickest way to try a timing
 question in a real browser: `runFrontendSuite({ adapter: "ui5", checks: [...] })`
-with a check of your own, as the experiment below did.
-
-## Implemented
-
-- **One implementation of the empty-argument rule** (2026-11-22).
-  `z2ui5_cl_ui5_srv_event=>args_trim_trailing` is asked by both forms of an
-  action; the handler expression and the JSON array each had their own.
-
-## A finding that is not a simplification: events fired while a view renders
-
-`bundle/webapp/controller/App.controller.js` `startApp` starts the first
-roundtrip without setting `state.isBusy`; every later roundtrip sets it in
-`View1.eB`. Measured in Chromium (evidence above): an event a control fires
-from its `onAfterRendering` is SENT on the first response and DROPPED on
-every later one, unless its wire carries `check_queue_last`. The controls
-that do this: `cc/Storage.js` (`finished`), and whatever an app wires to a
-rendering event.
-
-Two ways to make it one behaviour, and neither is safe to pick alone:
-
-- **Drop it on the first roundtrip too** (set `isBusy` in `startApp`). An app
-  that reads a stored value on its first screen stops getting it.
-- **Keep it on later roundtrips too.** An app that answers such an event with
-  a new `view_display( )` renders again, fires again, and loops; today the
-  drop is what ends that loop.
-
-Decide first. Until then the first roundtrip stays as it is, and with it the
-"superseded but not replaced" handling in `View1._processAfterRendering` and
-the stale checks in `core/Server.js` - they cannot be removed while a first
-response can be superseded.
-
-## Needs a protocol revision first
-
-Start each of these as a change in abap2UI5/protocol (the rule, its check,
-`spec/open-questions.md`), then follow here and in cap2UI5.
-
-| Idea | The rule it changes |
-|---|---|
-| Views and navigation as response sections (`VIEWS`, `NAV`) instead of `T_SYSTEM` actions | `spec/response.md`: `T_SYSTEM` / `T_CUSTOM`, the action array shape; checks `slots.*`, `response.*` |
-| The frontend stops tearing POPUP and POPOVER down when `APP` changes; the backend states every teardown | `spec/response.md` "A frontend MUST tear down POPUP and POPOVER when a response names another APP"; check `slots.app-change`. The backend half alone (always queue both destroys) is compatible and useless without the frontend half |
-| Event flags as an object in slot `[1]` of the event array | `profiles/ui5.md`, the `.eB` wire form; every frontend that parses a view reads it; checks `ui5.event-wire`, `ui5.wire-queue-last` |
-| The frontend sends the parsed route, the backend drops its seven hash parsers | a new `S_FRONT.ROUTE` key is compatible, but the other frontends send `HASH` only, so the parsers stay; checks `route.*` |
-| Navigation options: absent means "no change" | `spec/navigation.md`; check `router.app-state` "a response without it clears it" |
-| Rename `T_CUSTOM` and the other names that outlived their meaning | renaming a key |
-| One model per app instead of one per slot | `spec/request.md` "edits in another slot's model stay pending"; check `model.slot-model` (MUST) |
-| Outbound model as a per-attribute patch | `spec/response.md` "MODEL is the complete view model ... never a delta" |
-| `hash_set( )` only with a listener; one URL format for app state and KEEP route | `spec/navigation.md`; checks `router.*`, `route.app-state` |
-
-What was measured for them, so the revision does not have to measure again:
-
-- The three teardown rules sit in `z2ui5_cl_ui5_frontend=>slots_serialize`,
-  `View1._processAfterRendering` and `z2ui5_cl_ui5_action=>prepare_app_stack`;
-  `ViewSlots.destroy` is safe on a closed slot; a destroy action is 33 B
-  (`POPUP`) or 35 B (`POPOVER`).
-- `ROUTER/sync` is only stashed on the response
-  (`core/actions/ControlCall.js`), the model push is the presence of `MODEL`,
-  and `View1._replacesMainOwner` scans the action list for
-  `VIEW_SLOTS / display / MAIN` - three mechanisms behind one list.
-- Event array: `[1]` and `[2]` are always `false`, nothing emits `[3]`.
-  OpenUI5 1.71.80 parses a map literal in a handler expression
-  (`sap/ui/base/ExpressionParser.js`). An options object as a second ARGUMENT
-  is not possible: 983 event arguments in samples-controls are raw
-  expressions, some of them object literals. No app in the two corpora
-  hand-writes `.eB(`.
-- Hash: all 10 apps in samples-controls that write a hash also register the
-  listener; `hash_routing` and `app_state_set_active` have no caller in
-  either corpus, `app_state_get_href` has 11.
-- Apps read the raw hash (`client->get( )-s_config-hash`), so `HASH` keeps
-  travelling whatever else is sent.
-
-## Checked and dropped - do not re-propose
-
-- **Send the live device fields with every request** to save one latch in
-  `core/Session.js`. The block is 77 B and a typical event request is 103 to
-  120 B; the latch is about twenty lines.
-- **A request queue instead of the stale checks.** Follows from the finding
-  above; and parking a Back/Forward alone (the specification allows it, "MAY
-  supersede") removes `restoreSeq` and nothing else.
-- **The backend half of the teardown rules alone.** Compatible, and without
-  the frontend half it only adds two actions to every hop.
-- **Slot state as one map.** 17 of the 20 direct accesses to the five view
-  and controller fields are already inside `core/ViewSlots.js`.
-- **The app stack as a list in the draft.** `id_prev_app_stack` is a column of
-  `z2ui5_t_01`, a field of the public `z2ui5_if_client=>ty_s_get-s_draft` and
-  of the draft-store seam.
-- **Typed arguments in the action list.** `t_arg` is a `string_table`, so
-  `castArgAuto` in `core/actions/ControlCall.js` has to keep guessing. This
-  belongs to the action object - see `frontend-action-named-api`.
-- **`z2ui5_cl_ui5_srv_model`'s binding search** and the pre-`main( )`
-  snapshot: decided in `docs/agents/decisions.md`.
-
-## Already done or blocked elsewhere
-
-`_bind_edit( )` and the five `*_model_update( )` no-ops went with #3040.
-`custom_mapper` / `custom_filter` and the `destroy*` wrappers of
-`View1.controller.js` wait for the conditions `docs/removal-plan.md` names;
-in samples-controls and samples-stack none of them has a caller.
+with a check of your own, as the experiment above did.

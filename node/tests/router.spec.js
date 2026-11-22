@@ -201,6 +201,79 @@ test("a namespaced class round-trips through the route", () => {
   expect(Router.parse("/app//")).toBe(null);
 });
 
+// What the frontend sends as S_FRONT.ROUTE with a request that starts an
+// app. The cases are the ones the backend's own parsers were tested with
+// until protocol 3 (z2ui5_cl_ui5_handler: test_route_standalone,
+// test_route_launchpad, test_route_no_route, test_app_state_hash) - there
+// is one reader of the hash now, and it is this one.
+test.describe("startRoute - what a hash asks an app start to restore", () => {
+  const { Router } = loadRouter();
+
+  test("a route names its class, and its draft when it carries one", () => {
+    expect(Router.startRoute("#/app/ZCL_X")).toEqual({ APP: "ZCL_X" });
+    expect(Router.startRoute("#/app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    // further parameters of the app hash are not part of the draft
+    expect(Router.startRoute("#/app/ZCL_X/ABC123&my-state=1")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+  });
+
+  test("inside the launchpad only the app part is read", () => {
+    expect(Router.startRoute("#Z2UI5-display&/app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    // the two spellings of the separator the launchpad produces
+    expect(Router.startRoute("#Z2UI5-display&//app/ZCL_X")).toEqual({
+      APP: "ZCL_X",
+    });
+  });
+
+  test("the stacked leading slashes of older URLs are read too", () => {
+    expect(Router.startRoute("#//app/ZCL_X/ABC123")).toEqual({
+      APP: "ZCL_X",
+      DRAFT: "ABC123",
+    });
+    expect(Router.startRoute("#app/ZCL_X")).toEqual({ APP: "ZCL_X" });
+  });
+
+  test("a namespaced class keeps its slashes", () => {
+    expect(Router.startRoute("#/app//NS/CL_X/ABC123")).toEqual({
+      APP: "/NS/CL_X",
+      DRAFT: "ABC123",
+    });
+    expect(Router.startRoute("#/app//NS/CL_X")).toEqual({ APP: "/NS/CL_X" });
+  });
+
+  test("an app-state link names its draft and no class", () => {
+    expect(Router.startRoute("#/z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+    expect(Router.startRoute("#Z2UI5-display&/z2ui5-xapp-state=ABC123")).toEqual(
+      { APP_STATE: "ABC123" },
+    );
+    expect(Router.startRoute("#//z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+    expect(Router.startRoute("#/other=1&z2ui5-xapp-state=ABC123")).toEqual({
+      APP_STATE: "ABC123",
+    });
+  });
+
+  test("a hash that names neither asks for nothing", () => {
+    expect(Router.startRoute("")).toBeNull();
+    expect(Router.startRoute("#")).toBeNull();
+    expect(Router.startRoute("#Z2UI5-display")).toBeNull();
+    expect(Router.startRoute("#/Page2")).toBeNull();
+    expect(Router.startRoute("#/detail/app/ZCL_X")).toBeNull();
+    expect(Router.startRoute("#/z2ui5-xapp-state=")).toBeNull();
+  });
+});
+
 test("non-app hashes parse to no route", () => {
   const { Router } = loadRouter();
   expect(Router.parse("")).toBe(null);

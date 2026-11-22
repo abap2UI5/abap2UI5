@@ -421,7 +421,6 @@ CLASS ltcl_string DEFINITION FINAL
     METHODS test_escape_xml        FOR TESTING RAISING cx_static_check.
     METHODS test_truncate          FOR TESTING RAISING cx_static_check.
     METHODS test_filter_chars      FOR TESTING RAISING cx_static_check.
-    METHODS test_cut_at            FOR TESTING RAISING cx_static_check.
     METHODS test_url_origin        FOR TESTING RAISING cx_static_check.
     METHODS test_url_authority     FOR TESTING RAISING cx_static_check.
     METHODS test_etag_match_rules  FOR TESTING RAISING cx_static_check.
@@ -569,18 +568,6 @@ CLASS ltcl_string IMPLEMENTATION.
                                                                                          allowed = `abc` ) ).
     cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_util_context=>c_filter_chars( val     = ``
                                                                                     allowed = `abc` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_cut_at.
-
-    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = z2ui5_cl_ui5_util_context=>c_cut_at( val = `ZCL_X?a=1`
-                                                                                   sub = `?` ) ).
-    " sub absent: the whole value, not the empty one substring_before answers
-    cl_abap_unit_assert=>assert_equals( exp = `ZCL_X`
-                                        act = z2ui5_cl_ui5_util_context=>c_cut_at( val = `ZCL_X`
-                                                                                   sub = `?` ) ).
 
   ENDMETHOD.
 

@@ -562,15 +562,6 @@ CLASS z2ui5_cl_ui5_util_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    "! val up to the first occurrence of sub - val itself when sub does
-    "! not occur (unlike substring_before( ), which answers empty then).
-    CLASS-METHODS c_cut_at
-      IMPORTING
-        val           TYPE clike
-        sub           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS url_param_get_tab
       IMPORTING
         val           TYPE clike
@@ -3272,18 +3263,6 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
       ENDIF.
       lv_off = lv_off + 1.
     ENDWHILE.
-
-  ENDMETHOD.
-
-  METHOD c_cut_at.
-
-    result = val.
-    DATA(lv_off) = find( val = result
-                         sub = sub ).
-    IF lv_off >= 0.
-      result = substring( val = result
-                          len = lv_off ).
-    ENDIF.
 
   ENDMETHOD.
 
