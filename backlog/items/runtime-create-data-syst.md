@@ -5,6 +5,7 @@ summary: 'the dynamic type lookup of `CREATE DATA` knows the DDIC entries and a 
 priority: medium
 state: open
 first_seen: 2026-10-22
+checked_upstream: 2026-11-21
 upstream: abaplint/transpiler
 evidence:
   - 'abap2UI5/samples - `Z2UI5_CL_SMP_APP_061` builds its runtime table from `CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( `SYST` ) )` since it stopped typing it from the framework draft table (2026-10-22). Its first start in the e2e smoke answers HTTP 500 "Error at cl_abap_typedescr.describe_by_name": on 2026-10-22 against abap2UI5 2dd4363 (@abaplint/runtime 2.13.99, run 39853610987 of the samples e2e workflow) and on 2026-10-24 against 52976a7 (@abaplint/runtime 2.14.5). The samples e2e records it in `e2e/expected.mjs`'

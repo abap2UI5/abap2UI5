@@ -1817,17 +1817,12 @@ fix.
   into a variable if needed. The test right after a method call without
   EXCEPTIONS is gated by abaplint's `stale_subrc` from 2.120.109
   (abaplint/abaplint#4581).
-- **A read that needs a SORT.** `READ TABLE … BINARY SEARCH` and
-  `DELETE ADJACENT DUPLICATES … COMPARING` on a table not sorted by those
-  fields silently miss rows. SORT by exactly those fields first, or use a
-  sorted table.
-- **LOOP and READ targets.** The work area or field symbol read after
-  `ENDLOOP` (it holds the last row, or nothing); an inner READ reusing the
-  outer target; a target typed with another structure than the line. An inner
-  LOOP reusing it and `… INTO <fs>` where ASSIGNING was meant are gated by
-  abaplint's `loop_target_misuse` from 2.120.109 (abaplint/abaplint#4585).
-- **Loops that do not loop.** A body that ends with RETURN/EXIT/RAISE on every
-  path; a WHILE whose condition variables the body never writes.
+- **LOOP and READ targets.** A work area read after `ENDLOOP` (it holds the
+  last row); an inner READ reusing the outer target; a target typed with
+  another structure than the line. An inner LOOP reusing it, `… INTO <fs>`
+  where ASSIGNING was meant (abaplint/abaplint#4585) and a field symbol used
+  after ENDLOOP or a failed READ (`usedAfterLoop`, abaplint/abaplint#4595) are
+  gated by abaplint's `loop_target_misuse` from 2.120.112.
 - **Implicit conversions.** A character field compared with a number, a d/t
   field with a formatted literal (`'2024-01-01'`); a literal or constant longer
   than its target; TIMESTAMPL assigned to TIMESTAMP (the fraction is cut); a
@@ -1866,7 +1861,7 @@ fix.
   ASSERT in a test class are gated by abaplint's `unit_test_assertions` from
   2.120.109 (abaplint/abaplint#4583).
 
-**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-sort-before-read, abaplint-loop-target-misuse, abaplint-suspicious-loop, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 

@@ -4253,7 +4253,7 @@ CLASS ltcl_06_struct_alias IMPLEMENTATION.
     " the alias points at the STRUCTURE again, not at its table component
     cl_abap_unit_assert=>assert_bound( act = lo_app->mr_alias
                                        msg = `alias lost across the draft` ).
-    DATA(lo_descr) = cl_abap_typedescr=>describe_by_data_ref( lo_app->mr_alias ).
+    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lo_app->mr_alias ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_struct
                                         act = lo_descr->kind
                                         msg = |alias re-pointed - it derefs to kind { lo_descr->kind } ({ lo_descr->absolute_name })| ).
