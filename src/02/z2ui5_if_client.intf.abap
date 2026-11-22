@@ -434,14 +434,17 @@ INTERFACE z2ui5_if_client
 
   "! HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history
   "! entry, so the browser Back button has a step to take. The 1:1
-  "! counterpart of a UI5 router's navTo. With cs_event-hash_attach_changed
-  "! registered the value is the WHOLE app hash (`/Page2`); without a
-  "! listener VAL is APPENDED to the hash the page already has - a suffix
-  "! such as `&amp;my-app-state=detail`, written with history.pushState.
+  "! counterpart of a UI5 router's navTo. The value is the WHOLE app hash
+  "! (`/Page2`).
   "!
-  "! @parameter val | the hash to write - the whole app hash (`/Page2`) with a
-  "!                  hash_attach_changed listener registered, otherwise the
-  "!                  suffix appended to the hash the page already has.
+  "! The app has to OWN the hash: register a listener with
+  "! cs_event-hash_attach_changed first (the same roundtrip is fine), so the
+  "! Back onto what was written reaches the app. Without one, and under
+  "! hash_routing - where the hash is the router's - nothing is written and
+  "! the frontend says so in its log. (Until 2026-11 the value was then
+  "! appended to the hash the page had, as a suffix.)
+  "!
+  "! @parameter val | the whole app hash to write (`/Page2`).
   METHODS hash_set
     IMPORTING
       val TYPE string OPTIONAL.
@@ -450,11 +453,9 @@ INTERFACE z2ui5_if_client
   "! history entry - the UI5 router's navTo( ..., true ). What
   "! FlexibleColumnLayout apps do when a NAVIGATION ARROW changes the
   "! layout: the URL follows, but Back does not step through arrow drags.
-  "! As for hash_set( ), only with cs_event-hash_attach_changed registered is
-  "! the value the WHOLE app hash; without a listener VAL is APPENDED to the
-  "! hash the page already has, so writing a whole route (`/repo/1`) on every
-  "! roundtrip grows the URL (`#/repo/1/repo/1`). An app that owns its routes
-  "! registers the listener (in view_display( ), see hash_attach_changed).
+  "! As for hash_set( ), the value is the WHOLE app hash and the app has to
+  "! own the hash: it registers the listener (in view_display( ), see
+  "! cs_event-hash_attach_changed). Without one nothing is written.
   "!
   "! @parameter val | the hash to write, spelled as for hash_set( ).
   METHODS hash_replace

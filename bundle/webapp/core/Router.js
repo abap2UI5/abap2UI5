@@ -299,33 +299,13 @@ sap.ui.define(
       return "";
     }
 
-    // Every hash write of sync( ) comes in the same two flavours, and the
-    // three places that write one used to spell both halves out: a PUSH
-    // adds a history entry (Back returns to what was there) and counts
-    // towards hashPushCount - navBack's stand-in for UI5's
-    // History.getPreviousHash - while a REPLACE writes in place and leaves
-    // the history depth alone. What differs between the three is only WHAT
-    // is written, never what a push or a replace means.
+    // A hash write of sync( ) comes in two flavours: a PUSH adds a history
+    // entry (Back returns to what was there) and counts towards
+    // hashPushCount - navBack's stand-in for UI5's History.getPreviousHash -
+    // while a REPLACE writes in place and leaves the history depth alone.
     function writeHash(ctx, sHash, bPush) {
       if (bPush) ctx.state.hashPushCount += 1;
       write(ctx, sHash, !bPush);
-    }
-
-    // The same pair for the legacy write, which goes through the History
-    // API rather than the HashChanger: the app's suffix is appended to the
-    // RAW hash so the FLP shell hash survives - appending it to the app
-    // hash alone would rewrite "#SO-action&/x" to "#x" and strand the
-    // launchpad.
-    function writeLegacyUrl(ctx, sSuffix, bPush) {
-      const sRaw = `${getRawHash()}${sSuffix}`;
-      const url = `${window.location.pathname}${window.location.search}#${sRaw}`;
-      if (bPush) {
-        ctx.state.hashPushCount += 1;
-        history.pushState(null, "", url);
-      } else {
-        history.replaceState(null, "", url);
-      }
-      trailWrite(ctx, sRaw, !bPush);
     }
 
     // The UI5 onNavBack pattern (History.getPreviousHash), app-owned - the
@@ -552,8 +532,6 @@ sap.ui.define(
         state.navDirection = "";
         return;
       }
-      if (mOptions.setPushState || mOptions.setHashReplace) return;
-
       // Reflect the running app in the URL as a bookmarkable route. A forward
       // navigation done in the backend (client->nav_app_call,
       // CHECK_NAV_APP_CALL) pushes a NEW history entry so Back returns to the
@@ -591,67 +569,50 @@ sap.ui.define(
 
         const state = ctx.state;
         // The hash the app asked to have written, and in which flavour:
-        // set_push_state adds a history entry, hash_replace writes in
-        // place. Every branch below writes THIS value - only where it goes
-        // differs - so the pair is read once here.
-        const sAppWrite = mOptions.setPushState || mOptions.setHashReplace;
+        // hash_set adds a history entry, hash_replace writes in place.
+        //
+        // An app writes the hash only as its OWNER: with routing off and a
+        // listener registered (cs_event-hash_attach_changed, applyHashEvent
+        // above - the same response may register and write). The value is
+        // then the WHOLE app hash, written through the HashChanger, so
+        // hasher's cache follows it and the next browser Back fires
+        // hashChanged. Anything else is refused and said so: under routing
+        // the hash is the router's, and without a listener nobody would
+        // hear a Back onto what was written.
+        //
+        // Until 2026-11 such a write was APPENDED to the hash the page had,
+        // as a suffix - behind the route in KEEP mode, with history.pushState
+        // otherwise. That bypassed hasher's cache (the next Back was read as
+        // "no change" and went nowhere), grew the URL with every roundtrip
+        // of an app that wrote a whole route (`#/repo/1/repo/1`), and was
+        // what kept the cleanup below from being a rule of its own.
+        const sAsked = mOptions.setPushState || mOptions.setHashReplace;
         const bPush = Boolean(mOptions.setPushState);
+        const bOwner = !state.navRouting && Boolean(state.hashEvent);
+        if (sAsked && !bOwner) {
+          Lib.logError(
+            `Router: hash_set / hash_replace need the app to own the hash - '${sAsked}' is not written. Register a listener first (cs_event-hash_attach_changed); ${state.navRouting ? "under hash_routing the hash is the router's" : "none is registered"}`,
+          );
+        }
 
         if (state.navRouting) {
           const app = state.oResponse?.APP;
           if (app) updateAppRoute(ctx, mOptions, ID, app);
-          // Routing owns the app-state hash; skip the legacy handling below.
-          if (!sAppWrite) return;
-          // In KEEP mode the suffix is pushed as a real ROUTE through the
-          // HashChanger, not via history.pushState: pushState writes the URL
-          // bar but not hasher's cached hash, so the next browser Back lands
-          // exactly on the cached value, hasher reads "no change", and the
-          // restore roundtrip never fires - the one Back the push exists
-          // for. Through setHash the cache follows the push, the echo
-          // parses to the CURRENT draft and dies in onHashChanged's guard,
-          // and Back reaches the pre-event draft the entry below kept (the
-          // updateAppRoute skip above). Forward restores this draft, with
-          // the suffix riding behind it for the app to read. FRESH carries
-          // no draft id, so a suffix there would PARSE as one - it stays on
-          // the legacy push below, where Back is inert by design (a FRESH
-          // route restarts the app either way).
-          if (state.currentDraftId) {
-            writeHash(
-              ctx,
-              patternFor(state.currentApp, state.currentDraftId) + sAppWrite,
-              bPush,
-            );
-            return;
-          }
-        }
-
-        if (sAppWrite) {
-          if (state.hashEvent) {
-            // The app owns the hash AND listens for its changes: write the
-            // value as the real app hash through the HashChanger - a pushed
-            // history entry hasher's cache follows, so the next browser Back
-            // fires hashChanged instead of being read as "no change" (the
-            // history.pushState of the legacy write below bypasses that
-            // cache). Adopt the value first so the write's own echo dies in
-            // dispatchAppHashChange.
-            state.appHash = appHashNormalized(sAppWrite);
-            writeHash(ctx, sAppWrite, bPush);
-            return;
-          }
-          // The app writes its own hash suffix, the legacy way.
-          writeLegacyUrl(ctx, sAppWrite, bPush);
-          // The written hash IS the desired URL - stop here. The cleanup
-          // below is a no-op while hasher's cached hash is empty (legacy
-          // mode), but with routing on the cache holds the app route, so
-          // replaceHash("") would count as a change and wipe both the route
-          // and the suffix just written.
+          // Routing owns the hash; the app-state handling below is not its
           return;
         }
-        // While a HASH_LISTENER owns the hash, the cleanup below must not
-        // touch it: with the app's value in hasher's cache a replaceHash("")
+
+        if (sAsked && bOwner) {
+          // Adopt the value first so the write's own echo dies in
+          // dispatchAppHashChange.
+          state.appHash = appHashNormalized(sAsked);
+          writeHash(ctx, sAsked, bPush);
+          return;
+        }
+        // While a listener owns the hash, the cleanup below must not touch
+        // it: with the app's value in hasher's cache a replaceHash("")
         // counts as a change and would wipe the hash on the NEXT unrelated
-        // roundtrip (the legacy pushState only survived it because the cache
-        // was desynced). The listener and the app-state hash are mutually
+        // roundtrip. The listener and the app-state hash are mutually
         // exclusive by construction - both claim the whole app hash.
         if (state.hashEvent) return;
         // The live URL must match the format the share link

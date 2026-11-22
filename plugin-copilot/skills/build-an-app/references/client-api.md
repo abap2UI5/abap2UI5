@@ -66,7 +66,7 @@ hash_set(
     val TYPE string OPTIONAL )
 ```
 
-HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history entry, so the browser Back button has a step to take. The 1:1 counterpart of a UI5 router's navTo.
+HashChanger#setHash: write VAL as the app's URL hash - a PUSHED history entry, so the browser Back button has a step to take. The 1:1 counterpart of a UI5 router's navTo. The value is the WHOLE app hash (`/Page2`).
 
 ### `hash_replace`
 

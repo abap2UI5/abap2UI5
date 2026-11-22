@@ -677,8 +677,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``client->hash_set( val )`` writes ``val`` as the app's URL hash with a pushed` && |\n| &&
              `  history entry (the UI5 router's ``navTo``), ``client->hash_replace( val )``` && |\n| &&
              `  writes it without one (``navTo( ..., true )`` - e.g. a layout arrow whose` && |\n| &&
-             `  drags must not become Back steps). ``client->app_state_set_active( )``` && |\n|.
+             `  drags must not become Back steps). Both write the WHOLE app hash and need` && |\n|.
     result = result &&
+             `  the app to own it: register ``hash_attach_changed`` first (below), or` && |\n| &&
+             `  nothing is written. ``client->app_state_set_active( )``` && |\n| &&
              `  keeps the id of the CURRENT app state in the URL on every roundtrip, so a` && |\n| &&
              `  reload/bookmark/shared link restores the exact state;` && |\n| &&
              `  ``client->app_state_get_href( )`` returns the absolute, FLP-safe link to` && |\n| &&
@@ -717,10 +719,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  bloated public section makes every click slower.` && |\n| &&
              `- Authorization is **the app's job**: any user who can reach the ICF node can` && |\n| &&
              `  start any ``z2ui5_if_app`` class. The framework performs no ``AUTHORITY-CHECK``` && |\n| &&
-             `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n| &&
-             `  Check your authorizations at the top of ``main``, before any dispatch, and` && |\n| &&
-             `  render an error when denied - the same place a transaction or a report` && |\n|.
+             `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n|.
     result = result &&
+             `  Check your authorizations at the top of ``main``, before any dispatch, and` && |\n| &&
+             `  render an error when denied - the same place a transaction or a report` && |\n| &&
              `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
              `  an app that reads or writes business data starts like this:` && |\n| &&
              |\n| &&
@@ -760,10 +762,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- **An imperative UI5 method that has no bindable equivalent** - the` && |\n| &&
              `  ``sap.m.p13n.*`` panels take their item list only through ``setP13nData( )``,` && |\n| &&
              `  a ``sap.m.Carousel`` only moves via ``setActivePage( )`` - is reached with` && |\n| &&
-             `  ``client->follow_up_action( val = cs_event-control_by_id ... )``. Check` && |\n| &&
-             `  ``cs_event`` and the whitelist before writing custom JS: an argument the` && |\n| &&
-             `  whitelist does not declare is silently dropped, but a method it declares` && |\n|.
+             `  ``client->follow_up_action( val = cs_event-control_by_id ... )``. Check` && |\n|.
     result = result &&
+             `  ``cs_event`` and the whitelist before writing custom JS: an argument the` && |\n| &&
+             `  whitelist does not declare is silently dropped, but a method it declares` && |\n| &&
              `  needs no JS at all.` && |\n| &&
              |\n| &&
              `## 9. Validate and iterate like the framework does` && |\n| &&
@@ -802,10 +804,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  the class's ``.clas.testclasses.abap`` answers ``check_on_init`` /` && |\n| &&
              `  ``check_on_event`` / ``get_event`` from attributes and records what` && |\n| &&
              `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
-             `  calls ``main( )`` and asserts.` && |\n| &&
-             `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
-             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n|.
+             `  calls ``main( )`` and asserts.` && |\n|.
     result = result &&
+             `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
+             `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
              `  transpiled backend; ``npm run test:unit`` in the project and the` && |\n| &&
              `  ``abap2UI5/mcp-server`` GitHub Action do the same at the terminal and in CI,` && |\n| &&
@@ -844,10 +846,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    METHOD z2ui5_if_client~view_display.` && |\n| &&
              `      APPEND val TO t_view.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~message_toast_display.` && |\n| &&
-             `      APPEND text TO t_toast.` && |\n| &&
-             `    ENDMETHOD.` && |\n|.
+             `    METHOD z2ui5_if_client~message_toast_display.` && |\n|.
     result = result &&
+             `      APPEND text TO t_toast.` && |\n| &&
+             `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
              `      result = ``bound``.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
@@ -888,10 +890,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``zcl_my_app.clas.abap`` and its ``zcl_my_app.clas.xml`` sidecar, in a` && |\n| &&
              `  repository the system pulls with abapGit - or its source is pasted into the` && |\n| &&
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
-             `  service, no frontend artefact. Once the class is active it runs at the` && |\n| &&
-             `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
-             `  connection to the system stops at the files - say so, and say which of the` && |\n|.
+             `  service, no frontend artefact. Once the class is active it runs at the` && |\n|.
     result = result &&
+             `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
+             `  connection to the system stops at the files - say so, and say which of the` && |\n| &&
              `  gates above ran.` && |\n| &&
              `- **``npm run doctor``** in a project made from app-template: the environment` && |\n| &&
              `  check - Node, the two gates, Chromium for the render gate, the framework` && |\n| &&
@@ -937,11 +939,11 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `start does not pay for them. There is no backend switch and no ABAP call to` && |\n| &&
              `open them; they are a frontend affair.` && |\n| &&
              |\n| &&
-             `### What you find there` && |\n| &&
+             `### What you find there` && |\n|.
+    result = result &&
              |\n| &&
              `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n| &&
-             `  go next. The landing tab, with the "Open on Error" switch.` && |\n|.
-    result = result &&
+             `  go next. The landing tab, with the "Open on Error" switch.` && |\n| &&
              `- **Problems**: the last fatal error (with Retry / Restart / Logout) and one` && |\n| &&
              `  Log timeline of everything: the framework's error log with stack traces,` && |\n| &&
              `  UI5's log, uncaught errors, rejections, every ``console.*`` call and the` && |\n| &&
@@ -980,11 +982,11 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  tools too, loaded from its own backend endpoint, but without the page-wide` && |\n| &&
              `  console capture: the host's page is not the app's.` && |\n| &&
              |\n| &&
-             `## 11. Calling a language model` && |\n| &&
+             `## 11. Calling a language model` && |\n|.
+    result = result &&
              |\n| &&
              ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n| &&
-             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n|.
-    result = result &&
+             `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n| &&
              ```content``) and model/``max_tokens``/``temperature``, and answers ``text``,` && |\n| &&
              ```stop_reason`` and ``s_usage``; every failure is ``z2ui5_cx_ui5_llm`` (``get_text( )``` && |\n| &&
              `for the user, ``retryable`` for a 408/429/5xx or a timeout). Get a provider from` && |\n| &&

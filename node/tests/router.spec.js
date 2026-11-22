@@ -577,68 +577,56 @@ test("the routing mode arrives with every response and switches modes live", () 
   expect(state.navMode).toBe(null);
 });
 
-test("set_push_state keeps the FLP shell hash in the pushed URL", () => {
-  const flp = loadRouter({
-    state: { navRouting: false },
-    href: `https://host/flp#${FLP_SHELL}&/app/X/D1`,
-  });
-  flp.Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(flp.pushes).toEqual([`/sap/z2ui5#${FLP_SHELL}&/app/X/D1?pos=42`]);
-
-  const standalone = loadRouter({
-    state: { navRouting: false },
-    href: "https://host/sap/z2ui5#/app/X/D1",
-  });
-  standalone.Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(standalone.pushes).toEqual(["/sap/z2ui5#/app/X/D1?pos=42"]);
+// An app writes the hash only as its owner: routing off and a listener
+// registered. Until 2026-11 a write without one was appended to the hash the
+// page had, as a suffix - with history.pushState, or behind the route in
+// KEEP mode.
+test("a hash write without a listener is refused, and said so", () => {
+  for (const options of [
+    { setPushState: "?pos=42", id: "D2" },
+    { setHashReplace: "?pos=42", id: "D2" },
+  ]) {
+    const { Router, pushes, replaces, writes, errors } = loadRouter({
+      state: { navRouting: false },
+      href: "https://host/sap/z2ui5#/somewhere",
+    });
+    Router.sync(options);
+    expect(pushes).toEqual([]);
+    expect(replaces).toEqual([]);
+    // nothing of the value reaches the URL - what is written is the
+    // per-response cleanup of a page without an app-state hash
+    expect(writes.filter((w) => w.hash.includes("pos=42"))).toEqual([]);
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toContain("?pos=42");
+    expect(errors[0].msg).toContain("hash_attach_changed");
+  }
 });
 
-test("set_push_state in KEEP mode pushes the route through the HashChanger", () => {
-  // history.pushState writes the URL bar but not hasher's cached hash: the
-  // next browser Back landed exactly on the cached value, hasher read "no
-  // change", and the restore roundtrip never fired - the one Back the push
-  // exists for. In KEEP mode the suffix therefore rides behind the CURRENT
-  // draft's route, pushed via setHash so hasher's cache follows; the entry
-  // below keeps the pre-event draft (the updateAppRoute skip) and is what
-  // Back restores. Nothing goes through history.pushState, and sync still
-  // stops before the trailing replaceHash("") cleanup that would wipe the
-  // pushed hash.
-  const { Router, state, writes, pushes } = loadRouter({
-    state: { navRouting: true, navMode: "KEEP", currentApp: CALLER },
-    hash: `app/${CALLER}/D1`,
-    href: `https://host/sap/z2ui5#/app/${CALLER}/D1`,
-  });
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setPushState: "/Page2", id: "D2" });
-  expect(pushes).toEqual([]);
-  expect(writes).toEqual([
-    { op: "set", hash: `app/${CALLER}/D2/Page2`, guard: "D2" },
-  ]);
-  // the entry below the push still names D1, so its echo must not be
-  // swallowed: a D1 route differs from the current draft and restores
-  expect(Router.parse(`#/app/${CALLER}/D1`).draft).toBe("D1");
-  expect(state.currentDraftId).toBe("D2");
-});
-
-test("set_push_state in FRESH mode keeps the legacy history push", () => {
-  // a suffix behind a draft-less route would PARSE as a draft id, so FRESH
-  // stays on history.pushState - Back is inert there by design (a FRESH
-  // route restarts the app on every entry anyway), and the trailing
-  // replaceHash("") cleanup stays skipped
-  const { Router, state, writes, pushes } = loadRouter({
-    state: {
-      navRouting: true,
-      navMode: "FRESH",
-      currentApp: CALLER,
-      currentDraftId: null,
-    },
-    hash: `app/${CALLER}`,
-    href: `https://host/sap/z2ui5#/app/${CALLER}`,
-  });
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setPushState: "?pos=42", id: "D2" });
-  expect(pushes).toEqual([`/sap/z2ui5#/app/${CALLER}?pos=42`]);
-  expect(writes.filter((w) => w.hash === "")).toEqual([]);
+test("under routing a hash write is refused and the route is synced as usual", () => {
+  for (const navMode of ["KEEP", "FRESH"]) {
+    const { Router, state, writes, pushes, errors } = loadRouter({
+      state: {
+        navRouting: true,
+        navMode,
+        currentApp: CALLER,
+        currentDraftId: navMode === "KEEP" ? "D1" : null,
+      },
+      hash: navMode === "KEEP" ? `app/${CALLER}/D1` : `app/${CALLER}`,
+      href: `https://host/sap/z2ui5#/app/${CALLER}`,
+    });
+    state.oResponse = { APP: CALLER };
+    Router.sync({ setPushState: "/Page2", id: "D2" });
+    expect(pushes).toEqual([]);
+    // the route follows the response - with its draft in KEEP mode, already
+    // current in FRESH mode - and carries no suffix
+    expect(writes).toEqual(
+      navMode === "KEEP"
+        ? [{ op: "replace", hash: `app/${CALLER}/D2`, guard: "D2" }]
+        : [],
+    );
+    expect(errors).toHaveLength(1);
+    expect(errors[0].msg).toContain("the hash is the router's");
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -866,25 +854,6 @@ test("navBack counts the entries behind the browser, not every push", () => {
   expect(state.hashPushCount).toBe(0);
   Router.onHashChanged("/detail/2");
   expect(state.hashPushCount).toBe(1);
-});
-
-test("a hash replace in KEEP mode replaces the route with the suffix", () => {
-  const { Router, state, writes } = loadRouter();
-  state.oResponse = { APP: CALLER };
-  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
-  expect(writes).toEqual([
-    { op: "replace", hash: `app/${CALLER}/D2?pos=42`, guard: "D2" },
-  ]);
-  expect(state.hashPushCount).toBe(0);
-});
-
-test("a hash replace without listener or routing replaces the raw URL", () => {
-  const { Router, replaces, pushes } = loadRouter({
-    state: { navRouting: false },
-  });
-  Router.sync({ setHashReplace: "?pos=42", id: "D2" });
-  expect(pushes).toEqual([]);
-  expect(replaces).toEqual(["/sap/z2ui5#?pos=42"]);
 });
 
 test("the app-state hash reaches the HashChanger slash-less too", () => {

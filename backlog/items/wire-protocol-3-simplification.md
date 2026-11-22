@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open'
-summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, and one decision about the URL hash is open
+summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, a hash write needs a listener, and one decision about the app-state link is open
 priority: high
 state: open
 first_seen: 2026-11-22
@@ -81,6 +81,14 @@ the commit `test.yaml` pins.
    `keepWindowRequest`, `dispatchQueuedWindows`), by the model that asked.
    One place for all tables lost every request but the last, and a request
    sent while its view was being built was dropped when it was due.
+8. **`hash_set( )` and `hash_replace( )` need the app to own the hash**
+   (2026-11-22, maintainer decision): a listener registered with
+   `cs_event-hash_attach_changed`, routing off. Without one, and under
+   `hash_routing`, `Router.sync` writes nothing and logs it. The suffix
+   writes are gone - `writeLegacyUrl` (`history.pushState`, which hasher's
+   cache did not see) and the route-plus-suffix of KEEP mode. All 10 apps in
+   samples-controls that write a hash register the listener; `hash_routing`
+   has no caller in either corpus.
 
 ## What the protocol repository has to follow
 
@@ -101,26 +109,15 @@ Then move the pinned commit in `test.yaml` (both jobs).
 
 ## Open - decide first
 
-### What `hash_set( )` does without a listener
+### One URL format for the app-state link and the KEEP route
 
-Five mechanisms share one hash in `Router.sync`: KEEP routing, FRESH
-routing, the app-state hash, the app-owned listener
-(`cs_event-hash_attach_changed`), and a suffix written with
-`history.pushState` when an app writes a hash without a listener
-(`writeLegacyUrl`). In samples-controls all 10 apps that write a hash
-register the listener; `hash_routing` and `app_state_set_active` have no
-caller in either corpus, `app_state_get_href` has 11. The `hash_*` events
-sit under "experimental" in `cs_event`.
-
-The suffix branch cannot simply go: the cleanup at the end of `sync`
-(`write(ctx, "", true)` when no app-state hash is asked for) leaves a
-`pushState` suffix alone only because hasher's cache does not know it; a
-hash written through the HashChanger without a listener is wiped by the next
-response. So removing it needs a rule for who owns a hash an app wrote and
-nobody listens to - the maintainer's decision: make the listener mandatory
-(the backend keeps no record of one today), or let an app-written hash stand
-until the app changes it. The same goes for one URL format for the app-state
-link and the KEEP route.
+Both carry a draft id in the hash - `#/z2ui5-xapp-state=<id>` and
+`#/app/<CLASS>/<id>` - and the app-state hash is the one branch of
+`Router.sync` left beside routing and the app-owned hash.
+`app_state_set_active` has no caller in samples-controls or samples-stack,
+`app_state_get_href` has 11; old links die with their draft within hours.
+Folding the first into the second changes the URL an app hands out, so it is
+the maintainer's decision.
 
 ## Checked and dropped - do not re-propose
 

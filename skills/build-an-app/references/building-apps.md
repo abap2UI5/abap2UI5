@@ -631,7 +631,9 @@ reasoning:
   `client->hash_set( val )` writes `val` as the app's URL hash with a pushed
   history entry (the UI5 router's `navTo`), `client->hash_replace( val )`
   writes it without one (`navTo( ..., true )` — e.g. a layout arrow whose
-  drags must not become Back steps). `client->app_state_set_active( )`
+  drags must not become Back steps). Both write the WHOLE app hash and need
+  the app to own it: register `hash_attach_changed` first (below), or
+  nothing is written. `client->app_state_set_active( )`
   keeps the id of the CURRENT app state in the URL on every roundtrip, so a
   reload/bookmark/shared link restores the exact state;
   `client->app_state_get_href( )` returns the absolute, FLP-safe link to
