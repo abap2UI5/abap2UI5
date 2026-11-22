@@ -415,7 +415,7 @@ sap.ui.define(
           // slot's record, not of a view kept at the time: a control can
           // fire before its view has reached the slot at all
           const key = ViewSlots.keyOfController(queued.controller);
-          if (ViewSlots.getViewResponse(this.ctx, key) !== queued.response) {
+          if (ViewSlots.getViewToken(this.ctx, key) !== queued.token) {
             continue;
           }
           const chain = state.renderEventChain + 1;
@@ -733,9 +733,9 @@ sap.ui.define(
             // superseded - and dropped on every later one.
             this.ctx.state.aRenderEvents.push({
               controller: this,
-              // the response that builds the view the event comes from -
-              // see _dispatchQueuedEvent
-              response: this.ctx.state.oResponse,
+              // the response that builds the view the event comes from,
+              // as its token - see _dispatchQueuedEvent
+              token: this.ctx.state.oResponse.TOKEN,
               args: Lib.normalizeEventArgs(args),
             });
             return;
@@ -826,9 +826,10 @@ sap.ui.define(
       // Was this event fired by a control of a view the response IN PROCESS
       // is building? A response is in process from the moment View1 claims
       // it until its finally (_processAfterRendering), and the slot records
-      // the response that built its view (ViewSlots.setView). A control can
-      // fire before its view has reached the slot - while XMLView.create is
-      // still building it - and then the slot tells nothing: when it is
+      // the response that built its view, as its token (ViewSlots.setView).
+      // A control can fire before its view has reached the slot - while
+      // XMLView.create is still building it - and then the slot tells
+      // nothing: when it is
       // EMPTY the event cannot be a click on a screen being replaced, there
       // is none (the first response of a page, a popup being opened); when
       // it still shows the view of an earlier response the event is taken
@@ -838,7 +839,7 @@ sap.ui.define(
         if (!oResponse?._processing) return false;
         const key = ViewSlots.keyOfController(this);
         if (!ViewSlots.getView(this.ctx, key)) return true;
-        return ViewSlots.getViewResponse(this.ctx, key) === oResponse;
+        return ViewSlots.getViewToken(this.ctx, key) === oResponse.TOKEN;
       },
 
       _pickModelForRoundtrip(useMainModel) {

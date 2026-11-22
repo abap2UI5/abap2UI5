@@ -85,7 +85,8 @@ function withRecordedEB() {
 // both are undefined and the guard stays out of the way, which is also the
 // real behaviour for a slot no response has claimed.
 // `builtFrom` names the open slots whose model was built from THIS response
-// (Slots.createViewModel stamps the response record on it) - the push must
+// (Slots.createViewModel stamps the response's token on it - the token, so
+// the model does not keep the record and its data alive) - the push must
 // leave those alone, they hold the data already.
 function withSlots(
   openKeys,
@@ -94,7 +95,7 @@ function withSlots(
 ) {
   const applied = [];
   const views = {};
-  const oResponse = { OVIEWMODEL: model, APP: responseApp };
+  const oResponse = { OVIEWMODEL: model, APP: responseApp, TOKEN: {} };
   for (const key of openKeys) {
     // each open slot carries its own framework-owned (tracked) model; a
     // push must land as setData on exactly that model
@@ -102,7 +103,7 @@ function withSlots(
       _z2ui5Tracked: true,
       setData: (data) => applied.push({ key, data }),
     };
-    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse;
+    if (builtFrom.includes(key)) tracked._z2ui5BuiltFrom = oResponse.TOKEN;
     views[key] = { getModel: (name) => (name ? undefined : tracked) };
   }
   const ViewSlots = {
@@ -205,7 +206,8 @@ test.describe("updateModel (one dispatch, every open model slot)", () => {
     const { Slots, applied, views } = withSlots(["MAIN", "POPUP"], model, {
       builtFrom: ["MAIN"],
     });
-    views.POPUP.getModel()._z2ui5BuiltFrom = { OVIEWMODEL: { A: 1 } };
+    // the token of that earlier response
+    views.POPUP.getModel()._z2ui5BuiltFrom = {};
     Slots.action("updateModel", undefined, undefined, {});
     expect(applied.map((a) => a.key)).toEqual(["POPUP"]);
   });
@@ -1444,8 +1446,9 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
         "z2ui5/core/ViewSlots": {
           keyOfController: () => "MAIN",
           getView: () => slot.view,
-          // the response that built the view in the slot (ViewSlots.setView)
-          getViewResponse: () => slot.response,
+          // the response that built the view in the slot, as its token
+          // (ViewSlots.setView)
+          getViewToken: () => slot.token,
           destroy: () => {},
         },
         "z2ui5/core/Router": {
@@ -1486,8 +1489,8 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
     // the response in process, and the slot's view built by it
     function building(h) {
       h.state.isBusy = true;
-      h.state.oResponse = { ID: "D1", _processing: true };
-      h.slot.response = h.state.oResponse;
+      h.state.oResponse = { ID: "D1", _processing: true, TOKEN: {} };
+      h.slot.token = h.state.oResponse.TOKEN;
     }
 
     test("is kept, whatever its wire's flags, and raises no overlay", () => {
@@ -1506,7 +1509,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       const h = loadForQueue();
       building(h);
       // the slot still shows the view of an EARLIER response
-      h.slot.response = { ID: "D0" };
+      h.slot.token = {};
 
       h.ctrl.eB(PLAIN);
 
@@ -1519,8 +1522,8 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       const h = loadForQueue();
       building(h);
       // the request is still in flight: no response is being processed
-      h.state.oResponse = { ID: "D0" };
-      h.slot.response = h.state.oResponse;
+      h.state.oResponse = { ID: "D0", TOKEN: {} };
+      h.slot.token = h.state.oResponse.TOKEN;
 
       h.ctrl.eB(PLAIN);
 
@@ -1558,7 +1561,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       // XMLView.create is still building: the slot holds no view at all,
       // so this cannot be a click on a screen being replaced
       h.slot.view = undefined;
-      h.slot.response = undefined;
+      h.slot.token = undefined;
 
       h.ctrl.eB(["EARLY"]);
 
@@ -1570,7 +1573,7 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
       building(h);
       h.ctrl.eB(["FIRST"]);
       // a later response replaced the view the event came from
-      h.slot.response = { ID: "D9" };
+      h.slot.token = {};
       h.state.oResponse._processed = false;
 
       await h.ctrl._processAfterRendering(1);

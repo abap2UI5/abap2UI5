@@ -186,6 +186,25 @@ test("a POPOVER display opens on the anchor the options name", async () => {
   expect(opened).toEqual([anchor]);
 });
 
+test("a model remembers the response it was built from by its token", async () => {
+  // the mark is what lets the same response's model push skip the slot it
+  // just filled (updateModelIfRequired) - an identity, compared and never
+  // read. It used to be the response record: the whole model and the view
+  // XML, kept reachable by the popup's model for as long as the popup
+  // stood, although the model binds a copy of its own
+  const { Slots, state, fragment } = load();
+  state.oResponse = {
+    APP: "ZCL_APP",
+    OVIEWMODEL: { ROWS: [1, 2, 3] },
+    TOKEN: {},
+  };
+  await Slots.action("display", "POPUP", "<Dialog/>");
+
+  expect(fragment.model._z2ui5BuiltFrom).toBe(state.oResponse.TOKEN);
+  expect(fragment.model._z2ui5BuiltFrom).not.toBe(state.oResponse);
+  expect(fragment.model.data).toEqual({ ROWS: [1, 2, 3] });
+});
+
 test("a nested display without options reports the missing parent", async () => {
   // id / methodInsert are destructured from the options
   const { Slots, errors, view } = load();

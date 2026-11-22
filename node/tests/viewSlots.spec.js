@@ -45,6 +45,7 @@ function load() {
     "setView",
     "getViewXml",
     "getViewApp",
+    "getViewToken",
     "responseModel",
     "getController",
     "byId",
@@ -131,6 +132,29 @@ test.describe("view and controller access", () => {
     expect(ViewSlots.getViewApp("MAIN")).toBe("ZCL_LIST");
     expect(ViewSlots.getViewApp("POPUP")).toBe("ZCL_LIST_POPUP");
     expect(ViewSlots.getViewApp("POPOVER")).toBeUndefined();
+  });
+
+  test("setView records WHICH response built the view - its token, not the record", () => {
+    // View1.eB asks it: an event a control fires while the response that
+    // builds its view is still being processed is kept, a click on the
+    // view of an earlier one is dropped. Only ever compared - and the
+    // record itself holds the whole model and every view XML of the
+    // response, which the slot kept reachable for as long as its view
+    // stood, long after the next model push had replaced that data
+    const { ViewSlots, state } = load();
+    const first = { APP: "ZCL_LIST", OVIEWMODEL: { ROWS: [1, 2] }, TOKEN: {} };
+    state.oResponse = first;
+    ViewSlots.setView("MAIN", { setModel() {} }, "<mvc:View/>");
+    const second = { APP: "ZCL_LIST", OVIEWMODEL: {}, TOKEN: {} };
+    state.oResponse = second;
+    ViewSlots.setView("POPUP", { setModel() {} }, "<Dialog/>");
+
+    expect(ViewSlots.getViewToken("MAIN")).toBe(first.TOKEN);
+    expect(ViewSlots.getViewToken("POPUP")).toBe(second.TOKEN);
+    expect(ViewSlots.getViewToken("POPOVER")).toBeUndefined();
+    // nothing of the record is reachable from the slot's bookkeeping
+    expect(Object.values(state.slotToken)).not.toContain(first);
+    expect(Object.values(state.slotToken)).not.toContain(second);
   });
 
   test("a re-display moves the slot to the app that displayed it", () => {
@@ -378,6 +402,15 @@ test.describe("destroy", () => {
     expect(ViewSlots.getViewApp("POPUP")).toBeUndefined();
   });
 
+  test("drops the token of the response that built the view", () => {
+    const { ViewSlots, state } = load();
+    state.oResponse = { APP: "ZCL_LIST_POPUP", TOKEN: {} };
+    ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
+    ViewSlots.destroy("POPUP");
+    expect(ViewSlots.getViewToken("POPUP")).toBeUndefined();
+    expect(state.slotToken).toEqual({});
+  });
+
   test("drops the recorded XML of a slot whose view is already gone", () => {
     // A fragment load that failed after recording, or a state reset that
     // nulled the live instances: the record must not outlive the slot.
@@ -483,7 +516,9 @@ test.describe("detach", () => {
     state.oViewNest = nestView;
     state.slotXml.MAIN = "<View/>";
     state.slotApp.MAIN = "ZCL_APP";
+    state.slotToken.MAIN = {};
     state.slotXml.NEST = "<View/>";
+    state.slotToken.NEST = {};
 
     expect(ViewSlots.detach("MAIN")).toBe(mainView);
 
@@ -492,6 +527,7 @@ test.describe("detach", () => {
     expect(state.oViewNest).toBeNull();
     expect(state.slotXml).toEqual({});
     expect(state.slotApp).toEqual({});
+    expect(state.slotToken).toEqual({});
     // no validation registration stays behind for a page that is leaving
     expect(unregisterCalls).toEqual([nestView, mainView]);
   });

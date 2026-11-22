@@ -450,7 +450,9 @@ sap.ui.define(
             // instead of serializing the body a second time - in bytes, as
             // the response size next to it is. Lazy: the count is a full
             // copy of the body (Lib.byteLength), paid only when something
-            // asks, which on a page without the developer tools is never
+            // asks - the recorder, once this roundtrip has rendered, so
+            // not here between the event and the POST, and not at all for
+            // a request that never gets that far (Lib.lazyByteLength)
             ctx.state.lastRequestBytes = Lib.lazyByteLength(body);
             sentAt = Date.now();
             response = await this._post(ctx, body, signal);
@@ -651,6 +653,17 @@ sap.ui.define(
               // Class name of the rendered app - used by the hash router to
               // keep the URL route "#/app/<CLASS>" in sync (View1).
               APP: responseData.S_FRONT.APP,
+              // What stands for this record wherever something has to
+              // remember WHICH response it came from: a slot its view was
+              // built by (ViewSlots.setView), a model built from its data
+              // (actions/Slots createViewModel), an event kept while it
+              // was processed (View1.eB). All of them only ever compare,
+              // and they used to keep the record itself for it - the whole
+              // model and every view XML of the response, reachable for as
+              // long as the view lived, although the model is replaced by
+              // the next push. An object of its own, compared by identity;
+              // the request stamp inside is for whoever reads a state dump.
+              TOKEN: Object.freeze({ seq }),
             },
             seq,
           );

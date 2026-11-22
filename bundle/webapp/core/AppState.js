@@ -75,11 +75,15 @@
 //                     carries the model of ONE app, so this is what says
 //                     which open slots it may be pushed into
 //                     (actions/Slots.updateModelIfRequired)
-//   slotResponse      the response each slot was BUILT by, per slot key -
+//   slotToken         the response each slot was BUILT by, per slot key,
+//                     as that response's TOKEN (see oResponse below) -
 //                     recorded and dropped alongside slotXml. It is how
 //                     View1.eB tells an event a control fires while its view
 //                     is being built (kept, aRenderEvents) from a click on a
-//                     screen the response in process did not build (dropped)
+//                     screen the response in process did not build (dropped).
+//                     The token and not the record: the record holds the
+//                     whole model and the view XML, which a slot must not
+//                     keep alive for as long as its view stands
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else
@@ -109,7 +113,13 @@
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
 //   oResponse         last processed response { ID, VIEWS, NAV, ACTIONS,
-//                     OVIEWMODEL, APP, MODELPRESENT }
+//                     OVIEWMODEL, APP, MODELPRESENT, TOKEN }. TOKEN is the
+//                     record's identity for everything that outlives it -
+//                     slotToken above, the model a display built from it
+//                     (_z2ui5BuiltFrom, actions/Slots), an event kept while
+//                     it was processed (aRenderEvents): an object of its
+//                     own that is only ever compared, so none of them
+//                     holds on to the record (Server.readHttp)
 //   renderedApp       class name of the last rendered app - an APP switch in
 //                     a response drops the event a queue-last wire kept
 //                     (View1._processAfterRendering)
@@ -151,7 +161,7 @@
 //                     table, the last one winning unless it is a request
 //                     for more rows behind a kept sort or filter
 //                     (WindowModel.keepRestart). Sent after oQueuedEvent
-//   aRenderEvents     [{ controller, response, args }] - the events controls
+//   aRenderEvents     [{ controller, token, args }] - the events controls
 //                     fired WHILE the response in process was building their
 //                     view (a Storage control answering from its
 //                     onAfterRendering, an afterRendering an app wired).
@@ -236,7 +246,7 @@ sap.ui.define([], () => {
       oControllerPopover: null,
       slotXml: {},
       slotApp: {},
-      slotResponse: {},
+      slotToken: {},
       oLaunchpad: null,
 
       // Page transitions of the MAIN view (see the inventory above)

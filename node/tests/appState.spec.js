@@ -31,7 +31,7 @@ test.describe("createState", () => {
     expect(state.viewSizeLimits).toEqual({});
     expect(state.slotXml).toEqual({});
     expect(state.slotApp).toEqual({});
-    expect(state.slotResponse).toEqual({});
+    expect(state.slotToken).toEqual({});
     expect(state.aRenderEvents).toEqual([]);
     expect(state.renderEventChain).toBe(0);
     expect(state.onBeforeRoundtrip).toEqual([]);

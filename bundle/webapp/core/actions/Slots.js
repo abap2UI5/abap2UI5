@@ -182,14 +182,17 @@ sap.ui.define(
         }
         oController.eB([WindowModel.EVENT, { noBusy: !!noBusy }], ...args);
       };
-      // A model built from THIS response remembers the response record, so
+      // A model built from THIS response remembers the response - as its
+      // token, never the record: the record holds the data this model is
+      // built from, and a model that kept it would keep that data alive
+      // long after the next push replaced it (Server.readHttp, TOKEN) - so
       // the model push the same response carries (updateModelIfRequired)
       // knows the slot is already filled. The backend ships MODEL with every
       // display, and the push used to land in the model just built from it:
       // a full binding sweep on MAIN, and for a popup or popover a second
       // deep copy of the whole model on every open.
       if (data && data === ctx.state.oResponse?.OVIEWMODEL) {
-        oModel._z2ui5BuiltFrom = ctx.state.oResponse;
+        oModel._z2ui5BuiltFrom = ctx.state.oResponse.TOKEN;
       }
       return oModel;
     }
@@ -931,7 +934,7 @@ sap.ui.define(
         // model a second time for a standalone slot
         if (
           tracked._z2ui5BuiltFrom &&
-          tracked._z2ui5BuiltFrom === ctx.state.oResponse
+          tracked._z2ui5BuiltFrom === ctx.state.oResponse?.TOKEN
         ) {
           return;
         }

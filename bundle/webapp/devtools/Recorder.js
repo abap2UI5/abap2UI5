@@ -391,13 +391,14 @@ sap.ui.define(
     // Serialized size of the request body. Server.readHttp parks a lazy
     // measure of the body it sent on shared state (lastRequestBytes, a
     // function - Lib.lazyByteLength): the count is taken on the first call,
-    // here, so a page without the tools never pays it, and the body is not
-    // serialized a second time. The stringify below is only the fallback
-    // for a body that never went through readHttp: the body is usually a
-    // small delta, but buildDeltaFromPaths falls back to a WHOLE attribute
-    // for non-cell paths, and re-serializing a multi-MB table once per
-    // roundtrip in the render phase - with payload recording off - was the
-    // recorder's one measurable standing cost.
+    // here in the render phase, so the request's own way out does not pay
+    // for it, and the body is not serialized a second time. The stringify
+    // below is only the fallback for a body that never went through
+    // readHttp: the body is usually a small delta, but buildDeltaFromPaths
+    // falls back to a WHOLE attribute for non-cell paths, and
+    // re-serializing a multi-MB table once per roundtrip in the render
+    // phase - with payload recording off - was the recorder's one
+    // measurable standing cost.
     function measureRequest(ctx, oBody) {
       if (!oBody) return null;
       const known = ctx.state.lastRequestBytes;

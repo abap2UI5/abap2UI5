@@ -1372,17 +1372,25 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   }
 
   // The same number, computed on the first call and remembered: a function
-  // in place of the number, for a caller that may never ask. byteLength
-  // copies the whole text (TextEncoder.encode allocates it a second time
-  // as bytes), and Server.readHttp measured EVERY request body this way,
-  // on the hot path, for the one reader that wants the number - the
-  // developer tools' recorder, which is not installed on most pages. The
-  // closure keeps the text alive until the next request overwrites it,
-  // the way state.oBody keeps the object it was serialized from.
+  // in place of the number, for a caller that asks later, or never.
+  // byteLength copies the whole text (TextEncoder.encode allocates it a
+  // second time as bytes), and Server.readHttp measured EVERY request body
+  // this way on its way out, for the one reader that wants the number - the
+  // developer tools' recorder. That one is installed on every page
+  // (DevTools.install), but it asks in the render phase of a roundtrip that
+  // got that far: the copy is off the path between the event and the POST,
+  // and a request that fails, is superseded or renders nothing never pays
+  // it. The closure holds the text only until the count is taken - it is
+  // the serialized request, model delta included, and used to stay
+  // reachable until the next request replaced the function.
   function lazyByteLength(text) {
+    let pending = text;
     let bytes;
     return () => {
-      if (bytes === undefined) bytes = byteLength(text);
+      if (pending !== undefined) {
+        bytes = byteLength(pending);
+        pending = undefined;
+      }
       return bytes;
     };
   }
