@@ -85,7 +85,7 @@ sap.ui.define(
     // resolved: `press="...eF(['STORE_DATA', ${/S_STORAGE}])"` is an
     // expression binding, and UI5 evaluates it when the view is built. A
     // follow-up action queued from a HANDLER cannot be resolved that way -
-    // T_CUSTOM is pure data and nothing in the response path resolves a
+    // ACTIONS is pure data and nothing in the response path resolves a
     // binding in it - so the very same `${/S_STORAGE}` arrived here as the
     // literal STRING, every field destructured to undefined, and the write
     // was a silent no-op: it took the `VALUE == null` branch and removed

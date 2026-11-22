@@ -214,8 +214,8 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
     " Serialize a framework follow-up action as DATA - a JSON array
     " ["EVENT", arg1, ...] - instead of an executable eF( ) JS snippet. The
     " backend owns the whole serialization including the escaping (via AJSON);
-    " the frontend only dispatches the array (FrontendAction.runCustom /
-    " runSystem), so no code is built here or parsed there on this path. The
+    " the frontend only dispatches the array (FrontendAction.runCustom),
+    " so no code is built here or parsed there on this path. The
     " XML-bound handler strings (get_event_client) keep the JS form - they
     " live inside view XML, where UI5 itself parses the handler expression.
     DATA(ls_event) = map_client_event( val   = val

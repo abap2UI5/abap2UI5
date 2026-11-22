@@ -311,10 +311,10 @@ sap.ui.define(
     // "CONTROL_GLOBAL" (see core/actions/ControlCall.js). Only the second
     // form used to be read, so the messages of the two client methods
     // every app uses never reached the Log tab or the history. The legacy
-    // raw-string entries in T_CUSTOM carry no structured message and are
+    // raw-string entries in ACTIONS carry no structured message and are
     // skipped.
     function extractMessages(response) {
-      const custom = response?.S_FRONT?.S_ACTION?.T_CUSTOM;
+      const custom = response?.S_FRONT?.ACTIONS;
       if (!Array.isArray(custom)) return [];
       const out = [];
       for (const item of custom) {
@@ -438,8 +438,10 @@ sap.ui.define(
           backendMs: net ? Math.round(net.end - net.start) : null,
           renderMs: net ? Math.round(tRendered - net.end) : null,
           totalMs: net ? Math.round(tRendered - net.start) : null,
-          systemActions: sFront?.S_ACTION?.T_SYSTEM?.length || 0,
-          customActions: sFront?.S_ACTION?.T_CUSTOM?.length || 0,
+          // the slots the response changed, and the actions it queued -
+          // the field names are from the two action lists of protocol 2
+          systemActions: Object.keys(sFront?.VIEWS || {}).length,
+          customActions: sFront?.ACTIONS?.length || 0,
           // Tier 1 on purpose - see MAX_MESSAGE_CHARS.
           messages: extractMessages(response),
           rendered: true,
@@ -750,18 +752,10 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     // The XML a response displayed into `slotKey`, or "" when it rebuilt no
-    // such slot. Shape per the backend's own unit tests:
-    // ["VIEW_SLOTS","display","MAIN","<View/>"].
+    // such slot: "MAIN": { "XML": "<View/>" } in its VIEWS section.
     function displayedXml(response, slotKey) {
-      const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;
-      if (!Array.isArray(system)) return "";
-      for (const item of system) {
-        if (!Array.isArray(item)) continue;
-        if (item[0] !== "VIEW_SLOTS" || item[1] !== "display") continue;
-        if (item[2] !== slotKey) continue;
-        if (typeof item[3] === "string") return item[3];
-      }
-      return "";
+      const xml = response?.S_FRONT?.VIEWS?.[slotKey]?.XML;
+      return typeof xml === "string" ? xml : "";
     }
 
     // The two most recent records whose response rebuilt `slotKey`.

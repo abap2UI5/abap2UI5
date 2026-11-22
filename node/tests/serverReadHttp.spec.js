@@ -132,7 +132,7 @@ test.describe("HTTP status outside 2xx", () => {
       expect(env.fetches[1].opts.body).toBe(env.fetches[0].opts.body);
       expect(JSON.parse(env.fetches[1].opts.body)).toEqual({ value: body });
       env.fetches[1].resolve(
-        response({ json: { S_FRONT: { ID: "ok", S_ACTION: {} } } }),
+        response({ json: { S_FRONT: { ID: "ok" } } }),
       );
       await env.fetches[1].promise;
       await new Promise((r) => setTimeout(r, 0));
@@ -242,7 +242,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
     const env = load();
     await answer(
       env,
-      response({ json: { S_FRONT: { ID: "x", PROTOCOL: 1, S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "x", PROTOCOL: 1 } } }),
     );
 
     expect(env.errors).toHaveLength(1);
@@ -260,7 +260,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
       env,
       response({
         json: {
-          S_FRONT: { ID: "x", PROTOCOL: env.Server.PROTOCOL, S_ACTION: {} },
+          S_FRONT: { ID: "x", PROTOCOL: env.Server.PROTOCOL },
         },
       }),
     );
@@ -273,7 +273,7 @@ test.describe("the wire version (S_FRONT.PROTOCOL)", () => {
     const env = load();
     await answer(
       env,
-      response({ json: { S_FRONT: { ID: "x", S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "x" } } }),
     );
 
     expect(env.errors).toEqual([]);
@@ -288,14 +288,14 @@ test.describe("the session id header", () => {
       env,
       response({
         headers: { "sap-contextid": "SID:ANON:host:abc" },
-        json: { S_FRONT: { ID: "x", S_ACTION: {} } },
+        json: { S_FRONT: { ID: "x" } },
       }),
     );
     expect(env.ctx.state.contextId).toBe("SID:ANON:host:abc");
 
     const p = env.Server.readHttp(env.ctx, {}, null);
     env.fetches[1].resolve(
-      response({ json: { S_FRONT: { ID: "y", S_ACTION: {} } } }),
+      response({ json: { S_FRONT: { ID: "y" } } }),
     );
     await p;
     expect(env.ctx.state.contextId).toBe("SID:ANON:host:abc");
@@ -320,7 +320,7 @@ test.describe("the X-CSRF-Token handshake", () => {
     });
   const token = (value) => response({ headers: { "x-csrf-token": value } });
   const good = (id) =>
-    response({ json: { S_FRONT: { ID: id, S_ACTION: {} } } });
+    response({ json: { S_FRONT: { ID: id } } });
 
   // let readHttp run up to its next fetch, or to its end
   async function flush() {

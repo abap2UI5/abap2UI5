@@ -456,7 +456,7 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
-    // Actions - the response's two action lists, readable
+    // Actions - the response's VIEWS, NAV and ACTIONS, readable
     // ------------------------------------------------------------------
 
     function renderArg(arg) {
@@ -483,18 +483,42 @@ sap.ui.define(
       return out;
     }
 
+    // The VIEWS section as lines: one per slot the response changes, in the
+    // order the frontend applies them.
+    function renderViews(views) {
+      const out = [section("VIEWS (what the slots show after this roundtrip)")];
+      const keys = ["MAIN", "NEST", "NEST2", "POPUP", "POPOVER"].filter(
+        (key) => views?.[key],
+      );
+      if (!keys.length) {
+        out.push("  (none)");
+        return out;
+      }
+      for (const key of keys) {
+        const entry = views[key];
+        if (entry.DESTROY) {
+          out.push(`  ${key}  destroy`);
+          continue;
+        }
+        out.push(`  ${key}  display`);
+        out.push(`       ${renderArg(entry.XML)}`);
+        if (entry.OPT) out.push(`       ${renderArg(entry.OPT)}`);
+      }
+      return out;
+    }
+
     function formatActions(ctx) {
-      const sAction = ctx.state.responseData?.S_FRONT?.S_ACTION;
+      const sFront = ctx.state.responseData?.S_FRONT;
       const out = ["abap2UI5 Developer Tools - Actions of the last response"];
       out.push("");
       out.push(
-        "  T_SYSTEM runs first, in order, before the view is rendered;" +
-          " T_CUSTOM runs last, once the DOM exists.",
+        "  VIEWS are applied first, MAIN before the nested and standalone" +
+          " slots; NAV syncs the URL; ACTIONS run last, once the DOM exists.",
       );
-      out.push(
-        ...renderActionList(sAction?.T_SYSTEM, "T_SYSTEM (view lifecycle)"),
-      );
-      out.push(...renderActionList(sAction?.T_CUSTOM, "T_CUSTOM (app)"));
+      out.push(...renderViews(sFront?.VIEWS));
+      out.push(section("NAV (the URL intent)"));
+      out.push(sFront?.NAV ? `  ${renderArg(sFront.NAV)}` : "  (none)");
+      out.push(...renderActionList(sFront?.ACTIONS, "ACTIONS (app)"));
       return out.join("\n");
     }
 

@@ -148,20 +148,12 @@ sap.ui.define(
     }
 
     // The slots a response destroyed without displaying another view into
-    // them - ["VIEW_SLOTS","destroy","POPUP"] - which is how a popup closes
-    // on the wire.
+    // them - "POPUP": { "DESTROY": true } in its VIEWS section - which is
+    // how a popup closes on the wire.
     function destroyedSlots(response) {
-      const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;
-      if (!Array.isArray(system)) return [];
-      const out = [];
-      for (const item of system) {
-        if (!Array.isArray(item)) continue;
-        if (item[0] !== "VIEW_SLOTS" || item[1] !== "destroy") continue;
-        if (typeof item[2] === "string" && !out.includes(item[2])) {
-          out.push(item[2]);
-        }
-      }
-      return out;
+      const views = response?.S_FRONT?.VIEWS;
+      if (!views || typeof views !== "object") return [];
+      return Object.keys(views).filter((slot) => views[slot]?.DESTROY);
     }
 
     // The views a response displayed, reduced to what the test asserts:

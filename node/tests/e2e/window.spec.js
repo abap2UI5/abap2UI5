@@ -105,10 +105,7 @@ test.describe("the wire", () => {
     // the other table keeps its rows
     expect(second.MODEL.MT_GRID).toHaveLength(30);
     // no view was rebuilt - the app only loaded rows
-    const system = second.S_FRONT?.S_ACTION?.T_SYSTEM ?? [];
-    expect(
-      system.some((a) => a[0] === "VIEW_SLOTS" && a[1] === "display"),
-    ).toBe(false);
+    expect(second.S_FRONT?.VIEWS).toBeUndefined();
   });
 
   test("SORT and FILTER hand the app the binding's state; the total follows the app", async ({

@@ -74,14 +74,16 @@ Browser (UI5 SPA)                          ABAP Backend
        │                                        │  4. Call app->main(client)
        │                                        │  5. App builds view / handles events
        │                                        │  6. Save new draft to DB
-       │←─ {S_FRONT: ID, APP, S_ACTION; MODEL} ─│  7. Return JSON response
+       │←─ {S_FRONT: ID, APP, VIEWS, …; MODEL} ─│  7. Return JSON response
 ```
 
 **Request JSON** carries `S_FRONT` (event name, draft ID, browser state) and
 `MODEL` (view model changes as deltas). **Response JSON** carries a new draft
-ID, the app class name, and two action lists under `S_ACTION`: `T_SYSTEM`
-view-lifecycle calls (which carry any view XML) and `T_CUSTOM` follow-up
-actions (including messages). `MODEL` travels only when something bound changed.
+ID, the app class name, and three sections, each absent when it says nothing:
+`VIEWS` (one entry per slot the roundtrip changes - a display with its view XML,
+or a teardown), `NAV` (the URL intent) and `ACTIONS` (what the app asked the
+frontend to do, messages included). `MODEL` travels only when something bound
+changed.
 
 **The wire carries its own version.** Every response stamps `S_FRONT.PROTOCOL`
 from `z2ui5_if_ui5_types=>c_protocol`, and `bundle/webapp/core/Server.js` compares

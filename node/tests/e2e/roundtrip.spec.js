@@ -64,23 +64,16 @@ test("chains the session draft across roundtrips", async ({ request }) => {
   expect(second.S_FRONT.ID).not.toBe(first.S_FRONT.ID);
 });
 
-// The view XML of a response, read from the system action that displays the
-// slot: ["VIEW_SLOTS","display","<slot>","<xml>",{...}?] in
-// S_FRONT.S_ACTION.T_SYSTEM - the wire has no per-slot response fields.
+// The view XML of a response, read from the slot's entry of its VIEWS
+// section: "MAIN": { "XML": "<xml>", "OPT": {...}? }.
 function displayedXml(body, slot = "MAIN") {
-  for (const item of body.S_FRONT?.S_ACTION?.T_SYSTEM ?? []) {
-    const args = Array.isArray(item) ? item : [];
-    if (args[0] === "VIEW_SLOTS" && args[1] === "display" && args[2] === slot) {
-      return args[3];
-    }
-  }
-  return undefined;
+  return body.S_FRONT?.VIEWS?.[slot]?.XML;
 }
 
 // The message-box APP action of a response:
-// ["MESSAGE_BOX","<type>","<text>",{...}?] in T_CUSTOM.
+// ["MESSAGE_BOX","<type>","<text>",{...}?] in ACTIONS.
 function messageBoxText(body) {
-  for (const item of body.S_FRONT?.S_ACTION?.T_CUSTOM ?? []) {
+  for (const item of body.S_FRONT?.ACTIONS ?? []) {
     const args = Array.isArray(item) ? item : [];
     if (args[0] === "MESSAGE_BOX") return args[2];
   }

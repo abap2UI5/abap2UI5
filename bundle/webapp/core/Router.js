@@ -533,9 +533,9 @@ sap.ui.define(
       }
     }
 
-    // Keep the URL in sync with what was just rendered - the ROUTER/sync
-    // system action, run once per roundtrip. The options object is
-    // self-contained: `id` carries the response's draft id.
+    // Keep the URL in sync with what was just rendered - run once per
+    // roundtrip, with the response's NAV section as options (View1). The
+    // options object is self-contained: `id` carries the response's draft id.
     function sync(ctx, mOptions) {
       // On a host's page the hash is the host's (Component.init): no route,
       // no app hash, and above all not the per-roundtrip cleanup at the end

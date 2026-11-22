@@ -75,12 +75,12 @@ sap.ui.define(
         let replaced = false;
         // the build of THIS response failed and the fatal overlay is up
         let failed = false;
-        // The claim happens BEFORE the try: the MAIN rebuild is a system
-        // action now, so slots render (and re-enter here via their own
+        // The claim happens BEFORE the try: the MAIN rebuild is part of
+        // phase 1, so slots render (and re-enter here via their own
         // onAfterRendering - possibly with a NESTED controller as `this`)
         // while phase 1 is still awaiting. A losing entry must return here
         // and never reach the finally, which would hide the busy state and
-        // consume the pending custom JS mid-phase, on the wrong controller.
+        // consume the pending actions mid-phase, on the wrong controller.
         // The record is also pinned for the finally: the shared
         // this.ctx.state.oResponse may point at a newer response by then.
         const oResponse = this.ctx.state.oResponse;
@@ -95,26 +95,20 @@ sap.ui.define(
         // catch, which asks it before it raises the fatal overlay.
         const seq = reqSeq ?? this.ctx.server.requestSeq;
         try {
-          // An APP SWITCH kills the two standalone slots implicitly: they
-          // live outside the MAIN control tree, so they do not fall with
-          // the page the new app renders - and the switch is visible right
-          // here (the response names its app), so no destroy action travels
-          // for it. BEFORE the system actions, so the new app's own
-          // popup_display still opens afterwards. (A hop to another
-          // instance of the SAME class is invisible here - the backend
-          // queues the teardown for exactly that case.)
+          // The response names its app. An app switch is nothing the
+          // frontend acts on for the VIEWS any more - the backend states the
+          // teardown of the standalone slots for every hop itself, as their
+          // entries of the VIEWS section (z2ui5_cl_ui5_action=>
+          // prepare_app_stack; until protocol 3 they were taken down here
+          // whenever the class changed). What does go with the app is the
+          // event a check_queue_last wire kept while the roundtrip ran: it
+          // was typed into the leaving app's view, and the dispatch below
+          // (_dispatchQueuedEvent) would otherwise send it under the NEW
+          // app's draft id, where the backend routes it to an app that
+          // never registered the event
           const state = this.ctx.state;
           const previousApp = state.renderedApp;
           if (oResponse.APP && previousApp !== oResponse.APP) {
-            if (previousApp) {
-              ViewSlots.destroy(this.ctx, "POPUP");
-              ViewSlots.destroy(this.ctx, "POPOVER");
-            }
-            // ... and the event a check_queue_last wire kept while the
-            // roundtrip ran: it was typed into the leaving app's view, and
-            // the dispatch below (_dispatchQueuedEvent) would otherwise
-            // send it under the NEW app's draft id, where the backend
-            // routes it to an app that never registered the event
             state.oQueuedEvent = null;
             state.oQueuedWindow = null;
             state.renderedApp = oResponse.APP;
@@ -128,7 +122,7 @@ sap.ui.define(
           // dead, its hash listener gone, its tree snapshots lost and its
           // tables capped by the default size limit. So the reset asks who
           // filled MAIN (ViewSlots.getViewApp) and whether this response
-          // replaces it - BEFORE the system actions, since the new app
+          // replaces it - BEFORE the views are applied, since the new app
           // registers its shortcuts and takes its tree snapshots in them.
           if (this._replacesMainOwner(oResponse, previousApp)) {
             // the leaving app's keyboard shortcuts die with it - the new app
@@ -158,13 +152,11 @@ sap.ui.define(
             state.appHash = "";
             state.pendingAppHash = null;
           }
-          // No early return on an empty action list: a response without any
-          // action still gets its model push, its hash sync and the
-          // after-render hooks below - with the ROUTER and updateModel
-          // actions derived/gated away, an action-free response is the
-          // COMMON case now, not the exception.
-          if (oResponse.S_ACTION) {
-            await this._runSystemActions(oResponse, seq);
+          // No early return on a response without VIEWS: it still gets its
+          // model push, its hash sync and the after-render hooks below - a
+          // roundtrip that changes no slot is the COMMON case.
+          if (oResponse.VIEWS) {
+            await this._applyViews(oResponse, seq);
           }
           // The app may have been torn down (reset / FLP re-launch) while the
           // pending views loaded; don't mutate history or fire onAfterRendering
@@ -208,12 +200,12 @@ sap.ui.define(
           // roundtrip that rebuilt no view (one that DOES rebuild MAIN takes
           // the standalone slots down with it - see actions/Slots).
           if (oResponse.MODELPRESENT) Slots.action(this.ctx, "updateModel");
-          // Phase 2: ONE history/hash sync per response. A ROUTER action only
-          // travels when the roundtrip carries nav intent - its options were
-          // stashed by the ControlCall hook. The plain response still syncs,
-          // so hash routing and app-state tracking follow every new draft id.
+          // Phase 2: ONE history/hash sync per response, with the URL intent
+          // the response carries as its NAV section - most carry none, and
+          // still sync, so hash routing and app-state tracking follow every
+          // new draft id.
           Router.sync(this.ctx, {
-            ...(oResponse._routerOptions || {}),
+            ...(oResponse.NAV || {}),
             id: oResponse.ID,
           });
           Lib.runCallbacks(this.ctx.state.onAfterRendering);
@@ -271,7 +263,7 @@ sap.ui.define(
           // Its OWN follow-up actions are a different matter, and they run.
           // They are what the backend queued FOR THIS RESPONSE, and nothing
           // else will ever run them: the superseding request answers with its
-          // own T_CUSTOM, so everything queued here was simply dropped.
+          // own ACTIONS, so everything queued here was simply dropped.
           // The app's very FIRST roundtrip lost them every time, because it
           // is the one roundtrip eB does not mark busy (Server.roundtrip is
           // called straight from onInit) - so a control that fires an event
@@ -279,9 +271,9 @@ sap.ui.define(
           // supersedes the response that is building the screen. Measured on
           // the samples-controls corpus: an ICON_POOL registerFont (350) and
           // eight Wizard setNextStep calls (534) sat in the response, in
-          // _pendingCustomJs, and never ran.
+          // _pendingActions, and never ran.
           // Only a response whose screen is GONE skips them - and
-          // _runPendingCustomJs asks isControllerAlive for the torn-down app.
+          // _runPendingActions asks isControllerAlive for the torn-down app.
           // Order unchanged: after the busy indicator is down, so
           // render-dependent actions like SET_FOCUS find their control.
           // A page transition of the MAIN view still in motion ends first
@@ -293,7 +285,7 @@ sap.ui.define(
           if (!replaced && this.ctx.state.mainTransition) {
             await this.ctx.state.mainTransition;
           }
-          if (!replaced && !failed) await this._runPendingCustomJs(oResponse);
+          if (!replaced && !failed) await this._runPendingActions(oResponse);
           // ... except the timers they arm, when what superseded this
           // response is a Back/Forward restore: the restore cancelled the
           // timers of the screen it leaves when it went out - before these
@@ -333,35 +325,30 @@ sap.ui.define(
       // page.
       _replacesMainOwner(oResponse, previousApp) {
         if (!oResponse?.APP) return false;
-        const systemJs = oResponse.S_ACTION?.T_SYSTEM;
-        const displaysMain =
-          Array.isArray(systemJs) &&
-          systemJs.some(
-            (item) =>
-              Array.isArray(item) &&
-              item[0] === "VIEW_SLOTS" &&
-              item[1] === "display" &&
-              item[2] === "MAIN",
-          );
-        if (!displaysMain) return false;
+        const main = oResponse.VIEWS?.MAIN;
+        if (!main || main.DESTROY) return false;
         const owner = ViewSlots.getViewApp(this.ctx, "MAIN") ?? previousApp;
         return owner !== oResponse.APP;
       },
 
-      // Phase 1: run the SYSTEM actions - the framework's own view-lifecycle
-      // calls (destroy a slot, display one, push the model into it), in the
-      // order the backend queued them. They run BEFORE anything an app
-      // queued, and one at a time: a display is async, and the next action
-      // may well be about the slot it is still building. The action context
-      // carries the request stamp (so the slot displays can discard a build
-      // a newer parallel request superseded) and the response record (so the
-      // ROUTER action stashes its options on the response they belong to).
-      async _runSystemActions(oResponse, seq) {
-        const systemJs = oResponse?.S_ACTION?.T_SYSTEM;
-        if (!systemJs) return;
-        for (const item of systemJs) {
+      // Phase 1: apply the response's VIEWS section - one entry per slot
+      // the roundtrip changes, a display ({ XML, OPT }) or a teardown
+      // ({ DESTROY: true }). The ORDER is this method's: MAIN first, then
+      // the nested views, which are inserted into the main control tree,
+      // then the two standalone slots - a new MAIN view takes them down
+      // (actions/Slots displayMain), so a popup the same response opens has
+      // to open after it. The backend sorts nothing. One at a time: a
+      // display is async, and the next entry may well be about a slot it is
+      // still building. The request stamp rides along so a display can
+      // discard a build a newer parallel request superseded.
+      async _applyViews(oResponse, seq) {
+        const views = oResponse?.VIEWS;
+        if (!views) return;
+        for (const slot of ViewSlots.slots) {
+          const entry = views[slot.key];
+          if (!entry) continue;
           // Stop the whole phase once a newer request superseded this
-          // response - the remaining actions would tear down or overwrite
+          // response - the remaining entries would tear down or overwrite
           // what the newer response builds (the per-display guards check
           // the same stamp, but the synchronous teardowns do not).
           if (
@@ -369,10 +356,14 @@ sap.ui.define(
             seq !== this.ctx.server.requestSeq
           )
             return;
-          await FrontendAction.runSystem(item, this, {
+          await Slots.action(
+            this.ctx,
+            entry.DESTROY ? "destroy" : "display",
+            slot.key,
+            entry.XML,
+            entry.OPT,
             seq,
-            response: oResponse,
-          });
+          );
         }
       },
 
@@ -424,12 +415,12 @@ sap.ui.define(
       // the finally of _processAfterRendering, skipped the queued event and
       // the parked hash behind it, and turned a rendered screen into the
       // fatal "App Terminated" overlay.
-      async _runPendingCustomJs(oResponse) {
-        const customJs = oResponse?._pendingCustomJs;
-        if (oResponse) oResponse._pendingCustomJs = null;
-        if (!customJs) return;
+      async _runPendingActions(oResponse) {
+        const actions = oResponse?._pendingActions;
+        if (oResponse) oResponse._pendingActions = null;
+        if (!actions) return;
         if (!Lib.isControllerAlive(this)) return;
-        for (const item of customJs) {
+        for (const item of actions) {
           const result = FrontendAction.runCustom(item, this);
           if (typeof result?.then === "function") {
             try {

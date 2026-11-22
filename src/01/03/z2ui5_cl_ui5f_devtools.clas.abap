@@ -995,7 +995,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `    "                sizes, draft ids - and the ones that never rendered",` && |\n| &&
              `    "  Request /     the raw JSON on the wire",` && |\n| &&
              `    "  Response",` && |\n| &&
-             `    "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",` && |\n| &&
+             `    "  Actions       the response's VIEWS, NAV and ACTIONS, readable",` && |\n| &&
              `    "  Model Diff    what the backend changed between two responses",` && |\n| &&
              `    "  View Diff     what changed in the view XML between two rebuilds",` && |\n| &&
              `    "  Journey       a click-through recorded as steps - what was typed",` && |\n| &&
@@ -1461,18 +1461,40 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      return out;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function renderViews(views) {` && |\n| &&
+             `      const out = [section("VIEWS (what the slots show after this roundtrip)")];` && |\n| &&
+             `      const keys = ["MAIN", "NEST", "NEST2", "POPUP", "POPOVER"].filter(` && |\n| &&
+             `        (key) => views?.[key],` && |\n| &&
+             `      );` && |\n| &&
+             `      if (!keys.length) {` && |\n| &&
+             `        out.push("  (none)");` && |\n| &&
+             `        return out;` && |\n| &&
+             `      }` && |\n| &&
+             `      for (const key of keys) {` && |\n| &&
+             `        const entry = views[key];` && |\n| &&
+             `        if (entry.DESTROY) {` && |\n| &&
+             `          out.push(``  ${key}  destroy``);` && |\n| &&
+             `          continue;` && |\n| &&
+             `        }` && |\n| &&
+             `        out.push(``  ${key}  display``);` && |\n| &&
+             `        out.push(``       ${renderArg(entry.XML)}``);` && |\n| &&
+             `        if (entry.OPT) out.push(``       ${renderArg(entry.OPT)}``);` && |\n| &&
+             `      }` && |\n| &&
+             `      return out;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function formatActions(ctx) {` && |\n| &&
-             `      const sAction = ctx.state.responseData?.S_FRONT?.S_ACTION;` && |\n| &&
+             `      const sFront = ctx.state.responseData?.S_FRONT;` && |\n| &&
              `      const out = ["abap2UI5 Developer Tools - Actions of the last response"];` && |\n| &&
              `      out.push("");` && |\n| &&
              `      out.push(` && |\n| &&
-             `        "  T_SYSTEM runs first, in order, before the view is rendered;" +` && |\n| &&
-             `          " T_CUSTOM runs last, once the DOM exists.",` && |\n| &&
+             `        "  VIEWS are applied first, MAIN before the nested and standalone" +` && |\n| &&
+             `          " slots; NAV syncs the URL; ACTIONS run last, once the DOM exists.",` && |\n| &&
              `      );` && |\n| &&
-             `      out.push(` && |\n| &&
-             `        ...renderActionList(sAction?.T_SYSTEM, "T_SYSTEM (view lifecycle)"),` && |\n| &&
-             `      );` && |\n| &&
-             `      out.push(...renderActionList(sAction?.T_CUSTOM, "T_CUSTOM (app)"));` && |\n| &&
+             `      out.push(...renderViews(sFront?.VIEWS));` && |\n| &&
+             `      out.push(section("NAV (the URL intent)"));` && |\n| &&
+             `      out.push(sFront?.NAV ? ``  ${renderArg(sFront.NAV)}`` : "  (none)");` && |\n| &&
+             `      out.push(...renderActionList(sFront?.ACTIONS, "ACTIONS (app)"));` && |\n| &&
              `      return out.join("\n");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1629,7 +1651,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      if (!ctx.devtools.journey) {` && |\n| &&
              `        ctx.devtools.journey = { recording: false, journeys: [], hook: null };` && |\n| &&
              `      }` && |\n| &&
-             `      return ctx.devtools.journey;` && |\n| &&
+             `      return ctx.devtools.journey;` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function current(rec) {` && |\n| &&
@@ -1651,8 +1674,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      while (match !== null) {` && |\n| &&
              `        const id = match[1].replace(/&amp;/g, "&");` && |\n| &&
              `        if (id && !out.includes(id)) out.push(id);` && |\n| &&
-             `        match = pattern.exec(xml);` && |\n|.
-    result = result &&
+             `        match = pattern.exec(xml);` && |\n| &&
              `      }` && |\n| &&
              `      return out;` && |\n| &&
              `    }` && |\n| &&
@@ -1676,17 +1698,9 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function destroyedSlots(response) {` && |\n| &&
-             `      const system = response?.S_FRONT?.S_ACTION?.T_SYSTEM;` && |\n| &&
-             `      if (!Array.isArray(system)) return [];` && |\n| &&
-             `      const out = [];` && |\n| &&
-             `      for (const item of system) {` && |\n| &&
-             `        if (!Array.isArray(item)) continue;` && |\n| &&
-             `        if (item[0] !== "VIEW_SLOTS" || item[1] !== "destroy") continue;` && |\n| &&
-             `        if (typeof item[2] === "string" && !out.includes(item[2])) {` && |\n| &&
-             `          out.push(item[2]);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return out;` && |\n| &&
+             `      const views = response?.S_FRONT?.VIEWS;` && |\n| &&
+             `      if (!views || typeof views !== "object") return [];` && |\n| &&
+             `      return Object.keys(views).filter((slot) => views[slot]?.DESTROY);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function displayedViews(response) {` && |\n| &&
@@ -2038,8 +2052,13 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `      out.push(` && |\n| &&
              `        ``${pad}DATA(sim) = z2ui5_cl_frontend_sim=>start( ${literal(app, 0) || "````"} ).``,` && |\n| &&
              `      );` && |\n| &&
-             `      if (first && first.event) {` && |\n| &&
-             `        out.push(` && |\n| &&
+             `      if (first && first.event) {` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD part_02.
+
+    result = `        out.push(` && |\n| &&
              `          ``${pad}" the recording began after roundtrips this test does not replay -``,` && |\n| &&
              `          ``${pad}" the steps below run against the fresh start above``,` && |\n| &&
              `        );` && |\n| &&
@@ -2052,13 +2071,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        out.push("");` && |\n| &&
-             `        if (!step.event) {` && |\n|.
-
-  ENDMETHOD.
-
-  METHOD part_02.
-
-    result = `          out.push(` && |\n| &&
+             `        if (!step.event) {` && |\n| &&
+             `          out.push(` && |\n| &&
              `            ``${pad}" step ${step.seq}: a roundtrip without an event (reload, navigation) - not replayed``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
@@ -2443,7 +2457,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `);` && |\n| &&
              `` && |\n| &&
              `},` && |\n| &&
-             `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(` && |\n| &&
+             `      "z2ui5/devtools/Picker.js": function(){sap.ui.define(` && |\n|.
+    result = result &&
              `  [` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
@@ -2457,8 +2472,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `` && |\n| &&
              `    const { FRAMEWORK_CALL, describeValue } = Format;` && |\n| &&
              `` && |\n| &&
-             `    const MAX_VALUE_CHARS = 80;` && |\n|.
-    result = result &&
+             `    const MAX_VALUE_CHARS = 80;` && |\n| &&
              `` && |\n| &&
              `    const OVERLAY_ID = "z2ui5DevToolsPickerOverlay";` && |\n| &&
              `` && |\n| &&
@@ -2844,7 +2858,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `        confirmState.set(oButton, state);` && |\n| &&
              `      }` && |\n| &&
              `      oButton.setText("Copied");` && |\n| &&
-             `      state.timer = setTimeout(() => {` && |\n| &&
+             `      state.timer = setTimeout(() => {` && |\n|.
+    result = result &&
              `        confirmState.delete(oButton);` && |\n| &&
              `        if (!Lib.isDestroyed(oButton)) oButton.setText(state.original);` && |\n| &&
              `      }, 1500);` && |\n| &&
@@ -2858,8 +2873,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `          const area = new TextArea({` && |\n| &&
              `            editable: true,` && |\n| &&
              `            width: "100%",` && |\n| &&
-             `            rows: 25,` && |\n|.
-    result = result &&
+             `            rows: 25,` && |\n| &&
              `            growing: false,` && |\n| &&
              `          });` && |\n| &&
              `` && |\n| &&
@@ -3245,7 +3259,8 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `        kind: "xml",` && |\n| &&
              `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST")),` && |\n| &&
              `        rendered: (ctx) =>` && |\n| &&
-             `          Format.prettifyXml(` && |\n| &&
+             `          Format.prettifyXml(` && |\n|.
+    result = result &&
              `            getRenderedContent(ViewSlots.getView(ctx, "NEST")),` && |\n| &&
              `          ),` && |\n| &&
              `        enabled: (ctx) => slotFilled(ctx, "NEST"),` && |\n| &&
@@ -3259,8 +3274,7 @@ CLASS z2ui5_cl_ui5f_devtools IMPLEMENTATION.
              `        aspect: "XML",` && |\n| &&
              `        label: "XML",` && |\n| &&
              `        kind: "xml",` && |\n| &&
-             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n|.
-    result = result &&
+             `        produce: (ctx) => Format.prettifyXml(getSlotXml(ctx, "NEST2")),` && |\n| &&
              `        rendered: (ctx) =>` && |\n| &&
              `          Format.prettifyXml(` && |\n| &&
              `            getRenderedContent(ViewSlots.getView(ctx, "NEST2")),` && |\n| &&

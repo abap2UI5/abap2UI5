@@ -55,31 +55,6 @@ function controllerStub() {
   return { calls, eF: (...args) => calls.push(args) };
 }
 
-test.describe("runSystem", () => {
-  function loadWithHandler(handler) {
-    return loadFrontendAction({
-      "z2ui5/core/actions/ViewOps": { handlers: { TEST_ACTION: handler } },
-    });
-  }
-
-  test("runs a real-array action and threads the context through", () => {
-    const seen = [];
-    const FrontendAction = loadWithHandler((oController, args, ctx) =>
-      seen.push([oController, args, ctx]),
-    );
-    const oController = {};
-    FrontendAction.runSystem(["TEST_ACTION", "a1"], oController, { seq: 3 });
-    expect(seen).toEqual([[oController, ["TEST_ACTION", "a1"], { seq: 3 }]]);
-  });
-
-  test("still parses the stringified form of a skewed backend", () => {
-    const seen = [];
-    const FrontendAction = loadWithHandler((_c, args) => seen.push(args));
-    FrontendAction.runSystem('["TEST_ACTION","a1"]', null, {});
-    expect(seen).toEqual([["TEST_ACTION", "a1"]]);
-  });
-});
-
 test.describe("runCustom structured JSON actions", () => {
   test("dispatches a REAL array as an eF event (the wire form)", () => {
     // the backend embeds framework actions into the response as real nested
@@ -241,7 +216,7 @@ test.describe("runCustom stays clear of eval", () => {
 // ---------------------------------------------------------------------
 // A bound value as an argument. Wired into a VIEW, `${/X}` is an expression
 // binding UI5 evaluates when the view is built, so the handler receives the
-// value. Queued from a HANDLER the action is data (T_CUSTOM), and every
+// value. Queued from a HANDLER the action is data (ACTIONS), and every
 // action used to receive the literal string "${/X}" - the title showed it,
 // the clipboard copied it, a filter searched for it. The runner reads it
 // from the framework model now, once for every action, so the same call

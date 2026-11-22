@@ -55,12 +55,12 @@ function response({
   box,
   model,
 } = {}) {
-  const system = [];
-  if (main) system.push(["VIEW_SLOTS", "display", "MAIN", main]);
-  if (nest) system.push(["VIEW_SLOTS", "display", "NEST", nest]);
-  if (popup) system.push(["VIEW_SLOTS", "display", "POPUP", popup]);
-  if (popover) system.push(["VIEW_SLOTS", "display", "POPOVER", popover]);
-  for (const slot of destroy) system.push(["VIEW_SLOTS", "destroy", slot]);
+  const views = {};
+  if (main) views.MAIN = { XML: main };
+  if (nest) views.NEST = { XML: nest };
+  if (popup) views.POPUP = { XML: popup };
+  if (popover) views.POPOVER = { XML: popover };
+  for (const slot of destroy) views[slot] = { DESTROY: true };
   const custom = [];
   if (toast) custom.push(["MESSAGE_TOAST", "show", toast]);
   if (box) custom.push(["CONTROL_GLOBAL", "MESSAGE_BOX", "error", box]);
@@ -68,7 +68,8 @@ function response({
     S_FRONT: {
       ID: "draft-new",
       APP: app,
-      S_ACTION: { T_SYSTEM: system, T_CUSTOM: custom },
+      VIEWS: views,
+      ACTIONS: custom,
     },
   };
   if (model !== undefined) out.MODEL = model;
@@ -199,7 +200,7 @@ test.describe("recording", () => {
     // request that is not an object
     h.state.oBody = "garbage";
     h.state.responseData = {
-      S_FRONT: { S_ACTION: { T_SYSTEM: 42, T_CUSTOM: "x" } },
+      S_FRONT: { VIEWS: 42, ACTIONS: "x" },
     };
     expect(() => {
       for (const fn of h.state.onAfterRendering) fn();

@@ -185,7 +185,7 @@ test.describe("CROSS_APP_NAV_TO_EXT", () => {
   //   t_arg = ( `{ semanticObject: ... }` ) ( `$` && client->_bind( nav_params ) )
   // Wired in a VIEW, UI5 evaluates `${/NAV_PARAMS}` when the view is built
   // and the handler receives the structure. Queued from a HANDLER the action
-  // is data (T_CUSTOM) and the very same argument arrives as the literal
+  // is data (ACTIONS) and the very same argument arrives as the literal
   // string - which went into hrefForExternal as `params`, so the receiving
   // app started without its startup parameters and nothing said why.
   function navigator() {

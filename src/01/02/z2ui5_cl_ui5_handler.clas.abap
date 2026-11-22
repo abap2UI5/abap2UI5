@@ -933,11 +933,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
 
-        " the action queues are serialized explicitly below - the generic
-        " conversion would render each queue row as a { O_JSON, JS } object
-        " instead of the bare array/string entry the frontend reads. Only
-        " the two scalar fields are taken over - copying the whole struct
-        " would copy both queues just to clear them again.
+        " the sections and the action list are written explicitly below - the
+        " generic conversion would render the references as objects of their
+        " own. Only the scalar fields are taken over
         DATA ls_front LIKE val-s_front.
         ls_front-id  = val-s_front-id.
         ls_front-app = val-s_front-app.
@@ -951,13 +949,19 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         li_ajson_result = li_ajson_result->filter( z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ) ).
 
         " AFTER the filter, never before: an action array carries empty
-        " strings as positional placeholders, which the no-empty-values
-        " filter would silently drop
+        " strings as positional placeholders and a display may carry an
+        " empty view, which the no-empty-values filter would silently drop.
+        " A section that says nothing is left off
+        IF val-s_front-o_views IS BOUND AND val-s_front-o_views->is_empty( ) = abap_false.
+          li_ajson_result->set( iv_path = `/VIEWS`
+                                iv_val  = val-s_front-o_views ).
+        ENDIF.
+        IF val-s_front-o_nav IS BOUND AND val-s_front-o_nav->is_empty( ) = abap_false.
+          li_ajson_result->set( iv_path = `/NAV`
+                                iv_val  = val-s_front-o_nav ).
+        ENDIF.
         actions_serialize( ajson    = li_ajson_result
-                           path     = `/S_ACTION/T_SYSTEM`
-                           t_action = val-s_front-s_action-t_system ).
-        actions_serialize( ajson    = li_ajson_result
-                           path     = `/S_ACTION/T_CUSTOM`
+                           path     = `/ACTIONS`
                            t_action = val-s_front-s_action-t_custom ).
 
         DATA(lv_frontend) = li_ajson_result->stringify( ).
@@ -1272,7 +1276,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " just stored
       " ... and keep the nav_mode_sent latch: block-carrying requests are
       " app-start-shaped today (main_end re-sends the mode anyway), but a
-      " wiped latch would cost a redundant ROUTER/sync if that ever changes.
+      " wiped latch would cost a redundant NAV section if that ever changes.
       " comp_data is kept for the same reason as the location trio: the
       " launchpad ComponentData travels on its own session cadence, so a
       " block-carrying request WITHOUT it must not wipe what the draft
@@ -1352,7 +1356,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " app that runs with a different one (see z2ui5_cl_ui5_app_cont->mv_nav_mode).
     " NOT on every roundtrip though: the frontend keeps the mode in session
     " state, so a plain event roundtrip of the SAME app repeats no mode (it
-    " would re-queue the ROUTER action for a constant). It has to travel
+    " would repeat the NAV section for a constant). It has to travel
     " again whenever the frontend may not hold it: an app-start-shaped
     " request (page load, Back/Forward route restore), a navigation hop
     " (check_on_navigated - the previous app may have run another mode), or
@@ -1416,8 +1420,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 
-    " the view-lifecycle calls leave first, in slot order
-    lo_front->slots_serialize( ).
+    " what the slots show after this roundtrip
+    DATA(li_views) = lo_front->slots_serialize( ).
 
     " The model of this roundtrip. A slot that shipped new XML always needs
     " the model with it - all five slots, the nested ones included. Derived
@@ -1440,9 +1444,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         lv_model = mo_action->mo_app->model_json_stringify( ).
       ENDIF.
     ENDIF.
-    " No updateModel action travels with it: a MODEL key in the response IS
+    " No instruction travels with it: a MODEL key in the response IS
     " the push - the frontend pushes into every open model-owning slot after
-    " the system actions ran (View1). That covers the nested re-display
+    " the views were applied (View1). That covers the nested re-display
     " (inherits the MAIN model by propagation - three-column samples) and a
     " popup left open across a roundtrip that rebuilt no view alike, without
     " spelling a derivable instruction into every model-carrying response.
@@ -1454,13 +1458,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       CLEAR mo_action->mo_app->mv_model_client_stale.
     ENDIF.
 
-    " last of all, so the route reflects everything this roundtrip did - the
-    " slots that were built and the model that was pushed into them. Queued
-    " only when the roundtrip carries nav intent; the frontend syncs the URL
-    " once per response either way (View1 injects the response id).
-    lo_front->nav_serialize( ).
+    " the URL intent - a section of its own only when the roundtrip carries
+    " one; the frontend syncs the URL once per response either way (View1
+    " injects the response id)
+    DATA(li_nav) = lo_front->nav_serialize( ).
 
     ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
+                           s_front-o_views  = li_views
+                           s_front-o_nav    = li_nav
                            s_front-id       = mo_action->mo_app->ms_draft-id
                            s_front-app      = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
                            model            = lv_model ).
@@ -1546,12 +1551,9 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " which turns them into a 500 response carrying the exception chain
     CASE mo_action->ms_actual-event.
       WHEN z2ui5_if_ui5_types=>cs_event_nav_app_leave.
-        " no popup/popover teardown is queued here: the standalone slots die on
-        " every app switch anyway - implicitly on the frontend whenever the
-        " response names another app (View1), and through prepare_app_stack for
-        " the one hop the frontend cannot see, to another instance of the SAME
-        " class. Queuing it here on top only made the back-navigation response
-        " carry two destroy actions the frontend had already done itself
+        " no popup/popover teardown is queued here: every app switch ends up
+        " in z2ui5_cl_ui5_action=>prepare_app_stack, which queues it for the
+        " hop - the one place that does
         li_client->nav_app_leave( ).
       WHEN z2ui5_if_ui5_types=>cs_event_window.
         " the list binding of a windowed table wants more rows, or was sorted

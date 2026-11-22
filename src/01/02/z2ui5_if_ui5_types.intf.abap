@@ -146,10 +146,10 @@ INTERFACE z2ui5_if_ui5_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name
     WITH NON-UNIQUE SORTED KEY parent COMPONENTS name_parent.
 
-  " One view-lifecycle call, as the backend collects it. It is kept typed
-  " until main_end( ) rather than serialized on the spot: the calls have to
-  " leave in slot order (never in call order), and main_end( ) derives the
-  " model decision from the collected list.
+  " One view-lifecycle call, as the backend collects it: what the app's last
+  " call for a slot decided (z2ui5_cl_ui5_frontend=>slot_reset keeps at most
+  " one row per slot). main_end( ) derives the model decision from the list
+  " and ships it as the response's VIEWS section.
   TYPES:
     BEGIN OF ty_s_system_action,
       slot    TYPE string,
@@ -170,16 +170,18 @@ INTERFACE z2ui5_if_ui5_types
     END OF ty_s_queued_action.
   TYPES ty_t_queued_action TYPE STANDARD TABLE OF ty_s_queued_action WITH EMPTY KEY.
 
-  " SYSTEM actions run FIRST, in the display phase, before the view is
-  " rendered - they are the framework's own view-lifecycle calls (destroy a
-  " slot, display one, push the model into it), which every later action
-  " depends on having happened. APP actions run last, once the view is in
-  " the DOM, so a render-dependent one like SET_FOCUS finds its target
-  " control. Same payload format and same dispatcher for both, only the
-  " phase differs.
+  " What an app asked the frontend to DO - a focus, a toast, a control
+  " method. The frontend runs the list last, once the views of the response
+  " are in the DOM, so a render-dependent action like SET_FOCUS finds its
+  " control. It leaves as the response's ACTIONS list.
+  "
+  " Until protocol 3 a second list rode next to it, t_system: the view
+  " lifecycle and the URL intent spelled as actions (VIEW_SLOTS/display,
+  " ROUTER/sync). Both are state, not commands - at most one entry per slot
+  " and one navigation intent per response - and travel as the sections
+  " VIEWS and NAV now (ty_s_response).
   TYPES:
     BEGIN OF ty_s_action,
-      t_system TYPE ty_t_queued_action,
       t_custom TYPE ty_t_queued_action,
     END OF ty_s_action.
 
@@ -249,13 +251,13 @@ INTERFACE z2ui5_if_ui5_types
       s_action       TYPE ty_s_action,
       r_data         TYPE REF TO data,
       " BACKEND-ONLY, never serialized: the view-lifecycle calls of this
-      " roundtrip, collected while the app runs and turned into the SYSTEM
-      " action list by main_end( ).
+      " roundtrip, collected while the app runs and turned into the VIEWS
+      " section by main_end( ).
       t_action_front TYPE ty_t_system_action,
       " BACKEND-ONLY: what the browser history / URL has to reflect after this
-      " roundtrip. main_end( ) turns it into the ROUTER/sync action - the
-      " frontend router reads its inputs from that call's options, not from
-      " one response field per component of ty_s_nav.
+      " roundtrip. main_end( ) turns it into the NAV section - the frontend
+      " router reads its inputs from that one object, not from one response
+      " field per component of ty_s_nav.
       s_nav          TYPE ty_s_nav,
       " BACKEND-ONLY: the stateful-session switch. It never was a frontend
       " concern - z2ui5_cl_ui5_http_handler reads it off the response record to
@@ -276,7 +278,10 @@ INTERFACE z2ui5_if_ui5_types
   "! Protocol 3: the flags of an event wire travel as one object in slot [1]
   "! of the event array, .eB(['NAME',{queueLast:true}]), no longer as
   "! positions [3] to [5] (z2ui5_cl_ui5_srv_event=&gt;get_event) - a frontend
-  "! of protocol 2 reads such a wire as one without a flag.
+  "! of protocol 2 reads such a wire as one without a flag. And the response
+  "! carries the view lifecycle and the URL intent as the sections VIEWS and
+  "! NAV and the app's follow-up actions as ACTIONS, where S_ACTION carried
+  "! the lists T_SYSTEM and T_CUSTOM (ty_s_response, ty_s_action).
   "!
   "! Why it exists: backend and frontend ship together here, but they do not
   "! ship together everywhere. A port of this framework, a pinned webapp, a
@@ -298,6 +303,18 @@ INTERFACE z2ui5_if_ui5_types
         app      TYPE string,
         " see c_protocol - stamped by z2ui5_cl_ui5_handler on every response
         protocol TYPE i,
+        " VIEWS: one entry per slot this roundtrip changes -
+        "   "MAIN": { "XML": "<mvc:View ...>", "OPT": { ... } }   a display
+        "   "POPUP": { "DESTROY": true }                          a teardown
+        " The frontend applies them in ITS order (MAIN, NEST, NEST2, POPUP,
+        " POPOVER - a nested view is inserted into the main control tree),
+        " so nothing here is sorted. Unbound or empty: no slot changes
+        " (z2ui5_cl_ui5_frontend=>slots_serialize)
+        o_views  TYPE REF TO z2ui5_if_ajson,
+        " NAV: the URL intent of this roundtrip, the options the frontend's
+        " Router.sync takes. Unbound: none - the frontend still syncs the
+        " URL once per response (z2ui5_cl_ui5_frontend=>nav_serialize)
+        o_nav    TYPE REF TO z2ui5_if_ajson,
       END OF s_front,
       model TYPE string,
     END OF ty_s_response.

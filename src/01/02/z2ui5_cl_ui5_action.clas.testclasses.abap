@@ -338,7 +338,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
 
     " routing active for the caller - the called app inherits the mode, and
-    " only then does the ROUTER intent travel at all
+    " only then does the NAV intent travel at all
     lo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
     lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
@@ -346,7 +346,6 @@ CLASS ltcl_test IMPLEMENTATION.
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
     INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_SYSTEM_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -356,10 +355,9 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
     " everything the calling app queued is gone. The popup/popover teardown
-    " is queued ONLY for this hop to ANOTHER INSTANCE OF THE SAME CLASS -
-    " the frontend cannot see that switch, every cross-class switch tears
-    " the standalone slots down implicitly (View1). Queued BEFORE the app
-    " runs, so a popup_display( ) of its own lands after it and wins
+    " is queued for EVERY hop - the backend is the side that knows one
+    " happened - and BEFORE the app runs, so a popup_display( ) of its own
+    " lands after it and wins
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_result->ms_next-t_action_front ) ).
@@ -586,8 +584,8 @@ CLASS ltcl_test IMPLEMENTATION.
     " the leaving app opened a popup in this roundtrip and closed its
     " popover, then calls another instance of its OWN class: the display
     " describes the screen being replaced and is dropped, the carried
-    " popover destroy and the same-class teardown are merged - the frontend
-    " receives at most one action per slot (z2ui5_cl_ui5_frontend=>slot_reset)
+    " popover destroy and the hop's own teardown are merged - the frontend
+    " receives at most one entry per slot (z2ui5_cl_ui5_frontend=>slot_reset)
     lo_action->ms_next-t_action_front = VALUE #(
         ( slot   = z2ui5_if_client=>cs_view-popup
           method = z2ui5_if_ui5_types=>cs_slot_action-display
@@ -631,9 +629,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the leaving app tears its own view down and navigates to a DIFFERENT
     " class - the destroy must survive the hop (the called app may render
-    " no MAIN view of its own), the display must not, and no popup/popover
-    " teardown is queued (the frontend sees the class switch and tears the
-    " standalone slots down implicitly)
+    " no MAIN view of its own), the display must not, and the popup/popover
+    " teardown is queued as for every hop (the class does not matter - the
+    " frontend no longer infers a teardown from it)
     lo_action->ms_next-t_action_front = VALUE #(
         ( slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
         ( slot   = z2ui5_if_client=>cs_view-nested
@@ -643,13 +641,14 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_result = lo_action->factory_stack_call( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_result->ms_next-t_action_front ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy`
-                                        act = |{ lo_result->ms_next-t_action_front[ 1 ]-slot }\|| &&
-                                              |{ lo_result->ms_next-t_action_front[ 1 ]-method }| ).
+    DATA(lv_actions) = ``.
+    LOOP AT lo_result->ms_next-t_action_front INTO DATA(ls_front).
+      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
+    ENDLOOP.
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPUP|destroy;POPOVER|destroy;`
+                                        act = lv_actions ).
 
-    " no routing mode anywhere - a plain nav carries no ROUTER intent
+    " no routing mode anywhere - a plain nav carries no NAV intent
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_result->ms_next-s_nav-check_nav_app_call ).
 
@@ -673,7 +672,6 @@ CLASS ltcl_test IMPLEMENTATION.
     " follow-up actions too and must not leak into the app that is
     " navigated back to...
     INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_SYSTEM_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_leave( ).
@@ -705,17 +703,16 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
-    " back-navigation to a DIFFERENT class - the response names another app,
-    " so the frontend tears the standalone slots down by itself (View1) and
-    " nothing about them travels. The back-navigation event does not queue a
-    " teardown of its own either (z2ui5_cl_ui5_handler=>main_process): every
-    " app switch ends up here, and this is the only place that knows whether
-    " the frontend can see it
+    " back-navigation to a DIFFERENT class - the teardown of the standalone
+    " slots travels as for every hop. The back-navigation event queues none
+    " of its own (z2ui5_cl_ui5_handler=>main_process): every app switch ends
+    " up in prepare_app_stack, the one place that queues it
     lo_action->ms_next-o_app_leave = NEW ltcl_test_app2( ).
 
     lo_result = lo_action->factory_stack_leave( ).
 
-    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-t_action_front ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_result->ms_next-t_action_front ) ).
 
   ENDMETHOD.
 

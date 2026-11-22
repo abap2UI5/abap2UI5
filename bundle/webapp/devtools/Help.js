@@ -48,7 +48,7 @@ sap.ui.define([], () => {
     "                sizes, draft ids - and the ones that never rendered",
     "  Request /     the raw JSON on the wire",
     "  Response",
-    "  Actions       the response's T_SYSTEM / T_CUSTOM lists, readable",
+    "  Actions       the response's VIEWS, NAV and ACTIONS, readable",
     "  Model Diff    what the backend changed between two responses",
     "  View Diff     what changed in the view XML between two rebuilds",
     "  Journey       a click-through recorded as steps - what was typed",

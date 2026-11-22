@@ -16,7 +16,7 @@ function okResponse(id) {
   return {
     ok: true,
     headers: { get: () => null },
-    json: async () => ({ S_FRONT: { ID: id, S_ACTION: {} }, MODEL: {} }),
+    json: async () => ({ S_FRONT: { ID: id }, MODEL: {} }),
   };
 }
 
@@ -114,7 +114,7 @@ test("a rejection escaping _processAfterRendering lands in responseSuccess's cat
   });
   ServerWithSlots.responseError = Server.responseError;
 
-  await ServerWithSlots.responseSuccess(ctx, { S_ACTION: {} }, 1);
+  await ServerWithSlots.responseSuccess(ctx, {}, 1);
 
   expect(errors).toHaveLength(1);
   expect(errors[0].msg).toBe(boom);

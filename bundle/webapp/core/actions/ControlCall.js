@@ -519,11 +519,14 @@ sap.ui.define(
           showBox(method, aArgs[0], mOptions, oController),
       },
       // Not a UI5 global but the framework's own view-slot registry: the
-      // slots (MAIN, NEST, NEST2, POPUP, POPOVER) are what a backend response
-      // opens, fills and tears down, and every one of those calls is a
-      // SYSTEM follow-up action. `display` and `updateModel` are not
-      // ViewSlots methods - they live in actions/Slots, which owns the
-      // fragment loading and the model - so the hook below routes them there.
+      // slots (MAIN, NEST, NEST2, POPUP, POPOVER). A RESPONSE opens, fills
+      // and tears them down through its VIEWS section, which View1 applies
+      // itself (_applyViews) - what reaches this target is a view's own
+      // roundtrip-free close, .eF('CONTROL_GLOBAL','VIEW_SLOTS','destroy',
+      // 'POPUP') (cs_event-popup_close), and the developer tools' local
+      // re-display. `display` and `updateModel` are not ViewSlots methods -
+      // they live in actions/Slots, which owns the fragment loading and the
+      // model - so the hook below routes them there.
       VIEW_SLOTS: {
         get: () => ViewSlots,
         // display takes TWO positional arguments, the slot and the view XML.
@@ -536,30 +539,20 @@ sap.ui.define(
           // knowledge, so the action only says that the model changed
           updateModel: [],
         },
-        display: (oController, method, aArgs, mOptions, ctx) =>
-          Slots.action(
-            oController?.ctx,
-            method,
-            aArgs[0],
-            aArgs[1],
-            mOptions,
-            ctx?.seq,
-          ),
+        display: (oController, method, aArgs, mOptions) =>
+          Slots.action(oController?.ctx, method, aArgs[0], aArgs[1], mOptions),
       },
       // The browser history / URL. Router computes ONE outcome from the whole
       // options object - adopt the hash, push a route entry, replace it, or
       // write the app-state hash - which is why it is one call and not a
-      // field per decision input. In the SYSTEM phase the options are only
-      // STASHED on the response: View1 runs the one per-response sync after
-      // the displays, whether or not a ROUTER action travelled (the common
-      // roundtrip carries none), and injects the response's draft id there.
+      // field per decision input. A response's own URL intent is its NAV
+      // section, synced by View1 once per response; this target is the same
+      // call for an action that asks for it.
       ROUTER: {
         get: () => Router,
         methods: { sync: [] },
-        display: (oController, method, aArgs, mOptions, ctx) => {
-          if (ctx?.response) ctx.response._routerOptions = mOptions;
-          else Router.sync(oController?.ctx, mOptions);
-        },
+        display: (oController, method, aArgs, mOptions) =>
+          Router.sync(oController?.ctx, mOptions),
       },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
@@ -581,7 +574,7 @@ sap.ui.define(
         methods: { registerFont: ["string", "string"] },
         // the resolved global rides along as the hook's last argument (see
         // evControlCall) - registerIconFont needs the module itself
-        display: (oController, method, aArgs, mOptions, ctx, oIconPool) =>
+        display: (oController, method, aArgs, mOptions, oIconPool) =>
           registerIconFont(oIconPool, aArgs[0], aArgs[1]),
       },
       // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
@@ -1187,10 +1180,8 @@ sap.ui.define(
       );
     }
 
-    // args: [_, object, method, ...params]. `ctx` is the action context the
-    // dispatcher threads through (FrontendAction.executeSystem) - it carries
-    // the request stamp the VIEW_SLOTS display hook needs.
-    function evControlCall(oController, args, ctx) {
+    // args: [_, object, method, ...params]
+    function evControlCall(oController, args) {
       const [, name, method] = args;
       const target = GLOBAL_TARGETS[name];
       // an OWN property only: the per-target methods maps are plain
@@ -1240,14 +1231,7 @@ sap.ui.define(
       // the object itself (ICON_POOL) would otherwise re-resolve what the
       // `get( )` above already produced and re-check what it already refused.
       if (target.display) {
-        return target.display(
-          oController,
-          method,
-          raw,
-          mOptions || {},
-          ctx,
-          obj,
-        );
+        return target.display(oController, method, raw, mOptions || {}, obj);
       }
       if (typeof obj[method] !== "function") {
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
@@ -1289,14 +1273,14 @@ sap.ui.define(
     };
 
     // Every whitelisted global target is dispatchable by its own name too:
-    // a backend-built action travels as ["VIEW_SLOTS","display",...] - the
+    // a backend-built action travels as ["MESSAGE_TOAST","show",...] - the
     // CONTROL_GLOBAL prefix of the eF( ) form is a dispatch constant, not
     // information, so the wire drops it. The alias re-prepends it, so both
     // forms share one execution path (and the prefixed form stays accepted
     // for apps and skewed backends).
     for (const name of Object.keys(GLOBAL_TARGETS)) {
-      handlers[name] = (oController, args, ctx) =>
-        evControlCall(oController, ["CONTROL_GLOBAL", ...args], ctx);
+      handlers[name] = (oController, args) =>
+        evControlCall(oController, ["CONTROL_GLOBAL", ...args]);
     }
 
     // castArg is exported for core/actions/BindingCall.js and for

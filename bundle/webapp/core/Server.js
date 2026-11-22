@@ -47,18 +47,16 @@ sap.ui.define(
     //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON
     //   4. Server.responseSuccess()   adopts the response, parks its
     //                                 follow-up actions and starts phase 5 -
-    //                                 no view work of its own: the view
-    //                                 rebuild, the messages and the model
-    //                                 push are all system actions now
-    //   5. View1._processAfterRendering()  system actions (the MAIN rebuild,
-    //      popups, nested views, model push), history, then the app follow-up
-    //      actions once rendering is done
+    //                                 no view work of its own
+    //   5. View1._processAfterRendering()  applies VIEWS (the MAIN rebuild,
+    //      nested views, popups), pushes the model, syncs the URL with NAV,
+    //      then runs the app's ACTIONS once rendering is done
     // The request body travels through the steps as a parameter; it is
     // mirrored to ctx.state.oBody so onBeforeRoundtrip hooks and the
     // developer tools can inspect it. Only the response side still crosses
     // an async boundary (the rendering) via ctx.state.oResponse; the app
-    // follow-up snippets travel on the response record itself
-    // (_pendingCustomJs). Every method takes the component's context first
+    // follow-up actions travel on the response record itself
+    // (_pendingActions). Every method takes the component's context first
     // (core/Context.js): the state and the request bookkeeping below
     // (`ctx.server`) are per component.
     //
@@ -87,32 +85,36 @@ sap.ui.define(
     //                     "ComponentData": {...} }
     //   } } }
     //
-    // Wire format - response. S_FRONT carries nothing but the id, the app
-    // and the action lists: every view build, teardown, model push and
-    // history update is an action, run by View1/FrontendAction in the
-    // documented order.
+    // Wire format - response (protocol 3). S_FRONT says what the screen IS
+    // after the roundtrip - VIEWS, NAV - and what to DO on it - ACTIONS.
+    // Each of the three is absent when it says nothing.
     //   { "S_FRONT": {
     //       "ID": "<new draft id>",        // sent back with the next request
     //       "APP": "<app class name>",     // rendered app, for the router
     //       "PROTOCOL": 3,                 // the wire the backend speaks;
     //                                      // a mismatch is reported, not ignored
-    //       "S_ACTION": {
-    //           // SYSTEM: the framework's own view-lifecycle calls, run
-    //           // first, in order, before the view is rendered. A
-    //           // ROUTER/sync call is queued last, and only when the
-    //           // roundtrip carries nav intent - View1 syncs the URL once
-    //           // per response either way
-    //           "T_SYSTEM": [
-    //             ["VIEW_SLOTS","destroy","POPUP"],
-    //             ["VIEW_SLOTS","display","POPOVER","<Popover/>",{"openById":"btn"}]
-    //           ],
-    //           // APP: what the app queued, run last, once the DOM exists.
-    //           "T_CUSTOM": [["SET_FOCUS","id1"]]
-    //       }
+    //       // one entry per slot the roundtrip changes: a display with its
+    //       // XML and options, or a teardown. Applied by View1 in ITS order
+    //       // (MAIN, NEST, NEST2, POPUP, POPOVER) - the backend sorts nothing
+    //       "VIEWS": {
+    //         "MAIN":    { "XML": "<mvc:View .../>", "OPT": { "transition": "slide" } },
+    //         "POPOVER": { "XML": "<Popover/>", "OPT": { "openById": "btn" } },
+    //         "POPUP":   { "DESTROY": true }
+    //       },
+    //       // the URL intent, the options of Router.sync - only when the
+    //       // roundtrip carries one; View1 syncs the URL once per response
+    //       // either way
+    //       "NAV": { "setNavRouting": "KEEP" },
+    //       // what the app queued, run last, once the DOM exists
+    //       "ACTIONS": [["SET_FOCUS","id1"]]
     //     },
     //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
     //   }                                  // the view's binding model. Absent
     //                                      // when nothing bound changed.
+    //
+    // Until protocol 3 VIEWS and NAV travelled as a second action list,
+    // S_ACTION.T_SYSTEM (["VIEW_SLOTS","display","MAIN",...],
+    // ["ROUTER","sync",{...}]), next to the app's list S_ACTION.T_CUSTOM.
     //
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
@@ -614,7 +616,12 @@ sap.ui.define(
             ctx,
             {
               ID: responseData.S_FRONT.ID,
-              S_ACTION: responseData.S_FRONT.S_ACTION,
+              // what the slots show after this roundtrip, where the URL
+              // stands, and what the app asked the frontend to do - the
+              // three sections of S_FRONT (see the wire format above)
+              VIEWS: responseData.S_FRONT.VIEWS,
+              NAV: responseData.S_FRONT.NAV,
+              ACTIONS: responseData.S_FRONT.ACTIONS,
               // A response whose model did not change carries no MODEL key
               // at all; every consumer downstream sees the empty object it
               // used to be sent explicitly.
@@ -768,22 +775,20 @@ sap.ui.define(
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = response.S_ACTION;
           // carried on the response record, not on shared state: with
           // parallel responses a single global would let the older render
-          // consume the newer response's snippets (and lose its own)
-          response._pendingCustomJs = followUp?.T_CUSTOM || null;
+          // consume the newer response's actions (and lose its own)
+          response._pendingActions = response.ACTIONS || null;
 
-          // Every view-lifecycle call, the MAIN rebuild included, is a system
-          // action now - so there is nothing slot-specific left here. The
-          // phases are started unconditionally: the MAIN view's own
-          // onAfterRendering used to be what triggered them after a rebuild,
-          // and it cannot be, once the rebuild is one of the actions they run.
-          // It stays harmless - _processAfterRendering marks the response as
-          // processed before the first action, so the render it causes finds
-          // nothing left to do. The request stamp rides along so the display
-          // guards compare against THIS response's request, not whatever is
-          // newest by the time processing starts.
+          // Nothing slot-specific happens here - the views are applied by
+          // _processAfterRendering, which is started unconditionally: the
+          // MAIN view's own onAfterRendering used to be what triggered it
+          // after a rebuild, and it cannot be, once the rebuild is part of
+          // what it does. It stays harmless - _processAfterRendering marks
+          // the response as processed before the first view, so the render
+          // it causes finds nothing left to do. The request stamp rides
+          // along so the display guards compare against THIS response's
+          // request, not whatever is newest by the time processing starts.
           // Awaited so a rejection that escapes _processAfterRendering (its
           // own catch handles everything inside the try) still lands in the
           // catch below instead of an unhandled rejection.

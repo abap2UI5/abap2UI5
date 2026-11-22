@@ -204,10 +204,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
   const FrontendAction = {
     ...module,
     execute: (oController, args) => module.execute(carrying(oController), args),
-    executeSystem: (oController, args, actionCtx) =>
-      module.executeSystem(carrying(oController), args, actionCtx),
-    runSystem: (item, oController, actionCtx) =>
-      module.runSystem(item, carrying(oController), actionCtx),
     runCustom: (item, oController) =>
       module.runCustom(item, carrying(oController)),
   };
@@ -613,18 +609,6 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
-  test("the system phase threads the request stamp into the display", () => {
-    // the seq travels as the action CONTEXT (never shared state), so the
-    // slot display can discard a build a newer parallel request superseded
-    const { FrontendAction, slotCalls } = load();
-    FrontendAction.executeSystem(
-      null,
-      ["CONTROL_GLOBAL", "VIEW_SLOTS", "display", "POPUP", "<Dialog/>"],
-      { seq: 7 },
-    );
-    expect(slotCalls).toEqual([["display", "POPUP", "<Dialog/>", {}, 7]]);
-  });
-
   test("an unlisted VIEW_SLOTS method is rejected", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute({}, [
@@ -695,45 +679,8 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
   });
 });
 
-test.describe("executeSystem (the SYSTEM phase entry point)", () => {
-  test("returns the handler result so an async display can be awaited", async () => {
-    const { FrontendAction, Slots } = load();
-    Slots.action = (_ctx, _m, _slot, xml) => Promise.resolve(`built:${xml}`);
-    const result = FrontendAction.executeSystem(null, [
-      "CONTROL_GLOBAL",
-      "VIEW_SLOTS",
-      "display",
-      "POPUP",
-      "<Dialog/>",
-    ]);
-    expect(await result).toBe("built:<Dialog/>");
-  });
-
-  test("does NOT swallow a failing display", () => {
-    // execute( ) logs and moves on; a broken view build has to reach
-    // _processAfterRendering and surface the fatal overlay instead
-    const { FrontendAction, Slots } = load();
-    Slots.action = () => {
-      throw new Error("malformed XML");
-    };
-    expect(() =>
-      FrontendAction.executeSystem(null, [
-        "CONTROL_GLOBAL",
-        "VIEW_SLOTS",
-        "display",
-        "POPUP",
-        "<broken",
-      ]),
-    ).toThrow("malformed XML");
-  });
-
-  test("an unknown system action is reported, not thrown", () => {
-    const { FrontendAction, errors } = load();
-    FrontendAction.executeSystem(null, ["NO_SUCH_ACTION"]);
-    expect(errors[0]).toContain("unknown system action");
-  });
-
-  test("an unknown APP action is reported too, not dropped silently", () => {
+test.describe("an action the dispatch does not know", () => {
+  test("an unknown action is reported, not dropped silently", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute(null, ["NO_SUCH_ACTION"]);
     expect(errors).toHaveLength(1);
@@ -4080,7 +4027,7 @@ test.describe("badge bounds (CONTROL_BY_ID setBadgeMinValue/setBadgeMaxValue)", 
 
 // ---------------------------------------------------------------------
 // The same call from a HANDLER. A follow-up action queued in a handler is
-// data (T_CUSTOM) and runs through FrontendAction.runCustom; the `${/X}`
+// data (ACTIONS) and runs through FrontendAction.runCustom; the `${/X}`
 // a view wire has evaluated by UI5 arrives there as text. Each test below
 // is a call that misbehaved silently from a handler before runCustom read
 // the bound value - through the real composed dispatch, end to end.

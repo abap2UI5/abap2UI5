@@ -70,7 +70,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " The five navigation branches of the CASE below configure how the
     " browser URL has to look after this roundtrip. Router derives ONE
     " outcome from all of them together, so they are collected here and
-    " leave as options of the single ROUTER/sync call main_end( ) queues -
+    " leave as the options of the one NAV section main_end( ) writes -
     " never as actions of their own, which would make the router run
     " several times and fight over the same hash.
     "

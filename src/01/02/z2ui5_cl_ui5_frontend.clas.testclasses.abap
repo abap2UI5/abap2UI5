@@ -224,58 +224,52 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   METHOD serialized.
 
-    mo_cut->slots_serialize( ).
-
-    LOOP AT mo_action->ms_next-s_action-t_system INTO DATA(ls_action).
-      IF result IS NOT INITIAL.
-        result = result && `|`.
-      ENDIF.
-      result = result && ls_action-o_json->stringify( ).
-    ENDLOOP.
+    " the VIEWS section as it leaves - keys in the order the JSON tree keeps
+    " them (alphabetical), which is no order the frontend reads
+    result = mo_cut->slots_serialize( )->stringify( ).
 
   ENDMETHOD.
 
   METHOD test_main_drops_teardowns.
 
-    " a new MAIN view takes the standalone slots down on the frontend
-    " (actions/Slots), so their teardown is not sent next to it - whoever
-    " queued it: the app itself here, prepare_app_stack on an app switch
+    " a teardown next to a MAIN display travels as it was asked for: what a
+    " new MAIN view takes down with it is the frontend's knowledge
+    " (actions/Slots), and the backend no longer drops a call on that
+    " assumption - a teardown of a slot that is closed already does nothing
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
                           xml  = `<View/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]`
+        exp = `{"MAIN":{"XML":"<View/>"},"POPOVER":{"DESTROY":true},"POPUP":{"DESTROY":true}}`
         act = serialized( ) ).
 
   ENDMETHOD.
 
   METHOD test_main_keeps_displays.
 
-    " only the TEARDOWNS are derivable from the MAIN display - a popup this
-    " roundtrip opens still travels, and behind MAIN, so it opens on the new
-    " view instead of being torn down with the old one
+    " a popup this roundtrip opens travels next to the MAIN display, in
+    " whatever order the app called them - the frontend builds MAIN first
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-popup
                           xml  = `<Dialog/>` ).
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
                           xml  = `<View/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]|["VIEW_SLOTS","display","POPUP","<Dialog/>"]`
+        exp = `{"MAIN":{"XML":"<View/>"},"POPUP":{"XML":"<Dialog/>"}}`
         act = serialized( ) ).
 
   ENDMETHOD.
 
   METHOD test_teardowns_no_main.
 
-    " without a MAIN display nothing tears the standalone slots down on the
-    " frontend, so the teardown has to travel
+    " a teardown is the slot's entry with DESTROY and nothing else
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["VIEW_SLOTS","destroy","POPUP"]|["VIEW_SLOTS","destroy","POPOVER"]`
+        exp = `{"POPOVER":{"DESTROY":true},"POPUP":{"DESTROY":true}}`
         act = serialized( ) ).
 
   ENDMETHOD.

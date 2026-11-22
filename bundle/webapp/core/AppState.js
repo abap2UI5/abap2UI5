@@ -103,10 +103,10 @@
 //                     Server.roundtrip/readHttp; this record exists for
 //                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
-//   oResponse         last processed response { ID, S_ACTION, OVIEWMODEL,
-//                     APP, MODELPRESENT }
+//   oResponse         last processed response { ID, VIEWS, NAV, ACTIONS,
+//                     OVIEWMODEL, APP, MODELPRESENT }
 //   renderedApp       class name of the last rendered app - an APP switch in
-//                     a response tears the standalone slots down implicitly
+//                     a response drops the event a queue-last wire kept
 //                     (View1._processAfterRendering)
 //   responseData      raw parsed response JSON (Server.readHttp); kept
 //                     besides oResponse because the developer tools render

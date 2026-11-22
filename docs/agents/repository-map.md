@@ -162,7 +162,7 @@ Beyond the must-know files in `AGENTS.md`, "Key Files" - consult as needed:
 | `src/02/z2ui5_if_ui5_exit.intf.abap` | Customization exit points (its former name `z2ui5_if_exit` was deleted 2026-11-17) |
 | `src/01/04/z2ui5_cl_ui5_user_exit.clas.abap` | Default exit + user-exit class support |
 | `src/01/02/z2ui5_cl_ui5_action.clas.abap` | Event/action dispatcher |
-| `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | Frontend action queues + response serialization (T_SYSTEM/T_CUSTOM, ROUTER/nav intent) |
+| `src/01/02/z2ui5_cl_ui5_frontend.clas.abap` | The app's action queue and the response sections VIEWS and NAV (slot lifecycle, URL intent) |
 | `src/01/02/z2ui5_cl_ui5_app_cont.clas.abap` | App lifecycle (create, load, serialize) |
 | `src/01/02/z2ui5_cl_ui5_srv_bind.clas.abap` | Data binding engine — a bound value to its client path, one service per render |
 | `src/01/02/z2ui5_cl_ui5_srv_model.clas.abap` | The attribute rows: dissolve, binding search, model out and in (row deltas), the draft save and restore of generic references |

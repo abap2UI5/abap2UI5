@@ -286,17 +286,8 @@ CLASS ltcl_00_base DEFINITION ABSTRACT
   FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
   PROTECTED SECTION.
-    "! the slots the serialized actions name, in order, deduplicated
-    METHODS slot_sequence
-      IMPORTING
-        val           TYPE REF TO z2ui5_cl_ui5_handler
-      RETURNING
-        VALUE(result) TYPE string
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! the response's system actions, stringified and pipe-joined - so the
-    "! auto-update/nav tests can assert on the queue like on text
+    "! the response's VIEWS and NAV sections as their JSON, pipe-joined - so
+    "! the auto-update/nav tests can assert on them like on text
     METHODS system_actions_of
       IMPORTING
         val           TYPE REF TO z2ui5_cl_ui5_handler
@@ -363,33 +354,16 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD system_actions_of.
 
-    LOOP AT val->ms_response-s_front-s_action-t_system INTO DATA(ls_queued).
-      IF result IS NOT INITIAL.
-        result = result && `|`.
-      ENDIF.
-      result = result && ls_queued-o_json->stringify( ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD slot_sequence.
-
-    " the slots named by the serialized actions, in order, each one once -
-    " so the assertion reads as the sequence and not as a payload dump
-    LOOP AT val->mo_action->ms_next-s_action-t_system INTO DATA(ls_queued).
-      DATA(lv_js) = ls_queued-o_json->stringify( ).
-      SPLIT lv_js AT `","` INTO TABLE DATA(lt_part).
-      DATA(lv_slot) = replace( val  = VALUE string( lt_part[ 3 ] OPTIONAL )
-                               sub  = `"]`
-                               with = `` ).
-      IF result CS lv_slot.
-        CONTINUE.
-      ENDIF.
-      IF result IS NOT INITIAL.
-        result = result && `|`.
-      ENDIF.
-      result = result && lv_slot.
-    ENDLOOP.
+    " the two sections of the response that say what the screen is after the
+    " roundtrip - VIEWS and NAV - as their JSON, `|` between them. The name
+    " is from the time both were action lists
+    IF val->ms_response-s_front-o_views IS BOUND.
+      result = val->ms_response-s_front-o_views->stringify( ).
+    ENDIF.
+    result = result && `|`.
+    IF val->ms_response-s_front-o_nav IS BOUND.
+      result = result && val->ms_response-s_front-o_nav->stringify( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1512,25 +1486,31 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
   METHOD test_response_actions_embedded.
 
-    " the action lists leave as REAL nested JSON arrays, not as escaped
-    " strings - and an empty-string positional placeholder inside an action
-    " survives, because the queues are written AFTER the no-empty-values
-    " filter ran
+    " the action list and the sections leave as REAL nested JSON, not as
+    " escaped strings - and an empty-string positional placeholder inside an
+    " action survives, as an empty view does, because both are written AFTER
+    " the no-empty-values filter ran
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA ls_response TYPE z2ui5_if_ui5_types=>ty_s_response.
     lo_handler = NEW #( val = `` ).
     ls_response-s_front-id = `ID123`.
     INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]` ) )
-           INTO TABLE ls_response-s_front-s_action-t_system.
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SET_FOCUS","id1"]` ) )
            INTO TABLE ls_response-s_front-s_action-t_custom.
+    ls_response-s_front-o_views = z2ui5_cl_ajson=>parse( `{"MAIN":{"XML":""},"POPUP":{"DESTROY":true}}` ).
+    ls_response-s_front-o_nav   = z2ui5_cl_ajson=>parse( `{"setNavRouting":"KEEP"}` ).
 
     DATA(lv_json) = lo_handler->response_abap_to_json( ls_response ).
 
     cl_abap_unit_assert=>assert_true(
-        xsdbool( lv_json CS `"T_SYSTEM":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
+        xsdbool( lv_json CS `"ACTIONS":[["CONTROL_BY_ID","tab","","setHiddenInPopin",{"A":1}]]` ) ).
     cl_abap_unit_assert=>assert_true(
-        xsdbool( lv_json CS `"T_CUSTOM":[["SET_FOCUS","id1"]]` ) ).
+        xsdbool( lv_json CS `"VIEWS":{"MAIN":{"XML":""},"POPUP":{"DESTROY":true}}` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_json CS `"NAV":{"setNavRouting":"KEEP"}` ) ).
+    " a response without a section carries no key for it
+    CLEAR: ls_response-s_front-o_views, ls_response-s_front-o_nav.
+    lv_json = lo_handler->response_abap_to_json( ls_response ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `"VIEWS"` OR lv_json CS `"NAV"` ) ).
 
   ENDMETHOD.
 
@@ -1752,9 +1732,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
   METHOD test_system_slot_order.
 
     " The app displays in whatever order suits it - here nested first, main
-    " last. The list that leaves goes MAIN, NEST, NEST2, POPUP, POPOVER: a
-    " nested view is inserted INTO the main control tree, so it cannot be
-    " built before the page it belongs to exists.
+    " last. Every slot gets its entry in VIEWS, and none is sorted: the
+    " order they are built in - MAIN first, a nested view is inserted INTO
+    " the main control tree - is the frontend's (View1._applyViews).
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
@@ -1771,20 +1751,26 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client->popup_display( `<Dialog/>` ).
     li_client->view_display( `<View/>` ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
+    DATA(li_views) = NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `MAIN|NEST|NEST2|POPUP|POPOVER`
-        act = slot_sequence( lo_handler ) ).
+        exp = `<View/>|<Nest/>|<Nest2/>|<Dialog/>|<Popover/>`
+        act = |{ li_views->get_string( `/MAIN/XML` ) }\|{ li_views->get_string( `/NEST/XML` ) }\|| &&
+              |{ li_views->get_string( `/NEST2/XML` ) }\|{ li_views->get_string( `/POPUP/XML` ) }\|| &&
+              |{ li_views->get_string( `/POPOVER/XML` ) }| ).
+    " the slot's own extras ride as its options
+    cl_abap_unit_assert=>assert_equals( exp = `btn`
+                                        act = li_views->get_string( `/POPOVER/OPT/openById` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `addMidColumnPage`
+                                        act = li_views->get_string( `/NEST/OPT/methodInsert` ) ).
 
   ENDMETHOD.
 
   METHOD test_system_last_wins.
 
     " A slot displayed twice is displayed ONCE, with the last XML: the
-    " second call drops everything the first queued. No destroy action
-    " travels with a display - the frontend tears the slot down implicitly,
-    " a display REPLACES the slot.
+    " second call drops everything the first queued. No teardown travels
+    " with a display - a display REPLACES the slot.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
@@ -1793,35 +1779,28 @@ CLASS ltcl_02_response IMPLEMENTATION.
     li_client->view_display( `<First/>` ).
     li_client->view_display( `<Second/>` ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
-
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lt_js ) ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `["VIEW_SLOTS","display","MAIN","<Second/>"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        exp = `{"MAIN":{"XML":"<Second/>"}}`
+        act = NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( )->stringify( ) ).
 
   ENDMETHOD.
 
   METHOD test_system_empty.
 
-    " a roundtrip that touches no slot sends no system action at all
+    " a roundtrip that touches no slot has an empty VIEWS section - and the
+    " response then carries none (response_abap_to_json)
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     lo_handler = NEW #( val = `` ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
-
-    cl_abap_unit_assert=>assert_initial(
-        lo_handler->mo_action->ms_next-s_action-t_system ).
+    cl_abap_unit_assert=>assert_true(
+        NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( )->is_empty( ) ).
 
   ENDMETHOD.
 
   METHOD test_system_destroy_only.
 
     " A bare destroy - popup_destroy( ) without a follow-up display - leaves
-    " as exactly ["VIEW_SLOTS","destroy","POPUP"]: three entries, no XML
-    " argument and no options object ride along
+    " as the slot's entry with DESTROY and nothing else: no XML, no options
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
     DATA li_client TYPE REF TO z2ui5_if_client.
     lo_handler = NEW #( val = `` ).
@@ -1829,14 +1808,9 @@ CLASS ltcl_02_response IMPLEMENTATION.
 
     li_client->popup_destroy( ).
 
-    NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( ).
-
-    DATA(lt_js) = lo_handler->mo_action->ms_next-s_action-t_system.
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lt_js ) ).
     cl_abap_unit_assert=>assert_equals(
-        exp = `["VIEW_SLOTS","destroy","POPUP"]`
-        act = lt_js[ 1 ]-o_json->stringify( ) ).
+        exp = `{"POPUP":{"DESTROY":true}}`
+        act = NEW z2ui5_cl_ui5_frontend( lo_handler->mo_action )->slots_serialize( )->stringify( ) ).
 
   ENDMETHOD.
 
@@ -2180,15 +2154,15 @@ CLASS ltcl_03_dispatch IMPLEMENTATION.
 
     lo_handler->main_end( ).
 
-    " the mode reaches the frontend as the ROUTER/sync option, not as a
-    " response field of its own
+    " the mode reaches the frontend as an option of the NAV section, not
+    " as a response field of its own
     cl_abap_unit_assert=>assert_char_cp(
         exp = `*"setNavRouting":"KEEP"*`
         act = system_actions_of( lo_handler ) ).
 
     " a follow-up EVENT roundtrip of the same app repeats no mode - the
-    " frontend keeps it in session state, so re-sending it would re-queue
-    " the ROUTER action for a constant on every roundtrip
+    " frontend keeps it in session state, so re-sending it would repeat
+    " the NAV section for a constant on every roundtrip
     lo_handler->ms_request-s_front-id = `SOME_DRAFT`.
     CLEAR lo_handler->mo_action->ms_next.
     lo_handler->main_end( ).

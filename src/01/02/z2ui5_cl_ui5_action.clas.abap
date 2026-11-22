@@ -128,6 +128,16 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     result = NEW #( mo_handler ).
 
+    " An app start is an app switch as well when the page already runs one -
+    " Back/Forward restoring a route, a hash edited by hand - and the
+    " frontend no longer takes the standalone slots down by itself (see
+    " prepare_app_stack). On a page that has just loaded the two teardowns
+    " find nothing; an app that opens a popup in its first main( ) replaces
+    " the teardown through slot_reset( ).
+    DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
+
     IF mo_handler->ms_request-s_control-app_start_draft IS NOT INITIAL.
       TRY.
 
@@ -192,7 +202,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
           " There is no client object yet at this point in the factory,
           " so the toast is queued directly through the action builder
           " message_toast_display( ) delegates to.
-          NEW z2ui5_cl_ui5_frontend( result )->msg_toast(
+          lo_frontend->msg_toast(
               `Bookmarked app state expired or could not be restored - starting with a fresh app` ).
       ENDTRY.
     ENDIF.
@@ -273,7 +283,7 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
     " active for the app being navigated to (its own mode, or the caller's
     " inherited one - see prepare_app_stack). Without routing the frontend
     " router reads none of these fields, so a plain nav_app_call sends no
-    " ROUTER action at all.
+    " NAV section at all.
     IF result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep
         OR result->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-fresh.
       " the frontend pushes a new route history entry for the called app, so
@@ -490,23 +500,18 @@ CLASS z2ui5_cl_ui5_action IMPLEMENTATION.
 
     " The two standalone slots (POPUP/POPOVER) die on every app switch - they
     " live OUTSIDE the MAIN control tree, so they do not fall with the page
-    " the new app renders. The FRONTEND does that implicitly whenever the
-    " response's APP differs from the one before (View1), so no action has
-    " to travel for it. The one switch the frontend cannot see is a hop to
-    " ANOTHER INSTANCE OF THE SAME CLASS - only then the teardown is queued
-    " here, before the called app runs its main( ), so its own
-    " popup_display( ) still replaces the destroy through slot_reset( ).
-    " Both directions pass through here (call and leave alike), so this is
-    " the ONE place that decides it - a back-navigation must not queue a
-    " teardown of its own on top, or every cross-class Back would carry two
-    " destroy actions for slots the frontend had already torn down.
-    IF mo_app->mo_app IS BOUND
-        AND z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( val )
-          = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
-      DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
-      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
-      lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
-    ENDIF.
+    " the new app renders. The backend says so, on every hop: it is the one
+    " side that knows a hop happened - another instance of the SAME class
+    " looks like the same app from the browser. Queued before the called app
+    " runs its main( ), so its own popup_display( ) still replaces the
+    " teardown through slot_reset( ). Both directions pass through here (call
+    " and leave alike), so this is the ONE place that decides it.
+    " Until protocol 3 the frontend took the two slots down itself whenever
+    " a response named another class, and this method covered only the hop
+    " it could not see.
+    DATA(lo_frontend) = NEW z2ui5_cl_ui5_frontend( result ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
+    lo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
   ENDMETHOD.
 

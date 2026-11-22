@@ -396,9 +396,9 @@ test.describe("textPath (ancestor-text breadcrumb)", () => {
 });
 
 test.describe("_processAfterRendering (action-free responses)", () => {
-  // With the ROUTER and updateModel actions derived/gated away, a response
-  // without any action is the COMMON case - it must still get its model
-  // push, its hash sync and the after-render hooks.
+  // A response that changes no slot and carries no URL intent is the COMMON
+  // case - it must still get its model push, its hash sync and the
+  // after-render hooks.
   function loadForAfterRendering() {
     // the request stamp lives on Server: a spec bumps it to dispatch a newer
     // request mid-phase, which is what "superseded" means BEFORE that
@@ -410,6 +410,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
     const logged = [];
     const pushes = [];
+    // the VIEWS entries as they were applied: "display MAIN", "destroy POPUP"
+    const applied = [];
     const syncs = [];
     const hooks = [];
     const destroys = [];
@@ -441,10 +443,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           logError: (m) => logged.push(m),
         },
         "z2ui5/core/FrontendAction": {
-          // a spec may replace the response mid-phase, the way a parallel
-          // request does while the system actions are still awaiting
-          runSystem: () => hooks.onRunSystem?.(),
-          // ... and hand an action's result back - a promise for the async
+          // hands an action's result back - a promise for the async
           // ones (SET_ODATA_MODEL), which the runner awaits
           runCustom: (item) => {
             customs.push(item);
@@ -452,9 +451,23 @@ test.describe("_processAfterRendering (action-free responses)", () => {
           },
         },
         "z2ui5/core/actions/Slots": {
-          action: (_ctx, method) => pushes.push(method),
+          // the model push names no slot; a VIEWS entry does. A spec may
+          // replace the response while an entry is applied, the way a
+          // parallel request does while a view is still building
+          action: (_ctx, method, key) => {
+            if (method === "updateModel") {
+              pushes.push(method);
+              return undefined;
+            }
+            applied.push(`${method} ${key}`);
+            return hooks.onRunSystem?.();
+          },
         },
         "z2ui5/core/ViewSlots": {
+          // the order the VIEWS entries are applied in
+          slots: ["MAIN", "NEST", "NEST2", "POPUP", "POPOVER"].map((key) => ({
+            key,
+          })),
           destroy: (_ctx, key) => destroys.push(key),
           // no slot views here: a hand-built queued event carries none,
           // and the view check of _dispatchQueuedEvent compares equal
@@ -476,6 +489,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       state,
       server,
       pushes,
+      applied,
       syncs,
       hooks,
       destroys,
@@ -518,7 +532,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       ID: "D2",
       APP: "Z2UI5_CL_APP_B",
       MODELPRESENT: false,
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+      VIEWS: { MAIN: { XML: "<View/>" } },
     };
 
     await ctrl._processAfterRendering(1);
@@ -532,8 +546,9 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(state.pendingAppHash).toBe(null);
     expect(state.oQueuedEvent).toBe(null);
     expect(queuedDispatches).toEqual([]);
-    // the standalone slots of the leaving app go with it
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    // the standalone slots are NOT torn down on the name: the backend
+    // states their teardown for the hop, as VIEWS entries
+    expect(destroys).toEqual([]);
   });
 
   // The counterpart of the drop above: the state an app owns goes with its
@@ -573,24 +588,22 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       ID: "D2",
       APP: "Z2UI5_CL_POP_CONFIRM",
       MODELPRESENT: false,
-      S_ACTION: {
-        T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]],
-      },
+      VIEWS: { POPUP: { XML: "<Dialog/>" } },
     };
     await ctrl._processAfterRendering(1);
     expect(state.renderedApp).toBe("Z2UI5_CL_POP_CONFIRM");
     unchanged();
-    // the APP switch still tears the standalone slots down (the backend
-    // sends no destroy for it) - here A had none
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    // the APP switch tears nothing down by itself
+    expect(destroys).toEqual([]);
 
     // 2: the nav_app_leave back - A answers again, with no MAIN display
     state.oResponse = { ID: "D3", APP: "Z2UI5_CL_APP_A", MODELPRESENT: false };
     await ctrl._processAfterRendering(2);
     expect(state.renderedApp).toBe("Z2UI5_CL_APP_A");
     unchanged();
-    // ... and the popup app's dialog goes with the switch back
-    expect(destroys).toEqual(["POPUP", "POPOVER", "POPUP", "POPOVER"]);
+    // ... and neither does the switch back: the popup app's dialog goes
+    // with the teardown the backend sends for that hop
+    expect(destroys).toEqual([]);
   });
 
   test("a called app that displays MAIN later resets the state on that response", async () => {
@@ -604,7 +617,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D2",
       APP: "Z2UI5_CL_APP_B",
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "POPUP", "<Dialog/>"]] },
+      VIEWS: { POPUP: { XML: "<Dialog/>" } },
     };
     await ctrl._processAfterRendering(1);
     expect(state.shortcuts).toEqual({ "ctrl+s": {} });
@@ -613,7 +626,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D3",
       APP: "Z2UI5_CL_APP_B",
-      S_ACTION: { T_SYSTEM: [["VIEW_SLOTS", "display", "MAIN", "<View/>"]] },
+      VIEWS: { MAIN: { XML: "<View/>" } },
     };
     await ctrl._processAfterRendering(2);
     expect(state.shortcuts).toEqual({});
@@ -641,7 +654,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // FrontendAction.execute promises that a failing handler is logged, never
   // thrown - and kept it for the synchronous ones only. An async action
   // (SET_ODATA_MODEL loading its client) that REJECTED escaped the await in
-  // _runPendingCustomJs: the actions behind it never ran, the queued event
+  // _runPendingActions: the actions behind it never ran, the queued event
   // and the parked hash were skipped, and a screen that had rendered fine
   // ended in the fatal "App Terminated" overlay plus an unhandled rejection.
   test("a rejected async follow-up action is logged and the rest still runs", async () => {
@@ -654,7 +667,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     };
     state.oResponse = {
       ID: "D1",
-      _pendingCustomJs: [
+      _pendingActions: [
         ["SET_ODATA_MODEL", "/svc"],
         ["SET_FOCUS", "inp"],
       ],
@@ -691,7 +704,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.mainTransition = new Promise((resolve) => {
       endMove = resolve;
     });
-    state.oResponse = { ID: "D1", _pendingCustomJs: [["SET_FOCUS", "inp"]] };
+    state.oResponse = { ID: "D1", _pendingActions: [["SET_FOCUS", "inp"]] };
 
     const done = ctrl._processAfterRendering(1);
     for (let i = 0; i < 5; i += 1) await Promise.resolve();
@@ -715,8 +728,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
       loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     hooks.onRunSystem = () => {
       ctx.server.requestSeq = 2;
@@ -736,7 +749,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
 
   test("the winning response's failed build still raises the overlay", async () => {
     const { ctrl, state, hooks, busy, renderErrors } = loadForAfterRendering();
-    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+    state.oResponse = { ID: "D1", VIEWS: { MAIN: { XML: "<View/>" } } };
     const boom = new Error("view XML broken");
     hooks.onRunSystem = () => {
       throw boom;
@@ -758,8 +771,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // the overlay, a parked hash change would send one
     state.oResponse = {
       ID: "D1",
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["START_TIMER", "TICK", "1000"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["START_TIMER", "TICK", "1000"]],
     };
     hooks.onRunSystem = () => {
       throw new Error("view XML broken");
@@ -778,8 +791,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     // a newer request replaces the response while this one's system
     // actions are still running
@@ -824,8 +837,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     state.oResponse = {
       ID: "D1",
       MODELPRESENT: true,
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     // the restore dispatches its request while the system actions run - the
     // response record still points at THIS response, only the stamp moved
@@ -844,7 +857,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     // ... but its OWN follow-up actions still ran: the newer request is
     // merely DISPATCHED, so the screen they were queued for is still the one
     // on display, and nothing else will ever run them - the superseding
-    // request answers with its own T_CUSTOM. This is what the app's first
+    // request answers with its own ACTIONS. This is what the app's first
     // roundtrip lost every time a control fired an event while the initial
     // view rendered (samples-controls 350: ICON_POOL registerFont; 534:
     // eight Wizard setNextStep calls).
@@ -858,8 +871,8 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     const { ctrl, state, hooks, busy, customs, app } = loadForAfterRendering();
     state.oResponse = {
       ID: "D1",
-      S_ACTION: { T_SYSTEM: [{}] },
-      _pendingCustomJs: [["TOAST"]],
+      VIEWS: { MAIN: { XML: "<View/>" } },
+      _pendingActions: [["TOAST"]],
     };
     hooks.onRunSystem = () => {
       app.alive = false;
@@ -876,7 +889,7 @@ test.describe("_processAfterRendering (action-free responses)", () => {
   // response processed without one is never read as superseded
   test("no stamp handed in: the newest request is the response's own", async () => {
     const { ctrl, state, syncs, busy } = loadForAfterRendering();
-    state.oResponse = { ID: "D1", S_ACTION: { T_SYSTEM: [{}] } };
+    state.oResponse = { ID: "D1", VIEWS: { MAIN: { XML: "<View/>" } } };
 
     await ctrl._processAfterRendering();
 
@@ -916,31 +929,57 @@ test.describe("_processAfterRendering (action-free responses)", () => {
     expect(syncs).toEqual([{ id: "D2" }]);
   });
 
-  test("an APP switch tears the popup/popover down implicitly, once", async () => {
-    const { ctrl, state, destroys } = loadForAfterRendering();
-    // first app ever rendered: nothing of a previous app can be open
+  test("an APP switch tears no slot down by itself - the VIEWS entries do", async () => {
+    const { ctrl, state, destroys, applied } = loadForAfterRendering();
     state.oResponse = { ID: "D1", APP: "Z2UI5_CL_A" };
     await ctrl._processAfterRendering(1);
+
+    // switch to another class: until protocol 3 the frontend took POPUP
+    // and POPOVER down on the name; the backend states it for every hop now
+    state.oResponse = {
+      ID: "D2",
+      APP: "Z2UI5_CL_B",
+      VIEWS: { POPUP: { DESTROY: true }, POPOVER: { DESTROY: true } },
+    };
+    await ctrl._processAfterRendering(1);
     expect(destroys).toEqual([]);
+    expect(applied).toEqual(["destroy POPUP", "destroy POPOVER"]);
 
-    // switch to another class: the standalone slots live outside MAIN's
-    // control tree, so no destroy action travels - the switch itself,
-    // visible right here, kills them before the new app's system actions
-    state.oResponse = { ID: "D2", APP: "Z2UI5_CL_B" };
+    // a switch whose response names no slot leaves every slot alone
+    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_C" };
     await ctrl._processAfterRendering(1);
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
-
-    // an event roundtrip of the SAME app tears nothing down
-    state.oResponse = { ID: "D3", APP: "Z2UI5_CL_B" };
-    await ctrl._processAfterRendering(1);
-    expect(destroys).toEqual(["POPUP", "POPOVER"]);
+    expect(applied).toEqual(["destroy POPUP", "destroy POPOVER"]);
   });
 
-  test("a travelling ROUTER action's options reach the one per-response sync", async () => {
+  test("the VIEWS entries are applied MAIN first, whatever order they arrive in", async () => {
+    const { ctrl, state, applied } = loadForAfterRendering();
+    state.oResponse = {
+      ID: "D1",
+      APP: "Z2UI5_CL_A",
+      VIEWS: {
+        POPOVER: { XML: "<Popover/>", OPT: { openById: "btn" } },
+        POPUP: { DESTROY: true },
+        NEST2: { XML: "<Nest2/>" },
+        NEST: { XML: "<Nest/>" },
+        MAIN: { XML: "<View/>" },
+      },
+    };
+
+    await ctrl._processAfterRendering(1);
+
+    expect(applied).toEqual([
+      "display MAIN",
+      "display NEST",
+      "display NEST2",
+      "destroy POPUP",
+      "display POPOVER",
+    ]);
+  });
+
+  test("the NAV section's options reach the one per-response sync", async () => {
     const { ctrl, state, syncs } = loadForAfterRendering();
-    // the ControlCall hook stashes the options on the response record; the
-    // stash is consumed by the sync, which injects the response id
-    state.oResponse = { ID: "D3", _routerOptions: { setNavRouting: "KEEP" } };
+    // the sync injects the response id next to them
+    state.oResponse = { ID: "D3", NAV: { setNavRouting: "KEEP" } };
 
     await ctrl._processAfterRendering(1);
 
@@ -1391,7 +1430,6 @@ test.describe("eB busy guard with check_queue_last (queued last event)", () => {
           isRootModelSlot: () => true,
         },
         "z2ui5/core/FrontendAction": {
-          runSystem: () => {},
           runCustom: () => {},
         },
         "z2ui5/core/actions/Slots": {

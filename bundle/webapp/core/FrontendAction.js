@@ -65,8 +65,7 @@ sap.ui.define(
           return handler(oController, args);
         } else {
           // a typo in follow_up_action( ) or a wire an older frontend does
-          // not know used to say nothing anywhere, while the SYSTEM phase
-          // below reports its unknown action
+          // not know used to say nothing anywhere
           Lib.logError(`FrontendAction: unknown action '${args[0]}'`);
         }
       } catch (e) {
@@ -77,33 +76,11 @@ sap.ui.define(
       return undefined;
     }
 
-    // Entry point for the SYSTEM phase. Two differences to execute( ), both
-    // deliberate: the result is RETURNED so an async view display can be
-    // awaited before the next action runs, and errors are NOT swallowed - a
-    // malformed-XML load has always propagated to _processAfterRendering and
-    // surfaced the fatal "App Terminated" overlay rather than leaving the app
-    // half-built behind a log line.
-    //
-    // `ctx` is the action context: today it carries `seq`, the stamp of the
-    // request the processed response belongs to, which the VIEW_SLOTS
-    // display path needs to discard builds a newer request superseded. It is
-    // threaded through the dispatch as an argument - never parked on shared
-    // state, where a parallel response's phase would overwrite it.
-    function executeSystem(oController, args, ctx) {
-      Lib.runCallbacks(oController?.ctx?.state.onBeforeEventFrontend, args);
-      const handler = handlers[args[0]];
-      if (!handler) {
-        Lib.logError(`FrontendAction: unknown system action '${args[0]}'`);
-        return undefined;
-      }
-      return handler(oController, args, ctx);
-    }
-
     // One action entry of the response as its argument array: a real JSON
     // array as the backend embeds it (handler actions_serialize), or the
     // stringified form a skewed backend may still send, parsed once. Null
     // for anything else - a string that is no JSON, a parsed value that is
-    // no array - so neither runner below ever dispatches on it.
+    // no array - so the runner below never dispatches on it.
     function parseAction(item) {
       let args = item;
       if (typeof item === "string") {
@@ -114,22 +91,6 @@ sap.ui.define(
         }
       }
       return Array.isArray(args) ? args : null;
-    }
-
-    // Run one SYSTEM action from the response's T_SYSTEM list. A system
-    // action is always framework-generated and arrives as a real JSON array
-    // (the backend embeds it into the response - handler actions_serialize);
-    // the string form stays accepted so a skewed backend keeps working.
-    // There are no legacy formats here, and errors propagate: a failing
-    // view display has to reach _processAfterRendering, which turns it
-    // into the fatal overlay instead of leaving the app half-built.
-    function runSystem(item, oController, ctx) {
-      const args = parseAction(item);
-      if (!args) {
-        Lib.logError(`FrontendAction: '${item}' is no system action payload`);
-        return undefined;
-      }
-      return executeSystem(oController, args, ctx);
     }
 
     // The arguments of a HANDLER-queued action with every `${/X}` replaced
@@ -172,7 +133,7 @@ sap.ui.define(
       });
     }
 
-    // Run one APP follow-up action from the response's T_CUSTOM list: a
+    // Run one follow-up action from the response's ACTIONS list: a
     // JSON array ["EVENT", ...args], embedded into the response by the
     // backend (handler actions_serialize). Pure data, dispatched via
     // oController.eF( ) - no code is parsed or evaluated here; an argument
@@ -195,6 +156,6 @@ sap.ui.define(
       return undefined;
     }
 
-    return { execute, executeSystem, runSystem, runCustom };
+    return { execute, runCustom };
   },
 );

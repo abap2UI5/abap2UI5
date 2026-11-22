@@ -638,7 +638,7 @@ sap.ui.define(["z2ui5/core/Context"], (Context) => {
   // value, or null when the argument is no path. Wired in a VIEW, `${/S}`
   // is an expression binding UI5 evaluates when the view is built, and the
   // handler receives the value; queued from a HANDLER the action is data
-  // (T_CUSTOM), nothing on the response path resolves a binding in it, and
+  // (ACTIONS), nothing on the response path resolves a binding in it, and
   // the same argument arrives as the string. `${/S}`, `{/S}` (what _bind( )
   // renders) and a bare `/S` all name the same path. STORE_DATA, URLHELPER
   // and CROSS_APP_NAV_TO_EXT read their structure argument this way.

@@ -794,12 +794,12 @@ sap.ui.define(
         // A new MAIN view means a new screen, so the two STANDALONE slots
         // go with it. They live outside the MAIN control tree and would
         // otherwise float on top of a page they no longer belong to - a
-        // dialog of the previous screen over the new one. The backend
-        // relies on this and sends no destroy action for them next to a
-        // MAIN display (z2ui5_cl_ui5_frontend=>slots_serialize). A
-        // popup/popover the SAME response opens still opens: slot actions
-        // are serialized MAIN first, and each one is awaited before the
-        // next runs (View1._runSystemActions).
+        // dialog of the previous screen over the new one. This rule is the
+        // frontend's alone: the backend neither relies on it nor repeats
+        // it, a teardown an app asks for next to its MAIN display simply
+        // finds the slot closed. A popup/popover the SAME response opens
+        // still opens: View1 applies MAIN first, and each entry is awaited
+        // before the next (View1._applyViews).
         ViewSlots.destroy(ctx, "POPUP");
         ViewSlots.destroy(ctx, "POPOVER");
         const localId = freeMainViewId(ctx, oOld);
@@ -917,13 +917,14 @@ sap.ui.define(
       oView.setModel(oModel);
     }
 
-    // The one entry point of the VIEW_SLOTS action target (wired in
-    // actions/ControlCall's GLOBAL_TARGETS). destroy is ViewSlots' own
+    // The one entry point for a slot: View1 applies a response's VIEWS
+    // section through it, and so does the VIEW_SLOTS action target (wired
+    // in actions/ControlCall's GLOBAL_TARGETS). destroy is ViewSlots' own
     // method; display and updateModel live here, because loading a fragment
     // and owning the model is this module's job. `seq` is the stamp of the
-    // request the processed response belongs to, threaded through the action
-    // context (FrontendAction.runSystem) - a display superseded by a newer
-    // request discards its build instead of overwriting the newer view.
+    // request the processed response belongs to (View1._applyViews) - a
+    // display superseded by a newer request discards its build instead of
+    // overwriting the newer view.
     function action(ctx, method, slotKey, xml, mOptions, seq) {
       // The options are optional on the wire - a display that needs none
       // (a popup, or the devtools' local re-render) carries no fourth

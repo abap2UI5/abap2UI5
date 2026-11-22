@@ -446,7 +446,7 @@ test.describe("STORE_DATA", () => {
   });
 
   // A follow-up action queued from a HANDLER carries the payload as the model
-  // PATH of the structure: T_CUSTOM is pure data, so the `${/S_STORAGE}` that
+  // PATH of the structure: ACTIONS is pure data, so the `${/S_STORAGE}` that
   // a view wire has UI5 resolve at view-build time arrives here as a literal
   // string. Before it was read as a path, every field destructured to
   // undefined and the write was a silent no-op - the samples-controls
@@ -768,7 +768,7 @@ test.describe("URLHELPER", () => {
 
   // The samples wire `( `TRIGGER_EMAIL` ) ( |${ client->_bind( email ) }| )`
   // into a press, where UI5 resolves the binding when the view is built. The
-  // same call queued from a HANDLER is data (T_CUSTOM): the params arrive as
+  // same call queued from a HANDLER is data (ACTIONS): the params arrive as
   // the model path, every field read undefined - an empty mailto: opened, a
   // REDIRECT answered "Invalid redirect URL" for a URL the app had bound.
   // Read as a path, the way STORE_DATA reads its payload.
