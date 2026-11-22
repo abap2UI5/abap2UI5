@@ -329,11 +329,11 @@ jobs:
     - run: tar -xzf transpiled.tar.gz -C node
     - name: Pack @abap2ui5/node-runtime from this checkout
       run: npm run pack:node-runtime -- --out npm-package
-    - name: abap2UI5/protocol at a pinned commit of its main
+    - name: abap2UI5/protocol at a pinned commit of its branch DEV
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: f592b1625992ae95792344c2f6ee78f9ec6beccd   # main, the app-driven window (abap2UI5/protocol#20)
+        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE)
         path: protocol
         persist-credentials: false
     - name: The protocol package, with the runtime packed here
@@ -372,11 +372,11 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - name: abap2UI5/protocol at a pinned commit of its main
+    - name: abap2UI5/protocol at a pinned commit of its branch DEV
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: abap2UI5/protocol
-        ref: f592b1625992ae95792344c2f6ee78f9ec6beccd   # main, the app-driven window (abap2UI5/protocol#20) - keep equal to conformance_backend
+        ref: 501bb21150ba26d568f3f7941b328b162f44b4d1   # DEV, protocol 3 (VIEWS / NAV / ACTIONS, ROUTE) - keep equal to conformance_backend
         path: protocol
         persist-credentials: false
     - uses: ./.github/actions/setup

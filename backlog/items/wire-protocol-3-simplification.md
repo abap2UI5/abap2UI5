@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
-title: 'Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open'
-summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, a hash write needs a listener, and one decision about the app-state link is open
+title: 'Protocol 3: what is implemented, what followed in abap2UI5/protocol, who is still on protocol 2, and what is open'
+summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol follows on its branch DEV (specification, schemas, both suites, its two renderers), pinned by test.yaml; cap2UI5, the agent client of abap2UI5/mcp-server and the Web Components frontend still speak protocol 2; one decision about the app-state link is open
 priority: high
 state: open
 first_seen: 2026-11-22
@@ -13,17 +13,21 @@ evidence:
   - 'OpenUI5 1.71.80 in Chromium: a handler wired as `.eB([''LIVE'',{queueLast:true,noBusy:true}], ''arg'', ${$source>/text})` is called with `[["LIVE",{"queueLast":true,"noBusy":true}],"arg","x"]`; on 1.153.0 a view with XML templating reads the object too'
   - 'browser experiment through the protocol suite''s mock backend, before the fix: a `core:HTML` whose `afterRendering` is wired to `.eB` reached the backend on the FIRST response (POSTs: start, R1) and was dropped on a LATER one (POSTs: start, NEXT); after it: start, NEXT, R2, and an app that answers the event with the same view again stops at 26 POSTs'
   - 'usage counted in abap2UI5/samples-controls (9f3378a, 690 classes) and abap2UI5/samples-stack (4e268b9, 84 classes); abap2UI5/samples could not be read'
+  - 'abap2UI5/protocol branch DEV against this branch (2026-11-22, runtime packed from 1445078): backend suite 91 of 91, frontend suite with the ui5 adapter 88 passed / 4 skipped, its Adaptive Cards renderer 70 passed / 22 skipped, its terminal renderer 80 passed / 12 skipped'
+  - 'the first recording of the protocol''s traffic against DEV showed "O_NAV":null,"O_VIEWS":null in every S_FRONT - fixed in 1445078'
 ---
 
-# Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open
+# Protocol 3: what is implemented, what followed in abap2UI5/protocol, who is still on protocol 2, and what is open
 
 The roundtrip is a written contract - [abap2UI5/protocol](https://github.com/abap2UI5/protocol)
 holds the specification, the JSON Schemas and two conformance suites, and
 `test.yaml` runs both against every pull request here. The maintainer decided
-on 2026-11-22 to break it: the changes below are in this repository, **the
-protocol repository, cap2UI5 and the other frontends are not updated yet**.
-Until they are, `conformance_backend` and `conformance_frontend` fail against
-the commit `test.yaml` pins.
+on 2026-11-22 to break it: the changes below are in this repository, and
+**abap2UI5/protocol follows on its branch `DEV`** (specification revision
+0.6) - `test.yaml` pins a commit of that branch in `conformance_backend` and
+`conformance_frontend`. cap2UI5, the agent client of abap2UI5/mcp-server and
+the Web Components frontend are **not updated yet**
+([below](#who-still-speaks-protocol-2)).
 
 ## Implemented here (protocol 3)
 
@@ -90,22 +94,29 @@ the commit `test.yaml` pins.
    samples-controls that write a hash register the listener; `hash_routing`
    has no caller in either corpus.
 
-## What the protocol repository has to follow
+## Followed in abap2UI5/protocol (branch DEV)
 
-| There | Change |
+| There | What changed |
 |---|---|
-| `spec/versioning.md` | protocol 3 and what broke; open question 15 (the window and the number) is answered with it |
-| `spec/response.md` | `VIEWS` / `NAV` / `ACTIONS` in place of `T_SYSTEM` / `T_CUSTOM`; no slot order for the backend; the two teardown rules with their new owners |
-| `spec/request.md` | `ROUTE`; `HASH` is no longer what an app start is resolved from |
-| `spec/navigation.md` | app start resolution reads `ROUTE`; the `ROUTER` action is the `NAV` section |
-| `spec/actions.md`, `profiles/ui5.md` | `ACTIONS`; the `.eB` wire form with the options object |
-| `schema/request.schema.json`, `response.schema.json` | the keys above |
-| backend checks | `slots.*`, `response.*`, `route.*`, `ui5.event-wire`: read the sections; send `ROUTE` where they sent a hash; a hop and an app start carry both teardowns |
-| frontend checks | `slots.app-change` turns round (the frontend must NOT tear down on the name); `ui5.wire-queue-last` and the mock's responses in the new shape; `router.*` |
-| `conformance/apps`, `traffic/` | record again; cap2UI5's twins and `@cap2ui5/cds-plugin` |
-| the other frontends | the agent client of abap2UI5/mcp-server, the terminal and Adaptive Cards renderers, the Web Components frontend: read `VIEWS` / `NAV` / `ACTIONS`, parse the options object out of a view, send `ROUTE` |
+| `spec/` (revision 0.6), `profiles/ui5.md` | protocol 3 as THE protocol: `VIEWS` / `NAV` / `ACTIONS`, `ROUTE`, the two teardown rules with their owners, the app-owned hash, the options object of a wire; what broke is one table in `spec/versioning.md`; open question 15 is answered |
+| `schema/request.schema.json`, `response.schema.json` | the keys above, `PROTOCOL` 3 |
+| backend suite | reads the sections, sends `ROUTE`; `slots.several` (was `slots.order`), new `slots.start-teardown`, `slots.hop-teardown`, `route.hash-not-read` (for `route.launchpad-shell-hash`), `ui5.event-wire-options` (the app ECHO has a wire with flags for it) |
+| frontend suite | `slots.app-change` turned round; new `slots.order`, `router.start-route`, `router.start-app-state`, `router.no-route-on-events`, `router.hash-write-owner` |
+| its renderers (Adaptive Cards, terminal) | read the sections, the terminal sends `ROUTE` |
+| `traffic/node-runtime/` | recorded again on a runtime packed from this branch |
 
-Then move the pinned commit in `test.yaml` (both jobs).
+`npm test` there is green on a runtime packed from this branch and on the
+released packages: an implementation that still speaks protocol 2 is
+"behind" - measured by one check, pinned (`test/lib/expected.mjs` there).
+
+## Who still speaks protocol 2
+
+| Where | What it has to do |
+|---|---|
+| `@abap2ui5/node-runtime` (npm) | the next release from this repository - until then the protocol's suites need a runtime packed here (`npm run pack:node-runtime`) |
+| cap2UI5, `@cap2ui5/cds-plugin` | host that release; then `npm run record` in abap2UI5/protocol (its cap2UI5 traffic was removed with the move) |
+| the agent client of abap2UI5/mcp-server (`lib/appclient.mjs`, `lib/snapshot.mjs`) | read `VIEWS` / `NAV` / `ACTIONS`, no teardown on an app change, parse the options object out of a view; then re-vendor it in abap2UI5/protocol (`npm run vendor:agent`) and record its traffic again - its renderers there fold responses with a module of their own until then |
+| the Web Components frontend (abap2UI5/frontend-webcomponent) | the same reading; send `ROUTE` |
 
 ## Open - decide first
 
@@ -170,7 +181,7 @@ the maintainer's decision.
 npm run verify:full                 # this repository
 # the protocol's suites against this checkout, as test.yaml runs them:
 npm run pack:node-runtime -- --out <dir>
-cd <checkout of abap2UI5/protocol> && npm ci
+cd <checkout of abap2UI5/protocol, branch DEV> && npm ci
 npm install --no-save <dir>/abap2ui5-node-runtime-*.tgz
 OPEN_ABAP_CORE_DIR=<here>/node/deps/open-abap-core node scripts/run-conformance.mjs node-runtime
 ABAP2UI5_HOME=<here> CHROMIUM_BIN=<chrome> node conformance/backend/bin/abap2ui5-conformance.mjs frontend --adapter ui5
