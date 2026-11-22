@@ -12,7 +12,7 @@ sap.ui.define(
     "use strict";
 
     // ------------------------------------------------------------------
-    // The VIEW_SLOTS action target: everything a backend response does to
+    // The view-slot actions: everything a backend response does to
     // the five view slots - destroy one, display one (each slot with its
     // own loader), push the model into the open ones - plus the
     // framework-owned JSON model with its change tracking, which the
@@ -978,10 +978,14 @@ sap.ui.define(
     }
 
     // The one entry point for a slot: View1 applies a response's VIEWS
-    // section through it, and so does the VIEW_SLOTS action target (wired
-    // in actions/ControlCall's GLOBAL_TARGETS). destroy is ViewSlots' own
-    // method; display and updateModel live here, because loading a fragment
-    // and owning the model is this module's job. `seq` is the stamp of the
+    // section and its model push through it, and the developer tools
+    // re-display a slot with it (devtools/LiveEdit). No action of the wire
+    // reaches it any more - the one slot call a view still wires, the
+    // roundtrip-free close, goes to ViewSlots.destroy directly
+    // (VIEW_SLOTS in actions/ControlCall's GLOBAL_TARGETS). destroy is
+    // ViewSlots' own method; display and updateModel live here, because
+    // loading a fragment and owning the model is this module's job. `seq`
+    // is the stamp of the
     // request the processed response belongs to (View1._applyViews) - a
     // display superseded by a newer request discards its build instead of
     // overwriting the newer view.
@@ -1035,7 +1039,7 @@ sap.ui.define(
       return displayNestedView(ctx, xml, slotKey, options, seq);
     }
 
-    // action is the module's entry point (the VIEW_SLOTS target);
+    // action is the module's entry point (View1, devtools/LiveEdit);
     // resolveTrackedModel is what eB's model pick needs (View1.controller).
     // Everything else on this file is internal to the display machinery.
     return {

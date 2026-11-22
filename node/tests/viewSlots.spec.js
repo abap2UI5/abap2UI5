@@ -360,10 +360,10 @@ test.describe("destroy", () => {
   });
 
   test("drops the recorded XML, whoever triggered the teardown", () => {
-    // The backend's ["VIEW_SLOTS","destroy","POPUP"] action and the
-    // roundtrip-free frontend close (cs_event-popup_close, which the backend
-    // formats as that same action) both land here - so the record cannot
-    // survive one of them and not the other.
+    // A response's teardown of the slot (VIEWS: { POPUP: { DESTROY } }) and
+    // the roundtrip-free frontend close (cs_event-popup_close, the wired
+    // VIEW_SLOTS destroy) both land here - so the record cannot survive one
+    // of them and not the other.
     const { ViewSlots } = load();
     ViewSlots.setView("POPUP", { setModel() {}, destroy() {} }, "<Dialog/>");
     ViewSlots.destroy("POPUP");

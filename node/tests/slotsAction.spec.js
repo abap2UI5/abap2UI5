@@ -3,7 +3,7 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 const { specContext, contextStub, bindContext } = require("./loadLibModule");
 
-// core/actions/Slots.js - the VIEW_SLOTS action target, i.e. everything a
+// core/actions/Slots.js - the view-slot actions, i.e. everything a
 // backend response does to the five view slots. Under test here: the entry
 // point `action( )` and the shape of its arguments. The options object is
 // OPTIONAL on the wire (a display that needs none carries no fourth

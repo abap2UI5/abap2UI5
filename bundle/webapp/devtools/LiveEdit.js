@@ -8,10 +8,11 @@
 // patch an app.
 //
 // Outside the framework like the rest of devtools/: it drives the
-// same public slot-display entry point (core/actions/Slots.action) the
-// backend's VIEW_SLOTS action uses, and adds nothing to it. The slot it
-// re-renders belongs to one component context (core/Context.js), so
-// every function that touches a slot takes the context first.
+// same public slot-display entry point (core/actions/Slots.action) a
+// response's VIEWS section is applied through, and adds nothing to it.
+// The slot it re-renders belongs to one component context
+// (core/Context.js), so every function that touches a slot takes the
+// context first.
 sap.ui.define(
   [
     "z2ui5/core/actions/Slots",

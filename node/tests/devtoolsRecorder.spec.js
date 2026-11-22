@@ -165,8 +165,8 @@ test.describe("Tier 1 - metadata", () => {
     expect(record.renderMs).toBe(20);
     expect(record.totalMs).toBe(100);
     expect(record.respBytes).toBe(2048);
-    expect(record.systemActions).toBe(2);
-    expect(record.customActions).toBe(1);
+    expect(record.viewCount).toBe(2);
+    expect(record.actionCount).toBe(1);
     expect(record.rendered).toBe(true);
   });
 

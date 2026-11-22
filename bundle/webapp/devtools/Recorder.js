@@ -150,7 +150,8 @@ sap.ui.define(
     //   backendMs    request start -> response end (network + ABAP)
     //   renderMs     response end -> rendered, null when unpaired
     //   totalMs      request start -> rendered
-    //   systemActions / customActions   action counts of the response
+    //   viewCount    slots the response changed (the entries of its VIEWS)
+    //   actionCount  follow-up actions it queued (the entries of its ACTIONS)
     //   rendered     false for a roundtrip that never reached the render phase
     //   request / response   Tier 2 payload references, null when not kept
 
@@ -291,8 +292,8 @@ sap.ui.define(
         backendMs: Math.round(entry.end - entry.start),
         renderMs: null,
         totalMs: null,
-        systemActions: 0,
-        customActions: 0,
+        viewCount: 0,
+        actionCount: 0,
         messages: [],
         rendered: false,
         request: null,
@@ -438,10 +439,9 @@ sap.ui.define(
           backendMs: net ? Math.round(net.end - net.start) : null,
           renderMs: net ? Math.round(tRendered - net.end) : null,
           totalMs: net ? Math.round(tRendered - net.start) : null,
-          // the slots the response changed, and the actions it queued -
-          // the field names are from the two action lists of protocol 2
-          systemActions: Object.keys(sFront?.VIEWS || {}).length,
-          customActions: sFront?.ACTIONS?.length || 0,
+          // the slots the response changed, and the actions it queued
+          viewCount: Object.keys(sFront?.VIEWS || {}).length,
+          actionCount: sFront?.ACTIONS?.length || 0,
           // Tier 1 on purpose - see MAX_MESSAGE_CHARS.
           messages: extractMessages(response),
           rendered: true,
@@ -691,7 +691,7 @@ sap.ui.define(
         // ISO timestamp -> "HH:MM:SS.mmm", the part that matters when
         // correlating with a backend trace.
         const time = record.ts.slice(11, 23);
-        const actions = `${record.systemActions}/${record.customActions}`;
+        const actions = `${record.viewCount}/${record.actionCount}`;
         let payload = "-";
         if (record.request || record.response) payload = "kept";
         else if (record.payloadEvicted) payload = "evicted";
@@ -723,7 +723,7 @@ sap.ui.define(
           " RENDER = response end to rendered.",
       );
       lines.push(
-        "ACT = system/custom action counts. A '(no render)' row is a" +
+        "ACT = slots changed / actions queued. A '(no render)' row is a" +
           " roundtrip that never reached the render phase",
       );
       // The second half of that sentence, kept next to its first half: the

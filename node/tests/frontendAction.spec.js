@@ -141,12 +141,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
       }
     },
   };
-  // the VIEW_SLOTS display/updateModel hook routes into actions/Slots; the
-  // stub records the routed calls and lets a test swap the behavior
-  const slotCalls = [];
-  const Slots = {
-    action: (_ctx, ...a) => slotCalls.push(a),
-  };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -196,7 +190,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
       "z2ui5/core/Router": Router,
       "z2ui5/core/Lib": Lib,
       "z2ui5/core/ViewSlots": ViewSlots,
-      "z2ui5/core/actions/Slots": Slots,
       ...extraDeps,
     },
   });
@@ -218,8 +211,6 @@ function load({ sandbox, requires = {}, deps: extraDeps = {} } = {}) {
     AppState,
     Popup,
     ctx,
-    slotCalls,
-    Slots,
   };
 }
 
@@ -385,21 +376,23 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(ebCalls).toEqual([[["ANSWERED"], "OK"]]);
   });
 
-  test("ROUTER/sync hands the whole options object to the router", () => {
-    // Router derives ONE outcome from all of it, so it gets the object as it
-    // came - the id rides along because the route carries the draft
-    const { FrontendAction, calls } = load();
+  test("ROUTER is no action: a response says its URL intent in NAV", () => {
+    // until protocol 3 the router call travelled as ["ROUTER","sync",{...}]
+    // in the action list. View1 syncs the URL once per response from the
+    // NAV section now, and the target is gone with its last writer - a view
+    // wire or a follow-up action naming it reaches nothing
+    const { FrontendAction, calls, errors } = load();
     FrontendAction.execute(null, [
       "CONTROL_GLOBAL",
       "ROUTER",
       "sync",
       { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
     ]);
-    expect(calls).toEqual([
-      [
-        "router.sync",
-        { setNavRouting: "KEEP", checkNavAppCall: true, id: "DRAFT1" },
-      ],
+    FrontendAction.execute(null, ["ROUTER", "sync", { id: "DRAFT1" }]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'ROUTER.sync' not allowed",
+      "FrontendAction: unknown action 'ROUTER'",
     ]);
   });
 
@@ -574,11 +567,20 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     ]);
   });
 
-  test("VIEW_SLOTS routes destroy/display/updateModel to actions/Slots", () => {
+  test("VIEW_SLOTS destroy closes the slot of the calling component", () => {
     // the view slots are the framework's own registry, not a UI5 global -
-    // destroy is ViewSlots' own method, display and updateModel live in
-    // actions/Slots, and the hook sends all three to Slots.action
-    const { FrontendAction, slotCalls } = load();
+    // the wired popup close (cs_event-popup_close) is the one call a view
+    // makes on it, with or without the CONTROL_GLOBAL prefix
+    // - and ViewSlots.destroy takes the component's context first, which
+    // the target's hook reads off the calling controller
+    const seen = [];
+    const { FrontendAction, specCtx } = load({
+      deps: {
+        "z2ui5/core/ViewSlots": {
+          destroy: (ctx, key) => seen.push([ctx, key]),
+        },
+      },
+    });
     const oController = {};
     FrontendAction.execute(oController, [
       "CONTROL_GLOBAL",
@@ -586,7 +588,21 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "destroy",
       "POPUP",
     ]);
-    FrontendAction.execute(oController, [
+    FrontendAction.execute(oController, ["VIEW_SLOTS", "destroy", "POPOVER"]);
+    expect(seen).toEqual([
+      [specCtx, "POPUP"],
+      [specCtx, "POPOVER"],
+    ]);
+  });
+
+  test("VIEW_SLOTS display and updateModel are no actions any more", () => {
+    // a response displays through its VIEWS section and pushes its model
+    // by carrying one (View1) - both were action targets until protocol 3
+    // and stayed whitelisted without a writer. A view wire must not be
+    // able to build a slot from a string it names, or to fan the last
+    // response's model out again
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute({}, [
       "CONTROL_GLOBAL",
       "VIEW_SLOTS",
       "display",
@@ -594,18 +610,11 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "<Popover/>",
       { openById: "btn1" },
     ]);
-    FrontendAction.execute(oController, [
-      "CONTROL_GLOBAL",
-      "VIEW_SLOTS",
-      "updateModel",
-    ]);
-    expect(slotCalls).toEqual([
-      ["destroy", "POPUP", undefined, {}, undefined],
-      // the XML is a positional argument of its own - it must NOT be read as
-      // a template value for the slot name
-      ["display", "POPOVER", "<Popover/>", { openById: "btn1" }, undefined],
-      // no slot: the frontend picks the open ones itself
-      ["updateModel", undefined, undefined, {}, undefined],
+    FrontendAction.execute({}, ["CONTROL_GLOBAL", "VIEW_SLOTS", "updateModel"]);
+    expect(calls).toEqual([]);
+    expect(errors).toEqual([
+      "CONTROL_GLOBAL: 'VIEW_SLOTS.display' not allowed",
+      "CONTROL_GLOBAL: 'VIEW_SLOTS.updateModel' not allowed",
     ]);
   });
 

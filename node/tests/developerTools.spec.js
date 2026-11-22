@@ -415,7 +415,7 @@ test.describe("View & Data - the two selectors", () => {
 
   test("a popup torn down without a roundtrip is not offered at all", () => {
     // Regression guard: the tabs used to be derived from the last
-    // response's ["VIEW_SLOTS","display","POPUP",...] action. A frontend
+    // response's display of the POPUP slot. A frontend
     // close (cs_event-popup_close) does no roundtrip, so that response
     // stayed the current one and the developer tools kept showing a popup
     // that was long destroyed. They read the slot itself now.

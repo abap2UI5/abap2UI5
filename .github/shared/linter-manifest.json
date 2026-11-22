@@ -399,12 +399,7 @@
       "success"
     ],
     "VIEW_SLOTS": [
-      "destroy",
-      "display",
-      "updateModel"
-    ],
-    "ROUTER": [
-      "sync"
+      "destroy"
     ],
     "BUSY_INDICATOR": [
       "show",

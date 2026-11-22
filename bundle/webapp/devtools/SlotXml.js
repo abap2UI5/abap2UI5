@@ -6,12 +6,12 @@
 //
 // Read from the SLOT, never from the last response: a slot lives and dies
 // by ViewSlots.setView/destroy, and both ways of tearing one down end up
-// there - the backend's ["VIEW_SLOTS","destroy",...] action and the
+// there - a response's VIEWS teardown ({ "DESTROY": true }) and the
 // roundtrip-free frontend close (cs_event-popup_close / popover_close,
-// which the backend formats as that very same action). Scraping the last
-// response's display action instead made the frontend close look like a
-// popup that was still open: no roundtrip happens, so the response that
-// opened it stayed the current one.
+// the wired VIEW_SLOTS destroy). Scraping the last response's display
+// instead made the frontend close look like a popup that was still open:
+// no roundtrip happens, so the response that opened it stayed the current
+// one.
 //
 // Private member access, developer tools only: XMLView keeps the raw XML
 // as a pseudo property in mProperties but does not declare it in its

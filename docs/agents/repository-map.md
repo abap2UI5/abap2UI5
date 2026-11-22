@@ -94,8 +94,8 @@ callback array, only while a recording runs), `Inspect.js`
 Actions / Bindings views — the Log merges the framework error log, the
 console capture and the backend messages into one timeline), `Picker.js`
 (the control picker) and `LiveEdit.js` (roundtrip-free re-render of an
-edited view XML, through the same `actions/Slots.action` entry point the
-backend's `VIEW_SLOTS` action uses). The tab **keys** (`VIEW`, `HISTORY`,
+edited view XML, through the same `actions/Slots.action` entry point a
+response's `VIEWS` section is applied through). The tab **keys** (`VIEW`, `HISTORY`,
 `POPUP_MODEL`, …) are a compatibility surface — `?z2ui5-devtools=<KEY>` and
 the remembered last tab in sessionStorage both store them, so a key may be
 added but never renamed.

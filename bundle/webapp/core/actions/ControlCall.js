@@ -3,24 +3,12 @@ sap.ui.define(
     "sap/m/MessageBox",
     "sap/ui/core/BusyIndicator",
     "sap/ui/core/Popup",
-    "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/Env",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ScrollFocus",
-    "z2ui5/core/actions/Slots",
   ],
-  (
-    MessageBox,
-    BusyIndicator,
-    CorePopup,
-    Router,
-    Lib,
-    Env,
-    ViewSlots,
-    ScrollFocus,
-    Slots,
-  ) => {
+  (MessageBox, BusyIndicator, CorePopup, Lib, Env, ViewSlots, ScrollFocus) => {
     "use strict";
 
     // sap/m/MessageToast is required LAZILY instead of being listed as a
@@ -523,36 +511,17 @@ sap.ui.define(
       // and tears them down through its VIEWS section, which View1 applies
       // itself (_applyViews) - what reaches this target is a view's own
       // roundtrip-free close, .eF('CONTROL_GLOBAL','VIEW_SLOTS','destroy',
-      // 'POPUP') (cs_event-popup_close), and the developer tools' local
-      // re-display. `display` and `updateModel` are not ViewSlots methods -
-      // they live in actions/Slots, which owns the fragment loading and the
-      // model - so the hook below routes them there.
+      // 'POPUP') (cs_event-popup_close / popover_close), and nothing else:
+      // `display` and `updateModel` were whitelisted here while the views
+      // and the model push travelled as an action list (until protocol 3)
+      // and had no writer left - a view wire could still have named them.
+      // The hook exists for the first argument: ViewSlots.destroy takes the
+      // component's context, which no argument kind produces.
       VIEW_SLOTS: {
         get: () => ViewSlots,
-        // display takes TWO positional arguments, the slot and the view XML.
-        // Declaring both also keeps it off the template path below, which
-        // would otherwise read the XML as a placeholder value for the slot.
-        methods: {
-          destroy: ["string"],
-          display: ["string", "string"],
-          // takes no slot: which slots are open is the frontend's own
-          // knowledge, so the action only says that the model changed
-          updateModel: [],
-        },
-        display: (oController, method, aArgs, mOptions) =>
-          Slots.action(oController?.ctx, method, aArgs[0], aArgs[1], mOptions),
-      },
-      // The browser history / URL. Router computes ONE outcome from the whole
-      // options object - adopt the hash, push a route entry, replace it, or
-      // write the app-state hash - which is why it is one call and not a
-      // field per decision input. A response's own URL intent is its NAV
-      // section, synced by View1 once per response; this target is the same
-      // call for an action that asks for it.
-      ROUTER: {
-        get: () => Router,
-        methods: { sync: [] },
-        display: (oController, method, aArgs, mOptions) =>
-          Router.sync(oController?.ctx, mOptions),
+        methods: { destroy: ["string"] },
+        display: (oController, method, aArgs) =>
+          ViewSlots.destroy(oController?.ctx, aArgs[0]),
       },
       BUSY_INDICATOR: {
         get: () => BusyIndicator,
@@ -1225,8 +1194,7 @@ sap.ui.define(
         raw = [formatTemplate(String(raw[0]), raw.slice(1))];
       }
       // A display hook is the executor, not obj[method] - so only the plain
-      // path needs the "does this UI5 version carry it" probe (which is also
-      // what let VIEW_SLOTS route methods that never exist on the target).
+      // path needs the "does this UI5 version carry it" probe.
       // The resolved global travels as the last argument: a hook that needs
       // the object itself (ICON_POOL) would otherwise re-resolve what the
       // `get( )` above already produced and re-check what it already refused.
