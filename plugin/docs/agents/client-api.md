@@ -353,15 +353,9 @@ get_app_prev( )
 
 The app instance on the other side of the last navigation: inside a called app, the caller; back in the caller after the called app's nav_app_leave( ), the instance that just returned - cast it to its class and read its public attributes for the result it produced.
 
-## Obsolete (7) — still compile, never write them in new code
+## Obsolete (1) — still compile, never write them in new code
 
-- `view_model_update` — does NOTHING. An event round-trip that changes bound data pushes the model AUTOMATICALLY: the framework compares the model state before and after main( ) and, when it differs, sends it to every open view slot (see z2ui5_cl_ui5_handler=>main_end).
-- `nest_view_model_update` — does NOTHING, see view_model_update. A nested view inherits the MAIN view's model anyway, and that model is pushed automatically
-- `nest2_view_model_update` — does NOTHING, see view_model_update. A nested view inherits the MAIN view's model anyway, and that model is pushed automatically
-- `popup_model_update` — does NOTHING, see view_model_update. The automatic push reaches the POPUP slot too, so an open popup refreshes on its own
-- `popover_model_update` — does NOTHING, see view_model_update. The automatic push reaches the POPOVER slot too, so an open popover refreshes on its own
 - `_event_client` — use follow_up_action( ), which is the same call in the same position now. Since follow_up_action( ) has a RETURNING parameter, a call whose result is CONSUMED - the view-attribute form `v = client->follow_up_action( val = ... t_arg = ...
-- `_bind_edit` — alias of _bind with identical behaviour, please use _bind. custom_mapper_back / custom_filter_back are still accepted for source compatibility but are no longer evaluated.
 
 ## Constants
 

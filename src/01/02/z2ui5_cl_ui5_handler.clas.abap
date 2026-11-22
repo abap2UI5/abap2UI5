@@ -1430,9 +1430,8 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
-      " push - send the model only when main( ) itself changed it, exactly as
-      " an explicit view_model_update( ) would; an unchanged model still
-      " responds `{}` as before. The compare is value against snapshot
+      " push - send the model only when main( ) itself changed it; an
+      " unchanged model still responds `{}` as before. The compare is value against snapshot
       " (main_snapshot_changed): the model is serialized only when it will
       " be sent. A change this app made and never pushed - it left through
       " nav_app_call, see mv_model_client_stale - counts as changed too

@@ -56,12 +56,6 @@ for (const [prefix, known] of Object.entries(constants)) {
 // that leaving a method out becomes a decision somebody wrote down, instead of
 // the default.
 const UNDOCUMENTED = new Map([
-  ["view_model_update", "obsolete - view_display( ) re-sends the model"],
-  ["popup_model_update", "obsolete, as view_model_update"],
-  ["popover_model_update", "obsolete, as view_model_update"],
-  ["nest_view_model_update", "obsolete, as view_model_update"],
-  ["nest2_view_model_update", "obsolete, as view_model_update"],
-  ["_bind_edit", "compatibility-only alias of _bind( ), slated for removal"],
   ["_event_nav_app_leave", "internal wiring of nav_app_leave( )"],
   [
     "nest_view_display",

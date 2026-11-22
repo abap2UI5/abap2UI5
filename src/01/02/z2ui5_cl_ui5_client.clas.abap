@@ -367,15 +367,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_model_update.
-
-    " deliberately EMPTY - see view_model_update. A nested view owns no model
-    " anyway: it inherits the MAIN view's by UI5 model propagation, so the
-    " automatic push of the root model already covers it
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~nest_view_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-nested ).
@@ -390,13 +381,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                id             = id
                                method_insert  = method_insert
                                method_destroy = method_destroy ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~nest_view_model_update.
-
-    " deliberately EMPTY - see nest2_view_model_update
 
   ENDMETHOD.
 
@@ -417,14 +401,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popover_model_update.
-
-    " deliberately EMPTY - see view_model_update. The automatic push reaches
-    " every open slot, so an open popover refreshes without this call
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~popup_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
@@ -436,14 +412,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
     mo_frontend->slot_display( slot = z2ui5_if_client=>cs_view-popup
                                xml  = val ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~popup_model_update.
-
-    " deliberately EMPTY - see view_model_update. The automatic push reaches
-    " every open slot, so an open popup refreshes without this call
 
   ENDMETHOD.
 
@@ -484,17 +452,6 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                transition_back               = transition_back
                                nav_back                      = lv_nav_back
                                app_instance                  = lv_instance ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~view_model_update.
-
-    " deliberately EMPTY - the handler queues the model push itself: on
-    " every view roundtrip, and otherwise whenever main( ) changed the model
-    " (z2ui5_cl_ui5_handler=>main_end). The push names no slot; every open
-    " model-owning slot picks it up. The method stays in the interface so
-    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 
@@ -587,28 +544,11 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_path.
 
-    " delegate instead of repeating the _bind( ) call, same reason as
-    " _bind_edit right below: one behaviour, so the two spellings can never
-    " drift apart. Deliberately no further parameters - see the interface.
+    " delegate instead of repeating the _bind( ) call: one behaviour, so the
+    " two spellings can never drift apart. Deliberately no further
+    " parameters - see the interface.
     result = z2ui5_if_client~_bind( val  = val
                                     path = abap_true ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~_bind_edit.
-
-    " compatibility alias of _bind - delegate instead of repeating the call so
-    " both can never drift apart. custom_mapper_back / custom_filter_back exist
-    " only on this signature and are deliberately no longer evaluated (_bind
-    " has no counterpart for them).
-    result = z2ui5_if_client~_bind( val                  = val
-                                    path                 = path
-                                    custom_mapper        = custom_mapper
-                                    custom_filter        = custom_filter
-                                    tab                  = tab
-                                    tab_index            = tab_index
-                                    switch_default_model = switch_default_model ).
 
   ENDMETHOD.
 
