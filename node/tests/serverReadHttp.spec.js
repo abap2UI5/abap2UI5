@@ -70,7 +70,6 @@ function load({ libSandbox = {} } = {}) {
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
     sandbox: {
-      AbortSignal: { any: () => ({}), timeout: () => ({}) },
       AbortController: class {
         constructor() {
           this.signal = { aborted: false };

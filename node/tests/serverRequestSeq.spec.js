@@ -62,7 +62,6 @@ function load() {
       "z2ui5/core/ErrorView": { reset: () => {} },
     },
     sandbox: {
-      AbortSignal: { any: () => ({}), timeout: () => ({}) },
       AbortController: class extends FakeAbortController {
         constructor() {
           super();

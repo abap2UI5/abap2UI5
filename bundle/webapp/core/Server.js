@@ -143,10 +143,11 @@ sap.ui.define(
       //               event into the app the restore brings up - the restore
       //               cancelled the timers when it went out, before those
       //               actions ran - so View1 cancels them again after them
-      //   inflight    abort controllers of the requests still in flight. A
-      //               newly dispatched request aborts them all - it
-      //               supersedes them, so there is no point letting the
-      //               backend finish work whose response would be dropped
+      //   inflight    the requests still in flight, each with its abort
+      //               and its timeout (_openRequest). A newly dispatched
+      //               request aborts them all - it supersedes them, so
+      //               there is no point letting the backend finish work
+      //               whose response would be dropped
       //   viewBuild   chain that serializes the displays under a FIXED id -
       //               the MAIN rebuild and the two fragment slots (see
       //               actions/Slots.chainBuild): XMLView.create and
@@ -323,56 +324,58 @@ sap.ui.define(
         this.readHttp(ctx, oBody, Session.takePending(ctx));
       },
 
-      // Returns an abort signal that fires after `ms` plus a cancel function
-      // that releases the underlying timer. Uses AbortSignal.timeout where
-      // available and falls back to a manual AbortController + setTimeout on
-      // older browsers, so the client-side timeout backstop works everywhere.
-      // (Exposed on the module for the unit specs.)
-      createTimeoutSignal(ms) {
-        if (AbortSignal.timeout) {
-          return { signal: AbortSignal.timeout(ms), cancel: () => {} };
-        }
+      // The abort of ONE request: one AbortController, whose signal guards
+      // everything the request awaits - the POST, a CSRF token fetch and
+      // the re-send behind it, the body reads - and the two things that
+      // fire it. The timer below is the client-side timeout; a request
+      // that supersedes this one, or the component's teardown, is the
+      // other (_abortInflight). `timedOut` tells them apart, which the
+      // rejection cannot - both arrive as the same AbortError: a timeout
+      // is reported with a Retry, a superseded request is silent (isStale
+      // in readHttp). close( ) is the request settling, whatever came of
+      // it, and releases the timer.
+      //
+      // Until 2026-11 this was three code paths for the one job:
+      // AbortSignal.timeout and AbortSignal.any where the browser has them
+      // (2022 / 2024), a manual controller with forwarding listeners where
+      // not - so which one ran depended on the browser, the two reported
+      // the timeout under different error names, and with
+      // AbortSignal.timeout nothing could release the timer: every
+      // finished request left one behind for ten minutes. AbortController
+      // and setTimeout are in every browser this frontend runs in.
+      _openRequest(ctx, ms) {
         const controller = new AbortController();
-        const handle = setTimeout(() => controller.abort(), ms);
-        return {
+        const request = {
           signal: controller.signal,
-          cancel: () => clearTimeout(handle),
+          timedOut: false,
+          abort: () => controller.abort(),
         };
+        const timer = setTimeout(() => {
+          request.timedOut = true;
+          controller.abort();
+        }, ms);
+        request.close = () => {
+          clearTimeout(timer);
+          ctx.server.inflight.delete(request);
+        };
+        ctx.server.inflight.add(request);
+        return request;
       },
 
       // Abort every still-in-flight request. Called when a newer request is
       // dispatched: the older fetches reject with AbortError, which the
-      // isStale guard in readHttp's catch swallows silently.
+      // isStale guard in readHttp's catch swallows silently. Closed first -
+      // a request nobody waits for any more has no timeout left to report,
+      // and its timer must not stay behind when its fetch never settles.
       _abortInflight(ctx) {
-        for (const controller of ctx.server.inflight) controller.abort();
-        ctx.server.inflight.clear();
-      },
-
-      // Merge two abort signals into one for fetch: the fetch is aborted when
-      // either fires (the timeout backstop or a superseding request). Uses
-      // AbortSignal.any where available (2024+) and forwards manually on older
-      // browsers, so the abort works everywhere createTimeoutSignal does.
-      _combineSignals(a, b) {
-        if (AbortSignal.any) return AbortSignal.any([a, b]);
-        const controller = new AbortController();
-        const forward = (sig) => {
-          if (sig.aborted) controller.abort(sig.reason);
-          else {
-            sig.addEventListener("abort", () => controller.abort(sig.reason), {
-              once: true,
-            });
-          }
-        };
-        forward(a);
-        forward(b);
-        return controller.signal;
+        // a copy: close( ) takes the request out of the set
+        for (const request of [...ctx.server.inflight]) {
+          request.close();
+          request.abort();
+        }
       },
 
       async readHttp(ctx, oBody, sessionCarried) {
-        // The signal guards the fetch and the response body reads below; the
-        // finally releases the fallback timer once the roundtrip settled.
-        const { signal: timeoutSignal, cancel } =
-          this.createTimeoutSignal(REQUEST_TIMEOUT_MS);
         // A network blip or timeout may mean the request never reached the
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
@@ -389,8 +392,8 @@ sap.ui.define(
         // fires, response.text( ) / .json( ) reject with the abort too, and
         // their catches below would report "Invalid JSON response" or "could
         // not read error body" - no Retry, and no word of a timeout. So each
-        // of them asks the timeout signal first and reports it the same way
-        // as the fetch's own catch.
+        // of them asks the request whether it timed out first and reports it
+        // the same way as the fetch's own catch.
         const reportTimeout = () =>
           this.responseError(
             ctx,
@@ -412,13 +415,8 @@ sap.ui.define(
         const seq = ++ctx.server.requestSeq;
         const isStale = () => seq !== ctx.server.requestSeq;
 
-        // Cancel any request still in flight - this one supersedes them - then
-        // register this request's own controller so a later one can cancel it.
-        // The fetch aborts on either the timeout or a superseding request.
+        // Cancel any request still in flight - this one supersedes them.
         this._abortInflight(ctx);
-        const superseder = new AbortController();
-        ctx.server.inflight.add(superseder);
-        const signal = this._combineSignals(timeoutSignal, superseder.signal);
         // when the body went out - see lastRoundtripMs below
         let sentAt;
         // The body is serialized BEFORE the network try below, whose catch
@@ -433,14 +431,17 @@ sap.ui.define(
         try {
           body = JSON.stringify({ value: oBody });
         } catch (e) {
-          ctx.server.inflight.delete(superseder);
-          cancel();
           this.responseError(
             ctx,
             `The request could not be serialized - an event argument is no plain data (${e.message})`,
           );
           return;
         }
+        // This request's own abort, so a later one can cancel it, and its
+        // timeout (_openRequest) - opened only now: a body that never goes
+        // out has nothing to abort and nothing to wait for.
+        const request = this._openRequest(ctx, REQUEST_TIMEOUT_MS);
+        const { signal } = request;
         try {
           // Step 1: send the request.
           let response;
@@ -477,7 +478,11 @@ sap.ui.define(
             // A superseded request that fails is not the user's concern - the
             // newer request owns the outcome, so swallow it without an overlay.
             if (isStale()) return;
-            if (e.name === "TimeoutError" || e.name === "AbortError") {
+            // asked of the request, not of the error's name: an abort that
+            // is neither this timeout nor a supersede (a stale one returned
+            // above) is the browser's own - a page being left - and reads
+            // as the network failure it is
+            if (request.timedOut) {
               reportTimeout();
             } else {
               // fetch rejects with a TypeError when no answer could be read
@@ -520,7 +525,7 @@ sap.ui.define(
               text = await response.text();
             } catch {
               if (isStale()) return;
-              if (timeoutSignal.aborted) {
+              if (request.timedOut) {
                 reportTimeout();
                 return;
               }
@@ -549,7 +554,7 @@ sap.ui.define(
             responseData = await response.json();
           } catch (e) {
             if (isStale()) return;
-            if (timeoutSignal.aborted) {
+            if (request.timedOut) {
               reportTimeout();
               return;
             }
@@ -675,8 +680,9 @@ sap.ui.define(
           // A superseded request stays silent; the newer one owns the outcome.
           if (!isStale()) this.responseError(ctx, e);
         } finally {
-          ctx.server.inflight.delete(superseder);
-          cancel();
+          // settled, whatever came of it: out of the requests in flight,
+          // and the timeout's timer with it
+          request.close();
         }
       },
 
@@ -749,7 +755,7 @@ sap.ui.define(
         } catch (e) {
           // an abort - a newer request, or the timeout backstop - is no
           // failure of the fetch itself; anything else is worth a log line
-          if (e?.name !== "AbortError" && e?.name !== "TimeoutError") {
+          if (e?.name !== "AbortError") {
             Lib.logError("_fetchCsrfToken: token fetch failed", e);
           }
         }

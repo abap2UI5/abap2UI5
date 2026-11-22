@@ -38,7 +38,6 @@ function load({ confirmSent = () => {} } = {}) {
       "z2ui5/core/Session": { confirmSent },
     },
     sandbox: {
-      AbortSignal: { any: () => ({}), timeout: () => ({}) },
       AbortController: class {
         constructor() {
           this.signal = { aborted: false };
