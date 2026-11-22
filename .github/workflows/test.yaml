@@ -333,9 +333,15 @@ jobs:
         persist-credentials: false
     - name: The protocol package, with the runtime packed here
       working-directory: protocol
+      # with the transpiler the runtime was built with: abap2ui5-transpile
+      # refuses any other, and the protocol's lockfile pins the one of its
+      # own release - so a transpiler bump here broke the job (2.14.35 over
+      # the pinned commit's 2.14.33) until the protocol caught up. One
+      # install for both, a second --no-save install would drop the first
       run: |
         npm ci --no-audit --no-fund
-        npm install --no-save --no-audit --no-fund ../npm-package/abap2ui5-node-runtime-*.tgz
+        TRANSPILER=$(tar -xzOf ../npm-package/abap2ui5-node-runtime-*.tgz package/package.json | node -p "JSON.parse(require('fs').readFileSync(0)).abap2ui5.transpiler")
+        npm install --no-save --no-audit --no-fund ../npm-package/abap2ui5-node-runtime-*.tgz "@abaplint/transpiler-cli@$TRANSPILER"
         node -p "'@abap2ui5/node-runtime ' + JSON.stringify(require('@abap2ui5/node-runtime/package.json').abap2ui5)"
     - name: Backend suite against @abap2ui5/node-runtime
       working-directory: protocol
