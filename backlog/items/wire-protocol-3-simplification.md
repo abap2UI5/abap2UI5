@@ -1,7 +1,7 @@
 ---
 target: abap2ui5
 title: 'Protocol 3: what is implemented, what the protocol repository has to follow, and what is still open'
-summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, and three ideas are open with what was measured for them
+summary: The wire is protocol 3 - event flags as an object, the response sections VIEWS / NAV / ACTIONS, one owner per teardown rule, the route of an app start parsed by the frontend - and abap2UI5/protocol, cap2UI5 and the other frontends have to follow; events fired while a view is being built are kept, and one decision about the URL hash is open
 priority: high
 state: open
 first_seen: 2026-11-22
@@ -101,46 +101,48 @@ Then move the pinned commit in `test.yaml` (both jobs).
 
 ## Open - decide first
 
-### Park a Back/Forward, then remove the stale checks
-
-A first response can no longer be superseded by an event of its own view
-(below, "Events fired while a view is being built"). Two paths still
-dispatch a request while another is in flight or being processed:
-`Server.restoreFromRoute` (Back/Forward aborts the request in flight), and
-any event after `isBusy` went false while the follow-up actions of the
-response still await (`View1._processAfterRendering` ends the busy state
-BEFORE the actions, so that `SET_FOCUS` finds its control under no
-overlay). While both exist, the "superseded but not replaced" handling there
-and the stale checks in `core/Server.js` (`isStale( )` eight times) stay.
-Parking the restore like an app-owned hash change
-(`Router.dispatchPendingAppHash`) removes the first; the second needs the
-busy STATE to outlast the overlay.
-
-### One model per app instead of one per slot
-
-POPUP and POPOVER get a deep copy of the response model (`dataForSlot` in
-`actions/Slots.js`), their own changed-path set, the fan-out of every
-response into every open slot with the re-application of unsent edits
-(`updateModelIfRequired`) and an ownership check per slot. A response carries
-the model of exactly one app, and MAIN and the nested views already share
-one. Changes what a popup's event sends (it would carry MAIN's pending edits
-too - the protocol's `model.slot-model` check). Risks to test:
-`SET_SIZE_LIMIT` is per slot (one sample sets it for `cs_view-popup`), and a
-popup's bindings re-evaluate with MAIN's.
-
-### Fewer ways to own the URL hash
+### What `hash_set( )` does without a listener
 
 Five mechanisms share one hash in `Router.sync`: KEEP routing, FRESH
-routing, the app-state hash, the app-owned listener, and a suffix written
-with `history.pushState`. In samples-controls all 10 apps that write a hash
+routing, the app-state hash, the app-owned listener
+(`cs_event-hash_attach_changed`), and a suffix written with
+`history.pushState` when an app writes a hash without a listener
+(`writeLegacyUrl`). In samples-controls all 10 apps that write a hash
 register the listener; `hash_routing` and `app_state_set_active` have no
-caller in either corpus, `app_state_get_href` has 11. Candidates:
-`hash_set( )` / `hash_replace( )` only with a listener (drops
-`writeLegacyUrl`), and one URL format for the app-state link and the KEEP
-route (old links die with their draft within hours).
+caller in either corpus, `app_state_get_href` has 11. The `hash_*` events
+sit under "experimental" in `cs_event`.
+
+The suffix branch cannot simply go: the cleanup at the end of `sync`
+(`write(ctx, "", true)` when no app-state hash is asked for) leaves a
+`pushState` suffix alone only because hasher's cache does not know it; a
+hash written through the HashChanger without a listener is wiped by the next
+response. So removing it needs a rule for who owns a hash an app wrote and
+nobody listens to - the maintainer's decision: make the listener mandatory
+(the backend keeps no record of one today), or let an app-written hash stand
+until the app changes it. The same goes for one URL format for the app-state
+link and the KEEP route.
 
 ## Checked and dropped - do not re-propose
 
+- **One model per app instead of one per slot.** A popup's own model is its
+  editing scope: `cs_event-popup_close` closes a dialog without a roundtrip,
+  and what was typed into it goes with its model. In a model shared with
+  MAIN those edits stay pending and travel with the next roundtrip - values
+  the user cancelled - and the page behind the dialog changes while the user
+  types. 50 of the 81 classes with a popup in samples-controls close it
+  that way (70 uses; 4 classes in samples-stack). The deep copy per push
+  (`dataForSlot` in `actions/Slots.js`) is the price of that scope.
+- **Park a Back/Forward instead of superseding the request in flight.** The
+  response in flight would still run its URL sync, and `updateAppRoute`
+  replaces the entry the browser has just gone back to with the route of the
+  app on screen; the parked restore then reads a hash that is no longer the
+  one the user navigated to. Dropping the response - what the request stamp
+  does - is the simpler mechanism for a browser history. With it stays the
+  "superseded but not replaced" handling in `View1._processAfterRendering`
+  and `isStale( )` in `core/Server.js`. An event after `isBusy` went false
+  while the follow-up actions of a response still await is the other way a
+  response is superseded; the busy state ends before the actions so that
+  `SET_FOCUS` finds its control under no overlay.
 - **Navigation options: absent means "no change"** for `setAppStateActive`.
   The backend re-asserts the flag in three lines of `main_end_nav`; making
   the frontend remember it needs a tri-state on the wire (off has to be
