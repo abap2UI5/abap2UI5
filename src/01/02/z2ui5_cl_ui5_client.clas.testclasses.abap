@@ -89,14 +89,10 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
-    METHODS test_view_model_update    FOR TESTING RAISING cx_static_check.
-    METHODS test_nest_model_update    FOR TESTING RAISING cx_static_check.
     METHODS test_popup_display        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_destroy        FOR TESTING RAISING cx_static_check.
-    METHODS test_popup_model_update   FOR TESTING RAISING cx_static_check.
     METHODS test_popover_display      FOR TESTING RAISING cx_static_check.
     METHODS test_popover_destroy      FOR TESTING RAISING cx_static_check.
-    METHODS test_popover_model_update FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_display    FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_destroy    FOR TESTING RAISING cx_static_check.
     METHODS test_nest2_view_display   FOR TESTING RAISING cx_static_check.
@@ -227,35 +223,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_view_model_update.
-
-    " the model is pushed automatically now (z2ui5_cl_ui5_handler=>main_end),
-    " so this method is an obsolete NO-OP kept for source compatibility - it
-    " must not raise and must not set any slot flag
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->view_model_update( ).
-
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
-
-  ENDMETHOD.
-
-  METHOD test_nest_model_update.
-
-    " both nested variants are obsolete NO-OPs too: a nested view owns no
-    " model (it inherits MAIN's by propagation) and MAIN is pushed
-    " automatically - see test_view_model_update
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->nest_view_model_update( ).
-    li_client->nest2_view_model_update( ).
-
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
-
-  ENDMETHOD.
-
   METHOD test_popup_display.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
@@ -279,18 +246,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `POPUP|destroy|`
         act = system_actions( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_popup_model_update.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->popup_model_update( ).
-
-    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -323,18 +278,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `POPOVER|destroy|`
         act = system_actions( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_popover_model_update.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->popover_model_update( ).
-
-    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
 
   ENDMETHOD.
 
@@ -1847,7 +1790,7 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
       mv_saved = xsdbool( mv_message IS INITIAL ).
     ENDIF.
 
-    mv_bind_path = client->_bind_edit( mt_product ).
+    mv_bind_path = client->_bind( mt_product ).
     client->_bind( mv_discount ).
 
   ENDMETHOD.

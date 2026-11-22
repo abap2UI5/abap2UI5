@@ -384,15 +384,6 @@ INTERFACE z2ui5_if_client
       transition                    TYPE clike     OPTIONAL
       transition_back               TYPE abap_bool DEFAULT abap_false.
 
-  "! obsolete - does NOTHING. An event round-trip that changes bound data
-  "! pushes the model AUTOMATICALLY: the framework compares the model state
-  "! before and after main( ) and, when it differs, sends it to every open
-  "! view slot (see z2ui5_cl_ui5_handler=>main_end). A handler can therefore
-  "! no longer render stale by forgetting a call, and there is nothing left
-  "! for this method to do. It stays in the interface so existing apps keep
-  "! compiling - remove the calls at your leisure.
-  METHODS view_model_update.
-
   "! Switch the ABAP session of this app to STATEFUL from this roundtrip on -
   "! the work process and the session context (enqueue locks, open RFC
   "! connections, everything the app does not serialise) survive between
@@ -501,9 +492,6 @@ INTERFACE z2ui5_if_client
   "! Remove the nested view (the NEST slot) from its anchor control on this
   "! response.
   METHODS nest_view_destroy.
-  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
-  "! the MAIN view's model anyway, and that model is pushed automatically
-  METHODS nest_view_model_update.
 
   "! A second nested slot with exactly the contract of nest_view_display( ) -
   "! for a fragment inside the nested fragment, or two independent fragments
@@ -524,9 +512,6 @@ INTERFACE z2ui5_if_client
   "! Remove the second nested view (the NEST2 slot) from its anchor control on
   "! this response.
   METHODS nest2_view_destroy.
-  "! obsolete - does NOTHING, see view_model_update. A nested view inherits
-  "! the MAIN view's model anyway, and that model is pushed automatically
-  METHODS nest2_view_model_update.
 
   "! Open the XML in val as the POPUP slot - a sap.m.Dialog that lies over the
   "! main view, which stays as it is. One popup at a time: a second
@@ -543,18 +528,10 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  "! obsolete - does NOTHING, see view_model_update. The automatic push
-  "! reaches the POPUP slot too, so an open popup refreshes on its own
-  METHODS popup_model_update.
-
   "! Close the popup: the POPUP slot is emptied on this response and the main
   "! view underneath is untouched. Call it in the handler of the event that
   "! ends the dialog - Save, Cancel, the close button.
   METHODS popup_destroy.
-
-  "! obsolete - does NOTHING, see view_model_update. The automatic push
-  "! reaches the POPOVER slot too, so an open popover refreshes on its own
-  METHODS popover_model_update.
 
   "! Open the XML as a POPOVER anchored to the control whose id is by_id
   "! (sap.m.Popover openBy) - the usual shape for a menu, a quick view or a
@@ -1045,8 +1022,7 @@ INTERFACE z2ui5_if_client
       "                           (z2ui5_cl_smp_app_509)
       "  anything else         -> shape the value in ABAP before binding it
       "The one thing _bind( ) deliberately cannot do is a mapping that
-      "differs per direction - see the _back pair on _bind_edit( ), which is
-      "dead there. Measured 2026-09-13 across samples, samples-controls and
+      "differs per direction. Measured 2026-09-13 across samples, samples-controls and
       "samples-stack: not one app class passes either parameter or
       "implements either interface, and none ever did in their git history -
       "so nothing has to be migrated, only nothing new written. AJSON itself
@@ -1065,40 +1041,6 @@ INTERFACE z2ui5_if_client
       omit_initial         TYPE abap_bool                     DEFAULT abap_false
       omit_initial_paths   TYPE string_table                  OPTIONAL
       json                 TYPE abap_bool                     DEFAULT abap_false
-    RETURNING
-      VALUE(result)        TYPE string.
-
-  "! obsolete - alias of _bind with identical behaviour, please use _bind.
-  "! custom_mapper_back / custom_filter_back are still accepted for source
-  "! compatibility but are no longer evaluated.
-  "!
-  "! All four AJSON parameters here are dead ends: this is the only place
-  "! that ever offered a per-direction mapping, and the two _back halves
-  "! that made it one are inert. Do not reach for any of them in new code -
-  "! bind with _bind( ) and say what you mean with omit_initial /
-  "! omit_initial_paths or json = abap_true, whose notes on _bind( ) carry
-  "! the full reasoning and a sample each.
-  "!
-  "! @parameter val | as _bind( ).
-  "! @parameter path | as _bind( ).
-  "! @parameter custom_mapper | as _bind( ) - obsolete there too.
-  "! @parameter custom_mapper_back | accepted, no longer evaluated.
-  "! @parameter custom_filter | as _bind( ) - obsolete there too.
-  "! @parameter custom_filter_back | accepted, no longer evaluated.
-  "! @parameter tab | as _bind( ).
-  "! @parameter tab_index | as _bind( ).
-  "! @parameter switch_default_model | as _bind( ).
-  METHODS _bind_edit
-    IMPORTING
-      val                  TYPE data
-      path                 TYPE abap_bool                     DEFAULT abap_false
-      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      tab                  TYPE data                          OPTIONAL
-      tab_index            TYPE i                             OPTIONAL
-      switch_default_model TYPE abap_bool                     DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 

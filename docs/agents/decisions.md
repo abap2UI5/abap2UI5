@@ -230,7 +230,8 @@ the problem (`docs/agents/building-apps.md`, `docs/removal-plan.md` §5).
 > node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
 > back, while `_bind` wrote read-only data to the root. Delta handling made that
 > separation obsolete: everything is now written to the root model the same way and
-> `_bind`/`_bind_edit` behave identically. That split is where the old
+> `_bind`/`_bind_edit` behaved identically, until `_bind_edit` was removed on
+> 2026-11-22. That split is where the old
 > "one-way/two-way" wording came from — it has no meaning in the current framework.
 
 ### The vendored utility classes

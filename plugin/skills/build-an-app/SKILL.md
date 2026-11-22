@@ -57,10 +57,10 @@ the guide — read the section before you rely on the line.
   `npm run fmt:chains` applies). Write the chain, run the formatter, read the
   diff.
 - **Bind with `client->_bind( var )`**, display-only included; `_bind_edit`
-  is obsolete. Row-template fields bind as `` `{UPPERCASE}` ``. Never write a
+  is removed. Row-template fields bind as `` `{UPPERCASE}` ``. Never write a
   model path as a text literal. A value the view shows is bound, not baked
   into the view — changed bound data is pushed automatically, and
-  `view_model_update( )` does nothing (guide §4).
+  `view_model_update( )` is removed (guide §4).
 - **Events**: `client->_event( `NAME` )`, dispatched with
   `CASE client->get_event( ).`. Client-resolved arguments are `$`-prefixed;
   an argument that carries data goes on a wire with

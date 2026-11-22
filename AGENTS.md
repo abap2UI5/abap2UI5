@@ -188,7 +188,7 @@ So:
 
 `client->_bind( var )` maps an ABAP attribute (found via RTTI) to the model path
 `{/name}`; values travel out as `MODEL` and come back as row/cell deltas.
-`_bind_edit` is an obsolete alias that behaves identically.
+Its former alias `_bind_edit` and the `*_model_update( )` no-ops were removed on 2026-11-22.
 
 **Say "binding", never "one-way"/"two-way" binding** — there is only one kind
 left, and it always carries values both ways. The one legitimate "one-way" is a
@@ -425,8 +425,8 @@ again:
 - **No `componentPreload` declaration** in `manifest.json` / `index.html` — both delivery paths already bundle.
 - **No central app-start authorization hook.** Authorization belongs in the app's own `z2ui5_if_app~main`; the
   framework checks the *type*, not the user. Do not add one, and do not report its absence as a vulnerability.
-- **`_bind` writing back from the client model is by design** — do not split `_bind` / `_bind_edit` again, and do not
-  report it as mass assignment.
+- **`_bind` writing back from the client model is by design** — do not bring back a display-only / editable split
+  (the former `_bind_edit`), and do not report it as mass assignment.
 - **`changelog.txt`** is the changelog; no `CHANGELOG.md`.
 - **A sticky app's draft is committed where it is written** (KEEP routing, app state, every nav hop, the first-start
   cleanup) — stated at the sites and on `set_session_stateful`; the shipped store gets no secondary DB connection.

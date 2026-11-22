@@ -334,7 +334,7 @@ reasoning:
 - `client->_bind( var )` binds a PUBLIC attribute: the value renders into
   the view, and user input is written back into the attribute
   before your event handler runs. Use it for everything, display-only
-  included (`_bind_edit` is an obsolete alias — do not use it in new code).
+  included (`_bind_edit`, its former alias, is removed — write `_bind`).
 - Inside a bound aggregation (a table/list template), child properties bind
   **relative to the row** with braces on the upper-cased field name:
   `` `{PRODUCT}` ``. A camelCase ABAP field `supplierName` becomes
@@ -428,9 +428,9 @@ reasoning:
   at render time. Where one stays, a comment above it says which of these
   it is.
 - `view_model_update( )`, `popup_model_update( )`, `popover_model_update( )`
-  and the two nested variants are **obsolete and do nothing**. They stay in
-  the interface so existing apps keep compiling; delete the calls whenever
-  you touch such an app, and never add a new one.
+  and the two nested variants are **removed** - they had done nothing since
+  the push became automatic. An app written for an older release deletes
+  the calls; nothing changes at runtime.
 
 ## 5. Events
 

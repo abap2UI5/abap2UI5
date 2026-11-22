@@ -1587,8 +1587,7 @@ CLASS ltcl_02_response IMPLEMENTATION.
     DATA lo_handler TYPE REF TO z2ui5_cl_ui5_handler.
 
     " a bound value differs from its snapshot after main( ) - the model is
-    " sent exactly as an explicit view_model_update( ) would send it, with
-    " no app opt-in of any kind: automatic model update is always on
+    " sent with no app opt-in of any kind: automatic model update is always on
     lo_handler = noop_bound( ).
     lo_handler->mt_model_before       = lo_handler->mo_action->mo_app->model_snapshot( ).
     lo_handler->mv_model_before_taken = abap_true.

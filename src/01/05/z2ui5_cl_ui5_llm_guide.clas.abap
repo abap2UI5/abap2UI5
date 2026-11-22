@@ -370,7 +370,7 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- ``client->_bind( var )`` binds a PUBLIC attribute: the value renders into` && |\n| &&
              `  the view, and user input is written back into the attribute` && |\n| &&
              `  before your event handler runs. Use it for everything, display-only` && |\n| &&
-             `  included (``_bind_edit`` is an obsolete alias - do not use it in new code).` && |\n| &&
+             `  included (``_bind_edit``, its former alias, is removed - write ``_bind``).` && |\n| &&
              `- Inside a bound aggregation (a table/list template), child properties bind` && |\n| &&
              `  **relative to the row** with braces on the upper-cased field name:` && |\n| &&
              `  ```` ``{PRODUCT}`` ````. A camelCase ABAP field ``supplierName`` becomes` && |\n| &&
@@ -466,10 +466,10 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  at render time. Where one stays, a comment above it says which of these` && |\n| &&
              `  it is.` && |\n| &&
              `- ``view_model_update( )``, ``popup_model_update( )``, ``popover_model_update( )``` && |\n| &&
-             `  and the two nested variants are **obsolete and do nothing**. They stay in` && |\n| &&
-             `  the interface so existing apps keep compiling; delete the calls whenever` && |\n|.
+             `  and the two nested variants are **removed** - they had done nothing since` && |\n| &&
+             `  the push became automatic. An app written for an older release deletes` && |\n|.
     result = result &&
-             `  you touch such an app, and never add a new one.` && |\n| &&
+             `  the calls; nothing changes at runtime.` && |\n| &&
              |\n| &&
              `## 5. Events` && |\n| &&
              |\n| &&

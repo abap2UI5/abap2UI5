@@ -43,8 +43,8 @@ One loop, in the playground, on the code that is already there:
    `chain-patch.mjs` writes over exactly that value.
 3. **Bind instead of type.** Next to each property: the app's public
    attributes whose type fits (from abaplint's analysis of the class), and
-   choosing one writes `client->_bind( <attribute> )` - or `_bind_edit( )`
-   for an input's value.
+   choosing one writes `client->_bind( <attribute> )`, for an input's value
+   too.
 4. **An event is a method arm.** Choosing "new event" on a `press` writes
    `client->_event( \`NAME\` )` into the chain and an
    `ELSEIF client->check_on_event( \`NAME\` ).` arm into `main( )`, in the

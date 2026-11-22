@@ -33,6 +33,20 @@ support case.
 
 ## 0. Already done (do not re-litigate)
 
+- [x] `_bind_edit( )`, `view_model_update( )`, `nest_view_model_update( )`,
+      `nest2_view_model_update( )`, `popup_model_update( )` and
+      `popover_model_update( )` of `z2ui5_if_client` removed on 2026-11-22
+      (maintainer decision). `_bind_edit( )` was an alias of `_bind( )` with
+      identical behaviour since binding was unified (its `custom_mapper_back` /
+      `custom_filter_back` were no longer evaluated); the five
+      `*_model_update( )` methods were empty, because the handler pushes the
+      model on its own whenever `main( )` changed it
+      (`z2ui5_cl_ui5_handler=>main_end`). Zero callers in `samples`,
+      `samples-controls` and `samples-stack` at removal. Migration:
+      `_bind_edit(` becomes `_bind(` with the same parameters (drop
+      `custom_mapper_back` / `custom_filter_back`), a `*_model_update( )` call
+      is deleted. API snapshot regenerated, exception 14 in
+      `docs/agents/api-snapshot-exceptions.md`.
 - [x] The offline queue removed on 2026-11-19 (maintainer decision: an edge
       case, the framework stays lean): `cs_event-offline_queue`, the
       frontend's `core/Offline.js`, the keep and replay paths of
@@ -291,30 +305,14 @@ a `- BREAKING:` line in `changelog.txt`, and a note in the docs
       Content-Security-Policy, theme or bootstrap. Still owed: the examples
       on the Setup, Security, Style/CSS, Bootstrap-Attributes and
       Logon-Language pages of `abap2UI5/docs` write the old name.
-- [ ] **`_bind_edit( )`** of `z2ui5_if_client` — alias of `_bind`, identical
-      behaviour. AGENTS.md puts removal at ~1 year out (from 2026-07).
-      - Former blocker resolved: per-direction mapping was dropped —
-        `custom_mapper_back` / `custom_filter_back` are still accepted for
-        source compatibility but no longer evaluated.
-      - No callers left in the ecosystem: zero in `samples`,
-        `samples-controls` and `samples-stack` (re-checked 2026-08-21). The
-        only in-repo hits are the declaration, the delegating implementation
-        and its test.
-- [ ] **`nest_view_model_update( )` / `nest2_view_model_update( )`** of
-      `z2ui5_if_client` — no-ops now (the model push is automatic), and so is
-      `view_model_update( )` itself.
-      - No callers left: zero across `samples`, `samples-controls` and
-        `samples-stack` (re-checked 2026-08-21). The blocker this item used to
-        carry is cleared.
 - [ ] **`custom_mapper` / `custom_filter` of `_bind( )`** — marked obsolete at
       the declaration. Still evaluated. They hand app code a reference into the **mirrored**
       AJSON library (`src/00/01`, synced from an external project), so an app
       implementing `z2ui5_if_ajson_mapping` / `_filter` binds itself to a type
       this repo does not own.
-      - Removing them is a signature change, so they ride along with the
-        `_bind_edit` removal above rather than going separately (the same
-        parameters exist on `_bind_edit`, plus the already-inert
-        `custom_mapper_back` / `custom_filter_back`).
+      - Removing them is a signature change of `_bind( )`. They were meant to
+        ride along with the `_bind_edit` removal; that went first on its own
+        (2026-11-22, see §0), so these two go in a change of their own.
       - Zero usages across samples, samples-controls and samples-stack.
       - Blocker: `z2ui5_if_ajson_mapping` / `z2ui5_if_ajson_filter` reach app
         code only through these four parameters — check for downstream users
