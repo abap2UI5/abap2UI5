@@ -51,6 +51,21 @@ CLASS z2ui5_cl_ui5_srv_event DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
+    " The arguments as they travel, in BOTH forms of an action - the handler
+    " expression of a view (get_t_arg) and the JSON array of a response
+    " (get_event_client_ajson): an empty argument between filled ones keeps
+    " its position, the empty ones behind the last filled one are dropped.
+    " Dropping one in the middle would shift every argument behind it into
+    " the wrong slot (a CONTROL_BY_ID action without a view lost its method
+    " name this way); keeping one at the end would turn open( ) into
+    " open( '' ), because the frontend casts exactly the arguments it was
+    " sent. One method, so the two forms cannot come to disagree
+    CLASS-METHODS args_trim_trailing
+      IMPORTING
+        val           TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string_table.
+
     " abap_true when an argument goes into the handler expression RAW - a
     " binding, an expression, an event expression - and abap_false when it
     " is quoted as a string. See the method body
@@ -207,17 +222,9 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
                                        view  = view
                                        t_arg = t_arg ).
 
-    " same contract as get_t_arg: an empty argument between filled ones keeps
-    " its position, trailing empties are dropped - the frontend only casts the
-    " args that were sent, so a trailing `` would turn open() into open('')
-    DATA(lv_index) = lines( ls_event-t_arg ).
-    WHILE lv_index > 0.
-      IF ls_event-t_arg[ lv_index ] IS NOT INITIAL.
-        EXIT.
-      ENDIF.
-      DELETE ls_event-t_arg INDEX lv_index.
-      lv_index = lv_index - 1.
-    ENDWHILE.
+    " the same arguments as the handler expression carries - see
+    " args_trim_trailing
+    ls_event-t_arg = args_trim_trailing( ls_event-t_arg ).
 
     TRY.
         DATA(li_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
@@ -257,19 +264,29 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD args_trim_trailing.
+
+    result = val.
+    DATA(lv_index) = lines( result ).
+    WHILE lv_index > 0.
+      IF result[ lv_index ] IS NOT INITIAL.
+        EXIT.
+      ENDIF.
+      DELETE result INDEX lv_index.
+      lv_index = lv_index - 1.
+    ENDWHILE.
+
+  ENDMETHOD.
+
   METHOD get_t_arg.
 
     DATA lv_new TYPE string.
-    DATA lv_pending TYPE string.
-    LOOP AT val INTO lv_new.
+    " which empty arguments travel is args_trim_trailing's decision - what
+    " is left here is an empty one BETWEEN filled ones, an empty literal
+    LOOP AT args_trim_trailing( val ) INTO lv_new.
 
       IF lv_new IS INITIAL.
-        " an empty argument between filled ones must keep its position -
-        " dropping it would shift every following argument into the wrong
-        " slot (a CONTROL_BY_ID action without a view lost its method name
-        " this way). Buffer it and only flush when a later non-empty
-        " argument follows, so trailing empties still disappear.
-        lv_pending = |{ lv_pending }, ''|.
+        result = |{ result }, ''|.
         CONTINUE.
       ENDIF.
       " iv_literal: the wire carries DATA, and every argument is quoted -
@@ -283,8 +300,7 @@ CLASS z2ui5_cl_ui5_srv_event IMPLEMENTATION.
         " since those are real bindings/expressions, not string data.
         lv_new = |'{ z2ui5_cl_ui5_util_context=>ui5_escape_handler_string( lv_new ) }'|.
       ENDIF.
-      result = |{ result }{ lv_pending }, { lv_new }|.
-      lv_pending = ``.
+      result = |{ result }, { lv_new }|.
     ENDLOOP.
 
     result = |{ result })|.
