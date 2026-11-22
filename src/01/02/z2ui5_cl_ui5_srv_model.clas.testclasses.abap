@@ -4875,6 +4875,9 @@ CLASS ltcl_06_fast_json DEFINITION FINAL
     METHODS not_taken_falls_back     FOR TESTING RAISING cx_static_check.
     METHODS model_identical          FOR TESTING RAISING cx_static_check.
     METHODS model_dollar_and_token   FOR TESTING RAISING cx_static_check.
+    METHODS splice_any_order         FOR TESTING RAISING cx_static_check.
+    METHODS splice_no_token          FOR TESTING RAISING cx_static_check.
+    METHODS splice_token_lost        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -5111,6 +5114,76 @@ CLASS ltcl_06_fast_json IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
                                         act = mo_model->main_json_stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD splice_any_order.
+
+    " one pass, whatever order the document holds the tokens in: the third
+    " token first, a scalar between two tokens, the JSON of one carrying
+    " what a replace( ) would read as a pattern and what looks like the
+    " token that follows it - spliced text is not searched again
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    APPEND VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[{"A":"$& $1 \"z2ui5-fast-U1-2\""}]` ) TO ls_fast-t_token.
+    APPEND VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) TO ls_fast-t_token.
+    APPEND VALUE #( token = `z2ui5-fast-U1-3`
+                    json  = `{"B":1}` ) TO ls_fast-t_token.
+    DATA(lv_json) = `{"C":"z2ui5-fast-U1-3","D":"z2ui5-fast-U1-1","E":"x","F":"z2ui5-fast-U1-2"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `{"C":{"B":1},"D":[{"A":"$& $1 \"z2ui5-fast-U1-2\""}],"E":"x","F":[]}`
+        act = lv_json ).
+
+  ENDMETHOD.
+
+  METHOD splice_no_token.
+
+    " nothing took the fast path: the document is not touched
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    DATA(lv_json) = `{"A":"z2ui5-fast--1"}`.
+
+    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                              CHANGING  cv_json = lv_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{"A":"z2ui5-fast--1"}`
+                                        act = lv_json ).
+
+  ENDMETHOD.
+
+  METHOD splice_token_lost.
+
+    " a token the document does not hold, and one it holds twice: both are
+    " a table missing from the model, and both are refused
+    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
+    ls_fast-uuid = `U1`.
+    APPEND VALUE #( token = `z2ui5-fast-U1-1`
+                    json  = `[]` ) TO ls_fast-t_token.
+    APPEND VALUE #( token = `z2ui5-fast-U1-2`
+                    json  = `[]` ) TO ls_fast-t_token.
+
+    DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a lost token must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_lost).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_lost->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
+
+    lv_json = `{"A":"z2ui5-fast-U1-1","B":"z2ui5-fast-U1-1"}`.
+    TRY.
+        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
+                                                  CHANGING  cv_json = lv_json ).
+        cl_abap_unit_assert=>fail( `a token written twice must be refused` ).
+      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_twice).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx_twice->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
+    ENDTRY.
 
   ENDMETHOD.
 

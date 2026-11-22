@@ -901,23 +901,87 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD json_fast_splice.
 
-    " each token's quoted text exactly once in the document, in the order
-    " the tree put them. Spliced by offset, not with replace( ): the
-    " transpiled runtime reads a `$` in a replacement text as a pattern
-    " (abap-check, section 4), and a bound value may well carry one
-    LOOP AT is_fast-t_token REFERENCE INTO DATA(lr_fast).
-      DATA(lv_quoted) = |"{ lr_fast->token }"|.
+    " ONE pass over the document: every token is located from where the
+    " previous one ended, the text between them and the JSON each stands for
+    " are collected, and the document is built by one concatenation. It used
+    " to be one find( ) from offset 0 and one rebuilt copy of the WHOLE
+    " model per token - a view of ten bound tables copied its model ten
+    " times, each search running over the rows spliced in before it.
+    " The scan looks for what every token of this call starts with (the
+    " quote and the uuid) and reads the token's number behind it, so it
+    " does not depend on the tree writing the tokens in the order they were
+    " set: the tree sorts by path, the tokens are numbered in the order of
+    " the attribute table. The text already spliced in is never searched
+    " again, so a bound value that happens to look like a token stays a
+    " value.
+    " By offset, not with replace( ): the transpiled runtime reads a `$` in
+    " a replacement text as a pattern (abap-check, section 4), and a bound
+    " value may well carry one
+    IF is_fast-t_token IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA lt_piece TYPE string_table.
+    DATA lt_used  TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
+    DATA lv_index TYPE i.
+    DATA(lv_start) = |"z2ui5-fast-{ is_fast-uuid }-|.
+    DATA(lv_start_len) = strlen( lv_start ).
+    DATA(lv_pos) = 0.
+    DATA(lv_found) = 0.
+
+    DO.
       DATA(lv_off) = find( val = cv_json
-                           sub = lv_quoted ).
+                           sub = lv_start
+                           off = lv_pos ).
       IF lv_off < 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
-                  `missing from the document. This is a framework defect, not an app error - please report it`.
+        EXIT.
       ENDIF.
-      DATA(lv_rest) = lv_off + strlen( lv_quoted ).
-      cv_json = cv_json(lv_off) && lr_fast->json && cv_json+lv_rest.
-    ENDLOOP.
+      DATA(lv_num_off) = lv_off + lv_start_len.
+      DATA(lv_end) = find( val = cv_json
+                           sub = `"`
+                           off = lv_num_off ).
+      IF lv_end < 0.
+        EXIT.
+      ENDIF.
+      " the number is the token's line in t_token (json_fast_set) - the
+      " characters are this call's own, so the conversion cannot fail on
+      " anything an app bound
+      lv_index = substring( val = cv_json
+                            off = lv_num_off
+                            len = lv_end - lv_num_off ).
+      READ TABLE is_fast-t_token REFERENCE INTO DATA(lr_fast) INDEX lv_index.
+      IF sy-subrc <> 0.
+        EXIT.
+      ENDIF.
+      INSERT lv_index INTO TABLE lt_used.
+      IF sy-subrc <> 0.
+        " the same token a second time - counted as lost below
+        lv_found = -1.
+        EXIT.
+      ENDIF.
+      " never empty: a token is a member's value, so the document has at
+      " least `{"NAME":` before the first one and `,"NAME":` between two
+      APPEND substring( val = cv_json
+                        off = lv_pos
+                        len = lv_off - lv_pos ) TO lt_piece.
+      APPEND lr_fast->json TO lt_piece.
+      lv_pos = lv_end + 1.
+      lv_found = lv_found + 1.
+    ENDDO.
+
+    " every token exactly once - a token the tree did not write, or wrote
+    " twice, is a document with a table missing, and that must be loud
+    IF lines( is_fast-t_token ) <> lv_found.
+      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+        EXPORTING
+          val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
+                `missing from the document. This is a framework defect, not an app error - please report it`.
+    ENDIF.
+
+    " what follows the last token - at least the closing brace
+    APPEND substring( val = cv_json
+                      off = lv_pos ) TO lt_piece.
+    cv_json = concat_lines_of( lt_piece ).
 
   ENDMETHOD.
 
