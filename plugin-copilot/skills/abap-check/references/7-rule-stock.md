@@ -41,6 +41,11 @@ fix.
 - **Classic EXCEPTIONS.** `CALL FUNCTION … EXCEPTIONS` without `OTHERS` (an
   unlisted exception dumps), a named exception mapped to 0, the sy-subrc of the
   EXCEPTIONS never read, a method with classic exceptions called functionally.
+  The missing `OTHERS` and the functional call are gated by abaplint's
+  `unhandled_classic_exception` from 2.120.111 (abaplint/abaplint#4594), the
+  unread sy-subrc by `check_subrc` (`callFunction`, `callMethod`) from
+  2.120.113 (abaplint/abaplint#4605). A named exception mapped to 0 is usually
+  deliberate and stays a review item.
 - **CATCH that cannot catch.** A CATCH of an exception nothing in the TRY can
   raise; RAISE of a cx_root-typed variable in a method without a RAISING
   clause; inside `CATCH … INTO x`, a RAISE that does not pass `previous = x`
@@ -68,7 +73,7 @@ fix.
   ASSERT in a test class are gated by abaplint's `unit_test_assertions` from
   2.120.109 (abaplint/abaplint#4583).
 
-**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-classic-exceptions, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
+**Backlog:** abaplint · abaplint-stale-sy-fields, abaplint-loop-target-misuse, abaplint-char-numeric-comparison, abaplint-literal-exceeds-target, abaplint-timestampl-to-timestamp, abaplint-string-offset-unguarded, abaplint-possibly-unbound-reference, abaplint-value-duplicate-unique-key, abaplint-caught-never-raised, abaplint-reraise-cx-root-undeclared, abaplint-catch-handling, abaplint-unused-returning-value, abaplint-duplicate-code, abaplint-variable-scope, abaplint-sql-without-where, abaplint-inner-join-text-table, abaplint-fae-duplicate-rows, abaplint-commit-in-select-loop, abaplint-wildcard-mismatch, abaplint-call-parameter-type-conflict, abaplint-control-level-restricted-loop, abaplint-rap-forbidden-statement, abaplint-unit-test-assertions, abaplint-unit-test-side-effects, abaplint-assert-in-production
 
 ### Activation — the system refuses these, `check_syntax` does not yet
 
