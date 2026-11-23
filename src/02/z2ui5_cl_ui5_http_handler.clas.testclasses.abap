@@ -788,6 +788,23 @@ CLASS ltcl_test_http_response DEFINITION FINAL
       RETURNING
         VALUE(result) TYPE string.
 
+    "! The same for a request that has a path: _http_get_page( ), which
+    "! _main( ) asks for the page of the request it routes.
+    METHODS page_for_path
+      IMPORTING
+        is_config     TYPE z2ui5_if_ui5_exit=>ty_s_http_config
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    "! how often sub stands in val
+    METHODS occurrences
+      IMPORTING
+        val           TYPE string
+        sub           TYPE string
+      RETURNING
+        VALUE(result) TYPE i.
+
     METHODS test_cache_key_covers_inputs FOR TESTING RAISING cx_static_check.
     METHODS test_cache_hit_same_config   FOR TESTING RAISING cx_static_check.
     METHODS test_get_304_on_if_none_match FOR TESTING RAISING cx_static_check.
@@ -830,6 +847,15 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     " the hashed script
     METHODS test_preconnect_cdn          FOR TESTING RAISING cx_static_check.
     METHODS test_preconnect_relative     FOR TESTING RAISING cx_static_check.
+    " the two hints that start the frontend while UI5 boots: the bundle
+    " preload, only for a path it is certain to match on, and sap.m on the
+    " bootstrap tag, unless the exit names the libraries itself
+    METHODS test_bundle_preload_hint     FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_paths    FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_routed   FOR TESTING RAISING cx_static_check.
+    METHODS test_bundle_preload_in_key   FOR TESTING RAISING cx_static_check.
+    METHODS test_bootstrap_libs_default  FOR TESTING RAISING cx_static_check.
+    METHODS test_bootstrap_libs_exit     FOR TESTING RAISING cx_static_check.
     " the bundle: sent as JavaScript under a tag of its own, revalidated to a
     " bodyless 304, and without touching the page's tag
     METHODS test_bundle_response         FOR TESTING RAISING cx_static_check.
@@ -886,6 +912,18 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
     z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
     DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get( ).
     result = ls_res-body.
+  ENDMETHOD.
+
+  METHOD page_for_path.
+    z2ui5_cl_ui5_http_handler=>ss_config_http_get     = is_config.
+    z2ui5_cl_ui5_http_handler=>sv_config_http_get_set = abap_true.
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_http_get_page( iv_path ).
+    result = ls_res-body.
+  ENDMETHOD.
+
+  METHOD occurrences.
+    result = count( val = val
+                    sub = sub ).
   ENDMETHOD.
 
   METHOD test_cache_key_covers_inputs.
@@ -1779,6 +1817,223 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
                                                       sub = `rel="preconnect"` ) >= 0 ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
                                                      sub = |<meta http-equiv="X-UA-Compatible" content="IE=edge">\n<title>abap2UI5</title>| ) >= 0 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_hint.
+
+    " the page of a request under a plain path announces the bundle: one
+    " <link>, in the head behind the preconnects and in front of the
+    " scripts, with the relative URL the control builds - the parameter and
+    " the build hash the page hands its component - and without a
+    " crossorigin attribute, because the control's script element has none
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme                   = `sap_horizon`
+        src                     = `https://sdk.example/resources/sap-ui-core.js`
+        content_security_policy = `<meta http-equiv="Content-Security-Policy" content="script-src 'self'"/>` ).
+    DATA(lv_body) = page_for_path( is_config = ls_config
+                                   iv_path   = `/sap/bc/z2ui5` ).
+
+    DATA(lv_hint) = |<link rel="preload" as="script" href="?z2ui5-bundle={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = lv_hint ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `rel="preload"` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |<link rel="preconnect" href="https://sdk.example" crossorigin>\n{ lv_hint }<title>| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = lv_hint ) < find( val = lv_body
+                                                                             sub = `<script>` ) ) ).
+
+    " the hash in the hint is the version the component asks the bundle by
+    " (componentData.bundle), and the URL it names is the one the node
+    " answers as immutable
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |"bundle" : "{ z2ui5_cl_ui5f_preload=>build_hash }"| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_ui5_http_handler=>_is_bundle_versioned(
+        VALUE #( ( n = `z2ui5-bundle`
+                   v = z2ui5_cl_ui5f_preload=>build_hash ) ) ) ).
+    " lower-case hex: nothing encodeURIComponent( ) or an attribute escape
+    " would change, so the two URLs cannot differ by an encoding
+    cl_abap_unit_assert=>assert_true( xsdbool( z2ui5_cl_ui5f_preload=>build_hash CO `0123456789abcdef` ) ).
+
+    " the hint is a <link>: the inline script is still the generated text
+    " its hash was taken over, and still the only inline script
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |script-src 'self' '{ z2ui5_cl_ui5f_preload=>script_hash }'"| ) >= 0 ) ).
+    DATA(lv_rest) = replace( val  = lv_body
+                             sub  = z2ui5_cl_ui5f_preload=>get( )
+                             with = `` ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = occurrences( val = lv_rest
+                                                           sub = `<script` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_paths.
+
+    " The hint is the URL the control builds, or it is not there. The
+    " control asks under the page's path WITHOUT its trailing slashes, a
+    " relative reference keeps them - so a path that ends in one gets no
+    " hint, nor does one the control refuses (//host) or one nobody knows
+    DATA(lv_hint) = |<link rel="preload" as="script" href="?z2ui5-bundle={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5/sub` ) ).
+    " the root: the one trailing slash the control keeps
+    cl_abap_unit_assert=>assert_equals( exp = lv_hint
+                                        act = z2ui5_cl_ui5_http_handler=>_bundle_preload( `/` ) ).
+
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5/` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `/sap/bc/z2ui5//` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `//sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `//` ) ).
+    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_http_handler=>_bundle_preload( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_routed.
+
+    " _main( ) hands the path of the request it routes to the page: the
+    " hint is there for /sap/bc/z2ui5 and not for /sap/bc/z2ui5/ ...
+    DATA(ls_res) = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET`
+                                                              path   = `/sap/bc/z2ui5` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+    caches_clear( ).
+    ls_res = z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `GET`
+                                                        path   = `/sap/bc/z2ui5/` ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+    " ... and a page built without a request - a direct _http_get( ) - has
+    " no path to decide by, so it goes out without the hint
+    caches_clear( ).
+    ls_res = z2ui5_cl_ui5_http_handler=>_http_get( ).
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = ls_res-body
+                                                           sub = `rel="preload"` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bundle_preload_in_key.
+
+    " the page with the hint and the page without it are two bodies: the
+    " cache key tells them apart, and so does the ETag taken over it - a
+    " page cached for /node/ must not be handed to /node, nor a browser be
+    " 304'd into keeping the other one
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/resources/sap-ui-core.js` ).
+
+    DATA(lv_body_hint) = page_for_path( is_config = ls_config
+                                        iv_path   = `/sap/bc/z2ui5` ).
+    DATA(lv_key_hint)  = z2ui5_cl_ui5_http_handler=>sv_get_cache_key.
+    DATA(lv_etag_hint) = z2ui5_cl_ui5_http_handler=>sv_get_etag.
+
+    DATA(lv_body_none) = page_for_path( is_config = ls_config
+                                        iv_path   = `/sap/bc/z2ui5/` ).
+
+    cl_abap_unit_assert=>assert_differs( exp = lv_body_hint
+                                         act = lv_body_none ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_key_hint
+                                         act = z2ui5_cl_ui5_http_handler=>sv_get_cache_key ).
+    cl_abap_unit_assert=>assert_not_initial( lv_etag_hint ).
+    cl_abap_unit_assert=>assert_differs( exp = lv_etag_hint
+                                         act = z2ui5_cl_ui5_http_handler=>sv_get_etag ).
+
+  ENDMETHOD.
+
+  METHOD test_bootstrap_libs_default.
+
+    " sap.m is named on the bootstrap tag - once, between the tag's own
+    " attributes and its src, whatever the path
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme = `sap_horizon`
+        src   = `https://sdk.example/resources/sap-ui-core.js` ).
+    DATA(lv_body) = shell_for_config( ls_config ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( find( val = lv_body
+                       sub = |data-sap-ui-bindingSyntax="complex" data-sap-ui-libs="sap.m"\ndata-sap-ui-theme="sap_horizon"| ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = `data-sap-ui-libs="sap.m"` ) > find( val = lv_body
+                                                                                               sub = `<script id="sap-ui-bootstrap"` ) ) ).
+
+    " other attributes of the exit do not take it away
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-language`
+                                        v = `EN` )
+                                      ( n = `data-sap-ui-config`
+                                        v = `noConflict:true` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_bootstrap_libs_exit.
+
+    " an exit that names the libraries itself keeps the last word: HTML
+    " takes the first of two attributes with one name, and the exit's rows
+    " stand behind the tag's own - so the tag's own is not written, and the
+    " exit's value goes out exactly as the exit wrote it
+    DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config(
+        theme        = `sap_horizon`
+        src          = `https://sdk.example/resources/sap-ui-core.js`
+        t_add_config = VALUE #( ( n = `data-sap-ui-libs`
+                                  v = `sap.ui.table,sap.ui.layout` ) ) ).
+    DATA(lv_body) = shell_for_config( ls_config ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = ` data-sap-ui-libs='sap.ui.table,sap.ui.layout'` ) >= 0 ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+
+    " attribute names are case-insensitive
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-Libs`
+                                        v = `sap.f` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs="sap.m"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_body
+                                                     sub = ` data-sap-ui-Libs='sap.f'` ) >= 0 ) ).
+
+    " ... and so does one that names them in data-sap-ui-config, whose libs
+    " entry a data-sap-ui-libs attribute would override
+    ls_config-t_add_config = VALUE #( ( n = `data-sap-ui-config`
+                                        v = `libs:'sap.ui.table'` ) ).
+    lv_body = shell_for_config( ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = occurrences( val = lv_body
+                                                           sub = `data-sap-ui-libs` ) ).
 
   ENDMETHOD.
 

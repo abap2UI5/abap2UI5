@@ -285,6 +285,33 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    " the page itself - _http_get( ) for a request whose path is known.
+    " iv_path is the path of THIS request as the system saw it
+    " (ty_s_http_req-path), which decides the bundle hint (_bundle_preload);
+    " empty when nobody knows it
+    CLASS-METHODS _http_get_page
+      IMPORTING
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
+    " the <link rel="preload"> that announces the frontend bundle with the
+    " page - or nothing, for a path the hint is not guaranteed to match on
+    " (see the method)
+    CLASS-METHODS _bundle_preload
+      IMPORTING
+        iv_path       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " data-sap-ui-libs for the bootstrap tag - or nothing, when the exit
+    " names the libraries itself (see the method)
+    CLASS-METHODS _bootstrap_libs
+      IMPORTING
+        t_add_config  TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
     " the directive the shell script's hash goes into - and, with -elem,
     " its element-only twin; _csp_add_script_hash finds it in a policy and
     " _csp_script_src_end measures past it
@@ -714,7 +741,124 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
+    " The page for a caller that hands over no request - and with it no
+    " path: without one nothing says where the page will be opened from, so
+    " it goes out without the bundle hint (_bundle_preload). _main( ) asks
+    " _http_get_page with the path of the request it routes.
+    result = _http_get_page( `` ).
+
+  ENDMETHOD.
+
+  METHOD _bundle_preload.
+
+    " The frontend bundle, announced with the page. Without the hint the
+    " browser learns of it last: the page, then sap-ui-core, then the
+    " page's own app has to render before its z2ui5.embed.Container asks
+    " for ?z2ui5-bundle=<build hash> - a third of a megabyte that could
+    " have been on its way while UI5 booted. Measured in headless Chromium
+    " against the transpiled dev server (cold cache, 40 ms latency), this
+    " hint and the sap.m one (_bootstrap_libs) take the first view from
+    " about 3.5 s to about 2.8 s.
+    "
+    " A preload the loader does not match is a wasted download - the reason
+    " the page preloads nothing of UI5's own (see _http_get_page) - and here
+    " it would be the whole frontend twice, plus a console warning. So the
+    " hint is the URL the control builds, or it is not there:
+    "
+    " - The control (embed/Container.js, sameOriginUrl + loadFrontend) asks
+    "   for <origin><path of the page>?z2ui5-bundle=<bundleVersion>, the
+    "   path being window.location.pathname without its trailing slashes and
+    "   bundleVersion the build hash _http_get_page hands the page's
+    "   component. The hint is the RELATIVE reference ?z2ui5-bundle=<hash>,
+    "   which the browser resolves against the same location: the page's
+    "   path stays, its query (sap-client, app_start) and its fragment go,
+    "   exactly like in the control's URL. Relative on purpose - the path
+    "   the system saw is not the path the browser has behind a proxy that
+    "   puts the system under a prefix of its own (see _http_get_bundle),
+    "   and a relative reference needs neither.
+    " - The one difference is a trailing slash: the control drops it, a
+    "   relative reference keeps it. So a page asked for under a path that
+    "   ends in one gets no hint - nor does a path that begins with //,
+    "   which the control refuses as an endpoint altogether, and a request
+    "   whose path nobody knows (a direct _http_get( )). The root path / is
+    "   the exception the control makes itself.
+    " - The hash is lower-case hex, so encodeURIComponent( ) leaves it as it
+    "   is, and nothing has to be escaped for the attribute either.
+    " - The request mode is the script element's: no crossorigin attribute
+    "   on either, so both are no-cors requests with the page's credentials,
+    "   and the browser hands the preloaded response to the script.
+    " - The policy: a preload with as="script" is checked against script-src
+    "   like the script it stands for, the same URL on the page's own
+    "   origin - what the page may load, it may announce. It is a <link>
+    "   outside the inline script, whose CSP hash stays what it was.
+    "
+    " What stays open is a proxy that adds or drops the trailing slash
+    " between the browser and the system: the path here would say one thing
+    " and the address bar the other. The page still works - the bundle is
+    " then loaded once more, by the control.
+    DATA(lv_len) = strlen( iv_path ).
+    IF lv_len = 0.
+      RETURN.
+    ENDIF.
+    IF lv_len > 1
+        AND ( substring( val = iv_path
+                         off = lv_len - 1
+                         len = 1 ) = `/`
+              OR substring( val = iv_path
+                            len = 2 ) = `//` ).
+      RETURN.
+    ENDIF.
+
+    result = |<link rel="preload" as="script" href="?{ c_bundle_param }={ z2ui5_cl_ui5f_preload=>build_hash }">\n|.
+
+  ENDMETHOD.
+
+  METHOD _bootstrap_libs.
+
+    " sap.m, named on the bootstrap tag. The frontend needs the library on
+    " every start (its manifest declares it), but the page's own app does
+    " not - it is one view with one control - so UI5 used to learn of sap.m
+    " only when the control created the frontend's component: sap-ui-core,
+    " the page's app, the bundle, and only then sap/m/library-preload.js,
+    " the largest request of the start. Named here, UI5 loads it with the
+    " core, next to the bundle (_bundle_preload). No <link rel="preload">
+    " for it - UI5 builds that URL, and the page cannot (see
+    " _http_get_page); the bootstrap attribute lets the loader ask itself.
+    "
+    " An exit that names the libraries itself keeps the last word. HTML
+    " takes the FIRST of two attributes with one name, and the exit's rows
+    " come after this one (_bootstrap_attributes), so a second
+    " data-sap-ui-libs would silently be the one that is dropped; and UI5
+    " lets the single attribute override the same entry of
+    " data-sap-ui-config, so a libs entry in there would lose as well.
+    " Either one, and nothing is added. sap.m is NOT merged into the exit's
+    " value: the list and its order are the installation's decision, and
+    " nothing breaks without it - the component still loads sap.m when it
+    " is created, as it always did.
+    " Attribute names are case-insensitive, hence to_lower.
+    LOOP AT t_add_config REFERENCE INTO DATA(lr_config).
+      DATA(lv_name) = to_lower( lr_config->n ).
+      IF lv_name = `data-sap-ui-libs`.
+        RETURN.
+      ENDIF.
+      IF lv_name = `data-sap-ui-config` AND to_lower( lr_config->v ) CS `libs`.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    result = ` data-sap-ui-libs="sap.m"`.
+
+  ENDMETHOD.
+
+  METHOD _http_get_page.
+
     DATA(ls_config) = config_http_get( ).
+
+    " the two hints that let the browser start on the frontend while UI5
+    " boots - each decided in its own method, and both part of the key
+    " below: the page differs with them
+    DATA(lv_bundle_preload) = _bundle_preload( iv_path ).
+    DATA(lv_libs) = _bootstrap_libs( ls_config-t_add_config ).
 
     " every config part the body is built from, length-prefixed so two
     " different configs can never concatenate to the same key. The embedded
@@ -723,7 +867,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     DATA(lv_cache_key) = |{ strlen( ls_config-theme ) }:{ ls_config-theme }| &&
                          |{ strlen( ls_config-src ) }:{ ls_config-src }| &&
                          |{ strlen( ls_config-content_security_policy ) }:{ ls_config-content_security_policy }| &&
-                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }|.
+                         |{ strlen( ls_config-styles_css ) }:{ ls_config-styles_css }| &&
+                         |{ strlen( lv_bundle_preload ) }:{ lv_bundle_preload }| &&
+                         |{ strlen( lv_libs ) }:{ lv_libs }|.
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config_key).
       lv_cache_key = lv_cache_key &&
                      |{ strlen( lr_config_key->n ) }:{ lr_config_key->n }| &&
@@ -825,7 +971,13 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " not derivable here across versions and configs (the sap-ui-cachebuster
     " segment of the default src, library-RTL.css, a theme root, the theme
     " fallbacks), and a preload the loader does not match is a wasted
-    " download. Relative src: no hint - only another host is worth one
+    " download. Relative src: no hint - only another host is worth one.
+    " The same goes for every other resource of UI5: sap.m is named on the
+    " bootstrap tag instead, so the loader builds its URL itself
+    " (_bootstrap_libs). The one resource that IS preloaded is the page's
+    " own: the frontend bundle, whose URL this node defines - and only
+    " where that URL is certain to be the one the control asks for
+    " (_bundle_preload)
     DATA(lv_preconnect) = ``.
     DATA(lv_origin) = z2ui5_cl_ui5_util_context=>url_get_origin( ls_config-src ).
     IF lv_origin IS NOT INITIAL.
@@ -842,6 +994,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   |    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n| &&
                   |    <meta http-equiv="X-UA-Compatible" content="IE=edge">\n| &&
                   lv_preconnect &&
+                  lv_bundle_preload &&
                   |<title>abap2UI5</title>\n| &&
                   " an empty icon: a page that names none makes the browser ask the
                   " host for /favicon.ico, which this node cannot serve - a 404 or,
@@ -854,7 +1007,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                   lv_style_exit &&
                   |<script>{ z2ui5_cl_ui5f_preload=>get( ) }</script>\n| &&
                   |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./", "abap2ui5.page": "./" \}' data-sap-ui-oninit="onInitComponent" \n| &&
-                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"\n| &&
+                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"{ lv_libs }\n| &&
                   |data-sap-ui-theme="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-theme ) }" src="{ z2ui5_cl_ui5_util_context=>c_escape_html( ls_config-src ) }"|.
 
     " built apart and appended once. Name and value are both escaped like theme and src above:
@@ -1305,7 +1458,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             ELSEIF _is_bundle_request( is_req-t_params ) = abap_true.
               result = _http_get_bundle( is_req-path ).
             ELSE.
-              result = _http_get( ).
+              result = _http_get_page( is_req-path ).
             ENDIF.
           WHEN `POST`.
             result = _http_post( is_req ).
