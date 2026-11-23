@@ -2251,6 +2251,33 @@ CLASS ltcl_app_anim_callee IMPLEMENTATION.
 ENDCLASS.
 
 
+" the nav tag: a caller that calls the same callee class for two purposes
+" and records, on every main( ), what get_nav_tag( ) answered
+CLASS ltcl_app_tag_caller DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+    DATA mv_seen TYPE string.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_tag_caller IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    mv_seen = client->get_nav_tag( ).
+    IF client->check_on_navigated( ).
+      client->view_display( `<mvc:View><Text text="tag caller"/></mvc:View>` ).
+    ELSEIF client->check_on_event( `CALL_TAGGED` ).
+      client->nav_app_call( app = NEW ltcl_app_anim_callee( )
+                            tag = `PICK_UNIT` ).
+    ELSEIF client->check_on_event( `CALL_PLAIN` ).
+      client->nav_app_call( NEW ltcl_app_anim_callee( ) ).
+    ENDIF.
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 " ---------------------------------------------------------------------------
 " 04 - navigation: nav_app_call and the way back - a popup app answers
 " alone, a silent one ships no model, the caller reads the popup app back,
@@ -2355,6 +2382,9 @@ CLASS ltcl_04_nav DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS popup_writes_caller_table FOR TESTING RAISING cx_static_check.
     " view_display( transition ) travels with the MAIN display - and a
     " display without one sends exactly what it always sent
+    " nav_app_call( tag ) comes back with the screen - on the way back only,
+    " and an untagged call clears it
+    METHODS nav_tag_comes_back FOR TESTING RAISING cx_static_check.
     METHODS transition_travels FOR TESTING RAISING cx_static_check.
     " nav_app_leave( ) back to the caller is a way back, the call is not;
     " the caller keeps its instance through the draft
@@ -2569,6 +2599,44 @@ CLASS ltcl_04_nav IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-model CS `"one"` ) ).
     cl_abap_unit_assert=>assert_true( act = xsdbool( lo_back->ms_response-model CS `"three"` )
                                       msg = `the row the popup app appended was lost on the way back` ).
+
+  ENDMETHOD.
+
+  METHOD nav_tag_comes_back.
+
+    DATA lo_caller TYPE REF TO ltcl_app_tag_caller.
+
+    " a first start is a navigation too, and has no tag
+    DATA(lo_start) = started_with( NEW ltcl_app_tag_caller( ) ).
+    lo_caller ?= lo_start->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_initial( lo_caller->mv_seen ).
+
+    " the called app never sees the tag: it is the caller's
+    DATA(lo_callee) = event_on( iv_id    = lo_start->ms_response-s_front-id
+                                iv_event = `CALL_TAGGED` ).
+    cl_abap_unit_assert=>assert_initial( lo_callee->mo_action->mo_app->mv_nav_tag ).
+
+    " the way back hands it to the caller ...
+    DATA(lo_back) = event_on( iv_id    = lo_callee->ms_response-s_front-id
+                              iv_event = `BACK` ).
+    lo_caller ?= lo_back->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_equals( exp = `PICK_UNIT`
+                                        act = lo_caller->mv_seen ).
+
+    " ... on that roundtrip only - a plain event after it reads nothing
+    DATA(lo_event) = event_on( iv_id    = lo_back->ms_response-s_front-id
+                               iv_event = `NOTHING` ).
+    lo_caller ?= lo_event->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_initial( lo_caller->mv_seen ).
+
+    " an untagged call replaces the tag of the earlier one
+    lo_callee = event_on( iv_id    = lo_event->ms_response-s_front-id
+                          iv_event = `CALL_PLAIN` ).
+    lo_back = event_on( iv_id    = lo_callee->ms_response-s_front-id
+                        iv_event = `BACK` ).
+    lo_caller ?= lo_back->mo_action->mo_app->mo_app.
+    cl_abap_unit_assert=>assert_true( xsdbool( lo_back->ms_response-s_front-app CS `TAG_CALLER` ) ).
+    cl_abap_unit_assert=>assert_initial( lo_caller->mv_seen ).
 
   ENDMETHOD.
 

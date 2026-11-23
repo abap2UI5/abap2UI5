@@ -668,17 +668,23 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `- Call another app: ``client->nav_app_call( NEW zcl_other_app( ) )``; return` && |\n| &&
              `  with ``client->nav_app_leave( )`` (or ``client->get_app_prev( )`` to hand data` && |\n| &&
              `  back). The framework keeps the app stack across roundtrips.` && |\n| &&
+             `- An app that opens the same popup class for several purposes names the` && |\n| &&
+             `  purpose in the call - ``client->nav_app_call( app = lo_popup tag = ``CONFIRM_DELETE`` )`` -` && |\n| &&
+             `  and reads it on the way back: ``client->get_nav_tag( )`` answers the tag on` && |\n| &&
+             `  the roundtrip the called app returns on, and is empty on every other one.` && |\n| &&
+             `  No flag attribute per popup, no ``CAST`` in a ``TRY`` to find out which one` && |\n| &&
+             `  came back.` && |\n| &&
              `- URL routing: ``client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )``` && |\n| &&
              `  in ``check_on_init`` makes the app bookmarkable and wires the browser` && |\n| &&
              `  Back/Forward buttons - the mode rides in ``t_arg``: ``cs_nav_mode-keep`` (the` && |\n| &&
-             `  default when ``t_arg`` is empty) restores the exact draft state,` && |\n| &&
+             `  default when ``t_arg`` is empty) restores the exact draft state,` && |\n|.
+    result = result &&
              `  ``cs_nav_mode-fresh`` restarts clean. Works inside the Fiori Launchpad.` && |\n| &&
              `- The URL hash and the app state have named APIs of their own:` && |\n| &&
              `  ``client->hash_set( val )`` writes ``val`` as the app's URL hash with a pushed` && |\n| &&
              `  history entry (the UI5 router's ``navTo``), ``client->hash_replace( val )``` && |\n| &&
              `  writes it without one (``navTo( ..., true )`` - e.g. a layout arrow whose` && |\n| &&
-             `  drags must not become Back steps). Both write the WHOLE app hash and need` && |\n|.
-    result = result &&
+             `  drags must not become Back steps). Both write the WHOLE app hash and need` && |\n| &&
              `  the app to own it: register ``hash_attach_changed`` first (below), or` && |\n| &&
              `  nothing is written. ``client->app_state_set_active( )``` && |\n| &&
              `  keeps the id of the CURRENT app state in the URL on every roundtrip, so a` && |\n| &&
@@ -713,14 +719,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  using a control/property/aggregation, check its "available since" in the` && |\n| &&
              `  UI5 API - post-1.71 members need a UI5 release that has them; a wrong` && |\n| &&
              `  aggregation name 404s the whole view on old releases.` && |\n| &&
-             `- **State discipline**: every PUBLIC attribute is serialized into the draft` && |\n| &&
+             `- **State discipline**: every PUBLIC attribute is serialized into the draft` && |\n|.
+    result = result &&
              `  and sent to the browser on every render. Large helper data, catalogs and` && |\n| &&
              `  anything not bound belongs in PROTECTED (or is re-read per request) - a` && |\n| &&
              `  bloated public section makes every click slower.` && |\n| &&
              `- Authorization is **the app's job**: any user who can reach the ICF node can` && |\n| &&
              `  start any ``z2ui5_if_app`` class. The framework performs no ``AUTHORITY-CHECK``` && |\n| &&
-             `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n|.
-    result = result &&
+             `  of its own, on purpose ([security model](../security.md#what-the-app-has-to-do)).` && |\n| &&
              `  Check your authorizations at the top of ``main``, before any dispatch, and` && |\n| &&
              `  render an error when denied - the same place a transaction or a report` && |\n| &&
              `  does it. The shipped Hello World has no check because it guards nothing;` && |\n| &&
@@ -756,14 +762,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  your own ICF node is the option that survives an offline system. Whichever` && |\n| &&
              `  you pick, load the library through the UI5 loader` && |\n| &&
              `  (``sap.ui.loader.config`` path mapping + ``sap.ui.define``) and drive it from a` && |\n| &&
-             `  custom control; do **not** rely on the jQuery ``$`` global - UI5 2.x no` && |\n| &&
+             `  custom control; do **not** rely on the jQuery ``$`` global - UI5 2.x no` && |\n|.
+    result = result &&
              `  longer ships it - and keep the library call itself free of business` && |\n| &&
              `  decisions (see "thin frontend" above).` && |\n| &&
              `- **An imperative UI5 method that has no bindable equivalent** - the` && |\n| &&
              `  ``sap.m.p13n.*`` panels take their item list only through ``setP13nData( )``,` && |\n| &&
              `  a ``sap.m.Carousel`` only moves via ``setActivePage( )`` - is reached with` && |\n| &&
-             `  ``client->follow_up_action( val = cs_event-control_by_id ... )``. Check` && |\n|.
-    result = result &&
+             `  ``client->follow_up_action( val = cs_event-control_by_id ... )``. Check` && |\n| &&
              `  ``cs_event`` and the whitelist before writing custom JS: an argument the` && |\n| &&
              `  whitelist does not declare is silently dropped, but a method it declares` && |\n| &&
              `  needs no JS at all.` && |\n| &&
@@ -798,14 +804,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  apps that need something from your stack - OData, RAP, APC, the launchpad -` && |\n| &&
              `  in [samples-stack](https://github.com/abap2UI5/samples-stack). What abap2UI5` && |\n| &&
              `  can express at all is answered in samples-controls' ``CAPABILITIES.md``, each` && |\n| &&
-             `  claim naming the port that proves it.` && |\n| &&
+             `  claim naming the port that proves it.` && |\n|.
+    result = result &&
              `- **Unit-test the app class without a system**: a local test double` && |\n| &&
              `  ``ltd_client`` with ``INTERFACES z2ui5_if_client PARTIALLY IMPLEMENTED.`` in` && |\n| &&
              `  the class's ``.clas.testclasses.abap`` answers ``check_on_init`` /` && |\n| &&
              `  ``check_on_event`` / ``get_event`` from attributes and records what` && |\n| &&
              `  ``view_display( )`` and ``message_toast_display( )`` receive; a test then` && |\n| &&
-             `  calls ``main( )`` and asserts.` && |\n|.
-    result = result &&
+             `  calls ``main( )`` and asserts.` && |\n| &&
              `  [abap2UI5/app-template](https://github.com/abap2UI5/app-template) ships` && |\n| &&
              `  one for its starter class - abaplint checks it statically, ABAP Unit runs` && |\n| &&
              `  it on the system, and the MCP server's ``run_unit_tests`` runs it in the` && |\n| &&
@@ -840,14 +846,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `    METHOD z2ui5_if_client~check_on_event.` && |\n| &&
              `      result = event.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~get_event.` && |\n| &&
+             `    METHOD z2ui5_if_client~get_event.` && |\n|.
+    result = result &&
              `      result = event_id.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~view_display.` && |\n| &&
              `      APPEND val TO t_view.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
-             `    METHOD z2ui5_if_client~message_toast_display.` && |\n|.
-    result = result &&
+             `    METHOD z2ui5_if_client~message_toast_display.` && |\n| &&
              `      APPEND text TO t_toast.` && |\n| &&
              `    ENDMETHOD.` && |\n| &&
              `    METHOD z2ui5_if_client~_bind.` && |\n| &&
@@ -884,14 +890,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  ``````` && |\n| &&
              |\n| &&
              `  A first-start test sets ``init`` and ``navigated`` both (the framework answers` && |\n| &&
-             `  both with true on a fresh instance) and asserts on ``t_view[ 1 ]``; a` && |\n| &&
+             `  both with true on a fresh instance) and asserts on ``t_view[ 1 ]``; a` && |\n|.
+    result = result &&
              `  navigated test sets ``navigated`` alone.` && |\n| &&
              `- **Getting the class into a system.** An app is delivered as abapGit files -` && |\n| &&
              `  ``zcl_my_app.clas.abap`` and its ``zcl_my_app.clas.xml`` sidecar, in a` && |\n| &&
              `  repository the system pulls with abapGit - or its source is pasted into the` && |\n| &&
              `  class in ADT / SE24. Nothing else is deployed: no BSP application, no` && |\n| &&
-             `  service, no frontend artefact. Once the class is active it runs at the` && |\n|.
-    result = result &&
+             `  service, no frontend artefact. Once the class is active it runs at the` && |\n| &&
              `  framework's endpoint with ``?app_start=zcl_my_app``. An agent without a` && |\n| &&
              `  connection to the system stops at the files - say so, and say which of the` && |\n| &&
              `  gates above ran.` && |\n| &&
@@ -933,14 +939,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              |\n| &&
              `The roundtrip history and the console capture record from the first` && |\n| &&
              `roundtrip on, whether the dialog was ever opened or not: opening the tools` && |\n| &&
-             `after the problem still shows what happened before. The dialog itself and` && |\n| &&
+             `after the problem still shows what happened before. The dialog itself and` && |\n|.
+    result = result &&
              `the inspectors arrive on the first Ctrl+F12 as a second bundle` && |\n| &&
              `(``GET <page url>&z2ui5-bundle=devtools``, cached by ETag), so a plain app` && |\n| &&
              `start does not pay for them. There is no backend switch and no ABAP call to` && |\n| &&
              `open them; they are a frontend affair.` && |\n| &&
              |\n| &&
-             `### What you find there` && |\n|.
-    result = result &&
+             `### What you find there` && |\n| &&
              |\n| &&
              `- **Overview**: which app, which roundtrip, is anything broken, and where to` && |\n| &&
              `  go next. The landing tab, with the "Open on Error" switch.` && |\n| &&
@@ -976,14 +982,14 @@ CLASS z2ui5_cl_ui5_llm_guide IMPLEMENTATION.
              `  drops ``'self'`` blocks it, and the Log of the browser's console names the` && |\n| &&
              `  blocked URL.` && |\n| &&
              `- On a Fiori launchpad or a BSP page the dialog's modules are asked from the` && |\n| &&
-             `  page's own loader first and from the bundle second; a 404 in between is` && |\n| &&
+             `  page's own loader first and from the bundle second; a 404 in between is` && |\n|.
+    result = result &&
              `  expected and harmless.` && |\n| &&
              `- An embedded component (``@abap2ui5/embed-control``, ``?z2ui5-bundle``) has the` && |\n| &&
              `  tools too, loaded from its own backend endpoint, but without the page-wide` && |\n| &&
              `  console capture: the host's page is not the app's.` && |\n| &&
              |\n| &&
-             `## 11. Calling a language model` && |\n|.
-    result = result &&
+             `## 11. Calling a language model` && |\n| &&
              |\n| &&
              ```z2ui5_if_ui5_llm`` is the one seam: ``chat( system t_message s_options )``` && |\n| &&
              `takes a system prompt, the conversation (``role`` ``user``/``assistant`` plus` && |\n| &&

@@ -9,7 +9,7 @@ the per-parameter documentation, is `src/02/z2ui5_if_client.intf.abap` in
 [abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_if_client.intf.abap) —
 read a method's block there when this page is not enough.
 
-## Methods (34)
+## Methods (35)
 
 ### `view_destroy`
 
@@ -215,7 +215,8 @@ Hand the screen back to the previous app on the stack - the one that called this
 
 ```abap
 nav_app_call(
-    app TYPE REF TO z2ui5_if_app )
+    app TYPE REF TO z2ui5_if_app
+    tag TYPE clike OPTIONAL )
     -> string
 ```
 
@@ -353,6 +354,15 @@ get_app_prev( )
 ```
 
 The app instance on the other side of the last navigation: inside a called app, the caller; back in the caller after the called app's nav_app_leave( ), the instance that just returned - cast it to its class and read its public attributes for the result it produced.
+
+### `get_nav_tag`
+
+```abap
+get_nav_tag( )
+    -> string
+```
+
+The tag this app gave its last nav_app_call( tag = ... ), on the roundtrip the called app comes BACK on - and only then:
 
 ## Obsolete (1) — still compile, never write them in new code
 

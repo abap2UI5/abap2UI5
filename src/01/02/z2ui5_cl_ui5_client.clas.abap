@@ -313,6 +313,11 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     mo_action->ms_next-o_app_call = app.
     result = nav_app_set_id( app ).
 
+    " after nav_app_set_id( ), which raises for an unbound target: a call
+    " that does not happen must not replace the tag. Written on the CALLER's
+    " container, which the hop saves - see mv_nav_tag there
+    mo_action->mo_app->mv_nav_tag = tag.
+
   ENDMETHOD.
 
 
@@ -689,6 +694,20 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app_prev.
 
     result = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~get_nav_tag.
+
+    " check_nav_back is the one hop that returns to an instance restored
+    " from the stack (z2ui5_cl_ui5_action=>factory_stack_leave) - the only
+    " roundtrip on which the container's tag answers a call of THIS app. An
+    " app that is called again later arrives with check_on_navigated as
+    " well, and must not read the tag of a call it made in an earlier life
+    IF mo_action->ms_actual-check_nav_back = abap_true.
+      result = mo_action->mo_app->mv_nav_tag.
+    ENDIF.
 
   ENDMETHOD.
 
