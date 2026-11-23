@@ -1738,6 +1738,10 @@ CLASS z2ui5_cl_ui5_util_context IMPLEMENTATION.
         cl_abap_classdescr=>describe_by_name( EXPORTING p_name          = to_upper( class )
                                               RECEIVING p_descr_ref     = lo_typedescr
                                               EXCEPTIONS type_not_found = 1 ).
+        IF sy-subrc <> 0.
+          " no such type at all - that is no load error
+          CLEAR result.
+        ENDIF.
       CATCH cx_root INTO result ##NO_HANDLER.
     ENDTRY.
 
