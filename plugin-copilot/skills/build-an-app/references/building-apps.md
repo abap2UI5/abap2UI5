@@ -626,6 +626,12 @@ reasoning:
   `nav_app_call( )` or `nav_app_leave( )`. A base class or helper that runs
   after the app's handlers asks it before it arms a timer or prepares
   output for a screen the app is about to give away.
+- An app that opens the same popup class for several purposes names the
+  purpose in the call - `client->nav_app_call( app = lo_popup tag = `CONFIRM_DELETE` )` -
+  and reads it on the way back: `client->get_nav_tag( )` answers the tag on
+  the roundtrip the called app returns on, and is empty on every other one.
+  No flag attribute per popup, no `CAST` in a `TRY` to find out which one
+  came back.
 - URL routing: `client->follow_up_action( val = z2ui5_if_client=>cs_event-hash_routing )`
   in `check_on_init` makes the app bookmarkable and wires the browser
   Back/Forward buttons — the mode rides in `t_arg`: `cs_nav_mode-keep` (the

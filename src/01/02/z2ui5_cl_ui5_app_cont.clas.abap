@@ -47,6 +47,13 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     " The z2ui5_if_app attributes they replaced are gone: an app asks
     " client->check_on_init( ) whether this is the first render, and
     " client->set_session_stateful( ) to switch sticky on.
+    " The tag THIS app gave its last nav_app_call( tag = ... ) - why it
+    " called. On the app - and therefore in its draft, saved at the hop - so
+    " it is there again when the called app leaves and this app is restored
+    " from the stack: z2ui5_if_client~get_nav_tag( ) answers it on that one
+    " roundtrip. Every nav_app_call( ) writes it, an untagged one clears it.
+    DATA mv_nav_tag TYPE string.
+
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 

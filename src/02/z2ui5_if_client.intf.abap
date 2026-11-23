@@ -654,9 +654,18 @@ INTERFACE z2ui5_if_client
   "! @parameter app | a bound instance of the app to call - NEW zcl_other_app( )
   "!                  with whatever it needs set on it before the call; an
   "!                  unbound reference raises NAV_APP_TARGET_NOT_BOUND.
+  "! @parameter tag | a name of the caller's own for WHY it calls - `CONFIRM_DELETE`,
+  "!                  `PICK_UNIT`. It comes back with the screen: when the
+  "!                  called app has left and this main( ) runs again,
+  "!                  get_nav_tag( ) answers it, so an app that opens the
+  "!                  same popup class for several purposes tells the returns
+  "!                  apart without a flag attribute per purpose. Not
+  "!                  supplied, the app has no tag. Appended at the END of
+  "!                  the list (rule 5).
   METHODS nav_app_call
     IMPORTING
       app           TYPE REF TO z2ui5_if_app
+      tag           TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
@@ -1567,5 +1576,28 @@ INTERFACE z2ui5_if_client
   METHODS check_nav_pending
     RETURNING
       VALUE(result) TYPE abap_bool.
+
+  "! The tag this app gave its last nav_app_call( tag = ... ), on the
+  "! roundtrip the called app comes BACK on - and only then:
+  "!
+  "!     IF client->check_on_navigated( ).
+  "!       CASE client->get_nav_tag( ).
+  "!         WHEN `CONFIRM_DELETE`.
+  "!           IF CAST zcl_popup_confirm( client->get_app_prev( ) )->result( ) = abap_true. ...
+  "!         WHEN `PICK_UNIT`. ...
+  "!       ENDCASE.
+  "!       view_display( ).
+  "!     ENDIF.
+  "!
+  "! Empty on every other roundtrip: on the first start, on an event, when
+  "! this app was itself called, and when the call carried no tag. The tag
+  "! is the caller's and travels in its own draft, so the called app needs no
+  "! change and never sees it - a popup of an add-on works as it is. A call
+  "! chain keeps one tag per level: A calls B with `X`, B calls C with `Y`,
+  "! C leaves and B reads `Y`, B leaves and A reads `X`. Appended at the END
+  "! of the interface (rule 5).
+  METHODS get_nav_tag
+    RETURNING
+      VALUE(result) TYPE string.
 
 ENDINTERFACE.
