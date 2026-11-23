@@ -8,8 +8,6 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         body     TYPE string,
         path     TYPE string,
         t_params TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value,
-        " the raw query string t_params was parsed from, see get_query
-        query    TYPE string,
       END OF ty_s_http_req.
 
     TYPES:
@@ -19,13 +17,10 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         status_reason TYPE string,
       END OF ty_s_http_res.
 
-    " Outbound-HTTP utility surface vendored from abap-util for APP code and
-    " kept in the catalog sync. client_call has a caller outside this
-    " repository: the consumer side of abap2UI5-addons/http-connector
-    " forwards every request through it, which is also why it takes a query.
-    " Dropping or narrowing either of the two breaks that addon. Inside the
-    " repository the language model transport (z2ui5_cl_ui5_llm_http) calls
-    " client_request, the general form below, which client_call wraps
+    " NO caller in this repository (client_call included) - this pair is
+    " outbound-HTTP utility surface vendored from abap-util for APP code and
+    " kept in the catalog sync. If a revision of the vendored copy drops
+    " unused methods, these two go together
     CLASS-METHODS client_create
       IMPORTING
         !destination  TYPE clike OPTIONAL
@@ -39,36 +34,6 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
         body          TYPE clike OPTIONAL
         !destination  TYPE clike OPTIONAL
         url           TYPE clike OPTIONAL
-        !query        TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE ty_s_http_res.
-
-    " One outbound HTTP request with header fields and a timeout - the general
-    " form of client_call, which builds this structure and calls it. url is
-    " the full URL, or with destination the path below it; t_header carries
-    " the request header fields (content-type among them); timeout in
-    " seconds, 0 for the client's default. The platform decides the client
-    " (z2ui5_cl_ui5_util_context=>check_abap_cloud): CL_HTTP_CLIENT with an
-    " SM59 destination or a URL on Standard, CL_WEB_HTTP_CLIENT_MANAGER on
-    " ABAP Cloud with a URL, a communication arrangement
-    " (SCENARIO/SERVICE_ID[/COMM_SYSTEM]) or a destination of the BTP
-    " destination service (any other name). Both named dynamically, so the
-    " class activates on every release. The one caller in this repository is
-    " z2ui5_cl_ui5_llm_http, the transport of the language model providers
-    TYPES:
-      BEGIN OF ty_s_client_req,
-        method      TYPE string,
-        url         TYPE string,
-        destination TYPE string,
-        query       TYPE string,
-        body        TYPE string,
-        t_header    TYPE z2ui5_cl_ui5_util_context=>ty_t_name_value,
-        timeout     TYPE i,
-      END OF ty_s_client_req.
-
-    CLASS-METHODS client_request
-      IMPORTING
-        is_req        TYPE ty_s_client_req
       RETURNING
         VALUE(result) TYPE ty_s_http_res.
 
@@ -88,14 +53,6 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
     METHODS get_req_info
       RETURNING
         VALUE(result) TYPE ty_s_http_req.
-
-    " the query string of the request, raw - everything after the FIRST `?`
-    " of its URI, not decoded. What a proxy forwards: parsing it into
-    " t_params and encoding it again is not guaranteed to give the same
-    " string back (sap-startup-params, see url_param_get_tab)
-    METHODS get_query
-      RETURNING
-        VALUE(result) TYPE string.
 
     METHODS get_header_field
       IMPORTING
@@ -146,62 +103,6 @@ CLASS z2ui5_cl_ui5_util_http DEFINITION PUBLIC.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
-
-    " the shape of IF_WEB_HTTP_RESPONSE=>HTTP_STATUS, declared here because
-    " the interface is not on every release - a dynamic RECEIVING needs a
-    " structurally identical target
-    TYPES:
-      BEGIN OF ty_s_http_status_cloud,
-        code   TYPE i,
-        reason TYPE string,
-      END OF ty_s_http_status_cloud.
-
-    TYPES:
-      BEGIN OF ty_s_client_target,
-        url         TYPE string,
-        request_uri TYPE string,
-      END OF ty_s_client_target.
-
-    CLASS-METHODS client_request_std
-      IMPORTING
-        is_req        TYPE ty_s_client_req
-      RETURNING
-        VALUE(result) TYPE ty_s_http_res.
-
-    CLASS-METHODS client_send_std
-      IMPORTING
-        io_client   TYPE REF TO object
-        is_req      TYPE ty_s_client_req
-        request_uri TYPE string.
-
-    CLASS-METHODS client_request_cloud
-      IMPORTING
-        is_req        TYPE ty_s_client_req
-      RETURNING
-        VALUE(result) TYPE ty_s_http_res.
-
-    CLASS-METHODS client_execute_cloud
-      IMPORTING
-        io_client     TYPE REF TO object
-        method        TYPE any
-        timeout       TYPE i
-      RETURNING
-        VALUE(result) TYPE REF TO object.
-
-    CLASS-METHODS client_destination_cloud
-      IMPORTING
-        is_req        TYPE ty_s_client_req
-      RETURNING
-        VALUE(result) TYPE REF TO object.
-
-    " where client_call puts its query - see the method
-    CLASS-METHODS client_target
-      IMPORTING
-        !destination  TYPE clike
-        url           TYPE clike
-        !query        TYPE clike
-      RETURNING
-        VALUE(result) TYPE ty_s_client_target.
 
     " resolved once per instance - every accessor would otherwise repeat
     " the dynamic ASSIGN on the server object
@@ -276,441 +177,95 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
         EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - check the destination/url configuration`.
     ENDIF.
 
-    " No logon popup: the client runs inside an ICF request, a work process
-    " without a dialog, and with the popup left enabled (the default of
-    " create_by_url) a 401 of the remote made RECEIVE fail as a
-    " communication error - the caller saw "could not be reached" instead of
-    " the 401 and the service's own message. 0 is IF_HTTP_CLIENT=>CO_DISABLED,
-    " named by value because this class names no on-premise type statically.
-    " The attribute is reached by its alias on CL_HTTP_CLIENT and by its
-    " interface name otherwise; a stack that has neither keeps its default
-    FIELD-SYMBOLS <popup> TYPE any.
-    TRY.
-        ASSIGN result->(`PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
-        IF <popup> IS NOT ASSIGNED.
-          ASSIGN result->(`IF_HTTP_CLIENT~PROPERTYTYPE_LOGON_POPUP`) TO <popup>.
-        ENDIF.
-        IF <popup> IS ASSIGNED.
-          <popup> = 0.
-        ENDIF.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
   ENDMETHOD.
 
   METHOD client_call.
 
-    DATA ls_req TYPE ty_s_client_req.
-
-    ls_req-method      = method.
-    ls_req-body        = body.
-    ls_req-destination = destination.
-    ls_req-query       = query.
-    " client_call has always ignored the url next to a destination, where
-    " client_request reads it as the path below it - kept as it was
-    IF ls_req-destination IS INITIAL OR ls_req-destination = `NONE`.
-      ls_req-url = url.
-    ENDIF.
-
-    result = client_request( ls_req ).
-
-  ENDMETHOD.
-
-  METHOD client_request.
-
-    IF z2ui5_cl_ui5_util_context=>check_abap_cloud( ) = abap_true.
-      result = client_request_cloud( is_req ).
-    ELSE.
-      result = client_request_std( is_req ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD client_request_std.
-
+    DATA lo_request  TYPE REF TO object.
     DATA lo_response TYPE REF TO object.
+    DATA lv_message  TYPE string.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(ls_target) = client_target( destination = is_req-destination
-                                     url         = is_req-url
-                                     query       = is_req-query ).
-
-    DATA(lo_client) = client_create( destination = is_req-destination
-                                     url         = ls_target-url ).
+    DATA(lo_client) = client_create( destination = destination
+                                     url         = url ).
 
     TRY.
 
-        client_send_std( io_client   = lo_client
-                         is_req      = is_req
-                         request_uri = ls_target-request_uri ).
+        ASSIGN lo_client->(`REQUEST`) TO <any>.
+        ASSERT sy-subrc = 0.
+        lo_request = <any>.
 
-        " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT - see
-        " get_response_onprem for both halves. Here the RAISE also buys the
-        " CLOSE below: the CATCH that closes the ICM connection on the failure
-        " path cannot see an ASSERTION_FAILED
-        UNASSIGN <any>.
-        ASSIGN lo_client->(`RESPONSE`) TO <any>.
-        IF <any> IS NOT ASSIGNED.
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING val = `HTTP_CLIENT_RESPONSE_NOT_FOUND - the http client has no RESPONSE attribute`.
+        DATA(lv_method) = CONV string( method ).
+        CALL METHOD lo_request->(`SET_METHOD`)
+          EXPORTING
+            method = lv_method.
+
+        DATA(lv_body) = CONV string( body ).
+        CALL METHOD lo_request->(`SET_CDATA`)
+          EXPORTING
+            data = lv_body.
+
+        CALL METHOD lo_client->(`SEND`)
+          EXCEPTIONS
+            http_communication_failure = 1
+            http_invalid_state         = 2
+            http_processing_failed     = 3
+            http_invalid_timeout       = 4
+            OTHERS                     = 5.
+
+        IF sy-subrc = 0.
+          CALL METHOD lo_client->(`RECEIVE`)
+            EXCEPTIONS
+              http_communication_failure = 1
+              http_invalid_state         = 2
+              http_processing_failed     = 3
+              OTHERS                     = 4.
         ENDIF.
+
+        IF sy-subrc <> 0.
+          CALL METHOD lo_client->(`GET_LAST_ERROR`)
+            IMPORTING
+              message = lv_message.
+          CALL METHOD lo_client->(`CLOSE`)
+            EXCEPTIONS
+              OTHERS = 1.
+          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+            EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
+        ENDIF.
+
+        ASSIGN lo_client->(`RESPONSE`) TO <any>.
+        ASSERT sy-subrc = 0.
         lo_response = <any>.
 
-        " The body as text. GET_CDATA decodes by the charset the response
-        " names - and without one in Content-Type (an `application/json`
-        " answer of most APIs, the language model providers' among them) the
-        " ICF falls back to ISO-8859-1, and every UTF-8 multibyte sequence
-        " came back as two or three Latin-1 characters. JSON is
-        " UTF-8 unless it says otherwise (RFC 8259), so a body without a
-        " charset is read as bytes and decoded as UTF-8; one that names its
-        " charset is left to the ICF
-        DATA lv_content_type TYPE string.
-        CALL METHOD lo_response->(`GET_HEADER_FIELD`)
-          EXPORTING
-            name  = `content-type`
+        CALL METHOD lo_response->(`GET_CDATA`)
           RECEIVING
-            value = lv_content_type.
-        IF to_lower( lv_content_type ) CS `charset=`.
-          CALL METHOD lo_response->(`GET_CDATA`)
-            RECEIVING
-              data = result-body.
-        ELSE.
-          DATA lv_bytes TYPE xstring.
-          CALL METHOD lo_response->(`GET_DATA`)
-            RECEIVING
-              data = lv_bytes.
-          result-body = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( lv_bytes ).
-        ENDIF.
+            data = result-body.
 
         CALL METHOD lo_response->(`GET_STATUS`)
           IMPORTING
             code   = result-status_code
             reason = result-status_reason.
 
-        " a failed CLOSE changes nothing for the caller, the response is read
         CALL METHOD lo_client->(`CLOSE`)
           EXCEPTIONS
-            OTHERS = 0.
+            OTHERS = 1.
 
       CATCH cx_root INTO DATA(x).
         " CLOSE on the failure path too: every throw between client_create
         " and the success-path CLOSE above (a failing dynamic GET_CDATA /
-        " GET_STATUS, the RESPONSE assign, a failed SEND) used to leave the
-        " ICM connection open for the lifetime of the work process
+        " GET_STATUS, the RESPONSE assign) used to leave the ICM connection
+        " open for the lifetime of the work process
         IF lo_client IS BOUND.
           TRY.
               CALL METHOD lo_client->(`CLOSE`)
                 EXCEPTIONS
-                  OTHERS = 0.
+                  OTHERS = 1.
             CATCH cx_root ##NO_HANDLER.
           ENDTRY.
         ENDIF.
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING val = x.
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD client_send_std.
-
-    DATA lo_request TYPE REF TO object.
-    DATA lv_message TYPE string.
-    FIELD-SYMBOLS <any> TYPE any.
-
-    " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT - see
-    " get_response_onprem for both halves. An HTTP client whose REQUEST
-    " could not be reached leaked its connection before the caller's CATCH
-    " closed it
-    UNASSIGN <any>.
-    ASSIGN io_client->(`REQUEST`) TO <any>.
-    IF <any> IS NOT ASSIGNED.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING val = `HTTP_CLIENT_REQUEST_NOT_FOUND - the http client has no REQUEST attribute`.
-    ENDIF.
-    lo_request = <any>.
-
-    IF request_uri IS NOT INITIAL.
-      CALL METHOD lo_request->(`SET_HEADER_FIELD`)
-        EXPORTING
-          name  = `~request_uri`
-          value = request_uri.
-    ENDIF.
-
-    " every header field as it came - name and value are strings already,
-    " which is what the dynamic call needs (see set_cdata on the CONV)
-    LOOP AT is_req-t_header INTO DATA(ls_header).
-      CALL METHOD lo_request->(`SET_HEADER_FIELD`)
-        EXPORTING
-          name  = ls_header-n
-          value = ls_header-v.
-    ENDLOOP.
-
-    DATA(lv_method) = is_req-method.
-    CALL METHOD lo_request->(`SET_METHOD`)
-      EXPORTING
-        method = lv_method.
-
-    DATA(lv_body) = is_req-body.
-    CALL METHOD lo_request->(`SET_CDATA`)
-      EXPORTING
-        data = lv_body.
-
-    IF is_req-timeout > 0.
-      DATA(lv_timeout) = is_req-timeout.
-      CALL METHOD io_client->(`SEND`)
-        EXPORTING
-          timeout                    = lv_timeout
-        EXCEPTIONS
-          http_communication_failure = 1
-          http_invalid_state         = 2
-          http_processing_failed     = 3
-          http_invalid_timeout       = 4
-          OTHERS                     = 5.
-    ELSE.
-      CALL METHOD io_client->(`SEND`)
-        EXCEPTIONS
-          http_communication_failure = 1
-          http_invalid_state         = 2
-          http_processing_failed     = 3
-          http_invalid_timeout       = 4
-          OTHERS                     = 5.
-    ENDIF.
-
-    IF sy-subrc = 0.
-      CALL METHOD io_client->(`RECEIVE`)
-        EXCEPTIONS
-          http_communication_failure = 1
-          http_invalid_state         = 2
-          http_processing_failed     = 3
-          OTHERS                     = 4.
-    ENDIF.
-
-    IF sy-subrc <> 0.
-      CALL METHOD io_client->(`GET_LAST_ERROR`)
-        IMPORTING
-          message = lv_message.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD client_destination_cloud.
-
-    " CL_HTTP_DESTINATION_PROVIDER, by name: the class is not on Standard
-    " releases and a static reference would leave this class inactive there
-    " (the abap-check skill, "Do not depend on DDIC objects that are not
-    " everywhere"). Three ways to a destination: a URL; a communication
-    " arrangement SCENARIO/SERVICE_ID[/COMM_SYSTEM] (the slash tells it
-    " apart); any other name is a destination of the BTP destination
-    " service, used as the system itself (service_specific), not as the
-    " user in front of the screen - an API key belongs to the system
-    DATA lv_provider TYPE c LENGTH 28.
-    DATA lv_service TYPE c LENGTH 17.
-    DATA lv_scenario TYPE c LENGTH 30.
-    DATA lv_service_id TYPE c LENGTH 40.
-    DATA lv_system_id TYPE c LENGTH 60.
-    DATA lt_part TYPE string_table.
-    FIELD-SYMBOLS <authn> TYPE any.
-
-    lv_provider = `CL_HTTP_DESTINATION_PROVIDER`.
-    lv_service  = `IF_A4C_CP_SERVICE`.
-
-    IF is_req-destination IS INITIAL OR is_req-destination = `NONE`.
-      DATA(lv_url) = is_req-url.
-      CALL METHOD (lv_provider)=>create_by_url
-        EXPORTING
-          i_url              = lv_url
-        RECEIVING
-          r_http_destination = result.
-    ELSEIF is_req-destination CS `/`.
-      SPLIT is_req-destination AT `/` INTO TABLE lt_part.
-      lv_scenario   = VALUE #( lt_part[ 1 ] OPTIONAL ).
-      lv_service_id = VALUE #( lt_part[ 2 ] OPTIONAL ).
-      lv_system_id  = VALUE #( lt_part[ 3 ] OPTIONAL ).
-      CALL METHOD (lv_provider)=>create_by_comm_arrangement
-        EXPORTING
-          comm_scenario      = lv_scenario
-          service_id         = lv_service_id
-          comm_system_id     = lv_system_id
-        RECEIVING
-          r_http_destination = result.
-    ELSE.
-      DATA(lv_name) = is_req-destination.
-      ASSIGN (lv_service)=>(`SERVICE_SPECIFIC`) TO <authn>.
-      IF <authn> IS NOT ASSIGNED.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - IF_A4C_CP_SERVICE=>SERVICE_SPECIFIC not found`.
-      ENDIF.
-      CALL METHOD (lv_provider)=>create_by_cloud_destination
-        EXPORTING
-          i_name             = lv_name
-          i_authn_mode       = <authn>
-        RECEIVING
-          r_http_destination = result.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD client_request_cloud.
-
-    " CL_WEB_HTTP_CLIENT_MANAGER, by name, for the same reason as the
-    " destination provider above. The request method is the constant
-    " IF_WEB_HTTP_CLIENT=>POST (GET, ...), read dynamically - its type cannot
-    " be named on a release that does not have the interface
-    DATA lv_manager TYPE c LENGTH 26.
-    DATA lv_client_intf TYPE c LENGTH 18.
-    DATA lo_client TYPE REF TO object.
-    DATA lo_request TYPE REF TO object.
-    DATA lo_response TYPE REF TO object.
-    DATA ls_status TYPE ty_s_http_status_cloud.
-    FIELD-SYMBOLS <method> TYPE any.
-
-    lv_manager     = `CL_WEB_HTTP_CLIENT_MANAGER`.
-    lv_client_intf = `IF_WEB_HTTP_CLIENT`.
-
-    " the query goes where it goes on Standard - into the URL, or after the
-    " path below a destination
-    DATA(ls_target) = client_target( destination = is_req-destination
-                                     url         = is_req-url
-                                     query       = is_req-query ).
-    DATA(ls_req) = is_req.
-    ls_req-url = ls_target-url.
-
-    TRY.
-        DATA(lo_destination) = client_destination_cloud( ls_req ).
-
-        CALL METHOD (lv_manager)=>create_by_http_destination
-          EXPORTING
-            i_destination = lo_destination
-          RECEIVING
-            r_client      = lo_client.
-
-        CALL METHOD lo_client->(`GET_HTTP_REQUEST`)
-          RECEIVING
-            r_http_request = lo_request.
-
-        " with a destination the url is the path below it, with a URL the
-        " path is already part of it
-        IF ls_target-request_uri IS NOT INITIAL.
-          DATA(lv_path) = ls_target-request_uri.
-          CALL METHOD lo_request->(`SET_URI_PATH`)
-            EXPORTING
-              i_uri_path = lv_path.
-        ENDIF.
-
-        LOOP AT is_req-t_header INTO DATA(ls_header).
-          CALL METHOD lo_request->(`SET_HEADER_FIELD`)
-            EXPORTING
-              i_name  = ls_header-n
-              i_value = ls_header-v.
-        ENDLOOP.
-
-        DATA(lv_body) = is_req-body.
-        CALL METHOD lo_request->(`SET_TEXT`)
-          EXPORTING
-            i_text = lv_body.
-
-        DATA(lv_method) = to_upper( is_req-method ).
-        ASSIGN (lv_client_intf)=>(lv_method) TO <method>.
-        IF <method> IS NOT ASSIGNED.
-          RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-            EXPORTING val = |HTTP_CLIENT_METHOD_NOT_FOUND - { is_req-method } is no IF_WEB_HTTP_CLIENT method|.
-        ENDIF.
-
-        lo_response = client_execute_cloud( io_client = lo_client
-                                            method    = <method>
-                                            timeout   = is_req-timeout ).
-
-        CALL METHOD lo_response->(`GET_STATUS`)
-          RECEIVING
-            r_value = ls_status.
-        result-status_code   = ls_status-code.
-        result-status_reason = ls_status-reason.
-
-        CALL METHOD lo_response->(`GET_TEXT`)
-          RECEIVING
-            r_value = result-body.
-
-        CALL METHOD lo_client->(`CLOSE`).
-
-      CATCH cx_root INTO DATA(x).
-        IF lo_client IS BOUND.
-          TRY.
-              CALL METHOD lo_client->(`CLOSE`).
-            CATCH cx_root ##NO_HANDLER.
-          ENDTRY.
-        ENDIF.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD client_execute_cloud.
-
-    " the timeout only when one is asked for - the parameter's own default is
-    " the client's. A failed EXECUTE (no connection, TLS, timeout) is the
-    " Cloud twin of a failed SEND/RECEIVE in client_send_std and carries the
-    " same HTTP_COMMUNICATION_ERROR text, the marker callers read to tell a
-    " transient failure from a missing configuration (z2ui5_cl_ui5_llm_http,
-    " retryable). The caller closes the client on the way out
-    TRY.
-        IF timeout > 0.
-          DATA(lv_timeout) = timeout.
-          CALL METHOD io_client->(`EXECUTE`)
-            EXPORTING
-              i_method   = method
-              i_timeout  = lv_timeout
-            RECEIVING
-              r_response = result.
-        ELSE.
-          CALL METHOD io_client->(`EXECUTE`)
-            EXPORTING
-              i_method   = method
-            RECEIVING
-              r_response = result.
-        ENDIF.
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val      = `HTTP_COMMUNICATION_ERROR - the request could not be sent or no response came back`
-            previous = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD client_target.
-
-    " The query travels as it came, never parsed and encoded again (see
-    " get_query). By URL it becomes part of the URL. By destination it is the
-    " request URI, which the ICF client appends to the destination's path
-    " prefix - so the path stays the one maintained in SM59. The destination
-    " test is client_create's, which decides between the two
-    DATA lv_destination TYPE c LENGTH 32.
-    lv_destination = destination.
-
-    result-url = url.
-    DATA(lv_query) = CONV string( query ).
-    SHIFT lv_query LEFT DELETING LEADING `?`.
-
-    " by destination the url is the path below it (client_request; client_call
-    " passes none), and the query follows that path
-    IF lv_destination IS NOT INITIAL AND lv_destination <> `NONE`.
-      result-request_uri = url.
-      IF lv_query IS NOT INITIAL.
-        result-request_uri = |{ result-request_uri }?{ lv_query }|.
-      ENDIF.
-      RETURN.
-    ENDIF.
-
-    IF lv_query IS INITIAL.
-      RETURN.
-    ELSEIF result-url CS `?`.
-      result-url = |{ result-url }&{ lv_query }|.
-    ELSE.
-      result-url = |{ result-url }?{ lv_query }|.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -782,8 +337,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
     " strip CR/LF from both halves before they reach the stack: header names
     " and values are exit-suppliable (t_security_header), and an exit that
     " derives one from the request would otherwise hand a response-splitting
-    " primitive to the client - the same reasoning as the attribute
-    " escaping of z2ui5_cl_ui5_http_handler's GET page, applied to the header channel. The stack
+    " primitive to the client - the same reasoning as _attr_escape in
+    " z2ui5_cl_ui5_http_handler, applied to the header channel. The stack
     " may reject embedded CRLF itself, but nothing here should depend on it
     IF lv_n CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
         OR lv_v CA z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf.
@@ -872,27 +427,19 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD set_cdata.
 
-    " a string, whatever clike the caller passed: IF_HTTP_RESPONSE~SET_CDATA
-    " and IF_WEB_HTTP_RESPONSE~SET_TEXT both take a STRING, and a dynamic
-    " call with a C actual for it is CX_SY_DYN_CALL_ILLEGAL_TYPE - the typed
-    " call would have converted. Converted ONCE, above the branch: the cloud
-    " half used to pass the generic value through, so a CHAR caller worked
-    " on-prem and failed on cloud only
-    DATA(lv_data) = CONV string( val ).
-
     IF mo_server_onprem IS BOUND.
 
       DATA(object) = get_response_onprem( ).
 
       CALL METHOD object->(`SET_CDATA`)
         EXPORTING
-          data = lv_data.
+          data = val.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->(`IF_WEB_HTTP_RESPONSE~SET_TEXT`)
         EXPORTING
-          i_text = lv_data.
+          i_text = val.
 
     ENDIF.
 
@@ -939,13 +486,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     IF mo_request_onprem IS NOT BOUND.
       FIELD-SYMBOLS <any> TYPE any.
-      " IS ASSIGNED, not sy-subrc, and a RAISE rather than an ASSERT - see
-      " the note at get_response_onprem below, which both share
       ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
-      IF <any> IS NOT ASSIGNED.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = `HTTP_SERVER_REQUEST_NOT_FOUND - the server object has no REQUEST attribute`.
-      ENDIF.
+      ASSERT sy-subrc = 0.
       mo_request_onprem = <any>.
     ENDIF.
 
@@ -957,29 +499,8 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
     IF mo_response_onprem IS NOT BOUND.
       FIELD-SYMBOLS <any> TYPE any.
-      " Both halves of this guard changed together, and both matter on the
-      " path every single request takes (get_cdata / get_method /
-      " get_header_field all come through here):
-      "
-      " IS ASSIGNED, not sy-subrc - a successful dynamic ASSIGN does not
-      " reset sy-subrc on every release (#1937,
-      " z2ui5_cl_ui5_util_context=>unassign_data), so a stale 4 left by an
-      " earlier statement read as "the server has no RESPONSE" on the one
-      " statement of the handler that cannot fail.
-      "
-      " ...and a RAISE rather than an ASSERT, because of what the failure
-      " then costs: ASSERTION_FAILED is a short dump no TRY can take (the
-      " reasoning is written out at z2ui5_cl_ui5_view_builder=>a), so it
-      " bypassed the outer TRY of z2ui5_cl_ui5_http_handler=>main and the
-      " request was answered with no body, no status code and none of the
-      " security headers - the exact state that TRY was added to prevent.
-      " The framework exception travels into it and comes back as a 500
-      " naming the cause
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
-      IF <any> IS NOT ASSIGNED.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING val = `HTTP_SERVER_RESPONSE_NOT_FOUND - the server object has no RESPONSE attribute`.
-      ENDIF.
+      ASSERT sy-subrc = 0.
       mo_response_onprem = <any>.
     ENDIF.
 
@@ -989,30 +510,10 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_req_info.
 
-    " ~request_uri is read ONCE for the two fields taken from it: every
-    " header read is a dynamic call into the request object, and this
-    " method runs on every request. get_query( ) reads the header itself
-    " and stays for a caller that wants the query alone
-    DATA(lv_uri) = get_header_field( `~request_uri` ).
-
     result-body     = get_cdata( ).
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
-    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( lv_uri ).
-    IF lv_uri CS `?`.
-      result-query = substring_after( val = lv_uri
-                                      sub = `?` ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD get_query.
-
-    DATA(lv_uri) = get_header_field( `~request_uri` ).
-    IF lv_uri CS `?`.
-      result = substring_after( val = lv_uri
-                                sub = `?` ).
-    ENDIF.
+    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
 
   ENDMETHOD.
 

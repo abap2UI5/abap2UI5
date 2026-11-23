@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -27,6 +27,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
         " Inverse of class_editable, bound as a plain value to the step-5 link.
+        " It exists as its own field on purpose: deriving it in the view with a
+        " UI5 expression binding ( {= ... } ) would make the view eval-compiled
+        " and break it under a Content-Security-Policy without 'unsafe-eval'.
         link_enabled           TYPE abap_bool,
       END OF ms_home.
 
@@ -63,45 +66,13 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    " the Check of step 4 behind on_event_check. hide_details is the exit's
-    " switch, handed in rather than asked for here, so a test can run the
-    " hidden case without an exit installed on the system
-    METHODS check_class
-      IMPORTING
-        hide_details TYPE abap_bool.
-
-    " the failed check's message - on the input and in a message box
-    METHODS check_failed
-      IMPORTING
-        text TYPE string.
-
-    " check_hide_error_details of the exit's POST config. An exit that raises
-    " leaves the switch at its default (details shown), the way the draft
-    " cleanup asks it
-    METHODS exit_hides_error_details
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    " what the page shows for a class that could not be instantiated - the
-    " exception text, or a plain sentence where the exit hides error details
-    METHODS error_text_for_user
-      IMPORTING
-        ix            TYPE REF TO cx_root
-        hide_details  TYPE abap_bool
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the User Exit row of the system popup: the exit class, or that none is
-    " installed - an empty row reads as a value that failed to load
-    METHODS user_exit_text
-      RETURNING
-        VALUE(result) TYPE string.
     METHODS header_icon
       IMPORTING
         toolbar TYPE REF TO z2ui5_cl_ui5_view_builder
         icon    TYPE string
         tooltip TYPE string
-        press   TYPE string.
+        press   TYPE string
+        class   TYPE string DEFAULT `sapUiTinyMarginBeginEnd`.
 
     " Building blocks of the SimpleForm rows above. Private on purpose: not
     " because a contract guards them (the class sits in src/01/04, outside
@@ -114,13 +85,11 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     " gate), and what a start page does with its own popup is neither
     CONSTANTS c_event_system TYPE string VALUE `OPEN_SYSTEM`.
     CONSTANTS c_event_close  TYPE string VALUE `CLOSE_POPUP`.
-    " lives in abap2UI5-addons/config-management, resolved dynamically (listed
-    " in dynamic-name-gate's EXTERNAL) - a constant, because the same name
-    " used to exist in two spellings here, which is how a rename gets one of
-    " them wrong. The addon renamed the class in 2026-11; an install from
-    " before that still has the old name, which is tried second
-    CONSTANTS c_class_icf_config     TYPE string VALUE `Z2UI5_CL_CONFIG_APP`.
-    CONSTANTS c_class_icf_config_old TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
+    " lives in the abap2UI5-setup repository, resolved dynamically (listed
+    " in dynamic-name-gate's EXTERNAL). ONE constant for both the render
+    " check and the CREATE - the same name used to exist in two spellings
+    " here, which is how a rename gets one of them wrong
+    CONSTANTS c_class_icf_config TYPE string VALUE `Z2UI5_CL_APP_ICF_CONFIG`.
 
     " the class name input of step 4 - the only control on the page that is
     " addressed from the outside, because the cursor is put into it on start
@@ -150,13 +119,14 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     METHODS render_spacer
       IMPORTING form TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " a form row of empty Label + external Link; the blank label is how the
-    " SimpleForm keeps the link in the value column
+    " a form row of Label + external Link; an empty label renders a blank one,
+    " which is how the SimpleForm keeps the link in the value column
     METHODS render_link
       IMPORTING
-        form TYPE REF TO z2ui5_cl_ui5_view_builder
-        text TYPE string
-        href TYPE string.
+        form  TYPE REF TO z2ui5_cl_ui5_view_builder
+        label TYPE string OPTIONAL
+        text  TYPE string
+        href  TYPE string.
 
     " a form row of Label + read-only Text
     METHODS render_text
@@ -169,7 +139,9 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     " the same place in every row - the alignment the samples app has
     CONSTANTS c_link_width TYPE string VALUE `12rem`.
 
-    " the icon of the "Learn more" row that links the project site
+    " the two icons the page names twice - once in the title row, once in the
+    " "Learn more" section - so the header and the section cannot drift apart
+    CONSTANTS c_icon_docs TYPE string VALUE `sap-icon://learning-assistant`.
     CONSTANTS c_icon_repo TYPE string VALUE `sap-icon://globe`.
 
     " the icon of a row belongs to the link behind it, so it carries the link's
@@ -182,6 +154,12 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
     " the samples overview renders its header icons at this size; a stock
     " core:Icon is 1rem and looks undersized next to the page title
     CONSTANTS c_icon_size_header TYPE string VALUE `1.125rem`.
+
+    " What sets the outbound icons apart from the system ones: a gap, not a
+    " rule. A sap.m.ToolbarSeparator would draw the rule, but it renders a
+    " <div> and only lays out as expected inside a flex container - see
+    " render_header_toolbar( ), which is where that matters.
+    CONSTANTS c_icon_class_group TYPE string VALUE `sapUiMediumMarginBegin sapUiTinyMarginEnd`.
 
     " a form row of Label + [ icon, link ] - the shape the sample rows and the
     " documentation row share. Returns the HBox, so the caller can append
@@ -212,6 +190,15 @@ CLASS z2ui5_cl_ui5_app_start DEFINITION PUBLIC FINAL.
         class     TYPE string
         class_old TYPE string OPTIONAL.
 
+    " the press wire of a button whose target is EXTERNAL: a Button carries no
+    " href, and cs_event-open_new_tab is same-origin only (isValidRedirectURL),
+    " so the new tab is opened by the URLHELPER frontend action - client-side,
+    " inside the click handler, which is what keeps the popup blocker quiet
+    METHODS open_url
+      IMPORTING
+        href          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -261,18 +248,13 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     CASE client->get_event( ).
 
       WHEN cs_event-set_config.
-        " no control on the page fires this event any more (the configuration
-        " gear left the title row when the outbound icons were parked) - but
-        " the EVENT can still arrive: a draft restored from before that,
-        " Back/Forward, a bookmark, a hand-built request. That must degrade to
-        " a message, not to a 500 on the framework's own start page (same
-        " guard shape as on_event_check)
+        " the button is only rendered when the class exists (see
+        " reset_button_state) - but the EVENT can arrive without it: a
+        " draft restored from before a deletion, Back/Forward, a hand-built
+        " request. That must degrade to a message, not to a 500 on the
+        " framework's own start page (same guard shape as on_event_check)
         TRY.
-            TRY.
-                CREATE OBJECT li_app_config TYPE (c_class_icf_config).
-              CATCH cx_sy_create_object_error.
-                CREATE OBJECT li_app_config TYPE (c_class_icf_config_old).
-            ENDTRY.
+            CREATE OBJECT li_app_config TYPE (c_class_icf_config).
             client->nav_app_call( li_app_config ).
           CATCH cx_root.
             client->message_box_display(
@@ -300,40 +282,10 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   METHOD on_event_check.
 
-    check_class( exit_hides_error_details( ) ).
-
-  ENDMETHOD.
-
-  METHOD check_class.
-
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
-    ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
-    " an empty input is no class that "does not exist" - the sentence below
-    " would read `Class  does not exist ...`, naming nothing. Not raised into
-    " the CATCH either: this is no system detail an exit could want hidden
-    IF ms_home-classname IS INITIAL.
-      check_failed( `Enter the name of your class first` ).
-      RETURN.
-    ENDIF.
-
     TRY.
-        " the same pre-check the URL start does (z2ui5_cl_ui5_action=>
-        " app_create, the reasoning is there): the name was typed in, so a
-        " class that is no app is refused from its descriptor, before
-        " anything of it is loaded or instantiated. The interface name comes
-        " from the still unbound li_app_test, never from a literal - a
-        " namespace rename rewrites the reference, not the literal.
-        " Its sentence is the framework's own and names only what the user
-        " typed, so it is shown even where the exit hides error details - it
-        " used to be raised into the CATCH below, where that switch replaced
-        " it by a plain sentence (error_text_for_user)
-        DATA(lv_app_intf) = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_app_test ).
-        IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf( class = ms_home-classname
-                                                                  intf  = lv_app_intf ) = abap_false.
-          check_failed( |Class { ms_home-classname } does not exist or does not implement { to_lower( lv_app_intf ) }| ).
-          RETURN.
-        ENDIF.
+        ms_home-classname = z2ui5_cl_ui5_util_context=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `Your app is ready - open it with the link in step 5!` ).
@@ -341,63 +293,16 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         ms_home-btn_event_id      = cs_event-button_change.
         ms_home-btn_icon          = `sap-icon://edit`.
         ms_home-class_value_state = `Success`.
-        " a failed check before this one left its message behind - the
-        " input would carry the old error text under a Success state
-        CLEAR ms_home-class_value_state_text.
         ms_home-class_editable    = abap_false.
         ms_home-link_enabled      = abap_true.
         ms_home-url               = get_app_url( ms_home-classname ).
 
       CATCH cx_root INTO DATA(lx).
-        check_failed( error_text_for_user( ix           = lx
-                                           hide_details = hide_details ) ).
+        ms_home-class_value_state_text = lx->get_text( ).
+        ms_home-class_value_state      = `Warning`.
+        client->message_box_display( text = ms_home-class_value_state_text
+                                     type = `error` ).
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD check_failed.
-
-    ms_home-class_value_state_text = text.
-    ms_home-class_value_state      = `Warning`.
-    client->message_box_display( text = text
-                                 type = `error` ).
-
-  ENDMETHOD.
-
-  METHOD exit_hides_error_details.
-
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
-    TRY.
-        z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-    result = ls_config-check_hide_error_details.
-
-  ENDMETHOD.
-
-  METHOD user_exit_text.
-
-    result = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ).
-    IF result IS INITIAL.
-      result = `none (shipped defaults)`.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD error_text_for_user.
-
-    " the exception text of a CREATE OBJECT for a class name the user typed
-    " goes onto the page - with the same switch the 500 body honours: an
-    " installation whose exit hides error details gets a plain sentence
-    " here too, not the raw system text
-    " The sentence names where the details went, and nothing else: it used
-    " to send the reader to "the system log", where nothing of this was
-    " ever written - the exception is caught here and logged nowhere
-    IF hide_details = abap_true.
-      result = `The class could not be instantiated - error details are hidden by this installation's user exit (check_hide_error_details)`.
-    ELSE.
-      result = ix->get_text( ).
-    ENDIF.
 
   ENDMETHOD.
 
@@ -494,15 +399,38 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     " No ToolbarSpacer either: contentRight is right-aligned on its own.
     DATA(toolbar) = bar->ele( `contentRight` ).
 
-    " what this system is: the information popup. Sliders rather than a
-    " monitor - what opens there is the backend side of the installation,
-    " user exit and drafts included, and that reads as settings. (The gear of
-    " the ICF configuration app that used to sit next to it is gone from the
-    " title row; cs_event-set_config and on_event still accept its event.)
+    " first what this system is: the information popup, and the configuration
+    " when it is installed. Sliders rather than a monitor on the first one -
+    " what opens there is the backend side of the installation, user exit and
+    " drafts included, and that reads as settings. The gear next to it stays
+    " with the ICF configuration, so the two are still told apart at a glance
     header_icon( toolbar = toolbar
                  icon    = `sap-icon://action-settings`
                  tooltip = `System information - backend settings, user exit, drafts (frontend info: Ctrl+F12)`
                  press   = client->_event( c_event_system ) ).
+
+    IF z2ui5_cl_ui5_util_context=>rtti_check_class_exists( c_class_icf_config ).
+      header_icon( toolbar = toolbar
+                   icon    = `sap-icon://settings`
+                   tooltip = `Configuration`
+                   press   = client->_event( cs_event-set_config ) ).
+    ENDIF.
+
+    " ... then, set apart by a wider gap, the entries that leave the system:
+    " the icons above open something in this system, these two open a site.
+    " The gap rides on the first of them (c_icon_class_group) instead of on a
+    " separator control of its own - see the note above on what a block-level
+    " child does to this bar on 1.71
+    header_icon( toolbar = toolbar
+                 icon    = c_icon_docs
+                 tooltip = `Documentation - guides, tutorials and the API reference on abap2UI5.org`
+                 press   = open_url( `https://abap2UI5.org` )
+                 class   = c_icon_class_group ).
+
+    header_icon( toolbar = toolbar
+                 icon    = c_icon_repo
+                 tooltip = `The abap2UI5 repository on GitHub - source code, issues, releases and the abapGit installation`
+                 press   = open_url( `https://github.com/abap2UI5/abap2UI5` ) ).
 
   ENDMETHOD.
 
@@ -515,7 +443,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     toolbar->tag( n = `Icon` ns = `core`
         )->a( n = `src`      v = icon
         )->a( n = `size`     v = c_icon_size_header
-        )->a( n = `class`    v = `sapUiTinyMarginBeginEnd`
+        )->a( n = `class`    v = class
         )->a( n = `color`    v = c_icon_color
         )->a( n = `tooltip`  v = tooltip
         )->a( n = `press`    v = press ).
@@ -526,18 +454,28 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
     " its own section, so the samples above get their separator back and where
     " to read on is what the page says right after them - same row shape as a
-    " sample repository
+    " sample repository, and the same two icons the title row carries
     render_section( form  = form
                     title = `Learn more` ).
 
     render_icon_row( form    = form
-                     label   = `Docs`
+                     label   = `GitHub`
                      icon    = c_icon_repo
+                     text    = `abap2UI5`
+                     href    = `https://github.com/abap2UI5/abap2UI5`
+                     new_tab = abap_true
+        )->tag( `Text`
+            )->a( n = `text`   v = `The repository itself - source code, issues, releases, and what abapGit installs from`
+            )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
+
+    render_icon_row( form    = form
+                     label   = `Docs`
+                     icon    = c_icon_docs
                      text    = `abap2UI5.org`
                      href    = `https://abap2UI5.org`
                      new_tab = abap_true
         )->tag( `Text`
-            )->a( n = `text`   v = `Guides, tutorials and the Sample reference - from your first app to the full client API`
+            )->a( n = `text`   v = `Guides, tutorials and the API reference - from your first app to the full client API`
             )->a( n = `class`  v = `sapUiSmallMarginBegin` ).
 
   ENDMETHOD.
@@ -578,18 +516,8 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
           )->a( n = `submit`          v = client->_event( ms_home-btn_event_id )
           )->a( n = `width`           v = `70%` ).
     ELSE.
-      " t, not v: the class name is USER INPUT and the page bootstraps with
-      " complex binding syntax, so a `{` in it is read by UI5 as a binding
-      " path instead of shown - a malformed one takes the whole view build
-      " down with it. Reachable without a crafted class name at all:
-      " class_editable is a bound attribute, so a client can set it to
-      " abap_false in the same model delta that writes the name, and this
-      " branch then renders whatever the name says. t is escape_literal( )
-      " applied to the value, which is the form the builder's own ABAP Doc
-      " names for a value carrying user input - this was the one v = in the
-      " shipped apps that did not carry a literal or a binding
       form->tag( `Text`
-          )->a( n = `text`  t = ms_home-classname ).
+          )->a( n = `text`  v = ms_home-classname ).
     ENDIF.
 
     form->tag( `Label` ).
@@ -691,13 +619,9 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `color`  v = c_icon_color
         )->a( n = `class`  v = `sapUiTinyMarginEnd` ).
 
-    " t, not v, for the href - see render_quickstart: the sample links are
-    " built from the page's own URL (get_app_url), and a browser leaves
-    " `{` and `}` in a query or hash unencoded, so a link carrying them
-    " was read as a binding and could take the start page's view down
     result->tag( `Link`
         )->a( n = `text`   v = text
-        )->a( n = `href`   t = href
+        )->a( n = `href`   v = href
         )->a( n = `width`  v = c_link_width ).
 
     " the Link is still the last child, so this attribute lands on it
@@ -759,11 +683,22 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD open_url.
+
+    " REDIRECT takes a { URL, NEW_WINDOW } object literal - NEW_WINDOW true is
+    " what target="_blank" does on a Link
+    result = client->follow_up_action(
+                 val   = client->cs_event-urlhelper
+                 t_arg = VALUE #( ( `REDIRECT` )
+                                  ( |\{ URL: '{ href }', NEW_WINDOW: true \}| ) ) ).
+
+  ENDMETHOD.
+
   METHOD render_system_popup.
 
     " the system facts are read once and then not again, so they are a popup
     " rather than a block of the page - reached from the icon at the right end
-    " of the title row. The one part that is not free is the draft count at
+    " of the closing line. The one part that is not free is the draft count at
     " the bottom: two COUNT( * ), the own rows and the whole table, which
     " together say whether cleanup( ) is keeping up. In a popup they run when
     " the popup is opened, which is exactly when somebody asks
@@ -793,11 +728,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `class`     v = `sapUiSmallMarginBeginEnd sapUiTinyMarginTop` ).
 
     DATA(form) = create_layout_form( content ).
+    DATA(ls_client) = client->get( ).
 
     form->tag( `Label`
         )->a( n = `text`  v = `Launchpad active` ).
     form->tag( `CheckBox`
-        )->a( n = `selected`  b = client->get( )-check_launchpad_active
+        )->a( n = `selected`  b = ls_client-check_launchpad_active
         )->a( n = `enabled`   v = `false` ).
 
     form->tag( `Label`
@@ -807,12 +743,12 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
         )->a( n = `enabled`   v = `false` ).
     render_text( form  = form
                  label = `User Exit`
-                 text  = user_exit_text( ) ).
+                 text  = z2ui5_cl_ui5_user_exit=>get_user_exit_class( ) ).
 
     render_text( form  = form
                  label = `abap2UI5 Version`
                  text  = z2ui5_if_app=>version ).
-    DATA(lo_draft) = z2ui5_cl_ui5_srv_draft=>get_instance( ).
+    DATA(lo_draft) = NEW z2ui5_cl_ui5_srv_draft( ).
     render_text( form  = form
                  label = `Draft Entries (own/total)`
                  text  = |{ lo_draft->count_entries( ) } / { lo_draft->count_entries_total( ) }| ).
@@ -857,11 +793,14 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
   METHOD render_link.
 
     form->tag( `Label` ).
+    IF label IS NOT INITIAL.
+      form->a( n = `text`  v = label ).
+    ENDIF.
 
     form->tag( `Link`
         )->a( n = `text`    v = text
         )->a( n = `target`  v = `_blank`
-        )->a( n = `href`    t = href ).
+        )->a( n = `href`    v = href ).
 
   ENDMETHOD.
 
@@ -870,7 +809,7 @@ CLASS z2ui5_cl_ui5_app_start IMPLEMENTATION.
     form->tag( `Label`
         )->a( n = `text`  v = label
         )->tag( `Text`
-            )->a( n = `text`  t = text ).
+            )->a( n = `text`  v = text ).
 
   ENDMETHOD.
 

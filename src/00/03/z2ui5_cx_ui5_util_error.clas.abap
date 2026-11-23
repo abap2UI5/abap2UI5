@@ -184,7 +184,7 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
 
     " The messages first, one per line: this section is what the frontend
-    " lifts out for the error popup (bundle/webapp/core/ErrorView.js reads it by
+    " lifts out for the error popup (app/webapp/core/ErrorView.js reads it by
     " its `--- error ---` header, everything after the next `--- ` header
     " stays behind Details) - keep the header spelling in sync with it.
     " get_text( ) on a z2ui5 error already renders the whole concise chain,
@@ -263,10 +263,9 @@ CLASS z2ui5_cx_ui5_util_error IMPLEMENTATION.
     " user are recon material (and an audit finding in hardened
     " installations), while what a report actually needs is the release and
     " the time - the server-side logs carry the rest
-    DATA(ls_sy) = z2ui5_cl_ui5_util_context=>sy_get( ).
     result = `--- context ---` && lv_nl &&
-             |    system   : { ls_sy-sysid } / release { ls_sy-saprl }| && lv_nl &&
-             |    time     : { ls_sy-datum } { ls_sy-uzeit }|.
+             |    system   : { sy-sysid } / release { sy-saprl }| && lv_nl &&
+             |    time     : { sy-datum } { sy-uzeit }|.
 
   ENDMETHOD.
 ENDCLASS.

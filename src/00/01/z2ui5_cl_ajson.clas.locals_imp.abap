@@ -165,9 +165,9 @@ CLASS lcl_utils IMPLEMENTATION.
           conv = lo_conv.
         CALL METHOD lo_conv->('CONVERT')
         EXPORTING
-          input = iv_xstr
+          data = iv_xstr
         IMPORTING
-          data = rv_str.
+          buffer = rv_str.
     ENDTRY.
 
   ENDMETHOD.
@@ -570,16 +570,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
   PRIVATE SECTION.
 
-    TYPES:
-      BEGIN OF ty_control_char,
-        char TYPE string,
-        escaped TYPE string,
-      END OF ty_control_char.
-
     CLASS-DATA gv_comma_with_lf TYPE string.
-    " U+0000 - U+001F other than LF: JSON allows them only escaped
-    CLASS-DATA gt_control_chars TYPE STANDARD TABLE OF ty_control_char WITH DEFAULT KEY.
-    CLASS-DATA gv_control_chars TYPE string.
 
     DATA mt_json_tree TYPE z2ui5_if_ajson_types=>ty_nodes_ts.
     DATA mv_keep_item_order TYPE abap_bool.
@@ -617,36 +608,7 @@ ENDCLASS.
 CLASS lcl_json_serializer IMPLEMENTATION.
 
   METHOD class_constructor.
-
-    DATA lv_code TYPE x LENGTH 1.
-    DATA lv_xstr TYPE xstring.
-    DATA ls_control_char LIKE LINE OF gt_control_chars.
-
     gv_comma_with_lf = ',' && cl_abap_char_utilities=>newline.
-
-    DO 32 TIMES.
-      lv_code = sy-index - 1.
-      IF lv_code = '0A'.
-        CONTINUE. " \n is common, it is escaped on its own
-      ENDIF.
-      lv_xstr = lv_code.
-      ls_control_char-char = lcl_utils=>xstring_to_string_utf8( lv_xstr ).
-      CASE lv_code.
-        WHEN '08'.
-          ls_control_char-escaped = '\b'.
-        WHEN '09'.
-          ls_control_char-escaped = '\t'.
-        WHEN '0C'.
-          ls_control_char-escaped = '\f'.
-        WHEN '0D'.
-          ls_control_char-escaped = '\r'.
-        WHEN OTHERS.
-          ls_control_char-escaped = to_lower( |\\u00{ lv_code }| ).
-      ENDCASE.
-      APPEND ls_control_char TO gt_control_chars.
-      gv_control_chars = gv_control_chars && ls_control_char-char.
-    ENDDO.
-
   ENDMETHOD.
 
   METHOD stringify.
@@ -789,11 +751,10 @@ CLASS lcl_json_serializer IMPLEMENTATION.
 
   METHOD escape_string.
 
-    DATA ls_control_char LIKE LINE OF gt_control_chars.
-
-    " see also https://www.json.org/json-en.html
     rv_escaped = iv_unescaped.
-    IF rv_escaped CA |"\\\n|.
+    IF rv_escaped CA |"\\\t\n\r|.
+      " TODO consider performance ...
+      " see also https://www.json.org/json-en.html
       rv_escaped = replace(
         val = rv_escaped
         sub = '\'
@@ -806,20 +767,20 @@ CLASS lcl_json_serializer IMPLEMENTATION.
         occ = 0 ).
       rv_escaped = replace(
         val = rv_escaped
+        sub = |\r|
+        with = '\r'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
+        sub = |\t|
+        with = '\t'
+        occ = 0 ).
+      rv_escaped = replace(
+        val = rv_escaped
         sub = '"'
         with = '\"'
         occ = 0 ).
-    ENDIF.
 
-    " only after the backslash replace: these escapes bring their own backslash
-    IF rv_escaped CA gv_control_chars.
-      LOOP AT gt_control_chars INTO ls_control_char.
-        rv_escaped = replace(
-          val = rv_escaped
-          sub = ls_control_char-char
-          with = ls_control_char-escaped
-          occ = 0 ).
-      ENDLOOP.
     ENDIF.
 
   ENDMETHOD.

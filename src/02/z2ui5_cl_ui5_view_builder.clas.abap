@@ -30,14 +30,7 @@
 "! flag reaches the view without a conversion of its own:
 "!   )->a( n = `editable` b = mv_edit_mode
 "!   )->a( n = `visible`  b = xsdbool( lines( mt_item ) > 0 ) )
-"! For TEXT that must render as it is - a value that carries user input or
-"! external data - pass t instead of v: it is escaped as a literal
-"! (escape_literal), so a `{` in it is shown, not read as a binding:
-"!   )->a( n = `title` t = |Results for { mv_search }| )
-"! v stays the form for everything with binding vocabulary - a _bind( ), an
-"! _event( ), a `{/path}` template, an expression - and for constant text,
-"! which needs no escaping.
-CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
+CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC CREATE PRIVATE.
 
   PUBLIC SECTION.
 
@@ -69,21 +62,14 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
 
     "! set an attribute on the element the chain is pointing at - the child
     "! just added by ele( )/tag( ), or this node itself while it has none.
-    "! Pass exactly one of v, b or t - never two, never none:
-    "!   v  any string expression, written as it is - a binding, an event,
-    "!      a template, an expression, or constant text
-    "!   b  an ABAP boolean, rendered as `true` / `false`
-    "!   t  TEXT to render literally: escaped with escape_literal( ) so a
-    "!      brace or backslash in it is shown instead of parsed as a binding.
-    "!      The form for a value that carries user input or external data.
-    "!      Appended after b: rule 5 allows a new optional parameter at the
-    "!      END of the list only
+    "! Pass either v (any string expression) or b (an ABAP boolean, rendered
+    "! as `true` / `false`) - exactly one of the two, never both and never
+    "! neither.
     METHODS a
       IMPORTING
         n             TYPE string
         v             TYPE string    OPTIONAL
         b             TYPE abap_bool OPTIONAL
-        t             TYPE string    OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_view_builder.
 
@@ -104,15 +90,11 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
     "! by UI5 as a binding path (or an expression) instead of shown as text,
     "! and can read arbitrary paths out of the view model. Backslash-escaping
     "! the braces is UI5's own convention for literal text.
-    "! Deliberately NOT applied to v by a( ) itself: a deliberate binding in
-    "! v - client-&gt;_bind( ), an event, a template - is the builder's bread
-    "! and butter, and only the app knows which values are literals. The app
-    "! says so with the t parameter of a( ), which is this method applied to
-    "! the whole value - the form to reach for:
-    "!   )-&gt;a( n = `text` t = lv_input )
-    "! Call this method directly only when ONE attribute value mixes literal
-    "! text with a binding, so the escaping has to be applied to a part:
-    "!   )-&gt;a( n = `title` v = |{ z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) }: \{/COUNT\} hits| )
+    "! Deliberately NOT applied by a( ) itself: a deliberate binding in v -
+    "! client-&gt;_bind( ), an event, a template - is the builder's bread and
+    "! butter, and only the app knows which values are literals. Use it on
+    "! any user- or external-supplied string an app renders via a( v = ... ):
+    "!   )-&gt;a( n = `text` v = z2ui5_cl_ui5_view_builder=&gt;escape_literal( lv_input ) )
     "! XML escaping is a separate concern and always applied on render.
     CLASS-METHODS escape_literal
       IMPORTING
@@ -136,51 +118,23 @@ CLASS z2ui5_cl_ui5_view_builder DEFINITION PUBLIC FINAL CREATE PRIVATE.
     DATA parent  TYPE REF TO z2ui5_cl_ui5_view_builder.
     DATA root    TYPE REF TO z2ui5_cl_ui5_view_builder.
 
-    " Append this node's markup to ct_out - the open tag, the children (by
-    " the same call), the close tag. One accumulator for the whole tree,
-    " concatenated once by stringify( ): a render that returned a string
-    " per node copied every subtree once per ancestor (view size times
-    " nesting depth on every render); appending moves each character once
-    METHODS render_into
-      CHANGING
-        ct_out TYPE string_table.
-
-  PRIVATE SECTION.
-    " the characters an element or attribute NAME may carry - a list of
-    " what is allowed, not of what is not: the list of markup characters it
-    " replaced let `te(xt`, `te,xt`, `te{xt` or `1st` through, and the view
-    " died in the browser like before. UI5 names are ASCII letters, digits
-    " and `_`, `.`, `-` (and the `:` of a prefixed name); filled lazily on first use
-    CLASS-DATA gv_name_chars TYPE string.
-
-    " fail fast on a name that is no XML name: `n = 'te"xt'` used to render
-    " an attribute that ended early, and the view died in the browser far
-    " from the line that wrote it. Same road as every other misuse (raise)
-    METHODS name_check
-      IMPORTING
-        val  TYPE string
-        what TYPE string.
-
-    " every misuse of the chain ends here: a catchable exception naming the
-    " element and attribute, which the framework renders like any other error
-    METHODS raise
-      IMPORTING
-        val TYPE string.
-
-    " the value of a( ) from whichever of v, b and t was passed - the
-    " supplied flags travel as parameters because IS SUPPLIED only answers
-    " inside the method that declares the optional
-    METHODS attr_value
-      IMPORTING
-        n             TYPE string
-        v             TYPE string
-        b             TYPE abap_bool
-        t             TYPE string
-        check_v       TYPE abap_bool
-        check_b       TYPE abap_bool
-        check_t       TYPE abap_bool
+    METHODS render
       RETURNING
         VALUE(result) TYPE string.
+
+    METHODS xml_escape
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PRIVATE SECTION.
+    " the character set xml_escape guards against, concatenated once per
+    " roll area instead of once per attribute (three CLASS-DATA reads and a
+    " template per call otherwise). Lazily filled on first use - a public
+    " class_constructor is the alternative and abap-check names it a trap
+    CLASS-DATA gv_escape_specials TYPE string.
+    CLASS-DATA gv_escape_controls TYPE string.
 ENDCLASS.
 
 
@@ -196,21 +150,6 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD ele.
 
-    name_check( val  = n
-                what = `element name` ).
-    IF ns IS NOT INITIAL.
-      name_check( val  = ns
-                  what = `namespace prefix` ).
-      " the prefix is written in front of a `:` of its own - one in the
-      " prefix renders `core::Icon`, which no XML parser reads
-      IF ns CA `:`.
-        raise( |namespace prefix '{ ns }' carries a colon - pass it without| ).
-      ENDIF.
-      " a prefixed name of its own beside ns renders `core:x:Icon`
-      IF n CA `:`.
-        raise( |element name '{ n }' carries a prefix beside ns '{ ns }' - pass one of them| ).
-      ENDIF.
-    ENDIF.
     result = NEW #( ).
     result->root = root.
     result->parent = me.
@@ -238,38 +177,33 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
     " no children yet. That way a( ) follows the control it belongs to
     " whether that control was opened with ele( ) or added with tag( ).
     " fail fast instead of dropping silently: on the empty builder root there
-    " is no element to attach to, and a duplicate name renders invalid XML.
-    " Raised, not ASSERTed: ASSERTION_FAILED is a short dump that no TRY can
-    " take, so it bypassed the single top-level catch in
-    " z2ui5_cl_ui5_http_handler=>_main( ) - the developer got an ST22 dump
-    " instead of the 500 body with the error overlay every other framework
-    " error produces, and the dump could not even name the attribute
-    IF name IS INITIAL AND t_child IS INITIAL.
-      raise( |a( n = '{ n }' ) on the empty builder root - open an element with ele( ) first| ).
+    " is no element to attach to, and a duplicate name renders invalid XML
+    ASSERT name IS NOT INITIAL OR t_child IS NOT INITIAL.
+    " b and v are mutually exclusive - b is checked with IS SUPPLIED because
+    " abap_false and "not passed" are the same character.
+    " "never neither" is asserted with IS SUPPLIED rather than IS NOT INITIAL
+    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
+    " legal: what this refuses is a( n = `visible` ) with no value at all,
+    " which used to render visible="" - a working view that behaves wrongly,
+    " and the one invariant of the three in the ABAP Doc above that nothing
+    " checked
+    ASSERT v IS SUPPLIED OR b IS SUPPLIED.
+    DATA(val) = v.
+    IF b IS SUPPLIED.
+      ASSERT v IS INITIAL.
+      val = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
     ENDIF.
-    name_check( val  = n
-                what = `attribute name` ).
-    " v, b and t are mutually exclusive, and one of them is required - the
-    " check and the resolution sit in attr_value, see there
-    DATA(val) = attr_value( n       = n
-                            v       = v
-                            b       = b
-                            t       = t
-                            check_v = xsdbool( v IS SUPPLIED )
-                            check_b = xsdbool( b IS SUPPLIED )
-                            check_t = xsdbool( t IS SUPPLIED ) ).
 
-    " the attribute goes on the element opened last - the root itself as
-    " long as it has no child
-    DATA(target) = me.
-    IF t_child IS NOT INITIAL.
-      target = t_child[ lines( t_child ) ].
+    IF t_child IS INITIAL.
+      ASSERT NOT line_exists( t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      APPEND VALUE #( n = n
+                      v = val ) TO t_pair.
+    ELSE.
+      DATA(target) = t_child[ lines( t_child ) ].
+      ASSERT NOT line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
+      APPEND VALUE #( n = n
+                      v = val ) TO target->t_pair.
     ENDIF.
-    IF line_exists( target->t_pair[ n = n ] ). "#EC CI_SORTSEQ
-      raise( |duplicate attribute '{ n }' on element '{ target->name }'| ).
-    ENDIF.
-    APPEND VALUE #( n = n
-                    v = val ) TO target->t_pair.
     result = me.
 
   ENDMETHOD.
@@ -279,121 +213,127 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
     " fail fast: an end( ) past the mvc:View root would hand back a null
     " reference that only crashes at the next chained call, far from the bug
-    IF parent IS NOT BOUND.
-      raise( |end( ) past the root - one end( ) more than there are ele( )| ).
-    ENDIF.
+    ASSERT parent IS BOUND.
     result = parent.
 
   ENDMETHOD.
 
 
-  METHOD raise.
+  METHOD render.
 
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-      EXPORTING
-        val = |VIEW_BUILDER_ERROR - { val }|.
-
-  ENDMETHOD.
-
-
-  METHOD name_check.
-
-    DATA lv_first TYPE c LENGTH 1.
-
-    IF gv_name_chars IS INITIAL.
-      gv_name_chars = `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-:`.
-    ENDIF.
-    " an XML name does not start with a digit, `.` or `-`, and a namespace-aware
-    " parser refuses an empty prefix (`:x`), an empty local name (`xmlns:`,
-    " the typo in a namespace declaration) and a second colon (`a::b`) - only
-    " the first character was checked, so those rendered and died in the
-    " browser's XML parser, far from the line that wrote them
-    lv_first = val.
-    IF val IS INITIAL OR val CN gv_name_chars OR lv_first CA `0123456789.-:`
-        OR val CP `*:` OR count( val = val
-                                 sub = `:` ) > 1.
-      raise( |{ what } '{ val }' is not a valid XML name| ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD render_into.
-
-    DATA child TYPE REF TO z2ui5_cl_ui5_view_builder.
+    " collect the children in a table and concatenate once - the string
+    " template accumulator would re-copy everything rendered so far on every
+    " sibling, which grows quadratic on wide views
+    DATA lt_inner TYPE string_table.
+    LOOP AT t_child INTO DATA(child).
+      INSERT child->render( ) INTO TABLE lt_inner.
+    ENDLOOP.
+    DATA(inner) = concat_lines_of( lt_inner ).
 
     " empty builder root - render only the children
     IF name IS INITIAL.
-      LOOP AT t_child INTO child.
-        child->render_into( CHANGING ct_out = ct_out ).
-      ENDLOOP.
+      result = inner.
       RETURN.
     ENDIF.
 
     DATA(qname) = COND string( WHEN prefix IS INITIAL THEN name ELSE |{ prefix }:{ name }| ).
-    " table-then-concat for the attributes: a string template accumulator
-    " re-copied every attribute rendered so far on each further one,
-    " quadratic on attribute-heavy elements. REFERENCE INTO - the loop used
-    " to copy a two-string structure per attribute
+    " same table-then-concat form as the children above, same reason: the
+    " template accumulator re-copied every attribute rendered so far on
+    " each further one, quadratic on attribute-heavy elements
     DATA lt_attr TYPE string_table.
-    LOOP AT t_pair REFERENCE INTO DATA(lr_pair).
-      INSERT | { lr_pair->n }="{ z2ui5_cl_ui5_util_context=>c_escape_xml( lr_pair->v ) }"| INTO TABLE lt_attr.
+    LOOP AT t_pair INTO DATA(pair).
+      INSERT | { pair-n }="{ xml_escape( pair-v ) }"| INTO TABLE lt_attr.
     ENDLOOP.
     DATA(attrs) = concat_lines_of( lt_attr ).
 
     IF t_child IS INITIAL.
-      APPEND |<{ qname }{ attrs }/>| TO ct_out.
-      RETURN.
+      result = |<{ qname }{ attrs }/>|.
+    ELSE.
+      result = |<{ qname }{ attrs }>{ inner }</{ qname }>|.
     ENDIF.
-
-    APPEND |<{ qname }{ attrs }>| TO ct_out.
-    LOOP AT t_child INTO child.
-      child->render_into( CHANGING ct_out = ct_out ).
-    ENDLOOP.
-    APPEND |</{ qname }>| TO ct_out.
 
   ENDMETHOD.
 
-  METHOD attr_value.
 
-    " v, b and t are mutually exclusive - each is judged by whether it was
-    " SUPPLIED, because an empty value and "not passed" look the same
-    " (abap_false is the same character as an initial abap_bool, an empty
-    " string the same as an initial one).
-    " "never neither" is judged the same way rather than by IS NOT INITIAL
-    " so that a deliberately empty value ( a( n = `text` v = `` ) ) stays
-    " legal: what this refuses is a( n = `visible` ) with no value at all,
-    " which used to render visible="" - a working view that behaves wrongly,
-    " and the one invariant of the three in the ABAP Doc above that nothing
-    " checked
-    IF check_v = abap_false AND check_b = abap_false AND check_t = abap_false.
-      raise( |a( n = '{ n }' ) without a value - pass v, b or t| ).
+  METHOD xml_escape.
+
+    " one CA scan up front: replace( occ = 0 ) copies the whole string on
+    " every call even when nothing matches, and a value without any special
+    " character is the COMMON case - that made every attribute value pay for
+    " seven full copies. A value that does carry one still runs all seven
+    " replaces below, unchanged
+    IF gv_escape_specials IS INITIAL.
+      " the XML-illegal control characters as one string, so the CA scan
+      " stays a single statement; built from their UTF-8 bytes through the
+      " context class (the one door to the codepage API)
+      gv_escape_controls = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring(
+          CONV xstring( `0102030405060708` && `0B0C` && `0E0F101112131415161718191A1B1C1D1E1F` ) ).
+      gv_escape_specials = `&<>"`
+          && z2ui5_cl_ui5_util_context=>cv_char_util_newline
+          && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+          && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+          && gv_escape_controls.
     ENDIF.
-    " ...with one tolerance kept from the days of v and b alone: an EMPTY v
-    " next to b or t is ignored rather than refused, so a call that passed
-    " `v = `` b = flag` before this parameter existed still renders
-    DATA(lv_supplied) = 0.
-    IF check_v = abap_true AND v IS NOT INITIAL.
-      lv_supplied = lv_supplied + 1.
-    ENDIF.
-    IF check_b = abap_true.
-      lv_supplied = lv_supplied + 1.
-    ENDIF.
-    IF check_t = abap_true.
-      lv_supplied = lv_supplied + 1.
-    ENDIF.
-    IF lv_supplied > 1.
-      raise( |a( n = '{ n }' ) with more than one of v, b and t - pass exactly one| ).
+    IF val NA gv_escape_specials.
+      result = val.
+      RETURN.
     ENDIF.
 
-    IF check_b = abap_true.
-      result = COND #( WHEN b = abap_true THEN `true` ELSE `false` ).
-    ELSEIF check_t = abap_true.
-      " t is text: the literal escaping the app used to have to remember is
-      " applied here; the XML escaping follows on render like for every value
-      result = escape_literal( t ).
-    ELSE.
-      result = v.
+    result = val.
+    result = replace( val  = result
+                      sub  = `&`
+                      with = `&amp;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `<`
+                      with = `&lt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `>`
+                      with = `&gt;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `&quot;`
+                      occ  = 0 ).
+    " whitespace as character references - a literal LF/CR/TAB in an attribute
+    " value is turned into a plain space by XML attribute-value normalization,
+    " so line breaks (e.g. a two-line noDataText) would silently disappear.
+    " char constants come from the context class - the one place allowed to
+    " reference cl_abap_char_utilities (see "Utilities" in AGENTS.md)
+    result = replace( val  = result
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_newline
+                      with = `&#xA;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf(1)
+                      with = `&#xD;`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
+                      with = `&#x9;`
+                      occ  = 0 ).
+
+    " what is left of the control range is illegal in XML 1.0 outright -
+    " U+0000-U+0008, U+000B, U+000C, U+000E-U+001F cannot even be written
+    " as character references, and UI5's XMLView parser rejects the whole
+    " document over one such byte (a form feed or record separator out of a
+    " legacy long text blanks the view). They carry no meaning in an
+    " attribute value, so they are dropped. Only reached for a value that
+    " passed the CA scan above - see gv_escape_specials
+    IF result CA gv_escape_controls.
+      " one replace per character, no regex: [[:cntrl:]] is not a class every
+      " runtime this code runs on knows (the transpiled one left every byte
+      " in place), and this branch is the rare one
+      DATA(lv_off) = 0.
+      DATA(lv_len) = strlen( gv_escape_controls ).
+      WHILE lv_off < lv_len.
+        result = replace( val  = result
+                          sub  = gv_escape_controls+lv_off(1)
+                          with = ``
+                          occ  = 0 ).
+        lv_off = lv_off + 1.
+      ENDWHILE.
     ENDIF.
 
   ENDMETHOD.
@@ -401,18 +341,37 @@ CLASS z2ui5_cl_ui5_view_builder IMPLEMENTATION.
 
   METHOD stringify.
 
-    DATA lt_out TYPE string_table.
-    root->render_into( CHANGING ct_out = lt_out ).
-    result = concat_lines_of( lt_out ).
+    result = root->render( ).
 
   ENDMETHOD.
 
 
   METHOD escape_literal.
 
-    " the UI5 binding-parser escape lives in the context class; this public
-    " method stays the builder's documented entry point
-    result = z2ui5_cl_ui5_util_context=>ui5_escape_binding_literal( val ).
+    result = val.
+
+    " a value without a brace is never parsed as a binding, and UI5 leaves
+    " its backslashes alone too (the binding parser only unescapes strings
+    " it processes) - so it must leave here untouched: escaping the
+    " backslash in e.g. a Windows path would MAKE the value wrong
+    IF result NA `{}`.
+      RETURN.
+    ENDIF.
+
+    " a braced value IS processed by the binding parser, which then also
+    " unescapes - so the backslash has to be escaped first, then the braces
+    result = replace( val  = result
+                      sub  = `\`
+                      with = `\\`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `\{`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `\}`
+                      occ  = 0 ).
 
   ENDMETHOD.
 

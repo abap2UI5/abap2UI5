@@ -35,20 +35,6 @@ CLASS z2ui5_cl_ui5_client DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
-    " The val (or tab) of a _bind*( ) call as the data reference the bind
-    " service works on: the data itself, or a data reference TO it - REF #( ),
-    " an attribute TYPE REF TO data. A reference is bound as what it points
-    " to, because REF #( val ) of it would hand the model the reference
-    " variable, which it refuses (NO DATA REFERENCES FOR BINDING ALLOWED).
-    " One place for the four callers, so the whole family takes both forms
-    " alike. Unwraps ONE level: a reference to a reference is what the
-    " model refuses next, as before
-    METHODS val_as_data_ref
-      IMPORTING
-        val           TYPE data
-      RETURNING
-        VALUE(result) TYPE REF TO data.
-
 ENDCLASS.
 
 
@@ -67,42 +53,20 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-    " The five navigation branches of the CASE below configure how the
-    " browser URL has to look after this roundtrip. Router derives ONE
-    " outcome from all of them together, so they are collected here and
-    " leave as the options of the one NAV section main_end( ) writes -
-    " never as actions of their own, which would make the router run
-    " several times and fight over the same hash.
-    "
-    " the WIRED form first: `v = client->follow_up_action( ... )` in a view
-    " attribute asks for an event wire and nothing else. The navigation
-    " options below are roundtrip actions; wired, they used to set their
-    " ms_next fields as a side effect of BUILDING the view and hand the
-    " attribute an empty string. (No unit test pins this branch: the NodeJS
-    " runtime answers IS SUPPLIED with false for a RETURNING parameter, so a
-    " consumed result is not detectable there - on a system it is.)
-    IF result IS SUPPLIED.
-      result = mo_srv_event->get_event_client( val   = val
-                                               view  = view
-                                               t_arg = t_arg ).
-      RETURN.
-    ENDIF.
-
+    " These three configure how the browser URL has to look after this
+    " roundtrip. Router derives ONE outcome from all of them together, so they
+    " are collected here and leave as options of the single ROUTER/sync call
+    " main_end( ) queues - never as actions of their own, which would make the
+    " router run several times and fight over the same hash.
     DATA(lv_arg) = VALUE string( t_arg[ 1 ] OPTIONAL ).
 
     CASE val.
-      WHEN z2ui5_if_client=>cs_event-hash_routing.
+      WHEN z2ui5_if_client=>cs_event-set_nav_routing.
         " the mode is remembered on the app ( z2ui5_cl_ui5_app_cont->mv_nav_mode )
         " and re-sent when the frontend may not still hold it - main_end gates
         " the re-send on the nav_mode_sent latch; an app called via
         " nav_app_call inherits it, and a draft restored later still knows how
         " it was routed
-        " upper-cased at the one write point: the frontend upper-cases the
-        " mode before it compares, the backend compares it as written
-        " against cs_nav_mode (check_nav_app_call, the sticky main_end_save
-        " branch) - `keep` used to switch routing on in the browser and
-        " leave it off on the server
-        lv_arg = to_upper( lv_arg ).
         IF lv_arg IS INITIAL.
           lv_arg = z2ui5_if_client=>cs_nav_mode-keep.
         ENDIF.
@@ -111,8 +75,8 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         RETURN.
 
       WHEN z2ui5_if_client=>cs_event-hash_set.
-        " the wire value is SET_PUSH_STATE, the name this event was renamed
-        " from - see the note on cs_event
+        " same value as the obsolete cs_event-set_push_state - one branch
+        " serves both spellings
         mo_action->ms_next-s_nav-set_push_state = lv_arg.
         RETURN.
 
@@ -133,7 +97,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                                              ELSE lv_arg ).
         RETURN.
 
-      WHEN z2ui5_if_client=>cs_event-app_state_set_active.
+      WHEN z2ui5_if_client=>cs_event-set_app_state_active.
         " an empty argument list switches it ON - a single space is how an
         " app switches it off again, since an empty t_arg cannot say `false`
         mo_action->ms_next-s_nav-set_app_state_active = xsdbool( lv_arg <> ` ` ).
@@ -143,12 +107,27 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    " a frontend event travels as pure data - a JSON array built and escaped
-    " entirely in ABAP. There is no code form: a raw JavaScript val is not
-    " run, it arrives as an event name the frontend does not know
-    mo_frontend->queue_app_event( val   = val
-                                  view  = view
-                                  t_arg = t_arg ).
+
+    IF result IS SUPPLIED.
+
+      result = mo_srv_event->get_event_client( val   = val
+                                               view  = view
+                                               t_arg = t_arg ).
+      RETURN.
+    ENDIF.
+
+
+    IF val IS NOT INITIAL
+        AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
+      " a framework event travels as pure data - a JSON array built and
+      " escaped entirely in ABAP; only a raw JS expression passed by the app
+      " keeps the code form (the legacy formats, a STRING entry of the list)
+      mo_frontend->queue_app_event( val   = val
+                                    view  = view
+                                    t_arg = t_arg ).
+    ELSE.
+      mo_frontend->queue_app_js( val ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -194,15 +173,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
     TRY.
 
-        " the request carries the data on the page load's first roundtrip;
-        " every later one keeps it in the session as a string, parsed here
-        " on demand - not in session_merge for a reader that may never come
-        " (z2ui5_if_ui5_types=>ty_s_request-s_front-o_comp_data)
         DATA(lo_comp) = mo_action->mo_handler->ms_request-s_front-o_comp_data.
-        IF lo_comp IS NOT BOUND
-            AND mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
-          lo_comp = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
-        ENDIF.
         IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
@@ -246,22 +217,21 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_event_arg.
 
-    result = VALUE #( mo_action->ms_actual-t_event_arg[ v ] OPTIONAL ).
+    TRY.
+        result = mo_action->ms_actual-t_event_arg[ v ].
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~get_app.
 
-    " get( )-s_draft-id is the id minted for THIS roundtrip - its draft is
-    " written only when the roundtrip ends, so loading it raised
-    " NO_DRAFT_ENTRY... for an id the interface lists. It names the running
-    " app, which is what it answers now
-    IF id IS INITIAL OR id = mo_action->mo_app->ms_draft-id.
-      result = get_if_app( ).
-    ELSE.
+    IF id IS NOT INITIAL.
       DATA(lo_app) = z2ui5_cl_ui5_app_cont=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
+    ELSE.
+      result = get_if_app( ).
     ENDIF.
 
   ENDMETHOD.
@@ -269,24 +239,40 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    mo_frontend->msg_box( text             = text
-                          type             = type
-                          title            = title
-                          styleclass       = styleclass
-                          onclose          = onclose
-                          actions          = actions
-                          emphasizedaction = emphasizedaction
-                          initialfocus     = initialfocus
-                          details          = details ).
+    mo_frontend->msg_box( text              = text
+                          type              = type
+                          title             = title
+                          styleclass        = styleclass
+                          onclose           = onclose
+                          actions           = actions
+                          emphasizedaction  = emphasizedaction
+                          initialfocus      = initialfocus
+                          textdirection     = textdirection
+                          icon              = icon
+                          details           = details
+                          closeonnavigation = closeonnavigation
+                          dependenton       = dependenton
+                          contentwidth      = contentwidth ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_frontend->msg_toast( text     = text
-                            duration = duration
-                            onclose  = onclose ).
+    mo_frontend->msg_toast( text                     = text
+                            duration                 = duration
+                            width                    = width
+                            my                       = my
+                            at                       = at
+                            of                       = of
+                            offset                   = offset
+                            collision                = collision
+                            onclose                  = onclose
+                            autoclose                = autoclose
+                            animationtimingfunction  = animationtimingfunction
+                            animationduration        = animationduration
+                            closeonbrowsernavigation = closeonbrowsernavigation
+                            class                    = class ).
 
   ENDMETHOD.
 
@@ -318,21 +304,7 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_app_leave.
 
     IF app IS NOT SUPPLIED.
-      TRY.
-          app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
-        CATCH cx_root.
-          " the caller's hop-time draft was purged by cleanup( ) while THIS
-          " app stayed in use (every click refreshes this app's row, never
-          " the one saved at the hop, and any cold start sweeps the old
-          " rows): the leave used to raise NO_DRAFT_ENTRY out of the whole
-          " roundtrip - the fatal overlay for pressing Back. There is
-          " nothing to go back to any more, so the stack is dropped, the
-          " user is told, and the roundtrip ends on this app the way a root
-          " leave does (main_process ends a leave with nothing on the stack)
-          CLEAR mo_action->mo_app->ms_draft-id_prev_app_stack.
-          z2ui5_if_client~message_toast_display( `Previous app state expired - there is nothing to go back to` ).
-          app = get_if_app( ).
-      ENDTRY.
+      app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
@@ -367,6 +339,15 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~nest2_view_model_update.
+
+    " deliberately EMPTY - see view_model_update. A nested view owns no model
+    " anyway: it inherits the MAIN view's by UI5 model propagation, so the
+    " automatic push of the root model already covers it
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~nest_view_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-nested ).
@@ -381,6 +362,13 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
                                id             = id
                                method_insert  = method_insert
                                method_destroy = method_destroy ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~nest_view_model_update.
+
+    " deliberately EMPTY - see nest2_view_model_update
 
   ENDMETHOD.
 
@@ -401,6 +389,14 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~popover_model_update.
+
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popover refreshes without this call
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~popup_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-popup ).
@@ -416,6 +412,14 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~popup_model_update.
+
+    " deliberately EMPTY - see view_model_update. The automatic push reaches
+    " every open slot, so an open popup refreshes without this call
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~view_destroy.
 
     mo_frontend->slot_destroy( z2ui5_if_client=>cs_view-main ).
@@ -425,33 +429,21 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
-    " The way back is recognized, not asked for: a roundtrip that returned to
-    " its caller through nav_app_leave( ) carries check_nav_back (see
-    " z2ui5_cl_ui5_action=>factory_stack_leave), and travels as navBack. It
-    " is kept apart from transition_back, the app's OWN way back between its
-    " screens: the frontend plays navBack only when the page on screen
-    " belongs to another app instance, transition_back always. The browser
-    " Back button is the frontend's to recognize (core/Router.js).
-    DATA(lv_nav_back) = mo_action->ms_actual-check_nav_back.
-
-    " The app INSTANCE the view belongs to - what that comparison reads. An
-    " app that never took the MAIN slot, a popup-as-app (the shape of every
-    " built-in popup), leaves its caller's page on screen, and the return
-    " from it must not animate that page away from itself. Minted only where
-    " a transition is in play, so a plain display sends what it always did.
-    DATA(lv_instance) = ``.
-    IF transition IS NOT INITIAL OR transition_back = abap_true OR lv_nav_back = abap_true.
-      lv_instance = nav_app_set_id( get_if_app( ) ).
-    ENDIF.
-
     mo_frontend->slot_display( slot                          = z2ui5_if_client=>cs_view-main
                                xml                           = val
                                switch_default_model_path     = switch_default_model_path
-                               switch_default_model_anno_uri = switch_default_model_anno_uri
-                               transition                    = transition
-                               transition_back               = transition_back
-                               nav_back                      = lv_nav_back
-                               app_instance                  = lv_instance ).
+                               switch_default_model_anno_uri = switch_default_model_anno_uri ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~view_model_update.
+
+    " deliberately EMPTY - the handler queues the model push itself: on
+    " every view roundtrip, and otherwise whenever main( ) changed the model
+    " (z2ui5_cl_ui5_handler=>main_end). The push names no slot; every open
+    " model-owning slot picks it up. The method stays in the interface so
+    " existing apps keep compiling and their calls keep being harmless
 
   ENDMETHOD.
 
@@ -464,40 +456,42 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " already evaluates (z2ui5_cl_ui5_srv_model->main_json_stringify), so an
     " initial field stays ABSENT from the model and the control keeps its own
     " default. A caller-supplied filter is kept: both have to pass.
-    " no TRY around the construction: the three local classes have no
-    " constructor that can raise, so the CATCH that used to sit here (falling
-    " back to the caller's filter) guarded nothing
     IF omit_initial = abap_true OR omit_initial_paths IS NOT INITIAL.
-      DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
-      IF omit_initial_paths IS NOT INITIAL.
-        " scoped: only the listed columns are dropped when initial, so a
-        " boolean that must send abap_false survives
-        li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
-      ELSE.
-        " NOT the vendored create_empty_filter: that one also drops a
-        " table ROW whose fields are all initial, which reindexes the
-        " client array against the backend table and corrupts the
-        " write-back (whole-table and __delta) - see the local class
-        li_omit = NEW lcl_empty_filter_keep_rows( ).
-      ENDIF.
-      IF li_filter IS BOUND.
-        " NOT the vendored create_and_filter: its class is not
-        " serializable and the combined ref ends up in the draft -
-        " see the local class
-        li_filter = NEW lcl_and_filter( ii_first  = li_filter
-                                        ii_second = li_omit ).
-      ELSE.
-        li_filter = li_omit.
-      ENDIF.
+      TRY.
+          DATA li_omit TYPE REF TO z2ui5_if_ajson_filter.
+          IF omit_initial_paths IS NOT INITIAL.
+            " scoped: only the listed columns are dropped when initial, so a
+            " boolean that must send abap_false survives
+            li_omit = NEW lcl_initial_paths_filter( omit_initial_paths ).
+          ELSE.
+            " NOT the vendored create_empty_filter: that one also drops a
+            " table ROW whose fields are all initial, which reindexes the
+            " client array against the backend table and corrupts the
+            " write-back (whole-table and __delta) - see the local class
+            li_omit = NEW lcl_empty_filter_keep_rows( ).
+          ENDIF.
+          IF li_filter IS BOUND.
+            " NOT the vendored create_and_filter: its class is not
+            " serializable and the combined ref ends up in the draft -
+            " see the local class
+            li_filter = NEW lcl_and_filter( ii_first  = li_filter
+                                            ii_second = li_omit ).
+          ELSE.
+            li_filter = li_omit.
+          ENDIF.
+        CATCH cx_root.
+          " a filter that cannot be built must not kill the roundtrip - the
+          " model is then serialized as before (initial fields included)
+          li_filter = custom_filter.
+      ENDTRY.
     ENDIF.
 
-    " val and tab take the data or a data reference to it, like window_bind_tab( )
-    result = mo_srv_bind->main( val    = val_as_data_ref( val )
+    result = mo_srv_bind->main( val    = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val )
                                 config = VALUE #(
                                     path_only            = path
                                     custom_filter        = li_filter
                                     custom_mapper        = custom_mapper
-                                    tab                  = val_as_data_ref( tab )
+                                    tab                  = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( tab )
                                     tab_index            = tab_index
                                     switch_default_model = switch_default_model
                                     check_json           = json ) ).
@@ -505,50 +499,31 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~window_bind_tab.
-
-    " the table itself, or a data reference to it - see val_as_data_ref
-    result = mo_srv_bind->main( val    = val_as_data_ref( val )
-                                config = VALUE #( window           = nmax( val1 = window
-                                                                       val2     = 1 )
-                                                  window_total     = nmax( val1 = total
-                                                                       val2     = 0 )
-                                                  " the attribute the total is - read
-                                                  " anew on every response
-                                                  window_total_ref = REF #( total )
-                                                  window_event     = event ) ).
-
-  ENDMETHOD.
-
-
-  METHOD val_as_data_ref.
-
-    IF z2ui5_cl_ui5_util_context=>rtti_get_type_kind( val ) <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
-      result = z2ui5_cl_ui5_util_context=>conv_get_as_data_ref( val ).
-      RETURN.
-    ENDIF.
-
-    result ?= val.
-    " fail here, with the method's name: describe_by_data_ref on an unbound
-    " reference dumps in the model service, far from the _bind( ) that
-    " passed it - an attribute TYPE REF TO data that no CREATE DATA has
-    " filled yet is the usual way to get here
-    IF result IS INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = `BINDING_ERROR - the data reference passed to _bind( ) is initial - create the data or point the reference at an attribute before binding it`.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~_bind_path.
 
-    " delegate instead of repeating the _bind( ) call: one behaviour, so the
-    " two spellings can never drift apart. Deliberately no further
-    " parameters - see the interface.
+    " delegate instead of repeating the _bind( ) call, same reason as
+    " _bind_edit right below: one behaviour, so the two spellings can never
+    " drift apart. Deliberately no further parameters - see the interface.
     result = z2ui5_if_client~_bind( val  = val
                                     path = abap_true ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~_bind_edit.
+
+    " compatibility alias of _bind - delegate instead of repeating the call so
+    " both can never drift apart. custom_mapper_back / custom_filter_back exist
+    " only on this signature and are deliberately no longer evaluated (_bind
+    " has no counterpart for them).
+    result = z2ui5_if_client~_bind( val                  = val
+                                    path                 = path
+                                    view                 = view
+                                    custom_mapper        = custom_mapper
+                                    custom_filter        = custom_filter
+                                    tab                  = tab
+                                    tab_index            = tab_index
+                                    switch_default_model = switch_default_model ).
 
   ENDMETHOD.
 
@@ -598,6 +573,14 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~set_push_state.
+
+    " obsolete spelling - delegates to keep exactly one write path
+    z2ui5_if_client~hash_set( val ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~app_state_set_active.
 
     " same field the cs_event-app_state_set_active branch of follow_up_action
@@ -607,6 +590,14 @@ CLASS z2ui5_cl_ui5_client IMPLEMENTATION.
     " and remember it on the app, so main_end can re-assert it on the next
     " response (see z2ui5_cl_ui5_app_cont->mv_app_state_active)
     mo_action->mo_app->mv_app_state_active = val.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~set_app_state_active.
+
+    " obsolete spelling - delegates to keep exactly one write path
+    z2ui5_if_client~app_state_set_active( val ).
 
   ENDMETHOD.
 

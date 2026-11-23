@@ -21,29 +21,6 @@ CLASS ltcl_test_app2 IMPLEMENTATION.
 ENDCLASS.
 
 
-" a serializer that cannot restore anything - the stand-in for a draft that
-" is there and is broken (a layout the app class no longer has, a type that
-" is gone). A seam rather than a garbled row: what garbled XML does is the
-" parser's business and differs between a kernel and the transpiled runtime
-CLASS ltcl_broken_serializer DEFINITION FINAL FOR TESTING.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_ui5_serializer.
-ENDCLASS.
-
-CLASS ltcl_broken_serializer IMPLEMENTATION.
-
-  METHOD z2ui5_if_ui5_serializer~stringify.
-    result = `<draft/>`.
-  ENDMETHOD.
-
-  METHOD z2ui5_if_ui5_serializer~parse.
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-      EXPORTING val = `TEST_RESTORE_ERROR - the draft could not be restored`.
-  ENDMETHOD.
-
-ENDCLASS.
-
-
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -51,22 +28,15 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_instantiation      FOR TESTING RAISING cx_static_check.
     METHODS test_system_startup     FOR TESTING RAISING cx_static_check.
     METHODS test_first_start        FOR TESTING RAISING cx_static_check.
-    METHODS test_first_start_no_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
-    METHODS test_first_start_not_an_app FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
-    METHODS test_first_start_draft_broken FOR TESTING RAISING cx_static_check.
-    METHODS test_app_start_safe      FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
-    METHODS test_stack_call_popup_open FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_cross_class FOR TESTING RAISING cx_static_check.
     METHODS test_stack_leave_fresh_target FOR TESTING RAISING cx_static_check.
-    METHODS test_stack_leave_own_stack FOR TESTING RAISING cx_static_check.
-    METHODS test_first_start_stateless FOR TESTING RAISING cx_static_check.
-    METHODS test_first_start_route_state FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave_ancestor_gone FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_inherited FOR TESTING RAISING cx_static_check.
     METHODS test_nav_mode_own_wins  FOR TESTING RAISING cx_static_check.
     METHODS test_hop_clears_routing_req FOR TESTING RAISING cx_static_check.
@@ -136,20 +106,6 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_app_start_safe.
-
-    " class-name-safe characters survive, everything else - markup, quotes,
-    " blanks - is stripped, so the value can be quoted in an error body
-    cl_abap_unit_assert=>assert_equals(
-      exp = `Z2UI5_CL_UI5_APP_HI_WORLD`
-      act = z2ui5_cl_ui5_action=>app_start_safe( `Z2UI5_CL_UI5_APP_HI_WORLD` ) ).
-    cl_abap_unit_assert=>assert_equals(
-      exp = `/ns/zcl_appscriptalert1/script`
-      act = z2ui5_cl_ui5_action=>app_start_safe( `/ns/zcl_app<script>alert(1)</script>` ) ).
-    cl_abap_unit_assert=>assert_initial( z2ui5_cl_ui5_action=>app_start_safe( `` ) ).
-
-  ENDMETHOD.
-
   METHOD test_first_start_draft_gone.
 
     DATA lv_payload TYPE string.
@@ -180,73 +136,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_first_start_draft_broken.
-
-    DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-
-    " a draft that exists and is the user's, but cannot be restored, is not
-    " an expired bookmark: the error goes out with its chain instead of a
-    " toast and a fresh app that hide what broke
-    DATA(lv_id) = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft     = VALUE #( id = lv_id )
-                                                     model_xml = `<draft/>` ).
-
-    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_APP_HI_WORLD"}}}`.
-    lo_http = NEW #( val = lv_payload ).
-    lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
-    lo_http->ms_request-s_control-app_start_draft = lv_id.
-    lo_action = NEW #( val = lo_http ).
-
-    z2ui5_cl_ui5_app_cont=>set_serializer( NEW ltcl_broken_serializer( ) ).
-    TRY.
-        lo_action->factory_first_start( ).
-        z2ui5_cl_ui5_app_cont=>set_serializer( VALUE #( ) ).
-        cl_abap_unit_assert=>fail( `a broken draft was swallowed as an expired one` ).
-      CATCH cx_root INTO DATA(lx).
-        z2ui5_cl_ui5_app_cont=>set_serializer( VALUE #( ) ).
-        cl_abap_unit_assert=>assert_char_cp( exp = `*TEST_RESTORE_ERROR*`
-                                             act = lx->get_text( ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD test_first_start_no_app_start.
-
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
-
-    " an app-state bookmark whose URL carries no ?app_start= (the session
-    " reached its app by navigation) and whose draft is gone: the start
-    " page, with the toast - not an APP_START_ERROR for an empty name
-    lo_http = NEW #( val = `` ).
-    lo_http->ms_request-s_control-app_start_draft = `THIS_DRAFT_DOES_NOT_EXIST`.
-    lo_http->ms_request-s_control-check_app_state = abap_true.
-    lo_action = NEW #( val = lo_http ).
-
-    lo_result = lo_action->factory_first_start( ).
-
-    DATA lo_start TYPE REF TO z2ui5_cl_ui5_app_start.
-    TRY.
-        lo_start ?= lo_result->mo_app->mo_app.
-      CATCH cx_sy_move_cast_error.
-        cl_abap_unit_assert=>fail( `not the start page` ).
-    ENDTRY.
-    cl_abap_unit_assert=>assert_bound( lo_start ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = 1
-        act = lines( lo_result->ms_next-s_action-t_custom ) ).
-
-  ENDMETHOD.
-
   METHOD test_first_start_error.
 
     DATA lv_payload TYPE string.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
+    DATA temp1 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
 
     lo_http = NEW #( val = lv_payload ).
@@ -261,33 +157,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
       CATCH z2ui5_cx_ui5_util_error INTO lx.
 
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD test_first_start_not_an_app.
-
-    " a class that exists but does not implement z2ui5_if_app is refused
-    " from its descriptor, before CREATE OBJECT - and the message says so
-    " rather than claiming the class does not exist
-    DATA lv_payload TYPE string.
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
-    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_UI5_UTIL_CONTEXT"}}}`.
-
-    lo_http = NEW #( val = lv_payload ).
-    lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
-    lo_action = NEW #( val = lo_http ).
-
-    TRY.
-        lo_action->factory_first_start( ).
-        cl_abap_unit_assert=>fail( `Expected exception for a class that is not an app` ).
-
-      CATCH z2ui5_cx_ui5_util_error INTO lx.
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `Z2UI5_CL_UI5_UTIL_CONTEXT` ) ).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `does not implement z2ui5_if_app` ) ).
+        temp1 = xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
+        cl_abap_unit_assert=>assert_true( temp1 ).
     ENDTRY.
 
   ENDMETHOD.
@@ -327,6 +198,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_stack_call.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_new_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_chained TYPE REF TO z2ui5_cl_ui5_action.
 
@@ -338,14 +210,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
 
     " routing active for the caller - the called app inherits the mode, and
-    " only then does the NAV intent travel at all
+    " only then does the ROUTER intent travel at all
     lo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
 
-    lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
+    lo_new_app = NEW #( ).
+    lo_action->ms_next-o_app_call = lo_new_app.
 
     " frontend actions queued by the calling app - messages travel as
     " follow-up actions too and must not leak into the newly called app...
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -355,9 +229,10 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
     " everything the calling app queued is gone. The popup/popover teardown
-    " is queued for EVERY hop - the backend is the side that knows one
-    " happened - and BEFORE the app runs, so a popup_display( ) of its own
-    " lands after it and wins
+    " is queued ONLY for this hop to ANOTHER INSTANCE OF THE SAME CLASS -
+    " the frontend cannot see that switch, every cross-class switch tears
+    " the standalone slots down implicitly (View1). Queued BEFORE the app
+    " runs, so a popup_display( ) of its own lands after it and wins
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_action-t_custom ).
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lo_result->ms_next-t_action_front ) ).
@@ -570,52 +445,6 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_stack_call_popup_open.
-
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
-
-    lo_http = NEW #( val = `` ).
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
-    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
-
-    " the leaving app opened a popup in this roundtrip and closed its
-    " popover, then calls another instance of its OWN class: the display
-    " describes the screen being replaced and is dropped, the carried
-    " popover destroy and the hop's own teardown are merged - the frontend
-    " receives at most one entry per slot (z2ui5_cl_ui5_frontend=>slot_reset)
-    lo_action->ms_next-t_action_front = VALUE #(
-        ( slot   = z2ui5_if_client=>cs_view-popup
-          method = z2ui5_if_ui5_types=>cs_slot_action-display
-          xml    = `<Dialog/>` )
-        ( slot = z2ui5_if_client=>cs_view-popover method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
-        ( slot = z2ui5_if_client=>cs_view-main    method = z2ui5_if_ui5_types=>cs_slot_action-destroy ) ).
-    lo_action->ms_next-o_app_call = NEW ltcl_test_app( ).
-
-    lo_result = lo_action->factory_stack_call( ).
-
-    DATA(lv_actions) = ``.
-    LOOP AT lo_result->ms_next-t_action_front INTO DATA(ls_front).
-      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
-    ENDLOOP.
-    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPUP|destroy;POPOVER|destroy;`
-                                        act = lv_actions ).
-
-    " the called app opens a popup of its own - it replaces the queued
-    " teardown instead of standing next to it
-    NEW z2ui5_cl_ui5_frontend( lo_result )->slot_display( slot = z2ui5_if_client=>cs_view-popup
-                                                          xml  = `<Dialog id="next"/>` ).
-    lv_actions = ``.
-    LOOP AT lo_result->ms_next-t_action_front INTO ls_front.
-      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
-    ENDLOOP.
-    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPOVER|destroy;POPUP|display;`
-                                        act = lv_actions ).
-
-  ENDMETHOD.
-
   METHOD test_stack_call_cross_class.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
@@ -629,9 +458,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " the leaving app tears its own view down and navigates to a DIFFERENT
     " class - the destroy must survive the hop (the called app may render
-    " no MAIN view of its own), the display must not, and the popup/popover
-    " teardown is queued as for every hop (the class does not matter - the
-    " frontend no longer infers a teardown from it)
+    " no MAIN view of its own), the display must not, and no popup/popover
+    " teardown is queued (the frontend sees the class switch and tears the
+    " standalone slots down implicitly)
     lo_action->ms_next-t_action_front = VALUE #(
         ( slot = z2ui5_if_client=>cs_view-main method = z2ui5_if_ui5_types=>cs_slot_action-destroy )
         ( slot   = z2ui5_if_client=>cs_view-nested
@@ -641,14 +470,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_result = lo_action->factory_stack_call( ).
 
-    DATA(lv_actions) = ``.
-    LOOP AT lo_result->ms_next-t_action_front INTO DATA(ls_front).
-      lv_actions = |{ lv_actions }{ ls_front-slot }\|{ ls_front-method };|.
-    ENDLOOP.
-    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy;POPUP|destroy;POPOVER|destroy;`
-                                        act = lv_actions ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_result->ms_next-t_action_front ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy`
+                                        act = |{ lo_result->ms_next-t_action_front[ 1 ]-slot }\|| &&
+                                              |{ lo_result->ms_next-t_action_front[ 1 ]-method }| ).
 
-    " no routing mode anywhere - a plain nav carries no NAV intent
+    " no routing mode anywhere - a plain nav carries no ROUTER intent
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_result->ms_next-s_nav-check_nav_app_call ).
 
@@ -657,6 +485,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_stack_leave.
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_prev_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
 
     lo_http = NEW #( val = `` ).
@@ -666,12 +495,14 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
 
-    lo_action->ms_next-o_app_leave = NEW ltcl_test_app( ).
+    lo_prev_app = NEW #( ).
+    lo_action->ms_next-o_app_leave = lo_prev_app.
 
     " frontend actions queued by the leaving app - messages travel as
     " follow-up actions too and must not leak into the app that is
     " navigated back to...
-    INSERT VALUE #( o_json = z2ui5_cl_ajson=>parse( `["SOME_ACTION"]` ) ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_js` ) INTO TABLE lo_action->ms_next-s_action-t_custom.
+    INSERT VALUE #( js = `some_system_js` ) INTO TABLE lo_action->ms_next-s_action-t_system.
 
 
     lo_result = lo_action->factory_stack_leave( ).
@@ -703,16 +534,17 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
-    " back-navigation to a DIFFERENT class - the teardown of the standalone
-    " slots travels as for every hop. The back-navigation event queues none
-    " of its own (z2ui5_cl_ui5_handler=>main_process): every app switch ends
-    " up in prepare_app_stack, the one place that queues it
+    " back-navigation to a DIFFERENT class - the response names another app,
+    " so the frontend tears the standalone slots down by itself (View1) and
+    " nothing about them travels. The back-navigation event does not queue a
+    " teardown of its own either (z2ui5_cl_ui5_handler=>main_process): every
+    " app switch ends up here, and this is the only place that knows whether
+    " the frontend can see it
     lo_action->ms_next-o_app_leave = NEW ltcl_test_app2( ).
 
     lo_result = lo_action->factory_stack_leave( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_result->ms_next-t_action_front ) ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-t_action_front ).
 
   ENDMETHOD.
 
@@ -744,147 +576,56 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_stack_leave_own_stack.
+  METHOD test_stack_leave_ancestor_gone.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
     DATA lo_target TYPE REF TO ltcl_test_app.
     DATA lo_target_core TYPE REF TO z2ui5_cl_ui5_app_cont.
     DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
     DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
+    DATA lo_pop TYPE REF TO z2ui5_cl_ui5_action.
 
-    " a persisted leave target comes back with the stack position ITS draft
-    " carries - never with the current app's ancestor written over it. That
-    " pop was the same value for a leave to the direct caller and the wrong
-    " one for a leave two levels up (the list got a back button that led
-    " to its own older draft), and it raised for a purged ancestor row
+    " persist the leave target, so the fresh-target takeover is NOT taken
+    " and the stack-pop path runs
     lo_target = NEW #( ).
     lo_target_core = NEW #( ).
     lo_target_core->mo_app = lo_target.
     lo_target_core->ms_draft-id = `LEAVE_TARGET_DRAFT`.
-    lo_target_core->ms_draft-id_prev_app_stack = `TARGET_OWN_ANCESTOR`.
     lo_target_core->db_save( ).
 
-    " a leave two levels up: the current app's ancestor is NOT the target
     lo_http = NEW #( val = `` ).
     lo_action = NEW #( val = lo_http ).
     lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
     lo_action->mo_app->ms_draft-id = `LEAVE_GONE_CURRENT`.
-    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_MIDDLE_APP_DRAFT`.
-    lo_action->ms_next-o_app_leave = lo_target.
-
-    lo_result = lo_action->factory_stack_leave( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `TARGET_OWN_ANCESTOR`
-                                        act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
-
-    " ...and the ancestor row purged by cleanup( ) changes nothing: no read
-    " of it is needed any more, so nothing can raise
-    lo_action = NEW #( val = lo_http ).
-    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
-    lo_action->mo_app->ms_draft-id                = `LEAVE_GONE_CURRENT2`.
+    " the ancestor stack draft was purged (cleanup( ) in a long-lived
+    " session) while the leave target still exists - the guard must skip
+    " the pop instead of raising NO_DRAFT_ENTRY in read_info
     lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_PURGED_ANCESTOR`.
     lo_action->ms_next-o_app_leave = lo_target.
 
     lo_result = lo_action->factory_stack_leave( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `TARGET_OWN_ANCESTOR`
-                                        act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
-
-  ENDMETHOD.
-
-  METHOD test_first_start_stateless.
-
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_saved TYPE REF TO z2ui5_cl_ui5_app_cont.
-
-    " a draft saved by a sticky app, restored into a request that is NOT in
-    " a stateful session (F5, a bookmark, a new tab): the persisted flag is
-    " dropped, so the app's next set_session_stateful( abap_true ) really
-    " switches - it used to be a no-op against a flag that said "already"
-    lo_saved = NEW #( ).
-    lo_saved->mo_app = NEW ltcl_test_app( ).
-    lo_saved->ms_draft-id = `STICKY_DRAFT_STATELESS`.
-    lo_saved->mv_check_sticky = abap_true.
-    lo_saved->db_save( ).
-
-    lo_http = NEW #( val = `` ).
-    lo_http->ms_request-s_control-app_start_draft = `STICKY_DRAFT_STATELESS`.
-    lo_action = NEW #( val = lo_http ).
-
-    lo_result = lo_action->factory_first_start( ).
-
-    cl_abap_unit_assert=>assert_false( lo_result->mo_app->mv_check_sticky ).
-    cl_abap_unit_assert=>assert_false( lo_result->mv_check_sticky_start ).
-
-    " ...and kept in the stateful session it was saved in
-    lo_saved = NEW #( ).
-    lo_saved->mo_app = NEW ltcl_test_app( ).
-    lo_saved->ms_draft-id = `STICKY_DRAFT_STATEFUL`.
-    lo_saved->mv_check_sticky = abap_true.
-    lo_saved->db_save( ).
-
-    lo_http = NEW #( val = `` ).
-    lo_http->mv_session_sticky = abap_true.
-    lo_http->ms_request-s_control-app_start_draft = `STICKY_DRAFT_STATEFUL`.
-    lo_action = NEW #( val = lo_http ).
-
-    lo_result = lo_action->factory_first_start( ).
-
-    cl_abap_unit_assert=>assert_true( lo_result->mo_app->mv_check_sticky ).
-    cl_abap_unit_assert=>assert_true( lo_result->mv_check_sticky_start ).
-
-  ENDMETHOD.
-
-  METHOD test_first_start_route_state.
-
-    DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
-    DATA lo_action TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_result TYPE REF TO z2ui5_cl_ui5_action.
-    DATA lo_saved TYPE REF TO z2ui5_cl_ui5_app_cont.
-
-    " a ROUTE restore (#/app/<CLASS>/<id> - Back, Forward, reload) carries
-    " a draft but is not the app-state opt-in: it must not switch the
-    " app-state hash on (every response re-asserted it, and an app that
-    " turned routing off got a hash it never asked for)
-    lo_saved = NEW #( ).
-    lo_saved->mo_app = NEW ltcl_test_app( ).
-    lo_saved->ms_draft-id = `ROUTE_RESTORE_DRAFT`.
-    lo_saved->db_save( ).
-
-    lo_http = NEW #( val = `` ).
-    lo_http->ms_request-s_control-app_start_draft = `ROUTE_RESTORE_DRAFT`.
-    lo_action = NEW #( val = lo_http ).
-
-    lo_result = lo_action->factory_first_start( ).
-
-    cl_abap_unit_assert=>assert_false( lo_result->ms_next-s_nav-set_app_state_active ).
-    cl_abap_unit_assert=>assert_false( lo_result->mo_app->mv_app_state_active ).
-
-    " an app-state bookmark (#/z2ui5-xapp-state=<id>) is that opt-in
-    lo_saved = NEW #( ).
-    lo_saved->mo_app = NEW ltcl_test_app( ).
-    lo_saved->ms_draft-id = `STATE_RESTORE_DRAFT`.
-    " the stack and caller of the session the bookmark was made in
-    lo_saved->ms_draft-id_prev_app       = `DEAD_SESSION_CALLER`.
-    lo_saved->ms_draft-id_prev_app_stack = `DEAD_SESSION_STACK`.
-    lo_saved->db_save( ).
-
-    lo_http = NEW #( val = `` ).
-    lo_http->ms_request-s_control-app_start_draft = `STATE_RESTORE_DRAFT`.
-    lo_http->ms_request-s_control-check_app_state = abap_true.
-    lo_action = NEW #( val = lo_http ).
-
-    lo_result = lo_action->factory_first_start( ).
-
-    cl_abap_unit_assert=>assert_true( lo_result->ms_next-s_nav-set_app_state_active ).
-    cl_abap_unit_assert=>assert_true( lo_result->mo_app->mv_app_state_active ).
-    " ... and it is a root of THIS session: neither the stack nor the
-    " caller of the dead session survive (get_app_prev would otherwise
-    " follow an expired draft into a 500)
+    " back-navigation survived, and the stale ancestor id neither raised
+    " nor took the target's stack position over
     cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app_stack ).
-    cl_abap_unit_assert=>assert_initial( lo_result->mo_app->ms_draft-id_prev_app ).
+
+    " counter-check: with the ancestor draft present the same leave pops one
+    " level - the target's stack position becomes the ancestor's ancestor
+    NEW z2ui5_cl_ui5_srv_draft( )->create(
+        draft     = VALUE #( id                = `LEAVE_ANCESTOR_DRAFT`
+                             id_prev_app_stack = `LEAVE_GRANDPARENT` )
+        model_xml = `<dummy/>` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id                = `LEAVE_GONE_CURRENT2`.
+    lo_action->mo_app->ms_draft-id_prev_app_stack = `LEAVE_ANCESTOR_DRAFT`.
+    lo_action->ms_next-o_app_leave = lo_target.
+
+    lo_pop = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `LEAVE_GRANDPARENT`
+                                        act = lo_pop->mo_app->ms_draft-id_prev_app_stack ).
 
   ENDMETHOD.
 

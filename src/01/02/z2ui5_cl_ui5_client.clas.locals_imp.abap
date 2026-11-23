@@ -2,47 +2,6 @@
 *"* local helper classes, interface definitions and type
 *"* declarations
 
-" One answer to "is this ajson VALUE node initial?", for the two filters
-" below - each used to carry the same line and the same explanation.
-CLASS lcl_node_value DEFINITION FINAL.
-
-  PUBLIC SECTION.
-    " a number is initial in every spelling of zero - the one predicate
-    " for that is z2ui5_cl_ui5_util_json_fl=>check_number_initial. A
-    " boolean is initial
-    " when it is `false`: ajson writes abap_false as that literal, never as
-    " an empty value, so an emptiness test kept every abap_false - the very
-    " value omit_initial is documented to drop (_bind( ) in z2ui5_if_client)
-    " and omit_initial_paths exists to drop per column. A string and null
-    " are initial when empty
-    CLASS-METHODS check_initial
-      IMPORTING
-        is_node       TYPE z2ui5_if_ajson_types=>ty_node
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS lcl_node_value IMPLEMENTATION.
-
-  METHOD check_initial.
-
-    CASE is_node-type.
-      WHEN z2ui5_if_ajson_types=>node_type-number.
-        result = z2ui5_cl_ui5_util_json_fl=>check_number_initial( is_node-value ).
-      WHEN z2ui5_if_ajson_types=>node_type-boolean.
-        result = xsdbool( is_node-value = `false` ).
-      WHEN OTHERS.
-        result = xsdbool( is_node-value IS INITIAL ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
 " The row-preserving replacement for ajson's empty filter, behind
 " z2ui5_if_client~_bind( omit_initial = abap_true ).
 "
@@ -87,7 +46,17 @@ CLASS lcl_empty_filter_keep_rows IMPLEMENTATION.
 
     " everything below mirrors the vendored lcl_empty_filter
     IF iv_visit = z2ui5_if_ajson_filter=>visit_type-value.
-      rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+      IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
+        " any spelling of a numeric zero is initial - ajson writes a packed
+        " field with decimals as `0.00` and a float as `0.0E+00` (both are
+        " |{ value }|), and a plain compare against `0` kept exactly the
+        " "price" column omit_initial is documented for. CN: the value holds
+        " a character that is not one of these, i.e. a non-zero digit
+        rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
+      ELSE.
+        " string & bool & null
+        rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
+      ENDIF.
     ELSE.
       " children = 0 on open for initially empty nodes and on close for
       " fully filtered ones
@@ -136,16 +105,12 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
 
     LOOP AT it_paths INTO DATA(lv_path).
       DATA(lv_name) = to_upper( lv_path ).
-      " a caller may write the field with or without a leading slash - and
-      " with a trailing one (`/ROWS/MAX/`), which used to make the last
-      " segment empty and drop the path without a word: the empty segments
-      " go, the last one left is the name
+      " a caller may write the field with or without a leading slash
       IF lv_name CS `/`.
         SPLIT lv_name AT `/` INTO TABLE DATA(lt_parts).
-        DELETE lt_parts WHERE table_line IS INITIAL.
         lv_name = VALUE #( lt_parts[ lines( lt_parts ) ] OPTIONAL ).
       ENDIF.
-      IF lv_name IS NOT INITIAL.
+      IF lv_name IS NOT INITIAL AND NOT line_exists( mt_names[ table_line = lv_name ] ). "#EC CI_SORTSEQ
         INSERT lv_name INTO TABLE mt_names.
       ENDIF.
     ENDLOOP.
@@ -175,7 +140,16 @@ CLASS lcl_initial_paths_filter IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    rv_keep = xsdbool( lcl_node_value=>check_initial( is_node ) = abap_false ).
+    IF is_node-type = z2ui5_if_ajson_types=>node_type-number.
+      " any spelling of a numeric zero is initial - ajson writes a packed
+      " field with decimals as `0.00` and a float as `0.0E+00` (both are
+      " |{ value }|), and a plain compare against `0` kept exactly the
+      " "price" column omit_initial is documented for. CN: the value holds
+      " a character that is not one of these, i.e. a non-zero digit
+      rv_keep = xsdbool( is_node-value CN `0.-+Ee` ).
+    ELSE.
+      rv_keep = xsdbool( is_node-value IS NOT INITIAL ).
+    ENDIF.
 
   ENDMETHOD.
 

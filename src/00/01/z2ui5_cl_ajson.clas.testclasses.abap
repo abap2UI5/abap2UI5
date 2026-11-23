@@ -610,26 +610,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
         RECEIVING
           char = lv_uchar.
       CATCH cx_sy_dyn_call_illegal_class.
-        " no CL_ABAP_CONV_IN_CE in ABAP Cloud: U+1234 is E188B4 in UTF-8
-        DATA lo_conv TYPE REF TO object.
-        DATA lv_utf8 TYPE xstring.
-        DATA lv_ustr TYPE string.
-        lv_utf8 = 'E188B4'.
-        TRY.
-            lv_fm_name = `CL_ABAP_CONV_CODEPAGE`.
-            CALL METHOD (lv_fm_name)=>create_in
-              RECEIVING
-                instance = lo_conv.
-            CALL METHOD lo_conv->('IF_ABAP_CONV_IN~CONVERT')
-              EXPORTING
-                source = lv_utf8
-              RECEIVING
-                result = lv_ustr.
-            lv_uchar = lv_ustr.
-          CATCH cx_root.
-            " neither converter exists: nothing to build the expectation from
-            RETURN.
-        ENDTRY.
+        cl_abap_unit_assert=>fail( level = if_aunit_constants=>tolerable ).
     ENDTRY.
 
     mo_nodes->add( |                 \|                 \|object \|                        \|  \|3| ).
@@ -713,7 +694,6 @@ CLASS ltcl_serializer_test DEFINITION FINAL
     METHODS simple_indented FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS empty_set FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS escape_string FOR TESTING RAISING z2ui5_cx_ajson_error.
-    METHODS escape_control_chars FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS empty FOR TESTING RAISING z2ui5_cx_ajson_error.
 
 ENDCLASS.
@@ -1006,28 +986,6 @@ CLASS ltcl_serializer_test IMPLEMENTATION.
 
     lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
     lv_exp = '"a\"\\\t\r\n"'.
-
-    cl_abap_unit_assert=>assert_equals(
-      act = lv_act
-      exp = lv_exp ).
-
-  ENDMETHOD.
-
-  METHOD escape_control_chars.
-
-    DATA lv_act TYPE string.
-    DATA lv_exp TYPE string.
-    DATA lv_val TYPE string.
-    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
-
-    " a, then backspace, form feed, NUL, SOH, ESC and US: JSON allows no raw control character
-    lv_val = lcl_utils=>xstring_to_string_utf8( '61080C00011B1F' ).
-
-    CREATE OBJECT lo_nodes.
-    lo_nodes->add( | \| \|str \|{ lv_val }\| \|0| ).
-
-    lv_act = lcl_json_serializer=>stringify( lo_nodes->sorted( ) ).
-    lv_exp = '"a\b\f\u0000\u0001\u001b\u001f"'.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_act

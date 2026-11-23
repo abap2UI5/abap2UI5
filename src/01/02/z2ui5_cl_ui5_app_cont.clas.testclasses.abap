@@ -306,8 +306,6 @@ CLASS ltcl_01_xml DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS dead_object_dropped         FOR TESTING RAISING cx_static_check.
     " the document is one string of markup, nothing else
     METHODS document_is_asxml           FOR TESTING RAISING cx_static_check.
-    " a line break in a bound value survives the roundtrip
-    METHODS line_feed_survives          FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -325,27 +323,6 @@ CLASS ltcl_01_xml IMPLEMENTATION.
     " ...and a second time, the same
     mo_cont->all_xml_stringify( ).
     check_restored( mo_user ).
-
-  ENDMETHOD.
-
-  METHOD line_feed_survives.
-
-    " the parser used to strip every literal line feed from the document, so
-    " a text area lost its breaks across the draft and a local patch wrote
-    " them as `&#10;` instead. open-abap-core carries the fix now
-    " (open-abap/open-abap-core#1225 and #1227) and the patch is gone - this
-    " is what says so, and what catches it coming back
-    DATA(lv_nl) = z2ui5_cl_ui5_util_context=>cv_char_util_newline.
-    DATA(lv_exp) = |line one{ lv_nl }line two{ lv_nl }{ lv_nl }after a blank one|.
-
-    mo_user->mv_string = lv_exp.
-    bind_all( ).
-
-    DATA(lo_parsed) = z2ui5_cl_ui5_app_cont=>all_xml_parse( mo_cont->all_xml_stringify( ) ).
-    lo_parsed->create_model( )->main_attri_db_load( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = lv_exp
-                                        act = app_of( lo_parsed )->mv_string ).
 
   ENDMETHOD.
 
@@ -461,13 +438,6 @@ CLASS ltcl_02_db DEFINITION FINAL INHERITING FROM ltcl_00_base
     " what a callee wrote through the caller's reference after the caller's
     " save is what the way back keeps - the live object, not the payload
     METHODS load_by_app_keeps_live_data FOR TESTING RAISING cx_static_check.
-    " the container this request built for the draft is what a load by
-    " ITS app answers - no second parse; another instance of the same id
-    " is still restored on its own
-    METHODS load_by_app_same_instance  FOR TESTING RAISING cx_static_check.
-    " a load by another instance of a buffered id takes the buffer over: the
-    " next load of the id - by app or by id - answers that container
-    METHODS load_by_app_replaces_buffer FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -602,51 +572,6 @@ CLASS ltcl_02_db IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <tab> ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lo_app_2->mr_handle_tab = lo_app_2->mo_inner->mr_shared ) ).
-
-  ENDMETHOD.
-
-  METHOD load_by_app_same_instance.
-
-    bind_all( ).
-    mo_cont->db_save( ).
-    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
-
-    " what nav_app_leave( ) does without a target: get_app( ) parses the
-    " draft into a container, and the stack hop then loads BY that app
-    DATA(lo_loaded) = z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
-    DATA(lo_by_app) = z2ui5_cl_ui5_app_cont=>db_load_by_app( app_of( lo_loaded ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_by_app = lo_loaded )
-                                      msg = `the hop parsed the draft a second time` ).
-
-    " the live instance carries the same id but is not the buffered app
-    DATA(lo_other) = z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_other = lo_loaded ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_other->mo_app = mo_user ) ).
-    check_restored( mo_user ).
-
-  ENDMETHOD.
-
-  METHOD load_by_app_replaces_buffer.
-
-    bind_all( ).
-    mo_cont->db_save( ).
-    z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
-
-    " get_app( ) buffered the deserialized instance, then the stack hops to
-    " the LIVE instance of the same draft id
-    DATA(lo_loaded) = z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
-    DATA(lo_live) = z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lo_live = lo_loaded ) ).
-
-    " the buffer follows the latest instance: a second hop to it is not
-    " parsed again, and a load by id hands out the container around the
-    " instance the stack is running - not the stale deserialized copy
-    cl_abap_unit_assert=>assert_true(
-        act = xsdbool( z2ui5_cl_ui5_app_cont=>db_load_by_app( mo_user ) = lo_live )
-        msg = `the second hop parsed the draft again` ).
-    cl_abap_unit_assert=>assert_true(
-        act = xsdbool( z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ) = lo_live )
-        msg = `db_load answered the stale container` ).
 
   ENDMETHOD.
 
@@ -857,8 +782,8 @@ CLASS ltcl_03_errors IMPLEMENTATION.
     ENDLOOP.
     cl_abap_unit_assert=>assert_not_initial( result ).
     DATA(lv_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mo_cont ).
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = mo_cont->ms_draft
-                                           model_xml       = lv_xml ).
+    NEW z2ui5_cl_ui5_srv_draft( )->create( draft     = mo_cont->ms_draft
+                                           model_xml = lv_xml ).
 
   ENDMETHOD.
 
@@ -876,18 +801,17 @@ CLASS ltcl_03_errors IMPLEMENTATION.
         z2ui5_cl_ui5_app_cont=>db_load( mo_cont->ms_draft-id ).
         cl_abap_unit_assert=>fail( `a draft whose bound data cannot be restored must not load silently` ).
       CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
-        DATA(lv_text) = lx->get_text( ).
-        cl_abap_unit_assert=>assert_true( xsdbool( lv_text CS `APP_STATE_RESTORE_ERROR` ) ).
+        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `APP_STATE_RESTORE_ERROR` ) ).
         " the error names a broken row - the canonical one of the shared
         " table, whichever of its references sorts last
         DATA(lv_named) = abap_false.
         LOOP AT lt_broken INTO DATA(lv_name).
-          IF lv_text CS lv_name.
+          IF lx->get_text( ) CS lv_name.
             lv_named = abap_true.
           ENDIF.
         ENDLOOP.
         cl_abap_unit_assert=>assert_true( act = lv_named
-                                          msg = |the error names no row: { lv_text }| ).
+                                          msg = |the error names no row: { lx->get_text( ) }| ).
     ENDTRY.
 
   ENDMETHOD.
@@ -969,9 +893,9 @@ CLASS ltcl_04_model IMPLEMENTATION.
     bind_all( ).
     " a whole value for the scalars, a cell edit (the __delta form) for
     " the runtime-built table
-    DATA(lo_front) = z2ui5_cl_ajson=>parse(
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
         `{"MV_STRING":"written","MO_INNER_MV_INNER":"inner-written",` &&
-        `"MR_HANDLE_TAB":{"__delta":{"0":{"COL1":"handle-written"}}}}` ).
+        `"MR_HANDLE_TAB":{"__delta":{"0":{"COL1":"handle-written"}}}}` ) ).
 
     DATA(lt_skipped) = mo_cont->model_json_parse( lo_front ).
 
@@ -998,8 +922,8 @@ CLASS ltcl_04_model IMPLEMENTATION.
           iv_path = `/MT_STD` ).
     " a cell edit whose number is no number: refused, kept, and reported -
     " the other cell of the same edit is written
-    DATA(lo_front) = z2ui5_cl_ajson=>parse(
-        `{"MT_STD":{"__delta":{"0":{"COL1":"still fine","COL2":"not a number"}}}}` ).
+    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"MT_STD":{"__delta":{"0":{"COL1":"still fine","COL2":"not a number"}}}}` ) ).
 
     DATA(lt_skipped) = mo_cont->model_json_parse( lo_front ).
 

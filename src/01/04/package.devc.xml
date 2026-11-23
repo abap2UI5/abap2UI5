@@ -4,6 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>abap2UI5 - config &amp; user</CTEXT>
+    <LANGUAGE>E</LANGUAGE>
+    <MASTERLANG>E</MASTERLANG>
     <SRV_CHECK>X</SRV_CHECK>
    </DEVC>
   </asx:values>

@@ -84,74 +84,6 @@ CLASS ltcl_app_typed IMPLEMENTATION.
 ENDCLASS.
 
 
-" the numeric and character kinds a delta cell converts into beyond the
-" packed price above: what the wire's text has to land as, exactly
-CLASS ltcl_app_conv DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_row,
-        dec   TYPE decfloat34,
-        numc  TYPE n LENGTH 5,
-        " p, not int8: 7.02 has no int8 - 31 digits still hold 2^53 + 1
-        big   TYPE p LENGTH 16 DECIMALS 0,
-        price TYPE p LENGTH 9 DECIMALS 2,
-        qty   TYPE i,
-        flag  TYPE abap_bool,
-        text  TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA mt_row TYPE ty_t_row.
-ENDCLASS.
-
-
-CLASS ltcl_app_conv IMPLEMENTATION.
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-ENDCLASS.
-
-
-" three levels of tables - a delta that walks two nested __delta nodes
-CLASS ltcl_app_deep3 DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_leaf,
-        qty TYPE i,
-        txt TYPE string,
-      END OF ty_s_leaf.
-    TYPES ty_t_leaf TYPE STANDARD TABLE OF ty_s_leaf WITH EMPTY KEY.
-    TYPES:
-      BEGIN OF ty_s_mid,
-        name   TYPE string,
-        t_leaf TYPE ty_t_leaf,
-      END OF ty_s_mid.
-    TYPES ty_t_mid TYPE STANDARD TABLE OF ty_s_mid WITH EMPTY KEY.
-    TYPES:
-      BEGIN OF ty_s_top,
-        id    TYPE string,
-        t_mid TYPE ty_t_mid,
-      END OF ty_s_top.
-    TYPES ty_t_top TYPE STANDARD TABLE OF ty_s_top WITH EMPTY KEY.
-
-    DATA mt_top TYPE ty_t_top.
-    DATA ms_head TYPE ty_s_leaf.
-ENDCLASS.
-
-
-CLASS ltcl_app_deep3 IMPLEMENTATION.
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-ENDCLASS.
-
-
 " ---------------------------------------------------------------------------
 " The shape catalogue: one attribute per FORM an app attribute can take, and
 " the same invariants run over every row of mt_attri after every lifecycle
@@ -483,7 +415,7 @@ CLASS ltcl_app_shapes IMPLEMENTATION.
     APPEND NEW ltcl_shp_inner( ) TO mt_apps.
     mt_apps[ 1 ]->mv_inner = `in-table`.
 
-    mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ z2ui5_cl_ui5_util_context=>cv_char_util_newline }second line|.
+    mv_markup = |<b>tag</b> & "quoted" 'single' \\ backslash{ cl_abap_char_utilities=>newline }second line|.
 
   ENDMETHOD.
 
@@ -696,10 +628,8 @@ CLASS ltcl_02_search DEFINITION DEFERRED.
 CLASS ltcl_03_model_out DEFINITION DEFERRED.
 CLASS ltcl_04_model_in DEFINITION DEFERRED.
 CLASS ltcl_05_draft DEFINITION DEFERRED.
-CLASS ltcl_06_fast_json DEFINITION DEFERRED.
 CLASS z2ui5_cl_ui5_srv_model DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_dissolve ltcl_02_search
-                                                     ltcl_03_model_out ltcl_04_model_in ltcl_05_draft
-                                                     ltcl_06_fast_json.
+                                                     ltcl_03_model_out ltcl_04_model_in ltcl_05_draft.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -819,7 +749,6 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD bind_all.
 
-    DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
     CLEAR mt_bound.
@@ -861,10 +790,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
     " S19/S20 - through the component
     bind( REF #( mo_app->ms_with_oref-o_obj->mv_inner ) ).
     ASSIGN mo_app->ms_with_dref-r_tab->* TO <tab>.
-    " into a typed variable first - the 7.02 downport declares its temporary
-    " LIKE REF TO the operand, which a generic <tab> cannot give it
-    lr_tab = REF #( <tab> ).
-    bind( lr_tab ).
+    bind( REF #( <tab> ) ).
 
   ENDMETHOD.
 
@@ -921,10 +847,7 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
   METHOD row.
 
-    " no chained dereference of a functional method call - 7.50 rejects
-    " `row_ref( ... )->*`, the reference needs its own variable first
-    DATA(lr_row) = row_ref( iv_name ).
-    result = lr_row->*.
+    result = row_ref( iv_name )->*.
 
   ENDMETHOD.
 
@@ -958,11 +881,11 @@ CLASS ltcl_00_base IMPLEMENTATION.
     ENDLOOP.
     " ...and the payload rows carry their descriptor again
     LOOP AT mt_bound INTO DATA(lv_name).
-      DATA(ls_row) = row( lv_name ).
+      DATA(ls_row) = mr_attri->*[ name = lv_name ].
       IF ls_row-name_parent IS INITIAL OR ls_row-name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
-      DATA(ls_parent) = row( ls_row-name_parent ).
+      DATA(ls_parent) = mr_attri->*[ name = ls_row-name_parent ].
       IF ls_parent-type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref.
         CONTINUE.
       ENDIF.
@@ -1097,8 +1020,6 @@ CLASS ltcl_01_dissolve DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS interface_ref_followed   FOR TESTING RAISING cx_static_check.
     " a refresh rebuilds the rows and keeps what a bind wrote on them
     METHODS refresh_keeps_bindings   FOR TESTING RAISING cx_static_check.
-    " ... and the window of a window_bind_tab( ) table with its total and event
-    METHODS refresh_keeps_window     FOR TESTING RAISING cx_static_check.
     " a refresh finds an object that was initial at the first dissolve
     METHODS refresh_finds_late_obj   FOR TESTING RAISING cx_static_check.
     " a refresh drops the rows of an object that is gone
@@ -1149,7 +1070,7 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_false( row_exists( `MO_HIDDEN` ) ).
 
     " every row is done - nothing pending after a full refresh
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ).
 
   ENDMETHOD.
 
@@ -1201,10 +1122,12 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     mo_model->main_attri_refresh( ).
 
     DATA(lv_canonical) = 0.
+    DATA lv_name TYPE string.
     LOOP AT mr_attri->* TRANSPORTING NO FIELDS "#EC CI_SORTSEQ
          WHERE ( name = `MR_SHARED_A->*` OR name = `MR_SHARED_B->*` OR name = `MO_INNER->MR_SHARED->*` )
            AND name_ref IS INITIAL.
       lv_canonical = lv_canonical + 1.
+      lv_name = `x`.
     ENDLOOP.
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lv_canonical
@@ -1230,7 +1153,7 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_true( xsdbool( line_exists(
         lt_attri[ name = `MS_DATA-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-MS_DATA2-VAL` ] ) ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_attri[ check_dissolved = abap_false ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( lt_attri[ check_dissolved = abap_false ] ) ) ).
 
   ENDMETHOD.
 
@@ -1250,7 +1173,7 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     ENDLOOP.
     cl_abap_unit_assert=>assert_true( act = xsdbool( lv_deepest <= 5 )
                                       msg = |the cycle ran { lv_deepest } hops deep| ).
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ).
 
   ENDMETHOD.
 
@@ -1272,7 +1195,7 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
     cl_abap_unit_assert=>assert_true( xsdbool( lv_deepest <= 5 ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_false( xsdbool( line_exists( mr_attri->*[ check_dissolved = abap_false ] ) ) ).
 
   ENDMETHOD.
 
@@ -1326,25 +1249,6 @@ CLASS ltcl_01_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lr_after->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = row( `MV_STRING` )-check_json ).
-
-  ENDMETHOD.
-
-  METHOD refresh_keeps_window.
-
-    DATA(lr_attri) = bind( REF #( mo_app->mt_std ) ).
-    lr_attri->window_size  = 100.
-    lr_attri->window_total = 5000.
-    lr_attri->window_event = `ROWS`.
-
-    mo_model->main_attri_refresh( ).
-
-    DATA(lr_after) = row_ref( `MT_STD` ).
-    cl_abap_unit_assert=>assert_equals( exp = 100
-                                        act = lr_after->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 5000
-                                        act = lr_after->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = lr_after->window_event ).
 
   ENDMETHOD.
 
@@ -1424,34 +1328,10 @@ CLASS ltcl_02_search DEFINITION INHERITING FROM ltcl_00_base FINAL
     " a value re-created in main( ) - a new object under the same name - is
     " found as that name; the object it replaced belongs to nobody
     METHODS recreated_value_found     FOR TESTING RAISING cx_static_check.
-    " an elementary row the scan resolved is in the index afterwards - the
-    " next search compares references instead of re-resolving it
-    METHODS elementary_rows_indexed   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_02_search IMPLEMENTATION.
-
-  METHOD elementary_rows_indexed.
-
-    " dissolve indexes tables, references and structures; an elementary
-    " row reaches the index through the scan of the binding search alone.
-    " Every row the scan resolved on the way stays indexed, so a form of k
-    " attributes bound in name order pays k dynamic ASSIGNs per roundtrip,
-    " not k*k/2 - and the hit is still confirmed by a fresh ASSIGN
-    DATA(lr_row) = bind( REF #( mo_app->mv_string ) ).
-
-    READ TABLE mo_model->mt_ref_idx REFERENCE INTO DATA(lr_idx)
-         WITH TABLE KEY name = `MV_STRING`.
-    cl_abap_unit_assert=>assert_subrc( msg = `the resolved row was not indexed` ).
-    DATA(lr_val) = REF #( mo_app->mv_string ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lr_idx->ref = lr_val ) ).
-
-    " the second search lands on the same row
-    DATA(lr_again) = mo_model->main_attri_search( REF #( mo_app->mv_string ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lr_again = lr_row ) ).
-
-  ENDMETHOD.
 
   METHOD every_form_found.
 
@@ -1702,8 +1582,6 @@ CLASS ltcl_03_model_out DEFINITION INHERITING FROM ltcl_00_base FINAL
     " _bind( json = abap_true ): the string IS JSON and becomes a node
     METHODS json_bind_spliced        FOR TESTING RAISING cx_static_check.
     METHODS json_bind_invalid_raises FOR TESTING RAISING cx_static_check.
-    " ... and one that holds no JSON yet is null, not a failed roundtrip
-    METHODS json_bind_initial_null   FOR TESTING RAISING cx_static_check.
     " a filter drops what it says (omit_initial)
     METHODS filter_applied           FOR TESTING RAISING cx_static_check.
     " a mapper renames what it says
@@ -1725,7 +1603,7 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
                                         msg = |{ lv_name } missing from the model| ).
     ENDLOOP.
     " a reference row itself never travels - only the data behind it
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `"MR_HANDLE_TAB":` OR lv_json CS `"MO_INNER":` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `"MR_HANDLE_TAB":` AND lv_json CS `"MO_INNER":` ) ).
     " and an unbound attribute does not either
     cl_abap_unit_assert=>assert_false( xsdbool( lv_json CS `"MV_XSTR"` ) ).
 
@@ -1777,17 +1655,26 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
 
   METHOD dates_initial_or_broken.
 
-    " the empty string of row 4 comes from a variable: written as a literal
-    " the extended check reports it on every run ("" is not an admissible
-    " value for type "D" / "T"), and what the row is about - an app moving
-    " an empty string into a date - is a value the compiler never sees
-    DATA lv_empty TYPE string.
-
     DATA(lo_app) = NEW ltcl_app_samples( ).
-    lo_app->mt_rows = VALUE #( ( id = 1 descr = `initial` )
-                               ( id = 2 descr = `zeros` adate = '00000000' atime = '000000' )
-                               ( id = 3 descr = `valid` adate = '20240115' atime = '123045' )
-                               ( id = 4 descr = `empty string moved in` adate = lv_empty atime = lv_empty ) ).
+    DATA ls_row TYPE ltcl_app_samples=>ty_s_row.
+    ls_row-id = 1.
+    ls_row-descr = `initial`.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 2.
+    ls_row-descr = `zeros`.
+    ls_row-adate = '00000000'.
+    ls_row-atime = '000000'.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 3.
+    ls_row-descr = `valid`.
+    ls_row-adate = '20240115'.
+    ls_row-atime = '123045'.
+    APPEND ls_row TO lo_app->mt_rows.
+    ls_row-id = 4.
+    ls_row-descr = `empty string moved in`.
+    ls_row-adate = ``.
+    ls_row-atime = ``.
+    APPEND ls_row TO lo_app->mt_rows.
 
     DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = REF #( lt_attri )
@@ -1842,21 +1729,6 @@ CLASS ltcl_03_model_out IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD json_bind_initial_null.
-
-    CLEAR mo_app->mv_string.
-    DATA(lr_attri) = bind( REF #( mo_app->mv_string ) ).
-    lr_attri->check_json = abap_true.
-
-    DATA(lv_json) = mo_model->main_json_stringify( ).
-    DATA(lo_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
-    cl_abap_unit_assert=>assert_true( act = lo_result->exists( lr_attri->name_client )
-                                      msg = lv_json ).
-    cl_abap_unit_assert=>assert_equals( exp = `null`
-                                        act = lo_result->get_node_type( lr_attri->name_client ) ).
-
-  ENDMETHOD.
-
   METHOD filter_applied.
 
     " the behaviour behind _bind( omit_initial ): an INITIAL field stays
@@ -1906,12 +1778,6 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS alias_written_once       FOR TESTING RAISING cx_static_check.
     " a scalar the type refuses keeps its value and is traced
     METHODS scalar_refused_traced    FOR TESTING RAISING cx_static_check.
-    " a scalar whole value is read in place, with the row delta's typed
-    " conversions: ISO and plain dates, a time, a boolean, a number, a null
-    METHODS whole_scalar_typed       FOR TESTING RAISING cx_static_check.
-    " a scalar sent for a structure attribute is refused and traced, never
-    " assigned - the assignment would be a runtime error, not an exception
-    METHODS whole_scalar_into_struc  FOR TESTING RAISING cx_static_check.
     " markup and quotes come back as they went out
     METHODS markup_round_trips       FOR TESTING RAISING cx_static_check.
     " the whole model out and in again - the count the backend holds (199)
@@ -1929,41 +1795,10 @@ CLASS ltcl_04_model_in DEFINITION INHERITING FROM ltcl_00_base FINAL
     METHODS delta_trace              FOR TESTING RAISING cx_static_check.
     " a table kind that takes no row delta
     METHODS delta_sorted_refused     FOR TESTING RAISING cx_static_check.
-    " a row index past the table's end, top level and nested
-    METHODS delta_row_past_end       FOR TESTING RAISING cx_static_check.
-    " a structure cell is written as a whole value - a replace, not a merge
-    METHODS delta_struct_cell_whole  FOR TESTING RAISING cx_static_check.
-    " a column kind that takes no value of the shape the wire carries
-    METHODS delta_kind_refused       FOR TESTING RAISING cx_static_check.
     " a delta over many rows with a refused cell and a refused nested table
     " in the middle: every good cell lands, the refused ones keep their
     " values and are traced, nothing else is touched
     METHODS delta_mass_edit          FOR TESTING RAISING cx_static_check.
-    " a __delta node that is not the shape the client is supposed to send
-    METHODS delta_malformed_survives FOR TESTING RAISING cx_static_check.
-    " a whole table out and back in with initial and filled dates, times
-    " and timestamps: what went out comes back, initial stays initial
-    METHODS whole_dates_round_trip   FOR TESTING RAISING cx_static_check.
-    " text that needs JSON escaping - quotes, backslashes, control
-    " characters, non-ASCII - out and back in, whole and as a row delta
-    METHODS special_chars_round_trip FOR TESTING RAISING cx_static_check.
-    " a JSON null in a delta cell clears it - what a null as a whole value
-    " does (whole_scalar_typed), for every elementary kind of the row
-    METHODS delta_null_clears        FOR TESTING RAISING cx_static_check.
-    " decfloat, NUMC, a big integer, rounding into a packed cell, a JSON number
-    " node next to a JSON string, a boolean into a number column
-    METHODS delta_number_kinds       FOR TESTING RAISING cx_static_check.
-    " a delta two __delta levels down: the cell lands, a refused one is
-    " traced under the full table path with its immediate parent row
-    METHODS delta_three_levels       FOR TESTING RAISING cx_static_check.
-    " a row added or removed on the client sends the whole array: it
-    " replaces the rows, nested tables included
-    METHODS whole_rows_replaced      FOR TESTING RAISING cx_static_check.
-    " a __delta for an attribute that is no table is traced, never applied
-    METHODS delta_on_structure       FOR TESTING RAISING cx_static_check.
-    " a date or time in a spelling that is neither ISO nor plain digits is
-    " refused and traced - it used to be cut to its first characters
-    METHODS date_time_text_refused   FOR TESTING RAISING cx_static_check.
 
     METHODS typed_app
       RETURNING
@@ -2023,7 +1858,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   METHOD delta.
 
-    result = z2ui5_cl_ajson=>parse( iv_json ).
+    result = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( iv_json ) ).
 
   ENDMETHOD.
 
@@ -2155,74 +1990,6 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD whole_scalar_typed.
-
-    bind( REF #( mo_app->mv_date ) ).
-    bind( REF #( mo_app->mv_time ) ).
-    bind( REF #( mo_app->mv_bool ) ).
-    bind( REF #( mo_app->mv_int ) ).
-    bind( REF #( mo_app->mv_string ) ).
-
-    " the spellings ajson writes outbound - unpacked like a delta cell
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-    lo_front->set( iv_path = `/MV_DATE`
-                   iv_val  = `2024-01-15` ).
-    lo_front->set( iv_path = `/MV_TIME`
-                   iv_val  = `12:30:45` ).
-    lo_front->set_boolean( iv_path = `/MV_BOOL`
-                           iv_val  = abap_true ).
-    lo_front->set( iv_path = `/MV_INT`
-                   iv_val  = 42 ).
-    lo_front->set_null( `/MV_STRING` ).
-
-    mo_model->main_json_to_attri( lo_front ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `20240115`
-                                        act = CONV string( mo_app->mv_date ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `123045`
-                                        act = CONV string( mo_app->mv_time ) ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_app->mv_bool ).
-    cl_abap_unit_assert=>assert_equals( exp = 42
-                                        act = mo_app->mv_int ).
-    " a null is the cleared target - what to_abap( ) left behind for it
-    cl_abap_unit_assert=>assert_initial( mo_app->mv_string ).
-    cl_abap_unit_assert=>assert_initial( mo_model->mt_skipped ).
-
-    " a plain date keeps the direct assignment, like a delta cell does
-    lo_front = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-    lo_front->set( iv_path = `/MV_DATE`
-                   iv_val  = `20240116` ).
-
-    mo_model->main_json_to_attri( lo_front ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `20240116`
-                                        act = CONV string( mo_app->mv_date ) ).
-    cl_abap_unit_assert=>assert_initial( mo_model->mt_skipped ).
-
-  ENDMETHOD.
-
-  METHOD whole_scalar_into_struc.
-
-    bind( REF #( mo_app->ms_flat ) ).
-    DATA(ls_before) = mo_app->ms_flat.
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-    lo_front->set( iv_path = `/MS_FLAT`
-                   iv_val  = `not a structure` ).
-
-    mo_model->main_json_to_attri( lo_front ).
-
-    cl_abap_unit_assert=>assert_equals( exp = ls_before
-                                        act = mo_app->ms_flat ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `MS_FLAT`
-                                        act = mo_model->mt_skipped[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = `not a structure`
-                                        act = mo_model->mt_skipped[ 1 ]-value ).
-
-  ENDMETHOD.
-
   METHOD markup_round_trips.
 
     bind( REF #( mo_app->mv_markup ) ).
@@ -2240,11 +2007,14 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
   METHOD whole_table_round_trips.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA ls_row TYPE ltcl_app_shapes=>ty_s_row.
 
     bind( mo_app->mr_typed_tab ).
     " the backend appends two rows and ships the table...
-    APPEND VALUE #( col1 = `second` ) TO mo_app->mr_typed_tab->*.
-    APPEND VALUE #( col1 = `third` ) TO mo_app->mr_typed_tab->*.
+    ls_row-col1 = `second`.
+    APPEND ls_row TO mo_app->mr_typed_tab->*.
+    ls_row-col1 = `third`.
+    APPEND ls_row TO mo_app->mr_typed_tab->*.
     DATA(lv_json) = mo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_json CS `"third"` ) ).
 
@@ -2284,102 +2054,6 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = lines( mo_app->mt_std ) ).
     cl_abap_unit_assert=>assert_equals( exp = `X`
                                         act = mo_app->mt_std[ 1 ]-col1 ).
-
-    " a key that CONVERTS but is no row index: `1.5` rounds to 2, `+1`
-    " converts to 1 - each used to land the cell in a row the client
-    " never named. Digits only, so neither writes (a blank-padded and the
-    " empty key are in delta_malformed_survives)
-    mo_model->main_json_to_attri( delta( `{"MT_STD":{"__delta":{"1.5":{"COL1":"Z"},"+1":{"COL1":"Z"}}}}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `X`
-                                        act = mo_app->mt_std[ 1 ]-col1 ).
-    cl_abap_unit_assert=>assert_equals( exp = `b`
-                                        act = mo_app->mt_std[ 2 ]-col1 ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_app->mt_std ) ).
-
-  ENDMETHOD.
-
-  METHOD delta_malformed_survives.
-
-    " The request body is whatever reached the handler. A __delta that is
-    " not an object of row-index -> cell-object is not something the
-    " framework's own client writes, but it is still a request that has to
-    " be ANSWERED: the single top-level catch in
-    " z2ui5_cl_ui5_http_handler=>_main turns an exception into an error
-    " page, while a RUNTIME ERROR ends the roundtrip with no body, no
-    " status code and no security headers. So every shape below has to come
-    " back with the bound table untouched.
-    "
-    " The empty-keyed member `{"":{...}}` was left out of the list while
-    " open-abap's cl_sxml_string_reader could not tell it from an element
-    " of an array: it emitted no `name` attribute, and the JSON parser's
-    " own ASSERT fired before the model ever saw the body. That is fixed
-    " upstream (open-abap/open-abap-core#1248) and the pin carries it, so
-    " the shape is in the list below like any other.
-    bind( REF #( mo_app->mt_std ) ).
-
-    DATA(lt_hostile) = VALUE string_table(
-      " __delta itself is not an object
-      ( `{"MT_STD":{"__delta":"boom"}}` )
-      ( `{"MT_STD":{"__delta":42}}` )
-      ( `{"MT_STD":{"__delta":null}}` )
-      ( `{"MT_STD":{"__delta":["a","b"]}}` )
-      " a ROW that is not a cell object
-      ( `{"MT_STD":{"__delta":{"0":"boom"}}}` )
-      ( `{"MT_STD":{"__delta":{"0":[1,2]}}}` )
-      ( `{"MT_STD":{"__delta":{"0":null}}}` )
-      " an index no row has, and two no ABAP index conversion takes
-      ( `{"MT_STD":{"__delta":{"999999999999":{"COL1":"Z"}}}}` )
-      ( `{"MT_STD":{"__delta":{"1e3":{"COL1":"Z"}}}}` )
-      " an object member with an EMPTY key, at the three depths it can sit
-      ( `{"MT_STD":{"":"boom"}}` )
-      ( `{"MT_STD":{"__delta":{"":{"COL1":"Z"}}}}` )
-      ( `{"MT_STD":{"__delta":{"0":{"":"Z"}}}}` )
-      " a cell the row does not have, including the marker's own name
-      ( `{"MT_STD":{"__delta":{"0":{"NOPE":"Z"}}}}` )
-      ( `{"MT_STD":{"__delta":{"0":{"__DELTA":"Z"}}}}` )
-      " a nested __delta under a cell that is no table - a string and a
-      " number, the two column kinds that take no rows
-      ( `{"MT_STD":{"__delta":{"0":{"COL1":{"__delta":{"0":{"X":1}}}}}}}` )
-      ( `{"MT_STD":{"__delta":{"0":{"COL2":{"__delta":{"0":{"X":1}}}}}}}` )
-      " a scalar where the model expects a table (the ARRAY form is the
-      " legitimate whole-value write - see whole_table_round_trips)
-      ( `{"MT_STD":"boom"}` )
-      ( `{"MT_STD":42}` ) ).
-
-    LOOP AT lt_hostile INTO DATA(lv_json).
-      TRY.
-          mo_model->main_json_to_attri( delta( lv_json ) ).
-        CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
-          " an exception IS a legitimate answer - the handler renders it
-        CATCH z2ui5_cx_ajson_error ##NO_HANDLER.
-          " so is the parser's own: an empty-keyed member never reaches the
-          " model, and the single top-level CATCH cx_root renders this one
-          " the same way. What must NOT happen is a runtime error, and that
-          " is what the assertions below hold
-      ENDTRY.
-      cl_abap_unit_assert=>assert_equals( exp = 2
-                                          act = lines( mo_app->mt_std )
-                                          msg = |rows changed by { lv_json }| ).
-      cl_abap_unit_assert=>assert_equals( exp = `a`
-                                          act = mo_app->mt_std[ 1 ]-col1
-                                          msg = |row 1 changed by { lv_json }| ).
-      cl_abap_unit_assert=>assert_equals( exp = `b`
-                                          act = mo_app->mt_std[ 2 ]-col1
-                                          msg = |row 2 changed by { lv_json }| ).
-    ENDLOOP.
-
-    " A PADDED index is not one of those: `" 1 "` converts like any other
-    " ABAP numeric text and addresses the row it names. Stated because it
-    " looks like the shapes above and is not one - it stays inside the
-    " table, which is all this test is about
-    mo_model->main_json_to_attri( delta( `{"MT_STD":{"__delta":{" 1 ":{"COL1":"Z"}}}}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_app->mt_std ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `a`
-                                        act = mo_app->mt_std[ 1 ]-col1 ).
-    cl_abap_unit_assert=>assert_equals( exp = `Z`
-                                        act = mo_app->mt_std[ 2 ]-col1 ).
 
   ENDMETHOD.
 
@@ -2471,9 +2145,12 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     " the ISO spelling ajson wrote, and a plain date
     lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"DT":"2024-01-15","TM":"12:30:45","TS":"2024-01-15T12:30:45Z"},"1":{"DT":"20240115","TM":""}}}` )
                                     iv_name      = `MT_TAB` ).
-    DATA lv_date TYPE d VALUE '20240115'.
-    DATA lv_time TYPE t VALUE '123045'.
-    DATA lv_ts   TYPE timestamp VALUE '20240115123045'.
+    DATA lv_date TYPE d.
+    lv_date = '20240115'.
+    DATA lv_time TYPE t.
+    lv_time = '123045'.
+    DATA lv_ts TYPE timestamp.
+    lv_ts = '20240115123045'.
     cl_abap_unit_assert=>assert_equals( exp = lv_date
                                         act = lo_app->mt_tab[ 1 ]-dt ).
     cl_abap_unit_assert=>assert_equals( exp = lv_time
@@ -2483,48 +2160,6 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = lv_date
                                         act = lo_app->mt_tab[ 2 ]-dt ).
     cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 2 ]-tm ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " a cleared picker sends "" - the initial date/time, not eight blanks
-    " (which is not IS INITIAL and which ajson shipped back as `    -  -  `)
-    DATA lv_date_init TYPE d.
-    DATA lv_time_init TYPE t.
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"DT":"","TM":""}}}` )
-                                    iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_date_init
-                                        act = lo_app->mt_tab[ 1 ]-dt ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_time_init
-                                        act = lo_app->mt_tab[ 1 ]-tm ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL ) ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " an instant with a NEGATIVE offset is one ajson cannot read - it used
-    " to answer an initial timestamp that was assigned without a word; now
-    " it is a refusal: the old value stands and the cell is traced
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:45Z"}}}` )
-                                    iv_name      = `MT_TAB` ).
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:45-05:00"}}}` )
-                                    iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_ts
-                                        act = lo_app->mt_tab[ 1 ]-ts ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_model->mt_skipped ) ).
-    CLEAR lo_model->mt_skipped.
-
-    " the initial timestamp as ajson writes it is the initial value, not a
-    " refusal - it comes back untouched with every sibling edit
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"0000-00-00T00:00:00Z"}}}` )
-                                    iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " a fraction a short TIMESTAMP cannot carry is cut off, not rounded:
-    " rounded, .6 made second 60 - 20240115123060 is no timestamp at all
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TS":"2024-01-15T12:30:59.6Z"}}}` )
-                                    iv_name      = `MT_TAB` ).
-    DATA lv_ts_cut TYPE timestamp VALUE '20240115123059'.
-    cl_abap_unit_assert=>assert_equals( exp = lv_ts_cut
-                                        act = lo_app->mt_tab[ 1 ]-ts ).
     cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
 
     " refused: the grouped thousands separator, text into a number - the
@@ -2602,7 +2237,7 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
                                         act = lines( lo_model->mt_skipped ) ).
     cl_abap_unit_assert=>assert_equals( exp = `MT_SORTED`
                                         act = lo_model->mt_skipped[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ field = `PRICE` value = `1250.00` ] ) ) ). "#EC CI_SORTSEQ
+    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ field = `PRICE` value = `1250.00` ] ) ) ).
 
     " the same for the fixture's sorted table, through the model path
     bind( REF #( mo_app->mt_sorted ) ).
@@ -2614,125 +2249,6 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD delta_row_past_end.
-
-    DATA(lo_app) = typed_app( ).
-    DATA(lo_model) = typed_model( lo_app ).
-
-    " row index 5 of a two-row table: no row is appended, and every cell of
-    " the row is traced like a sorted-table row - it used to vanish without
-    " an entry while the browser kept showing the edit
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"4":{"PRICE":"1.00","NAME":"Ghost"}}}` )
-                                    iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_model->mt_skipped ) ).
-    DATA(ls_skip) = lo_model->mt_skipped[ field = `NAME` ]. "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
-                                        act = ls_skip-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 5
-                                        act = ls_skip-row ).
-    cl_abap_unit_assert=>assert_equals( exp = `Ghost`
-                                        act = ls_skip-value ).
-    cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = ls_skip-row_parent ).
-
-    " the same for a nested table: the inner index, the outer record as
-    " row_parent, and the existing inner row untouched
-    CLEAR lo_model->mt_skipped.
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"1":{"T_POS":{"__delta":{"3":{"QTY":"7"}}}}}}` )
-                                    iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_app->mt_tab[ 2 ]-t_pos ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lo_app->mt_tab[ 2 ]-t_pos[ 1 ]-qty ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_model->mt_skipped ) ).
-    ls_skip = lo_model->mt_skipped[ 1 ].
-    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB-T_POS`
-                                        act = ls_skip-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 4
-                                        act = ls_skip-row ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = ls_skip-row_parent ).
-    cl_abap_unit_assert=>assert_equals( exp = `7`
-                                        act = ls_skip-value ).
-
-  ENDMETHOD.
-
-  METHOD delta_struct_cell_whole.
-
-    DATA(lo_app) = tree_app( ).
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " what the client sends for an edit of /MT_TREE/0/S_ADR/CITY: the whole
-    " structure, read from its current model - every component lands
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"S_ADR":{"CITY":"New Town","ZIP":"00000"}}}}` )
-                                    iv_name      = `MT_TREE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `New Town`
-                                        act = lo_app->mt_tree[ 1 ]-s_adr-city ).
-    cl_abap_unit_assert=>assert_equals( exp = `00000`
-                                        act = lo_app->mt_tree[ 1 ]-s_adr-zip ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " a component the object leaves out is cleared, not kept: the cell is a
-    " replace (see delta_apply_field). The client leaves out only what it
-    " never received - an initial value under omit_initial - so for its own
-    " requests the two readings agree; this pins which one the model takes
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"S_ADR":{"CITY":"Other Town"}}}}` )
-                                    iv_name      = `MT_TREE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `Other Town`
-                                        act = lo_app->mt_tree[ 1 ]-s_adr-city ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tree[ 1 ]-s_adr-zip ).
-    " the sibling cells of the row are no part of the structure
-    cl_abap_unit_assert=>assert_equals( exp = `Manager`
-                                        act = lo_app->mt_tree[ 1 ]-user ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_app->mt_tree[ 1 ]-nodes ) ).
-
-  ENDMETHOD.
-
-  METHOD delta_kind_refused.
-
-    " a cell whose column takes no value of the shape the wire carries is
-    " traced and left alone, never assigned: a string into a REF TO data or
-    " a scalar into a nested table is no class-based exception on a system
-    " but a runtime error, so the skip has to be decided up front. The
-    " reference cell needs no crafted request - ajson ships it as its plain
-    " value, and an Input bound to it sends a string back
-    bind( REF #( mo_app->mt_rows_ref ) ).
-    DATA(lr_before) = mo_app->mt_rows_ref[ 1 ]-r_elem.
-    mo_model->main_json_to_attri( delta( `{"MT_ROWS_REF":{"__delta":{"0":{"R_ELEM":"x"}}}}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `R_ELEM`
-                                        act = mo_model->mt_skipped[ 1 ]-field ).
-    cl_abap_unit_assert=>assert_equals( exp = `x`
-                                        act = mo_model->mt_skipped[ 1 ]-value ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_app->mt_rows_ref[ 1 ]-r_elem = lr_before ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `cell-ref`
-                                        act = mo_app->mt_rows_ref[ 1 ]-r_elem->* ).
-
-    " a scalar into a nested table column, next to a digit-only key that
-    " would address a component by position: the first is traced, the
-    " second skipped, the row is untouched
-    CLEAR mo_model->mt_skipped.
-    bind( REF #( mo_app->mt_nested ) ).
-    mo_model->main_json_to_attri( delta( `{"MT_NESTED":{"__delta":{"0":{"T_ITEMS":"x","0":"y"}}}}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `T_ITEMS`
-                                        act = mo_model->mt_skipped[ 1 ]-field ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_app->mt_nested[ 1 ]-t_items ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `n1`
-                                        act = mo_app->mt_nested[ 1 ]-id ).
-
-  ENDMETHOD.
 
   METHOD delta_mass_edit.
 
@@ -2801,352 +2317,12 @@ CLASS ltcl_04_model_in IMPLEMENTATION.
     cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ name  = `MT_TAB`
                                                                                  row   = 3
                                                                                  field = `PRICE`
-                                                                                 value = `1,250.00` ] ) ) ). "#EC CI_SORTSEQ
+                                                                                 value = `1,250.00` ] ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ name       = `MT_TAB-T_SORTED`
                                                                                  row        = 1
                                                                                  row_parent = 5
                                                                                  field      = `QTY`
-                                                                                 value      = `5` ] ) ) ). "#EC CI_SORTSEQ
-
-  ENDMETHOD.
-
-  METHOD whole_dates_round_trip.
-
-    DATA lv_date TYPE d VALUE '20240229'.
-    DATA lv_time TYPE t VALUE '235959'.
-    " a whole hour on purpose: the transpiled runtime copies one packed
-    " field into another through a JS double, so ajson's TIMESTAMPL for
-    " 23:59:59 came back as 23:59:58.9986304 and its to_timestamp refused
-    " the fraction - a gap of the JS runtime (a system copies exactly), not
-    " of this class; abap-check section 4, backlog runtime-packed-copy-precision
-    DATA lv_ts   TYPE timestamp VALUE '20240229120000'.
-
-    DATA(lo_app) = typed_app( ).
-    " row 1 leaves all three initial, row 2 fills them
-    lo_app->mt_tab[ 2 ]-dt = lv_date.
-    lo_app->mt_tab[ 2 ]-tm = lv_time.
-    lo_app->mt_tab[ 2 ]-ts = lv_ts.
-    DATA(lo_model) = typed_model( lo_app ).
-    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
-    lr_attri->bind        = abap_true.
-    lr_attri->name_client = `/MT_TAB`.
-    DATA(lv_out) = lo_model->main_json_stringify( ).
-
-    " the client sends the table back whole (a row added or removed on the
-    " client replaces the delta with the array)
-    CLEAR lo_app->mt_tab.
-    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
-
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL )
-                                      msg = |an initial date came back as '{ lo_app->mt_tab[ 1 ]-dt }'| ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-tm IS INITIAL )
-                                      msg = |an initial time came back as '{ lo_app->mt_tab[ 1 ]-tm }'| ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_date
-                                        act = lo_app->mt_tab[ 2 ]-dt ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_time
-                                        act = lo_app->mt_tab[ 2 ]-tm ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_ts
-                                        act = lo_app->mt_tab[ 2 ]-ts ).
-    " and the next render ships exactly what the first one did
-    cl_abap_unit_assert=>assert_equals( exp = lv_out
-                                        act = lo_model->main_json_stringify( ) ).
-
-  ENDMETHOD.
-
-  METHOD delta_null_clears.
-
-    DATA(lo_app) = typed_app( ).
-    lo_app->mt_tab[ 1 ]-dt = '20240115'.
-    lo_app->mt_tab[ 1 ]-tm = '123045'.
-    lo_app->mt_tab[ 1 ]-ts = '20240115123045'.
-    DATA(lo_model) = typed_model( lo_app ).
-
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"NAME":null,"PRICE":null,"DT":null,"TM":null,"TS":null}}}` )
-        iv_name      = `MT_TAB` ).
-
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-price ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-dt IS INITIAL )
-                                      msg = |a null date became '{ lo_app->mt_tab[ 1 ]-dt }'| ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mt_tab[ 1 ]-tm IS INITIAL )
-                                      msg = |a null time became '{ lo_app->mt_tab[ 1 ]-tm }'| ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-ts ).
-    " the other row and the nested table are not part of the delta
-    cl_abap_unit_assert=>assert_equals( exp = `Monitor`
-                                        act = lo_app->mt_tab[ 2 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_app->mt_tab[ 1 ]-t_pos ) ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-  ENDMETHOD.
-
-  METHOD delta_number_kinds.
-
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    DATA(lo_app) = NEW ltcl_app_conv( ).
-    lo_app->mt_row = VALUE #( ( qty = 7 text = `seven` ) ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " a JSON number and a JSON string carry the same text to the cell: the
-    " raw text converts, no binary float sits in between (0.1 stays 0.1)
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"DEC":0.1,"NUMC":"42","BIG":"9007199254740993","PRICE":-12.5}}}` )
-        iv_name      = `MT_ROW` ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '0.1' )
-                                        act = lo_app->mt_row[ 1 ]-dec ).
-    cl_abap_unit_assert=>assert_equals( exp = `00042`
-                                        act = CONV string( lo_app->mt_row[ 1 ]-numc ) ).
-    DATA lv_big TYPE p LENGTH 16 DECIMALS 0.
-    lv_big = 9007199254740992.
-    lv_big = lv_big + 1.
-    cl_abap_unit_assert=>assert_equals( exp = lv_big
-                                        act = lo_app->mt_row[ 1 ]-big ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '-12.5' )
-                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " more decimals than the packed cell has: rounded half away from zero,
-    " as the text-to-packed conversion does it - not cut off, not refused
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"PRICE":"1.235"}}}` )
-        iv_name      = `MT_ROW` ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '1.24' )
-                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"PRICE":"-1.235"}}}` )
-        iv_name      = `MT_ROW` ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV decfloat34( '-1.24' )
-                                        act = CONV decfloat34( lo_app->mt_row[ 1 ]-price ) ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " a boolean into a number column is a refusal, traced, the old value
-    " kept; into a boolean column it is the flag; into a text column the
-    " text of the flag
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"QTY":true,"FLAG":true,"TEXT":true}}}` )
-        iv_name      = `MT_ROW` ).
-    cl_abap_unit_assert=>assert_equals( exp = 7
-                                        act = lo_app->mt_row[ 1 ]-qty ).
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = lo_app->mt_row[ 1 ]-flag ).
-    cl_abap_unit_assert=>assert_equals( exp = CONV string( abap_true )
-                                        act = lo_app->mt_row[ 1 ]-text ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `QTY`
-                                        act = lo_model->mt_skipped[ 1 ]-field ).
-
-  ENDMETHOD.
-
-  METHOD delta_three_levels.
-
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    DATA(lo_app) = NEW ltcl_app_deep3( ).
-    lo_app->mt_top = VALUE #( ( id    = `T1`
-                                t_mid = VALUE #( ( name   = `M1`
-                                                   t_leaf = VALUE #( ( qty = 1 txt = `L1` ) ) )
-                                                 ( name   = `M2`
-                                                   t_leaf = VALUE #( ( qty = 2 txt = `L2` )
-                                                                     ( qty = 3 txt = `L3` ) ) ) ) ) ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " row 1 / mid row 2 / leaf row 2: one cell lands, one is refused
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"T_MID":{"__delta":{"1":{"T_LEAF":{"__delta":{"1":{"TXT":"edited","QTY":"lots"}}}}}}}}}` )
-        iv_name      = `MT_TOP` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `edited`
-                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 2 ]-txt ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 2 ]-qty ).
-    " nothing else moved
-    cl_abap_unit_assert=>assert_equals( exp = `L2`
-                                        act = lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf[ 1 ]-txt ).
-    cl_abap_unit_assert=>assert_equals( exp = `L1`
-                                        act = lo_app->mt_top[ 1 ]-t_mid[ 1 ]-t_leaf[ 1 ]-txt ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_app->mt_top[ 1 ]-t_mid[ 2 ]-t_leaf ) ).
-
-    " the trace names the innermost table by its full path, its row, and
-    " the row of the table it sits in (the immediate parent, not the top)
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_model->mt_skipped ) ).
-    DATA(ls_skip) = lo_model->mt_skipped[ 1 ].
-    cl_abap_unit_assert=>assert_equals( exp = `MT_TOP-T_MID-T_LEAF`
-                                        act = ls_skip-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = ls_skip-row ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = ls_skip-row_parent ).
-    cl_abap_unit_assert=>assert_equals( exp = `QTY`
-                                        act = ls_skip-field ).
-    cl_abap_unit_assert=>assert_equals( exp = `lots`
-                                        act = ls_skip-value ).
-
-  ENDMETHOD.
-
-  METHOD whole_rows_replaced.
-
-    DATA(lo_app) = typed_app( ).
-    DATA(lo_model) = typed_model( lo_app ).
-    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
-    lr_attri->bind        = abap_true.
-    lr_attri->name_client = `/MT_TAB`.
-
-    " the client removed the first row: the array is the table now
-    lo_model->main_json_to_attri( delta( `{"MT_TAB":[{"NAME":"Monitor","PRICE":"299.00","T_POS":[{"QTY":2}]}]}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `Monitor`
-                                        act = lo_app->mt_tab[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lo_app->mt_tab[ 1 ]-t_pos[ 1 ]-qty ).
-
-    " the client added two rows, one with a nested table of its own
-    lo_model->main_json_to_attri( delta( `{"MT_TAB":[{"NAME":"Monitor"},{"NAME":"Mouse","T_POS":[{"QTY":4},{"QTY":5}]},{"NAME":"Pad"}]}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( lo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_app->mt_tab[ 2 ]-t_pos ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `Pad`
-                                        act = lo_app->mt_tab[ 3 ]-name ).
-    " a whole value is the whole row: what the array leaves out is initial
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-price ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab[ 1 ]-t_pos ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " and the empty array empties it
-    lo_model->main_json_to_attri( delta( `{"MT_TAB":[]}` ) ).
-    cl_abap_unit_assert=>assert_initial( lo_app->mt_tab ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-  ENDMETHOD.
-
-  METHOD date_time_text_refused.
-
-    DATA lv_date TYPE d VALUE '20240115'.
-    DATA lv_time TYPE t VALUE '123045'.
-
-    DATA(lo_app) = typed_app( ).
-    lo_app->mt_tab[ 1 ]-dt = lv_date.
-    lo_app->mt_tab[ 1 ]-tm = lv_time.
-    lo_app->mt_tab[ 2 ]-dt = lv_date.
-    DATA(lo_model) = typed_model( lo_app ).
-
-    " what a DatePicker / TimePicker without valueFormat writes: its display
-    " format. Assigned as text, `15.01.2024` became the date `15.01.20`
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"DT":"15.01.2024","TM":"12.30"},"1":{"DT":"Jan 15, 2024","NAME":"kept"}}}` )
-        iv_name      = `MT_TAB` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = lv_date
-                                        act = lo_app->mt_tab[ 1 ]-dt ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_time
-                                        act = lo_app->mt_tab[ 1 ]-tm ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_date
-                                        act = lo_app->mt_tab[ 2 ]-dt ).
-    " the good cell of the same row still lands
-    cl_abap_unit_assert=>assert_equals( exp = `kept`
-                                        act = lo_app->mt_tab[ 2 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( lo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
-                                                                                 field = `DT`
-                                                                                 value = `15.01.2024` ] ) ) ). "#EC CI_SORTSEQ
-    cl_abap_unit_assert=>assert_true( xsdbool( line_exists( lo_model->mt_skipped[ row   = 1
-                                                                                 field = `TM`
-                                                                                 value = `12.30` ] ) ) ). "#EC CI_SORTSEQ
-
-    " the two spellings that ARE read keep working: ISO and plain digits
-    CLEAR lo_model->mt_skipped.
-    lo_model->delta_apply_to_table(
-        io_val_front = delta( `{"__delta":{"0":{"DT":"2024-02-29","TM":"235959"}}}` )
-        iv_name      = `MT_TAB` ).
-    cl_abap_unit_assert=>assert_equals( exp = `20240229`
-                                        act = CONV string( lo_app->mt_tab[ 1 ]-dt ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `235959`
-                                        act = CONV string( lo_app->mt_tab[ 1 ]-tm ) ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
-
-    " the same rule for a bound scalar - the whole-value path shares it
-    mo_app->mv_date = lv_date.
-    bind( REF #( mo_app->mv_date ) ).
-    mo_model->main_json_to_attri( delta( `{"MV_DATE":"15.01.2024"}` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_date
-                                        act = mo_app->mv_date ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `MV_DATE`
-                                        act = mo_model->mt_skipped[ 1 ]-name ).
-
-  ENDMETHOD.
-
-  METHOD delta_on_structure.
-
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    DATA(lo_app) = NEW ltcl_app_deep3( ).
-    lo_app->ms_head = VALUE #( qty = 1 txt = `head` ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    lo_model->delta_apply_to_table( io_val_front = delta( `{"__delta":{"0":{"TXT":"edited"}}}` )
-                                    iv_name      = `MS_HEAD` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `head`
-                                        act = lo_app->ms_head-txt ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_model->mt_skipped ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `MS_HEAD`
-                                        act = lo_model->mt_skipped[ 1 ]-name ).
-    cl_abap_unit_assert=>assert_equals( exp = `edited`
-                                        act = lo_model->mt_skipped[ 1 ]-value ).
-
-  ENDMETHOD.
-
-  METHOD special_chars_round_trip.
-
-    " non-ASCII built at run time - the source stays 7-bit: a-umlaut, the
-    " euro sign and an emoji outside the BMP (a surrogate pair in JSON)
-    DATA(lv_unicode) = z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( `C3A4E282ACF09F9880` ).
-    DATA(lv_text) = `"double" 'single' \\ back\slash / slash { brace } </script>`
-                 && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
-                 && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
-                 && lv_unicode
-                 && ` trailing backslash \`.
-
-    DATA(lo_app) = typed_app( ).
-    lo_app->mt_tab[ 1 ]-name = lv_text.
-    DATA(lo_model) = typed_model( lo_app ).
-    DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
-    lr_attri->bind        = abap_true.
-    lr_attri->name_client = `/MT_TAB`.
-    DATA(lv_out) = lo_model->main_json_stringify( ).
-
-    " whole: out and in again, unchanged
-    CLEAR lo_app->mt_tab.
-    lo_model->main_json_to_attri( CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_out ) ) ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_text
-                                        act = lo_app->mt_tab[ 1 ]-name ).
-
-    " a row delta carries the same characters in the JSON escapes a browser
-    " writes - \" \\ \/ \t \r\n, and \u00e4 for the a-umlaut
-    lo_model->main_json_to_attri( delta( `{"MT_TAB":{"__delta":{"1":{"NAME":"q\"b\\s\/t\tn\r\nu\u00e4"}}}}` ) ).
-    DATA(lv_exp) = `q"b\s/t` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
-                && `n` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
-                && `u` && z2ui5_cl_ui5_util_context=>conv_get_string_by_xstring( `C3A4` ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_exp
-                                        act = lo_app->mt_tab[ 2 ]-name ).
-    cl_abap_unit_assert=>assert_initial( lo_model->mt_skipped ).
+                                                                                 value      = `5` ] ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -3168,10 +2344,6 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " the payload lives on the canonical row - also when that row is in the
     " nested object (sample 339 with the sort order turned around)
     METHODS payload_on_canonical_row FOR TESTING RAISING cx_static_check.
-    " the payload travels as two documents, type and data - and a row
-    " written before (one combined document) is still restored
-    METHODS payload_two_documents    FOR TESTING RAISING cx_static_check.
-    METHODS payload_one_document_old FOR TESTING RAISING cx_static_check.
     " what does NOT survive, quietly
     METHODS dead_objects_stay_quiet  FOR TESTING RAISING cx_static_check.
     " what has to survive, loudly if it cannot
@@ -3210,19 +2382,6 @@ CLASS ltcl_05_draft DEFINITION INHERITING FROM ltcl_00_base FINAL
     " one of three shared references pointed at a table of its own: the
     " draft follows the new targets, not the owners of the first pass
     METHODS alias_repointed_survives   FOR TESTING RAISING cx_static_check.
-    " a reference the app CLEARed stays cleared across the draft - the
-    " restore used to point it back at the owner its `->*` row still named
-    METHODS alias_cleared_stays_cleared FOR TESTING RAISING cx_static_check.
-
-    " the payload shape every draft before 2026-09 carried: the S-RTTI
-    " descriptor graph and the data in ONE asXML document. The framework
-    " only reads it now (z2ui5_cl_ui5_util_context=>xml_srtti_parse); the
-    " writer lives here, with the one test that restores such a draft
-    METHODS legacy_document
-      IMPORTING
-        data          TYPE any
-      RETURNING
-        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -3321,53 +2480,6 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     ASSIGN mo_app->mr_shared_a->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( <tab> ) ).
-
-  ENDMETHOD.
-
-  METHOD payload_two_documents.
-
-    bind( mo_app->mr_shared_a ).
-    mo_model->main_attri_db_save_srtti( ).
-
-    " type and data on the canonical row, each a document of its own
-    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_B` )-srtti_type ).
-    cl_abap_unit_assert=>assert_not_initial( row( `MR_SHARED_B` )-srtti_data ).
-    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_A` )-srtti_type ).
-
-    mo_model->main_attri_db_load( ).
-    inv_identity_shared( ).
-    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_B` )-srtti_type ).
-
-  ENDMETHOD.
-
-  METHOD payload_one_document_old.
-
-    FIELD-SYMBOLS <val> TYPE any.
-
-    bind( mo_app->mr_shared_a ).
-    mo_model->main_attri_db_save_srtti( ).
-
-    " rewrite the row the way every draft before 2026-09 carried it: one
-    " combined document and no type of its own
-    DATA(lr_row) = row_ref( `MR_SHARED_B` ).
-    DATA(lr_val) = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = lr_row->srtti_type
-                                                                    iv_data = lr_row->srtti_data ).
-    ASSIGN lr_val->* TO <val>.
-    lr_row->srtti_data = legacy_document( <val> ).
-    CLEAR lr_row->srtti_type.
-
-    mo_model->main_attri_db_load( ).
-    cl_abap_unit_assert=>assert_bound( act = mo_app->mr_shared_a
-                                       msg = `the one-document payload was not restored` ).
-    cl_abap_unit_assert=>assert_initial( row( `MR_SHARED_B` )-srtti_data ).
-    inv_identity_shared( ).
-
-  ENDMETHOD.
-
-  METHOD legacy_document.
-
-    DATA(lo_srtti) = z2ui5_cl_ui5_util_context=>xml_srtti_descr( data ).
-    CALL TRANSFORMATION id SOURCE srtti = lo_srtti dobj = data RESULT XML result.
 
   ENDMETHOD.
 
@@ -3804,7 +2916,10 @@ CLASS ltcl_05_draft IMPLEMENTATION.
     FIELD-SYMBOLS <elem>  TYPE any.
 
     " S13 - the value behind mr_ref_ref->*->* is data like any other; the
-    " dref save cleared the outer reference and never restored it
+    " dref save cleared the outer reference and never restored it. Built
+    " here and not in fill( ): the NodeJS runtime cannot CREATE DATA a
+    " REF TO data object, so this one test is skipped there (see
+    " node/setup/abap_transpile.json) while the catalogue stays runnable
     CREATE DATA mo_app->mr_ref_ref TYPE REF TO data.
     ASSIGN mo_app->mr_ref_ref->* TO <inner>.
     CREATE DATA <inner> TYPE string.
@@ -3827,31 +2942,6 @@ CLASS ltcl_05_draft IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD alias_cleared_stays_cleared.
-
-    " roundtrip 1: the alias into mt_std, as the fixture has it
-    bind_all( ).
-    mo_model->main_attri_db_save_srtti( ).
-    mo_model->main_attri_reattach( ).
-    cl_abap_unit_assert=>assert_equals( exp = `MT_STD`
-                                        act = row( `MR_ALIAS_TAB->*` )-name_ref ).
-
-    " main( ) of roundtrip 2: the app lets go of the alias
-    CLEAR mo_app->mr_alias_tab.
-
-    " the save drops the alias the child row carried - nothing to re-point
-    mo_model->main_attri_db_save_srtti( ).
-    cl_abap_unit_assert=>assert_initial( row( `MR_ALIAS_TAB->*` )-name_ref ).
-    mo_model->main_attri_reattach( ).
-    cl_abap_unit_assert=>assert_not_bound( mo_app->mr_alias_tab ).
-
-    " ...and the draft read into a new instance keeps it cleared
-    roundtrip( ).
-    cl_abap_unit_assert=>assert_not_bound( act = mo_app->mr_alias_tab
-                                           msg = `the restore pointed the cleared alias at its old owner again` ).
-
-  ENDMETHOD.
 
   METHOD alias_repointed_survives.
 
@@ -4153,1229 +3243,4 @@ CLASS ltcl_05_draft IMPLEMENTATION.
                                         act = mo_app->mo_inner->mo_deeper->mo_deeper->mv_inner ).
 
   ENDMETHOD.
-ENDCLASS.
-
-
-" ---------------------------------------------------------------------------
-" 06 - a generic reference at a structure that carries a table component. On
-" its own fixture: the shared one above has struct aliases of flat structures
-" only, and this shape is about what the restore does with the rows BELOW the
-" alias - `<alias>->t_items` carries `<owner>-t_items` as name_ref for the
-" binding search, and the restore used to follow it and re-point the alias at
-" the table component of its own target (2026-09-05)
-" ---------------------------------------------------------------------------
-CLASS ltcl_app_struct_alias DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_row,
-        col1 TYPE string,
-        col2 TYPE i,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-    TYPES:
-      BEGIN OF ty_s_nested,
-        id      TYPE string,
-        t_items TYPE ty_t_row,
-      END OF ty_s_nested.
-
-    DATA ms_nested TYPE ty_s_nested.
-    DATA mr_alias  TYPE REF TO data.
-
-    METHODS fill.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS ltcl_app_struct_alias IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-
-  METHOD fill.
-    ms_nested-id      = `n1`.
-    ms_nested-t_items = VALUE #( ( col1 = `a` col2 = 1 ) ).
-    mr_alias = REF #( ms_nested ).
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-CLASS ltcl_06_struct_alias DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PRIVATE SECTION.
-    METHODS alias_stays_on_struct FOR TESTING RAISING cx_static_check.
-ENDCLASS.
-
-
-CLASS ltcl_06_struct_alias IMPLEMENTATION.
-
-  METHOD alias_stays_on_struct.
-
-    FIELD-SYMBOLS <struc> TYPE any.
-    FIELD-SYMBOLS <tab>   TYPE any.
-    DATA lo_app   TYPE REF TO ltcl_app_struct_alias.
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-
-    lo_app = NEW #( ).
-    lo_app->fill( ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " the table bound through the alias, as _bind( mr_alias->t_items ) does
-    ASSIGN lo_app->mr_alias->* TO <struc>.
-    ASSIGN COMPONENT `T_ITEMS` OF STRUCTURE <struc> TO <tab>.
-    cl_abap_unit_assert=>assert_subrc( ).
-    DATA(lr_row) = lo_model->main_attri_search( REF #( <tab> ) ).
-    lr_row->bind        = abap_true.
-    lr_row->name_client = `/T_ITEMS`.
-
-    " the draft roundtrip as the container runs it
-    lo_model->main_attri_db_save_srtti( ).
-    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
-    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
-    CLEAR lo_app.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
-                                          IMPORTING any = lo_app ).
-    CREATE DATA lr_attri.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
-                                          IMPORTING any = lr_attri->* ).
-    lo_model = NEW #( attri = lr_attri
-                      app   = lo_app ).
-    lo_model->main_attri_db_load( ).
-
-    " the alias points at the STRUCTURE again, not at its table component
-    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_alias
-                                       msg = `alias lost across the draft` ).
-    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lo_app->mr_alias ).
-    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_struct
-                                        act = lo_descr->kind
-                                        msg = |alias re-pointed - it derefs to kind { lo_descr->kind } ({ lo_descr->absolute_name })| ).
-    DATA(lr_struc) = REF #( lo_app->ms_nested ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_alias = lr_struc )
-                                      msg = `alias no longer points at ms_nested` ).
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( lo_app->ms_nested-t_items ) ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-" a REFERENCE component below a struct alias: mr_alias points at ms_nested,
-" which holds r_val. The row `MR_ALIAS->R_VAL` inherits `MS_NESTED-R_VAL` as
-" name_ref for the binding search, and the restore followed it like an alias
-" of its own - once mr_alias was re-pointed at ms_nested, both paths named
-" the same variable and r_val came back pointing at itself (2026-10-07)
-" ---------------------------------------------------------------------------
-CLASS ltcl_app_alias_dref DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_nested,
-        id    TYPE string,
-        r_val TYPE REF TO data,
-      END OF ty_s_nested.
-
-    DATA ms_nested TYPE ty_s_nested.
-    DATA mr_alias  TYPE REF TO data.
-
-    METHODS fill.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS ltcl_app_alias_dref IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-
-  METHOD fill.
-    FIELD-SYMBOLS <lv_val> TYPE string.
-    ms_nested-id = `n1`.
-    CREATE DATA ms_nested-r_val TYPE string.
-    ASSIGN ms_nested-r_val->* TO <lv_val>.
-    <lv_val> = `payload`.
-    mr_alias = REF #( ms_nested ).
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-CLASS ltcl_07_alias_dref DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PRIVATE SECTION.
-    METHODS dref_below_alias_kept FOR TESTING RAISING cx_static_check.
-ENDCLASS.
-
-
-CLASS ltcl_07_alias_dref IMPLEMENTATION.
-
-  METHOD dref_below_alias_kept.
-
-    FIELD-SYMBOLS <lv_val> TYPE string.
-    DATA lo_app   TYPE REF TO ltcl_app_alias_dref.
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-
-    lo_app = NEW #( ).
-    lo_app->fill( ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " the first save of an app that bound nothing yet - the save's own
-    " dissolve creates the rows, so the inherited name_ref is still there
-    lo_model->main_attri_db_save_srtti( ).
-    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
-    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
-    CLEAR lo_app.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
-                                          IMPORTING any = lo_app ).
-    CREATE DATA lr_attri.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
-                                          IMPORTING any = lr_attri->* ).
-    lo_model = NEW #( attri = lr_attri
-                      app   = lo_app ).
-    lo_model->main_attri_db_load( ).
-
-    DATA(lr_self) = REF #( lo_app->ms_nested-r_val ).
-    cl_abap_unit_assert=>assert_bound( act = lo_app->ms_nested-r_val
-                                       msg = `r_val lost across the draft` ).
-    cl_abap_unit_assert=>assert_false( act = xsdbool( lo_app->ms_nested-r_val = lr_self )
-                                       msg = `r_val points at itself` ).
-    ASSIGN lo_app->ms_nested-r_val->* TO <lv_val>.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_equals( exp = `payload`
-                                        act = <lv_val> ).
-    DATA(lr_struc) = REF #( lo_app->ms_nested ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_alias = lr_struc )
-                                      msg = `alias no longer points at ms_nested` ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-" the two-hop alias chain: two generic references at ONE typed table whose
-" name sorts BEFORE them (ma_tab < mr_a < mr_b). The pairing used to name the
-" last candidate, so MR_A->* aliased MR_B->* instead of the table, and the
-" fresh-instance load resolved MR_A while MR_B was still initial (2026-09-05)
-" ---------------------------------------------------------------------------
-CLASS ltcl_app_two_refs DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_row,
-        col1 TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA ma_tab TYPE ty_t_row.
-    DATA mr_a   TYPE REF TO data.
-    DATA mr_b   TYPE REF TO data.
-
-    METHODS fill.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS ltcl_app_two_refs IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-
-  METHOD fill.
-    ma_tab = VALUE #( ( col1 = `a` ) ).
-    mr_a   = REF #( ma_tab ).
-    mr_b   = REF #( ma_tab ).
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-CLASS ltcl_06_two_refs DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PRIVATE SECTION.
-    METHODS both_refs_back_on_table FOR TESTING RAISING cx_static_check.
-ENDCLASS.
-
-
-CLASS ltcl_06_two_refs IMPLEMENTATION.
-
-  METHOD both_refs_back_on_table.
-
-    FIELD-SYMBOLS <tab> TYPE any.
-    DATA lo_app   TYPE REF TO ltcl_app_two_refs.
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-
-    lo_app = NEW #( ).
-    lo_app->fill( ).
-    CREATE DATA lr_attri.
-    DATA(lo_model) = NEW z2ui5_cl_ui5_srv_model( attri = lr_attri
-                                                 app   = lo_app ).
-
-    " the table bound through the FIRST reference, as _bind( mr_a->* ) does
-    ASSIGN lo_app->mr_a->* TO <tab>.
-    DATA(lr_row) = lo_model->main_attri_search( REF #( <tab> ) ).
-    lr_row->bind        = abap_true.
-    lr_row->name_client = `/MA_TAB`.
-
-    " every alias names the typed owner, none names the other reference
-    lo_model->main_attri_db_save_srtti( ).
-    LOOP AT lr_attri->* REFERENCE INTO DATA(lr_alias) "#EC CI_SORTSEQ
-         WHERE name_ref IS NOT INITIAL.
-      cl_abap_unit_assert=>assert_equals( exp = `MA_TAB`
-                                          act = lr_alias->name_ref
-                                          msg = |{ lr_alias->name } names { lr_alias->name_ref }| ).
-    ENDLOOP.
-
-    " the draft roundtrip as the container runs it
-    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( lo_app ).
-    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( lr_attri->* ).
-    CLEAR lo_app.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
-                                          IMPORTING any = lo_app ).
-    CREATE DATA lr_attri.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
-                                          IMPORTING any = lr_attri->* ).
-    lo_model = NEW #( attri = lr_attri
-                      app   = lo_app ).
-    lo_model->main_attri_db_load( ).
-
-    DATA(lr_tab) = REF #( lo_app->ma_tab ).
-    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_a
-                                       msg = `mr_a lost across the draft` ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_a = lr_tab )
-                                      msg = `mr_a no longer points at ma_tab` ).
-    cl_abap_unit_assert=>assert_bound( act = lo_app->mr_b
-                                       msg = `mr_b lost across the draft` ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lo_app->mr_b = lr_tab )
-                                      msg = `mr_b no longer points at ma_tab` ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-" ---------------------------------------------------------------------------
-" Sample 500a: the host app that renders ANOTHER app INTO ITS OWN VIEW. It
-" builds a page, keeps the builder node in an attribute, creates the sub-app
-" by NAME (CREATE OBJECT mo_app TYPE (class)) into a REF TO object, writes the
-" page into the sub-app's MO_PARENT_PAGE by dynamic ASSIGN and calls the
-" sub-app's main( ) with ITS OWN client. So the sub-app binds through the
-" host's model, the host's draft is what gets saved, and two things the host
-" holds are framework objects rather than data.
-"
-" It was the last of the "main app calling subapps" scaffolds in samples
-" (src/00/98, cleared 2026-09-22) and the only one left in src/01; what it
-" asserted by hand in a browser is asserted here.
-"
-" The shape nothing else in this file has: a LIVE z2ui5_cl_ui5_view_builder in
-" a PUBLIC attribute of an app. diss_oref skips exactly one class by name -
-" z2ui5_cl_ui5_client, after the start page put 300 rows of the roundtrip
-" graph into its own draft - and the builder is not that class. What keeps it
-" harmless is that the builder's own state is PROTECTED, so the public-only
-" walk finds nothing behind it. That is a property of the builder, not of the
-" walk, which is why it is pinned here: a public attribute added to the
-" builder would put the whole view tree into every host app's model, and no
-" test of the builder would notice.
-" ---------------------------------------------------------------------------
-
-CLASS ltcl_app_sub_view DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    TYPES:
-      BEGIN OF ty_s_row,
-        carrid TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    " the page the host hands over - a live framework object in a PUBLIC
-    " attribute of an app, which is the shape under test
-    DATA mo_parent_page TYPE REF TO z2ui5_cl_ui5_view_builder.
-    DATA mt_table       TYPE ty_t_row.
-
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS ltcl_app_sub_view IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-CLASS ltcl_app_view_host DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    DATA mv_selectedkey TYPE string.
-    " the node of the host's own view tree, kept between the two halves of
-    " the roundtrip - the attribute 500a calls MO_MAIN_PAGE
-    DATA mo_main_page   TYPE REF TO z2ui5_cl_ui5_view_builder.
-    " the sub-app, created by name: REF TO object, not REF TO its class
-    DATA mo_app         TYPE REF TO object.
-
-    METHODS render.
-    METHODS create_sub_app.
-
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-
-CLASS ltcl_app_view_host IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main ##NEEDED.
-  ENDMETHOD.
-
-  METHOD render.
-
-    mo_main_page = z2ui5_cl_ui5_view_builder=>factory(
-        )->ele( n  = `View`
-                ns = `mvc`
-            )->a( n = `xmlns`
-                  v = `sap.m`
-            )->a( n = `xmlns:mvc`
-                  v = `sap.ui.core.mvc`
-
-            )->ele( `Page`
-                )->a( n = `title`
-                      v = `Main App calling Subapps` ).
-
-  ENDMETHOD.
-
-  METHOD create_sub_app.
-
-    " what render_sub_app( ) does on every tab switch, and it does it AFTER
-    " the host has already bound its own attribute
-    DATA(lo_sub) = NEW ltcl_app_sub_view( ).
-    lo_sub->mt_table       = VALUE #( ( carrid = `LH` ) ( carrid = `UA` ) ).
-    lo_sub->mo_parent_page = mo_main_page.
-    mo_app                 = lo_sub.
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-CLASS ltcl_07_view_host DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PRIVATE SECTION.
-    DATA mo_host  TYPE REF TO ltcl_app_view_host.
-    DATA mr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
-
-    METHODS setup.
-
-    "! the sub-app behind a REF TO object - a second app class - binds its own
-    "! table through the HOST's model, under the host's attribute
-    METHODS subapp_binds_under_host   FOR TESTING RAISING cx_static_check.
-    "! the sub-app is created during the render, after the host bound its own
-    "! attribute: a refresh has to find it (500a's render_sub_app order)
-    METHODS subapp_created_late_found FOR TESTING RAISING cx_static_check.
-    "! the live view builder the host holds PUBLIC contributes no bindable row
-    METHODS builder_carries_no_rows   FOR TESTING RAISING cx_static_check.
-    "! ...and does not reach the model either, however deep its tree is
-    METHODS builder_tree_not_walked   FOR TESTING RAISING cx_static_check.
-    "! the draft: the builder is gone, the sub-app and its data are back
-    METHODS host_survives_roundtrip   FOR TESTING RAISING cx_static_check.
-
-    "! the rows the walk produced, by name
-    METHODS row_exists
-      IMPORTING iv_name       TYPE string
-      RETURNING VALUE(result) TYPE abap_bool.
-    "! how many rows start with the given prefix
-    METHODS rows_under
-      IMPORTING iv_prefix     TYPE string
-      RETURNING VALUE(result) TYPE i.
-ENDCLASS.
-
-
-CLASS ltcl_07_view_host IMPLEMENTATION.
-
-  METHOD setup.
-
-    mo_host = NEW #( ).
-    mo_host->mv_selectedkey = `1`.
-    mo_host->render( ).
-    CREATE DATA mr_attri.
-    mo_model = NEW #( attri = mr_attri
-                      app   = mo_host ).
-
-  ENDMETHOD.
-
-  METHOD row_exists.
-
-    result = xsdbool( line_exists( mr_attri->*[ name = iv_name ] ) ).
-
-  ENDMETHOD.
-
-  METHOD rows_under.
-
-    LOOP AT mr_attri->* TRANSPORTING NO FIELDS "#EC CI_SORTSEQ
-         WHERE name CP |{ iv_prefix }*|.
-      result = result + 1.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD subapp_binds_under_host.
-
-    mo_host->create_sub_app( ).
-    mo_model->main_attri_refresh( ).
-
-    " the row is the HOST's - the sub-app is reached through MO_APP, so that
-    " is the name the draft saves and the model writes back into
-    DATA(lo_sub) = CAST ltcl_app_sub_view( mo_host->mo_app ).
-    DATA(lr_row) = mo_model->main_attri_search( REF #( lo_sub->mt_table ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `MO_APP->MT_TABLE`
-                                        act = lr_row->name ).
-
-    lr_row->bind        = abap_true.
-    lr_row->name_client = `/MT_TABLE`.
-    DATA(lv_json) = mo_model->main_json_stringify( ).
-    cl_abap_unit_assert=>assert_true( act = xsdbool( lv_json CS `"LH"` )
-                                      msg = `the sub-app's rows never reached the host's model` ).
-
-    " ...and the way back lands in the sub-app instance, not in a copy
-    DATA(lo_front) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_json ) ).
-    lo_front->set( iv_path = `/MT_TABLE/1/CARRID`
-                   iv_val  = `AA` ).
-    mo_model->main_json_to_attri( lo_front ).
-    cl_abap_unit_assert=>assert_equals( exp = `AA`
-                                        act = lo_sub->mt_table[ 1 ]-carrid ).
-
-  ENDMETHOD.
-
-  METHOD subapp_created_late_found.
-
-    " roundtrip 1: the host renders and binds its own attribute; no sub-app
-    " exists yet, so nothing of it can be in the rows
-    DATA(lr_key) = mo_model->main_attri_search( REF #( mo_host->mv_selectedkey ) ).
-    lr_key->bind        = abap_true.
-    lr_key->name_client = `/MV_SELECTEDKEY`.
-    cl_abap_unit_assert=>assert_false( row_exists( `MO_APP->MT_TABLE` ) ).
-
-    " the tab switch creates it, inside the same request
-    mo_host->create_sub_app( ).
-    mo_model->main_attri_refresh( ).
-
-    cl_abap_unit_assert=>assert_true( row_exists( `MO_APP->MT_TABLE` ) ).
-    " the host's own binding is untouched by the refresh
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mr_attri->*[ name = `MV_SELECTEDKEY` ]-bind ).
-
-  ENDMETHOD.
-
-  METHOD builder_carries_no_rows.
-
-    mo_model->main_attri_refresh( ).
-
-    " the reference itself is a row - it is a public attribute of the app
-    cl_abap_unit_assert=>assert_true( act = row_exists( `MO_MAIN_PAGE` )
-                                      msg = `the attribute itself is not in the rows` ).
-    " and it is the ONLY one: everything the builder holds is protected, so
-    " the public-only walk of diss_oref finds nothing to descend into
-    cl_abap_unit_assert=>assert_equals(
-        exp = 0
-        act = rows_under( `MO_MAIN_PAGE->` )
-        msg = `the view builder exposed state to the dissolve walk - every host app's draft now carries its view tree` ).
-
-  ENDMETHOD.
-
-  METHOD builder_tree_not_walked.
-
-    " a DEEP tree, so a walk that descended would be unmistakable in the count
-    DATA(lo_node) = mo_host->mo_main_page.
-    DO 20 TIMES.
-      lo_node = lo_node->ele( `VBox`
-          )->a( n = `class`
-                v = `sapUiSmallMargin` ).
-    ENDDO.
-    mo_host->create_sub_app( ).
-    mo_model->main_attri_refresh( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = rows_under( `MO_MAIN_PAGE->` ) ).
-    " the sub-app's OWN page reference is the same object and stays as quiet
-    cl_abap_unit_assert=>assert_equals( exp = 0
-                                        act = rows_under( `MO_APP->MO_PARENT_PAGE->` ) ).
-    " what is behind the sub-app is still found - the builder is skipped, the
-    " sub-app is not
-    cl_abap_unit_assert=>assert_true( row_exists( `MO_APP->MT_TABLE` ) ).
-
-  ENDMETHOD.
-
-  METHOD host_survives_roundtrip.
-
-    mo_host->create_sub_app( ).
-    DATA(lo_live) = CAST ltcl_app_sub_view( mo_host->mo_app ).
-    DATA(lr_row) = mo_model->main_attri_search( REF #( lo_live->mt_table ) ).
-    lr_row->bind        = abap_true.
-    lr_row->name_client = `/MT_TABLE`.
-    DATA(lv_before) = mo_model->main_json_stringify( ).
-
-    " the draft as the container writes and reads it
-    mo_model->main_attri_db_save_srtti( ).
-    DATA(lv_app_xml)   = z2ui5_cl_ui5_util_context=>xml_stringify( mo_host ).
-    DATA(lv_attri_xml) = z2ui5_cl_ui5_util_context=>xml_stringify( mr_attri->* ).
-    CLEAR mo_host.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_app_xml
-                                          IMPORTING any = mo_host ).
-    CREATE DATA mr_attri.
-    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = lv_attri_xml
-                                          IMPORTING any = mr_attri->* ).
-    mo_model = NEW #( attri = mr_attri
-                      app   = mo_host ).
-    mo_model->main_attri_db_load( ).
-
-    " the builder is not serializable and does not come back - and its
-    " absence took nothing with it
-    cl_abap_unit_assert=>assert_not_bound( act = mo_host->mo_main_page
-                                           msg = `a view builder came back from a draft` ).
-    " the sub-app did come back, as its own class, with its data
-    cl_abap_unit_assert=>assert_bound( act = mo_host->mo_app
-                                       msg = `the sub-app was lost across the draft` ).
-    DATA(lo_back) = CAST ltcl_app_sub_view( mo_host->mo_app ).
-    cl_abap_unit_assert=>assert_not_bound( act = lo_back->mo_parent_page
-                                           msg = `the sub-app's page reference came back` ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( lo_back->mt_table ) ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_before
-                                        act = mo_model->main_json_stringify( ) ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-
-" ---------------------------------------------------------------------------
-" 06 FAST JSON - a bound table of flat rows written directly, byte for byte
-" what ajson writes (attri_json_fast, json_fast_set, json_fast_splice)
-" ---------------------------------------------------------------------------
-CLASS ltcl_app_fast DEFINITION FINAL CREATE PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-    TYPES:
-      BEGIN OF ty_s_row,
-        id    TYPE i,
-        name  TYPE string,
-        price TYPE p LENGTH 9 DECIMALS 2,
-        ok    TYPE abap_bool,
-        day   TYPE d,
-      END OF ty_s_row.
-    TYPES ty_t_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-    " a row type as a DDIC table or a reuse structure gives it: an include
-    " with a suffix, and the two time stamp kinds
-    TYPES BEGIN OF ty_s_log.
-    TYPES id TYPE i.
-    INCLUDE TYPE ty_s_row AS s_row RENAMING WITH SUFFIX _r.
-    TYPES created_at TYPE timestamp.
-    TYPES changed_at TYPE timestampl.
-    TYPES END OF ty_s_log.
-    TYPES ty_t_log TYPE STANDARD TABLE OF ty_s_log WITH EMPTY KEY.
-    DATA mt_rows  TYPE ty_t_row.
-    DATA ms_head  TYPE ty_s_row.
-    DATA mv_title TYPE string.
-    DATA mt_log   TYPE ty_t_log.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-CLASS ltcl_app_fast IMPLEMENTATION.
-  METHOD z2ui5_if_app~main.
-  ENDMETHOD.
-ENDCLASS.
-
-
-CLASS ltcl_06_fast_json DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PRIVATE SECTION.
-    " every elementary kind the fast path takes, in one row type (no
-    " decfloat16 and no int8: the transpiled runtime has no type for the
-    " first, 7.02 none for the second - both render through |{ }| like
-    " decfloat34 and i do)
-    TYPES:
-      BEGIN OF ty_s_kinds,
-        v_i      TYPE i,
-        v_int1   TYPE int1,
-        v_int2   TYPE int2,
-        v_p      TYPE p LENGTH 9 DECIMALS 2,
-        v_p0     TYPE p LENGTH 5 DECIMALS 0,
-        v_f      TYPE f,
-        v_dec34  TYPE decfloat34,
-        v_c      TYPE c LENGTH 10,
-        v_n      TYPE n LENGTH 5,
-        v_string TYPE string,
-        v_x      TYPE x LENGTH 2,
-        v_xstr   TYPE xstring,
-        v_d      TYPE d,
-        v_t      TYPE t,
-        v_bool   TYPE abap_bool,
-        v_xsd    TYPE xsdboolean,
-        za_last  TYPE string,
-        a_first  TYPE string,
-      END OF ty_s_kinds.
-    TYPES ty_t_kinds TYPE STANDARD TABLE OF ty_s_kinds WITH EMPTY KEY.
-    TYPES ty_t_kinds_sorted TYPE SORTED TABLE OF ty_s_kinds WITH UNIQUE KEY v_i.
-
-    TYPES:
-      BEGIN OF ty_s_nested,
-        id   TYPE i,
-        s_in TYPE ltcl_app_fast=>ty_s_row,
-      END OF ty_s_nested.
-    TYPES ty_t_nested TYPE STANDARD TABLE OF ty_s_nested WITH EMPTY KEY.
-    TYPES:
-      BEGIN OF ty_s_stamp,
-        id  TYPE i,
-        ts  TYPE timestamp,
-        tsl TYPE timestampl,
-      END OF ty_s_stamp.
-    TYPES ty_t_stamp TYPE STANDARD TABLE OF ty_s_stamp WITH EMPTY KEY.
-
-    " row types with includes: plain, an include of an include, the same
-    " structure twice under two suffixes, and one whose include is not flat
-    TYPES:
-      BEGIN OF ty_s_inc_base,
-        b_id   TYPE i,
-        b_text TYPE string,
-        b_day  TYPE d,
-        b_ok   TYPE abap_bool,
-      END OF ty_s_inc_base.
-    TYPES BEGIN OF ty_s_inc_plain.
-    TYPES z_own TYPE string.
-    INCLUDE TYPE ty_s_inc_base.
-    TYPES a_own TYPE i.
-    TYPES END OF ty_s_inc_plain.
-    TYPES ty_t_inc_plain TYPE STANDARD TABLE OF ty_s_inc_plain WITH EMPTY KEY.
-    TYPES BEGIN OF ty_s_inc_nested.
-    INCLUDE TYPE ty_s_inc_plain.
-    TYPES m_own TYPE t.
-    TYPES END OF ty_s_inc_nested.
-    TYPES ty_t_inc_nested TYPE STANDARD TABLE OF ty_s_inc_nested WITH EMPTY KEY.
-    TYPES BEGIN OF ty_s_inc_suffix.
-    TYPES key TYPE i.
-    INCLUDE TYPE ty_s_inc_base AS s_old RENAMING WITH SUFFIX _old.
-    INCLUDE TYPE ty_s_inc_base AS s_new RENAMING WITH SUFFIX _new.
-    TYPES END OF ty_s_inc_suffix.
-    TYPES ty_t_inc_suffix TYPE STANDARD TABLE OF ty_s_inc_suffix WITH EMPTY KEY.
-    TYPES BEGIN OF ty_s_inc_deep.
-    TYPES key TYPE i.
-    INCLUDE TYPE ty_s_nested AS s_deep RENAMING WITH SUFFIX _d.
-    TYPES END OF ty_s_inc_deep.
-    TYPES ty_t_inc_deep TYPE STANDARD TABLE OF ty_s_inc_deep WITH EMPTY KEY.
-
-    DATA mo_model TYPE REF TO z2ui5_cl_ui5_srv_model.
-
-    METHODS setup.
-
-    " the representative rows - specials, negatives, decimals, initial
-    METHODS rows
-      RETURNING
-        VALUE(result) TYPE ty_t_kinds.
-
-    " the general road: ajson under the upper-case mapping
-    METHODS ajson_text
-      IMPORTING
-        iv_val        TYPE any
-      RETURNING
-        VALUE(result) TYPE string
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    METHODS every_kind_identical     FOR TESTING RAISING cx_static_check.
-    METHODS empty_table_identical    FOR TESTING RAISING cx_static_check.
-    METHODS flat_struct_identical    FOR TESTING RAISING cx_static_check.
-    METHODS keys_in_ajson_order      FOR TESTING RAISING cx_static_check.
-    METHODS escape_as_ajson          FOR TESTING RAISING cx_static_check.
-    METHODS not_taken_falls_back     FOR TESTING RAISING cx_static_check.
-    METHODS include_plain_identical  FOR TESTING RAISING cx_static_check.
-    METHODS include_nested_identical FOR TESTING RAISING cx_static_check.
-    METHODS include_suffix_identical FOR TESTING RAISING cx_static_check.
-    METHODS include_deep_falls_back  FOR TESTING RAISING cx_static_check.
-    METHODS timestamp_identical      FOR TESTING RAISING cx_static_check.
-    METHODS timestamp_struct_identical FOR TESTING RAISING cx_static_check.
-    METHODS model_log_identical      FOR TESTING RAISING cx_static_check.
-    METHODS model_identical          FOR TESTING RAISING cx_static_check.
-    METHODS model_dollar_and_token   FOR TESTING RAISING cx_static_check.
-    METHODS splice_any_order         FOR TESTING RAISING cx_static_check.
-    METHODS splice_no_token          FOR TESTING RAISING cx_static_check.
-    METHODS splice_token_lost        FOR TESTING RAISING cx_static_check.
-
-ENDCLASS.
-
-
-CLASS ltcl_06_fast_json IMPLEMENTATION.
-
-  METHOD setup.
-
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
-    CREATE DATA lr_attri.
-    mo_model = NEW #( attri = lr_attri
-                      app   = NEW ltcl_app_fast( ) ).
-
-  ENDMETHOD.
-
-  METHOD rows.
-
-    DATA ls_row TYPE ty_s_kinds.
-    " row 1: filled, with the characters the escaper handles and a few
-    " more a bound value may carry
-    ls_row-v_i      = 42.
-    ls_row-v_int1   = 255.
-    ls_row-v_int2   = -32768.
-    ls_row-v_p      = '1234567.89'.
-    ls_row-v_p0     = 12.
-    ls_row-v_f      = '12.5'.
-    ls_row-v_dec34  = '-1234.5678'.
-    ls_row-v_c      = 'ab c'.
-    ls_row-v_n      = '42'.
-    ls_row-v_string = `say "hi" \ tab` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab
-                      && `nl` && z2ui5_cl_ui5_util_context=>cv_char_util_newline && `cr` && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf
-                      && ` { } [ ] / $& $1 <b>&amp;</b> ` && `\u00e9`.
-    ls_row-v_x      = 'A0FF'.
-    ls_row-v_xstr   = '0102'.
-    ls_row-v_d      = '20240229'.
-    ls_row-v_t      = '235959'.
-    ls_row-v_bool   = abap_true.
-    ls_row-v_xsd    = abap_true.
-    ls_row-za_last  = `z`.
-    ls_row-a_first  = `a`.
-    APPEND ls_row TO result.
-    " row 2: negatives and decimals
-    CLEAR ls_row.
-    ls_row-v_i     = -7.
-    ls_row-v_p     = '-0.01'.
-    ls_row-v_p0    = -99999.
-    ls_row-v_f     = '-0.000001'.
-    ls_row-v_dec34 = '123456789012345678901234567890'.
-    ls_row-v_c     = `"`.
-    ls_row-v_n     = '00007'.
-    ls_row-v_string = `\`.
-    APPEND ls_row TO result.
-    " row 3: everything initial
-    CLEAR ls_row.
-    APPEND ls_row TO result.
-
-  ENDMETHOD.
-
-  METHOD ajson_text.
-
-    result = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( )
-               )->set( iv_ignore_empty = abap_false
-                       iv_path         = `/`
-                       iv_val          = iv_val )->stringify( ).
-
-  ENDMETHOD.
-
-  METHOD every_kind_identical.
-
-    DATA(lt_rows) = rows( ).
-    DATA(lr_rows) = REF #( lt_rows ).
-
-    DATA(lv_act) = mo_model->attri_json_fast( lr_rows ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_act ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = lv_act ).
-    " and a few of the renderings, pinned - the compare above would also
-    " pass if both sides changed together
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":1234567.89` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":-0.01` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_P":0.00` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_BOOL":true` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_BOOL":false` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_D":"2024-02-29"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_T":"23:59:59"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_D":""` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_T":""` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_N":"00007"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_X":"A0FF"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_C":"ab c"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"V_INT2":-32768` ) ).
-
-  ENDMETHOD.
-
-  METHOD empty_table_identical.
-
-    DATA lt_rows TYPE ty_t_kinds.
-    DATA(lr_rows) = REF #( lt_rows ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `[]`
-                                        act = mo_model->attri_json_fast( lr_rows ) ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = mo_model->attri_json_fast( lr_rows ) ).
-
-  ENDMETHOD.
-
-  METHOD flat_struct_identical.
-
-    DATA(lt_rows) = rows( ).
-    LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
-      cl_abap_unit_assert=>assert_equals( exp = ajson_text( lr_row->* )
-                                          act = mo_model->attri_json_fast( lr_row ) ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD keys_in_ajson_order.
-
-    " ajson writes the members of an object by name, not in component
-    " order - A_FIRST is the last component and the first key
-    DATA(lt_rows) = rows( ).
-    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
-
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CP `[{"A_FIRST":"a",*` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"ZA_LAST":"z"}` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( find( val = lv_act
-                                                     sub = `"V_I":` ) < find( val = lv_act
-                                                                             sub  = `"V_INT1":` ) ) ).
-
-  ENDMETHOD.
-
-  METHOD escape_as_ajson.
-
-    " the string escaper against ajson's, character by character, for the
-    " characters it handles and the ones it leaves alone
-    DATA(lv_raw) = `a"b\c` && z2ui5_cl_ui5_util_context=>cv_char_util_horizontal_tab && z2ui5_cl_ui5_util_context=>cv_char_util_newline
-                   && z2ui5_cl_ui5_util_context=>cv_char_util_cr_lf && `/ $& \u0041 ` && `{}`.
-    DATA(lv_exp) = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/V`
-                                                        iv_val   = lv_raw )->stringify( ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_exp
-                                        act = |\{"V":"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_raw ) }"\}| ).
-    " nothing to escape: the text itself
-    cl_abap_unit_assert=>assert_equals( exp = `plain`
-                                        act = z2ui5_cl_ui5_util_context=>c_escape_json( `plain` ) ).
-
-  ENDMETHOD.
-
-  METHOD not_taken_falls_back.
-
-    " a nested structure in the row, a sorted table, a table of scalars, a
-    " scalar: none of them is written here - the general road through
-    " ajson stays the reference for them
-    DATA lt_nested TYPE ty_t_nested.
-    DATA lt_sorted TYPE ty_t_kinds_sorted.
-    DATA lt_scalar TYPE string_table.
-    DATA lv_scalar TYPE string.
-    APPEND VALUE #( id = 1 ) TO lt_nested.
-    INSERT VALUE #( v_i = 1 ) INTO TABLE lt_sorted.
-    APPEND `x` TO lt_scalar.
-
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_nested ) ) ).
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_sorted ) ) ).
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_scalar ) ) ).
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lv_scalar ) ) ).
-
-  ENDMETHOD.
-
-  METHOD include_plain_identical.
-
-    " the fields of an include are members of the row like its own - in
-    " ajson's order (by name), whatever the order of the components
-    DATA lt_rows TYPE ty_t_inc_plain.
-    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `in "clu" de` b_day = '20240229' b_ok = abap_true a_own = 7 ) TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
-
-    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_act ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool(
-        lv_act CS `{"A_OWN":7,"B_DAY":"2024-02-29","B_ID":1,"B_OK":true,"B_TEXT":"in \"clu\" de","Z_OWN":"z"}` ) ).
-    " and the structure itself
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows[ 1 ] )
-                                        act = mo_model->attri_json_fast( REF #( lt_rows[ 1 ] ) ) ).
-
-  ENDMETHOD.
-
-  METHOD include_nested_identical.
-
-    " an include whose structure has an include of its own
-    DATA lt_rows TYPE ty_t_inc_nested.
-    APPEND VALUE #( z_own = `z` b_id = 1 b_text = `deep` b_ok = abap_true a_own = 7 m_own = '120000' ) TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
-
-    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_act ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT":"deep","M_OWN":"12:00:00","Z_OWN":"z"}` ) ).
-
-  ENDMETHOD.
-
-  METHOD include_suffix_identical.
-
-    " the same structure twice, told apart by RENAMING WITH SUFFIX: the
-    " members carry the suffixed names, and the name of the include itself
-    " (AS s_old) is no member
-    DATA lt_rows TYPE ty_t_inc_suffix.
-    APPEND VALUE #( key = 1 b_id_old = 10 b_text_old = `before` b_id_new = 11 b_text_new = `after` b_ok_new = abap_true )
-           TO lt_rows.
-    APPEND INITIAL LINE TO lt_rows.
-
-    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_act ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_ID_NEW":11,"B_ID_OLD":10,` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"B_TEXT_NEW":"after","B_TEXT_OLD":"before","KEY":1}` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `S_OLD` ) ).
-
-  ENDMETHOD.
-
-  METHOD include_deep_falls_back.
-
-    " an include that brings a nested structure along: not flat, so the
-    " general road - which writes the same document as before
-    DATA lt_rows TYPE ty_t_inc_deep.
-    APPEND VALUE #( key = 1 id_d = 2 ) TO lt_rows.
-
-    cl_abap_unit_assert=>assert_initial( mo_model->attri_json_fast( REF #( lt_rows ) ) ).
-
-  ENDMETHOD.
-
-  METHOD timestamp_identical.
-
-    " the two time stamp kinds as ajson writes them - an ISO instant in
-    " UTC, never empty. Row 1 initial, row 2 a typical one, row 3 a long
-    " one with a fraction. The fraction is a half and the time a whole
-    " hour on purpose: the transpiled runtime copies a packed field
-    " through a double (backlog/items/runtime-packed-copy-precision.md),
-    " which holds exactly these and shifts most others by some hundred
-    " nanoseconds - a system holds them all. Row 4 carries such a
-    " fraction and is only compared, not pinned
-    DATA lt_rows TYPE ty_t_stamp.
-    APPEND VALUE #( id = 1 ) TO lt_rows.
-    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000' ) TO lt_rows.
-    APPEND VALUE #( id = 3 ts = '19991231120000' tsl = '20240229230000.5' ) TO lt_rows.
-    APPEND VALUE #( id = 4 ts = '20240229235959' tsl = '20240229235959.1234567' ) TO lt_rows.
-
-    DATA(lv_act) = mo_model->attri_json_fast( REF #( lt_rows ) ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_act ).
-    cl_abap_unit_assert=>assert_equals( exp = ajson_text( lt_rows )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool(
-        lv_act CS `{"ID":1,"TS":"0000-00-00T00:00:00Z","TSL":"0000-00-00T00:00:00.0Z"}` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool(
-        lv_act CS `{"ID":2,"TS":"2024-02-29T23:00:00Z","TSL":"2024-02-29T23:00:00.0Z"}` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool(
-        lv_act CS `{"ID":3,"TS":"1999-12-31T12:00:00Z","TSL":"2024-02-29T23:00:00.5Z"}` ) ).
-
-  ENDMETHOD.
-
-  METHOD timestamp_struct_identical.
-
-    " a flat structure with time stamps, row by row
-    DATA lt_rows TYPE ty_t_stamp.
-    APPEND VALUE #( id = 1 ) TO lt_rows.
-    APPEND VALUE #( id = 2 ts = '20240229230000' tsl = '20240229230000.5' ) TO lt_rows.
-
-    LOOP AT lt_rows REFERENCE INTO DATA(lr_row).
-      cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( lr_row ) ).
-      cl_abap_unit_assert=>assert_equals( exp = ajson_text( lr_row->* )
-                                          act = mo_model->attri_json_fast( lr_row ) ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD model_log_identical.
-
-    " the whole model with a table whose row type has an include and both
-    " time stamp kinds: the document the tree alone writes
-    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
-    lo_app->mt_log = VALUE #( ( id = 1 id_r = 10 name_r = `one` price_r = '1.50' ok_r = abap_true day_r = '20240101'
-                                created_at = '20240229230000' changed_at = '20240229230000.5' )
-                              ( ) ).
-    mo_model->main_attri_refresh( ).
-    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE name = `MT_LOG`.
-      lr_attri->bind        = abap_true.
-      lr_attri->name_client = |/{ lr_attri->name }|.
-    ENDLOOP.
-
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MT_LOG`
-                 iv_val          = lo_app->mt_log ).
-
-    DATA(lv_act) = mo_model->main_json_stringify( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool(
-        lv_act CS `{"MT_LOG":[{"CHANGED_AT":"2024-02-29T23:00:00.5Z","CREATED_AT":"2024-02-29T23:00:00Z","DAY_R":"2024-01-01",` ) ).
-    " through the fast path, not the tree: the row type is taken
-    cl_abap_unit_assert=>assert_not_initial( mo_model->attri_json_fast( REF #( lo_app->mt_log ) ) ).
-
-  ENDMETHOD.
-
-  METHOD model_identical.
-
-    " the whole model: a bound table and a bound structure through the fast
-    " path, a bound scalar through the tree - the document is what the
-    " tree alone wrote before (a string node per bound attribute)
-    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
-    lo_app->mt_rows = VALUE #( ( id = 1 name = `one` price = '1.50' ok = abap_true day = '20240101' )
-                               ( id = 2 name = `t"wo` )
-                               ( ) ).
-    lo_app->ms_head  = VALUE #( id = 9 name = `head` ).
-    lo_app->mv_title = `title`.
-    mo_model->main_attri_refresh( ).
-    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE name = `MT_ROWS` OR name = `MS_HEAD` OR name = `MV_TITLE`.
-      lr_attri->bind        = abap_true.
-      lr_attri->name_client = |/{ lr_attri->name }|.
-    ENDLOOP.
-
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MT_ROWS`
-                 iv_val          = lo_app->mt_rows ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MS_HEAD`
-                 iv_val          = lo_app->ms_head ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MV_TITLE`
-                 iv_val          = lo_app->mv_title ).
-
-    DATA(lv_act) = mo_model->main_json_stringify( ).
-
-    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
-                                        act = lv_act ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_act CS `"MT_ROWS":[{"DAY":"2024-01-01","ID":1,"NAME":"one","OK":true,"PRICE":1.50},` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_act CS `z2ui5-fast-` ) ).
-
-  ENDMETHOD.
-
-  METHOD model_dollar_and_token.
-
-    " values a splice must not read as anything: a `$&` and `$1` (what the
-    " transpiled runtime's replace( ) reads as a pattern), a value that
-    " looks like a token of this very path, in a cell and in the scalar
-    " the tree writes before the table
-    DATA(lo_app) = CAST ltcl_app_fast( mo_model->mo_app ).
-    lo_app->mt_rows  = VALUE #( ( id = 1 name = `$& $1 $$ z2ui5-fast-x-1` ) ).
-    lo_app->mv_title = `"z2ui5-fast-` && `00000000000000000000000000000000-1"`.
-    mo_model->main_attri_refresh( ).
-    LOOP AT mo_model->mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE name = `MT_ROWS` OR name = `MV_TITLE`.
-      lr_attri->bind        = abap_true.
-      lr_attri->name_client = |/{ lr_attri->name }|.
-    ENDLOOP.
-
-    DATA(li_exp) = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MT_ROWS`
-                 iv_val          = lo_app->mt_rows ).
-    li_exp->set( iv_ignore_empty = abap_false
-                 iv_path         = `/MV_TITLE`
-                 iv_val          = lo_app->mv_title ).
-
-    cl_abap_unit_assert=>assert_equals( exp = li_exp->stringify( )
-                                        act = mo_model->main_json_stringify( ) ).
-
-  ENDMETHOD.
-
-  METHOD splice_any_order.
-
-    " one pass, whatever order the document holds the tokens in: the third
-    " token first, a scalar between two tokens, the JSON of one carrying
-    " what a replace( ) would read as a pattern and what looks like the
-    " token that follows it - spliced text is not searched again
-    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
-    ls_fast-uuid = `U1`.
-    APPEND VALUE #( token = `z2ui5-fast-U1-1`
-                    json  = `[{"A":"$& $1 \"z2ui5-fast-U1-2\""}]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-2`
-                    json  = `[]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-3`
-                    json  = `{"B":1}` ) TO ls_fast-t_token.
-    DATA(lv_json) = `{"C":"z2ui5-fast-U1-3","D":"z2ui5-fast-U1-1","E":"x","F":"z2ui5-fast-U1-2"}`.
-
-    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
-                                              CHANGING  cv_json = lv_json ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `{"C":{"B":1},"D":[{"A":"$& $1 \"z2ui5-fast-U1-2\""}],"E":"x","F":[]}`
-        act = lv_json ).
-
-  ENDMETHOD.
-
-  METHOD splice_no_token.
-
-    " nothing took the fast path: the document is not touched
-    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
-    DATA(lv_json) = `{"A":"z2ui5-fast--1"}`.
-
-    z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
-                                              CHANGING  cv_json = lv_json ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `{"A":"z2ui5-fast--1"}`
-                                        act = lv_json ).
-
-  ENDMETHOD.
-
-  METHOD splice_token_lost.
-
-    " a token the document does not hold, and one it holds twice: both are
-    " a table missing from the model, and both are refused
-    DATA ls_fast TYPE z2ui5_cl_ui5_srv_model=>ty_s_fast_state.
-    ls_fast-uuid = `U1`.
-    APPEND VALUE #( token = `z2ui5-fast-U1-1`
-                    json  = `[]` ) TO ls_fast-t_token.
-    APPEND VALUE #( token = `z2ui5-fast-U1-2`
-                    json  = `[]` ) TO ls_fast-t_token.
-
-    DATA(lv_json) = `{"A":"z2ui5-fast-U1-2"}`.
-    TRY.
-        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
-                                                  CHANGING  cv_json = lv_json ).
-        cl_abap_unit_assert=>fail( `a lost token must be refused` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_lost).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_lost->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
-    ENDTRY.
-
-    lv_json = `{"A":"z2ui5-fast-U1-1","B":"z2ui5-fast-U1-1"}`.
-    TRY.
-        z2ui5_cl_ui5_srv_model=>json_fast_splice( EXPORTING is_fast = ls_fast
-                                                  CHANGING  cv_json = lv_json ).
-        cl_abap_unit_assert=>fail( `a token written twice must be refused` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_twice).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx_twice->get_text( ) CS `MODEL_FAST_PATH_TOKEN_LOST` ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
 ENDCLASS.

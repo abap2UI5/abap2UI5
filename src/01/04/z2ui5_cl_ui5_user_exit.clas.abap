@@ -3,136 +3,27 @@ CLASS z2ui5_cl_ui5_user_exit DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ui5_exit.
 
-    "! Opens a request: the context the exit is called with from now on,
-    "! and a fresh memo for config_http_post( ). The HTTP handler calls it
-    "! once per request, before anything asks the exit.
     CLASS-METHODS init_context
       IMPORTING
         http_info TYPE z2ui5_cl_ui5_http_handler=>ty_s_http_req.
 
-    "! Ends the request init_context( ) opened: what the exit answered for
-    "! it is forgotten, and until the next init_context( ) every
-    "! config_http_post( ) asks the exit again. The context itself stays -
-    "! as before, an exit asked outside a request sees the last one.
-    CLASS-METHODS close_context.
-
-    "! The exit's POST config - set_config_http_post of the installed exit,
-    "! asked ONCE per request. A roundtrip reads it in several places (the
-    "! CSRF gate, the monitor switch, the draft cleanup of a first start,
-    "! the error response), and each of them used to call the exit - customer
-    "! code - again for the same answer. Inside a request (init_context( )
-    "! to close_context( )) the first answer is kept and handed to the
-    "! others. Per REQUEST, never longer: a stateful session keeps this
-    "! class's statics across requests, and a switch the exit flips
-    "! (check_monitor_active, check_hide_error_details) has to take effect
-    "! on the next roundtrip. Outside a request nothing is kept at all.
-    "! Only an exit that RETURNED is remembered; one that raised is asked
-    "! again by the next reader, and whatever it wrote into cs_config before
-    "! raising stays there for the caller, exactly as with the direct call
-    "! (the error response and the start page read the structure after
-    "! their CATCH). The caller hands in an initial structure.
-    "! @parameter cs_config | the config, as the exit left it
-    CLASS-METHODS config_http_post
-      CHANGING
-        cs_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
-
-    "! The response headers of the exit (t_security_header of the GET
-    "! config) for a response that is not the page - a roundtrip, a bundle,
-    "! a HEAD, an error. Every response carries them, but only the page
-    "! needs the rest of that config, and assembling it for five header
-    "! rows cost every POST the whole default (theme, bootstrap URL, the
-    "! CSP meta tag). Where no customer code is installed the rows are the
-    "! shipped constants and are answered directly. Any installed exit - a
-    "! class the lookup found, a host's own, a subclass of this one - is
-    "! asked through set_config_http_get exactly as before, with the full
-    "! defaults seeded: it may derive its headers from any of them.
-    CLASS-METHODS security_headers
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
-
     CLASS-METHODS get_instance
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_exit.
+        VALUE(ri_exit) TYPE REF TO z2ui5_if_ui5_exit.
 
     CLASS-METHODS get_user_exit_class
       RETURNING
-        VALUE(result) TYPE string.
-
-    "! Install the exit without the class lookup - for a host that is not an
-    "! SAP system and for tests. The lookup (exit_class_lookup) is a
-    "! repository read that answers nothing in such a runtime: it RAISES
-    "! there, and a raised lookup is deliberately not latched (see
-    "! get_instance), so every get_instance( ) of every request paid the
-    "! RTTI walk and the dynamic call again - three times per POST. The
-    "! host knows there is no repository, and says so here once.
-    "! An instance of this class installs the shipped defaults, latched as
-    "! "no exit installed". Any other implementation of z2ui5_if_ui5_exit
-    "! is installed the way the lookup installs a customer exit: called
-    "! through the shipped exit, which seeds the defaults first, and named
-    "! by get_user_exit_class( ). An unbound reference restores the lookup.
-    "! @parameter io_exit | the exit to use from now on
-    CLASS-METHODS set_instance
-      IMPORTING
-        io_exit TYPE REF TO z2ui5_if_ui5_exit.
+        VALUE(r_class_name) TYPE string.
 
   PROTECTED SECTION.
     CLASS-DATA gi_me            TYPE REF TO z2ui5_if_ui5_exit.
     CLASS-DATA gi_user_exit     TYPE REF TO z2ui5_if_ui5_exit.
-    CLASS-DATA gs_context       TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
-    " the class name the lookup answered, remembered together with gi_me:
-    " get_user_exit_class is asked again after get_instance in the same
-    " request (the start page's system popup names the exit), and each
-    " lookup is a repository read. Known only once the instance is built
-    " from a lookup that CAME BACK - a failed instantiation leaves both
-    " unset (see exit_instantiate), a lookup that raised leaves the flag
-    " unset (see get_instance), so the next request asks again either way
-    CLASS-DATA gv_exit_class       TYPE string.
-    CLASS-DATA gv_exit_class_known TYPE abap_bool.
-
-    " the repository lookup itself, raising whatever the repository raises.
-    " get_user_exit_class and get_instance are its two callers and the only
-    " places that decide what a failed lookup means
-    CLASS-METHODS exit_class_lookup
-      RETURNING
-        VALUE(result) TYPE string.
+    " the same exit found under the superseded interface - only one of the two
+    " is ever bound, see get_instance
+    CLASS-DATA gi_user_exit_dep TYPE REF TO z2ui5_if_exit.
+    CLASS-DATA context          TYPE z2ui5_if_ui5_exit=>ty_s_http_context.
 
   PRIVATE SECTION.
-    " the default CSP meta tag, assembled once per roll area. With a
-    " customer exit installed set_config_http_get runs on EVERY request -
-    " z2ui5_cl_ui5_http_handler=>set_response reads the exit's security
-    " headers on a POST as well (security_headers) - and the tag is a
-    " constant, so the seven-fragment template ran per roundtrip for the
-    " same string. Lazily filled on first use, not in a class
-    " constructor: a class_constructor outside the PUBLIC SECTION is the
-    " activation trap abap-check names, and the view builder's
-    " gv_name_chars takes the same road
-    CLASS-DATA gv_csp_default TYPE string.
-
-    " the memo of config_http_post( ) and the request it belongs to - see
-    " there. Both are cleared where a request begins and where it ends, and
-    " with every set_instance( )
-    CLASS-DATA gs_config_post     TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
-    CLASS-DATA gv_config_post_set TYPE abap_bool.
-    CLASS-DATA gv_context_open    TYPE abap_bool.
-
-    " the instance this class created of ITSELF as gi_me - bound only then.
-    " security_headers( ) compares it with gi_me to know that no customer
-    " code is in play: a subclass (set_instance) or a reference a test put
-    " into gi_me is another object, and gets the full call
-    CLASS-DATA go_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
-
-    " the header rows every response carries by default - the one place
-    " they are written, for set_config_http_get and security_headers( )
-    CLASS-METHODS default_security_headers
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
-
-    " the exit class the lookup named, instantiated and bound - or a
-    " chained exception, never a silent fall-back to the shipped defaults
-    " (see there)
-    CLASS-METHODS exit_instantiate
-      IMPORTING
-        iv_class_name TYPE string.
 ENDCLASS.
 
 
@@ -140,184 +31,68 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
 
   METHOD get_instance.
 
-    " latched only together with an ANSWERED lookup: a raised lookup leaves
-    " gv_exit_class_known unset (see below), and the early return used to
-    " ask for the instance alone - so the repository was never asked again
-    " and the rest of a sticky session ran on the shipped defaults after
-    " all, the installed exit's settings lost
-    IF gi_me IS BOUND AND gv_exit_class_known = abap_true.
-      result = gi_me.
+    IF gi_me IS BOUND.
+      ri_exit = gi_me.
       RETURN.
     ENDIF.
 
-    DATA lv_class_name TYPE string.
-    DATA lv_known      TYPE abap_bool.
+    DATA(lv_class_name) = get_user_exit_class( ).
 
-    IF gv_exit_class_known = abap_true.
-      lv_class_name = gv_exit_class.
-      lv_known      = abap_true.
-    ELSE.
+    IF lv_class_name IS NOT INITIAL.
       TRY.
-          lv_class_name = exit_class_lookup( ).
-          lv_known      = abap_true.
+          DATA lo_exit TYPE REF TO object.
+          CREATE OBJECT lo_exit TYPE (lv_class_name).
+
+          " Which interface the class implements decides how it is called, and
+          " the cast is what asks the object rather than the class list. A
+          " class implementing BOTH lands in gi_user_exit and is therefore
+          " called once, through the current interface - never twice.
+          TRY.
+              gi_user_exit ?= lo_exit.
+            CATCH cx_sy_move_cast_error.
+              gi_user_exit_dep ?= lo_exit.
+          ENDTRY.
         CATCH cx_root ##NO_HANDLER.
-          " a repository read that raised (a transient error, a runtime
-          " without a class repository) is not an answer: this request runs
-          " on the shipped defaults, and the name is asked again on the next
-          " lookup instead of being remembered as "no exit installed" for
-          " the rest of a sticky session - the fail-open-silently the doc of
-          " exit_instantiate rules out. Only a lookup that came back is
-          " latched below
       ENDTRY.
     ENDIF.
 
-    IF lv_class_name IS NOT INITIAL.
-      exit_instantiate( lv_class_name ).
-    ENDIF.
-
-    IF gi_me IS NOT BOUND.
-      go_shipped = NEW z2ui5_cl_ui5_user_exit( ).
-      gi_me      = go_shipped.
-    ENDIF.
-    gv_exit_class       = lv_class_name.
-    gv_exit_class_known = lv_known.
-    result = gi_me.
-
-  ENDMETHOD.
-
-  METHOD set_instance.
-
-    CLEAR gi_me.
-    CLEAR gi_user_exit.
-    CLEAR gv_exit_class.
-    CLEAR gv_exit_class_known.
-    CLEAR go_shipped.
-    " another exit answers differently - what the previous one said for the
-    " running request does not stand
-    CLEAR gs_config_post.
-    CLEAR gv_config_post_set.
-
-    IF io_exit IS NOT BOUND.
-      RETURN.
-    ENDIF.
-
-    " the shipped exit itself, or a subclass of it: the defaults, and
-    " nothing to dispatch to - what the lookup answers on a system without
-    " an exit. A subclass is deliberately NOT installed as a customer exit:
-    " the shipped set_config_http_get/post dispatch to gi_user_exit, and a
-    " method the subclass does not redefine (or redefines with a super->
-    " call) IS that shipped body - it would find gi_user_exit bound, call
-    " itself, and dump on the first request. Installed as gi_me the
-    " subclass's own redefinitions run, and everything else is the default
-    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
-    TRY.
-        lo_shipped ?= io_exit.
-      CATCH cx_sy_move_cast_error ##NO_HANDLER.
-    ENDTRY.
-    IF lo_shipped IS BOUND.
-      gi_me = io_exit.
-      " the shipped class itself and not a subclass of it: the defaults
-      " and nothing else (see go_shipped). Asked once, at installation
-      DATA(lo_default) = NEW z2ui5_cl_ui5_user_exit( ).
-      IF z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_shipped )
-          = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_default ).
-        go_shipped = lo_shipped.
-      ENDIF.
-    ELSE.
-      gi_user_exit   = io_exit.
-      go_shipped     = NEW z2ui5_cl_ui5_user_exit( ).
-      gi_me          = go_shipped.
-      gv_exit_class  = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( io_exit ).
-    ENDIF.
-    gv_exit_class_known = abap_true.
-
-  ENDMETHOD.
-
-  METHOD exit_instantiate.
-
-    " The lookup may legitimately name nothing - no exit installed, a
-    " runtime without a class repository - and the framework then runs on
-    " the shipped defaults. A class it DID name is a different matter: the
-    " installation configured an exit. When that class cannot be
-    " instantiated (a constructor that raises, an abstract or CREATE
-    " PRIVATE class, a class left inactive by a transport), the failure
-    " used to be swallowed here, and every request ran on the shipped
-    " defaults - error details visible, the public CDN bootstrap, the
-    " default CSP, forwarded-host trust, none of the exit's headers - with
-    " no log and no error page, while the start page still named the exit
-    " as installed. A hardening control that fails open silently is the
-    " one thing it must not do, so it fails closed: the cause is chained
-    " into the framework's exception, the handler's outer TRY turns it into
-    " a visible 500 on the first request (_error_response tolerates a
-    " raising get_instance), and gi_me stays unbound so the next request
-    " asks again instead of caching the failure.
-    TRY.
-        DATA lo_exit TYPE REF TO object.
-        CREATE OBJECT lo_exit TYPE (iv_class_name).
-
-        " the cast asks the object rather than the class list: a class the
-        " lookup named that does not implement the interface after all fails
-        " here, closed, like every other class that cannot be used
-        gi_user_exit ?= lo_exit.
-      CATCH cx_root INTO DATA(lx).
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = lx.
-    ENDTRY.
+    gi_me = NEW z2ui5_cl_ui5_user_exit( ).
+    ri_exit = gi_me.
 
   ENDMETHOD.
 
   METHOD get_user_exit_class.
 
-    IF gv_exit_class_known = abap_true.
-      result = gv_exit_class.
-      RETURN.
-    ENDIF.
-
     TRY.
-        result = exit_class_lookup( ).
+        " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
+        " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
+        " z2ui5_cl_ui5_user_exit and carried the rename into this literal, which
+        " left the lookup asking for an interface that does not exist: no class
+        " implements it, so every user exit in every system silently stopped
+        " being found. A dynamic name is not a reference the compiler checks -
+        " .github/scripts/dynamic-name-gate.mjs does it instead
+        DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_UI5_EXIT` ).
+
+        " The superseded interface is looked up too, for as long as it ships:
+        " an exit written against Z2UI5_IF_EXIT is found exactly as before, and
+        " a class implementing both appears in both lists - hence the dedup
+        " below, and the cast order in get_instance that calls it once.
+        DATA(exit_classes_dep) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+        APPEND LINES OF exit_classes_dep TO exit_classes.
+
+        DELETE exit_classes WHERE classname = `Z2UI5_CL_UI5_USER_EXIT`.
+
+        " only one user exit can be active, so the pick must not depend on the
+        " order the class lookup happens to return (SEOCLASS select order on
+        " standard ABAP, XCO order on cloud) - a system with two implementing
+        " classes would otherwise silently run a different exit after a
+        " transport or a system copy. Sorting makes it reproducible.
+        SORT exit_classes BY classname.
+        DELETE ADJACENT DUPLICATES FROM exit_classes COMPARING classname.
+
+        r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD exit_class_lookup.
-
-    " the interface is Z2UI5_IF_UI5_EXIT - the class around it is the user
-    " exit, the interface is not. #2564 renamed z2ui5_cl_exit to
-    " z2ui5_cl_ui5_user_exit and carried the rename into what was a literal
-    " here, which left the lookup asking for an interface that does not
-    " exist: no class implements it, so every user exit in every system
-    " silently stopped being found. A literal is not a reference the
-    " compiler checks, and a namespace rename (abaplint --rename) does not
-    " rewrite it either - a renamed installation looked up the ORIGINAL
-    " names and found no exit. So every name here comes from a typed,
-    " unbound reference (rtti_get_ref_type_name), which both the compiler
-    " and the rename see; .github/scripts/rename-literal-gate.mjs keeps it so
-    DATA li_exit    TYPE REF TO z2ui5_if_ui5_exit.
-    DATA lo_shipped TYPE REF TO z2ui5_cl_ui5_user_exit.
-    DATA lv_intf    TYPE string.
-    DATA lv_shipped TYPE string.
-
-    lv_intf    = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_exit ).
-    lv_shipped = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( lo_shipped ).
-    DATA(exit_classes) = z2ui5_cl_ui5_util_context=>rtti_get_classes_impl_intf( lv_intf ).
-    DELETE exit_classes WHERE classname = lv_shipped.
-
-    " One interface, one lookup. Until 2026-11-17 the superseded name
-    " Z2UI5_IF_EXIT was looked up as well when this one named nothing; the
-    " interface is deleted, and a class that still implements it no longer
-    " compiles - it implements Z2UI5_IF_UI5_EXIT instead, the same two
-    " methods and types.
-
-    " only one user exit can be active, so the pick must not depend on the
-    " order the class lookup happens to return (SEOCLASS select order on
-    " standard ABAP, XCO order on cloud) - a system with two implementing
-    " classes would otherwise silently run a different exit after a
-    " transport or a system copy. Sorting makes it reproducible.
-    SORT exit_classes BY classname.
-
-    result = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
 
   ENDMETHOD.
 
@@ -329,102 +104,45 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     cs_config-theme = `sap_horizon`.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
-    IF z2ui5_cl_ui5_util_context=>check_abap_cloud( ) = abap_true.
-      " ABAP Cloud answers every HTTP service with a Content-Security-Policy
-      " header of its own, next to the policy below - and a browser enforces
-      " both. The platform's script-src trusts the SAP hosts only, so the
-      " OpenUI5 CDN is refused there and the page never boots. ui5.sap.com is
-      " in both lists. An installation that wants another host names it in
-      " its exit and in the system's trusted sites (app "Maintain Protection
-      " Allowlists")
-      cs_config-src = `https://ui5.sap.com/resources/sap-ui-cachebuster/sap-ui-core.js`.
-    ENDIF.
 
-    IF gv_csp_default IS INITIAL.
-      " The UI5 CDN hosts a default installation may bootstrap from or fall
-      " back to. Deliberately ONLY these: general-purpose CDNs (jsdelivr,
-      " cdnjs) used to ride along although nothing the framework ships loads
-      " from them, and every allowed script host is a host whose compromise is
-      " script execution in an authenticated SAP session. An exit that needs
-      " another host adds it - to the one directive that needs it.
-      DATA(lv_ui5_hosts) =
-        `ui5.sap.com *.ui5.sap.com ` &&
-        `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
-        `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
-        `sdk.openui5.org *.sdk.openui5.org`.
+    " The UI5 CDN hosts a default installation may bootstrap from or fall
+    " back to. Deliberately ONLY these: general-purpose CDNs (jsdelivr,
+    " cdnjs) used to ride along although nothing the framework ships loads
+    " from them, and every allowed script host is a host whose compromise is
+    " script execution in an authenticated SAP session. An exit that needs
+    " another host adds it - to the one directive that needs it.
+    DATA(lv_ui5_hosts) =
+      `ui5.sap.com *.ui5.sap.com ` &&
+      `sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com ` &&
+      `openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
+      `sdk.openui5.org *.sdk.openui5.org`.
 
-      " NO 'unsafe-eval': nothing abap2UI5 ships evaluates code, and UI5 from
-      " 1.84 on runs without it as long as it loads asynchronously from its
-      " preload bundles (expression binding included - UI5 parses it without
-      " eval). On 1.71 to 1.82 Fragment.load processes a popup synchronously and
-      " evals every module it has to fetch; the frontend requires the popup's
-      " controls asynchronously first (Env.preloadFragmentModules), so that
-      " stays clean too. What it cannot see - a module a popup only names in a
-      " binding type or a core:require - is still eval'd there; such an
-      " installation switches 'unsafe-eval' back on in its exit (see
-      " z2ui5_if_ui5_exit=>ty_s_http_config-content_security_policy).
-      "
-      " 'wasm-unsafe-eval' IS in script-src, and it is not 'unsafe-eval' by
-      " another name: it lets a script the page already runs compile
-      " WebAssembly, and nothing else - a string still never becomes code
-      " (eval, new Function and setTimeout with a string stay blocked). The
-      " barcode scanners need it: the camera scanner of SAPUI5
-      " (sap.ndc.BarcodeScannerButton) decodes with ZXing-C++ compiled to
-      " WebAssembly, and so does the BarcodeScanner of
-      " abap2UI5-addons/custom-controls. Without the keyword both fail on this
-      " page with a CompileError ("... because 'unsafe-eval' is not an allowed
-      " source of script") the moment the camera opens - nothing earlier says so.
-      "
-      " NO 'unsafe-inline' for scripts either. The page's one inline script -
-      " onInitComponent with the embed control - is fixed per build, and
-      " z2ui5_cl_ui5_http_handler=>_http_get adds its SHA-256 to script-src
-      " (z2ui5_cl_ui5f_preload=>script_hash). Everything else inline - an
-      " injected <script>, an onerror= attribute, a javascript: URL - is
-      " refused by the browser. An installation that needs inline script of
-      " its own puts 'unsafe-inline' back in its exit; a script-src that names
-      " it is left without the hash (see _csp_add_script_hash). style-src
-      " keeps it: UI5 renders style attributes itself.
-      "
-      " script-src and style-src are EXPLICIT on purpose, not left to the
-      " default-src fallback: default-src carries data:/blob: for images,
-      " fonts and media, and a data: that falls through to script-src is a
-      " textbook CSP bypass (any HTML-injection foothold escalates to script
-      " execution via <script src="data:...">). The split keeps data:/blob:
-      " and the unsafe-* keywords each confined to the directives that need
-      " them.
-      gv_csp_default =
-        |<meta http-equiv="Content-Security-Policy" | &&
-        |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
-        |script-src 'self' 'wasm-unsafe-eval' { lv_ui5_hosts }; | &&
-        |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
-        " img-src and media-src are EXPLICIT too, with what default-src
-        " carries for them ('self', data:, blob:, the UI5 hosts - the two
-        " legacy `schemas` tokens were never reviewed for images and stay
-        " where they are): they are the directives the favicon
-        " (cs_event-set_favicon) and the audio source (cs_event-play_audio)
-        " are checked against, so an exit that needs a cross-origin icon or
-        " sound host adds it HERE, to the one directive that needs it, and
-        " the browser's refusal names the directive instead of default-src.
-        " The frontend's URL guard (Lib.isSafeDownloadURL) checks the scheme
-        " only; whether the host may be loaded is decided by this policy.
-        |img-src 'self' data: blob: { lv_ui5_hosts }; | &&
-        |media-src 'self' data: blob: { lv_ui5_hosts }; | &&
-        " connect-src stays at 'self' plus the UI5 hosts: a same-origin
-        " WebSocket (z2ui5.cc.Websocket, an ABAP push channel) is covered by
-        " 'self' under CSP level 3, which every browser this frontend runs on
-        " implements. No ws:/wss: scheme source here - that is a wildcard over
-        " every host; a channel on another port or behind a dispatcher names
-        " its exact origin in the exit's connect-src instead.
-        |connect-src 'self' { lv_ui5_hosts }; | &&
-        |worker-src 'self' blob:; | &&
-        " Hardening directives (no runtime cost for a UI5 app): block plugin
-        " content and pin <base> to the app origin. NO frame-ancestors here:
-        " browsers IGNORE that directive in a <meta> CSP (and log a console
-        " warning) - cross-origin framing is forbidden by the real
-        " X-Frame-Options: SAMEORIGIN response header set below instead.
-        |object-src 'none'; base-uri 'self'; "/>|.
-    ENDIF.
-    cs_config-content_security_policy = gv_csp_default.
+    " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
+    " module source as a string); without it the 1.71 bootstrap fails with a
+    " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
+    " affects older releases, and 'unsafe-inline' is already allowed so the
+    " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
+    "
+    " script-src and style-src are EXPLICIT on purpose, not left to the
+    " default-src fallback: default-src carries data:/blob: for images,
+    " fonts and media, and a data: that falls through to script-src is a
+    " textbook CSP bypass (any HTML-injection foothold escalates to script
+    " execution via <script src="data:...">). The split keeps data:/blob:
+    " and the unsafe-* keywords each confined to the directives that need
+    " them.
+    cs_config-content_security_policy =
+      |<meta http-equiv="Content-Security-Policy" | &&
+      |content="default-src 'self' data: blob: { lv_ui5_hosts } schemas *.schemas; | &&
+      |script-src 'self' 'unsafe-inline' 'unsafe-eval' { lv_ui5_hosts }; | &&
+      |style-src 'self' 'unsafe-inline' { lv_ui5_hosts }; | &&
+      |connect-src 'self' { lv_ui5_hosts }; | &&
+      |worker-src 'self' blob:; | &&
+      " Hardening directives (no runtime cost for a UI5 app): block plugin
+      " content and pin <base> to the app origin. NO frame-ancestors here:
+      " browsers IGNORE that directive in a <meta> CSP (and log a console
+      " warning) - cross-origin framing is forbidden by the real
+      " X-Frame-Options: SAMEORIGIN response header set below instead.
+      |object-src 'none'; base-uri 'self'; "/>|.
 
     " NO cache-control/Pragma/Expires here any more: the cache policy is
     " per verb and set by z2ui5_cl_ui5_http_handler=>set_response (the GET
@@ -434,86 +152,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     " NO Strict-Transport-Security either, deliberately: many on-premise
     " systems serve plain HTTP, and HSTS belongs on the TLS terminator that
     " knows the deployment - an exit behind HTTPS adds it here.
-    " NO Cross-Origin-Opener-Policy either, and for the same reason: COOP is
-    " honoured on a TRUSTWORTHY origin only (https, or a localhost host). On
-    " the plain-HTTP on-premise system - the majority of them - the browser
-    " drops it and logs a red console error on EVERY app start ("The
-    " Cross-Origin-Opener-Policy header has been ignored, because the URL's
-    " origin was untrustworthy"), so the framework was producing a console
-    " error out of the box for a header that did nothing there. Sending it
-    " only over TLS is not something this code can decide: the request side
-    " hands out the path, the parameters and the Host, never whether TLS
-    " terminated in front of the ICF node (X-Forwarded-Proto only exists
-    " behind a proxy that sets it, and it is client-suppliable), so a guess
-    " would either keep the noise or silently drop the header on a system
-    " that IS behind HTTPS. An installation served over HTTPS adds it in its
-    " own exit, next to the HSTS it sets there anyway:
-    "   APPEND VALUE #( n = `Cross-Origin-Opener-Policy` v = `same-origin` )
-    "          TO cs_config-t_security_header.
-    " Cross-Origin-Resource-Policy below is NOT secure-context-only - it is
-    " honoured over plain HTTP and warns about nothing - so it stays.
-    cs_config-t_security_header = default_security_headers( ).
-
-    IF gi_user_exit IS BOUND.
-      gi_user_exit->set_config_http_get( EXPORTING is_context = gs_context
-                                         CHANGING  cs_config  = cs_config ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD default_security_headers.
-
-    " the reasoning for what is NOT in this table - cache-control, HSTS,
-    " Cross-Origin-Opener-Policy - is where it is assigned
-    " (set_config_http_get)
-    result = VALUE #(
+    cs_config-t_security_header = VALUE #(
         ( n = `X-Content-Type-Options` v = `nosniff` )
         ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
         ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
         ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` )
-        " sever cross-origin embedding of the shell - cheap, and
-        " X-Frame-Options above already forbids the framing case it would
-        " otherwise soften
+        " sever cross-origin window references / cross-origin embedding of
+        " the shell - both are cheap, and X-Frame-Options above already
+        " forbids the framing case they would otherwise soften
+        ( n = `Cross-Origin-Opener-Policy`   v = `same-origin` )
         ( n = `Cross-Origin-Resource-Policy` v = `same-origin` ) ).
 
-  ENDMETHOD.
-
-  METHOD security_headers.
-
-    DATA(li_exit) = get_instance( ).
-
-    " no customer code anywhere: no exit behind the shipped one, and the
-    " shipped one is the instance this class created of itself. The rows
-    " are then what set_config_http_get would have put into the table, and
-    " nothing could have changed them
-    IF gi_user_exit IS NOT BOUND AND go_shipped IS BOUND AND gi_me = go_shipped.
-      result = default_security_headers( ).
-      RETURN.
-    ENDIF.
-
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
-    li_exit->set_config_http_get( CHANGING cs_config = ls_config ).
-    result = ls_config-t_security_header.
-
-  ENDMETHOD.
-
-  METHOD config_http_post.
-
-    IF gv_config_post_set = abap_true.
-      cs_config = gs_config_post.
-      RETURN.
-    ENDIF.
-
-    " the caller's structure goes to the exit itself, not a copy: what the
-    " exit wrote before it raised is the caller's to read (see the method's
-    " documentation)
-    DATA(li_exit) = get_instance( ).
-    li_exit->set_config_http_post( CHANGING cs_config = cs_config ).
-
-    " reached only when the exit returned - and kept only for a request
-    IF gv_context_open = abap_true.
-      gs_config_post     = cs_config.
-      gv_config_post_set = abap_true.
+    IF gi_user_exit IS BOUND.
+      gi_user_exit->set_config_http_get( EXPORTING is_context = context
+                                         CHANGING  cs_config  = cs_config ).
+    ELSEIF gi_user_exit_dep IS BOUND.
+      gi_user_exit_dep->set_config_http_get( EXPORTING is_context = context
+                                             CHANGING  cs_config  = cs_config ).
     ENDIF.
 
   ENDMETHOD.
@@ -538,51 +193,23 @@ CLASS z2ui5_cl_ui5_user_exit IMPLEMENTATION.
     cs_config-check_trust_forwarded_host = abap_true.
 
     IF gi_user_exit IS BOUND.
-      gi_user_exit->set_config_http_post( EXPORTING is_context = gs_context
+      gi_user_exit->set_config_http_post( EXPORTING is_context = context
                                           CHANGING  cs_config  = cs_config ).
+    ELSEIF gi_user_exit_dep IS BOUND.
+      gi_user_exit_dep->set_config_http_post( EXPORTING is_context = context
+                                              CHANGING  cs_config  = cs_config ).
     ENDIF.
 
     IF cs_config-draft_exp_time_in_hours <= 0.
       cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
     ENDIF.
-    " and from above: the draft service turns the hours into seconds as an
-    " integer, and more than 596,523 hours overflowed it - every first start
-    " answered 500. Ten years is longer than any draft is worth keeping
-    IF cs_config-draft_exp_time_in_hours > z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
-      cs_config-draft_exp_time_in_hours = z2ui5_cl_ui5_srv_draft=>c_max_exp_time_in_hours.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD close_context.
-
-    CLEAR gs_config_post.
-    CLEAR gv_config_post_set.
-    CLEAR gv_context_open.
 
   ENDMETHOD.
 
   METHOD init_context.
 
-    " a new request: nothing the exit said for the previous one stands. A
-    " stateful session keeps these statics across requests, so the memo is
-    " dropped here whether or not the previous request was ever closed
-    CLEAR gs_config_post.
-    CLEAR gv_config_post_set.
-    gv_context_open = abap_true.
-
-    gs_context = CORRESPONDING #( http_info ).
-    " normalized the way request_app_start reads the parameter - the SAME
-    " method: trimmed, upper-cased, a percent-encoded namespace unpacked,
-    " the launchpad spelling -ns-class spelled back - so an exit keyed on
-    " the app (details hidden for one, a tighter CSP for another) is not
-    " bypassed by a case change or an encoded slash. It stays what the URL of
-    " THIS request says: empty on every POST (the SPA posts to the manifest
-    " URI) and when the app is named by the hash route, which never reaches
-    " the server - a hint for the page request, not the authority on what
-    " runs (see the interface doc)
-    gs_context-app_start = z2ui5_cl_ui5_handler=>app_start_normalize(
-        VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ) ). "#EC CI_SORTSEQ
+    context = CORRESPONDING #( http_info ).
+    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ). "#EC CI_SORTSEQ
 
   ENDMETHOD.
 

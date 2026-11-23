@@ -13,22 +13,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
-    "! The row of the attribute val points at, or nothing - the search of
-    "! main_attri_search WITHOUT its second and third attempt: no dissolve,
-    "! no main_attri_refresh, no exception. For a caller that asks whether a
-    "! value IS an attribute and takes "no" for an answer
-    "! (window_bind_tab( total = lines( lt_all ) )): a miss costs one scan
-    "! and leaves the attribute table exactly as it was, so a row reference
-    "! the caller holds stays valid. What it cannot find is an attribute
-    "! that only a rebuilt table would show - one behind a reference bound
-    "! since the table was last dissolved; such a caller is answered as if
-    "! the value were none
-    METHODS main_attri_find
-      IMPORTING
-        val           TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
@@ -41,159 +25,26 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     "! load clears them. Only valid on the instance the save ran on.
     METHODS main_attri_reattach.
 
-    "! iv_prefix is the node the bound attributes sit below - the MODEL
-    "! path of the request tree (z2ui5_if_ui5_types=>ty_s_request-model_path),
-    "! so the request is read in place instead of its model being sliced
-    "! out; initial when `model` is the model itself
     METHODS main_json_to_attri
       IMPORTING
-        model     TYPE REF TO z2ui5_if_ajson
-        iv_prefix TYPE string OPTIONAL.
+        model TYPE REF TO z2ui5_if_ajson.
 
     METHODS main_json_stringify
       RETURNING
         VALUE(result) TYPE string.
 
-    " automatic model update: the pre-main( ) snapshot of the bound values,
-    " one copy per attribute the JSON loop would serialize. A COPY, not the
-    " serialized model: assigning an internal table or a string to another
-    " data object shares its body until one side is written (table sharing),
-    " so the snapshot costs nothing for an attribute main( ) leaves alone -
-    " and comparing it afterwards is a memory compare, not an ajson tree, a
-    " stringify and a digest over it. The references live on the handler
-    " for one dispatch iteration and never enter the draft
-    TYPES:
-      BEGIN OF ty_s_snapshot,
-        name   TYPE string,
-        o_data TYPE REF TO data,
-      END OF ty_s_snapshot.
-    TYPES ty_t_snapshot TYPE SORTED TABLE OF ty_s_snapshot WITH UNIQUE KEY name.
-
-    METHODS main_snapshot
-      RETURNING
-        VALUE(result) TYPE ty_t_snapshot.
-
-    "! true when a bound value differs from its snapshot, or is bound now
-    "! and was not when the snapshot was taken - the attribute filter is
-    "! the one of main_json_stringify, so what is compared is what would
-    "! be serialized
-    METHODS main_snapshot_changed
-      IMPORTING
-        snapshot      TYPE ty_t_snapshot
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
     DATA mt_attri TYPE REF TO z2ui5_if_ui5_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
     "! The table cells this parse could not apply - one entry per delta cell
-    "! whose value would not convert (delta_apply_field's CATCH), whose column
-    "! takes no value of that shape at all (delta_check_refused), or whose row
-    "! sits in a table the delta cannot address (delta_skip_nodes: a sorted or
-    "! hashed table) or past the table's end (delta_skip_row). The instance
-    "! is created per roundtrip
-    "! (z2ui5_cl_ui5_app_cont=>create_model), so the list covers exactly one
-    "! model parse; the caller hands it to the app as client->get( )-t_model_skipped.
+    "! whose value arrived and would not convert (see delta_apply_field). The
+    "! instance is created per roundtrip (z2ui5_cl_ui5_app_cont=>create_model),
+    "! so the list covers exactly one model parse; the caller hands it to the
+    "! app as client->get( )-t_model_skipped.
     DATA mt_skipped TYPE z2ui5_if_client=>ty_t_model_skip.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    "! The JSON text of the value behind ir_ref written directly - a
-    "! STANDARD table of flat rows, or one flat structure, every cell an
-    "! elementary type (z2ui5_cl_ui5_util_context=>rtti_get_flat_components
-    "! says which, and lists the fields of an include in its place). Empty
-    "! when the value is anything else, and the caller takes the general
-    "! road through ajson.
-    "! Byte for byte what ajson writes for the same value under the
-    "! upper-case mapping with format_datetime (the model's instance): the
-    "! keys upper-cased and in the order of ajson's node table (by name),
-    "! the same escaping, the same rendering of every kind - the test class
-    "! holds the two side by side for every kind.
-    "! Why: ajson's set( ) builds one node per cell (a path string, a
-    "! sorted-table INSERT, a mapper call, then the stringify walk) - the
-    "! whole cost of a bound table of a few thousand rows
-    METHODS attri_json_fast
-      IMPORTING
-        ir_ref        TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the fast path's state over one main_json_stringify: the tokens set
-    " into the tree with the JSON each stands for, and the uuid of the call
-    " every token carries (taken on the first one)
-    TYPES:
-      BEGIN OF ty_s_fast,
-        token TYPE string,
-        json  TYPE string,
-      END OF ty_s_fast.
-    TYPES:
-      BEGIN OF ty_s_fast_state,
-        uuid    TYPE string,
-        t_token TYPE STANDARD TABLE OF ty_s_fast WITH EMPTY KEY,
-      END OF ty_s_fast_state.
-
-    TYPES:
-      BEGIN OF ty_s_mapper_cache,
-        mapper TYPE REF TO z2ui5_if_ajson_mapping,
-        ajson  TYPE REF TO z2ui5_if_ajson,
-      END OF ty_s_mapper_cache.
-    TYPES ty_t_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
-
-    "! the compatibility branch of main_json_stringify - an attribute with
-    "! a custom_mapper or custom_filter of its own, through a scratch
-    "! instance per mapper (ct_mapper_cache) or the shared one (ci_default)
-    METHODS json_custom_set
-      IMPORTING
-        ir_attri        TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        iv_val          TYPE any
-        io_result       TYPE REF TO z2ui5_if_ajson
-      CHANGING
-        ci_default      TYPE REF TO z2ui5_if_ajson
-        ct_mapper_cache TYPE ty_t_mapper_cache
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! a bound table or structure through the fast path: when the value
-    "! takes it, its JSON is kept on cs_fast and a token set into the tree
-    "! under the attribute's path - ev_taken then, abap_false when the
-    "! caller has to set the value the general way
-    METHODS json_fast_set
-      IMPORTING
-        ir_ref    TYPE REF TO data
-        ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        io_result TYPE REF TO z2ui5_if_ajson
-      EXPORTING
-        ev_taken  TYPE abap_bool
-      CHANGING
-        cs_fast   TYPE ty_s_fast_state
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! every token's quoted text in the stringified tree replaced by its
-    "! JSON - by offset, see json_fast_set
-    CLASS-METHODS json_fast_splice
-      IMPORTING
-        is_fast TYPE ty_s_fast_state
-      CHANGING
-        cv_json TYPE string.
-
-    "! one row as a JSON object, it_comp sorted by name
-    CLASS-METHODS json_row
-      IMPORTING
-        is_row        TYPE any
-        it_comp       TYPE z2ui5_cl_ui5_util_context=>ty_t_flat_comp
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " _bind( json = abap_true ): the string spliced in as a JSON node
-    METHODS json_bind_set
-      IMPORTING
-        io_result TYPE REF TO z2ui5_if_ajson
-        iv_path   TYPE string
-        iv_json   TYPE any
-      RAISING
-        z2ui5_cx_ajson_error.
-
 
     " how many REFERENCE hops (`->`) a dissolved name may carry - the bound
     " that ends a cyclic object graph (an attribute pointing back at its
@@ -207,8 +58,7 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS main_attri_db_load_resolve.
 
     " Is anything the VIEW reads stored under this attribute - the attribute
-    " itself, or one of its dissolved descendants at ANY depth (the bound row
-    " below a struct alias sits two levels down)? Decides how loud a failed
+    " itself, or one of its dissolved children? Decides how loud a failed
     " restore is (main_attri_db_load_resolve).
     METHODS check_attri_bound
       IMPORTING
@@ -218,24 +68,11 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
 
     " Re-create the cleared outer reference of a dref-to-dref chain so the
     " child row's payload has somewhere to go (main_attri_db_load_resolve).
-    " Raises when the parent cannot be reached or cannot take a generic
-    " data object.
+    " Answers the reference to the parent attribute; raises when the parent
+    " cannot be reached or cannot take a generic data object.
     METHODS dref_parent_recreate
       IMPORTING
-        iv_name TYPE string.
-
-    "! the S-RTTI payload of a row: type and data as two documents, so the
-    "! restore parses each once (see z2ui5_cl_ui5_util_context)
-    METHODS attri_srtti_store
-      IMPORTING
-        ir_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        iv_val   TYPE any.
-
-    "! the payload back into a data object - from the two documents, or from
-    "! the one combined document a draft written before 2026-09 carries
-    METHODS attri_srtti_parse
-      IMPORTING
-        is_attri      TYPE z2ui5_if_ui5_types=>ty_s_attri
+        iv_name       TYPE string
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -264,16 +101,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_from   TYPE string
         iv_to     TYPE string.
 
-    " abap_true when a reference row takes a payload of its own on the save
-    " (it is bound and owns its target); drops the alias of the children of
-    " a CLEARed reference on the way - see main_attri_db_save_srtti
-    METHODS dref_check_payload
-      IMPORTING
-        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        iv_dref       TYPE any
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
     METHODS attri_get_val_ref
       IMPORTING
         iv_path       TYPE clike
@@ -283,18 +110,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
     METHODS attri_search
       IMPORTING
         val           TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-
-    "! the scan of the binding search over the rows of the sought kind -
-    "! either the rows this instance has not resolved yet (iv_indexed =
-    "! abap_false) or the ones it has (abap_true), each confirmed by a fresh
-    "! ASSIGN and put into the index
-    METHODS attri_search_scan
-      IMPORTING
-        io_descr      TYPE REF TO cl_abap_typedescr
-        ir_val        TYPE REF TO data
-        iv_indexed    TYPE abap_bool
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
 
@@ -354,15 +169,12 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         z2ui5_cx_ajson_error.
 
     " what delta_apply_field learnt about a COLUMN of the table it is
-    " writing: whether a nested table there is a standard one, and the type
-    " kind of a scalar there. Both are decided by the component's type, so
-    " once per column per delta, not per cell. Neither is a key component,
-    " so a write through the row reference is legal
+    " writing: whether a nested table there is a standard one. Decided by
+    " the component's type, so once per column per delta, not per cell
     TYPES:
       BEGIN OF ty_s_col_kind,
-        field     TYPE string,
-        standard  TYPE abap_bool,
-        type_kind TYPE string,
+        field    TYPE string,
+        standard TYPE abap_bool,
       END OF ty_s_col_kind.
     TYPES ty_t_col_kind TYPE SORTED TABLE OF ty_s_col_kind WITH UNIQUE KEY field.
 
@@ -402,17 +214,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         iv_table      TYPE string
         iv_row_parent TYPE i DEFAULT 0.
 
-    "! Every cell of ONE delta row lands in mt_skipped - for a row the table
-    "! cannot take (delta_skip_nodes) and for an index past the table's end
-    "! (delta_apply_nodes)
-    METHODS delta_skip_row
-      IMPORTING
-        io_delta      TYPE REF TO z2ui5_if_ajson
-        iv_row_path   TYPE string
-        iv_row        TYPE i
-        iv_table      TYPE string
-        iv_row_parent TYPE i DEFAULT 0.
-
     "! The 1-based row index a delta key names, 0 for a key that names no
     "! row: the key is client-supplied, so a garbled (non-numeric) one must
     "! skip that row rather than dump the request, and a negative one
@@ -432,13 +233,6 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
         name TYPE string,
         ref  TYPE REF TO data,
       END OF ty_s_ref_idx.
-    " NO secondary key on ref, although the binding search scans this
-    " table for it (attri_search): a sorted secondary key on a REF TO data
-    " component is accepted by every abaplint target and refused by the
-    " transpiled runtime, whose secondary index sorts the rows by
-    " comparing the references' targets (@abaplint/runtime 2.13.91:
-    " "table, no header line" from compare/lt on the first keyed loop) -
-    " so the unit suite cannot run it. Re-check on the next runtime bump
     TYPES ty_t_ref_idx TYPE SORTED TABLE OF ty_s_ref_idx WITH UNIQUE KEY name.
 
     " name -> data reference, as resolved the last time this INSTANCE walked
@@ -516,105 +310,21 @@ CLASS z2ui5_cl_ui5_srv_model DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    "! iv_type_kind is the component's type kind, resolved by the caller
-    "! once per column (ty_t_col_kind) - it used to be asked per cell
-    METHODS delta_apply_scalar
-      IMPORTING
-        io_delta     TYPE REF TO z2ui5_if_ajson
-        iv_path      TYPE string
-        ir_comp      TYPE REF TO data
-        iv_type_kind TYPE string
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! A date (8) or a time (6) as it is about to be assigned - after the
-    "! ISO unpack - must be exactly that many digits, or it is refused like
-    "! any other conversion failure. The c->d and c->t assignments do not
-    "! check: they copy the first characters of whatever text arrives, so a
-    "! DatePicker without valueFormat (`Jan 15, 2024`, `15.01.2024`) stored
-    "! `Jan 15, ` / `15.01.20` without a trace, and the next serialization
-    "! shipped that back. The whole-object path (ajson's to_abap) refuses
-    "! such a value already
-    METHODS delta_check_digits
-      IMPORTING
-        iv_value  TYPE string
-        iv_length TYPE i
-        iv_kind   TYPE string.
-
-    "! the column's kinds, resolved once per column into the caller's
-    "! memory (ty_t_col_kind) and answered from it after that
-    METHODS delta_col_kind
-      IMPORTING
-        is_cell     TYPE z2ui5_if_client=>ty_s_model_skip
-        ir_comp     TYPE REF TO data
-      EXPORTING
-        er_col_kind TYPE REF TO ty_s_col_kind
-      CHANGING
-        ct_col_kind TYPE ty_t_col_kind.
-
-    "! true when a cell of this column kind takes no value of this node
-    "! type at all - decided before anything is assigned, because the
-    "! assignment would not raise, it would dump (see delta_apply_field)
-    METHODS delta_check_refused
-      IMPORTING
-        iv_type_kind  TYPE string
-        iv_node_type  TYPE string
+    " the upper-case mapper every model serialization attaches: it holds
+    " no state of its own (an empty field mapping), so one instance serves
+    " every call instead of two objects per serialization. Created on the
+    " first call, not in a class constructor - see z2ui5_cl_ui5_frontend's
+    " box_resolve for why a static constructor is avoided here
+    CLASS-DATA gi_mapper_upper TYPE REF TO z2ui5_if_ajson_mapping.
+    CLASS-METHODS mapper_upper
       RETURNING
-        VALUE(result) TYPE abap_bool.
+        VALUE(result) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    "! one refused cell into mt_skipped, with the raw value when the node
-    "! carries one
-    METHODS delta_trace_skipped
+    METHODS delta_apply_scalar
       IMPORTING
         io_delta TYPE REF TO z2ui5_if_ajson
         iv_path  TYPE string
-        is_cell  TYPE z2ui5_if_client=>ty_s_model_skip.
-
-    "! A SCALAR whole value of the request model into the bound attribute -
-    "! one keyed read on the request tree, no tree of its own
-    "! (main_json_to_attri). The conversions are the row delta's
-    "! (delta_apply_scalar), and a target the node cannot fill at all is
-    "! refused with an exception the way to_abap( ) refused it, so the
-    "! caller traces it and the old value stands
-    METHODS scalar_apply
-      IMPORTING
-        io_model     TYPE REF TO z2ui5_if_ajson
-        iv_path      TYPE string
-        iv_node_type TYPE string
-        ir_ref       TYPE REF TO data
-      RAISING
-        z2ui5_cx_ajson_error.
-
-    "! One carried whole value into its attribute (main_json_to_attri): an
-    "! OBJECT or ARRAY through a tree of its own and to_abap( ), a SCALAR
-    "! through one keyed read (scalar_apply). Answers the exception a
-    "! refused value raised - the old value is put back here, the trace is
-    "! the caller's - and nothing for a value that was written or an
-    "! attribute that cannot be reached (a draft that outlived its class)
-    METHODS whole_value_apply
-      IMPORTING
-        io_model      TYPE REF TO z2ui5_if_ajson
-        iv_path       TYPE string
-        ir_attri      TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-      RETURNING
-        VALUE(result) TYPE REF TO cx_root.
-
-    "! the attribute a refused whole value belongs to, into mt_skipped -
-    "! with the raw value when its node carries one
-    METHODS whole_value_trace
-      IMPORTING
-        io_model TYPE REF TO z2ui5_if_ajson
-        iv_path  TYPE string
-        iv_name  TYPE string.
-
-    "! the state of a window_bind_tab( ) table next to its rows, under
-    "! /__WINDOW/&lt;NAME&gt; of io_result: the total the app reported, the
-    "! rows it loaded, the size of a page and the app event that loads more
-    METHODS window_meta
-      IMPORTING
-        ir_attri  TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri
-        ir_ref    TYPE REF TO data
-        io_result TYPE REF TO z2ui5_if_ajson
+        ir_comp  TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -625,114 +335,96 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
+    DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind = abap_true.                        "#EC CI_SORTSEQ
-
-      " _bind( json = abap_true ) is outbound only: the attribute holds
-      " configuration the client renders but never edits, and reading the
-      " node back would mean writing an object into a string field. Skip it
-      " rather than mangle it - the ABAP side stays the single author
-      IF lr_attri->check_json = abap_true.
-        CONTINUE.
-      ENDIF.
-
-      " the frontend sends only the DELTA, so most bound attributes have
-      " no node in the request model at all. Every read below is a keyed
-      " lookup on the request tree: the row delta is applied in place, a
-      " scalar is one read, and only an object or array value takes a
-      " tree of its own (whole_value_apply) - slice( ) walks and copies
-      " the whole node tree per call (a CP compare on every node), so it
-      " runs for exactly those. The same reasoning as the /value unwrap in
-      " z2ui5_cl_ui5_handler=>request_parse_body
-      DATA(lv_node) = iv_prefix && lr_attri->name_client.
-      IF model->exists( lv_node ) = abap_false.
-        CONTINUE.
-      ENDIF.
-
+      CLEAR lo_val_front.
       TRY.
-          IF model->exists( |{ lv_node }/__delta| ) = abap_true.
+
+          " _bind( json = abap_true ) is outbound only: the attribute holds
+          " configuration the client renders but never edits, and reading the
+          " node back would mean writing an object into a string field. Skip it
+          " rather than mangle it - the ABAP side stays the single author
+          IF lr_attri->check_json = abap_true.
+            CONTINUE.
+          ENDIF.
+
+          " the frontend sends only the DELTA, so most bound attributes have
+          " no node in the request model at all. slice( ) walks and copies
+          " the whole node tree per call (CP compare on every node); the
+          " keyed exists( ) lookup answers "nothing there" first, so the
+          " walk only runs for attributes the request actually carries -
+          " the same reasoning as the /value unwrap in
+          " z2ui5_cl_ui5_handler=>request_parse_body
+          IF model->exists( lr_attri->name_client ) = abap_false.
+            CONTINUE.
+          ENDIF.
+
+          " a row delta is applied on the request model itself, the rows
+          " addressed by path under the attribute's node - no copy of the
+          " attribute's sub-tree and no second copy of its __delta node.
+          " Only a WHOLE value below is sliced, because to_abap( ) takes a
+          " tree of its own
+          IF model->exists( |{ lr_attri->name_client }/__delta| ) = abap_true.
             delta_apply_to_table( io_val_front = model
-                                  iv_path      = lv_node
+                                  iv_path      = lr_attri->name_client
                                   iv_name      = lr_attri->name ).
             CONTINUE.
           ENDIF.
-          DATA(lx_refused) = whole_value_apply( io_model = model
-                                                iv_path  = lv_node
-                                                ir_attri = lr_attri ).
-          IF lx_refused IS BOUND.
-            whole_value_trace( io_model = model
-                               iv_path  = lv_node
-                               iv_name  = lr_attri->name ).
+
+          lo_val_front = model->slice( lr_attri->name_client ).
+          IF lo_val_front IS NOT BOUND.
+            CONTINUE.
           ENDIF.
+
+          TRY.
+              DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+            CATCH cx_root.
+              CONTINUE.
+          ENDTRY.
+
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
+          " to_abap clears the target before it fills it, so a refused value
+          " would leave the attribute initial - the trace below promises the
+          " OLD value stays. Kept aside for the one path that can refuse;
+          " only attributes the request actually carries get this far
+          DATA lr_before TYPE REF TO data.
+          CREATE DATA lr_before LIKE <val>.
+          FIELD-SYMBOLS <before> TYPE any.
+          ASSIGN lr_before->* TO <before>.
+          <before> = <val>.
+
+          TRY.
+              lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
+                                     IMPORTING ev_container     = <val> ).
+            CATCH cx_root INTO DATA(lx_refused).
+              <val> = <before>.
+              RAISE EXCEPTION lx_refused.
+          ENDTRY.
+
         CATCH cx_root.
-          " a delta the request tree refused to hand over as a whole - the
-          " attribute is traced like a refused whole value, see there
-          whole_value_trace( io_model = model
-                             iv_path  = lv_node
-                             iv_name  = lr_attri->name ).
+          " A bound SCALAR (or a whole structure/table shipped as one value)
+          " the client sent in a form the ABAP type refuses - `1,250.00`
+          " typed into an Input bound to a packed field. This used to raise
+          " JSON_PARSING_ERROR and fail the whole roundtrip with the fatal
+          " overlay, while the same value in a table CELL was traced in
+          " t_model_skipped and the roundtrip went on. Same treatment now:
+          " the attribute is recorded (name = the attribute, row 0, no
+          " field), its old value stays, and the app decides what to tell
+          " the user - the reason the trace exists (see delta_apply_field)
+          DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = lr_attri->name ).
+          " the delta path has no tree of its own to quote from - the entry
+          " then names the attribute alone, as a refused structure does
+          IF lo_val_front IS BOUND.
+            TRY.
+                ls_skip-value = lo_val_front->get_string( `` ).
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+          ENDIF.
+          APPEND ls_skip TO mt_skipped.
       ENDTRY.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD main_snapshot.
-
-    FIELD-SYMBOLS <val>  TYPE any.
-    FIELD-SYMBOLS <copy> TYPE any.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE bind = abap_true
-               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
-               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-
-      TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
-
-      ASSIGN lr_ref->* TO <val>.
-      DATA lr_copy TYPE REF TO data.
-      CREATE DATA lr_copy LIKE <val>.
-      ASSIGN lr_copy->* TO <copy>.
-      <copy> = <val>.
-      INSERT VALUE #( name   = lr_attri->name
-                      o_data = lr_copy ) INTO TABLE result.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD main_snapshot_changed.
-
-    FIELD-SYMBOLS <val>  TYPE any.
-    FIELD-SYMBOLS <copy> TYPE any.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE bind = abap_true
-               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
-               AND type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-
-      " bound by this main( ): the client holds no value for it yet
-      READ TABLE snapshot REFERENCE INTO DATA(lr_snap) WITH TABLE KEY name = lr_attri->name.
-      IF sy-subrc <> 0.
-        result = abap_true.
-        RETURN.
-      ENDIF.
-
-      TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-        CATCH cx_root.
-          CONTINUE.
-      ENDTRY.
-
-      ASSIGN lr_ref->* TO <val>.
-      ASSIGN lr_snap->o_data->* TO <copy>.
-      IF <val> <> <copy>.
-        result = abap_true.
-        RETURN.
-      ENDIF.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -748,18 +440,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " same either way; the path leaf (name_client) is upper case by
         " construction (attribute names come from RTTI), so the mapping is
         " a no-op on it
-        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                       ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                       ii_custom_mapping = mapper_upper( ) ) ).
         " the scratch instance for a filtered attribute without a mapper
         " of its own - created when the first such attribute asks for it
-        DATA li_ajson_default TYPE REF TO z2ui5_if_ajson.
+        DATA ajson_default TYPE REF TO z2ui5_if_ajson.
 
-        DATA lt_mapper_cache TYPE ty_t_mapper_cache.
-
-        " the fast path (json_fast_set): a bound table of flat rows is
-        " written as text directly and spliced into the stringified tree
-        " afterwards - its tokens and their JSON live here
-        DATA ls_fast TYPE ty_s_fast_state.
+        TYPES: BEGIN OF ty_s_mapper_cache,
+                 mapper TYPE REF TO z2ui5_if_ajson_mapping,
+                 ajson  TYPE REF TO z2ui5_if_ajson,
+               END OF ty_s_mapper_cache.
+        DATA lt_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
 
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
              WHERE bind = abap_true
@@ -786,322 +477,62 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " (an ajson value is copied node for node, the result's mapping does
           " not touch it)
           IF lr_attri->check_json = abap_true.
-            json_bind_set( io_result = li_ajson_result
-                           iv_path   = lr_attri->name_client
-                           iv_json   = <val> ).
+            ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val  = z2ui5_cl_ajson=>parse( <val> ) ).
             CONTINUE.
           ENDIF.
 
           " a mapper or filter is attached to an ajson INSTANCE, so those
           " attributes keep the scratch-instance detour the direct set cannot
           " express: convert into the scratch, filter, copy into the result
-          "
-          " This branch is COMPATIBILITY ONLY - _bind( custom_mapper ) and
-          " _bind( custom_filter ) are obsolete (the note on those parameters
-          " in z2ui5_if_client says why and what to write instead), and no app
-          " class in samples, samples-controls or samples-stack has ever
-          " reached them. Do not extend it, and do not route a new feature
-          " through it: the branch above is where a declarative flag belongs -
-          " omit_initial was built exactly there, out of the one filter this
-          " slot was really used for (create_empty_filter). Kept because a
-          " customer app that passes one must keep working
           IF lr_attri->custom_mapper IS BOUND OR lr_attri->custom_filter IS BOUND.
-            json_custom_set( EXPORTING ir_attri        = lr_attri
-                                       iv_val          = <val>
-                                       io_result       = li_ajson_result
-                             CHANGING  ci_default      = li_ajson_default
-                                       ct_mapper_cache = lt_mapper_cache ).
+            IF lr_attri->custom_mapper IS BOUND.
+              READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+                   WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
+              IF sy-subrc = 0.
+                DATA(ajson) = lr_mapper_cache->ajson.
+              ELSE.
+                ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                     ii_custom_mapping = lr_attri->custom_mapper ) ).
+                INSERT VALUE #( mapper = lr_attri->custom_mapper
+                                ajson  = ajson ) INTO TABLE lt_mapper_cache.
+              ENDIF.
+            ELSE.
+              IF ajson_default IS NOT BOUND.
+                ajson_default = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                          ii_custom_mapping = mapper_upper( ) ) ).
+              ENDIF.
+              ajson = ajson_default.
+            ENDIF.
+
+            ajson->set( iv_ignore_empty = abap_false
+                        iv_path         = `/`
+                        iv_val          = <val> ).
+
+            IF lr_attri->custom_filter IS BOUND.
+              ajson = ajson->filter( lr_attri->custom_filter ).
+            ENDIF.
+
+            ajson_result->set( iv_path = lr_attri->name_client
+                               iv_val  = ajson ).
             CONTINUE.
           ENDIF.
 
-          " window_bind_tab( ): the rows the app loaded, and the window's
-          " state next to them
-          IF lr_attri->window_size > 0.
-            window_meta( ir_attri  = lr_attri
-                         ir_ref    = lr_ref
-                         io_result = li_ajson_result ).
-          ENDIF.
-
-          json_fast_set( EXPORTING ir_ref    = lr_ref
-                                   ir_attri  = lr_attri
-                                   io_result = li_ajson_result
-                         IMPORTING ev_taken  = DATA(lv_taken)
-                         CHANGING  cs_fast   = ls_fast ).
-          IF lv_taken = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          li_ajson_result->set( iv_ignore_empty = abap_false
-                             iv_path            = lr_attri->name_client
-                             iv_val             = <val> ).
+          ajson_result->set( iv_ignore_empty = abap_false
+                             iv_path         = lr_attri->name_client
+                             iv_val          = <val> ).
         ENDLOOP.
 
-        result = li_ajson_result->stringify( ).
+        result = ajson_result->stringify( ).
         IF result IS INITIAL.
           result = `{}`.
         ENDIF.
-
-        json_fast_splice( EXPORTING is_fast = ls_fast
-                          CHANGING  cv_json = result ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
           EXPORTING
             val = x.
     ENDTRY.
-  ENDMETHOD.
-
-  METHOD json_custom_set.
-
-    IF ir_attri->custom_mapper IS BOUND.
-      READ TABLE ct_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
-           WITH KEY mapper = ir_attri->custom_mapper. "#EC CI_SORTSEQ
-      IF sy-subrc = 0.
-        DATA(ajson) = lr_mapper_cache->ajson.
-      ELSE.
-        ajson = z2ui5_cl_ajson=>create_empty(
-                    ii_custom_mapping = ir_attri->custom_mapper ).
-        INSERT VALUE #( mapper = ir_attri->custom_mapper
-                        ajson  = ajson ) INTO TABLE ct_mapper_cache.
-      ENDIF.
-    ELSE.
-      IF ci_default IS NOT BOUND.
-        ci_default = z2ui5_cl_ajson=>create_empty(
-                         ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ).
-      ENDIF.
-      ajson = ci_default.
-    ENDIF.
-
-    ajson->set( iv_ignore_empty = abap_false
-                iv_path         = `/`
-                iv_val          = iv_val ).
-
-    IF ir_attri->custom_filter IS BOUND.
-      ajson = ajson->filter( ir_attri->custom_filter ).
-    ENDIF.
-
-    io_result->set( iv_path = ir_attri->name_client
-                    iv_val  = ajson ).
-
-  ENDMETHOD.
-
-  METHOD json_fast_set.
-
-    ev_taken = abap_false.
-    IF ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-        AND ir_attri->type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
-    DATA(lv_json) = attri_json_fast( ir_ref ).
-    IF lv_json IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    " The tree keeps deciding the shape of the document - the order of the
-    " keys, a dissolved structure's nesting (/MS/T is an object MS around
-    " T) - so the attribute goes into it as a string node holding a token
-    " nobody else can hold (a uuid of this call plus a counter), and the
-    " token's quoted text is replaced by the JSON once the tree is text
-    " (json_fast_splice)
-    IF cs_fast-uuid IS INITIAL.
-      cs_fast-uuid = z2ui5_cl_ui5_util_context=>uuid_get_c32( ).
-    ENDIF.
-    DATA(ls_token) = VALUE ty_s_fast( token = |z2ui5-fast-{ cs_fast-uuid }-{ lines( cs_fast-t_token ) + 1 }|
-                                      json  = lv_json ).
-    APPEND ls_token TO cs_fast-t_token.
-    io_result->set( iv_path = ir_attri->name_client
-                    iv_val  = ls_token-token ).
-    ev_taken = abap_true.
-
-  ENDMETHOD.
-
-  METHOD json_fast_splice.
-
-    " ONE pass over the document: every token is located from where the
-    " previous one ended, the text between them and the JSON each stands for
-    " are collected, and the document is built by one concatenation. It used
-    " to be one find( ) from offset 0 and one rebuilt copy of the WHOLE
-    " model per token - a view of ten bound tables copied its model ten
-    " times, each search running over the rows spliced in before it.
-    " The scan looks for what every token of this call starts with (the
-    " quote and the uuid) and reads the token's number behind it, so it
-    " does not depend on the tree writing the tokens in the order they were
-    " set: the tree sorts by path, the tokens are numbered in the order of
-    " the attribute table. The text already spliced in is never searched
-    " again, so a bound value that happens to look like a token stays a
-    " value.
-    " By offset, not with replace( ): the transpiled runtime reads a `$` in
-    " a replacement text as a pattern (abap-check, section 4), and a bound
-    " value may well carry one
-    IF is_fast-t_token IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    DATA lt_piece TYPE string_table.
-    DATA lt_used  TYPE SORTED TABLE OF i WITH UNIQUE KEY table_line.
-    DATA lv_index TYPE i.
-    DATA(lv_start) = |"z2ui5-fast-{ is_fast-uuid }-|.
-    DATA(lv_start_len) = strlen( lv_start ).
-    DATA(lv_pos) = 0.
-    DATA(lv_found) = 0.
-
-    DO.
-      DATA(lv_off) = find( val = cv_json
-                           sub = lv_start
-                           off = lv_pos ).
-      IF lv_off < 0.
-        EXIT.
-      ENDIF.
-      DATA(lv_num_off) = lv_off + lv_start_len.
-      DATA(lv_end) = find( val = cv_json
-                           sub = `"`
-                           off = lv_num_off ).
-      IF lv_end < 0.
-        EXIT.
-      ENDIF.
-      " the number is the token's line in t_token (json_fast_set) - the
-      " characters are this call's own, so the conversion cannot fail on
-      " anything an app bound
-      lv_index = substring( val = cv_json
-                            off = lv_num_off
-                            len = lv_end - lv_num_off ).
-      READ TABLE is_fast-t_token REFERENCE INTO DATA(lr_fast) INDEX lv_index.
-      IF sy-subrc <> 0.
-        EXIT.
-      ENDIF.
-      INSERT lv_index INTO TABLE lt_used.
-      IF sy-subrc <> 0.
-        " the same token a second time - counted as lost below
-        lv_found = -1.
-        EXIT.
-      ENDIF.
-      " never empty: a token is a member's value, so the document has at
-      " least `{"NAME":` before the first one and `,"NAME":` between two
-      APPEND substring( val = cv_json
-                        off = lv_pos
-                        len = lv_off - lv_pos ) TO lt_piece.
-      APPEND lr_fast->json TO lt_piece.
-      lv_pos = lv_end + 1.
-      lv_found = lv_found + 1.
-    ENDDO.
-
-    " every token exactly once - a token the tree did not write, or wrote
-    " twice, is a document with a table missing, and that must be loud
-    IF lines( is_fast-t_token ) <> lv_found.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = `MODEL_FAST_PATH_TOKEN_LOST - internal error while serializing a bound table: a cell placeholder is ` &&
-                `missing from the document. This is a framework defect, not an app error - please report it`.
-    ENDIF.
-
-    " what follows the last token - at least the closing brace
-    APPEND substring( val = cv_json
-                      off = lv_pos ) TO lt_piece.
-    cv_json = concat_lines_of( lt_piece ).
-
-  ENDMETHOD.
-
-  METHOD attri_json_fast.
-
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row> TYPE any.
-
-    DATA(lt_comp) = z2ui5_cl_ui5_util_context=>rtti_get_flat_components( ir_ref ).
-    IF lines( lt_comp ) = 0.
-      RETURN.
-    ENDIF.
-    " ajson writes an object's members in the order of its node table,
-    " whose key is the name - the component order of the structure does
-    " not show in the text
-    SORT lt_comp BY name.
-
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_false.
-      " the flat structure itself
-      ASSIGN ir_ref->* TO <row>.
-      result = json_row( is_row  = <row>
-                         it_comp = lt_comp ).
-      RETURN.
-    ENDIF.
-
-    " decided by RTTI first: ASSIGN to a typed field symbol dumps on a
-    " system when the kinds differ (abap-check, section 5)
-    ASSIGN ir_ref->* TO <tab>.
-    DATA lt_row TYPE string_table.
-    LOOP AT <tab> ASSIGNING <row>.
-      APPEND json_row( is_row  = <row>
-                       it_comp = lt_comp ) TO lt_row.
-    ENDLOOP.
-    result = `[` && concat_lines_of( table = lt_row
-                                     sep   = `,` ) && `]`.
-
-  ENDMETHOD.
-
-  METHOD json_row.
-
-    FIELD-SYMBOLS <cell> TYPE any.
-    DATA lt_member TYPE string_table.
-    DATA lv_text   TYPE string.
-
-    LOOP AT it_comp REFERENCE INTO DATA(lr_comp).
-      ASSIGN COMPONENT lr_comp->name OF STRUCTURE is_row TO <cell>.
-      IF sy-subrc <> 0.
-        " the names come from the RTTI of this very row - loud rather than
-        " a document missing a column
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |MODEL_FAST_PATH_COMPONENT_LOST - internal error while serializing a bound table: column | &&
-                  |'{ lr_comp->name }' is missing from its own row. This is a framework defect, not an app error - please report it|.
-      ENDIF.
-      " the one rendering ajson uses for every elementary value: the string
-      " template, which decides the sign, the decimals and the exponent by
-      " the type of the cell - and the raw digits of a date or a time,
-      " which ajson's format_date / format_time (the model's instance is
-      " created with format_datetime) write as ISO text, empty when initial
-      lv_text = |{ <cell> }|.
-      CASE lr_comp->json_kind.
-        WHEN `S`.
-          lv_text = |"{ z2ui5_cl_ui5_util_context=>c_escape_json( lv_text ) }"|.
-        WHEN `D`.
-          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
-                            ELSE |"{ lv_text(4) }-{ lv_text+4(2) }-{ lv_text+6(2) }"| ).
-        WHEN `T`.
-          lv_text = COND #( WHEN <cell> IS INITIAL THEN `""`
-                            ELSE |"{ lv_text(2) }:{ lv_text+2(2) }:{ lv_text+4(2) }"| ).
-        WHEN `B`.
-          lv_text = COND #( WHEN <cell> IS NOT INITIAL THEN `true` ELSE `false` ).
-        WHEN `U`.
-          " a packed field typed timestamp or timestampl: ajson's
-          " format_timestamp / format_timestampl, an ISO instant in UTC -
-          " never empty, an initial one is 0000-00-00T00:00:00Z. Nothing
-          " to escape: digits and the punctuation of the format
-          lv_text = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stamp( <cell> ) }"|.
-        WHEN `L`.
-          lv_text = |"{ z2ui5_cl_ui5_util_context=>time_get_iso_by_stampl( <cell> ) }"|.
-      ENDCASE.
-      APPEND |"{ lr_comp->name }":{ lv_text }| TO lt_member.
-    ENDLOOP.
-    result = `{` && concat_lines_of( table = lt_member
-                                     sep   = `,` ) && `}`.
-
-  ENDMETHOD.
-
-  METHOD json_bind_set.
-
-    " a string with no JSON in it YET - initial, or cleared - is no JSON at
-    " all and travels as null: refused like a broken one, it failed every
-    " roundtrip of the app (the snapshot before main( ) included) until the
-    " app filled it, a card manifest loaded later
-    " assigned first, not tested inline: a built-in in an IS INITIAL
-    " operand does not compile after the 7.02 downport (#2664)
-    DATA(lv_json) = condense( CONV string( iv_json ) ).
-    IF lv_json IS INITIAL.
-      io_result->set_null( iv_path ).
-      RETURN.
-    ENDIF.
-    io_result->set( iv_path = iv_path
-                    iv_val  = z2ui5_cl_ajson=>parse( iv_json ) ).
-
   ENDMETHOD.
 
   METHOD main_attri_db_load.
@@ -1149,7 +580,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
           TRY.
-              dref_parent_recreate( lr_attri->name_parent ).
+              lr_ref = dref_parent_recreate( lr_attri->name_parent ).
               lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
@@ -1179,7 +610,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " payload a second time into the object the first parse had built
       ASSIGN lr_ref->* TO FIELD-SYMBOL(<live>).
       IF <live> IS NOT INITIAL.
-        CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
+        CLEAR lr_attri->srtti_data.
         CONTINUE.
       ENDIF.
 
@@ -1206,8 +637,9 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " `<name>->*` child). Data no view reads keeps the lenient treatment:
       " a scratch reference of an exotic type is no reason to end a session.
       TRY.
-          <live> = attri_srtti_parse( lr_attri->* ).
-          CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+          <val> = z2ui5_cl_ui5_util_context=>xml_srtti_parse( lr_attri->srtti_data ).
+          CLEAR lr_attri->srtti_data.
         CATCH cx_root INTO DATA(x).
           IF check_attri_bound( lr_attri->name ) = abap_false.
             CONTINUE.
@@ -1223,34 +655,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD attri_srtti_store.
-
-    z2ui5_cl_ui5_util_context=>xml_srtti_stringify_pair( EXPORTING data    = iv_val
-                                                         IMPORTING ev_type = ir_attri->srtti_type
-                                                                   ev_data = ir_attri->srtti_data ).
-
-  ENDMETHOD.
-
-  METHOD attri_srtti_parse.
-
-    IF is_attri-srtti_type IS NOT INITIAL.
-      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse_pair( iv_type = is_attri-srtti_type
-                                                                iv_data = is_attri-srtti_data ).
-    ELSE.
-      " one combined document, lexed twice - the format every draft carried
-      " until the type travelled on its own
-      result = z2ui5_cl_ui5_util_context=>xml_srtti_parse( is_attri-srtti_data ).
-    ENDIF.
-
-  ENDMETHOD.
-
   METHOD dref_parent_recreate.
 
     FIELD-SYMBOLS <parent> TYPE any.
     DATA lr_new TYPE REF TO data.
 
-    DATA(lr_parent) = attri_get_val_ref( iv_name ).
-    ASSIGN lr_parent->* TO <parent>.
+    result = attri_get_val_ref( iv_name ).
+    ASSIGN result->* TO <parent>.
     IF <parent> IS NOT INITIAL.
       RETURN.
     ENDIF.
@@ -1263,41 +674,17 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD check_attri_bound.
 
-    " every bound row, and the chain of parents above it: the method used
-    " to look one level down only, while its promise (and the restore that
-    " decides on it) is about every dissolved child
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE bind = abap_true.
-      DATA(lv_name) = lr_attri->name.
-      WHILE lv_name IS NOT INITIAL.
-        IF lv_name = iv_name.
-          result = abap_true.
-          RETURN.
-        ENDIF.
-        READ TABLE mt_attri->* REFERENCE INTO DATA(lr_up)
-             WITH TABLE KEY name = lv_name.
-        IF sy-subrc <> 0.
-          EXIT.
-        ENDIF.
-        lv_name = lr_up->name_parent.
-      ENDWHILE.
+      IF lr_attri->name = iv_name OR lr_attri->name_parent = iv_name.
+        result = abap_true.
+        RETURN.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
 
   METHOD main_attri_db_load_table.
-
-    " only the `<name>->*` row is the alias of a table. The row BELOW a
-    " struct alias - `<alias>->comp`, carrying `<owner>-comp` as name_ref
-    " for the binding search - is not one: the struct alias itself is
-    " re-pointed by main_attri_db_load_dref, and following its table
-    " component here re-pointed the reference at that component on every
-    " restore (the parent-is-dref guard below holds for both rows and
-    " cannot tell them apart) - a REF TO data at `{ id, t_items }` came
-    " back dereferencing to the table (2026-09-05)
-    IF check_alias_capable( ir_attri->name ) = abap_false.
-      RETURN.
-    ENDIF.
 
     " a row whose owner cannot be reached is skipped, like an unreachable
     " row in main_attri_db_load_resolve: the draft outlives the class it was
@@ -1331,26 +718,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " the owner's data object itself - the reference attri_get_val_ref
-    " answered points at it already
-    <parent_ref> = lr_ref_source.
+    " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
+    " dynamic ASSIGN above), so # has no type to infer the reference from -
+    " a system refuses that with "Unexpected operator REF", abaplint does not
+    ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
+    <parent_ref> = REF data( <source_value> ).
 
   ENDMETHOD.
 
   METHOD main_attri_db_load_dref.
-
-    " only a reference the alias pass paired ITSELF is followed. A reference
-    " row BELOW an alias - `<alias>->r_val` - carries `<owner>-r_val` as
-    " name_ref only because refs_below_set rewrites every row under the
-    " alias for the binding search; once the alias is re-pointed at its
-    " owner both paths name the SAME variable, and following the row made
-    " it point at itself, the payload lost on restore. The owner's own row
-    " restores that component whenever it is an alias of its own
-    READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
-         WITH TABLE KEY name = ir_attri->name_parent.
-    IF sy-subrc = 0 AND lr_attri_parent->name_ref IS NOT INITIAL.
-      RETURN.
-    ENDIF.
 
     " IS ASSIGNED, not sy-subrc - see main_attri_db_load_table
     DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
@@ -1364,9 +740,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF <parent_ref> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
-    " REF data( ), not REF #( ): the target is a field symbol TYPE any (the
-    " dynamic ASSIGN above), so # has no type to infer the reference from -
-    " a system refuses that with "Unexpected operator REF", abaplint does not
+    " REF data( ) into the generic target - see main_attri_db_load_table
     <parent_ref> = REF data( <source_ref> ).
 
   ENDMETHOD.
@@ -1402,19 +776,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF <dref> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
-      " never this row table itself: a public object attribute of the app
-      " can lead the dissolve walk back to the container (diss_oref skips
-      " the client for that reason), and detaching THIS reference writes an
-      " empty MT_ATTRI into the draft - a second guard, so no other route
-      " into the framework graph can do it either
-      IF <dref> = mt_attri.
-        CONTINUE.
-      ENDIF.
       INSERT VALUE #( name = lr_attri->name
                       ref  = REF #( <dref> ) ) INTO TABLE lt_dref.
 
-      IF dref_check_payload( ir_attri = lr_attri
-                             iv_dref  = <dref> ) = abap_false.
+      " a payload only for a reference that OWNS its target - an alias
+      " (name_ref) is pointed at its owner again on the load - and that
+      " points at something
+      IF lr_attri->name_ref IS NOT INITIAL OR <dref> IS INITIAL.
         CONTINUE.
       ENDIF.
       UNASSIGN <val_deref>.
@@ -1441,14 +809,12 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                WHERE name_parent = lr_attri->name
                      AND name_ref IS INITIAL
                      AND type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-            attri_srtti_store( ir_attri = lr_attri
-                               iv_val   = <val_deref> ).
+            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
             EXIT.
           ENDLOOP.
 
         WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-          attri_srtti_store( ir_attri = lr_attri
-                             iv_val   = <val_deref> ).
+          lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
 
         WHEN OTHERS.
           " an ELEMENTARY deref (CREATE DATA mr TYPE string / i / ...) is
@@ -1461,8 +827,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
           " is left alone: S-RTTI cannot serialize it, and clearing it is
           " what happened before
           IF lo_descr->kind = z2ui5_cl_ui5_util_context=>cv_typedescr_kind_elem.
-            attri_srtti_store( ir_attri = lr_attri
-                               iv_val   = <val_deref> ).
+            lr_attri->srtti_data = z2ui5_cl_ui5_util_context=>xml_srtti_stringify( <val_deref> ).
           ENDIF.
 
       ENDCASE.
@@ -1508,7 +873,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " would only be stale by the next save, which writes them again
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE srtti_data IS NOT INITIAL.
-      CLEAR: lr_attri->srtti_data, lr_attri->srtti_type.
+      CLEAR lr_attri->srtti_data.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1550,17 +915,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD main_attri_find.
-
-    " attri_search refuses a reference to a reference with an exception -
-    " that is "no attribute" here as well
-    TRY.
-        result = attri_search( val ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
   METHOD attri_get_val_ref.
 
     " The dynamic ASSIGN below is resolved FRESH on every call. The rule
@@ -1590,8 +944,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     IF <attri> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
-          val = |ATTRI_GET_VAL_REF_ERROR - the bound attribute '{ iv_path }' of the app cannot be reached - check that | &&
-                |it still exists and is PUBLIC, and that a data reference on the way to it is bound|.
+          val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
     result = REF #( <attri> ).
@@ -1613,15 +966,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         OR lo_datadescr->type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
-          val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST - _bind( ) was handed a reference. ` &&
-                `Bind the data itself: _bind( lr_data->* ) for a data reference, the PUBLIC attributes of an object for an object`.
+          val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
     ENDIF.
 
     " first the index: a row this instance resolved before that pointed at
     " exactly this data object. The hit is confirmed by a fresh ASSIGN - an
     " app that re-pointed the reference since is caught here, and the scan
-    " below then decides as if there had been no index. A sequential scan
-    " on purpose - see ty_t_ref_idx for the key the runtime refuses
+    " below then decides as if there had been no index
     LOOP AT mt_ref_idx REFERENCE INTO DATA(lr_idx) WHERE ref = val. "#EC CI_SORTSEQ
       READ TABLE mt_attri->* REFERENCE INTO DATA(lr_hit)
            WITH TABLE KEY name = lr_idx->name.
@@ -1642,40 +993,10 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    " the rows this instance has not resolved yet first: the index pass
-    " above compared every indexed row that could match already, and
-    " re-resolving the others - one dynamic ASSIGN each - on every miss made
-    " a form of k elementary attributes, bound in name order, pay k*k/2
-    " ASSIGNs per roundtrip instead of k (dissolve indexes tables, references
-    " and structures, the elementary rows only ever reach the index through
-    " this scan). Indexed rows are re-resolved only when that pass finds
-    " nothing - an app that re-pointed a reference since. Every hit is still
-    " confirmed by a fresh ASSIGN: the index stays a prefilter, never an
-    " answer
-    result = attri_search_scan( io_descr   = lo_datadescr
-                                ir_val     = val
-                                iv_indexed = abap_false ).
-    IF result IS INITIAL.
-      result = attri_search_scan( io_descr   = lo_datadescr
-                                  ir_val     = val
-                                  iv_indexed = abap_true ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD attri_search_scan.
-
-    DATA(lv_name_val) = io_descr->absolute_name.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL
-               AND type_kind = io_descr->type_kind
-               AND kind = io_descr->kind.
-
-      " which rows this pass visits - see attri_search
-      READ TABLE mt_ref_idx WITH TABLE KEY name = lr_attri->name TRANSPORTING NO FIELDS.
-      IF xsdbool( sy-subrc = 0 ) <> iv_indexed.
-        CONTINUE.
-      ENDIF.
+               AND type_kind = lo_datadescr->type_kind
+               AND kind = lo_datadescr->kind.
 
       " compare by name - descriptor instances are not stable in the
       " abaplint transpiler runtime; the data reference check below is
@@ -1688,11 +1009,13 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       " row on every load - for a prefilter. A row without a name (a draft
       " written before the component existed) skips the prefilter, not the
       " row: the data-reference compare below still decides
-      IF lr_attri->type_name IS NOT INITIAL
-          AND lr_attri->type_name <> lv_name_val
-          AND lr_attri->type_name NS `%`
-          AND lv_name_val NS `%`.
-        CONTINUE.
+      IF lr_attri->type_name IS NOT INITIAL.
+        DATA(lv_name_val) = lo_datadescr->absolute_name.
+        IF lr_attri->type_name <> lv_name_val
+            AND lr_attri->type_name NS `%`
+            AND lv_name_val NS `%`.
+          CONTINUE.
+        ENDIF.
       ENDIF.
 
       TRY.
@@ -1703,7 +1026,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       ref_idx_put( iv_name = lr_attri->name
                    ir_ref  = lr_ref ).
 
-      IF lr_ref = ir_val.
+      IF lr_ref = val.
         result = lr_attri.
         RETURN.
       ENDIF.
@@ -1717,11 +1040,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ref_idx_put( iv_name = name
                  ir_ref  = lr_ref ).
     DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
-    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name        = name
-                                                   o_typedescr = lo_descr
-                                                   type_name   = lo_descr->absolute_name
-                                                   type_kind   = lo_descr->type_kind
-                                                   kind        = lo_descr->kind ).
+    result = VALUE z2ui5_if_ui5_types=>ty_s_attri( name         = name
+                                                    o_typedescr = lo_descr
+                                                    type_name   = lo_descr->absolute_name
+                                                    type_kind   = lo_descr->type_kind
+                                                    kind        = lo_descr->kind ).
 
   ENDMETHOD.
 
@@ -1738,21 +1061,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_descr) = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
+    DATA(ls_attri2) = VALUE z2ui5_if_ui5_types=>ty_s_attri( ).
+    ls_attri2-o_typedescr = z2ui5_cl_ui5_util_context=>rtti_get_typedescr_by_data_ref( lr_ref ).
 
-    CASE lo_descr->kind.
+    CASE ls_attri2-o_typedescr->kind.
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_kind_struct.
-        result = diss_struc( ir_attri ).
+        DATA(lt_attri) = diss_struc( ir_attri ).
+        INSERT LINES OF lt_attri INTO TABLE result.
 
       WHEN OTHERS.
 
-        INSERT VALUE #( name        = |{ ir_attri->name }->*|
-                        name_parent = ir_attri->name
-                        o_typedescr = lo_descr
-                        type_name   = lo_descr->absolute_name
-                        type_kind   = lo_descr->type_kind
-                        kind        = lo_descr->kind ) INTO TABLE result.
+        ls_attri2-name        = |{ ir_attri->name }->*|.
+        ls_attri2-name_parent = ir_attri->name.
+        ls_attri2-type_name   = ls_attri2-o_typedescr->absolute_name.
+        ls_attri2-type_kind   = ls_attri2-o_typedescr->type_kind.
+        ls_attri2-kind        = ls_attri2-o_typedescr->kind.
+        INSERT ls_attri2 INTO TABLE result.
 
     ENDCASE.
 
@@ -1767,28 +1092,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     DATA(lr_ref) = z2ui5_cl_ui5_util_context=>unassign_object( lr_val ).
-
-    " Nothing bindable lives behind the framework's own client object, and
-    " walking it walks the whole roundtrip graph: client -> action -> handler
-    " -> app container -> this row table, and round again. The shipped start
-    " app holds its client PUBLIC (the template it was written against did),
-    " which put 300 rows under CLIENT-> into every draft of the start page -
-    " and one of them resolved to this very row table, which the save then
-    " detached (main_attri_db_save_srtti) and wrote as an empty MT_ATTRI, so
-    " the next roundtrip of the start page found no rows to load.
-    " Asked through the client INTERFACE, named by a typed reference: the
-    " class name used to be a literal, which a namespace rename does not
-    " rewrite (rtti_get_ref_type_name), and a reference to the class itself
-    " would close a cycle (client -> srv_bind -> app_cont -> this class).
-    " The shipped client is the one implementation; a stand-in client an
-    " app holds has nothing bindable behind it either
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    IF z2ui5_cl_ui5_util_context=>rtti_check_class_impl_intf(
-           class = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lr_ref )
-           intf  = z2ui5_cl_ui5_util_context=>rtti_get_ref_type_name( li_client ) ) = abap_true.
-      RETURN.
-    ENDIF.
-
     DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_oref( lr_ref ).
 
     DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).
@@ -1821,17 +1124,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       lr_ref = lr_val.
     ENDIF.
 
-    IF lr_ref IS NOT BOUND.
-      RETURN.
+    IF lr_ref IS BOUND.
+      DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
+
+      LOOP AT lt_attri INTO DATA(ls_attri).
+        DATA(ls_new) = attri_create_new( lv_name && ls_attri-name ).
+        ls_new-name_parent = ir_attri->name.
+        INSERT ls_new INTO TABLE result.
+      ENDLOOP.
     ENDIF.
-
-    DATA(lt_attri) = z2ui5_cl_ui5_util_context=>rtti_get_t_attri_by_any( lr_ref ).
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_comp).
-      DATA(ls_new) = attri_create_new( lv_name && lr_comp->name ).
-      ls_new-name_parent = ir_attri->name.
-      INSERT ls_new INTO TABLE result.
-    ENDLOOP.
-
   ENDMETHOD.
 
   METHOD dissolve.
@@ -1954,18 +1255,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       ir_res->attri->name_ref = lr_other->name.
-      " a typed attribute owns its table and is never an alias itself: the
-      " final answer. Among `->*` rows of other references the LAST in name
-      " order is kept (the loop runs on) - that is the one left without an
-      " owner when its own turn comes, every earlier one names it by then.
-      " A typed owner that sorts BEFORE the references used to lose to the
-      " later `->*` row: MR_A->* named MR_B->*, MR_B->* named the table,
-      " and the fresh-instance load resolved MR_A while MR_B was still
-      " initial - the miss was swallowed and mr_a came back unbound
-      " (2026-09-05)
-      IF check_alias_capable( lr_other->name ) = abap_false.
-        RETURN.
-      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
@@ -2005,13 +1294,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
     DATA(lv_off) = lv_len - 3.
-    " substring( ), not iv_name+lv_off(3): the caller passes a component of a
-    " dereferenced data reference, and offset/length access on that
-    " parameter dumps with GETWA_NOT_ASSIGNED on 7.02 kernels
-    DATA(lv_tail) = substring( val = iv_name
-                               off = lv_off
-                               len = 3 ).
-    result = xsdbool( lv_tail = `->*` ).
+    result = xsdbool( iv_name+lv_off(3) = `->*` ).
 
   ENDMETHOD.
 
@@ -2054,27 +1337,6 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     refs_below_set( iv_parent = ir_attri->name
                     iv_from   = |{ ir_attri->name }->|
                     iv_to     = |{ ir_attri->name_ref }-| ).
-
-  ENDMETHOD.
-
-  METHOD dref_check_payload.
-
-    " a reference the app CLEARed points at nothing - and its dissolved
-    " children still carry the alias of the target it used to point at
-    " (name_ref on the `->*` row). The load re-points the reference at that
-    " owner unconditionally, so the CLEAR was undone by the next restore:
-    " the alias only gets re-checked for rows a live reference resolves,
-    " which an unbound one cannot be. Drop it here instead
-    IF iv_dref IS INITIAL.
-      refs_below_set( iv_parent = ir_attri->name
-                      iv_from   = |{ ir_attri->name }->|
-                      iv_to     = `` ).
-      RETURN.
-    ENDIF.
-
-    " a payload only for a reference that OWNS its target - an alias
-    " (name_ref) is pointed at its owner again on the load
-    result = xsdbool( ir_attri->name_ref IS INITIAL ).
 
   ENDMETHOD.
 
@@ -2157,35 +1419,23 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   METHOD main_attri_refresh.
 
-    " only the bound rows are carried over - the few of them are copied,
-    " instead of the whole table copied and then the unbound majority
-    " deleted from the copy again
-    DATA lt_attri TYPE z2ui5_if_ui5_types=>ty_t_attri.
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bound)   "#EC CI_SORTSEQ
-         WHERE bind = abap_true.
-      INSERT lr_bound->* INTO TABLE lt_attri.
-    ENDLOOP.
+    DATA(lt_attri) = mt_attri->*.
+    DELETE lt_attri WHERE bind = abap_false.            "#EC CI_SORTSEQ
     CLEAR mt_attri->*.
 
     dissolve( ).
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_old).
-      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = lr_old->name.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+      READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH TABLE KEY name = lr_attri->name.
       IF sy-subrc = 0.
         " restore everything update_model_attri stored on the bound attribute -
         " dropping the mapper/filter refs here would silently serialize the
-        " attribute unmapped after a refresh, and dropping the window of a
-        " window_bind_tab( ) table would send it without its total and the
-        " app event that loads more
-        lr_attri->bind                = lr_old->bind.
-        lr_attri->name_client         = lr_old->name_client.
-        lr_attri->custom_mapper       = lr_old->custom_mapper.
-        lr_attri->custom_filter       = lr_old->custom_filter.
-        lr_attri->check_json          = lr_old->check_json.
-        lr_attri->window_size         = lr_old->window_size.
-        lr_attri->window_total        = lr_old->window_total.
-        lr_attri->window_total_name   = lr_old->window_total_name.
-        lr_attri->window_event        = lr_old->window_event.
+        " attribute unmapped after a refresh
+        lr_attri->bind          = lr_old->bind.
+        lr_attri->name_client   = lr_old->name_client.
+        lr_attri->custom_mapper = lr_old->custom_mapper.
+        lr_attri->custom_filter = lr_old->custom_filter.
+        lr_attri->check_json    = lr_old->check_json.
       ENDIF.
     ENDLOOP.
 
@@ -2227,20 +1477,8 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     ENDIF.
 
     FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
-    " IS ASSIGNED, not sy-subrc, like every other ASSIGN of this class: a
-    " successful one does not reset sy-subrc on every release (#1937), and
-    " a stale 0 here would hand an UNASSIGNED symbol to delta_apply_nodes -
-    " a GETWA_NOT_ASSIGNED dump instead of the trace below. The symbol is
-    " declared in this method and assigned once, so no UNASSIGN is needed
     ASSIGN lr_ref_d->* TO <delta_tab>.
-    IF <delta_tab> IS NOT ASSIGNED.
-      " unreachable after the RTTI decision above on a system; the transpiler
-      " answers a type conflict with the subrc. Either way the rows are
-      " traced like the sorted-table case - a bare RETURN dropped the whole
-      " delta with nothing in t_model_skipped
-      delta_skip_nodes( io_delta = io_val_front
-                        iv_base  = lv_delta
-                        iv_table = iv_name ).
+    IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
@@ -2271,35 +1509,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       FIELD-SYMBOLS <delta_row> TYPE any.
+      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
       " no slice( ) per row: slicing walks and copies the WHOLE delta tree
       " for every changed row (O(rows^2) on a mass edit such as a
       " select-all toggle). members( ) and the typed get_* calls below are
       " keyed reads on the sorted node table, so the row is addressed by
       " its full path instead
       DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
-      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
-      IF sy-subrc <> 0.
-        " an index past the table's end - the client edited a row the
-        " backend no longer has (the app shrank the table without the model
-        " going out again). Traced like a sorted-table row: a bare CONTINUE
-        " dropped the edit with nothing in t_model_skipped, while the
-        " browser went on showing what the user typed
-        delta_skip_row( io_delta      = io_delta
-                        iv_row_path   = lv_row_path
-                        iv_row        = lv_tabix
-                        iv_table      = iv_table
-                        iv_row_parent = iv_row_parent ).
-        CONTINUE.
-      ENDIF.
       DATA(lt_fld) = io_delta->members( lv_row_path ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
-        " a component is addressed by NAME: a digit-only key addresses it
-        " by position on a system (and `0` the whole row), which is nothing
-        " the frontend ever sends - skipped like an unknown name
-        IF lv_fld CO `0123456789`.
-          CONTINUE.
-        ENDIF.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.
@@ -2330,46 +1552,28 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
       IF lv_tabix = 0.
         CONTINUE.
       ENDIF.
-      delta_skip_row( io_delta      = io_delta
-                      iv_row_path   = |{ iv_base }/{ lv_idx_str }|
-                      iv_row        = lv_tabix
-                      iv_table      = iv_table
-                      iv_row_parent = iv_row_parent ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD delta_skip_row.
-
-    DATA(lt_fld) = io_delta->members( iv_row_path ).
-    LOOP AT lt_fld INTO DATA(lv_fld).
-      delta_trace_skipped( io_delta = io_delta
-                           iv_path  = |{ iv_row_path }/{ lv_fld }|
-                           is_cell  = VALUE #( name       = iv_table
-                                               row        = iv_row
-                                               field      = lv_fld
-                                               row_parent = iv_row_parent ) ).
+      DATA(lv_row_path) = |{ iv_base }/{ lv_idx_str }|.
+      DATA(lt_fld) = io_delta->members( lv_row_path ).
+      LOOP AT lt_fld INTO DATA(lv_fld).
+        DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name        = iv_table
+                                                                 row        = lv_tabix
+                                                                 field      = lv_fld
+                                                                 row_parent = iv_row_parent ).
+        TRY.
+            ls_skip-value = io_delta->get_string( |{ lv_row_path }/{ lv_fld }| ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+        APPEND ls_skip TO mt_skipped.
+      ENDLOOP.
     ENDLOOP.
 
   ENDMETHOD.
 
   METHOD delta_row_index.
 
-    " digits only, and at least one: CONV i( `1.5` ) rounds to 2, `+1`
-    " and `1e3` convert too, so a key the client never wrote that way
-    " would have landed the cells in a row it never named. An empty key
-    " is no row either - CONV i( `` ) is 0, which used to be row 1.
-    " Surrounding blanks are not a spelling, ` 1 ` names row index 1 like
-    " every other ABAP numeric text (delta_malformed_survives pins it)
-    DATA lv_key TYPE string.
-    lv_key = condense( iv_key ).
-    IF lv_key IS INITIAL OR lv_key CN `0123456789`.
-      RETURN.
-    ENDIF.
     TRY.
         result = CONV i( iv_key ) + 1.
       CATCH cx_root.
-        " more digits than an integer holds
         result = 0.
     ENDTRY.
     IF result < 1.
@@ -2381,6 +1585,15 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
   METHOD check_table_standard.
 
     result = z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ).
+
+  ENDMETHOD.
+
+  METHOD mapper_upper.
+
+    IF gi_mapper_upper IS NOT BOUND.
+      gi_mapper_upper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+    ENDIF.
+    result = gi_mapper_upper.
 
   ENDMETHOD.
 
@@ -2402,71 +1615,28 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " `2024-01-15` silently became `2024-01-` - no exception, no
     " t_model_skipped entry, and the next serialization shipped garbage.
     " Only the ISO spelling is unpacked here; any other text (a plain
-    " `20240115`) keeps the direct assignment, so a cell that never went
-    " through ajson's formatting stays as it was. An EMPTY value - a cleared
-    " DatePicker / TimePicker - is the initial date or time: assigned as
-    " text it became eight (six) blanks, which is not IS INITIAL for the
-    " app and which ajson then shipped back as `    -  -  `.
-    CASE iv_type_kind.
+    " `20240115`, an empty cleared value) keeps the direct assignment, so a
+    " cell that never went through ajson's formatting stays as it was.
+    CASE z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_date.
-        IF lv_value IS INITIAL.
-          CLEAR <comp>.
-          RETURN.
-        ENDIF.
         IF strlen( lv_value ) >= 10 AND lv_value+4(1) = `-` AND lv_value+7(1) = `-`.
           lv_value = lv_value(4) && lv_value+5(2) && lv_value+8(2).
         ENDIF.
-        delta_check_digits( iv_value  = lv_value
-                            iv_length = 8
-                            iv_kind   = `date` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_time.
-        IF lv_value IS INITIAL.
-          CLEAR <comp>.
-          RETURN.
-        ENDIF.
         IF strlen( lv_value ) >= 8 AND lv_value+2(1) = `:` AND lv_value+5(1) = `:`.
           lv_value = lv_value(2) && lv_value+3(2) && lv_value+6(2).
         ENDIF.
-        delta_check_digits( iv_value  = lv_value
-                            iv_length = 6
-                            iv_kind   = `time` ).
 
       WHEN z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_packed.
         " a TIMESTAMP/TIMESTAMPL is a packed number on the ABAP side and an
         " ISO instant on the wire; the `T` at offset 10 is what tells it
-        " from a price. get_timestampl parses the spellings Z and +hh:mm.
-        " A short TIMESTAMP carries no fraction, and the p-to-p assignment
-        " ROUNDS it away - 12:30:59.6 became second 60, a value no timestamp
-        " has; truncated instead, as the instant's second it is. What it
-        " cannot read (a negative offset, -05:00,
-        " which a western-hemisphere browser writes) it answers as an
-        " initial value WITHOUT raising - assigned unchecked, that zeroed
-        " the target with no trace. A non-empty instant that parses to
-        " nothing is a refusal like any other conversion failure: the old
-        " value stands and t_model_skipped says so
+        " from a price. get_timestampl parses both spellings (Z, +hh:mm),
+        " and the p-to-p assignment drops the fraction a short timestamp
+        " does not carry
         IF strlen( lv_value ) >= 19 AND lv_value+10(1) = `T`.
-          " the INITIAL timestamp, as ajson writes it - 0000-00-00T00:00:00Z.
-          " It comes back with every edit of a sibling field (an edit below
-          " an attribute sends the attribute whole), and read as an instant
-          " it is nothing: refused, an untouched empty timestamp put a
-          " refusal into t_model_skipped on every roundtrip
-          IF lv_value(10) = `0000-00-00`.
-            CLEAR <comp>.
-            RETURN.
-          ENDIF.
-          DATA(lv_ts) = io_delta->get_timestampl( iv_path ).
-          IF lv_ts IS INITIAL.
-            RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-              EXPORTING
-                val = |MODEL_VALUE_REFUSED - '{ lv_value }' is no timestamp the model can read (only Z and +hh:mm offsets)|.
-          ENDIF.
-          <comp> = lv_ts.
-          " rounded up: the target has no decimals - take the whole second
-          IF <comp> > lv_ts.
-            <comp> = trunc( lv_ts ).
-          ENDIF.
+          <comp> = io_delta->get_timestampl( iv_path ).
           RETURN.
         ENDIF.
 
@@ -2476,47 +1646,11 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD delta_check_digits.
-
-    IF strlen( iv_value ) = iv_length AND iv_value CO `0123456789`.
-      RETURN.
-    ENDIF.
-    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-      EXPORTING
-        val = |MODEL_VALUE_REFUSED - '{ iv_value }' is no { iv_kind } the model can read ({ iv_length } digits or the ISO form)|.
-
-  ENDMETHOD.
-
   METHOD delta_apply_field.
 
     FIELD-SYMBOLS <comp>   TYPE any.
     FIELD-SYMBOLS <before> TYPE any.
-    DATA lr_col_kind TYPE REF TO ty_s_col_kind.
-    DATA li_slice TYPE REF TO z2ui5_if_ajson.
     ASSIGN ir_comp->* TO <comp>.
-
-    " the column's kind first, asked once per COLUMN (a property of the
-    " component's type, the same in every row) and BEFORE anything is
-    " assigned: a reference column takes no value from the wire at all, and
-    " a table or a structure column takes no scalar. Both used to reach the
-    " assignments below, where a string into a REF TO data or an internal
-    " table is no class-based exception but a runtime error
-    " (OBJECTS_MOVE_NOT_SUPPORTED, a MOVE type conflict) - the CATCH that
-    " promises to skip just the cell never ran and the roundtrip dumped.
-    " Reachable without a crafted request: ajson ships a REF TO string cell
-    " as its plain value, so an Input bound to it sends a string back
-    delta_col_kind( EXPORTING is_cell     = is_cell
-                              ir_comp     = ir_comp
-                    IMPORTING er_col_kind = lr_col_kind
-                    CHANGING  ct_col_kind = ct_col_kind ).
-    DATA(lv_node_type) = io_delta->get_node_type( iv_path ).
-    IF delta_check_refused( iv_type_kind = lr_col_kind->type_kind
-                            iv_node_type = lv_node_type ) = abap_true.
-      delta_trace_skipped( io_delta = io_delta
-                           iv_path  = iv_path
-                           is_cell  = is_cell ).
-      RETURN.
-    ENDIF.
 
     " the OLD value, kept aside: on a system a conversion that fails (`abc`
     " into a packed field, `seven` into an integer) clears the target before
@@ -2534,7 +1668,7 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
     " be sliced off first. Only the two rare whole-value branches still
     " slice, and only the one component they need
     TRY.
-        CASE lv_node_type.
+        CASE io_delta->get_node_type( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
             <comp> = io_delta->get_boolean( iv_path ).
@@ -2546,9 +1680,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
             IF io_delta->exists( lv_sub_delta ) = abap_true.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
               " the table kind first, the ASSIGN second - see
-              " delta_apply_to_table; decided per column in delta_col_kind.
-              " A REF TO data column never gets here: its kind is the
-              " reference, not a table, and it was refused above
+              " delta_apply_to_table. Asked once per COLUMN: the kind is a
+              " property of the component's type, the same in every row.
+              " That holds because a REF TO data column is not followed
+              " here (check_table_standard sees the reference itself and
+              " answers no) - a delta through such a column would have to
+              " ask per cell again
+              READ TABLE ct_col_kind REFERENCE INTO DATA(lr_col_kind)
+                   WITH TABLE KEY field = is_cell-field.
+              IF sy-subrc <> 0.
+                INSERT VALUE #( field    = is_cell-field
+                                standard = check_table_standard( ir_comp ) )
+                       INTO TABLE ct_col_kind REFERENCE INTO lr_col_kind.
+              ENDIF.
               IF lr_col_kind->standard = abap_true.
                 ASSIGN ir_comp->* TO <sub_tab>.
               ENDIF.
@@ -2571,36 +1715,19 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
                                   iv_row_parent = is_cell-row ).
               ENDIF.
             ELSE.
-              " a REPLACE, not a merge: to_abap clears <comp> before it
-              " fills it, so a component the object leaves out ends up
-              " initial. Correct for every request the framework's client
-              " writes - an edit below a structure cell is shipped as the
-              " WHOLE structure, read from the client's current model
-              " (Lib.buildDeltaFromPaths: the first non-numeric segment after
-              " the field is the leaf), and a component that model lacks was
-              " left out because it is initial (omit_initial), so clearing it
-              " changes nothing. Deliberately kept a replace: a top-level
-              " structure attribute is written the same way
-              " (whole_value_apply), and the two have to agree. The one
-              " sender of a genuinely PARTIAL object is the obsolete
-              " _bind( custom_filter ) dropping a non-initial field - such a
-              " field is cleared here, exactly as on the attribute level
-              li_slice = io_delta->slice( iv_path ).
-              li_slice->to_abap( EXPORTING iv_corresponding = abap_true
-                                 IMPORTING ev_container     = <comp> ).
+              io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+                                                   IMPORTING ev_container     = <comp> ).
             ENDIF.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            li_slice = io_delta->slice( iv_path ).
-            li_slice->to_abap( EXPORTING iv_corresponding = abap_true
-                               IMPORTING ev_container     = <comp> ).
+            io_delta->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+                                                 IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
-            delta_apply_scalar( io_delta     = io_delta
-                                iv_path      = iv_path
-                                ir_comp      = ir_comp
-                                iv_type_kind = lr_col_kind->type_kind ).
+            delta_apply_scalar( io_delta = io_delta
+                                iv_path  = iv_path
+                                ir_comp  = ir_comp ).
         ENDCASE.
 
       CATCH cx_root.
@@ -2611,221 +1738,18 @@ CLASS z2ui5_cl_ui5_srv_model IMPLEMENTATION.
         " raising would let one bad cell kill a delta full of good ones,
         " which is the whole reason the skip exists
         <comp> = <before>.
-        delta_trace_skipped( io_delta = io_delta
-                             iv_path  = iv_path
-                             is_cell  = is_cell ).
+        DATA(ls_skip) = is_cell.
+        " quote the refused raw value in the entry - it is one keyed read
+        " away, and it is the half a user message actually needs (`'1,250.00'
+        " is not a valid price`). Guarded: this RUNS INSIDE A CATCH, and a
+        " node get_string cannot read (a structured value) must degrade to
+        " an empty value, never replace the trace with a dump
+        TRY.
+            ls_skip-value = io_delta->get_string( iv_path ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+        APPEND ls_skip TO mt_skipped.
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD delta_col_kind.
-
-    FIELD-SYMBOLS <comp> TYPE any.
-
-    READ TABLE ct_col_kind REFERENCE INTO er_col_kind
-         WITH TABLE KEY field = is_cell-field.
-    IF sy-subrc = 0.
-      RETURN.
-    ENDIF.
-
-    ASSIGN ir_comp->* TO <comp>.
-    DATA(ls_col_kind) = VALUE ty_s_col_kind(
-        field     = is_cell-field
-        type_kind = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <comp> ) ).
-    " the table kind only where there is a table: check_table_standard on
-    " a REF TO data sees the reference itself and answers no - which is
-    " what keeps a delta from being followed through such a column
-    IF ls_col_kind-type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table.
-      ls_col_kind-standard = check_table_standard( ir_comp ).
-    ENDIF.
-    INSERT ls_col_kind INTO TABLE ct_col_kind REFERENCE INTO er_col_kind.
-
-  ENDMETHOD.
-
-  METHOD delta_check_refused.
-
-    " a reference column never takes a value from the wire; a table or a
-    " structure takes an object or an array - a nested delta, a whole
-    " value - and nothing else. Whatever the wire carries into an
-    " elementary column is left to the typed conversion behind the CATCH
-    IF iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_dref
-       OR iv_type_kind = z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_oref.
-      result = abap_true.
-      RETURN.
-    ENDIF.
-    IF iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_table
-       AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct1
-       AND iv_type_kind <> z2ui5_cl_ui5_util_context=>cv_typedescr_typekind_struct2.
-      RETURN.
-    ENDIF.
-    result = xsdbool( iv_node_type <> z2ui5_if_ajson_types=>node_type-object
-                      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-array ).
-
-  ENDMETHOD.
-
-  METHOD delta_trace_skipped.
-
-    " quote the refused raw value in the entry - it is one keyed read
-    " away, and it is the half a user message actually needs (`'1,250.00'
-    " is not a valid price`). Guarded: this also RUNS INSIDE A CATCH, and a
-    " node get_string cannot read (a structured value) must degrade to an
-    " empty value, never replace the trace with a dump
-    DATA(ls_skip) = is_cell.
-    TRY.
-        ls_skip-value = io_delta->get_string( iv_path ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-    APPEND ls_skip TO mt_skipped.
-
-  ENDMETHOD.
-
-  METHOD scalar_apply.
-
-    FIELD-SYMBOLS <val> TYPE any.
-    ASSIGN ir_ref->* TO <val>.
-
-    " a table, a structure or a reference takes no scalar - decided BEFORE
-    " anything is assigned, because the assignment would not raise, it
-    " would dump (the guard delta_apply_field carries). to_abap( ) refused
-    " the shape with an exception, and the refusal stays one: the caller
-    " restores the old value and traces the attribute
-    DATA(lv_type_kind) = z2ui5_cl_ui5_util_context=>rtti_get_type_kind( <val> ).
-    IF delta_check_refused( iv_type_kind = lv_type_kind
-                            iv_node_type = iv_node_type ) = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-        EXPORTING
-          val = |MODEL_VALUE_REFUSED - a { iv_node_type } value cannot be written into a target of kind { lv_type_kind }|.
-    ENDIF.
-
-    CASE iv_node_type.
-      WHEN z2ui5_if_ajson_types=>node_type-null.
-        " what to_abap( ) left behind for a null: the cleared target
-        CLEAR <val>.
-      WHEN z2ui5_if_ajson_types=>node_type-boolean.
-        <val> = io_model->get_boolean( iv_path ).
-      WHEN OTHERS.
-        delta_apply_scalar( io_delta     = io_model
-                            iv_path      = iv_path
-                            ir_comp      = ir_ref
-                            iv_type_kind = lv_type_kind ).
-    ENDCASE.
-
-  ENDMETHOD.
-
-  METHOD whole_value_apply.
-
-    DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
-
-    " a whole value that is an OBJECT or an ARRAY takes a tree of its own
-    " - to_abap( ) converts an instance. A SCALAR does not: it is one keyed
-    " read (scalar_apply). The slice used to run for every carried
-    " attribute, so a request carrying a mass delta next to one edited
-    " input paid a walk over the whole delta for that input
-    DATA(lv_node_type) = io_model->get_node_type( iv_path ).
-    IF lv_node_type = z2ui5_if_ajson_types=>node_type-object
-        OR lv_node_type = z2ui5_if_ajson_types=>node_type-array.
-      lo_val_front = io_model->slice( iv_path ).
-      IF lo_val_front IS NOT BOUND.
-        RETURN.
-      ENDIF.
-    ENDIF.
-
-    " an attribute that cannot be reached is passed over quietly: a draft
-    " outlives the class it was taken from
-    TRY.
-        DATA(lr_ref) = attri_get_val_ref( ir_attri->name ).
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-    ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-
-    " to_abap clears the target before it fills it, and on a system a
-    " conversion that fails clears it before it raises - so a refused value
-    " would leave the attribute initial, while the trace promises the OLD
-    " value stays. Kept aside; only attributes the request carries get
-    " this far
-    DATA lr_before TYPE REF TO data.
-    CREATE DATA lr_before LIKE <val>.
-    FIELD-SYMBOLS <before> TYPE any.
-    ASSIGN lr_before->* TO <before>.
-    <before> = <val>.
-
-    " a CATCH that answers the exception, not the CLEANUP block the style
-    " rule prefers: the transpiled runtime the unit suite runs on ignores
-    " CLEANUP ("Transpiler todo" in the generated module), and the restore
-    " below is exactly what scalar_refused_traced pins. The exception does
-    " not travel on - it is the answer, and the caller traces the attribute
-    TRY.
-        IF lo_val_front IS BOUND.
-          lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
-                                 IMPORTING ev_container     = <val> ).
-        ELSE.
-          scalar_apply( io_model     = io_model
-                        iv_path      = iv_path
-                        iv_node_type = lv_node_type
-                        ir_ref       = lr_ref ).
-        ENDIF.
-      CATCH cx_root INTO result.
-        <val> = <before>.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD whole_value_trace.
-
-    " A bound SCALAR (or a whole structure/table shipped as one value) the
-    " client sent in a form the ABAP type refuses - `1,250.00` typed into
-    " an Input bound to a packed field. This used to raise
-    " JSON_PARSING_ERROR and fail the whole roundtrip with the fatal
-    " overlay, while the same value in a table CELL was traced in
-    " t_model_skipped and the roundtrip went on. Same treatment: the
-    " attribute is recorded (name = the attribute, row 0, no field), its
-    " old value stays (whole_value_apply put it back), and the app decides
-    " what to tell the user - the reason the trace exists (see
-    " delta_apply_field). The refused value is quoted when the node carries
-    " one - a scalar does; an object, an array and the table node of a
-    " delta path do not, so the entry names the attribute alone there
-    DATA(ls_skip) = VALUE z2ui5_if_client=>ty_s_model_skip( name = iv_name ).
-    TRY.
-        ls_skip-value = io_model->get_string( iv_path ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-    APPEND ls_skip TO mt_skipped.
-
-  ENDMETHOD.
-
-  METHOD window_meta.
-
-    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
-
-    DATA(lv_count) = 0.
-    IF z2ui5_cl_ui5_util_context=>rtti_check_table_standard( ir_ref ) = abap_true.
-      ASSIGN ir_ref->* TO <tab>.
-      lv_count = lines( <tab> ).
-    ENDIF.
-
-    " the total as the app holds it now - read from its attribute when it
-    " passed one, the value of the last render otherwise
-    DATA(lv_total) = ir_attri->window_total.
-    IF ir_attri->window_total_name IS NOT INITIAL.
-      TRY.
-          DATA(lr_total) = attri_get_val_ref( ir_attri->window_total_name ).
-          ASSIGN lr_total->* TO FIELD-SYMBOL(<total>).
-          lv_total = <total>.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDIF.
-
-    DATA(lv_meta) = |/{ z2ui5_if_ui5_types=>cv_window_model_key }{ ir_attri->name_client }|.
-    io_result->set( iv_path = |{ lv_meta }/TOTAL|
-                    iv_val  = nmax( val1 = lv_total
-                                    val2 = lv_count ) ).
-    io_result->set( iv_path = |{ lv_meta }/COUNT|
-                    iv_val  = lv_count ).
-    io_result->set( iv_path = |{ lv_meta }/SIZE|
-                    iv_val  = ir_attri->window_size ).
-    io_result->set( iv_path = |{ lv_meta }/EVENT|
-                    iv_val  = ir_attri->window_event ).
 
   ENDMETHOD.
 

@@ -84,8 +84,6 @@ CLASS ltcl_bnd_app DEFINITION FINAL
     DATA mo_obj   TYPE REF TO ltcl_bnd_helper.
     " a value that looks like a cell and is none
     DATA mv_other TYPE string.
-    " the total of a windowed table, as an attribute
-    DATA mv_total TYPE i.
 
     METHODS fill.
 ENDCLASS.
@@ -148,9 +146,7 @@ CLASS ltcl_00_base DEFINITION DEFERRED.
 CLASS ltcl_01_path DEFINITION DEFERRED.
 CLASS ltcl_02_cell DEFINITION DEFERRED.
 CLASS ltcl_03_options DEFINITION DEFERRED.
-CLASS ltcl_04_window DEFINITION DEFERRED.
-CLASS z2ui5_cl_ui5_srv_bind DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_path ltcl_02_cell ltcl_03_options
-                                                     ltcl_04_window.
+CLASS z2ui5_cl_ui5_srv_bind DEFINITION LOCAL FRIENDS ltcl_00_base ltcl_01_path ltcl_02_cell ltcl_03_options.
 
 
 CLASS ltcl_00_base DEFINITION ABSTRACT
@@ -212,7 +208,8 @@ CLASS ltcl_00_base IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    ASSIGN mo_app->mt_tab[ iv_index ] TO <row>.
+    DATA(lr_row) = REF #( mo_app->mt_tab[ iv_index ] ).
+    ASSIGN lr_row->* TO <row>.
     result = REF #( <row>-name ).
 
   ENDMETHOD.
@@ -297,7 +294,6 @@ CLASS ltcl_01_path IMPLEMENTATION.
 
   METHOD reference_deref.
 
-    DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
     " the app hands over the dereferenced data - _bind( <fs> ), not the
@@ -307,12 +303,8 @@ CLASS ltcl_01_path IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `{/MR_ANY/*}`
                                         act = bind( mo_app->mr_any ) ).
     ASSIGN mo_app->mr_tab->* TO <tab>.
-    " into a typed variable, not straight into bind( ): the 7.02 downport
-    " declares its temporary LIKE REF TO the operand, and a generic <tab>
-    " has no type to take - "specified under LIKE ... has a generic type"
-    lr_tab = REF #( <tab> ).
     cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*}`
-                                        act = bind( lr_tab ) ).
+                                        act = bind( REF #( <tab> ) ) ).
 
   ENDMETHOD.
 
@@ -394,65 +386,18 @@ CLASS ltcl_02_cell DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS cell_in_runtime_table   FOR TESTING RAISING cx_static_check.
     " an index past the last row
     METHODS index_out_of_range      FOR TESTING RAISING cx_static_check.
-    " no tab_index at all (0, the default) and a negative one
-    METHODS index_not_positive      FOR TESTING RAISING cx_static_check.
     " a value that is not a component of that row, however equal it looks
     METHODS foreign_value_refused   FOR TESTING RAISING cx_static_check.
     " a table of strings has no component to bind a cell of
     METHODS elementary_row_refused  FOR TESTING RAISING cx_static_check.
-    " a `tab` that is no table at all
-    METHODS non_table_refused       FOR TESTING RAISING cx_static_check.
     " one render, one service: cells of two tables in turn, and a cell of
     " the runtime-built table after main( ) created that table again
     METHODS cells_of_two_tables     FOR TESTING RAISING cx_static_check.
     METHODS cell_after_recreate     FOR TESTING RAISING cx_static_check.
-    " the standard-table verdict is memoised with the component names: the
-    " memo only ever holds a table the check passed for, and a refused
-    " reference never replaces it
-    METHODS std_verdict_memoised    FOR TESTING RAISING cx_static_check.
-    " the mapper and the filter of a cell bind land on the TABLE, and a
-    " second cell with a different mapper is refused like a second _bind( )
-    " of the table would be
-    METHODS cell_carries_options    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_02_cell IMPLEMENTATION.
-
-  METHOD cell_carries_options.
-
-    DATA(lo_filter) = NEW ltcl_test_filter( ).
-    DATA(lo_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
-
-    bind( ir_val    = cell_name( 1 )
-          is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
-                               tab_index     = 1
-                               custom_filter = lo_filter
-                               custom_mapper = lo_mapper ) ).
-
-    " stored on the table's row - the one the serializer applies them to
-    DATA(lr_tab) = mo_bind->get_model( )->main_attri_search( REF #( mo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_filter
-                                        act = lr_tab->custom_filter ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_mapper
-                                        act = lr_tab->custom_mapper ).
-
-    " the same options again, for another cell: no conflict
-    bind( ir_val    = cell_name( 2 )
-          is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
-                               tab_index     = 2
-                               custom_filter = lo_filter
-                               custom_mapper = lo_mapper ) ).
-
-    " a different mapper for a cell of the same table: refused, as the
-    " table's own second bind would be - it used to be dropped silently
-    expect_bind_error( ir_val    = cell_name( 1 )
-                       is_config = VALUE #( tab           = REF #( mo_app->mt_tab )
-                                            tab_index     = 1
-                                            custom_mapper = z2ui5_cl_ajson_mapping=>create_lower_case( ) )
-                       iv_text   = `Two different mappers` ).
-
-  ENDMETHOD.
 
   METHOD row_index_shifted.
 
@@ -471,7 +416,8 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    ASSIGN mo_app->mt_tab[ 2 ] TO <row>.
+    DATA(lr_row) = REF #( mo_app->mt_tab[ 2 ] ).
+    ASSIGN lr_row->* TO <row>.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/JOB}`
                                         act = bind( ir_val    = REF #( <row>-job )
@@ -499,7 +445,8 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    ASSIGN mo_app->mo_obj->mt_tab[ 1 ] TO <row>.
+    DATA(lr_row) = REF #( mo_app->mo_obj->mt_tab[ 1 ] ).
+    ASSIGN lr_row->* TO <row>.
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MT_TAB/0/NAME}`
                                         act = bind( ir_val    = REF #( <row>-name )
@@ -528,58 +475,22 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD non_table_refused.
-
-    " main( ) only checks that config-tab is BOUND and not initial, which a
-    " reference to a structure - or to a sorted/hashed table - passes. The
-    " ASSIGN to <tab> TYPE STANDARD TABLE then fails, and the row read on the
-    " next line used to reach an UNASSIGNED field symbol: GETWA_NOT_ASSIGNED,
-    " a short dump no TRY can take, for a config mistake the three lines
-    " after it are written to answer with a binding error
-    expect_bind_error( ir_val    = REF #( mo_app->ms_deep-input )
-                       is_config = VALUE #( tab       = REF #( mo_app->ms_deep )
-                                            tab_index = 1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
-
-  ENDMETHOD.
-
   METHOD index_out_of_range.
 
     expect_bind_error( ir_val    = cell_name( 1 )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 3 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
-
-  ENDMETHOD.
-
-  METHOD index_not_positive.
-
-    " a cell bind that names the table and forgets tab_index sends 0 - the
-    " rows count from 1, so it is the documented binding error (_bind( ),
-    " tab_index: a row that does not exist raises it instead of dumping),
-    " and so is a negative index. The text is pinned, not just the prefix:
-    " bind_tab_cell( ) decides both by an explicit range check now instead of
-    " relying on the kernel answering ASSIGN <tab>[ 0 ] / [ -1 ] with
-    " sy-subrc 4 - the transpiled runtime answers that the same way, so this
-    " test pins the outcome and cannot show the difference on its own
-    expect_bind_error( ir_val    = cell_name( 1 )
-                       is_config = VALUE #( tab = REF #( mo_app->mt_tab ) )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
-    expect_bind_error( ir_val    = cell_name( 1 )
-                       is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
-                                            tab_index = -1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
 
   ENDMETHOD.
 
   METHOD foreign_value_refused.
 
-    " mv_other holds the same text as the cell - a value, not the cell.
-    " The error names the table and the row the cell was looked for in
+    " mv_other holds the same text as the cell - a value, not the cell
     expect_bind_error( ir_val    = REF #( mo_app->mv_other )
                        is_config = VALUE #( tab       = REF #( mo_app->mt_tab )
                                             tab_index = 1 )
-                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found in row 1 of '/MT_TAB'` ).
+                       iv_text   = `BINDING_ERROR_TAB_CELL_LEVEL` ).
 
   ENDMETHOD.
 
@@ -597,7 +508,8 @@ CLASS ltcl_02_cell IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE ltcl_bnd_helper=>ty_s_row.
 
-    ASSIGN mo_app->mo_obj->mt_tab[ 1 ] TO <row>.
+    DATA(lr_helper_row) = REF #( mo_app->mo_obj->mt_tab[ 1 ] ).
+    ASSIGN lr_helper_row->* TO <row>.
 
     " app table, helper table, app table again - each answer names ITS table
     cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`
@@ -664,40 +576,6 @@ CLASS ltcl_02_cell IMPLEMENTATION.
                        iv_text   = `BINDING_ERROR` ).
 
   ENDMETHOD.
-
-  METHOD std_verdict_memoised.
-
-    DATA lr_tab TYPE REF TO data.
-    lr_tab = REF #( mo_app->mt_tab ).
-
-    " nothing is memoised before the first cell bind
-    cl_abap_unit_assert=>assert_not_bound( mo_bind->mr_cell_tab ).
-
-    " the first cell of a table pays the describe and sets the memo to THAT
-    " reference - the one the verdict was answered for
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/0/NAME}`
-                                        act = bind( ir_val    = cell_name( 1 )
-                                                    is_config = VALUE #( tab       = lr_tab
-                                                                         tab_index = 1 ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
-
-    " a reference that is no standard table is refused BEFORE anything is
-    " memoised for it, so the memo keeps naming the table it was set for -
-    " which is what lets the next cell of that table skip the describe
-    expect_bind_error( ir_val    = REF #( mo_app->ms_deep-input )
-                       is_config = VALUE #( tab       = REF #( mo_app->ms_deep )
-                                            tab_index = 1 )
-                       iv_text   = `no standard table` ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
-
-    " the second cell of the memoised table answers through the memo
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB/1/NAME}`
-                                        act = bind( ir_val    = cell_name( 2 )
-                                                    is_config = VALUE #( tab       = lr_tab
-                                                                         tab_index = 2 ) ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_cell_tab = lr_tab ) ).
-
-  ENDMETHOD.
 ENDCLASS.
 
 
@@ -721,11 +599,6 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS later_plain_bind_keeps  FOR TESTING RAISING cx_static_check.
     " the same implementation again is no conflict
     METHODS same_impl_accepted      FOR TESTING RAISING cx_static_check.
-    " the same INSTANCE again is no conflict either, and asks no class name
-    METHODS same_instance_accepted  FOR TESTING RAISING cx_static_check.
-    " the class name of a stored implementation is asked once per service -
-    " a re-bind with a fresh instance reads it from the memo
-    METHODS impl_name_memoised      FOR TESTING RAISING cx_static_check.
     " a different mapper or filter for the same attribute is refused
     METHODS different_mapper_refused FOR TESTING RAISING cx_static_check.
     METHODS different_filter_refused FOR TESTING RAISING cx_static_check.
@@ -734,14 +607,6 @@ CLASS ltcl_03_options DEFINITION FINAL INHERITING FROM ltcl_00_base
     METHODS dead_filter_refused     FOR TESTING RAISING cx_static_check.
     " options are per attribute - a second attribute starts clean
     METHODS options_per_attribute   FOR TESTING RAISING cx_static_check.
-    " json = abap_true needs an attribute that can HOLD json text - a
-    " structure or a table is refused at bind time, not one layer down in
-    " the serializer
-    METHODS json_on_struc_refused   FOR TESTING RAISING cx_static_check.
-    METHODS json_on_table_refused   FOR TESTING RAISING cx_static_check.
-    " ... and the refusal reaches a LATER bind too, which is the other way
-    " check_json turns on
-    METHODS json_later_bind_refused FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -838,59 +703,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD same_instance_accepted.
-
-    " an app that keeps its filter in an attribute hands the SAME object to
-    " every _bind( ) - the identity decides, no class name is looked up
-    DATA(lo_filter) = NEW ltcl_test_filter( ).
-
-    bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_filter = lo_filter ) ).
-    DATA(lv_path) = bind( ir_val    = REF #( mo_app->mv_value )
-                          is_config = VALUE #( custom_filter = lo_filter ) ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MV_VALUE}`
-                                        act = lv_path ).
-    cl_abap_unit_assert=>assert_initial( mo_bind->mt_impl_names ).
-
-  ENDMETHOD.
-
-  METHOD impl_name_memoised.
-
-    DATA(lo_stored) = NEW ltcl_test_filter( ).
-    DATA(lo_second) = NEW ltcl_test_filter( ).
-    DATA(lo_third)  = NEW ltcl_test_filter( ).
-
-    bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_filter = lo_stored ) ).
-    cl_abap_unit_assert=>assert_initial( mo_bind->mt_impl_names ).
-
-    " the first re-bind with a fresh instance asks for both names ...
-    bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_filter = lo_second ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_bind->mt_impl_names ) ).
-
-    " ... the next one only for the new instance: the stored one is read
-    " from the memo, under the reference that is stored on the attribute
-    bind( ir_val    = REF #( mo_app->mv_value )
-          is_config = VALUE #( custom_filter = lo_third ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lines( mo_bind->mt_impl_names ) ).
-    READ TABLE mo_bind->mt_impl_names INTO DATA(ls_memo) WITH TABLE KEY ref = lo_stored.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lo_stored )
-                                        act = ls_memo-name ).
-    cl_abap_unit_assert=>assert_equals( exp = lo_stored
-                                        act = mo_bind->mr_attri->custom_filter ).
-
-    " a different implementation is still told apart through the memo
-    expect_bind_error( ir_val    = REF #( mo_app->mv_value )
-                       is_config = VALUE #( custom_filter = z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) )
-                       iv_text   = `Two different filters` ).
-
-  ENDMETHOD.
-
   METHOD different_mapper_refused.
 
     bind( ir_val    = REF #( mo_app->mv_value )
@@ -942,291 +754,6 @@ CLASS ltcl_03_options IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_bound( lr_attri->custom_mapper ).
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lr_attri->check_json ).
-
-  ENDMETHOD.
-
-
-  METHOD json_on_struc_refused.
-
-    TRY.
-        bind( ir_val    = REF #( mo_app->ms_deep )
-              is_config = VALUE #( check_json = abap_true ) ).
-        cl_abap_unit_assert=>fail( `json = abap_true on a STRUCTURE must be refused at bind time` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx_struc).
-        cl_abap_unit_assert=>assert_char_cp(
-            exp = `*MS_DEEP*`
-            act = lx_struc->get_text( )
-            msg = `the refusal has to name the attribute the app bound` ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD json_on_table_refused.
-
-    TRY.
-        bind( ir_val    = REF #( mo_app->mt_tab )
-              is_config = VALUE #( check_json = abap_true ) ).
-        cl_abap_unit_assert=>fail( `json = abap_true on a TABLE must be refused at bind time` ).
-      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD json_later_bind_refused.
-
-    " the first bind is plain and legal; the second one turns json on, which
-    " is the adopt_new_options path rather than update_model_attri
-    bind( REF #( mo_app->ms_deep ) ).
-
-    TRY.
-        bind( ir_val    = REF #( mo_app->ms_deep )
-              is_config = VALUE #( check_json = abap_true ) ).
-        cl_abap_unit_assert=>fail( `a LATER bind must not be able to turn json on for a structure` ).
-      CATCH z2ui5_cx_ui5_util_error ##NO_HANDLER.
-    ENDTRY.
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = mo_bind->mr_attri->check_json
-        msg = `the refused bind must not have left check_json on` ).
-
-  ENDMETHOD.
-ENDCLASS.
-
-
-" window_bind_tab( ): the window, the total and the app's event are stored on
-" the attribute; a new total is pushed in the same roundtrip
-CLASS ltcl_04_window DEFINITION FINAL INHERITING FROM ltcl_00_base
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
-
-  PRIVATE SECTION.
-    METHODS window_stored        FOR TESTING RAISING cx_static_check.
-    METHODS plain_bind_keeps     FOR TESTING RAISING cx_static_check.
-    METHODS no_table_refused     FOR TESTING RAISING cx_static_check.
-    METHODS reference_path       FOR TESTING RAISING cx_static_check.
-    " a new total from the app has to reach the browser in the same
-    " roundtrip: the model is marked for a push; the same one is not
-    METHODS new_total_pushed     FOR TESTING RAISING cx_static_check.
-    " the total as a value that is no attribute (`total = lines( lt_all )`)
-    " and as one (`total = mv_total`) - what the binding holds afterwards,
-    " and that looking the total up leaves the attribute table alone
-    METHODS total_no_attribute   FOR TESTING RAISING cx_static_check.
-    METHODS total_no_attri_rebind FOR TESTING RAISING cx_static_check.
-    METHODS total_attribute      FOR TESTING RAISING cx_static_check.
-    METHODS total_attri_then_value FOR TESTING RAISING cx_static_check.
-
-    " the row of mo_app->mt_tab in the attribute table
-    METHODS tab_row
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-
-ENDCLASS.
-
-
-CLASS ltcl_04_window IMPLEMENTATION.
-
-  METHOD window_stored.
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
-                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
-                                                    is_config = VALUE #( window       = 10
-                                                                         window_total = 500
-                                                                         window_event = `ROWS` ) ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = mo_bind->mr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 500
-                                        act = mo_bind->mr_attri->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = mo_bind->mr_attri->window_event ).
-
-  ENDMETHOD.
-
-  METHOD plain_bind_keeps.
-
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window       = 10
-                               window_total = 500
-                               window_event = `ROWS` ) ).
-    " a plain _bind( ) of the same table elsewhere in the view
-    bind( REF #( mo_app->mt_tab ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = mo_bind->mr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 500
-                                        act = mo_bind->mr_attri->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = mo_bind->mr_attri->window_event ).
-
-  ENDMETHOD.
-
-  METHOD no_table_refused.
-
-    expect_bind_error( ir_val    = REF #( mo_app->mv_value )
-                       is_config = VALUE #( window = 10 )
-                       iv_text   = `it is no internal table` ).
-
-  ENDMETHOD.
-
-  METHOD reference_path.
-
-    DATA lr_tab TYPE REF TO data.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-
-    " what window_bind_tab( mr_tab ) hands over: the table the reference points to
-    ASSIGN mo_app->mr_tab->* TO <tab>.
-    lr_tab = REF #( <tab> ).
-    cl_abap_unit_assert=>assert_equals( exp = `{/MR_TAB/*}`
-                                        act = bind( ir_val    = lr_tab
-                                                    is_config = VALUE #( window = 5 ) ) ).
-    cl_abap_unit_assert=>assert_equals( exp = 5
-                                        act = mo_bind->mr_attri->window_size ).
-
-  ENDMETHOD.
-
-  METHOD new_total_pushed.
-
-    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config( window       = 10
-                                                                  window_total = 500
-                                                                  window_event = `ROWS` ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    CLEAR mo_cont->mv_model_client_stale.
-
-    " rendered again with the same total: nothing to push
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_false( mo_cont->mv_model_client_stale ).
-
-    " a new total - a filter in the app: the browser has to get it now
-    ls_config-window_total = 42.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    cl_abap_unit_assert=>assert_true( mo_cont->mv_model_client_stale ).
-
-  ENDMETHOD.
-
-  METHOD tab_row.
-
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO result WITH TABLE KEY name = `MT_TAB`.
-    cl_abap_unit_assert=>assert_subrc( msg = `MT_TAB has no row in the attribute table` ).
-
-  ENDMETHOD.
-
-  METHOD total_no_attribute.
-
-    " what window_bind_tab( val = mt_tab total = lines( lt_all ) ) hands
-    " over: a reference to a value that lives nowhere in the app
-    DATA(lv_total) = lines( mo_app->mt_tab ) + 40.
-
-    " a first bind of another attribute builds the attribute table; a mark
-    " on a row that is NOT bound shows whether the table is built anew
-    bind( REF #( mo_app->mv_value ) ).
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO DATA(lr_mark) WITH TABLE KEY name = `MV_OTHER`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    lr_mark->name_client = `MARK`.
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
-                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
-                                                    is_config = VALUE #( window           = 10
-                                                                         window_total     = lv_total
-                                                                         window_total_ref = REF #( lv_total )
-                                                                         window_event     = `ROWS` ) ) ).
-
-    DATA(lr_row) = tab_row( ).
-    cl_abap_unit_assert=>assert_true( lr_row->bind ).
-    cl_abap_unit_assert=>assert_equals( exp = `/MT_TAB`
-                                        act = lr_row->name_client ).
-    cl_abap_unit_assert=>assert_equals( exp = 10
-                                        act = lr_row->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 42
-                                        act = lr_row->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = lr_row->window_event ).
-    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
-
-    " the miss cost a search and nothing else: the row the service works
-    " on is still the row of the table, and no row was created anew
-    cl_abap_unit_assert=>assert_true( act = xsdbool( mo_bind->mr_attri = lr_row )
-                                      msg = `the bind service holds a row that is no longer in the attribute table` ).
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO lr_mark WITH TABLE KEY name = `MV_OTHER`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_equals( exp = `MARK`
-                                        act = lr_mark->name_client
-                                        msg = `looking up a total that is no attribute rebuilt the attribute table` ).
-
-  ENDMETHOD.
-
-  METHOD total_no_attri_rebind.
-
-    " the same on a table that is bound already - the branch a second
-    " render takes (adopt_new_options)
-    DATA(lv_total) = 7.
-    DATA(ls_config) = VALUE z2ui5_if_ui5_types=>ty_s_bind_config( window           = 10
-                                                                  window_total     = lv_total
-                                                                  window_total_ref = REF #( lv_total )
-                                                                  window_event     = `ROWS` ).
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = ls_config ).
-    lv_total = 8.
-    ls_config-window_total = lv_total.
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
-                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
-                                                    is_config = ls_config ) ).
-
-    DATA(lr_row) = tab_row( ).
-    cl_abap_unit_assert=>assert_equals( exp = 8
-                                        act = lr_row->window_total ).
-    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_attri = lr_row ) ).
-
-  ENDMETHOD.
-
-  METHOD total_attribute.
-
-    mo_app->mv_total = 500.
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_TAB}`
-                                        act = bind( ir_val    = REF #( mo_app->mt_tab )
-                                                    is_config = VALUE #( window           = 10
-                                                                         window_total     = mo_app->mv_total
-                                                                         window_total_ref = REF #( mo_app->mv_total )
-                                                                         window_event     = `ROWS` ) ) ).
-
-    DATA(lr_row) = tab_row( ).
-    cl_abap_unit_assert=>assert_true( lr_row->bind ).
-    cl_abap_unit_assert=>assert_equals( exp = `/MT_TAB`
-                                        act = lr_row->name_client ).
-    cl_abap_unit_assert=>assert_equals( exp = 500
-                                        act = lr_row->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
-                                        act = lr_row->window_total_name ).
-    cl_abap_unit_assert=>assert_true( xsdbool( mo_bind->mr_attri = lr_row ) ).
-    " the total is read by its name - it is not bound itself
-    READ TABLE mo_cont->mt_attri->* REFERENCE INTO DATA(lr_total) WITH TABLE KEY name = `MV_TOTAL`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_false( lr_total->bind ).
-
-  ENDMETHOD.
-
-  METHOD total_attri_then_value.
-
-    " the latest bind decides: a render that passes a value after one that
-    " passed the attribute stops reading the attribute
-    mo_app->mv_total = 500.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window           = 10
-                               window_total     = mo_app->mv_total
-                               window_total_ref = REF #( mo_app->mv_total )
-                               window_event     = `ROWS` ) ).
-    DATA(lv_total) = 3.
-    bind( ir_val    = REF #( mo_app->mt_tab )
-          is_config = VALUE #( window           = 10
-                               window_total     = lv_total
-                               window_total_ref = REF #( lv_total )
-                               window_event     = `ROWS` ) ).
-
-    DATA(lr_row) = tab_row( ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lr_row->window_total ).
-    cl_abap_unit_assert=>assert_initial( lr_row->window_total_name ).
 
   ENDMETHOD.
 

@@ -2,30 +2,18 @@
 "!
 "! The framework's extension point: implement this interface in a class of
 "! your own, in a package of your own, and abap2UI5 finds it and calls it -
-"! set_config_http_get on the initial page request - and once more per
-"! response for its t_security_header, which every response of the handler
-"! carries - set_config_http_post on every roundtrip after it. The
-"! framework asks set_config_http_post once per request and hands the
-"! answer to everything that reads it (the CSRF gate, the monitor switch,
-"! the draft cleanup, the error response) - but an exit that raised is
-"! asked again, and a reader outside an HTTP request asks every time. So
-"! neither is promised to run exactly once, and both must be cheap and
-"! idempotent - read configuration, do not write state.
+"! set_config_http_get on the initial page request, set_config_http_post on
+"! every roundtrip after it.
 "!
-"! The one exit interface. Its former name z2ui5_if_exit, with the same two
-"! methods and types, was deleted on 2026-11-17: an exit class written against
-"! it implements this interface instead.
+"! Supersedes z2ui5_if_exit, which carries the same two methods under the old
+"! name and is still found and still called. Nothing has to change today; new
+"! code implements this interface.
 INTERFACE z2ui5_if_ui5_exit
   PUBLIC.
 
   TYPES:
     "! What the request the exit is answering for is - path, the app named by
-    "! the URL, and the URL parameters. app_start is the app_start query
-    "! parameter of THIS request, trimmed, upper-cased and with a
-    "! percent-encoded namespace unpacked - the way the framework reads it.
-    "! It is empty on every POST (the SPA posts to the manifest URI) and when
-    "! the app is named by the hash route, which never reaches the server: a
-    "! hint for the page request, not the authority on which app runs.
+    "! the URL, and the URL parameters.
     BEGIN OF ty_s_http_context,
       path      TYPE string,
       app_start TYPE string,
@@ -38,31 +26,16 @@ INTERFACE z2ui5_if_ui5_exit
     BEGIN OF ty_s_http_config,
       src                     TYPE string,
       theme                   TYPE string,
-      " the CSP meta tag of the page, pre-filled with the default before the
-      " exit runs. The default carries no 'unsafe-eval'. Only on UI5 1.71 to
-      " 1.82 can a popup still need it - one whose XML names a module in a
-      " binding type or a core:require that is not loaded yet. Such an
-      " installation switches it on here -
-      "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
-      "           WITH `script-src 'self' 'unsafe-eval'`.
-      " - or the exit replaces the whole tag.
-      " It does carry 'wasm-unsafe-eval' in script-src, which lets a script
-      " compile WebAssembly and nothing else: the camera scanner of sap.ndc and
-      " the BarcodeScanner of the custom controls need it. A tag an exit
-      " writes itself keeps it for them.
-      " Its script-src carries no 'unsafe-inline' either: after the exit ran,
-      " the framework appends the hash of the page's one inline script to
-      " every script-src (and script-src-elem) - here and in a policy sent
-      " through t_security_header - so nothing else inline runs. A script-src
-      " that names 'unsafe-inline' itself is left without the hash, which is
-      " how an installation that needs inline script of its own opts back in
-      "   REPLACE `script-src 'self'` IN cs_config-content_security_policy
-      "           WITH `script-src 'self' 'unsafe-inline'`.
       content_security_policy TYPE string,
-      " CSS of the installation's own, written into the page head as a
-      " <style> element of its own (a < is escaped as \3c )
       styles_css              TYPE string,
+      " NO LONGER READ: the generated page carries a constant
+      " <title>abap2UI5</title>, and the tab title is set by the running app
+      " with cs_event-set_title. The component stays because it is part of the
+      " public contract (rule 5) - an exit that still assigns it compiles and
+      " runs, the assignment just has no effect on the page
+      title                   TYPE string,
       t_add_config            TYPE z2ui5_if_client=>ty_t_name_value,
+      custom_js               TYPE string,
       t_security_header       TYPE z2ui5_if_client=>ty_t_name_value,
     END OF ty_s_http_config.
 
@@ -93,27 +66,7 @@ INTERFACE z2ui5_if_ui5_exit
       " suppliable, though: an installation that is NOT behind a proxy that
       " sets it hardens the gate by switching this to abap_false in its
       " exit, so only the transport-level Host header is compared.
-      " Of a comma-separated list the FIRST entry is compared, on purpose:
-      " that is the header's meaning (each proxy appends the Host it saw,
-      " so the first is the one the browser sent, which is what Origin
-      " carries), and the last entry behind two proxies is an internal
-      " name. A proxy that APPENDS instead of replacing lets a client put
-      " its own entry first - a non-browser client, since a browser cannot
-      " send the header without a CORS preflight the ICF node answers 405,
-      " and a non-browser client is not a CSRF victim. Do not "fix" this by
-      " taking the last entry; the switch above is the hardening.
       check_trust_forwarded_host TYPE abap_bool,
-      " the roundtrip monitor (z2ui5_if_ui5_monitor) is called only when this
-      " is abap_true - off by default, nothing seeds it. A monitor is code of
-      " another package running inside every roundtrip of every app, and a
-      " syntax error in it or in anything it uses is the runtime error
-      " SYNTAX_ERROR, which no CATCH stops: installing a monitor must not be
-      " able to break abap2UI5. An installation switches it on here, once the
-      " monitor's package is active and checked:
-      "   cs_config-check_monitor_active = abap_true.
-      " Read on every roundtrip, so switching it off again takes effect on
-      " the next one.
-      check_monitor_active       TYPE abap_bool,
     END OF ty_s_http_config_post.
 
   METHODS set_config_http_get

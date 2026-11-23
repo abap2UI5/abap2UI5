@@ -5,7 +5,9 @@
 " the draft), the systematic coverage is in the structured suites of
 " z2ui5_cl_ui5_srv_bind (ltcl_01_path, ltcl_02_cell, ltcl_03_options) and
 " z2ui5_cl_ui5_srv_model (ltcl_01_dissolve to ltcl_05_draft); this file
-" keeps the call through the client as the app writes it.
+" keeps the call through the client as the app writes it - test_bind_tab_cell
+" doubles as the canary for the downport patch that keeps the cell form
+" working (node/setup/patch-abaplint-downport.mjs).
 " ---------------------------------------------------------------------------
 CLASS ltcl_test_app DEFINITION FINAL.
   PUBLIC SECTION.
@@ -18,10 +20,6 @@ CLASS ltcl_test_app DEFINITION FINAL.
         job  TYPE string,
       END OF ty_s_emp.
     DATA mt_emp TYPE STANDARD TABLE OF ty_s_emp WITH EMPTY KEY ##NEEDED.
-    " a table typed at runtime - the attribute _bind( ) takes as a reference
-    DATA mr_tab TYPE REF TO data ##NEEDED.
-    " the total of a windowed table, as an attribute
-    DATA mv_total TYPE i ##NEEDED.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
@@ -45,24 +43,6 @@ ENDCLASS.
 CLASS ltcl_bad_filter IMPLEMENTATION.
   METHOD z2ui5_if_ajson_filter~keep_node.
     rv_keep = abap_true.
-  ENDMETHOD.
-ENDCLASS.
-
-
-" a caller's own filter, serializable so _bind( ) accepts it (see
-" ltcl_bad_filter above for the refusal). It drops exactly one node name,
-" which is what makes an AND with the framework's own filter visible
-CLASS ltcl_good_filter DEFINITION FINAL.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
-    INTERFACES if_serializable_object.
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-ENDCLASS.
-
-CLASS ltcl_good_filter IMPLEMENTATION.
-  METHOD z2ui5_if_ajson_filter~keep_node.
-    rv_keep = xsdbool( is_node-name <> `DROPME` ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -91,10 +71,14 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_instantiation        FOR TESTING RAISING cx_static_check.
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
+    METHODS test_view_model_update    FOR TESTING RAISING cx_static_check.
+    METHODS test_nest_model_update    FOR TESTING RAISING cx_static_check.
     METHODS test_popup_display        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_destroy        FOR TESTING RAISING cx_static_check.
+    METHODS test_popup_model_update   FOR TESTING RAISING cx_static_check.
     METHODS test_popover_display      FOR TESTING RAISING cx_static_check.
     METHODS test_popover_destroy      FOR TESTING RAISING cx_static_check.
+    METHODS test_popover_model_update FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_display    FOR TESTING RAISING cx_static_check.
     METHODS test_nest_view_destroy    FOR TESTING RAISING cx_static_check.
     METHODS test_nest2_view_display   FOR TESTING RAISING cx_static_check.
@@ -102,26 +86,20 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_display  FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_dependent FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
-    METHODS test_message_box_data     FOR TESTING RAISING cx_static_check.
-    METHODS test_message_box_no_data  FOR TESTING RAISING cx_static_check.
-    METHODS test_message_box_messages FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_routing         FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_routing_lower   FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_routing_default FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing      FOR TESTING RAISING cx_static_check.
+    METHODS test_set_nav_routing_default FOR TESTING RAISING cx_static_check.
     METHODS test_hash_attach_changed  FOR TESTING RAISING cx_static_check.
     METHODS test_hash_replace         FOR TESTING RAISING cx_static_check.
-    METHODS test_hash_set             FOR TESTING RAISING cx_static_check.
+    METHODS test_hash_set_alias       FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_get_href   FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_href_flp   FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ctrl FOR TESTING RAISING cx_static_check.
-    METHODS test_ctrl_global_opt      FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
-    METHODS test_event_client     FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event_empty FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_navigated   FOR TESTING RAISING cx_static_check.
@@ -133,29 +111,18 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_leave_r_data_not_sup FOR TESTING RAISING cx_static_check.
     METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
-    METHODS test_get_app_own_id FOR TESTING RAISING cx_static_check.
+    METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
     METHODS test_get_event            FOR TESTING RAISING cx_static_check.
     METHODS test_get_event_arg        FOR TESTING RAISING cx_static_check.
-    METHODS test_app_state_set_active FOR TESTING RAISING cx_static_check.
+    METHODS test_set_app_state_active FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_paths   FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_keeps_rows FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_decimals FOR TESTING RAISING cx_static_check.
     METHODS test_omit_filters_serial  FOR TESTING RAISING cx_static_check.
     METHODS test_bind_filter_not_serial FOR TESTING RAISING cx_static_check.
     METHODS test_omit_initial_db_save FOR TESTING RAISING cx_static_check.
-    " what _bind( ) WIRES, as opposed to what the filter classes do
-    METHODS test_omit_paths_wired     FOR TESTING RAISING cx_static_check.
-    METHODS test_omit_paths_and_filter FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_tab_cell_assign FOR TESTING RAISING cx_static_check.
-    " _bind( ) takes a data reference like window_bind_tab( ) does
-    METHODS test_bind_dref_to_attribute FOR TESTING RAISING cx_static_check.
-    METHODS test_bind_dref_attribute  FOR TESTING RAISING cx_static_check.
-    METHODS test_bind_dref_tab_cell   FOR TESTING RAISING cx_static_check.
-    METHODS test_bind_dref_initial    FOR TESTING RAISING cx_static_check.
-    " window_bind_tab( ): the total as a value and as an attribute
-    METHODS test_window_total_value   FOR TESTING RAISING cx_static_check.
-    METHODS test_window_total_attri   FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_shorthand  FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_appends    FOR TESTING RAISING cx_static_check.
     METHODS test_event_arg_empty      FOR TESTING RAISING cx_static_check.
@@ -185,10 +152,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD setup.
 
     DATA lo_http TYPE REF TO z2ui5_cl_ui5_handler.
+    DATA lo_test_app TYPE REF TO ltcl_test_app.
     lo_http = NEW #( val = `` ).
     mo_action = NEW #( val = lo_http ).
-    mo_test_app = NEW #( ).
-    mo_action->mo_app->mo_app = mo_test_app.
+    lo_test_app = NEW #( ).
+    mo_test_app = lo_test_app.
+    mo_action->mo_app->mo_app = lo_test_app.
     mo_action->mo_app->mv_check_initialized = abap_false.
     mo_client = NEW #( action = mo_action ).
 
@@ -205,9 +174,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_view_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp1 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp1.
+    temp1 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp1.
     li_client->view_display( `<View></View>` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -218,9 +189,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_view_destroy.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp2 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp2.
+    temp2 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp2.
     li_client->view_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = `MAIN|destroy|`
@@ -228,11 +201,46 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_view_model_update.
+
+    " the model is pushed automatically now (z2ui5_cl_ui5_handler=>main_end),
+    " so this method is an obsolete NO-OP kept for source compatibility - it
+    " must not raise and must not set any slot flag
+    DATA temp3 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp3.
+    temp3 ?= mo_client.
+
+    li_client = temp3.
+    li_client->view_model_update( ).
+
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
+
+  ENDMETHOD.
+
+  METHOD test_nest_model_update.
+
+    " both nested variants are obsolete NO-OPs too: a nested view owns no
+    " model (it inherits MAIN's by propagation) and MAIN is pushed
+    " automatically - see test_view_model_update
+    DATA temp4 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp4.
+    temp4 ?= mo_client.
+
+    li_client = temp4.
+    li_client->nest_view_model_update( ).
+    li_client->nest2_view_model_update( ).
+
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
+
+  ENDMETHOD.
+
   METHOD test_popup_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp4 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp4.
+    temp4 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp4.
     li_client->popup_display( `<Dialog/>` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -243,9 +251,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_popup_destroy.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp5 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp5.
+    temp5 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp5.
     li_client->popup_destroy( ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -254,11 +264,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_popup_model_update.
+
+    DATA temp6 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp6.
+    temp6 ?= mo_client.
+
+    li_client = temp6.
+    li_client->popup_model_update( ).
+
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
+
+  ENDMETHOD.
+
   METHOD test_popover_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp7 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp7.
+    temp7 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp7.
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn1` ).
 
@@ -270,9 +296,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_popover_destroy.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp8 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp8.
+    temp8 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp8.
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn1` ).
     li_client->popover_destroy( ).
@@ -286,11 +314,27 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_popover_model_update.
+
+    DATA temp9 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp9.
+    temp9 ?= mo_client.
+
+    li_client = temp9.
+    li_client->popover_model_update( ).
+
+    " obsolete NO-OP - main_end( ) queues the model push for every slot itself
+    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action ).
+
+  ENDMETHOD.
+
   METHOD test_nest_view_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp10 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp10.
+    temp10 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp10.
     li_client->nest_view_destroy( ).
     li_client->nest_view_display( val            = `<NestView/>`
                                   id             = `nest1`
@@ -308,9 +352,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_nest_view_destroy.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp11 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp11.
+    temp11 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp11.
     li_client->nest_view_display( val           = `<NestView/>`
                                   id            = `nest1`
                                   method_insert = `addMidColumnPage` ).
@@ -323,9 +369,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_nest2_view_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp12 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp12.
+    temp12 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp12.
     li_client->nest2_view_display( val           = `<Nest2View/>`
                                    id            = `nest2`
                                    method_insert = `addEndColumnPage` ).
@@ -339,9 +387,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_nest2_view_destroy.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp13 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp13.
+    temp13 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp13.
     li_client->nest2_view_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = `NEST2|destroy|`
@@ -351,9 +401,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_message_box_display.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp14 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp14.
+    temp14 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp14.
     li_client->message_box_display( `Hello World` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -364,9 +416,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_message_box_type.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp15 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp15.
+    temp15 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp15.
     li_client->message_box_display( text = `Error occurred`
                                     type = `error` ).
 
@@ -376,110 +430,20 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_message_box_data.
-
-    " a business table carries no messages at all - it used to reach the box
-    " as one blank line per row. The whole point of the API is that an app
-    " hands over what it has without pre-formatting it
-    TYPES:
-      BEGIN OF ty_s_row,
-        carrid TYPE string,
-      END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    lt_row = VALUE #( ( carrid = `LH` ) ).
-
-    li_client->message_box_display( lt_row ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","show","Table with 1 entry",` &&
-              `{"details":"<ol><li><ul><li><strong>CARRID</strong>: LH</li></ul></li></ol>",` &&
-              `"title":"Information"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_message_box_no_data.
-
-    " ...and an empty one still queues nothing: an app that shows the result
-    " of a call it just made must not get a popup when there was no result
-    TYPES:
-      BEGIN OF ty_s_row,
-        carrid TYPE string,
-      END OF ty_s_row.
-    DATA lt_row TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-
-    li_client->message_box_display( lt_row ).
-
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
-
-  ENDMETHOD.
-
-  METHOD test_message_box_messages.
-
-    " a message table: one box for all of them, its type and title taken
-    " from the most severe message, every text a bullet of the details -
-    " escaped, so a field name in angle brackets and a quote survive as text
-    TYPES:
-      BEGIN OF ty_s_msg,
-        type    TYPE string,
-        message TYPE string,
-      END OF ty_s_msg.
-    DATA lt_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    " the warning first: the error behind it still makes it an error box
-    lt_msg = VALUE #( ( type = `W` message = `Plant "1000" & more` )
-                      ( type = `E` message = `Enter a value for <MATNR>` ) ).
-
-    li_client->message_box_display( lt_msg ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","error","2 Messages found:",` &&
-              `{"details":"<ul><li>Plant &quot;1000&quot; &amp; more</li>` &&
-              `<li>Enter a value for &lt;MATNR&gt;</li></ul>","title":"Error"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
-
-    " one message is the text itself, and a title the app passes wins
-    CLEAR mo_action->ms_next-s_action-t_custom.
-    DELETE lt_msg INDEX 2.
-    li_client->message_box_display( text  = lt_msg
-                                    title = `Check` ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","warning","Plant \"1000\" & more",{"title":"Check"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
-
-  ENDMETHOD.
-
   METHOD test_message_box_dependent.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp15b TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp15b.
+    temp15b ?= mo_client.
 
-    li_client ?= mo_client.
-    " dependentOn and contentWidth are sap.m.MessageBox options, so they are
-    " set on the control: the option object of the global call, which is the
-    " same object the method below builds for what an ABAP app decides. The
-    " object is PARSED on its way to the wire, so its keys arrive sorted -
-    " the order an app writes them in carries nothing
-    li_client->follow_up_action(
-        val   = z2ui5_if_client=>cs_event-control_global
-        t_arg = VALUE #( ( `MESSAGE_BOX` )
-                         ( `confirm` )
-                         ( `The quantity exceeds the plan.` )
-                         ( `{"dependentOn":"myPage","contentWidth":"20rem"}` ) ) ).
+    li_client = temp15b.
+    li_client->message_box_display( text         = `The quantity exceeds the plan.`
+                                    type         = `confirm`
+                                    dependenton  = `myPage`
+                                    contentwidth = `20rem` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
+        exp = `["MESSAGE_BOX","confirm","The quantity exceeds the plan.",` &&
               `{"contentWidth":"20rem","dependentOn":"myPage"}]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
 
@@ -487,9 +451,11 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_message_toast.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp16 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp16.
+    temp16 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp16.
     li_client->message_toast_display( `Saved` ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -498,15 +464,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_hash_routing.
+  METHOD test_set_nav_routing.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " hash_routing configures the app rather than calling the frontend: it
+    " SET_NAV_ROUTING configures the app rather than calling the frontend: it
     " is remembered on the app ( so a later response of this app, and an app
     " that inherits from it, carry it again ) and queues no action of its own
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_nav_routing
                                  t_arg = VALUE #( ( z2ui5_if_client=>cs_nav_mode-fresh ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
@@ -517,34 +483,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_hash_routing_lower.
-
-    " the mode as an app may well write it - lower case - lands upper-cased
-    " on both sides, as the constants spell it
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    " hash_routing configures the app rather than calling the frontend: it
-    " is remembered on the app ( so a later response of this app, and an app
-    " that inherits from it, carry it again ) and queues no action of its own
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-hash_routing
-                                 t_arg = VALUE #( ( `fresh` ) ) ).
-
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
-                                        act = mo_action->ms_next-s_nav-set_nav_routing ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-fresh
-                                        act = mo_action->mo_app->mv_nav_mode ).
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
-
-  ENDMETHOD.
-
-  METHOD test_hash_routing_default.
+  METHOD test_set_nav_routing_default.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
     " an empty argument list means keep
-    li_client->follow_up_action( z2ui5_if_client=>cs_event-hash_routing ).
+    li_client->follow_up_action( z2ui5_if_client=>cs_event-set_nav_routing ).
 
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
                                         act = mo_action->mo_app->mv_nav_mode ).
@@ -593,19 +538,18 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_hash_set.
+  METHOD test_hash_set_alias.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " the typed method writes the field the cs_event-hash_set branch of
-    " follow_up_action writes, and a second call overwrites the first
+    " hash_set and the obsolete set_push_state write the same field
     li_client->hash_set( `/Page2` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/Page2`
                                         act = mo_action->ms_next-s_nav-set_push_state ).
 
-    li_client->hash_set( `/Page3` ).
+    li_client->set_push_state( `/Page3` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/Page3`
                                         act = mo_action->ms_next-s_nav-set_push_state ).
@@ -663,11 +607,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_follow_up_action.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp17 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp17.
+    temp17 ?= mo_client.
 
-    li_client ?= mo_client.
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `test` ) ) ).
+    li_client = temp17.
+    li_client->follow_up_action( `sap.m.MessageToast.show('test')` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
@@ -699,21 +644,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " NavContainer navigation from the BACKEND, since the five
-    " cs_event-*_nav_container_to constants were removed (2026-09-22): the app
-    " names the method itself and the slot is the view parameter
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ).
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 view  = z2ui5_if_client=>cs_view-popup
-                                 t_arg = VALUE #( ( `popContainer` ) ( `to` ) ( `popPage` ) ) ).
+    " a *_nav_container_to event is rerouted to the generic CONTROL_BY_ID call
+    " (method `to`, slot as the view) instead of emitting a dedicated event
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-nav_container_to
+                                 t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-popup_nav_container_to
+                                 t_arg = VALUE #( ( `popContainer` ) ( `popPage` ) ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_action-t_custom ) ).
-    " the empty slot, not the literal `MAIN` the sugar injected: it resolves
-    " across every open view and therefore still finds a main-view container
     cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_BY_ID","myContainer","","to","myPage"]`
+        exp = `["CONTROL_BY_ID","myContainer","MAIN","to","myPage"]`
         act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `["CONTROL_BY_ID","popContainer","POPUP","to","popPage"]`
@@ -754,40 +695,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_ctrl_global_opt.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    " The UI5 options of a toast and of a message box are set on the CONTROL:
-    " a t_arg that starts with a brace is embedded as REAL JSON, and the
-    " frontend takes an object in last position as the option object of the
-    " call ( ControlCall.js, evControlCall ). That is the path the pure
-    " pass-through parameters of message_toast_display( ) /
-    " message_box_display( ) took when they left those signatures in 2026-09 -
-    " so nothing an app could express before is out of reach.
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_TOAST` )
-                                                  ( `show` )
-                                                  ( `Saved` )
-                                                  ( `{"my":"center center","width":"20em"}` ) ) ).
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
-                                 t_arg = VALUE #( ( `MESSAGE_BOX` )
-                                                  ( `error` )
-                                                  ( `Not saved.` )
-                                                  ( `{"contentWidth":"30rem","icon":"WARNING"}` ) ) ).
-
-    " the braces are gone from the wire - the option object is a JSON object,
-    " not a string that happens to look like one
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_TOAST","show","Saved",{"my":"center center","width":"20em"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 1 ]-o_json->stringify( ) ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["CONTROL_GLOBAL","MESSAGE_BOX","error","Not saved.",{"contentWidth":"30rem","icon":"WARNING"}]`
-        act = mo_action->ms_next-s_action-t_custom[ 2 ]-o_json->stringify( ) ).
-
-  ENDMETHOD.
-
   METHOD test_check_on_init.
 
     mo_action->mo_app->mv_check_initialized = abap_false.
@@ -806,33 +713,16 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_event_client.
-
-    " _event_client( ) is the typed door to a FRONTEND event - the eF( )
-    " call the view embeds, which the event service spells; the client
-    " passes it through unchanged, view and arguments included
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'myContainer', '', 'to', 'myPage')`
-        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                        t_arg = VALUE #( ( `myContainer` ) ( `to` ) ( `myPage` ) ) ) ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
-        act = li_client->_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                        view  = z2ui5_if_client=>cs_view-nested
-                                        t_arg = VALUE #( ( `nestCon` ) ( `to` ) ( `nestPage` ) ) ) ).
-
-  ENDMETHOD.
-
   METHOD test_check_on_event.
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp21 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp21.
 
     mo_action->ms_actual-event = `BUTTON_PRESS`.
 
-    li_client ?= mo_client.
+
+    temp21 ?= mo_client.
+
+    li_client = temp21.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = li_client->check_on_event( `BUTTON_PRESS` ) ).
@@ -842,11 +732,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_check_on_event_empty.
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp22 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp22.
 
     mo_action->ms_actual-event = ``.
 
-    li_client ?= mo_client.
+
+    temp22 ?= mo_client.
+
+    li_client = temp22.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = li_client->check_on_event( ) ).
@@ -854,11 +748,15 @@ CLASS ltcl_test_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_check_on_navigated.
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp23 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp23.
 
     mo_action->ms_actual-check_on_navigated = abap_true.
 
-    li_client ?= mo_client.
+
+    temp23 ?= mo_client.
+
+    li_client = temp23.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = li_client->check_on_navigated( ) ).
@@ -867,12 +765,18 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   METHOD test_nav_app_call.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_new_app TYPE REF TO ltcl_test_app.
+    DATA temp24 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp24.
     DATA lv_id TYPE string.
+    lo_new_app = NEW #( ).
 
-    li_client ?= mo_client.
+    temp24 ?= mo_client.
 
-    lv_id = li_client->nav_app_call( NEW ltcl_test_app( ) ).
+    li_client = temp24.
+
+
+    lv_id = li_client->nav_app_call( lo_new_app ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_call ).
@@ -913,7 +817,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `MY_EVENT`
                                         act = mo_action->ms_next-next_event ).
     " the dedicated backend event must not emit any client side JS snippet
-    cl_abap_unit_assert=>assert_initial( mo_action->ms_next-s_action-t_custom ).
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
 
   ENDMETHOD.
 
@@ -922,7 +827,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string VALUE `payload`.
-    FIELD-SYMBOLS <data> TYPE data.
     lo_app = NEW #( ).
     li_client ?= mo_client.
 
@@ -930,15 +834,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
                               event  = `MY_EVENT`
                               r_data = lv_data ).
 
-    " the value travels as a COPY (conv_copy_ref_data): the previous app
-    " reads what was passed, not a reference into this app's variable
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-r_data ).
-    ASSIGN mo_action->ms_next-r_data->* TO <data>.
-    cl_abap_unit_assert=>assert_equals( exp = `payload`
-                                        act = <data> ).
-    lv_data = `changed afterwards`.
-    cl_abap_unit_assert=>assert_equals( exp = `payload`
-                                        act = <data> ).
 
   ENDMETHOD.
 
@@ -993,29 +889,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_get_app_own_id.
-
-    " get( )-s_draft-id is this roundtrip's id, not saved yet - it names the
-    " running app instead of a draft to load (it raised NO_DRAFT_ENTRY...)
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA li_app TYPE REF TO z2ui5_if_app.
-
-    li_client ?= mo_client.
-    li_app = NEW ltcl_test_app( ).
-    mo_action->mo_app->mo_app = li_app.
-    mo_action->mo_app->ms_draft-id = `THIS_ROUNDTRIP_ID`.
-
-    cl_abap_unit_assert=>assert_true(
-        xsdbool( li_client->get_app( li_client->get( )-s_draft-id ) = li_app ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( li_client->get_app( ) = li_app ) ).
-
-  ENDMETHOD.
-
   METHOD test_check_app_prev_stack.
 
-    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp25 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp25.
+    temp25 ?= mo_client.
 
-    li_client ?= mo_client.
+    li_client = temp25.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = li_client->check_app_prev_stack( ) ).
@@ -1026,6 +906,21 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = li_client->check_app_prev_stack( ) ).
 
   ENDMETHOD.
+
+  METHOD test_set_push_state.
+
+    DATA temp26 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp26.
+    temp26 ?= mo_client.
+
+    li_client = temp26.
+    li_client->set_push_state( `mystate` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `mystate`
+                                        act = mo_action->ms_next-s_nav-set_push_state ).
+
+  ENDMETHOD.
+
 
   METHOD test_get_event.
 
@@ -1092,10 +987,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                  t_arg = VALUE #( ( `` ) ) )
         act = li_client->_event( val = `PRESSED` arg = `` ) ).
 
-    " arg is appended last, and the wire drops a trailing empty argument
-    " (z2ui5_cl_ui5_srv_event=>get_t_arg) - passed empty and left out come
-    " out the same
-    cl_abap_unit_assert=>assert_equals(
+    " and the parameter left out is not the same as passed empty
+    cl_abap_unit_assert=>assert_differs(
         exp = li_client->_event( `PRESSED` )
         act = li_client->_event( val = `PRESSED` arg = `` ) ).
 
@@ -1136,7 +1029,8 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " FLP component data: one array per parameter name, first entry counts
     mo_action->mo_handler->ms_request-s_front-o_comp_data =
-        z2ui5_cl_ajson=>parse( `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ).
+        CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+            `{"startupParameters":{"foo":["bar"],"qty":["7","8"]}}` ) ).
 
     DATA(ls_get_1) = li_client->get( ).
 
@@ -1185,10 +1079,19 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
 
   METHOD test_get_event_arg.
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    mo_action->ms_actual-t_event_arg = VALUE #( ( `arg1` ) ( `arg2` ) ).
 
-    li_client ?= mo_client.
+    DATA temp28 TYPE string_table.
+    DATA temp30 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp30.
+    CLEAR temp28.
+    INSERT `arg1` INTO TABLE temp28.
+    INSERT `arg2` INTO TABLE temp28.
+    mo_action->ms_actual-t_event_arg = temp28.
+
+
+    temp30 ?= mo_client.
+
+    li_client = temp30.
 
     cl_abap_unit_assert=>assert_equals( exp = `arg1`
                                         act = li_client->get_event_arg( 1 ) ).
@@ -1204,14 +1107,13 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " initial) survives as long as its column is not listed. That is the whole
     " reason the scoped form exists next to the blanket omit_initial.
     DATA(li_filter) = CAST z2ui5_if_ajson_filter(
-        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX/` ) ) ) ).
+        NEW lcl_initial_paths_filter( VALUE #( ( `MIN` ) ( `/ROWS/MAX` ) ) ) ).
 
     " listed + initial -> dropped
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = li_filter->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
-    " listed by its last path segment as well - a trailing slash used to
-    " leave that segment empty and the path silently unlisted
+    " listed by its last path segment as well
     cl_abap_unit_assert=>assert_equals(
         exp = abap_false
         act = li_filter->keep_node( VALUE #( name = `MAX` type = `str` value = `` ) ) ).
@@ -1223,17 +1125,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
         act = li_filter->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
-    " a LISTED boolean is dropped when false - ajson writes abap_false as the
-    " literal `false`, never empty, and an emptiness test used to keep it
-    " (samples-controls app 241 lists EXPANDED for exactly this) - and kept
-    " when true
-    li_filter = NEW lcl_initial_paths_filter( VALUE #( ( `EXPANDED` ) ) ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `false` ) ) ).
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_true
-        act = li_filter->keep_node( VALUE #( name = `EXPANDED` type = `bool` value = `true` ) ) ).
     " an object/array visit always passes, or the row around a dropped field would go
     cl_abap_unit_assert=>assert_equals(
         exp = abap_true
@@ -1253,9 +1144,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
         price  TYPE p LENGTH 9 DECIMALS 2,
         weight TYPE f,
         count  TYPE i,
-        " abap_false is initial too - ajson writes it as `false`, which an
-        " emptiness test used to keep
-        flag   TYPE abap_bool,
       END OF ty_s_row.
 
     DATA(ls_row) = VALUE ty_s_row( name = `A` ).
@@ -1271,7 +1159,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " a non-zero value in the same spelling survives
     ls_row-price = '0.01'.
-    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
+    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/row`
                    iv_val          = ls_row ).
@@ -1325,7 +1213,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " empty-filter behavior: an all-initial sub-structure vanishes entirely,
     " taking the then-empty root with it - stringify of the empty tree is ``
     DATA(ls_nest) = VALUE ty_s_row( ).
-    lo_ajson = z2ui5_cl_ajson=>create_empty( ).
+    lo_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
     lo_ajson->set( iv_ignore_empty = abap_false
                    iv_path         = `/sub`
                    iv_val          = ls_nest ).
@@ -1371,12 +1259,14 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_bind_filter_not_serial.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
     DATA lx TYPE REF TO z2ui5_cx_ui5_util_error.
 
     li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
 
     TRY.
-        li_client->_bind( val           = mo_test_app->mv_name
+        li_client->_bind( val           = lo_app->mv_name
                           custom_filter = NEW ltcl_bad_filter( ) ).
         cl_abap_unit_assert=>fail(
             `a non-serializable custom_filter must be refused at bind time - serialized into the draft it fails only at db_save on a real system` ).
@@ -1386,81 +1276,6 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD test_omit_paths_wired.
-
-    " the three filter classes are covered directly; what nothing covered is
-    " the WIRING in _bind( ) - which of them a given parameter combination
-    " installs on the attribute. Asserted through the stored filter's
-    " behaviour rather than its class, so the test says what the binding
-    " does and not how it is built
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    li_client->_bind( val                = mo_test_app->mv_name
-                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
-
-    " the reference first, then the component: the v702 downport does not
-    " lower `REF #( tab[ ] )->comp` as one expression
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
-    DATA(li_stored) = lr_attri->custom_filter.
-    cl_abap_unit_assert=>assert_bound( li_stored ).
-
-    " the SCOPED omit: a listed name that is initial goes...
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
-    " ...and an UNLISTED one that is initial stays, which is the whole
-    " difference to the blanket omit_initial
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_true
-        act = li_stored->keep_node( VALUE #( name = `ENABLED` type = `bool` value = `false` ) ) ).
-
-  ENDMETHOD.
-
-  METHOD test_omit_paths_and_filter.
-
-    " a caller's filter next to an omit: BOTH have to pass. Replacing one
-    " with the other would drop a rule the app asked for without a word,
-    " and the combined object rides into the draft on mt_attri - the reason
-    " the framework combines with its own serializable AND rather than
-    " ajson's create_and_filter
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    DATA(li_custom) = CAST z2ui5_if_ajson_filter( NEW ltcl_good_filter( ) ).
-
-    li_client->_bind( val                = mo_test_app->mv_name
-                      custom_filter      = li_custom
-                      omit_initial_paths = VALUE #( ( `MIN` ) ) ).
-
-    " the reference first, then the component: the v702 downport does not
-    " lower `REF #( tab[ ] )->comp` as one expression
-    DATA lr_attri TYPE REF TO z2ui5_if_ui5_types=>ty_s_attri.
-    lr_attri = REF #( mo_action->mo_app->mt_attri->*[ name = `MV_NAME` ] ).
-    DATA(li_stored) = lr_attri->custom_filter.
-    cl_abap_unit_assert=>assert_bound( li_stored ).
-
-    " the CALLER's rule still applies - a filled node it names is dropped
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `DROPME` type = `str` value = `filled` ) ) ).
-    " ...and so does the framework's, on the name the caller says nothing about
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_false
-        act = li_stored->keep_node( VALUE #( name = `MIN` type = `num` value = `0` ) ) ).
-    " a node neither of them names survives
-    cl_abap_unit_assert=>assert_equals(
-        exp = abap_true
-        act = li_stored->keep_node( VALUE #( name = `OTHER` type = `str` value = `filled` ) ) ).
-
-    " and the combination is still serializable, or the next db_save would
-    " fail on a system with the binding metadata in hand
-    cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_ui5_util_context=>rtti_check_serializable( li_stored ) ).
-
-  ENDMETHOD.
 
   METHOD test_omit_initial_db_save.
 
@@ -1510,33 +1325,35 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " is the row COMPONENT, the table and the row number travel beside it.
     " ABAP counts rows from 1, the client path from 0.
     "
-    " This is the one place the app-facing form is proved, and it is the test
-    " that decides whether a downport keeps the row REFERENCE this binding
-    " matches on. abaplint lowered `tab[ n ]-comp` to
-    " `READ TABLE ... INTO <wa>` - a copy - until 2.120.51
-    " (abaplint/abaplint#4276), and this repository patched that lowering back
-    " to ASSIGNING until the pin moved. Nothing is patched now, so a failure
-    " here on the transpiled suite means the downport regressed upstream, not
-    " that the binding changed. The cell logic itself is covered everywhere by
-    " ltcl_02_cell in z2ui5_cl_ui5_srv_bind
+    " This is the one place the app-facing form is proved, and it is also the
+    " CANARY for node/setup/patch-abaplint-downport.mjs. Stock abaplint lowers
+    " `tab[ n ]-comp` to `READ TABLE ... INTO <wa>` - a copy, so the reference
+    " this binding matches on never arrives and the cell is refused. The patch
+    " makes the outline ASSIGNING, which is what the WRITE path of the same
+    " rule already emits; this test is green in the transpiled suite only
+    " because the patch is applied. If it starts failing, look at the patch
+    " before looking at the binding. The cell logic itself is covered
+    " everywhere by ltcl_02_cell in z2ui5_cl_ui5_srv_bind
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
 
     li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
     INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
+                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
     INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
+                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
-        act = li_client->_bind( val       = mo_test_app->mt_emp[ 1 ]-name
-                                tab       = mo_test_app->mt_emp
+        act = li_client->_bind( val       = lo_app->mt_emp[ 1 ]-name
+                                tab       = lo_app->mt_emp
                                 tab_index = 1 ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
-        act = li_client->_bind( val       = mo_test_app->mt_emp[ 2 ]-job
-                                tab       = mo_test_app->mt_emp
+        act = li_client->_bind( val       = lo_app->mt_emp[ 2 ]-job
+                                tab       = lo_app->mt_emp
                                 tab_index = 2 ) ).
 
   ENDMETHOD.
@@ -1550,201 +1367,44 @@ CLASS ltcl_test_client IMPLEMENTATION.
     " (READ TABLE ... ASSIGNING), the component-level one does not. So this
     " test runs on every target, including this pipeline
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lo_app TYPE REF TO ltcl_test_app.
     FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
 
     li_client ?= mo_client.
+    lo_app ?= mo_action->mo_app->mo_app.
     INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
+                    job  = `Scrum Master` ) INTO TABLE lo_app->mt_emp.
     INSERT VALUE #( name = `John Miller`
-                    job  = `Product Owner` ) INTO TABLE mo_test_app->mt_emp.
+                    job  = `Product Owner` ) INTO TABLE lo_app->mt_emp.
 
-    ASSIGN mo_test_app->mt_emp[ 1 ] TO <emp>.
+    ASSIGN lo_app->mt_emp[ 1 ] TO <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/0/NAME}`
         act = li_client->_bind( val       = <emp>-name
-                                tab       = mo_test_app->mt_emp
+                                tab       = lo_app->mt_emp
                                 tab_index = 1 ) ).
 
-    ASSIGN mo_test_app->mt_emp[ 2 ] TO <emp>.
+    ASSIGN lo_app->mt_emp[ 2 ] TO <emp>.
     cl_abap_unit_assert=>assert_equals(
         exp = `{/MT_EMP/1/JOB}`
         act = li_client->_bind( val       = <emp>-job
-                                tab       = mo_test_app->mt_emp
+                                tab       = lo_app->mt_emp
                                 tab_index = 2 ) ).
 
   ENDMETHOD.
 
 
-  METHOD test_window_total_value.
+  METHOD test_set_app_state_active.
 
-    " `total = lines( lt_all )` - the form the interface documents next to
-    " the attribute: the binding holds the value of this render and names
-    " no attribute to read it from
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lt_all    LIKE mo_test_app->mt_emp.
+    DATA temp31 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp31.
+    temp31 ?= mo_client.
 
-    li_client ?= mo_client.
-    lt_all = VALUE #( ( name = `a` ) ( name = `b` ) ( name = `c` ) ).
-    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
-                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
-                                                                          total  = lines( lt_all )
-                                                                          event  = `ROWS`
-                                                                          window = 2 ) ).
-
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
-    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
-                                        act = lr_attri->name_client ).
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 3
-                                        act = lr_attri->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `ROWS`
-                                        act = lr_attri->window_event ).
-    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
-
-    " and the same call again, as every render makes it
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
-                                        act = li_client->window_bind_tab( val    = mo_test_app->mt_emp
-                                                                          total  = lines( lt_all ) + 1
-                                                                          event  = `ROWS`
-                                                                          window = 2 ) ).
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO lr_attri WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_equals( exp = 4
-                                        act = lr_attri->window_total ).
-    cl_abap_unit_assert=>assert_initial( lr_attri->window_total_name ).
-
-  ENDMETHOD.
-
-
-  METHOD test_window_total_attri.
-
-    " `total = mv_total`: the binding names the attribute, so a response
-    " reads the total anew without the view being rendered again
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    mo_test_app->mt_emp = VALUE #( ( name = `a` ) ).
-    mo_test_app->mv_total = 500.
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MT_EMP}`
-                                        act = li_client->window_bind_tab( val   = mo_test_app->mt_emp
-                                                                          total = mo_test_app->mv_total
-                                                                          event = `ROWS` ) ).
-
-    READ TABLE mo_action->mo_app->mt_attri->* REFERENCE INTO DATA(lr_attri) WITH TABLE KEY name = `MT_EMP`.
-    cl_abap_unit_assert=>assert_subrc( ).
-    cl_abap_unit_assert=>assert_true( lr_attri->bind ).
-    cl_abap_unit_assert=>assert_equals( exp = `/MT_EMP`
-                                        act = lr_attri->name_client ).
-    cl_abap_unit_assert=>assert_equals( exp = 100
-                                        act = lr_attri->window_size ).
-    cl_abap_unit_assert=>assert_equals( exp = 500
-                                        act = lr_attri->window_total ).
-    cl_abap_unit_assert=>assert_equals( exp = `MV_TOTAL`
-                                        act = lr_attri->window_total_name ).
-
-  ENDMETHOD.
-
-
-  METHOD test_bind_dref_to_attribute.
-
-    " a reference TO an attribute binds the attribute, not the reference -
-    " the model used to refuse it (NO DATA REFERENCES FOR BINDING ALLOWED)
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lr_name   TYPE REF TO data.
-
-    li_client ?= mo_client.
-    lr_name = REF #( mo_test_app->mv_name ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `{/MV_NAME}`
-                                        act = li_client->_bind( lr_name ) ).
-    " _bind_path( ) delegates, so it takes the reference too
-    cl_abap_unit_assert=>assert_equals( exp = `/MV_NAME`
-                                        act = li_client->_bind_path( lr_name ) ).
-
-  ENDMETHOD.
-
-
-  METHOD test_bind_dref_attribute.
-
-    " an attribute TYPE REF TO data - a table typed at runtime - bound
-    " without the ASSIGN the app used to need: the same path as the
-    " dereferenced form, and the same attribute row behind it
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-
-    li_client ?= mo_client.
-    CREATE DATA mo_test_app->mr_tab LIKE mo_test_app->mt_emp.
-    ASSIGN mo_test_app->mr_tab->* TO <tab>.
-    INSERT VALUE ltcl_test_app=>ty_s_emp( name = `Michael Adams`
-                                          job  = `Scrum Master` ) INTO TABLE <tab>.
-
-    DATA(lv_by_ref) = li_client->_bind( mo_test_app->mr_tab ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_by_ref CS `/MR_TAB` ) ).
-    cl_abap_unit_assert=>assert_equals( exp = lv_by_ref
-                                        act = li_client->_bind( <tab> ) ).
-
-  ENDMETHOD.
-
-
-  METHOD test_bind_dref_tab_cell.
-
-    " the cell form with the TABLE passed as a reference
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lr_tab    TYPE REF TO data.
-    FIELD-SYMBOLS <emp> TYPE ltcl_test_app=>ty_s_emp.
-
-    li_client ?= mo_client.
-    INSERT VALUE #( name = `Michael Adams`
-                    job  = `Scrum Master` ) INTO TABLE mo_test_app->mt_emp.
-    lr_tab = REF #( mo_test_app->mt_emp ).
-
-    ASSIGN mo_test_app->mt_emp[ 1 ] TO <emp>.
-    cl_abap_unit_assert=>assert_equals(
-        exp = `{/MT_EMP/0/NAME}`
-        act = li_client->_bind( val       = <emp>-name
-                                tab       = lr_tab
-                                tab_index = 1 ) ).
-
-  ENDMETHOD.
-
-
-  METHOD test_bind_dref_initial.
-
-    " a reference that points nowhere is a BINDING_ERROR naming the cause,
-    " not a dump in describe_by_data_ref
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    DATA lr_none   TYPE REF TO data.
-
-    li_client ?= mo_client.
-    TRY.
-        li_client->_bind( lr_none ).
-        cl_abap_unit_assert=>fail( `an initial data reference must be refused` ).
-      CATCH z2ui5_cx_ui5_util_error INTO DATA(lx).
-        cl_abap_unit_assert=>assert_true( xsdbool( lx->get_text( ) CS `initial` ) ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD test_app_state_set_active.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-
-    li_client ?= mo_client.
-    li_client->app_state_set_active( abap_true ).
+    li_client = temp31.
+    li_client->set_app_state_active( abap_true ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_nav-set_app_state_active ).
-
-    " and remembered on the app, so main_end can re-assert it next roundtrip
-    cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->mo_app->mv_app_state_active ).
 
   ENDMETHOD.
 
@@ -1871,7 +1531,7 @@ CLASS ltcl_app_price_editor IMPLEMENTATION.
       mv_saved = xsdbool( mv_message IS INITIAL ).
     ENDIF.
 
-    mv_bind_path = client->_bind( mt_product ).
+    mv_bind_path = client->_bind_edit( mt_product ).
     client->_bind( mv_discount ).
 
   ENDMETHOD.
@@ -1917,6 +1577,7 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     mo_action = NEW #( val = lo_http ).
     mo_app = NEW #( ).
 
+    CLEAR ls_product.
     ls_product-name  = `Notebook`.
     ls_product-price = '1249.00'.
     APPEND VALUE #( qty = 1 ) TO ls_product-t_pos.
@@ -1940,7 +1601,8 @@ CLASS ltcl_test_model_skipped IMPLEMENTATION.
     CLEAR mo_action->ms_actual.
 
     IF model IS NOT INITIAL.
-      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse( z2ui5_cl_ajson=>parse( model ) ).
+      mo_action->ms_actual-t_model_skipped = mo_action->mo_app->model_json_parse(
+                                                 CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( model ) ) ).
     ENDIF.
     mo_action->ms_actual-event = event.
 

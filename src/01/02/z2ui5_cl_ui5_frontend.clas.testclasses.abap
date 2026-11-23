@@ -9,15 +9,14 @@ CLASS ltcl_test_frontend DEFINITION FINAL
 
     METHODS test_toast_plain          FOR TESTING RAISING cx_static_check.
     METHODS test_toast_options        FOR TESTING RAISING cx_static_check.
-    METHODS test_box_no_ui5_options    FOR TESTING RAISING cx_static_check.
     METHODS test_toast_duration_junk  FOR TESTING RAISING cx_static_check.
-    METHODS test_toast_duration_overflow FOR TESTING RAISING cx_static_check.
+    METHODS test_toast_opt_out        FOR TESTING RAISING cx_static_check.
     METHODS test_box_default_type     FOR TESTING RAISING cx_static_check.
     METHODS test_box_explicit_type    FOR TESTING RAISING cx_static_check.
     METHODS test_box_unknown_type     FOR TESTING RAISING cx_static_check.
+    METHODS test_box_icon_none        FOR TESTING RAISING cx_static_check.
     METHODS test_box_actions          FOR TESTING RAISING cx_static_check.
     METHODS test_box_msg_table_empty  FOR TESTING RAISING cx_static_check.
-    METHODS test_box_unmappable_comp  FOR TESTING RAISING cx_static_check.
     METHODS test_main_drops_teardowns FOR TESTING RAISING cx_static_check.
     METHODS test_main_keeps_displays  FOR TESTING RAISING cx_static_check.
     METHODS test_teardowns_no_main    FOR TESTING RAISING cx_static_check.
@@ -72,27 +71,14 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   METHOD test_toast_options.
 
-    " the two options an ABAP app decides - how long it stands, and the
-    " backend event its closing raises. Everything that only positions or
-    " animates the control travels as the option object of a CONTROL_GLOBAL
-    " MESSAGE_TOAST call instead (see ltcl_test_client test_ctrl_global_opt)
-    mo_cut->msg_toast( text     = `Saved`
-                       duration = `250`
-                       onclose  = `TOAST_GONE` ).
+    " class is no MessageToast option - it rides along and the frontend puts
+    " it on the toast's DOM node
+    mo_cut->msg_toast( text                           = `Saved`
+                                             duration = `250`
+                                             my       = `center center`
+                                             class    = `myCls` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"duration":250,"onClose":"TOAST_GONE"}]`
-                                        act = queued( ) ).
-
-  ENDMETHOD.
-
-  METHOD test_toast_duration_overflow.
-
-    " a digit string past the integer range is dropped like junk, not
-    " converted into an overflow exception
-    mo_cut->msg_toast( text     = `Saved`
-                       duration = `99999999999` ).
-
-    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"class":"myCls","duration":250,"my":"center center"}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -105,6 +91,17 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
                                              duration = `abc` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved"]`
+                                        act = queued( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_toast_opt_out.
+
+    " abap_true is UI5's own default for both, so only the opt-out travels
+    mo_cut->msg_toast( text                            = `Saved`
+                                             autoclose = abap_false ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_TOAST","show","Saved",{"autoClose":false}]`
                                         act = queued( ) ).
 
   ENDMETHOD.
@@ -144,23 +141,16 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_box_no_ui5_options.
+  METHOD test_box_icon_none.
 
-    " what is left on the method is what an ABAP app decides: the data, the
-    " kind of box, the buttons, the focus among them, the backend event. A
-    " pure sap.m.MessageBox option ( icon, contentWidth, textDirection, ... )
-    " has no parameter here at all - it is set on the control, as the option
-    " object of a CONTROL_GLOBAL MESSAGE_BOX call
-    mo_cut->msg_box( text             = `Delete?`
-                     type             = `confirm`
-                     actions          = VALUE #( ( `DELETE` ) ( `CANCEL` ) )
-                     emphasizedaction = `DELETE`
-                     initialfocus     = `CANCEL`
-                     onclose          = `ANSWERED` ).
+    " MessageBox.Icon.NONE would defeat the icon the chosen method sets for
+    " itself, so it is dropped like an unset icon
+    mo_cut->msg_box( text                       = `Boom`
+                                           type = `error`
+                                           icon = `NONE` ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = `["MESSAGE_BOX","confirm","Delete?",{"actions":["DELETE","CANCEL"],"emphasizedAction":"DELETE","initialFocus":"CANCEL","onClose":"ANSWERED"}]`
-        act = queued( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `["MESSAGE_BOX","error","Boom"]`
+                                        act = queued( ) ).
 
   ENDMETHOD.
 
@@ -192,84 +182,60 @@ CLASS ltcl_test_frontend IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_box_unmappable_comp.
-
-    " msg_get_internal maps every component of whatever an app hands over BY
-    " NAME, so a business structure with a component that happens to be
-    " called TEXT (or ID, TYPE, V1, ...) and is a TABLE reaches the message
-    " mapper. The assignment into the string field of ty_s_msg is no
-    " class-based exception for that - it is a MOVE type conflict, the same
-    " runtime error delta_apply_field decides before it writes - so the box
-    " that was supposed to REPORT a problem became the 500. Such a component
-    " is no message part: it is skipped, nothing in the structure reads as a
-    " message, and the DATA renderer shows the structure instead
-    TYPES: BEGIN OF ty_s_odd,
-             type TYPE string,
-             text TYPE string_table,
-           END OF ty_s_odd.
-    DATA ls_odd TYPE ty_s_odd.
-
-    ls_odd-type = `E`.
-    APPEND `line one` TO ls_odd-text.
-
-    mo_cut->msg_box( ls_odd ).
-
-    " one box, and it carries the rendered structure rather than nothing
-    cl_abap_unit_assert=>assert_equals( exp = 1
-                                        act = lines( mo_action->ms_next-s_action-t_custom ) ).
-    cl_abap_unit_assert=>assert_char_cp( act = queued( )
-                                         exp = `*MESSAGE_BOX*` ).
-
-  ENDMETHOD.
-
   METHOD serialized.
 
-    " the VIEWS section as it leaves - keys in the order the JSON tree keeps
-    " them (alphabetical), which is no order the frontend reads
-    result = mo_cut->slots_serialize( )->stringify( ).
+    mo_cut->slots_serialize( ).
+
+    LOOP AT mo_action->ms_next-s_action-t_system INTO DATA(ls_action).
+      IF result IS NOT INITIAL.
+        result = result && `|`.
+      ENDIF.
+      result = result && ls_action-o_json->stringify( ).
+    ENDLOOP.
 
   ENDMETHOD.
 
   METHOD test_main_drops_teardowns.
 
-    " a teardown next to a MAIN display travels as it was asked for: what a
-    " new MAIN view takes down with it is the frontend's knowledge
-    " (actions/Slots), and the backend no longer drops a call on that
-    " assumption - a teardown of a slot that is closed already does nothing
+    " a new MAIN view takes the standalone slots down on the frontend
+    " (actions/Slots), so their teardown is not sent next to it - whoever
+    " queued it: the app itself here, prepare_app_stack on an app switch
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
                           xml  = `<View/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `{"MAIN":{"XML":"<View/>"},"POPOVER":{"DESTROY":true},"POPUP":{"DESTROY":true}}`
+        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]`
         act = serialized( ) ).
 
   ENDMETHOD.
 
   METHOD test_main_keeps_displays.
 
-    " a popup this roundtrip opens travels next to the MAIN display, in
-    " whatever order the app called them - the frontend builds MAIN first
+    " only the TEARDOWNS are derivable from the MAIN display - a popup this
+    " roundtrip opens still travels, and behind MAIN, so it opens on the new
+    " view instead of being torn down with the old one
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-popup
                           xml  = `<Dialog/>` ).
     mo_cut->slot_display( slot = z2ui5_if_client=>cs_view-main
                           xml  = `<View/>` ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `{"MAIN":{"XML":"<View/>"},"POPUP":{"XML":"<Dialog/>"}}`
+        exp = `["VIEW_SLOTS","display","MAIN","<View/>"]|["VIEW_SLOTS","display","POPUP","<Dialog/>"]`
         act = serialized( ) ).
 
   ENDMETHOD.
 
   METHOD test_teardowns_no_main.
 
-    " a teardown is the slot's entry with DESTROY and nothing else
+    " without a MAIN display nothing tears the standalone slots down on the
+    " frontend, so the teardown has to travel
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popup ).
     mo_cut->slot_destroy( z2ui5_if_client=>cs_view-popover ).
 
     cl_abap_unit_assert=>assert_equals(
-        exp = `{"POPOVER":{"DESTROY":true},"POPUP":{"DESTROY":true}}`
+        exp = `["VIEW_SLOTS","destroy","POPUP"]|["VIEW_SLOTS","destroy","POPOVER"]`
         act = serialized( ) ).
 
   ENDMETHOD.

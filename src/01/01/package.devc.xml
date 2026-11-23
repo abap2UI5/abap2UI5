@@ -4,6 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>abap2UI5 - db</CTEXT>
+    <LANGUAGE>E</LANGUAGE>
+    <MASTERLANG>E</MASTERLANG>
    </DEVC>
   </asx:values>
  </asx:abap>

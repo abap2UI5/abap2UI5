@@ -7,19 +7,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     DATA ms_response     TYPE z2ui5_if_ui5_types=>ty_s_response.
     DATA mv_response     TYPE string.
 
-    " whether THIS request runs in a stateful (sticky) session - set by
-    " z2ui5_cl_ui5_http_handler=>_http_post before main( ): true for the
-    " handler it kept across requests, false for one built for the request.
-    " A draft restored into a session that is NOT stateful (F5, a bookmark, a
-    " new tab - no context id travels) carries the persisted mv_check_sticky
-    " of the session it was saved in; left standing, every later
-    " set_session_stateful( abap_true ) of the app is a no-op (the flag
-    " already says so) and the session is never switched - the app believes
-    " it is stateful and is not. The two factories that load a draft read
-    " this and drop the flag when it is false. PUBLIC because both the HTTP
-    " handler and z2ui5_cl_ui5_action reach it - neither is a friend
-    DATA mv_session_sticky TYPE abap_bool.
-
     METHODS constructor
       IMPORTING
         val TYPE string.
@@ -34,10 +21,15 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_request.
 
-    " The launchpad's part of a browser hash - public because
-    " z2ui5_cl_ui5_client->app_state_get_href needs it. What a hash asks an
-    " app START to restore is not read here any more: the frontend sends it
-    " parsed, as S_FRONT.ROUTE (core/Router.js startRoute).
+    " The two halves of the FLP hash split (see the method bodies) - public
+    " because z2ui5_cl_ui5_client->app_state_get_href needs the shell part;
+    " together with Router.splitHash they are the only owners of the rule.
+    CLASS-METHODS hash_get_app_part
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     " check_bare_is_shell decides the one ambiguous shape: a hash with
     " neither a leading '/' nor a '&/' separator. Coming from the FLP's
     " HashChanger the shell was already stripped, so the bare form is an app
@@ -73,21 +65,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(result) TYPE string.
 
-    " An app class name the way the framework reads it off a request:
-    " trimmed, upper-cased, a percent-encoded namespace (%2Fns%2Fclass)
-    " unpacked, the launchpad spelling -ns-class (a startup parameter
-    " cannot carry a slash) spelled back to /ns/class. The ONE
-    " normalisation - request_app_start reads every source through it and
-    " z2ui5_cl_ui5_user_exit=>init_context hands the exit the same name,
-    " so an exit keyed on the app sees exactly the class the handler
-    " starts. The two used to be separate copies, and the exit's did not
-    " know the launchpad spelling
-    CLASS-METHODS app_start_normalize
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
   PROTECTED SECTION.
 
     " Everything about the failing roundtrip that only this class knows:
@@ -95,24 +72,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     " request origin. Rendered as the outermost entry of the error chain.
     " Must never raise itself - it runs while an exception is being handled.
     METHODS request_context_info
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " a client-controlled value on its way into the error body, capped so
-    " a crafted request cannot pad it with kilobytes of noise - the url,
-    " the event name and the draft id all come off the request
-    CLASS-METHODS context_info_cap
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    " the request url as it may be quoted in the error body - stripped to
-    " the characters a url is made of and that cannot be read as markup or
-    " close a quoted value (the reasoning is on the method)
-    CLASS-METHODS context_info_url_safe
-      IMPORTING
-        val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -125,10 +84,6 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(check_go_client) TYPE abap_bool.
 
     METHODS main_end.
-    " the URL intent of this response - routing mode and app-state hash -
-    " re-asserted from what the app remembers; the state machine main_end
-    " used to carry inline
-    METHODS main_end_nav.
 
     "! the draft save at the end of main_end - a sticky app saves only when
     "! a route or app-state link carries its draft id
@@ -141,96 +96,19 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    " the prologue of hash_get_shell_part - see the method body
-    CLASS-METHODS hash_split
-      IMPORTING
-        iv_hash      TYPE string
-      EXPORTING
-        ev_hash      TYPE string
-        ev_off       TYPE i
-        ev_check_app TYPE abap_bool.
-
     " upper bound for nav_app_call/nav_app_leave hops within a single
     " request - an app that navigates unconditionally in main( ) would
-    " otherwise loop the work process forever. Writable instance DATA, not a
-    " CONSTANTS like the event-argument limit below, because the loop-guard
-    " test lowers it (ltcl_03_dispatch): the alternative is 1000 real hops,
-    " each of them a draft save. Nothing in production writes it
+    " otherwise loop the work process forever
     DATA mv_dispatch_limit TYPE i VALUE 1000.
 
-    " whether THIS request's body has been parsed into ms_request - see
-    " main_begin and request_context_info
-    DATA mv_request_parsed TYPE abap_bool.
-
-    " upper bound for the event arguments one request may carry. The
-    " frontend fills T_EVENT_ARG from the view's own argument list, so a
-    " legitimate event has a handful - and every object or array argument
-    " costs a slice( ) over the whole S_FRONT node table (a CP walk, the
-    " sorted key cannot serve it), which made the parse quadratic in the
-    " count: 50,000 `[]` entries in a 150 KB POST held a dialog work
-    " process for minutes. Nothing else bounded the request's shape.
-    CONSTANTS c_event_arg_limit TYPE i VALUE 100.
-
-    " automatic model update: the snapshot of the bound values taken in
-    " main_process BEFORE main( ) ran, compared in main_end. The taken flag
-    " exists because an empty snapshot cannot distinguish "not taken" from
-    " an app without bindings, and a snapshot is only comparable when it was
-    " taken in the SAME dispatch iteration main_end responds for (a
-    " nav_app_call/leave hop re-snapshots for the app that then answers).
-    DATA mt_model_before       TYPE z2ui5_cl_ui5_srv_model=>ty_t_snapshot.
+    " automatic model update: the model snapshot taken in main_process BEFORE
+    " main( ) ran, compared in main_end. The taken flag exists because the
+    " snapshot string cannot distinguish "not taken" from an empty model, and
+    " a snapshot is only comparable when it was taken in the SAME dispatch
+    " iteration main_end responds for (a nav_app_call/leave hop re-snapshots
+    " for the app that then answers).
+    DATA mv_model_before       TYPE string.
     DATA mv_model_before_taken TYPE abap_bool.
-
-    " The roundtrip monitor of THIS request (z2ui5_cl_ui5_srv_monitor), asked
-    " once at the start of main( ), and the instants the roundtrip is measured
-    " at. Unbound and initial while no monitor is installed - a system without
-    " one pays the latched lookup and nothing else: no clock reading, no
-    " error text, no structure
-    TYPES:
-      BEGIN OF ty_s_monitor_time,
-        start        TYPE timestampl,
-        loaded       TYPE timestampl,
-        render_start TYPE timestampl,
-        render_end   TYPE timestampl,
-      END OF ty_s_monitor_time.
-    DATA mi_monitor      TYPE REF TO z2ui5_if_ui5_monitor.
-    DATA ms_monitor_time TYPE ty_s_monitor_time.
-
-    "! Hand this roundtrip to the monitor, if one is installed - ix_error is
-    "! the exception the 500 body will render, unbound on success. Never
-    "! raises: it also runs inside the CATCH block of main( )
-    METHODS monitor_notify
-      IMPORTING
-        ix_error TYPE REF TO cx_root OPTIONAL.
-
-    "! Drop what only the roundtrip just answered needed - a sticky handler
-    "! outlives the request (see the method)
-    METHODS release_roundtrip.
-
-    "! What the monitor receives - see z2ui5_if_ui5_monitor=>ty_s_roundtrip
-    METHODS monitor_roundtrip
-      IMPORTING
-        ix_error      TYPE REF TO cx_root OPTIONAL
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
-
-    "! the fields of the roundtrip that come off the request and the app -
-    "! filled as far as the request got before it ended, on both paths
-    METHODS monitor_request_info
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
-
-    "! the four durations, measured up to iv_now - a phase the request never
-    "! reached stays 0, the phase it failed in ends at iv_now
-    METHODS monitor_durations
-      IMPORTING
-        iv_now       TYPE timestampl
-      CHANGING
-        cs_roundtrip TYPE z2ui5_if_ui5_monitor=>ty_s_roundtrip.
-
-    "! the clock for the monitor - initial while none is installed
-    METHODS monitor_clock
-      RETURNING
-        VALUE(result) TYPE timestampl.
 
     "! Reconcile what this request says about the browser with what the draft
     "! already knows - see the method body.
@@ -241,8 +119,9 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
     "! back (pathname/search only travel on app-start-shaped requests).
     METHODS launchpad_derive.
 
-    "! Write one action queue into the response JSON - each action as the
-    "! real nested array it was built as.
+    "! Write one action queue into the response JSON - each framework action
+    "! as the real nested array it was built as, each legacy raw-JS snippet
+    "! as the string entry the frontend's legacy path keys on.
     METHODS actions_serialize
       IMPORTING
         ajson    TYPE REF TO z2ui5_if_ajson
@@ -259,53 +138,21 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
-    "! The CONFIG block of S_FRONT - the device, the focus, the scroll
-    "! positions, the UI5 build and the launchpad ComponentData - read field
-    "! by field below iv_config, the path of the block in the request tree
-    "! (see request_parse_body for why nothing is sliced)
-    METHODS request_parse_config
+    METHODS slice_to_abap
       IMPORTING
-        io_json   TYPE REF TO z2ui5_if_ajson
-        iv_config TYPE string
+        io_json TYPE REF TO z2ui5_if_ajson
+        iv_path TYPE string
       CHANGING
-        cs_front  TYPE z2ui5_if_ui5_types=>ty_s_request-s_front
+        cs_data TYPE any
       RAISING
         z2ui5_cx_ajson_error.
 
-    "! the OS name as z2ui5_if_client=>cs_device-os spells it
-    CLASS-METHODS device_os_name
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    "! A number of the request that the app only reads as a diagnostic -
-    "! the device size, the caret, a scroll offset, the browser's last
-    "! roundtrip time. Initial when the node is missing, of another type,
-    "! or a number type i cannot hold (see the method body)
-    CLASS-METHODS request_get_int
-      IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
-        iv_path       TYPE string
-      RETURNING
-        VALUE(result) TYPE i.
-
-    "! one scroll position of S_SCROLL, iv_path naming its slot node
-    METHODS scroll_pos_read
-      IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
-        iv_path       TYPE string
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_ui5_types=>ty_s_scroll_pos.
-
-    "! The event arguments below iv_front, the S_FRONT node of the request
-    "! tree - every one of them as the string the app receives
     METHODS request_parse_event_args
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
-        iv_front      TYPE string
-      RETURNING
-        VALUE(result) TYPE string_table
+        io_front          TYPE REF TO z2ui5_if_ajson
+      EXPORTING
+        ev_check_override TYPE abap_bool
+        et_event_arg      TYPE string_table
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -318,6 +165,38 @@ CLASS z2ui5_cl_ui5_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    METHODS request_app_start_draft
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS request_app_start_route
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS request_app_start_route_draft
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS parse_app_route_rest
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " the part of iv_val before the first iv_sub, or iv_val when it does not
+    " occur - cuts a route token off at the next separator
+    METHODS cut_at
+      IMPORTING
+        iv_val        TYPE string
+        iv_sub        TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -331,28 +210,23 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        " What the URL hash asks this start to restore arrives PARSED, as
-        " S_FRONT.ROUTE (core/Router.js startRoute) - the backend reads no
-        " hash structure of its own. A route (UI5 Router style) takes
-        " precedence: once a session runs with routing on, the live hash
-        " '#/app/<CLASS>/<DRAFTID>' is the navigation state (browser
-        " Back/Forward, bookmark, reload), while the '?app_start=' query is
-        " only the initial boot value and would otherwise always win over
-        " it. The route's draft restores the exact preserved app state; when
-        " it is absent or expired the app starts fresh from the class.
-        " Without a route the app comes from the query, and the draft from
-        " an app-state link ('#/z2ui5-xapp-state=<DRAFTID>') if the hash was
-        " one - only that one is the app's opt-in to the app-state hash.
-        IF result-s_front-s_route-app IS NOT INITIAL.
-          result-s_control-app_start       = z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-app ).
-          result-s_control-app_start_draft = z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-draft ).
+        " Hash-based app routing (UI5 Router style) takes precedence: once a
+        " session runs with routing on, the live hash '#/app/<CLASS>/<DRAFTID>'
+        " is the navigation state (browser Back/Forward, bookmark, reload),
+        " while the '?app_start=' query is only the initial boot value and would
+        " otherwise always win over it. The route's <DRAFTID> segment restores
+        " the exact preserved app state; when it is absent or expired the app
+        " starts fresh from <CLASS>. Fall back to the query / legacy app-state
+        " hash when the hash carries no app route (normal boot / non-routing).
+        DATA(lv_route_class) = request_app_start_route( result-s_front-hash ).
+        IF lv_route_class IS NOT INITIAL.
+          result-s_control-app_start       = lv_route_class.
+          result-s_control-app_start_draft = request_app_start_route_draft( result-s_front-hash ).
         ELSE.
           result-s_control-app_start       =
             request_app_start( iv_search    = result-s_front-search
                                io_comp_data = result-s_front-o_comp_data ).
-          result-s_control-app_start_draft =
-            z2ui5_cl_ui5_util_context=>c_trim_upper( result-s_front-s_route-app_state ).
-          result-s_control-check_app_state = xsdbool( result-s_control-app_start_draft IS NOT INITIAL ).
+          result-s_control-app_start_draft = request_app_start_draft( result-s_front-hash ).
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
@@ -362,108 +236,64 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_parse_body.
-
-    " A POST with NO body at all is the same request as a POST carrying
-    " `{}` - one that names no S_FRONT - and has to be answered the same
-    " way: with the empty result, so main_begin takes its system-startup
-    " branch. It used to reach the parse below, which refuses an empty
-    " string, and the availability probe every monitor and load balancer
-    " sends was answered with the framework's own 500 while `{}`, `null`
-    " and even `42` all rendered the start page. The server stack produces
-    " exactly this shape - node/srv/express.mjs substitutes an empty buffer
-    " for a missing body, and a gateway that strips the envelope can leave
-    " nothing behind. A body that is NOT empty and not JSON stays a 500:
-    " that is a client sending something wrong, and it is worth seeing.
-    " o_model is filled the way the no-S_FRONT path below fills it: every
-    " reader of ty_s_request may dereference it without asking.
-    "
-    " `CO space` and not condense( ): the question is only whether the body
-    " holds anything but blanks, and CO answers it at the first character
-    " that is not one, while condense( ) COPIED the whole body - a mass-edit
-    " delta of megabytes - into a second string on every request just to
-    " test that copy for emptiness. It is also what keeps a 7.02 built-in out
-    " of the operand of IS INITIAL, which is not an expression position there
-    " (the compiler reads `condense( val ) IS` as a method call and answers
-    " `Unexpected operator "IS"`, a SYNTAX_ERROR of the whole class pool,
-    " reported from a system's SYNTAX_CHECK run - see check:downport)
-    IF val IS INITIAL OR val CO space.
-      result-o_model = z2ui5_cl_ajson=>create_empty( ).
-      RETURN.
-    ENDIF.
-
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
     " standalone requests arrive wrapped as { "value": <payload> } (see
-    " bundle/webapp/core/Server.js), launchpad/gateway proxies may strip the
+    " app/webapp/core/Server.js), launchpad/gateway proxies may strip the
     " envelope - a keyed lookup detects it, slicing the whole tree only to
     " unwrap it would walk and copy every node of the request
     DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
                                  THEN `/value` ).
 
     " the whole view model is transported back under the MODEL container
-    " (symmetric to the response); the frontend ships only the edited delta.
-    " The container is not sliced off: slice( ) walks every node of the
-    " parsed request (a CP compare per node - the sorted key is no help)
-    " and copies the whole subtree, and on a mass edit the model IS most of
-    " the request, so the delta was materialized twice. The root tree
-    " travels with the path of its MODEL node instead, and the model service
-    " reads the attributes below that path (z2ui5_if_ui5_types names the
-    " contract). The one slice left is the launchpad ComponentData, taken
-    " only when a request carries it (request_parse_config)
-    DATA(lv_model_path) = lv_root && `/MODEL`.
-    IF lo_ajson->exists( lv_model_path ) = abap_true.
-      result-o_model    = lo_ajson.
-      result-model_path = lv_model_path.
-    ELSE.
+    " (symmetric to the response); the frontend ships only the edited delta
+    result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
+    IF result-o_model IS NOT BOUND.
       result-o_model = z2ui5_cl_ajson=>create_empty( ).
     ENDIF.
 
-    " S_FRONT is read IN PLACE too, by keyed lookups on the request tree,
-    " the way the model is. It used to be sliced off and converted with
-    " to_abap( ), and the CONFIG block below it sliced once more: slice( )
-    " walks every node of the tree it is called on with a CP compare - the
-    " MODEL nodes included, which on a mass edit are nearly all of them -
-    " so a container of a few dozen fixed fields cost a walk over the whole
-    " delta on every such request. Each field is one keyed read now (a
-    " binary search on the sorted node table), whatever the model carries
-    " next to it; a missing node leaves its field initial, as to_abap( )
-    " with iv_corresponding did
-    DATA(lv_front) = lv_root && `/S_FRONT`.
-
+    lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
     " valid JSON without an S_FRONT container (health-check POST, rewrapping
     " proxy) - return the empty result so main_begin takes its system-startup
-    " branch
-    IF lo_ajson->exists( lv_front ) = abap_false.
+    " branch instead of dumping on the unbound slice below
+    IF lo_ajson IS NOT BOUND.
       RETURN.
     ENDIF.
 
-    result-s_front-id          = lo_ajson->get_string( lv_front && `/ID` ).
-    result-s_front-event       = lo_ajson->get_string( lv_front && `/EVENT` ).
-    result-s_front-hash        = lo_ajson->get_string( lv_front && `/HASH` ).
-    result-s_front-origin      = lo_ajson->get_string( lv_front && `/ORIGIN` ).
-    result-s_front-pathname    = lo_ajson->get_string( lv_front && `/PATHNAME` ).
-    result-s_front-search      = lo_ajson->get_string( lv_front && `/SEARCH` ).
-    " what the hash asks an app start to restore, as the frontend parsed it
-    " - absent on an event roundtrip and whenever the hash names nothing
-    result-s_front-s_route-app       = lo_ajson->get_string( lv_front && `/ROUTE/APP` ).
-    result-s_front-s_route-draft     = lo_ajson->get_string( lv_front && `/ROUTE/DRAFT` ).
-    result-s_front-s_route-app_state = lo_ajson->get_string( lv_front && `/ROUTE/APP_STATE` ).
-    result-s_front-t_event_arg = request_parse_event_args( io_json  = lo_ajson
-                                                           iv_front = lv_front ).
+    request_parse_event_args( EXPORTING io_front          = lo_ajson
+                              IMPORTING ev_check_override = DATA(lv_check_arg_object)
+                                        et_event_arg      = DATA(lt_event_arg) ).
 
-    " a diagnostic the browser sends for the monitor - a value that does not
-    " read as a non-negative integer is dropped, never the request
-    result-s_front-ms_client_prev = request_get_int( io_json = lo_ajson
-                                                     iv_path = lv_front && `/MS_CLIENT_PREV` ).
-    IF result-s_front-ms_client_prev < 0.
-      CLEAR result-s_front-ms_client_prev.
+    lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
+                       IMPORTING ev_container     = result-s_front ).
+
+    IF lv_check_arg_object = abap_true.
+      result-s_front-t_event_arg = lt_event_arg.
     ENDIF.
 
-    DATA(lv_config) = lv_front && `/CONFIG`.
-    IF lo_ajson->exists( lv_config ) = abap_true.
-      request_parse_config( EXPORTING io_json   = lo_ajson
-                                      iv_config = lv_config
-                            CHANGING  cs_front  = result-s_front ).
+    " slice the small CONFIG subtree once - every slice walks the whole
+    " node table of its tree, so the per-section slices below only pay
+    " for the CONFIG nodes instead of the full S_FRONT tree each time
+    DATA(lo_config) = lo_ajson->slice( `/CONFIG` ).
+    IF lo_config IS BOUND.
+
+      result-s_front-o_comp_data = lo_config->slice( `/ComponentData` ).
+
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_DEVICE`
+                     CHANGING  cs_data = result-s_front-s_device ).
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_FOCUS`
+                     CHANGING  cs_data = result-s_front-s_focus ).
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_SCROLL`
+                     CHANGING  cs_data = result-s_front-s_scroll ).
+
+      result-s_front-s_ui5-version         = lo_config->get_string( `/S_UI5/VERSION` ).
+      result-s_front-s_ui5-build_timestamp = lo_config->get_string( `/S_UI5/BUILDTIMESTAMP` ).
+      result-s_front-s_ui5-gav             = lo_config->get_string( `/S_UI5/GAV` ).
+      result-s_front-s_ui5-theme           = lo_config->get_string( `/S_UI5/THEME` ).
+
     ENDIF.
 
     " check_launchpad is NOT derived here: pathname/search only travel on
@@ -471,171 +301,71 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " draft, so the flag is computed in session_merge, from the MERGED values
   ENDMETHOD.
 
-  METHOD request_parse_config.
-
-    " the launchpad ComponentData is arbitrary and stays a tree of its own:
-    " the one slice left in the parse, taken only when the request carries
-    " the block - the first roundtrip of a page load, whose model is empty
-    IF io_json->exists( iv_config && `/ComponentData` ) = abap_true.
-      cs_front-o_comp_data = io_json->slice( iv_config && `/ComponentData` ).
+  METHOD slice_to_abap.
+    " Slice one optional sub-container out of a parsed JSON node and write it
+    " into the ABAP target. A missing node leaves the target untouched. Shared
+    " by request_parse_body for the S_DEVICE / S_FOCUS / S_SCROLL sub-structures.
+    DATA(lo_slice) = io_json->slice( iv_path ).
+    IF lo_slice IS BOUND.
+      lo_slice->to_abap( EXPORTING iv_corresponding = abap_true
+                         IMPORTING ev_container     = cs_data ).
     ENDIF.
-
-    " the typed reads answer initial for a missing node and for a node of
-    " another type, which is what the frontend never sends: the numbers are
-    " numbers (Device.resize, the caret, scrollTop) and the flags booleans
-    DATA(lv_device) = iv_config && `/S_DEVICE`.
-    cs_front-s_device-system          = io_json->get_string( lv_device && `/SYSTEM` ).
-    cs_front-s_device-orientation     = io_json->get_string( lv_device && `/ORIENTATION` ).
-    cs_front-s_device-browser-name    = io_json->get_string( lv_device && `/BROWSER/NAME` ).
-    cs_front-s_device-browser-version = io_json->get_string( lv_device && `/BROWSER/VERSION` ).
-    cs_front-s_device-os-name         = device_os_name( io_json->get_string( lv_device && `/OS/NAME` ) ).
-    cs_front-s_device-os-version      = io_json->get_string( lv_device && `/OS/VERSION` ).
-    cs_front-s_device-resize-width    = request_get_int( io_json = io_json
-                                                         iv_path = lv_device && `/RESIZE/WIDTH` ).
-    cs_front-s_device-resize-height   = request_get_int( io_json = io_json
-                                                         iv_path = lv_device && `/RESIZE/HEIGHT` ).
-    cs_front-s_device-support-touch   = io_json->get_boolean( lv_device && `/SUPPORT/TOUCH` ).
-    cs_front-s_device-support-pointer = io_json->get_boolean( lv_device && `/SUPPORT/POINTER` ).
-    cs_front-s_device-support-retina  = io_json->get_boolean( lv_device && `/SUPPORT/RETINA` ).
-
-    DATA(lv_focus) = iv_config && `/S_FOCUS`.
-    cs_front-s_focus-id              = io_json->get_string( lv_focus && `/ID` ).
-    cs_front-s_focus-selection_start = request_get_int( io_json = io_json
-                                                        iv_path = lv_focus && `/SELECTION_START` ).
-    cs_front-s_focus-selection_end   = request_get_int( io_json = io_json
-                                                        iv_path = lv_focus && `/SELECTION_END` ).
-
-    DATA(lv_scroll) = iv_config && `/S_SCROLL`.
-    cs_front-s_scroll-main    = scroll_pos_read( io_json = io_json
-                                                 iv_path = lv_scroll && `/MAIN` ).
-    cs_front-s_scroll-nest    = scroll_pos_read( io_json = io_json
-                                                 iv_path = lv_scroll && `/NEST` ).
-    cs_front-s_scroll-nest2   = scroll_pos_read( io_json = io_json
-                                                 iv_path = lv_scroll && `/NEST2` ).
-    cs_front-s_scroll-popup   = scroll_pos_read( io_json = io_json
-                                                 iv_path = lv_scroll && `/POPUP` ).
-    cs_front-s_scroll-popover = scroll_pos_read( io_json = io_json
-                                                 iv_path = lv_scroll && `/POPOVER` ).
-
-    DATA(lv_ui5) = iv_config && `/S_UI5`.
-    cs_front-s_ui5-version         = io_json->get_string( lv_ui5 && `/VERSION` ).
-    cs_front-s_ui5-build_timestamp = io_json->get_string( lv_ui5 && `/BUILDTIMESTAMP` ).
-    cs_front-s_ui5-gav             = io_json->get_string( lv_ui5 && `/GAV` ).
-    cs_front-s_ui5-theme           = io_json->get_string( lv_ui5 && `/THEME` ).
-
-  ENDMETHOD.
-
-  METHOD device_os_name.
-
-    " sap.ui.Device.os.name reports `iOS` and `Android` - mixed case, the
-    " values of sap.ui.Device.os.OS from 1.71 to today - while the constants
-    " z2ui5_if_client=>cs_device-os are lower case, so a comparison against
-    " cs_device-os-ios or -android never matched. The constants are the
-    " contract an app compares with and a released value, so the wire is
-    " mapped onto them: a name equal to one of them but for case becomes the
-    " constant (win, mac and linux arrive like that already), and anything
-    " else - bb, winphone, another shell's own name - passes unchanged
-    DATA(lv_lower) = to_lower( val ).
-
-    IF lv_lower = z2ui5_if_client=>cs_device-os-windows
-        OR lv_lower = z2ui5_if_client=>cs_device-os-macintosh
-        OR lv_lower = z2ui5_if_client=>cs_device-os-linux
-        OR lv_lower = z2ui5_if_client=>cs_device-os-ios
-        OR lv_lower = z2ui5_if_client=>cs_device-os-android.
-      result = lv_lower.
-    ELSE.
-      result = val.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD request_get_int.
-
-    " ajson's get_integer assigns the node's text to the integer, so a number
-    " the browser can write and type i cannot hold - 1e10, 3000000000 -
-    " raised a conversion error out of the parse, and the whole roundtrip
-    " ended in a 500 over a scroll offset or a window width. These numbers
-    " only inform the app; a value that does not fit is dropped like a
-    " missing one, never the request
-    TRY.
-        result = io_json->get_integer( iv_path ).
-      CATCH cx_root.
-        CLEAR result.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD scroll_pos_read.
-
-    result-id = io_json->get_string( iv_path && `/ID` ).
-    result-x  = request_get_int( io_json = io_json
-                                 iv_path = iv_path && `/X` ).
-    result-y  = request_get_int( io_json = io_json
-                                 iv_path = iv_path && `/Y` ).
-
   ENDMETHOD.
 
   METHOD request_parse_event_args.
 
     " object event arguments arrive as raw JSON - the frontend sends them
-    " unserialized so the request body is only encoded once - and reach the
-    " app serialized, so every argument is a string there. The JSON text of
-    " a sub-tree needs a tree of its own (stringify renders whole
-    " instances), so the S_FRONT container is sliced when the FIRST such
-    " argument shows up - once, and the per-argument slices then walk the
-    " S_FRONT nodes only, as before. A request without an object argument,
-    " the common one, slices nothing
-    DATA lo_front TYPE REF TO z2ui5_if_ajson.
+    " unserialized so the request body is only encoded once - and to_abap
+    " cannot place them in a string table, so they are serialized here and
+    " apps keep receiving every argument as a string
+    CLEAR: et_event_arg,
+           ev_check_override.
 
     DATA(lv_arg_index) = 1.
     DO.
-      DATA(lv_arg_path) = |{ iv_front }/T_EVENT_ARG/{ lv_arg_index }|.
-      DATA(lv_node_type) = io_json->get_node_type( lv_arg_path ).
-      IF lv_node_type = ``.
-        EXIT.
-      ENDIF.
-      IF lv_arg_index > c_event_arg_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
-          EXPORTING
-            val = |EVENT_ARG_LIMIT_ERROR - more than { c_event_arg_limit } event arguments in one request|.
-      ENDIF.
-      CASE lv_node_type.
+      DATA(lv_arg_path) = |/T_EVENT_ARG/{ lv_arg_index }|.
+      CASE io_front->get_node_type( lv_arg_path ).
+        WHEN ``.
+          EXIT.
         WHEN z2ui5_if_ajson_types=>node_type-object OR z2ui5_if_ajson_types=>node_type-array.
-          IF lo_front IS NOT BOUND.
-            lo_front = io_json->slice( iv_front ).
-          ENDIF.
-          APPEND lo_front->slice( |/T_EVENT_ARG/{ lv_arg_index }| )->stringify( ) TO result.
+          ev_check_override = abap_true.
+          APPEND io_front->slice( lv_arg_path )->stringify( ) TO et_event_arg.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
-          " the string a boolean node became on the to_abap path: X or empty
-          APPEND CONV string( io_json->get_boolean( lv_arg_path ) ) TO result.
+          " same result as the to_abap conversion of a boolean node
+          APPEND CONV string( io_front->get_boolean( lv_arg_path ) ) TO et_event_arg.
         WHEN OTHERS.
-          APPEND io_json->get_string( lv_arg_path ) TO result.
+          APPEND io_front->get_string( lv_arg_path ) TO et_event_arg.
       ENDCASE.
       lv_arg_index = lv_arg_index + 1.
     ENDDO.
+
+    IF ev_check_override = abap_true.
+      " to_abap raises on non-scalar members of a string table
+      io_front->delete( `/T_EVENT_ARG` ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD request_app_start.
     TRY.
         IF io_comp_data IS BOUND.
-          result = app_start_normalize( io_comp_data->get( `/startupParameters/app_start/1` ) ).
+          result = z2ui5_cl_ui5_util_context=>c_trim_upper(
+              io_comp_data->get( `/startupParameters/app_start/1` ) ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     IF result IS NOT INITIAL.
+      IF result(1) = `-`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+      ENDIF.
       RETURN.
     ENDIF.
 
-    result = app_start_normalize( z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
-                                                                            url = iv_search ) ).
-  ENDMETHOD.
-
-  METHOD app_start_normalize.
-
-    result = z2ui5_cl_ui5_util_context=>c_trim_upper( val ).
-
+    result = z2ui5_cl_ui5_util_context=>c_trim_upper(
+        z2ui5_cl_ui5_util_context=>url_param_get( val = `app_start`
+                                               url    = iv_search ) ).
     " a namespaced class name carries slashes, and a client that
     " percent-encodes the value (%2Fns%2Fclass) is well within the URL
     " rules; url_param_get leaves values encoded, so the one encoding a
@@ -644,76 +374,79 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
                       sub  = `%2F`
                       with = `/`
                       occ  = 0 ).
+  ENDMETHOD.
 
-    " a launchpad startup parameter cannot carry a slash, so a namespaced
-    " class travels as `-ns-class` in the intent and is spelled back to
-    " `/ns/class` here - the first two hyphens only, a hyphen inside the
-    " class name itself is not one an ABAP name can have anyway
+  METHOD hash_get_app_part.
+    " Reduce a browser hash to the part that belongs to the running app - the
+    " "app hash". Inside the SAP Fiori Launchpad the shell owns everything
+    " before '&/' ('#<SemanticObject>-<action>&/<app hash>'), standalone the
+    " whole hash is the app hash. This mirrors Router.splitHash in the
+    " frontend and is the single place the backend knows about the shell hash;
+    " without it every launchpad hash looks like "no route" and Back / reload /
+    " a bookmark fall back to the '?app_start=' query.
+    result = iv_hash.
+
     IF result IS INITIAL.
       RETURN.
     ENDIF.
-    IF result(1) = `-`.
-      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
-      REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
-    ENDIF.
 
-  ENDMETHOD.
-
-  METHOD hash_split.
-
-    " The prologue of the split (it had a second caller, the app half, until
-    " the frontend took over reading routes). Strip the leading '#'; then decide the
-    " one shape that needs no search: an app hash starts with '/', a shell
-    " hash never does, and checking this BEFORE the '&/' search matters,
-    " because an app hash may itself contain '&/' in a parameter and
-    " splitting on that would truncate it (or fabricate a shell part out
-    " of an app-owned prefix). ev_off is the offset of '&/' in ev_hash, or
-    " -1 when there is none; ev_check_app says the leading-'/' shape was
-    " met, which the shell half answers differently from "no separator"
-    ev_hash      = iv_hash.
-    ev_off       = -1.
-    ev_check_app = abap_false.
-
-    IF ev_hash IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    IF ev_hash(1) = `#`.
-      ev_hash = substring( val = ev_hash
-                           off = 1 ).
-      IF ev_hash IS INITIAL.
+    IF result(1) = `#`.
+      result = substring( val = result
+                          off = 1 ).
+      IF result IS INITIAL.
         RETURN.
       ENDIF.
     ENDIF.
 
-    IF ev_hash(1) = `/`.
-      ev_check_app = abap_true.
+    " An app hash starts with '/', a shell hash never does. Checking this
+    " first matters: an app hash may itself contain '&/' in a parameter, and
+    " splitting on that would truncate it.
+    IF result(1) = `/`.
       RETURN.
     ENDIF.
 
-    ev_off = find( val = ev_hash
-                   sub = `&/` ).
+    DATA(lv_off) = find( val = result
+                         sub = `&/` ).
+    IF lv_off < 0.
+      RETURN.
+    ENDIF.
 
+    result = substring( val = result
+                        off = lv_off + 2 ).
   ENDMETHOD.
 
   METHOD hash_get_shell_part.
-    " The part of a browser hash the
+    " The complement of hash_get_app_part: the part of a browser hash the
     " launchpad SHELL owns - everything in front of '&/'
     " ('#<SemanticObject>-<action>&/<app hash>'). Standalone, or when the
     " hash is all app, there is no shell part and the result is empty.
-    " Mirrors the shell half of Router.splitHash;
+    " Same guard order as above, for the same reason: the leading-'/' check
+    " runs BEFORE the '&/' search, because an app hash may itself contain
+    " '&/' in a parameter and splitting on that would fabricate a shell part
+    " out of an app-owned prefix. Mirrors the shell half of Router.splitHash;
     " z2ui5_cl_ui5_client->app_state_get_href keeps the shell part in the
     " link it composes, so the recipient lands in this app instead of on the
     " launchpad home page.
-    hash_split( EXPORTING iv_hash      = iv_hash
-                IMPORTING ev_hash      = DATA(lv_hash)
-                          ev_off       = DATA(lv_off)
-                          ev_check_app = DATA(lv_check_app) ).
+    DATA(lv_hash) = iv_hash.
 
-    IF lv_hash IS INITIAL OR lv_check_app = abap_true.
+    IF lv_hash IS INITIAL.
       RETURN.
     ENDIF.
 
+    IF lv_hash(1) = `#`.
+      lv_hash = substring( val = lv_hash
+                           off = 1 ).
+      IF lv_hash IS INITIAL.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    IF lv_hash(1) = `/`.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_off) = find( val = lv_hash
+                         sub = `&/` ).
     IF lv_off < 0.
       " no separator: an inner hash reads as app (canonical, the default),
       " a raw location hash as a bare launchpad intent - all shell. See the
@@ -747,46 +480,133 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD request_app_start_draft.
+    TRY.
+        DATA(lv_hash) = hash_get_app_part( iv_hash ).
+        " strip the leading slashes (see parse_app_route_rest for why they
+        " stack); url_param_get matches parameter names verbatim
+        SHIFT lv_hash LEFT DELETING LEADING `/`.
+        result = z2ui5_cl_ui5_util_context=>c_trim_upper(
+            z2ui5_cl_ui5_util_context=>url_param_get( val = `z2ui5-xapp-state`
+                                                   url    = lv_hash ) ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD parse_app_route_rest.
+    " Shared prologue for request_app_start_route / _route_draft: return the
+    " route remainder after 'app/' when the hash carries a real app route, or
+    " empty when it does not (normal boot, an app-owned hash, an 'app/'
+    " occurring mid-hash). The route must be the START of the APP hash - the
+    " launchpad shell hash in front of it is stripped by hash_get_app_part, so
+    " '#/app/X' and '#Z2UI5-display&/app/X' resolve identically.
+    DATA(lv_hash) = hash_get_app_part( iv_hash ).
+
+    " leading slashes are optional AND may stack: the launchpad convention
+    " writes the app hash without one ('&/app/X'), our own routes carry one
+    " ('#/app/X'), and URLs written through the UI5 HashChanger before navTo
+    " stripped its slash carry two ('#//app/X' - hasher prepends a '/' of its
+    " own); those live on in bookmarks and browser history, so strip them all
+    SHIFT lv_hash LEFT DELETING LEADING `/`.
+
+    IF strlen( lv_hash ) < 4 OR lv_hash(4) <> `app/`.
+      RETURN.
+    ENDIF.
+
+    result = substring( val = lv_hash
+                        off = 4 ).
+  ENDMETHOD.
+
+  METHOD cut_at.
+    result = iv_val.
+    DATA(lv_off) = find( val = iv_val
+                         sub = iv_sub ).
+    IF lv_off >= 0.
+      result = substring( val = iv_val
+                          len = lv_off ).
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD request_app_start_route.
+    " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
+    " Returns empty when the hash carries no app route, so a normal boot or an
+    " app that manages its own hash falls through to the '?app_start=' query.
+    TRY.
+        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
+        IF lv_rest IS INITIAL.
+          RETURN.
+        ENDIF.
+        " the class token ends at the next route / query separator
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `/` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `&` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `?` ).
+        result = z2ui5_cl_ui5_util_context=>c_trim_upper( lv_rest ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD request_app_start_route_draft.
+    " Parse the draft id (app state) from a hash route
+    " '#/app/<CLASS>/<DRAFTID>'. Returns empty when the route carries no draft
+    " segment (fresh navigation / bookmark without state), so the app starts
+    " fresh from <CLASS>.
+    TRY.
+        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
+        IF lv_rest IS INITIAL.
+          RETURN.
+        ENDIF.
+        " cut off a trailing query / fragment, then take the 2nd path segment -
+        " the 1st is the class, and a draft id carries no further separator
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `&` ).
+        lv_rest = cut_at( iv_val = lv_rest
+                          iv_sub = `?` ).
+        DATA(lv_off) = find( val = lv_rest
+                             sub = `/` ).
+        IF lv_off < 0.
+          RETURN.
+        ENDIF.
+        result = z2ui5_cl_ui5_util_context=>c_trim_upper(
+            cut_at( iv_val = substring( val = lv_rest
+                                        off = lv_off + 1 )
+                    iv_sub = `/` ) ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
   METHOD response_abap_to_json.
     TRY.
 
-        " the shared upper-case mapping, not one built here: it is stateless,
-        " and this method runs once per response - see
-        " z2ui5_cl_ui5_util_json_fl, which holds the one instance
-        DATA(li_ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                      ii_custom_mapping = z2ui5_cl_ui5_util_json_fl=>mapper_upper( ) ) ).
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                      ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
-        " Every field by name. The generic conversion of the structure wrote
-        " its two references as well - "O_VIEWS":null,"O_NAV":null on every
-        " response, next to the sections written below - and needed the
-        " no-empty-values filter for the fields that were not set; set( )
-        " leaves an empty ID or APP off by itself.
-        li_ajson_result->set( iv_path = `/ID`
-                              iv_val  = val-s_front-id ).
-        li_ajson_result->set( iv_path = `/APP`
-                              iv_val  = val-s_front-app ).
-        " Every response declares the wire it speaks - see
-        " z2ui5_if_ui5_types=>c_protocol. Stamped here rather than by each
-        " caller so no response can leave without it.
-        li_ajson_result->set_integer( iv_path = `/PROTOCOL`
-                                      iv_val  = z2ui5_if_ui5_types=>c_protocol ).
+        " the action queues are serialized explicitly below - the generic
+        " conversion would render each queue row as a { O_JSON, JS } object
+        " instead of the bare array/string entry the frontend reads. Only
+        " the two scalar fields are taken over - copying the whole struct
+        " would copy both queues just to clear them again.
+        DATA ls_front LIKE val-s_front.
+        ls_front-id  = val-s_front-id.
+        ls_front-app = val-s_front-app.
 
-        " The sections are taken over as they are: an action array carries
-        " empty strings as positional placeholders and a display may carry
-        " an empty view. A section that says nothing is left off
-        IF val-s_front-o_views IS BOUND AND val-s_front-o_views->is_empty( ) = abap_false.
-          li_ajson_result->set( iv_path = `/VIEWS`
-                                iv_val  = val-s_front-o_views ).
-        ENDIF.
-        IF val-s_front-o_nav IS BOUND AND val-s_front-o_nav->is_empty( ) = abap_false.
-          li_ajson_result->set( iv_path = `/NAV`
-                                iv_val  = val-s_front-o_nav ).
-        ENDIF.
-        actions_serialize( ajson    = li_ajson_result
-                           path     = `/ACTIONS`
+        ajson_result->set( iv_path = `/`
+                           iv_val  = ls_front ).
+        ajson_result = ajson_result->filter( z2ui5_cl_ui5_util_json_fl=>create_no_empty_values( ) ).
+
+        " AFTER the filter, never before: an action array carries empty
+        " strings as positional placeholders, which the no-empty-values
+        " filter would silently drop
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_SYSTEM`
+                           t_action = val-s_front-s_action-t_system ).
+        actions_serialize( ajson    = ajson_result
+                           path     = `/S_ACTION/T_CUSTOM`
                            t_action = val-s_front-s_action-t_custom ).
 
-        DATA(lv_frontend) = li_ajson_result->stringify( ).
+        DATA(lv_frontend) = ajson_result->stringify( ).
 
         " An unchanged model is not sent at all - the key is left off rather
         " than carrying an empty object. Most round-trips are events that
@@ -795,10 +615,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         result = COND #( WHEN val-model IS INITIAL OR val-model = `{}`
                          THEN |\{"S_FRONT":{ lv_frontend }\}|
                          ELSE |\{"S_FRONT":{ lv_frontend },"MODEL":{ val-model }\}| ).
-
-        " the one door to the browser's JSON.parse: a raw U+0001 in a bound
-        " value would make it refuse the whole response - see escape_controls
-        result = z2ui5_cl_ui5_util_json_fl=>escape_controls( result ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
@@ -815,13 +631,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
   METHOD main.
 
-    " the monitor first, so the roundtrip is measured from here on - a sticky
-    " handler answers several requests, so nothing of the previous one's
-    " instants may stand
-    mi_monitor = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
-    CLEAR ms_monitor_time.
-    ms_monitor_time-start = monitor_clock( ).
-
     " The exception itself only says WHAT went wrong. Which app, which event
     " and which draft it went wrong in is known here and nowhere above, so
     " annotate it on the way out - the top-level catch in
@@ -829,7 +638,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " included, into the 500 body.
     TRY.
         main_begin( ).
-        ms_monitor_time-loaded = monitor_clock( ).
         main_loop( ).
       CATCH cx_root INTO DATA(x).
         DATA lv_context TYPE string.
@@ -839,63 +647,20 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
             lv_context = request_context_info( ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
-        " built before it is raised so the monitor sees the very object the
-        " 500 body renders - the error id get_text_full stamps on it is then
-        " the same in the monitor's log and on the user's screen
-        DATA(lx_error) = NEW z2ui5_cx_ui5_util_error( val      = lv_context
-                                                      previous = x ).
-        " A failed roundtrip of an app that is not sticky leaves the LUW as
-        " the failure left it: the db_rollback that follows the app's main( )
-        " in main_process never ran, and the end of the ICF dialog step
-        " COMMITS whatever the app wrote before it raised - a row that the
-        " same code without the raise would have rolled back. Rolled back
-        " here, as the success path would have, before the monitor runs (a
-        " monitor that commits its log entry then commits nothing of the
-        " app) and whether or not one is installed. Never for a sticky app,
-        " whose LUW the framework does not touch on the error path. Guarded:
-        " a failure in main_begin leaves no action or app behind
-        IF mo_action IS BOUND AND mo_action->mo_app IS BOUND AND mo_action->mo_app->mv_check_sticky = abap_false.
-          z2ui5_cl_ui5_util_context=>db_rollback( ).
-        ENDIF.
-        monitor_notify( lx_error ).
-        release_roundtrip( ).
-        RAISE EXCEPTION lx_error.
+        RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+          EXPORTING
+            val      = lv_context
+            previous = x.
     ENDTRY.
 
-    " `OK`, the reason phrase every other 200 of this handler carries
     result = VALUE #( body          = mv_response
                       s_stateful    = mo_action->ms_next-s_stateful
                       status_code   = 200
-                      status_reason = `OK` ).
-
-    " after the draft save (main_end_save) and its commit - see the LUW note
-    " on z2ui5_if_ui5_monitor
-    monitor_notify( ).
+                      status_reason = `success` ).
 
     " the handler may be sticky and answer the next request too - nothing of
     " this roundtrip's queues and intents may leak into it
     CLEAR mo_action->ms_next.
-    release_roundtrip( ).
-
-  ENDMETHOD.
-
-  METHOD release_roundtrip.
-
-    " A sticky handler is pinned to the session and outlives the request:
-    " what only this roundtrip needed - the request body with its deltas
-    " and the tree it was parsed into (on a mass edit the larger of the
-    " two), the response text and structure (view XML and model JSON) and
-    " the snapshot of every bound value - stayed in the roll area until the
-    " next request or the session timeout. The monitor has read them by
-    " now, and the next roundtrip sets every one of them anew (the rest of
-    " ms_request is small and replaced whole by the next parse, main_begin)
-    CLEAR mv_request_json.
-    CLEAR ms_request-o_model.
-    CLEAR ms_request-model_path.
-    CLEAR mv_response.
-    CLEAR ms_response.
-    CLEAR mt_model_before.
-    CLEAR mv_model_before_taken.
 
   ENDMETHOD.
 
@@ -911,14 +676,11 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " missing detail must shorten the context line, never replace the
     " original error with a follow-up dump. Nested IFs, not a chained AND -
     " the guard must hold on every target the sources are compiled for.
-    " ...and only once THIS request was parsed: before that, a sticky
-    " handler's action is the previous roundtrip's, whose event and draft
-    " have nothing to do with the body that just failed
-    IF mo_action IS BOUND AND mv_request_parsed = abap_true.
-      lv_event = context_info_cap( mo_action->ms_actual-event ).
+    IF mo_action IS BOUND.
+      lv_event = mo_action->ms_actual-event.
 
       IF mo_action->mo_app IS BOUND.
-        lv_draft = context_info_cap( mo_action->mo_app->ms_draft-id_prev ).
+        lv_draft = mo_action->mo_app->ms_draft-id_prev.
 
         IF mo_action->mo_app->mo_app IS BOUND.
           lv_app = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
@@ -926,55 +688,28 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    " the url comes from the client - stripped to safe characters like
-    " app_start below (context_info_url_safe), then capped like the event
-    " and the draft id above (context_info_cap)
-    DATA(lv_url) = context_info_cap( context_info_url_safe( ms_request-s_front-pathname && ms_request-s_front-search ) ).
+    " the url comes from the client - cap it so a crafted request cannot pad
+    " the error body with kilobytes of noise
+    DATA(lv_url) = ms_request-s_front-pathname && ms_request-s_front-search.
+    IF strlen( lv_url ) > 300.
+      lv_url = substring( val = lv_url
+                          len = 300 ) && `...`.
+    ENDIF.
 
     " app_start is client-controlled and is reflected into the error body:
     " the same class-name-safe strip as z2ui5_cl_ui5_action=>factory_first_start
     " applies, so a crafted value cannot smuggle markup into the response
-    DATA(lv_app_start) = z2ui5_cl_ui5_action=>app_start_safe( ms_request-s_control-app_start ).
+    DATA(lv_app_start) = ms_request-s_control-app_start.
+    REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_start WITH `` ##REGEX_POSIX.
 
     result = |Request failed| &&
              COND #( WHEN lv_app   IS NOT INITIAL THEN | in app { lv_app }| ) &&
-             COND #( WHEN mv_request_parsed = abap_false THEN |, request not parsed|
-                     WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
+             COND #( WHEN lv_event IS NOT INITIAL THEN |, event { lv_event }|
                      ELSE |, no event (initial rendering)| ) &&
              COND #( WHEN lv_draft IS NOT INITIAL THEN |, draft { lv_draft }| ) &&
              COND #( WHEN lv_app_start IS NOT INITIAL
                      THEN |, app_start { lv_app_start }| ) &&
              COND #( WHEN lv_url IS NOT INITIAL THEN |, url { lv_url }| ).
-
-  ENDMETHOD.
-
-  METHOD context_info_cap.
-
-    " 300 characters of the value, then the ellipsis
-    result = z2ui5_cl_ui5_util_context=>c_truncate( val = val
-                                                    max = 303 ).
-
-  ENDMETHOD.
-
-  METHOD context_info_url_safe.
-
-    " The url is client-controlled, and a crafted request - not a browser,
-    " which percent-encodes location.search - can put markup and quotes into
-    " it. The error body quotes it for diagnosis, and a body that is logged,
-    " mailed or pasted into a ticket leaves its text/plain and nosniff
-    " headers behind, so what it repeats from the request must not be
-    " readable as markup on its own (abap2UI5/protocol spec/errors.md, open
-    " question 3, decided as "a backend MUST NOT reflect request data it did
-    " not validate"). An allow-list, not an escape: the body is plain text,
-    " an escape would show &lt; to its reader, while a stripped url keeps a
-    " real typo readable. Kept: letters, digits and the url delimiters
-    " / ? & = . _ - ~ : % + - every percent-encoded character stays encoded,
-    " so a browser's url arrives unchanged. Dropped: everything else, among
-    " it < > " ' ` and blanks. The same strip as
-    " z2ui5_cl_ui5_action=>app_start_safe, the strip of the class name.
-    result = z2ui5_cl_ui5_util_context=>c_filter_chars(
-        val     = val
-        allowed = `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/?&=._-~:%+` ).
 
   ENDMETHOD.
 
@@ -1007,31 +742,13 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " intra-request cache while preventing cross-request growth.
     z2ui5_cl_ui5_app_cont=>db_load_buffer_clear( ).
 
-    " a sticky handler still holds the PREVIOUS roundtrip's action while this
-    " body is parsed; the flag keeps request_context_info from annotating a
-    " parse failure with that roundtrip's event and draft
-    CLEAR mv_request_parsed.
     ms_request = request_json_to_abap( mv_request_json ).
-    mv_request_parsed = abap_true.
 
     IF ms_request-s_front-id IS NOT INITIAL.
       mo_action = mo_action->factory_by_frontend( ).
 
-    " an app-state bookmark is a first start too when the URL names no
-    " app: app_state_get_href keeps the page's own query, and a session
-    " that reached its app by navigation (the start page, nav_app_call)
-    " has no ?app_start= in it - such a link used to open the start page
-    " and drop the saved state without a word
-    ELSEIF ms_request-s_control-app_start IS NOT INITIAL
-        OR ms_request-s_control-app_start_draft IS NOT INITIAL.
-      " on every first start, a bookmark or route restore included (each
-      " Back/Forward under KEEP routing re-creates the app and lands here):
-      " one DELETE and a COMMIT WORK per such request, inside an existing
-      " stateful session too - the first start of an app is the one request
-      " on which a sticky app's LUW is empty by definition, and a restore
-      " builds a fresh instance the same way (decisions.md, "The draft of a
-      " sticky app")
-      z2ui5_cl_ui5_srv_draft=>get_instance( )->cleanup( ).
+    ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
+      NEW z2ui5_cl_ui5_srv_draft( )->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
     ELSE.
@@ -1080,17 +797,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " roundtrip inside the FLP
     launchpad_derive( ).
 
-    " A request that CARRIES the device block wins: that is the first
-    " roundtrip of a page load, and it is also how a draft reopened on a
-    " different device gets the new device's data instead of the one that
-    " created the draft. Every later roundtrip omits it and is answered from
-    " the draft. The UI5 version info is read below, on its own: the
-    " frontend loads it asynchronously and sends it alone on the first
-    " roundtrip that finds it loaded (core/Session.js), so a request
-    " carrying S_UI5 without the device block MERGES it into the stored
-    " block instead of standing in for the whole block (which wiped the
-    " stored device profile with an empty one).
-    IF ms_request-s_front-s_device-system IS NOT INITIAL.
+    " A request that CARRIES the block wins: that is the first roundtrip of a
+    " page load, and it is also how a draft reopened on a different device
+    " gets the new device's data instead of the one that created the draft.
+    " Every later roundtrip omits it and is answered from the draft.
+    IF ms_request-s_front-s_device-system IS NOT INITIAL
+        OR ms_request-s_front-s_ui5-version IS NOT INITIAL.
 
       " keep the location trio: the block above has already merged it into
       " the request (stored or restored), and the first roundtrip of a page
@@ -1098,7 +810,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " just stored
       " ... and keep the nav_mode_sent latch: block-carrying requests are
       " app-start-shaped today (main_end re-sends the mode anyway), but a
-      " wiped latch would cost a redundant NAV section if that ever changes.
+      " wiped latch would cost a redundant ROUTER/sync if that ever changes.
       " comp_data is kept for the same reason as the location trio: the
       " launchpad ComponentData travels on its own session cadence, so a
       " block-carrying request WITHOUT it must not wipe what the draft
@@ -1117,12 +829,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
         ENDTRY.
       ENDIF.
       RETURN.
-    ENDIF.
-
-    " the version info that arrived after the device block - stored, and
-    " read back for every later roundtrip like the rest of the block
-    IF ms_request-s_front-s_ui5-version IS NOT INITIAL.
-      mo_action->mo_app->ms_session-s_ui5 = ms_request-s_front-s_ui5.
     ENDIF.
 
     " Answer this roundtrip from the draft - but let the two device fields
@@ -1147,11 +853,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     ms_request-s_front-s_device = ls_device.
     ms_request-s_front-s_ui5    = mo_action->mo_app->ms_session-s_ui5.
 
-    " the stored launchpad ComponentData is NOT parsed back into
-    " o_comp_data here: its only reader after the merge is
-    " z2ui5_cl_ui5_client=>get( ), which parses the session string itself
-    " when it needs it - every event roundtrip of an FLP session used to
-    " parse a tree nobody looked at (z2ui5_if_ui5_types names the contract)
+    IF mo_action->mo_app->ms_session-comp_data IS NOT INITIAL.
+      TRY.
+          ms_request-s_front-o_comp_data = z2ui5_cl_ajson=>parse( mo_action->mo_app->ms_session-comp_data ).
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1163,22 +870,27 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
 
     ajson->touch_array( path ).
     LOOP AT t_action REFERENCE INTO DATA(lr_action).
-      ajson->push( iv_path = path
-                   iv_val  = lr_action->o_json ).
+      IF lr_action->o_json IS BOUND.
+        ajson->push( iv_path = path
+                     iv_val  = lr_action->o_json ).
+      ELSE.
+        ajson->push( iv_path = path
+                     iv_val  = lr_action->js ).
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
 
-  METHOD main_end_nav.
+  METHOD main_end.
 
     " Hash routing is configured once and then belongs to the app, not to the
     " session: re-send the app's own mode whenever this roundtrip did not set
-    " one itself, so an app that queued cs_event-hash_routing in check_on_init
+    " one itself, so an app that queued cs_event-set_nav_routing in check_on_init
     " stays routed in its chosen mode - even after the user visited another
     " app that runs with a different one (see z2ui5_cl_ui5_app_cont->mv_nav_mode).
     " NOT on every roundtrip though: the frontend keeps the mode in session
     " state, so a plain event roundtrip of the SAME app repeats no mode (it
-    " would repeat the NAV section for a constant). It has to travel
+    " would re-queue the ROUTER action for a constant). It has to travel
     " again whenever the frontend may not hold it: an app-start-shaped
     " request (page load, Back/Forward route restore), a navigation hop
     " (check_on_navigated - the previous app may have run another mode), or
@@ -1231,19 +943,10 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mo_action->ms_next-s_nav-set_app_state_active = abap_true.
     ENDIF.
 
-  ENDMETHOD.
-
-  METHOD main_end.
-
-    ms_monitor_time-render_start = monitor_clock( ).
-
-    " the URL intent first - see main_end_nav
-    main_end_nav( ).
-
     DATA(lo_front) = NEW z2ui5_cl_ui5_frontend( mo_action ).
 
-    " what the slots show after this roundtrip
-    DATA(li_views) = lo_front->slots_serialize( ).
+    " the view-lifecycle calls leave first, in slot order
+    lo_front->slots_serialize( ).
 
     " The model of this roundtrip. A slot that shipped new XML always needs
     " the model with it - all five slots, the nested ones included. Derived
@@ -1256,38 +959,42 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       lv_model = mo_action->mo_app->model_json_stringify( ).
     ELSEIF mv_model_before_taken = abap_true.
       " automatic model update: main( ) neither displayed nor asked for a
-      " push - send the model only when main( ) itself changed it; an
-      " unchanged model still responds `{}` as before. The compare is value against snapshot
-      " (main_snapshot_changed): the model is serialized only when it will
-      " be sent. A change this app made and never pushed - it left through
-      " nav_app_call, see mv_model_client_stale - counts as changed too
-      IF mo_action->mo_app->mv_model_client_stale = abap_true
-          OR mo_action->mo_app->model_snapshot_changed( mt_model_before ) = abap_true.
-        lv_model = mo_action->mo_app->model_json_stringify( ).
+      " push - send the model only when main( ) itself changed it, exactly as
+      " an explicit view_model_update( ) would; an unchanged model still
+      " responds `{}` as before
+      DATA(lv_model_now) = mo_action->mo_app->model_json_stringify( ).
+      IF lv_model_now <> mv_model_before.
+        lv_model = lv_model_now.
       ENDIF.
     ENDIF.
-    " No instruction travels with it: a MODEL key in the response IS
+    " No updateModel action travels with it: a MODEL key in the response IS
     " the push - the frontend pushes into every open model-owning slot after
-    " the views were applied (View1). That covers the nested re-display
+    " the system actions ran (View1). That covers the nested re-display
     " (inherits the MAIN model by propagation - three-column samples) and a
     " popup left open across a roundtrip that rebuilt no view alike, without
     " spelling a derivable instruction into every model-carrying response.
 
-    " a display or a push leaves the client holding the current model: the
-    " unpushed-change flag is settled either way (a display whose model is
-    " `{}` leaves the fresh view's model empty, which `{}` says too)
+    " Remember what this response leaves the client holding: a display or a
+    " push leaves it on lv_model (a display whose model is `{}` leaves the
+    " fresh view's model empty, which `{}` says too), no push leaves it on
+    " the before-state. The next roundtrip of this app reads it back as its
+    " pre-main( ) snapshot (main_process) instead of serializing the model
+    " a second time.
     IF lv_check_display = abap_true OR lv_model <> `{}`.
-      CLEAR mo_action->mo_app->mv_model_client_stale.
+      mo_action->mo_app->mv_model_client = lv_model.
+    ELSEIF mv_model_before_taken = abap_true.
+      mo_action->mo_app->mv_model_client = mv_model_before.
+    ELSE.
+      CLEAR mo_action->mo_app->mv_model_client.
     ENDIF.
 
-    " the URL intent - a section of its own only when the roundtrip carries
-    " one; the frontend syncs the URL once per response either way (View1
-    " injects the response id)
-    DATA(li_nav) = lo_front->nav_serialize( ).
+    " last of all, so the route reflects everything this roundtrip did - the
+    " slots that were built and the model that was pushed into them. Queued
+    " only when the roundtrip carries nav intent; the frontend syncs the URL
+    " once per response either way (View1 injects the response id).
+    lo_front->nav_serialize( ).
 
     ms_response = VALUE #( s_front-s_action = mo_action->ms_next-s_action
-                           s_front-o_views  = li_views
-                           s_front-o_nav    = li_nav
                            s_front-id       = mo_action->mo_app->ms_draft-id
                            s_front-app      = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
                            model            = lv_model ).
@@ -1295,8 +1002,6 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     mv_response = response_abap_to_json( ms_response ).
 
     main_end_save( ).
-
-    ms_monitor_time-render_end = monitor_clock( ).
 
   ENDMETHOD.
 
@@ -1312,27 +1017,14 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       " shared link landed in factory_first_start's CATCH - "bookmarked app
       " state expired" and a fresh app. The draft is saved for exactly
       " these two modes; a sticky app that asked for neither keeps skipping
-      " the serialization. The save is a COMMIT WORK AND WAIT (srv_draft),
-      " and so is the one prepare_app_stack does on every nav hop: a LUW the
-      " sticky app keeps open across roundtrips ends on these paths, and
-      " the locks it holds go with it. Decided to stay so (decisions.md,
-      " "The draft of a sticky app"): the draft is what makes the URL and
-      " the hop survivable, the store is a seam an installation can put on
-      " a connection of its own, and z2ui5_if_client=>set_session_stateful
-      " tells the app which roundtrips commit
+      " the serialization
       mo_action->mo_app->db_save( ).
     ELSE.
       " a sticky session skips the draft save, but the lifecycle latch must
       " not be skipped with it - db_save is otherwise the only place that
       " sets it, and without it every event roundtrip of a sticky app reads
-      " check_on_init( ) = true and re-runs its init block. The same holds
-      " for z2ui5_if_app~id_draft: db_save is the other place that makes it
-      " follow ms_draft-id, which is minted anew on every roundtrip, and a
-      " sticky app read the id of its first start for the rest of the
-      " session - one the response, client->get( )-s_draft-id and the
-      " frontend no longer name
+      " check_on_init( ) = true and re-runs its init block
       mo_action->mo_app->mv_check_initialized = abap_true.
-      mo_action->mo_app->app_refresh_draft_id( ).
     ENDIF.
 
   ENDMETHOD.
@@ -1342,56 +1034,51 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_ui5_client( mo_action ) ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
-    " automatic model update: snapshot the bound values AFTER the incoming
-    " client deltas were applied (factory_by_frontend) and BEFORE main( )
-    " runs - what the client already knows must never trigger a push. Taken
-    " per dispatch iteration, so after a nav_app_call/leave the snapshot
-    " belongs to the app main_end responds for.
+    " automatic model update: snapshot the model AFTER the incoming client
+    " deltas were applied (factory_by_frontend) and BEFORE main( ) runs -
+    " what the client already knows must never trigger a push. Taken per
+    " dispatch iteration, so after a nav_app_call/leave the snapshot belongs
+    " to the app main_end responds for. The app's mv_model_client IS that
+    " snapshot whenever it is known: main_end wrote it as exactly what the
+    " client was left holding, and factory_by_frontend cleared it when this
+    " request's deltas touched the state it describes - so the full model
+    " serialization only runs when no stored string can stand in for it.
     "
-    " The snapshot is a copy of the values, not a serialization of the
-    " model (z2ui5_cl_ui5_srv_model=>main_snapshot): table sharing makes
-    " the copy free for every attribute main( ) does not write, and the
-    " compare in main_end is a memory compare. It used to be a digest of
-    " the serialized model, kept on the app across roundtrips to save the
-    " serialization where it could - which still left a delta roundtrip
-    " serializing the whole model once before main( ) and, with a display,
-    " once more for the response. The snapshot itself cannot be dropped:
-    " every variant without it turns the saved pass into a FULL-MODEL PUSH
-    " on every edit roundtrip whose main( ) changed nothing bound, which is
-    " exactly the transfer the compare in main_end exists to suppress.
-    mt_model_before = mo_action->mo_app->model_snapshot( ).
+    " Yes, on a delta roundtrip this is the FIRST of up to two full
+    " serializations (main_end runs the second one to compare or to render a
+    " display) - and that is the cheaper side of a real trade-off, not an
+    " oversight. The snapshot cannot move behind main( ) (it has to be the
+    " pre-main state, and whether main( ) will display is unknowable here),
+    " and every variant that drops it - keeping the stale stored string, or
+    " pushing unconditionally when none exists - turns the saved CPU pass
+    " into a FULL-MODEL PUSH on every edit roundtrip whose main( ) changed
+    " nothing bound, which is exactly the transfer the compare in main_end
+    " exists to suppress. Serializing twice beats shipping the model once.
+    IF mo_action->mo_app->mv_model_client IS NOT INITIAL.
+      mv_model_before = mo_action->mo_app->mv_model_client.
+    ELSE.
+      mv_model_before = mo_action->mo_app->model_json_stringify( ).
+    ENDIF.
     mv_model_before_taken = abap_true.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_ui5_util_context=>db_rollback( ).
     ENDIF.
 
-    " exceptions from main( ) are intentionally not caught here - they bubble
-    " up to the CATCH in main( ) of this class, which rolls the LUW back,
-    " annotates them with the app, event and draft, tells the monitor and
-    " re-raises for the top-level catch in z2ui5_cl_ui5_http_handler=>_main( ),
-    " which turns them into a 500 response carrying the exception chain
-    CASE mo_action->ms_actual-event.
-      WHEN z2ui5_if_ui5_types=>cs_event_nav_app_leave.
-        " no popup/popover teardown is queued here: every app switch ends up
-        " in z2ui5_cl_ui5_action=>prepare_app_stack, which queues it for the
-        " hop - the one place that does
-        li_client->nav_app_leave( ).
-      WHEN z2ui5_if_ui5_types=>cs_event_window.
-        " the list binding of a windowed table wants more rows, or was sorted
-        " or filtered: the APP's event - the one window_bind_tab( ) named -
-        " with the request as get( )-r_event_data. The app loads the rows;
-        " the framework only hands the request over (z2ui5_cl_ui5_srv_window)
-        DATA(ls_window) = z2ui5_cl_ui5_srv_window=>request( mo_action->ms_actual-t_event_arg ).
-        mo_action->ms_actual-event = z2ui5_cl_ui5_srv_window=>event( mo_action->ms_actual-t_event_arg ).
-        mo_action->ms_actual-t_event_arg = VALUE #( ( ls_window-reason )
-                                                    ( |{ ls_window-skip }| )
-                                                    ( |{ ls_window-top }| ) ).
-        mo_action->ms_actual-r_data = z2ui5_cl_ui5_util_context=>conv_copy_ref_data( ls_window ).
-        li_app->main( li_client ).
-      WHEN OTHERS.
-        li_app->main( li_client ).
-    ENDCASE.
+    " exceptions from main( ) are intentionally not caught here - they bubble up
+    " to the single top-level catch in z2ui5_cl_ui5_http_handler=>_main( ), which
+    " turns them into a 500 response carrying the exception text
+    IF mo_action->ms_actual-event = z2ui5_if_ui5_types=>cs_event_nav_app_leave.
+      " no popup/popover teardown is queued here: the standalone slots die on
+      " every app switch anyway - implicitly on the frontend whenever the
+      " response names another app (View1), and through prepare_app_stack for
+      " the one hop the frontend cannot see, to another instance of the SAME
+      " class. Queuing it here on top only made the back-navigation response
+      " carry two destroy actions the frontend had already done itself
+      li_client->nav_app_leave( ).
+    ELSE.
+      li_app->main( li_client ).
+    ENDIF.
 
     IF mo_action->mo_app->mv_check_sticky = abap_false.
       z2ui5_cl_ui5_util_context=>db_rollback( ).
@@ -1405,7 +1092,7 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
     " parsed and saved twice. A leave with nowhere to go is the end of the
     " roundtrip instead; check_app_prev_stack( ) is the question an app with
     " a back button asks first. The intent stays recorded on ms_next (the
-    " popups of the extension repository assert on it), only the hop is not taken
+    " shipped src/99 popups assert on it), only the hop is not taken
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL
         AND mo_action->ms_next-o_app_leave = mo_action->mo_app->mo_app
         AND mo_action->mo_app->ms_draft-id_prev_app_stack IS INITIAL.
@@ -1416,149 +1103,12 @@ CLASS z2ui5_cl_ui5_handler IMPLEMENTATION.
       mo_action = mo_action->factory_stack_leave( ).
 
     ELSEIF mo_action->ms_next-o_app_call IS NOT INITIAL.
-      " this app answers nothing in this roundtrip: a bound value its main( )
-      " changed right before the hop would never reach the client. Remember
-      " it on the app - the draft prepare_app_stack saves carries it - so the
-      " roundtrip that brings the user back pushes the model
-      IF mo_action->mo_app->model_snapshot_changed( mt_model_before ) = abap_true.
-        mo_action->mo_app->mv_model_client_stale = abap_true.
-      ENDIF.
       mo_action = mo_action->factory_stack_call( ).
 
     ELSE.
       main_end( ).
       check_go_client = abap_true.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD monitor_clock.
-
-    IF mi_monitor IS BOUND.
-      result = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD monitor_notify.
-
-    IF mi_monitor IS NOT BOUND.
-      RETURN.
-    ENDIF.
-
-    " Everything below is guarded, and the monitor's own call above all: this
-    " runs inside the CATCH block of main( ) too, where a raise would replace
-    " the error report, and a monitor must never break a roundtrip - it fails
-    " open, see z2ui5_cl_ui5_srv_monitor=>get_monitor
-    TRY.
-        " on the error path the app's LUW has already been rolled back by
-        " the CATCH in main( ) (for an app that is not sticky), so a monitor
-        " that commits its log entry commits nothing of the app
-        DATA(ls_roundtrip) = monitor_roundtrip( ix_error ).
-        mi_monitor->on_roundtrip( ls_roundtrip ).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD monitor_roundtrip.
-
-    DATA(lv_now) = z2ui5_cl_ui5_util_context=>time_get_timestampl( ).
-
-    result = monitor_request_info( ).
-    result-timestampl    = ms_monitor_time-start.
-    result-bytes_request = strlen( mv_request_json ).
-    monitor_durations( EXPORTING iv_now       = lv_now
-                       CHANGING  cs_roundtrip = result ).
-
-    IF ix_error IS NOT BOUND.
-      " the response of THIS request - on the error path a sticky handler
-      " still holds the previous one's, which is why nothing reads it there
-      result-app            = ms_response-s_front-app.
-      result-draft_id       = ms_response-s_front-id.
-      result-bytes_response = strlen( mv_response ).
-      IF ms_response-model IS NOT INITIAL AND ms_response-model <> `{}`.
-        result-bytes_model = strlen( ms_response-model ).
-      ENDIF.
-      RETURN.
-    ENDIF.
-
-    result-check_error = abap_true.
-    result-error_text  = z2ui5_cx_ui5_util_error=>get_text_full( ix_error ).
-
-    " the root cause is the innermost link - bounded like get_text_full's
-    " walk, so a chain that loops cannot hold the request
-    DATA(lx_root) = ix_error.
-    DO 50 TIMES.
-      IF lx_root->previous IS NOT BOUND.
-        EXIT.
-      ENDIF.
-      lx_root = lx_root->previous.
-    ENDDO.
-    result-error_class = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( lx_root ).
-
-  ENDMETHOD.
-
-  METHOD monitor_request_info.
-
-    result-uname = z2ui5_cl_ui5_util_context=>sy_get( )-uname.
-
-    " the same guards as request_context_info: the request may have died
-    " before any of this existed, and before THIS body was parsed a sticky
-    " handler still holds the previous roundtrip's action. The client-
-    " controlled values are capped like there
-    IF mv_request_parsed = abap_true.
-      result-event          = context_info_cap( ms_request-s_front-event ).
-      result-draft_id_prev  = context_info_cap( ms_request-s_front-id ).
-      result-check_start    = xsdbool( ms_request-s_front-id IS INITIAL ).
-      result-ms_client_prev = ms_request-s_front-ms_client_prev.
-    ENDIF.
-
-    IF mo_action IS NOT BOUND.
-      RETURN.
-    ENDIF.
-    IF mo_action->mo_app IS NOT BOUND.
-      RETURN.
-    ENDIF.
-
-    " read before the parse check on purpose: on an unparsed body of a
-    " sticky session the app it holds still owns the LUW - which is what
-    " monitor_notify and the implementation decide by
-    result-check_sticky = mo_action->mo_app->mv_check_sticky.
-
-    IF mv_request_parsed = abap_true AND mo_action->mo_app->mo_app IS BOUND.
-      result-app = z2ui5_cl_ui5_util_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD monitor_durations.
-
-    cs_roundtrip-ms_total = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-start
-                                                                              time_to    = iv_now ).
-
-    IF ms_monitor_time-loaded IS INITIAL.
-      cs_roundtrip-ms_load = cs_roundtrip-ms_total.
-      RETURN.
-    ENDIF.
-
-    cs_roundtrip-ms_load = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-start
-                                                                             time_to    = ms_monitor_time-loaded ).
-
-    IF ms_monitor_time-render_start IS INITIAL.
-      cs_roundtrip-ms_main = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-loaded
-                                                                               time_to    = iv_now ).
-      RETURN.
-    ENDIF.
-
-    cs_roundtrip-ms_main = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-loaded
-                                                                             time_to    = ms_monitor_time-render_start ).
-
-    DATA(lv_render_end) = COND #( WHEN ms_monitor_time-render_end IS INITIAL
-                                  THEN iv_now
-                                  ELSE ms_monitor_time-render_end ).
-    cs_roundtrip-ms_render = z2ui5_cl_ui5_util_context=>time_diff_milliseconds( time_from = ms_monitor_time-render_start
-                                                                               time_to    = lv_render_end ).
 
   ENDMETHOD.
 

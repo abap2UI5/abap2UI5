@@ -8,7 +8,7 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mo_app   TYPE REF TO object.
     DATA ms_draft TYPE z2ui5_cl_ui5_srv_draft=>ty_s_draft.
     " Hash routing mode of THIS app (z2ui5_if_client=>cs_nav_mode), set via
-    " follow_up_action( cs_event-hash_routing ). It lives on the app - and therefore in its
+    " follow_up_action( cs_event-set_nav_routing ). It lives on the app - and therefore in its
     " draft - rather than on the session, so it is re-sent with every response
     " of this app: an app configures routing ONCE (in check_on_init, the way a
     " UI5 app configures it once in the manifest) instead of re-asserting it on
@@ -17,13 +17,13 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_nav_mode TYPE string.
 
     " Whether THIS app wants its draft id carried in the URL hash
-    " (z2ui5-xapp-state), set via client->app_state_set_active( ) or
-    " follow_up_action( cs_event-app_state_set_active ). On the app - and
+    " (z2ui5-xapp-state), set via client->set_app_state_active( ) or
+    " follow_up_action( cs_event-set_app_state_active ). On the app - and
     " therefore in its draft - for the same reason as mv_nav_mode above, and
     " it has to be: the intent is re-asserted on every response, but
     " ms_next-s_nav is per-request (z2ui5_cl_ui5_handler=>main clears it) and
     " the frontend reads a missing setAppStateActive as "clear the hash"
-    " (bundle/webapp/core/Router.js). Held only on ms_next, the flag survived
+    " (app/webapp/core/Router.js). Held only on ms_next, the flag survived
     " exactly one response: opening a bookmarked app-state URL restored the
     " draft, and the first button click then wiped z2ui5-xapp-state from the
     " address bar - the bookmark stopped tracking the app it was made for.
@@ -50,34 +50,20 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     DATA mv_check_sticky      TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
 
-    " automatic model update: set when main( ) changed a bound value and the
-    " roundtrip then LEFT this app without a response of its own - a
-    " nav_app_call ends the dispatch iteration in factory_stack_call, and
-    " the change is never pushed. The next roundtrip this app answers
-    " (coming back from the called app) pushes the model even when its own
-    " main( ) changed nothing; main_end clears it with every display or
-    " push. It replaces the digest of the client model that used to live
-    " here (mv_model_client_hash, dropped 2026-10 - a draft written before
-    " carries a surplus element and does not deserialize any more, the same
-    " one-time break as the type_name note in z2ui5_if_ui5_types): the
-    " pre-main( ) snapshot is a copy of the bound values now
-    " (z2ui5_cl_ui5_srv_model=>main_snapshot), cheap enough to take on every
-    " roundtrip, so nothing about the client model has to survive a draft
-    " except this one bit
-    DATA mv_model_client_stale TYPE abap_bool.
-
-    " The windowed tables of the app as the last draft carried them - their
-    "! the pre-main( ) snapshot of the bound values - see
-    "! z2ui5_cl_ui5_srv_model=>main_snapshot
-    METHODS model_snapshot
-      RETURNING
-        VALUE(result) TYPE z2ui5_cl_ui5_srv_model=>ty_t_snapshot.
-
-    METHODS model_snapshot_changed
-      IMPORTING
-        snapshot      TYPE z2ui5_cl_ui5_srv_model=>ty_t_snapshot
-      RETURNING
-        VALUE(result) TYPE abap_bool.
+    " The model exactly as the client is left holding it after this app's
+    " last response - the full JSON string (`{}` for an empty model), or
+    " INITIAL when unknown: a fresh app, a draft written before this
+    " attribute existed, or an incoming model delta that invalidated it
+    " (z2ui5_cl_ui5_action=>factory_by_frontend). It lives on the app - and
+    " therefore in its draft - so the next roundtrip reuses it as the
+    " pre-main( ) snapshot instead of serializing the whole model a second
+    " time (z2ui5_cl_ui5_handler=>main_process / main_end). Staleness leans
+    " one way only: a value that no longer matches re-serialization causes
+    " at most one redundant model push - it can never suppress a push the
+    " client needs, because it is only ever written to what the client was
+    " actually left holding, and cleared the moment incoming deltas touch
+    " the state it describes.
+    DATA mv_model_client TYPE string.
 
     "! Refresh z2ui5_if_app~id_draft on the wrapped app. Not a courtesy: it is
     "! the handle db_load_by_app( ) resolves an app reference by, so it has to
@@ -94,13 +80,9 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
     "! stored on this object on purpose: this object is serialized into the
     "! draft, and a trace that outlived its roundtrip would be handed to the
     "! app again after the next restore.
-    "! iv_path is the node of io_model the attributes sit below - the MODEL
-    "! path of a request tree (ty_s_request-model_path), or nothing when
-    "! io_model is the model itself
     METHODS model_json_parse
       IMPORTING
         io_model      TYPE REF TO z2ui5_if_ajson
-        iv_path       TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE z2ui5_if_client=>ty_t_model_skip.
 
@@ -113,22 +95,6 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
         !xml          TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_app_cont.
-
-    "! The serializer the framework uses. Without set_serializer( ) this
-    "! answers a fresh z2ui5_cl_ui5_serializer on every call - the asXML
-    "! round trip that has always run here - so a system that installs
-    "! nothing behaves identically.
-    CLASS-METHODS get_serializer
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_ui5_serializer.
-
-    "! Install a host's own serializer. Meant for a runtime that is not an
-    "! SAP system, where CALL TRANSFORMATION id over a type descriptor has no
-    "! counterpart, and for tests. An unbound reference restores the default.
-    "! @parameter serializer | the implementation to use from now on
-    CLASS-METHODS set_serializer
-      IMPORTING
-        serializer TYPE REF TO z2ui5_if_ui5_serializer.
 
     TYPES:
       BEGIN OF ty_s_buffer,
@@ -158,11 +124,6 @@ CLASS z2ui5_cl_ui5_app_cont DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
-    " Unbound unless a host installed one. Deliberately NOT pre-filled: the
-    " shipped serializer holds no state, and answering a fresh one keeps the
-    " previous inline semantics exactly.
-    CLASS-DATA gi_serializer TYPE REF TO z2ui5_if_ui5_serializer.
-
     METHODS create_model
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_srv_model.
@@ -181,29 +142,59 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
-    result ?= get_serializer( )->parse( xml ).
-
-  ENDMETHOD.
-
-  METHOD get_serializer.
-
-    IF gi_serializer IS BOUND.
-      result = gi_serializer.
-      RETURN.
-    ENDIF.
-    result = NEW z2ui5_cl_ui5_serializer( ).
-
-  ENDMETHOD.
-
-  METHOD set_serializer.
-
-    gi_serializer = serializer.
+    z2ui5_cl_ui5_util_context=>xml_parse( EXPORTING xml = xml
+                                       IMPORTING any    = result ).
 
   ENDMETHOD.
 
   METHOD all_xml_stringify.
 
-    result = get_serializer( )->stringify( me ).
+    DATA(lo_model) = create_model( ).
+
+    DATA x_first TYPE REF TO cx_root.
+
+    TRY.
+        lo_model->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
+        " the live instance gets its references BACK, not a parsed copy: the
+        " same objects the save detached, one assignment each instead of one
+        " S-RTTI parse per reference (which is what a fresh container from
+        " the draft has to pay, and what this instance never has to)
+        lo_model->main_attri_reattach( ).
+        RETURN.
+      CATCH cx_root INTO x_first.
+        " main_attri_db_save_srtti detached the data references - put them
+        " back before the retry below, otherwise the second save would
+        " start from the half-cleared app state
+        lo_model->main_attri_reattach( ).
+    ENDTRY.
+
+    " the one retry that can turn out differently: rows rebuilt from the
+    " instance as it is NOW (a reference created after the last dissolve
+    " has no row, so its anonymous target went into the asXML and failed
+    " there), then saved and serialized again. A bare second stringify of
+    " the same rows used to sit here - what the first attempt refused, the
+    " same attempt refuses again
+    TRY.
+        lo_model->main_attri_refresh( ).
+        lo_model->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_ui5_util_context=>xml_stringify( me ).
+        lo_model->main_attri_reattach( ).
+        RETURN.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    " chain the FIRST serialization failure - it names the attribute/type
+    " that is not serializable and carries the source position of the
+    " transformation that gave up; the retries fail for the same root cause
+    " or a follow-up one.
+    " x_first is always bound here: the only path to this statement runs
+    " through the first CATCH, since every success above RETURNs
+    RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
+      EXPORTING
+        val      = |APP_SERIALIZATION_ERROR - the app state could not be serialized. | &&
+                   |Please check if all generic data references are public attributes of your class|
+        previous = x_first.
 
   ENDMETHOD.
 
@@ -238,23 +229,6 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    " the container this request already built for the draft, when its app
-    " IS the instance handed in. nav_app_leave( ) without a target resolves
-    " the caller through get_app( ), which parses the draft and buffers the
-    " container, and the stack hop then asked for the same draft again - the
-    " asXML parse of the caller's whole state twice per popup close and
-    " value-help return. The identity check is exactly what the comment
-    " below asks for: that container's references ARE restored against
-    " `app`, because `app` is the instance it deserialized. A buffered
-    " container around a DIFFERENT instance of the same id stays unusable
-    " here, as before
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf)
-         WITH TABLE KEY id = app->id_draft.
-    IF sy-subrc = 0 AND lr_buf->app->mo_app = app.
-      result = lr_buf->app.
-      RETURN.
-    ENDIF.
-
     result = draft_parse( app->id_draft ).
 
     " mo_app is assigned BEFORE the attribute load, and that ordering is the
@@ -268,18 +242,15 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
     " the same draft id hands back THIS object instead of parsing the draft a
     " second time into a second container - two containers for one draft mean
     " whoever reaches the other one mutates state nobody else sees.
-    " Never answered from an EXISTING buffer entry (beyond the identity case
-    " at the top): a container that came from db_load( ) has its attributes
+    " Only ever an insert: reading an EXISTING buffer entry here would be
+    " wrong, because a container that came from db_load( ) has its attributes
     " restored against the deserialized app, and this method's caller needs
     " them pointing at `app`. So the two loaders stay distinct in that
     " direction on purpose - do not "simplify" this into a buffer lookup.
-    " An entry for the id around ANOTHER instance is REPLACED, not kept: the
-    " stack now runs `app`, so that is what a later db_load( ) of the id has
-    " to answer, and a second hop to `app` finds it at the top instead of
-    " parsing the draft again. A plain INSERT used to fail on the unique key
-    " with sy-subrc 4 and nobody noticed - the stale container stayed
-    DELETE TABLE mt_buffer WITH TABLE KEY id = app->id_draft.
-    INSERT VALUE #( id  = app->id_draft
+    " mt_buffer has a UNIQUE KEY, so this insert is the whole "only if absent"
+    " logic: an id already in the buffer leaves the existing entry alone and
+    " sets sy-subrc = 4, which is the wanted outcome and not an error
+    INSERT VALUE #( id  = CONV string( app->id_draft )
                     app = result ) INTO TABLE mt_buffer.
 
   ENDMETHOD.
@@ -301,16 +272,16 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
       app_refresh_draft_id( ).
     ENDIF.
 
-    z2ui5_cl_ui5_srv_draft=>get_instance( )->create( draft = ms_draft
-                                           model_xml       = all_xml_stringify( ) ).
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
+    lo_db->create( draft     = ms_draft
+                   model_xml = all_xml_stringify( ) ).
 
   ENDMETHOD.
 
   METHOD model_json_parse.
 
     DATA(lo_model) = create_model( ).
-    lo_model->main_json_to_attri( model     = io_model
-                                  iv_prefix = iv_path ).
+    lo_model->main_json_to_attri( io_model ).
     result = lo_model->mt_skipped.
 
   ENDMETHOD.
@@ -321,21 +292,10 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD model_snapshot.
-
-    result = create_model( )->main_snapshot( ).
-
-  ENDMETHOD.
-
-  METHOD model_snapshot_changed.
-
-    result = create_model( )->main_snapshot_changed( snapshot ).
-
-  ENDMETHOD.
-
   METHOD draft_parse.
 
-    DATA(ls_db) = z2ui5_cl_ui5_srv_draft=>get_instance( )->read_draft( iv_id ).
+    DATA(lo_db) = NEW z2ui5_cl_ui5_srv_draft( ).
+    DATA(ls_db) = lo_db->read_draft( iv_id ).
     result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
@@ -343,7 +303,7 @@ CLASS z2ui5_cl_ui5_app_cont IMPLEMENTATION.
   METHOD create_model.
 
     result = NEW z2ui5_cl_ui5_srv_model( attri = mt_attri
-                                         app   = mo_app ).
+                                          app  = mo_app ).
 
   ENDMETHOD.
 ENDCLASS.
