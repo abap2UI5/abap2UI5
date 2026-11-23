@@ -63,8 +63,10 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
     " stops - an addon pulled half-activated took abap2UI5 down with a 500 on
     " every request (abap2UI5-addons/admin-cockpit, 2026-10-06). Only code
     " that is never called cannot do that, so without the switch the
-    " repository is not even asked. Asked on every call, so switching it off
-    " takes effect on the next roundtrip of a running sticky session too.
+    " repository is not even asked. Asked on every roundtrip (the answer is
+    " kept for the request it was given in, never across requests), so
+    " switching it off takes effect on the next roundtrip of a running
+    " sticky session too.
     IF check_switched_on( ) = abap_false.
       RETURN.
     ENDIF.
@@ -117,9 +119,13 @@ CLASS z2ui5_cl_ui5_srv_monitor IMPLEMENTATION.
 
     DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
 
+    " the request's POST config, which the CSRF gate of the HTTP handler
+    " has asked the exit for already - not a second call into customer code
+    " per roundtrip. Per request, so the switch still takes effect on the
+    " next one; outside a request every call asks
+    " (z2ui5_cl_ui5_user_exit=>config_http_post)
     TRY.
-        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
+        z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
         result = ls_config-check_monitor_active.
       CATCH cx_root.
         result = abap_false.

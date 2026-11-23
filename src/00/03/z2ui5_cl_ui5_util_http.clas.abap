@@ -989,11 +989,20 @@ CLASS z2ui5_cl_ui5_util_http IMPLEMENTATION.
 
   METHOD get_req_info.
 
+    " ~request_uri is read ONCE for the two fields taken from it: every
+    " header read is a dynamic call into the request object, and this
+    " method runs on every request. get_query( ) reads the header itself
+    " and stays for a caller that wants the query alone
+    DATA(lv_uri) = get_header_field( `~request_uri` ).
+
     result-body     = get_cdata( ).
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
-    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
-    result-query    = get_query( ).
+    result-t_params = z2ui5_cl_ui5_util_context=>url_param_get_tab( lv_uri ).
+    IF lv_uri CS `?`.
+      result-query = substring_after( val = lv_uri
+                                      sub = `?` ).
+    ENDIF.
 
   ENDMETHOD.
 

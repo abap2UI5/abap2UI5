@@ -128,8 +128,11 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
 
     " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
     " and set_response (security headers) need it; without the cache the user
-    " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
-    " after init_context( ), so the exit always sees the current request context.
+    " exit set_config_http_get( ) would run twice on every GET of the page.
+    " Reset where a request begins - main( ), or _main( ) when it is called
+    " directly - after init_context( ), so the exit always sees the current
+    " request context. Only the page fills it: every other response asks for
+    " the exit's headers alone (set_response_exit_headers).
     CLASS-DATA ss_config_http_get     TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
     CLASS-DATA sv_config_http_get_set TYPE abap_bool.
 
@@ -145,7 +148,22 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
     " again, and the ICF stack dumped with no body and no status; on a POST
     " the GET exit ran here for the first time, unguarded. A raising exit now
     " costs its headers, not the response.
+    " The page's response takes the headers from the config the page was
+    " built from. Every other response - a roundtrip, a bundle, a HEAD, an
+    " error - asks z2ui5_cl_ui5_user_exit=>security_headers( ), which does
+    " not assemble the page config where no exit could have changed it.
     METHODS set_response_exit_headers.
+
+    " What _main( ) does once the request is open: the verb decides, and
+    " one catch turns whatever is raised into a 500. main( ) opens the
+    " request itself - the CSRF gate asks the exit before anything is
+    " routed - and comes here directly; _main( ) is the same for a caller
+    " that hands over a request without a server object.
+    CLASS-METHODS _dispatch
+      IMPORTING
+        is_req        TYPE ty_s_http_req
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
 
     " The CSRF gate over THIS request: reads the headers the decision needs
     " and hands them to _check_csrf_rejected. Split off so the reads happen
@@ -260,7 +278,7 @@ CLASS z2ui5_cl_ui5_http_handler DEFINITION PUBLIC.
         VALUE(result) TYPE string.
 
     " The whole 500 response for an exception that reached one of the two
-    " top-level catches - main( ) and _main( ) share it. Everything it does is
+    " top-level catches - main( ), _main( ) and _dispatch( ) share it. Everything it does is
     " guarded, because it RUNS INSIDE A CATCH BLOCK and a raise there is not
     " caught by its own TRY: it would replace the error report with an
     " unhandled dump. Two things can fail here. Reading
@@ -352,12 +370,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD main.
 
-    " Outer top-level catch. _main( ) carries one of its own and is where a
+    " Outer top-level catch. _dispatch( ) carries one of its own and is where a
     " failing app lands, but three things run OUTSIDE it and used to be
     " unprotected: get_req_info( ), init_context( ) and the CSRF gate's call
     " into the user exit - arbitrary customer code. An exception in any of
     " them left the ICF stack to dump: no body, no status code and none of
-    " the security headers - the state the WHEN OTHERS branch of _main( )
+    " the security headers - the state the WHEN OTHERS branch of _dispatch( )
     " exists to prevent. set_response( ) sits after ENDTRY so it runs on both
     " paths; this TRY does not cover it, and its own call into the user exit
     " (the security headers) is guarded where it happens.
@@ -367,12 +385,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
         " z2ui5_cl_ui5_util_http (see ty_s_http_req above)
         MOVE-CORRESPONDING mo_server->get_req_info( ) TO ms_req.
 
-        " initialize the exit context and reset the per-request GET-config cache
-        " up front: the CSRF gate below already calls the user exit, and a
-        " rejected POST never reaches _main( ) - without this the exit would see
-        " the previous request's context and set_response( ) would emit the
-        " previous request's cached security headers ( _main( ) repeats both,
-        " harmlessly - they are idempotent )
+        " open the request - the exit context, and with it the per-request
+        " memo of the exit's POST config - and reset the per-request
+        " GET-config cache up front: the CSRF gate below already asks the
+        " user exit, and a rejected POST is never routed - without this the
+        " exit would see the previous request's context and set_response( )
+        " would emit the previous request's cached security headers. Once
+        " per request: the routing below is _dispatch( ), not _main( ),
+        " which would open the request a second time and make every reader
+        " behind the gate ask the exit again
         z2ui5_cl_ui5_user_exit=>init_context( ms_req ).
         CLEAR: ss_config_http_get, sv_config_http_get_set, sv_if_none_match.
 
@@ -391,14 +412,15 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
             " and the reply being opaque does not stop the call from executing.
             " The terminate also needs the `sap-terminate` header, which a
             " cross-origin page cannot add without a preflight - the gate is
-            " the first fence there all the same. Reading the config is cheap
-            " (get_instance is cached); check_csrf_active defaults to abap_true
-            " (seeded in z2ui5_cl_ui5_user_exit=>set_config_http_post), so a
-            " cross-origin request is rejected unless an app opts out via its
-            " own exit.
+            " the first fence there all the same. check_csrf_active defaults
+            " to abap_true (seeded in z2ui5_cl_ui5_user_exit=>
+            " set_config_http_post), so a cross-origin request is rejected
+            " unless an app opts out via its own exit. This is the request's
+            " one call into the exit's POST config: the monitor switch, the
+            " draft cleanup and the error response read the same answer
+            " (z2ui5_cl_ui5_user_exit=>config_http_post)
             DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-            DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-            lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
+            z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config_post ).
 
             IF check_csrf_rejected_request( ls_config_post ) = abap_true.
               ms_res = VALUE #( body          = `CSRF validation failed - cross-origin request rejected`
@@ -441,10 +463,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
               ms_res = VALUE #( status_code   = 200
                                 status_reason = `OK` ).
             ELSE.
-              ms_res = _main( ms_req ).
+              ms_res = _dispatch( ms_req ).
             ENDIF.
           WHEN OTHERS.
-            ms_res = _main( ms_req ).
+            ms_res = _dispatch( ms_req ).
         ENDCASE.
 
       CATCH cx_root INTO DATA(lx_fatal).
@@ -453,6 +475,10 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     ENDTRY.
 
     set_response( ).
+
+    " the request is answered: what the exit said for it is dropped here,
+    " not carried in a stateful session until the next request opens
+    z2ui5_cl_ui5_user_exit=>close_context( ).
 
   ENDMETHOD.
 
@@ -743,7 +769,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
     " The page for a caller that hands over no request - and with it no
     " path: without one nothing says where the page will be opened from, so
-    " it goes out without the bundle hint (_bundle_preload). _main( ) asks
+    " it goes out without the bundle hint (_bundle_preload). _dispatch( ) asks
     " _http_get_page with the path of the request it routes.
     result = _http_get_page( `` ).
 
@@ -880,7 +906,8 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " version constant and the embedded frontend's build hash alone
     " (_get_etag), never of the assembled page - so a browser that still
     " holds the current shell is answered right here, with a bodyless 304,
-    " and the ~700 KB concatenation of the preload below never runs.
+    " and the page below is not assembled (about 12 KB since it carries the
+    " embed control alone; about 700 KB while it carried the frontend).
     " set_response used to decide the 304 AFTER this method had built the
     " body and threw it away; the cache below is CLASS-DATA and never hits
     " on stateless ICF, so every reload and every FLP re-entry paid the
@@ -1184,8 +1211,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " computed once at generation time). It used to hash the assembled BODY
     " instead - the same guarantee, but paid per page load: the cache in
     " _http_get lives in CLASS-DATA and dies with the internal session, so on
-    " stateless ICF "once per cache fill" was every GET, ~700 KB through an
-    " interpreted byte loop before set_response could even decide on a 304.
+    " stateless ICF "once per cache fill" was every GET, and the body was
+    " ~700 KB then (it carried the frontend), through an interpreted byte
+    " loop before set_response could even decide on a 304.
     " The key is the exit config the body is built from (a few KB), and the
     " build hash carries what the body hash carried: a redeployed frontend
     " between releases changes the tag with the version constant unchanged.
@@ -1267,9 +1295,9 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
                                  v = lv_content_type ).
 
     " Ask the ICF runtime to gzip the response when the client accepts it.
-    " Every body this handler sends is text (the GET shell carries the whole
-    " embedded frontend, ~400KB; the POST roundtrip the model JSON), so this
-    " is a 70-85% transfer cut on installations whose ICM profile does not
+    " Every body this handler sends is text (the frontend bundle, about
+    " 354 KB; the GET page, about 12 KB; the POST roundtrip the model JSON),
+    " so this is a 70-85% transfer cut on installations whose ICM profile does not
     " compress already - and a no-op on ones that do. Dynamic on purpose:
     " if_http_response does not exist in the cloud language version (the
     " platform router compresses there, mo_response_onprem stays unbound), and
@@ -1350,14 +1378,19 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD set_response_exit_headers.
 
-    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config.
+    DATA lt_header TYPE z2ui5_if_client=>ty_t_name_value.
     TRY.
-        ls_config = config_http_get( ).
+        IF sv_config_http_get_set = abap_true.
+          " the page: the config it was built from is this request's
+          lt_header = ss_config_http_get-t_security_header.
+        ELSE.
+          lt_header = z2ui5_cl_ui5_user_exit=>security_headers( ).
+        ENDIF.
       CATCH cx_root ##NO_HANDLER.
         " a raising exit costs its headers, not the response
     ENDTRY.
 
-    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+    LOOP AT lt_header INTO DATA(ls_header).
       " a policy the exit sends as a header (the enforcing one or the
       " -Report-Only one) has to allow the shell's inline script by its hash
       " exactly like the meta tag - see _csp_add_script_hash
@@ -1373,7 +1406,7 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
   METHOD _http_post.
 
     " the request itself is intentionally not wrapped - exceptions bubble up
-    " to the single top-level catch in _main( ), which turns them into a 500.
+    " to the single top-level catch in _dispatch( ), which turns them into a 500.
     " Only the sticky-handler bookkeeping at the end has its own catch, which
     " must never turn an already successful response into a 500
     IF so_sticky_handler IS NOT BOUND.
@@ -1402,12 +1435,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " the sticky container holds an app) then ran against an app the
     " frontend never saw, with the state main( ) had left it in. The action
     " the request started with is put back and its queues cleared before
-    " the exception travels on to _main( )'s single catch; the app's own
+    " the exception travels on to _dispatch( )'s single catch; the app's own
     " state stays what main( ) made of it, like in any stateful ABAP session.
     " CLEANUP, not CATCH-and-RAISE: re-raising a variable typed cx_root is
     " "CX_STATIC_CHECK not caught or declared" for the extended check (the
     " static type could be one), while CLEANUP runs on the way out to the
-    " handler in _main( ) and lets the original exception pass untouched
+    " handler in _dispatch( ) and lets the original exception pass untouched
     DATA(lo_action_before) = lo_post->mo_action.
     TRY.
         MOVE-CORRESPONDING lo_post->main( ) TO result.
@@ -1442,15 +1475,35 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
 
   METHOD _main.
 
+    " A request without a server object - a test, a host that routes
+    " itself. Nobody opened it, so it is opened and closed here, exactly
+    " like main( ) does around its own routing; main( ) does not come
+    " through this method any more, or every request would be opened twice
+    " (init_context ran twice per request until then). The catch is for an
+    " init_context( ) that raises - _dispatch( ) has its own.
+    TRY.
+        z2ui5_cl_ui5_user_exit=>init_context( is_req ).
+        CLEAR: ss_config_http_get, sv_config_http_get_set.
+
+        result = _dispatch( is_req ).
+
+      CATCH cx_root INTO DATA(lx).
+        result = _error_response( val    = lx
+                                  method = is_req-method ).
+    ENDTRY.
+
+    z2ui5_cl_ui5_user_exit=>close_context( ).
+
+  ENDMETHOD.
+
+  METHOD _dispatch.
+
     " Single top-level catch for the whole request. The framework may raise
     " anywhere (e.g. a wrong app name in the URL -> CREATE OBJECT of an unknown
     " class in factory_first_start); any unhandled exception is turned into a
     " 500 whose body carries the exception text, so the frontend shows the real
     " reason instead of the SAP ICF 500 page, which suppresses that text.
     TRY.
-        z2ui5_cl_ui5_user_exit=>init_context( is_req ).
-        CLEAR: ss_config_http_get, sv_config_http_get_set.
-
         CASE is_req-method.
           WHEN `GET`.
             IF _is_devtools_request( is_req-t_params ) = abap_true.
@@ -1484,10 +1537,12 @@ CLASS z2ui5_cl_ui5_http_handler IMPLEMENTATION.
     " system/user context the full dump carries) is replaced by a generic
     " message instead of leaking to the client.
     " Default is abap_false -> the real reason is returned as before.
+    " The request's POST config, which the exit has usually answered
+    " already (the CSRF gate) - then this is no call into customer code at
+    " all. An exit that raised was not remembered and is asked again here.
     DATA(ls_config_post) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
     TRY.
-        DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-        lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config_post ).
+        z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config_post ).
       CATCH cx_root ##NO_HANDLER.
         " the exit is customer code and may be what failed in the first place.
         " Falling through leaves check_hide_error_details at its abap_false

@@ -4,10 +4,13 @@
 "! your own, in a package of your own, and abap2UI5 finds it and calls it -
 "! set_config_http_get on the initial page request - and once more per
 "! response for its t_security_header, which every response of the handler
-"! carries - set_config_http_post on every roundtrip after it. Neither is
-"! called exactly once: set_config_http_post runs up to three times per POST
-"! (the CSRF gate, the monitor switch, the error response), so both must be
-"! cheap and idempotent - read configuration, do not write state.
+"! carries - set_config_http_post on every roundtrip after it. The
+"! framework asks set_config_http_post once per request and hands the
+"! answer to everything that reads it (the CSRF gate, the monitor switch,
+"! the draft cleanup, the error response) - but an exit that raised is
+"! asked again, and a reader outside an HTTP request asks every time. So
+"! neither is promised to run exactly once, and both must be cheap and
+"! idempotent - read configuration, do not write state.
 "!
 "! The one exit interface. Its former name z2ui5_if_exit, with the same two
 "! methods and types, was deleted on 2026-11-17: an exit class written against

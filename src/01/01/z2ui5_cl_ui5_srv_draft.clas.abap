@@ -68,8 +68,7 @@ CLASS z2ui5_cl_ui5_srv_draft IMPLEMENTATION.
     " would pay for an index on TIMESTAMPL/UNAME on every click. Do not add
     " one, and do not "optimize" these statements around the missing index.
     DATA(ls_config) = VALUE z2ui5_if_ui5_exit=>ty_s_http_config_post( ).
-    DATA(lo_user_exit) = z2ui5_cl_ui5_user_exit=>get_instance( ).
-    lo_user_exit->set_config_http_post( CHANGING cs_config = ls_config ).
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
 
     " z2ui5_cl_ui5_user_exit=>set_config_http_post clamps the expiry into
     " 1 .. c_max_exp_time_in_hours - but a subclass installed with

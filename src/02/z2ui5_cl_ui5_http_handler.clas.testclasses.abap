@@ -684,6 +684,10 @@ CLASS ltcl_exit_stub DEFINITION FINAL FOR TESTING.
     " a customer exit whose GET config raises - the shape set_response has
     " to survive (test_exit_get_raises_answers)
     DATA mv_raise_get       TYPE abap_bool.
+    " how often the handler asked - once per request each
+    " (test_post_asks_exit_once)
+    DATA mv_calls_get       TYPE i.
+    DATA mv_calls_post      TYPE i.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -693,6 +697,7 @@ ENDCLASS.
 CLASS ltcl_exit_stub IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_get.
+    mv_calls_get = mv_calls_get + 1.
     IF mv_raise_get = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_ui5_util_error
         EXPORTING
@@ -702,6 +707,7 @@ CLASS ltcl_exit_stub IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_exit~set_config_http_post.
+    mv_calls_post = mv_calls_post + 1.
     cs_config-draft_exp_time_in_hours    = 4.
     cs_config-check_csrf_active          = abap_true.
     cs_config-check_trust_forwarded_host = mv_trust_forwarded.
@@ -824,6 +830,9 @@ CLASS ltcl_test_http_response DEFINITION FINAL
     METHODS test_ctxid_echoed            FOR TESTING RAISING cx_static_check.
     METHODS test_ctxid_absent_no_header  FOR TESTING RAISING cx_static_check.
     METHODS test_fwd_host_opt_out        FOR TESTING RAISING cx_static_check.
+    " a roundtrip asks the exit once per config, and nothing of the answer
+    " outlives the request
+    METHODS test_post_asks_exit_once     FOR TESTING RAISING cx_static_check.
     METHODS test_etag_equal_length       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_position_mix       FOR TESTING RAISING cx_static_check.
     METHODS test_etag_follows_cache_key  FOR TESTING RAISING cx_static_check.
@@ -1311,6 +1320,72 @@ CLASS ltcl_test_http_response IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = mo_mock->mv_status ).
+
+  ENDMETHOD.
+
+  METHOD test_post_asks_exit_once.
+
+    " One POST, one call into each of the exit's two methods. The POST
+    " config is read by the CSRF gate, the monitor switch, the draft cleanup
+    " of a first start and the error response - customer code that used to
+    " run for each of them; the GET config is asked for its headers. And
+    " per request: the next roundtrip asks again, so a switch the exit
+    " flips takes effect there, in a stateful session too.
+    DATA(lo_exit) = NEW ltcl_exit_stub( ).
+    lo_exit->mv_trust_forwarded = abap_true.
+    ltcl_exit_injector=>inject( lo_exit ).
+
+    " a monitor a host or an earlier test installed is parked: an installed
+    " monitor is not switched by the exit, and the switch is one of the
+    " readers counted here
+    DATA(li_monitor) = z2ui5_cl_ui5_srv_monitor=>get_monitor( ).
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( VALUE #( ) ).
+
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `POST`
+                                    body   = `{"value":{}}` ).
+    mo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 200
+                                        act = mo_mock->mv_status ).
+    " the CSRF gate asked; the monitor switch read its answer
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_exit->mv_calls_post ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lo_exit->mv_calls_get ).
+
+    " the request is closed with its response: a reader behind it - a
+    " caller that is not the HTTP handler - asks the exit itself
+    DATA ls_config TYPE z2ui5_if_ui5_exit=>ty_s_http_config_post.
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_exit->mv_calls_post ).
+
+    " the next request: asked again, once
+    handler_create( ).
+    mo_mock->ms_req_info = VALUE #( method = `POST`
+                                    body   = `{"value":{}}` ).
+    mo_handler->main( ).
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lo_exit->mv_calls_post ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lo_exit->mv_calls_get ).
+
+    " a request routed without a server object opens and closes itself -
+    " no CSRF gate there, the monitor switch is the one that asks
+    z2ui5_cl_ui5_http_handler=>_main( VALUE #( method = `POST`
+                                               body   = `{"value":{}}` ) ).
+    DATA(lv_calls_main) = lo_exit->mv_calls_post.
+    CLEAR ls_config.
+    z2ui5_cl_ui5_user_exit=>config_http_post( CHANGING cs_config = ls_config ).
+    DATA(lv_calls_after) = lo_exit->mv_calls_post.
+
+    z2ui5_cl_ui5_srv_monitor=>set_monitor( li_monitor ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 4
+                                        act = lv_calls_main ).
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = lv_calls_after ).
 
   ENDMETHOD.
 
